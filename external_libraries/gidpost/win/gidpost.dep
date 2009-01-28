@@ -1,0 +1,28 @@
+# Microsoft Developer Studio Generated Dependency File, included by gidpost.mak
+
+..\source\gidpost.cpp : \
+	"..\source\gidpost.h"\
+	"..\source\gidpostint.h"\
+	"..\source\zlib.h"\
+	
+
+..\source\gidpostfor.c : \
+	"..\cfortran\cfortran.h"\
+	"..\source\gidpost.h"\
+	
+
+..\source\gidpostInt.cpp : \
+	"..\source\gidpostint.h"\
+	"..\source\zlib.h"\
+	
+
+..\source\zlibint1.c : \
+	"..\source\zlib.h"\
+	"..\source\zlibint1.h"\
+	
+
+..\source\zlibint2.c : \
+	"..\source\zlib.h"\
+	"..\source\zlibint1.h"\
+	"..\source\zlibint2.h"\
+	

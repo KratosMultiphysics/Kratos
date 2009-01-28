@@ -1,0 +1,122 @@
+project StructuralApplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_conditions
+       custom_elements
+       custom_processes
+       custom_python
+       custom_strategies
+       custom_strategies/schemes
+       custom_utilities
+       external_includes
+       custom_external_libraries/tensor-cpp
+    :
+    requirements <include>. 
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+##lib intelomp  : : <name>guide <search>/opt/intel/cce/10.0.025/lib ;
+lib libgfortran 		: : <name>gfortran <search>/usr/lib ;
+lib libupcsoils : : <name>upcsoils <search>custom_external_libraries/upc_soil_model ;
+#lib libupcrocks : : <name>upcrocks <search>custom_external_libraries/upc_rock_model ;
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+
+alias sources_KratosStructuralApplication
+   :  
+	###################list of sources
+	rigid_body_3D.cpp
+	shell_anisotropic.cpp
+	beam_element.cpp
+	shell_anisotropic_linear.cpp
+	shell_isotropic.cpp
+	pointforce3D.cpp
+	node_tying_lagrange.cpp   
+	node_tying_lagrange_z.cpp
+	pointforce2D.cpp
+	linear_element.cpp
+	Hypoelastic_element.cpp
+	total_lagrangian.cpp
+	kinematic_linear.cpp
+	unsaturated_soils_element_2phase.cpp
+	unsaturated_soils_element_2phase_small_strain.cpp
+	unsaturated_soils_element_3phase.cpp
+	unsaturated_soils_element_3phase_small_strain.cpp	
+#upc_test_element.cpp
+	face2D.cpp 
+	face3D.cpp 
+        face_pressure3D.cpp
+	faceforce3D.cpp
+	hooks_law.cpp
+	external_isotropic_3d.cpp
+	Isotropic_Damage.cpp
+	Isotropic_Damage_3D.cpp
+	drucker_prager_law.cpp
+	isotropic_planestress_wrinkling.cpp
+	structural_application.cpp 
+        add_conditions_to_python.cpp
+        add_custom_strategies_to_python.cpp 
+	add_custom_utilities_to_python.cpp
+	add_custom_io_to_python.cpp
+	add_constitutive_laws_to_python.cpp 
+	structural_python_application.cpp 
+	isotropic_3d.cpp 
+	hyperelastic_3d.cpp 
+	hyperelastic_2d.cpp 
+	von_mises_3d.cpp
+	membrane_element.cpp 
+	isotropic_2d.cpp 
+	plane_strain.cpp
+	hypoelastic_2d.cpp
+	fluid_2d.cpp
+	external_isotropic_3d.cpp
+	drucker_prager_law.cpp
+	hooks_law.cpp
+	drucker_prager.cpp 
+	master_contact_face_3D.cpp 
+	slave_contact_face_3D.cpp 
+	contact_link_3D.cpp 
+	master_contact_face_3D_newmark.cpp 
+	slave_contact_face_3D_newmark.cpp 
+	contact_link_3D_newmark.cpp 
+#	isotropic_elastic_large_strain.cpp
+	bossak_auxiliaries.cpp
+#	tensor.cpp
+	add_custom_parallel_strategies_to_python.cpp 
+	crisfield_truss_element.cpp
+#	
+
+	#####################kratos library as defined in the jamroot
+ #   	/kratos-prj/kratos//libkratos/<link>static
+	/KratosProject//libkratos_static
+
+	#####################"system" includes as defined in the jamroot
+	/KratosProject//pythonlib
+	/KratosProject//boost_python_lib
+	/KratosProject//libomp
+    ;
+
+lib KratosStructuralApplicationStatic 
+	: 
+		sources_KratosStructuralApplication : <link>static
+	;
+
+import python ;
+python-extension KratosStructuralApplication 
+	: 
+		sources_KratosStructuralApplication 
+	;
+
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+install install : KratosStructuralApplicationStatic KratosStructuralApplication : <location>$(TOP)/libs ;

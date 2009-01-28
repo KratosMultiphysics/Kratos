@@ -1,0 +1,9 @@
+// Reading Properties
+PROPERTIES[1][TIME_STEPS] = 1;
+PROPERTIES[1][DELTA_TIME] = 1.000000;
+PROPERTIES[1][DENSITY] = 1900.000000; 
+PROPERTIES[1][YOUNG_MODULUS] = 8000000.000000;
+PROPERTIES[1][POISSON_RATIO] = 0.300000; 
+PROPERTIES[1][BODY_FORCE] = [      -75050,            0,            0];
+PROPERTIES[1][GRAVITY] = [       -39.5,            0,            0];
+//======================================================================

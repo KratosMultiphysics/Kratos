@@ -1,0 +1,104 @@
+path-constant TOP_PETSC : /usr/lib/petsc/ ;
+
+
+project PetscApplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_conditions
+       custom_elements
+       custom_processes
+       custom_python
+       custom_strategies
+       custom_utilities
+       external_includes
+    :
+    requirements <include>. 
+		<include>custom_external_libraries/
+		<include>/usr/include/mpi/
+		<include>/usr/include/petsc/
+		<include>/usr/include/petsc/bmake/linux-gnu-amd64-dual/
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+#path-constant TOP_PETSC : ./custom_external_libraries/petsc-2.3.3-p5 ;
+path-constant LIB_PETSC : /usr/lib/petsc/lib/libO_c++/ ;
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+lib libpetsc 		: : <name>petsc <search>$(LIB_PETSC) <link>static ;
+lib libpetscdm 		: : <name>petscdm <search>$(LIB_PETSC) <link>static ;
+lib libpetscmat 	: : <name>petscmat <search>$(LIB_PETSC) <link>static ;
+lib libpetsccontrib	: : <name>petsccontrib <search>$(LIB_PETSC) <link>static ;
+lib libpetscksp 	: : <name>petscksp <search>$(LIB_PETSC) <link>static ;
+lib libpetscsnes 	: : <name>petscsnes <search>$(LIB_PETSC) <link>static ;
+lib libpetscts 		: : <name>petscts <search>$(LIB_PETSC) <link>static ;
+lib libpetscvec 	: : <name>petscvec <search>$(LIB_PETSC) <link>static ;
+
+#lib libmpich		: : <name>mpich <search>$(TOP_PETSC)/externalpackages/mpich2-1.0.5p4/linux-gnu-amd64-dual/lib/ <link>static ;
+
+#lib libfblas		: : <name>fblas <search>$(TOP_PETSC)/externalpackages/fblaslapack/linux-gnu-amd64-dual/ <link>static ;
+
+#lib libflapack		: : <name>flapack <search>$(TOP_PETSC)/externalpackages/fblaslapack/linux-gnu-amd64-dual/ <link>static ;
+# lib libpetsc 		: : <name>petsc ;
+# lib libpetscdm 		: : <name>petscdm ;
+# lib libpetscmat 		: : <name>petscmat  ;
+# lib libpetsccontrib		: : <name>petsccontrib <search>/usr/lib/petscdir/2.3.2/lib/fast/ ;
+# lib libpetscksp 		: : <name>petscksp  ;
+# lib libpetscsnes 		: : <name>petscsnes  ;
+# lib libpetscts 		: : <name>petscts  ;
+# lib libpetscvec 		: : <name>petscvec  ;
+
+lib libmpich			: : <name>mpich <search>/usr/lib/mpich/lib/ ;
+
+lib libfblas			: : <name>blas ;
+
+lib libflapack			: : <name>lapack  ;
+
+lib libX11 			: : <name>X11 <search>/usr/lib64 ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+python-extension KratosPetscApplication
+    :  
+		add_petsc_linear_solvers_to_python.cpp
+		petsc_application.cpp
+		petsc_python_application.cpp
+
+	/kratos-prj/kratos//libkratos/<link>static
+
+	 libpetsc/<link>static  		
+	 libpetscdm/<link>static 		
+	 libpetscmat/<link>static 		
+#	 libpetsccontrib/<link>static	
+	 libpetscksp/<link>static 		
+	 libpetscsnes/<link>static 		
+	libpetscts/<link>static 		
+	libpetscvec/<link>static		
+
+	libmpich/<link>static	
+
+	libfblas/<link>static	
+	libflapack/<link>static	
+
+	libX11/<link>static	
+
+
+        #/kratos-prj/kratos//libkratos/<link>static
+		/KratosProject//libkratos_static
+
+
+		/KratosProject//pythonlib
+		/KratosProject//boost_python_lib
+#		: <tag>@tag
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+
+install install : KratosPetscApplication : <location>$(TOP)/libs ;

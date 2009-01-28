@@ -1,0 +1,164 @@
+using gcc ;
+using intel : : : <cxxflags>"-fPIC -ansi -funroll-loops -cxxlib-gcc -openmp -wd654 -wd10010" <cflags>"-fPIC -funroll-loops -cxxlib-gcc -openmp -wd654 -wd10010" ;
+##using msvc ;
+using python ; 
+
+##decomment and specify compiler to use MPI
+##using mpi : /opt/openmpi/1.2.4/bin/mpiCC ;
+
+
+
+#################################################################################
+## defining "common includes" and external libraries
+path-constant TOP : . ;
+
+#path to the boost library -- FUNDAMENTAL --- ATTENTION: it is IMPORTANT to set to the directory FROM WHICH the boost was installed
+path-constant BOOST_LIB_DIR :  /usr/lib/ ; 
+path-constant BOOST_INCLUDE_DIR :  /usr/include/ ; 
+
+##decomment and modify for parallel
+##path-constant MPI_LIB_DIR : /usr/lib/openmpi/lib/ ;
+##path-constant MPI_INCLUDE_DIR : /usr/lib/openmpi/include/ ;
+##path-constant TRILINOS_LIB_DIR : /compiled_libraries/trilinos-9.0.1/lib/ ;
+##path-constant TRILINOS_INCLUDE_DIR : /compiled_libraries/trilinos-9.0.1/include/ ;
+##path-constant METIS_LIB_DIR : /usr/lib/ ;
+##path-constant METIS_INCLUDE_DIR : /usr/include/ ;
+
+##path to the mkl library (STRICTLY OPTIONAL)
+##path-constant MKL_INCLUDE_DIR : /opt/intel/mkl/10.0.1.014/include/ ;
+##path-constant MKL_LIB_DIR : /opt/intel/mkl/10.0.1.014/lib/ ;
+
+project KratosProject 
+	:
+	#############################################################################
+	############### TO BE CUSTOMARIZED -- LINUX VERSION EXAMPLE!! ###############
+	requirements 	<include>$(BOOST_INCLUDE_DIR)          #to be customarized 
+			<include>/usr/include/python2.5/        #to be customarized 
+			<include>$(TOP)/kratos
+			<include>$(TOP)/external_libraries
+	#############################################################################
+
+	#############################################################################
+	############### TO BE CUSTOMARIZED -- WINDOWS VERSION EXAMPLE!! ###############
+	##requirements <include>"C:/Archivos de programa/boost/boost_1_34_1/"    #to be customarized
+	##		 <include>"C:/Python25/include"                                #to be customarized 
+      ##         <include>$(TOP)/kratos
+	##	     <include>$(TOP)/external_libraries
+	#############################################################################	
+
+		     ##omptl - necessary for parallelism
+		     <include>$(TOP)/external_libraries/omptl
+			
+			#basic configurations
+		     <threading>multi
+		     <define>NDEBUG
+##		     <toolset>intel:<define>_GCC_LIMITS_H_
+
+			 #compiler settings - can be customarized by the user
+			 #WARNING -fPIC is NEEDED to compile on 64bit systems - it has to be specified here in order to include it in the 
+			 #kratos "static" library
+			 <warnings>on
+
+			 #gcc settings
+			<toolset>gcc:<cflags>"-fPIC -funroll-loops" ##settings for external libraries
+ 			<toolset>gcc:<cxxflags>"-fPIC -ansi -funroll-loops -ffast-math -Wno-unknown-pragmas" 
+
+			#msvc settings
+			<toolset>msvc:<linkflags>"/NODEFAULTLIB:libcmt"
+			<toolset>msvc:<cxxflags>"/D_SCL_SECURE_NO_DEPRECATE  /wd4335"
+
+			#intel settings
+		##	<toolset>intel:<cxxflags>"-fPIC -ansi -funroll-loops -ffast-math" 
+	: 
+		     default-build release
+	;
+
+#################################################################################
+## defining "common external libraries" 
+## the user should adapt this depending on the installations directories on his system
+
+#############################################################################
+############### TO BE CUSTOMARIZED -- LINUX VERSION EXAMPLE!! ###############
+lib pythonlib : : <name>python2.5 ; 
+lib boost_python_lib : : <variant>debug <name>boost_python-mt-d <search>$(BOOST_LIB_DIR) ;    
+lib boost_python_lib : : <variant>release <name>boost_python-mt <search>$(BOOST_LIB_DIR) ;    
+##lib boost_python_lib : : <variant>debug <name>boost_python-gcc-mt-d-1_34_1 ;   
+##lib boost_python_lib : : <variant>release <name>boost_python-gcc-mt-1_34_1 ;   
+lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/unix/release ;
+#############################################################################
+
+#############################################################################
+############### TO BE CUSTOMARIZED -- WINDOWS VERSION EXAMPLE!! ###############
+##lib pythonlib : : <name>python25 <search>"C:/Python25/libs"  ; 
+##lib boost_python_lib : : <variant>release <name>boost_python-vc80-mt-1_34_1 <search>"C:/Archivos de programa/boost/boost_1_34_1/lib" ;   
+##lib boost_python_lib : : <variant>debug <name>boost_python-vc80-mt-gd-1_34_1 <search>"C:/Archivos de programa/boost/boost_1_34_1/lib" ;   
+##lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/win/Release/ ; 
+#############################################################################
+
+#intel omp library...
+lib intelomp  : : <name>guide  ; 
+
+#ATTENTION: "this requires adding threading=multi to the bjam call"
+alias libomp : intelomp : <toolset>intel ;
+alias libomp : : <toolset>gcc ;
+alias libomp : : <toolset>msvc ;
+
+## MPI LIBRARIES - comment out if using mpi is not required
+##lib mpilibrary : : <name>mpi <search>$(MPI_LIB_DIR) ;
+##lib mpilibrary_cpp : : <name>mpi_cxx <search>$(MPI_LIB_DIR) ;
+
+
+
+#################################################################################
+# IN PRINCIPLE THIS SHOULD REQUIRE NO CUSTOMARIZATION .. apart for compiling new applications
+## defining "ids" for the different projects
+use-project /kratos-prj : . ;
+
+##kratos base library and python interfaces
+use-project /kratos-prj/kratos : kratos ; 
+
+##applications included in the compilation
+use-project /kratos-prj/PFEMapplication : $(TOP)/applications/PFEMapplication ;
+use-project /kratos-prj/incompressible_fluid_application : $(TOP)/applications/incompressible_fluid_application ;
+use-project /kratos-prj/structural_application : $(TOP)/applications/structural_application ;
+use-project /kratos-prj/convection_diffusion_application : $(TOP)/applications/convection_diffusion_application ;
+use-project /kratos-prj/ExternalSolversApplication : $(TOP)/applications/ExternalSolversApplication ;
+use-project /kratos-prj/ULFapplication : $(TOP)/applications/ULFapplication ;
+use-project /kratos-prj/ALEapplication : $(TOP)/applications/ALEapplication ;
+use-project /kratos-prj/FSIapplication : $(TOP)/applications/FSIapplication ;
+use-project /kratos-prj/MeshingApplication : $(TOP)/applications/MeshingApplication ;
+##use-project /kratos-prj/Qcompressible_fluid_application : $(TOP)/applications/Qcompressible_fluid_application ;
+
+## REQUIRES METIS TO BE INSTALLED
+##use-project /kratos-prj/MetisApplication : $(TOP)/applications/metis_application ;
+
+## REQUIRES TRILINOS TO BE INSTALLED
+##use-project /kratos-prj/TrilinosApplication : $(TOP)/applications/trilinos_application ;
+
+## MKL solvers: will not be compiled by default ###################################################
+## this requires intel MKL library (v. 10.0.1.014) installed properly on your system ##############
+#use-project /kratos-prj/mkl_solvers_application : $(TOP)/applications/mkl_solvers_application ;
+###################################################################################################
+
+alias libkratos_static : /kratos-prj/kratos//libkratos/<link>static ;
+
+#################################################################################
+## installation
+alias install :
+		/kratos-prj//kratos 
+		/kratos-prj/PFEMapplication//install
+		/kratos-prj/incompressible_fluid_application//install
+		/kratos-prj/structural_application//install
+		/kratos-prj/convection_diffusion_application//install
+		/kratos-prj/ExternalSolversApplication//install
+		/kratos-prj/ULFapplication//install
+		/kratos-prj/ALEapplication//install
+		/kratos-prj/MeshingApplication//install
+#		/kratos-prj/FSIapplication//install
+#		/kratos-prj/mkl_solvers_application//install
+##         	/kratos-prj/Qcompressible_fluid_application//install
+##		/kratos-prj/MetisApplication//install
+##		/kratos-prj/TrilinosApplication//install
+		;
+ 
+ECHO $(TOP) ;

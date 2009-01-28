@@ -1,0 +1,50 @@
+//   
+//   Project Name:        Kratos       
+//   Last Modified by:    $Author: pooyan $
+//   Date:                $Date: 2006-11-27 16:07:33 $
+//   Revision:            $Revision: 1.1.1.1 $
+//
+//
+
+
+
+// System includes
+
+
+// External includes 
+
+
+// Project includes
+#include "includes/define.h"
+#include "kratos_compressible_fluid_application.h"
+
+
+namespace Kratos
+{
+
+  // Creating variables here
+//   KRATOS_CREATE_VARIABLE(type, VARIABLE_NAEM )
+
+      void KratosApplicationNameApplication::Register()
+	{
+	  std::cout << "Initializig KratosApplicationNameApplication... " << std::endl;
+
+	  // Registering variables here
+// 	  KRATOS_REGISTER_VARIABLE(VARIABLE_NAEM);
+
+	  // Registering elements and conditions here
+// 	  KRATOS_REGISTER_ELEMENT("ApplicationElementName", msApplicationElement);
+// 	  KRATOS_REGISTER_CONDITION("ApplicationConditionName", msApplicationCondition);
+
+	}
+      
+      
+  // Initializing static members
+//   const ApplicationElement  KratosApplicationNameApplication::msApplicationElement(arguments...);
+//   const ApplicationCondition  KratosApplicationNameApplication::msApplicationElement(arguments...); 
+
+  
+  
+}  // namespace Kratos.
+
+

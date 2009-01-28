@@ -1,0 +1,9 @@
+This directory contains the compilation of the library with MSVC 6.0
+
+msvc-6/shared-multi: dll multi-threaded
+
+msvc-6/shared-single: dll single-threaded
+
+msvc-6/static-multi: static lib multi-threaded
+
+msvc-6/static-single: static lib single-threaded
