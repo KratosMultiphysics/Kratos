@@ -1,0 +1,81 @@
+// Copyright (C) 2006 Fokko Beekhof
+// Email contact: Fokko.Beekhof@cui.unige.ch
+
+// The OMPTL library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+#ifndef OMPTL_NUMERIC
+#define OMPTL_NUMERIC
+
+#include <numeric>
+
+#ifndef OMPTL_OFF
+
+#include <utility>
+#include <functional>
+
+#include <omptl>
+
+namespace omptl
+{
+
+/*
+ * Note: implementation assumes T(0) will return a T representing zero.
+ */
+template <class InputIterator, class T>
+T accumulate(InputIterator first, InputIterator last, T init,
+		unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class T, class BinaryFunction>
+T accumulate(InputIterator first, InputIterator last, T init,
+             BinaryFunction binary_op =
+			::std::plus<typename InputIterator::value_type>(),
+		unsigned int P = omp_get_max_threads());
+
+/*
+ * Not (yet) paralellized due to data dependance.
+ */
+template <class InputIterator, class OutputIterator, class BinaryFunction>
+OutputIterator adjacent_difference(InputIterator first, InputIterator last,
+                                   OutputIterator result,
+                                   BinaryFunction binary_op =
+			::std::minus<typename InputIterator::value_type>(),
+				   unsigned int P = omp_get_max_threads());
+
+template <class InputIterator1, class InputIterator2, class T,
+          class BinaryFunction1, class BinaryFunction2>
+T inner_product(InputIterator1 first1, InputIterator1 last1,
+                InputIterator2 first2, T init,
+		BinaryFunction1 binary_op1 =
+		    ::std::plus<typename InputIterator1::value_type>(),
+		BinaryFunction2 binary_op2 =
+		    ::std::multiplies<typename InputIterator2::value_type>(),
+		unsigned int P = omp_get_max_threads());
+
+// Not paralellized due to dependencies and complications with OutputIterators.
+template <class InputIterator, class OutputIterator,
+	  class BinaryOperation>
+OutputIterator partial_sum(InputIterator first, InputIterator last,
+                           OutputIterator result,
+			   BinaryOperation binary_op =
+			     ::std::plus<typename InputIterator::value_type>(),
+			   unsigned int P = omp_get_max_threads());
+
+} // namespace omptl
+
+#include <omptl_numeric.h>
+
+#endif /* OMPTL_OFF */
+
+#endif /* OMPTL_NUMERIC */

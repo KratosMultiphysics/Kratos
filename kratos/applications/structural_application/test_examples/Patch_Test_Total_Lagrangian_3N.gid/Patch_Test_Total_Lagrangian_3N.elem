@@ -1,0 +1,21 @@
+// Reading Elements
+
+ElementsGroup = structural_group;
+
+ELEMENTS[1] = TotalLagrangian2D3N([11,9,8],1);
+ELEMENTS[2] = TotalLagrangian2D3N([8,9,7],1);
+ELEMENTS[3] = TotalLagrangian2D3N([11,8,10],1);
+ELEMENTS[4] = TotalLagrangian2D3N([10,8,7],1);
+ELEMENTS[5] = TotalLagrangian2D3N([7,3,1],1);
+ELEMENTS[6] = TotalLagrangian2D3N([10,7,1],1);
+ELEMENTS[7] = TotalLagrangian2D3N([4,3,6],1);
+ELEMENTS[8] = TotalLagrangian2D3N([6,3,7],1);
+ELEMENTS[9] = TotalLagrangian2D3N([4,6,9],1);
+ELEMENTS[10] = TotalLagrangian2D3N([6,7,9],1);
+ELEMENTS[11] = TotalLagrangian2D3N([9,11,4],1);
+ELEMENTS[12] = TotalLagrangian2D3N([5,4,11],1);
+ELEMENTS[13] = TotalLagrangian2D3N([3,4,2],1);
+ELEMENTS[14] = TotalLagrangian2D3N([2,4,5],1);
+ELEMENTS[15] = TotalLagrangian2D3N([3,2,1],1);
+ELEMENTS[16] = TotalLagrangian2D3N([1,2,5],1);
+

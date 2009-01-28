@@ -1,0 +1,946 @@
+<html>
+<head>
+<title>gidpost</title>
+</head>
+<body>
+
+<h2>GiDpost: <br>a C / C++ / Fortran library to create postprocess files for GiD</h2>
+<P></P>
+<ul>
+  <li> <font face="Arial, Helvetica, sans-serif">
+      <a href="#GIDPOST_INTRODUCTION">Introduction</a>
+  </font></li>
+  <li> <font face="Arial, Helvetica, sans-serif">
+      <a href="#GIDPOST_COMPILING">Compiling</a>
+   </font></li>
+  <li> <font face="Arial, Helvetica, sans-serif">
+      <a href="#GIDPOST_USING">Using the library</a>
+   </font></li>
+  <li> <font face="Arial, Helvetica, sans-serif">
+      <a href="#GIDPOST_REFERENCE">Functions references</a>: 
+          ( <a href="#GIDPOST_REF_MESH">Mesh file functions</a>, 
+            <a href="#GIDPOST_REF_RES">Results file functions</a>)
+   </font></li>
+  <li> <font face="Arial, Helvetica, sans-serif">
+      <a href="ftp://gid.cimne.upc.es/pub/gid/Tools/gidpost1.70.zip">Download the library</a>
+   </font></li>
+</ul>
+
+
+<p>&nbsp;</p>
+<table width="99%" border="0" cellspacing="0" cellpadding="10" bgcolor="#ECECEC">
+  <tr> 
+    <td> 
+      <a name="GIDPOST_INTRODUCTION"></a>
+      <P class="subtitol"><h2>Introduction</h2></P>
+    </td>
+  </tr>
+</table>
+
+<p align="left">
+<b>gidpost</b> is a set of functions (library) for writing postprocess results for GiD in ASCII or binary format.
+GiD version 6.1.4b or higher is required to read the ASCII postprocess files.
+GiD version 7.2 or higher is required to read the binaries postprocess files.</p>
+<p align="left">This software is copyrighted by CIMNE
+<a href="mailtol:gid@cimne.upc.es">gid.cimne.upc.es</a>,
+(<a href=http://gid.cimne.upc.es>Visit GiD</a>). The software can be used
+freely under the terms described in license.terms, all terms described
+there apply to all files associated with the software unless
+explicitly disclaimed in individual files.  Particular terms apply to the third party
+code, "<code>cfortran.h</code>", which has its own distribution policy
+(please read the "<code>cfortran.doc</code>" for this code).<br> This
+description asumes that the readear is familiar with the postprocess
+terminology.<br> For futher details please check the online help
+available in GiD ( <a href="gid_16.subst#flaviaNF.gif">Postprocess
+data files chapter</a>).<br>
+<br>
+The library was implemented taking into account two of the must widely
+used development environments: C/C++ and FORTRAN.<br>
+<br>
+Here we are going to describe how to compile and use the library. At 
+the end the reference of the library functions can be found.<br>
+</p>
+
+
+<p>&nbsp;</p>
+<table width="99%" border="0" cellspacing="0" cellpadding="10" bgcolor="#ECECEC">
+  <tr> 
+    <td> 
+      <a name="GIDPOST_COMPILING"></a>
+      <P class="subtitol"><h2>Compiling</h2></P>
+    </td>
+  </tr>
+</table>
+
+<ul>
+<li><b>Unix platform:</b><br>
+A <code>makefile</code> is provided inside the <code>unix</code> directory. Invoke <code>make</code>
+to create the library:
+
+<font color="#0000FF"><pre>
+make [target=release|debug]
+
+</pre></font>
+This will create the library <code>unix/release/gidpost.a</code> if the option is <code>target=release</code>
+or <code>unix/debug/gidpostd.a</code> if the option is<code>target=debug</code>. If no option is provided
+the release version is created by default. <br><br>
+</li>
+
+<li><b>Microsoft Windows platform:</b><br>
+A file named <code>Makefile.vc</code> is provided inside <code>gidpost\\win</code>to compile with Microsoft Visual C++.
+To compile, open a DOS console, change the current directory to <code>gidpost\\win</code>.
+First run vcvars32.bat prior namake execution to ensure enviroment PATH is ok. Then
+invoke:
+<font color="#0000FF"><pre>
+nmake -f Makefile.vc [CFG="Release"|"Debug"]
+</pre></font>
+This will create the library <code>gidpost.lib</code> inside the subdirectory <code>win\\Release</code> 
+if the option is <code>CFG="Release"</code> or inside <code>win\\Debug</code>) if the option is
+<code>CFG="Debug"</code>. If no option is provided the release version is created by default.<br><br>
+</li>
+
+<li><b>Other platforms:</b><br>
+All the source code to generate the library is included, it can be compiled in other platforms.<br>
+The third party code, "<code>cfortran.h</code>", is also provided as a link between C and FORTRAN. It has
+its own distribution policy. Please, read the file "<code>cfortran.doc</code>" about the licence terms of 
+this code.<br><br>
+</li>
+</ul>
+
+<p>&nbsp;</p>
+<table width="99%" border="0" cellspacing="0" cellpadding="10" bgcolor="#ECECEC">
+  <tr> 
+    <td> 
+      <a name="GIDPOST_USING"></a>
+      <P class="subtitol"><h2>Using the library</h2></P>
+    </td>
+  </tr>
+</table>
+
+<p>
+<ul>
+<li><b>C / C++ language:</b><br>
+include the file header file <code>gidpost.h</code> to use the libray <code>gidpost</code>
+<pre>
+#include "gidpost.h"
+</pre>
+A small example, called <code>testpost.c</code>, is provided to show the use of the library from C/C++.<br>
+<br>
+</li>
+
+<li><b>FORTRAN language:</b><br>
+A small example, called <code>testpostfor.f</code>, is provided to show the use of the library with FORTRAN<br>
+<br>
+You can link your code either with the release or debug version of the
+library. In the release version there is almost no check in the use of the
+library in order to provide no overhead in using it. If link your code with the
+debug version then you will get some extra checking in the calling of the
+functions and you will get more information if something is wrong but with an
+extra overhead in time.
+</li>
+</ul>
+</p>
+
+<p>&nbsp;</p>
+<table width="99%" border="0" cellspacing="0" cellpadding="10" bgcolor="#ECECEC">
+  <tr> 
+    <td> 
+      <a name="GIDPOST_REFERENCE"></a>
+      <P class="subtitol"><h2>Functions references</h2></P>
+    </td>
+  </tr>
+</table>
+
+<a name="GIDPOST_REF_MESH"></a><h3>Mesh file functions</h3>
+<pre><font color="#0000FF">
+int GiD_OpenPostMeshFile(char* FileName,GiD_PostMode Mode);</font>
+
+<b>Description:</b> Open a new post mesh file
+
+<b>Parameters:</b>
+<dl>
+<dt>char* FileName
+<dd>name of the mesh file (*.flavia.msh)
+<dt>GiD_PostMode Mode
+<dd>GiD_PostAscii=0 for ascii output
+GiD_PostAsciiZipped=1 for compressed ascii output
+GiD_PostBinary=2 for compressed binary output
+</dl>
+<b>Example:</b>
+C/C++
+GiD_OpenPostMeshFile( "testpost.flavia.msh", GiD_PostAscii);
+FORTRAN
+CALL GID_OPENPOSTMESHFILE('testpost.flavia.msh',0)
+
+<font color="#0000FF">
+int GiD_ClosePostMeshFile();</font>
+
+<b>Description:</b> Close the current post mesh file
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_ClosePostMeshFile();
+FORTRAN
+CALL GID_CLOSEPOSTMESHFILE
+
+<font color="#0000FF">
+int GiD_BeginMeshGroup(char* Name);
+</font>
+
+<b>Description:</b> This function open a group of mesh. This enable specifying multiples meshes withing the group.
+
+<b>Parameters:</b>
+char* Name
+
+  Name of the group. This name can be used later when givin the set of results that apply to this group, see GiD_OnMeshGroup.
+
+<b>Example:</b>
+C/C++
+
+  GiD_BeginMeshGroup("steps 1, 2, 3 and 4" );
+
+FORTRAN
+
+  CALL GID_BEGINMESHGROUP("steps 1, 2, 3 and 4" )
+
+<font color="#0000FF">
+int GiD_EndMeshGroup();
+</font>
+
+<b>Description:</b> This function close the previously opened group of mesh. See GiD_BeginMeshGroup.
+<b>Parameters:</b>
+None
+
+<b>Example:</b>
+C/C++
+
+  GiD_EndMeshGroup();
+
+FORTRAN
+
+  CALL GID_ENDMESHGROUP
+
+<font color="#0000FF">
+int GiD_BeginMesh(char* MeshName,GiD_Dimension Dim,GiD_ElementType EType,
+                  int NNode);
+int GiD_BeginMeshColor(char* MeshName,GiD_Dimension Dim,GiD_ElementType EType,
+                       int NNode, float Red, float Green, float Blue);</font>
+
+<b>Description:</b> Begin a new mesh. After that you should write the
+nodes and the elements.  When writing the elements it is assumed a
+connectivity of size given in the paramenter NNode. The second
+function allows to specify a color for the mesh where each component
+take values on the interval [0,1].
+
+<b>Parameters:</b>
+char* MeshName
+  Name of the mesh
+GiD_Dimension Dim
+  GiD_2D=2 for a 2D mesh (is assumed coordinates z=0)
+  GiD_3D=3 for a 3D mesh
+GiD_ElementType EType
+  GiD_Point=1 for a 1 noded-element
+  GiD_Linear=2  for a line element
+  (the number of nodes can be 2 for a linear case or 3 for the quadratic case)
+  GiD_Triangle=3 for a triangle element
+  (the number of nodes can be 3 for a linear case or 6 for the quadratic case)
+  GiD_Quadrilateral=4 for a quadrilateral element
+  (the number of nodes can be 4 for a linear case and 8 or 9 for the quadratic case)
+  GiD_Tetrahedra=5 for a tetrahedral element
+  (the number of nodes can be 4 for a linear case or 10 for the quadratic case)
+  GiD_Hexahedra=6 for a hexahedral element
+  (the number of nodes can be 8 for a linear case and 20 or 27 for the
+  quadratic case)
+  GiD_Prism=7 for a Prism element
+  (the number of nodes can be 6 for the linear case or 15 for the quadratic case)
+int NNode
+  Number of nodes of this type of element. The element type an nnods must be constant 
+  for all mesh elements, but it is valid to define more that one mesh.
+
+<b>Example:</b>
+C/C++
+GiD_BeginMesh("TestMsh",GiD_2D,GiD_Triangle,3);
+FORTRAN
+CALL GID_BEGINMESH('quadmesh',2,4,4)
+
+<font color="#0000FF">
+int GiD_EndMesh();
+</font>
+
+<b>Description:</b> End the current mesh.
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_EndMesh();
+FORTRAN
+CALL GID_ENDMESH
+
+<font color="#0000FF">
+int GiD_BeginCoordinates();</font>
+
+<b>Description:</b> Start a coordinate block in the current mesh. All nodes
+coordinates must be written between a to this function and GiD_EndCoordinates().
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_BeginCoordinates();
+FORTRAN
+CALL GID_BEGINCOORDINATES
+
+<font color="#0000FF">
+int GiD_EndCoordinates();</font>
+
+<b>Description:</b> Close the current coordinate block.
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_EndCoordinates();
+FORTRAN
+CALL GID_ENDCOORDINATES
+
+<font color="#0000FF">
+int GiD_WriteCoordinates(int id,double x,double y,double z);
+int GiD_WriteCoordinates2D(int id, double x, double y);
+</font>
+
+<b>Description:</b> Write a coordinate member at the current Coordinates Block.
+If the mesh dimension is 2D then you can use <code>GiD_WriteCoordinates2D</code>
+
+<b>Parameters:</b>
+int id
+Node number identifier (starting from 1, is recommended to avoid jumps in the 
+numeration)
+double x,double y,double z
+Cartesian coordinates
+
+<b>Example:</b>
+C/C++
+int id=1;
+double x=3.5,y=1.5e-2,z=0;
+GiD_WriteCoordinates(id,x,y,z);
+FORTRAN
+REAL*8 rx, ry
+INTEGER*4 idx
+idx=1
+rx=3.5
+ry=-4.67
+CALL GID_WRITECOORDINATES(idx,rx,ry,0.0)
+<font color="#0000FF">
+int GiD_BeginElements();</font>
+
+<b>Description:</b> Start a elements block in the current mesh.
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_BeginElements();
+FORTRAN
+CALL GID_BEGINELEMENTS
+
+<font color="#0000FF">
+int GiD_EndElements();</font>
+
+<b>Description:</b> Close the current elements block.
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_EndElements();
+FORTRAN
+CALL GID_ENDELEMENTS
+
+<font color="#0000FF">
+int GiD_WriteElement(int id,int nid[]);</font>
+
+<b>Description:</b> Write an element member at the current Elements Block.
+
+<b>Parameters:</b>
+int id
+Element number identifier
+int nid[]
+connectivities of the element, the vector dimension must be equal to the
+NNode parameter given in the previous call to GiD_BeginMesh
+
+<b>Example:</b>
+C/C++
+int id=2;
+int nid[3];
+nid[0]=4; nid[1]=7; nid[2]=3;
+GiD_WriteElementMat(id,nid);
+FORTRAN
+INTEGER *4 nid(1:3)
+INTEGER*4 idx
+idx=2
+nid(1)=4
+nid(2)=7
+nid(3)=3
+CALL GID_WRITEELEMENT(idx,nid)
+
+<font color="#0000FF">
+int GiD_WriteElementMat(int id,int nid[]);</font>
+
+<b>Description:</b> Similar to GiD_WriteElement, but the last aditional integer
+on nid correspond to a material number.
+
+</pre>
+
+<a name="GIDPOST_REF_RES"></a><b>Results file functions</b>
+<pre>
+<font color="#0000FF">
+int GiD_OpenPostResultFile(char* FileName,GiD_PostMode Mode);</font>
+
+<b>Description:</b> Open a new post result file. All subsequent call to
+functions write the information into this file. If there is no mesh file opened
+then the output of the mesh is writen into this file also.
+
+<b>Parameters:</b>
+char* FileName
+  name of the mesh file (*.flavia.res)
+GiD_PostMode Mode
+  GiD_PostAscii=0 for ascii output
+  GiD_PostAsciiZipped=1 for compressed ascii output
+  GiD_PostBinary=2 for compressed binary output
+  Note: In binary output, the mesh must be inside the same file as the results,
+        you should not call GiD_OpenPostMeshFile and GiD_ClosePostMeshFile in
+	that case.
+
+<b>Example:</b>
+C/C++
+GiD_OpenPostResultFile( "testpost.bin",GiD_PostBinary);
+FORTRAN
+CALL GID_OPENPOSTRESULTFILE('testfortran.flavia.res',2)
+
+<font color="#0000FF">
+int GiD_ClosePostResultFile();</font>
+<b>Description:</b> Close the current post results file
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_ClosePostResultFile();
+FORTRAN
+CALL GID_CLOSEPOSTRESULTFILE
+
+<font color="#0000FF">
+int GiD_BeginGaussPoint(char* name,GiD_ElementType EType,char* MeshName,
+			 int GP_number,int NodesIncluded,int InternalCoord);</font>
+
+<b>Description:</b> Begin Gauss Points definition. The gauss point definition
+should have a name wich may be referenced in futher results blocks. The gauss
+points could be internal (InternalCoord=1) or given (InternalCoord=0). If the
+gauss points are given then the list of its natural coordinates should be
+written using the function GiD_WriteGaussPoint2D or GiD_WriteGaussPoint3D
+depending on the dimension of the element type.
+
+<b>Parameters:</b>
+char* name
+Name to reference this gauss points definition
+GiD_ElementType EType
+  GiD_Point=1 for a 1 noded-element
+  GiD_Linear=2  for a line element
+  GiD_Triangle=3 for a triangle element
+  GiD_Quadrilateral=4 for a quadrilateral element
+  GiD_Tetrahedra=5 for a tetrahedral element
+  GiD_Hexahedra=6 for a hexahedral element
+  GiD_Prism=7 for a prism element
+char* MeshName
+An optional field. If this field is missing, the gauss points are defined 
+for all the elements of type my_type. If a mesh name is given, the gauss 
+points are only defined for this mesh.
+int GP_number
+number of gauss points per element. The GiD internal accepted number 
+should be:
+1, 3, 6 for Triangles;
+1, 4, 9 for quadrilaterals;
+1, 4 for Tetrahedras;
+1, 8, 27 for hexahedras;
+1 or 6 for prism and
+1, ... n points equally spaced over lines.
+int NodesIncluded
+Can be 0 for nodes not included or 1 for included. Only used for gauss 
+points on Linear elements which indicate whether the end nodes of the 
+Linear element are included in the number of gauss points per element 
+count or not.
+int InternalCoord
+Can be 0 for given coordinates or 1 for internal GiD gauss 
+points location.
+
+<b>Example:</b>
+C/C++
+GiD_BeginGaussPoint("GPtria",GiD_Triangle,NULL,1,0,1);
+FORTRAN
+CHARACTER*4 NULL
+NULL = CHAR(0)//CHAR(0)//CHAR(0)//CHAR(0)
+CALL GID_BEGINGAUSSPOINT('GPtria',3,NULL,1,0,1);
+
+<font color="#0000FF">
+int GiD_EndGaussPoint();</font>
+
+<b>Description:</b> End current Gauss Points definition
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_EndGaussPoint();
+FORTRAN
+CALL GID_ENDGAUSSPOINT
+
+<font color="#0000FF">
+int GiD_WriteGaussPoint2D(double x,double y);
+int GiD_WriteGaussPoint3D(double x,double y,double z);
+</font>
+
+<b>Description:</b> Write internal gauss point local coordinates (only required
+if InternalCoord=0)
+
+<b>Parameters:</b>
+double x,double y,double z
+Cartesian gauss points local coordinates
+
+<b>Example:</b>
+C/C++
+double x=3.5;
+double y=-7;
+GiD_WriteGaussPoint2D(double x,double y);
+FORTRAN
+REAL*8 x, y
+rx=3.5
+ry=-7
+CALL GID_WRITEGAUSSPOINT2D(x,y)
+
+<font color="#0000FF">
+int GiD_BeginRangeTable(char* name);</font>
+
+<b>Description:</b> Begin a Range Table definition. With a range table you can
+group the result values into intervals and label each interval with a name.
+Inside GiD this can be visualized with a contour range.
+
+<b>Parameters:</b>
+char* name
+name identifier
+
+<b>Example:</b>
+C/C++
+GiD_BeginRangeTable("table1");
+FORTRAN
+CALL GID_BEGINRANGETABLE('table1')
+
+<font color="#0000FF">
+int GiD_EndRangeTable();</font>
+
+<b>Description:</b> End a Range Table definition.
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_EndRangeTable();
+FORTRAN
+CALL GID_ENDRANGETABLE()
+
+<font color="#0000FF">
+int GiD_WriteMinRange(double max,char* name);
+int GiD_WriteRange(double min,double max,char* name);
+int GiD_WriteMaxRange(double min,char* name);
+</font>
+
+<b>Description:</b> Write Range functions. Must be between GiD_BeginRangeTable
+and GiD_EndRangeTable.
+
+WriteMinRange : write a range with an implicit minimum value, 
+                the minimum absolute in the result set.
+WriteRange : write an explicit range.
+WritemaxRange: write a range with an implicit maximum value, 
+               the maximum absolute in the result set.
+
+<b>Parameters:</b>
+double min,double max
+Values to define a interval
+char* name
+string asociated to be showed for this interval
+
+<b>Example:</b>
+C/C++
+GiD_WriteRange(0.0,100.0,"Normal");
+FORTRAN
+CALL GID_WRITERANGE(0.0,100.0,'Normal')
+
+<font color="#0000FF">
+int GiD_BeginResult(char* Result,char* Analysis,double step,
+		    GiD_ResultType Type,GiD_ResultLocation Where,
+		    char* GaussPointsName,char* RangeTable,
+		    int compc,char* compv[]);
+</font>
+
+<b>Description:</b> Begin Result Block. This function open a result block.
+
+<b>Parameters:</b>
+char* Result
+a name for the Result, which will be used for menus.
+char* Analysis
+the name of the analysis of this Result, which will be used for menus.
+double step
+the value of the time step inside the analysis "analysis name". 
+(for multiple steps results)
+GiD_ResultType Type
+The type of defined result:
+  GiD_Scalar=0
+  GiD_Vector=1
+  GiD_Matrix=2
+  GiD_PlainDeformationMatrix=3
+  GiD_MainMatrix=4
+  GiD_LocalAxes=5
+GiD_ResultLocation Where
+The location of the results
+  GiD_OnNodes=0
+  GiD_OnGaussPoints=1
+char* GaussPointsName
+If Where is GiD_OnGaussPoints a "location name" (predefined in 
+GiD_BeginGaussPoint) should be entered.
+char* RangeTable
+A valid Range table name or NULL
+int compc
+The number of component names or 0
+char* compv[]
+array of 'compc' strings to be used as component names
+Note: in FORTRAN, instead of a general  GID_BEGINRESULT, must be used a separate
+function foreach result type:
+<font color="#0000FF">
+int GiD_BeginScalarResult(char* Result,char* Analysis,float step,
+			  GiD_ResultLocation Where,
+                          char* GaussPointsName,
+                          char* RangeTable,char* Comp);
+int GiD_BeginVectorResult(char* Result,char* Analysis,float step,
+			  GiD_ResultLocation Where,
+			  char* GaussPointsName,char* RangeTable,
+			  char* Comp1,char* Comp2,char* Comp3,char* Comp4);
+int GiD_Begin2DMatResult(char* Result,char* Analysis,float step,
+			 GiD_ResultLocation Where,
+			 char* GaussPointsName,char* RangeTable,
+			 char* Comp1,char* Comp2,char* Comp3);
+int GiD_Begin3DMatResult(char* Result,char* Analysis,float step,
+			 GiD_ResultLocation Where,
+			 char* GaussPointsName,char* RangeTable,
+			 char* Comp1,char* Comp2,char* Comp3,
+			 char* Comp4,char* Comp5,char* Comp6);
+int GiD_BeginPDMMatResult(char* Result,char* Analysis,float step,
+			  GiD_ResultLocation Where,
+			  char* GaussPointsName,char* RangeTable,
+			  char* Comp1,char* Comp2,char* Comp3,
+			  char* Comp4);
+int GiD_BeginMainMatResult(char* Result,char* Analysis,float step,
+			   GiD_ResultLocation Where,
+			   char* GaussPointsName,char* RangeTable,
+			   char* Comp1,char* Comp2,char* Comp3,
+			   char* Comp4,char* Comp5,char* Comp6,
+			   char* Comp7,char* Comp8,char* Comp9,
+			   char* Comp10,char* Comp11,char* Comp12);
+int GiD_BeginLAResult(char* Result,char* Analysis,float step,
+		      GiD_ResultLocation Where,
+char* GaussPointsName,char* RangeTable,
+char* Comp1,char* Comp2,char* Comp3);
+</font>
+<b>Example:</b>
+C/C++
+GiD_BeginResult("Result","Static",1.0,GiD_Scalar,GiD_OnNodes,NULL,NULL,0,NULL);
+FORTRAN
+CHARACTER*4 NULL
+NULL = CHAR(0)//CHAR(0)//CHAR(0)//CHAR(0)
+CALL GID_BEGINSCALARRESULT('Result','Analy.',1.0,0,NULL,NULL,NULL)
+
+<font color="#0000FF">
+int GiD_BeginResultHeader(char * Result, char * Analysis, double step,
+			  GiD_ResultType Type, GiD_ResultLocation Where,
+			  char * GaussPointsName);</font>
+<b>Description:</b> 
+ Begin Result Block. This function open a result block. Only the result,
+ analisys, location and location name are provided in the function call. The
+ other result attributes as range table or components names are provided in a
+ separated function calls. See GiD_ResultRange and  GiD_ResultComponents. 
+
+<b>Parameters:</b> 
+See GiD_BeginResult.
+
+<b>Example:</b>
+GiD_BeginHeader("Result","Static",1.0,GiD_Scalar,GiD_OnNodes,NULL);
+
+<font color="#0000FF">
+int GiD_ResultRange(char * RangeTable);</font>
+<b>Description:</b>
+ Define the components names associated to the current result, either a single
+ result block or the current result defined in a result group.
+
+<b>Parameters:</b>
+char * RangeTable --> name of the range table previously defined
+
+<b>Example:</b>
+C/C++
+  GiD_ResultRange("MyTable");
+FORTRAN
+  GID_RESULTRANGE('MyTable');
+
+<font color="#0000FF">
+int GiD_ResultComponents(int compc, char* compv[]);</font>
+
+<b>Description:</b> Define the components names associated to the current
+ result, either a single result block or the current result defined in a result
+ group. In FORTRAN you should call a diferent function of each result type:
+
+ GID_SCALARCOMP(STRING Comp1) --> for scalar result
+
+ GID_VECTORCOMP(STRING Comp1, STRING Comp2,
+                STRING Comp3, STRING Comp4) --> for vector result type
+
+ GID_2DMATRIXCOMP(STRING Sxx, STRING Syy, STRING Sxy) --> for matrix result type
+
+ GID_3DMATRIXCOMP(STRING Sxx, STRING Syy, STRING Szz,
+		  STRING Sxy, STRING Syz, STRING Sxz) --> for matrix result type
+
+ GID_PDMCOMP(STRING Sxx, STRING Syy, STRING Sxy,
+             STRING Szz); --> for plain deformation matrix result type
+
+ GID_MAINMATRIXCOMP(STRING Si, STRING Sii, STRING Siii,
+	            STRING Vix, STRING Viy, STRING Viz,
+		    STRING Viix, STRING Viiy, STRING Viiz,
+		    STRING Viiix, STRING Viiiy, STRING Viiiz) --> for main matrix result type
+
+ GID_LACOMPONENT(STRING axes_1, STRING axes_2, STRING axes_3) --> for local axis result type
+
+<b>Parameters:</b>
+  int compc --> number of components names to write.
+  char * compv[] --> array of names.
+
+<b>Example:</b>
+C/C++
+ char cnames[] = {"X", "Y", "Z", "Mod"};
+ Gid_ResultComponents(3, cnames);
+FORTRAN
+  CHARACTER*10 XN, YN, ZN, MN
+  XN = 'X'
+  YN = 'Y'
+  ZN = 'Z'
+  MN = 'Mod'
+  CALL GID_VECTORCOMP(XN, YN, ZN, MN)
+<!--
+<font color="#0000FF">
+int GiD_ResultUnit(char * UnitName);</font>
+
+<b>Description:</b> Define the unit string associated to the current result,
+ either a single result block or the current result defined in a result group.
+
+<b>Parameters:</b>
+  char * UnitName -> string unit
+
+<b>Example:</b>
+C/C++
+  GiD_ResultUnit("Kg*m/s^2");
+ 
+FORTRAN
+  CHARACTER*20 unit
+  unit = 'Kg*m/s^2'
+  GID_RESULTUNIT(unit)
+-->
+
+<font color="#0000FF">
+int GiD_BeginResultGroup(char * Analysis, double step, GiD_ResultLocation Where,
+			 char * GaussPointsName);</font>
+
+<b>Description:</b> Begin a result group. All grouped in the same analysis and
+  step. See GiD online help on this topic.
+
+<b>Parameters:</b>
+  See GiD_BeginResult.  
+
+<b>Example:</b>
+C/C++
+  GiD_BeginResultGroup("Analysis", 1.0, GiD_OnNodes, NULL);
+  GiD_ResultDescription("EscalarNodos", GiD_Scalar);
+  GiD_ResultDescription("VectorNodos", GiD_Vector);
+  GiD_ResultDescription("Matrix", GiD_Matrix);
+  GiD_ResultDescription("Local Axes", GiD_LocalAxes);
+  for ( i = 0; i < 9; i++ ) { 
+    GiD_WriteScalar(nodes[i].id, Random());
+    GiD_WriteVector(nodes[i].id, Random(), Random(), Random());
+    GiD_Write3DMatrix(i+1, Random(), Random(), Random(),
+		      Random(), Random(), Random());
+    GiD_WriteLocalAxes(i+1, Random(), Random(), Random());
+  }
+  GiD_EndResult();  
+
+FORTRAN
+  CALL GID_BEGINRESULTGROUP("Analysis", 1.0, 0, NULL)
+  CALL GID_RESULTDESCRIPTION("EscalarNodos", 0)
+  CALL GID_RESULTDESCRIPTION("VectorNodos",1)
+  CALL GID_RESULTDESCRIPTION("Matrix",2)
+  CALL GID_RESULTDESCRIPTION("Local Axes",5)
+  do idx=1,9 
+    value = idx*1.5;
+    CALL GID_WRITESCALAR(nodes[i].id, value)
+    CALL GID_WRITEVECTOR(nodes[i].id, value, value*2, value*3)
+    CALL GID_WRITE3DMATRIX(i+1,value,value*2,value*3,value*4,value*7,value*1.1)
+    CALL GID_WRITELOCALAXES(i+1,value,value*3,value*5)
+  end do
+  GID_ENDRESULT();  
+
+<font color="#0000FF">
+int GiD_ResultDescription(char * Result, GiD_ResultType Type);</font>
+int GiD_ResultDescriptionDim( GP_CONST char * Result, GiD_ResultType Type, size_t dim);
+
+<b>Description:</b> Define a result member of a result group given the name and
+ result type. The second prototype enable us to specify the dimension of
+ the result types. Most of the types do not allow more than one
+ dimension. Bellow if the set of valid dimensions for the argument dim given
+ the value of Type:
+
+  -  Scalar : 1 (GiD_WriteScalar)
+  -  Vector : 2 (GiD_Write2DVector), 3(GiD_WriteVector) or 4 (GiD_WriteVectorModule)
+  -  Matrix : 3 (GiD_Write2DMatrix) or 6 (GiD_Write3DMatrix)
+  -  PlainDeformationMatrix : 4 (GiD_WritePlainDefMatrix)
+  -  MainMatrix : 12 (GiD_WriteMainMatrix)
+  -  LocalAxes : 3 (GiD_WriteLocalAxes)
+
+<b>Parameters:</b>
+  See GiD_BeginResult.  
+
+<b>Example:</b>
+C/C++
+  See GiD_BeginResultGroup
+FORTRAN
+  See GiD_BeginResultGroup
+
+<font color="#0000FF">
+int GiD_ResultValues();</font>
+
+<b>Description:</b> This function is not needed anymore it is just maintained
+ for backward compatibility.
+
+<b>Parameters:</b>
+
+<b>Example:</b>
+
+<font color="#0000FF">
+int GiD_EndResult();</font>
+
+<b>Description:</b> End Result Block.
+
+<b>Parameters:</b> 
+NONE
+
+<b>Example:</b>
+C/C++
+  GiD_EndResult();
+FORTRAN
+  CALL GID_ENDRESULT
+
+<font color="#0000FF">
+int GiD_BeginOnMeshGroup(char * Name);</font>
+
+<b>Description:</b>
+Results which are referred to a mesh group (see GiD_BeginMeshGroup) should be written between a call to this function and GiD_EndOnMeshGroup.
+
+<b>Parameters:</b> 
+char* Name
+
+  Name of the mesh group where the results will be specified. This group must be previously defined in a call to GiD_BeginMeshGroup.
+
+<b>Example:</b>
+C/C++
+
+  GiD_BeginOnMeshGroup("steps 1, 2, 3 and 4" );
+
+FORTRAN
+
+  CALL GID_BEGINONMESHGROUP("steps 1, 2, 3 and 4" )
+
+<font color="#0000FF">
+int GiD_EndOnMeshGroup();</font>
+
+<b>Description:</b>
+This function close a previously opened block of result over a mesh group. See GiD_BeginOnMeshGroup.
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+
+  GiD_EndOnMeshGroup();
+
+FORTRAN
+
+  GID_ENDONMESHGROUP();
+
+<font color="#0000FF">
+int GiD_FlushPostFile();</font>
+
+<b>Description:</b> Flushes all pending output into the postprocess file. This
+function should be called only when strictly necessary when writing in
+GiD_PostAsciiZipped or GiD_PostBinary modes because it can degrade compression.
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_FlushPostFile();
+FORTRAN
+CALL GID_FLUSHPOSTFILE
+
+<font color="#0000FF">
+int GiD_WriteScalar(int id,double v);
+int GiD_Write2DVector(int id, double x, double y);
+int GiD_WriteVector(int id,double x,double y,double z);
+int GiD_WriteVectorModule(int id,double x,double y,double z,double mod);
+int GiD_Write2DMatrix(int id,double Sxx,double Syy,double Sxy);
+int GiD_Write3DMatrix(int id,double Sxx,double Syy,double Szz,
+		     double Sxy,double Syz,double Sxz);
+int GiD_WritePlainDefMatrix(int id,double Sxx,double Syy,double Sxy,double Szz);
+int GiD_WriteMainMatrix(int id,
+		     double Si,double Sii,double Siii,
+		     double Vix,double Viy,double Viz,
+		     double Viix,double Viiy,double Viiz,
+		     double Viiix,double Viiiy,double Viiiz);
+int GiD_WriteLocalAxes(int id,double euler_1,double euler_2,double euler_3);
+</font>
+<b>Description:</b> 
+Write result functions. Must be between GiD_BeginResult and GiD_EndResult
+
+<b>Parameters:</b> 
+None
+
+<b>Example:</b>
+C/C++
+GiD_WriteScalar(3,4.6);
+FORTRAN
+INTEGER*4 idx
+REAL*8 value
+idx=3
+value=4.6
+CALL GID_WRITESCALAR(idx,value)
+</pre>
+<br>
+<br>
+
+</body>
+</html>

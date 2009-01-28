@@ -1,0 +1,18 @@
+// Reading Properties
+PROPERTIES[1][TIME_STEPS] = 1;
+PROPERTIES[1][DELTA_TIME] = 1.000000;
+PROPERTIES[1][DENSITY] = 0.000000; 
+PROPERTIES[1][YOUNG_MODULUS] = 210000000000.000000;
+PROPERTIES[1][POISSON_RATIO] = 0.300000; 
+PROPERTIES[1][FRICTION_COEFFICIENT] =            0;
+PROPERTIES[1][BODY_FORCE] = [           0,            0,           -0];
+PROPERTIES[1][GRAVITY] = [           0,            0,          -50];
+PROPERTIES[2][TIME_STEPS] = 1;
+PROPERTIES[2][DELTA_TIME] = 1.000000;
+PROPERTIES[2][DENSITY] = 2500.000000; 
+PROPERTIES[2][YOUNG_MODULUS] = 30000000000.000000;
+PROPERTIES[2][POISSON_RATIO] = 0.300000; 
+PROPERTIES[2][FRICTION_COEFFICIENT] =            0;
+PROPERTIES[2][BODY_FORCE] = [           0,            0,    -1.25e+05];
+PROPERTIES[2][GRAVITY] = [           0,            0,          -50];
+//======================================================================

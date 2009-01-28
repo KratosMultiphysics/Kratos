@@ -1,0 +1,421 @@
+// Copyright (C) 2006 Fokko Beekhof
+// Email contact: Fokko.Beekhof@cui.unige.ch
+
+// The OMPTL library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+
+#ifndef OMPTL_ALGORITHM
+#define OMPTL_ALGORITHM
+
+#include <algorithm>
+
+#ifndef OMPTL_OFF
+
+#include <functional>
+#include <utility>
+#include <cmath>
+#include <cstdlib>
+
+#include <omptl>
+
+namespace omptl
+{
+
+template <class ForwardIterator>
+ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last,
+			unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class BinaryPredicate>
+ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last,
+                              BinaryPredicate binary_pred,
+			      unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class T, class StrictWeakOrdering>
+bool binary_search(ForwardIterator first, ForwardIterator last, const T& value,
+                   StrictWeakOrdering comp =
+			::std::less<typename ForwardIterator::value_type>(),
+		   unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class OutputIterator>
+OutputIterator copy(InputIterator first, InputIterator last,
+		    OutputIterator result,
+		    unsigned int P = omp_get_max_threads());
+
+template <class BidirectionalIterator1, class BidirectionalIterator2>
+BidirectionalIterator2 copy_backward(BidirectionalIterator1 first,
+                                     BidirectionalIterator1 last,
+                                     BidirectionalIterator2 result,
+			 	     unsigned int P = omp_get_max_threads());
+
+/*
+ * Note: implementation assumes that
+ * ::std::iterator_traits<InputIterator>::difference_type(0) will
+ * return a difference_type representing zero.
+ */
+template <class InputIterator, class EqualityComparable>
+typename ::std::iterator_traits<InputIterator>::difference_type
+count(InputIterator first, InputIterator last, const EqualityComparable& value,
+		   unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class EqualityComparable, class Size>
+void count(InputIterator first, InputIterator last,
+           const EqualityComparable& value,
+           Size& n, unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class Predicate>
+typename InputIterator::difference_type
+count_if(InputIterator first, InputIterator last, Predicate pred,
+	 unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class Predicate, class Size>
+void count_if(InputIterator first, InputIterator last,
+              Predicate pred, Size& n, unsigned int P = omp_get_max_threads());
+
+template <class InputIterator1, class InputIterator2,
+          class BinaryPredicate>
+bool equal(InputIterator1 first1, InputIterator1 last1,
+           InputIterator2 first2, BinaryPredicate binary_pred =
+		::std::equal_to<typename InputIterator1::value_type>(),
+	   unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class T, class StrictWeakOrdering>
+::std::pair<ForwardIterator, ForwardIterator>
+equal_range(ForwardIterator first, ForwardIterator last, const T& value,
+            StrictWeakOrdering comp =
+			::std::less<typename ForwardIterator::value_type>(),
+	    unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class T>
+void fill(ForwardIterator first, ForwardIterator last, const T& value,
+	  unsigned int P = omp_get_max_threads());
+
+template <class OutputIterator, class Size, class T>
+OutputIterator fill_n(OutputIterator first, Size n, const T& value,
+		      unsigned int P = omp_get_max_threads());
+
+/*
+ * find suffers from a loss of efficiency when executed in parallel!
+ */
+template<class InputIterator, class EqualityComparable>
+InputIterator find(InputIterator first, InputIterator last,
+                   const EqualityComparable& value,
+		   unsigned int P = omp_get_max_threads());
+
+/*
+ * find_if suffers from a loss of efficiency when executed in parallel!
+ */
+template<class InputIterator, class Predicate>
+InputIterator find_if(InputIterator first, InputIterator last,
+                      Predicate pred, unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator1, class ForwardIterator2,
+          class BinaryPredicate>
+ForwardIterator1
+find_end(ForwardIterator1 first1, ForwardIterator1 last1,
+         ForwardIterator2 first2, ForwardIterator2 last2,
+         BinaryPredicate comp =
+			::std::less<typename ForwardIterator1::value_type>(),
+	 unsigned int P = omp_get_max_threads() );
+
+/*
+ * find_first_of suffers from a loss of efficiency when executed in parallel!
+ */
+template <class InputIterator, class ForwardIterator, class BinaryPredicate>
+InputIterator find_first_of(InputIterator first1, InputIterator last1,
+                            ForwardIterator first2, ForwardIterator last2,
+                            BinaryPredicate comp =
+			::std::equal_to<typename InputIterator::value_type>(),
+			    unsigned int P = omp_get_max_threads());
+
+// Calls to UnaryFunction f must be completely independent
+template <class InputIterator, class UnaryFunction>
+UnaryFunction for_each(InputIterator first, InputIterator last, UnaryFunction f,
+			unsigned int P = omp_get_max_threads());
+
+// Not parallellized, Generator is explicitly allowed and expected to return
+// different results on subsequent calls. Order is therefor respected unless
+// the programmer explicitly accepts responsibility and calls par_generate.
+template <class ForwardIterator, class Generator>
+void generate(ForwardIterator first, ForwardIterator last, Generator gen);
+
+template <class ForwardIterator, class Generator>
+void par_generate(ForwardIterator first, ForwardIterator last, Generator gen,
+	      unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class StrictWeakOrdering>
+void push_heap(RandomAccessIterator first, RandomAccessIterator last,
+               StrictWeakOrdering comp =
+		    ::std::less<typename RandomAccessIterator::value_type>(),
+	       unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class StrictWeakOrdering>
+inline void pop_heap(RandomAccessIterator first, RandomAccessIterator last,
+                     StrictWeakOrdering comp =
+		     ::std::less<typename RandomAccessIterator::value_type>(),
+		     unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class StrictWeakOrdering>
+void make_heap(RandomAccessIterator first, RandomAccessIterator last,
+               StrictWeakOrdering comp =
+			::std::less<typename RandomAccessIterator::value_type>(),
+		unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class StrictWeakOrdering>
+void sort_heap(RandomAccessIterator first, RandomAccessIterator last,
+               StrictWeakOrdering comp =
+			::std::less<typename RandomAccessIterator::value_type>(),
+		 unsigned int P = omp_get_max_threads());
+
+// Warning: includes loses some efficiency in parallel.
+template <class InputIterator1, class InputIterator2, class StrictWeakOrdering>
+bool includes(InputIterator1 first1, InputIterator1 last1,
+              InputIterator2 first2, InputIterator2 last2,
+              StrictWeakOrdering comp =
+			::std::less<typename InputIterator1::value_type>(),
+	      unsigned int P = omp_get_max_threads());
+
+template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+bool lexicographical_compare(InputIterator1 first1, InputIterator1 last1,
+                             InputIterator2 first2, InputIterator2 last2,
+                             BinaryPredicate comp =
+			::std::less<typename InputIterator1::value_type>(),
+			     unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class T, class StrictWeakOrdering>
+ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last,
+                            const T& value,
+			    StrictWeakOrdering comp =
+			::std::less<typename ForwardIterator::value_type>(),
+			    unsigned int P = omp_get_max_threads());
+
+template <class InputIterator1, class InputIterator2, class OutputIterator,
+          class StrictWeakOrdering>
+OutputIterator merge(InputIterator1 first1, InputIterator1 last1,
+                     InputIterator2 first2, InputIterator2 last2,
+                     OutputIterator result,
+		     StrictWeakOrdering comp =
+			::std::less<typename InputIterator1::value_type>(),
+		     unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class BinaryPredicate>
+ForwardIterator min_element(ForwardIterator first, ForwardIterator last,
+                            BinaryPredicate comp =
+			::std::less<typename ForwardIterator::value_type>(),
+			    unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class BinaryPredicate>
+ForwardIterator max_element(ForwardIterator first, ForwardIterator last,
+                            BinaryPredicate comp =
+			::std::less<typename ForwardIterator::value_type>(),
+			    unsigned int P = omp_get_max_threads());
+
+template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+::std::pair<InputIterator1, InputIterator2>
+mismatch(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2,
+         BinaryPredicate binary_pred =
+		::std::not_equal_to<typename InputIterator1::value_type>(),
+	 unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class StrictWeakOrdering>
+void nth_element(RandomAccessIterator first, RandomAccessIterator nth,
+                 RandomAccessIterator last,
+		 StrictWeakOrdering comp =
+		 ::std::less<typename RandomAccessIterator::value_type>(),
+		 unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class StrictWeakOrdering>
+void partial_sort(RandomAccessIterator first,
+                  RandomAccessIterator middle,
+                  RandomAccessIterator last,
+                  StrictWeakOrdering comp =
+		  ::std::less<typename RandomAccessIterator::value_type>(),
+		  unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class RandomAccessIterator>
+RandomAccessIterator
+partial_sort_copy(InputIterator first, InputIterator last,
+                  RandomAccessIterator result_first,
+                  RandomAccessIterator result_last,
+		  unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class RandomAccessIterator,
+          class StrictWeakOrdering>
+RandomAccessIterator
+partial_sort_copy(InputIterator first, InputIterator last,
+                  RandomAccessIterator result_first,
+                  RandomAccessIterator result_last, StrictWeakOrdering comp =
+		::std::less<typename InputIterator::value_type>(),
+		unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class Predicate>
+ForwardIterator partition(ForwardIterator first, ForwardIterator last,
+			  Predicate pred,
+			  unsigned int P = omp_get_max_threads());
+
+template <class BidirectionalIterator, class StrictWeakOrdering>
+bool next_permutation(BidirectionalIterator first, BidirectionalIterator last,
+                      StrictWeakOrdering comp =
+		::std::less<typename BidirectionalIterator::value_type>(),
+		      unsigned int P = omp_get_max_threads());
+
+template <class BidirectionalIterator, class StrictWeakOrdering>
+bool prev_permutation(BidirectionalIterator first, BidirectionalIterator last,
+                      StrictWeakOrdering comp =
+		::std::less<typename BidirectionalIterator::value_type>(),
+		      unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class Predicate>
+ForwardIterator stable_partition(ForwardIterator first, ForwardIterator last,
+                                 Predicate pred,
+				 unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class RandomNumberGenerator>
+void random_shuffle(RandomAccessIterator first, RandomAccessIterator last,
+		    unsigned int P = omp_get_max_threads());
+
+template <class RandomAccessIterator, class RandomNumberGenerator>
+void random_shuffle(RandomAccessIterator first, RandomAccessIterator last,
+                    RandomNumberGenerator &rgen,
+		    unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class T>
+ForwardIterator remove(ForwardIterator first, ForwardIterator last,
+                       const T& value, unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class Predicate>
+ForwardIterator remove_if(ForwardIterator first, ForwardIterator last,
+                          Predicate pred,
+			  unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class OutputIterator, class T>
+OutputIterator remove_copy(InputIterator first, InputIterator last,
+                           OutputIterator result, const T& value,
+			   unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class OutputIterator, class Predicate>
+OutputIterator remove_copy_if(InputIterator first, InputIterator last,
+                              OutputIterator result, Predicate pred,
+			      unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class T>
+void replace(ForwardIterator first, ForwardIterator last, const T& old_value,
+             const T& new_value, unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class OutputIterator, class T>
+OutputIterator replace_copy(InputIterator first, InputIterator last,
+                            OutputIterator result, const T& old_value,
+                            const T& new_value,
+			    unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class OutputIterator, class Predicate, class T>
+OutputIterator replace_copy_if(InputIterator first, InputIterator last,
+                               OutputIterator result, Predicate pred,
+                               const T& new_value,
+			       unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class Predicate, class T>
+void replace_if(ForwardIterator first, ForwardIterator last, Predicate pred,
+                const T& new_value,
+		unsigned int P = omp_get_max_threads());
+
+template <class BidirectionalIterator>
+void reverse(BidirectionalIterator first, BidirectionalIterator last,
+	     unsigned int P = omp_get_max_threads());
+
+template <class BidirectionalIterator, class OutputIterator>
+OutputIterator reverse_copy(BidirectionalIterator first,
+			    BidirectionalIterator last,
+			    OutputIterator result,
+			    unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator>
+ForwardIterator rotate( ForwardIterator first, ForwardIterator middle,
+			ForwardIterator last,
+			unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class OutputIterator>
+OutputIterator rotate_copy(ForwardIterator first, ForwardIterator middle,
+                           ForwardIterator last, OutputIterator result,
+			   unsigned int P = omp_get_max_threads());
+
+// search suffers from a loss of efficiency when executed in parallel!
+template <class ForwardIterator1, class ForwardIterator2, class BinaryPredicate>
+ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
+                        ForwardIterator2 first2, ForwardIterator2 last2,
+                        BinaryPredicate binary_pred =
+		::std::equal_to<typename ForwardIterator1::value_type>(),
+			unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class Integer,
+          class T, class BinaryPredicate>
+ForwardIterator search_n(ForwardIterator first, ForwardIterator last,
+                         Integer count, const T& value,
+                         BinaryPredicate binary_pred =
+		::std::equal_to<typename ForwardIterator::value_type>(),
+			unsigned int P = omp_get_max_threads());
+
+template<typename RandomAccessIterator>
+void stable_sort(RandomAccessIterator first, RandomAccessIterator last,
+			unsigned int P = omp_get_max_threads());
+
+template<typename RandomAccessIterator>
+void sort(RandomAccessIterator first, RandomAccessIterator last,
+			unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator1, class ForwardIterator2>
+ForwardIterator2 swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1,
+                             ForwardIterator2 first2,
+			unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class OutputIterator, class UnaryFunction>
+OutputIterator transform(InputIterator first, InputIterator last,
+                         OutputIterator result, UnaryFunction op,
+			 unsigned int P = omp_get_max_threads());
+
+
+template <class InputIterator1, class InputIterator2, class OutputIterator,
+          class BinaryFunction>
+OutputIterator transform(InputIterator1 first1, InputIterator1 last1,
+                         InputIterator2 first2, OutputIterator result,
+                         BinaryFunction binary_op,
+			 unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class BinaryPredicate>
+ForwardIterator unique(ForwardIterator first, ForwardIterator last,
+                       BinaryPredicate binary_pred =
+		       ::std::equal_to<typename ForwardIterator::value_type>(),
+		       unsigned int P = omp_get_max_threads());
+
+template <class InputIterator, class OutputIterator, class BinaryPredicate>
+OutputIterator unique_copy(InputIterator first, InputIterator last,
+                           OutputIterator result,
+                           BinaryPredicate binary_pred =
+		       ::std::equal_to<typename InputIterator::value_type>(),
+		       unsigned int P = omp_get_max_threads());
+
+template <class ForwardIterator, class T, class StrictWeakOrdering>
+ForwardIterator upper_bound(ForwardIterator first, ForwardIterator last,
+                            const T& value,
+			    StrictWeakOrdering comp =
+			::std::less<typename ForwardIterator::value_type>(),
+			unsigned int P = omp_get_max_threads());
+
+} // namespace omptl
+
+#include <omptl_algorithm.h>
+
+#endif /* OMPTL_OFF */
+
+#endif /* OMPTL_ALGORITHM */

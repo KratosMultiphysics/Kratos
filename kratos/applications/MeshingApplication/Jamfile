@@ -1,0 +1,67 @@
+project MeshingApplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_io
+       custom_conditions
+       custom_elements
+       custom_processes
+       custom_python
+       custom_strategies
+       custom_utilities
+       external_includes
+    :
+    requirements <include>. 
+		<include>custom_external_libraries/tetgen/tetgen1.4.0
+		<include>custom_external_libraries/triangle
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+lib libtetgen_win 		: : <name>libtet <search>custom_external_libraries/tetgen/tetgen1.4.0/ <link>static ;
+lib libtetgen_linux		: : <name>tet <search>custom_external_libraries/tetgen/tetgen1.4.0/ <link>static ;
+alias libtetgen : libtetgen_win : <toolset>msvc ;
+alias libtetgen : libtetgen_linux : <toolset>gcc ;
+alias libtetgen : libtetgen_linux : <toolset>intel ;
+
+lib libtriangle_win 		: : <name>libtriangle <search>custom_external_libraries/triangle/ ;
+lib libtriangle_linux 		: : <name>triangle <search>custom_external_libraries/triangle/ ;
+alias libtriangle : libtriangle_win : <toolset>msvc ;
+alias libtriangle : libtriangle_linux : <toolset>gcc ;
+alias libtriangle : libtriangle_linux : <toolset>intel ;
+
+#compilation of additional libraries
+use-project /kratos-prj/meshapp_tetgen_compilation : custom_external_libraries/tetgen/tetgen1.4.0 ;
+use-project /kratos-prj/meshapp_triangle_compilation : custom_external_libraries/triangle ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+import python ;
+python-extension KratosMeshingApplication
+    :  
+	meshing_application.cpp 
+	kratos_meshing_python_application.cpp 
+	add_meshers_to_python.cpp 
+	add_processes_to_python.cpp 
+	mesh_suites.cpp
+	add_custom_utilities_to_python.cpp 	
+
+    /KratosProject//libkratos_static
+
+	libtetgen
+	libtriangle
+	/kratos-prj/meshapp_tetgen_compilation//install
+	/kratos-prj/meshapp_triangle_compilation//install
+	/KratosProject//pythonlib
+	/KratosProject//boost_python_lib
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install .
+install install : KratosMeshingApplication : <location>$(TOP)/libs ;

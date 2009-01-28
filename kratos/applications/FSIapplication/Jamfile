@@ -1,0 +1,67 @@
+project FSIApplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_conditions
+       custom_elements
+       custom_processes
+       custom_python
+       custom_strategies
+       custom_utilities
+       external_includes
+    :
+    requirements <include>. 
+		<include>custom_external_libraries/ann_1.1/lib 
+		<include>custom_external_libraries/ann_1.1/include 
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+alias libkratos 	: /kratos-prj/kratos//libkratos/<link>static ;
+lib libann 		: : <name>ANN <search>custom_external_libraries/ann_1.1/lib ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+lib libFSIApplication
+    :  
+	fsi_application.cpp 
+	fsi_python_application.cpp 
+	add_mappers_to_python.cpp 
+	add_custom_utilities_to_python.cpp 
+	NMPointsMapper.cpp 
+	AdvancedNMPointsMapper.cpp
+#	coupling_face2D.cpp
+
+    /KratosProject//libkratos_static
+
+	libann
+ 
+	/KratosProject//pythonlib
+	/KratosProject//boost_python_lib
+    : <tag>@tag
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+
+rule tag ( name : type ? : property-set )
+{
+  if $(name) = "libFSIApplication"
+  {
+    if [ $(property-set).get <os> ] = NT
+    {  return KratosFSIApplication.dll ;  }
+    else
+    {  return KratosFSIApplication.so ;   }
+  }
+  else
+  {
+    return $(name) ;
+  }  
+}
+install install : libFSIApplication : <location>$(TOP)/libs ;

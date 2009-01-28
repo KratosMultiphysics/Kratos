@@ -1,0 +1,71 @@
+# Jamfile for gidpost building
+
+import modules ;
+
+if [ modules.peek : OS ] = NT {
+  using msvc ;
+} else {
+
+  using gcc ;
+  using g77 ;
+}
+
+path-constant GIDPOST_ROOT : .. ;
+
+project gidpost-prj
+    :
+    source-location $(GIDPOST_ROOT)/source
+    :
+    requirements <include>$(GIDPOST_ROOT)
+                 <include>$(GIDPOST_ROOT)/source
+    ;
+
+rule gidpost-reqs ( properties * )
+{
+  local result ;
+  switch [ modules.peek : OS ]
+  {
+  case LINUX :
+    {
+      result = <define>f2cFortran ;
+    }
+  case NT :
+    {
+      result = <define>VISUAL_CPLUSPLUS ;
+      if <link>shared in $(properties)
+      {
+        result += <define>GIDPOST_SHARED <define>GIDPOST_EXPORTS <define>_CRT_SECURE_NO_DEPRECATE ;
+      }
+      result += <define>_CRT_SECURE_NO_DEPRECATE ;
+    }
+  }
+  return $(result) ;
+}
+
+rule fortexe-reqs ( properties * )
+{
+  return "" ;
+}
+
+lib gidpost
+    :
+    gidpost.cpp gidpostInt.cpp zlibint1.c zlibint2.c gidpostfor.c
+    :
+    <conditional>@gidpost-reqs
+    ;
+
+
+lib g2clib : : <name>g2c ;
+
+exe testc
+    :
+    ../examples/testpost.c gidpost ;
+
+exe testf
+    :
+    ../examples/testpostfor.f g2clib gidpost
+    :
+    <conditional>@fortexe-reqs
+    ;
+
+explicit testf ;

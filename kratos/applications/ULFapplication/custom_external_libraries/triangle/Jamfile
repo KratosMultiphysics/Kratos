@@ -1,0 +1,36 @@
+
+project tetgen_compilation
+    : 
+    source-location
+       .
+    :
+    requirements 	<include>. 
+		     	<define>TRILIBRARY
+			<define>NDEBUG
+		     	<link>static
+			<threading>multi
+			<warnings>off
+			<optimization>off
+
+			#microsoft compiler options
+			<toolset>msvc:<define>CPU86
+			<toolset>msvc:<define>NO_TIMER
+
+			<toolset>gcc:<define>LINUX
+			<toolset>gcc:<cxxflags>"-fPIC"
+			<toolset>intel:<define>"LINUX"
+			<toolset>intel:<cxxflags>"-fPIC"
+			<toolset>intel:<cflags>"-fPIC"
+	: 
+			default-build release 
+    ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+lib triangle
+    :  
+	triangle.c
+    ;
+
+install install : triangle : <location>. ;
