@@ -14,7 +14,7 @@ INSTALLATION
 - "Makefile_includes" contains the setting to be used in the installation and SHOULD BE CUSTOMIZED by the user to ensure that the correct directories are used
 - the command to install all the kratos, including the applications is 
 
-  make install
+  make install  
 
 it is possible to compile separately the different parts of the code by typing
 
