@@ -151,9 +151,6 @@ namespace Kratos
 	CalculatePressureTerm(rLeftHandSideMatrix, DN_DX, N, delta_t,Area);
 
 	//compute projections
-	array_1d<double,6> adv_proj = ZeroVector(6);
-	array_1d<double,3> div_proj = ZeroVector(3);
-	//ComputeProjections(adv_proj, div_proj, DN_DX,thawone,thawtwo,N,Area, delta_t);
 	
 	//stabilization terms
 	CalculateDivStblTerm(rLeftHandSideMatrix, DN_DX, thawtwo, Area);
@@ -163,9 +160,13 @@ namespace Kratos
 	
 	//add body force and momentum
 	AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area);
+
+	//add projections
+	AddProjectionForces(rRightHandSideVector,DN_DX,Area);	
 	
 	//calculate residual
 	CalculateResidual(rLeftHandSideMatrix, rRightHandSideVector);
+
 	
 
 		KRATOS_CATCH("")
@@ -176,21 +177,8 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-	int nodes_number = 3;
-	int dim = 2;
-	unsigned int matsize = nodes_number*(dim+1);
-
-	if(rRightHandSideVector.size() != matsize)
-			rRightHandSideVector.resize(matsize);	
-
-	noalias(rRightHandSideVector) = ZeroVector(matsize); 
-
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-	
-	//Add explicitly projection forces
-	//AddProjectionForces(rRightHandSideVector,DN_DX,Area);	
-	
+		MatrixType temp = Matrix();
+		//CalculateLocalSystem(temp, rRightHandSideVector,  rCurrentProcessInfo);
 
 		KRATOS_CATCH("")
 	}
@@ -274,7 +262,7 @@ namespace Kratos
 	double advvel_norm = ms_adv_vel[0]*ms_adv_vel[0]+ms_adv_vel[1]*ms_adv_vel[1];
 	advvel_norm = sqrt(advvel_norm);
 	
-	double ele_length = 2.0*sqrt(area/sqrt(3.00));
+	double ele_length = 2.0*sqrt(area/3.00);
 	
 	double mu;
 	const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -287,9 +275,9 @@ namespace Kratos
 
 
 	//double nu = mu/density;
-
-	thawone = 1.0/(density/time + 4.0*mu/(ele_length*ele_length)+2.0*advvel_norm*density/ele_length);
-	thawtwo = mu/density + ele_length*advvel_norm/2.0;
+	//take care ro*div(u) is implemented so thawtwo is devided by ro
+	thawone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
+	thawtwo = mu/density + 1.0*ele_length*advvel_norm/2.0;
 
 	m_thawone = thawone;
 	m_thawtwo = thawtwo;
@@ -343,8 +331,8 @@ namespace Kratos
 	int nodes_number = 3;
 	int dof = 2;
 
-	/*double density;
-	calculatedensity(GetGeometry(), density);*/
+	double density;
+	calculatedensity(GetGeometry(), density);
 
 
 	for ( int ii = 0; ii < nodes_number; ii++)
@@ -355,10 +343,10 @@ namespace Kratos
 			int column = jj*(dof+1) + dof;
 
 			K(row,column) += -1*area * N(jj) * DN_DX(ii,0);
-			K(column,row) += 1*area * N(jj) * DN_DX(ii,0);
+			K(column,row) += 1*area *density* N(jj) * DN_DX(ii,0);
 
 			K(row + 1,column) += -1*area * N(jj) * DN_DX(ii,1);
-			K(column,row + 1) += 1*area * N(jj) * DN_DX(ii,1);
+			K(column,row + 1) += 1*area *density* N(jj) * DN_DX(ii,1);
 		   }
 	    }
 
@@ -444,7 +432,7 @@ namespace Kratos
 		shape_func(column + 1, 1) = shape_func(column,0);
 	    }
 
-	//build (ro*a.grad V)(ro*a.grad U) stabilization term & assemble
+	//build (a.grad V)(ro*a.grad U) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double,6,6> adv_stblterm = ZeroMatrix(matsize,matsize);		
 	adv_stblterm = thawone * prod(trans(conv_opr),conv_opr);
 
@@ -461,14 +449,14 @@ namespace Kratos
 			int column = jj*(dof+1);
 			int loc_column = jj*dof;
 			
-			K(row,column) += 1*area*density*density*adv_stblterm(loc_row,loc_column);
-			K(row,column + 1) += 1*area*density*density*adv_stblterm(loc_row,loc_column + 1);
-			K(row + 1,column) += 1*area*density*density*adv_stblterm(loc_row + 1,loc_column);
-			K(row + 1,column + 1) += 1*area*density*density*adv_stblterm(loc_row + 1,loc_column + 1);
+			K(row,column) += 1*area*density*adv_stblterm(loc_row,loc_column);
+			K(row,column + 1) += 1*area*density*adv_stblterm(loc_row,loc_column + 1);
+			K(row + 1,column) += 1*area*density*adv_stblterm(loc_row + 1,loc_column);
+			K(row + 1,column + 1) += 1*area*density*adv_stblterm(loc_row + 1,loc_column + 1);
 		   }
 	    }
 		
-	//build 1*thaw1*(ro*a.grad V)(grad P) & 1*thaw1*(grad q)(ro*a.grad U) stabilization terms & assemble
+	//build 1*thaw1*(a.grad V)(grad P) & 1*thaw1*(grad q)(ro*a.grad U) stabilization terms & assemble
 	boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
 	grad_stblterm = thawone * prod(trans(conv_opr),trans(DN_DX));
 
@@ -480,19 +468,19 @@ namespace Kratos
 		   {
 			int column = jj*(dof+1) + dof;
 
-			K(row,column) += 1*area *density* grad_stblterm(loc_row,jj);
-			K(row + 1,column) += 1*area *density* grad_stblterm(loc_row + 1, jj);
+			K(row,column) += 1.0*area *1.0* grad_stblterm(loc_row,jj);
+			K(row + 1,column) += 1.0*area *1.0* grad_stblterm(loc_row + 1, jj);
 
-			K(column, row) += 1*area * density*grad_stblterm(loc_row, jj);
-			K(column, row + 1) += 1*area *density* grad_stblterm(loc_row + 1, jj);
+			K(column, row) += 1.0*area * density*grad_stblterm(loc_row, jj);
+			K(column, row + 1) += 1.0*area *density* grad_stblterm(loc_row + 1, jj);
 		   }
 	    }
 
-	//thaw1*ro/dt*U(n+1,i+1).(ro*a.grad V)
+	//thaw1*ro/dt*U(n+1,i+1).(1.0*a.grad V)
 	boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
 	temp_convterm = prod(trans(conv_opr),trans(shape_func));
 
-	double fac = thawone/time*density*density;	
+	double fac = thawone/time*density;	
 	
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
@@ -509,7 +497,7 @@ namespace Kratos
 	    }
 
 
-	//build (ro*a.grad V) (Fbody + ro/dt * U(n)) stabilization term & assemble
+	//build (1.0*a.grad V) (Fbody + ro/dt * U(n)) stabilization term & assemble
 	array_1d<double,2> bdf = ZeroVector(2);
 	const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
 	const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
@@ -524,7 +512,7 @@ namespace Kratos
 	
 
 	array_1d<double,6> fbd_stblterm = ZeroVector(matsize);
-	fbd_stblterm = thawone *density* prod(trans(conv_opr),bdf);
+	fbd_stblterm = thawone *1.0* prod(trans(conv_opr),bdf);
 
 	for(int ii = 0; ii< nodes_number; ++ii)
 	  {
@@ -549,7 +537,7 @@ namespace Kratos
 
 	//build 1*(grad q . grad p) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
-	gard_opr = 1*thawone * prod(DN_DX,trans(DN_DX)); 
+	gard_opr = 1.0*thawone * prod(DN_DX,trans(DN_DX)); 
 
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
@@ -697,18 +685,24 @@ namespace Kratos
 		//int index = i*dim;
 		double pr = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
 		const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		
+		const array_1d<double,3>& old_vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+
 		//const array_1d<double,2>& bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
 		// to consider the jump gradp/ro is calculated
 			//pr = pr/density;
 
 		//adv_proj = PI(ro*dv/dt + ro*a.gradU + gradP - f) considering lumped mass PI() = ()
-		mean_adv_proj_X += (/*density*(vel[0]-old_vel[0])/time*/ + pr * DN_DX(i,0) +density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[0]/*-density*bdf[0]*/ );
-		mean_adv_proj_Y +=  (/*density*(vel[1]-old_vel[1])/time*/ + pr * DN_DX(i,1) + density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[1]/*-density*bdf[1]*/ );
+		mean_adv_proj_X += (density*(vel[0]-old_vel[0])/time + pr * DN_DX(i,0) +density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[0] );
+		mean_adv_proj_Y +=  (density*(vel[1]-old_vel[1])/time + pr * DN_DX(i,1) + density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[1] );
 
 		//div_proj = PI(ro*divU)
-		mean_div_proj += (DN_DX(i,0)*vel[0] + DN_DX(i,1)*vel[1]);
+		mean_div_proj += density*(DN_DX(i,0)*vel[0] + DN_DX(i,1)*vel[1]);
 	}
+
+		//completing calculation in Gauss point by devision by 3
+		mean_adv_proj_X /= 0.33333333333333333333333333333333333333333;
+		mean_adv_proj_Y /= 0.33333333333333333333333333333333333333333;
+		mean_div_proj /= 0.33333333333333333333333333333333333333333;
 
 	for (unsigned int i=0;i<number_of_nodes;i++)
 	 {
@@ -717,8 +711,8 @@ namespace Kratos
 		const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& old_vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
 
-		adv_proj[index] = area*N[i]*(density*(vel[0]-old_vel[0])/time + mean_adv_proj_X - density*bdf[0]);
-		adv_proj[index +1] = area*N[i]*(density*(vel[1]-old_vel[1])/time + mean_adv_proj_Y - density*bdf[1]);
+		adv_proj[index] = area*N[i]*(/*density*(vel[0]-old_vel[0])/time +*/ mean_adv_proj_X /*- density*bdf[0]*/);
+		adv_proj[index +1] = area*N[i]*(/*density*(vel[1]-old_vel[1])/time +*/ mean_adv_proj_Y /*- density*bdf[1]*/);
 
 		div_proj[i] = area*N[i]*density*mean_div_proj;
 
@@ -780,36 +774,16 @@ namespace Kratos
 	double density;
 	calculatedensity(GetGeometry(), density);
 
-	 array_1d<double,3> advproj_0 = GetGeometry()[0].FastGetSolutionStepValue(ADVPROJ);
-	 array_1d<double,3> advproj_1 = GetGeometry()[1].FastGetSolutionStepValue(ADVPROJ);
-	 array_1d<double,3> advproj_2 = GetGeometry()[2].FastGetSolutionStepValue(ADVPROJ);
+	 const array_1d<double,3> advproj_0 = GetGeometry()[0].FastGetSolutionStepValue(ADVPROJ);
+	 const array_1d<double,3> advproj_1 = GetGeometry()[1].FastGetSolutionStepValue(ADVPROJ);
+	 const array_1d<double,3> advproj_2 = GetGeometry()[2].FastGetSolutionStepValue(ADVPROJ);
 
-	 double div_proj_0 = GetGeometry()[0].FastGetSolutionStepValue(DIVPROJ);
-	 double div_proj_1 = GetGeometry()[1].FastGetSolutionStepValue(DIVPROJ);
-	 double div_proj_2 = GetGeometry()[2].FastGetSolutionStepValue(DIVPROJ);
+	 const double div_proj_0 = GetGeometry()[0].FastGetSolutionStepValue(DIVPROJ);
+	 const double div_proj_1 = GetGeometry()[1].FastGetSolutionStepValue(DIVPROJ);
+	 const double div_proj_2 = GetGeometry()[2].FastGetSolutionStepValue(DIVPROJ);
 
-	
-	//COMPLETE PROJECTION´S CALCULATION BY DIVIDION BY NODAL ARE
-	//ro is multiplied to consider jump effect
-	double nodal_weight = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
-	
-	advproj_0[0] /=nodal_weight;
-	advproj_0[1] /=nodal_weight;
-	div_proj_0 /=nodal_weight;
-
-	 nodal_weight = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
-	advproj_1[0] /=nodal_weight;
-	advproj_1[1] /=nodal_weight;
-	div_proj_1 /=nodal_weight;
-
-	 nodal_weight = GetGeometry()[2].FastGetSolutionStepValue(NODAL_AREA);
-	advproj_2[0] /=nodal_weight;
-	advproj_2[1] /=nodal_weight;
-	div_proj_2 /=nodal_weight;
 
 	
-	
-
 	//mean values
 	double mean_x_adv = 0.3333333333333333*(advproj_0[0] +advproj_1[0] + advproj_2[0]); 
 	double mean_y_adv = 0.3333333333333333*(advproj_0[1] +advproj_1[1] + advproj_2[1]); 
@@ -830,10 +804,10 @@ namespace Kratos
 		double proj;
 
 		proj = mean_x_adv*(adv_vel[0]*DN_DX(ii,0) + adv_vel[1]*DN_DX(ii,1));
-		F[index] += (m_thawone*density*area*proj);
+		F[index] += (m_thawone*1.0*area*proj);
 
 		proj = mean_y_adv*(adv_vel[0]*DN_DX(ii,0) + adv_vel[1]*DN_DX(ii,1));
-		F[index +1 ] += (m_thawone*density*area*proj);
+		F[index +1 ] += (m_thawone*1.0*area*proj);
 	
 
 		//thawone*(xi,gradq)
@@ -899,6 +873,28 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
+
+   void Fluid2DASGS::Calculate( const Variable<array_1d<double,3> >& rVariable, 
+                                    array_1d<double,3>& Output, 
+                                    const ProcessInfo& rCurrentProcessInfo)
+	{
+
+	array_1d<double,6> adv_proj = ZeroVector(6);
+	array_1d<double,3> div_proj = ZeroVector(3);
+
+	double delta_t= rCurrentProcessInfo[DELTA_TIME];
+
+	//getting data for the given geometry
+	double Area;
+	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
+
+	ComputeProjections(adv_proj, div_proj, DN_DX,m_thawone,m_thawtwo,N,Area, delta_t);
+
+	}
+
+	//************************************************************************************
+	//************************************************************************************
+
 	void Fluid2DASGS::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
 		
@@ -926,8 +922,8 @@ namespace Kratos
 	//*************************************************************************************
 	void Fluid2DASGS::calculatedensity(Geometry< Node<3> > geom, double& density)
 	{
-	double kk = 0.0;
-	density = 0.0;
+
+	/*double kk = 0.0;
 	for(int ii=0;ii<3;++ii)
 		if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
 			{
@@ -935,14 +931,19 @@ namespace Kratos
 				density +=geom[ii].FastGetSolutionStepValue(DENSITY);
 			}
 
-	density/=kk;
-
+	density/=kk;*/
+	/*
+		density = ZeroVector(3);
+	for(int ii=0;ii<3;++ii)
+		density[ii] = geom[ii].FastGetSolutionStepValue(DENSITY);*/
 	
-	/*const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY);
+	const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY);
 	const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY);
 	const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY);
-	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
-	//KRATOS_WATCH(density);
+	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+
+
+
 
 	}
 	//*************************************************************************************
