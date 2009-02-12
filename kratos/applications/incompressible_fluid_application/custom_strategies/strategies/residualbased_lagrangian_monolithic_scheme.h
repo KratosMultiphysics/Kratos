@@ -259,12 +259,27 @@ namespace Kratos
 			KRATOS_TRY
 		for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        	 { 
-			ind->FastGetSolutionStepValue(ADVPROJ_X) = 0.0;
-			ind->FastGetSolutionStepValue(ADVPROJ_Y) = 0.0;
+			noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
 
 			ind->FastGetSolutionStepValue(DIVPROJ) = 0.0;
 
 			ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
+			
+			 }
+	
+			//loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
+			array_1d<double,3> output;
+			ProcessInfo& processinfo = r_model_part.GetProcessInfo();
+
+			for(typename  ModelPart::ElementsContainerType::iterator elem = r_model_part.ElementsBegin(); elem != r_model_part.ElementsEnd(); elem++)
+			{
+			elem->Calculate(ADVPROJ, output,processinfo);
+			}
+
+			for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
+	        	 { 
+				ind->FastGetSolutionStepValue(ADVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
+				ind->FastGetSolutionStepValue(DIVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
 			
 			 }
 		
