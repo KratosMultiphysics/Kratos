@@ -415,12 +415,8 @@ namespace Kratos
 				TSparseSpace::SetToZero(mDx);
 				TSparseSpace::SetToZero(mb);
 
-				//pBuilderAndSolver->BuildAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
-				pBuilderAndSolver->Build(pScheme,BaseType::GetModelPart(),mA,mb);
-				
-				pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);
-				
-				pBuilderAndSolver->SystemSolve(mA,mDx,mb);
+				pBuilderAndSolver->BuildAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
+
 				
 			}
 			else
@@ -488,10 +484,8 @@ namespace Kratos
 						TSparseSpace::SetToZero(mDx);
 						TSparseSpace::SetToZero(mb);
 
-						//pBuilderAndSolver->BuildAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
-						pBuilderAndSolver->Build(pScheme,BaseType::GetModelPart(),mA,mb);
-						pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);
-						pBuilderAndSolver->SystemSolve(mA,mDx,mb);
+						pBuilderAndSolver->BuildAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
+
 
 
 					}
