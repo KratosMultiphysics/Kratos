@@ -674,9 +674,12 @@ namespace Kratos
 	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
 
 
-	double mean_adv_proj_X =0.0;
-	double mean_adv_proj_Y =0.0;
+	double const_adv_proj_X =0.0;
+	double const_adv_proj_Y =0.0;
 	double mean_div_proj =0.0;
+	array_1d<double,3> mean_new_vel = ZeroVector(3);
+	array_1d<double,3> mean_old_vel = ZeroVector(3);
+	array_1d<double,3> mean_bdf = ZeroVector(3);
 
 
 	for (unsigned int i=0;i<number_of_nodes;i++)
@@ -686,33 +689,34 @@ namespace Kratos
 		double pr = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
 		const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& old_vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
 
 		//const array_1d<double,2>& bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
 		// to consider the jump gradp/ro is calculated
 			//pr = pr/density;
 
 		//adv_proj = PI(ro*dv/dt + ro*a.gradU + gradP - f) considering lumped mass PI() = ()
-		mean_adv_proj_X += (density*(vel[0]-old_vel[0])/time + pr * DN_DX(i,0) +density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[0] );
-		mean_adv_proj_Y +=  (density*(vel[1]-old_vel[1])/time + pr * DN_DX(i,1) + density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[1] );
+		//calculate constant part of RES ->ro*a.gradU + gradP
+		const_adv_proj_X += ( pr * DN_DX(i,0) + density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[0] );
+		const_adv_proj_Y +=  (pr * DN_DX(i,1) + density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[1] );
 
 		//div_proj = PI(ro*divU)
 		mean_div_proj += density*(DN_DX(i,0)*vel[0] + DN_DX(i,1)*vel[1]);
+
+		//calcuale mean velocity and body force
+		mean_new_vel += 0.3333333333333333333333333333*vel;
+		mean_old_vel += 0.3333333333333333333333333333*old_vel;
+		mean_bdf += 0.3333333333333333333333333333*bdf;
 	}
 
-		//completing calculation in Gauss point by devision by 3
-		mean_adv_proj_X /= 0.33333333333333333333333333333333333333333;
-		mean_adv_proj_Y /= 0.33333333333333333333333333333333333333333;
-		mean_div_proj /= 0.33333333333333333333333333333333333333333;
+
 
 	for (unsigned int i=0;i<number_of_nodes;i++)
 	 {
 		int index = i*dim;
-		const array_1d<double,2>& bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-		const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		const array_1d<double,3>& old_vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
 
-		adv_proj[index] = area*N[i]*(/*density*(vel[0]-old_vel[0])/time +*/ mean_adv_proj_X /*- density*bdf[0]*/);
-		adv_proj[index +1] = area*N[i]*(/*density*(vel[1]-old_vel[1])/time +*/ mean_adv_proj_Y /*- density*bdf[1]*/);
+		adv_proj[index] = area*N[i]*(density*(mean_new_vel[0]-mean_old_vel[0])/time + const_adv_proj_X - density*mean_bdf[0]);
+		adv_proj[index +1] = area*N[i]*(density*(mean_new_vel[1]-mean_old_vel[1])/time + const_adv_proj_Y - density*mean_bdf[1]);
 
 		div_proj[i] = area*N[i]*density*mean_div_proj;
 
