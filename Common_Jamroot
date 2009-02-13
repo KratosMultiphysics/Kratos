@@ -52,7 +52,7 @@ project KratosProject
 			#basic configurations
 		     <threading>multi
 		     <define>NDEBUG
-##		     <toolset>intel:<define>_GCC_LIMITS_H_
+###		     <toolset>intel:<define>_GCC_LIMITS_H_
 
 			 #compiler settings - can be customarized by the user
 			 #WARNING -fPIC is NEEDED to compile on 64bit systems - it has to be specified here in order to include it in the 
