@@ -96,7 +96,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
+  /// ModelPart class.
   /** Detail class definition.
   */
     class ModelPart : public DataValueContainer
