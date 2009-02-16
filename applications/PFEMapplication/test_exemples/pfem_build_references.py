@@ -2,7 +2,7 @@ import os
 
 # dam2d
 
-os.chdir("dam2d_benchmarking.gid")	
+os.chdir("dam2d.gid")	
 
 import dam2d_build_reference
 

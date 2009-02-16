@@ -7,7 +7,7 @@ def Run():
 	# dam2d
 
 	Text += "dam_2d: "
-	os.chdir("dam2d_benchmarking.gid")	
+	os.chdir("dam2d.gid")	
 	
 	import dam2d_benchmark
 	Msg = dam2d_benchmark.Run()
