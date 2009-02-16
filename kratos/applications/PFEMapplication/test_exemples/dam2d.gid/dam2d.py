@@ -10,9 +10,12 @@ domain_size = 2
 #including kratos path
 kratos_libs_path = '../../../../libs' ##kratos_root/libs
 kratos_applications_path = '../../../../applications' ##kratos_root/applications
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
+
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
+sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
 from Kratos import *
@@ -24,10 +27,22 @@ applications_interface.Import_IncompressibleFluidApplication = True
 applications_interface.Import_PFEMApplication = True
 applications_interface.Import_MeshingApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
+import benchmarking
 
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
+
+def FindNode(node_list,x,y,z):
+    for node in node_list:
+        if ((node.X - x) ** 2 + (node.Y - y) ** 2 + (node.Z - z) ** 2 < 0.0000001):
+            return node
+    
+def BenchmarkCheck(time, node1, node2):
+    benchmarking.Output(time, "Time")
+    benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 1.0)
+    benchmarking.Output(node2.GetSolutionStepValue(PRESSURE), "Node 2 pressure", 1.0)
+
 
 #defining a model part
 model_part = ModelPart("FluidPart");
@@ -86,6 +101,13 @@ max_dt = 0.02
 
 safety_factor = 0.5;
 
+##########################
+
+node_1 = FindNode(model_part.Nodes, 0.5, 0.0, 0.0)
+node_2 = FindNode(model_part.Nodes, 0.24, 0.0, 0.0)
+
+##########################
+
 #initializing the solver
 solver.Initialize(Dt,output_Dt)
 
@@ -113,6 +135,8 @@ for step in range(0,nsteps):
 ##        if(step > 4):
 ##            solver.box_corner2[1] = 0.1
     print "li"
+    
+    BenchmarkCheck(time, node_1, node_2)
 
 print "solution finished"
 

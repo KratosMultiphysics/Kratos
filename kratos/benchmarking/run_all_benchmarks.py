@@ -4,16 +4,18 @@ import benchmarking
 
 sys.path.append(".")
 
-Text = "Status of Kratos examples:\n\n"
-os.chdir("../applications")
+CurrentDir = os.curdir
+KratosRoot = CurrentDir + "/../"
+ApplicationsRoot = KratosRoot + "applications/"
 
-# PFEM
-os.chdir("PFEMapplication/test_examples")
+Text = "Status of Kratos examples:\n\n"
+os.chdir(ApplicationsRoot)
+
+# PFEM                                                                                                                                                                           
+os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
 
 import pfem_benchmarks
 Text += pfem_benchmarks.Run()
-
-os.chdir("../..")
 
 # Add other directories here
 

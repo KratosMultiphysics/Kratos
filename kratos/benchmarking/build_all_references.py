@@ -4,13 +4,16 @@ import benchmarking
 
 sys.path.append(".")
 
-os.chdir("../applications")
+CurrentDir = os.curdir
+KratosRoot = CurrentDir + "/../"
+ApplicationsRoot = KratosRoot + "applications/"
+
+os.chdir(ApplicationsRoot)
 
 # PFEM
-os.chdir("PFEMapplication/test_examples")
+os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
+#os.chdir("PFEMapplication/test_examples")
 
 import pfem_build_references
-
-os.chdir("../..")
 
 # Add other directories here
