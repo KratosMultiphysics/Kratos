@@ -278,6 +278,11 @@ namespace Kratos
 
 			for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        	 { 
+				if(ind->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
+					{
+						ind->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
+						KRATOS_WATCH("*********ATTENTION: NODAL AREA IS ZERRROOOO************");
+					}
 				ind->FastGetSolutionStepValue(ADVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
 				ind->FastGetSolutionStepValue(DIVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
 			
