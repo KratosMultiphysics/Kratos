@@ -174,7 +174,7 @@ class PFEMSolver:
         print self.box_corner2
         
         (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-##        (self.EraseNodes).Execute();
+        (self.EraseNodes).Execute();
 
         ##remesh
         if(self.domain_size==2):
