@@ -450,6 +450,7 @@ namespace Kratos
 			}
 
 			//NOW WE SHALL IDENTIFY FLYING NODES
+			/*
 			std::vector<double> aux_before_ref(ThisModelPart.Nodes().size());
 			
 			for (unsigned int i=0; i<aux_before_ref.size();i++)
@@ -470,7 +471,7 @@ namespace Kratos
 				aux_before_ref[out.tetrahedronlist[old_base+3]-1]+=1;		
 				}
 			}		
-			
+			*/
 			//creating a new mesh
 			boost::timer mesh_recreation_time;
 
@@ -483,7 +484,7 @@ namespace Kratos
 			//based upon average nodal_h (that is the  "a" switch
 			//char regeneration_options[] = "rQJYq1.8anS";
 			//REFINEMENT TEMPORARILY SWITCHED OFF!!!!
-			char regeneration_options[] = "rQJYqanS";
+			char regeneration_options[] = "rQJYYqanS";
 
 			
 			tetrahedralize(regeneration_options, &in2, &outnew);
@@ -556,7 +557,7 @@ namespace Kratos
 			bucket_size = 20;
 			
 			//performing the interpolation - all of the nodes in this list will be preserved
-			max_results = 500;
+			max_results = 800;
 			PointVector results(max_results);
 			DistanceVector results_distances(max_results);
 			array_1d<double,4> N;
@@ -568,7 +569,8 @@ namespace Kratos
 
 			
 
-			//NOW WE SHALL IDENTIFY LONELY BUT NOT FLYING NODES (compare with  the flying nodes identification above (after first remeshing step))
+			//NOW WE SHALL IDENTIFY LONELY BUT NOT FLYING NODES (compare with  the flying nodes identification above (after first remeshing step))			
+			/*
 			std::vector<double> aux_after_ref(outnew.numberofpoints);
 			
 			for (unsigned int i=0; i<aux_after_ref.size();i++)
@@ -589,7 +591,7 @@ namespace Kratos
 				aux_after_ref[outnew.tetrahedronlist[base+3]-1]+=1;		
 				
 			}		
-			
+			*/
  
 			if(outnew.numberofpoints-n_points_before_refinement > 0) //if we added points
 			{
@@ -820,7 +822,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 			
 			//here we remove lonely nodes that are not teh flying nodes, but are the lonely nodes inside water vol
-		
+			/*
 			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
 			{
 			//if this is a node added during refinement, but isnt contained in any element
@@ -837,7 +839,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				KRATOS_WATCH("This is that ugly ugly lonely interior node. IT SHALL BE TERRRRMINATED!!!!!!")
 				}
 			}
-			
+			*/
 
 
 			double second_part_time = auxiliary.elapsed();
