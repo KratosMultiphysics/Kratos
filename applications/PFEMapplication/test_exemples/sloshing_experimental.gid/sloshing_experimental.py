@@ -22,6 +22,7 @@ kernel = Kernel()   #defining kernel
 import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
 applications_interface.Import_PFEMApplication = True
+applications_interface.Import_MeshingApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 ## from now on the order is not anymore crucial
@@ -137,7 +138,7 @@ solver = pfem_solver_ale.PFEMSolver(model_part,name,box_corner1,box_corner2,doma
 solver.predictor_corrector = False
 solver.max_vel_its = 5;
 solver.max_press_its = 5;
-solver.alpha_shape = 2.0
+solver.alpha_shape = 1.2
 solver.eulerian_lagrangian = True
 #pDiagPrecond = DiagonalPreconditioner()
 #solver.pressure_linear_solver =  CGSolver(1e-4, 5000,pDiagPrecond)
