@@ -123,16 +123,13 @@ namespace Kratos
 		*/
 		ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver(
 			typename TLinearSolver::Pointer pNewLinearSystemSolver, int estimated_number_of_second_neighb = 125,
-			double min_conv_vel_norm = 0.0,
-			bool is_lagrangian = false
-									 )
+			bool use_dt_in_stabilization = false
+			)
 			: BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
 		{
 			mestimated_number_of_second_neighb = estimated_number_of_second_neighb;
 			
-			mmin_conv_vel_norm = min_conv_vel_norm;
-			m_is_lagrangian = is_lagrangian;
-			/* 			std::cout << "using the standard builder and solver " << std::endl; */
+			muse_dt_in_stabilization = use_dt_in_stabilization;
 
 		}
 
@@ -190,10 +187,10 @@ namespace Kratos
 
 			Build(pScheme,r_model_part,A,b);
 
-			//if(GetEchoLevel()>0)
-			//{
+			if(BaseType::GetEchoLevel()>0)
+			{
 				std::cout << "Building Time : " << building_time.elapsed() << std::endl;
-			//}
+			}
 
 			if (BaseType::GetEchoLevel()== 3)
 			{
@@ -207,10 +204,10 @@ namespace Kratos
 
 			SystemSolve(A,Dx,b);
 
-			//if(GetEchoLevel()>0)
-			//{
+			if(BaseType::GetEchoLevel()>0)
+			{
 				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
-			//}
+			}
 
 			KRATOS_CATCH("")
 		}
@@ -335,7 +332,6 @@ namespace Kratos
 			if (A.size1() == 0 || this->GetReshapeMatrixFlag() == true) //if the matrix is not initialized
 			{
 				A.resize(this->mEquationSystemSize,this->mEquationSystemSize,false);
-				//A.resize(this->mEquationSystemSize*TDim,this->mEquationSystemSize,false);
 				ConstructMatrixStructure(A);
 			}
 			else
@@ -455,19 +451,19 @@ namespace Kratos
 				//*******************************************************************************************
 				double h;
 
-				double tau = 1.0/BDFcoeffs[0];
-				if(  m_is_lagrangian == false)
-				{
-					if(TDim == 2)
-						h = sqrt(2.0*Volume);
-					else
-						h = pow(6.00*Volume,0.33333333333);
-					double c1 = 4.00;
-					double c2 = 2.00;
-					double norm_u = norm_2(vg);
-					if(norm_u < mmin_conv_vel_norm) norm_u = mmin_conv_vel_norm;
-					tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
-				}
+				double dt_contrib_to_tau = 0.0;
+				if( muse_dt_in_stabilization == true)
+					dt_contrib_to_tau = 1.0/BDFcoeffs[0];
+
+				if(TDim == 2)
+					h = sqrt(2.0*Volume);
+				else
+					h = pow(6.00*Volume,0.33333333333);
+				double c1 = 4.00;
+				double c2 = 2.00;
+				double norm_u = norm_2(vg);
+				double tau = 1.00 / (dt_contrib_to_tau + c1*nu/(h*h) + c2*norm_u/h );
+				
 
 
 				//calculating stabilization laplacian LHS
@@ -485,16 +481,6 @@ namespace Kratos
 				}
 				proj_aux *= tau;
 				noalias(rhs_contribution) = prod(DN_DX , proj_aux);  
-/*
-				noalias(proj_aux) = N[0]*geom[0].FastGetSolutionStepValue(PRESS_PROJ);
-				for(int kk = 1; kk<TDim+1; kk++)
-				{
-					noalias(proj_aux) += N[kk]*geom[kk].FastGetSolutionStepValue(PRESS_PROJ);
-				}
-				proj_aux *= tau;
-				noalias(rhs_contribution) = prod(DN_DX , proj_aux);  
-
-*/
 
 				double Gaux = 0.00;
 				for(int kk = 0; kk<TDim+1; kk++)
@@ -522,21 +508,6 @@ namespace Kratos
 				}	
 			}
 
-			//adding LHS+=nu*M
-/*			for(WeakPointerVector< Node<3> >::iterator kkk = mActiveNodes.begin(); 
-				kkk!=mActiveNodes.end(); kkk++)
-			{
-				int index_i = (kkk->GetDof(PRESSURE,dof_position)).EquationId();
-				double density = kkk->FastGetSolutionStepValue(DENSITY);
-				double nu = kkk->FastGetSolutionStepValue(VISCOSITY);
-				double Mnodal = kkk->FastGetSolutionStepValue(NODAL_MASS);
-//KRATOS_WATCH(A(index_i,index_i));
-//KRATOS_WATCH(Mnodal/(nu*density));
-				double temp = (Mnodal/(nu));
-				A(index_i,index_i) += temp ;
-//				b[index_i] -= temp * kkk->FastGetSolutionStepValue(PRESSURE);
-			}*/
-
 			//auxiliary vector definitions
 			TSystemVectorType aux_vect_large(this->mEquationSystemSize*TDim);
 			TSystemVectorType aux_vect_small(this->mEquationSystemSize);
@@ -562,34 +533,6 @@ namespace Kratos
 
 			////adding the term Gtrans * dt/area * G to the LHS (this can be implemented as Gtrans * G as G was modified to include the diag)
 			add_symmetric_prod(G,A);
-
-
-
-// 			////adding pold term
-// 			// RHS += Gtrans*diag*G* pold BUT no other terms added to the LHS
-// 			for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin(); 
-// 				in!=mActiveNodes.end(); in++)
-// 			{
-// 				int index_i = in->GetDof(PRESSURE,dof_position).EquationId();
-// 				
-// 				//aux_vect_small[index_i] = in->FastGetSolutionStepValue(PRESSURE,1);	
-// 				aux_vect_small[index_i] = in->FastGetSolutionStepValue(PRESSURE_OLD_IT);	
-// 			}
-// 			axpy_prod(G,aux_vect_small,aux_vect_large,true);
-// 			axpy_prod(aux_vect_large,G, b,false);
-// 
-// 			////applying dirichlet contributions
-// 			// RHS -= Gtrans*diag*G* p
-// 			for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin(); 
-// 				in!=mActiveNodes.end(); in++)
-// 			{
-// 				//int index_i = in->GetValue(AUX_INDEX);
-// 				int index_i = (in->GetDof(PRESSURE,dof_position)).EquationId();
-// 				aux_vect_small[index_i] = in->FastGetSolutionStepValue(PRESSURE);	
-// 			}
-// 			axpy_prod(-aux_vect_small,A,b,false);
-// 			ModifyForDirichlet(A,b);
-
 
 
 			KRATOS_CATCH("");
@@ -668,8 +611,7 @@ namespace Kratos
 		WeakPointerVector<Node<3> > mActiveNodes;
 		unsigned int mActiveSize;
 		unsigned int mestimated_number_of_second_neighb;
-		double mmin_conv_vel_norm;
-		bool m_is_lagrangian;
+		bool muse_dt_in_stabilization;
 		
 		/*@} */
 		/**@name Private Operators*/
@@ -812,7 +754,7 @@ namespace Kratos
 					work_array.push_back(index_j);
 				}
 				
-			//sorting the indices and elminating the duplicates
+				//sorting the indices and elminating the duplicates
 				std::sort(work_array.begin(),work_array.end());
 		
  				for(unsigned int k=0; k<TDim; k++)
@@ -871,8 +813,6 @@ namespace Kratos
 						output(index_j,index_i) += temp;
 					}
 				}
-				//KRATOS_WATCH(output.non_zeros());
-				//std::cout << k << " nnz = " << end << " " << begin << std::endl;
 			}
 			KRATOS_CATCH("");
 		}
@@ -931,7 +871,6 @@ namespace Kratos
 				unsigned int index_j = A.index2_data () [i];
 				if(index_j >= mActiveSize)
 				{
-					//KRATOS_WATCH("NON DOVREI ENTRARE QUIIII");
 					A.value_data()[i] = 0.00;
 				}
 			}
@@ -941,7 +880,6 @@ namespace Kratos
 			end = A.index1_data () [this->mEquationSystemSize];
 			for (size_type i = begin; i < end; ++ i)
 			{
-				//KRATOS_WATCH("NON DOVREI ENTRARE ne QUIIII");
 				A.value_data()[i] = 0.00;
 			}
 
@@ -957,7 +895,6 @@ namespace Kratos
 			//put a 1 on the diagonals and 0 on the RHS
 			for(unsigned int i = mActiveSize ; i<this->mEquationSystemSize; i++)
 			{
-				//KRATOS_WATCH("NON DOVREI ENTRARE neppure QUIIII");
 				A(i,i) = avg_diag; //1.00;
 				b[i] = 0.00;
 			}
@@ -974,8 +911,6 @@ namespace Kratos
 			//getting the dof position
 			unsigned int dof_position = (mActiveNodes.begin())->GetDofPosition(PRESSURE);
 			array_1d<double,3> vg;
-			//double c1 = 4.00;
-			//double c2 = 2.00;
 				
 			//forming an auxiliary vector with the base
 			//Minv_dt = (dt/(density*Area))
@@ -984,22 +919,10 @@ namespace Kratos
 				for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin(); 
 								in!=mActiveNodes.end(); in++)
 				{
-				  //double density = in->FastGetSolutionStepValue(DENSITY);
-				  //double nu = in->FastGetSolutionStepValue(VISCOSITY);
-					//int index_i = in->GetValue(AUX_INDEX);
 					int index_i = in->GetDof(PRESSURE,dof_position).EquationId();
 					int base_index = index_i*TDim;
 					double nodal_mass = in->FastGetSolutionStepValue(NODAL_MASS);
-					//double tmp = sqrt(dt/(density*area) );
 					double tmp = (1.00/(BDF0*nodal_mass) );
-
-					//calculate stabilization contribution
-/*					noalias(vg) +=	in->FastGetSolutionStepValue(FRACT_VEL) - 
-							in->FastGetSolutionStepValue(MESH_VELOCITY);
-					h = sqrt(2.0*area);
-					double norm_u = norm_2(vg);*/
-					//double tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
-					//double stab = tau / ( density*area );
 
 					if(in->IsFixed(VELOCITY_X))
 					{
@@ -1035,22 +958,10 @@ namespace Kratos
 				for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin(); 
 								in!=mActiveNodes.end(); in++)
 				{
-				  //double density = in->FastGetSolutionStepValue(DENSITY);
-				  //double nu = in->FastGetSolutionStepValue(VISCOSITY);
-					//int index_i = in->GetValue(AUX_INDEX);
 					int index_i = in->GetDof(PRESSURE,dof_position).EquationId();
 					int base_index = index_i*TDim;
 					double nodal_mass = in->FastGetSolutionStepValue(NODAL_MASS);
-					//double tmp = sqrt(dt/(density*area) );
 					double tmp = (1.00/(BDF0*nodal_mass) );
-
-// 					//calculate stabilization contribution
-// 					noalias(vg) +=	in->FastGetSolutionStepValue(FRACT_VEL) - 
-// 							in->FastGetSolutionStepValue(MESH_VELOCITY);
-// 					h = pow(6.00*area,0.33333333333);
-// 					double norm_u = norm_2(vg);
-// 					double tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
-// 					double stab = tau / ( density*area );
 
 					if(in->IsFixed(VELOCITY_X))	Minv_dt[base_index] = 0.0;
 					else	Minv_dt[base_index] = tmp ;

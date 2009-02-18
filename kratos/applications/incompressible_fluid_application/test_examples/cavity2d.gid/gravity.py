@@ -73,11 +73,11 @@ for node in model_part.Nodes:
         
 #creating a fluid solver object
 fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
-fluid_solver.laplacian_form = 2;
+fluid_solver.laplacian_form = 3;
 fluid_solver.vel_toll = 1e-6
 fluid_solver.time_order = 1
 fluid_solver.max_press_its = 10;
-fluid_solver.predictor_corrector = True
+fluid_solver.predictor_corrector = False
 
 ##pILUPrecond = ILU0Preconditioner() 
 ##fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
