@@ -190,7 +190,7 @@ namespace Kratos
 			if( laplacian_form == 1) //laplacian form
 			{
 				std::cout << "standard laplacian form" << std::endl;
-				mmin_conv_vel_norm = 0.0;
+				muse_dt_in_stabilization = false;
 				this->mpressurestep = typename BaseType::Pointer(
 					new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >
 					(model_part,pscheme,pNewPressureLinearSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
@@ -200,7 +200,7 @@ namespace Kratos
 			{
 				std::cout << "discrete laplacian form" << std::endl;
 				BuilderSolverTypePointer discretebuild;
-				mmin_conv_vel_norm = 0.0;
+				muse_dt_in_stabilization = false;
 				if(domain_size == 2)
 				{
 				//2 dimensional case
@@ -226,20 +226,20 @@ namespace Kratos
 			{
 				std::cout << "discrete laplacian form" << std::endl;
 				BuilderSolverTypePointer discretebuild;
-				mmin_conv_vel_norm = 1.0;
+				muse_dt_in_stabilization = true;
 
 				if(domain_size == 2)
 				{
 				//2 dimensional case
 					discretebuild = BuilderSolverTypePointer(
-							new	ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver, 2>(pNewPressureLinearSolver,125,mmin_conv_vel_norm,false)
+							new	ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver, 2>(pNewPressureLinearSolver,125,muse_dt_in_stabilization)
 										);
 				}
 				else if (domain_size == 3)
 				{
 				//3 dimensional case
 					discretebuild = BuilderSolverTypePointer(
-							new	ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver, 3>(pNewPressureLinearSolver,125,mmin_conv_vel_norm,false)
+							new	ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver, 3>(pNewPressureLinearSolver,125,muse_dt_in_stabilization)
 										);
 				}
 
@@ -844,8 +844,9 @@ namespace Kratos
 		{
 			KRATOS_TRY;
 
-			//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 			array_1d<double,3> zero = ZeroVector(3);
+			Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
 				i != BaseType::GetModelPart().NodesEnd() ; ++i)
@@ -920,13 +921,14 @@ namespace Kratos
 					}
 
 					//calculating the stabilization
+					double dt_contrib_to_tau = 0.0;
+					if( muse_dt_in_stabilization == true)
+						dt_contrib_to_tau = 1.0/BDFcoeffs[0];
 					double	h = sqrt(2.0*volume);
 					double c1 = 4.00;
 					double c2 = 2.00;
 					double norm_u = norm_2(vg);
-					if(norm_u < mmin_conv_vel_norm) norm_u = mmin_conv_vel_norm;
-					double tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
-// tau = 1.0/BDFcoeffs[0];
+					double tau = 1.00 / (dt_contrib_to_tau + c1*nu/(h*h) + c2*norm_u/h );
 
 					//calculating stabilization laplacian LHS
 					noalias(temp) = prod(trans(DN_DX),pressures);
@@ -1062,7 +1064,7 @@ namespace Kratos
 		bool mpredictor_corrector;
 		bool mReformDofAtEachIteration;
 
-		double mmin_conv_vel_norm;
+		bool muse_dt_in_stabilization ;
 
 		/*@} */
 		/**@name Protected Operators*/

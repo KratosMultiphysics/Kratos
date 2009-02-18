@@ -70,7 +70,7 @@ incompressible_fluid_solver.AddDofs(model_part)
 
 #creating a fluid solver object
 fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
-fluid_solver.laplacian_form = 2;
+fluid_solver.laplacian_form = 3;
 fluid_solver.predictor_corrector = True
 fluid_solver.vel_toll = 1e-3
 fluid_solver.time_order = 2

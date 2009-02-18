@@ -20,9 +20,7 @@ kernel = Kernel()   #defining kernel
 
 #importing applications
 import applications_interface
-#applications_interface.Import_IncompressibleFluidApplication = True
-#applications_interface.Import_PFEMApplication = True
-#applications_interface.Import_ULFApplication = True
+applications_interface.Import_MeshingApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 #loading meshing application
@@ -118,7 +116,7 @@ for step in range(0,nsteps):
         
         i=i+1;    
         
-        Mesher.ReGenerateMesh("TestElement2D", model_part, node_erase_process, alpha_shape)
+        Mesher.ReGenerateMesh("TestElement2D","Condition2D", model_part, node_erase_process, alpha_shape)
     
         print "meshing is performed"
         
