@@ -290,7 +290,7 @@ if (dd<=0.0)
     	
     //nu=0;
 //		noalias(msDN_DX)=prod(msDN_DX,mInvJ[0]);
-    noalias(msDN_DX)=prod(msDN_DX,Jinvv);
+    msDN_DX=prod(msDN_DX,Jinvv);
 
     double k=K/BDFcoeffs[0];
     CalculateViscousMatrix(rLeftHandSideMatrix, msDN_DX, nu, k,density);
@@ -593,7 +593,7 @@ if (dd<=0.0)
 		}
 		/*KRATOS_WATCH(msF);*/	
 ///////////////////
-		noalias(msDN_DX)=prod(msDN_DX,Jinvv);
+		msDN_DX=prod(msDN_DX,Jinvv);
 ///////////////////no considero el jacobiano, lo supongo igual a 1.
 	      
 	      double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
