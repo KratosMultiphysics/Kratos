@@ -33,7 +33,7 @@ print kernel
 ##################################################################
 
 #defining a model part
-from KratosExternalSolversApplication import *
+#from KratosExternalSolversApplication import *
 #from KratosMKLSolversApplication import *
 
 model_part = ModelPart("FluidPart");  
