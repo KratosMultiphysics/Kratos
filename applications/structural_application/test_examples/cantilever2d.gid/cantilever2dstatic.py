@@ -22,7 +22,7 @@ kernel = Kernel()   #defining kernel
 
 #importing applications
 import applications_interface
-applications_interface.Import_KratosExternalSolversApplication = True
+#applications_interface.Import_KratosExternalSolversApplication = True
 applications_interface.Import_StructuralApplication = True
 #applications_interface.Import_KratosMKLSolversApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
@@ -77,7 +77,7 @@ solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size)
 model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
 print "Linear elastic model selected"
 
-solver.structure_linear_solver =  SuperLUSolver()
+#solver.structure_linear_solver =  SuperLUSolver()
 #solver.structure_linear_solver =  ParallelMKLPardisoSolver()
 
 solver.Initialize()
