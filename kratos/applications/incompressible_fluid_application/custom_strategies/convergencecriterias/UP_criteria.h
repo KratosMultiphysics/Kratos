@@ -237,8 +237,8 @@ namespace Kratos
 			double pr_ratio = sqrt(difference_pr_norm)/sqrt(reference_pr_norm);
 			double vel_ratio = sqrt(difference_vel_norm)/sqrt(reference_vel_norm);
 			
-			double pr_abs = sqrt(difference_pr_norm)/sqrt(pr_size);
-			double vel_abs = sqrt(difference_vel_norm)/sqrt(vel_size);
+			double pr_abs = sqrt(difference_pr_norm)/sqrt(static_cast<double>(pr_size));
+			double vel_abs = sqrt(difference_vel_norm)/sqrt(static_cast<double>(vel_size));
 
 
 //KRATOS_WATCH(AbsoluteNorm)

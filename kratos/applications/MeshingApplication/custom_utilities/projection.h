@@ -259,7 +259,7 @@ namespace Kratos
 					if(is_inside == true)
 					{
 						//Interpolating all the rVariables of the rOrigin_ModelPart to get their nodal value in the rDestination_ModelPart
-						Interpolate(  el_it,  N, step_data_size, *(it_found.base() ) );
+						Interpolate(  el_it,  N, step_data_size, *it_found );
 						
 					}
 				}
@@ -389,7 +389,7 @@ namespace Kratos
 					if(is_inside == true)
 					{//CANCELLA insert the variable TDim
 						//Interpolating all the rVariables of the rOrigin_ModelPart to get their nodal value in the rDestination_ModelPart
-						Interpolate(  el_it,  N, *(it_found.base() ) , rVariable );
+						Interpolate(  el_it,  N, *it_found , rVariable );
 						
 					}
 				}
