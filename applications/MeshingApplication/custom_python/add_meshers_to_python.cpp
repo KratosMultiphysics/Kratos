@@ -51,11 +51,11 @@ namespace Python
 	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	//trigen pfem refine
-	void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, double alpha_shape )
+	void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, double alpha_shape, double h_factor )
 	{
 		Mesher.ReGenerateMesh(model_part, 
 			KratosComponents<Element>::Get(ElementName),
-			KratosComponents<Condition>::Get(ConditionName),node_erase, alpha_shape	); 
+			KratosComponents<Condition>::Get(ConditionName),node_erase, alpha_shape, h_factor	); 
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
