@@ -169,7 +169,7 @@ namespace Kratos
             for(unsigned int j = 0 ; j < dof ; j++) {
                 if(i==j)
                     msA(i,j) = 1;
-                if(abs(i-j)==dimension)
+                if(abs(static_cast<int>(i-j))==dimension)
                     msA(i,j) = -1;
             }
         }

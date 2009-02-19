@@ -454,7 +454,7 @@ unsigned int TDim = 2;
 	double ConvDiffChangeOfPhase2D::k(double a)
 	{
 		double anew = 0.5;
-		if(a <= 0.05 or a >=0.95)
+		if(a <= 0.05 || a >=0.95)
 			return anew;
 		else 
 			return a;

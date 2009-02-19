@@ -649,7 +649,7 @@ namespace Kratos
 						
 						if(is_inside == true)
 						{
-							Interpolate(  geom,  N, step_data_size, *(it_found.base() ) );
+							Interpolate(  geom,  N, step_data_size, *(it_found ) );
 							
 						}
 					}

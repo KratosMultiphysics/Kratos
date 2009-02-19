@@ -491,7 +491,7 @@ namespace Kratos
 						//if the node falls inside the element interpolate
 						if(is_inside == true)
 						{
-							Interpolate(  el_it,  N, step_data_size, *(it_found.base() ) );
+							Interpolate(  el_it,  N, step_data_size, *it_found );
 // 							KRATOS_WATCH("dddddddddddddddddd");	
 						}
 					}
