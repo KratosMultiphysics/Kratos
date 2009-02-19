@@ -106,7 +106,7 @@ namespace Kratos
 			Element const& rReferenceElement, 
 			Condition const& rReferenceBoundaryCondition,
 			NodeEraseProcess& node_erase,
-			double my_alpha = 1.4)
+			double my_alpha = 1.4, double h_factor=0.5)
 		{
 
 			KRATOS_TRY
@@ -121,222 +121,96 @@ namespace Kratos
 
 			KRATOS_WATCH("Trigen PFEM Refining Mesher")
 			boost::timer auxiliary;
-			//clearing elements
+			
+
+//clearing elements
+
 			ThisModelPart.Elements().clear();
 			ThisModelPart.Conditions().clear();
-			//creating the containers for the input and output
-			struct triangulateio in;
-			struct triangulateio out;
-			struct triangulateio vorout;
 
-			initialize_triangulateio(in);
-			initialize_triangulateio(out);
-			initialize_triangulateio(vorout);
+			////////////////////////////////////////////////////////////
+			typedef Node<3> PointType;
+			typedef Node<3>::Pointer PointPointerType;
+			typedef std::vector<PointType::Pointer>           PointVector;
+			typedef PointVector::iterator PointIterator;
+			typedef std::vector<double>               DistanceVector;
+			typedef std::vector<double>::iterator     DistanceIterator;
+
+			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
+
+			// bucket types
+			//typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
+			//typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
+			// bucket types
+			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
+		
+				
+			//*************
+			// DynamicBins;	
+			typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
+			//typedef Tree< StaticBins > Bin; 			     //Binstree;
+			unsigned int bucket_size = 20;
 			
-			//assigning the size of the input containers
-						
-			in.numberofpoints = ThisModelPart.Nodes().size();
-			in.pointlist = (REAL *) malloc(in.numberofpoints * 2 * sizeof(REAL));
-
-			//reorder the id's and give the coordinates to the mesher
-			ModelPart::NodesContainerType::iterator nodes_begin = ThisModelPart.NodesBegin();
-			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
+			//performing the interpolation - all of the nodes in this list will be preserved
+			unsigned int max_results = 100;
+			//PointerVector<PointType> res(max_results);
+			//NodeIterator res(max_results);
+			PointVector res(max_results);
+			DistanceVector res_distances(max_results);
+ 			
+			PointVector list_of_nodes;
+			list_of_nodes.reserve(ThisModelPart.Nodes().size());
+			for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
 			{
-				int base = i*2;
-				//int base = ((nodes_begin + i)->Id()   -  1 ) * 2;
-
-				//from now on it is consecutive
-				(nodes_begin + i)->Id() = i+1;
-
-				in.pointlist[base] = (nodes_begin + i)->X();
-				in.pointlist[base+1] = (nodes_begin + i)->Y();
+					(list_of_nodes).push_back(*(i_node.base()));
 			}
-			//in.numberoftriangles = ThisModelPart.Elements().size();
-			//in.trianglelist = (int*) malloc(in.numberoftriangles * 3 * sizeof(int));
 
-			// "P" suppresses the output .poly file. Saves disk space, but you 				
-			//lose the ability to maintain constraining segments  on later refinements of the mesh. 
-			// "B" Suppresses boundary markers in the output .node, .poly, and .edge output files
-			// "n" outputs a list of triangles neighboring each triangle.
-			// "e" outputs edge list (i.e. all the "connectivities")
-			//char options[] = "PBn";
-			char options[] = "Pne";
-			triangulate(options, &in, &out, &vorout);
-			//print out the mesh generation time
-			std::cout<<"mesh generation time = "<<auxiliary.elapsed();
-			//number of newly generated triangles
-			int el_number=out.numberoftriangles;
-			//prepairing for alpha shape passing : creating necessary arrays
-			//list of preserved elements is created: at max el_number can be preserved (all elements)
-			std::vector<int> preserved_list(el_number);
-			array_1d<double,3> x1,x2,x3,xc;
-			int number_of_preserved_elems=0;
-			int point_base;
-			//loop for passing alpha shape			
-			for(int el = 0; el< el_number; el++)
-			{
-				int base = el * 3;
-
-				//coordinates
-				point_base = (out.trianglelist[base] - 1)*2;
-				x1[0] = out.pointlist[point_base]; 
-				x1[1] = out.pointlist[point_base+1]; 
-
-				point_base = (out.trianglelist[base+1] - 1)*2;
-				x2[0] = out.pointlist[point_base]; 
-				x2[1] = out.pointlist[point_base+1]; 
-
-				point_base = (out.trianglelist[base+2] - 1)*2;
-				x3[0] = out.pointlist[point_base]; 
-				x3[1] = out.pointlist[point_base+1]; 
-
-				//here we shall temporarily save the elements and pass them afterwards to the alpha shape
-				Geometry<Node<3> > temp;
-				temp.push_back( *((ThisModelPart.Nodes()).find( out.trianglelist[base]).base()	) );
-				temp.push_back( *((ThisModelPart.Nodes()).find( out.trianglelist[base+1]).base()	) );
-				temp.push_back( *((ThisModelPart.Nodes()).find( out.trianglelist[base+2]).base()	) );
-
-				int number_of_structure_nodes = int( temp[0].FastGetSolutionStepValue(IS_STRUCTURE) );
-				number_of_structure_nodes += int( temp[1].FastGetSolutionStepValue(IS_STRUCTURE) );
-				number_of_structure_nodes += int( temp[2].FastGetSolutionStepValue(IS_STRUCTURE) );
-
-				//check the number of nodes of boundary
-				int nfs = int( temp[0].FastGetSolutionStepValue(IS_FREE_SURFACE) );
-				nfs += int( temp[1].FastGetSolutionStepValue(IS_FREE_SURFACE) );
-				nfs += int( temp[2].FastGetSolutionStepValue(IS_FREE_SURFACE) );
-				
-				//check the number of nodes of boundary
-				int nfluid = int( temp[0].FastGetSolutionStepValue(IS_FLUID) );
-				nfluid += int( temp[1].FastGetSolutionStepValue(IS_FLUID) );
-				nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
-				//first check that we are working with fluid elements, otherwise throw an error
-				//if (nfluid!=3)
-				//	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
-				//otherwise perform alpha shape check
-
-				
-				if(number_of_structure_nodes!=3) //if it is = 3 it is a completely fixed element -> do not add it
+			kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
+			
+			unsigned int n_points_in_radius;			
+			//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+			double radius;
+			Node<3> work_point(0,0.0,0.0,0.0);
+			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+				in != ThisModelPart.NodesEnd(); in++)
 				{
-					if (nfs != 0 || nfluid != 3)  //in this case it is close to the surface so i should use alpha shape 
+				radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
+				
+				work_point[0]=in->X();
+				work_point[1]=in->Y();
+				work_point[2]=in->Z();
+				
+				n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
+					if (n_points_in_radius>1)
 					{
-						
-						if( AlphaShape(my_alpha,temp) && number_of_structure_nodes!=3) //if alpha shape says to preserve
+					if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
 						{
-							preserved_list[el] = true;
-							number_of_preserved_elems += 1;
-														
+						in->GetValue(ERASE_FLAG)=1;
 						}
 					}
-					else //internal triangle --- should be ALWAYS preserved
-					{							
-						double bigger_alpha = my_alpha*10.0;
-						if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3) 
-							{
-							preserved_list[el] = true;
-							number_of_preserved_elems += 1;							
-							}
-					}				
+				/*				
+				if (in->GetValue(ERASE_FLAG)!=1.0)
+					{
+					for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius; i++)
+		 				{
+						// not to remove the boundary nodes
+						if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY)!=1.0  )
+								{
+	 							(*i)->GetValue(ERASE_FLAG)=0.0;
+								KRATOS_WATCH("ERASING NODE!!!!!!!!!!!")
+								}
+						}
+					}
+				*/
 				}
-				else 
-					preserved_list[el] = false;
-			}
-			//freeing memory 
 
-			////////////////////////////////////////////////////////////////////////////////////////////////////
-			////////////////////////////////////////////////////////////////////////////////////////////////////
-			///////////////////                 END OF THE FIRST PHASE -FREE SURF IDENT            ////////////
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-			//												///
-			//				REMOVING THE CLOSE NODES					///
-			///////////////////////////////////////////////////////////////////////////////////////////////////
-			//save the wish size for all the nodes
-			std::vector< double> h_sizes(in.numberofpoints);
-			std::vector< int> preserved(in.numberofpoints);
-
-			for(int i = 0; i<in.numberofpoints; i++)
-			{
-				preserved[i] = true;
-				h_sizes[i] = (nodes_begin+i)->FastGetSolutionStepValue(NODAL_H);
-			}
 			
-			KRATOS_WATCH( "ffff ");
-			//now we shall erase the nodes that are closer than the prescribed distance (NODAL_H)
-			for(int edge_it = 0; edge_it < out.numberofedges; edge_it++) //looping over all edges 
- 			{
-					int base = edge_it * 2;
- 					
- 					int index1 = out.edgelist[base]  - 1;
- 					int index2 = out.edgelist[base+1] -1;
- 					
-					//if one of the two verteces is marked for removal don't do anything more
- 					if( preserved[ index1  ] == true && preserved[ index2  ] == true ) 
- 					{
- 						double dx = out.pointlist[index1*2]-out.pointlist[index2*2];
- 						double dy = out.pointlist[index1*2+1]-out.pointlist[index2*2+1];
- 						double edge_lenght2 = dx*dx + dy*dy;
- 						
- 						double& h1 = h_sizes[index1];
- 						double& h2 = h_sizes[index2];
- 						double wish_size = 0.5*( h1 + h2 );
- 						wish_size *= wish_size;
-
- 						
- 						if( edge_lenght2  < 0.5*wish_size) //a node should be removed
- 						{
-							if( h1 < h2) //we should remove the first
- 							{
- 								//if the first is not boundary remove it else try to remove the second
-										
-								if( out.pointmarkerlist[index1] != 1)
- 									preserved[ index1  ] = false;
- 								else if( out.pointmarkerlist[index2] != 1)
- 									preserved[ index2  ] = false;
- 							}
- 							else //trying to remove the second
- 							{
- 								if( out.pointmarkerlist[index2] != 1)
- 									preserved[ index2  ] = false;
- 								else if( out.pointmarkerlist[index1] != 1)
- 									preserved[ index1  ] = false;
- 							}
- 						//KRATOS_WATCH("removing node");
- 									
- 						}
- 						
- 					}
- 			}
-			unsigned int n_nodes_after_removal=0;
-			//NOW WE SHALL COUNT HOW MANY NODES REMAIN AFTER REMOVAL
-			for(int i = 0; i<in.numberofpoints; i++)
-			{
-				if (preserved[i] == true)
-					n_nodes_after_removal++;
-
-			}
-
-			//now we shall remove the "bad nodes" from the model part
-			//ModelPart::NodesContainerType::iterator nodes_begin = ThisModelPart.NodesBegin();
-			nodes_begin = ThisModelPart.NodesBegin();
-			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
-			{
-				if (preserved[i]==false && ((nodes_begin+i)->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)  )				
-					(nodes_begin+i)->GetValue(ERASE_FLAG)=1.0;
-			}
-			KRATOS_WATCH("Number of nodes before erasing")
-			KRATOS_WATCH(ThisModelPart.Nodes().size())	
 
 			node_erase.Execute();				
 
 			KRATOS_WATCH("Number of nodes after erasing")
 			KRATOS_WATCH(ThisModelPart.Nodes().size())	
 			
-			//freeing the memory
-			clean_triangulateio(in);
-			clean_triangulateio(out);
-			clean_triangulateio(vorout);
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			//												  	//
 			//		Now we shall pass the Alpha Shape for the second time, having the "bad nodes" removed	//
@@ -356,7 +230,7 @@ namespace Kratos
 			in_mid.pointlist = (REAL *) malloc(in_mid.numberofpoints * 2 * sizeof(REAL));
 
 			//reorder the id's and give the coordinates to the mesher
-			nodes_begin = ThisModelPart.NodesBegin();
+			ModelPart::NodesContainerType::iterator nodes_begin = ThisModelPart.NodesBegin();
 			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
 			{ 
 				int base = i*2;
@@ -381,21 +255,21 @@ namespace Kratos
 			//print out the mesh generation time
 			std::cout<<"mesh generation time = "<<auxiliary.elapsed();
 			//number of newly generated triangles
-			el_number=out_mid.numberoftriangles;
+			unsigned int el_number=out_mid.numberoftriangles;
 
 			
 			//prepairing for alpha shape passing : creating necessary arrays
 			//list of preserved elements is created: at max el_number can be preserved (all elements)
 			std::vector<int> preserved_list1(el_number);
-			//preserved_list.resize(el_number);
+			preserved_list1.resize(el_number);
 
-			//array_1d<double,3> x1,x2,x3,xc;
+			array_1d<double,3> x1,x2,x3,xc;
 
 			//int number_of_preserved_elems=0;
-			number_of_preserved_elems=0;
-			//int point_base;
+			int number_of_preserved_elems=0;
+			int point_base;
 			//loop for passing alpha shape			
-			for(int el = 0; el< el_number; el++)
+			for(unsigned int el = 0; el< el_number; el++)
 			{
 				int base = el * 3;
 
@@ -495,7 +369,7 @@ namespace Kratos
 			in2.trianglearealist = new double[in2.numberoftriangles];
 
 			int counter = 0;
-			for (int el=0; el<el_number; el++)
+			for (unsigned int el=0; el<el_number; el++)
 			{
 				if( preserved_list1[el] == true )
 				{
@@ -541,7 +415,7 @@ namespace Kratos
 
 			typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
 
-			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
+			//int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 
 			//creating an auxiliary list for the new nodes 
 			PointVector list_of_new_nodes;
@@ -579,7 +453,7 @@ namespace Kratos
 			}	
 			
 			std::cout << "During refinement we added " << out2.numberofpoints-n_points_before_refinement<< " nodes " <<std::endl;
-			unsigned int bucket_size = 20;
+			//unsigned int bucket_size = 20;
 			//performing the interpolation - all of the nodes in this list will be preserved
 			//unsigned int max_results = 50;
 			//PointVector results(max_results);
@@ -587,8 +461,8 @@ namespace Kratos
 			array_1d<double,3> N;
 				
 			//WHAT ARE THOSE????
-			Node<3> work_point(0,0.0,0.0,0.0);
-			unsigned int MaximumNumberOfResults = 500;
+// 			Node<3> work_point(0,0.0,0.0,0.0);
+ 			unsigned int MaximumNumberOfResults = 500;
 			PointVector Results(MaximumNumberOfResults);
 			DistanceVector ResultsDistances(MaximumNumberOfResults);
 
