@@ -145,6 +145,8 @@ namespace Kratos
 	//Advective term
 	double thawone;
 	double thawtwo;
+	CalculateThaw(thawone, thawtwo, delta_t, Area, rCurrentProcessInfo);
+
 	CalculateAdvectiveTerm(rLeftHandSideMatrix, DN_DX, thawone, thawtwo, delta_t, Area);
 		
 	//calculate pressure term
@@ -162,7 +164,7 @@ namespace Kratos
 	AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area);
 
 	//add projections
-	AddProjectionForces(rRightHandSideVector,DN_DX,Area);	
+	//AddProjectionForces(rRightHandSideVector,DN_DX,Area);	
 	
 	//calculate residual
 	CalculateResidual(rLeftHandSideMatrix, rRightHandSideVector);
@@ -239,7 +241,7 @@ namespace Kratos
 	}
 	//************************************************************************************
 	//************************************************************************************
-	void Fluid2DASGS::CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, double& thawone, double& thawtwo, const double time,const double area)
+	void Fluid2DASGS::CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawone, const double thawtwo, const double time,const double area)
 	{
 		KRATOS_TRY
 	//calculate mean advective velocity and thaws
@@ -250,7 +252,8 @@ namespace Kratos
 	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
 	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
-
+	double density;
+	calculatedensity(GetGeometry(), density);
 
 	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
 	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
@@ -258,29 +261,6 @@ namespace Kratos
 	//ms_adv_vel[0] = 0.0;
 	//ms_adv_vel[1] = 0.0;
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-
-	double advvel_norm = ms_adv_vel[0]*ms_adv_vel[0]+ms_adv_vel[1]*ms_adv_vel[1];
-	advvel_norm = sqrt(advvel_norm);
-	
-	double ele_length = 2.0*sqrt(area/3.00);
-	
-	double mu;
-	const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-	const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-	const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-	mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
-
-	double density;
-	calculatedensity(GetGeometry(), density);		
-
-
-	//double nu = mu/density;
-	//take care ro*div(u) is implemented so thawtwo is devided by ro
-	thawone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
-	thawtwo = mu/density + 1.0*ele_length*advvel_norm/2.0;
-
-	m_thawone = thawone;
-	m_thawtwo = thawtwo;
 
 	//calculate convective term	
 	int nodes_number = 3;
@@ -952,7 +932,63 @@ namespace Kratos
 	}
 	//*************************************************************************************
 	//*************************************************************************************
+		void Fluid2DASGS::CalculateThaw(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+	//calculate mean advective velocity and thaws
+	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
+
+
+	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
+	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
+
+	//ms_adv_vel[0] = 0.0;
+	//ms_adv_vel[1] = 0.0;
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+
+	double advvel_norm = ms_adv_vel[0]*ms_adv_vel[0]+ms_adv_vel[1]*ms_adv_vel[1];
+	advvel_norm = sqrt(advvel_norm);
+	
+	double ele_length = 2.0*sqrt(area/3.00);
+	
+	double mu;
+	const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+	const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+	const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+	mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
+
+	double density;
+	calculatedensity(GetGeometry(), density);
+
+	int dyn_st_switch = rCurrentProcessInfo[FRACTIONAL_STEP];
+	
+		if(dyn_st_switch)
+		  {
+		
+			thawone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
+		  }
+		else
+		 {
+			
+			thawone = 1.0/(0.0+ 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
+		  }
+		
+	thawtwo = mu/density + 1.0*ele_length*advvel_norm/2.0;
+
+	m_thawone = thawone;
+	m_thawtwo = thawtwo;
+
+	KRATOS_CATCH("")
+
+	}
+	//*************************************************************************************
+	//*************************************************************************************
 } // Namespace Kratos
 
 
