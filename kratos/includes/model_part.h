@@ -334,16 +334,19 @@ namespace Kratos
 // 	  IndexType current_index = mCurrentIndex + 1;
 // 	  if(current_index >= mBufferSize)
 // 	    current_index = 0;
+
 	  for(NodeIterator node_iterator = NodesBegin() ; node_iterator != NodesEnd() ; node_iterator++)
 	    node_iterator->CloneSolutionStepData();
 /* 	  CopySolutionStepData(new_index, old_index); */
 
 // 	  mMeshes(current_index) = mMeshes(mCurrentIndex);
 // 	  mIndices[current_index] = new_index;
- 	  mCurrentIndex++;
- 	  mProcessInfo.CloneSolutionStepInfo(mCurrentIndex);
+ 		mCurrentIndex++;
+ 	  mProcessInfo.CloneSolutionStepInfo();
 // //	  mProcessInfo.ReIndexBuffer(mBufferSize);
+
  	  mProcessInfo.ClearHistory(mBufferSize);
+
 
 // 	  mCurrentIndex = current_index;
 
@@ -413,6 +416,7 @@ namespace Kratos
 	{
 	  IndexType new_index = CloneSolutionStep();
 	  mProcessInfo.SetAsTimeStepInfo(NewTime);
+
 
 	  return new_index;
 	}
