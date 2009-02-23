@@ -183,9 +183,27 @@ namespace Kratos
 				n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
 					if (n_points_in_radius>1)
 					{
-					if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+						if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
 						{
 						in->GetValue(ERASE_FLAG)=1;
+						}
+						else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
+						{
+							//here we loop over the neighbouring nodes and if there are nodes
+							//with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
+							unsigned int k = 0;
+							unsigned int counter = 0;
+							for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+								{
+									if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
+									{
+// 										KRATOS_WATCH( res_distances[k] );
+										counter += 1;
+									}
+									k++;
+								}
+							if(counter > 0)
+								in->GetValue(ERASE_FLAG)=1;
 						}
 					}
 				/*				
