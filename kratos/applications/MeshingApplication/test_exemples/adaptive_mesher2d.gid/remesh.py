@@ -84,7 +84,7 @@ neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 neigh_finder.Execute()
     
 Dt = 0.01
-nsteps = 12
+nsteps = 15
 time = 0.0
 i=0
 for step in range(0,nsteps):
@@ -115,8 +115,9 @@ for step in range(0,nsteps):
                 node.SetSolutionStepValue(NODAL_H,0, 0.1)
         
         i=i+1;    
-        
-        Mesher.ReGenerateMesh("TestElement2D","Condition2D", model_part, node_erase_process, alpha_shape)
+
+        h_factor = 0.5
+        Mesher.ReGenerateMesh("TestElement2D","Condition2D", model_part, node_erase_process, alpha_shape, h_factor)
     
         print "meshing is performed"
         
