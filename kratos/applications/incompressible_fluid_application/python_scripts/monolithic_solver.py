@@ -75,7 +75,7 @@ class MonolithicSolver:
         self.h_multiplier = 0.1
         
         self.Mesher = TriGenPFEMModeler()
-	self.ChooseElement = ChooseElementProcess(model_part, 2)
+#	self.ChooseElement = ChooseElementProcess(model_part, 2)
 
         self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 
@@ -145,8 +145,8 @@ class MonolithicSolver:
             print "AFTER MkkkRK"
 
         if (self.remeshing_flag==True):
-	    (self.Mesher).ReGenerateMesh("Fluid2DASGS",self.model_part,self.node_erase_process, self.alpha_shape)
-	    (self.ChooseElement).Execute();   
+            (self.Mesher).ReGenerateMesh("Fluid2DASGS","Condition2D",self.model_part,self.node_erase_process, self.alpha_shape,0.4)
+#	    (self.ChooseElement).Execute();   
 
             (self.node_erase_process).Execute();
              #calculating fluid neighbours before applying boundary conditions
