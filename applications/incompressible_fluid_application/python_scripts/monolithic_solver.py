@@ -9,7 +9,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
+    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
     model_part.AddNodalSolutionStepVariable(IS_FLUID);
+    model_part.AddNodalSolutionStepVariable(IS_POROUS);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
@@ -35,6 +37,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y,REACTION_Y);
         node.AddDof(VELOCITY_Z,REACTION_Z);
         node.AddDof(PRESSURE,REACTION_WATER_PRESSURE);
+	node.AddDof(AIR_PRESSURE,REACTION_WATER_PRESSURE);
         
     print "dofs for the monolithic solver added correctly"
 
@@ -66,13 +69,14 @@ class MonolithicSolver:
         ####MESH CHANGES
         self.UlfUtils = UlfUtils()
         self.ulf_time_step_dec_process = UlfTimeStepDecProcess(model_part);
-        self.mark_close_nodes_process = MarkCloseNodesProcess(model_part);
+      #  self.mark_close_nodes_process = MarkCloseNodesProcess(model_part);
                                        
         self.node_erase_process = NodeEraseProcess(model_part);
         self.h_multiplier = 0.1
         
-##        self.Mesher = TriGenPFEMModeler()
-        self.Mesher = TriGenModeler()
+        self.Mesher = TriGenPFEMModeler()
+	self.ChooseElement = ChooseElementProcess(model_part, 2)
+
         self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 
         #detect initial size distribution - note that initially the fluid model part contains
@@ -101,7 +105,8 @@ class MonolithicSolver:
         (self.solver).SetEchoLevel(self.echo_level)
 
         (self.neigh_finder).Execute();
-        self.Remesh()        
+        self.Remesh() 
+	    
                  
     #######################################################################   
     def Solve(self):
@@ -124,10 +129,10 @@ class MonolithicSolver:
     def Remesh(self):
 
         #and erase bad nodes
-        (self.mark_close_nodes_process).MarkCloseNodes(self.h_multiplier);
+  ##      (self.mark_close_nodes_process).MarkCloseNodes(self.h_multiplier);
 ##        (self.UlfUtils).MarkNodesCloseToWall(self.model_part, 2, self.alpha_shape)
         print "BEFOR TOUCHING"
-        (self.UlfUtils).MarkNodesTouchingWall(self.model_part, 2, self.length_factor)     
+        #(self.UlfUtils).MarkNodesTouchingWall(self.model_part, 2, self.length_factor)     
         ##erase all conditions and elements prior to remeshing
         if (self.remeshing_flag==True):
             print "DI"
@@ -140,9 +145,8 @@ class MonolithicSolver:
             print "AFTER MkkkRK"
 
         if (self.remeshing_flag==True):
-##            (self.Mesher).ReGeneratePFEMASGS(self.model_part,self.alpha_shape)
-            (self.Mesher).ReGenerateASGS(self.model_part,self.alpha_shape)
-##            (self.Mesher).ReGenerateOSS(self.model_part,self.alpha_shape)
+	    (self.Mesher).ReGenerateMesh("Fluid2DASGS",self.model_part,self.node_erase_process, self.alpha_shape)
+	    (self.ChooseElement).Execute();   
 
             (self.node_erase_process).Execute();
              #calculating fluid neighbours before applying boundary conditions
