@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-10 14:04:56 $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: clabra $
+//   Date:                $Date: 2007-03-27 17:02:19 $
+//   Revision:            $Revision: 1.1.1.1 $
 //
 //
 
@@ -355,8 +355,10 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	 {
        IteratorType Point = mRowBegin;
 	   while( Point != mRowEnd && NumberOfResults < MaxNumberOfResults )
+       {
 		 *Results++ = *Point++;
-       /*        SizeType Size = std::min( std::distance(mRowBegin,mRowEnd), MaxResults-NumResults); */
+         NumberOfResults++;
+       }
        /*        IteratorType Point = mRowBegin; */
        /* 	   while( Point != mRowBegin+Size ) *Results++ = *Point++; */
 	 }
@@ -623,7 +625,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
      
      //************************************************************************
 
-	 SizeType SearchInBox( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& ResultsPoint,
+	 void SearchInBox( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& ResultsPoint,
          SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
 	 {
 	   Box.Set( CalculateCell(SearchMinPoint), CalculateCell(SearchMaxPoint), mN, mIndexCellBegin );
@@ -637,7 +639,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	   }
 	   else if( TDimension == 2 )
 	   {
-		 for(IndexType I = Box.RowBegin(1) ; I <= Box.RowEnd(1) ; I += Box.Block[1] )
+		 for(IndexType I = Box.Axis[1].Begin() ; I <= Box.Axis[1].End() ; I += Box.Axis[1].Block )
 		   CopyPointInRow( Box.RowBegin[I], Box.RowEnd[I], ResultsPoint, NumberOfResults, MaxNumberOfResults );
 	   }
 	   else if( TDimension == 1 )

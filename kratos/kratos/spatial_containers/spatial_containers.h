@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-10 14:04:56 $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: clabra $
+//   Date:                $Date: 2007-03-29 19:37:47 $
+//   Revision:            $Revision: 1.2 $
 //
 //
 
@@ -12,11 +12,11 @@
 
 // External includes 
 
-#ifdef KRATOS_INDEPENDENT
+#if defined(KRATOS_INDEPENDENT)
 
+// clean definitions of kratos macros
 #define KRATOS_CLASS_POINTER_DEFINITION(variable)
 #define KRATOS_WATCH(variable)
-
 
 #else
 

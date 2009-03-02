@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-10 14:04:56 $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: clabra $
+//   Date:                $Date: 2007-03-27 17:02:19 $
+//   Revision:            $Revision: 1.1.1.1 $
 //
 //
 
@@ -217,7 +217,22 @@ namespace Kratos
         {
            SearchInRadius(ThisPoint,Radius,Radius2,Results,NumberOfResults,MaxNumberOfResults);
         }
-      
+     
+        void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
+            SizeType const& MaxNumberOfResults )
+        {
+          for(IteratorType i = mPointsBegin ; (i != mPointsEnd) && (NumberOfResults < MaxNumberOfResults) ; i++)
+          {
+            if( PointInBox(SearchMinPoint,SearchMaxPoint,**i) )
+            {
+              *(Results) = *i;
+              Results++;
+              NumberOfResults++;
+            }
+          }
+        }
+
+
       ///@}
       ///@name Access
       ///@{ 
@@ -274,7 +289,14 @@ namespace Kratos
       ///@} 
       ///@name Protected Operators
       ///@{ 
-        
+       
+      bool PointInBox(PointType const& BoxMinPoint, PointType const& BoxMaxPoint, PointType const& ThisPoint)
+      {
+        for(SizeType i = 0 ; i < Dimension ; i++)
+          if( ThisPoint[i] < BoxMinPoint[i] || ThisPoint[i] > BoxMaxPoint[i] )
+            return false;
+        return true;
+      }
         
       ///@} 
       ///@name Protected Operations

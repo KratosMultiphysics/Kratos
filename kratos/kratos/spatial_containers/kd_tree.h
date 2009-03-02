@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-10 14:04:56 $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: clabra $
+//   Date:                $Date: 2007-03-27 17:02:19 $
+//   Revision:            $Revision: 1.1.1.1 $
 //
 //
 
@@ -285,6 +285,18 @@ namespace Kratos
         }
 
 	  }
+
+      void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
+          SizeType const& MaxNumberOfResults )
+      {
+        if( SearchMinPoint[mCutingDimension] <= mPosition )
+          mpChilds[0]->SearchInBox(SearchMinPoint,SearchMaxPoint,Results,NumberOfResults,MaxNumberOfResults);
+        if( SearchMaxPoint[mCutingDimension] >= mPosition )
+          mpChilds[1]->SearchInBox(SearchMinPoint,SearchMaxPoint,Results,NumberOfResults,MaxNumberOfResults);
+      }
+
+
+      ////////////////////
 
 	  static IteratorType Partition( IteratorType PointsBegin, IteratorType PointsEnd, IndexType& rCuttingDimension, CoordinateType& rCuttingValue )
 	  {
