@@ -15,7 +15,8 @@
 #if defined(KRATOS_INDEPENDENT)
 
 // clean definitions of kratos macros
-#define KRATOS_CLASS_POINTER_DEFINITION(variable)
+#define KRATOS_CLASS_POINTER_DEFINITION(variable) \
+  typedef variable* Pointer
 #define KRATOS_WATCH(variable)
 
 #else
