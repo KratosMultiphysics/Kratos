@@ -1,8 +1,8 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-10 14:04:56 $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: clabra $
+//   Date:                $Date: 2007-03-29 19:37:47 $
+//   Revision:            $Revision: 1.2 $
 //
 //
 
@@ -123,6 +123,13 @@ namespace Kratos
 		virtual void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results, 
 			SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar)
 		{
+		  // must be implemented in derived classes.
+		  return;
+		}
+
+        virtual void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
+            SizeType const& MaxNumberOfResults )
+        {
 		  // must be implemented in derived classes.
 		  return;
 		}
@@ -323,7 +330,14 @@ namespace Kratos
         return NumberOfResults;
 	  }
       
-      
+      SizeType SearchInBox(PointType const& MinPointBox, PointType const& MaxPointBox, IteratorType Results, SizeType MaxNumberOfResults )
+      {
+        SizeType NumberOfResults = 0;
+        mRoot->SearchInBox(MinPointBox,MaxPointBox,Results,NumberOfResults,MaxNumberOfResults);
+        return NumberOfResults;
+      }
+     
+
       ///@}
       ///@name Access
       ///@{
