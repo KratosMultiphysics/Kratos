@@ -723,6 +723,9 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 			
 			}
+			clean_triangulateio(in2);
+			clean_triangulateio(out2);
+			clean_triangulateio(vorout2);
 			KRATOS_WATCH("Finished remeshing with Trigen_PFEM_Refine")
 
 			KRATOS_CATCH("")
