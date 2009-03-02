@@ -26,6 +26,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_FLUID);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
     model_part.AddNodalSolutionStepVariable(NODAL_H);
+    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     print "variables for the incompressible fluid solver added correctly"
 
 def AddDofs(model_part):
@@ -172,10 +173,10 @@ class PFEMSolver:
         (self.EraseNodes).Execute();
 
         ##remesh
-        if(self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("Fluid2DCoupled",self.model_part,self.EraseNodes,self.alpha_shape)
+        if(self.domain_size==2):
+            (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape,self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3DCoupled",self.model_part,self.EraseNodes,self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
             
         print "remeshing in initalize performed succesfully"
 
@@ -324,11 +325,10 @@ class PFEMSolver:
         print "elements are cleared"
         
         ##remesh
-        if(self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("Fluid2DCoupled",self.model_part,self.EraseNodes,self.alpha_shape)
+        if(self.domain_size==2):
+            (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape,self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3DCoupled",self.model_part,self.EraseNodes,self.alpha_shape)
-#        (self.Mesher).ReGenerateMeshCoupled(self.model_part,self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
 
         print self.model_part
 
