@@ -125,7 +125,7 @@ namespace Kratos
       ModelPartIO(std::string const& Filename) 
 	: mNumberOfLines(1)
 	, mInputBaseName(Filename), mOutputBaseName(Filename)
-	, mInputFilename(Filename + ".mdpa"), mOutputFilename(Filename + ".mdpa")
+	, mInputFilename(Filename + ".mdpa"), mOutputFilename(Filename + "_out.mdpa")
 	, mInput(mInputFilename.c_str()),  mOutput(mOutputFilename.c_str())
       {
 	  if(!mInput)
@@ -191,6 +191,8 @@ namespace Kratos
 	    else 
 	      SkipBlock(word);
 	  }
+
+		return true;
 	KRATOS_CATCH("")
       }
 
@@ -637,12 +639,14 @@ namespace Kratos
 	  
 	CheckStatement("Begin", rBlockName);
 	ReadWord(rBlockName);
+
+	return rBlockName;
 	  
 	KRATOS_CATCH("")
       }
 
 
-      std::string& SkipBlock(std::string const& BlockName)
+      void SkipBlock(std::string const& BlockName)
       {
 	KRATOS_TRY
 
@@ -659,6 +663,7 @@ namespace Kratos
 	  }
 	  
 	}
+
 
 	KRATOS_CATCH("")
       }
@@ -724,9 +729,12 @@ namespace Kratos
 	KRATOS_TRY
 
 	NodeType temp_node;
-	SizeType id;
 
 	std::string word;
+
+	SizeType number_of_nodes_read = 0;
+
+	std::cout << "Reading Nodes : ";
 	  
 	while(!mInput.eof())
 	{
@@ -744,8 +752,10 @@ namespace Kratos
 
 
 	  rThisNodes.push_back(temp_node);
-	  
+	  number_of_nodes_read++;
 	}
+		std::cout << number_of_nodes_read << " nodes read" << std::endl;
+
 
 	KRATOS_CATCH("")
       }
@@ -760,6 +770,10 @@ namespace Kratos
 	double z;
 	  
 	std::string word;
+
+	SizeType number_of_nodes_read = 0;
+
+	std::cout << "	Reading Nodes : ";
 	
 	while(!mInput.eof())
 	{
@@ -776,7 +790,9 @@ namespace Kratos
 	  ExtractValue(word, z);
 
 	  rModelPart.CreateNewNode(id,x,y,z);
+	  number_of_nodes_read++;
 	}
+		std::cout << number_of_nodes_read << " nodes read" << std::endl;
 
 	KRATOS_CATCH("")
       }
@@ -785,7 +801,6 @@ namespace Kratos
       {
 	KRATOS_TRY
 
-	SizeType id;
 	Properties temp_properties;
 
 	std::string word;
@@ -833,7 +848,6 @@ namespace Kratos
 	  
 	}
 	  
-      KRATOS_WATCH(temp_properties);
 	rThisProperties.push_back(temp_properties);
 
 	KRATOS_CATCH("")
@@ -851,17 +865,20 @@ namespace Kratos
 	SizeType id;
 	SizeType properties_id;
 	SizeType node_id;
+	SizeType number_of_read_elements = 0;
 	
 
 	std::string word;
 	std::string element_name;
 	  
 	ReadWord(element_name);
+	std::cout << "	Reading Elements : ";
+
 	if(!KratosComponents<Element>::Has(element_name))
 	{
 	  std::stringstream buffer;
 	  buffer << "Element " << element_name << " is not registered in Kratos.";
-	  buffer << " Please check the spelling of the element name and see if the application containing it is registered corectly."; 
+	  buffer << " Please check the spelling of the element name and see if the application which containing it, is registered corectly."; 
 	  buffer << " [Line " << mNumberOfLines << " ]";
 	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
 	  return;
@@ -882,7 +899,7 @@ namespace Kratos
 	  ExtractValue(word, properties_id);
 	  Properties::Pointer p_temp_properties = *(FindKey(rThisProperties, properties_id, "Properties").base());
 	  temp_element_nodes.clear();
-	  for(int i = 0 ; i < number_of_nodes ; i++)
+	  for(SizeType i = 0 ; i < number_of_nodes ; i++)
 	  {
 	    ReadWord(word); // Reading the node id;
 	    ExtractValue(word, node_id);
@@ -890,7 +907,10 @@ namespace Kratos
 	  }
 	  
 	  rThisElements.push_back(r_clone_element.Create(id, temp_element_nodes, p_temp_properties));
+	  number_of_read_elements++;
+
 	}
+	std::cout << number_of_read_elements << " " << element_name << " read" << std::endl;
 
 	KRATOS_CATCH("")
       }
@@ -939,7 +959,7 @@ namespace Kratos
 	  ExtractValue(word, properties_id);
 	  Properties::Pointer p_temp_properties = *(FindKey(rThisProperties, properties_id, "Properties").base());
 	  temp_condition_nodes.clear();
-	  for(int i = 0 ; i < number_of_nodes ; i++)
+	  for(SizeType i = 0 ; i < number_of_nodes ; i++)
 	  {
 	    ReadWord(word); // Reading the node id;
 	    ExtractValue(word, node_id);
@@ -1021,8 +1041,6 @@ namespace Kratos
 	  ExtractValue(value, nodal_value);
 
 	  i_node->GetSolutionStepValue(rVariable, 0) =  nodal_value;
-
-	  KRATOS_WATCH(*i_node);
 	}
 
 	KRATOS_CATCH("")
@@ -1156,7 +1174,6 @@ namespace Kratos
 	KRATOS_TRY
 
 	SizeType id;
-	bool is_fixed;
 	double elemental_value;
 
 	std::string value;
@@ -1186,7 +1203,6 @@ namespace Kratos
 	KRATOS_TRY
 
 	SizeType id;
-	bool is_fixed;
 	TDataType elemental_value;
 
 	std::string value;
@@ -1253,7 +1269,6 @@ namespace Kratos
 	KRATOS_TRY
 
 	SizeType id;
-	bool is_fixed;
 	double conditional_value;
 
 	std::string value;
@@ -1283,7 +1298,6 @@ namespace Kratos
 	KRATOS_TRY
 
 	SizeType id;
-	bool is_fixed;
 	TDataType conditional_value;
 
 	std::string value;
@@ -1314,7 +1328,6 @@ namespace Kratos
 	KRATOS_TRY
 
 	SizeType id;
-	SizeType properties_id;
 	SizeType node_id;
 	SizeType number_of_connectivities = 0;
 	
@@ -1346,7 +1359,7 @@ namespace Kratos
 	  ExtractValue(word,id);
 	  ReadWord(word); // Reading the properties id;
 	  temp_element_nodes.clear();
-	  for(int i = 0 ; i < number_of_nodes ; i++)
+	  for(SizeType i = 0 ; i < number_of_nodes ; i++)
 	  {
 	    ReadWord(word); // Reading the node id;
 	    ExtractValue(word, node_id);
@@ -1368,7 +1381,6 @@ namespace Kratos
 	KRATOS_TRY
 
 	SizeType id;
-	SizeType properties_id;
 	SizeType node_id;
 	SizeType number_of_connectivities = 0;
 	
@@ -1400,7 +1412,7 @@ namespace Kratos
 	  ExtractValue(word,id);
 	  ReadWord(word); // Reading the properties id;
 	  temp_condition_nodes.clear();
-	  for(int i = 0 ; i < number_of_nodes ; i++)
+	  for(SizeType i = 0 ; i < number_of_nodes ; i++)
 	  {
 	    ReadWord(word); // Reading the node id;
 	    ExtractValue(word, node_id);
@@ -1550,7 +1562,7 @@ namespace Kratos
 	  ReadWord(word); // Reading the properties id;
 	  element_data += word + '\t'; // properties id
 
-	  for(int i = 0 ; i < number_of_nodes ; i++)
+	  for(SizeType i = 0 ; i < number_of_nodes ; i++)
 	  {
 	    ReadWord(word); // Reading the node id;
 	    element_data += word + '\t'; // node id
@@ -1626,7 +1638,7 @@ namespace Kratos
 	  ReadWord(word); // Reading the properties id;
 	  condition_data += word + '\t'; // properties id
 
-	  for(int i = 0 ; i < number_of_nodes ; i++)
+	  for(SizeType i = 0 ; i < number_of_nodes ; i++)
 	  {
 	    ReadWord(word); // Reading the node id;
 	    condition_data += word + '\t'; // node id
@@ -1709,6 +1721,8 @@ namespace Kratos
       value << c; // adding the final parantesis
       
       value >>  rValue;
+
+	  return rValue;
     }
 
       template<class TValueType>

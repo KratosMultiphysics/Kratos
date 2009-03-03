@@ -87,6 +87,8 @@ namespace Kratos
 	
       	static IntegrationPointsArrayType& IntegrationPoints()
 	{
+	  // This is added to solve the problem of static initialization. Pooyan.
+		 msIntegrationPoints[0] = IntegrationPointType( 0.00 , 0.00, 0.00 , 8.00 );
 	  return msIntegrationPoints;
 	}
 
@@ -127,6 +129,16 @@ namespace Kratos
 		    
 		    static IntegrationPointsArrayType& IntegrationPoints()
 		    {
+				// This is added to solve the problem of static initialization. Pooyan.
+        		 msIntegrationPoints[0] = IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 );
+        		 msIntegrationPoints[1] = IntegrationPointType(  1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 );
+        		 msIntegrationPoints[2] = IntegrationPointType(  1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 );
+        		 msIntegrationPoints[3] = IntegrationPointType( -1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), -1.00/std::sqrt(3.0), 1.00 );
+        		 msIntegrationPoints[4] = IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 );
+        		 msIntegrationPoints[5] = IntegrationPointType(  1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 );
+        		 msIntegrationPoints[6] = IntegrationPointType(  1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 );
+        		 msIntegrationPoints[7] = IntegrationPointType( -1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0),  1.00/std::sqrt(3.0), 1.00 );
+
 			    return msIntegrationPoints;
 		    }
 
