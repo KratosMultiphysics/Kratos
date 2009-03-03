@@ -54,6 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/datafile_io.h"
+#include "includes/model_part_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 
@@ -156,6 +157,10 @@ namespace Kratos
                          std::string const&>())
                     //.def("",&DatafileIO::)
                     //.def(self_ns::str(self))
+                    ;
+            
+            class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
+                    "ModelPartIO",init<std::string const&>())
                     ;
             
             class_<GidIO<>, GidIO<>::Pointer, bases<DatafileIO>, boost::noncopyable>(
