@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream> 
+#include <vector>
 
 
 // External includes 
@@ -110,6 +111,12 @@ namespace Kratos
   
       typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+      typedef unsigned int IndexType;
+
+      typedef unsigned int SizeType;
+
+	  typedef std::vector<IndexType> IndexVectorType;
+
       ///@}
       ///@name Life Cycle 
       ///@{ 
@@ -141,6 +148,7 @@ namespace Kratos
       
       virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 	{
+	  CalculateIndexPermutation(rA);
 	}
       
       virtual void Reorder(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
@@ -150,11 +158,28 @@ namespace Kratos
       virtual void InverseReorder(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 	{
 	}
-      
+
+	  virtual IndexVectorType& CalculateIndexPermutation(SparseMatrixType& rA, IndexType InitialIndex = IndexType())
+	  {
+		  SizeType size = TSparseSpaceType::Size1(rA);
+		  
+		  if(mIndexPermutation.size() != size)
+			mIndexPermutation.resize(size);
+
+		  for(SizeType i = 0 ; i < size ; i++)
+			mIndexPermutation[i] = i;
+
+		  return mIndexPermutation;
+	  }
+
       ///@}
       ///@name Access
       ///@{ 
       
+	  virtual IndexVectorType& GetIndexPermutation()
+	  {
+		  return mIndexPermutation;
+	  }
       
       ///@}
       ///@name Inquiry
@@ -235,6 +260,8 @@ namespace Kratos
       ///@} 
       ///@name Member Variables 
       ///@{ 
+
+		IndexVectorType mIndexPermutation;
         
         
       ///@} 
