@@ -1,1 +1,3 @@
-Write comments and documentation
+KRATOS_BENCHMARK | Integer | Time | 3 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 0.001 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Node 2 Displacement_y | 0.0011 | 1e-07 | None
