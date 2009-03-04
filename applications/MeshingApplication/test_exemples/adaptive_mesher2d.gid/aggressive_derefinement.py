@@ -138,6 +138,7 @@ for step in range(0,nsteps):
         gid_io.WriteNodalResults(TEMPERATURE, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(NODAL_H, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(IS_BOUNDARY, model_part.Nodes, time, 0);
+        gid_io.WriteNodalResults(IS_STRUCTURE, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(DISPLACEMENT, model_part.Nodes, time, 0);
 
         gid_io.Flush()

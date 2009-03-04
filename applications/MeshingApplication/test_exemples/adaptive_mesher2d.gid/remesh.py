@@ -51,6 +51,8 @@ model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
 model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
 model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
 model_part.AddNodalSolutionStepVariable(IS_FLUID)
+model_part.AddNodalSolutionStepVariable(DENSITY)
+model_part.AddNodalSolutionStepVariable(BULK_MODULUS)
 
 
 #reading the model
@@ -77,6 +79,7 @@ Mesher = TriGenPFEMModeler()
 for node in model_part.Nodes:
     node.SetSolutionStepValue(NODAL_H,0, 0.1)
     node.SetSolutionStepValue(IS_FLUID,0, 1)
+    node.SetSolutionStepValue(BULK_MODULUS,0, 100.0)
     
 node_erase_process = NodeEraseProcess(model_part);
 
@@ -137,9 +140,11 @@ for step in range(0,nsteps):
         gid_io.InitializeResults(time, (model_part).GetMesh());
         gid_io.WriteNodalResults(TEMPERATURE, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(NODAL_H, model_part.Nodes, time, 0);
+        gid_io.WriteNodalResults(DENSITY, model_part.Nodes, time, 0);
+        gid_io.WriteNodalResults(BULK_MODULUS, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(IS_BOUNDARY, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(DISPLACEMENT, model_part.Nodes, time, 0);
-
+                
         gid_io.Flush()
         #gid_io.CloseResultFile();
         gid_io.FinalizeResults()
@@ -152,4 +157,5 @@ print "finito"
 
           
         
+
 
