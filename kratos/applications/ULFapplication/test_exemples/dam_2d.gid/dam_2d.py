@@ -15,7 +15,7 @@ kratos_applications_path = '../../../../applications' ##kratos_root/applications
 
 project_name = 'dam_2d'
 
-bulk_modulus = -5000.0
+bulk_modulus = -1000.0
 density = 1000.0
 ##################################################################
 ##################################################################
@@ -178,11 +178,12 @@ while (time < total_time):
             #min_H=3.0*min_H
             #we set min_Dist to the min_H
             #I want to prescribe the mesh size: min_H=0.01
-            min_H=0.004
+            min_H=0.01
             min_Dist=0.0
             #1.0*min_H
+            max_dist=0.5
 
-            set_h_map_process.CalculateOptimalH(min_H, max_H)
+            set_h_map_process.CalculateOptimalH(min_H, max_H, max_dist)
                 
         print "after completing the solution"
 
