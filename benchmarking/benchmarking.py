@@ -3,6 +3,14 @@
 #  Utility routines for automatic benchmarking of Kratos examples          #
 #                                                                          #
 ############################################################################
+#                                                                          #
+#  Version history:                                                        #
+#                                                                          #
+#    1.00: Farshid Mossaiby, Initial Version                               #
+#    1.10: Farshid Mossaiby, Added the ability of determining build        #
+#                            reference mode                                #
+#                                                                          #
+############################################################################
 
 import sys
 import os
@@ -106,12 +114,15 @@ def TypedCompare(lr, lt):
 def InBenchmarkingMode():
 	return("--benchmarking" in sys.argv)
 
+def InBuildReferenceMode():
+	return("--build-reference" in sys.argv)
+
 def Output(Var, Label = "", AbsErr = None, RelErr = None):
 	if (InBenchmarkingMode()):
 		print Header, "|", TypeToString(Var), "|", Label, "|", Var, "|", AbsErr, "|", RelErr
 
 def BuildReferenceData(ExamplePath, ReferenceBenchmarkFile):
-	os.system("python " + ExamplePath + " --benchmarking | grep \"" + Header + "\" > " + ReferenceBenchmarkFile)
+	os.system("python " + ExamplePath + " --benchmarking --build-reference | grep \"" + Header + "\" > " + ReferenceBenchmarkFile)
 
 def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 	os.system("python " + ExamplePath + " --benchmarking | grep \"" + Header + "\" > BenchTemp.txt")
