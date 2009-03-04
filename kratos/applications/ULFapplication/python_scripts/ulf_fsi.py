@@ -36,14 +36,9 @@ def AddDofs(model_part):
 
 class ULF_FSISolver:
 
-    def __init__(self, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, gid_io):
+    def __init__(self, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size):
         self.domain_size=domain_size;
         self.echo_level = 0
-
-        self.gid_io=gid_io
-        
-        self.tttt=0
-
         
         #saving the different model parts
         self.combined_model_part  = combined_model_part; #contains both structure and fluid
@@ -236,8 +231,8 @@ class ULF_FSISolver:
 
 
    ######################################################################
+######################################################################
     def Remesh(self):
-        #(self.UlfUtils).MarkNodesCloseToFS(self.fluid_model_part, 2)
         ##erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
@@ -247,23 +242,18 @@ class ULF_FSISolver:
 
 
 
-        #and erase bad nodes
-        #(self.mark_close_nodes_process).MarkCloseNodes(self.h_multiplier);
-        #(self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
-        #(self.node_erase_process).Execute();
-
-         ##remesh CHECK for 3D or 2D
+        #marking nodes outside of the bounding box
+        (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
+        h_factor=0.2;
+        ##remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
-            (self.Mesher).ReGenerateUpdatedLagrangian(self.fluid_model_part, self.node_erase_process, self.alpha_shape)            
-            #(self.Mesher).ReGenerateUpdatedLagrangian(self.fluid_model_part,self.alpha_shape)
+            #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.alpha_shape)          
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            #(self.Mesher).ReGenerateUpdatedLagrangian3D(self.fluid_model_part,self.alpha_shape)
-            #improved qaulity mesher
-            (self.Mesher).ReGenerateMeshPfemUlf3D(self.fluid_model_part,self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, self.alpha_shape, h_factor)
        
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
-##        (self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
 
         #print "marking fluid" and applying fluid boundary conditions
         (self.ulf_apply_bc_process).Execute();  
@@ -274,14 +264,7 @@ class ULF_FSISolver:
 
         #calculating the neighbours for the overall model
         (self.combined_neigh_finder).Execute();
-        #(self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
-
-##        for elem in self.combined_model_part.Elements:
-##            print elem
-            
-        print "end of remesh fucntion"
-
-       
+        print "end of remesh fucntion"       
     ######################################################################
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
