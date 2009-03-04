@@ -563,7 +563,8 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 			KRATOS_TRY
 
 			  //Gets the array of elements from the modeler
- 			  ElementsArrayType& pElements = r_model_part.Elements(ModelPart::Kratos_Local);
+ 			  ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+/*  			  ElementsArrayType& pElements = r_model_part.Elements(ModelPart::Kratos_Local); */
 
 			  Element::DofsVectorType ElementalDofList;
 
@@ -713,7 +714,8 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 //  				    std::cout << rank << " : mDofSet : " << dof_iterator->Id() << " with equation id : " <<dof_iterator->EquationId() << " with partition index : " <<dof_iterator->GetSolutionStepValue(PARTITION_INDEX) << std::endl;
 // 			  }
 			
-			UpdateGhostDofs(r_model_part);
+// 			UpdateGhostDofs(r_model_part);
+			r_model_part.GetCommunicator().SynchronizeDofs();
 
 /*			for(ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); it++)
 			{
@@ -734,7 +736,8 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 		  //int source=rank;
 		  int destination=0;
 
-		  vector<int>& neighbours_indices = rThisModelPart[NEIGHBOURS_INDICES];
+// 		  vector<int>& neighbours_indices = rThisModelPart[NEIGHBOURS_INDICES];
+		  vector<int>& neighbours_indices = rThisModelPart.GetCommunicator().NeighbourIndices();
 
 // 		  std::cout << rank << " starting domain loop " << std::endl;
 		  for(unsigned int i_domain = 0 ; i_domain <  neighbours_indices.size() ; i_domain++)
@@ -748,8 +751,10 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 // 			KRATOS_WATCH(destination);
 			// Calculating send and received buffer size
 			// The interface meshes are stored after all, local and ghost meshes
-			NodesArrayType& r_interface_nodes = rThisModelPart.Nodes(ModelPart::Kratos_Ownership_Size + i_domain);
-			NodesArrayType& r_ghost_nodes = rThisModelPart.Nodes(ModelPart::Kratos_Ghost);
+			NodesArrayType& r_interface_nodes = rThisModelPart.GetCommunicator().LocalMesh(i_domain).Nodes();
+			NodesArrayType& r_ghost_nodes = rThisModelPart.GetCommunicator().GhostMesh().Nodes();
+/* 			NodesArrayType& r_interface_nodes = rThisModelPart.Nodes(ModelPart::Kratos_Ownership_Size + i_domain); */
+/* 			NodesArrayType& r_ghost_nodes = rThisModelPart.Nodes(ModelPart::Kratos_Ghost); */
 
 // 			std::cout << rank << " : 2...." << std::endl;
 			for(typename NodesArrayType::iterator i_node = r_interface_nodes.begin(); i_node != r_interface_nodes.end(); ++i_node)
@@ -846,8 +851,10 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 			
 			// Updating nodes
 			position = 0;
-			for(ModelPart::NodeIterator i_node = rThisModelPart.NodesBegin(ModelPart::Kratos_Ghost) ; 
-			    i_node != rThisModelPart.NodesEnd(ModelPart::Kratos_Ghost) ; i_node++)
+			for(ModelPart::NodeIterator i_node = rThisModelPart.GetCommunicator().GhostMesh().NodesBegin() ; 
+			    i_node != rThisModelPart.GetCommunicator().GhostMesh().NodesEnd() ; i_node++)
+// 			for(ModelPart::NodeIterator i_node = rThisModelPart.NodesBegin(ModelPart::Kratos_Ghost) ; 
+// 			    i_node != rThisModelPart.NodesEnd(ModelPart::Kratos_Ghost) ; i_node++)
 			  if(i_node->GetSolutionStepValue(PARTITION_INDEX) == destination)
 			    for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
 			  {

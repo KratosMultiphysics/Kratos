@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/communicator.h"
 
 
 namespace Kratos
@@ -211,6 +212,7 @@ namespace Kratos
 	, mCurrentIndex(0)
 	, mProcessInfo()
 	, mIndices(1, 0)
+	, mpCommunicator(new Communicator)
 	{
 	  mName = "Default";
 	  MeshType mesh;
@@ -223,6 +225,7 @@ namespace Kratos
 	, mCurrentIndex(0)
 	, mProcessInfo()
 	, mIndices(1, 0)
+	, mpCommunicator(new Communicator)
 	{
 	  mName = NewName;
 	  MeshType mesh;
@@ -235,6 +238,7 @@ namespace Kratos
 	, mCurrentIndex(0)
 	, mProcessInfo()
 	, mIndices(NewBufferSize, 0)
+	, mpCommunicator(new Communicator)
 	{
 	  mName = NewName;
 	  MeshType mesh;
@@ -250,7 +254,10 @@ namespace Kratos
 	, mProcessInfo(rOther.mProcessInfo)
 	, mIndices(rOther.mIndices)
 	, mMeshes(rOther.mMeshes)
-	, mVariablesList(rOther.mVariablesList){}
+	, mVariablesList(rOther.mVariablesList)
+	, mpCommunicator(rOther.mpCommunicator)
+	{
+	}
       
      
       /// Destructor.
@@ -813,6 +820,21 @@ namespace Kratos
 	{
 	  return mName;
 	}
+
+      Communicator& GetCommunicator()
+	{
+	  return *mpCommunicator;
+	}
+      
+      Communicator const& GetCommunicator() const
+	{
+	  return *mpCommunicator;
+	}
+
+      void SetCommunicator(Communicator::Pointer pNewCommunicator)
+	{
+	   mpCommunicator = pNewCommunicator;
+	}
       
       ///@}
       ///@name Operations
@@ -827,8 +849,10 @@ namespace Kratos
 
       }
 
-	  IndexType GetBufferSize()
-	  {return mBufferSize;}
+      IndexType GetBufferSize()
+      {
+	return mBufferSize;
+      }
 
       
       ///@}
@@ -937,6 +961,8 @@ namespace Kratos
       MeshesContainerType mMeshes;
 
       VariablesList mVariablesList;
+
+      Communicator::Pointer mpCommunicator;
         
       ///@} 
       ///@name Private Operators

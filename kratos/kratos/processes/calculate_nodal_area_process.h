@@ -161,7 +161,8 @@ namespace Kratos
 					
 				area = GeometryUtils::CalculateVolume2D(geom);
 				area *= 0.333333333333333333333333333;
-					
+
+
 				geom[0].FastGetSolutionStepValue(NODAL_AREA) += area;
 				geom[1].FastGetSolutionStepValue(NODAL_AREA) += area;
 				geom[2].FastGetSolutionStepValue(NODAL_AREA) += area;
@@ -185,6 +186,9 @@ namespace Kratos
 				geom[3].FastGetSolutionStepValue(NODAL_AREA) += vol;
 			}
 		}
+
+		mr_model_part.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+
 		KRATOS_CATCH("");
 
 	}
