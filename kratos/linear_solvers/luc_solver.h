@@ -282,6 +282,16 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+
+	  void ClearLU()
+	  {
+			mIL.clear();
+			mJL.clear();
+			mIU.clear();
+			mJU.clear();
+			mL.clear();
+			mU.clear();
+	  }
         
  void WriteMatrixForGid(std::string MatrixFileName, std::string MatrixName)
 {
@@ -365,6 +375,237 @@ namespace Kratos
 
 	  std::size_t LUCDecompose(SparseMatrixType& rA)
 	  {
+		  typedef typename TSparseSpaceType::DataType DataType;
+
+		  const SizeType size = TSparseSpaceType::Size1(rA);
+
+		  VectorType z(size); // working vector for row k
+		  VectorType w(size); // working vector for column k
+		  VectorType temp(size);
+
+		  IndicesVectorType l_first(size, 0); // The pointer to the first element in each column of L with row index >= k (L is stored by columns)
+		  IndicesVectorType u_first(size, 0); // The pointer to the first element in each row of U with column index >= k (U is stored by rows)
+		  IndicesVectorType l_list(size, size+1); // The link list of elements in row k the L
+		  IndicesVectorType u_list(size, size+1); // The link list of elements in column k the U
+		  std::vector<typename SparseMatrixType::iterator2> a_first; // The pointer to the first element in each row of rA with column index >= k (U is stored by rows)
+		  typename SparseMatrixType::iterator1 a_iterator = rA.begin1();
+
+		  for(SizeType i = 0 ; i < size ; i++)
+			  a_first.push_back((a_iterator++).begin()); // initializing the row_pointers of A
+
+		  //std::vector<IndicesVectorType> l_rows(size,IndicesVectorType());
+		  std::vector<IndicesVectorType> u_columns(size,IndicesVectorType());
+
+		  ClearLU();
+
+		  mJL.push_back(0);
+		  mIU.push_back(0);
+
+		  SizeType output_index = 0;
+		  for(SizeType k = 0 ; k < size ; k++)
+		  {
+KRATOS_WATCH("Starting new loop")
+			  //initializing z: z_1:k-1 = 0, z_k:n = rA_k,kn
+			  TSparseSpaceType::GetRow(k, rA, z); // NOTE: I don't need to set the first part to zero while I'm not using it!
+
+KRATOS_WATCH(k)
+KRATOS_WATCH(size)
+KRATOS_WATCH(l_list[k])
+			  for(SizeType i = l_list[k] ; i < size ; i = l_list[i]) // loop over nonzeros in row k of L
+			  {
+KRATOS_WATCH("Starting l nonzeros loop")
+				  if((mJU[u_first[i]] < k)) // updating u_first
+				  	u_first[i]++;
+KRATOS_WATCH(i)
+KRATOS_WATCH(u_first[i])
+				  while((l_first[i] < mIL.size()) && (mIL[l_first[i]] < k)) // updating l_first 
+					  l_first[i]++;
+KRATOS_WATCH(i)
+KRATOS_WATCH(mIU[i+1])
+KRATOS_WATCH(mL[l_first[i]])
+KRATOS_WATCH(mL[l_first[i]])
+				  for(SizeType j = u_first[i] ; j < mIU[i+1] ; j++) // for all nonzeros in row i of U
+				  {
+KRATOS_WATCH(j)
+KRATOS_WATCH(z[mJU[j]])
+KRATOS_WATCH(mL[l_first[i]])
+KRATOS_WATCH(mU[j])
+					  z[mJU[j]] -= mL[l_first[i]] * mU[j]; // z_j = Z_j - L_ki * U_ij
+				  }
+			  }
+
+			  //for(SizeType h = 0 ; h < l_rows[k].size() ; h++) // iterating over nonzeros of row k of L
+			  //{
+				 // SizeType i = l_rows[k][h];
+				 // if((mJU[u_first[i]] < k)) // updating u_first
+				 // 	u_first[i]++;
+				 // if(mIL[l_first[i]] < k) // updating l_first 
+					//  l_first[i]++;
+
+				 // for(SizeType j = u_first[i] ; j < mIU[i+1] ; j++) // for all nonzeros in row i of U
+					//  z[mJU[j]] -= mL[l_first[i]] * mU[j]; // z_j = Z_j - L_ki * U_ij
+			  //}
+
+			  //initializing w: w_1:k = 0, w_k:n = rA_k+1:n,k
+			  for(SizeType i = k ; i < size ; i++)
+			  {
+				  if(a_first[i].index2() < k)
+					  (a_first[i])++;
+
+				  if(a_first[i].index2() == k)
+					  w[i] = *(a_first[i]);
+				  else
+					  w[i] = 0;
+			  }
+
+			  for(SizeType h = 0 ; h < u_columns[k].size() ; h++) // iterating over nonzeros of column k of U
+			  {
+				  SizeType i = u_columns[k][h];
+				  if((mJU[u_first[i]] < k)) // updating u_first
+				  	u_first[i]++;
+				  if(mIL[l_first[i]] < k) // updating l_first 
+					  l_first[i]++;
+
+				  for(SizeType j = l_first[i] ; j < mJL[i+1] ; j++) // for all nonzeros in column i of L
+					  w[mIL[j]] -= mU[u_first[i]] * mL[j]; // w_j = w_j - L_ki * U_ij
+			  }
+
+
+			  // adding nonzeros of z to the U
+			  for(SizeType i = k ; i < size ; i++)
+			  {
+				  if(z[i] != 0.00)
+				  {
+					  u_columns[i].push_back(k);
+					  mJU.push_back(i);
+					  mU.push_back(z[i]);
+				  }
+			  }
+
+			  mIU.push_back(mU.size());
+
+			  double u_kk = z[k];
+
+			  if(u_kk == 0.00)
+				  //{
+				  //	KRATOS_WATCH(k);
+				  //	for(SizeType k1 = k + 1 ; k1 < size ; k1++)
+				  //		if(rA(r_index_permutation[k1], r_index_permutation[k1]) != 0.00)
+				  //		{
+				  //			KRATOS_WATCH(k1);
+				  //			SizeType temp_index = r_index_permutation[k1];
+				  //			r_index_permutation[k1] = r_index_permutation[k];
+				  //			r_index_permutation[k] = temp_index;
+				  //			break;
+				  //		}
+				  //		k--;
+				  //		continue;
+				  //}
+				  KRATOS_ERROR(std::runtime_error, "Zero pivot found in row ",k);
+
+
+			  //w[k] = 1.00;
+			  // adding nonzeros of w to the L
+			  for(SizeType i = k + 1 ; i < size ; i++)
+				  if(w[i] != 0.00)
+				  {
+					  //l_rows[i].push_back(k);
+					  mIL.push_back(i);
+					  mL.push_back(w[i]/u_kk);
+				  }
+				  mJL.push_back(mL.size());
+
+				  // updating the l_first, l_list for added column
+				  l_first[k] = mJL[k] + 1;
+KRATOS_WATCH(k)
+KRATOS_WATCH(l_first[k])
+				  for(SizeType h = mIL[l_first[k]] ;  ; h = l_list[h])
+					  if(l_list[h] > size)
+					  {
+KRATOS_WATCH(h)
+KRATOS_WATCH(l_list[h])
+									l_list[h] = mIL[l_first[k]];
+KRATOS_WATCH(l_list[h])
+									break;
+					  }
+
+				  // updating l_first and l_list in previous columns
+				  SizeType j = k;
+KRATOS_WATCH(l_list[k])
+				  for(SizeType i = l_list[k] ; i < size ; i = l_list[i]) // loop over nonzeros in row k of L
+				  {
+KRATOS_WATCH(i)
+//KRATOS_WATCH(l_first[i])
+					  l_first[i]++;
+//KRATOS_WATCH(l_first[i])
+//KRATOS_WATCH(mIL[l_first[i]])
+KRATOS_WATCH(k)
+					  if(mIL[l_first[i]] >= k)
+						  for(SizeType h = mIL[l_first[i]] ;  ; h = l_list[h])
+							  if(l_list[h] > size)
+							  {
+//KRATOS_WATCH(l_list[h])
+									l_list[h] = mIL[l_first[i]];
+//KRATOS_WATCH(l_list[h])
+									break;
+							  }
+					  l_list[j] = size + 1; // reseting the list
+					  j = i;
+//KRATOS_WATCH(l_list[i])
+				  }
+
+				  u_first[k] = mIU[k];
+
+				  //for(SizeType h = 0 ; h < u_columns[k].size() ; h++) // iterating over nonzeros of column k of U
+					//	  u_first[u_columns[k][h]]++;
+				  if(output_index++ >= (0.1 * size))
+				  {
+					  std::cout << "            " << int(double(k) / double(size) * 100.00) << " % : L nonzeros = " << mL.size() << " and U nonzeros = " << mU.size() << std::endl;
+					  output_index = 0;
+				  }
+		  }
+
+		  std::cout << "            " << 100 << " % : L nonzeros = " << mL.size() << " and U nonzeros = " << mU.size() << std::endl;
+
+		  // //Writing U
+		  //for(SizeType i = 0 ; i < size ; i++)
+		  //{
+		  //	int k = mIU[i];
+		  //	for(SizeType j = 0 ; j < size ; j++)
+		  //	{
+		  //		double value = 0.00;
+		  //		if(mJU[k] == j)
+		  //		{
+		  //			value = mU[k];
+		  //			k++;
+		  //		}
+		  //		std::cout << value << ", ";
+		  //	}
+		  //	std::cout << std::endl;
+		  //}
+
+		  //// Writing L
+		  //for(SizeType i = 0 ; i < size ; i++)
+		  //{
+		  //	for(SizeType j = 0 ; j < i ; j++)
+		  //	{
+		  //		double value = 0.00;
+		  //		for(SizeType k = mJL[j] ; k < mJL[j+1] ; k++)
+		  //			if(mIL[k] == i)
+		  //				value = mL[k];
+		  //		std::cout << value << ", ";
+		  //	}
+		  //	std::cout << std::endl;
+		  //}
+
+
+		  //WriteMatrixForGid("matrixLU.post.msh", "lu_matrix");
+
+		  return 0;      
+	  }
+ 
+	  std::size_t LUCPermuteAndDecompose(SparseMatrixType& rA)
+	  {
 		    typename TReordererType::IndexVectorType& r_index_permutation = GetReorderer()->GetIndexPermutation();
 
 			typedef typename TSparseSpaceType::DataType DataType;
@@ -391,14 +632,6 @@ namespace Kratos
 			mJL.push_back(0);
 			mIU.push_back(0);
 
-			//KRATOS_WATCH(rA);
-
-			//std::cout << "r_index_permutation : ";
-			//for(int i = 0 ; i < size ; i++)
-			//	std::cout << r_index_permutation[i] << ", ";
-
-			//std::cout << std::endl;
-
 			// find inverse permutation
 			typename TReordererType::IndexVectorType inverse_permutation(size);
 			for (SizeType i=0; i<size; i++) 
@@ -418,21 +651,6 @@ namespace Kratos
 					z[i] = 0;
 
 
-				//KRATOS_WATCH(z);
-
-				//for(SizeType i = 0 ; i < k ; i++) // iterating over nonzeros of row k of L
-				//{
-				//	if(mIL[l_first[i]] < k) // l_first has to be updated
-				//		l_first[i]++;
-				//	if(mJU[u_first[i]] < k) // u_first has to be updated
-				//		u_first[i]++;
-
-
-
-				//	if(mIL[l_first[i]] == k) // This is a nonzero element in row k of L
-				//		for(SizeType j = u_first[i] ; j < mIU[i+1] ; j++) // for all nonzeros in row i of U
-				//			z[mJU[j]] -= mL[l_first[i]] * mU[j]; // z_j = Z_j - L_ki * U_ij
-				//}
 				for(SizeType h = 0 ; h < l_rows[k].size() ; h++) // iterating over nonzeros of row k of L
 				{
 					SizeType i = l_rows[k][h];
@@ -453,15 +671,6 @@ namespace Kratos
 				for(SizeType i = 0 ; i < k ; i++)
 					w[i] = 0;
 
-				//for(SizeType i = 0 ; i < k ; i++) // iterating over nonzeros of column k of U
-				//{
-				//	SizeType l_first_i = l_first[i];
-				//	SizeType u_first_i = u_first[i];
-
-				//	if(mJU[u_first_i] == k) // This is a nonzero element in column k of U
-				//		for(SizeType j = l_first_i ; j < mJL[i+1] ; j++) // for all nonzeros in column i of L
-				//			w[mIL[j]] -= mU[u_first_i] * mL[j]; // w_j = w_j - L_ki * U_ij
-				//}
 				for(SizeType h = 0 ; h < u_columns[k].size() ; h++) // iterating over nonzeros of column k of U
 				{
 					SizeType i = u_columns[k][h];
@@ -487,26 +696,9 @@ namespace Kratos
 				double u_kk = z[k];
 
 				if(u_kk == 0.00)
-				//{
-				//	KRATOS_WATCH(k);
-				//	for(SizeType k1 = k + 1 ; k1 < size ; k1++)
-				//		if(rA(r_index_permutation[k1], r_index_permutation[k1]) != 0.00)
-				//		{
-				//			KRATOS_WATCH(k1);
-				//			SizeType temp_index = r_index_permutation[k1];
-				//			r_index_permutation[k1] = r_index_permutation[k];
-				//			r_index_permutation[k] = temp_index;
-				//			break;
-				//		}
-				//		k--;
-				//		continue;
-				//}
 					KRATOS_ERROR(std::runtime_error, "Zero pivot found in row ",k);
 
 
-				//KRATOS_WATCH(k);
-				//KRATOS_WATCH(w);
-				//w[k] = 1.00;
 				// adding nonzeros of w to the L
 				for(SizeType i = k + 1 ; i < size ; i++)
 					if(w[i] != 0.00)
@@ -529,37 +721,6 @@ namespace Kratos
 					
 			std::cout << "            " << 100 << " % : L nonzeros = " << mL.size() << " and U nonzeros = " << mU.size() << std::endl;
 			
-			// //Writing U
-			//for(SizeType i = 0 ; i < size ; i++)
-			//{
-			//	int k = mIU[i];
-			//	for(SizeType j = 0 ; j < size ; j++)
-			//	{
-			//		double value = 0.00;
-			//		if(mJU[k] == j)
-			//		{
-			//			value = mU[k];
-			//			k++;
-			//		}
-			//		std::cout << value << ", ";
-			//	}
-			//	std::cout << std::endl;
-			//}
-
-			//// Writing L
-			//for(SizeType i = 0 ; i < size ; i++)
-			//{
-			//	for(SizeType j = 0 ; j < i ; j++)
-			//	{
-			//		double value = 0.00;
-			//		for(SizeType k = mJL[j] ; k < mJL[j+1] ; k++)
-			//			if(mIL[k] == i)
-			//				value = mL[k];
-			//		std::cout << value << ", ";
-			//	}
-			//	std::cout << std::endl;
-			//}
-
 			
 			delete [] z;
 
