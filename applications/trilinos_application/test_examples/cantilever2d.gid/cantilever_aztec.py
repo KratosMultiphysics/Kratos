@@ -94,8 +94,6 @@ preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
 ##preconditioner_type = "ILU"
 ##preconditioner_parameters = ParameterList()
 
-
-
 overlap_level = 3
 nit_max = 300
 tol = 1e-6

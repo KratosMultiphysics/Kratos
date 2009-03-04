@@ -117,9 +117,14 @@ namespace Kratos
       typedef unsigned int SizeType;
 
       typedef Node<3> NodeType;
+
       typedef Properties PropertiesType;
+
       typedef Element ElementType;
+
       typedef Condition ConditionType;
+
+      typedef vector<int> NeighbourIndicesContainerType;
 
       typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
 
@@ -200,7 +205,10 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
-      Communicator() 
+      Communicator() : mNumberOfColors(1)
+	, mpLocalMesh(MeshType::Pointer(new MeshType))
+	, mpGhostMesh(MeshType::Pointer(new MeshType)),  
+	mpInterfaceMesh(MeshType::Pointer(new MeshType))
 	{
 	  MeshType mesh;
 	  mLocalMeshes.push_back(mesh.Clone());
@@ -210,7 +218,12 @@ namespace Kratos
 
        /// Copy constructor.
       Communicator(Communicator const& rOther) 
-	: mLocalMeshes(rOther.mLocalMeshes)
+	: mNumberOfColors(rOther.mNumberOfColors)
+	, mNeighbourIndices(rOther.mNeighbourIndices)
+	, mpLocalMesh(MeshType::Pointer(rOther.mpLocalMesh))
+	, mpGhostMesh(MeshType::Pointer(rOther.mpGhostMesh))
+	, mpInterfaceMesh(MeshType::Pointer(rOther.mpInterfaceMesh))
+	, mLocalMeshes(rOther.mLocalMeshes)
 	, mGhostMeshes(rOther.mGhostMeshes)
 	, mInterfaceMeshes(rOther.mInterfaceMeshes)
       {}
@@ -229,6 +242,11 @@ namespace Kratos
       /// Assignment operator.
       Communicator& operator=(Communicator const& rOther)
 	{
+	  mNumberOfColors = rOther.mNumberOfColors;
+	  mNeighbourIndices = rOther.mNeighbourIndices;
+	  mpLocalMesh = rOther.mpLocalMesh;
+	  mpGhostMesh = rOther.mpGhostMesh;
+	  mpInterfaceMesh = rOther.mpInterfaceMesh;
 	  mLocalMeshes = rOther.mLocalMeshes;
 	  mGhostMeshes = rOther.mGhostMeshes;
 	  mInterfaceMeshes = rOther.mInterfaceMeshes;
@@ -242,63 +260,170 @@ namespace Kratos
       ///@name Access
       ///@{
 
+      SizeType GetNumberOfColors()
+      {
+	return mNumberOfColors;
+      }
+
+      void SetNumberOfColors(SizeType NewNumberOfColors)
+      {
+	if(mNumberOfColors == NewNumberOfColors)
+	  return;
+
+	mNumberOfColors = NewNumberOfColors;
+	MeshType mesh;
+
+	mLocalMeshes.clear();
+	mGhostMeshes.clear();
+	mInterfaceMeshes.clear();
+
+	for(IndexType i = 0 ; i < mNumberOfColors ; i++)
+	{
+	  mLocalMeshes.push_back(mesh.Clone());
+	  mGhostMeshes.push_back(mesh.Clone());
+	  mInterfaceMeshes.push_back(mesh.Clone());
+	}
+      }
+
+      NeighbourIndicesContainerType& NeighbourIndices()
+      {
+	return mNeighbourIndices;
+      }
+
+      NeighbourIndicesContainerType const& NeighbourIndices() const
+      {
+	return mNeighbourIndices;
+      }
+
       
-      MeshType::Pointer pLocalMesh(IndexType ThisIndex = 0)
+      // Returns pointer to the mesh storing all local entites
+      MeshType::Pointer pLocalMesh()
+      {
+	return mpLocalMesh;
+      }
+      
+      // Returns pointer to the mesh storing all ghost entites
+      MeshType::Pointer pGhostMesh()
+	{
+	  return mpGhostMesh;
+	}
+      
+      // Returns pointer to the mesh storing all interface entites
+      MeshType::Pointer pInterfaceMesh()
+	{
+	  return mpInterfaceMesh;
+	}
+      
+      // Returns a constant pointer to the mesh storing all local entites
+      const MeshType::Pointer pLocalMesh() const
+	{
+	  return mpLocalMesh;
+	}
+      
+      // Returns a constant pointer to the mesh storing all ghost entites
+      const MeshType::Pointer pGhostMesh() const
+	{
+	  return mpGhostMesh;
+	}
+      
+      // Returns a constant pointer to the mesh storing all interface entites
+      const MeshType::Pointer pInterfaceMesh() const
+	{
+	  return mpInterfaceMesh;
+	}
+      
+      MeshType::Pointer pLocalMesh(IndexType ThisIndex)
 	{
 	  return mLocalMeshes(ThisIndex);
 	}
       
-      MeshType::Pointer pGhostMesh(IndexType ThisIndex = 0)
+      MeshType::Pointer pGhostMesh(IndexType ThisIndex)
 	{
 	  return mGhostMeshes(ThisIndex);
 	}
       
-      MeshType::Pointer pInterfaceMesh(IndexType ThisIndex = 0)
+      MeshType::Pointer pInterfaceMesh(IndexType ThisIndex)
 	{
 	  return mInterfaceMeshes(ThisIndex);
 	}
       
-      const MeshType::Pointer pLocalMesh(IndexType ThisIndex = 0) const
+      const MeshType::Pointer pLocalMesh(IndexType ThisIndex) const
 	{
 	  return mLocalMeshes(ThisIndex);
 	}
       
-      const MeshType::Pointer pGhostMesh(IndexType ThisIndex = 0) const
+      const MeshType::Pointer pGhostMesh(IndexType ThisIndex) const
 	{
 	  return mGhostMeshes(ThisIndex);
 	}
       
-      const MeshType::Pointer pInterfaceMesh(IndexType ThisIndex = 0) const
+      const MeshType::Pointer pInterfaceMesh(IndexType ThisIndex) const
 	{
 	  return mInterfaceMeshes(ThisIndex);
 	}
       
-      MeshType& LocalMesh(IndexType ThisIndex = 0)
+      // Returns the reference to the mesh storing all local entites
+      MeshType& LocalMesh()
+	{
+	  return *mpLocalMesh;
+	}
+      
+      // Returns the reference to the mesh storing all ghost entites
+      MeshType& GhostMesh()
+	{
+	  return *mpGhostMesh;
+	}
+      
+      // Returns the reference to the mesh storing all interface entites
+      MeshType& InterfaceMesh()
+	{
+	  return *mpInterfaceMesh;
+	}
+      
+      // Returns a constant reference to the mesh storing all local entites
+      MeshType const& LocalMesh() const
+	{
+	  return *mpLocalMesh;
+	}
+      
+      // Returns a constant reference to the mesh storing all ghost entites
+      MeshType const& GhostMesh() const
+	{
+	  return *mpGhostMesh;
+	}
+      
+      // Returns a constant reference to the mesh storing all interface entites
+      MeshType const& InterfaceMesh() const
+	{
+	  return *mpInterfaceMesh;
+	}
+      
+      MeshType& LocalMesh(IndexType ThisIndex)
 	{
 	  return mLocalMeshes[ThisIndex];
 	}
       
-      MeshType& GhostMesh(IndexType ThisIndex = 0)
+      MeshType& GhostMesh(IndexType ThisIndex)
 	{
 	  return mGhostMeshes[ThisIndex];
 	}
       
-      MeshType& InterfaceMesh(IndexType ThisIndex = 0)
+      MeshType& InterfaceMesh(IndexType ThisIndex)
 	{
 	  return mInterfaceMeshes[ThisIndex];
 	}
       
-      MeshType const& LocalMesh(IndexType ThisIndex = 0) const
+      MeshType const& LocalMesh(IndexType ThisIndex) const
 	{
 	  return mLocalMeshes[ThisIndex];
 	}
       
-      MeshType const& GhostMesh(IndexType ThisIndex = 0) const
+      MeshType const& GhostMesh(IndexType ThisIndex) const
 	{
 	  return mGhostMeshes[ThisIndex];
 	}
       
-      MeshType const& InterfaceMesh(IndexType ThisIndex = 0) const
+      MeshType const& InterfaceMesh(IndexType ThisIndex) const
 	{
 	  return mInterfaceMeshes[ThisIndex];
 	}
@@ -337,6 +462,62 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+
+      virtual bool SynchronizeNodalSolutionStepsData()
+      {
+#if defined(KRATOS_USING_MPI )
+	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+#endif 
+	return true;
+
+      }
+
+      virtual bool SynchronizeDofs()
+      {
+#if defined(KRATOS_USING_MPI )
+	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+#endif 
+	return true;
+
+      }
+
+      virtual bool AssembleCurrentData(Variable<double> const& ThisVariable)
+      {
+#if defined(KRATOS_USING_MPI )
+	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+#endif 
+	return true;
+
+      }
+
+      
+      virtual bool AssembleCurrentData(Variable<array_1d<double,3> > const& ThisVariable)
+      {
+#if defined(KRATOS_USING_MPI )
+	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+#endif 
+	return true;
+
+      }
+
+      virtual bool AssembleCurrentData(Variable<Vector> const& ThisVariable)
+      {
+#if defined(KRATOS_USING_MPI )
+	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+#endif 
+	return true;
+
+      }
+
+      virtual bool AssembleCurrentData(Variable<Matrix> const& ThisVariable)
+      {
+#if defined(KRATOS_USING_MPI )
+	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+#endif 
+	return true;
+
+      }
+
 
 
       
@@ -434,6 +615,19 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 
         
+
+      SizeType mNumberOfColors;
+
+      NeighbourIndicesContainerType mNeighbourIndices;
+
+      // To store all local entities
+      MeshType::Pointer mpLocalMesh;
+
+      // To store all ghost entities
+      MeshType::Pointer mpGhostMesh;
+
+      // To store all interface entities
+      MeshType::Pointer mpInterfaceMesh;
 
       // To store interfaces local entities
       MeshesContainerType mLocalMeshes;

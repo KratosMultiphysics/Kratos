@@ -66,10 +66,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "processes/graph_coloring_process.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-
+#include "includes/mpi_communicator.h"
 
  extern "C" { 
    //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*); 
@@ -176,6 +177,9 @@ namespace Kratos
 		  int number_of_processes;
 		  MPI_Comm_size (MPI_COMM_WORLD,&number_of_processes);
 
+		  // Set MPICommunicator as modelpart's communicator
+		  mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator));
+
 		  // if mNumberOfPartitions is not defined we set it to the number_of_processes
 		  if (mNumberOfPartitions == 0)
 		    mNumberOfPartitions = static_cast<SizeType>(number_of_processes);
@@ -198,7 +202,7 @@ namespace Kratos
 		  idxtype* epart = new idxtype[number_of_elements];
 		  idxtype* npart = new idxtype[number_of_nodes];
 			
-		  GraphType domains_graph = ZeroMatrix(mNumberOfPartitions, mNumberOfPartitions);
+		  GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
 		  GraphType domains_colored_graph;
 		  int* coloring_send_buffer;
 
@@ -212,7 +216,8 @@ namespace Kratos
 		    {
 		      CallingMetis(number_of_nodes, number_of_elements, elements_connectivities, npart, epart);
 		      CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, npart, epart);
-		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
+		      GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
+// 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
 		      KRATOS_WATCH(colors_number);
 		      KRATOS_WATCH(domains_colored_graph);
 
@@ -226,7 +231,7 @@ namespace Kratos
 		  mLogFile << rank << "  : colors_number = " << colors_number << std::endl;
 
 		  mLogFile << rank << " : coloring_send_buffer = [";
-		  for(int j = 0 ; j < mNumberOfPartitions*colors_number ; j++)
+		  for(SizeType j = 0 ; j < mNumberOfPartitions*colors_number ; j++)
 		    mLogFile << coloring_send_buffer[j] << " ,";
 		  mLogFile << "]" << std::endl;
 		    }
@@ -243,7 +248,7 @@ namespace Kratos
 
 		  
 
-		  vector<int>& neighbours_indices = mrModelPart[NEIGHBOURS_INDICES];
+		  Communicator::NeighbourIndicesContainerType& neighbours_indices = mrModelPart.GetCommunicator().NeighbourIndices();
 		  if(neighbours_indices.size() != static_cast<unsigned int>(colors_number))
 		    neighbours_indices.resize(colors_number,false);
 		  for(int i = 0 ; i  < colors_number ; i++)
@@ -255,6 +260,7 @@ namespace Kratos
 		  mLogFile << "]" << std::endl;
 
 		  mLogFile << rank << "  : colors_number = " << colors_number << std::endl;
+		  mrModelPart.GetCommunicator().SetNumberOfColors(colors_number);
 
 
  		  MPI_Scatter(coloring_send_buffer,colors_number,MPI_INT,&(neighbours_indices[0]),colors_number,MPI_INT,0,MPI_COMM_WORLD);
@@ -263,7 +269,7 @@ namespace Kratos
 		  
 		  mLogFile << rank << " : ";
 		  for(int j = 0 ; j <  colors_number ; j++)
-		    mLogFile << mrModelPart[NEIGHBOURS_INDICES][j] << " ,";
+		    mLogFile << mrModelPart.GetCommunicator().NeighbourIndices()[j] << " ,";
 		  mLogFile << "]" << std::endl;
 
 		  // Adding local, ghost and interface meshes to ModelPart if is necessary
@@ -328,27 +334,27 @@ namespace Kratos
 		    
 		  }
 
-		int GraphColoring(GraphType& rDomainsGraph, GraphType& rDomainsColoredGraph)
-		  {
-		    int max_color = 0;
-		    // Initializing the coloered graph. -1 means no connection
-		    rDomainsColoredGraph = ScalarMatrix(mNumberOfPartitions, mNumberOfPartitions, -1.00);
+// 		int GraphColoring(GraphType& rDomainsGraph, GraphType& rDomainsColoredGraph)
+// 		  {
+// 		    int max_color = 0;
+// 		    // Initializing the coloered graph. -1 means no connection
+// 		    rDomainsColoredGraph = ScalarMatrix(mNumberOfPartitions, mNumberOfPartitions, -1.00);
 		    
-		    // Start coloring...
-		    for(SizeType i = 0 ; i < rDomainsGraph.size1() ; i++) // for each domain
-		      for(SizeType j = i + 1 ; j < rDomainsGraph.size2() ; j++) // finding neighbor domains
-			if(rDomainsGraph(i,j) != 0.00) // domain i has interface with domain j
-			  for(SizeType color = 0 ; color < rDomainsColoredGraph.size2() ; color++) // finding color
-			    if((rDomainsColoredGraph(i,color) == -1.00) && (rDomainsColoredGraph(j,color) == -1.00)) // the first unused color 
-			    {
-			      rDomainsColoredGraph(i,color) = j;
-			      rDomainsColoredGraph(j,color) = i;
-			      if(max_color < static_cast<int>(color + 1))
-				max_color = color + 1;
-			      break;
-			    }
-		    return max_color;
-		  }
+// 		    // Start coloring...
+// 		    for(SizeType i = 0 ; i < rDomainsGraph.size1() ; i++) // for each domain
+// 		      for(SizeType j = i + 1 ; j < rDomainsGraph.size2() ; j++) // finding neighbor domains
+// 			if(rDomainsGraph(i,j) != 0.00) // domain i has interface with domain j
+// 			  for(SizeType color = 0 ; color < rDomainsColoredGraph.size2() ; color++) // finding color
+// 			    if((rDomainsColoredGraph(i,color) == -1.00) && (rDomainsColoredGraph(j,color) == -1.00)) // the first unused color 
+// 			    {
+// 			      rDomainsColoredGraph(i,color) = j;
+// 			      rDomainsColoredGraph(j,color) = i;
+// 			      if(max_color < static_cast<int>(color + 1))
+// 				max_color = color + 1;
+// 			      break;
+// 			    }
+// 		    return max_color;
+// 		  }
 
 		///@}
 		///@name Access
@@ -526,25 +532,17 @@ namespace Kratos
 		    if(NPart[i_node->Id()-1] == rank)
 		      {
 			mrModelPart.AssignNode(*(i_node.base()));
-			mrModelPart.AssignNode(*(i_node.base()), ModelPart::Kratos_Local);
+ 			mrModelPart.GetCommunicator().LocalMesh(). AddNode(*(i_node.base()));
+//  			mrModelPart.AssignNode(*(i_node.base()), ModelPart::Kratos_Local);
 			i_node->GetSolutionStepValue(PARTITION_INDEX) = rank;
 		      }
 
   		  std::vector<int> interface_indices(mNumberOfPartitions, -1); 
-//  		  std::vector<int> interface_indices(mNumberOfPartitions, 10000); 
-		  vector<int>& neighbours_indices = mrModelPart[NEIGHBOURS_INDICES];
+		  vector<int>& neighbours_indices = mrModelPart.GetCommunicator().NeighbourIndices();
 
-		  std::vector<int> aux;
-
-
- 		  for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
-		    aux.push_back(neighbours_indices[i]);
-		  
  		  for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
  		    if(SizeType(neighbours_indices[i]) < interface_indices.size())
  		     interface_indices[neighbours_indices[i]] = i;
-
-// what does it happen if otherwise? indeed it will not break the memory like this ... but ... does it do the correct?
 
 		  
 		  
@@ -554,29 +552,44 @@ namespace Kratos
  		    if(EPart[i_element] == rank)
 		    { 
  		      for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
- 			  i_node != ElementsConnectivities[i_element].end() ; i_node++) 
- 			if(NPart[*i_node-1] != rank) 
+ 			  i_node != ElementsConnectivities[i_element].end() ; i_node++)
+			{
+			  int node_partition = NPart[*i_node-1];
+			  if(node_partition != rank) 
 			  {
- 			   mrModelPart.AssignNode(AllNodes((*i_node))); 
- 			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
-			   AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
- 			mLogFile << rank << " : Adding ghost node # " << AllNodes[(*i_node)] << "with partition index " << AllNodes[(*i_node)].GetSolutionStepValue(PARTITION_INDEX)  << " in " <<  AllNodes((*i_node)) << std::endl;
+			    mrModelPart.AssignNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().GhostMesh().AddNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().GhostMesh(interface_indices[node_partition]).AddNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().InterfaceMesh().AddNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().InterfaceMesh(interface_indices[node_partition]).AddNode(AllNodes((*i_node))); 
+//   			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
+			    AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
 			  }
+			}
 		    }
-		    else  // adding the owened interface nodes
+		    else  // adding the owened interface nodes 
 		    {
   		      for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
   			  i_node != ElementsConnectivities[i_element].end() ; i_node++) 
   			if(NPart[*i_node-1] == rank) 
  			  {
-			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
-			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
+			    SizeType mesh_index = interface_indices[EPart[i_element]];
+			    if(mesh_index > mNumberOfPartitions) // Means the neighbour domain is not registered!!
 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
- 			    mrModelPart.AssignNode(AllNodes((*i_node)), mesh_index); 
-// 		      mLogFile << rank << " : Adding interface node # " << *i_node << std::endl;
-			    mLogFile << rank << " : Adding interface node # " << *i_node << " to mesh: " << mesh_index  << std::endl;
-			AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = rank;
-// 			mLogFile << rank << " : Adding interface node # " << AllNodes[(*i_node)] << "with partition index " << AllNodes[(*i_node)].GetSolutionStepValue(PARTITION_INDEX)  << " in " <<  AllNodes((*i_node)) << std::endl;
+ 			    
+			    mrModelPart.GetCommunicator().LocalMesh().AddNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().LocalMesh(mesh_index).AddNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().InterfaceMesh(mesh_index).AddNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().InterfaceMesh().AddNode(AllNodes((*i_node))); 
+
+// 			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
+// 			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
+// 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
+//  			    mrModelPart.AssignNode(AllNodes((*i_node)), mesh_index); 
+// // 		      mLogFile << rank << " : Adding interface node # " << *i_node << std::endl;
+// 			    mLogFile << rank << " : Adding interface node # " << *i_node << " to mesh: " << mesh_index  << std::endl;
+// 			AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = rank;
+// // 			mLogFile << rank << " : Adding interface node # " << AllNodes[(*i_node)] << "with partition index " << AllNodes[(*i_node)].GetSolutionStepValue(PARTITION_INDEX)  << " in " <<  AllNodes((*i_node)) << std::endl;
  			  }
 		    }
 		  mLogFile << rank << " : Nodes added to modelpart" << std::endl;
@@ -599,7 +612,8 @@ namespace Kratos
 		      if(*epart_position == rank)
 			{
 			  mrModelPart.AddElement(*(i_element.base()));
-			  mrModelPart.AddElement(*(i_element.base()),  ModelPart::Kratos_Local);
+ 			  mrModelPart.GetCommunicator().LocalMesh().AddElement(*(i_element.base()));
+//   			  mrModelPart.AddElement(*(i_element.base()),  ModelPart::Kratos_Local);
 			}
 		      epart_position++;
 		    }
@@ -627,7 +641,8 @@ namespace Kratos
 		      if(is_local)
 			{
 			  mrModelPart.AddCondition(*(i_condition.base()));
-			  mrModelPart.AddCondition(*(i_condition.base()),  ModelPart::Kratos_Local);
+ 			  mrModelPart.GetCommunicator().LocalMesh().AddCondition(*(i_condition.base()));
+//   			  mrModelPart.AddCondition(*(i_condition.base()),  ModelPart::Kratos_Local);
 			}
 		    }
 		  mLogFile << rank << " : Conditions added" << std::endl;

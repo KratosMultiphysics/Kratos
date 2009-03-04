@@ -418,6 +418,12 @@ namespace Kratos
 	    }
 	
 	template<class TDataType> 
+	TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable)
+	    {
+		return (TDataType*)Position(rThisVariable);
+	    }
+	
+	template<class TDataType> 
 	TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
 	    {
 		return *(TDataType*)Position(rThisVariable, QueueIndex);
@@ -427,6 +433,12 @@ namespace Kratos
 	const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
 	    {
 		return *(const TDataType*)Position(rThisVariable);
+	    }
+	
+	template<class TDataType>
+	const TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable) const
+	    {
+		return (const TDataType*)Position(rThisVariable);
 	    }
 
 	template<class TDataType>
