@@ -39,19 +39,19 @@ def FindNode(node_list,x,y,z):
     
 def BenchmarkCheck(time, node1, node2, node3, node4):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(node1.GetSolutionStepValue(DISPLACEMENT_X), "Node 1 Displacement_x", 0.0000001)
-    benchmarking.Output(node2.GetSolutionStepValue(DISPLACEMENT_Y), "Node 2 Displacement_y", 0.0000001)
-    benchmarking.Output(node3.GetSolutionStepValue(REACTION_X), "Node 3 Reaction_x", 0.0000001)
-    benchmarking.Output(node4.GetSolutionStepValue(REACTION_Y), "Node 4 Reaction_y", 0.0000001)
+    benchmarking.Output(node1.GetSolutionStepValue(DISPLACEMENT_X), "Node 1 Displacement_x", 0.00001)
+    benchmarking.Output(node2.GetSolutionStepValue(DISPLACEMENT_Y), "Node 2 Displacement_y", 0.00001)
+    benchmarking.Output(node3.GetSolutionStepValue(REACTION_X), "Node 3 Reaction_x", 0.00001)
+    benchmarking.Output(node4.GetSolutionStepValue(REACTION_Y), "Node 4 Reaction_y", 0.00001)
 
 
 
 def AnalyticalResults(time, node1, node2,node3, node4):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(-0.221921365586,  "Node 1 Displacement_x", 0.0000001)
-    benchmarking.Output(-0.0361068223759, "Node 2 Displacement_y", 0.0000001)
-    benchmarking.Output( 51.6844785228,   "Node 3 Reaction_x", 0.0000001)
-    benchmarking.Output( -123.134969306,   "Node 4 Reaction_y", 0.0000001)
+    benchmarking.Output(-0.221921365586,  "Node 1 Displacement_x", 0.00001)
+    benchmarking.Output(-0.0361068223759, "Node 2 Displacement_y", 0.00001)
+    benchmarking.Output( 51.6844785228,   "Node 3 Reaction_x", 0.00001)
+    benchmarking.Output( -123.134969306,   "Node 4 Reaction_y", 0.00001)
 
 
 
