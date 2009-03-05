@@ -7,7 +7,7 @@ import benchmarking
 
 def Run():
 	Msg = ""
-	Text = "== Structural Aplication ==========\n"
+	Text = "========== Structural Aplication ==========\n"
 
         ################################################################
 
@@ -53,9 +53,32 @@ def Run():
 	os.chdir("..")
 
 
-
         
         ################################################################
+
+
+	Text += "cantilever2dstatic_superlu: "
+	os.chdir("cantilever2d.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running cantilever2dstatic_superlu..."
+	Msg = benchmarking.RunBenchmark("cantilever2dstatic_superlu_benchmarking.py", "cantilever2dstatic_superlu.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "cantilever2dstatic_superlu example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "cantilever2dstatic_superlu example FAILED"
+
+	os.chdir("..")
+
+
+        ################################################################
+
+
         print "resume of all of the examples for the fluid application :"
         print Text
 	return Text
