@@ -114,7 +114,7 @@ solver.Initialize()
 (solver).SetEchoLevel(2);
 
 Dt = 0.001
-nsteps = 5
+nsteps =9
 print("initializing results")
 gid_io.InitializeResults(mesh_name,(model_part).GetMesh())
 for step in range(0,nsteps):
@@ -126,11 +126,12 @@ for step in range(0,nsteps):
     #print model_part.ProcessInfo()[TIME]
 
     #solving the fluid problem
-    solver.Solve()
-    if (benchmarking.InBuildReferenceMode()):
-      AnalyticalResults(time, node_1, node_2, node_3, node_4)
-    else:
-      BenchmarkCheck(time, node_1, node_2, node_3, node_4)
+    if(step > 3):
+       solver.Solve()
+       if (benchmarking.InBuildReferenceMode()):
+         AnalyticalResults(time, node_1, node_2, node_3, node_4)
+       else:
+         BenchmarkCheck(time, node_1, node_2, node_3, node_4)
 
     #print the results
     print "a"
