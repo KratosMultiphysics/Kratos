@@ -24,9 +24,9 @@ def AddVariables(model_part):
 def AddDofs(model_part):
     for node in model_part.Nodes:
         #adding dofs
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-        node.AddDof(DISPLACEMENT_Z);
+        node.AddDof(DISPLACEMENT_X,REACTION_X);
+        node.AddDof(DISPLACEMENT_Y,REACTION_Y);
+        node.AddDof(DISPLACEMENT_Z,REACTION_Z);
     print "dofs for the dynamic structural solution added correctly"
 
 
@@ -40,6 +40,10 @@ class StaticStructuralSolver:
         self.damp_factor = -0.1
         self.toll = 1e-6
         self.absolute_tol = 1e-9
+
+        self.CalculateReactionFlag = False
+        self.ReformDofSetAtEachStep = False
+        self.MoveMeshFlag = True
 
         #definition of the solvers
 ##        self.structure_linear_solver =  ParallelSkylineLUFactorizationSolver()
@@ -59,11 +63,9 @@ class StaticStructuralSolver:
         #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
     
         #creating the solution strategy
-        CalculateReactionFlag = False
-        ReformDofSetAtEachStep = False
-        MoveMeshFlag = True
+
         import parallel_strategy_python
-        self.solver = parallel_strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
+        self.solver = parallel_strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         
         
 ##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,False,True)
