@@ -342,10 +342,10 @@ namespace Kratos
 	      unsigned int send_buffer_size = 0;
 	      unsigned int receive_buffer_size = 0;
 
-	      for(typename NodesContainerType::iterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+	      for(NodesContainerType::iterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
 		send_buffer_size += i_node->GetDofs().size();
 
-	      for(typename NodesContainerType::iterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+	      for(NodesContainerType::iterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
 		  receive_buffer_size += i_node->GetDofs().size();
 
 	      unsigned int position = 0;
