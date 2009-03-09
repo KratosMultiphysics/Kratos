@@ -10,9 +10,11 @@ domain_size = 3
 #including kratos path
 kratos_libs_path = '../../../../libs/' ##kratos_root/libs
 kratos_applications_path = '../../../../applications/' ##kratos_root/applications
+kratos_benchmarking_path = '../../../../benchmarking/' ##kratos_root/benchmarking
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
+sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
 from Kratos import *
@@ -22,7 +24,7 @@ kernel = Kernel()   #defining kernel
 import applications_interface
 
 applications_interface.ImportApplications(kernel, kratos_applications_path)
-
+import benchmarking
 #loading meshing application
 sys.path.append(kratos_applications_path + 'meshing_application/python_scripts') 
 from KratosMeshingApplication import *
@@ -82,6 +84,17 @@ node_erase_process = NodeEraseProcess(model_part);
 
 neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
 neigh_finder.Execute()
+
+
+def BenchmarkCheck(time, node):
+    benchmarking.Output(time, "Time")
+    #displacement shall be interpolated exactly
+    err_sq=(node.GetSolutionStepValue(DISPLACEMENT_X)-node.GetSolutionStepValue(DISPLACEMENT_X,1))**2;
+    if (err_sq>0.000000001):
+        benchmarking.Output(err_sq, "Error in the interpolation of Nodal displ", 1.0)
+    else:
+        benchmarking.Output(err_sq, "No Error in the interpolation of Nodal displ", 1.0)
+
     
 Dt = 0.01
 nsteps = 12
@@ -119,7 +132,10 @@ for step in range(0,nsteps):
         #Mesher.ReGenerateTestElements(model_part, node_erase_process, alpha_shape)
         
         Mesher.ReGenerateMesh("TestElement3D", "Condition3D", model_part, node_erase_process, True, True, alpha_shape, 0.5)
-    
+        ##checking if the interpolation was done well
+        for node in model_part.Nodes:
+            BenchmarkCheck(time, node)
+        
         print "meshing is performed"
         
         #recalculating neighbours 
