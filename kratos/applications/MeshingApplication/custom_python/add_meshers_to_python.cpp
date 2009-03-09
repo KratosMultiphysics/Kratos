@@ -37,11 +37,11 @@ namespace Python
 	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	//tetgen pfem refine
-	void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase, double alpha_shape)
+	void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase,bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor)
 	{
 		Mesher.ReGenerateMesh(model_part, 
 			KratosComponents<Element>::Get(ElementName),
-			KratosComponents<Condition>::Get(ConditionName),node_erase, alpha_shape	); 
+			KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	); 
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -51,11 +51,11 @@ namespace Python
 	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	//trigen pfem refine
-	void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, double alpha_shape, double h_factor )
+	void TriRegenerateMesh(TriGenPFEMModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
 	{
 		Mesher.ReGenerateMesh(model_part, 
 			KratosComponents<Element>::Get(ElementName),
-			KratosComponents<Condition>::Get(ConditionName),node_erase, alpha_shape, h_factor	); 
+			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
