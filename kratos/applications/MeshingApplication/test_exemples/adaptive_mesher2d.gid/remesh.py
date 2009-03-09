@@ -92,17 +92,20 @@ node_erase_process = NodeEraseProcess(model_part);
 neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 neigh_finder.Execute()
 
-def AnalyticalResults(time, node):
+def AnalyticalResults(time, model_part):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(node.X, "Node 1 Displacement_x", 0.00000001)
-    benchmarking.Output(node.Y, "Node 1 Displacement_y", 0.00000001)
+    benchmarking.Output(0.000, "Cumulative diff betw DISPL_X and exact solution", 0.0000001)
+    
 
 
-def BenchmarkCheck(time, node):
+def BenchmarkCheck(time, model_part):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(node.GetSolutionStepValue(DISPLACEMENT_X), "Node 1 Displacement_x", 0.00000001)
-    benchmarking.Output(node.GetSolutionStepValue(DISPLACEMENT_Y), "Node 1 Displacement_y", 0.00000001)
+    err=0.0
+    for node in model_part.Nodes:
+        err=err+(node.X-node.GetSolutionStepValue(DISPLACEMENT_X))**2;
+    benchmarking.Output(err, "Cumulative diff betw DISPL_X and exact solution", 0.0000001)
     #displacement shall be interpolated exactly
+
 
 Dt = 0.01
 nsteps = 15
@@ -141,12 +144,10 @@ for step in range(0,nsteps):
         Mesher.ReGenerateMesh("TestElement2D", "Condition2D", model_part, node_erase_process, True, True, alpha_shape, 0.5)
 
         ##checking if the interpolation was done well
-        for node in model_part.Nodes:
-            if (node.X>8.0 and node.Y>0.49 and node.Y<0.51):
-                if (benchmarking.InBuildReferenceMode()):
-                    AnalyticalResults(time, node)
-                else:
-                    BenchmarkCheck(time, node)
+        if (benchmarking.InBuildReferenceMode()):
+            AnalyticalResults(time, model_part)
+        else:
+            BenchmarkCheck(time, model_part)
         
         print "meshing is performed"
         
