@@ -105,7 +105,7 @@ namespace Kratos
 			ModelPart& ThisModelPart , 
 			Element const& rReferenceElement, 
 			Condition const& rReferenceBoundaryCondition,
-			NodeEraseProcess& node_erase,
+			NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
 			double my_alpha = 1.4, double h_factor=0.5)
 		{
 
@@ -157,84 +157,74 @@ namespace Kratos
 			//NodeIterator res(max_results);
 			PointVector res(max_results);
 			DistanceVector res_distances(max_results);
- 			
-			PointVector list_of_nodes;
-			list_of_nodes.reserve(ThisModelPart.Nodes().size());
-			for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
-			{
-					(list_of_nodes).push_back(*(i_node.base()));
-			}
-
-			kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
-			
-			unsigned int n_points_in_radius;			
-			//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
-			double radius;
 			Node<3> work_point(0,0.0,0.0,0.0);
-			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
-				in != ThisModelPart.NodesEnd(); in++)
+ 			//if the remove_node switch is activated, we check if the nodes got too close
+			if (rem_nodes==true)
+			{
+				PointVector list_of_nodes;
+				list_of_nodes.reserve(ThisModelPart.Nodes().size());
+				for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
 				{
-				radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
-				
-				work_point[0]=in->X();
-				work_point[1]=in->Y();
-				work_point[2]=in->Z();
-				
-				n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
-					if (n_points_in_radius>1)
-					{
-						if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
-						{
-							//look if we are already erasing any of the other nodes 
-							unsigned int erased_nodes = 0;
-							for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-								erased_nodes += in->GetValue(ERASE_FLAG);
-
-							if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
-								in->GetValue(ERASE_FLAG)=1;
-							
-						}
-						else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
-						{
-							//here we loop over the neighbouring nodes and if there are nodes
-							//with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
-							unsigned int k = 0;
-							unsigned int counter = 0;
-							for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-								{
-									if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
-									{
-// 										KRATOS_WATCH( res_distances[k] );
-										counter += 1;
-									}
-									k++;
-								}
-							if(counter > 0)
-								in->GetValue(ERASE_FLAG)=1;
-						}
-					}
-				/*				
-				if (in->GetValue(ERASE_FLAG)!=1.0)
-					{
-					for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius; i++)
-		 				{
-						// not to remove the boundary nodes
-						if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY)!=1.0  )
-								{
-	 							(*i)->GetValue(ERASE_FLAG)=0.0;
-								KRATOS_WATCH("ERASING NODE!!!!!!!!!!!")
-								}
-						}
-					}
-				*/
+						(list_of_nodes).push_back(*(i_node.base()));
 				}
 
+				kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
+			
+				unsigned int n_points_in_radius;			
+				//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+				double radius;
+				
+				for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+					in != ThisModelPart.NodesEnd(); in++)
+					{
+					radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
+				
+					work_point[0]=in->X();
+					work_point[1]=in->Y();
+					work_point[2]=in->Z();
+				
+					n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
+						if (n_points_in_radius>1)
+						{
+							if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+							{
+								//look if we are already erasing any of the other nodes 
+								unsigned int erased_nodes = 0;
+								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+									erased_nodes += in->GetValue(ERASE_FLAG);
+
+								if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
+									in->GetValue(ERASE_FLAG)=1;
+							
+							}
+							else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
+							{
+								//here we loop over the neighbouring nodes and if there are nodes
+								//with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
+								unsigned int k = 0;
+								unsigned int counter = 0;
+								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+									{
+										if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
+										{
+	// 										KRATOS_WATCH( res_distances[k] );
+											counter += 1;
+										}
+										k++;
+									}
+								if(counter > 0)
+									in->GetValue(ERASE_FLAG)=1;
+							}
+						}
+				
+					}
 			
 
-			node_erase.Execute();				
+				node_erase.Execute();				
 
-			KRATOS_WATCH("Number of nodes after erasing")
-			KRATOS_WATCH(ThisModelPart.Nodes().size())	
+				KRATOS_WATCH("Number of nodes after erasing")
+				KRATOS_WATCH(ThisModelPart.Nodes().size())	
+			}
 			
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			//												  	//
@@ -423,11 +413,20 @@ namespace Kratos
 			//
 			// MOST IMPORTANT IS "r" switch, that refines previously generated mesh!!!!!!!!!!(that is the one given inside in2)
 			//char mesh_regen_opts[] = "YYJaqrn";
-			//standadrd setting			
-			char mesh_regen_opts[] = "YJq1.4arn";
-			//char mesh_regen_opts[] = "YYJrn";
-			triangulate(mesh_regen_opts, &in2, &out2, &vorout2);
-			KRATOS_WATCH("Adaptive remeshing executed")
+			//char mesh_regen_opts[] = "YJq1.4arn";
+			if (add_nodes==true)
+				{
+				char mesh_regen_opts[] = "YJq1.4arn";
+				triangulate(mesh_regen_opts, &in2, &out2, &vorout2);
+				KRATOS_WATCH("Adaptive remeshing executed")
+				}
+			else 
+				{
+				char mesh_regen_opts[] = "YJrn";
+				triangulate(mesh_regen_opts, &in2, &out2, &vorout2);
+				KRATOS_WATCH("Non-Adaptive remeshing executed")
+				}
+
 			//and now we shall find out where the new nodes belong to
 			//defintions for spatial search
 			typedef Node<3> PointType;
