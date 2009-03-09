@@ -77,6 +77,7 @@ for node in model_part.Nodes:
     temp = node.X**2 + node.Y**2 + node.Z**2
     node.SetSolutionStepValue(TEMPERATURE,0,temp);
     node.SetSolutionStepValue(DISPLACEMENT_X,0,node.X);
+    node.SetSolutionStepValue(DISPLACEMENT_Y,0,node.Y);
     
 #defining the mesher
 Mesher = TriGenPFEMModeler()
@@ -91,20 +92,20 @@ node_erase_process = NodeEraseProcess(model_part);
 neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 neigh_finder.Execute()
 
+def AnalyticalResults(time, node):
+    benchmarking.Output(time, "Time")
+    benchmarking.Output(node.X, "Node 1 Displacement_x", 0.00000001)
+    benchmarking.Output(node.Y, "Node 1 Displacement_y", 0.00000001)
 
 
 def BenchmarkCheck(time, node):
     benchmarking.Output(time, "Time")
+    benchmarking.Output(node.GetSolutionStepValue(DISPLACEMENT_X), "Node 1 Displacement_x", 0.00000001)
+    benchmarking.Output(node.GetSolutionStepValue(DISPLACEMENT_Y), "Node 1 Displacement_y", 0.00000001)
     #displacement shall be interpolated exactly
-    err_sq=(node.GetSolutionStepValue(DISPLACEMENT_X)-node.GetSolutionStepValue(DISPLACEMENT_X,1))**2;
-    if (err_sq>0.000000001):
-        benchmarking.Output(err_sq, "Error in the interpolation of Nodal displ", 1.0)
-    else:
-        benchmarking.Output(err_sq, "No Error in the interpolation of Nodal displ", 1.0)
-
 
 Dt = 0.01
-nsteps = 50
+nsteps = 15
 time = 0.0
 i=0
 for step in range(0,nsteps):
@@ -133,7 +134,7 @@ for step in range(0,nsteps):
                 node.SetSolutionStepValue(NODAL_H,0, 0.01)
             else:
                 node.SetSolutionStepValue(NODAL_H,0, 0.1*(1.0+time*10.0))
-                #node.SetSolutionStepValue(NODAL_H,0, 0.1)
+                node.SetSolutionStepValue(NODAL_H,0, 0.1)
         
         i=i+1;    
 
@@ -141,7 +142,11 @@ for step in range(0,nsteps):
 
         ##checking if the interpolation was done well
         for node in model_part.Nodes:
-            BenchmarkCheck(time, node)
+            if (node.X>8.0 and node.Y>0.49 and node.Y<0.51):
+                if (benchmarking.InBuildReferenceMode()):
+                    AnalyticalResults(time, node)
+                else:
+                    BenchmarkCheck(time, node)
         
         print "meshing is performed"
         
