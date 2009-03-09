@@ -120,7 +120,7 @@ for step in range(0,nsteps):
         i=i+1;    
 
         h_factor = 0.5
-        Mesher.ReGenerateMesh("TestElement2D","Condition2D", model_part, node_erase_process, alpha_shape, h_factor)
+        Mesher.ReGenerateMesh("TestElement2D","Condition2D", model_part, node_erase_process, True, True, alpha_shape, h_factor)
     
         print "meshing is performed"
         
