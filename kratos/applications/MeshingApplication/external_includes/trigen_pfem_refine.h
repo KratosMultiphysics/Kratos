@@ -423,7 +423,9 @@ namespace Kratos
 			//
 			// MOST IMPORTANT IS "r" switch, that refines previously generated mesh!!!!!!!!!!(that is the one given inside in2)
 			//char mesh_regen_opts[] = "YYJaqrn";
-			char mesh_regen_opts[] = "YYJq1.4arn";
+			//standadrd setting			
+			char mesh_regen_opts[] = "YJq1.4arn";
+			//char mesh_regen_opts[] = "YYJrn";
 			triangulate(mesh_regen_opts, &in2, &out2, &vorout2);
 			KRATOS_WATCH("Adaptive remeshing executed")
 			//and now we shall find out where the new nodes belong to
