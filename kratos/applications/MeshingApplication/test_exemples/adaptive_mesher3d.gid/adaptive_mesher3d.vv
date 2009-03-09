@@ -1,0 +1,19 @@
+BeginZE /home/paolo/kratosR1/applications/MeshingApplication/test_exemples/adaptive_mesher3d.gid/adaptive_mesher3d.vv
+   x -3.55774 13.5577
+   y 6.36836 -5.36836
+   z -16.5831 16.5831
+   e 5.52771
+   v -0.390792 -0.0717931 0.0171461
+   r 0.917515
+   m 0.989104 0.0246486 -0.145144 0 0.087576 0.693975 0.714653 0 0.118341 -0.719577 0.684255 0 0 0 0 1
+   c 5 0.5 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 18.1431 80.7134 121.72 0
+EndZE /home/paolo/kratosR1/applications/MeshingApplication/test_exemples/adaptive_mesher3d.gid/adaptive_mesher3d.vv
+
