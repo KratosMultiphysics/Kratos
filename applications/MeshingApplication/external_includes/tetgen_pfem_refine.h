@@ -102,8 +102,8 @@ namespace Kratos
 			ModelPart& ThisModelPart , 
 			Element const& rReferenceElement, 
 			Condition const& rReferenceBoundaryCondition,
-			NodeEraseProcess& node_erase,
-			double alpha_param = 1.4)
+			NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
+			double alpha_param = 1.4, double h_factor=0.5)
 		{
 
 			KRATOS_TRY
@@ -154,58 +154,62 @@ namespace Kratos
 			//NodeIterator res(max_results);
 			PointVector res(max_results);
 			DistanceVector res_distances(max_results);
- 			
-			PointVector list_of_nodes;
-			list_of_nodes.reserve(ThisModelPart.Nodes().size());
-			for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
-			{
-					(list_of_nodes).push_back(*(i_node.base()));
-					//(list_of_nodes).push_back(i_node.base());
-			}
-
-			kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
-			//std::cout<<nodes_tree2<<std::endl;				
-			
-			unsigned int n_points_in_radius;			
-			//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
-			double radius;
 			Node<3> work_point(0,0.0,0.0,0.0);
-			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
-				in != ThisModelPart.NodesEnd(); in++)
+ 			//if the remove_node switch is activated, we check if the nodes got too close
+			if (rem_nodes==true)
+			{
+ 			
+				PointVector list_of_nodes;
+				list_of_nodes.reserve(ThisModelPart.Nodes().size());
+				for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
 				{
-				radius=0.5*in->FastGetSolutionStepValue(NODAL_H);
-				
-				work_point[0]=in->X();
-				work_point[1]=in->Y();
-				work_point[2]=in->Z();
-				
-				n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
-					if (n_points_in_radius>1)
-					{
-					if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
-						{
-						in->GetValue(ERASE_FLAG)=1;
-						}
-					}
-				/*				
-				if (in->GetValue(ERASE_FLAG)!=1.0)
-					{
-					for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius; i++)
-		 				{
-						// not to remove the boundary nodes
-						if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY)!=1.0  )
-								{
-	 							(*i)->GetValue(ERASE_FLAG)=0.0;
-								KRATOS_WATCH("ERASING NODE!!!!!!!!!!!")
-								}
-						}
-					}
-				*/
+						(list_of_nodes).push_back(*(i_node.base()));
+						//(list_of_nodes).push_back(i_node.base());
 				}
 
+				kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
+				//std::cout<<nodes_tree2<<std::endl;				
 			
-			node_erase.Execute();
-						
+				unsigned int n_points_in_radius;			
+				//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+				double radius;
+
+				for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+					in != ThisModelPart.NodesEnd(); in++)
+					{
+					radius=0.5*in->FastGetSolutionStepValue(NODAL_H);
+				
+					work_point[0]=in->X();
+					work_point[1]=in->Y();
+					work_point[2]=in->Z();
+				
+					n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
+						if (n_points_in_radius>1)
+						{
+						if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+							{
+							in->GetValue(ERASE_FLAG)=1;
+							}
+						}
+					/*				
+					if (in->GetValue(ERASE_FLAG)!=1.0)
+						{
+						for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius; i++)
+			 				{
+							// not to remove the boundary nodes
+							if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY)!=1.0  )
+									{
+		 							(*i)->GetValue(ERASE_FLAG)=0.0;
+									KRATOS_WATCH("ERASING NODE!!!!!!!!!!!")
+									}
+							}
+						}
+					*/
+					}
+
+			
+				node_erase.Execute();
+			}			
 			/////////////////////////////////////////////////////////////////
 			/////// 	ALPHA SHAPE		/////////////////////////
 			/////////////////////////////////////////////////////////////////
@@ -483,11 +487,19 @@ namespace Kratos
 			//HERE WE ADD THE VOLUME CONSTRAINT  -the desired volume of the equidistant tertrahedra
 			//based upon average nodal_h (that is the  "a" switch
 			//char regeneration_options[] = "rQJYq1.8anS";
-			//REFINEMENT TEMPORARILY SWITCHED OFF!!!!
-			char regeneration_options[] = "rQJYYqanS";
+			if (add_nodes==true)
+				{
+				char mesh_regen_opts[] = "rQJYq1.5anS";
+				tetrahedralize(mesh_regen_opts, &in2, &outnew);
+				KRATOS_WATCH("Adaptive remeshing executed")
+				}
+			else 
+				{
+				char mesh_regen_opts[] = "rQJYnS";
+				tetrahedralize(mesh_regen_opts, &in2, &outnew);
+				KRATOS_WATCH("Non-Adaptive remeshing executed")
+				}
 
-			
-			tetrahedralize(regeneration_options, &in2, &outnew);
 			//q - creates quality mesh, with the default radius-edge ratio set to 2.0
 
  			std::cout << "mesh recreation time" << mesh_recreation_time.elapsed() << std::endl;
