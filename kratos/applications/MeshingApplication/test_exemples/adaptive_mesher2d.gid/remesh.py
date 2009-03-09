@@ -10,9 +10,12 @@ domain_size = 2
 #including kratos path
 kratos_libs_path = '../../../../libs/' ##kratos_root/libs
 kratos_applications_path = '../../../../applications/' ##kratos_root/applications
+kratos_benchmarking_path = '../../../../benchmarking/' ##kratos_root/benchmarking
+
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
+sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
 from Kratos import *
@@ -20,14 +23,19 @@ kernel = Kernel()   #defining kernel
 
 #importing applications
 import applications_interface
-applications_interface.Import_MeshingApplication = True
+#applications_interface.Import_IncompressibleFluidApplication = True
+#applications_interface.Import_PFEMApplication = True
+#applications_interface.Import_ULFApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
+import benchmarking
 
 #loading meshing application
+sys.path.append(kratos_benchmarking_path)
 sys.path.append(kratos_applications_path + 'meshing_application/python_scripts') 
 from KratosMeshingApplication import *
 meshing_application = KratosMeshingApplication()
 kernel.AddApplication(meshing_application)
+
 
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
@@ -51,8 +59,6 @@ model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
 model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
 model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
 model_part.AddNodalSolutionStepVariable(IS_FLUID)
-model_part.AddNodalSolutionStepVariable(DENSITY)
-model_part.AddNodalSolutionStepVariable(BULK_MODULUS)
 
 
 #reading the model
@@ -79,15 +85,26 @@ Mesher = TriGenPFEMModeler()
 for node in model_part.Nodes:
     node.SetSolutionStepValue(NODAL_H,0, 0.1)
     node.SetSolutionStepValue(IS_FLUID,0, 1)
-    node.SetSolutionStepValue(BULK_MODULUS,0, 100.0)
     
 node_erase_process = NodeEraseProcess(model_part);
 
 neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 neigh_finder.Execute()
-    
+
+
+
+def BenchmarkCheck(time, node):
+    benchmarking.Output(time, "Time")
+    #displacement shall be interpolated exactly
+    err_sq=(node.GetSolutionStepValue(DISPLACEMENT_X)-node.GetSolutionStepValue(DISPLACEMENT_X,1))**2;
+    if (err_sq>0.000000001):
+        benchmarking.Output(err_sq, "Error in the interpolation of Nodal displ", 1.0)
+    else:
+        benchmarking.Output(err_sq, "No Error in the interpolation of Nodal displ", 1.0)
+
+
 Dt = 0.01
-nsteps = 15
+nsteps = 50
 time = 0.0
 i=0
 for step in range(0,nsteps):
@@ -115,13 +132,17 @@ for step in range(0,nsteps):
             if ( ((node.X-1.0-i)*(node.X-1.0-i)) + ((node.Y-0.5)*(node.Y-0.5)) < 0.06):
                 node.SetSolutionStepValue(NODAL_H,0, 0.01)
             else:
-                node.SetSolutionStepValue(NODAL_H,0, 0.1)
+                node.SetSolutionStepValue(NODAL_H,0, 0.1*(1.0+time*10.0))
+                #node.SetSolutionStepValue(NODAL_H,0, 0.1)
         
         i=i+1;    
 
-        h_factor = 0.5
-        Mesher.ReGenerateMesh("TestElement2D","Condition2D", model_part, node_erase_process, True, True, alpha_shape, h_factor)
-    
+        Mesher.ReGenerateMesh("TestElement2D", "Condition2D", model_part, node_erase_process, True, True, alpha_shape, 0.5)
+
+        ##checking if the interpolation was done well
+        for node in model_part.Nodes:
+            BenchmarkCheck(time, node)
+        
         print "meshing is performed"
         
         #recalculating neighbours 
@@ -140,11 +161,9 @@ for step in range(0,nsteps):
         gid_io.InitializeResults(time, (model_part).GetMesh());
         gid_io.WriteNodalResults(TEMPERATURE, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(NODAL_H, model_part.Nodes, time, 0);
-        gid_io.WriteNodalResults(DENSITY, model_part.Nodes, time, 0);
-        gid_io.WriteNodalResults(BULK_MODULUS, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(IS_BOUNDARY, model_part.Nodes, time, 0);
         gid_io.WriteNodalResults(DISPLACEMENT, model_part.Nodes, time, 0);
-                
+
         gid_io.Flush()
         #gid_io.CloseResultFile();
         gid_io.FinalizeResults()
@@ -157,5 +176,4 @@ print "finito"
 
           
         
-
 
