@@ -71,7 +71,7 @@ for node in model_part.Nodes:
     temp = node.X**2 + node.Y**2 + node.Z**2
     node.SetSolutionStepValue(TEMPERATURE,0,temp);
     node.SetSolutionStepValue(DISPLACEMENT_X,0,node.X);
-    node.SetSolutionStepValue(DISPLACEMENT_Y,0,node.Y);
+    #node.SetSolutionStepValue(DISPLACEMENT_Y,0,node.Y);
     
 #defining the mesher
 Mesher = TetGenPfemModeler()
@@ -86,16 +86,18 @@ node_erase_process = NodeEraseProcess(model_part);
 neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
 neigh_finder.Execute()
 
-def AnalyticalResults(time, node):
+def AnalyticalResults(time, model_part):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(node.X, "Node 1 Displacement_x", 0.0000001)
-    benchmarking.Output(node.Y, "Node 1 Displacement_y", 0.0000001)
+    benchmarking.Output(0.000, "Cumulative diff betw DISPL_X and exact solution", 0.0000001)
+    
 
 
-def BenchmarkCheck(time, node):
+def BenchmarkCheck(time, model_part):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(node.GetSolutionStepValue(DISPLACEMENT_X), "Node 1 Displacement_x", 0.0000001)
-    benchmarking.Output(node.GetSolutionStepValue(DISPLACEMENT_Y), "Node 1 Displacement_y", 0.0000001)
+    err=0.0
+    for node in model_part.Nodes:
+        err=err+(node.GetSolutionStepValue(DISPLACEMENT_X,1)-node.GetSolutionStepValue(DISPLACEMENT_X))**2;
+    benchmarking.Output(err, "Cumulative diff betw DISPL_X and exact solution", 0.0000001)
     #displacement shall be interpolated exactly
 
 
@@ -135,14 +137,23 @@ for step in range(0,nsteps):
         
         #Mesher.ReGenerateTestElements(model_part, node_erase_process, alpha_shape)
         
-        Mesher.ReGenerateMesh("TestElement3D", "Condition3D", model_part, node_erase_process, True, True, alpha_shape, 0.5)
+        Mesher.ReGenerateMesh("TestElement3D", "Condition3D", model_part, node_erase_process, False, True, alpha_shape, 0.5)
         ##checking if the interpolation was done well
+        err=0.0
         for node in model_part.Nodes:
-            if (node.X>8.0 and node.Y>0.49 and node.Y<0.51 and node.Z<-0.49 and node.Z>-0.51):
-                if (benchmarking.InBuildReferenceMode()):
-                    AnalyticalResults(time, node)
-                else:
-                    BenchmarkCheck(time, node)
+            err=err+(node.X-node.GetSolutionStepValue(DISPLACEMENT_X))**2;
+            if (err>0.0000000001):
+                print err
+                print node.X
+                print node.GetSolutionStepValue(DISPLACEMENT_X)
+                print node.Id
+        
+
+            
+        if (benchmarking.InBuildReferenceMode()):
+            AnalyticalResults(time, model_part)
+        else:
+            BenchmarkCheck(time, model_part)
         
         print "meshing is performed"
         
