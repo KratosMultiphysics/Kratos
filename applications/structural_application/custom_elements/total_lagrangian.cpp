@@ -327,21 +327,8 @@ namespace TotalLagrangianAuxiliaries
 			if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
 			{
 				//contribution to external forces 
-				//BodyForce = GetProperties()[BODY_FORCE];
+				BodyForce = GetProperties()[BODY_FORCE];
 
-				BodyForce=ZeroVector(dim);
-				
-				if (dim==2)
-				{
-									BodyForce[0]=  0.0;
-									BodyForce[1]= -GetProperties()[DENSITY];  // NO ESTA LA GRAVEDAD INCLUIDA
-   	}
-    else			
-				{
-										BodyForce[0]=  0.0;
-										BodyForce[1]= -GetProperties()[DENSITY];
-										BodyForce[2]=  0.0;
-				}
 				//KRATOS_WATCH(BodyForce);
 				// operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
 				CalculateAndAdd_ExtForceContribution(row(Ncontainer,PointNumber),rCurrentProcessInfo,BodyForce,rRightHandSideVector,IntToReferenceWeight);
