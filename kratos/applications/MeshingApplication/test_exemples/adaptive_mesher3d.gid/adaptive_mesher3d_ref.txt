@@ -1,162 +1,18 @@
 KRATOS_BENCHMARK | Float | Time | 0.04 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.04 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.04 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.04 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.04 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.04 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.06 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.06 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.06 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.06 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.06 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.06 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.07 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.07 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.07 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.07 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.07 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.07 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.08 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.08 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.08 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.08 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.08 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.08 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.09 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.09 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.09 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.09 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.09 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.09 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.11 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.05853281899 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.496663133014 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
 KRATOS_BENCHMARK | Float | Time | 0.12 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.12 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 8.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.12 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.17321 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.12 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.48038 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Time | 0.12 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | 9.82679 | 1e-07 | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_y | 0.5 | 1e-07 | None
+KRATOS_BENCHMARK | Float | Cumulative diff betw DISPL_X and exact solution | 0.0 | 1e-07 | None
