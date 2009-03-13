@@ -5,7 +5,7 @@ from KratosTrilinosApplication import *
 
 class SolvingStrategyPython:
     #######################################################################
-    def __init__(self,model_part,time_scheme,linear_solver,convergence_criteria,CalculateReactionsFlag,ReformDofSetAtEachStep,MoveMeshFlag,Comm,guess_row_size):
+    def __init__(self,builder_and_solver_type,model_part,time_scheme,linear_solver,convergence_criteria,CalculateReactionsFlag,ReformDofSetAtEachStep,MoveMeshFlag,Comm,guess_row_size):
         #save the input parameters
         self.model_part = model_part
         self.scheme = time_scheme
@@ -21,7 +21,11 @@ class SolvingStrategyPython:
         self.max_iter = 30
         self.rebuild_level = 1 #rebuild at each solution step
         self.echo_level = 1
-        self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
+	if(builder_and_solver_type == "standard"):
+        	self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
+	else:
+        	self.builder_and_solver = TrilinosBuilderAndSolverML(Comm,guess_row_size,self.linear_solver)
+
   
 
         #local matrices and vectors
