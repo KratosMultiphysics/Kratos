@@ -50,7 +50,7 @@
 // #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
-
+#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -314,11 +314,40 @@ typedef Epetra_FECrsMatrix FECrsMatrix;
 			.def("SetEchoLevel", &TrilinosBuilderAndSolverType::SetEchoLevel )
 			.def("GetEchoLevel", &TrilinosBuilderAndSolverType::GetEchoLevel )
 			;
-	
-		
-	
+
+
+		typedef TrilinosBuilderAndSolverML< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLtype;
+
+		class_< TrilinosBuilderAndSolverMLtype, boost::noncopyable >
+			("TrilinosBuilderAndSolverML",init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer >() )
+			.def("SetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLtype::SetCalculateReactionsFlag )
+			.def("GetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLtype::GetCalculateReactionsFlag )
+			.def("SetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLtype::SetDofSetIsInitializedFlag )
+			.def("GetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLtype::GetDofSetIsInitializedFlag )
+			.def("SetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLtype::SetReshapeMatrixFlag )
+			.def("GetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLtype::GetReshapeMatrixFlag )
+			.def("GetEquationSystemSize", &TrilinosBuilderAndSolverMLtype::GetEquationSystemSize )
+			.def("BuildLHS", &TrilinosBuilderAndSolverMLtype::BuildLHS )
+			.def("BuildRHS", &TrilinosBuilderAndSolverMLtype::BuildRHS )
+			.def("Build", &TrilinosBuilderAndSolverMLtype::Build )
+			.def("SystemSolve", &TrilinosBuilderAndSolverMLtype::SystemSolve )
+			.def("BuildAndSolve", &TrilinosBuilderAndSolverMLtype::BuildAndSolve )
+			.def("BuildRHSAndSolve", &TrilinosBuilderAndSolverMLtype::BuildRHSAndSolve )
+			.def("ApplyDirichletConditions", &TrilinosBuilderAndSolverMLtype::ApplyDirichletConditions )
+			.def("SetUpDofSet", &TrilinosBuilderAndSolverMLtype::SetUpDofSet )
+			.def("GetDofSet", &TrilinosBuilderAndSolverMLtype::GetDofSet, return_internal_reference<>() )
+			.def("SetUpSystem", &TrilinosBuilderAndSolverMLtype::SetUpSystem )
+			.def("ResizeAndInitializeVectors", &TrilinosBuilderAndSolverMLtype::ResizeAndInitializeVectors )
+			.def("InitializeSolutionStep", &TrilinosBuilderAndSolverMLtype::InitializeSolutionStep )
+			.def("FinalizeSolutionStep", &TrilinosBuilderAndSolverMLtype::FinalizeSolutionStep )
+			.def("CalculateReactions", &TrilinosBuilderAndSolverMLtype::CalculateReactions )
+			.def("Clear", &TrilinosBuilderAndSolverMLtype::Clear )
+			.def("SetEchoLevel", &TrilinosBuilderAndSolverMLtype::SetEchoLevel )
+			.def("GetEchoLevel", &TrilinosBuilderAndSolverMLtype::GetEchoLevel )
+			;
+	        //********************************************************************
 		//********************************************************************
-		//********************************************************************
+
 	
 		class_< TrilinosSparseSpaceType, boost::noncopyable >("TrilinosSparseSpace",	init<>() )
 		.def("ClearMatrix", ClearMatrix )
