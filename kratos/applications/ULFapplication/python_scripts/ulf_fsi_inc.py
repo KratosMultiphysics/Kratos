@@ -278,9 +278,9 @@ class ULF_FSISolver:
         h_factor=0.8
         if (self.remeshing_flag==1.0):
             if (self.domain_size == 2):
-                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, self.alpha_shape, h_factor)
+                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
             elif (self.domain_size == 3):
-                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, self.alpha_shape, h_factor)
+                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
        
             #remesh CHECK for 3D or 2D
                 
