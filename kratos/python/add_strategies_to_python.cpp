@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+//#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -230,7 +231,6 @@ namespace Kratos
 				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
 				>() )
 				;
-
 
 			//********************************************************************
 			//********************************************************************
