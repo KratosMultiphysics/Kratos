@@ -135,6 +135,7 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(double, FRACTURE_ENERGY )
 	
 	
+	KRATOS_DEFINE_VARIABLE(double, LAMNDA) // Load factor
 	
 	//CONTACT_LINK_MASTER is defined in condition.h
 // 	KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_LINK_MASTER )
