@@ -108,8 +108,10 @@ namespace Kratos
       typedef typename TSparseSpaceType::VectorType VectorType;
   
       typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+
+	  typedef std::size_t IndexType;
   
-	  typedef std::vector<unsigned int> IndicesVectorType;
+	  typedef std::vector<IndexType> IndicesVectorType;
 
 	  ///@}
       ///@name Life Cycle 
@@ -393,7 +395,7 @@ namespace Kratos
 		  for(SizeType i = 0 ; i < size ; i++)
 			  a_first.push_back((a_iterator++).begin()); // initializing the row_pointers of A
 
-		  //std::vector<IndicesVectorType> l_rows(size,IndicesVectorType());
+		  std::vector<IndicesVectorType> l_rows(size,IndicesVectorType());
 		  std::vector<IndicesVectorType> u_columns(size,IndicesVectorType());
 
 		  ClearLU();
@@ -404,32 +406,20 @@ namespace Kratos
 		  SizeType output_index = 0;
 		  for(SizeType k = 0 ; k < size ; k++)
 		  {
-KRATOS_WATCH("Starting new loop")
+			std::cout << "Starting loop #" << k << " of " << size << std::endl;
 			  //initializing z: z_1:k-1 = 0, z_k:n = rA_k,kn
 			  TSparseSpaceType::GetRow(k, rA, z); // NOTE: I don't need to set the first part to zero while I'm not using it!
 
-KRATOS_WATCH(k)
-KRATOS_WATCH(size)
-KRATOS_WATCH(l_list[k])
+			  //std::cout << "loop over nonzeros in row k of L" << std::endl;
 			  for(SizeType i = l_list[k] ; i < size ; i = l_list[i]) // loop over nonzeros in row k of L
 			  {
-KRATOS_WATCH("Starting l nonzeros loop")
 				  if((mJU[u_first[i]] < k)) // updating u_first
 				  	u_first[i]++;
-KRATOS_WATCH(i)
-KRATOS_WATCH(u_first[i])
+
 				  while((l_first[i] < mIL.size()) && (mIL[l_first[i]] < k)) // updating l_first 
 					  l_first[i]++;
-KRATOS_WATCH(i)
-KRATOS_WATCH(mIU[i+1])
-KRATOS_WATCH(mL[l_first[i]])
-KRATOS_WATCH(mL[l_first[i]])
 				  for(SizeType j = u_first[i] ; j < mIU[i+1] ; j++) // for all nonzeros in row i of U
 				  {
-KRATOS_WATCH(j)
-KRATOS_WATCH(z[mJU[j]])
-KRATOS_WATCH(mL[l_first[i]])
-KRATOS_WATCH(mU[j])
 					  z[mJU[j]] -= mL[l_first[i]] * mU[j]; // z_j = Z_j - L_ki * U_ij
 				  }
 			  }
@@ -446,6 +436,7 @@ KRATOS_WATCH(mU[j])
 					//  z[mJU[j]] -= mL[l_first[i]] * mU[j]; // z_j = Z_j - L_ki * U_ij
 			  //}
 
+			  //std::cout << "initializing w: w_1:k = 0, w_k:n = rA_k+1:n,k" << std::endl;
 			  //initializing w: w_1:k = 0, w_k:n = rA_k+1:n,k
 			  for(SizeType i = k ; i < size ; i++)
 			  {
@@ -458,6 +449,7 @@ KRATOS_WATCH(mU[j])
 					  w[i] = 0;
 			  }
 
+			  //std::cout << "iterating over nonzeros of column k of U" << std::endl;
 			  for(SizeType h = 0 ; h < u_columns[k].size() ; h++) // iterating over nonzeros of column k of U
 			  {
 				  SizeType i = u_columns[k][h];
@@ -471,6 +463,7 @@ KRATOS_WATCH(mU[j])
 			  }
 
 
+			  //std::cout << "adding nonzeros of z to the U" << std::endl;
 			  // adding nonzeros of z to the U
 			  for(SizeType i = k ; i < size ; i++)
 			  {
@@ -504,55 +497,47 @@ KRATOS_WATCH(mU[j])
 				  KRATOS_ERROR(std::runtime_error, "Zero pivot found in row ",k);
 
 
+			  //std::cout << "adding nonzeros of w to the L" << std::endl;
 			  //w[k] = 1.00;
 			  // adding nonzeros of w to the L
 			  for(SizeType i = k + 1 ; i < size ; i++)
+			  {
 				  if(w[i] != 0.00)
 				  {
-					  //l_rows[i].push_back(k);
+					  l_rows[i].push_back(k);
 					  mIL.push_back(i);
 					  mL.push_back(w[i]/u_kk);
 				  }
-				  mJL.push_back(mL.size());
+			  }	  
+				
+			  mJL.push_back(mL.size());
 
-				  // updating the l_first, l_list for added column
-				  l_first[k] = mJL[k] + 1;
-KRATOS_WATCH(k)
-KRATOS_WATCH(l_first[k])
-				  for(SizeType h = mIL[l_first[k]] ;  ; h = l_list[h])
-					  if(l_list[h] > size)
-					  {
-KRATOS_WATCH(h)
-KRATOS_WATCH(l_list[h])
-									l_list[h] = mIL[l_first[k]];
-KRATOS_WATCH(l_list[h])
-									break;
-					  }
+			  std::cout << "updating the l_first, l_list for added column" << std::endl;
+			  // updating the l_first, l_list for added column
+			  l_first[k] = mJL[k];
+			  if(l_first[k] + 1 < mIL.size())
+				IndexPushBack(l_list, k, mIL[l_first[k] + 1]);
 
-				  // updating l_first and l_list in previous columns
-				  SizeType j = k;
-KRATOS_WATCH(l_list[k])
-				  for(SizeType i = l_list[k] ; i < size ; i = l_list[i]) // loop over nonzeros in row k of L
+			  std::cout << "updating l_first and l_list in this columns" << std::endl;
+			  // updating l_first and l_list in this columns
+			  SizeType j = k;
+			  if(k + 1 < size) // not for the last column!
+			  {
+				for(SizeType i = l_list[k] ; i < size ; i = l_list[i]) // loop over nonzeros in row k of L
 				  {
-KRATOS_WATCH(i)
-//KRATOS_WATCH(l_first[i])
+KRATOS_WATCH(i);
+KRATOS_WATCH(j);
+KRATOS_WATCH(l_first[i]);
 					  l_first[i]++;
-//KRATOS_WATCH(l_first[i])
-//KRATOS_WATCH(mIL[l_first[i]])
-KRATOS_WATCH(k)
-					  if(mIL[l_first[i]] >= k)
-						  for(SizeType h = mIL[l_first[i]] ;  ; h = l_list[h])
-							  if(l_list[h] > size)
-							  {
-//KRATOS_WATCH(l_list[h])
-									l_list[h] = mIL[l_first[i]];
-//KRATOS_WATCH(l_list[h])
-									break;
-							  }
+KRATOS_WATCH(l_first[i]);
+						
+					  IndexPushBack(l_list, i, mIL[l_first[i]]);
 					  l_list[j] = size + 1; // reseting the list
+KRATOS_WATCH(l_list[j]);
 					  j = i;
-//KRATOS_WATCH(l_list[i])
+KRATOS_WATCH(j);
 				  }
+			  }
 
 				  u_first[k] = mIU[k];
 
@@ -563,6 +548,8 @@ KRATOS_WATCH(k)
 					  std::cout << "            " << int(double(k) / double(size) * 100.00) << " % : L nonzeros = " << mL.size() << " and U nonzeros = " << mU.size() << std::endl;
 					  output_index = 0;
 				  }
+
+				  std::cout << "Finishing loop #" << k << " of " << size << std::endl;
 		  }
 
 		  std::cout << "            " << 100 << " % : L nonzeros = " << mL.size() << " and U nonzeros = " << mU.size() << std::endl;
@@ -603,6 +590,17 @@ KRATOS_WATCH(k)
 
 		  return 0;      
 	  }
+
+	  void IndexPushBack(IndicesVectorType& ThisLinkList, IndexType ThisIndex, IndexType ThisRow)
+	  {
+		  SizeType i = ThisRow;
+		   // Loop to the end of the link list of row ThisRow
+		  for(; ThisLinkList[i] < ThisLinkList.size() ; i = ThisLinkList[i]);
+
+		  ThisLinkList[i] = ThisIndex;
+	  }
+			
+
  
 	  std::size_t LUCPermuteAndDecompose(SparseMatrixType& rA)
 	  {
