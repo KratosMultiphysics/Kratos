@@ -406,13 +406,14 @@ namespace Kratos
 		  SizeType output_index = 0;
 		  for(SizeType k = 0 ; k < size ; k++)
 		  {
-			std::cout << "Starting loop #" << k << " of " << size << std::endl;
+			//std::cout << "Starting loop #" << k << " of " << size << std::endl;
 			  //initializing z: z_1:k-1 = 0, z_k:n = rA_k,kn
 			  TSparseSpaceType::GetRow(k, rA, z); // NOTE: I don't need to set the first part to zero while I'm not using it!
 
-			  //std::cout << "loop over nonzeros in row k of L" << std::endl;
+			  //std::cout << "for k: " << k << "		-> h: ";
 			  for(SizeType i = l_list[k] ; i < size ; i = l_list[i]) // loop over nonzeros in row k of L
 			  {
+				  //std::cout << i << ",";
 				  if((mJU[u_first[i]] < k)) // updating u_first
 				  	u_first[i]++;
 
@@ -423,10 +424,11 @@ namespace Kratos
 					  z[mJU[j]] -= mL[l_first[i]] * mU[j]; // z_j = Z_j - L_ki * U_ij
 				  }
 			  }
-
+			  //std::cout << "for k: " << k << "		-> h: ";
 			  //for(SizeType h = 0 ; h < l_rows[k].size() ; h++) // iterating over nonzeros of row k of L
 			  //{
 				 // SizeType i = l_rows[k][h];
+				 // std::cout << i << ",";
 				 // if((mJU[u_first[i]] < k)) // updating u_first
 				 // 	u_first[i]++;
 				 // if(mIL[l_first[i]] < k) // updating l_first 
@@ -435,6 +437,7 @@ namespace Kratos
 				 // for(SizeType j = u_first[i] ; j < mIU[i+1] ; j++) // for all nonzeros in row i of U
 					//  z[mJU[j]] -= mL[l_first[i]] * mU[j]; // z_j = Z_j - L_ki * U_ij
 			  //}
+			  //std::cout << std::endl;
 
 			  //std::cout << "initializing w: w_1:k = 0, w_k:n = rA_k+1:n,k" << std::endl;
 			  //initializing w: w_1:k = 0, w_k:n = rA_k+1:n,k
@@ -512,30 +515,39 @@ namespace Kratos
 				
 			  mJL.push_back(mL.size());
 
-			  std::cout << "updating the l_first, l_list for added column" << std::endl;
+			  //std::cout << "updating the l_first, l_list for added column" << std::endl;
 			  // updating the l_first, l_list for added column
 			  l_first[k] = mJL[k];
-			  if(l_first[k] + 1 < mIL.size())
-				IndexPushBack(l_list, k, mIL[l_first[k] + 1]);
 
-			  std::cout << "updating l_first and l_list in this columns" << std::endl;
+//KRATOS_WATCH(mIL[l_first[k]]);
+			  if(l_first[k]  < mIL.size())
+				IndexPushBack(l_list, k, mIL[l_first[k]]);
+
+			  //std::cout << "updating l_first and l_list in this columns" << std::endl;
 			  // updating l_first and l_list in this columns
 			  SizeType j = k;
 			  if(k + 1 < size) // not for the last column!
 			  {
 				for(SizeType i = l_list[k] ; i < size ; i = l_list[i]) // loop over nonzeros in row k of L
 				  {
-KRATOS_WATCH(i);
-KRATOS_WATCH(j);
-KRATOS_WATCH(l_first[i]);
-					  l_first[i]++;
-KRATOS_WATCH(l_first[i]);
-						
-					  IndexPushBack(l_list, i, mIL[l_first[i]]);
 					  l_list[j] = size + 1; // reseting the list
-KRATOS_WATCH(l_list[j]);
+//KRATOS_WATCH(i);
+////KRATOS_WATCH(j);
+////KRATOS_WATCH(l_first[i]);
+//					  l_first[i]++;
+//KRATOS_WATCH(l_first[i]);
+//KRATOS_WATCH(mJL[i]);
+//KRATOS_WATCH(mJL[i+1]);
+//KRATOS_WATCH(mIL[l_first[i]]);
+					  if(l_first[i] < mJL[i+1])
+					  {	
+						  //std::cout << "pushing back " << i << " in row " << mIL[l_first[i]] << std::endl;
+							IndexPushBack(l_list, i, mIL[l_first[i]]);
+					  }
+					  
+//KRATOS_WATCH(l_list[j]);
 					  j = i;
-KRATOS_WATCH(j);
+//KRATOS_WATCH(j);
 				  }
 			  }
 
@@ -549,7 +561,7 @@ KRATOS_WATCH(j);
 					  output_index = 0;
 				  }
 
-				  std::cout << "Finishing loop #" << k << " of " << size << std::endl;
+				  //std::cout << "Finishing loop #" << k << " of " << size << std::endl;
 		  }
 
 		  std::cout << "            " << 100 << " % : L nonzeros = " << mL.size() << " and U nonzeros = " << mU.size() << std::endl;
