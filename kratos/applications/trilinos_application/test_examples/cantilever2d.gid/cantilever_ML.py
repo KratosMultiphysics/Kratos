@@ -80,7 +80,7 @@ trilinos_structural_solver_static.AddDofs(model_part)
 #creating a fluid solver object
 solver = trilinos_structural_solver_static.StaticStructuralSolver(model_part,domain_size)
 
-solver.buildertype="ML"
+solver.buildertype="ML2D"
 ########################################################
 
 ##############################################################
