@@ -81,13 +81,23 @@ trilinos_structural_solver_static.AddDofs(model_part)
 solver = trilinos_structural_solver_static.StaticStructuralSolver(model_part,domain_size)
 
 #defining the linear solver
-solver_parameters = ParameterList()
-solver_parameters.set("AZ_precond", "AZ_dom_decomp");
-solver_parameters.set("AZ_subdomain_solve", "AZ_ilut");
-solver_parameters.set("AZ_overlap", 3);
-solver_parameters.set("AZ_solver", "AZ_gmres");
-solver_parameters.set("AZ_kspace", 200);
-solver.structure_linear_solver =  AztecSolver(solver_parameters,1e-9,1000);
+aztec_parameters = ParameterList()
+aztec_parameters.set("AZ_solver","AZ_gmres");
+aztec_parameters.set("AZ_kspace",100);
+aztec_parameters.set("AZ_output",32);
+
+preconditioner_type = "Amesos"
+preconditioner_parameters = ParameterList()
+preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
+
+##preconditioner_type = "ILU"
+##preconditioner_parameters = ParameterList()
+
+overlap_level = 3
+nit_max = 300
+tol = 1e-6
+
+solver.structure_linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,tol,nit_max,overlap_level);
 
 model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
 print "Linear elastic model selected"
