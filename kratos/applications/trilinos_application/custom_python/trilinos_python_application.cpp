@@ -51,6 +51,8 @@
 #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML.h"
+#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_vec.h"
+#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_mixed.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -318,7 +320,7 @@ typedef Epetra_FECrsMatrix FECrsMatrix;
 
 		typedef TrilinosBuilderAndSolverML< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLtype;
 
-		class_< TrilinosBuilderAndSolverMLtype, boost::noncopyable >
+		class_< TrilinosBuilderAndSolverMLtype, bases<TrilinosBuilderAndSolverType>, boost::noncopyable >
 			("TrilinosBuilderAndSolverML",init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer >() )
 			.def("SetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLtype::SetCalculateReactionsFlag )
 			.def("GetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLtype::GetCalculateReactionsFlag )
@@ -345,6 +347,84 @@ typedef Epetra_FECrsMatrix FECrsMatrix;
 			.def("SetEchoLevel", &TrilinosBuilderAndSolverMLtype::SetEchoLevel )
 			.def("GetEchoLevel", &TrilinosBuilderAndSolverMLtype::GetEchoLevel )
 			;
+
+
+
+		typedef TrilinosBuilderAndSolverML2D< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverML2Dtype;
+
+		class_< TrilinosBuilderAndSolverML2Dtype, boost::noncopyable >
+			("TrilinosBuilderAndSolverML2D",init<Epetra_MpiComm&, int, int, TrilinosLinearSolverType::Pointer >() )
+			.def("SetCalculateReactionsFlag", &TrilinosBuilderAndSolverML2Dtype::SetCalculateReactionsFlag )
+			.def("GetCalculateReactionsFlag", &TrilinosBuilderAndSolverML2Dtype::GetCalculateReactionsFlag )
+			.def("SetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverML2Dtype::SetDofSetIsInitializedFlag )
+			.def("GetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverML2Dtype::GetDofSetIsInitializedFlag )
+			.def("SetReshapeMatrixFlag", &TrilinosBuilderAndSolverML2Dtype::SetReshapeMatrixFlag )
+			.def("GetReshapeMatrixFlag", &TrilinosBuilderAndSolverML2Dtype::GetReshapeMatrixFlag )
+			.def("GetEquationSystemSize", &TrilinosBuilderAndSolverML2Dtype::GetEquationSystemSize )
+			.def("BuildLHS", &TrilinosBuilderAndSolverML2Dtype::BuildLHS )
+			.def("BuildRHS", &TrilinosBuilderAndSolverML2Dtype::BuildRHS )
+			.def("Build", &TrilinosBuilderAndSolverML2Dtype::Build )
+			.def("SystemSolve", &TrilinosBuilderAndSolverML2Dtype::SystemSolve )
+			.def("BuildAndSolve", &TrilinosBuilderAndSolverML2Dtype::BuildAndSolve )
+			.def("BuildRHSAndSolve", &TrilinosBuilderAndSolverML2Dtype::BuildRHSAndSolve )
+			.def("ApplyDirichletConditions", &TrilinosBuilderAndSolverML2Dtype::ApplyDirichletConditions )
+			.def("SetUpDofSet", &TrilinosBuilderAndSolverML2Dtype::SetUpDofSet )
+			.def("GetDofSet", &TrilinosBuilderAndSolverML2Dtype::GetDofSet, return_internal_reference<>() )
+			.def("SetUpSystem", &TrilinosBuilderAndSolverML2Dtype::SetUpSystem )
+			.def("ResizeAndInitializeVectors", &TrilinosBuilderAndSolverML2Dtype::ResizeAndInitializeVectors )
+			.def("InitializeSolutionStep", &TrilinosBuilderAndSolverML2Dtype::InitializeSolutionStep )
+			.def("FinalizeSolutionStep", &TrilinosBuilderAndSolverML2Dtype::FinalizeSolutionStep )
+			.def("CalculateReactions", &TrilinosBuilderAndSolverML2Dtype::CalculateReactions )
+			.def("Clear", &TrilinosBuilderAndSolverML2Dtype::Clear )
+			.def("SetEchoLevel", &TrilinosBuilderAndSolverML2Dtype::SetEchoLevel )
+			.def("GetEchoLevel", &TrilinosBuilderAndSolverML2Dtype::GetEchoLevel )
+			;
+
+
+		typedef TrilinosBuilderAndSolverMLmixed< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLmixedType;
+
+		class_< TrilinosBuilderAndSolverMLmixedType, boost::noncopyable >
+			("TrilinosBuilderAndSolverMLmixed",init<Epetra_MpiComm&, int, int, TrilinosLinearSolverType::Pointer >() ) 
+			.def("SetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLmixedType::SetCalculateReactionsFlag )
+			.def("GetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLmixedType::GetCalculateReactionsFlag )
+			.def("SetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLmixedType::SetDofSetIsInitializedFlag )
+			.def("GetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLmixedType::GetDofSetIsInitializedFlag )
+			.def("SetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLmixedType::SetReshapeMatrixFlag )
+			.def("GetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLmixedType::GetReshapeMatrixFlag )
+			.def("GetEquationSystemSize", &TrilinosBuilderAndSolverMLmixedType::GetEquationSystemSize )
+			.def("BuildLHS", &TrilinosBuilderAndSolverMLmixedType::BuildLHS )
+			.def("BuildRHS", &TrilinosBuilderAndSolverMLmixedType::BuildRHS )
+			.def("Build", &TrilinosBuilderAndSolverMLmixedType::Build )
+			.def("SystemSolve", &TrilinosBuilderAndSolverMLmixedType::SystemSolve )
+			.def("BuildAndSolve", &TrilinosBuilderAndSolverMLmixedType::BuildAndSolve )
+			.def("BuildRHSAndSolve", &TrilinosBuilderAndSolverMLmixedType::BuildRHSAndSolve )
+			.def("ApplyDirichletConditions", &TrilinosBuilderAndSolverMLmixedType::ApplyDirichletConditions )
+			.def("SetUpDofSet", &TrilinosBuilderAndSolverMLmixedType::SetUpDofSet )
+			.def("GetDofSet", &TrilinosBuilderAndSolverMLmixedType::GetDofSet, return_internal_reference<>() )
+			.def("SetUpSystem", &TrilinosBuilderAndSolverMLmixedType::SetUpSystem )
+			.def("ResizeAndInitializeVectors", &TrilinosBuilderAndSolverMLmixedType::ResizeAndInitializeVectors )
+			.def("InitializeSolutionStep", &TrilinosBuilderAndSolverMLmixedType::InitializeSolutionStep )
+			.def("FinalizeSolutionStep", &TrilinosBuilderAndSolverMLmixedType::FinalizeSolutionStep )
+			.def("CalculateReactions", &TrilinosBuilderAndSolverMLmixedType::CalculateReactions )
+			.def("Clear", &TrilinosBuilderAndSolverMLmixedType::Clear )
+			.def("SetEchoLevel", &TrilinosBuilderAndSolverMLmixedType::SetEchoLevel )
+			.def("GetEchoLevel", &TrilinosBuilderAndSolverMLmixedType::GetEchoLevel )
+			;
+
+/*		typedef TrilinosBuilderAndSolverML< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLtype;
+
+		class_< TrilinosBuilderAndSolverMLtype,bases<TrilinosBuilderAndSolverType>, boost::noncopyable >
+			("TrilinosBuilderAndSolverML",init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer >() )
+			;
+
+
+		typedef TrilinosBuilderAndSolverML2D< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverML2Dtype;
+
+		class_< TrilinosBuilderAndSolverML2Dtype,bases<TrilinosBuilderAndSolverMLtype>, boost::noncopyable >
+			("TrilinosBuilderAndSolverML2D",init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer >() )
+			;*/
+
+		
 	        //********************************************************************
 		//********************************************************************
 
