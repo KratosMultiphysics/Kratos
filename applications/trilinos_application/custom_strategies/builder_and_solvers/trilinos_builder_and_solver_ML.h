@@ -304,8 +304,8 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-				//getting the elements from the model
-				ElementsArrayType& pElements = r_model_part.Elements();
+			//getting the elements from the model
+			ElementsArrayType& pElements = r_model_part.Elements();
 
 			//getting the array of the conditions
 			ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
@@ -352,9 +352,6 @@ namespace Kratos
 			KRATOS_CATCH("")
 
 		}
-
-
-
 		//**************************************************************************
 		//**************************************************************************
 		void SystemSolve(
@@ -456,7 +453,6 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-
 			double norm_b;
 			if(TSparseSpace::Size(b) != 0)
 				norm_b = TSparseSpace::TwoNorm(b);
@@ -493,63 +489,26 @@ namespace Kratos
 				MLList.set("smoother: damping factor (level 0)",0.89);
 
 				MLList.set("coarse: max size",8000);
-				MLList.set("coarse: type","Amesos-Superludist");
-				//MLList.set("coarse: type","Amesos-KLU");
+				//MLList.set("coarse: type","Amesos-Superludist");
+				MLList.set("coarse: type","Amesos-KLU");
 
 				// computation of the nullspace
-				int numdf = 2; 
-				int dimns = 3; //
-				int lrows =  A.NumMyRows(); //number of rows for calling processor //A.NumGlobalCols();
+				int numdf; // dofs per node
+				int dimns; // dimension of the null space
+				int lrows =  A.NumMyRows(); //number of rows for calling processor 
 
+				//Teuchos::RCP<vector<double> >  ns;
+				boost::shared_ptr<vector<double> > ns;
+				double* nullsp;				
+
+				GenerateNullSpace(A, r_model_part, nullsp, ns, numdf, dimns);							
+
+				nullsp= &((*ns)[0]);				
+				
 				MLList.set("PDE equations",numdf);
 				MLList.set("null space: dimension",dimns);	
 				MLList.set("null space: type","pre-computed");
 				MLList.set("null space: add default vectors",false);
-
-				Teuchos::RCP<vector<double> >  ns = Teuchos::rcp(new vector<double>(dimns*lrows));
-				double* nullsp= &((*ns)[0]);
-				
-				// creation of the nullspace vector nullsp
-
-				//******************************************************************************************
-				int k=0;
-				
-
-				for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it+=2)
-					{ 
-			  		if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)	
-			   			{
-						
-						ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find( dof_it->Id() );
-
-						//double xx = r_model_part.Nodes().find( dof_it->Id() )->X();
-						//double yy = r_model_part.Nodes().find( dof_it->Id() )->Y();
-						double xx = inode->X();
-						double yy = inode->Y();
-						//KRATOS_WATCH( xx );
-						
-						(*ns)[k]=1.0;
-						(*ns)[k+1]=0.0;
-						(*ns)[k+lrows]=0.0;
-						(*ns)[k+lrows+1]=1.0;
-						(*ns)[k+2*lrows]=-yy;
-						(*ns)[k+2*lrows+1]=xx;
-						k=k+2;
-						}
-			   		 }	
-				
-				/*for (int j=0; j<lrows; j+=2)
-				{ 
-					(*ns)[j]=1.0;
-					(*ns)[j+1]=0.0;
-					(*ns)[j+lrows]=0.0;
-					(*ns)[j+lrows+1]=1.0;
-					(*ns)[j+2*lrows]=1.0;
-					(*ns)[j+2*lrows+1]=1.0;	
-				}*/
-
-				//******************************************************************************************
-
 				MLList.set("null space: vectors",nullsp);
 				
 				// create the preconditioner
@@ -557,11 +516,12 @@ namespace Kratos
 		
 				// create an AztecOO solver
 				AztecOO Solver(AztecProblem); 
+
 				// set preconditioner and solve
 				Solver.SetPrecOperator(MLPrec);
 				Solver.SetAztecOption(AZ_solver, AZ_gmres);
 				Solver.SetAztecOption(AZ_kspace, 200);
-				//Solver.SetAztecOption(AZ_output,30); //SetAztecOption(AZ_output, AZ_none);
+				Solver.SetAztecOption(AZ_output,15); //SetAztecOption(AZ_output, AZ_none);
 								
 				int mmax_iter=300;
 				Solver.Iterate(mmax_iter, 1e-9);
@@ -620,7 +580,6 @@ namespace Kratos
 
 			boost::timer solve_time;
 
-			//SystemSolve(A,Dx,b);
 			SystemSolveML(A,Dx,b,r_model_part);
 
 			if(BaseType::GetEchoLevel()>0)
@@ -886,7 +845,6 @@ namespace Kratos
 			    }
 
 
-
 			MPI_Status status;
 
 
@@ -972,8 +930,8 @@ namespace Kratos
 						for(unsigned int i=0; i<EquationId.size(); i++)
 							//if ( EquationId[i] < BaseType::mEquationSystemSize ) //check!!!
 							{
+								temp[num_active_indices] =  EquationId[i];
 								num_active_indices += 1;
-								temp[i] =  EquationId[i];
 // KRATOS_WATCH(temp[i]);
 							}
 
@@ -996,8 +954,9 @@ namespace Kratos
 						for(unsigned int i=0; i<EquationId.size(); i++)
 							//if ( EquationId[i] < BaseType::mEquationSystemSize ) //check!!!
 							{
+								temp[num_active_indices] =  EquationId[i];
 								num_active_indices += 1;
-								temp[i] =  EquationId[i];
+
 // KRATOS_WATCH(temp[i]);
 							}
 
@@ -1154,7 +1113,7 @@ std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 
 					A.ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
 					
-					// remake better !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					// redo better !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 					int* gb= new int[1]; 
 					gb[0]=GlobalRow;
 					A.ReplaceGlobalValues(Length, Indices, 1, gb, Values);
@@ -1201,8 +1160,6 @@ std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 				KRATOS_WATCH("TrilinosBuilderAndSolverML Clear Function called");
 			}
 		}
-
-
 
 
 		/*@} */
@@ -1267,6 +1224,13 @@ std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 
 
 		/*@} */    
+		
+
+		//virtual void GenerateNullSpace(TSystemMatrixType& A,ModelPart& r_model_part , double* nullsp , Teuchos::RCP<vector<double> >&  ns )
+		virtual void GenerateNullSpace(TSystemMatrixType& A,ModelPart& r_model_part , double* nullsp , boost::shared_ptr<vector<double> >&  ns,
+						int& numdf, int& dimns )
+			{};
+
 
 	private:
 		/**@name Static Member Variables */
