@@ -119,10 +119,10 @@ namespace Kratos
 	unsigned int matsize = nodes_number*(dim+1);
 
 	if(rLeftHandSideMatrix.size1() != matsize)
-			rLeftHandSideMatrix.resize(matsize,matsize); //false says not to preserve existing storage!!
+			rLeftHandSideMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
 
 	if(rRightHandSideVector.size() != matsize)
-			rRightHandSideVector.resize(matsize); //false says not to preserve existing storage!!
+			rRightHandSideVector.resize(matsize,false); //false says not to preserve existing storage!!
 
 	
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize,matsize); 
@@ -180,7 +180,7 @@ namespace Kratos
 		KRATOS_TRY
 
 		MatrixType temp = Matrix();
-		//CalculateLocalSystem(temp, rRightHandSideVector,  rCurrentProcessInfo);
+		CalculateLocalSystem(temp, rRightHandSideVector,  rCurrentProcessInfo);
 
 		KRATOS_CATCH("")
 	}
@@ -341,6 +341,7 @@ namespace Kratos
 	int nodes_number = 3;
 	int dof = 2;
 	int matsize = dof*nodes_number;
+
 
 	boost::numeric::ublas::bounded_matrix<double,1,6> div_opr = ZeroMatrix(1,matsize);
 	for(int ii=0; ii<nodes_number; ii++)
@@ -585,12 +586,35 @@ namespace Kratos
 		KRATOS_TRY
 	int nodes_number = 3;
 	int dof = 2;
-	
+
+	int matsize = dof*nodes_number;
+
+
+	boost::numeric::ublas::bounded_matrix<double,1,6> div_opr = ZeroMatrix(1,matsize);
+	for(int ii=0; ii<nodes_number; ii++)
+	  {
+		int index = dof*ii;
+		div_opr(0,index) = DN_DX(ii,0);
+		div_opr(0,index + 1) = DN_DX(ii,1);
+	  }
+
+
+
+
+
+
 
 	double lump_mass_fac = area * 0.333333333333333333333333;
 
 	double density;
 	calculatedensity(GetGeometry(), density);
+
+	//Arhenious
+	 const double ar_0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
+	 const double ar_1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
+	 const double ar_2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
+
+	double mean_ar = 0.333333333333333333*(ar_0 + ar_1 + ar_2);
 
 	//body  & momentum term force
 	for ( int ii = 0; ii < nodes_number; ii++)
@@ -603,7 +627,13 @@ namespace Kratos
 		
 		F[index] += (area*N[ii]*density*bdf[0] + density/time*lump_mass_fac*ndvel[0]);
 		F[index + 1] += (area*N[ii]*density*bdf[1] + density/time*lump_mass_fac*ndvel[1]);
+		//arrhenius
+		F[index + 2] += (area*N[ii]*mean_ar);
+		F[index] += m_thawtwo*area*mean_ar*div_opr(0,index);
+		F[index + 1] += m_thawtwo*area*mean_ar*div_opr(0,index + 1);
 	   }
+
+
 	
 
 	KRATOS_CATCH("")

@@ -137,6 +137,8 @@ namespace Kratos
       
       void AddApplication(KratosApplication& NewApplication)
 	{
+	typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+
 		//NewApplication.SetComponents(KratosComponents<VariableData>::pGetComponents(), 
 		//	KratosComponents<Element>::pGetComponents(), 
 		//	KratosComponents<Condition>::pGetComponents());
@@ -145,13 +147,30 @@ namespace Kratos
 			KRATOS_WATCH("Application Registered");
 		KratosComponents<VariableData>::GetComponents().insert(NewApplication.GetVariables().begin(),
 															   NewApplication.GetVariables().end());
-			KRATOS_WATCH("Variables Registered Registered");
+			KRATOS_WATCH("Variables Registered");
+
+		KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
+															   NewApplication.GetComponents(Variable<double>("NONE")).end());
+		KratosComponents<Variable<array_1d<double, 3> > >::GetComponents().insert(NewApplication.GetComponents(Variable<array_1d<double, 3> >("NONE")).begin(),
+															   NewApplication.GetComponents(Variable<array_1d<double, 3> >("NONE")).end());
+		KratosComponents<Variable<Vector> >::GetComponents().insert(NewApplication.GetComponents(Variable<Vector>("NONE")).begin(),
+															   NewApplication.GetComponents(Variable<Vector>("NONE")).end());
+		KratosComponents<Variable<Matrix> >::GetComponents().insert(NewApplication.GetComponents(Variable<Matrix>("NONE")).begin(),
+															   NewApplication.GetComponents(Variable<Matrix>("NONE")).end());
+		Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > temp_adaptor(DISPLACEMENT, 0); // the displacement is not important, only an array_1d variable is needed!
+		KratosComponents<array_1d_component_type>::GetComponents().insert(NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).begin(),				   NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).end());
+
+	
 		KratosComponents<Element>::GetComponents().insert(NewApplication.GetElements().begin(),
 														  NewApplication.GetElements().end());
 			KRATOS_WATCH("Elements Registered");
 		KratosComponents<Condition>::GetComponents().insert(NewApplication.GetConditions().begin(),
 															NewApplication.GetConditions().end());
 			KRATOS_WATCH("Conditions Registered");
+
+		KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
+															   NewApplication.GetComponents(Variable<double>("NONE")).end());
+
 	}
       
       void InitializeApplication(KratosApplication& NewApplication)

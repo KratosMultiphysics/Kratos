@@ -74,11 +74,13 @@ box_corner2 = Vector(3); box_corner2[0]=1.1; box_corner2[1]=1.1;  box_corner2[2]
 #creating a fluid solver object
 name = str("dam2d")
 solver = pfem_solver_ale.PFEMSolver(model_part,name,box_corner1,box_corner2,domain_size)
-solver.laplacian_form = 3
+solver.laplacian_form = 2
 solver.echo_level = 0
 solver.prediction_order = 1
-solver.predictor_corrector = False
-solver.smooth = False
+solver.predictor_corrector = True
+solver.smooth = True
+solver.alpha_shape = 1.2
+solver.max_press_its = 3;  
 #solver.vel_toll = 1e-12
 #solver.max_vel_its = 20;
 ##solver.echo_level = 2

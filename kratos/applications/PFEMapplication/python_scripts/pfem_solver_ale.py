@@ -27,6 +27,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
     model_part.AddNodalSolutionStepVariable(NODAL_H);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     print "variables for the incompressible fluid solver added correctly"
 
 def AddDofs(model_part):
@@ -73,6 +74,8 @@ class PFEMSolver:
         self.Hfinder  = FindNodalHProcess(model_part);  
         self.ActOnWalls  = ActOnWallsNodalProcess(model_part)
 
+        self.add_nodes = True
+        self.remove_nodes = True
         number_of_smoothing_loops = 20
         reduction_factor = 1.0
         self.CoordinateSmoother = CoordinateLaplacianSmootherProcess(model_part,number_of_smoothing_loops,reduction_factor);
@@ -179,9 +182,9 @@ class PFEMSolver:
 
         ##remesh
         if(self.domain_size==2):
-            (self.Mesher).ReGenerateMesh("Fluid2D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid2D","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape, self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape, self.h_factor)
             
 #        (self.Mesher).ReGenerateMesh(self.model_part,self.alpha_shape)
         print "remeshing in initalize performed succesfully"
@@ -335,9 +338,9 @@ class PFEMSolver:
         ##remesh
         #(self.Mesher).ReGenerateMesh(self.model_part,self.alpha_shape)
         if(self.domain_size==2):
-            (self.Mesher).ReGenerateMesh("Fluid2D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid2D","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape,self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape,self.h_factor)
 
         print self.model_part
 

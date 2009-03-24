@@ -210,7 +210,7 @@ namespace Kratos
 			
 		  GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
 		  GraphType domains_colored_graph;
-		  int* coloring_send_buffer;
+		  int* coloring_send_buffer = NULL;
 
 		  // Adding interface meshes
 		  mrModelPart.GetMeshes().push_back(ModelPart::MeshType());

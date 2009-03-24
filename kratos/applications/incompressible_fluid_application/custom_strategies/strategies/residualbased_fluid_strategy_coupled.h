@@ -154,6 +154,8 @@ namespace Kratos
 			//the system will be cleared at the end!
 			ReformDofAtEachIteration = false;
 
+			//testing that the model part has all the 
+
 				//initializing fractional velocity solution step
 				typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
 			typename SchemeType::Pointer pscheme = typename SchemeType::Pointer

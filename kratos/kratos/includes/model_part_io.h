@@ -983,6 +983,12 @@ namespace Kratos
 
 	ReadWord(variable_name);
 
+	KratosComponents<Variable<double> > kratos_double_variables;
+
+	KRATOS_WATCH(kratos_double_variables);
+
+	KRATOS_WATCH(variable_name);
+
 	if(KratosComponents<Variable<double> >::Has(variable_name))
 	{
 	  ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
@@ -998,6 +1004,13 @@ namespace Kratos
 	else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
 	{
 	  ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+	}
+	else if(KratosComponents<VariableData>::Has(variable_name))
+	{
+	  std::stringstream buffer;
+	  buffer << variable_name << " is not supported to be read by this IO or the type of variable is not registered correctly" << std::endl;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
 	}
 	else
 	{
@@ -1020,6 +1033,8 @@ namespace Kratos
 	double nodal_value;
 
 	std::string value;
+
+KRATOS_WATCH(rVariable);
 	
 	while(!mInput.eof())
 	{
