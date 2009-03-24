@@ -177,6 +177,12 @@ namespace Kratos
 		  int number_of_processes;
 		  MPI_Comm_size (MPI_COMM_WORLD,&number_of_processes);
 
+		  if(number_of_processes < 2) // There is no need to partition it and just reading the input
+		  {
+		    mrIO.ReadModelPart(mrModelPart);
+		    return;
+		  }
+
 		  // Set MPICommunicator as modelpart's communicator
 		  mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator));
 
@@ -479,7 +485,6 @@ namespace Kratos
 
 
 
-
 		  int etype; 
 		  if(number_of_element_nodes == 3) // triangles
 		    etype = 1;
@@ -495,7 +500,9 @@ namespace Kratos
 		  else
 		    KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 		  
-
+KRATOS_WATCH(number_of_element_nodes);
+KRATOS_WATCH(mDimension);
+KRATOS_WATCH(etype);
 
 		  int numflag = 0;
 		  int number_of_partitions = static_cast<int>(mNumberOfPartitions);

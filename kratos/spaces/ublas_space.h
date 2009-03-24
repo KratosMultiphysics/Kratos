@@ -310,10 +310,12 @@ class UblasSpace
 	
 	static void Resize(VectorType& rX, SizeType n) {rX.resize(n,false);}
 	
-	static void Clear(MatrixType& rA)
+	static void Clear(MatrixPointerType& pA){pA->clear();}
+	static void Clear(VectorPointerType& pX){pX->clear();} 
+/*	static void Clear(MatrixType& rA)
 		{rA.clear();}
 	
-	static void Clear(VectorType& rX) {rX.clear();}
+	static void Clear(VectorType& rX) {rX.clear();}*/
 	
 	template<class TOtherMatrixType>
 	inline static void ClearData(TOtherMatrixType& rA){rA.clear();}

@@ -194,14 +194,20 @@ class SolvingStrategyPython:
 
     #######################################################################
     def Clear(self):
-        self.space_utils.ClearMatrix(self.A)
+        self.space_utils.ClearMatrix(self.pA)
         self.space_utils.ResizeMatrix(self.A,0,0)
         
-        self.space_utils.ClearVector(self.Dx)
+        self.space_utils.ClearVector(self.pDx)
         self.space_utils.ResizeVector(self.Dx,0)
 
-        self.space_utils.ClearVector(self.b)
+        self.space_utils.ClearVector(self.pb)
         self.space_utils.ResizeVector(self.b,0)
+
+        #updating references
+        self.A = (self.pA).GetReference()
+        self.Dx = (self.pDx).GetReference()
+        self.b = (self.pb).GetReference()
+
         
 	self.builder_and_solver.SetDofSetIsInitializedFlag(False)
 	self.builder_and_solver.Clear()

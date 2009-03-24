@@ -430,7 +430,7 @@ std::cout << "id time " << ddd <<std::endl;*/
 		{
 			this->mDofSet = DofsArrayType();
 
-			TSparseSpace::Clear( *(this->mpReactionsVector) );
+			TSparseSpace::Clear( (this->mpReactionsVector) );
 // 			*(this->mpReactionsVector) = TSystemVectorType();
 
 			if (this->GetEchoLevel()>0)

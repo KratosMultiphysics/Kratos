@@ -702,13 +702,13 @@ std::cout << "ln622" <<std::endl;
 			TSystemVectorType& mDx = *mpDx;
 			TSystemVectorType& mb = *mpb;
 
-			SparseSpaceType::Clear(mA);
+			SparseSpaceType::Clear(mpA);
 			SparseSpaceType::Resize(mA,0,0);
 
-			SparseSpaceType::Clear(mDx);
+			SparseSpaceType::Clear(mpDx);
 			SparseSpaceType::Resize(mDx,0);
 
-			SparseSpaceType::Clear(mb);
+			SparseSpaceType::Clear(mpb);
 			SparseSpaceType::Resize(mb,0);
 
 			//setting to zero the internal flag to ensure that the dof sets are recalculated

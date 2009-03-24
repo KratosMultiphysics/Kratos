@@ -262,7 +262,12 @@ namespace Kratos
 			{
 				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+/*KRATOS_WATCH((*it)->Id());
+for(unsigned int i = 0; i<EquationId.size(); i++)
+   std::cout << EquationId[i] << " ";
 
+std::cout << std::endl;
+KRATOS_WATCH(RHS_Contribution);*/
 				//assemble the elemental contribution
 				TSparseSpace::AssembleLHS(A,LHS_Contribution,EquationId);
 				TSparseSpace::AssembleRHS(b,RHS_Contribution,EquationId);
@@ -288,6 +293,7 @@ namespace Kratos
 			//finalizing the assembly
 			A.GlobalAssemble();
 			b.GlobalAssemble();
+
 
 // std::cout << A.Comm().MyPID() << " first id " << mFirstMyId << " last id " << mLastMyId << std::endl;
 
@@ -443,6 +449,7 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 			KRATOS_TRY
 
 			boost::timer building_time;
+
 
 			Build(pScheme,r_model_part,A,b);
 
@@ -670,12 +677,14 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 			fixed_offset += global_size - fixed_size;
 
-		
-			std::cout << rank << " : local size = " << BaseType::mDofSet.size() << std::endl; 
-			std::cout << rank << " : free_id = " << free_size << std::endl; 
-			std::cout << rank << " : fixed_size = " << fixed_size << std::endl; 
-			std::cout << rank << " : free_offset = " << free_offset << std::endl; 
-			std::cout << rank << " : fixed offset = " << fixed_offset << std::endl;
+			if(BaseType::GetEchoLevel()>0)
+			{
+				std::cout << rank << " : local size = " << BaseType::mDofSet.size() << std::endl; 
+				std::cout << rank << " : free_id = " << free_size << std::endl; 
+				std::cout << rank << " : fixed_size = " << fixed_size << std::endl; 
+				std::cout << rank << " : free_offset = " << free_offset << std::endl; 
+				std::cout << rank << " : fixed offset = " << fixed_offset << std::endl;
+			}
 
 			// Now setting the equation id with .
 			for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
@@ -691,10 +700,14 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 			BaseType::mEquationSystemSize = global_size;
 			mLocalSystemSize = free_size;
-			std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl; 
-			std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
-			std::cout << rank << " : free_offset = " << free_offset << std::endl; 
-			std::cout << rank << " : fixed_offset = " << fixed_offset << std::endl;
+
+			if(BaseType::GetEchoLevel()>0)
+			{			
+				std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl; 
+				std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
+				std::cout << rank << " : free_offset = " << free_offset << std::endl; 
+				std::cout << rank << " : fixed_offset = " << fixed_offset << std::endl;
+			}
 
 			//by Riccardo ... it may be wrong!	
 			mFirstMyId = free_offset-mLocalSystemSize;
@@ -722,7 +735,23 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 				it->FastGetSolutionStepValue(ROTATION_X) = it->pGetDof(DISPLACEMENT_X)->EquationId();
 				it->FastGetSolutionStepValue(ROTATION_Y) = it->pGetDof(DISPLACEMENT_Y)->EquationId();
 				it->FastGetSolutionStepValue(ROTATION_Z) = it->pGetDof(DISPLACEMENT_Z)->EquationId();
-			}*/	
+			}*/
+
+// 			std::vector<unsigned int > prova;
+// 
+// 			for(ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); it++)
+// 			{
+// 			    {
+// 				it->FastGetSolutionStepValue(ROTATION_X) = it->pGetDof(VELOCITY_X)->EquationId();
+// 				it->FastGetSolutionStepValue(ROTATION_Y) = it->pGetDof(VELOCITY_Y)->EquationId();
+// 				it->FastGetSolutionStepValue(ROTATION_Z) = it->pGetDof(VELOCITY_Z)->EquationId();
+// 				it->FastGetSolutionStepValue(TEMPERATURE) = it->pGetDof(PRESSURE)->EquationId();
+// 			    }
+// 			}	
+// 
+// 			int prova_size = prova.size();
+// 
+// 			std::cout << "number of duplicated elements = " << prova.size() - prova_size << std::endl;
 
 		}
  
@@ -899,7 +928,7 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 					int temp_size = number_of_local_dofs;
 					if(temp_size <1000) temp_size = 1000;
-					int* temp = new int[temp_size]; //
+						int* temp = new int[temp_size]; //
 
 				
 					//generate map - use the "temp" array here 
@@ -923,8 +952,8 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 						for(unsigned int i=0; i<EquationId.size(); i++)
 							if ( EquationId[i] < BaseType::mEquationSystemSize ) 
 							{
+								temp[num_active_indices] =  EquationId[i];
 								num_active_indices += 1;
-								temp[i] =  EquationId[i];
 // KRATOS_WATCH(temp[i]);
 							}
 
@@ -947,9 +976,8 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 						for(unsigned int i=0; i<EquationId.size(); i++)
 							if ( EquationId[i] < BaseType::mEquationSystemSize ) 
 							{
+								temp[num_active_indices] =  EquationId[i];
 								num_active_indices += 1;
-								temp[i] =  EquationId[i];
-// KRATOS_WATCH(temp[i]);
 							}
 
 						if(num_active_indices != 0)
@@ -988,8 +1016,6 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 						BaseType::mpReactionsVector.swap(pNewReactionsVector); 
 					}
 
-KRATOS_WATCH( TSparseSpace::Size1(*pA) );
-KRATOS_WATCH( TSparseSpace::Size(*pb) );
 					delete [] temp;
 
 
@@ -1017,7 +1043,6 @@ KRATOS_WATCH( TSparseSpace::Size(*pb) );
 					KRATOS_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
 				}
 
-std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 
 				KRATOS_CATCH("")
 

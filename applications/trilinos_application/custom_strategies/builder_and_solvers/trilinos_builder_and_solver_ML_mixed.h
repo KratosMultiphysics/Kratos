@@ -45,8 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 
-#if !defined(KRATOS_ELIMINATION_BUILDER_AND_SOLVER_ML_mixed )
-#define  KRATOS_ELIMINATION_BUILDER_AND_SOLVER_ML_mixed
+#if !defined(KRATOS_ELIMINATION_BUILDER_AND_SOLVER_ML_MIXED )
+#define  KRATOS_ELIMINATION_BUILDER_AND_SOLVER_ML_MIXED
 
 
 /* System includes */
@@ -252,9 +252,7 @@ namespace Kratos
 			
 			if ( dof_it2->GetVariable().Key()==PRESSURE )
 				{
-				// PRESSURE IS THE FIRST VARIABLE	
-				//KRATOS_WATCH( dof_it2->GetVariable().Key() );}
-					
+				// PRESSURE IS THE FIRST VARIABLE		
 
 				if (mdim==2) {
 
@@ -373,8 +371,6 @@ namespace Kratos
 				}				
 				else{
 				// PRESSURE IS THE LAST VARIABLE	
-				//KRATOS_WATCH( dof_it2->GetVariable().Key() );}
-					
 
 				if (mdim==2) {
 
@@ -489,8 +485,6 @@ namespace Kratos
 							}
 			   			 }	
 					}
-
-
 
 				}	
 		}	
