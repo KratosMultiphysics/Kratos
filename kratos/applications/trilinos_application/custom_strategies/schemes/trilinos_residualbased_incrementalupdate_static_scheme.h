@@ -209,6 +209,9 @@ namespace Kratos
 			double* temp_values;
 			temp.ExtractView( &temp_values );
 
+			b.Comm().Barrier();
+
+
 // ModelPart::NodesContainerType::iterator node_it = r_model_part.Nodes().find(2756);
 // std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepValue(PARTITION_INDEX) << " disp_x id " << node_it->pGetDof(DISPLACEMENT_X)->EquationId() << std::endl;
 

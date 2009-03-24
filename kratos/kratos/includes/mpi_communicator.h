@@ -548,8 +548,8 @@ namespace Kratos
       bool AssembleThisVariable(Variable<TDataType> const& ThisVariable)
       {
 
-	KRATOS_WATCH("AssembleThisVariable")
-	KRATOS_WATCH(ThisVariable)
+/*	KRATOS_WATCH("AssembleThisVariable")
+	KRATOS_WATCH(ThisVariable)*/
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 

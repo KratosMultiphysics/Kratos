@@ -142,7 +142,7 @@ namespace Kratos
              */
             void  PrintInfo(std::ostream& rOStream) const
             {
-                rOStream << "SuperLU solver finished.";
+                rOStream << "Amesos solver finished.";
             }
             
             /**

@@ -41,6 +41,7 @@
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -50,6 +51,7 @@
 // #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
+#include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_vec.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_mixed.h"
@@ -137,11 +139,11 @@ typedef Epetra_FECrsMatrix FECrsMatrix;
 	void SetToZeroVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& x)
 	{	dummy.SetToZero(x);	}
 
-	void ClearMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A)
-	{	dummy.Clear(A);	}
+	void ClearMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixPointerType& pA)
+	{	dummy.Clear(pA);	}
 
-	void ClearVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& x)
-	{	dummy.Clear(x);	}
+	void ClearVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorPointerType& px)
+	{	dummy.Clear(px);	}
 
 	double TwoNorm(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& x)
 	{	return dummy.TwoNorm(x);	}
@@ -263,6 +265,12 @@ typedef Epetra_FECrsMatrix FECrsMatrix;
 				"TrilinosResidualBasedIncrementalUpdateStaticScheme", init< >() 
 			);
 	
+		class_< TrilinosResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,	
+			bases< TrilinosBaseSchemeType >,  boost::noncopyable >
+			(
+				"TrilinosResidualBasedLagrangianMonolithicScheme", init<int >() 
+			);
+	
 	
 		//********************************************************************
 		//********************************************************************
@@ -282,6 +290,11 @@ typedef Epetra_FECrsMatrix FECrsMatrix;
 			bases< TrilinosConvergenceCriteria >,  
 			boost::noncopyable >
 			("TrilinosDisplacementCriteria", init< double, double, Epetra_MpiComm& >() );
+				
+		class_< TrilinosUPCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+			bases< TrilinosConvergenceCriteria >,  
+			boost::noncopyable >
+		  ("TrilinosUPCriteria", init< double, double, double, double, Epetra_MpiComm& >() );
 				
 		//********************************************************************
 		//********************************************************************

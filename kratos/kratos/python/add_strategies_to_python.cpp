@@ -131,10 +131,10 @@ namespace Kratos
 	void SetToZeroVector(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
 	{	dummy.SetToZero(x);	}
 
-	void ClearMatrix(SparseSpaceType& dummy, SparseSpaceType::MatrixType& A)
+	void ClearMatrix(SparseSpaceType& dummy, SparseSpaceType::MatrixPointerType& A)
 	{	dummy.Clear(A);	}
 
-	void ClearVector(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)
+	void ClearVector(SparseSpaceType& dummy, SparseSpaceType::VectorPointerType& x)
 	{	dummy.Clear(x);	}
 
 	double TwoNorm(SparseSpaceType& dummy, SparseSpaceType::VectorType& x)

@@ -22,6 +22,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
     model_part.AddNodalSolutionStepVariable(INSITU_STRESS);
     model_part.AddNodalSolutionStepVariable(FACE_LOAD);
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
     print "variables for the dynamic structural solution added correctly"
         

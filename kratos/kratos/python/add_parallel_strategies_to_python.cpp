@@ -120,10 +120,10 @@ namespace Kratos
 		void ParallelSetToZeroVector(ParallelSparseSpaceType& dummy, ParallelSparseSpaceType::VectorType& x)
 		{	dummy.SetToZero(x);	}
 
-		void ParallelClearMatrix(ParallelSparseSpaceType& dummy, ParallelSparseSpaceType::MatrixType& A)
+		void ParallelClearMatrix(ParallelSparseSpaceType& dummy, ParallelSparseSpaceType::MatrixPointerType& A)
 		{	dummy.Clear(A);	}
 
-		void ParallelClearVector(ParallelSparseSpaceType& dummy, ParallelSparseSpaceType::VectorType& x)
+		void ParallelClearVector(ParallelSparseSpaceType& dummy, ParallelSparseSpaceType::VectorPointerType& x)
 		{	dummy.Clear(x);	}
 
 		double ParallelTwoNorm(ParallelSparseSpaceType& dummy, ParallelSparseSpaceType::VectorType& x)

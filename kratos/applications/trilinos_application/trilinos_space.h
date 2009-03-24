@@ -308,33 +308,49 @@ class TrilinosSpace
 		KRATOS_ERROR(std::logic_error,"Resize is not defined for Trilinos Sparse Vector","")
 	}
 	
-	static void Clear(MatrixType& rA)
-	{
-		int global_elems = 0;
-		Epetra_Map Map(global_elems,0,rA.Comm() );
-		TMatrixType temp(::Copy,Map,0); 
-
+// 	static void Clear(MatrixType& rA)
+// 	{
 // 		int global_elems = 0;
-// 		Epetra_Map my_map(global_elems,0,rA.Comm() );
-// 		Epetra_FECrsGraph Agraph(Copy, my_map, 0);
-// 		Agraph.GlobalAssemble();
-//    		TMatrixType temp(Copy,Agraph);
-
-// int NumGlobalElements = 10;
-//  Epetra_Map Map(NumGlobalElements,0,rA.Comm() );
+// 		Epetra_Map Map(global_elems,0,rA.Comm() );
+// 		TMatrixType temp(::Copy,Map,0); 
 // 
-//   // create a diagonal FE crs matrix (one nonzero per row)
-//   Epetra_FECrsMatrix temp(Copy,Map,1);
-
-  		rA = temp;
-	}
+// // 		int global_elems = 0;
+// // 		Epetra_Map my_map(global_elems,0,rA.Comm() );
+// // 		Epetra_FECrsGraph Agraph(Copy, my_map, 0);
+// // 		Agraph.GlobalAssemble();
+// //    		TMatrixType temp(Copy,Agraph);
+// 
+// // int NumGlobalElements = 10;
+// //  Epetra_Map Map(NumGlobalElements,0,rA.Comm() );
+// // 
+// //   // create a diagonal FE crs matrix (one nonzero per row)
+// //   Epetra_FECrsMatrix temp(Copy,Map,1);
+// 
+//   		rA = temp;
+// 	}
 	
-	static void Clear(VectorType& rX) 
+	static void Clear(MatrixPointerType& pA)
 	{
 		int global_elems = 0;
-		Epetra_Map Map(global_elems,0,rX.Comm());
-		rX = VectorType(Map);
+		Epetra_Map Map(global_elems,0,pA->Comm() );
+		MatrixPointerType pNewEmptyA = MatrixPointerType(new TMatrixType(::Copy,Map,0) );	
+		pA.swap(pNewEmptyA);
 	}
+
+	static void Clear(VectorPointerType& pX) 
+	{
+		int global_elems = 0;
+		Epetra_Map Map(global_elems,0,pX->Comm());
+		VectorPointerType pNewEmptyX = VectorPointerType(new VectorType(Map) );	
+		pX.swap(pNewEmptyX);
+	}
+
+// 	static void Clear(VectorType& rX) 
+// 	{
+// 		int global_elems = 0;
+// 		Epetra_Map Map(global_elems,0,rX.Comm());
+// 		rX = VectorType(Map);
+// 	}
 	
 	template<class TOtherMatrixType>
 		inline static void ClearData(TOtherMatrixType& rA)

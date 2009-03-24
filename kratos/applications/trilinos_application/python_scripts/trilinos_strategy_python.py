@@ -1,6 +1,7 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosTrilinosApplication import *
+import mpi
 
 
 class SolvingStrategyPython:
@@ -28,9 +29,9 @@ class SolvingStrategyPython:
 	elif(builder_and_solver_type == "ML3D"):
         	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,3,self.linear_solver)
 	elif(builder_and_solver_type == "ML2Dpress"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,2,self.linear_solver)
+        	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,2,self.linear_solver)
 	elif(builder_and_solver_type == "ML3Dpress"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,3,self.linear_solver)
+        	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,3,self.linear_solver)
 
   
 
@@ -89,8 +90,7 @@ class SolvingStrategyPython:
         calculate_norm = False
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
         it = 1
-        
-        print "fist iteration is done"
+
         #non linear loop
         converged = False
         
@@ -113,12 +113,13 @@ class SolvingStrategyPython:
 
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
-
         self.SolutionStepIsInitialized = False
         
-        #clear if needed - deallocates memory 
+        #clear if needed - deallocates memory
+        print "ln 113 self.ReformDofSetAtEachStep = ",self.ReformDofSetAtEachStep
  	if(self.ReformDofSetAtEachStep == True):
             self.Clear();
+        print "Solve is Finished for rank : ", mpi.rank
 
             
     #######################################################################
@@ -155,9 +156,7 @@ class SolvingStrategyPython:
         self.space_utils.SetToZeroVector(self.Dx)			
         self.space_utils.SetToZeroVector(self.b)
         
-
         self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        
         
         #build and solve the problem
         
@@ -200,17 +199,18 @@ class SolvingStrategyPython:
 
     #######################################################################
     def Clear(self):
-        self.space_utils.ClearMatrix(self.A)
-        self.space_utils.ResizeMatrix(self.A,0,0)
+        self.space_utils.ClearMatrix(self.pA)
+        self.space_utils.ClearVector(self.pDx)
+        self.space_utils.ClearVector(self.pb)
         
-        self.space_utils.ClearVector(self.Dx)
-        self.space_utils.ResizeVector(self.Dx,0)
-
-        self.space_utils.ClearVector(self.b)
-        self.space_utils.ResizeVector(self.b,0)
+        self.A = (self.pA).GetReference()
+        self.Dx = (self.pDx).GetReference()
+        self.b = (self.pb).GetReference()
+    
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
-        self.builder_and_solver.Clear()
 
+        self.builder_and_solver.Clear()
+        
     #######################################################################   
     def SetEchoLevel(self,level):
         self.echo_level = level
