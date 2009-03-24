@@ -184,10 +184,14 @@ namespace Kratos
 
       /// Copy constructor.
 
-		KratosApplication(KratosApplication const& rOther) : mpVariableData(rOther.mpVariableData),
-
+		KratosApplication(KratosApplication const& rOther) : 
+			mpVariableData(rOther.mpVariableData),
+			mpDoubleVariables(rOther.mpDoubleVariables),
+			mpArray1DVariables(rOther.mpArray1DVariables),
+			mpVectorVariables(rOther.mpVectorVariables),
+			mpMatrixVariables(rOther.mpMatrixVariables),
+			mpArray1DVariableComponents(rOther.mpArray1DVariableComponents),
 			mpElements(rOther.mpElements), 
-
 			mpConditions(rOther.mpConditions){}
 
 
@@ -239,15 +243,11 @@ namespace Kratos
 
 
 
-	//template<class TComponentType>
-
-	//	typename KratosComponents<TComponentType>::ComponentsContainerType& GetComponents()
-
-	//{
-
-	//	return KratosComponents<TComponentType>::GetComponents();
-
-	//}
+//	template<class TComponentType>
+//		typename KratosComponents<TComponentType>::ComponentsContainerType& GetComponents(TComponentType const& rComponentType)
+//	{
+//		return KratosComponents<TComponentType>::GetComponents();
+//	}
 
 
 
@@ -259,10 +259,34 @@ namespace Kratos
 
 	// Anyway its working with these functions.Pooyan.
 
+	KratosComponents<Variable<double> >::ComponentsContainerType& GetComponents(Variable<double> const& rComponentType)
+	{
+		return *mpDoubleVariables;
+	}
+
+	KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType& GetComponents(Variable<array_1d<double, 3> >  const& rComponentType)
+	{
+		return *mpArray1DVariables;
+	}
+
+	KratosComponents<Variable<Vector> >::ComponentsContainerType& GetComponents(Variable<Vector> const& rComponentType)
+	{
+		return *mpVectorVariables;
+	}
+
+	KratosComponents<Variable<Matrix> >::ComponentsContainerType& GetComponents(Variable<Matrix>  const& rComponentType)
+	{
+		return *mpMatrixVariables;
+	}
+
+	KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType& GetComponents(VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& rComponentType)
+	{
+		return *mpArray1DVariableComponents;
+	}
+
 		 KratosComponents<VariableData>::ComponentsContainerType& GetVariables()
 
 		{
-
 			return *mpVariableData;
 
 		}
@@ -288,7 +312,6 @@ namespace Kratos
 		}
 
 
-
 		void SetComponents(KratosComponents<VariableData>::ComponentsContainerType const& VariableDataComponents)
 
 		{
@@ -304,8 +327,8 @@ namespace Kratos
 //		  i != KratosComponents<VariableData>::GetComponents().end() ; i++)
 
 	  {
-
-		  KratosComponents<VariableData>::ComponentsContainerType::const_iterator i_variable = VariableDataComponents.find(i->second.get().Name());
+		std::string const& variable_name = i->second.get().Name();
+		  KratosComponents<VariableData>::ComponentsContainerType::const_iterator i_variable = VariableDataComponents.find(variable_name);
 
 		  if(i_variable == VariableDataComponents.end()) 
 
@@ -463,6 +486,16 @@ namespace Kratos
         
 
 		KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
+
+		KratosComponents<Variable<double> >::ComponentsContainerType* mpDoubleVariables;
+
+		KratosComponents<Variable<array_1d<double, 3> > >::ComponentsContainerType* mpArray1DVariables;
+
+		KratosComponents<Variable<Vector> >::ComponentsContainerType* mpVectorVariables;
+
+		KratosComponents<Variable<Matrix> >::ComponentsContainerType* mpMatrixVariables;
+		
+		KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::ComponentsContainerType* mpArray1DVariableComponents; 
 
 		KratosComponents<Element>::ComponentsContainerType* mpElements;
 

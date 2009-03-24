@@ -361,6 +361,8 @@ namespace Kratos
 			KRATOS_TRY
 				//typedef typename unsigned int size_type;
 				//typedef typename double value_type;
+			if (r_model_part.NodesBegin()->SolutionStepsDataHas(ARRHENIUS)==false )
+				KRATOS_ERROR(std::logic_error,"Add  ----ARRHENIUS---- variable!!!!!! ERROR","");
 
 
 			const Vector& BDFcoeffs = r_model_part.GetProcessInfo()[BDF_COEFFICIENTS];
@@ -489,6 +491,7 @@ namespace Kratos
 					{
 						const array_1d<double,3>& fv = geom[kk].FastGetSolutionStepValue(FRACT_VEL);
 						Gaux += DN_DX(kk,tt)*fv[tt];
+						Gaux -= geom[kk].FastGetSolutionStepValue(ARRHENIUS);
 					}
 				}
 				noalias(rhs_contribution) -= Gaux * N;
@@ -520,6 +523,8 @@ namespace Kratos
 			////adding pold term
 			// RHS += Gtrans*diag*G* pold BUT no other terms added to the LHS
 			AddToRHS_DMGdt(Minv_dt,G,b,aux_vect_small,aux_vect_large);
+
+
 			
 			//RHS - (L + DMinvG)*p
 			//note that up to this point A contains only the Laplacian part, not yet the DMinvG

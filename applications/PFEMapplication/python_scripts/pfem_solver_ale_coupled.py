@@ -56,6 +56,8 @@ class PFEMSolver:
         self.correct_volume = True
         self.prediction_order = 2
         self.echo_level = 0
+        self.add_nodes = True
+        self.remove_nodes = True
 
         self.mesh_every_nsteps = 10;
         self.substep = 0;
@@ -174,7 +176,7 @@ class PFEMSolver:
 
         ##remesh
         if(self.domain_size==2):
-            (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape,self.h_factor)
+            (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape,self.h_factor)
         else:
             (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
             
@@ -326,7 +328,7 @@ class PFEMSolver:
         
         ##remesh
         if(self.domain_size==2):
-            (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape,self.h_factor)
+            (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape,self.h_factor)
         else:
             (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
 

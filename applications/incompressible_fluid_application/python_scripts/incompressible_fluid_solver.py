@@ -18,6 +18,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
+    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     print "variables for the incompressible fluid solver added correctly"
 
 def AddDofs(model_part):

@@ -694,6 +694,7 @@ namespace Kratos
 			}
 			
 			ThisModelPart.Elements().clear();
+			ThisModelPart.Conditions().clear();
 			
 			//set the coordinates to the original value
 			for( PointVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)

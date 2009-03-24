@@ -286,10 +286,15 @@ namespace Kratos
 		  	mCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 			mCondition2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 			mpVariableData(KratosComponents<VariableData>::pGetComponents()),
+			mpDoubleVariables(KratosComponents<Variable<double> >::pGetComponents()),
+			mpArray1DVariables(KratosComponents<Variable<array_1d<double, 3> > >::pGetComponents()),
+			mpVectorVariables(KratosComponents<Variable<Vector> >::pGetComponents()),
+			mpMatrixVariables(KratosComponents<Variable<Matrix> >::pGetComponents()),
+			mpArray1DVariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::pGetComponents()),
 			mpElements(KratosComponents<Element>::pGetComponents()), 
 			mpConditions(KratosComponents<Condition>::pGetComponents())
 	  {}
-	
+
   void KratosApplication::RegisterVariables()
     {
 	KRATOS_REGISTER_VARIABLE(NEIGHBOURS_INDICES)
