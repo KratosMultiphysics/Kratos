@@ -4,7 +4,7 @@ import benchmarking
 
 sys.path.append(".")
 
-CurrentDir = os.curdir
+CurrentDir = os.getcwd()
 KratosRoot = CurrentDir + "/../"
 ApplicationsRoot = KratosRoot + "applications/"
 
@@ -21,6 +21,12 @@ Text += structural_benchmarks.Run()
 os.chdir(ApplicationsRoot + "incompressible_fluid_application/test_examples")
 import incompressible_benchmarks
 Text += incompressible_benchmarks.Run()
+
+
+# Meshing application
+os.chdir(ApplicationsRoot + "MeshingApplication/test_exemples")
+import meshing_benchmarks
+Text += meshing_benchmarks.Run()
 
 
 # Add other directories here
