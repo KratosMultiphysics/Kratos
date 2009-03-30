@@ -83,7 +83,7 @@ namespace Kratos
 	//************************************************************************************
 	//************************************************************************************
 	Fluid2DASGS::Fluid2DASGS(IndexType NewId, GeometryType::Pointer pGeometry)
-		: Element(NewId, pGeometry)
+		: Element(NewId, pGeometry),m_thawone(double()),m_thawtwo(double())
 	{		
 		//DO NOT ADD DOFS HERE!!!
 	}
@@ -91,7 +91,7 @@ namespace Kratos
 	//************************************************************************************
 	//************************************************************************************
 	Fluid2DASGS::Fluid2DASGS(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-		: Element(NewId, pGeometry, pProperties)
+		: Element(NewId, pGeometry, pProperties),m_thawone(double()),m_thawtwo(double())
 	{
 		
 	}
@@ -164,7 +164,7 @@ namespace Kratos
 	AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area);
 
 	//add projections
-	//AddProjectionForces(rRightHandSideVector,DN_DX,Area);	
+	AddProjectionForces(rRightHandSideVector,DN_DX,Area);	
 	
 	//calculate residual
 	CalculateResidual(rLeftHandSideMatrix, rRightHandSideVector);
@@ -668,8 +668,11 @@ namespace Kratos
 	unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	unsigned int dim = 2;
 	
+
+
 	double density;
 	calculatedensity(GetGeometry(), density);
+
 
 	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
 	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -741,9 +744,11 @@ namespace Kratos
 		
 
 		//calculate nodal area
-		
+	
 		GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += 0.333333333333333333*area;
+	//KRATOS_WATCH(GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA));
 	}
+
 	/*for (unsigned int i=0;i<number_of_nodes;i++)
 	 {
 		int index = i*dim;
@@ -803,7 +808,7 @@ namespace Kratos
 	double mean_y_adv = 0.3333333333333333*(advproj_0[1] +advproj_1[1] + advproj_2[1]); 
 	
 	double mean_div = 0.3333333333333333*(div_proj_0 +div_proj_1 + div_proj_2); 
-	
+
 	for (unsigned int ii=0;ii<number_of_nodes;ii++)
 	 {
 		int index = ii*(dim + 1) ;
@@ -1000,7 +1005,7 @@ namespace Kratos
 	
 		if(dyn_st_switch)
 		  {
-		
+			
 			thawone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
 		  }
 		else
@@ -1020,5 +1025,6 @@ namespace Kratos
 	//*************************************************************************************
 	//*************************************************************************************
 } // Namespace Kratos
+
 
 
