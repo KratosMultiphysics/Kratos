@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2007-03-13 15:01:51 $
-*   Revision:            $Revision: 1.5 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-03-17 14:35:29 $
+*   Revision:            $Revision: 1.2 $
 *
 * ***********************************************************/
 
@@ -204,6 +204,8 @@ namespace Kratos
             
             void GetDofList( DofsVectorType& ConditionalDofList,
                              ProcessInfo& CurrentProcessInfo);
+            
+            void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
             
             /**
              * Turn back information as a string.
