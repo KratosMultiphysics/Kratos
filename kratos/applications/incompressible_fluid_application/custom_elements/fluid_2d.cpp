@@ -1,4 +1,4 @@
-/* a
+/* 
 ==============================================================================
 KratosIncompressibleFluidApplication 
 A library based on:
