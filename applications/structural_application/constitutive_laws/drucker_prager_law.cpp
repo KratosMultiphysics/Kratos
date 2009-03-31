@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2008-01-25 08:37:11 $
-*   Revision:            $Revision: 1.3 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-03-05 12:01:22 $
+*   Revision:            $Revision: 1.5 $
 *
 * ***********************************************************/
 // System includes 
@@ -75,10 +75,10 @@ namespace Kratos
     DruckerPragerLaw::DruckerPragerLaw() 
     : ConstitutiveLaw<Node<3> >()
     {
-		mOldPlasticStrains.resize(3,3);
-		mCurrentPlasticStrains.resize(3,3);
-		mInsituStress.resize(3,3);
-		mCurrentStress.resize(3,3);
+        mOldPlasticStrains.resize(3,3,false);
+        mCurrentPlasticStrains.resize(3,3,false);
+        mInsituStress.resize(3,3,false);
+        mCurrentStress.resize(3,3,false);
 		SD_MathUtils<double>::DeviatoricUnity(mI_dev);
 		mTOL1= 1e-1;
 		mTOL2= 1e-8;
