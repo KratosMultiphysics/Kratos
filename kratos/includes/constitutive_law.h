@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 /* *********************************************************
 *
-*   Last Modified by:    $Author: kazem $
-*   Date:                $Date: 2008-07-25 13:07:08 $
-*   Revision:            $Revision: 1.8 $
+*   Last Modified by:    $Author: nagel $
+*   Date:                $Date: 2009-01-05 13:22:39 $
+*   Revision:            $Revision: 1.4 $
 *
 * ***********************************************************/
 
@@ -165,7 +165,7 @@ namespace Kratos
              * @param rCurrentProcessInfo the process info
              */
             virtual void SetValue( const Variable<double>& rVariable, 
-                                   const double& Value, 
+                                   const double Value, 
                                    const ProcessInfo& rCurrentProcessInfo)
             {
                 KRATOS_ERROR(std::logic_error,  "Called the virtual function for SetValue" , "");
