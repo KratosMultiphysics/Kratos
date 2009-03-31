@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2008-01-24 16:48:30 $
-*   Revision:            $Revision: 1.2 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-03-05 12:01:22 $
+*   Revision:            $Revision: 1.5 $
 *
 * ***********************************************************/
 #if !defined(KRATOS_HOOKS_LAW_H_INCLUDED )
@@ -109,29 +109,29 @@ namespace Kratos
             boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const;
             
             void InitializeMaterial( const Properties& props,
-					const GeometryType& geom,
-					const Vector& ShapeFunctionsValues);
+                                        const GeometryType& geom,
+                                        const Vector& ShapeFunctionsValues);
             
 
-			void InitializeSolutionStep( const Properties& props,
-				const GeometryType& geom, //this is just to give the array of nodes
-				const Vector& ShapeFunctionsValues ,
-				const ProcessInfo& CurrentProcessInfo);
+                        void InitializeSolutionStep( const Properties& props,
+                                const GeometryType& geom, //this is just to give the array of nodes
+                                const Vector& ShapeFunctionsValues ,
+                                const ProcessInfo& CurrentProcessInfo);
 
             void FinalizeSolutionStep( const Properties& props,
-					const GeometryType& geom, const Vector& ShapeFunctionsValues ,const ProcessInfo& CurrentProcessInfo);
+                                        const GeometryType& geom, const Vector& ShapeFunctionsValues ,const ProcessInfo& CurrentProcessInfo);
             
- 			void SetValue( const Variable<Matrix >& rVariable, 
-				const Matrix& Value, const ProcessInfo& rCurrentProcessInfo);
+                        void SetValue( const Variable<Matrix >& rVariable, 
+                                const Matrix& Value, const ProcessInfo& rCurrentProcessInfo);
 
- 			void SetValue( const Variable<Vector >& rVariable, 
-				const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
+                        void SetValue( const Variable<Vector >& rVariable, 
+                                const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
 
- 			Matrix GetValue(const Variable<Matrix>& rVariable);
+                        Matrix GetValue(const Variable<Matrix>& rVariable);
 
-    		Vector GetValue(const Variable<Vector>& rVariable);
+                Vector GetValue(const Variable<Vector>& rVariable);
             
-			double GetValue(const Variable<double>& rVariable);
+                        double GetValue(const Variable<double>& rVariable);
 //             template<class TVariableType> bool Has( const TVariableType& rThisVariable);
             /**
              * Operators 
@@ -143,27 +143,8 @@ namespace Kratos
              */
 
             
-            /**
-             * calculates the current stress and the material tangent
-             * NOTE: there are two versions of this function: one for a matrix representation
-             * of the material tensor and one for a tensorial formulation. Each ConstitutiveLaw
-             * HAS TO IMPLEMENT both of them (for convenience, there are conversation functions 
-             * available in MathUtils for either of them)
-             * Calculates the StressTensor and the algorithmic tangent Matrix for a given 
-             * Elastic Left Cauchy Green Tensor in trial state after Simo 
-             *[Comp. Meth. in Appl. Mech. and Eng. 99 (1992) 61-112] 
-             * @param StressTensor 3times3 Kirchhoff Stress Tensor
-             * @param LeftCauchyGreen_Trial elastic Left Cauchy Green Tensor in trial state =
-             * delta[f_(n+1)]*b^e_n*delta[f_(n+1)]^T
-             * @param algorithmicTangent \frac{\delta \tau_{n+1}}{\delta b_{n+1}}
-             * @param StressTensor the calculated stress tensor
-             * @param StrainTensor the given strain tensor
-             * @param algorithmicTangent the 4th order algorithmic tangent tensor
-             */
-            void CalculateStressAndTangentMatrix( Matrix& StressTensor,
-                    const Matrix& StrainTensor,
-                    MaterialTensorType& algorithmicTangent);
-            
+
+          
             /**
              * calculates the current stress and the material tangent
              * NOTE: there are two versions of this function: one for a matrix representation
@@ -174,12 +155,20 @@ namespace Kratos
              * @param StrainVector the given strain vector
              * @param algorithmicTangent the calculated algorithmic tangent matrix
              */
-            void CalculateStressAndTangentMatrix( Vector& StressVector,
-                    const Vector& StrainVector,
-                    Matrix& algorithmicTangent);
-            
-  
-
+             void UpdateMaterial(  const Vector& StrainVector,
+                                      const Properties& props,
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      const ProcessInfo& CurrentProcessInfo );
+                                      
+             void CalculateStress(const Vector& StrainVector, Vector& StressVector);
+    
+             void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+    
+             void CalculateStressAndTangentMatrix( Vector& StressVector,
+                                          const Vector& StrainVector,
+                                          Matrix& algorithmicTangent);
+         
             /**
              * Input and output
              */
@@ -214,10 +203,10 @@ namespace Kratos
             
             double mE;
             double mNU;
-            MaterialTensorType mElasticMaterialTensor;
-            
-            Matrix mInsituStress;
-            Matrix mCurrentStress;
+            Matrix mC;
+            Vector mMaterialParameters;
+            Vector mCurrentStress;
+            Vector mInsituStress;
 
             /**
              * Operations
@@ -254,6 +243,5 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_ISOTROPIC_LINEAR_ELASTIC_H_INCLUDED  defined 
-
 
 
