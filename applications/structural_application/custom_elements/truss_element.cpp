@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2007-09-20 11:54:06 $
-*   Revision:            $Revision: 1.1 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2008-02-15 10:37:19 $
+*   Revision:            $Revision: 1.2 $
 *
 * ***********************************************************/
 
@@ -99,15 +99,15 @@ namespace Kratos
 
 		//set up the Matrix A
 		if(mA_Matrix.size1()!=6 || mA_Matrix.size2()!=6)
-			mA_Matrix.resize(6,6);
+			mA_Matrix.resize(6,6,false);
 		noalias(mA_Matrix)= ZeroMatrix(6,6);
 		mA_Matrix(0,0)=0.25;mA_Matrix(1,1)=0.25;mA_Matrix(2,2)=0.25;		mA_Matrix(0,3)=-0.25;mA_Matrix(1,4)=-0.25;mA_Matrix(2,5)=-0.25;
 		mA_Matrix(3,0)=-0.25;mA_Matrix(4,1)=-0.25;mA_Matrix(5,2)=-0.25;		mA_Matrix(3,3)=0.25;mA_Matrix(4,4)=0.25;mA_Matrix(5,5)=0.25;
 	
 		if(mCurrentDisplacement.size() != 6)
-			mCurrentDisplacement.resize(6);
+			mCurrentDisplacement.resize(6,false);
 		if(mAtimesU.size() != 6)
-			mAtimesU.resize(6);
+			mAtimesU.resize(6,false);
     }
 
     Element::Pointer TrussElement::Create(IndexType NewId, 
@@ -145,7 +145,7 @@ namespace Kratos
 // 		initializing mb
 		//set up the Matrix b
 		if(mb_Vector.size()!=6)
-			mb_Vector.resize(6);
+			mb_Vector.resize(6,false);
 
 		noalias(mb_Vector)= 4/(mReference_length*mReference_length)*MatrixVector(x_zero);
 
@@ -197,7 +197,7 @@ namespace Kratos
 		if (CalculateStiffnessMatrixFlag == true) 
         {
                  if(rLeftHandSideMatrix.size1() != 6)
-                 	rLeftHandSideMatrix.resize(6,6);
+                 	rLeftHandSideMatrix.resize(6,6,false);
                  noalias(rLeftHandSideMatrix) = ZeroMatrix(6,6); 
 				 CalculateLHS(rLeftHandSideMatrix);
          }
@@ -205,7 +205,7 @@ namespace Kratos
          if (CalculateResidualVectorFlag == true) 
          {
                  if(rRightHandSideVector.size() != 6)
-                       rRightHandSideVector.resize(6);
+                       rRightHandSideVector.resize(6,false);
                  noalias(rRightHandSideVector) = ZeroVector(6); 
 				 CalculateRHS(rRightHandSideVector);
          }
