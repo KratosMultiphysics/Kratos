@@ -16,18 +16,16 @@
 ## ATTENTION: the following lines have to be adapted to      #####
 ##            match your acrtual configuration               #####
 ##################################################################
-kratos_libs_path = '/home/hurga/kratos_local/kratos/libs/' ##kratos_root/libs
-#kratos_libs_path = '/home/hurga/kratosR1/libs/' ##kratos_root/libs
-kratos_applications_path = '/home/hurga/kratos_local/kratos/applications/' ##kratos_root/applications
-#kratos_applications_path = '/home/hurga/kratosR1/applications/' ##kratos_root/applications
-ekate_auxiliary_path = '/home/hurga/kratos_local/kratos/applications/ekate_auxiliary_application/python_scripts'
-#ekate_auxiliary_path = '/home/hurga/kratosR1/applications/ekate_auxiliary_application/python_scripts'
+## kratos test examples:
+kratos_root_path = '../../../..'
+##setting up paths
+kratos_libs_path = kratos_root_path+'/libs' ##kratos_root/libs
+kratos_applications_path = kratos_root_path+'/applications' ##kratos_root/applications
 ##################################################################
 ##################################################################
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
-sys.path.append(ekate_auxiliary_path)
 
 #importing Kratos main library
 from Kratos import *
@@ -36,13 +34,9 @@ kernel = Kernel()   #defining kernel
 #importing applications
 import applications_interface
 applications_interface.Import_StructuralApplication = True
-applications_interface.Import_EkateAuxiliaryApplication = True
-applications_interface.Import_ExternalConstitutiveLawsApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 from KratosStructuralApplication import *
 from KratosExternalSolversApplication import *
-from KratosEkateAuxiliaryApplication import *
-from KratosExternalConstitutiveLawsApplication import *
 ##################################################################
 ##################################################################
 class Model:
@@ -102,14 +96,15 @@ class Model:
                 self.analysis_parameters.append(fricmaxpenalty)
                 self.analysis_parameters.append(fricrampcriterion)
                 self.analysis_parameters.append(fricrampfactor)
+		self.analysis_parameters.append(False)
                 
                 abs_tol =        1e-06
                 rel_tol =       0.0001
                 
                 ## generating solver
-                import ekate_solver
-                self.solver = ekate_solver.EkateSolver( self.model_part, self.domain_size, number_of_time_steps, self.analysis_parameters, abs_tol, rel_tol )
-                ekate_solver.AddVariables( self.model_part )
+                import structural_solver_advanced
+                self.solver = structural_solver_advanced.SolverAdvanced( self.model_part, self.domain_size, number_of_time_steps, self.analysis_parameters, abs_tol, rel_tol, kratos_applications_path )
+                structural_solver_advanced.AddVariables( self.model_part )
 
                 ##################################################################
                 ## READ MODELPART ################################################
@@ -142,7 +137,7 @@ class Model:
                 ##################################################################
                 ## ADD DOFS ######################################################
                 ##################################################################                
-                ekate_solver.AddDofs( self.model_part )
+                structural_solver_advanced.AddDofs( self.model_part )
 
                 ##################################################################
                 ## INITIALISE SOLVER FOR PARTICULAR SOLUTION #####################
@@ -951,13 +946,6 @@ class Model:
                 self.SetUpActivationLevels( self.model_part, self.activation_flags )
                 self.deac.Initialize( self.model_part )
                 print "activation utility initialized"
-                ##################################################################
-                ## MESH TYING ####################################################
-                ##################################################################
-                self.mesh_tying_utility= MeshTyingUtility()
-                self.mesh_tying_utility.InitializeMeshTyingUtility(self.model_part)
-                print "mesh-tying utility successfully initialized"
-                print "model successfully initialized"
                 self.SetCalculateInSituStress( False )
                 
         def FinalizeModel( self ):
