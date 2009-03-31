@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2008-01-24 16:55:10 $
+//   Last Modified by:    $Author: hurga $
+//   Date:                $Date: 2009-02-26 13:49:42 $
 //   Revision:            $Revision: 1.7 $
 //
 //
@@ -133,6 +133,15 @@ namespace Kratos
                 {
                     (*it)->Initialize();
                 }
+                for ( ConditionsArrayType::ptr_iterator it=model_part.Conditions().ptr_begin();
+                      it != model_part.Conditions().ptr_end(); ++it)
+                {
+                    if( (*it)->GetValue(IS_CONTACT_MASTER) || (*it)->GetValue(IS_CONTACT_SLAVE) )
+                    {
+                        (*it)->SetValue(ACTIVATION_LEVEL, 0 );
+                    }
+                    (*it)->Initialize();
+                }
                 mDeactivatedElements.clear();
                 mDeactivatedConditions.clear();
                 std::cout << "deactivation utility initialized" << std::endl;
@@ -154,12 +163,14 @@ namespace Kratos
                 //second step: deactivate elements and conditions to be deactivated currently
                 // identify elements to be deactivated
                 std::vector<int> elements_to_be_deleted;
+                std::vector<int> conditions_to_be_deleted;
                 for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                       it!=model_part.Elements().ptr_end(); ++it)
                 {
                     //if element is to be deactivated
-                    if( ( (*it)->GetValue( ACTIVATION_LEVEL ) > from_level 
-                            && (*it)->GetValue( ACTIVATION_LEVEL ) < to_level) 
+                    if( ( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level 
+                            && (*it)->GetValue( ACTIVATION_LEVEL ) <= to_level
+                            && (*it)->GetValue( ACTIVATION_LEVEL ) != 0 ) 
                             || ( (*it)->GetValue( ACTIVATION_LEVEL ) < 0 )
                       )
                     {
@@ -167,20 +178,39 @@ namespace Kratos
                         mDeactivatedElements.push_back( *(it) );
   //                      mDeactivatedElements.push_back( *(it.base()) );
                         //deactivate associated conditions (unless they are contact master)
-                        Condition Cond = model_part.Conditions()[(*it)->Id()];
-                        if( Cond.GetValue( IS_CONTACT_MASTER ) == false )
+//                         Condition Cond = model_part.Conditions()[(*it)->Id()];
+//                         if( Cond.GetValue( IS_CONTACT_MASTER ) == false )
+//                         {
+//                             mDeactivatedConditions.push_back( Cond );
+//                             model_part.RemoveCondition( Cond );
+//                         }
+                    }
+                }
+                for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+                     it != model_part.Conditions().ptr_end(); ++it )
+                {
+//                     std::cout << "condition: " << (*it)->Id() <<  "has activation level: " << (*it)->GetValue( ACTIVATION_LEVEL ) << std::endl;
+                    if( ( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
+                            && (*it)->GetValue( ACTIVATION_LEVEL ) <= to_level
+                            && (*it)->GetValue( ACTIVATION_LEVEL ) != 0 )
+                            || ( (*it)->GetValue( ACTIVATION_LEVEL ) < 0 )
+                      )
+                    {
+                        if( !( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue( IS_CONTACT_SLAVE ) ) )
                         {
-                            mDeactivatedConditions.push_back( Cond );
-                            model_part.RemoveCondition( Cond );
+                            conditions_to_be_deleted.push_back( (*it)->Id() );
+                            mDeactivatedConditions.push_back( *it );
+//                             std::cout << "deactivated condition: " << (*it)->Id() << std::endl;
                         }
                     }
                 }
                 // deactivate identified elements
                 for( std::vector<int>::iterator it=elements_to_be_deleted.begin();
                      it != elements_to_be_deleted.end(); it++ )
-                {
                     model_part.RemoveElement( *it );
-                }
+                for( std::vector<int>::iterator it=conditions_to_be_deleted.begin();
+                     it != conditions_to_be_deleted.end(); it++ )
+                    model_part.RemoveCondition( *it );
                 //re-sort the elements
                 model_part.Elements().Sort();
                 model_part.Conditions().Sort();
@@ -202,6 +232,7 @@ namespace Kratos
                 for( ConditionsArrayType::iterator jt = mDeactivatedConditions.begin();
                      jt != mDeactivatedConditions.end(); jt++ )
                 {
+//                     std::cout << "reactivated condition: " << jt->Id() << std::endl;
                     model_part.AddCondition( *(jt.base()));
                 }
                 model_part.Elements().Sort();
@@ -218,16 +249,35 @@ namespace Kratos
             void Reactivate( ModelPart& model_part, int from_level, int to_level )
             {
                 KRATOS_TRY;
-                ElementsArrayType elements_to_be_restored;
-                ConditionsArrayType conditions_to_be_restored;
+//                 KRATOS_WATCH( from_level );
+//                 KRATOS_WATCH( to_level );
+//                 ElementsArrayType elements_to_be_restored;
+//                 ConditionsArrayType conditions_to_be_restored;
                 for( ElementsArrayType::iterator it = mDeactivatedElements.begin();
                      it != mDeactivatedElements.end(); it++ )
                 {
+//                     KRATOS_WATCH( (*it).GetValue( ACTIVATION_LEVEL ) );
 					//if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) > from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) < to_level)
+                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
+                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
                     {
+//                         std::cout << "reactivating element: " << it->Id() << std::endl;
                         (*it).SetValue(ACTIVATION_LEVEL, 0 );
+//                         Condition Cond = model_part.Conditions()[it->Id()];
+//                         Cond.SetValue(ACTIVATION_LEVEL, 0 );
+                    }
+                }
+                for( ConditionsArrayType::iterator it = mDeactivatedConditions.begin();
+                     it != mDeactivatedConditions.end(); it++ )
+                {
+                    if( ! ( it->GetValue( IS_CONTACT_MASTER ) || it->GetValue(IS_CONTACT_SLAVE) ) )
+                    {
+                        //if condition is to be reactivated
+                        if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level
+                              && (*it).GetValue(ACTIVATION_LEVEL) <= to_level)
+                        {
+                            (*it).SetValue(ACTIVATION_LEVEL, 0);
+                        }
                     }
                 }
                 KRATOS_CATCH("");
@@ -259,9 +309,10 @@ namespace Kratos
                      it != mDeactivatedElements.end(); it++ )
                 {
                     //if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) > from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) < to_level)
+                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
+                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
                     {
+//                         std::cout << "reactivating stressfree element: " << it->Id() << std::endl;
                         (*it).Initialize();
                         (*it).SetValue(ACTIVATION_LEVEL, 0 );
                     }
@@ -430,8 +481,8 @@ namespace Kratos
                      it != mDeactivatedElements.end(); it++ )
                 {
 					//if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) > from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) < to_level)
+                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
+                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
                     {
                         (*it).Initialize();
                         (*it).SetValue(ACTIVATION_LEVEL, 0 );
@@ -442,8 +493,8 @@ namespace Kratos
                      it != mDeactivatedElements.end(); it++ )
                 {
 					//if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) > from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) < to_level)
+                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
+                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
                     {
                         for(unsigned int node=0; node<(*it).GetGeometry().size(); node++)
                         {
