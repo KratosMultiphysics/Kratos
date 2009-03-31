@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2009-01-14 09:23:49 $
-*   Revision:            $Revision: 1.5 $
+*   Last Modified by:    $Author: nagel $
+*   Date:                $Date: 2009-03-20 08:55:48 $
+*   Revision:            $Revision: 1.16 $
 *
 * ***********************************************************/
 
@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/kinematic_linear.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-
+#include "structural_application.h"
 #include <boost/timer.hpp>
 
 namespace Kratos
@@ -128,7 +128,7 @@ namespace Kratos
         
         //select Integration Method for 10 and 4 node tetrahedron
         if(GetGeometry().size()== 4 || GetGeometry().size()== 10)
-            mThisIntegrationMethod= GeometryData::GI_GAUSS_5;//methods for tetrahedra elements
+            mThisIntegrationMethod= GeometryData::GI_GAUSS_2;//methods for tetrahedra elements
     }
 
     Element::Pointer KinematicLinear::Create(IndexType NewId, 
@@ -176,7 +176,7 @@ namespace Kratos
         KRATOS_TRY//EXCEPTION HANDLING (see corresponing KRATOS_CATCH("") )
                 
         //dimension of the problem
-		unsigned int dim = GetGeometry().WorkingSpaceDimension();
+	unsigned int dim = GetGeometry().WorkingSpaceDimension();
         //number of integration points used, mThisIntegrationMethod refers to the
         //integration method defined in the constructor
        	const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -211,6 +211,7 @@ namespace Kratos
         for(unsigned int node = 0; node< GetGeometry().size(); node++)  
                 for(unsigned int i = 0; i< 3; i++)  
                         mInitialDisp(node, i)= GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT)[i];
+//                         mInitialDisp(node, i)= 0.0;
         //Initialization of the constitutive law vector and 
         // declaration, definition and initialization of the material 
         // lwas at each integration point
@@ -219,12 +220,6 @@ namespace Kratos
             mConstitutiveLawVector.resize(integration_points.size());
             InitializeMaterial();
         }
-
-//just for testing the unsaturated soil element
-for(unsigned int i=0; i< GetGeometry().size(); i++)
-{
-        GetGeometry()[i].GetSolutionStepValue(TEMPERATURE)= 0.0;
-}
 
         KRATOS_CATCH("")
     }
@@ -532,16 +527,16 @@ for(unsigned int i=0; i< GetGeometry().size(); i++)
          }
 //                 Matrix Dummy_Matrix(3,3);
 //                 noalias(Dummy_Matrix)= mConstitutiveLawVector[0]->GetValue(PK2_STRESS_TENSOR);
-                Vector Dummy_Vector(5);
-                noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
-                for(unsigned int i=0; i< GetGeometry().size(); i++)
-                {
-                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_X)= Dummy_Vector(0);
-                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Y)= Dummy_Vector(1);
-                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Z)= Dummy_Vector(2);
-                        GetGeometry()[i].GetSolutionStepValue(PRESSURE)= Dummy_Vector(3);
-                        GetGeometry()[i].GetSolutionStepValue(ERROR_RATIO)= Dummy_Vector(4);
-                }
+//                 Vector Dummy_Vector(5);
+//                 noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
+//                 for(unsigned int i=0; i< GetGeometry().size(); i++)
+//                 {
+//                         GetGeometry()[i].GetSolutionStepValue(MOMENTUM_X)= Dummy_Vector(0);
+//                         GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Y)= Dummy_Vector(1);
+//                         GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Z)= Dummy_Vector(2);
+//                         GetGeometry()[i].GetSolutionStepValue(PRESSURE)= Dummy_Vector(3);
+//                         GetGeometry()[i].GetSolutionStepValue(ERROR_RATIO)= Dummy_Vector(4);
+//                 }
 
      }
 
@@ -843,37 +838,30 @@ for(unsigned int i=0; i< GetGeometry().size(); i++)
     */
 	 void KinematicLinear::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
-// std::cout<<"GetValueOnIntegrationPoints"<<std::endl;
-            if(rVariable==INSITU_STRESS)
-            {
-                for( unsigned int PointNumber = 0; 
-                     PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); 
-                     PointNumber++ )
+// std::cout<<"GetValue On Integration Points"<<std::endl;
+                if(rValues.size() != mConstitutiveLawVector.size())
+                        rValues.resize(mConstitutiveLawVector.size());
+
+                if(rVariable==INSITU_STRESS)
                 {
-                    rValues[PointNumber] = 
-                            mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                if(rValues[i].size() != 6 )
+                                        rValues[i].resize(6);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS);
+                        }
                 }
-            }
-            if(rVariable==MATERIAL_PARAMETERS)
-            {
-                for( unsigned int PointNumber = 0; 
-                     PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+
+                if(rVariable==INTERNAL_VARIABLES)
                 {
-                    rValues[PointNumber] =
-                            mConstitutiveLawVector[PointNumber]->GetValue(MATERIAL_PARAMETERS);
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                if(rValues[i].size() != 8 )
+                                        rValues[i].resize(8);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES);
+                        }
                 }
-            }
-            if (rVariable==INTERNAL_VARIABLES)
-            {
-                for( unsigned int PointNumber = 0;
-                     PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size();
-                     PointNumber++ )
-                {
-                    rValues[PointNumber] = 
-                            mConstitutiveLawVector[PointNumber]->GetValue(INTERNAL_VARIABLES);
-                }
-            }
-// std::cout<<"END::GetValueOnIntegrationPoints"<<std::endl;
+// std::cout<<"END::GetValue On Integration Points"<<std::endl;
 	}
 	/**
     * Calculate double Variables at each integration point, used for postprocessing etc.
@@ -961,7 +949,23 @@ for(unsigned int i=0; i< GetGeometry().size(); i++)
                                                 rCurrentProcessInfo );
                         }
                 }
+
+                if(rVariable==INSITU_STRESS_SCALE)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                mConstitutiveLawVector[i]->SetValue(INSITU_STRESS_SCALE, rValues[i], rCurrentProcessInfo);
+                        }
+                }   
+                if(rVariable==OVERCONSOLIDATION_RATIO)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                mConstitutiveLawVector[i]->SetValue(OVERCONSOLIDATION_RATIO, rValues[i], rCurrentProcessInfo);
+                        }
+                }   
         }
 
         
 } // Namespace Kratos
+
