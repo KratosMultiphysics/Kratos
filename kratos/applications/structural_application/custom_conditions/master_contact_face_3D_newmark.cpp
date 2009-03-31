@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2007-07-17 16:15:08 $
-*   Revision:            $Revision: 1.6 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2008-02-29 15:18:45 $
+*   Revision:            $Revision: 1.3 $
 *
 * ***********************************************************/
 
@@ -86,21 +86,21 @@ namespace Kratos
 //             (GetGeometry()[i].pAddDof(DISPLACEMENT_Y));
 //             (GetGeometry()[i].pAddDof(DISPLACEMENT_Z));
 //         }
-        GetValue( LAMBDAS ).resize(GetGeometry().IntegrationPoints().size());
+        GetValue( LAMBDAS ).resize(GetGeometry().IntegrationPoints().size(),false);
         noalias(GetValue( LAMBDAS )) = ZeroVector( GetGeometry().IntegrationPoints().size());
-        GetValue( LAMBDAS_T ).resize( GetGeometry().IntegrationPoints().size(), 2 );
+        GetValue( LAMBDAS_T ).resize( GetGeometry().IntegrationPoints().size(), 2 ,false);
         noalias(GetValue( LAMBDAS_T )) = ZeroMatrix( GetGeometry().IntegrationPoints().size(), 2 );
-        GetValue( GAPS ).resize( GetGeometry().IntegrationPoints().size());
+        GetValue( GAPS ).resize( GetGeometry().IntegrationPoints().size(),false);
         noalias(GetValue( GAPS )) = ZeroVector( GetGeometry().IntegrationPoints().size());
-        GetValue( DELTA_LAMBDAS ).resize( GetGeometry().IntegrationPoints().size() );
+        GetValue( DELTA_LAMBDAS ).resize( GetGeometry().IntegrationPoints().size(),false );
         noalias(GetValue( DELTA_LAMBDAS )) = ZeroVector( GetGeometry().IntegrationPoints().size() );
-        GetValue( DELTA_LAMBDAS_T ).resize( GetGeometry().IntegrationPoints().size(), 2 );
+        GetValue( DELTA_LAMBDAS_T ).resize( GetGeometry().IntegrationPoints().size(), 2 ,false);
         noalias(GetValue( DELTA_LAMBDAS_T )) = ZeroMatrix( GetGeometry().IntegrationPoints().size(), 2 );
-        GetValue( PENALTY ).resize( GetGeometry().IntegrationPoints().size() );
+        GetValue( PENALTY ).resize( GetGeometry().IntegrationPoints().size(),false );
         noalias(GetValue( PENALTY )) =  ZeroVector( GetGeometry().IntegrationPoints().size() );
-        GetValue( PENALTY_T ).resize( GetGeometry().IntegrationPoints().size() );
+        GetValue( PENALTY_T ).resize( GetGeometry().IntegrationPoints().size() ,false);
         noalias(GetValue( PENALTY_T )) = ZeroVector( GetGeometry().IntegrationPoints().size() );
-	GetValue( IS_CONTACT_MASTER ) = 1;
+        GetValue( IS_CONTACT_MASTER ) = 1;
 	GetValue( IS_CONTACT_SLAVE ) = 0;
     }
     
@@ -187,7 +187,7 @@ namespace Kratos
     void MasterContactFace3DNewmark::CalculateRightHandSide( VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo)
     {
-	rRightHandSideVector.resize(0);
+        rRightHandSideVector.resize(0,false);
     }
     
     //************************************************************************************
@@ -200,8 +200,8 @@ namespace Kratos
                                               VectorType& rRightHandSideVector, 
                                               ProcessInfo& rCurrentProcessInfo)
     {
-	rRightHandSideVector.resize(0);
-	rLeftHandSideMatrix(0,0);
+        rRightHandSideVector.resize(0,false);
+        rLeftHandSideMatrix(0,0);
     }
     
     //************************************************************************************
