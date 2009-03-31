@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2008-01-24 16:45:57 $
-*   Revision:            $Revision: 1.11 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-03-05 12:01:22 $
+*   Revision:            $Revision: 1.6 $
 *
 * ***********************************************************/
 
@@ -97,6 +97,8 @@ namespace Kratos
 		if( rThisVariable == INSITU_STRESS )
 			return true;
 		return false;
+                if( rThisVariable == INTERNAL_VARIABLES )
+                        return true;
 	}
 	
 	bool DruckerPrager::Has( const Variable<Matrix>& rThisVariable )
@@ -137,7 +139,13 @@ namespace Kratos
 		{
 			return mInSituStress;
 		}
-        else return Vector(0);
+                else if( rThisVariable == INTERNAL_VARIABLES )
+                {
+                        Vector result = ZeroVector(1);
+                        result[0] = mEpsilon;
+                        return result;
+                }
+                else return Vector(0);
 	}
 	
 	Matrix DruckerPrager::GetValue( const Variable<Matrix>& rThisVariable )
@@ -610,6 +618,10 @@ namespace Kratos
 // 			std::cout << "ELASTIC LOADING: no plasticity occured" << std::endl;
 			mCurrentStress = trialStressVector;
 		}
+        
+        //TESTING: adding insitu stress
+        mCurrentStress += mInSituStress;
+        
 // 		KRATOS_WATCH( mPlasticStrain );
 		
 	}
