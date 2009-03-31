@@ -84,6 +84,7 @@ alias sources_KratosStructuralApplication
 	master_contact_face_3D.cpp 
 	slave_contact_face_3D.cpp 
 	contact_link_3D.cpp 
+	contact_link_3D_kinematic_linear.cpp 
 	master_contact_face_3D_newmark.cpp 
 	slave_contact_face_3D_newmark.cpp 
 	contact_link_3D_newmark.cpp 
