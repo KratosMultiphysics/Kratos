@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2008-01-24 16:48:22 $
-*   Revision:            $Revision: 1.2 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-03-05 12:01:22 $
+*   Revision:            $Revision: 1.6 $
 *
 * ***********************************************************/
 // System includes 
@@ -70,12 +70,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//default constructor
+    //*********************************************************************
+    //*********************************************************************
+    //******* default constructor
+    //*********************************************************************
+    //*********************************************************************  
     HooksLaw::HooksLaw() 
     : ConstitutiveLaw<Node<3> >()
     {
     }
-    //default desstructor
+    //*********************************************************************
+    //*********************************************************************
+    //******* default desstructor
+    //*********************************************************************
+    //********************************************************************* 
     HooksLaw::~HooksLaw()
     {
     }
@@ -88,195 +96,161 @@ namespace Kratos
     
     //*********************************************************************
     //*********************************************************************
-	// Initialization of the coonstitutive law at the begion of the time step
+    //******* Initialization of the coonstitutive law at the start of the simulation
     //*********************************************************************
     //*********************************************************************
     void HooksLaw::InitializeMaterial( const Properties& props,
-					const GeometryType& geom,
-					const Vector& ShapeFunctionsValues)
+                                        const GeometryType& geom,
+                                        const Vector& ShapeFunctionsValues)
     {
-		mInsituStress.resize(3,3);
-		mCurrentStress.resize(3,3);
-        mE = props[YOUNG_MODULUS];
-        mNU = props[POISSON_RATIO];
-		//set up the material law
-     	Matrix kronecker(3,3);
-     	noalias(kronecker)=ZeroMatrix(3,3);           
-     	for(unsigned int i=0; i<3;i++)
-     	{ 
-            kronecker(i,i)=1;
-     	}
-		//calculate Lame's parameters
-     	double lambda= mNU*mE/((1+mNU)*(1-2*mNU));
-     	double mu= mE/(2*(1+mNU));
-
-        for(unsigned int i=0; i<3;i++)
-            for(unsigned int j=0; j<3;j++)
-                for(unsigned int k=0; k<3; k++)
-                    for(unsigned int l=0; l<3; l++)
-                        mElasticMaterialTensor[27*i+9*j+3*k+l]=lambda*kronecker(i,j)
-                                *kronecker(k,l)+mu*(kronecker(i,k)*kronecker(j,l)
-                                        +kronecker(i,l)*kronecker(j,k));
+        //Initialize some member variables    
+        mCurrentStress.resize(6,false);
+        noalias(mCurrentStress)= ZeroVector(6);
+        mInsituStress.resize(6,false);
+        noalias(mInsituStress)= ZeroVector(6);
+        //get the Material parameters defined in the Pre-Processing        
+        mMaterialParameters = props[MATERIAL_PARAMETERS];
+        mE = mMaterialParameters[0];
+        mNU = mMaterialParameters[1];
         
-        noalias(mInsituStress)= ZeroMatrix(3,3);
-	}
+        //calculate Lame's parameters
+        double lambda= mNU*mE/((1+mNU)*(1-2*mNU));
+        double mu= mE/(2*(1+mNU));
+        //calculate Elastic Matrix acc. to Hooks Law
+        mC.resize(6,6);
+
+        mC(0,0)=2*mu+lambda; mC(0,1)=lambda; mC(0,2)=lambda; mC(0,3)=0.0; mC(0,4)=0.0; mC(0,5)=0.0;
+        mC(1,0)=lambda; mC(1,1)=2*mu+lambda; mC(1,2)=lambda; mC(1,3)=0.0; mC(1,4)=0.0; mC(1,5)=0.0;
+        mC(2,0)=lambda; mC(2,1)=lambda; mC(2,2)=2*mu+lambda; mC(2,3)=0.0; mC(2,4)=0.0; mC(2,5)=0.0;
+        mC(3,0)=0.0; mC(3,1)=0.0; mC(3,2)=0.0; mC(3,3)=mu; mC(3,4)=0.0; mC(3,5)=0.0;
+        mC(4,0)=0.0; mC(4,1)=0.0; mC(4,2)=0.0; mC(4,3)=0.0; mC(4,4)=mu; mC(4,5)=0.0;
+        mC(5,0)=0.0; mC(5,1)=0.0; mC(5,2)=0.0; mC(5,3)=0.0; mC(5,4)=0.0; mC(5,5)=mu;
+                                    
+    }
 
     //**********************************************************************
     //**********************************************************************
-	// not used in the exercises
+        // not used in the exercises
     //**********************************************************************
     //**********************************************************************
- 	void HooksLaw::SetValue( const Variable<Matrix >& rVariable, 
-					const Matrix& Value, const ProcessInfo& rCurrentProcessInfo)
-	{
-    }
-    //**********************************************************************
-    //**********************************************************************
-	// not used in the exercises
-    //**********************************************************************
-    //**********************************************************************
- 	void HooksLaw::SetValue( const Variable<Vector >& rVariable, 
-					const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+        void HooksLaw::SetValue( const Variable<Matrix >& rVariable, 
+                                        const Matrix& Value, const ProcessInfo& rCurrentProcessInfo)
     {
-       if( rVariable == INSITU_STRESS )
-       {
-			mInsituStress(0,0)= rValue(0);mInsituStress(0,1)= rValue(3);mInsituStress(0,2)= rValue(5);
-			mInsituStress(1,0)= rValue(3);mInsituStress(1,1)= rValue(1);mInsituStress(1,2)= rValue(4);
-			mInsituStress(2,0)= rValue(5);mInsituStress(2,1)= rValue(4);mInsituStress(2,2)= rValue(2);
-	   }
-
     }
     //**********************************************************************
     //**********************************************************************
-	// not used in the exercises
+        // not used in the exercises
+    //**********************************************************************
+    //**********************************************************************
+        void HooksLaw::SetValue( const Variable<Vector >& rVariable, 
+                                        const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+    //**********************************************************************
+    //**********************************************************************
+        // not used in the exercises
     //**********************************************************************
     //**********************************************************************
     Matrix HooksLaw::GetValue(const Variable<Matrix>& rVariable)
     { 
-		return ZeroMatrix(0,0);
+        return ZeroMatrix(0,0);
     }
 
     //**********************************************************************
     //**********************************************************************
-	// not used in the exercises
+        // not used in the exercises
     //**********************************************************************
     //**********************************************************************
     Vector HooksLaw::GetValue(const Variable<Vector>& rVariable)
     { 
-       if( rVariable == INSITU_STRESS )
-        {
-			Vector rResult(6);
-			rResult(0)= mInsituStress(0,0);
-			rResult(1)= mInsituStress(1,1);
-			rResult(2)= mInsituStress(2,2);
-			rResult(3)= mInsituStress(0,1);
-			rResult(4)= mInsituStress(1,2);
-			rResult(5)= mInsituStress(2,0);
-
-            return rResult;
-        }
-		else
-			return ZeroVector(0);
+                if( rVariable == INTERNAL_VARIABLES )
+                {
+                    Vector dummy = ZeroVector(6);                
+                    noalias(dummy)= mCurrentStress;
+                    
+                    return( dummy );                               
+                }       
+               return ZeroVector(0);
     }
     //**********************************************************************
     //**********************************************************************
-	// not used in the exercises
+        // not used in the exercises
     //**********************************************************************
     //**********************************************************************
     double HooksLaw::GetValue(const Variable<double>& rVariable)
     { 
-		return 0.0;
+        return 0.0;
     }
     //**********************************************************************
     //**********************************************************************
-	void HooksLaw::InitializeSolutionStep( const Properties& props,
-		const GeometryType& geom, //this is just to give the array of nodes
-		const Vector& ShapeFunctionsValues ,
-		const ProcessInfo& CurrentProcessInfo)
-	{
-        mE = props[YOUNG_MODULUS];
-        mNU = props[POISSON_RATIO];
-		Matrix kronecker(3,3);
-     	noalias(kronecker)=ZeroMatrix(3,3);           
-     	for(unsigned int i=0; i<3;i++)
-     	{ 
-            kronecker(i,i)=1;
-     	}
-		//calculate Lame's parameters
-     	double lambda= mNU*mE/((1+mNU)*(1-2*mNU));
-     	double mu= mE/(2*(1+mNU));
-
-        for(unsigned int i=0; i<3;i++)
-            for(unsigned int j=0; j<3;j++)
-                for(unsigned int k=0; k<3; k++)
-                    for(unsigned int l=0; l<3; l++)
-                        mElasticMaterialTensor[27*i+9*j+3*k+l]=lambda*kronecker(i,j)
-                                *kronecker(k,l)+mu*(kronecker(i,k)*kronecker(j,l)
-                                        +kronecker(i,l)*kronecker(j,k));
+        void HooksLaw::InitializeSolutionStep( const Properties& props,
+                const GeometryType& geom, //this is just to give the array of nodes
+                const Vector& ShapeFunctionsValues ,
+                const ProcessInfo& CurrentProcessInfo)
+    {
     }
     //**********************************************************************
     //**********************************************************************
-	//this method is called after each solution step ("time step")
+        //this method is called after each solution step ("time step")
     //**********************************************************************
     //**********************************************************************
     void HooksLaw::FinalizeSolutionStep( const Properties& props,
-					const GeometryType& geom, const Vector& ShapeFunctionsValues ,const ProcessInfo& CurrentProcessInfo)
+                                        const GeometryType& geom, const Vector& ShapeFunctionsValues ,const ProcessInfo& CurrentProcessInfo)
     {
-		if( CurrentProcessInfo[CALCULATE_INSITU_STRESS]&& !(CurrentProcessInfo[FIRST_TIME_STEP]))
-		{
-			noalias(mInsituStress) = mCurrentStress;
-			return;
-		}
+                if( CurrentProcessInfo[CALCULATE_INSITU_STRESS]&& !(CurrentProcessInfo[FIRST_TIME_STEP]))
+                {
+                        noalias(mInsituStress) -= mCurrentStress;
+                }
     }
     //**********************************************************************
     //**********************************************************************
-	// This is the main method called from outside (inside the element at each quadrature point)
+    // This is the main method called from outside (inside the element at each quadrature point)
     //**********************************************************************
     //**********************************************************************
-    void HooksLaw::CalculateStressAndTangentMatrix(Matrix& StressTensor, 
-            const Matrix& StrainTensor, 
-            MaterialTensorType& algorithmicTangent)
+    void HooksLaw::UpdateMaterial(  const Vector& StrainVector,
+                                      const Properties& props,
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      const ProcessInfo& CurrentProcessInfo )
     {
-        KRATOS_TRY
-
-        unsigned int dim = 3;
-
-        if(StressTensor.size1() != dim || StressTensor.size2() != dim)
-            StressTensor.resize(dim, dim);
-        noalias(StressTensor)= ZeroMatrix(dim, dim);
-
-        algorithmicTangent= mElasticMaterialTensor;
-
-		for(unsigned int i=0; i<3; i++)
-			for(unsigned int j=0; j<3; j++)
-				for(unsigned int k=0; k<3; k++)
-					for(unsigned int l=0; l<3; l++)
-						StressTensor(i,j)+=(mElasticMaterialTensor[27*i+9*j+3*k+l])*(StrainTensor(k,l));
-
-		StressTensor+= mInsituStress;
-
-        mCurrentStress= StressTensor;
-
-        KRATOS_CATCH("")
+    //not needed for the elastic law
     }
-    
+    //**********************************************************************
+    //**********************************************************************
+    // Computes the stress vector according to the actual plastic strain vector
+    //**********************************************************************
+    //**********************************************************************     
+    void HooksLaw::CalculateStress(const Vector& StrainVector, Vector& StressVector)
+    {
+        noalias(mCurrentStress)= ZeroVector(6);
+        for(unsigned int i=0; i<6; i++)
+            for(unsigned int j=0; j<6; j++)
+                mCurrentStress(i)+= StrainVector(j)*mC(i,j);
+        noalias(StressVector)= mCurrentStress-mInsituStress;
+        return;
+    }
+    //**********************************************************************
+    //**********************************************************************
+    // Called by the element, gives back the algorithmic tangent matrix calculated in update()
+    //**********************************************************************
+    //********************************************************************** 
+    void HooksLaw::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult)
+    {
+        //noalias(rResult) = mCtangent;
+        noalias(rResult) = mC;
+    }
+    //**********************************************************************
+    //**********************************************************************
+    // Called by the element, gives back the algorithmic tangent matrix and the stress vector calculated in update()
+    //**********************************************************************
+    //**********************************************************************     
     void HooksLaw::CalculateStressAndTangentMatrix( Vector& StressVector,
                                           const Vector& StrainVector,
                                           Matrix& algorithmicTangent)
     {
-        unsigned int dim = 3;
-        if( algorithmicTangent.size1() != 2*dim || algorithmicTangent.size2() != 2*dim )
-            algorithmicTangent.resize(2*dim, 2*dim, false);
-        noalias(algorithmicTangent)=ZeroMatrix(2*dim,2*dim);
-        //generating strain tensor from vector
-        Matrix StrainTensor = SD_MathUtils<double>::StrainVectorToTensor( StrainVector );
-        //calling tensorial formulation with member variables
-        CalculateStressAndTangentMatrix( mCurrentStress, StrainTensor, mElasticMaterialTensor );
-        //copying entries from material tensor to output matrix
-        SD_MathUtils<double>::TensorToMatrix( mElasticMaterialTensor, algorithmicTangent );
-        //copying entries from stress tensor to output vector
-        SD_MathUtils<double>::TensorToVector( mCurrentStress, StressVector );
+        noalias(StressVector) = mCurrentStress;
+        noalias(algorithmicTangent) = mC;
+        
         return;
     }
-    
 } // Namespace Kratos

@@ -43,13 +43,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2008-10-23 12:22:22 $
-*   Revision:            $Revision: 1.1 $
+*   Last Modified by:    $Author: nagel $
+*   Date:                $Date: 2009-03-20 08:54:06 $
+*   Revision:            $Revision: 1.6 $
 *
 * ***********************************************************/
-#if !defined(KRATOS_HOOKS_LAW_H_INCLUDED )
-#define  KRATOS_HOOKS_LAW_H_INCLUDED
+#if !defined(KRATOS_GROUTING_MORTAR_H_INCLUDED )
+#define  KRATOS_GROUTING_MORTAR_H_INCLUDED
 
 // System includes 
 
@@ -76,6 +76,8 @@ namespace Kratos
             /**
              * Type Definitions
              */
+            typedef ConstitutiveLaw<Node<3> > BaseType;
+            typedef BaseType::MaterialTensorType MaterialTensorType;
             
             /**
              * Counted pointer of GroutingMortar
@@ -107,32 +109,34 @@ namespace Kratos
             boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const;
             
             void InitializeMaterial( const Properties& props,
-					const GeometryType& geom,
-					const Vector& ShapeFunctionsValues);
+                                        const GeometryType& geom,
+                                        const Vector& ShapeFunctionsValues);
             
 
-			void InitializeSolutionStep( const Properties& props,
-				const GeometryType& geom, //this is just to give the array of nodes
-				const Vector& ShapeFunctionsValues ,
-				const ProcessInfo& CurrentProcessInfo);
+                        void InitializeSolutionStep( const Properties& props,
+                                const GeometryType& geom, //this is just to give the array of nodes
+                                const Vector& ShapeFunctionsValues ,
+                                const ProcessInfo& CurrentProcessInfo);
 
             void FinalizeSolutionStep( const Properties& props,
-					const GeometryType& geom, const Vector& ShapeFunctionsValues ,const ProcessInfo& CurrentProcessInfo);
+                                        const GeometryType& geom, const Vector& ShapeFunctionsValues ,const ProcessInfo& CurrentProcessInfo);
             
- 			void SetValue( const Variable<Matrix >& rVariable, 
-				const Matrix& Value, const ProcessInfo& rCurrentProcessInfo);
+                        void SetValue( const Variable<Matrix >& rVariable, 
+                                const Matrix& Value, const ProcessInfo& rCurrentProcessInfo);
+                        void SetValue( const Variable<Vector >& rVariable, 
+                                const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
+            void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+                           const ProcessInfo& rCurrentProcessInfo );
+            void SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
+                           const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
 
- 			void SetValue( const Variable<Vector >& rVariable, 
-				const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
 
- 	          void SetValue( const Variable<double >& rVariable, 
-					const double& rValue, const ProcessInfo& rCurrentProcessInfo);
 
- 			Matrix GetValue(const Variable<Matrix>& rVariable);
+                        Matrix GetValue(const Variable<Matrix>& rVariable);
 
-    		Vector GetValue(const Variable<Vector>& rVariable);
+                Vector GetValue(const Variable<Vector>& rVariable);
             
-			double GetValue(const Variable<double>& rVariable);
+                        double GetValue(const Variable<double>& rVariable);
 //             template<class TVariableType> bool Has( const TVariableType& rThisVariable);
             /**
              * Operators 
@@ -143,20 +147,33 @@ namespace Kratos
              * Operations
              */
 
-            /**
-             * Calculates the StressTensor and the algorithmic tangent Matrix for a given 
-             * Elastic Left Cauchy Green Tensor in trial state after Simo 
-             *[Comp. Meth. in Appl. Mech. and Eng. 99 (1992) 61-112] 
-             * @param StressTensor 3times3 Kirchhoff Stress Tensor
-             * @param LeftCauchyGreen_Trial elastic Left Cauchy Green Tensor in trial state =
-             * delta[f_(n+1)]*b^e_n*delta[f_(n+1)]^T
-             * @param algorithmicTangent \frac{\delta \tau_{n+1}}{\delta b_{n+1}}
-             */
-    void CalculateStressAndTangentMatrix(Matrix& StressTensor, 
-            const Matrix& StrainTensor, 
-            array_1d<double,81>& algorithmicTangent);
-  
+            
 
+          
+            /**
+             * calculates the current stress and the material tangent
+             * NOTE: there are two versions of this function: one for a matrix representation
+             * of the material tensor and one for a tensorial formulation. Each ConstitutiveLaw
+             * HAS TO IMPLEMENT both of them (for convenience, there are conversation functions 
+             * available in MathUtils for either of them)
+             * @param StressVector the calculated stress vector 
+             * @param StrainVector the given strain vector
+             * @param algorithmicTangent the calculated algorithmic tangent matrix
+             */
+             void UpdateMaterial(  const Vector& StrainVector,
+                                      const Properties& props,
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      const ProcessInfo& CurrentProcessInfo );
+                                      
+             void CalculateStress(const Vector& StrainVector, Vector& StressVector);
+    
+             void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+    
+             void CalculateStressAndTangentMatrix( Vector& StressVector,
+                                          const Vector& StrainVector,
+                                          Matrix& algorithmicTangent);
+         
             /**
              * Input and output
              */
@@ -189,9 +206,19 @@ namespace Kratos
              * Static Member Variables 
              */
             
-			Matrix mElasticMaterialMatrix28days;
-//             array_1d<double,81> mElasticMaterialTensor28days;
             double mE;
+            double mNU;
+            Matrix mC;
+            Matrix mC_28;
+            Vector mMaterialParameters;
+            Vector mCurrentStress;
+            Vector mInsituStress;
+            Vector mEpsilon_n;
+            Vector mEpsilon_t_n;
+            Vector mEpsilon_current;
+            double mCurrentTime;
+            double mDeltaTime;
+            double mCurrentXi;
             double mTe;
             double mDTe;
             double mRatioE1E28;
@@ -199,29 +226,22 @@ namespace Kratos
             double mBe;
             double mCe;
             double mDe;
-            double mCurrentTime;
-            double mDeltaTime;
-            double mCurrentXi;
 
-            Vector mlogEpsilon_n;
-            Vector mlogEpsilon_current;
-            Vector mlogEpsilon_t_n;
-//             Matrix mEpsilon_n;
-//             Matrix mEpsilon_current;
-//             Matrix mEpsilon_t_n;
-
-		    Matrix mStressTensor;
-            Matrix mInsituStressTensor;
-
-            Matrix mUpdatedLeftCauchyGreenTensor;
-            Matrix mLeftCauchyGreenTensor_Old;
-            Vector mMaterialParameters;
-
-			void SetVariable( const Variable<Matrix>& rVariable, Matrix& rValue);
             /**
              * Operations
              */
 
+            
+             /**
+             * Calculates the principal stresses
+             * @param  principalStresses principal stresses
+             * @param  aep algorithmic tangent in principal state
+             * @param  logStrains henky strains in principal state
+             */
+            
+            void CalculateStressAndTangentialStiffness_PrincipalState
+                    (Vector& principalStresses, Matrix& aep,const Vector& logStrains);
+            
              /**
              * Maps the algorithmic matrix, the henky strains and the kirchhoff stress tensor in 
              * principal state back to the actual configuration
@@ -235,61 +255,14 @@ namespace Kratos
              */
 
             void InitializeMaterialDummy
-                    (std::vector<std::vector<Matrix> >& C);
+                    (MaterialTensorType& C);
 
             double CalculateXi();
-             /**
-             * Spectral decomposition of the LeftCachyGreenTensor
-             * @param LeftCauchyGreenTensor elastic Left Cauchy Green Tensor in trial state =
-             * delta[f_(n+1)]*b^e_n*delta[f_(n+1)]^T
-             * @param stretches principal stretches
-             * @param henky henky strains in principal state
-             */
-            
-            void SpectralDecomposition
-                    (const Matrix& LeftCauchyGreenTensor, 
-                     Vector& stretches, Vector& henky);
-             /**
-             * Perturbates the principal stretches if they are equal
-             * @param  stretches principal stretches
-             * @return perturbated principal stretches
-             */
-            
-            Vector PerturbateLambda(const Vector& stretches);
-            
-             /**
-             * Calculates the principal stresses
-             * @param  principalStresses principal stresses
-             * @param  aep algorithmic tangent in principal state
-             * @param  logStrains henky strains in principal state
-             */
-            
-            void CalculateStressAndTangentialStiffness_PrincipalState
-                    (Vector& principalStresses, Matrix& aep,const Vector& logStrains);
-
-             /**
-             * Maps the algorithmic matrix, the henky strains and the kirchhoff stress tensor in 
-             * principal state back to the actual configuration
-             * @param  aep algorithmic tangent principal state
-             * @param  principalStresses principal kirchhoff stresses
-             * @param  stretches stretches in principal state
-             * @param  henky strains in principal state
-             * @param  LeftCauchyGreenTensor trial elastic Left Cauchy Green Tensor
-             * @param  tanC algorithmic tangent in actual configuration
-             * @param  UpdatedLeftCauchyGreenTensor elastic Left Cauchy Green Tensor
-             */
-            void InverseSpectralDecomposition(const Matrix aep, 
-                                              const Vector& principalStresses, 
-                                              const Vector& stretches, const Vector& henky, 
-                                              const Matrix& LeftCauchyGreenTensor, 
-                                              array_1d<double,81>& tanC,  
-                                              Matrix& StressTensor, Matrix& UpdatedLeftCauchyGreenTensor);
             //GroutingMortar(const IsotropicPlaneStressWrinklingNew& rOther);
     }; // Class GroutingMortar 
     
 }  // namespace Kratos.
 
 #endif // KRATOS_ISOTROPIC_LINEAR_ELASTIC_H_INCLUDED  defined 
-
 
 
