@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2007-09-20 10:52:55 $
-*   Revision:            $Revision: 1.1 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-03-05 12:01:22 $
+*   Revision:            $Revision: 1.4 $
 *
 * ***********************************************************/
 
@@ -186,7 +186,7 @@ namespace Kratos
 	{
 		if( StressVector.size() != 6 )
 		{
-			StressVector.resize(6);
+            StressVector.resize(6,false);
 		}
 		noalias(StressVector) = prod(mCtangent,StrainVector);
 		mCurrentStress = StressVector;
@@ -251,9 +251,9 @@ namespace Kratos
 		smin = StressMatrix(0,0);
 		smid = StressMatrix(1,1);
 		smax = StressMatrix(2,2);
-		mineigenvect.resize(3);
-		mideigenvect.resize(3);
-		maxeigenvect.resize(3);
+        mineigenvect.resize(3,false);
+        mideigenvect.resize(3,false);
+        maxeigenvect.resize(3,false);
 		for( int i=0; i<mineigenvect.size(); i++ )
 		{
 			mineigenvect(i) = EigenVectors(0,i);
