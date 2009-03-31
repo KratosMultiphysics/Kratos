@@ -49,10 +49,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include <cmath>
 
-#if !defined(isnan)
-#define isnan(x) ((x)!=(x))
-#endif
-
 namespace Kratos
 {
     template<class TDataType> class SD_MathUtils
@@ -90,7 +86,7 @@ namespace Kratos
             
             static inline bool CardanoFormula(double a, double b, double c, double d, Vector& solution)
             { 
-                solution.resize(3,3);
+                solution.resize(3,false);
                 noalias(solution)= ZeroVector(3);
 
                 if(a==0)
@@ -113,17 +109,14 @@ namespace Kratos
                 
                 if(discriminante==0)
                 {
+                    if( a == 0 )
+                        return false;
 
                     solution(0)= pow(q/2.0, 1.0/3.0)-b/(3*a);
                     solution(1)= pow(q/2.0, 1.0/3.0)-b/(3*a);
                     solution(2)= pow(-4.0*q, 1.0/3.0)-b/(3*a);
 
-					if(isnan(solution(0)) || isnan(solution(1))|| isnan(solution(2)))
-					{
-						return(false);
-					}
-                    
-                    return true;
+					return true;
                 }
                 
                 solution(0)= 
@@ -260,11 +253,11 @@ namespace Kratos
 
                 Vector w(dim);
 
-                R.resize(dim,dim);
+                R.resize(dim,dim,false);
                 
                 R=ZeroMatrix(dim,dim);
 
-                Q.resize(dim,dim);
+                Q.resize(dim,dim,false);
                 
                 Q=ZeroMatrix(dim,dim);
 
@@ -281,8 +274,8 @@ namespace Kratos
 
                 for(int i=0; i< dim-1; i++)
                 {
- 			HelpQ[i].resize(dim,dim);
-			HelpR[i].resize(dim,dim);	
+                    HelpQ[i].resize(dim,dim,false);
+                    HelpR[i].resize(dim,dim,false);	
                     noalias(HelpQ[i])= unity;
                     noalias(HelpR[i])= ZeroMatrix(dim,dim);
                 }
@@ -381,9 +374,9 @@ namespace Kratos
                         Help(i,j)= Help(i,j);
                 
                 
-                vectors.resize(Help.size1(),Help.size2());
+                vectors.resize(Help.size1(),Help.size2(),false);
                 
-                lambda.resize(Help.size1());
+                lambda.resize(Help.size1(),false);
                 
                 Matrix HelpDummy(Help.size1(),Help.size2());
                 
@@ -786,15 +779,17 @@ namespace Kratos
        * @param input the given Matrix
        * @param inverse inverse of the given Matrix
        */
-	    static void InvertMatrix( const MatrixType& input, MatrixType& inverse )
+	    static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
 	    {
+                    int singular = 0;
 		    using namespace boost::numeric::ublas;
 		    typedef permutation_matrix<std::size_t> pmatrix;
 		    Matrix A(input);
 		    pmatrix pm(A.size1());
-		    lu_factorize(A,pm);
+		    singular = lu_factorize(A,pm);
 		    inverse.assign( IdentityMatrix(A.size1()));
 		    lu_substitute(A, pm, inverse);
+                    return singular;
 	    }
 
        /**
@@ -819,10 +814,10 @@ namespace Kratos
        * @param Vector the given vector
        * @param Tensor the symmetric second order tensor
        */
-		static void VectorToTensor(Vector const & Vector,Matrix& Tensor)
+		static void VectorToTensor(Vector& Vector,Matrix& Tensor)
 		{
 			if(Tensor.size1()!= 3 || Tensor.size2()!= 3)
-				Tensor.resize(3,3);
+                        Tensor.resize(3,3,false);
 
 			Tensor(0,0)= Vector(0); Tensor(1,1)= Vector(1); Tensor(2,2)= Vector(2);
 			Tensor(0,1)= Vector(3); Tensor(0,2)= Vector(5);
@@ -840,7 +835,7 @@ namespace Kratos
 		static void TensorToVector( const Matrix& Tensor, Vector& Vector)
 		{
 			if(Vector.size()!= 6)
-				Vector.resize(6);
+                        Vector.resize(6,false);
 
 			Vector(0)= Tensor(0,0); Vector(1)= Tensor(1,1); Vector(2)= Tensor(2,2); 
 			Vector(3)= Tensor(0,1); Vector(4)= Tensor(1,2); Vector(5)= Tensor(2,0); 
@@ -857,14 +852,14 @@ namespace Kratos
 		{
 			int help1 = 0; int help2 = 0; double coeff = 1.0;
 
-			Tensor.resize(3);
+            Tensor.resize(3);
 
 			for(unsigned int i=0; i<3; i++)
 			{
-				Tensor[i].resize(3);
+                Tensor[i].resize(3);
 				for(unsigned int j=0; j<3; j++)
 				{
-              		Tensor[i][j].resize(3,3);	
+                    Tensor[i][j].resize(3,3,false);	
               		noalias(Tensor[i][j])= ZeroMatrix(3,3);
 					for(unsigned int k=0; k<3; k++)
 						for(unsigned int l=0; l<3; l++)
@@ -886,7 +881,39 @@ namespace Kratos
 
 			return;
 		}
+       /**
+       * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
+       * @param Tensor the given Matrix
+       * @param Vector the Tensor
+       */
+                static void MatrixToTensor(MatrixType& A,array_1d<double, 81>& Tensor)
+                {
+                        int help1 = 0; int help2 = 0; double coeff = 1.0;
+                        std::fill(Tensor.begin(), Tensor.end(), 0.0);
+                        for(unsigned int i=0; i<3; i++)
+                        {
+                                for(unsigned int j=0; j<3; j++)
+                                {
+                                        for(unsigned int k=0; k<3; k++)
+                                                for(unsigned int l=0; l<3; l++)
+                                                {       
+                                                        if(i==j) help1= i; 
+                                                        else{   if((i==0 && j==1) || (i==1 && j==0)) help1= 3;
+                                                                if((i==1 && j==2) || (i==2 && j==1)) help1= 4;
+                                                                if((i==2 && j==0) || (i==0 && j==2)) help1= 5;}
+                                                        if(k==l) {help2= k; coeff=1.0;}
+                                                        else{   coeff=0.5;
+                                                                if((k==0 && l==1) || (k==1 && l==0)) help2= 3;
+                                                                if((k==1 && l==2) || (k==2 && l==1)) help2= 4;
+                                                                if((k==2 && l==0) || (k==0 && l==2)) help2= 5;}
 
+                                                        Tensor[i*27+j*9+k*3+l]= A(help1,help2)*coeff;
+                                                }
+                                }
+                        }
+
+                        return;
+                }
        /**
        * Transforms a given 4th order tensor to a corresponing 6*6 Matrix 
        * @param Tensor the given Tensor
@@ -897,7 +924,7 @@ namespace Kratos
 			int help1 = 0; int help2 = 0; int help3 = 0; int help4 = 0; double coeff = 1.0;
 
 			if(Matrix.size1()!=6 || Matrix.size2()!=6)
-				Matrix.resize(6,6);
+                Matrix.resize(6,6,false);
 
 			for(unsigned int i=0; i<6; i++)
 				for(unsigned int j=0; j<6; j++)
@@ -926,7 +953,7 @@ namespace Kratos
         static void TensorToMatrix( const array_1d<double, 81>& Tensor, Matrix& Matrix )
         {
             if(Matrix.size1()!=6 || Matrix.size2()!=6)
-                Matrix.resize(6,6);
+                Matrix.resize(6,6,false);
             
             Matrix(0,0) = Tensor[0];
             Matrix(0,1) = Tensor[4];
@@ -992,7 +1019,7 @@ namespace Kratos
 				Unity[i].resize(3);
         	    for(unsigned int j=0; j<3;j++)
         	    {
-        	      	Unity[i][j].resize(3,3);	
+                    Unity[i][j].resize(3,3,false);	
         	      	noalias(Unity[i][j])= ZeroMatrix(3,3);
 
         	      	for(unsigned int k=0; k<3; k++)
