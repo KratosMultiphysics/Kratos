@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2008-05-06 13:54:01 $
-*   Revision:            $Revision: 1.5 $
+*   Last Modified by:    $Author: nagel $
+*   Date:                $Date: 2009-03-25 08:14:58 $
+*   Revision:            $Revision: 1.12 $
 *
 * ***********************************************************/
 
@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 #include "custom_conditions/contact_link_3D.h"
+#include "custom_conditions/contact_link_3D_kinematic_linear.h"
 #include "structural_application.h"
 
 //default builder and solver
@@ -157,59 +158,63 @@ namespace Kratos
                          ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end();
                          ++it )
                     {
-						if( (*it)->GetValue( ACTIVATION_LEVEL ) == 0 )
-						{
-							if( (*it)->GetValue( IS_CONTACT_MASTER ) )
-							{
-								MasterConditionsArray.push_back( *it );
-							}
-						}
+                        if( (*it)->GetValue( ACTIVATION_LEVEL ) == 0 )
+                        {
+                                if( (*it)->GetValue( IS_CONTACT_MASTER ) )
+                                {
+                                        MasterConditionsArray.push_back( *it );
+                                }
+                        }
                     }
-                    
+
                     GeometryType::Pointer tempGeometry =  GeometryType::Pointer( new Geometry<Node<3> >() );
-                
+
                     PropertiesType::Pointer tempProperties = ConditionsArray.begin()->pGetProperties();
-                
+
                     ConditionsArrayType::ptr_iterator it_begin=ConditionsArray.ptr_begin();
                     ConditionsArrayType::ptr_iterator it_end=ConditionsArray.ptr_end();
 
                     for (ConditionsArrayType::ptr_iterator it = it_begin; it!=it_end; ++it)
                     {
-						if( (*it)->GetValue( ACTIVATION_LEVEL ) == 0 )
-						{
-							if( (*it)->GetValue( IS_CONTACT_SLAVE ) )
-							{
-								for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
-								{
-									Point<3> MasterContactLocalPoint;
-									Point<3> SlaveContactLocalPoint;
-									(*it)->GetValue(PENALTY)[i]= initial_penalty;
-									(*it)->GetValue(PENALTY_T)[i]= initial_penalty_t;
+                        if( (*it)->GetValue( ACTIVATION_LEVEL ) == 0 )
+                        {
+                                if( (*it)->GetValue( IS_CONTACT_SLAVE ) )
+                                {
+                                        for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
+                                        {
+                                                Point<3> MasterContactLocalPoint;
+                                                Point<3> SlaveContactLocalPoint;
+                                                (*it)->GetValue(PENALTY)[i]= initial_penalty;
+                                                (*it)->GetValue(PENALTY_T)[i]= initial_penalty_t;
+                                                Condition::Pointer CurrentMaster ;
 
-									Condition::Pointer CurrentMaster ;
+                                                if( SearchPartner( 
+                                                        mr_model_part,
+                                                        (**it),
+                                                        MasterConditionsArray, i,
+                                                        MasterContactLocalPoint,
+                                                        SlaveContactLocalPoint,
+                                                        CurrentMaster ))
+                                                {
+                                                        IndexType newId = (mr_model_part.Conditions().end()-1)->Id()+LinkingConditions.size()+1;
+                                                        //creating contact link element
+                                                        Condition::Pointer newLink = Condition::Pointer( new ContactLink3D_Kinematic_Linear(newId,
+                                                        tempGeometry,
+                                                        tempProperties,
+                                                        CurrentMaster, 
+                                                        *it,
+                                                        MasterContactLocalPoint,
+                                                        SlaveContactLocalPoint, i) );
 
-                                if( SearchPartner( 
-                                    mr_model_part,
-                                    (**it),
-                                    MasterConditionsArray, i,
-                                    MasterContactLocalPoint,
-                                    SlaveContactLocalPoint,
-                                    CurrentMaster ))
-									{
-										IndexType newId = (mr_model_part.Conditions().end()-1)->Id()+LinkingConditions.size()+1;
-										//creating contact link element
-										Condition::Pointer newLink = Condition::Pointer( new ContactLink3D(newId,
-											tempGeometry,
-											tempProperties,
-											CurrentMaster, 
-											*it,
-											MasterContactLocalPoint,
-											SlaveContactLocalPoint, i) );
-											LinkingConditions.push_back( newLink );
-									}
-								}
-							}
-						}
+                                                        LinkingConditions.push_back( newLink );
+                                                }
+                                                else
+                                                {
+                                                    std::cout << "no contact partner found for condition: " << (*it)->Id() <<", integration point " << i << std::endl;
+                                                }
+                                        }
+                                }
+                        }
                     }
                     
                     if( contact_double_check )
@@ -265,7 +270,7 @@ namespace Kratos
                                                     mr_model_part.Conditions().end()-1)->Id()
                                                     +LinkingConditions.size()+1;
                                             Condition::Pointer newLink = Condition::Pointer( 
-                                                    new ContactLink3D( newId,
+                                                    new ContactLink3D_Kinematic_Linear( newId,
                                                     tempGeometry, tempProperties,
                                                             CurrentMaster, *it,
                                                                     MasterContactLocalPoint,
@@ -282,6 +287,11 @@ namespace Kratos
                     }
                     
                     //adding linking to model_part
+                    KRATOS_WATCH(LinkingConditions.size());
+                    if( LinkingConditions.size() == 0 )
+                    {
+                        std::cout << "!!!!!! NO LINKING CONDITIONS FOUND !!!!!!" << std::endl;
+                    }
                     for(  ConditionsArrayType::ptr_iterator it=LinkingConditions.ptr_begin();
                           it != LinkingConditions.ptr_end(); ++it )
                     {
@@ -702,15 +712,18 @@ namespace Kratos
                         for( IndexType i=0; i<(*it)->GetGeometry().IntegrationPoints().size();
                              i++ )
                         {
-                            if((*it)->GetValue( LAMBDAS )[i]>0)
+                            if((*it)->GetValue( LAMBDAS )[i]>0.0)
                             {
                                 energy_contact += ((*it)->GetValue( GAPS )[i])
                                         * ((*it)->GetValue( GAPS )[i])
                                         *0.5*((*it)->GetValue(PENALTY)[i]);
                                 absolute += (*it)->GetValue( LAMBDAS )[i];
                                 ratio += (*it)->GetValue( DELTA_LAMBDAS )[i];
-								wriggers_crit += ((*it)->GetValue( GAPS )[i])*((*it)->GetValue( GAPS )[i]);
+
                                 Index++;
+
+                                if(fabs(wriggers_crit) < fabs(((*it)->GetValue( GAPS )[i])))
+                                        wriggers_crit= ((*it)->GetValue( GAPS )[i]);
                             }
                         }
                     }
@@ -728,7 +741,7 @@ namespace Kratos
 
                         	if((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS )[i]  > 0)
                         	{
-                            	Matrix m = (*it)->GetValue(CONTACT_LINK_M);
+                            	        Matrix m = (*it)->GetValue(CONTACT_LINK_M);
 
                       			absolute_friction +=
                           		sqrt((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
@@ -741,34 +754,34 @@ namespace Kratos
                                 	*m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1));
 
                             		ratio_friction +=                                
-									sqrt((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
+                                                sqrt((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
                       				*m(0,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
-        							+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
- 									*m(0,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
-                 					+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
+        					+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
+ 						*m(0,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
+                 				+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
                       				*m(1,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
-            						+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
-               						*m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1));
+            					+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
+               					*m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1));
 
-								if((*it)->GetValue(CONTACT_LINK_SLAVE)-> GetValue(STICK)(i) > 0.5)
-								{
-									Vector relVelo(2);
-									noalias(relVelo)=GetRelativTangentialVelocity((*it)->GetValue(CONTACT_LINK_MASTER), (*it)->GetValue(CONTACT_LINK_SLAVE), (*it)->GetValue( SLAVE_CONTACT_LOCAL_POINT), (*it)->GetValue( MASTER_CONTACT_LOCAL_POINT));
+					if((*it)->GetValue(CONTACT_LINK_SLAVE)-> GetValue(STICK)(i) > 0.5)
+					{
+						Vector relVelo(2);
+						noalias(relVelo)=GetRelativTangentialVelocity((*it)->GetValue(CONTACT_LINK_MASTER), (*it)->GetValue(CONTACT_LINK_SLAVE), (*it)->GetValue( SLAVE_CONTACT_LOCAL_POINT), (*it)->GetValue( MASTER_CONTACT_LOCAL_POINT));
 		
-									energy_friction += 0.5*
-                                    		((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue(PENALTY_T)[i])*(relVelo(0)*m(0,0)*relVelo(0)
-											+relVelo(0)*m(0,1)*relVelo(1)
-											+relVelo(1)*m(1,0)*relVelo(0)
-											+relVelo(1)*m(1,1)*relVelo(1));
+						energy_friction += 0.5*
+                                    		        ((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue(PENALTY_T)[i])*(relVelo(0)*m(0,0)*relVelo(0)
+							+relVelo(0)*m(0,1)*relVelo(1)
+							+relVelo(1)*m(1,0)*relVelo(0)
+							+relVelo(1)*m(1,1)*relVelo(1));
 
-									slip+= (relVelo(0)*m(0,0)*relVelo(0)
-										+relVelo(0)*m(0,1)*relVelo(1)
-										+relVelo(1)*m(1,0)*relVelo(0)
-										+relVelo(1)*m(1,1)*relVelo(1)); 
+						slip+= (relVelo(0)*m(0,0)*relVelo(0)
+							+relVelo(0)*m(0,1)*relVelo(1)
+							+relVelo(1)*m(1,0)*relVelo(0)
+							+relVelo(1)*m(1,1)*relVelo(1)); 
 
-									Index2++;
+						Index2++;
                         		}
-							}
+				}
                     	}
                 }
                 if( this->mEchoLevel > 1 )
@@ -776,28 +789,29 @@ namespace Kratos
                     std::cout << "absolute Lambda: " << absolute/Index << std::endl;
                     std::cout << "relative Lambda: " << ratio/absolute << std::endl;
                     std::cout << "energy criterion: " << energy_contact/Index << std::endl;
-                    std::cout << "normed gap: " << sqrt(wriggers_crit)/Index<<std::endl;
+                    std::cout << "normed gap: " << wriggers_crit<<std::endl;
                     if( friction )
-		    		{
-						std::cout << "absolute Lambda friction: " << absolute_friction/Index << std::endl;
-						std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
-						std::cout << "energy criterion friction: " << energy_friction/Index2 << std::endl;
-						std::cout << "forbidden slip: " << sqrt(slip)/Index2  << std::endl;
-		   			 }
+		    {
+			std::cout << "absolute Lambda friction: " << absolute_friction/Index << std::endl;
+			std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
+			std::cout << "energy criterion friction: " << energy_friction/Index2 << std::endl;
+			std::cout << "forbidden slip: " << sqrt(slip)/Index2  << std::endl;
+		   }
                 }
-				else if( this->mEchoLevel > 0 )
-				{
-					if( friction )
-					{
-						std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
-					}
-				}
+		else if( this->mEchoLevel > 0 )
+		{
+		        if( friction )
+			{
+				std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
+			}
+		}
                 
                 if( friction_coefficient > 0.0 )
                 {
-                    if( ((fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) && sqrt(wriggers_crit)/Index < 1e-4)
-                         && ((fabs(absolute_friction/Index) < 1e-3 || fabs(ratio_friction/absolute_friction) < 1e-2)
-							&& sqrt(slip)/Index2< 1e-3))
+                    if( ((fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) 
+                                && sqrt(wriggers_crit)/Index < 1e-4)
+                                && ((fabs(absolute_friction/Index) < 1e-3 || fabs(ratio_friction/absolute_friction) < 1e-2)
+				&& sqrt(slip)/Index2< 1e-3))
                     {
                         if( this->mEchoLevel > 0 )
                             std::cout << "Contact condition converged after " << step+1 << " steps" << std::endl;
@@ -811,7 +825,7 @@ namespace Kratos
                 }
                 else
                 {
-                    if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ sqrt(wriggers_crit)/Index < 3e-5)
+                    if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ sqrt(wriggers_crit)/Index < 3e-4)
                     {
                         if( this->mEchoLevel > 0 )
                             std::cout << "Contact condition converged after " << step+1 << " steps" << std::endl;
@@ -959,6 +973,8 @@ namespace Kratos
                 return PartnerExists;
                 KRATOS_CATCH("")
             }//SearchPartner
+            
+            
             /**
              * This method searches for a given quadrature point the closest point 
              *   projection of a master surface. 
@@ -970,7 +986,6 @@ namespace Kratos
              * @param rCandidateGlobal Global coordinates of the node that is closest to 
              *   the quadrature point on the slave surface
              */
-
             bool ClosestPoint( ModelPart& mr_model_part,
                                Condition::Pointer& Surface,
                                GeometryType::CoordinatesArrayType& rResultGlobal, 
