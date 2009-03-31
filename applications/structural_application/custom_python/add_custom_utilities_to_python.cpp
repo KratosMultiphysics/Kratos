@@ -240,6 +240,9 @@ namespace Kratos
                     .def("AdjustToCylinder",&NodeSnappingUtility::AdjustToCylinder)
                     .def("AdjustToClosedCylinder",&NodeSnappingUtility::AdjustToClosedCylinder)
                     .def("IdentifyInsideElements",&NodeSnappingUtility::IdentifyInsideElements)
+                    .def("SetInsituStress", &NodeSnappingUtility::SetInsituStress)
+                    .def("ExtractCapNodes", &NodeSnappingUtility::ExtractCapNodes)
+                    .def("TestElements", &NodeSnappingUtility::TestElements)
                     ;
             
             class_<OutputUtility, boost::noncopyable >
