@@ -213,10 +213,10 @@ namespace Kratos
 		CalculateElasticMatrix( rResult, mE, mNU );
 	}
 
- //	void Isotropic2D::PlaneStrainConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult)
- //	{
- //		CalculatePlaneElasticMatrix( rResult, mE, mNU );
-//	}
+// 	void Isotropic2D::PlaneStrainConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult)
+// 	{
+// 		CalculatePlaneElasticMatrix( rResult, mE, mNU );
+// 	}
 	
 	
 	
