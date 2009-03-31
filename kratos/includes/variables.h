@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2009-01-14 09:45:29 $
-//   Revision:            $Revision: 1.29 $
+//   Last Modified by:    $Author: nagel $
+//   Date:                $Date: 2009-03-25 08:24:41 $
+//   Revision:            $Revision: 1.18 $
 //
 //
 
@@ -278,7 +278,16 @@ namespace Kratos
 
 
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESS_PROJ)
+	KRATOS_DEFINE_VARIABLE( double , SUCTION )
 
+	// for mengmeng application
+	KRATOS_DEFINE_VARIABLE( double, TEMPERATURE_NULL )
+	KRATOS_DEFINE_VARIABLE( double, TEMPERATURE_EINS )
+	KRATOS_DEFINE_VARIABLE( double, SURFACE_FLOW_HEAT )
+	KRATOS_DEFINE_VARIABLE( double, SURFACE_FLOW_WATER )
+	KRATOS_DEFINE_VARIABLE( double, ICE_VOLUME_FRACTION )
+	KRATOS_DEFINE_VARIABLE( double, ICE_VOLUME_FRACTION_NULL )
+	KRATOS_DEFINE_VARIABLE( double, ICE_VOLUME_FRACTION_EINS )
 }  // namespace Kratos.
 
 
