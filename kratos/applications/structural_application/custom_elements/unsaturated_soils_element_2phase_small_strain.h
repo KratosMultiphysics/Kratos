@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2009-01-14 09:24:26 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author: nagel $
+//   Date:                $Date: 2009-03-09 11:36:04 $
+//   Revision:            $Revision: 1.5 $
 //
 //
 
@@ -68,7 +68,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-
 
 namespace Kratos
 {
@@ -136,6 +135,8 @@ namespace Kratos
 
                void Initialize();
 
+                void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
                void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       
                void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
@@ -162,6 +163,8 @@ namespace Kratos
 				void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
 				void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+                                void SetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo);
                
 //                void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 //                

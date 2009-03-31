@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2009-01-14 09:24:27 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author: nagel $
+//   Date:                $Date: 2009-03-09 11:36:21 $
+//   Revision:            $Revision: 1.4 $
 //
 //
 
@@ -134,6 +134,8 @@ namespace Kratos
 
                void Initialize();
 
+                void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
                void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       
                void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
@@ -161,6 +163,7 @@ namespace Kratos
 
 		void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
                
+                                void SetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo);
 
       ///@}
       ///@name Access
@@ -411,9 +414,7 @@ namespace Kratos
 	//************************************************************************************
               
         //PRIMARY VARIABLES AND THEIR DERIVATIVES
-               
-               Matrix CalculateDisplacementGradient(const Matrix& DN_DX_DISP);
-               
+
                void GetDerivativeDPressuresDt(const Vector& N_PRESS, double& capillaryPressure_Dt, 
                                     double& waterPressure_Dt,double& airPressure_Dt );
                
