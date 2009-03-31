@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2009-01-14 11:36:06 $
-//   Revision:            $Revision: 1.7 $
+//   Last Modified by:    $Author: hurga $
+//   Date:                $Date: 2009-03-27 09:06:18 $
+//   Revision:            $Revision: 1.8 $
 //
 //
 
@@ -159,6 +159,11 @@ namespace Kratos
                     }
                     GiD_EndResult();
                 }
+            }
+            
+            void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
+                                       double SolutionTag, unsigned int value_index )
+            {
             }
             
             virtual void PrintResults( Variable<Vector> rVariable, ModelPart& r_model_part, 
