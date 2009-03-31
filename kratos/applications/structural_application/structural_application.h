@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: virginia $
-//   Date:                $Date: 2009-01-23 14:39:59 $
-//   Revision:            $Revision: 1.23 $
+//   Last Modified by:    $Author: nagel $
+//   Date:                $Date: 2009-03-20 08:55:34 $
+//   Revision:            $Revision: 1.20 $
 //
 //
 
@@ -143,6 +143,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Point<3>, MASTER_CONTACT_GLOBAL_POINT );
     KRATOS_DEFINE_VARIABLE( Point<3>, MASTER_CONTACT_CURRENT_GLOBAL_POINT );
     KRATOS_DEFINE_VARIABLE( Point<3>, SLAVE_CONTACT_GLOBAL_POINT );
+    KRATOS_DEFINE_VARIABLE( double , INSITU_STRESS_SCALE );
+    KRATOS_DEFINE_VARIABLE( double , OVERCONSOLIDATION_RATIO );
     // 	KRATOS_DEFINE_VARIABLE(double, DP_EPSILON )
     // 	KRATOS_DEFINE_VARIABLE(Vector, INSITU_STRESS )
     // 	KRATOS_DEFINE_VARIABLE(double, DP_ALPHA1 )
@@ -349,6 +351,8 @@ namespace Kratos
                     mUnsaturatedSoilsElement2PhaseSmallStrain3D27N;
             const UnsaturatedSoilsElement_2phase_SmallStrain
                     mUnsaturatedSoilsElement2PhaseSmallStrain3D15N;
+            const UnsaturatedSoilsElement_2phase_SmallStrain
+                    mUnsaturatedSoilsElement2PhaseSmallStrain3D8N;
             const UnsaturatedSoilsElement_3phase
                     mUnsaturatedSoilsElement3Phase3D10N;
             const UnsaturatedSoilsElement_3phase
@@ -365,6 +369,8 @@ namespace Kratos
                     mUnsaturatedSoilsElement3PhaseSmallStrain3D27N;
             const UnsaturatedSoilsElement_3phase_SmallStrain
                     mUnsaturatedSoilsElement3PhaseSmallStrain3D15N;
+            const UnsaturatedSoilsElement_3phase_SmallStrain
+                    mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
             
             const Face2D  mFace2D;
             const Face3D  mFace3D3N;

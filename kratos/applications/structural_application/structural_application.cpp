@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: virginia $
-//   Date:                $Date: 2009-01-23 14:39:59 $
-//   Revision:            $Revision: 1.27 $
+//   Last Modified by:    $Author: nagel $
+//   Date:                $Date: 2009-03-20 08:55:31 $
+//   Revision:            $Revision: 1.23 $
 //
 // 
 
@@ -130,6 +130,8 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_GLOBAL_POINT )
 	KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_CURRENT_GLOBAL_POINT )
 	KRATOS_CREATE_VARIABLE( Point<3>, SLAVE_CONTACT_GLOBAL_POINT )
+        KRATOS_CREATE_VARIABLE(double, INSITU_STRESS_SCALE)
+        KRATOS_CREATE_VARIABLE(double, OVERCONSOLIDATION_RATIO)
 // 	KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
 // 	KRATOS_CREATE_VARIABLE(Vector, PENALTY )
 // // 	KRATOS_CREATE_VARIABLE(double, INITIAL_PENALTY )
@@ -232,6 +234,7 @@ namespace Kratos
         mUnsaturatedSoilsElement2PhaseSmallStrain3D20N(0,Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>())))),
         mUnsaturatedSoilsElement2PhaseSmallStrain3D27N(0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27, Node<3>())))),
         mUnsaturatedSoilsElement2PhaseSmallStrain3D15N(0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15, Node<3>())))),
+        mUnsaturatedSoilsElement2PhaseSmallStrain3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mUnsaturatedSoilsElement3Phase3D10N(0,Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >(Element::GeometryType::PointsArrayType(10, Node<3>())))),
         mUnsaturatedSoilsElement3Phase3D20N(0,Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>())))),
         mUnsaturatedSoilsElement3Phase3D27N(0,Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27, Node<3>())))),
@@ -240,7 +243,7 @@ namespace Kratos
         mUnsaturatedSoilsElement3PhaseSmallStrain3D20N(0,Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>())))),
         mUnsaturatedSoilsElement3PhaseSmallStrain3D27N(0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27, Node<3>())))),
         mUnsaturatedSoilsElement3PhaseSmallStrain3D15N(0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15, Node<3>())))),
-
+        mUnsaturatedSoilsElement3PhaseSmallStrain3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
         mFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mFace3D6N(0, Element::GeometryType::Pointer(new Triangle2D6 <Node<3> >(Element::GeometryType::PointsArrayType(6, Node<3>())))),
@@ -297,7 +300,8 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE( MATRIX_D )
 		KRATOS_REGISTER_VARIABLE( COMPOSITE_DIRECTION )
 		KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS )
-
+                KRATOS_REGISTER_VARIABLE( INSITU_STRESS_SCALE )
+                KRATOS_REGISTER_VARIABLE( OVERCONSOLIDATION_RATIO )
 		//		KRATOS_REGISTER_VARIABLE(WRINKLING_APPROACH )
 //		KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_TENSOR )
 //		KRATOS_REGISTER_VARIABLE(PK2_STRESS_TENSOR )
@@ -429,7 +433,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement2PhaseSmallStrain3D10N", mUnsaturatedSoilsElement2PhaseSmallStrain3D10N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement2PhaseSmallStrain3D20N", mUnsaturatedSoilsElement2PhaseSmallStrain3D20N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement2PhaseSmallStrain3D27N", mUnsaturatedSoilsElement2PhaseSmallStrain3D27N)
-        KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElementSmallStrain2Phase3D15N", mUnsaturatedSoilsElement2PhaseSmallStrain3D15N)
+        KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement2PhaseSmallStrain3D15N", mUnsaturatedSoilsElement2PhaseSmallStrain3D15N)
+        KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement2PhaseSmallStrain3D8N", mUnsaturatedSoilsElement2PhaseSmallStrain3D8N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3Phase3D10N", mUnsaturatedSoilsElement3Phase3D10N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3Phase3D20N", mUnsaturatedSoilsElement3Phase3D20N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3Phase3D27N", mUnsaturatedSoilsElement3Phase3D27N)
@@ -437,7 +442,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D10N", mUnsaturatedSoilsElement3PhaseSmallStrain3D10N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D20N", mUnsaturatedSoilsElement3PhaseSmallStrain3D20N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D27N", mUnsaturatedSoilsElement3PhaseSmallStrain3D27N)
-        KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElementSmallStrain3Phase3D15N", mUnsaturatedSoilsElement3PhaseSmallStrain3D15N)
+        KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D15N", mUnsaturatedSoilsElement3PhaseSmallStrain3D15N)
+        KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D8N", mUnsaturatedSoilsElement3PhaseSmallStrain3D8N)
         KRATOS_REGISTER_CONDITION("Face2D", mFace2D)
         KRATOS_REGISTER_CONDITION("Face3D3N", mFace3D3N)
         KRATOS_REGISTER_CONDITION("Face3D6N", mFace3D6N)
