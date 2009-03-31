@@ -44,9 +44,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: nelson $
-//   Date:                $Date: 2008-12-09 15:23:36 $
-//   Revision:            $Revision: 1.10 $
+//   Last Modified by:    $Author: hurga $
+//   Date:                $Date: 2007-10-18 16:23:41 $
+//   Revision:            $Revision: 1.3 $
 //
 //
 
@@ -171,9 +171,11 @@ namespace Kratos
             void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo);
 
             void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+            
+            void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 	  
-												void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
             void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+            
             void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
             void GetValuesVector(Vector& values, int Step = 0);
@@ -313,7 +315,6 @@ namespace Kratos
                                           unsigned int StrainSize);
         
             void ResizeAndInitializeAuxiliaries();
-
             
             ///@} 
             ///@name Private Operations
