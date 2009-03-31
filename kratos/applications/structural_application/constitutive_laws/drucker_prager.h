@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2008-01-24 16:47:04 $
-*   Revision:            $Revision: 1.8 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-03-05 12:01:22 $
+*   Revision:            $Revision: 1.4 $
 *
 * ***********************************************************/
 
