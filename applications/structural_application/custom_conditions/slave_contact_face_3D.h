@@ -43,8 +43,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2007-03-13 15:01:51 $
+*   Last Modified by:    $Author: hurga $
+*   Date:                $Date: 2009-02-26 13:49:16 $
 *   Revision:            $Revision: 1.4 $
 *
 * ***********************************************************/
@@ -185,6 +185,10 @@ namespace Kratos
             
             void GetDofList( DofsVectorType& ConditionalDofList,
                              ProcessInfo& CurrentProcessInfo);
+
+    	     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+             
+             void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
             
             /**
              * Turn back information as a string.
@@ -227,6 +231,8 @@ namespace Kratos
                     double pressure,
                     double weight,
                     double DetJ ); 
+
+    		Matrix TangentialVectors_inOrigin( const GeometryType::CoordinatesArrayType& rPoint );
             
             /**
              * Assignment operator.
