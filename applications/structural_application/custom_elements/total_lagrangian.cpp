@@ -1,4 +1,4 @@
-/* 
+/*
 ==============================================================================
 KratosStructuralApplication 
 A library based on:
@@ -158,11 +158,9 @@ namespace TotalLagrangianAuxiliaries
 		mDetJ0.resize(integration_points.size(),false);
 
 
-
 		GeometryType::JacobiansType J0;
 		J0 = GetGeometry().Jacobian(J0, mThisIntegrationMethod);  
 		mTotalDomainInitialSize = 0.00;
-
 
 		//Constitutive Law initialisation
 		if(mConstitutiveLawVector.size() != integration_points.size() )
@@ -183,8 +181,6 @@ namespace TotalLagrangianAuxiliaries
 
 			//calculating the total area
 			mTotalDomainInitialSize += mDetJ0[PointNumber]*IntegrationWeight;
-   //KRATOS_WATCH(J0[PointNumber])
-			//std::cout<<"Initialize"<<std::endl;
 		}
 
 		KRATOS_CATCH("")
@@ -197,7 +193,7 @@ namespace TotalLagrangianAuxiliaries
                                            ProcessInfo& rCurrentProcessInfo,
                                            bool CalculateStiffnessMatrixFlag,
                                            bool CalculateResidualVectorFlag)
-  {
+        {
 		KRATOS_TRY
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -229,7 +225,6 @@ namespace TotalLagrangianAuxiliaries
 		
 		//reading integration points and local gradients
 		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-		//KRATOS_WATCH (integration_points[0]);
 		const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
@@ -245,8 +240,6 @@ namespace TotalLagrangianAuxiliaries
 			//Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
 // 			msDN_DX = ZeroMatrix(msDN_DX.size1(),msDN_DX.size2());
 			noalias(msDN_DX) = prod(DN_De[PointNumber],mInvJ0[PointNumber]);
-		 //////KRATOS_WATCH(DN_De)
-   //////KRATOS_WATCH(mInvJ0[PointNumber])
 
 			//deformation gradient
 // 			noalias(msF)= ZeroMatrix(3,3);
@@ -272,20 +265,13 @@ namespace TotalLagrangianAuxiliaries
 			
 			//Does not work with Newmark scheme for some reason
 			noalias(msF) = prod(J[PointNumber],mInvJ0[PointNumber]);
-   //KRATOS_WATCH(msF)
-   //KRATOS_WATCH(mInvJ0[PointNumber])
-			//KRATOS_WATCH(J[PointNumber])
-   //KRATOS_WATCH(msF)
 
 			//strain calculation
 			noalias(msC) = prod(trans(msF),msF);
-   //////KRATOS_WATCH(msC)
-
 
 //std::cout << Id() << " " << msC << std::endl;
 			CalculateStrain(msC,msStrainVector);
-   ////KRATOS_WATCH(msStrainVector)
-			//////KRATOS_WATCH( omp_get_thread_num() );
+			//KRATOS_WATCH( omp_get_thread_num() );
 /*			if( omp_get_thread_num() == 1 )
 			{
 				////KRATOS_WATCH( Id() );
@@ -301,27 +287,22 @@ namespace TotalLagrangianAuxiliaries
 					rCurrentProcessInfo );
 			//Calculation of stress
 			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
-			////KRATOS_WATCH(msStressVector)
 
 			//calculating operator B
 			CalculateB(msB,msF,msDN_DX,msStrainVector.size());
-   ////KRATOS_WATCH(msB)
 
 			//calculating weights for integration on the reference configuration
 			double IntToReferenceWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
 			if (dim == 2) IntToReferenceWeight *= GetProperties()[THICKNESS];
-  //////KRATOS_WATCH(integration_points[PointNumber].Weight())
-  //////KRATOS_WATCH(IntToReferenceWeight)
 
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 			{
 				mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
-    ////KRATOS_WATCH(msD);
 
 				//contributions to stiffness matrix calculated on the reference config
-				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); // constitutive component matrix
-				CalculateAndAddKg(rLeftHandSideMatrix,msDN_DX,msStressVector,IntToReferenceWeight);// initial component matrix+constitutive component matrix
-				//////KRATOS_WATCH(rLeftHandSideMatrix)
+				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); //to be optimized to remove the temporary
+
+				CalculateAndAddKg(rLeftHandSideMatrix,msDN_DX,msStressVector,IntToReferenceWeight);
 			}
 
 			if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
@@ -329,13 +310,11 @@ namespace TotalLagrangianAuxiliaries
 				//contribution to external forces 
 				BodyForce = GetProperties()[BODY_FORCE];
 
-				//KRATOS_WATCH(BodyForce);
 				// operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
 				CalculateAndAdd_ExtForceContribution(row(Ncontainer,PointNumber),rCurrentProcessInfo,BodyForce,rRightHandSideVector,IntToReferenceWeight);
-    //KRATOS_WATCH(rRightHandSideVector)
+
 				// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
 				noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(msB),msStressVector);
-    //////KRATOS_WATCH(rRightHandSideVector)
 			}	
 		}
 
@@ -397,17 +376,18 @@ namespace TotalLagrangianAuxiliaries
 	void TotalLagrangian::InitializeMaterial()
 	{
 		KRATOS_TRY
-
-		for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+		if(GetProperties()[CONSTITUTIVE_LAW] != NULL)
 		{
-			//temporary
-			mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-
-                        mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) ); 
+			for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+			{
+					mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+					mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) ); 
+			}
 		}
-        KRATOS_CATCH("")
+		else
+			KRATOS_ERROR(std::logic_error,"a constitutive law needs to be specified for the element with ID ",this->Id())
+        	KRATOS_CATCH("")
 	} 
-
 
 	//************************************************************************************
 	//************************************************************************************
@@ -420,17 +400,14 @@ namespace TotalLagrangianAuxiliaries
 		)
 	{
 		KRATOS_TRY
-		//double gravity = 9.80665;
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
 		for (unsigned int i=0;i<number_of_nodes;i++)
 		{
-				//KRATOS_WATCH(N[i]);
 			int index = dimension*i;
 			for (unsigned int j=0; j<dimension; j++)  rRightHandSideVector[index+j] += weight*N[i]*BodyForce[j];		  
 		}
-		
 		KRATOS_CATCH("")
 	}
 
@@ -450,16 +427,12 @@ namespace TotalLagrangianAuxiliaries
 			//Matrix<double> ReducedKg(DN_Dx.RowsNumber(),DN_Dx.RowsNumber());
 			//Matrix<double>::MatMulAndAdd_B_D_Btrans(ReducedKg,weight,DN_Dx,StressTensor);
 			//MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
-		
-	
-		unsigned int dimension = GetGeometry().WorkingSpaceDimension(); 
+
+			unsigned int dimension = GetGeometry().WorkingSpaceDimension(); 
 		Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
 		Matrix ReducedKg = prod(DN_DX, weight * Matrix(prod(StressTensor,trans(DN_DX)) ) ); //to be optimized
 		MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
-		
-  //////KRATOS_WATCH(StressTensor)
-  //////KRATOS_WATCH(ReducedKg)
-  //////KRATOS_WATCH(K)
+
 		KRATOS_CATCH("")
 	}  
 
@@ -667,8 +640,8 @@ namespace TotalLagrangianAuxiliaries
 		//unsigned int MatSize=number_of_nodes*dim;
 
 		//reading integration points and local gradients
-  const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-  const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+                const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+                const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
 		//calculating actual jacobian
 		GeometryType::JacobiansType J;
@@ -709,9 +682,6 @@ namespace TotalLagrangianAuxiliaries
 
 				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++)
 					Output[PointNumber](0,ii) = msStressVector[ii];
-				 ////KRATOS_WATCH(Output[PointNumber]);
-					
-
 			}
 			else if(rVariable==INSITU_STRESS)
 			{
@@ -797,8 +767,8 @@ namespace TotalLagrangianAuxiliaries
             }
         }
         
-//************************************************************************************
-//************************************************************************************
+        //************************************************************************************
+        //************************************************************************************
         void TotalLagrangian::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                 std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
         {
@@ -809,7 +779,6 @@ namespace TotalLagrangianAuxiliaries
             if(rVariable==PK2_STRESS_TENSOR)
             {
                 CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-																
             }
         }
 
@@ -868,6 +837,7 @@ namespace TotalLagrangianAuxiliaries
 	}
 	//************************************************************************************
 	//************************************************************************************
+
 
 } // Namespace Kratos
 
