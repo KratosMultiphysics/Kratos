@@ -243,7 +243,7 @@ namespace Kratos
 		double kinv = 0.0;
 		//we can calculate the elemental kinv from the already calculate elemental eps;
 		//If the nodes of the element are fluid one then kinv= 0, otherwise kinv = 150(1-eps)²/eps³*dp²;
-		if(eps0 != 1 | eps1 != 1 | eps2 != 1 | eps3 != 1)
+		if((eps0 != 1) || (eps1 != 1) || (eps2 != 1) || (eps3 != 1) )
 			kinv = 150*(1-eps)*(1-eps)/(eps*eps*eps*dp*dp);
 
 		//getting the BDF2 coefficients (not fixed to allow variable time step)

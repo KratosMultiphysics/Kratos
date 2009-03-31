@@ -25,8 +25,7 @@
  Reciprocal of safe minimum   = 4.494233e+307
 
 ---- TIMER
-Time for 10000000 DAXPY ops  =     0.0167 seconds
-DAXPY performance rate =    1.2e+03 mflops
-Including DSECND, time        =          0 seconds
-Average time for DSECND       =   -0.00167 milliseconds
-Equivalent floating point ops =       -100 ops
+Time for 10000000 DAXPY ops  =       0.05 seconds
+DAXPY performance rate =        400 mflops
+Including DSECND, time        =     0.0167 seconds
+Average time for DSECND       =    0.00167 milliseconds

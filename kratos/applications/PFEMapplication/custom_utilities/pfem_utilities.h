@@ -91,10 +91,12 @@ namespace Kratos
 				{
 					//marking wet nodes
 					if(in->FastGetSolutionStepValue(IS_STRUCTURE) )
+					  {
 						if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
 							in->FastGetSolutionStepValue(IS_FLUID) = 1.0;
 						else //it is not anymore of fluid
 							in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
+					  }
 					//marking as free surface the lonely nodes
 // 					else
 					if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
@@ -130,10 +132,12 @@ namespace Kratos
 					in->Free(PRESSURE);
 					//marking wet nodes
 					if(in->FastGetSolutionStepValue(IS_STRUCTURE) )
+					  {
 						if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
 							in->FastGetSolutionStepValue(IS_FLUID) = 1.0;
 						else //it is not anymore of fluid
 							in->FastGetSolutionStepValue(IS_FLUID) = 0.0;
+					  }
 					//marking as free surface the lonely nodes
 // 					else
 					if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)

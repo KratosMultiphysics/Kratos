@@ -11,10 +11,12 @@ domain_size = 2
 kratos_libs_path = '../../../../libs' ##kratos_root/libs
 kratos_applications_path = '../../../../applications' ##kratos_root/applications
 kratos_python_scripts_path = '../../../../applications/structural_application/python_scripts'
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 sys.path.append(kratos_python_scripts_path)
+sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
 from Kratos import *

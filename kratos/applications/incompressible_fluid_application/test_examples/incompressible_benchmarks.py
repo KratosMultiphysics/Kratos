@@ -36,7 +36,28 @@ def Run():
 	
 
         ################################################################
+	# cavity2D
 
+	Text += "cavity2d: "
+	os.chdir("cavity2d.gid")
+	sys.path.append(os.getcwd())
+
+	#import column_benchmark
+	#Msg = column_benchmark.Run()
+
+	print "Running column.py..."
+	Msg = benchmarking.RunBenchmark("cavity2d.py", "cavity_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "cavity2d example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "cavity2d example FAILED"
+
+	os.chdir("..")
 	
         # Add other examples here
 
