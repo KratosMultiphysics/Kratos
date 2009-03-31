@@ -740,6 +740,23 @@ namespace Kratos
              * @param rVariable the given variable name
              * @param r_model_part the current model part
              */
+            void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
+            {
+                KRATOS_TRY;
+                for( typename std::vector<TGaussPointContainer>::iterator it =
+                     mGidGaussPointContainers.begin();
+                     it != mGidGaussPointContainers.end(); it++ )
+                {
+                    it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
+                }
+                KRATOS_CATCH("");
+            }
+            
+            /**
+             * Prints variables of type double on gauss points of the complete mesh
+             * @param rVariable the given variable name
+             * @param r_model_part the current model part
+             */
             virtual void PrintOnGaussPoints( const Variable<Vector>& rVariable, ModelPart& r_model_part,
                                              double SolutionTag, int value_index = 0 )
             {
