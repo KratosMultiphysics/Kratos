@@ -99,6 +99,11 @@ namespace Kratos
             dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag, value_index );
         }
         
+        void Array1DPrintOnGaussPointsIndexed( GidIOType& dummy, const Variable<array_1d<double,3> >rVariable, ModelPart& r_model_part, double SolutionTag, unsigned int value_index = 0 )
+        {
+            dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag, value_index );
+        }
+        
         void VectorPrintOnGaussPointsIndexed( GidIOType& dummy, const Variable<Vector>& rVariable,
                                        ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
         {
@@ -184,6 +189,7 @@ namespace Kratos
                     .def("PrintOnGaussPoints", VectorPrintOnGaussPointsIndexed)
                     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
                     .def("PrintOnGaussPoints", MatrixPrintOnGaussPointsIndexed)
+                    .def("PrintOnGaussPoints", Array1DPrintOnGaussPointsIndexed)
 //                     .def("CondPrintOnGaussPoints", pointer_to_double_cond_print_on_gauss_points)
                     
                     .def("Flush",&GidIOType::Flush)
