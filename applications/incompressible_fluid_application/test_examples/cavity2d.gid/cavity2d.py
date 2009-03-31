@@ -9,11 +9,12 @@ domain_size = 2
 
 #including kratos path
 kratos_libs_path = '../../../../libs' ##kratos_root/libs
-#kratos_libs_path = 'C:/kratosR1/libs' ##kratos_root/libs
 kratos_applications_path = '../../../../applications' ##kratos_root/applications
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
+sys.path.append(kratos_benchmarking_path)
 
 print "aaa"
 #importing Kratos main library
@@ -32,6 +33,40 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 ##################################################################
 
 from KratosIncompressibleFluidApplication import *
+import benchmarking
+
+def BenchmarkCheck(time, model_part):
+    max_press = 0.0; 
+    min_press = 0.0;
+    vel2min = 10000.0;
+    id_min_vel = 0
+    x_min_vel = 0.0
+    y_min_vel = 0.0
+    for node in model_part.Nodes:
+        press = node.GetSolutionStepValue(PRESSURE);
+        if(press > max_press):
+            max_press = press
+        elif(press < min_press):
+             min_press = press
+
+        x = node.X
+        y = node.Y
+        vel = node.GetSolutionStepValue(VELOCITY)
+        vel2 = vel[0]**2 + vel[1]**2
+        if(x > 0.1 and x<0.9 and y>0.1 and y<0.9):
+            if(vel2 < vel2min):
+                vel2min = vel2
+                id_min_vel = node.Id
+                x_min_vel = node.X
+                y_min_vel = node.Y
+            
+        
+    benchmarking.Output(time, "Time")
+    benchmarking.Output(min_press, "minimum pressure", 0.00001)
+    benchmarking.Output(max_press, "maximum pressure", 0.00001)
+    benchmarking.Output(id_min_vel, "Id of the node with minimum velocity norm", 0.0)
+    benchmarking.Output(x_min_vel, "coord x minimum velocity norm", 0.0)
+    benchmarking.Output(y_min_vel, "coord y minimum velocity norm", 0.0)
 
 
 #defining a model part
@@ -111,13 +146,11 @@ zero[2] = 0.0;
 gid_io.InitializeResults( 0.0, model_part.GetMesh() )
 
 for step in range(1,nsteps):
-    print "line49"
 
     time = Dt*step
     print time
     model_part.CloneTimeStep(time)
 
-    print "qui"
 
     print time
     #print model_part.ProcessInfo()[TIME]
@@ -125,8 +158,13 @@ for step in range(1,nsteps):
     #solving the fluid problem
     if(step > 3):
         fluid_solver.Solve()
+        if (benchmarking.InBuildReferenceMode()):
+            BenchmarkCheck(time, model_part)
+        else:
+            BenchmarkCheck(time, model_part)
+
+
         
-    print "li"
 
 
     #print the results

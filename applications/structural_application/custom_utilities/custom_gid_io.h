@@ -202,11 +202,13 @@ namespace Kratos
                             {
                                 int index = mIndexContainer[i];
                                 if( rVariable == INSITU_STRESS )
+				  {
                                     if(ValuesOnIntPoint[i].size() ==6 )
                                         GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0),
                                         ValuesOnIntPoint[index](1), ValuesOnIntPoint[index](2),
                                                 ValuesOnIntPoint[index](3), ValuesOnIntPoint[index](4),
                                                         ValuesOnIntPoint[index](5) );
+				  }
                                 else if( (rVariable == MATERIAL_PARAMETERS) 
                                           || (rVariable == INTERNAL_VARIABLES) )
                                 {
