@@ -151,9 +151,11 @@ namespace Kratos
                     BuilderAndSolverType;
 
 //	typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > //ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
-
+                    
+//             typedef ModalAnalysisBuilderAndSolver<SparseSpaceType, LocalSpaceType,
+//                     LinearSolverType> ModalAnalysisBuilderAndSolverType;
 	typedef CompositScheme< SparseSpaceType, LocalSpaceType > CompositSchemeType;
-		
+                    
 	typedef VolumetricScheme< 2, SparseSpaceType, LocalSpaceType > VolumetricSchemeType2D;
 	typedef VolumetricScheme< 3, SparseSpaceType, LocalSpaceType > VolumetricSchemeType3D;
 
@@ -162,9 +164,9 @@ namespace Kratos
 
 	typedef InnerVolumetricDynamicScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType2D;
 	typedef InnerVolumetricDynamicScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType3D;
- // 					;
- 
 
+	
+// 					;
            //********************************************************************
            //********************************************************************
            class_< ResidualBasedPredictorCorrectorBossakSchemeType,
