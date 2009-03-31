@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2009-01-14 09:24:27 $
-//   Revision:            $Revision: 1.3 $
+//   Last Modified by:    $Author: nagel $
+//   Date:                $Date: 2009-03-20 08:55:58 $
+//   Revision:            $Revision: 1.11 $
 //
 //
 
@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
+#include "structural_application.h"
 
 #include "boost/timer.hpp"
 
@@ -117,7 +118,7 @@ namespace Kratos
         //DOFs at the end of time step
         //All calculations are made on the general midpoint alpha
         // Variables DOF_ALPHA are updated in the scheme
-        if(GetGeometry().size()== 27 ||GetGeometry().size()== 20 || GetGeometry().size()== 10 || GetGeometry().size()== 15)
+        if(GetGeometry().size()== 27 ||GetGeometry().size()== 20 || GetGeometry().size()== 10 || GetGeometry().size()== 15 || GetGeometry().size()== 8)
         {
                 if(GetGeometry().size()== 27 )
                 {
@@ -161,6 +162,18 @@ namespace Kratos
                         mpPressureGeometry = Geometry< Node<3> >::Pointer(new Prism3D6 <Node<3> >(
                                         GetGeometry()(0),GetGeometry()(1),GetGeometry()(2),GetGeometry()(3),GetGeometry()(4),GetGeometry()(5)));
                         mThisIntegrationMethod= GeometryData::GI_GAUSS_3;
+                }
+                // Attention this version does not fulfill the Babuska Brezzi Stability constraint and is therefore not an appropriate choice if consolidation under initially undrained conditions is analysed
+                if(GetGeometry().size()== 8 )
+                {
+                        mNodesPressMin=1;
+                        mNodesPressMax=8;
+                        mNodesDispMin=1;
+                        mNodesDispMax=8;
+                        mpPressureGeometry = Geometry< Node<3> >::Pointer(new Hexahedra3D8 <Node<3> >(
+                                        GetGeometry()(0),GetGeometry()(1),GetGeometry()(2),GetGeometry()(3),
+                                        GetGeometry()(4),GetGeometry()(5),GetGeometry()(6),GetGeometry()(7)));
+                        mThisIntegrationMethod= GeometryData::GI_GAUSS_2;
                 }
         }     
         else
@@ -284,7 +297,22 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+        /**
+    * THIS method is called from the scheme at the start of each solution step
+    * @param rCurrentProcessInfo
+    */
+    void UnsaturatedSoilsElement_3phase_SmallStrain::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    {
+         //reading integration points and local gradients
+         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
+         for(unsigned int Point=0; Point< integration_points.size(); Point++)
+         {
+            mConstitutiveLawVector[Point]->InitializeSolutionStep(GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),Point), CurrentProcessInfo);
+
+//            mConstitutiveLawVector[Point]->SetValue(SUCTION, GetGeometry()[0].GetSolutionStepValue(TEMPERATURE),CurrentProcessInfo );
+         }
+    }
         //************************************************************************************
         //************************************************************************************
     void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateAll(MatrixType& rLeftHandSideMatrix, 
@@ -733,14 +761,14 @@ namespace Kratos
                         mConstitutiveLawVector[Point]->FinalizeSolutionStep(GetProperties(), GetGeometry(), ZeroVector(0), CurrentProcessInfo);
                 }
 
-                Vector Dummy_Vector(3);
-                noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
-                for(unsigned int i=0; i< GetGeometry().size(); i++)
-                {
-                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_X)= Dummy_Vector(0);
-                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Y)= Dummy_Vector(1);
-                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Z)= Dummy_Vector(2);
-                }
+//                 Vector Dummy_Vector(8);
+//                 noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
+//                 for(unsigned int i=0; i< GetGeometry().size(); i++)
+//                 {
+//                         GetGeometry()[i].GetSolutionStepValue(MOMENTUM_X)= Dummy_Vector(0);
+//                         GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Y)= Dummy_Vector(1);
+//                         GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Z)= Dummy_Vector(2);
+//                 }
         }
 
         //************************************************************************************
@@ -1405,7 +1433,7 @@ namespace Kratos
 
                 KRATOS_CATCH("")
         }    
-        
+
         //************************************************************************************
         //************************************************************************************  
             
@@ -1443,8 +1471,7 @@ namespace Kratos
             double density_air= GetDensityAir(airPressure);
             double density_water= GetProperties()[DENSITY_WATER];
             double saturation=GetSaturation(capillaryPressure);
-//             double porosity_divu= GetDerivativeDPorosityDDivU(DN_DX_DISP);
-            double porosity_divu= 0.0;
+            double porosity_divu= GetDerivativeDPorosityDDivU(DN_DX_DISP);
 
                     double DrhoDdivU= 
                                 porosity_divu
@@ -1476,7 +1503,6 @@ namespace Kratos
 
                 KRATOS_CATCH("")
 	}
-              
         //************************************************************************************
         //************************************************************************************ 
 
@@ -1526,7 +1552,6 @@ namespace Kratos
                 }
 
         }
-        
 //************************************************************************************
 //************************************************************************************
         void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateStiffnesMatrixUA(Matrix& Help_K_UA, Matrix& tanC_A, const Matrix& DN_DX_DISP, Vector& N_DISP, Vector& N_PRESS, double capillaryPressure, double airPressure, double Weight,double DetJ)
@@ -1574,6 +1599,7 @@ namespace Kratos
             }
         
         }
+
 //************************************************************************************
 //************************************************************************************
 //************************************************************************************
@@ -1619,7 +1645,6 @@ namespace Kratos
                 }
         }
 
-        
         //************************************************************************************
         //************************************************************************************
         //************************************************************************************
@@ -1660,7 +1685,6 @@ namespace Kratos
                         }
                 }
         }
-        
         //************************************************************************************
         //************************************************************************************
         void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateStiffnesMatrixWW
@@ -1715,7 +1739,7 @@ namespace Kratos
             }
 
         }
-        
+
 //************************************************************************************
 //************************************************************************************
         void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateStiffnesMatrixWA(Matrix& Help_K_WA,const Matrix& DN_DX_DISP,const Matrix& DN_DX_PRESS,Vector& N_PRESS, double capillaryPressure,double Weight,double DetJ)
@@ -1792,7 +1816,6 @@ namespace Kratos
                     }
                 }
         }
-        
         //************************************************************************************
         //************************************************************************************
         
@@ -1814,7 +1837,6 @@ namespace Kratos
                     }
             }
         }
-        
 //************************************************************************************
 //************************************************************************************
 
@@ -2179,39 +2201,6 @@ namespace Kratos
                 }
             }
         }
-        
-//************************************************************************************
-//************************************************************************************
-//************************************************************************************
-
-            
-        //PRIMARY VARIABLES AND THEIR DERIVATIVES
-        
-        Matrix UnsaturatedSoilsElement_3phase_SmallStrain::CalculateDisplacementGradient(const Matrix& DN_DX_DISP)
-        { 
-                unsigned int dim= GetGeometry().WorkingSpaceDimension(); 
-            
-                Matrix result(dim,dim);
-                noalias(result)= ZeroMatrix(dim,dim);
-                    
-                Vector disp_alpha(dim);
-                    
-                for(unsigned int point=(mNodesDispMin-1); point<mNodesDispMax; point++)
-                {
-                    noalias(disp_alpha)= GetGeometry()[point].GetSolutionStepValue(DISPLACEMENT);
-            
-                        for(unsigned int j=0; j<3; j++)
-                        {
-                                for(unsigned int k=0; k<dim; k++)
-                                {
-                                    result(j,k) += disp_alpha(j)
-                                            *DN_DX_DISP((point-mNodesDispMin+1),k);
-                                }
-                            }
-                }
-
-                return result;
-        }
 
         //************************************************************************************
         //************************************************************************************     
@@ -2243,6 +2232,7 @@ namespace Kratos
             
                 return result;
             }
+
     //************************************************************************************
         //************************************************************************************     
             
@@ -2272,6 +2262,7 @@ namespace Kratos
             
                 return result;
             }
+
         //************************************************************************************
         //************************************************************************************   
             
@@ -2411,10 +2402,11 @@ namespace Kratos
         
     double UnsaturatedSoilsElement_3phase_SmallStrain::GetDerivativeDPorosityDDivU(const Matrix& DN_DX_DISP)
     {
-            double initialPorosity= GetProperties()[POROSITY];
-            double div= GetDivU(DN_DX_DISP);
+//             double initialPorosity= GetProperties()[POROSITY];
+//             double div= GetDivU(DN_DX_DISP);
 
-            double porosity_divu= (1-initialPorosity)*exp(-div);
+             double porosity_divu= 0.0;
+//             double porosity_divu= (1-initialPorosity)*exp(-div);
 
             return porosity_divu;
         }
@@ -2450,39 +2442,39 @@ namespace Kratos
         //************************************************************************************  
         double UnsaturatedSoilsElement_3phase_SmallStrain::GetDivU(const Matrix& DN_DX_DISP)
         {
-                unsigned int dim = GetGeometry().WorkingSpaceDimension();
+                   unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-                double div= 0.0;
-            
-                Vector u_alpha(dim);
+                   double div= 0.0;
+             
+                   Vector u_alpha(dim);
 
-                for(unsigned int i = mNodesDispMin-1 ; i < mNodesDispMax ;i++)
-                {
+                   for(unsigned int i = mNodesDispMin-1 ; i < mNodesDispMax ;i++)
+                   {
 //                     //nodal Displacements
-                    noalias(u_alpha)= 
-                            GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
-                    //thus strain in vector format
+                       noalias(u_alpha)= 
+                               GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT);
+                       //thus strain in vector format
 
-                        for(unsigned int k=0; k<dim; k++)
-                        {
-                            div += (u_alpha(k))
+                         for(unsigned int k=0; k<dim; k++)
+                         {
+                               div += (u_alpha(k))
                                         *DN_DX_DISP(i-mNodesDispMin+1,k); 
-                        }
+                         }
                     }       
-                
+                   
                     return div;
         }
         //************************************************************************************
         //************************************************************************************
         double UnsaturatedSoilsElement_3phase_SmallStrain::GetDerivativeDDivUDt(const Matrix& DN_DX_DISP)
         {
-                unsigned int dim = GetGeometry().WorkingSpaceDimension();
+                   unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-                double div= 0.0;
-                
-                Vector u_alpha_Dt (dim);
-                for(unsigned int i = mNodesDispMin-1 ; i < mNodesDispMax ;i++)
-                {
+                   double div= 0.0;
+                   
+                   Vector u_alpha_Dt (dim);
+                   for(unsigned int i = mNodesDispMin-1 ; i < mNodesDispMax ;i++)
+                   {
 //                                //nodal Displacements
                         noalias(u_alpha_Dt)= 
                                 GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_DT);
@@ -2491,7 +2483,7 @@ namespace Kratos
 
                         for(unsigned int k=0; k<dim; k++)
                         {
-                            div += u_alpha_Dt(k)*DN_DX_DISP(i-mNodesDispMin+1,k); 
+                              div += u_alpha_Dt(k)*DN_DX_DISP(i-mNodesDispMin+1,k); 
                         }
                     }           
                     return div;
@@ -2526,56 +2518,54 @@ namespace Kratos
         
         double UnsaturatedSoilsElement_3phase_SmallStrain::GetSaturation(double capillaryPressure)
         {
-                double airEntryPressure= GetProperties()[AIR_ENTRY_VALUE];
+		double airEntryPressure= GetProperties()[AIR_ENTRY_VALUE];
 
-                if(airEntryPressure<=0.0)
-                        airEntryPressure= 1.0;
+		if(airEntryPressure<=0.0)
+			airEntryPressure= 1.0;
 
-                double b= GetProperties()[FIRST_SATURATION_PARAM];
+		double b= GetProperties()[FIRST_SATURATION_PARAM];
 
-                double c= GetProperties()[SECOND_SATURATION_PARAM];
-            
-        	double saturation = 0.0;
+		double c= GetProperties()[SECOND_SATURATION_PARAM];
+             
+                double saturation = 0.0;
 //              
-        	if(capillaryPressure< 0.0)
-                	capillaryPressure=0.0;
+                if(capillaryPressure< 0.0)
+                       capillaryPressure=0.0;
 
-        //Calculation of Derivative relative Permeability after Mualem
                 saturation= pow((1.0+pow((capillaryPressure/airEntryPressure),b)),(-c));
 
 // For Liakopolous Benchmark
 // saturation =  1.0-1.9722*1e-11*pow(capillaryPressure,2.4279);
-            
+             
 
-        	return saturation;
+                return saturation;
         }
-        
+
 //************************************************************************************
 //************************************************************************************
                 
         double UnsaturatedSoilsElement_3phase_SmallStrain::GetDerivativeDSaturationDpc(double capillaryPressure)
         {
+		double airEntryPressure= GetProperties()[AIR_ENTRY_VALUE];
+		if(airEntryPressure<=0)
+			airEntryPressure= 1.0;
 
-                double airEntryPressure= GetProperties()[AIR_ENTRY_VALUE];
-                if(airEntryPressure<=0.0)
-                        airEntryPressure= 1.0;
+		double b= GetProperties()[FIRST_SATURATION_PARAM];
 
-                double b= GetProperties()[FIRST_SATURATION_PARAM];
-// 
-                double c= GetProperties()[SECOND_SATURATION_PARAM];
+		double c= GetProperties()[SECOND_SATURATION_PARAM];
 
-        	double result = 0.0;
+                double result = 0.0;
+//              
+                if(capillaryPressure< 0.0)
+                         capillaryPressure=0.0;
 
-        	if(capillaryPressure< 0.0)
-                	capillaryPressure=0.0;
-
-        	//Calculation of Derivative relative Permeability after Mualem
-                result= (-c)*pow((1.0+pow((capillaryPressure/airEntryPressure),b)),(-c-1.0))*b* pow((capillaryPressure/airEntryPressure),(b-1.0))*1.0/airEntryPressure; 
-
+		result= (-c)*pow((1.0+pow((capillaryPressure/airEntryPressure),b)),(-c-1.0))*b* 
+		pow((capillaryPressure/airEntryPressure),(b-1.0))*1.0/airEntryPressure;   
+ 
 // For Liakopolous Benchmark 
 // result =  -1.9722*2.4279*1e-11*pow(capillaryPressure,1.4279);
 
-        return result;
+                return result;
         } 
         
         //************************************************************************************
@@ -2583,32 +2573,29 @@ namespace Kratos
         
         double UnsaturatedSoilsElement_3phase_SmallStrain::GetSecondDerivativeD2SaturationDpc2(double capillaryPressure)
     {
+		double airEntryPressure= GetProperties()[AIR_ENTRY_VALUE];
+		if(airEntryPressure<=0)
+			airEntryPressure= 1.0;
 
-                double airEntryPressure= GetProperties()[AIR_ENTRY_VALUE];
-                if(airEntryPressure<=0.0)
-                        airEntryPressure= 1.0;
+		double b= GetProperties()[FIRST_SATURATION_PARAM];
 
-                double b= GetProperties()[FIRST_SATURATION_PARAM];
-// 
-                double c= GetProperties()[SECOND_SATURATION_PARAM];
-            
-        	double result = 0.0;
+		double c= GetProperties()[SECOND_SATURATION_PARAM];
+             
+                double result = 0.0;
 
-        	if(capillaryPressure< 0.0)
-                	capillaryPressure=0.0;
-
-        //Calculation of Derivative relative Permeability after Mualem
-                result= (-c)*b/airEntryPressure*(
-                                (-c-1.0)*pow((1.0+pow((capillaryPressure/airEntryPressure),b)),(-c-2.0))
-                                *pow((capillaryPressure/airEntryPressure),(2.0*(b-1.0)))*b/airEntryPressure
-                                +pow((1.0+pow((capillaryPressure/airEntryPressure),b)),(-c-1.0))*(b-1.0)
-                                *pow((capillaryPressure/airEntryPressure),(b-2.0))*1.0/airEntryPressure
-                                );
+                if(capillaryPressure< 0.0)
+                         capillaryPressure=0.0;
+             
+		result= (-c)*b/airEntryPressure*(
+			(-c-1.0)*pow((1.0+pow((capillaryPressure/airEntryPressure),b)),(-c-2.0))
+			*b/airEntryPressure*pow((capillaryPressure/airEntryPressure),(2.0*(b-1.0)))
+			+pow((1.0+pow((capillaryPressure/airEntryPressure),b)),(-c-1.0))*(b-1.0)
+			*pow((capillaryPressure/airEntryPressure),(b-2.0))*1.0/airEntryPressure);
 
 // For Liakopolous Benschmark
 // result =  -1.9722*2.4279*1.4279*1e-11*pow(capillaryPressure,0.4279);
 
-                return result;
+                 return result;
         } 
         
         //************************************************************************************
@@ -2620,33 +2607,35 @@ namespace Kratos
 
         Vector UnsaturatedSoilsElement_3phase_SmallStrain::GetFlowWater(const Matrix& DN_DX_PRESS,const Matrix& DN_DX_DISP, double capillaryPressure)
         {
-            unsigned int dim = GetGeometry().WorkingSpaceDimension();
-
-        //Calculation of Derivative relative Permeability after Mualem
-                double relPerm= GetSaturation(capillaryPressure);
-                if(relPerm<= 0.01)
-                relPerm= 0.01;
+                        unsigned int dim = GetGeometry().WorkingSpaceDimension();
+             
+                        //Calculation of relative Permeability after Mualem
+                        double relPerm= GetSaturation(capillaryPressure);
+                                
+                        if(relPerm<= 0.01) relPerm= 0.01;
 
 // For Liakopolous Benschmark
 // double saturation= GetSaturation(capillaryPressure);
 // double relPerm= 1.0- 2.207*pow((1-saturation),1.0121);
 
-                Vector gravity(dim);
-                noalias(gravity)= GetProperties()[GRAVITY];
-            
-                Vector result(dim);
-                noalias(result)=ZeroVector(dim);
-            
-                Vector grad_water(dim);
-                noalias(grad_water)= GetGradWaterPressure(DN_DX_PRESS);
-
-                for(unsigned int i=0; i< dim; i++)
-                {
-                    result(i) = -relPerm*GetProperties()[PERMEABILITY_WATER]/(GetProperties()[DENSITY_WATER]*9.81)
-                                *(grad_water(i)-GetProperties()[DENSITY_WATER]*gravity(i));
-                }
-            
-                return result;
+                       Vector gravity(dim);
+                       noalias(gravity)= GetProperties()[GRAVITY];
+             
+                       Vector result(dim);
+                       noalias(result)=ZeroVector(dim);
+             
+                       Vector grad_water(dim);
+                       noalias(grad_water)= GetGradWaterPressure(DN_DX_PRESS);
+                       
+                       for(unsigned int i=0; i< dim; i++)
+                       {
+                               result(i) = -relPerm*GetProperties()[PERMEABILITY_WATER]/
+                                       (GetProperties()[DENSITY_WATER]*9.81)
+                                       *(grad_water(i)-GetProperties()[DENSITY_WATER]
+                                       *gravity(i));
+                       }
+             
+                       return result;
         }
 
 //************************************************************************************
@@ -2654,33 +2643,41 @@ namespace Kratos
         
         Vector UnsaturatedSoilsElement_3phase_SmallStrain::GetDerivativeDWaterFlowDpw(const Matrix& DN_DX_PRESS,const Matrix& DN_DX_DISP,double capillaryPressure)
     {
-                unsigned int dim = GetGeometry().WorkingSpaceDimension();
+                        unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-                double DSDpc= GetDerivativeDSaturationDpc(capillaryPressure); 
+                        double DSDpc= GetDerivativeDSaturationDpc(capillaryPressure); 
+                        //Calculation of Derivative relative Permeability after Mualem
+                     double relPerm= GetSaturation(capillaryPressure);
+                     double relPerm_pw= (-1.0)*DSDpc;
+                             if(relPerm<= 0.01)
+                             {
+                                     relPerm= 0.01;
+                                     relPerm_pw= 0.0;
+                             }
 
 // For Liakopolous Benschmark
 // double saturation= GetSaturation(capillaryPressure);
 // double relPerm_pw= -2.207*1.0121*pow((1-saturation),0.0121)*(-DSDpc)*(-1);
-// // double relPerm= 1.0- 2.207*pow((1-saturation),1.0121);
-		    double relPerm_pw= -DSDpc;
-                    Vector result(dim);
-                    noalias(result)= ZeroVector(dim);
-// 
-                    Vector gravity(dim);
-                    noalias(gravity)= GetProperties()[GRAVITY];
+// double relPerm= 1.0- 2.207*pow((1-saturation),1.0121);
 
-                    Vector grad_water(dim);
-                    noalias(grad_water)= GetGradWaterPressure(DN_DX_PRESS);
-            
-                    for(unsigned int i=0; i< dim; i++)
-                    {
-                        result(i) = -relPerm_pw*GetProperties()[PERMEABILITY_WATER]/
-                                    (GetProperties()[DENSITY_WATER]*9.81)
-                                    *(grad_water(i)-GetProperties()[DENSITY_WATER]
-                                    *gravity(i));
-                    }
-            
-                    return result;
+                Vector result(dim);
+                noalias(result)= ZeroVector(dim);
+
+                Vector gravity(dim);
+                noalias(gravity)= GetProperties()[GRAVITY];
+
+                Vector grad_water(dim);
+                noalias(grad_water)= GetGradWaterPressure(DN_DX_PRESS);
+             
+                for(unsigned int i=0; i< dim; i++)
+                {
+                    result(i) = -relPerm_pw*GetProperties()[PERMEABILITY_WATER]/
+                                (GetProperties()[DENSITY_WATER]*9.81)
+                                *(grad_water(i)-GetProperties()[DENSITY_WATER]
+                        *gravity(i));
+                }
+              
+                return result;
             }
         //************************************************************************************
         //************************************************************************************
@@ -2688,31 +2685,39 @@ namespace Kratos
             Vector UnsaturatedSoilsElement_3phase_SmallStrain::GetDerivativeDWaterFlowDpa(const Matrix& DN_DX_PRESS,const Matrix& DN_DX_DISP,double capillaryPressure)
             {
                         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-            
-                                double DSDpc= GetDerivativeDSaturationDpc(capillaryPressure); 
+
+                        double DSDpc= GetDerivativeDSaturationDpc(capillaryPressure); 
+                        //Calculation of Derivative relative Permeability after Mualem
+                     	double relPerm= GetSaturation(capillaryPressure);
+                     	double relPerm_pa= DSDpc;
+                             if(relPerm<= 0.01)
+                             {
+                                     relPerm= 0.01;
+                                     relPerm_pa= 0.0;
+                             }
 
 // For Liakopolous Benschmark
 // double saturation= GetSaturation(capillaryPressure);
 // double relPerm_pa= -2.207*1.0121*pow((1-saturation),0.0121)*(-DSDpc);
 // // double relPerm= 1.0- 2.207*pow((1-saturation),1.0121);
-		double relPerm_pa= DSDpc;
+		
 
-                Vector result(dim);
-                noalias(result)= ZeroVector(dim);
+                	Vector result(dim);
+                	noalias(result)= ZeroVector(dim);
 
-                    Vector gravity(dim);
-                    noalias(gravity)= GetProperties()[GRAVITY];
+                    	Vector gravity(dim);
+                    	noalias(gravity)= GetProperties()[GRAVITY];
 
-                    Vector grad_water(dim);
-                    noalias(grad_water)= GetGradWaterPressure(DN_DX_PRESS);
+                    	Vector grad_water(dim);
+                    	noalias(grad_water)= GetGradWaterPressure(DN_DX_PRESS);
             
-                for(unsigned int i=0; i< dim; i++)
-                {
-                    result(i) = -relPerm_pa*GetProperties()[PERMEABILITY_WATER]/
+                	for(unsigned int i=0; i< dim; i++)
+                	{
+                                result(i) = -relPerm_pa*GetProperties()[PERMEABILITY_WATER]/
                                     (GetProperties()[DENSITY_WATER]*9.81)
                                     *(grad_water(i)-GetProperties()[DENSITY_WATER]
                                     *gravity(i));
-                }
+                        }
             
                 return result;
             }
@@ -2721,16 +2726,20 @@ namespace Kratos
         
             double UnsaturatedSoilsElement_3phase_SmallStrain::GetDerivativeDWaterFlowDGradpw(const Matrix& DN_DX_DISP,double capillaryPressure)
             {
-		double saturation= GetSaturation(capillaryPressure);
+                     unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
+                        //Calculation of Derivative relative Permeability after Mualem
+                        double relPerm= GetSaturation(capillaryPressure);
+
+                                     if(relPerm<= 0.01)
+                                     relPerm= 0.01;
 // For Liakopolous Benschmark
-
+// double saturation= GetSaturation(capillaryPressure);
 // double relPerm= 1.0- 2.207*pow((1-saturation),1.0121);
-		double relPerm= (1.0-saturation);
 
-                    double result;
+                    double result(dim);
 
-                    result = 
-                        (-1)*relPerm*GetProperties()[PERMEABILITY_WATER]/(GetProperties()[DENSITY_WATER]*9.81);
+                    result = -relPerm*GetProperties()[PERMEABILITY_WATER]/(GetProperties()[DENSITY_WATER]*9.81);
 
                     return result;
             }
@@ -2752,6 +2761,8 @@ namespace Kratos
 // double relPerm= 0.0001+pow((1.0-relSat),2)*(1-pow(relSat,5.0/3.0));
 
 		double relPerm=  1.0-saturation;
+
+                if(relPerm<= 0.01) relPerm= 0.01;
 
                 Vector gravity(dim);
                 noalias(gravity)= GetProperties()[GRAVITY];
@@ -2786,6 +2797,7 @@ namespace Kratos
         //Calculation of Derivative relative Permeability after Mualem
                 double relPerm_pa= -DSDpc;
                 double relPerm= 1.0-saturation;
+
                 if(relPerm<= 0.01)
                 {
                         relPerm= 0.01;
@@ -2829,7 +2841,8 @@ namespace Kratos
         {
                 unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-//                 double saturation= GetSaturation(capillaryPressure);
+                double saturation= GetSaturation(capillaryPressure);
+                double relPerm= 1.0-saturation;
 
                 double DSDpc= GetDerivativeDSaturationDpc(capillaryPressure);
 // For Liakopolous Benschmark
@@ -2839,6 +2852,8 @@ namespace Kratos
 // double relPerm= 0.0001+ pow((1.0-relSat),2)*(1-pow(relSat,5.0/3.0));
 // 		double relPerm= 1.0-saturation;
                 double relPerm_pw= DSDpc;
+
+                if(relPerm<= 0.01) {relPerm= 0.0;relPerm_pw= 0.0;}
 
                 Vector result(dim);
                 noalias(result)= ZeroVector(dim);
@@ -2870,6 +2885,7 @@ namespace Kratos
 
         //Calculation of Derivative relative Permeability after Mualem
                 double relPerm= 1.0-saturation;
+
                 if(relPerm<= 0.01)
                 {
                         relPerm= 0.01;
@@ -2912,7 +2928,7 @@ namespace Kratos
             {
                     StressVector(i)= 
                             StressVector(i)-
-                            ((1-saturation)*airPressure+saturation*waterPressure);
+                            ((1.0-saturation)*airPressure+saturation*waterPressure);
             }
             for(unsigned int i=0; i<3; i++)
             {
@@ -2920,9 +2936,10 @@ namespace Kratos
                                                     -saturation);
 
                         tanC_A(i,i)=
-                            (DSDpc*(airPressure-waterPressure)-(1-saturation));
+                            (DSDpc*(airPressure-waterPressure)-(1.0-saturation));
             }
         }
+
         //************************************************************************************
         //************************************************************************************
 
@@ -2957,7 +2974,6 @@ namespace Kratos
 
                 KRATOS_CATCH("")
         }
-
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
             
@@ -2976,7 +2992,6 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
-
 
 
         //************************************************************************************
@@ -3017,16 +3032,16 @@ namespace Kratos
         void UnsaturatedSoilsElement_3phase_SmallStrain::InitializeMaterial
         ()
         {
-                KRATOS_TRY
+                 KRATOS_TRY
 
-                for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
-                {
-                    mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-                    mConstitutiveLawVector[i]->InitializeMaterial( 
-                            GetProperties(), GetGeometry(), ZeroVector(0));
-                }
+                 for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                 {
+                     mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                     mConstitutiveLawVector[i]->InitializeMaterial( 
+                             GetProperties(), GetGeometry(), ZeroVector(0));
+                 }
 
-                KRATOS_CATCH("")
+                 KRATOS_CATCH("")
         } 
 
         void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
@@ -3065,8 +3080,8 @@ namespace Kratos
                 {
                         for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
                         {
-                                if(rValues[i].size() != 12 )
-                                        rValues[i].resize(12);
+                                if(rValues[i].size() != 8 )
+                                        rValues[i].resize(8);
                                 noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES);
                         }
                 }
@@ -3160,6 +3175,24 @@ namespace Kratos
                                                 mConstitutiveLawVector[i]->SetValue(INSITU_STRESS, rValues[i], rCurrentProcessInfo);
                         }               
                 }
+        }
+
+        void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo)
+        {
+                if(rVariable==INSITU_STRESS_SCALE)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                mConstitutiveLawVector[i]->SetValue(INSITU_STRESS_SCALE, rValues[i], rCurrentProcessInfo);
+                        }
+                }    
+                if(rVariable==OVERCONSOLIDATION_RATIO)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                mConstitutiveLawVector[i]->SetValue(OVERCONSOLIDATION_RATIO, rValues[i], rCurrentProcessInfo);
+                        }
+                }   
         }
 
         UnsaturatedSoilsElement_3phase_SmallStrain::IntegrationMethod UnsaturatedSoilsElement_3phase_SmallStrain::GetIntegrationMethod()

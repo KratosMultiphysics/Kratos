@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2009-01-14 09:24:27 $
-//   Revision:            $Revision: 1.7 $
+//   Last Modified by:    $Author: nagel $
+//   Date:                $Date: 2008-05-16 13:49:22 $
+//   Revision:            $Revision: 1.3 $
 //
 //
 

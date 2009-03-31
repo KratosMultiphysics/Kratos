@@ -43,9 +43,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: janosch $
-*   Date:                $Date: 2009-01-14 09:24:26 $
-*   Revision:            $Revision: 1.3 $
+*   Last Modified by:    $Author: nagel $
+*   Date:                $Date: 2009-03-20 08:55:54 $
+*   Revision:            $Revision: 1.10 $
 *
 * ***********************************************************/
 
@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
+#include "structural_application.h"
 #include "boost/timer.hpp"
 #include <ctime>
 
@@ -115,7 +116,7 @@ namespace Kratos
         //DOFs at the end of time step
         //All calculations are made on the general midpoint alpha
         // Variables DOF_ALPHA are updated in the scheme
-        if(GetGeometry().size()== 27 ||GetGeometry().size()== 20 || GetGeometry().size()== 10  || GetGeometry().size()== 15)
+        if(GetGeometry().size()== 27 ||GetGeometry().size()== 20 || GetGeometry().size()== 10  || GetGeometry().size()== 15 || GetGeometry().size()== 8)
         {
 			if(GetGeometry().size()== 27 )
                 {
@@ -156,6 +157,18 @@ namespace Kratos
                         mNodesDispMin=1;
                         mNodesDispMax=15;
                         mpPressureGeometry = Geometry< Node<3> >::Pointer(new Prism3D6 <Node<3> >( GetGeometry()(0),GetGeometry()(1),GetGeometry()(2),GetGeometry()(3),GetGeometry()(4),GetGeometry()(5)));
+                        mThisIntegrationMethod= GeometryData::GI_GAUSS_2;
+                }
+                // Attention this version does not fulfill the Babuska Brezzi Stability constraint and is therefore not an appropriate choice if consolidation under initially undrained conditions is analysed
+                if(GetGeometry().size()== 8 )
+                {
+                        mNodesPressMin=1;
+                        mNodesPressMax=8;
+                        mNodesDispMin=1;
+                        mNodesDispMax=8;
+                        mpPressureGeometry = Geometry< Node<3> >::Pointer(new Hexahedra3D8 <Node<3> >(
+                                        GetGeometry()(0),GetGeometry()(1),GetGeometry()(2),GetGeometry()(3),
+                                        GetGeometry()(4),GetGeometry()(5),GetGeometry()(6),GetGeometry()(7)));
                         mThisIntegrationMethod= GeometryData::GI_GAUSS_2;
                 }
         }     
@@ -268,6 +281,23 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
+    }
+
+        /**
+    * THIS method is called from the scheme at the start of each solution step
+    * @param rCurrentProcessInfo
+    */
+    void UnsaturatedSoilsElement_2phase_SmallStrain::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    {
+         //reading integration points and local gradients
+         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+         for(unsigned int Point=0; Point< integration_points.size(); Point++)
+         {
+            mConstitutiveLawVector[Point]->InitializeSolutionStep(GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),Point), CurrentProcessInfo);
+
+//            mConstitutiveLawVector[Point]->SetValue(SUCTION, GetGeometry()[0].GetSolutionStepValue(TEMPERATURE),CurrentProcessInfo );
+         }
     }
 
 	//************************************************************************************
@@ -1566,8 +1596,7 @@ namespace Kratos
 
                  result= (1-porosity)*density_soil+ 
                          porosity*(saturation*density_water+(1-saturation)*density_air);
-
-             
+        
                  return result;
           }
          
@@ -1583,7 +1612,7 @@ namespace Kratos
          {
 				double airEntryPressure= GetProperties()[AIR_ENTRY_VALUE];
 
-				if(airEntryPressure<=0)
+				if(airEntryPressure<=0.0)
 					airEntryPressure= 1.0;
 
 				double b= GetProperties()[FIRST_SATURATION_PARAM];
@@ -1932,8 +1961,8 @@ namespace Kratos
                 {
                         for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
                         {
-                                if(rValues[i].size() != 12 )
-                                        rValues[i].resize(12);
+                                if(rValues[i].size() != 8 )
+                                        rValues[i].resize(8);
                                 noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES);
                         }
                 }
@@ -2032,6 +2061,24 @@ namespace Kratos
                         }               
                 }
 // std::cout<<"END::SetValueOnIntegrationPoints"<<std::endl;
+        }
+
+        void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo)
+        {
+                if(rVariable==INSITU_STRESS_SCALE)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                mConstitutiveLawVector[i]->SetValue(INSITU_STRESS_SCALE, rValues[i], rCurrentProcessInfo);
+                        }
+                }   
+                if(rVariable==OVERCONSOLIDATION_RATIO)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                mConstitutiveLawVector[i]->SetValue(OVERCONSOLIDATION_RATIO, rValues[i], rCurrentProcessInfo);
+                        }
+                }   
         }
 
 	UnsaturatedSoilsElement_2phase_SmallStrain::IntegrationMethod UnsaturatedSoilsElement_2phase_SmallStrain::GetIntegrationMethod()
