@@ -68,6 +68,7 @@ model_part = ModelPart("FluidPart");
 import structural_solver_static_parallel
 structural_solver_static_parallel.AddVariables(model_part)
 model_part.AddNodalSolutionStepVariable(REACTION);
+model_part.AddNodalSolutionStepVariable(BODY_FORCE);
 
 #reading a model
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -81,6 +82,14 @@ node_1 = FindNode(model_part.Nodes, 0.05, 1.00, 0.00)
 node_2 = FindNode(model_part.Nodes, 0.00, 1.00, 0.00)
 node_3 = FindNode(model_part.Nodes, 0.00, 0.00, 0.00)
 node_4 = FindNode(model_part.Nodes, 0.05, 0.00, 0.00)
+
+
+gravity     = -9.80665
+for node in model_part.Nodes:
+    node.SetSolutionStepValue(BODY_FORCE_X,0,0.0);
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,gravity);
+    node.SetSolutionStepValue(BODY_FORCE_Z,0,0.0); 
+
 
 ##
 ##gid_io = GidIO("cantilever2d",GiDPostMode.GiD_PostBinary)
