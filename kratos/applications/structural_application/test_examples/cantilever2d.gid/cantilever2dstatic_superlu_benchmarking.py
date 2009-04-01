@@ -55,6 +55,8 @@ def AnalyticalResults(time, node1, node2,node3, node4):
 
 
 
+
+
 from KratosStructuralApplication import *
 print kernel
 ## from now on the order is not anymore crucial
@@ -69,6 +71,7 @@ model_part = ModelPart("FluidPart");
 #adding of Variables to Model Part should be here
 import structural_solver_static
 structural_solver_static.AddVariables(model_part)
+model_part.AddNodalSolutionStepVariable(BODY_FORCE);
 
 #reading a model
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -112,6 +115,12 @@ node_4 = FindNode(model_part.Nodes, 0.05, 0.00, 0.00)
 
 solver.Initialize()
 (solver).SetEchoLevel(2);
+
+gravity     = -9.80665
+for node in model_part.Nodes:
+    node.SetSolutionStepValue(BODY_FORCE_X,0,0.0);
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,gravity);
+    node.SetSolutionStepValue(BODY_FORCE_Z,0,0.0); 
 
 Dt = 0.001
 nsteps =9
