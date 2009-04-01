@@ -43,6 +43,7 @@
 #include "custom_elements/fluid_2d_asgs.h"
 #include "custom_elements/fluid_2d_oss.h"
 
+#include "custom_elements/fluid_2dGLS_expl.h"
 namespace Kratos
 {
 
@@ -237,6 +238,8 @@ namespace Kratos
 
 		const Fluid2DASGS  mFluid2DASGS; 
 		const Fluid2DOSS  mFluid2DOSS; 
+
+		const Fluid2DGLS_expl  mFluid2DGLS_expl; 
 		///@} 
 		///@name Private Operations
 		///@{ 
