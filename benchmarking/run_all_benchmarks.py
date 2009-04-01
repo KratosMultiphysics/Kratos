@@ -31,6 +31,14 @@ Text += meshing_benchmarks.Run()
 
 # Add other directories here
 
+
+
+#print Text
+os.chdir(CurrentDir)
+outputfile = open("benchmarking_output.txt","w")
+outputfile.write(Text)
+
+
 print Text
 
 #benchmarking.NotifyViaEmail("Status of Kratos examples", Text, ["pooyan@cimne.upc.edu", "rrossi@cimne.upc.edu", "mossaiby@yahoo.com"])
