@@ -62,7 +62,7 @@ model_part = ModelPart("FluidPart");
 import structural_solver_static_parallel
 structural_solver_static_parallel.AddVariables(model_part)
 model_part.AddNodalSolutionStepVariable(REACTION);
-
+model_part.AddNodalSolutionStepVariable(BODY_FORCE);
 #reading a model
 gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.SingleFile
@@ -91,6 +91,12 @@ solver = structural_solver_static_parallel.StaticStructuralSolver(model_part,dom
 ##pDiagPrecond = ParallelDiagonalPreconditioner()
 ##solver.model_linear_solver =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
 
+
+gravity     = -9.80665
+for node in model_part.Nodes:
+    node.SetSolutionStepValue(BODY_FORCE_X,0,0.0);
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,gravity);
+    node.SetSolutionStepValue(BODY_FORCE_Z,0,0.0); 
 
 model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
 print "Linear elastic model selected"
