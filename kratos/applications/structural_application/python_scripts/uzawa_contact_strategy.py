@@ -70,7 +70,7 @@ class SolvingStrategyPython:
             
     #######################################################################
     def Solve(self):
-        print self.model_part
+        #print self.model_part
         ## - storing original condition size before adding virtual conditions.
         ## - performing contact search
         ## - creating virtual link conditions for the assembling
