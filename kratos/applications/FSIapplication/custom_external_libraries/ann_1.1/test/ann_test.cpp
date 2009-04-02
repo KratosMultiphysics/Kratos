@@ -31,7 +31,8 @@
 //	Revision 1.1  05/03/05
 //		Added fixed radius kNN search
 //----------------------------------------------------------------------
-
+#include <cstdlib>
+#include <cstring>
 #include <ctime>						// clock
 #include <cmath>						// math routines
 #include <string>						// C string ops
