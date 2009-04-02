@@ -39,6 +39,7 @@ import runge_kutta_frac_step_solver
 runge_kutta_frac_step_solver.AddVariables(model_part)
 
 model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT)
+model_part.AddNodalSolutionStepVariable(FORCE)
 
 #reading a model
 gid_mode = GiDPostMode.GiD_PostBinary
