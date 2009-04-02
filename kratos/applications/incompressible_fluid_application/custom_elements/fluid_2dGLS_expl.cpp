@@ -319,6 +319,13 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		noalias(GalerkinRHS)-=msAuxVec;
 		*/
 				
+		GetGeometry()[0].FastGetSolutionStepValue(FORCE_X)=GalerkinRHS[0];
+		GetGeometry()[0].FastGetSolutionStepValue(FORCE_Y)=GalerkinRHS[1];
+		GetGeometry()[1].FastGetSolutionStepValue(FORCE_X)=GalerkinRHS[2];
+		GetGeometry()[1].FastGetSolutionStepValue(FORCE_Y)=GalerkinRHS[3];
+		GetGeometry()[2].FastGetSolutionStepValue(FORCE_X)=GalerkinRHS[4];
+		GetGeometry()[2].FastGetSolutionStepValue(FORCE_Y)=GalerkinRHS[5];
+				
 		KRATOS_CATCH("")
 
 	}
@@ -646,6 +653,8 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
+
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
@@ -655,6 +664,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE); 
@@ -664,6 +674,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);	
 		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE); 
@@ -673,13 +684,13 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);	
 
 
-		//in msAuxVec we store the velocity, whcih is now the frac step vel u-tilda
-		msAuxVec[0]=fv0[0];
-		msAuxVec[1]=fv0[1];
-		msAuxVec[2]=fv1[0];
-		msAuxVec[3]=fv1[1];
-		msAuxVec[4]=fv2[0];
-		msAuxVec[5]=fv2[1];
+		//in msAuxVec we store the velocity, (not the frac step vel, but u_n, the one that enters the stabilization)
+		msAuxVec[0]=fv0_old[0];
+		msAuxVec[1]=fv0_old[1];
+		msAuxVec[2]=fv1_old[0];
+		msAuxVec[3]=fv1_old[1];
+		msAuxVec[4]=fv2_old[0];
+		msAuxVec[5]=fv2_old[1];
 
 		//getting data for the given geometry
 		double Area;
@@ -734,7 +745,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		noalias(rRightHandSideVector) += Area*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
 		
-		
+		//here we have the Du_tila term
 		double Gaux;
 		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1];
 		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
@@ -774,9 +785,10 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		
 		//RHS += -tau*nablaN*du_gausspoint/dt
 			
-		//we reuse ms_vel_gauss to store the accelerations		
-		ms_vel_gauss[0]=0.33333333333*(fv0[0]+fv1[0]+fv2[0]-fv0_old[0]-fv1_old[0]-fv2_old[0])/dt;
-		ms_vel_gauss[1]=0.33333333333*(fv0[1]+fv1[1]+fv2[1]-fv0_old[1]-fv1_old[1]-fv2_old[1])/dt;
+		//we reuse ms_vel_gauss to store the accelerations( (u_n - u_n-1)/dt)		
+		
+		ms_vel_gauss[0]=0.33333333333*(fv0_old[0]+fv1_old[0]+fv2_old[0]-fv0_n_1[0]-fv1_n_1[0]-fv2_n_1[0])/dt;
+		ms_vel_gauss[1]=0.33333333333*(fv0_old[1]+fv1_old[1]+fv2_old[1]-fv0_n_1[1]-fv1_n_1[1]-fv2_n_1[1])/dt;
 		
 		//and now we reuse ms_aux1
 
@@ -784,6 +796,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		
 		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux1;
 		
+
 		//and now the stabilization term referring to the convective operator
 		//RHS+=nablaq*convop (convetcion of the Gauss point vel)
 		
