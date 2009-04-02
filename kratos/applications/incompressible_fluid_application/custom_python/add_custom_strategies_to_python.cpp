@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
+
 //convergence criterias
 #include "custom_strategies/strategies/residualbased_fluid_strategy.h"
 #include "custom_strategies/strategies/residualbased_ND_fluid_strategy.h"
@@ -76,6 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/strategies/newton_raphson_oss_strategy.h"
 #include "custom_strategies/convergencecriterias/UP_criteria.h"
+#include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -211,6 +213,25 @@ namespace Kratos
 				>() )
 				;
 
+			class_< RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("RungeKuttaFracStepStrategy", 
+				init<ModelPart&, LinearSolverType::Pointer,
+				bool, bool, bool,
+				int 
+				>() )
+				  .def("SolveStep1",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+				  
+				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
+				  
+
+			class_< NewtonRaphsonOssStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("NewtonRaphsonOssStrategy", 
+				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
+				>() )
+				;
 
 
 
