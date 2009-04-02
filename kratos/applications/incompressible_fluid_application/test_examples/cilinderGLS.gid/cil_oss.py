@@ -43,6 +43,9 @@ print "after creation of the model part"
 import incompressible_fluid_solver
 incompressible_fluid_solver.AddVariables(model_part)
 
+model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT)
+model_part.AddNodalSolutionStepVariable(REACTION)
+model_part.AddNodalSolutionStepVariable(FORCE)
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
 
 #reading a model
