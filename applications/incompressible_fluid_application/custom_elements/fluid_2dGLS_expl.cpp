@@ -562,7 +562,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//calculate convective term	
 		int nodes_number = 3;
 		int dof = 2;
-		int matsize = dof*nodes_number;
+//		int matsize = dof*nodes_number;
 				
 		for (int ii = 0; ii< nodes_number; ii++)
 		    {
@@ -648,7 +648,8 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 			rLeftHandSideMatrix.resize(3,3,false);
 			rRightHandSideVector.resize(3,false);
 		}
-		double dt = rCurrentProcessInfo[DELTA_TIME];
+
+		double dt = rCurrentProcessInfo[DELTA_TIME];
 		
 		//fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
