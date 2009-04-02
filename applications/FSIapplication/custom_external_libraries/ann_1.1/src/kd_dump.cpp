@@ -30,7 +30,8 @@
 // in deleting the bd- versions of the routines if they are not
 // desired.)
 //----------------------------------------------------------------------
-
+#include <cstdlib>
+#include <cstring>
 #include "kd_tree.h"					// kd-tree declarations
 #include "bd_tree.h"					// bd-tree declarations
 

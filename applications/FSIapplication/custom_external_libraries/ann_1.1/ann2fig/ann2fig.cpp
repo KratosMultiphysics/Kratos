@@ -42,7 +42,8 @@
 //	cells. See the procedure getArgs() below for the command-line
 //	arguments.
 //----------------------------------------------------------------------
-
+#include <cstdlib>
+#include <cstring>
 #include <cstdio>						// C standard I/O
 #include <fstream>						// file I/O
 #include <string>						// string manipulation
