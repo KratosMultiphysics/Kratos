@@ -376,7 +376,7 @@ namespace Kratos
             rResult(2,0) =  1.0;
             rResult(2,1) =  1.0;
             rResult(3,0) = -1.0;
-            rResult(3,0) =  1.0;
+            rResult(3,1) =  1.0;
             return rResult;
         }
         
