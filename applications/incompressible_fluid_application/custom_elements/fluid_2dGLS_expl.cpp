@@ -652,10 +652,10 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		double dt = rCurrentProcessInfo[DELTA_TIME];
 		
 		//fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
+		//so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2 
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
 		const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
-
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
@@ -686,12 +686,12 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 
 		//in msAuxVec we store the velocity, (not the frac step vel, but u_n, the one that enters the stabilization)
-		msAuxVec[0]=fv0_old[0];
-		msAuxVec[1]=fv0_old[1];
-		msAuxVec[2]=fv1_old[0];
-		msAuxVec[3]=fv1_old[1];
-		msAuxVec[4]=fv2_old[0];
-		msAuxVec[5]=fv2_old[1];
+		msAuxVec[0]=fv0[0];
+		msAuxVec[1]=fv0[1];
+		msAuxVec[2]=fv1[0];
+		msAuxVec[3]=fv1[1];
+		msAuxVec[4]=fv2[0];
+		msAuxVec[5]=fv2[1];
 
 		//getting data for the given geometry
 		double Area;
@@ -711,8 +711,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
 		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h);
-		
-				
+						
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
 		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
 		//								   and LHS +=Tau1*(gradQ, gradP)
@@ -797,7 +796,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		
 		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux1;
 		
-
+ 
 		//and now the stabilization term referring to the convective operator
 		//RHS+=nablaq*convop (convetcion of the Gauss point vel)
 		
