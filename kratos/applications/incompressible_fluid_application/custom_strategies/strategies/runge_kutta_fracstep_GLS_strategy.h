@@ -94,6 +94,8 @@ namespace Kratos
 		/*@{ */
 
 		/** Counted pointer of ClassName */
+		typedef std::vector<unsigned int> IndicesVectorType;
+		
 		typedef boost::shared_ptr< RungeKuttaFracStepStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
 
 		typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
@@ -111,6 +113,14 @@ namespace Kratos
 		typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
 		typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+
+		typedef Node<3> PointType;
+		
+		typedef Node<3>::Pointer PointPointerType;
+
+		typedef std::vector<PointType::Pointer>           PointVector;
+
+		typedef PointVector::iterator PointIterator;
 
 
 
@@ -179,7 +189,17 @@ namespace Kratos
 				(model_part,pscheme,pNewPressureLinearSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 			this->mpressurestep->SetEchoLevel(2); 
 			
-			
+			//identify nodes, weher slip shall be imposed .. store them in a list
+			mSlipBoundaryList.clear();
+			ModelPart& model_part=BaseType::GetModelPart();
+			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+			{
+			//FLAG_VAR = 1 is SLIP
+			if (it->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0)		
+
+			mSlipBoundaryList.push_back(*(it.base()));
+			//mSlipBoundaryList.push_back(it);
+			}
 			
 			
 			/*
@@ -219,6 +239,7 @@ namespace Kratos
 		//we estimate the time step for the explicit time integration schem estability
 		//ComputeTimeStep(0.8);
 		SolveStep1();
+		
 		//we write now the beginning of step pressure to OLD_IT to use it in the second frac step
 		SavePressureIt();
 		double Dp_norm = this->SolveStep2();
@@ -226,6 +247,8 @@ namespace Kratos
 		//if(this->mReformDofAtEachIteration == true )
 		//		this->Clear();
 		SolveStep3();
+
+
 		//return 0.0;//
 		return Dp_norm;
 		
@@ -377,6 +400,7 @@ namespace Kratos
 				noalias(it->FastGetSolutionStepValue(VELOCITY)) += 0.5 * aux;			
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
+			ApplySlipBC();
 			SetToZero(RHS_VECTOR,model_part.Nodes());
 
 			/////////////////////////////////	
@@ -400,6 +424,7 @@ namespace Kratos
 				noalias(it->FastGetSolutionStepValue(VELOCITY)) += 0.5 * aux;		
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
+			ApplySlipBC();
 			SetToZero(RHS_VECTOR,model_part.Nodes());
 
 			///////////////////////////////
@@ -421,6 +446,7 @@ namespace Kratos
 				noalias(it->FastGetSolutionStepValue(VELOCITY)) += aux;		
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
+			ApplySlipBC();
 			SetToZero(RHS_VECTOR,model_part.Nodes());
 			/////////////////////////////
 			//last step of Runge Kutta //
@@ -449,6 +475,7 @@ namespace Kratos
 				//KRATOS_WATCH(it->FastGetSolutionStepValue(VELOCITY))
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
+			ApplySlipBC();
 			KRATOS_WATCH("FINISHED STAGE1 OF FRACTIONAL STEP")
 			
 			KRATOS_CATCH("")
@@ -597,7 +624,31 @@ namespace Kratos
 			}	
 			KRATOS_CATCH("")
 		}
-
+		//************************************
+		//************************************
+		void ApplySlipBC()
+		{
+		KRATOS_TRY
+		
+		
+		for (PointIterator it=mSlipBoundaryList.begin(); it!=mSlipBoundaryList.end(); ++it)
+		{
+		//KRATOS_WATCH("slip node")
+		array_1d<double, 3> normal = (*it)->FastGetSolutionStepValue(NORMAL);
+		double length = sqrt(normal[0]*normal[0]+normal[1]*normal[1]);
+		normal*=1.0/length;
+		array_1d<double, 3> normal_comp_vec;
+		//CHECK IF NORMAL IS NORMALIZED (divided by the length)
+		//double length = ...
+		array_1d<double, 3> vel = (*it)->FastGetSolutionStepValue(VELOCITY);
+		double normal_comp;
+		normal_comp=inner_prod(normal, vel);
+		normal_comp_vec = normal_comp*normal;
+		(*it)->FastGetSolutionStepValue(VELOCITY)-=normal_comp_vec;
+		}					
+		KRATOS_CATCH("")
+		}
+		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		virtual void SetEchoLevel(int Level) 
@@ -720,6 +771,7 @@ namespace Kratos
 	
 		DofsArrayType mFixedVelocityDofSet;
 		std::vector<double> mFixedVelocityDofValues;
+		PointVector mSlipBoundaryList;
 		//bool proj_is_initialized;
 
 
