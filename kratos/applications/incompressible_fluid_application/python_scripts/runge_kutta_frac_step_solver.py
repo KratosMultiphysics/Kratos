@@ -24,6 +24,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(NODAL_H);
 
+    model_part.AddNodalSolutionStepVariable(NORMAL);
+
     print "variables for the Runge Kutta Frac Step GLS solver added correctly"
         
 def AddDofs(model_part):
@@ -61,6 +63,9 @@ class RungeKuttaFracStepSolver:
 
         self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 
+        ##calculate normals
+        self.normal_tools = NormalCalculationUtils()
+
         #self.Hfinder  = FindNodalHProcess(model_part);
         
     
@@ -70,6 +75,11 @@ class RungeKuttaFracStepSolver:
         
     #######################################################################
     def Initialize(self):
+        #calculate the normals to the overall domain
+        self.normal_tools.CalculateOnSimplex(self.model_part.Conditions,self.domain_size);
+        #for SLIP condition we need to save these Conditions in a list
+        #by now SLIP conditions are identified by FLAG_VARIABLE=1.0. this is done in the constructir of the strategy
+        
         #creating the solution strategy
         self.solver = RungeKuttaFracStepStrategy(self.model_part,self.linear_solver,self.CalculateReactionFlag,
                                                   self.ReformDofSetAtEachStep, self.CalculateNormDxFlag, self.domain_size )   
@@ -90,4 +100,7 @@ class RungeKuttaFracStepSolver:
     #######################################################################   
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
+
+    #######################################################################
+
     
