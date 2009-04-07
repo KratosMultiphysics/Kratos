@@ -186,157 +186,7 @@ namespace Kratos
 		//KRATOS_WATCH("Empty function for this element")		
 		//KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
 	}
-/*
-void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
-		{
-		KRATOS_TRY
-		
-		Matrix AUX(6,6);
-		
-		//first we compute  the force term and pressure gradient terms:
-		//getting data for the given geometry
-		double Area;
-		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
 
-		//getting the velocity on the nodes and other necessary variabless
-		const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-		double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-		
-		const array_1d<double,3> vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
-		double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-		
-		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-		double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-			
-		//====================================================================
-		//calculating viscosity and density
-		double nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-		double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-		
-		//VISCOUS CONTRIBUTION 
-		// += Laplacian * nu; --> ONE GAUSS POINT
-		Matrix El_laplacian(3,3);
-		noalias(El_laplacian) = Area*density*nu * prod(msDN_DX,trans(msDN_DX));
-		//KRATOS_WATCH("Viscous term")
-		//KRATOS_WATCH(El_laplacian)
-		//KRATOS_WATCH(msDN_DX)
-		
-		
-		//x comp
-		GalerkinRHS[0]=-1.0*(El_laplacian(0,0)*vel0[0]+El_laplacian(0,1)*vel1[0]+El_laplacian(0,2)*vel2[0]);
-		//y comp
-		GalerkinRHS[1]=-1.0*(El_laplacian(0,0)*vel0[1]+El_laplacian(0,1)*vel1[1]+El_laplacian(0,2)*vel2[1]);
-
-		//x comp
-		GalerkinRHS[2]=-1.0*(El_laplacian(1,0)*vel0[0]+El_laplacian(1,1)*vel1[0]+El_laplacian(1,2)*vel2[0]);
-		//y comp
-		GalerkinRHS[3]=-1.0*(El_laplacian(1,0)*vel0[1]+El_laplacian(1,1)*vel1[1]+El_laplacian(1,2)*vel2[1]);
-
-		//x comp
-		GalerkinRHS[4]=-1.0*(El_laplacian(2,0)*vel0[0]+El_laplacian(2,1)*vel1[0]+El_laplacian(2,2)*vel2[0]);
-		//y comp
-		GalerkinRHS[5]=-1.0*(El_laplacian(2,0)*vel0[1]+El_laplacian(2,1)*vel1[1]+El_laplacian(2,2)*vel2[1]);
-
-		//convective contribution. Note that N[0]=N[1]=N[2]=0.33333 for our 1-Gauss Point integration
-		//WATCH OUT THAT I AM NOT PLUGGING THE NEW ADVECTIVE VELOCITY WHEN EXECUTING RUNGE KUTTA - I use u_n (and not the intermediate u_aux)
-		//KRATOS_WATCH("Now lets see N - they should be all equal 0.3333")
-		//KRATOS_WATCH(msN)
-		//KRATOS_WATCH(msDN_DX)
-		ms_adv_vel[0] = msN[0]*(vel0[0])+msN[1]*(vel1[0])+msN[2]*(vel2[0]);
-		ms_adv_vel[1] = msN[0]*(vel0[1])+msN[1]*(vel1[1])+msN[2]*(vel2[1]);
-
-		//calculate convective term	
-		int nodes_number = 3;
-		int dof = 2;
-		int matsize = dof*nodes_number;
-
-		boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
-		boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
-
-		for (int ii = 0; ii< nodes_number; ii++)
-		    {
-			int column = ii*dof;
-			conv_opr(0,column) = msDN_DX(ii,0)*ms_adv_vel[0] + msDN_DX(ii,1)*ms_adv_vel[1];
-			conv_opr(1,column + 1) = conv_opr(0,column);
-
-			shape_func(column,0) = msN[ii];
-			shape_func(column + 1, 1) = shape_func(column,0);
-		    }
-		boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
-		//and now we add the convective term to the AUX
-		noalias(AUX) = prod(shape_func, conv_opr);
-		//AUX*=density;
-
-		//here we multiply the AUX (convective term) with the KNOWN primary variable velocity (or Momentum in case we switch to the rho*u formulation)at time n and get RHS
-		Vector u_n(6);
-
-		u_n[0]=vel0[0];
-		u_n[1]=vel0[1];
-		u_n[2]=vel1[0];
-		u_n[3]=vel1[1];
-		u_n[4]=vel2[0];
-		u_n[5]=vel2[1];
-
-		GalerkinRHS-=Area * density*prod(AUX, u_n);//0.3333333333333*prod(AUX, u_n);
-		//GalerkinRHS=prod(AUX, Mom_n)
-
-		//and now we add the pressure gradient and the force term
-		//external forces (component)
-		const array_1d<double,3> body_force = 0.333333333333333*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+
-							GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) +
-							GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE));
-		unsigned int number_of_nodes=3;
-		for(unsigned int i = 0; i<number_of_nodes; i++)
-		{
-			//f=A*N_I*b, N_I=0.33333333 for 1 Gauss point
-			GalerkinRHS[i*2] += body_force[0]* density * Area * 0.3333333333333;
-			GalerkinRHS[i*2+1] += body_force[1] * density * Area * 0.3333333333333;
-		}
-		
-		
-		
-		//Now we shall add the Gp term (in the grad form)
-		//G=DN_DX*N
-		
-		boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
-		noalias(G)=prod(shape_func, trans(msDN_DX));
-		G*=Area;
-
-		array_1d<double,6> aaa;
-		array_1d<double,3> pn;
-		pn[0]=p_n0;
-		pn[1]=p_n1;
-		pn[2]=p_n2;
-
-		aaa = prod(G,pn);
-		GalerkinRHS-=aaa;
-		
-		//G form
-		/*
-		double p_avg = msN[0]*p_n0 + msN[1]*p_n1 + msN[2]*p_n2;
-		
-		GalerkinRHS[0] += msDN_DX(0,0)*p_avg; 
-		GalerkinRHS[1] += msDN_DX(0,1)*p_avg;
-
-		GalerkinRHS[2] += msDN_DX(1,0)*p_avg;
-		GalerkinRHS[3] += msDN_DX(1,1)*p_avg;  
-
-		GalerkinRHS[4] += msDN_DX(2,0)*p_avg;
-		GalerkinRHS[5] += msDN_DX(2,1)*p_avg;
-		*/			
-
-/*
-		KRATOS_CATCH("")
-
-	}
-
-*/
 void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		{
 		KRATOS_TRY
@@ -495,7 +345,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//getting the velocity on the nodes
 		const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& vel_old0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& vel_old0_n1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& vel_old0_n1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
 
 		const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -504,7 +354,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		
 		const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& vel_old1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& vel_old1_n1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& vel_old1_n1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
 		const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
@@ -512,7 +362,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		
 		const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& vel_old2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& vel_old2_n1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& vel_old2_n1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
 		const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
