@@ -55,7 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes  
 
-
 // External includes 
 #include "boost/smart_ptr.hpp"
  
@@ -320,5 +319,6 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_FLUID_2D_H_INCLUDED  defined 
+
 
 
