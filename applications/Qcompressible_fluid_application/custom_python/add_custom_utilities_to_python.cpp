@@ -63,44 +63,62 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-//#include "custom_utilities/nist_utilities.h" 
+#include "custom_utilities/utilities.h" 
+#include "custom_utilities/q_utilities.h"
 
 namespace Kratos
 {
-	
-namespace Python
-{
-
-
-
-  /*void GenerateModelPart(NistUtils& NistUtils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
-	{
-		if(domain_size == 2)
-		{
-			NistUtils.GenerateModelPart(origin_model_part, destination_model_part,
-				KratosComponents<Element>::Get("ConvDiff2D"),
-				KratosComponents<Condition>::Get("ThermalFace2D")	); 
-		}
-		else if(domain_size == 3)
-		{
-			NistUtils.GenerateModelPart(origin_model_part, destination_model_part,
-				KratosComponents<Element>::Get("ConvDiff3D"),
-				KratosComponents<Condition>::Get("ThermalFace3D")	); 
-		}
-	}
-	
-  */
-
-
-  void  AddCustomUtilitiesToPython()
+  
+  namespace Python
   {
-	using namespace boost::python;
-	/*	  class_<NistUtils>("NistUtils", init<>())
-		.def("GenerateModelPart",GenerateModelPart)
-		;*/
-  }
-	
-}  // namespace Python.
-
+    
+    
+    
+    void GenerateModelPart(Utils& Utils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
+    {
+      if(domain_size == 2)
+	{
+	  Utils.GenerateModelPart(origin_model_part, destination_model_part,
+				  KratosComponents<Element>::Get("ConvDiff2D"),//
+				  KratosComponents<Condition>::Get("ThermalFace2D")	); //("ConvDiffQ2D" ConvDiff2D
+	}
+      else if(domain_size == 3)
+	{
+			Utils.GenerateModelPart(origin_model_part, destination_model_part,
+						KratosComponents<Element>::Get("ConvDiff3D"),
+						KratosComponents<Condition>::Get("ThermalFace3D")	); 
+	}
+    }
+    
+    
+    
+    
+    void  AddCustomUtilitiesToPython()
+    {
+      using namespace boost::python;
+      class_<Utils>("Utils", init<>())
+	.def("GenerateModelPart",GenerateModelPart)
+	.def("ApplyInitialTemperature",&Utils::ApplyInitialTemperature)
+	.def("FindFluidLevel",&Utils::FindFluidLevel)
+	;
+      
+      
+      class_<qUtils>("qUtils", init<>())
+	.def("EstimateDeltaTime",&qUtils::EstimateDeltaTime)
+	.def("IdentifyFluidNodes",&qUtils::IdentifyFluidNodes)
+	.def("QuasiLagrangianMove",&qUtils::QuasiLagrangianMove)
+	.def("MarkExcessivelyCloseNodes",&qUtils::MarkExcessivelyCloseNodes)
+	.def("Predict",&qUtils::Predict)
+	.def("EstimateDeltaTime", &qUtils::EstimateDeltaTime)
+        .def("CalculateNodalMass",&qUtils::CalculateNodalMass)
+	.def("MoveLonelyNodes",&qUtils::MoveLonelyNodes)
+        .def("CalculateVolume",&qUtils::CalculateVolume)
+	.def("Return",&qUtils::Return)
+	.def("ReduceTimeStep",&qUtils::ReduceTimeStep)
+	;
+    }
+    
+  }  // namespace Python.
+  
 } // Namespace Kratos
 
