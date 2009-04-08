@@ -53,7 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes 
 #include <boost/python.hpp>
 
-
 // Project includes 
 #include "includes/define.h"
 #include "Qcompressible_fluid_application.h"
@@ -61,6 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_processes_to_python.h"
+//#include "custom_python/add_meshers_to_python.h"
+
  
 namespace Kratos
 {
@@ -72,17 +73,18 @@ namespace Python
 
 
   
-  BOOST_PYTHON_MODULE(KratosR1QcompressibleFluidApplication)
+  BOOST_PYTHON_MODULE(KratosQcompressibleFluidApplication)
   {
 
-	  class_<KratosR1QcompressibleFluidApplication, 
-			  KratosR1QcompressibleFluidApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosR1QcompressibleFluidApplication")
+	  class_<KratosQcompressibleFluidApplication, 
+			  KratosQcompressibleFluidApplication::Pointer, 
+			  bases<KratosApplication>, boost::noncopyable >("KratosQcompressibleFluidApplication")
 			;
 		AddCustomStrategiesToPython();
 		AddCustomUtilitiesToPython();
 		AddCustomIOToPython();
 		AddProcessesToPython();
+		//AddMeshersToPython();
 
 	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
 //		KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(PRESS_PROJ)
@@ -92,9 +94,13 @@ namespace Python
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MACH_NUMBER )
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE(  PRESSURE_COEFFICIENT )
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESSURE_OLD_IT )
+	        KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESSUREAUX_OLD_IT )
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE( BDF_COEFFICIENTS );
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_MASS)
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_PRESS)
+		KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_MASSAUX)
+		KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODAL_PRESSAUX)
+		KRATOS_REGISTER_IN_PYTHON_VARIABLE( MASS)
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUX_INDEX)
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE( EXTERNAL_PRESSURE)
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE( DIAMETER)
@@ -114,3 +120,5 @@ namespace Python
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined
+
+
