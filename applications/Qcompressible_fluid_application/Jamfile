@@ -8,6 +8,7 @@ project QcompressibleFluidApplication
        custom_processes
        custom_python
        custom_strategies
+       custom_utilities
        external_includes
     :
     requirements <include>. 
@@ -27,7 +28,7 @@ project QcompressibleFluidApplication
 #################################################################################
 ## list of files to be build, including dependencies to other libraries
 import python ;
-python-extension KratosR1QcompressibleFluidApplication
+python-extension KratosQcompressibleFluidApplication
     :  
 	#list of sources
 	Qcompressible_fluid_application.cpp 
@@ -53,5 +54,5 @@ python-extension KratosR1QcompressibleFluidApplication
     ;
 
 
-install install : KratosR1QcompressibleFluidApplication : <location>$(TOP)/libs ;
+install install : KratosQcompressibleFluidApplication : <location>$(TOP)/libs ;
 
