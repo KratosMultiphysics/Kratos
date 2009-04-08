@@ -126,7 +126,7 @@ namespace Kratos
 			typename TLinearSolver::Pointer pNewPressureLinearSolver,
 			bool CalculateReactions = false,
 			bool ReformDofAtEachIteration = true,
-			bool CalculateNormDxFlag = true,
+			bool CalculateNormDxFlag = false,
 			double velocity_toll = 0.01,
 			double pressure_toll = 0.01,
 			int MaxVelocityIterations = 10,
@@ -253,18 +253,11 @@ namespace Kratos
 		  
 		  double Dt = 0.1;
 		  
-		  //Assign Velocity To Fract Step Velocity and Node Area to Zero
-		  /*AssignInitialStepValues();*/
+		  
 		  AssignInitialValues();
-		  /*if(this->m_step <= this->mtime_order)*/
+		  
 		  Dp_norm = IterativeSolve();
-		  /*else
-		    {
-		    if(this->mpredictor_corrector == false) //standard fractional step
-		    Dp_norm = FracStepSolution();
-		    else  //iterative solution
-		    Dp_norm = IterativeSolve();
-		    }*/
+		  
 		  
 		  if(this->mReformDofAtEachIteration == true )
 		    this->Clear();
@@ -272,7 +265,7 @@ namespace Kratos
 		  this->m_step += 1;
 		  this->mOldDt =  BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 		  
-		  Nodemove();
+		  //Nodemove();
 		  
 		  
 		  return Dp_norm;
@@ -322,7 +315,7 @@ namespace Kratos
 		    {
 		      //setting the old value of the pressure to the current one
 		      const double& p = (i)->FastGetSolutionStepValue(PRESSURE);
-		      //(i)->FastGetSolutionStepValue(PRESSURE,1) = p;
+		      
 		      (i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = p;
 		      
 		      p_norm+=p*p;
@@ -342,26 +335,49 @@ namespace Kratos
 			KRATOS_TRY
 				
 			//setting the fractional velocity to the value of the velocity
-			AssignInitialStepValues();
+			  AssignInitialStepValues();
 
 			//solve first step for fractional step velocities
 			boost::timer step1time;
 			this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
 			std::cout << "step1 time " << step1time.elapsed() << std::endl;
+			
+			/*	for(typename ModelPart::NodesContainerType::iterator ind = BaseType::GetModelPart().NodesBegin(); ind != 					BaseType::GetModelPart().NodesEnd();ind++)
+	        	 {
+				double julio;
+				julio=0;
+				ind->Id();
+				KRATOS_WATCH(ind->Id());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_X)->Id());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_X)->GetVariable().Key());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_X)->EquationId());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_X)->GetSolutionStepValue());
+			
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Y)->Id());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Y)->GetVariable().Key());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Y)->EquationId());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Y)->GetSolutionStepValue());
+			
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Z)->Id());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Z)->GetVariable().Key());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Z)->EquationId());
+				KRATOS_WATCH(ind->pGetDof(FRACT_VEL_Z)->GetSolutionStepValue());
+			
+
+
+				KRATOS_WATCH(ind->pGetDof(PRESSURE)->Id());
+				KRATOS_WATCH(ind->pGetDof(PRESSURE)->GetVariable().Key());
+				KRATOS_WATCH(ind->pGetDof(PRESSURE)->EquationId());
+				KRATOS_WATCH(ind->pGetDof(PRESSURE)->GetSolutionStepValue());
+
+
+			}*/
 
 			//solve for pressures (and recalculate the nodal area)
 			boost::timer step2time;
 			double Dp_norm =0.001;//=this->SolveStep2();
 			std::cout << "pressure calculation time " << step2time.elapsed() << std::endl;
 			
-			//this->ActOnLonelyNodes();
-
-			//calculate projection terms
-			/*boost::timer projection_time;
-			this->SolveStep3();
-			std::cout << "projection calculation time " << projection_time.elapsed() << std::endl;*/
-			//AssignInitialStepValues();
-			//correct velocities
 			boost::timer vel_time;
 			this->SolveStep4();
 			std::cout << "velocity correction time " << vel_time.elapsed() << std::endl;
@@ -384,7 +400,19 @@ namespace Kratos
 			array_1d<double,3> zero = ZeroVector(3);
 			Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 			double Dt = rCurrentProcessInfo[DELTA_TIME];
-			
+		
+
+			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+			i != BaseType::GetModelPart().NodesEnd() ; ++i)
+		      	{
+			(i)->FastGetSolutionStepValue(NODAL_MAUX) = 0;
+			(i)->FastGetSolutionStepValue(NODAL_PAUX) = 0;
+			double pp=(i)->FastGetSolutionStepValue(NODAL_MAUX);
+			}
+
+
+
+	
 			rCurrentProcessInfo[FRACTIONAL_STEP] = 6;
 				for(ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin() ; 
 				i != BaseType::GetModelPart().ElementsEnd() ; ++i)
@@ -398,56 +426,92 @@ namespace Kratos
 
 			//solve nodally for the velocity
 			if(this->mdomain_size == 2)
-			{
-				for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-					i != BaseType::GetModelPart().NodesEnd() ; ++i)
-				{
+			  {
+			    for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+				i != BaseType::GetModelPart().NodesEnd() ; ++i)
+			      {
 
-					//double& p = (i)->FastGetSolutionStepValue(PRESSURE);
-					array_1d<double,3>& v = (i)->FastGetSolutionStepValue(VELOCITY);
-					const array_1d<double,3>& fract_v = (i)->FastGetSolutionStepValue(FRACT_VEL);
-					double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
-					double& p = (i)->FastGetSolutionStepValue(PRESSURE);
-					//double temp = (1.0 / A);
-					if(A <= 1e-12){
-					p=0;		}
-					else	{
-					double B = (i)->FastGetSolutionStepValue(NODAL_PRESS);//
-					p=B/A;
+			
+				array_1d<double,3>& v = (i)->FastGetSolutionStepValue(VELOCITY);
+				const array_1d<double,3>& fract_v = (i)->FastGetSolutionStepValue(FRACT_VEL);
+				double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
+				/*****/
+				double A1 = (i)->FastGetSolutionStepValue(NODAL_MASSAUX);	
+				/*****/
+				double& p = (i)->FastGetSolutionStepValue(PRESSURE);
+				/*****/
+				double& paux = (i)->FastGetSolutionStepValue(PRESSUREAUX);
+				/*****/
+				const int f= (i)->FastGetSolutionStepValue(FLAG_VARIABLE); 
+				const int fi= (i)->FastGetSolutionStepValue(IS_INTERFACE); 
+				
+				//double temp = (1.0 / A);
+				if(A <= 1e-8 && A1 <= 1e-12 ) //hay q mirar esto
+				  {
+				    p=0; paux=0;		
+				  }
+				else	
+				  {
+					if(f==1 && fi==1){
+   						double B = (i)->FastGetSolutionStepValue(NODAL_PRESS);//
+						if(A <= 1e-8){p=0;	}
+						else{	      					
+						p=B/A;}
+						double B1 = (i)->FastGetSolutionStepValue(NODAL_PRESSAUX);//
+						if(A1 <= 1e-8){				
+				//paux=B1/A1;
+							paux=0; //cuando el elemento esta formado solo por nodos de interface			
+							}
+						else paux=B1/A1;
+							}
+				
+					if(f==1 && fi==0){
+						double B = (i)->FastGetSolutionStepValue(NODAL_PRESS);//
+	      					if(A <= 1e-8){p=0;	}
+						else{	      					
+						p=B/A;}
+
+
+
 					}
-					
-					
-					//p*=temp; //afectado por el area del elemento				
-					
-					if(!i->IsFixed(VELOCITY_X))
+					if(f==2 && fi==0){
+						double B1 = (i)->FastGetSolutionStepValue(NODAL_PRESSAUX);//
+						paux=B1/A1;
+						}	
+			
+//paux=10;
+			}	
+				//p*=temp; //afectado por el area del elemento				
+				
+				if(!i->IsFixed(VELOCITY_X))
 					{
 					  v[0] = fract_v[0];
 					}
-					if(!i->IsFixed(VELOCITY_Y))
-					{
-					  v[1] = fract_v[1];
-					}				
-				}
-			}
+				if(!i->IsFixed(VELOCITY_Y))
+				  {
+				    v[1] = fract_v[1];
+				  }				
+			      }
+			  }
 			else if (this->mdomain_size == 3)
-			{
-			  	for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-					i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			      	{
-
+			  {
+			    for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+				i != BaseType::GetModelPart().NodesEnd() ; ++i)
+			      {
+				
 				array_1d<double,3>& v = (i)->FastGetSolutionStepValue(VELOCITY);
 				const array_1d<double,3>& fract_v = (i)->FastGetSolutionStepValue(FRACT_VEL);
 				double& p = (i)->FastGetSolutionStepValue(PRESSURE);
 				double A = (i)->FastGetSolutionStepValue(NODAL_MASS);					
 				if(A <= 1e-12)
-					{
-					p=0;	
-					}
+				  {
+				    p=0;	
+				  }
 				else
-					{
-					double B = (i)->FastGetSolutionStepValue(NODAL_PRESS);//
-					p=B/A;
-					}
+				  {
+				    double B = (i)->FastGetSolutionStepValue(NODAL_PRESS);//
+				    p=B/A;
+				  }
 				if(!i->IsFixed(VELOCITY_X))
 				  {
 				    v[0] = fract_v[0];
@@ -457,13 +521,13 @@ namespace Kratos
 				    v[1] = fract_v[1];
 				  }				
 				if(!i->IsFixed(VELOCITY_Z))
-					{
-					  v[2] = fract_v[2];
-					}		
+				  {
+				    v[2] = fract_v[2];
+				  }		
 			      }			
 			  }
 			
-
+			
 			
 			KRATOS_CATCH("");
 		}
@@ -496,30 +560,28 @@ namespace Kratos
 			i->Y() = i->Y0() + disp[1];
 		      }
 		  }
-
-		else{
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; i != BaseType::GetModelPart().NodesEnd() ; ++i)
-		      	{
-				const array_1d<double,3>& v = (i)->FastGetSolutionStepValue(VELOCITY);
-				array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(DISPLACEMENT);			  
-				const array_1d<double,3>& disp_old = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
-				const array_1d<double,3>& v_old = (i)->FastGetSolutionStepValue(VELOCITY,1);
+		  
+		  else{
+		    for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; i != BaseType::GetModelPart().NodesEnd() ; ++i)
+		      {
+			const array_1d<double,3>& v = (i)->FastGetSolutionStepValue(VELOCITY);
+			array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(DISPLACEMENT);			  
+			const array_1d<double,3>& disp_old = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+			const array_1d<double,3>& v_old = (i)->FastGetSolutionStepValue(VELOCITY,1);
 			
 			
 			noalias(disp) = disp_old+ v*Dt ; 
-					
-	
+			
+			
 			i->X() = i->X0() + disp[0];
 			i->Y() = i->Y0() + disp[1];
 			i->Z() = i->Z0() + disp[2];
 		      }
-
-
-
-		}	
-
-
-		
+		    
+		    
+		    
+		  }		  
+		  
 		  
 		  KRATOS_CATCH("");
 		}
@@ -532,205 +594,220 @@ namespace Kratos
 		  
 		  //calculate the BDF coefficients
 		  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-			double Dt = rCurrentProcessInfo[DELTA_TIME];
-			
-			if(this->mOldDt == 0.00) //needed for the first step
-			  this->mOldDt = Dt;
-			
-			
-				rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2,false);
-				Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-				BDFcoeffs[0] =	1.0 / Dt;	//coefficient for step n+1
-				BDFcoeffs[1] =	-1.0 / Dt;//coefficient for step n
-				/*}*/
-
-			
+		  double Dt = rCurrentProcessInfo[DELTA_TIME];
+		  
+		  if(this->mOldDt == 0.00) //needed for the first step
+		    this->mOldDt = Dt;
+		  
+		  
+		  rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2,false);
+		  Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+		  BDFcoeffs[0] =	1.0 / Dt;	//coefficient for step n+1
+		  BDFcoeffs[1] =	-1.0 / Dt;//coefficient for step n
+		  /*}*/
+		  
+		  
 			KRATOS_CATCH("");
 		}
-
+		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		void InitializeProjections(int step, bool proj_is_initialized)
 		{
-			if(step <= 2 && proj_is_initialized==false) 
-			{ 
-				for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-					i != BaseType::GetModelPart().NodesEnd() ; ++i)
-				{
-					noalias( i->FastGetSolutionStepValue(PRESS_PROJ) ) = i->FastGetSolutionStepValue(BODY_FORCE);
-				}
-				proj_is_initialized = true;
+		  if(step <= 2 && proj_is_initialized==false) 
+		    { 
+		      for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+			  i != BaseType::GetModelPart().NodesEnd() ; ++i)
+			{
+			  noalias( i->FastGetSolutionStepValue(PRESS_PROJ) ) = i->FastGetSolutionStepValue(BODY_FORCE);
 			}
+		      proj_is_initialized = true;
+		    }
 		}
-
+		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		//predict values for the fractional step velocities
 		//and set to zero the nodal mass
 		void AssignInitialValues()
 		{
-			KRATOS_TRY
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				//predicting the values for the fluid velocity
-				array_1d<double,3>& v = (i)->FastGetSolutionStepValue(VELOCITY);
-				array_1d<double,3>& fracv = (i)->FastGetSolutionStepValue(FRACT_VEL);
-				noalias(fracv) = v;
-
-				double& pold=(i)->FastGetSolutionStepValue(PRESSURE);////nuevo
-				//KRATOS_WATCH(pold);////nuevo
+		  KRATOS_TRY
+		    for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+			i != BaseType::GetModelPart().NodesEnd() ; ++i)
+		      {
+			//predicting the values for the fluid velocity
+			array_1d<double,3>& v = (i)->FastGetSolutionStepValue(VELOCITY);
+			array_1d<double,3>& fracv = (i)->FastGetSolutionStepValue(FRACT_VEL);
+			array_1d<double,3> zero = ZeroVector(3);			
+			noalias(fracv) = zero; //antes = v
 			
-				
+			double& pold=(i)->FastGetSolutionStepValue(PRESSURE);////nuevo
+			/*****/
+			double& poldaux=(i)->FastGetSolutionStepValue(PRESSUREAUX);////nuevo
+			/*****/
+			
+			
+			
 				//setting the old pressure iteration to the value of the pressure
-				(i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = (i)->FastGetSolutionStepValue(PRESSURE);
-							
-				(i)->FastGetSolutionStepValue(PRESSURE)=0;////nuevo
-				
-				
-				double& p=(i)->FastGetSolutionStepValue(PRESSURE);////nuevo
-				//KRATOS_WATCH(p);////nuevo
-				
-				//resetting the nodal area
-				double area = 0.00;
-				(i)->FastGetSolutionStepValue(NODAL_MASS) = area;
-			}
-			KRATOS_CATCH("");
+			(i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = (i)->FastGetSolutionStepValue(PRESSURE);
+			/*****/
+			(i)->FastGetSolutionStepValue(PRESSUREAUX_OLD_IT) = (i)->FastGetSolutionStepValue(PRESSUREAUX);
+			/*****/			
+			(i)->FastGetSolutionStepValue(PRESSURE)=0;////nuevo
+			/*****/
+			(i)->FastGetSolutionStepValue(PRESSUREAUX)=0;////nuevo
+			/*****/ 
+			
+			double& p=(i)->FastGetSolutionStepValue(PRESSURE);////nuevo
+			/*****/
+			double& paux=(i)->FastGetSolutionStepValue(PRESSUREAUX);////nuevo
+			/*****/				
+			//KRATOS_WATCH(p);////nuevo
+			
+			//resetting the nodal area
+			double area = 0.00;
+			(i)->FastGetSolutionStepValue(NODAL_MASS) = area;
+			(i)->FastGetSolutionStepValue(NODAL_MASSAUX) = area;
+			//double pp=(i)->FastGetSolutionStepValue(NODAL_MASSAUX);
+			//KRATOS_WATCH(pp);////nuevo
+		      }
+		  KRATOS_CATCH("");
 		}
-
+		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		void AssignInitialStepValues()
 		{
-			KRATOS_TRY
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				
+		  KRATOS_TRY
+		    for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+			i != BaseType::GetModelPart().NodesEnd() ; ++i)
+		      {
 			
-				
-							
-				(i)->FastGetSolutionStepValue(PRESSURE)=0;////nuevo	
-				//resetting the nodal area
-				double area = 0.00;
-				array_1d<double,3> desp = ZeroVector(3);
-				(i)->FastGetSolutionStepValue(NODAL_MASS) = area;
-				(i)->FastGetSolutionStepValue(DESP) = desp;
-
-				double press = 0.00;
-				(i)->FastGetSolutionStepValue(NODAL_PRESS) = press;
-			}
-			KRATOS_CATCH("");
+			(i)->FastGetSolutionStepValue(PRESSURE)=0;////nuevo	
+			(i)->FastGetSolutionStepValue(PRESSUREAUX)=0;////nuevo	
+			//resetting the nodal area
+			double area = 0.00;
+			array_1d<double,3> desp = ZeroVector(3);
+			(i)->FastGetSolutionStepValue(NODAL_MASS) = area;
+			/*****/	
+			(i)->FastGetSolutionStepValue(NODAL_MASSAUX) = area;
+			/*****/	
+			(i)->FastGetSolutionStepValue(DESP) = desp;
+			
+			double press = 0.00;
+			(i)->FastGetSolutionStepValue(NODAL_PRESS) = press;
+				/*****/		
+			(i)->FastGetSolutionStepValue(NODAL_PRESSAUX) = press;
+			/*****/		
+			//double pp=(i)->FastGetSolutionStepValue(NODAL_MASSAUX);
+			//KRATOS_WATCH(pp);////nuevo
+			
+		      }
+		  KRATOS_CATCH("");
 		}
-
+		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		void AssignInitialDesp()
 		{
-			KRATOS_TRY
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
+		  KRATOS_TRY
+		    for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+			i != BaseType::GetModelPart().NodesEnd() ; ++i)
+		      {
  			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 			double Dt = rCurrentProcessInfo[DELTA_TIME];
 			const array_1d<double,3>& fract_v = (i)->FastGetSolutionStepValue(FRACT_VEL);
 			array_1d<double,3>& desp = (i)->FastGetSolutionStepValue(DESP);//ZeroVector(3);
 			noalias(desp)=fract_v*Dt;
-			//KRATOS_WATCH(desp);////nuevo
-			//noalias((i)->FastGetSolutionStepValue(DESP)) = fract_v*Dt;//desp;
 
-
-
-		      	
-			}
-			KRATOS_CATCH("");
+			
+			
+		      }
+		  KRATOS_CATCH("");
 		}
-
-	//******************************************************************************************************
-	//******************************************************************************************************
+		
+		//******************************************************************************************************
+		//******************************************************************************************************
 		void PredictVelocity(int step,int prediction_order)
 		{
-			KRATOS_TRY
-			if(prediction_order == 2)
-			{
-				if(BaseType::GetModelPart().GetBufferSize() < 3)
+		  KRATOS_TRY
+		    if(prediction_order == 2)
+		      {
+			if(BaseType::GetModelPart().GetBufferSize() < 3)
 					KRATOS_ERROR(std::logic_error,"insufficient buffer size for second order prediction","")
-			}
-
-			if(prediction_order == 2 && step > 2)
-			{
-				//second order prediction for the velocity
-				for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
+					  }
+		  
+		  if(prediction_order == 2 && step > 2)
+		    {
+		      //second order prediction for the velocity
+		      for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+			  i != BaseType::GetModelPart().NodesEnd() ; ++i)
 				{
-					array_1d<double,3>& vel = i->FastGetSolutionStepValue(VELOCITY); 
-					const array_1d<double,3>& v1 = i->FastGetSolutionStepValue(VELOCITY,1);
-					const array_1d<double,3>& v2 = i->FastGetSolutionStepValue(VELOCITY,2);
-					if(!i->IsFixed(VELOCITY_X))
-						vel[0] = 2.00*v1[0] - v2[0];
-					if(!i->IsFixed(VELOCITY_Y))
-						vel[1] = 2.00*v1[1] - v2[1];
-					if(!i->IsFixed(VELOCITY_Z))
-						vel[2] = 2.00*v1[2] - v2[2];
+				  array_1d<double,3>& vel = i->FastGetSolutionStepValue(VELOCITY); 
+				  const array_1d<double,3>& v1 = i->FastGetSolutionStepValue(VELOCITY,1);
+				  const array_1d<double,3>& v2 = i->FastGetSolutionStepValue(VELOCITY,2);
+				  if(!i->IsFixed(VELOCITY_X))
+				    vel[0] = 2.00*v1[0] - v2[0];
+				  if(!i->IsFixed(VELOCITY_Y))
+				    vel[1] = 2.00*v1[1] - v2[1];
+				  if(!i->IsFixed(VELOCITY_Z))
+				    vel[2] = 2.00*v1[2] - v2[2];
 				}
-			}
-			KRATOS_CATCH("");
+		    }
+		  KRATOS_CATCH("");
 		}
 		//******************************************************************************************************
 		//******************************************************************************************************
 		//calculation of projection 
 		void SolveStep1(double velocity_toll, int MaxIterations)
 		{
-			KRATOS_TRY;
-			array_1d<double,3> normDx = ZeroVector(3);
-
-			bool is_converged = false;
-			double iteration = 1;
-			
-			//solve for fractional step velocities
-			while(	is_converged == false && iteration++<10  ) 
-			  {
-				//perform one iteration over the fractional step velocity
-			    FractionalVelocityIteration(normDx);
-			    AssignInitialDesp();
-			    //CALCULAR D
-			    is_converged = ConvergenceCheck(normDx,velocity_toll);
-			  }
-			
-			if (is_converged == false)
-			  std::cout << "ATTENTION: convergence NOT achieved" << std::endl;
-
-			//clear if needed
-			if(mReformDofAtEachIteration == true && mpredictor_corrector == false )
-			  {
-			    this->mfracvel_strategy->Clear();
-			    /*this->mfracvel_x_strategy->Clear();
-			      this->mfracvel_y_strategy->Clear();
-			      if(this->mdomain_size == 3)
-				  this->mfracvel_z_strategy->Clear();*/
-			  }
-			
-			KRATOS_CATCH("");
+		  KRATOS_TRY;
+		  array_1d<double,3> normDx = ZeroVector(3);
+		  
+		  bool is_converged = false;
+		  double iteration = 1;
+		  
+		  //solve for fractional step velocities
+		  while(	is_converged == false /*&& iteration++<10*/  ) 
+		    {
+		      //perform one iteration over the fractional step velocity
+		      FractionalVelocityIteration(normDx);
+		      AssignInitialDesp();
+		      //CALCULAR D
+		      is_converged = ConvergenceCheck(normDx,velocity_toll);
+		    }
+		  
+		  if (is_converged == false)
+		    std::cout << "ATTENTION: convergence NOT achieved" << std::endl;
+		  
+		  //clear if needed
+		  if(mReformDofAtEachIteration == true && mpredictor_corrector == false )
+		    {
+		      this->mfracvel_strategy->Clear();
+		      
+		    }
+		  
+		  KRATOS_CATCH("");
 		}
 		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		double SolveStep2() 
 		{
-			KRATOS_TRY;
-			 BaseType::GetModelPart().GetProcessInfo()[FRACTIONAL_STEP] = 4;
-			return mpressurestep->Solve();
-			KRATOS_CATCH("");
+		  KRATOS_TRY;
+		  BaseType::GetModelPart().GetProcessInfo()[FRACTIONAL_STEP] = 4;
+		  return mpressurestep->Solve();
+		  KRATOS_CATCH("");
 		}
-
+		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		//calculation of projection 
 		void SolveStep3()
 		{
-			KRATOS_TRY;
-
-					KRATOS_CATCH("");
+		  KRATOS_TRY;
+		  
+		  KRATOS_CATCH("");
 		}
 
 		//******************************************************************************************************
@@ -738,23 +815,23 @@ namespace Kratos
 		//calculation of projection 
 		void ActOnLonelyNodes()
 		{
-			KRATOS_TRY;
-
-			//array_1d<double,3> body_force = BaseType::GetModelPart().ElementsBegin()->GetProperties()[BODY_FORCE];
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-					{
-						double& A = (i)->FastGetSolutionStepValue(NODAL_MASS);
+		  KRATOS_TRY;
+		  
+		  //array_1d<double,3> body_force = BaseType::GetModelPart().ElementsBegin()->GetProperties()[BODY_FORCE];
+		  for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+		      i != BaseType::GetModelPart().NodesEnd() ; ++i)
+		    {
+		      double& A = (i)->FastGetSolutionStepValue(NODAL_MASS);
 					
-					//the area is zero on lonely nodes, in this case set it to 1.00
-						if(	A <= 1e-12)
-							{
-								A = 1.0;
-							}
-					}
-			
-
-			KRATOS_CATCH("");
+		      //the area is zero on lonely nodes, in this case set it to 1.00
+		      if(	A <= 1e-12)
+			{
+			  A = 1.0;
+			}
+		    }
+		  
+		  
+		  KRATOS_CATCH("");
 		}
 
 		//******************************************************************************************************
@@ -762,35 +839,33 @@ namespace Kratos
 		void ApplyFractionalVelocityFixity()
 		{
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				if(i->IsFixed(VELOCITY_X))
-					(i)->Fix(FRACT_VEL_X);
-				else
-					(i)->Free(FRACT_VEL_X);
-
-				if(i->IsFixed(VELOCITY_Y))
-					(i)->Fix(FRACT_VEL_Y);
-				else
-					(i)->Free(FRACT_VEL_Y);
-
-				if(i->IsFixed(VELOCITY_Z))
-					(i)->Fix(FRACT_VEL_Z);
-				else
-					(i)->Free(FRACT_VEL_Z);
-			}
+			    i != BaseType::GetModelPart().NodesEnd() ; ++i)
+			  {
+			    if(i->IsFixed(VELOCITY_X))
+			      (i)->Fix(FRACT_VEL_X);
+			    else
+			      (i)->Free(FRACT_VEL_X);
+			    
+			    if(i->IsFixed(VELOCITY_Y))
+			      (i)->Fix(FRACT_VEL_Y);
+			    else
+			      (i)->Free(FRACT_VEL_Y);
+			    
+			    if(i->IsFixed(VELOCITY_Z))
+			      (i)->Fix(FRACT_VEL_Z);
+			    else
+			      (i)->Free(FRACT_VEL_Z);
+			  }
 		}
-
-
+		
+		
 		//******************************************************************************************************
 		//******************************************************************************************************
 		//explicit correction for velocities and eventually stabilization terms
 		bool ConvergenceCheck(const array_1d<double,3>& normDx, double toll)
 		{
 			KRATOS_TRY;
-			/*			double norm_vx = 0.00;
-						double norm_vy = 0.00;
-						double norm_vz = 0.00;*/
+			
 			double norm_tot=0.00;
 
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
@@ -803,25 +878,14 @@ namespace Kratos
 				norm_tot += v[2]*v[2];
 
 
-				/*	norm_vx += v[0]*v[0];
-				norm_vy += v[1]*v[1];
-				norm_vz += v[2]*v[2];*/
 			}
 
-			/*norm_vx = sqrt(norm_vx);
-			norm_vy = sqrt(norm_vy);
-			norm_vz = sqrt(norm_vz);*/
+			
 			norm_tot=sqrt(norm_tot);
 			if(norm_tot==0.0) norm_tot=1.00;
 			double ratio=normDx[0]/norm_tot;
 			
-			/*if(norm_vx == 0.0) norm_vx  = 1.00;
-			if(norm_vy == 0.0) norm_vy  = 1.00;
-			if(norm_vz == 0.0) norm_vz  = 1.00;
-
-			double ratio_x = normDx[0]/norm_vx;
-			double ratio_y = normDx[1]/norm_vy;
-			double ratio_z = normDx[2]/norm_vz;*/
+			
 
 			/*std::cout << "ratio_x = " << ratio_x << " ratio_Y = " << ratio_y << " ratio_Z = " << ratio_z << std::endl; */
 			std::cout << "toll = " << toll << " ratio = " << ratio << std::endl; 
@@ -883,14 +947,7 @@ namespace Kratos
 		{
 
 		  mfracvel_strategy->SetEchoLevel(Level);
-		  //mpressurestep->SetEchoLevel(Level);
-		  
-		  /*mfracvel_x_strategy->SetEchoLevel(Level);
-			mfracvel_y_strategy->SetEchoLevel(Level);
-			if(mdomain_size == 3)
-			mfracvel_z_strategy->SetEchoLevel(Level);*/
-			//
-			/*mpressurestep->SetEchoLevel(Level);*/
+		
 		}
 
 		//******************************************************************************************************
@@ -900,12 +957,7 @@ namespace Kratos
 		  mfracvel_strategy->Clear();
 		  //mpressurestep->Clear();
 		  
-		  /*	KRATOS_WATCH("ResidualBasedFluidStrategy Clear Function called");
-			mfracvel_x_strategy->Clear();
-			mfracvel_y_strategy->Clear();
-			if(mdomain_size == 3)
-				mfracvel_z_strategy->Clear();
-				mpressurestep->Clear();*/
+		
 		}
 		/*@} */
 		/**@name Operators 
