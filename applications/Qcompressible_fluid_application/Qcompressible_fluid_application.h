@@ -44,13 +44,18 @@ namespace Kratos
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DESP)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONV_PROJ)
-
 	KRATOS_DEFINE_VARIABLE( double, MACH_NUMBER )
 	KRATOS_DEFINE_VARIABLE( double, PRESSURE_COEFFICIENT )
 	KRATOS_DEFINE_VARIABLE( double, PRESSURE_OLD_IT )
+	KRATOS_DEFINE_VARIABLE( double, PRESSUREAUX_OLD_IT )
 	KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
 	KRATOS_DEFINE_VARIABLE(double, NODAL_MASS)
+        KRATOS_DEFINE_VARIABLE(double, NODAL_MASSAUX)
+	KRATOS_DEFINE_VARIABLE(double, MASS)
+	//KRATOS_DEFINE_VARIABLE(double, NODAL_MAUX)
+	//KRATOS_DEFINE_VARIABLE(double, NODAL_PAUX)
 	KRATOS_DEFINE_VARIABLE(double, NODAL_PRESS)
+	KRATOS_DEFINE_VARIABLE(double, NODAL_PRESSAUX)
 	KRATOS_DEFINE_VARIABLE(int, AUX_INDEX)
 	KRATOS_DEFINE_VARIABLE(double, EXTERNAL_PRESSURE)
 	KRATOS_DEFINE_VARIABLE(double, DIAMETER)
@@ -77,7 +82,7 @@ namespace Kratos
 	/// Short class definition.
 	/** Detail class definition.
 	*/
-	class KratosR1QcompressibleFluidApplication : public KratosApplication
+	class KratosQcompressibleFluidApplication : public KratosApplication
 	{
 	public:
 		///@name Type Definitions
@@ -85,17 +90,17 @@ namespace Kratos
 		
 
 		/// Pointer definition of KratosR1IncompressibleFluidApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosR1QcompressibleFluidApplication);
+		KRATOS_CLASS_POINTER_DEFINITION(KratosQcompressibleFluidApplication);
 
 		///@}
 		///@name Life Cycle 
 		///@{ 
 
 		/// Default constructor.
-		KratosR1QcompressibleFluidApplication();
+		KratosQcompressibleFluidApplication();
 
 		/// Destructor.
-		virtual ~KratosR1QcompressibleFluidApplication(){}
+		virtual ~KratosQcompressibleFluidApplication(){}
 
 
 		///@}
@@ -129,7 +134,7 @@ namespace Kratos
 		/// Turn back information as a string.
 		virtual std::string Info() const
 		{
-			return "KratosR1QcompressibleFluidApplication";
+			return "KratosQcompressibleFluidApplication";
 		}
 
 		/// Print information about this object.
@@ -142,7 +147,7 @@ namespace Kratos
 		///// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const
       {
-      	KRATOS_WATCH("in KratosR1QcompressibleFluidApplication");
+      	KRATOS_WATCH("in KratosQcompressibleFluidApplication");
       	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 		rOStream << "Variables:" << std::endl;
 		KratosComponents<VariableData>().PrintData(rOStream);
@@ -238,10 +243,10 @@ namespace Kratos
 		///@{ 
 
 		/// Assignment operator.
-		KratosR1QcompressibleFluidApplication& operator=(KratosR1QcompressibleFluidApplication const& rOther);
+		KratosQcompressibleFluidApplication& operator=(KratosQcompressibleFluidApplication const& rOther);
 
 		/// Copy constructor.
-		KratosR1QcompressibleFluidApplication(KratosR1QcompressibleFluidApplication const& rOther);
+		KratosQcompressibleFluidApplication(KratosQcompressibleFluidApplication const& rOther);
 
 
 		///@}    
