@@ -1,8 +1,8 @@
 #importing the Kratos Library
 from Kratos import *
-from KratosR1QcompressibleFluidApplication import *
-from KratosR1MeshingApplication import *
-from KratosR1ULFApplication import *
+from KratosQcompressibleFluidApplication import *
+from KratosMeshingApplication import *
+from KratosULFApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -12,10 +12,16 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT);
+    model_part.AddNodalSolutionStepVariable(PRESSUREAUX_OLD_IT);
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
     model_part.AddNodalSolutionStepVariable(CONV_PROJ);
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
+    model_part.AddNodalSolutionStepVariable(MASS);
     model_part.AddNodalSolutionStepVariable(NODAL_PRESS);
+    model_part.AddNodalSolutionStepVariable(NODAL_MASSAUX);
+    model_part.AddNodalSolutionStepVariable(NODAL_PRESSAUX);
+    model_part.AddNodalSolutionStepVariable(NODAL_MAUX);
+    model_part.AddNodalSolutionStepVariable(NODAL_PAUX);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
@@ -31,6 +37,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);
+    model_part.AddNodalSolutionStepVariable(ARRHENIUSAUX);
+
+    model_part.AddNodalSolutionStepVariable(PRESSUREAUX);
 
     print "variables for the incompressible fluid solver added correctly"
 
@@ -53,25 +62,24 @@ def ReadRestartFile(FileName,nodes):
    for line in aaa:
        exec(line)
        
-##   import start.pyinc
-   
-##   aaa = __import__(FileName)
-##   aaa.Restart(nodes)
-
-   
+ 
 
 class QcompressibleFluidSolver:
     
-    def __init__(self,model_part,domain_size):
+    def __init__(self,model_part,domain_size, gid_io):
 
         #neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
+	self.gid_io = gid_io
+	self.counter=0
         ##self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
 
         self.model_part = model_part
+	print "LALALA"
+	print domain_size
         self.domain_size = domain_size
-
+	
         #assignation of parameters to be used
         self.vel_toll = 0.001;
         self.press_toll = 0.001;
@@ -100,27 +108,27 @@ class QcompressibleFluidSolver:
 
 ###############MESH CHANGES
         self.UlfUtils = UlfUtils()
+        self.qUtils = qUtils()
         self.ulf_time_step_dec_process = UlfTimeStepDecProcess(model_part);
         self.mark_close_nodes_process = MarkCloseNodesProcess(model_part);
         self.node_erase_process = NodeEraseProcess(model_part);
         self.h_multiplier = 0.8
 ###############MESH CHANGES
 
-        if(domain_size == 2): 
-            self.Mesher = TriGenModeler() 
+        if(domain_size == 2):
+            self.Mesher = TriGenPFEMModeler() 
+            self.node_erase_process = NodeEraseProcess(model_part);
             self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 	elif (domain_size == 3):
 	    self.Mesher =TetGenPfemModeler() 
-#	    self.Mesher =TetGenModeler() 
             self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
 
         
         (self.neigh_finder).Execute();
 #########################
 	
-        #self.ulf_apply_bc_process = UlfApplyBCProcess(model_part);     
         self.remeshing_flag = True
-        self.alpha_shape = 3.0
+        self.alpha_shape = 1.4
 
 
 
@@ -133,6 +141,11 @@ class QcompressibleFluidSolver:
         Hfinder  = FindNodalHProcess(model_part);
 	print "ERROR" 
        	Hfinder.Execute();
+
+        for node in self.model_part.Nodes:
+            temp=node.GetSolutionStepValue(NODAL_H)
+            node.SetSolutionStepValue(NODAL_H, 1,temp )
+            node.SetSolutionStepValue(NODAL_H, 2,temp )
     	print "ERROR11111111111"
 
 #########################
@@ -140,33 +153,65 @@ class QcompressibleFluidSolver:
     def Initialize(self):
        
         
-#        self.solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
         print "in python: okkio using Coupled Strategy"
         self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
-
+        
         (self.solver).SetEchoLevel(self.echo_level)
  	(self.neigh_finder).Execute()
-	#self.ulf_apply_bc_process.Execute()
-        self.Remesh()
+        (self.qUtils).IdentifyFluidNodes(self.model_part);
+        self.Remesh() #comentadoooooooooooooo
         print "finished initialization of the fluid strategy"
         
    
     def Solve(self):
-        if(self.ReformDofAtEachIteration == True):
-            (self.neigh_finder).Execute()
+#        print "mover nodos"
+#        (self.qUtils).QuasiLagrangianMove(self.model_part)
+#        self.Remesh()
+
+#        if(self.ReformDofAtEachIteration == True):
+#            (self.neigh_finder).Execute()
 
         print "just before solve"
         print "probelama"
+        (self.qUtils).IdentifyFluidNodes(self.model_part);
         (self.solver).Solve()
+
+
+
+        print "mover nodos"
+        (self.qUtils).QuasiLagrangianMove(self.model_part)
+
+        print "Calcula si se invierte un elemento"
+	[inverted_elements,vol] = self.CheckForInvertedElements()
+        print "vol = " , vol
+
+
+        if(inverted_elements == True):
+            print "elementoinvertido "    
+            #(self.qUtils).ReduceTimeStep(model_part);
+            print "reducimostiempo "  
+            #(self.qUtils).Return(model_part);
+            #(self.qUtils).IdentifyFluidNodes(self.model_part);
+            #(self.solver).Solve()
+            #print "mover nodos"
+            #(self.qUtils).QuasiLagrangianMove(self.model_part)
+            #print "Calcula si se invierte un elemento"
+            #[inverted_elements,vol] = self.CheckForInvertedElements()
+            print "vol = " , vol
+
+
+        self.counter=self.counter+1
+#	if(self.counter>10):
+#            (self.qUtils).MarkExcessivelyCloseNodes(self.model_part,0.8)
+     
 #################################################CHANGE
         (self.neigh_finder).Execute();
+	self.Remesh()
 #################################################
-        self.Remesh()
 
+ 
     def WriteRestartFile(self,FileName):
         backupfile = open(FileName+".py",'w')
-##        backupfile.write( "from Kratos import *\n");
-##        backupfile.write( "def Restart(NODES):\n" )
         
         import restart_utilities
         restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,backupfile)
@@ -186,35 +231,21 @@ class QcompressibleFluidSolver:
 
 
     def Remesh(self):
-        
-#        (self.UlfUtils).MarkNodesCloseToWall(self.model_part, 2, 2)      
-        ##erase all conditions and elements prior to remeshing
-        #if (self.remeshing_flag==True):
+	print "AAlll"
+##        (self.fluid_solver).Clear()
+        (self.solver).Clear();
+#        (self.solver).Clear();
+	print "AAAA"
+
+	(self.neigh_finder).ClearNeighbours();
         ((self.model_part).Elements).clear();
         ((self.model_part).Conditions).clear();            
 	print "PORAQUI??????"
-	(self.mark_close_nodes_process).MarkCloseNodes(0.25);###0.3
-        
-        (self.node_erase_process).Execute();
-      
-        #(self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
-###############################CHANGE
-        ##(self.node_erase_process).Execute();
-###############################CHANGE
-
-
-            
-        #if (self.remeshing_flag==1.0):
-
-
-	
-
-        if(self.domain_size == 2):       
-            (self.Mesher).ReGenerateMeshQcomp(self.model_part, self.alpha_shape)#self.alpha_shape) 
+     
+        if(self.domain_size == 2):
+            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process, True, True,self.alpha_shape, 0.5)
 	elif (self.domain_size == 3):
             (self.Mesher).ReGenerateMeshElementsQcomp(self.model_part, self.alpha_shape)#self.alpha_shape)
-
-        (self.node_erase_process).Execute();
 
         (self.neigh_finder).Execute();
 
@@ -225,39 +256,6 @@ class QcompressibleFluidSolver:
             if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
 
-
-        
-##        #and erase bad nodes
-##        for el in self.model_part.Elements:
-##            el.GetNode(0).SetSolutionStepValue(IS_FLUID,0,1.0)
-##            el.GetNode(1).SetSolutionStepValue(IS_FLUID,0,1.0)
-##            el.GetNode(2).SetSolutionStepValue(IS_FLUID,0,1.0)
-##
-##        for node in self.model_part.Nodes:
-##            node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
-##            
-##	for node in self.model_part.Nodes:
-##            if(node.GetSolutionStepValue(IS_STRUCTURE)==0 and node.GetSolutionStepValue(IS_BOUNDARY)==1):
-##                node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
-            
-        ##calculating fluid neighbours before applying boundary conditions
-    
-        ##(self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
-	####aqui poner la funcion
-
-        #(self.node_erase_process).Execute();
-
-        #print "marking fluid" and applying fluid boundary conditions
-        #(self.ulf_apply_bc_process).Execute();
-        #(self.mark_fluid_process).Execute();
-        #(self.node_erase_process).Execute();
-        
-        
-        #calculating the neighbours for the overall model
-        #(self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
-        
-##        for elem in self.combined_model_part.Elements:
-##            print elem
 
 
 #############################CHANGE
@@ -274,6 +272,15 @@ class QcompressibleFluidSolver:
 
 
 
+      ######################################################################
+    def CheckForInvertedElements(self):
+        volume = (self.qUtils).CalculateVolume(self.model_part,self.domain_size)
+        inverted_elements = False
+        if(volume < 0.0):
+            volume = - volume
+            inverted_elements = True
+        return [inverted_elements,volume]
         
+    ######################################################################   
         
 
