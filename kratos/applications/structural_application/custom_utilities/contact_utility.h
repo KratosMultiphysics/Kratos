@@ -168,9 +168,11 @@ namespace Kratos
                     }
 
                     GeometryType::Pointer tempGeometry =  GeometryType::Pointer( new Geometry<Node<3> >() );
-
-                    PropertiesType::Pointer tempProperties = ConditionsArray.begin()->pGetProperties();
-
+                    
+                    int properties_index = mr_model_part.NumberOfProperties();
+                    PropertiesType::Pointer tempProperties( new PropertiesType(properties_index+1) );
+                    mr_model_part.AddProperties( tempProperties );
+                    
                     ConditionsArrayType::ptr_iterator it_begin=ConditionsArray.ptr_begin();
                     ConditionsArrayType::ptr_iterator it_end=ConditionsArray.ptr_end();
 
