@@ -1,0 +1,73 @@
+path-constant MSUITE_DIR : . ;
+
+project msuite
+    : 
+    source-location
+			.
+			$(MSUITE_DIR)/src/
+			$(MSUITE_DIR)/src/util/
+			$(MSUITE_DIR)/src/edt/
+			$(MSUITE_DIR)/src/malla/
+    :
+    requirements 	<include>. 
+			<include>$(MSUITE_DIR)
+			<include>$(MSUITE_DIR)/src/
+			<include>$(MSUITE_DIR)/src/util/
+			<include>$(MSUITE_DIR)/src/edt/
+			<include>$(MSUITE_DIR)/src/malla/
+
+			##macro defintion
+			<define>NDEBUG
+            <define>_NO_DELETE_NODES
+			<threading>multi
+	: 
+			default-build release 
+    ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+
+alias sources_mesh_suite
+	:
+	case.cpp 
+	cone.cpp 
+	filename.cpp
+	octree.cpp 
+	pline.cpp
+	punto.cpp
+	tiempo.cpp
+	alpha.cpp
+	edt.cpp
+	esfera.cpp
+	hydir.cpp
+	s_squeeze.cpp
+	slivers.cpp
+	vor_out.cpp
+	voronoi.cpp
+	corte.cpp
+	delaunay.cpp 
+	elemento.cpp 
+	fforma.cpp 
+	grabamalla.cpp 
+	leemalla.cpp 
+	malla.cpp 
+	meshelm.cpp 
+	no_remalla.cpp 
+	orienta.cpp 
+	refina.cpp 
+	smooth.cpp 
+	surface.cpp 
+	vecinos_y_frontera.cpp 
+	;
+
+lib msuite
+	:
+		sources_mesh_suite
+	:
+		<link>static
+	;
+
+
+install install : msuite   : <location>. ;
+
