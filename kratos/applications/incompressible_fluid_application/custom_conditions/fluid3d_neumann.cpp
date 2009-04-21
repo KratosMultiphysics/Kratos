@@ -169,9 +169,11 @@ namespace Kratos
 			unsigned int component = FractionalStepNumber-1;
 			for(unsigned int i = 0; i<GetGeometry().size(); i++)
 			{
-				rRightHandSideVector[i] = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) * An[component]; 
+				rRightHandSideVector[i] = - GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) * An[component];
 				
-// 				KRATOS_WATCH(GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) );
+// 				KRATOS_WATCH(GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) );
+// 				KRATOS_WATCH(An[component] );
+// 				KRATOS_WATCH(rRightHandSideVector[i] );
 			}
 // 			KRATOS_WATCH(An);
 // 			KRATOS_WATCH(rRightHandSideVector);
@@ -190,6 +192,8 @@ namespace Kratos
 				rRightHandSideVector.resize(0,false);
 			}
 		}
+//                KRATOS_WATCH(rLeftHandSideMatrix)
+//                KRATOS_WATCH(rRightHandSideVector)
 	}
 
 	//************************************************************************************

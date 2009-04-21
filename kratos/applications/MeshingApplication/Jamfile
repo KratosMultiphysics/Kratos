@@ -15,6 +15,12 @@ project MeshingApplication
     requirements <include>. 
 		<include>custom_external_libraries/tetgen/tetgen1.4.0
 		<include>custom_external_libraries/triangle
+
+		<include>custom_external_libraries/msuite/src/
+		<include>custom_external_libraries/msuite/src/util/
+		<include>custom_external_libraries/msuite/src/edt/
+		<include>custom_external_libraries/msuite/src/malla/
+
 		<define>KRATOS_PYTHON
 		<link>shared
     ;
@@ -34,9 +40,19 @@ alias libtriangle : libtriangle_win : <toolset>msvc ;
 alias libtriangle : libtriangle_linux : <toolset>gcc ;
 alias libtriangle : libtriangle_linux : <toolset>intel ;
 
+lib libmsuite_win 		: : <name>libmsuite <search>custom_external_libraries/msuite/ ;
+lib libmsuite_linux 		: : <name>msuite <search>custom_external_libraries/msuite/ ;
+alias libmsuite : libmsuite_win : <toolset>msvc ;
+alias libmsuite : libmsuite_linux : <toolset>gcc ;
+alias libmsuite : libmsuite_linux : <toolset>intel ;
+
+
 #compilation of additional libraries
-use-project /kratos-prj/meshapp_tetgen_compilation : custom_external_libraries/tetgen/tetgen1.4.0 ;
+use-project /kratos-prj/meshapp_tetgen_compilation   : custom_external_libraries/tetgen/tetgen1.4.0 ;
 use-project /kratos-prj/meshapp_triangle_compilation : custom_external_libraries/triangle ;
+use-project /kratos-prj/msuite               : custom_external_libraries/msuite ;
+
+
 
 #################################################################################
 #################################################################################
@@ -55,8 +71,10 @@ python-extension KratosMeshingApplication
 
 	libtetgen
 	libtriangle
+    libmsuite
 	/kratos-prj/meshapp_tetgen_compilation//install
 	/kratos-prj/meshapp_triangle_compilation//install
+	/kratos-prj/msuite//install
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
     ;

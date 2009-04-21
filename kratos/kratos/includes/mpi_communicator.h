@@ -237,6 +237,13 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+      virtual bool SumAll(double& rValue)
+      {
+          double local_value = rValue;
+          MPI_Allreduce (&local_value,&rValue,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+          return true;
+      }
+
       virtual bool SynchronizeNodalSolutionStepsData()
       {
 	int rank;

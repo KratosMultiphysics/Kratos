@@ -463,6 +463,11 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+      virtual bool SumAll(double& rValue)
+      {
+          return true;
+      }
+
       virtual bool SynchronizeNodalSolutionStepsData()
       {
 #if defined(KRATOS_USING_MPI )

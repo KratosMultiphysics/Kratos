@@ -81,6 +81,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
+//configuration files
+#include "custom_strategies/strategies/solver_configuration.h"
+#include "custom_strategies/strategies/fractionalstep_configuration.h"
+#include "custom_strategies/strategies/fractional_step_strategy.h"
+
+
 
 
 namespace Kratos
@@ -232,6 +238,53 @@ namespace Kratos
 				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
 				>() )
 				;
+
+
+
+
+                        //********************************************************************************************
+                       class_< SolverConfiguration<SparseSpaceType, LocalSpaceType, LinearSolverType >,
+			         boost::noncopyable >
+			        ("SolverConfiguration", init< ModelPart&, unsigned int>() )
+                           .def("GetActualizeRHSflag", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::GetActualizeRHSflag )
+                           .def("GetActualizeRHSflag", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::GetActualizeRHSflag )
+                           ;
+
+                       class_< FractionalStepConfiguration<SparseSpaceType, LocalSpaceType, LinearSolverType >,
+                               bases< SolverConfiguration<SparseSpaceType, LocalSpaceType, LinearSolverType > >,
+			         boost::noncopyable >
+			        ("FractionalStepConfiguration", init< ModelPart&, LinearSolverType::Pointer, LinearSolverType::Pointer, 
+                                                                        unsigned int, unsigned int, bool >() );
+
+
+
+                        //********************************************************************************************
+			class_< FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("FractionalStepStrategy",
+				init<ModelPart&,
+                                    SolverConfiguration<SparseSpaceType, LocalSpaceType, LinearSolverType >&,
+                                    bool,
+                                    double, double,
+                                    int, int,
+                                    unsigned int, unsigned int,
+                                    bool
+                                    >() )
+				  .def("SolveStep1",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+				  .def("SolveStep4",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep4)
+				  .def("ActOnLonelyNodes",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActOnLonelyNodes)
+				  .def("Clear",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+				  .def("FractionalVelocityIteration",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FractionalVelocityIteration)
+				  .def("ConvergenceCheck",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ConvergenceCheck)
+				  .def("InitializeFractionalStep",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeFractionalStep)
+				  .def("PredictVelocity",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::PredictVelocity)
+				  .def("InitializeProjections",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeProjections)
+				  .def("AssignInitialStepValues",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssignInitialStepValues)
+				  .def("IterativeSolve",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::IterativeSolve)
+				  .def("SavePressureIteration",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SavePressureIteration)
+				  .def("ApplyFractionalVelocityFixity",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ApplyFractionalVelocityFixity)				;
 
 
 
