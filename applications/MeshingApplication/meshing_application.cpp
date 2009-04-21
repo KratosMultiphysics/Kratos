@@ -21,6 +21,7 @@
 #include "includes/variables.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/line_2d_2.h"
 
 
 namespace Kratos

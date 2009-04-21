@@ -462,6 +462,8 @@ namespace Kratos
 					double& y= out2.pointlist[base+1];
 
 					Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+
+                                        pnode->SetBufferSize(ThisModelPart.NodesBegin()->GetBufferSize() );
 							
 					list_of_new_nodes.push_back( pnode );
 					

@@ -18,7 +18,7 @@
 #include "includes/define.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "geometries/line_2d.h"
+#include "geometries/line_2d_2.h"
 #include "incompressible_fluid_application.h"
 #include "includes/variables.h"
 
@@ -39,7 +39,6 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(double, EXTERNAL_PRESSURE)
 	KRATOS_CREATE_VARIABLE(double, DIAMETER)
 	KRATOS_CREATE_VARIABLE(double, PERMEABILITY_INV)
-	KRATOS_CREATE_VARIABLE(double, ARRHENIUS)
 
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
@@ -50,6 +49,7 @@ namespace Kratos
 		mFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mFluid2DCoupled(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mFluid3DCoupled(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4,Node<3>())))),
+                mFluid3DNeumann(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mNDFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> 
                 >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mNDFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>

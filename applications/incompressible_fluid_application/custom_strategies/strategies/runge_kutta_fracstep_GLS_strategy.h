@@ -533,7 +533,7 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
 		array_1d<double,3> N;
 		array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!		
-		double lumping_factor = 0.33333333333333;
+//		double lumping_factor = 0.33333333333333;
 		
 		
 		//calculate the velocity correction and store it in AUX_VECTOR

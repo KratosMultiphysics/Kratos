@@ -78,23 +78,23 @@ def Run():
 
         ################################################################
 	
-	Text += "cantilever2dstatic_parallel: "
-	os.chdir("cantilever2d.gid")
-	sys.path.append(os.getcwd())
-
-	print "Running cantilever2dstatic_parallel..."
-	Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_benchmarking.py", "cantilever2dstatic_superlu.txt")	
-	
-	if (Msg == True):
-		Text += "OK\n"
-		print "cantilever2dstatic_parallel example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "cantilever2dstatic_parallel example FAILED"
-
-	os.chdir("..")
+#	Text += "cantilever2dstatic_parallel: "
+#	os.chdir("cantilever2d.gid")
+#	sys.path.append(os.getcwd())
+#
+#	print "Running cantilever2dstatic_parallel..."
+#	Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_benchmarking.py", "cantilever2dstatic_superlu.txt")
+#
+#	if (Msg == True):
+#		Text += "OK\n"
+#		print "cantilever2dstatic_parallel example succesful"
+#	else:
+#		Text += "FAILED\n"
+#		Text += Msg
+#		Text += "\n\n"
+#		print "cantilever2dstatic_parallel example FAILED"
+#
+#	os.chdir("..")
 
 
         ################################################################
