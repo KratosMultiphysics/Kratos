@@ -256,6 +256,12 @@ namespace Kratos
 
 				in_mid.pointlist[base] = (nodes_begin + i)->X();
 				in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
+
+                                Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
+                                for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+                                {
+                                    iii->Id() = i+1;
+                                }
 			}
 			//in_mid.numberoftriangles = ThisModelPart.Elements().size();
 			//in_mid.trianglelist = (int*) malloc(in_mid.numberoftriangles * 3 * sizeof(int));
@@ -475,6 +481,8 @@ namespace Kratos
 						Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 						
 						(p_new_dof)->FreeDof();
+//                                                (p_new_dof)->EquationId() = -1;
+
 					}
 					
 				}
