@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/newton_raphson_oss_strategy.h"
 #include "custom_strategies/convergencecriterias/UP_criteria.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
+#include "custom_strategies/strategies/runge_kutta_fracstep_GLS_comp_strategy.h"
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -231,7 +232,19 @@ namespace Kratos
 				  .def("SolveStep3",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
 				  
 				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
+			
+			class_< RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("RungeKuttaFracStepCompStrategy", 
+				init<ModelPart&, LinearSolverType::Pointer,
+				bool, bool, bool,
+				int 
+				>() )
+				  .def("SolveStep1",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
 				  
+				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
 			class_< NewtonRaphsonOssStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
 				("NewtonRaphsonOssStrategy", 
