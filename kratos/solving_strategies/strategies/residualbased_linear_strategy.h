@@ -698,21 +698,28 @@ std::cout << "ln622" <<std::endl;
 			KRATOS_TRY
 				std::cout << "strategy Clear function used" << std::endl;
 
-			TSystemMatrixType& mA = *mpA;
-			TSystemVectorType& mDx = *mpDx;
-			TSystemVectorType& mb = *mpb;
-
-			SparseSpaceType::Clear(mpA);
-			SparseSpaceType::Resize(mA,0,0);
-
-			SparseSpaceType::Clear(mpDx);
-			SparseSpaceType::Resize(mDx,0);
-
-			SparseSpaceType::Clear(mpb);
-			SparseSpaceType::Resize(mb,0);
-
+		
+		
+			
+			
+			if(mpA != NULL) {
+			  TSystemMatrixType& mA = *mpA;
+			  SparseSpaceType::Resize(mA,0,0);
+			  
+			  SparseSpaceType::Clear(mpA);}
+			if(mpDx != NULL) {
+			  TSystemVectorType& mDx = *mpDx;
+			  SparseSpaceType::Clear(mpDx);
+			  SparseSpaceType::Resize(mDx,0);
+			}
+			if(mpb != NULL) {
+			  TSystemVectorType& mb = *mpb;
+			  SparseSpaceType::Clear(mpb);
+			  SparseSpaceType::Resize(mb,0);}
+			
 			//setting to zero the internal flag to ensure that the dof sets are recalculated
 			GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
+
 			GetBuilderAndSolver()->Clear();
 				
 				
