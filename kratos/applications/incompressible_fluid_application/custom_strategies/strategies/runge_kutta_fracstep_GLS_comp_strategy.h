@@ -25,6 +25,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "incompressible_fluid_application.h"
 
+//#include <typeinfo.h>
 //#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 //#include "custom_strategies/builder_and_solvers/residualbased_elimination_discretelaplacian_builder_and_solver.h"
 //#include "custom_strategies/builder_and_solvers/residualbased_elimination_discretelaplacian_builder_and_solver_flexiblefsi.h"
@@ -218,7 +219,18 @@ namespace Kratos
 			//this->m_step = 1;
 
 			//this->mOldDt  =0.00;
+			
+			//CHECK IF THE CORRECT ELEMENT TYPE WAS USED: Fluid2DGLS_expl_comp
+			
+			Element & ref_el = model_part.Elements().front();
+			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
 
+			int id=1;
+			Fluid2DGLS_expl_comp el(1, p_null_geom);
+
+			if (typeid(ref_el) != typeid(el))
+				KRATOS_ERROR(std::logic_error,  "Compressible Runge Kutta Strategy requires utilization of Fluid2DGLS_expl_comp elements " , "");
+			
 			KRATOS_CATCH("")
 		}
 

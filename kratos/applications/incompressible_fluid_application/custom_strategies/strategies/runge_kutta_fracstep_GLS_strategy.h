@@ -195,7 +195,7 @@ namespace Kratos
 			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
 			{
 			//FLAG_VAR = 1 is SLIP
-			if (it->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0)		
+			if (it->FastGetSolutionStepValue(FLAG_VARIABLE)==3.0)		
 
 			mSlipBoundaryList.push_back(*(it.base()));
 			//mSlipBoundaryList.push_back(it);
@@ -218,6 +218,14 @@ namespace Kratos
 			//this->m_step = 1;
 
 			//this->mOldDt  =0.00;
+			Element & ref_el = model_part.Elements().front();
+			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
+
+			int id=1;
+			Fluid2DGLS_expl el(1, p_null_geom);
+
+			if (typeid(ref_el) != typeid(el))
+				KRATOS_ERROR(std::logic_error,  "Incompressible Runge Kutta Strategy requires utilization of Fluid2DGLS_expl elements " , "");
 
 			KRATOS_CATCH("")
 		}
@@ -238,12 +246,13 @@ namespace Kratos
 		KRATOS_WATCH("Solve of Runge Kutta GLS Frac Step Strategy")
 		//we estimate the time step for the explicit time integration schem estability
 		//ComputeTimeStep(0.8);
+		
 		SolveStep1();
 		
 		//we write now the beginning of step pressure to OLD_IT to use it in the second frac step
 		SavePressureIt();
 		double Dp_norm = this->SolveStep2();
-
+		
 		//if(this->mReformDofAtEachIteration == true )
 		//		this->Clear();
 		SolveStep3();
@@ -636,6 +645,10 @@ namespace Kratos
 		//KRATOS_WATCH("slip node")
 		array_1d<double, 3> normal = (*it)->FastGetSolutionStepValue(NORMAL);
 		double length = sqrt(normal[0]*normal[0]+normal[1]*normal[1]);
+		if (length==0)
+			{
+			KRATOS_ERROR(std::logic_error,  "TO apply SLIP you should calculate normals first! Dont forget to assign Condition2D for that " , "");
+			}
 		normal*=1.0/length;
 		array_1d<double, 3> normal_comp_vec;
 		//CHECK IF NORMAL IS NORMALIZED (divided by the length)
@@ -648,7 +661,8 @@ namespace Kratos
 		}					
 		KRATOS_CATCH("")
 		}
-		
+
+
 		//******************************************************************************************************
 		//******************************************************************************************************
 		virtual void SetEchoLevel(int Level) 
