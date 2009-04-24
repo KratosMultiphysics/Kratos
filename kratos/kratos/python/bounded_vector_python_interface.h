@@ -154,7 +154,7 @@ namespace Kratos
 						PyErr_Clear();
 						return 0;
 					}
-					if (TSize < obj_size) return 0;
+					if (TSize < static_cast<std::size_t>(obj_size)) return 0;
 					bool is_range = PyRange_Check(obj_ptr);
 					std::size_t i=0;
 					for(;;i++) {
