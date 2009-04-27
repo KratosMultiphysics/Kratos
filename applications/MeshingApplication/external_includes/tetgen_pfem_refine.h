@@ -229,7 +229,8 @@ namespace Kratos
 			//reorder node Ids
 			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
 			{
-				(nodes_begin + i)->Id() = i+1;
+                                (nodes_begin + i)->SetId(i+1);
+//				(nodes_begin + i)->Id() = i+1;
 			}
 
 			//give the corrdinates to the mesher

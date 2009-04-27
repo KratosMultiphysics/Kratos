@@ -115,10 +115,11 @@ fluid_solver.echo_level = 0
 
 #pILUPrecond = ILU0Preconditioner() 
 #fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
-pDiagPrecond = DiagonalPreconditioner()
-fluid_solver.velocity_linear_solver =  BICGSTABSolver(1e-9, 5000,pDiagPrecond)
+##pDiagPrecond = DiagonalPreconditioner()
+##fluid_solver.velocity_linear_solver =  BICGSTABSolver(1e-9, 5000,pDiagPrecond)
 ##fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pDiagPrecond)
-##fluid_solver.pressure_linear_solver = SkylineLUFactorizationSolver();
+fluid_solver.velocity_linear_solver = SkylineLUFactorizationSolver();
+fluid_solver.pressure_linear_solver = SkylineLUFactorizationSolver();
 fluid_solver.Initialize()
 
 #settings to be changed

@@ -145,11 +145,12 @@ namespace Kratos {
             unsigned int index_I = 1;
             for (ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
             {
-                in->Id() = index_I++;
+                in->SetId(index_I++);
+//                in->Id() = index_I++;
                 Node<3>::DofsContainerType& node_dofs = in->GetDofs();
                 for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
 		{
-                    iii->Id() = in->Id();
+                    iii->SetId(in->Id());
 		}
             }
 
@@ -484,7 +485,7 @@ namespace Kratos {
         void CleanCloudOfNodes(
                 ModelPart& ThisModelPart,
                 NodeEraseProcess& node_erase,
-                double h_factor = 0.5)
+                double h_factor)
         {
             KRATOS_TRY
             //remove nodes that are too close to the boundary in a elementwise sense
@@ -517,7 +518,7 @@ namespace Kratos {
 
                 n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(), res_distances.begin(), max_results);
                 if (n_points_in_radius > 1) {
-                    if (in->FastGetSolutionStepValue(IS_BOUNDARY) == 0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0) {
+                    if (in->FastGetSolutionStepValue(IS_BOUNDARY,1) == 0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0) {
                         //look if we are already erasing any of the other nodes
                         unsigned int erased_nodes = 0;
                         for (PointIterator i = res.begin(); i != res.begin() + n_points_in_radius; i++)
@@ -533,7 +534,7 @@ namespace Kratos {
                         unsigned int k = 0;
                         unsigned int counter = 0;
                         for (PointIterator i = res.begin(); i != res.begin() + n_points_in_radius; i++) {
-                            if ((*i)->FastGetSolutionStepValue(IS_BOUNDARY, 1) == 1.0 && res_distances[k] < 0.2 * radius && res_distances[k] > 0.0) {
+                            if ((*i)->FastGetSolutionStepValue(IS_BOUNDARY,1) == 1.0 && res_distances[k] < 0.2 * radius && res_distances[k] > 0.0) {
                                 counter += 1;
                             }
                             k++;
@@ -608,7 +609,7 @@ namespace Kratos {
 //             KRATOS_WATCH(temp->GetValue(ERASE_FLAG));
 //             KRATOS_WATCH(temp->Id());
 
-             KRATOS_WATCH(ThisModelPart.Nodes().size());
+//             KRATOS_WATCH(ThisModelPart.Nodes().size());
 
             //perform the removal
             node_erase.Execute();

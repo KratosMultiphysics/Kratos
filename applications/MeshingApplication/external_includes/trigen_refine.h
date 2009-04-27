@@ -138,7 +138,7 @@ namespace Kratos
 				int base = i*2;
 
 				//from now on it is consecutive
-				(nodes_begin + i)->Id() = i+1;
+				(nodes_begin + i)->SetId(i+1);//(nodes_begin + i)->Id() = i+1;
 
 				in.pointlist[base] = (nodes_begin + i)->X();
 				in.pointlist[base+1] = (nodes_begin + i)->Y();
@@ -348,7 +348,9 @@ namespace Kratos
 			{
 				if(preserved[i] == false)
 				{
-					(nodes_begin+i)->Id() += last_id_counter;
+                                        unsigned int new_id = (nodes_begin+i)->Id() + last_id_counter;
+                                        (nodes_begin + i)->SetId(new_id);
+//					(nodes_begin+i)->Id() += last_id_counter;
 					removed++;
 				}
 			}

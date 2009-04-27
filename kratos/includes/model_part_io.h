@@ -729,6 +729,7 @@ namespace Kratos
 	KRATOS_TRY
 
 	NodeType temp_node;
+        SizeType temp_id;
 
 	std::string word;
 
@@ -742,7 +743,8 @@ namespace Kratos
 	  if(CheckEndBlock("Nodes", word))
 	    break;
 
-	  ExtractValue(word, temp_node.Id());
+	  ExtractValue(word, temp_id);
+          temp_node.SetId(temp_id);
 	  ReadWord(word);
 	  ExtractValue(word, temp_node.X());
 	  ReadWord(word);
@@ -806,8 +808,11 @@ namespace Kratos
 	std::string word;
 	std::string variable_name;
 
+        SizeType temp_properties_id;
+
 	ReadWord(word);
-	ExtractValue(word, temp_properties.Id());
+	ExtractValue(word, temp_properties_id);
+        temp_properties.SetId(temp_properties_id);
 	  
 	while(!mInput.eof())
 	{

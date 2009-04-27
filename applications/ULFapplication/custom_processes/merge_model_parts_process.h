@@ -117,8 +117,9 @@ namespace Kratos
 			unsigned int id=1;
 			for(ModelPart::ElementsContainerType::iterator im = combined_model_part.ElementsBegin() ; 
 				im != combined_model_part.ElementsEnd() ; ++im)
-			{		
-				im->Id() = id;
+			{
+                                im->SetId(id);
+//				im->Id() = id;
 				id++;
 			}
 	/*		KRATOS_WATCH("Last FLUID ID is");
@@ -133,8 +134,8 @@ namespace Kratos
 			for(ModelPart::ElementsContainerType::iterator im = structure_model_part.ElementsBegin() ; 
 				im != structure_model_part.ElementsEnd() ; ++im)
 			{		
-				
-				im->Id() = id;
+                                im->SetId(id);
+//				im->Id() = id;
 				combined_model_part.Elements().push_back(*(im.base()));
 				id++;
 			}
@@ -145,16 +146,18 @@ namespace Kratos
 			id=1;
 			for(ModelPart::ConditionsContainerType::iterator im = combined_model_part.ConditionsBegin() ; 
 				im != combined_model_part.ConditionsEnd() ; ++im)
-			{		
-				im->Id() = id;
+			{
+                            im->SetId(id);
+//				im->Id() = id;
 				id++;
 			}
 			//adding the structure conditions to the combined part
 			id += 1000;
 			for(ModelPart::ConditionsContainerType::iterator im = structure_model_part.ConditionsBegin() ; 
 				im != structure_model_part.ConditionsEnd() ; ++im)
-			{		
-				im->Id() = id;
+			{
+                                im->SetId(id);
+//				im->Id() = id;
 				combined_model_part.Conditions().push_back(*(im.base()));
 				id++;
 			}

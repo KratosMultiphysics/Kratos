@@ -311,6 +311,16 @@ namespace Kratos
 	KRATOS_WATCH(*this);*/
 	//KRATOS_WATCH("NODE DESTRUCTING...");
 	}
+
+      void SetId(IndexType NewId)
+      {
+            IndexedObject::SetId(NewId);
+            Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
+            for(Node<3>::DofsContainerType::iterator iii = my_dofs.begin();    iii != my_dofs.end(); iii++)
+            {
+                iii->SetId(NewId);
+            }
+      }
       
 
       ///@}
@@ -756,6 +766,13 @@ namespace Kratos
 		return mSolutionStepsNodalData.pGetVariablesList();
 	}
 
+
+        /// TODO: remove this function when removing data_file_io object.
+//        IndexType& DepricatedIdAccess()
+//        {
+//            return BaseType::DepricatedIdAccess();
+//        }
+
       ///@}
       ///@name Dofs
       ///@{
@@ -844,7 +861,8 @@ namespace Kratos
 		
 		typename DofType::Pointer p_new_dof(  *(mDofs.insert(mDofs.begin(), SourceDof).base())  );
 
-		p_new_dof->Id() = Id();
+                p_new_dof->SetId(Id());
+//		p_new_dof->Id() = Id();
 		
 		p_new_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
 		

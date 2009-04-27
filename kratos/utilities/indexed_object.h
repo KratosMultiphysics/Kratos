@@ -155,22 +155,21 @@ namespace Kratos
 	return mId;
       }
 
-      IndexType& Id()
-      {
-	return mId;
-      }
-      
       IndexType GetId() const
       {
 	return mId;
       }
 
-      void SetId(IndexType NewId)
+      virtual void SetId(IndexType NewId)
       {
 	mId = NewId;
       }
 
-      
+        /// TODO: remove this function when removing data_file_io object.
+      IndexType& DepricatedIdAccess()
+      {
+	return mId;
+      }
       
       ///@}
       ///@name Inquiry
@@ -233,6 +232,7 @@ namespace Kratos
       ///@name Protected  Access 
       ///@{ 
         
+
         
       ///@}      
       ///@name Protected Inquiry 

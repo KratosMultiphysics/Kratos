@@ -810,11 +810,13 @@ namespace Kratos
 			for(ModelPart::NodesContainerType::iterator i_node = fluid_model_part.NodesBegin(); i_node!=fluid_model_part.NodesEnd(); i_node++)
 			{		
 			//add the node at the inlet IF the move
-			if (i_node->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 1.0)	
+			if (i_node->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 1.0)
+	
 				{
 				NodeType::Pointer p_node(new NodeType(*i_node));
 				last_id++;
-				p_node->Id()=last_id;
+                                p_node->SetId(last_id);
+//				p_node->Id()=last_id;
 				//adding the COPY node
 //			fluid_model_part.AddNode(p_node);
 				lagrangian_inlet_model_part.AddNode(p_node);
@@ -831,7 +833,8 @@ namespace Kratos
 			for(ModelPart::NodesContainerType::iterator i = lagrangian_inlet_model_part.NodesBegin(); i!=lagrangian_inlet_model_part.NodesEnd(); i++)
 			{		
 			iii++;
-			i->Id()=iii;
+                        i->SetId(iii);
+//			i->Id()=iii;
 			}
 		}
 		//**********************************************************************************************
@@ -900,7 +903,8 @@ namespace Kratos
 				{		
 					NodeType::Pointer p_node(new NodeType(*i_node));
 					last_id++;
-					p_node->Id()= int(last_id);
+                                        p_node->SetId(last_id);
+//					p_node->Id()= int(last_id);
 					//adding the COPY node
 					fluid_model_part.AddNode(p_node);
 					//i++;
