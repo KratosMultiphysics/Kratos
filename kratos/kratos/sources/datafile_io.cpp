@@ -109,7 +109,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_NODE_PARSER(node) \
 	( \
 	str_p("NODES") \
-	>> KRATOS_INDEX_PARSER(node.Id()) \
+	>> KRATOS_INDEX_PARSER(node.DepricatedIdAccess()) \
 	>> '='  \
 	>> str_p("Node")  \
 	>> '(' \
@@ -123,7 +123,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_NODE_DATA_PARSER(node) \
 	( \
 	ch_p('[') \
-	>> uint_p[assign_a(node.Id())] \
+	>> uint_p[assign_a(node.DepricatedIdAccess())] \
 	>> ',' \
 	>> 	KRATOS_NODE_COORDINATES_PARSER(node) \
 	>> ']' \
@@ -1300,7 +1300,7 @@ std::cout << " finished reading initial values " << std::endl;
 		(
 			*( 
 			  (rThisParser 
-			   >>  KRATOS_INDEX_PARSER(temp.Id()) 
+			   >>  KRATOS_INDEX_PARSER(temp.DepricatedIdAccess())
 			   >> '=' 
 			   >> str_p("Node")  
 			   >> '(' 

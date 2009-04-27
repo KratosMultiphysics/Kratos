@@ -149,7 +149,7 @@ namespace Kratos
 				//int base = ((nodes_begin + i)->Id()   -  1 ) * 2;
 
 				//from now on it is consecutive
-				(nodes_begin + i)->Id() = i+1;
+				(nodes_begin + i)->SetId(i+1);
 
 				in.pointlist[base] = (nodes_begin + i)->X();
 				in.pointlist[base+1] = (nodes_begin + i)->Y();

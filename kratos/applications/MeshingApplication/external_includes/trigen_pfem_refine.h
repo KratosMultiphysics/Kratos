@@ -252,7 +252,8 @@ namespace Kratos
 				//int base = ((nodes_begin + i)->Id()   -  1 ) * 2;
 
 				//from now on it is consecutive
-				(nodes_begin + i)->Id() = i+1;
+				(nodes_begin + i)->SetId(i+1);
+//				(nodes_begin + i)->Id() = i+1;
 
 				in_mid.pointlist[base] = (nodes_begin + i)->X();
 				in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
@@ -260,7 +261,8 @@ namespace Kratos
                                 Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
                                 for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
                                 {
-                                    iii->Id() = i+1;
+                                    iii->SetId(i+1);
+//                                    iii->Id() = i+1;
                                 }
 			}
 			//in_mid.numberoftriangles = ThisModelPart.Elements().size();

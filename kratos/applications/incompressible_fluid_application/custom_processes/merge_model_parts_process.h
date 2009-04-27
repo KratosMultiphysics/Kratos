@@ -116,8 +116,8 @@ namespace Kratos
 
 			for(ModelPart::ConditionsContainerType::iterator im = face_model_part.ConditionsBegin() ; 
 				im != face_model_part.ConditionsEnd() ; ++im)
-			{		
-				im->Id() = id;
+			{
+                                im->SetId(id);
 				fluid_model_part.Conditions().push_back(*(im.base()));
 				id++;
 			}
