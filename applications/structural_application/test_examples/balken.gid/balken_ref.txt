@@ -1,0 +1,4 @@
+KRATOS_BENCHMARK | Float | Node 1 Displacement_z | -0.00264906462593 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 2 Displacement_z | -0.0026453477221 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 3 Displacement_z | -0.00094845451067 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 4 Displacement_z | -0.00222767405763 | 1e-05 | None
