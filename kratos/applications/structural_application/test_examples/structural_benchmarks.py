@@ -120,6 +120,27 @@ def Run():
 
         ################################################################
 
+	Text += "balken contact benchmark: "
+	os.chdir("balken.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running balken contact benchmark..."
+	Msg = benchmarking.RunBenchmark("balken_benchmarking.py","balken_ref.txt")
+
+	if (Msg == True):
+		Text += "OK\n"
+		print "balken contact benchmark example successful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "balken contact benchmark example FAILED"
+
+	os.chdir("..")
+
+
+        ################################################################
+
 
 
         print "resume of all of the examples for the fluid application :"
