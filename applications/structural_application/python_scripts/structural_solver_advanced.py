@@ -3,6 +3,8 @@ from Kratos import *
 from KratosStructuralApplication import *
 import sys
 
+import structural_solver_static
+
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(FORCE);
@@ -69,10 +71,10 @@ def AddDofs(model_part):
     print "dofs for the dynamic structural solution added correctly"
         
 #######################################################################
-class SolverAdvanced:
+class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
     def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol, application_path ):
         sys.path.append(application_path+'/structural_application/python_scripts')
-        self.model_part = model_part
+        structural_solver_static.StaticStructuralSolver.__init__( self, model_part, domain_size )
         self.time_steps = time_steps
         self.analysis_parameters = analysis_parameters
         self.echo_level = 0
@@ -107,11 +109,4 @@ class SolverAdvanced:
         #import ekate_strategy
         import uzawa_contact_strategy
         self.solver = uzawa_contact_strategy.SolvingStrategyPython( self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, builder_and_solver )
-        
-    #######################################################################   
-    def Solve(self):
-        (self.solver).Solve()
-        
-    #######################################################################   
-    def SetEchoLevel(self,level):
-        (self.solver).SetEchoLevel(level)
+
