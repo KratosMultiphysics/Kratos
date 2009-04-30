@@ -3,6 +3,8 @@ from Kratos import *
 from KratosStructuralApplication import *
 import os,time
 
+import strategy_python
+
 ## Parameters contain:
 # perform_contact_analysis_flag
 # penalty value for normal contact
@@ -18,55 +20,16 @@ import os,time
 # ramp criterion for frictional contact
 # ramp factor for frictional contact
 
-class SolvingStrategyPython:
+class SolvingStrategyPython(strategy_python.SolvingStrategyPython):
     #######################################################################
     def __init__( self, model_part, time_scheme, linear_solver, convergence_criteria, CalculateReactionsFlag, ReformDofSetAtEachStep, MoveMeshFlag, Parameters, space_utils, builder_and_solver ):
-        #save the input parameters
-        self.model_part = model_part
-        self.scheme = time_scheme
-        self.linear_solver = linear_solver
-        self.convergence_criteria = convergence_criteria
-        self.CalculateReactionsFlag = CalculateReactionsFlag
-        self.ReformDofSetAtEachStep = ReformDofSetAtEachStep
-        self.MoveMeshFlag = MoveMeshFlag
+        strategy_python.SolvingStrategyPython.__init__( self, model_part, time_scheme, linear_solver, convergence_criteria, CalculateReactionsFlag, ReformDofSetAtEachStep, MoveMeshFlag)
         self.Parameters = Parameters
         self.PerformContactAnalysis = self.Parameters[0]
         self.PrintSparsity = self.Parameters[13]
-        self.space_utils = space_utils
         #contact utility
         self.cu = ContactUtility( 3 )
-        #default values for some variables
-        self.max_iter = 30
-        self.echo_level = 1
-        self.builder_and_solver = builder_and_solver
         
-        #local matrices and vectors
-        self.pA = self.space_utils.CreateEmptyMatrixPointer()
-        self.pDx = self.space_utils.CreateEmptyVectorPointer()
-        self.pb = self.space_utils.CreateEmptyVectorPointer()
-
-        self.A = (self.pA).GetReference()
-        self.Dx = (self.pDx).GetReference()
-        self.b = (self.pb).GetReference()
-        ##local matrices and vectors
-        #self.A = CompressedMatrix()
-        #self.Dx = Vector()
-        #self.b = Vector()
-        
-        #initialize flags
-        self.SolutionStepIsInitialized = False		
-        self.InitializeWasPerformed = False
-        self.StiffnessMatrixIsBuilt = False
-        #provide settings to the builder and solver
-        (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag);
-        (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep);
-        
-    #######################################################################
-    def Initialize(self):
-        if(self.scheme.SchemeIsInitialized() == False):
-            self.scheme.Initialize(self.model_part)
-        if (self.scheme.ElementsAreInitialized() == False): 
-            self.scheme.InitializeElements(self.model_part)
             
     #######################################################################
     def Solve(self):
@@ -135,7 +98,7 @@ class SolvingStrategyPython:
         #organizing the DOFs so to identify the dirichlet conditions
         #resizing the matrix preallocating the "structure"
         if (self.SolutionStepIsInitialized == False):
-            self.InitializeSolutionStep()
+            self.InitializeSolutionStep(self.ReformDofSetAtEachStep)
             self.SolutionStepIsInitialized = True
         #perform prediction 
         self.Predict()
@@ -165,28 +128,6 @@ class SolvingStrategyPython:
         if( it == self.max_iter ):
             print("Iteration did not converge")
     #######################################################################
-    #######################################################################
-
-    #######################################################################
-    def Predict(self):
-        self.scheme.Predict(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
-
-    #######################################################################
-    def InitializeSolutionStep(self):
-        if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
-            #initialize the list of degrees of freedom to be used 
-            self.builder_and_solver.SetUpDofSet(self.scheme,self.model_part);
-            #reorder the list of degrees of freedom to identify fixity and system size	  			
-            self.builder_and_solver.SetUpSystem(self.model_part)
-            #allocate memory for the system and preallocate the structure of the matrix
-            self.builder_and_solver.ResizeAndInitializeVectors(self.pA,self.pDx,self.pb,self.model_part.Elements,self.model_part.Conditions,self.model_part.ProcessInfo)
-            #updating references
-            self.A = (self.pA).GetReference()
-            self.Dx = (self.pDx).GetReference()
-            self.b = (self.pb).GetReference()
-        if(self.SolutionStepIsInitialized == False):
-            self.builder_and_solver.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
-            self.scheme.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
 
     #######################################################################
     def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag):
@@ -224,42 +165,6 @@ class SolvingStrategyPython:
             normDx = 0.0
             
         return normDx
-        
-    #######################################################################
-    def FinalizeSolutionStep(self,CalculateReactionsFlag):
-        if(CalculateReactionsFlag == True):
-            self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
-        
-        #Finalisation of the solution step, 
-        self.scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
-        self.builder_and_solver.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
-        self.scheme.Clean()
-        #reset flags for the next step
-        self.SolutionStepIsInitialized = False
-
-    #######################################################################
-    def Clear(self):
-        self.space_utils.ClearMatrix(self.pA)
-        self.space_utils.ResizeMatrix(self.A,0,0)
-        
-        self.space_utils.ClearVector(self.pDx)
-        self.space_utils.ResizeVector(self.Dx,0)
-
-        self.space_utils.ClearVector(self.pb)
-        self.space_utils.ResizeVector(self.b,0)
-
-        #updating references
-        self.A = (self.pA).GetReference()
-        self.Dx = (self.pDx).GetReference()
-        self.b = (self.pb).GetReference()
-        
-        self.builder_and_solver.SetDofSetIsInitializedFlag(False)
-        self.builder_and_solver.Clear()
-        
-    #######################################################################   
-    def SetEchoLevel(self,level):
-        self.echo_level = level
-        self.builder_and_solver.SetEchoLevel(level)
 
 #######################################################################   
     def AnalyseSystemMatrix(self,  A):
