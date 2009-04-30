@@ -23,7 +23,9 @@ import strategy_python
 class SolvingStrategyPython(strategy_python.SolvingStrategyPython):
     #######################################################################
     def __init__( self, model_part, time_scheme, linear_solver, convergence_criteria, CalculateReactionsFlag, ReformDofSetAtEachStep, MoveMeshFlag, Parameters, space_utils, builder_and_solver ):
-        strategy_python.SolvingStrategyPython.__init__( self, model_part, time_scheme, linear_solver, convergence_criteria, CalculateReactionsFlag, ReformDofSetAtEachStep, MoveMeshFlag)
+        strategy_python.SolvingStrategyPython.__init__( self, model_part, time_scheme, SkylineLUFactorizationSolver(), convergence_criteria, CalculateReactionsFlag, ReformDofSetAtEachStep, MoveMeshFlag)
+        self.builder_and_solver = builder_and_solver
+        self.linear_solver = linear_solver
         self.Parameters = Parameters
         self.PerformContactAnalysis = self.Parameters[0]
         self.PrintSparsity = self.Parameters[13]
