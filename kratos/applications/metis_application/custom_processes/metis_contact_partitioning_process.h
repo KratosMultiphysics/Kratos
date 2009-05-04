@@ -48,8 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_METIS_PARTITIONING_PROCESS_INCLUDED )
-#define  KRATOS_METIS_PARTITIONING_PROCESS_INCLUDED
+#if !defined(KRATOS_METIS_CONTACT_PARTITIONING_PROCESS_INCLUDED )
+#define  KRATOS_METIS_CONTACT_PARTITIONING_PROCESS_INCLUDED
 
 
 
@@ -106,15 +106,15 @@ namespace Kratos
 	/** Detail class definition.
 	*/
 
-	class MetisPartitioningProcess 
-		: public Process
+	class MetisContactPartitioningProcess 
+		: public MetisPartitioningProcess
 	{
 	public:
 		///@name Type Definitions
 		///@{
 
-		/// Pointer definition of MetisPartitioningProcess
-		KRATOS_CLASS_POINTER_DEFINITION(MetisPartitioningProcess);
+		/// Pointer definition of MetisContactPartitioningProcess
+		KRATOS_CLASS_POINTER_DEFINITION(MetisContactPartitioningProcess);
 
 		typedef std::size_t SizeType;
 		typedef std::size_t IndexType;
@@ -125,8 +125,8 @@ namespace Kratos
 		///@{ 
 
 		/// Default constructor.
-	MetisPartitioningProcess(ModelPart& rModelPart, IO& rIO, SizeType NumberOfPartitions, int Dimension = 3)
-	  : mrModelPart(rModelPart), mrIO(rIO), mNumberOfPartitions(NumberOfPartitions), mDimension(Dimension)
+		MetisContactPartitioningProcess(ModelPart& rModelPart, IO& rIO, SizeType NumberOfPartitions, std::vector<int> const& ContactNodes, int Dimension = 3)
+	 	 : MetisPartitioningProcess(rModelPart, rIO, NumberOfPartitions, Dimension) , mContactNodes(ContactNodes)
 		{
 		  KRATOS_TRY
 		    int rank = GetRank();
@@ -138,8 +138,8 @@ namespace Kratos
 		}
 
 		/// Copy constructor.
-		MetisPartitioningProcess(MetisPartitioningProcess const& rOther)
-		  : mrModelPart(rOther.mrModelPart), mrIO(rOther.mrIO), mNumberOfPartitions(rOther.mNumberOfPartitions), mDimension(rOther.mDimension)
+		MetisContactPartitioningProcess(MetisContactPartitioningProcess const& rOther)
+		  : MetisPartitioningProcess(rOther) , mContactNodes(rOther.mContactNodes)
 		{
 		  KRATOS_TRY
 		    int rank = GetRank();
@@ -151,7 +151,7 @@ namespace Kratos
 		}
 
 		/// Destructor.
-		virtual ~MetisPartitioningProcess()
+		virtual ~MetisContactPartitioningProcess()
 		{
 		}
 
@@ -221,6 +221,10 @@ namespace Kratos
 		  if(rank == 0)
 		    {
 		      CallingMetis(number_of_nodes, number_of_elements, elements_connectivities, npart, epart);
+		      for(unsigned int i = 0 ; i < mContactNodes.size() ; i++)
+			{
+				npart[mContactNodes[i] - 1] = mNumberOfPartitions - 1;
+			}
 		      CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, npart, epart);
 		      GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
 // 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
@@ -326,7 +330,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void CalculateDomainsGraph(GraphType& rDomainsGraph, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart )
+/*		void CalculateDomainsGraph(GraphType& rDomainsGraph, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart )
 		  {
 		    for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
 		      for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
@@ -340,9 +344,11 @@ namespace Kratos
 			    rDomainsGraph(element_rank, node_rank) = 1;
 			  }
 			}
+
+KRATOS_WATCH(rDomainsGraph)
 		    
 		  }
-
+*/
 // 		int GraphColoring(GraphType& rDomainsGraph, GraphType& rDomainsColoredGraph)
 // 		  {
 // 		    int max_color = 0;
@@ -382,13 +388,13 @@ namespace Kratos
 		/// Turn back information as a string.
 		virtual std::string Info() const
 		{
-			return "MetisPartitioningProcess";
+			return "MetisContactPartitioningProcess";
 		}
 
 		/// Print information about this object.
 		virtual void PrintInfo(std::ostream& rOStream) const
 		{
-			rOStream << "MetisPartitioningProcess";
+			rOStream << "MetisContactPartitioningProcess";
 		}
 
 		/// Print object's data.
@@ -413,16 +419,6 @@ namespace Kratos
 		///@name Protected member Variables 
 		///@{ 
 
-		ModelPart& mrModelPart;
-
-	        IO& mrIO;
-		
-		SizeType mNumberOfPartitions;
-
-		std::ofstream mLogFile;
-
-		SizeType mDimension;
-
 
 		///@} 
 		///@name Protected Operators
@@ -432,13 +428,6 @@ namespace Kratos
 		///@} 
 		///@name Protected Operations
 		///@{ 
-
-	        int GetRank()
-	        {
-		  int rank;
-		  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-		  return rank;
-		}
 
 	        void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
 	        {
@@ -472,12 +461,8 @@ namespace Kratos
 		  else
 		    KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 		  
-KRATOS_WATCH(number_of_element_nodes);
-KRATOS_WATCH(mDimension);
-KRATOS_WATCH(etype);
-
 		  int numflag = 0;
-		  int number_of_partitions = static_cast<int>(mNumberOfPartitions);
+		  int number_of_partitions = static_cast<int>(mNumberOfPartitions) - 1; // we reserve one partition for contact
 		  int edgecut;
 		  
 		  idxtype* elmnts = new idxtype[connectivity_size];
@@ -500,7 +485,7 @@ KRATOS_WATCH(etype);
 		  
 		}
 
-	        void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
+/*	        void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
 	        {
 		  int rank = GetRank();
 
@@ -627,7 +612,7 @@ KRATOS_WATCH(etype);
 		  mLogFile << rank << " : Conditions added" << std::endl;
 		}
 	  
-
+*/
 		///@} 
 		///@name Protected  Access 
 		///@{ 
@@ -654,6 +639,20 @@ KRATOS_WATCH(etype);
 		///@name Member Variables 
 		///@{ 
 
+
+//		ModelPart& mrModelPart;
+
+//	        IO& mrIO;
+		
+//		SizeType mNumberOfPartitions;
+
+		std::vector<int> mContactNodes;
+
+//		std::ofstream mLogFile;
+
+//		SizeType mDimension;
+
+
 		///@} 
 		///@name Private Operators
 		///@{ 
@@ -678,15 +677,15 @@ KRATOS_WATCH(etype);
 		///@{ 
 
 		/// Assignment operator.
-		MetisPartitioningProcess& operator=(MetisPartitioningProcess const& rOther);
+		MetisContactPartitioningProcess& operator=(MetisContactPartitioningProcess const& rOther);
 
 		/// Copy constructor.
-		//MetisPartitioningProcess(MetisPartitioningProcess const& rOther);
+		//MetisContactPartitioningProcess(MetisContactPartitioningProcess const& rOther);
 
 
 		///@}    
 
-	}; // Class MetisPartitioningProcess 
+	}; // Class MetisContactPartitioningProcess 
 
 	///@} 
 
@@ -701,11 +700,11 @@ KRATOS_WATCH(etype);
 
 	/// input stream function
 	inline std::istream& operator >> (std::istream& rIStream, 
-		MetisPartitioningProcess& rThis);
+		MetisContactPartitioningProcess& rThis);
 
 	/// output stream function
 	inline std::ostream& operator << (std::ostream& rOStream, 
-		const MetisPartitioningProcess& rThis)
+		const MetisContactPartitioningProcess& rThis)
 	{
 		rThis.PrintInfo(rOStream);
 		rOStream << std::endl;
@@ -718,6 +717,6 @@ KRATOS_WATCH(etype);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_METIS_PARTITIONING_PROCESS_INCLUDED defined 
+#endif // KRATOS_METIS_CONTACTmContactNodes[i]_PARTITIONING_PROCESS_INCLUDED defined 
 
 

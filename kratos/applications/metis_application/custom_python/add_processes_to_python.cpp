@@ -60,8 +60,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/io.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
+#include "python/vector_python_interface.h"
 
 #include "custom_processes/metis_partitioning_process.h" 
+#include "custom_processes/metis_contact_partitioning_process.h" 
 
 
 namespace Kratos
@@ -84,9 +86,18 @@ namespace Python
   {
 	using namespace boost::python;
 
+    	class_<std::vector<int> >("IndicesVector")
+        .def(vector_indexing_suite<std::vector<int> >())
+		;
+
 	  class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
 							    init<ModelPart&, IO&, unsigned int, unsigned int>())
 	    .def(init<ModelPart&, IO&, unsigned int>())
+		 ;
+
+	  class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
+							    init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
+	    .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
 		 ;
 
 	  def("GetRank", GetRank);

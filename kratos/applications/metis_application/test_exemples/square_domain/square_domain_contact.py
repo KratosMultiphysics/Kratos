@@ -60,6 +60,9 @@ print "line 58"
 
 number_of_partitions = mpi.size #we set it equal to the number of processors       
 #metis_partitioning_process = MetisPartitioningProcess(model_part, gid_io, number_of_partitions)
+contact_indices = IndicesVector()
+contact_indices[:] = [1,2,3,6,7,11,12]
+metis_partitioning_process = MetisContactPartitioningProcess(model_part, gid_io, number_of_partitions, contact_indices)
 
 print "line 62"
 print GetRank(), ": i am : ... "
