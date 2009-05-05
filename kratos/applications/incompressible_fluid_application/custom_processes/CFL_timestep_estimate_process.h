@@ -110,6 +110,7 @@ namespace Kratos
 		double h, dt, glob_min_dt, nu, dummy;  
 		//initialize it with given value
 		glob_min_dt=max_dt;
+		dt=0.0;
 		for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ; 
 				im != mr_model_part.ElementsEnd() ; ++im)
 		{	  
