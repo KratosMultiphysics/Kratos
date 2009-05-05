@@ -221,7 +221,7 @@ namespace Kratos
 			Element & ref_el = model_part.Elements().front();
 			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
 
-			int id=1;
+			//int id=1;
 			Fluid2DGLS_expl el(1, p_null_geom);
 
 			if (typeid(ref_el) != typeid(el))
