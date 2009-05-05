@@ -29,7 +29,7 @@ import meshing_benchmarks
 Text += meshing_benchmarks.Run()
 
 # Convection-Diffusion application
-os.chdir(ApplicationsRoot + "convection_diffusion_application/test_exemples")
+os.chdir(ApplicationsRoot + "convection_diffusion_application/test_examples")
 import convection_diffusion_benchmarks
 Text += convection_diffusion_benchmarks.Run()
 
