@@ -587,7 +587,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		noalias(rLeftHandSideMatrix) = (dt + tau) * Area*msWorkMatrix;
 		//rhs consists of D*u_tilda (divergence of the Fractional velocity) and the term: Tau1*(nabla_q, residual_gausspoint)
 		//fv is u_tilda
-
+		
 		//////////////////////////////////////////////////////////
 		////////////		AND NOW RHS	//////////////////
 		//////////////////////////////////////////////////////////	
@@ -606,6 +606,8 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		ms_temp_vec_np[2] = p2_old; 
 
 		noalias(rRightHandSideVector) += Area*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
+		
+		//***************************************************************************
 		
 		//here we have the Du_tila term
 		double Gaux;

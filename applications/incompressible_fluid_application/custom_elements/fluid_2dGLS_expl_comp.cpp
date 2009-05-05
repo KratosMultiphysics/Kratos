@@ -613,12 +613,12 @@ void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& Galerki
 		Mass_lumped(2,2)=0.3333333333;
 		*/
 		//KRATOS_WATCH(Mass_lumped)
-		double p_old_avg=0.33333333*(p0_old+p1_old+p2_old);
+		//double p_old_avg=0.33333333*(p0_old+p1_old+p2_old);
 		
 		//adiabatic constant gamma
-		double gamma=1.40;
+		//double gamma=1.40;
 		//double A = 77510.000;
-		const double A=77510.00;
+		//const double A=77510.00;
 		//gas constant for dry air
 		const double R=287.06;
 		//*************************************************************************///////////////////////////////////////
