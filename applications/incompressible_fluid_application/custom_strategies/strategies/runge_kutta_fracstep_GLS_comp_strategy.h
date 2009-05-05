@@ -225,7 +225,7 @@ namespace Kratos
 			Element & ref_el = model_part.Elements().front();
 			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
 
-			int id=1;
+			//int id=1;
 			Fluid2DGLS_expl_comp el(1, p_null_geom);
 
 			if (typeid(ref_el) != typeid(el))
@@ -547,7 +547,7 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
 		array_1d<double,3> N;
 		array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!		
-		double lumping_factor = 0.33333333333333;
+		//double lumping_factor = 0.33333333333333;
 		
 		
 		//calculate the velocity correction and store it in AUX_VECTOR
@@ -683,9 +683,9 @@ namespace Kratos
 			{
 				
 				const double& p_new = (i)->FastGetSolutionStepValue(PRESSURE);
-				const double& p_old = (i)->FastGetSolutionStepValue(PRESSURE,1);
+				//const double& p_old = (i)->FastGetSolutionStepValue(PRESSURE,1);
 				const double& t = (i)->FastGetSolutionStepValue(TEMPERATURE);
-				const double& t_old = (i)->FastGetSolutionStepValue(TEMPERATURE,1);
+				//const double& t_old = (i)->FastGetSolutionStepValue(TEMPERATURE,1);
 				//update density with an increment
 				//(i)->FastGetSolutionStepValue(DENSITY) += p_new/(R*t)-p_old/(R*t_old)-p_new*(t-t_old)/(R*t*t);
 		
