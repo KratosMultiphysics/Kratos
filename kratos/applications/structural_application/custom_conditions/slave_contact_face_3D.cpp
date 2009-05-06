@@ -183,7 +183,7 @@ namespace Kratos
                 {
                     Output[PointNumber]=  result_friction/reference;
                 }
-                if(rVariable==CONTACT_STICK)
+                if(rVariable==CONTACT_PENETRATION)
                 {
                     //Output[PointNumber]=  this->GetValue(STICK)[PointNumber] ;
                     Output[PointNumber]=  this->GetValue(GAPS)[PointNumber] ;
@@ -288,6 +288,7 @@ namespace Kratos
     void SlaveContactFace3D::EquationIdVector( EquationIdVectorType& rResult, 
                                           ProcessInfo& CurrentProcessInfo )
     {
+        rResult.resize(0);
     }
     //************************************************************************************
     //************************************************************************************
