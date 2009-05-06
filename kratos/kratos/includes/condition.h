@@ -529,7 +529,7 @@ namespace Kratos
       return rOStream;
     }
   ///@} 
-  
+    KRATOS_DEFINE_VARIABLE(WeakPointerVector< Condition >, NEIGHBOUR_CONDITIONS)  
   
 }  // namespace Kratos.
 
