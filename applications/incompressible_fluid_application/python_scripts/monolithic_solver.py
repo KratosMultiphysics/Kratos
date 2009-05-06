@@ -1,9 +1,9 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
-from KratosULFApplication import *
+from KratosPFEMApplication import *
 from KratosMeshingApplication import *
-
+from KratosUlfApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -19,6 +19,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
     model_part.AddNodalSolutionStepVariable(DENSITY);
+    model_part.AddNodalSolutionStepVariable(DENSITY_AIR);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(NODAL_H);
@@ -37,7 +38,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y,REACTION_Y);
         node.AddDof(VELOCITY_Z,REACTION_Z);
         node.AddDof(PRESSURE,REACTION_WATER_PRESSURE);
-	node.AddDof(AIR_PRESSURE,REACTION_WATER_PRESSURE);
+	node.AddDof(AIR_PRESSURE,REACTION_AIR_PRESSURE);
         
     print "dofs for the monolithic solver added correctly"
 
@@ -54,22 +55,23 @@ class MonolithicSolver:
         self.linear_solver =  SkylineLUFactorizationSolver()
         
         #definition of the convergence criteria
-        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
-      #  self.conv_criteria = UPCriteria(1e-12,1e-14,1e-9,1e-10)
+      #  self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
+        self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
-        self.max_iter = 100
+        self.max_iter = 50
                             
         #default settings
         self.echo_level = 1
-        self.CalculateReactionFlag = True
+        self.CalculateReactionFlag = False
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = True
 
         ####MESH CHANGES
-        self.UlfUtils = UlfUtils()
-        self.ulf_time_step_dec_process = UlfTimeStepDecProcess(model_part);
+       # self.UlfUtils = UlfUtils()
+       # self.ulf_time_step_dec_process = UlfTimeStepDecProcess(model_part);
       #  self.mark_close_nodes_process = MarkCloseNodesProcess(model_part);
+	self.PfemUtils = PfemUtils()
                                        
         self.node_erase_process = NodeEraseProcess(model_part);
         self.h_multiplier = 0.1
@@ -82,11 +84,11 @@ class MonolithicSolver:
         #detect initial size distribution - note that initially the fluid model part contains
         #all the elements of both structure and fluid ... this is only true after reading the input
         (self.neigh_finder).Execute();
-        print "nana"
         self.remeshing_flag = True
         
         self.alpha_shape = 1.2
         self.length_factor = .3
+	self.h_factor = 0.4
         
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
@@ -110,13 +112,17 @@ class MonolithicSolver:
                  
     #######################################################################   
     def Solve(self):
-        (self.solver).Solve()
         (self.neigh_finder).Execute();
+        (self.solver).Solve()
+	(self.solver).Clear()
         self.Remesh()
 
-    def EstimateDeltaTime(self,max_dt,domain_size):
-        print "Estimating delta time"
-        return (self.ulf_time_step_dec_process).EstimateDeltaTime(max_dt,domain_size)
+#    def EstimateDeltaTime(self,max_dt,domain_size):
+#        print "Estimating delta time"
+#        return (self.ulf_time_step_dec_process).EstimateDeltaTime(max_dt,domain_size)
+
+    def EstimateDeltaTime(self,min_dt,max_dt):
+        return (self.PfemUtils).EstimateDeltaTime(min_dt,max_dt,self.model_part)
 
 
         
@@ -143,10 +149,11 @@ class MonolithicSolver:
 ##            (self.mark_close_nodes_process).MarkCloseNodes(self.h_multiplier);
             (self.node_erase_process).Execute();
             print "AFTER MkkkRK"
-
+	
         if (self.remeshing_flag==True):
-            (self.Mesher).ReGenerateMesh("Fluid2DASGS","Condition2D",self.model_part,self.node_erase_process, self.alpha_shape,0.4)
-#	    (self.ChooseElement).Execute();   
+	    #(self.Mesher).ReGenerateMesh("Fluid2DASGS", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)
+	    (self.Mesher).ReGenerateMesh("Fluid2DASGS", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+	    #(self.ChooseElement).Execute();   
 
             (self.node_erase_process).Execute();
              #calculating fluid neighbours before applying boundary conditions
