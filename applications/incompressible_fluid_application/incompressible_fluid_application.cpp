@@ -40,6 +40,7 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(double, DIAMETER)
 	KRATOS_CREATE_VARIABLE(double, PERMEABILITY_INV)
 
+
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
 
@@ -56,8 +57,13 @@ namespace Kratos
           	>(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 		mNDFluid2DCrankNicolson(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> 
                 >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		mFluid2DASGS(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		mFluid2DOSS(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+
+		mASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mASGSPRDC(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		
+		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+
 		mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mFluid2DGLS_expl_comp(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
 	{}
@@ -83,7 +89,11 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE( EXTERNAL_PRESSURE)
 		KRATOS_REGISTER_VARIABLE( DIAMETER)
 		KRATOS_REGISTER_VARIABLE( PERMEABILITY_INV)
+
+		KRATOS_REGISTER_VARIABLE( DENSITY_AIR )
+
 		KRATOS_REGISTER_VARIABLE( ARRHENIUS)
+
 
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
@@ -98,14 +108,19 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("Fluid3DCoupled", mFluid3DCoupled);
 		
 		KRATOS_REGISTER_CONDITION("Fluid3DNeumann", mFluid3DNeumann);
+		KRATOS_REGISTER_CONDITION("Monolithic2DNeumann", mMonolithic2DNeumann);
 		
 		KRATOS_REGISTER_ELEMENT("NDFluid2D", mNDFluid2D);
 		KRATOS_REGISTER_ELEMENT("NDFluid3D", mNDFluid3D);
 
 		KRATOS_REGISTER_ELEMENT("NDFluid2DCrankNicolson", mNDFluid2DCrankNicolson);
 
-		KRATOS_REGISTER_ELEMENT("Fluid2DASGS", mFluid2DASGS);
-		KRATOS_REGISTER_ELEMENT("Fluid2DOSS", mFluid2DOSS);
+
+		KRATOS_REGISTER_ELEMENT("ASGS2D", mASGS2D);	
+		KRATOS_REGISTER_ELEMENT("ASGSPRDC", mASGSPRDC);	
+		KRATOS_REGISTER_ELEMENT("ASGSCompressible2D", mASGSCompressible2D);
+		//KRATOS_REGISTER_ELEMENT("ASGSCOMPPRDC", mASGSCOMPPRDC);
+
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);		
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl_comp", mFluid2DGLS_expl_comp);		
