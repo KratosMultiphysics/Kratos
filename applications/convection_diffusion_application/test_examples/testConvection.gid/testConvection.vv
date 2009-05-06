@@ -1,0 +1,19 @@
+BeginZE /home/antonia/Desktop/EXAMPLES/ELEMBASED/testConvection.gid/testConvection.vv
+   x -1.02147 6.02147
+   y 3.81859 -1.81859
+   z -8.45577 8.45577
+   e 2.81859
+   v 0 0 0
+   r 1
+   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   c 2.5 1 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+EndZE /home/antonia/Desktop/EXAMPLES/ELEMBASED/testConvection.gid/testConvection.vv
+
