@@ -61,7 +61,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_processes_to_python.h"
 #include "custom_processes/save_structure_conditions_process.h" 
 #include "custom_processes/merge_model_parts_process.h" 
+
+#include "custom_processes/choose_element_process.h" 
+
+
 #include "custom_processes/CFL_timestep_estimate_process.h" 
+
 #include "includes/node.h"
 
 namespace Kratos
@@ -80,9 +85,13 @@ namespace Python
 	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
 		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
 		 ;
+	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int >())
+		 ;
+
 	class_<CFLProcess, bases<Process> >("CFLProcess", init<ModelPart&>())
 		   .def("EstimateTime", &CFLProcess::EstimateTime)
 		 ;
+
 	
   }
 	
