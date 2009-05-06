@@ -75,7 +75,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/residualbased_ND_fluid_strategy.h"
 #include "custom_strategies/strategies/residualbased_fluid_strategy_coupled.h"
 #include "custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
-#include "custom_strategies/strategies/newton_raphson_oss_strategy.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_compressible.h"
 #include "custom_strategies/convergencecriterias/UP_criteria.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_comp_strategy.h"
@@ -106,6 +107,9 @@ namespace Kratos
 			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 			typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
+			typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
+			typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType;
+
 			//********************************************************************
 			//********************************************************************
 			//
@@ -214,11 +218,18 @@ namespace Kratos
                				     "ResidualBasedLagrangianMonolithicScheme", init< int >()
                 		       );
 
-			class_< NewtonRaphsonOssStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("NewtonRaphsonOssStrategy", 
-				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
-				>() )
-				;
+			class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
+				bases< BaseSchemeType >,  boost::noncopyable >
+					(
+					"ResidualBasedPredictorCorrectorVelocityBossakScheme", init< double, double >()
+					);
+
+
+			class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType,
+				bases< BaseSchemeType >,  boost::noncopyable >
+					(
+					"ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible", init< double, double >()
+					);
 
 			class_< RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
@@ -245,13 +256,6 @@ namespace Kratos
 				  .def("SolveStep3",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
 				  
 				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
-
-			class_< NewtonRaphsonOssStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("NewtonRaphsonOssStrategy", 
-				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
-				>() )
-				;
-
 
 
 
@@ -298,6 +302,7 @@ namespace Kratos
 				  .def("IterativeSolve",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::IterativeSolve)
 				  .def("SavePressureIteration",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SavePressureIteration)
 				  .def("ApplyFractionalVelocityFixity",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ApplyFractionalVelocityFixity)				;
+
 
 
 
