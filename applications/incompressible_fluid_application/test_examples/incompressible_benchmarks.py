@@ -45,7 +45,7 @@ def Run():
 	#import column_benchmark
 	#Msg = column_benchmark.Run()
 
-	print "Running column.py..."
+	print "Running cavity.py..."
 	Msg = benchmarking.RunBenchmark("cavity2d.py", "cavity_ref.txt")	
 	
 	if (Msg == True):
@@ -61,8 +61,52 @@ def Run():
 	
         # Add other examples here
 
+        ################################################################
+	# cylinder
 
-        
+	Text += "cylinder: "
+	os.chdir("cylinder.gid")
+	sys.path.append(os.getcwd())
+
+	#import column_benchmark
+	#Msg = column_benchmark.Run()
+
+	print "Running cylinder.py..."
+	Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "cylinder example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "cylinder example FAILED"
+
+	os.chdir("..")
+        ################################################################
+	# dam2d
+
+	Text += "dam2d: "
+	os.chdir("dam2d.gid")
+	sys.path.append(os.getcwd())
+
+	#import column_benchmark
+	#Msg = column_benchmark.Run()
+
+	print "Running dam2d.py..."
+	Msg = benchmarking.RunBenchmark("run_example.py", "dam2d_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "dam2d example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "dam2d example FAILED"
+
+	os.chdir("..")
         ################################################################
         print "resume of all of the examples for the fluid application :"
         print Text
