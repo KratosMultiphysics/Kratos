@@ -428,7 +428,7 @@ namespace Kratos
                 vMasterNonNormalized[1] = mTMaster(0,2)*mTMaster(1,0)-mTMaster(0,0)*mTMaster(1,2);
                 vMasterNonNormalized[2] = mTMaster(0,0)*mTMaster(1,1)-mTMaster(0,1)*mTMaster(1,0);
 
-                double NormvMaster= MathUtils<double>::Norm3(vMasterNonNormalized);
+//                 double NormvMaster= MathUtils<double>::Norm3(vMasterNonNormalized);
         //
         Matrix m(2,2);
         noalias(m) = ZeroMatrix(2,2);//m[alpha][beta]=T[alpha]*T[beta]
