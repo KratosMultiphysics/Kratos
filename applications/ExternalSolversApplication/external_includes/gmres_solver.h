@@ -564,8 +564,8 @@ namespace Kratos
   		int k;
   		long double mu;
   		long double *r;
-  		long double rho;
-  		long double rho_tol;
+  		long double rho = 0.0;
+  		long double rho_tol = 0.0;
   		long double *s;
   		long double *v;
   		long double *y;
@@ -867,7 +867,7 @@ namespace Kratos
   template<class TSparseSpaceType, class TDenseSpaceType, 
     class TPreconditionerType, 
     class TReordererType>
-  inline std::istream& operator >> (std::istream& IStream, 
+  inline std::istream& operator >> (std::istream& rIStream, 
 				      GMRESSolver<TSparseSpaceType, TDenseSpaceType, 
 				      TPreconditionerType, TReordererType>& rThis)
     {
