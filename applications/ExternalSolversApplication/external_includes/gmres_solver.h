@@ -871,6 +871,7 @@ namespace Kratos
 				      GMRESSolver<TSparseSpaceType, TDenseSpaceType, 
 				      TPreconditionerType, TReordererType>& rThis)
     {
+        return rIStream;
     }
 
   /// output stream function
