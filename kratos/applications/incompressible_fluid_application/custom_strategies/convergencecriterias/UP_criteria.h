@@ -181,6 +181,8 @@ namespace Kratos
 	        	 {
 				ind->GetValue(VELOCITY) = ind->FastGetSolutionStepValue(VELOCITY);
 				ind->GetValue(PRESSURE) = ind->FastGetSolutionStepValue(PRESSURE);
+				ind->GetValue(AIR_PRESSURE) = ind->FastGetSolutionStepValue(AIR_PRESSURE);
+				ind->GetValue(WATER_PRESSURE) = ind->FastGetSolutionStepValue(WATER_PRESSURE);
 			}
 			return true;
 
@@ -206,6 +208,10 @@ namespace Kratos
 
 			double reference_pr_norm = 0.0;
 			double difference_pr_norm = 0.0;
+			double reference_air_pr_norm = 0.0;
+			double difference_air_pr_norm = 0.0;
+			double reference_water_pr_norm = 0.0;
+			double difference_water_pr_norm = 0.0;
 			double reference_vel_norm = 0.0;
 			double difference_vel_norm = 0.0;
 			int pr_size = 0;
@@ -218,14 +224,33 @@ namespace Kratos
 					current_pr = ind->FastGetSolutionStepValue(PRESSURE);
 					reference_pr_norm += current_pr*current_pr;
 					pr_size +=1;
+
+					double current_air_pr = 0.0;
+					current_air_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
+					reference_air_pr_norm += current_air_pr*current_air_pr;
+			
+
+					double current_water_pr = 0.0;
+					current_water_pr = ind->FastGetSolutionStepValue(WATER_PRESSURE);
+					reference_water_pr_norm += current_water_pr*current_water_pr;
+				
 										
 					const array_1d<double,2> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
 					reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1]);
+					vel_size +=2;
 
 					double old_pr = 0.0;
 					old_pr = ind->GetValue(PRESSURE);
 					difference_pr_norm += (current_pr - old_pr)*(current_pr - old_pr);
-					vel_size +=2;
+
+					double old_air_pr = 0.0;
+					old_air_pr = ind->GetValue(AIR_PRESSURE);
+					difference_air_pr_norm += (current_air_pr - old_air_pr)*(current_air_pr - old_air_pr);
+
+					double old_water_pr = 0.0;
+					old_water_pr = ind->GetValue(WATER_PRESSURE);
+					difference_water_pr_norm += (current_water_pr - old_water_pr)*(current_water_pr - old_water_pr);
+
 
 					const array_1d<double,2> old_vel = ind->GetValue(VELOCITY);
 					array_1d<double,2> dif_vel = current_vel - old_vel;
@@ -233,26 +258,44 @@ namespace Kratos
 				
 
 			 }
+			if(reference_pr_norm ==0.0)
+				reference_pr_norm = 1.0;
 
-			double pr_ratio = sqrt(difference_pr_norm)/sqrt(reference_pr_norm);
-			double vel_ratio = sqrt(difference_vel_norm)/sqrt(reference_vel_norm);
+			if(reference_vel_norm ==0.0)
+				reference_vel_norm = 1.0;
+
+
+			double pr_ratio = sqrt(difference_pr_norm/reference_pr_norm);
+			double vel_ratio = sqrt(difference_vel_norm/reference_vel_norm);
+			double air_pr_ratio = sqrt(difference_air_pr_norm/reference_pr_norm);
+			double water_pr_ratio = sqrt(difference_water_pr_norm/reference_pr_norm);
 			
-			double pr_abs = sqrt(difference_pr_norm)/sqrt(static_cast<double>(pr_size));
-			double vel_abs = sqrt(difference_vel_norm)/sqrt(static_cast<double>(vel_size));
+
+			double pr_abs = sqrt(difference_pr_norm/pr_size);
+			double vel_abs = sqrt(difference_vel_norm/vel_size);
+			double air_pr_abs = sqrt(difference_air_pr_norm/pr_size);
+			double water_pr_abs = sqrt(difference_water_pr_norm/pr_size);
 
 
-//KRATOS_WATCH(AbsoluteNorm)
-//KRATOS_WATCH(mAlwaysConvergedNorm)
-//KRATOS_WATCH(mRatioTolerance)
+
 				std::cout << "VELOCITY CRITERIA :: obtained ratio = " << vel_ratio << ";  expected ratio = " << mVelRatioTolerance << "obtained abs = " <<vel_abs << ";  expected abs = " << mVelAbsTolerance << std::endl;
 
 				std::cout << "PRESSURE CRITERIA :: obtained ratio = " << pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
 
+				std::cout << "AIR_PRESSURE CRITERIA :: obtained ratio = " << air_pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<air_pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
+
+				std::cout << "WATER_PRESSURE CRITERIA :: obtained ratio = " << water_pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<water_pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
+
 				if ( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) 
 							&& 
-				     (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance))  
+				     ((air_pr_ratio <= mPrsRatioTolerance || air_pr_abs<mPrsAbsTolerance)
+					/* 
+							||
+				     (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance)
+							|| 
+				     (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)*/))   
 				{
-KRATOS_WATCH("convergence is achieved")
+KRATOS_WATCH("convergence is achieved");
 					return true;
 				}
 				else
