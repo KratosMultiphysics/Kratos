@@ -16,9 +16,6 @@ def Run():
 	os.chdir("square.gid")
 	sys.path.append(os.getcwd())
 
-	#import column_benchmark
-	#Msg = column_benchmark.Run()
-
 	print "Running rotatingcone_PureConvection.py..."
 	Msg = benchmarking.RunBenchmark("rotatingcone_PureConvectionBenchmarking.py", "rotatingcone_PureConvection_ref.txt")	
 	
@@ -32,7 +29,28 @@ def Run():
 		print "square example FAILED"
 
 	os.chdir("..")
+
+
+	################################################################
+	# testConvection
+
+	Text += "testConvection: "
+	os.chdir("testConvection.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running test_pureconvectionsolver_benchmarking.py..."
+	Msg = benchmarking.RunBenchmark("test_pureconvectionsolver_benchmarking.py", "test_pureconvectionsolver_benchmarking_ref.txt")
 	
+	if (Msg == True):
+		Text += "OK\n"
+		print "testConvection example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "testConvection example FAILED"
+
+	os.chdir("..")
         # Add other examples here
 
 
