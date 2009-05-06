@@ -59,7 +59,7 @@ convection_diffusion_solver.AddVariables(model_part)
     
 #creating a fluid solver object
 solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size)
-solver.time_order = 2
+solver.time_order = 1
 solver.prediction_order = 2
 pDiagPrecond = DiagonalPreconditioner()
 solver.linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
