@@ -12,26 +12,26 @@ def Run():
         ################################################################
 	# column
 
-	Text += "column: "
-	os.chdir("column.gid")
-	sys.path.append(os.getcwd())
+	#Text += "column: "
+	#os.chdir("column.gid")
+	#sys.path.append(os.getcwd())
 
-	#import column_benchmark
-	#Msg = column_benchmark.Run()
+	##import column_benchmark
+	##Msg = column_benchmark.Run()
 
-	print "Running column.py..."
-	Msg = benchmarking.RunBenchmark("column.py", "column_ref.txt")	
+	#print "Running column.py..."
+	#Msg = benchmarking.RunBenchmark("column.py", "column_ref.txt")	
 	
-	if (Msg == True):
-		Text += "OK\n"
-		print "colum example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "colum example FAILED"
+	#if (Msg == True):
+	#	Text += "OK\n"
+	#	print "colum example succesful"
+	#else:
+	#	Text += "FAILED\n"
+	#	Text += Msg
+	#	Text += "\n\n"
+	#	print "colum example FAILED"
 
-	os.chdir("..")
+	#os.chdir("..")
 
 	
 
