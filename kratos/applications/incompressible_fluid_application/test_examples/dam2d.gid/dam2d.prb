@@ -1,0 +1,47 @@
+PROBLEM DATA
+BOOK: Problem Parameters
+QUESTION: Write_a_new_Python_script_file_for_Kratos#CB#(1,0)
+VALUE: 1
+QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
+VALUE: 1
+QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (1,HIDE,DOMAIN_SIZE,2)(0,RESTORE,DOMAIN_SIZE,#CURRENT#)
+QUESTION: DOMAIN_SIZE#CB#(2,3)
+VALUE: 2
+STATE: hidden
+QUESTION: max_time
+VALUE: 1.0
+QUESTION: max_x
+VALUE: 2.5
+QUESTION: max_y
+VALUE: 3.0
+QUESTION: max_z
+VALUE: 1.0
+QUESTION: min_x
+VALUE: -1.0
+QUESTION: min_y
+VALUE: -1.0
+QUESTION: min_z
+VALUE: -1.0
+QUESTION: use_oss
+VALUE: 0
+QUESTION: dynamic_tau
+VALUE: 1
+QUESTION: nsteps
+VALUE: 30
+QUESTION: output_dt
+VALUE: 0.01
+QUESTION: min_dt
+VALUE: 0.01
+QUESTION: max_dt
+VALUE: 0.1
+QUESTION: safety_factor
+VALUE: 0.1
+QUESTION: SolverType
+VALUE: "monolithic_solver_lagrangian"
+QUESTION: laplacian_form
+VALUE: 3
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA
