@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/kernel.h"
 #include "includes/node.h"
 #include "includes/element.h"
+#include "includes/condition.h"
 #include "includes/constitutive_law.h"
 
 //#include "geometries/triangle_2d_3.h"
@@ -111,6 +112,9 @@ namespace Kratos
 
 	//NEIGHBOR_ELEMENTS is defined in element.h
 	KRATOS_CREATE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_ELEMENTS)
+
+	//NEIGHBOR_CONDITIONS is defined in condition.h
+	KRATOS_CREATE_VARIABLE(WeakPointerVector<Condition >, NEIGHBOUR_CONDITIONS)
 
 	//for structural application TO BE REMOVED
         KRATOS_CREATE_VARIABLE(Vector, MATERIAL_PARAMETERS)
@@ -348,6 +352,7 @@ namespace Kratos
 
 	KRATOS_REGISTER_VARIABLE(NEIGHBOUR_NODES);
 	KRATOS_REGISTER_VARIABLE(NEIGHBOUR_ELEMENTS);
+	KRATOS_REGISTER_VARIABLE(NEIGHBOUR_CONDITIONS);
 
 	KRATOS_REGISTER_VARIABLE( INERTIA )
 
