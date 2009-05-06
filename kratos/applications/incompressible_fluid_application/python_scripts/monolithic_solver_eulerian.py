@@ -33,6 +33,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION); 
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
 
 
