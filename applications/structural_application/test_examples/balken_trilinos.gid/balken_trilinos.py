@@ -28,7 +28,7 @@ print "i am ",mpi.rank , " of ",mpi.size
 ## r2d2
 #kratos_root_path = '/home/stasch/kratos_bcn/kratos'
 ## astra
-kratos_root_path = '/home/stasch/kratos_bcn/kratos'
+kratos_root_path = '../../../../'
 ##setting up paths
 kratos_libs_path = kratos_root_path+'/libs' ##kratos_root/libs
 kratos_applications_path = kratos_root_path+'/applications' ##kratos_root/applications
