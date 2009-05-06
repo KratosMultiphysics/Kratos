@@ -55,6 +55,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE);        
     model_part.AddNodalSolutionStepVariable(ERROR_RATIO);
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
     print "variables for the dynamic structural solution added correctly"
     
 def AddDofs(model_part):
@@ -87,7 +88,7 @@ class SolverAdvanced:
 
         self.Comm = CreateCommunicator()
 
-	self.buildertype="standard"
+	self.buildertype="ML3D"
 
         #definition of the solvers
         self.structure_linear_solver =  TrilinosLinearSolver()
@@ -118,7 +119,7 @@ class SolverAdvanced:
             self.MoveMeshFlag = False
         else:
             print "using newmark scheme"
-            self.time_scheme = ResidualBasedNewmarkScheme(self.damp_factor)
+            self.time_scheme = TrilinosResidualBasedNewmarkScheme(self.damp_factor)
             self.MoveMeshFlag = True
         #definition of the convergence criteria
         self.conv_criteria = TrilinosDisplacementCriteria(1e-6,1e-9,self.Comm)
@@ -129,10 +130,10 @@ class SolverAdvanced:
         self.ReformDofSetAtEachStep = True
         #KLUDGE: this has to be True!
         self.MoveMeshFlag = True
-        self.space_utils = UblasSparseSpace()
+        self.space_utils = TrilinosSparseSpace()
         
         import trilinos_contact_strategy
-        self.solver = trilinos_contact_strategy.SolvingStrategyPython(self.buildertype,self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag,self.Comm,self.guess_row_size,self.analysis_parameters)
+        self.solver = trilinos_contact_strategy.SolvingStrategyPython( self.buildertype, self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag, self.analysis_parameters, self.space_utils, self.Comm, self.guess_row_size )
 
         
     #######################################################################   
