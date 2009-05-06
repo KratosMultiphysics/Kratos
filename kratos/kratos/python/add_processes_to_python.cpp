@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "processes/find_conditions_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" 
 //#include "processes/add_dofs_nodal_process.h"
@@ -79,8 +80,13 @@ namespace Python
 		  .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
 		 ;
 
-		 class_<CalculateNodalAreaProcess, bases<Process> >("CalculateNodalAreaProcess",
-				 init<ModelPart&, unsigned int>())
+	  class_<FindConditionsNeighboursProcess, bases<Process> >("FindConditionsNeighboursProcess",
+		 init<ModelPart&, int>())
+		  .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
+		 ;
+
+	 class_<CalculateNodalAreaProcess, bases<Process> >("CalculateNodalAreaProcess",
+		 init<ModelPart&, unsigned int>())
 		;
 				 
 	  class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
