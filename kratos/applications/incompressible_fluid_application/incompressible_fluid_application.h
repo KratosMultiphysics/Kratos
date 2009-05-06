@@ -28,6 +28,8 @@
 #include "custom_elements/fluid_2d.h"
 
 #include "custom_conditions/fluid3d_neumann.h"
+#include "custom_conditions/fluid2d_neumann.h"
+#include "custom_conditions/monolithic2d_neumann.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -40,8 +42,10 @@
 
 #include "custom_elements/NDfluid_2d_CrankNicolson.h"
 
-#include "custom_elements/fluid_2d_asgs.h"
-#include "custom_elements/fluid_2d_oss.h"
+#include "custom_elements/asgs_2d.h"
+#include "custom_elements/asgs_pr_dc.h"
+#include "custom_elements/asgs_compressible_2d.h"
+//#include "custom_elements/asgs_comp_pr_dc.h"
 
 #include "custom_elements/fluid_2dGLS_expl.h"
 #include "custom_elements/fluid_2dGLS_expl_comp.h"
@@ -65,6 +69,11 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(double, EXTERNAL_PRESSURE)
 	KRATOS_DEFINE_VARIABLE(double, DIAMETER)
 	KRATOS_DEFINE_VARIABLE(double, PERMEABILITY_INV)
+	KRATOS_DEFINE_VARIABLE(double, DENSITY_AIR )
+
+	KRATOS_DEFINE_VARIABLE(double, AIR_SOUND_VELOCITY )
+	KRATOS_DEFINE_VARIABLE(double, SOUND_VELOCITY )
+
 
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
@@ -231,16 +240,26 @@ namespace Kratos
 		const Fluid2DCoupled  mFluid2DCoupled; 
 		const Fluid3DCoupled  mFluid3DCoupled; 
 
-		const Fluid3DNeumann  mFluid3DNeumann; 
+		const Fluid3DNeumann  mFluid3DNeumann;  
+		const Monolithic2DNeumann  mMonolithic2DNeumann; 
+
+
 		const NDFluid2D  mNDFluid2D; 
 		const NDFluid3D	 mNDFluid3D;
 		const NDFluid2DCrankNicolson	 mNDFluid2DCrankNicolson;
 
-		const Fluid2DASGS  mFluid2DASGS; 
-		const Fluid2DOSS  mFluid2DOSS; 
+		const ASGS2D  mASGS2D; 
+		const ASGSCompressible2D mASGSCompressible2D;
+
+
+		const ASGSPRDC  mASGSPRDC; 
+
+		//const ASGSCOMPPRDC mASGSCOMPPRDC;
+
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
 		const Fluid2DGLS_expl_comp  mFluid2DGLS_expl_comp;  
+
 		///@} 
 		///@name Private Operations
 		///@{ 
