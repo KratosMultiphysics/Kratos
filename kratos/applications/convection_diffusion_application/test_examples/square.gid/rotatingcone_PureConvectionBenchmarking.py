@@ -56,6 +56,13 @@ model_part = ModelPart("FluidPart");
 ##importing the solver files and adding the variables
 import pure_convection_solver
 pure_convection_solver.AddVariables(model_part)
+model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+model_part.AddNodalSolutionStepVariable(VELOCITY)
+model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
+model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+
+
 ##...aqui lista variables para utilizar
 
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
@@ -74,18 +81,12 @@ print model_part
 model_part.SetBufferSize(3)
 
 ##add Degrees of Freedom to all of the nodes
-pure_convection_solver.AddDofs(model_part)
-
+for node in model_part.Nodes:
+    node.AddDof(TEMPERATURE)
+    
 #settings to be changed
 #INITIALIZING FLUID
 #assigning the fluid properties
-conductivity = 0.0;
-density = 1.0;
-specific_heat = 1.0;
-for node in model_part.Nodes:
-    node.SetSolutionStepValue(CONDUCTIVITY,0,conductivity);
-    node.SetSolutionStepValue(DENSITY,0,density);
-    node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
 
 #assigning a rotational velocity field
 vel = Vector(3);
@@ -131,7 +132,11 @@ convection_solver = pure_convection_solver.PureConvectionSolver(model_part,domai
 ##computing the neighbours
 neighbour_finder = FindNodalNeighboursProcess(model_part,10,10);
 neighbour_finder.Execute(); ##at wish ... when it is needed
-##
+
+##Variable to be convected:
+## #1 = TEPERATURE
+## #2 = DISTANCE
+##convection_solver.scalar_var_convected = 1
 
 convection_solver.Initialize();
 print "pure convection solver initialized"
@@ -144,7 +149,7 @@ while time < max_time:
 
    
     if(step>3):     
-        convection_solver.Solve()
+        convection_solver.Solve(TEMPERATURE)
         if (benchmarking.InBuildReferenceMode()):
             BenchmarkCheck(time, model_part)
         else:
