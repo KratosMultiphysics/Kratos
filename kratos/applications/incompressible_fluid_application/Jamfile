@@ -42,13 +42,18 @@ python-extension KratosIncompressibleFluidApplication
 	fluid_2dcoupled.cpp 
 	fluid_3dcoupled.cpp
 	fluid3d_neumann.cpp
+	fluid2d_neumann.cpp
 	NDfluid_2d.cpp
 	NDfluid_3d.cpp
 	NDfluid_2d_CrankNicolson.cpp
+	
 	fluid_2dGLS_expl.cpp
-	fluid_2dGLS_expl_comp.cpp  
-	fluid_2d_asgs.cpp 
-	fluid_2d_oss.cpp 
+	fluid_2dGLS_expl_comp.cpp   
+
+	asgs_2d.cpp 
+	asgs_pr_dc.cpp
+	asgs_compressible_2d.cpp
+	#asgs_comp_pr_dc.cpp
 
 	#kratos library
     #/kratos-prj/kratos//libkratos/<link>static
