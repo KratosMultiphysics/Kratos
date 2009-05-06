@@ -97,13 +97,13 @@ namespace boost { namespace numeric { namespace bindings {
        */
       int *index1_vector = new (std::nothrow) int[a.index1_data().size()];
       int *index2_vector = new (std::nothrow) int[a.index2_data().size()];
-      for( int i = 0; i < a.index1_data().size(); i++ )
+      for( int unsigned i = 0; i < a.index1_data().size(); i++ )
       {
           index1_vector[i] = (int)a.index1_data()[i];
 //           std::cout << index1_vector[i] << " ";
       }
       std::cout << std::endl;
-      for( int i = 0; i < a.index2_data().size(); i++ )
+      for( unsigned int i = 0; i < a.index2_data().size(); i++ )
       {
           index2_vector[i] = (int)a.index2_data()[i];
 //           std::cout << index2_vector[i] << " ";
