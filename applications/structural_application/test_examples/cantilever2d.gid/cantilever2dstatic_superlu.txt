@@ -1,25 +1,25 @@
 KRATOS_BENCHMARK | Float | Time | 0.004 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.221921365586 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.0361068223759 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 51.6844785228 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -123.134969306 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.170552764232 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.0223212401226 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 41.4346774582 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -102.141612127 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.005 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.221921365586 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.0361068223759 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 51.6844785228 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -123.134969306 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.170552764239 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.022321240123 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 41.4346774665 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -102.141612159 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.006 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.221921365586 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.0361068223759 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 51.6844785228 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -123.134969306 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.170552764239 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.022321240123 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 41.4346774665 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -102.141612159 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.007 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.221921365586 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.0361068223759 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 51.6844785228 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -123.134969306 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.170552764239 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.022321240123 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 41.4346774665 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -102.141612159 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.008 | None | None
-KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.221921365586 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.0361068223759 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 51.6844785228 | 1e-05 | None
-KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -123.134969306 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 1 Displacement_x | -0.170552764239 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 2 Displacement_y | -0.022321240123 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 3 Reaction_x | 41.4346774665 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Node 4 Reaction_y | -102.141612159 | 1e-05 | None
