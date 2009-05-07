@@ -112,10 +112,11 @@ namespace Kratos
       /// avg_elems ------ expected number of neighbour elements per node., 
       /// avg_nodes ------ expected number of neighbour Nodes 
       /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-      FindConditionsNeighboursProcess(ModelPart& model_part, unsigned int avg_conds = 10)
+      FindConditionsNeighboursProcess(ModelPart& model_part, int TDim, unsigned int avg_conds = 10)
 		: mr_model_part(model_part)
 	{
 	mavg_conds = avg_conds;
+	mTDim=TDim;
 // 	mavg_nodes = avg_nodes;
 	}
 
@@ -173,19 +174,22 @@ namespace Kratos
 
 		//adding the neighbouring conditions to the condition 
 		//loop over faces
-		for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
-		{	//face nodes
-			Geometry<Node<3> >& geom = (ic)->GetGeometry();
-			//vector of the 3 faces around the given face
-			(ic->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
-			WeakPointerVector< Condition >& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
-			//neighb_face is the vector containing pointers to the three faces around ic
-			//neighb_face[0] = neighbour face over edge 1-2 of element ic;
-			//neighb_face[1] = neighbour face over edge 2-0 of element ic;
-			//neighb_face[2] = neighbour face over edge 0-1 of element ic;
-			neighb_faces(0) = CheckForNeighbourFaces(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
-			neighb_faces(1) = CheckForNeighbourFaces(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
-			neighb_faces(2) = CheckForNeighbourFaces(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
+		if (mTDim==3)
+		{
+			for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
+			{	//face nodes
+				Geometry<Node<3> >& geom = (ic)->GetGeometry();
+				//vector of the 3 faces around the given face
+				(ic->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
+				WeakPointerVector< Condition >& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
+				//neighb_face is the vector containing pointers to the three faces around ic
+				//neighb_face[0] = neighbour face over edge 1-2 of element ic;
+				//neighb_face[1] = neighbour face over edge 2-0 of element ic;
+				//neighb_face[2] = neighbour face over edge 0-1 of element ic;
+				neighb_faces(0) = CheckForNeighbourFaces(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
+				neighb_faces(1) = CheckForNeighbourFaces(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
+				neighb_faces(2) = CheckForNeighbourFaces(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_CONDITIONS), ic->Id());
+			}
 		}
 	}
 
@@ -293,6 +297,7 @@ namespace Kratos
       ///@{ 
 	ModelPart& mr_model_part;
 	unsigned int mavg_conds;
+	int mTDim;
 // 	unsigned int mavg_nodes;
         
         
