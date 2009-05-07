@@ -363,7 +363,15 @@ namespace Kratos
              */
             virtual void AddInertiaForces( VectorType& rRightHandSideVector, double coeff, 
                                            ProcessInfo& rCurrentProcessInfo){}
-            
+            /**
+             * Calculate Damp matrix and add velocity contribution to RHS
+            * @param rDampMatrix: the velocity-proportional "damping" matrix
+            * @param rRightHandSideVector: the elemental right hand side matrix
+             * @param rCurrentProcessInfo: the current process info instance
+             */            
+	    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+							    VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo){}
+
             /**
              * determines the elemental list of DOFs
              * @param ElementalDofList: the list of DOFs
