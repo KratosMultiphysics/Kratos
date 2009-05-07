@@ -81,7 +81,7 @@ namespace Python
 		 ;
 
 	  class_<FindConditionsNeighboursProcess, bases<Process> >("FindConditionsNeighboursProcess",
-		 init<ModelPart&, int>())
+		 init<ModelPart&, int, int>())
 		  .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
 		 ;
 
