@@ -84,6 +84,30 @@ def Run():
 		print "cylinder example FAILED"
 
 	os.chdir("..")
+	################################################################
+	# cilinderGLS
+
+	Text += "cilinderGLS: "
+	os.chdir("cilinderGLS.gid")
+	sys.path.append(os.getcwd())
+
+	#import column_benchmark
+	#Msg = column_benchmark.Run()
+
+	print "Running Cilinder GLS example with explicit Runge-Kutta and FRAC STEP..."
+	Msg = benchmarking.RunBenchmark("cil_gls.py", "cil_gls_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "cilinderGLS example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "cilinderGLS example FAILED"
+
+	os.chdir("..")
+        # Add other examples here
         ################################################################
 	# dam2d
 
