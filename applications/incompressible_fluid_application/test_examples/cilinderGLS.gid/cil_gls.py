@@ -10,10 +10,11 @@ domain_size = 2
 #including kratos path
 kratos_libs_path = '../../../../libs/' ##kratos_root/libs
 kratos_applications_path = '../../../../applications/' ##kratos_root/applications
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
-
+sys.path.append(kratos_benchmarking_path)
 #importing Kratos main library
 from Kratos import *
 kernel = Kernel()   #defining kernel
@@ -29,6 +30,7 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 ##################################################################
 
 from KratosIncompressibleFluidApplication import *
+import benchmarking
 
 
 #defining a model part
@@ -59,6 +61,18 @@ print model_part
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
+
+DragLift = Vector(2)
+
+def BenchmarkCheck(time, model_part, section_nodes, center):
+    
+    DragLift=CalculateDragLift(time,section_nodes,center)
+               
+    benchmarking.Output(time, "Time")
+    benchmarking.Output(DragLift[0], "drag", 0.00001)
+    benchmarking.Output(DragLift[1], "lift", 0.00001)
+
+
 ##add Degrees of Freedom to all of the nodes
 runge_kutta_frac_step_solver.AddDofs(model_part)
 
@@ -85,7 +99,7 @@ fluid_solver.Initialize()
 
 #settings to be changed
 Re = 100.0
-nsteps = 5000
+nsteps = 300
 output_step = 50
 
 for node in model_part.Nodes :
@@ -109,6 +123,63 @@ Dt = 0.0;
 dt_max=0.001;
 out = 0
 time=0.0
+
+def SelectSectionNodes(section_nodes,model_part) :
+    for node in model_part.Nodes:
+        if (node.GetSolutionStepValue(IS_STRUCTURE)==1):
+            section_nodes.append(node)
+    print len(section_nodes)
+
+#defining function to integrate forces on section contour
+def CalculateCenterForces(time,section_nodes,center):
+    
+    fx = 0.0
+    fy = 0.0
+    mz = 0.0
+    
+    for node in section_nodes:
+	fx -= node.GetSolutionStepValue(FORCE_X,0)
+	fy -= node.GetSolutionStepValue(FORCE_Y,0)
+	mz -=  + node.GetSolutionStepValue(FORCE_X,0) * (node.Y - center[1]) - node.GetSolutionStepValue(FORCE_Y,0) * (node.X - center[0])
+    
+    print "Drag =", fx
+    print "Lift =", fy
+    print "Moment =", mz
+    
+    return [fx,fy,mz]
+
+def CalculateDragLift(time,section_nodes,center):
+    
+    fx = 0.0
+    fy = 0.0
+    mz = 0.0
+    
+    for node in section_nodes:
+	fx -= node.GetSolutionStepValue(FORCE_X,0)
+	fy -= node.GetSolutionStepValue(FORCE_Y,0)
+
+    
+    return [fx,fy] 
+    
+def PrintOutputFile(outputfile,time,Forces):
+    
+    outputfile.write(str(time)+" "+str(Forces[0])+" "+str(Forces[1])+" "+str(Forces[2])+"\n")
+    
+outstring2 = "Drag_Lift.txt"
+outputfile = open(outstring2, 'w')
+
+##################################################################
+#################### Outputfile ###############################        
+center = Vector(3)
+center[0] = 0.0
+center[1] = 0.0
+center[2] = 0.0
+#selecting section nodes
+section_nodes = []
+SelectSectionNodes(section_nodes,model_part);
+
+print len(section_nodes);
+
 gid_io.InitializeResults( 0.0, model_part.GetMesh() )
 
 for step in range(0,nsteps):
@@ -125,6 +196,13 @@ for step in range(0,nsteps):
     #solving the fluid problem
     if(step > 3):
         fluid_solver.Solve()
+        Forces = CalculateCenterForces(time,section_nodes,center)
+        #printing forces on section in the output file
+        PrintOutputFile(outputfile,time,Forces)
+        if (benchmarking.InBuildReferenceMode()):
+            BenchmarkCheck(time, model_part, section_nodes, center)
+        else:
+            BenchmarkCheck(time, model_part, section_nodes, center)
 
     #print the results
     if(out == output_step):
