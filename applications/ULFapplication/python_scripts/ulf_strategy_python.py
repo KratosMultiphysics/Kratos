@@ -265,13 +265,13 @@ class ULFStrategyPython:
         
     #######################################################################
     def Clear(self):
-        self.space_utils.ClearMatrix(self.A)
+        #self.space_utils.ClearMatrix(self.A)
         self.space_utils.ResizeMatrix(self.A,0,0)
         
-        self.space_utils.ClearVector(self.Dx)
+        #self.space_utils.ClearVector(self.Dx)
         self.space_utils.ResizeVector(self.Dx,0)
 
-        self.space_utils.ClearVector(self.b)
+        #self.space_utils.ClearVector(self.b)
         self.space_utils.ResizeVector(self.b,0)
         
 	self.builder_and_solver.SetDofSetIsInitializedFlag(False)

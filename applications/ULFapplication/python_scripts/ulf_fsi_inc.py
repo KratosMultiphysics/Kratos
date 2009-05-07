@@ -94,12 +94,17 @@ class ULF_FSISolver:
             self.Mesher = TriGenPFEMModeler()
             self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part,9,18)
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,9,18)
+             #this is needed if we want to also store the conditions a node belongs to
+            self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part,2,10)
         elif (domain_size == 3):
             #improved mesher
             self.Mesher = TetGenPfemModeler()
             #self.Mesher = TetGenModeler()
             self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part,20,30)
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,20,30)
+            #this is needed if we want to also store the conditions a node belongs to
+            self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part,3, 20)
+     
 
         print "after reading all the model contains:"
         print self.fluid_model_part
@@ -283,15 +288,17 @@ class ULF_FSISolver:
                 (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
        
             #remesh CHECK for 3D or 2D
-                
+
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
+        (self.condition_neigh_finder).Execute();
+
         ##(self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
 
         #print "marking fluid" and applying fluid boundary conditions
         (self.ulf_apply_bc_process).Execute();
         (self.mark_fluid_process).Execute();
-                
+
         #saving structural conditions - walls
         #(self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part, self.domain_size);
         #merging the structural elements back (they are saved in the Initialize)
