@@ -87,12 +87,18 @@ class ULF_FSISolver:
             self.Mesher = TriGenPFEMModeler()
             self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part,9,18)
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,9,18)
+            #this is needed if we want to also store the conditions a node belongs to
+            self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part,2, 10)
+            
         elif (domain_size == 3):
             #self.Mesher = TetGenModeler()
             #improved mesher
             self.Mesher = TetGenPfemModeler()
             self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part,20,30)
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,20,30)
+            #this is needed if we want to also store the conditions a node belongs to
+            self.condition_neigh_finder = FindConditionsNeighboursProcess(fluid_model_part,3, 20)
+     
 
         print "after reading all the model contains:"
         print self.fluid_model_part
@@ -247,23 +253,24 @@ class ULF_FSISolver:
         h_factor=0.2;
         ##remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
-            #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.alpha_shape)          
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.alpha_shape, h_factor)
+            #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.add_nodes, self.alpha_shape)          
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
        
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
-
+        (self.condition_neigh_finder).Execute();
+        
         #print "marking fluid" and applying fluid boundary conditions
         (self.ulf_apply_bc_process).Execute();  
         (self.mark_fluid_process).Execute();
-
         #merging the structural elements back (they are saved in the Initialize)
         (self.merge_model_parts_process).MergeParts(self.fluid_model_part, self.structure_model_part, self.combined_model_part);
 
         #calculating the neighbours for the overall model
         (self.combined_neigh_finder).Execute();
+
         print "end of remesh fucntion"       
     ######################################################################
     def FindNeighbours(self):

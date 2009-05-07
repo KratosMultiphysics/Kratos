@@ -275,24 +275,24 @@ class ULFStrategyPythonInc:
 
     #######################################################################
     def Clear(self):
-        self.space_utils.ClearMatrix(self.A)
+        #self.space_utils.ClearMatrix(self.A)
         self.space_utils.ResizeMatrix(self.A,0,0)
 
-        self.space_utils.ClearMatrix(self.D)
+        #self.space_utils.ClearMatrix(self.D)
         self.space_utils.ResizeMatrix(self.D,0,0)
 
-        self.space_utils.ClearMatrix(self.MPconsistent)
+        #self.space_utils.ClearMatrix(self.MPconsistent)
         self.space_utils.ResizeMatrix(self.MPconsistent,0,0)
         
         
-        self.space_utils.ClearVector(self.Dx)
+        #self.space_utils.ClearVector(self.Dx)
         self.space_utils.ResizeVector(self.Dx,0)
 
-        self.space_utils.ClearVector(self.MPinv)
+        #self.space_utils.ClearVector(self.MPinv)
         self.space_utils.ResizeVector(self.MPinv,0)
 
         
-        self.space_utils.ClearVector(self.b)
+        #self.space_utils.ClearVector(self.b)
         self.space_utils.ResizeVector(self.b,0)
         
 	self.builder_and_solver.SetDofSetIsInitializedFlag(False)
