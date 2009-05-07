@@ -1,0 +1,8 @@
+// Fixing degrees of freedom in nodes
+
+NODES[1].Fix(DISPLACEMENT_X);
+NODES[1].Fix(DISPLACEMENT_Z);
+NODES[2].Fix(DISPLACEMENT_X);
+NODES[2].Fix(DISPLACEMENT_Y);
+NODES[2].Fix(DISPLACEMENT_Z);
+CONDITIONS[1] = PointForce2D([1],1);

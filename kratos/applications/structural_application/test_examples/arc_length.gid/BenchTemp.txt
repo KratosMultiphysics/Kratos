@@ -1,0 +1,3 @@
+KRATOS_BENCHMARK | Integer | Time | 1 | None | None
+KRATOS_BENCHMARK | Float | Node 1 Desplacement_y | -5.07526446248e-06 | 1.0 | None
+KRATOS_BENCHMARK | Float | Node 1 Force_y | -0.999984773962 | 1.0 | None
