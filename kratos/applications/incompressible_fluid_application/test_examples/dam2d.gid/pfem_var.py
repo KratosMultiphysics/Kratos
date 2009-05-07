@@ -19,5 +19,5 @@ laplacian_form = 3
 # Declare Python Variables
 
 problem_name="dam2d"
-problem_path="/home/kazem/kratos/applications/incompressible_fluid_application/test_examples/dam2d.gid"
-kratos_path="/home/kazem/kratos"
+problem_path="."
+kratos_path="../../../../"

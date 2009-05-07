@@ -80,7 +80,7 @@ class MonolithicSolver:
         
         ####MESH CHANGES
       #  self.UlfUtils = UlfUtils()
-        self.ulf_time_step_dec_process = UlfTimeStepDecProcess(model_part);
+##        self.ulf_time_step_dec_process = UlfTimeStepDecProcess(model_part);
       #  self.mark_close_nodes_process = MarkCloseNodesProcess(model_part);
 	self.PfemUtils = PfemUtils()
                                        
