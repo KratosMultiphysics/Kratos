@@ -142,6 +142,30 @@ def Run():
         ################################################################
 
 
+	Text += "arc length desplacement benchmark: "
+	os.chdir("arc_length_des.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running balken contact benchmark..."
+	Msg = benchmarking.RunBenchmark("arc_length_des_benchmarking.py","arc_length_des_benchmarking.txt")
+
+	if (Msg == True):
+		Text += "OK\n"
+		print "arc_length_des benchmark example successful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "arc_length_des benchmark example FAILED"
+
+	os.chdir("..")
+
+
+        ################################################################
+
+
+
+
 
         print "resume of all of the examples for the fluid application :"
         print Text
