@@ -110,6 +110,8 @@ namespace Kratos
 		double h, dt, glob_min_dt, nu, dummy;  
 		//initialize it with given value
 		glob_min_dt=max_dt;
+
+
 		dt=0.0;
 		for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ; 
 				im != mr_model_part.ElementsEnd() ; ++im)
@@ -128,7 +130,7 @@ namespace Kratos
 			nu=im->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
 			//reuse dummy to temporarily store the scalar product of vel and height
 			dt=1.0/(fabs(inner_prod(vel,aux)) + 2.0*nu/h*h);
-			if(dt<glob_min_dt)
+			if(dt<glob_min_dt) 
 				glob_min_dt=dt;
 			}
 		}
