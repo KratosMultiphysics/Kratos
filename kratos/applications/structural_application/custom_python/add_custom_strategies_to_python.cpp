@@ -248,14 +248,14 @@ namespace Kratos
 					(
 					"CompositScheme", init< BaseSchemeType&, BaseSchemeType& >()
 					);
-
+			
 			class_< ResidualBasedArcLenghtStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
 				("ResidualBasedArcLenghtStrategy", 
 				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, 
                                 double, unsigned int, unsigned int, bool, bool, bool
 				>() )
 				;
-			 /*
+			/* 
 			class_< ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
 				("ResidualBasedNewtonRaphsonLineSearchesStrategy", 
 				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int, double, double, double, double, bool, bool, bool, bool
