@@ -135,6 +135,7 @@ namespace Kratos
 		KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedArcLenghtStrategy );
 
 		typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+
 		typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
 		typedef typename BaseType::TDataType TDataType;
@@ -156,6 +157,7 @@ namespace Kratos
 		typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
 		typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+
 		typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
 
@@ -785,10 +787,11 @@ namespace Kratos
 				//TSparseSpace::Clear(mDx);
 				//TSparseSpace::Clear(mb);
 				
-				TSparseSpace::ClearData(mA);
-				TSparseSpace::ClearData(mDx);
-				TSparseSpace::ClearData(mb);
-				TSparseSpace::ClearData(mDelta_p);
+				SparseSpaceType::Clear(mpA);
+				SparseSpaceType::Clear(mpA);
+				SparseSpaceType::Clear(mpDx);
+				SparseSpaceType::Clear(mpb);
+				SparseSpaceType::Clear(mpDelta_p);
 			}
 
                         }
@@ -857,19 +860,19 @@ namespace Kratos
 			TSystemVectorType& mRHS_cond = *mpRHS_cond;
 			TSystemVectorType& mDelta_p = *mpDelta_p;
 
-			SparseSpaceType::ClearData(mpA);
+			SparseSpaceType::Clear(mpA);
 			SparseSpaceType::Resize(mA,0,0);
 
-			SparseSpaceType::ClearData(mpDx);
+			SparseSpaceType::Clear(mpDx);
 			SparseSpaceType::Resize(mDx,0);
 
-			SparseSpaceType::ClearData(mpb);
+			SparseSpaceType::Clear(mpb);
 			SparseSpaceType::Resize(mb,0);
 	  
-			SparseSpaceType::ClearData(mpRHS_cond);
+			SparseSpaceType::Clear(mpRHS_cond);
 			SparseSpaceType::Resize(mRHS_cond,0);
 
-			SparseSpaceType::ClearData(mpDelta_p);
+			SparseSpaceType::Clear(mpDelta_p);
 			SparseSpaceType::Resize(mDelta_p,0);	
 
 
