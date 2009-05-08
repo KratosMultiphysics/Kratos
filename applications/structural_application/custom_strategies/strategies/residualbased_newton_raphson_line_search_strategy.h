@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "utilities/line_searches_utils.h"  
+#include "custom_utilities/line_searches_utility.h"  
 
 #include <cmath>
 #include <algorithm>
@@ -81,7 +81,7 @@ namespace Kratos
 	>
 	class ResidualBasedNewtonRaphsonLineSearchesStrategy 
 		: public ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver>,
-	 	  public LineSearchesUtils<TSparseSpace,TDenseSpace,TLinearSolver>
+	 	  public LineSearchesUtility<TSparseSpace,TDenseSpace,TLinearSolver>
 	{
 	public:
 		
@@ -144,7 +144,7 @@ namespace Kratos
 				ReformDofSetAtEachStep,
 				MoveMeshFlag)
 			    ,
-			    LineSearchesUtils<TSparseSpace,TDenseSpace,TLinearSolver>(
+			    LineSearchesUtility<TSparseSpace,TDenseSpace,TLinearSolver>(
 			        model_part, 
 				pNewLinearSolver,
 				pScheme,
@@ -189,6 +189,7 @@ namespace Kratos
 
 			//OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
 			//if the operations needed were already performed this does nothing
+			
 			if(this->mInitializeWasPerformed == false)
 				this->Initialize();
                          
@@ -216,11 +217,12 @@ namespace Kratos
 			 
 			//initialize solution step
 			if (this->mSolutionStepIsInitialized == false)
-				this->InitializeSolutionStep();
+				{this->InitializeSolutionStep();}
 
 			TSystemMatrixType& mA  =  *(this->mpA);
 			TSystemVectorType& mDx =  *(this->mpDx);
 			TSystemVectorType& mb  =  *(this->mpb);
+				  
 		
 			//initializing the parameters of the Newton-Raphson cicle
 			unsigned int iteration_number=0; 
@@ -245,7 +247,7 @@ namespace Kratos
 		         TSparseSpace::SetToZero(Delta_p);
 
 			 this->BackupDatabase(rDofSet,X_old);
-			 KRATOS_WATCH(X_old);	  
+			 
 		         
 			 //true  = 1
 			//false = 0
@@ -293,7 +295,8 @@ namespace Kratos
 				
                                 if ( this->mApplyLineSearches==true)
 				    {
-					  Satisfactory_Line_Search = this-> LineSearches(X_old,Delta_p,mDx,mb,mA);
+					   
+					  Satisfactory_Line_Search = this->LineSearches(X_old,Delta_p,mDx,mb,mA);
 					  if ( Satisfactory_Line_Search== true)		
 					      {
 						    std::cout<<"***************************************************"<<std::endl; 
@@ -318,7 +321,7 @@ namespace Kratos
 				      }
 				
 				//move the mesh if needed
-				//KRATOS_WATCH(X_old);
+				
 				if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 				TSparseSpace::SetToZero(X_old);
 				this->BackupDatabase(rDofSet,X_old);
