@@ -185,6 +185,28 @@ def Run():
 
         ################################################################
 
+	Text += "Pendulo Kratos Length benchmark: "
+	os.chdir("Pendulo_Kratos.gid")
+	sys.path.append(os.getcwd())
+
+	print "Pendulo Kratos Length benchmark..."
+	Msg = benchmarking.RunBenchmark("Pendulo_Kratos_benchmarking.py","Pendulo_Kratos_benchmarking.txt")
+
+	if (Msg == True):
+		Text += "OK\n"
+		print "Pendulo Kratos benchmark example successful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "Pendulo Kratos benchmark example FAILED"
+
+	os.chdir("..")
+
+
+        ################################################################
+
+
 
         print "resume of all of the examples for the fluid application :"
         print Text
