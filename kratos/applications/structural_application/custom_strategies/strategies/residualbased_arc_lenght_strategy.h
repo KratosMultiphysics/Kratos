@@ -40,7 +40,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *          
 *   Last Modified by:    $Author: Nelson $
 *   Date:                $Date: 2009-02-5 
-*   Revision:            $Revision: 1.00 $
+*   Revision:            $Revision: 1.01 $
 *
 * ***********************************************************/
 
@@ -849,7 +849,7 @@ namespace Kratos
 		void Clear()
 		{
 			KRATOS_TRY
-			std::cout << "Newton Raphson strategy Clear function used" << std::endl;
+			std::cout << "Arc Length Strategy  Clear function used" << std::endl;
 
 			TSystemMatrixType& mA   = *mpA;
 			TSystemVectorType& mDx  = *mpDx;
@@ -857,19 +857,19 @@ namespace Kratos
 			TSystemVectorType& mRHS_cond = *mpRHS_cond;
 			TSystemVectorType& mDelta_p = *mpDelta_p;
 
-			SparseSpaceType::Clear(mA);
+			SparseSpaceType::ClearData(mpA);
 			SparseSpaceType::Resize(mA,0,0);
 
-			SparseSpaceType::Clear(mDx);
+			SparseSpaceType::ClearData(mpDx);
 			SparseSpaceType::Resize(mDx,0);
 
-			SparseSpaceType::Clear(mb);
+			SparseSpaceType::ClearData(mpb);
 			SparseSpaceType::Resize(mb,0);
 	  
-			SparseSpaceType::Clear(mRHS_cond);
+			SparseSpaceType::ClearData(mpRHS_cond);
 			SparseSpaceType::Resize(mRHS_cond,0);
 
-			SparseSpaceType::Clear(mDelta_p);
+			SparseSpaceType::ClearData(mpDelta_p);
 			SparseSpaceType::Resize(mDelta_p,0);	
 
 
@@ -908,8 +908,6 @@ namespace Kratos
 			TSystemVectorType& mDx           = *mpDx;
 			TSystemVectorType& mb            = *mpb;
 			TSystemVectorType& mRHS_cond     = *mpRHS_cond;
-			//TSystemVectorType& Sigma_q_cond  = *pSigma_q_cond;
-		        //TSystemVectorType& Sigma_q_body  = *pSigma_q_body;
 			TSystemVectorType& mDelta_p      = *mpDelta_p;
 			TSystemVectorType& mDelta_pold   = *mpDelta_pold;
 			TSystemVectorType& Sigma_q       = *pSigma_q;
