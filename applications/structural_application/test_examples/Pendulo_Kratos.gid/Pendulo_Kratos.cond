@@ -1,0 +1,6 @@
+
+
+// Fixing degrees of freedom in nodes
+
+NODES[328].Fix(DISPLACEMENT_X);
+NODES[328].Fix(DISPLACEMENT_Y);
