@@ -96,8 +96,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_strategies/schemes/inner_volumetric_scheme.h"
 #include "custom_strategies/schemes/inner_volumetric_dynamic_scheme.h"
-#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme.h"
-
 //#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 
 //#include "structural_application/custom_strategies/schemes/residualbased_galerkin_scheme.h"
