@@ -212,6 +212,13 @@ namespace Kratos
 		if(rRightHandSideVector.size()!=0)
 			rRightHandSideVector.resize(0);
 	}
+      virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+	{
+		if(rDampMatrix.size1()!=0)
+			rDampMatrix.resize(0,0);
+		if(rRightHandSideVector.size()!=0)
+			rRightHandSideVector.resize(0);
+	}
 
       virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
