@@ -752,6 +752,10 @@ namespace Kratos
 	  ReadWord(word);
 	  ExtractValue(word, temp_node.Z());
 
+          temp_node.X0() = temp_node.X();
+          temp_node.Y0() = temp_node.Y();
+          temp_node.Z0() = temp_node.Z();
+
 
 	  rThisNodes.push_back(temp_node);
 	  number_of_nodes_read++;

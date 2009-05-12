@@ -385,6 +385,12 @@ class UblasSpace
 			}
 		}
 		}
+
+
+//        static void GatherLocalValues(Vector& global_indices, )
+//		{
+//		axpy_prod(rA, rX, rY, true);
+//		}
 	
 	
 	
@@ -420,7 +426,26 @@ class UblasSpace
 		{
 		}
 	
-		
+        //***********************************************************************
+        inline static bool IsDistributed() {
+            return false;
+        }
+
+        //***********************************************************************
+
+        inline static double GetValue(const VectorType& x, std::size_t I) {
+            return x[I];
+        }
+        //***********************************************************************
+
+        static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues) {
+            KRATOS_TRY
+
+            for(std::size_t i = 0; i<IndexArray.size(); i++)
+                pValues[i] = x[IndexArray[i]];
+
+            KRATOS_CATCH("")
+        }
 	///@}      
 	///@name Friends
 	///@{

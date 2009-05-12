@@ -205,8 +205,9 @@ namespace Kratos
 
 			//importing in the new temp vector the values
 			int ierr = temp.Import(Dx,importer,Insert); 
-			assert(ierr);
-			double* temp_values;
+			if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+			
+			double* temp_values; //DO NOT make delete of this one!!
 			temp.ExtractView( &temp_values );
 
 			b.Comm().Barrier();
@@ -232,6 +233,7 @@ namespace Kratos
 
 			//removing unnecessary memory
 			delete [] index_array;
+//                        delete [] temp_values;  //deleting this is WRONG! do not do it!!
 
 			KRATOS_CATCH("")
 		}
