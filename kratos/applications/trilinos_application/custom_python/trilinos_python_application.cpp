@@ -42,6 +42,8 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
+#include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
+#include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -271,7 +273,26 @@ typedef Epetra_FECrsMatrix FECrsMatrix;
 				"TrilinosResidualBasedLagrangianMonolithicScheme", init<int >() 
 			);
 	
-	
+		class_< TrilinosResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+			bases< TrilinosBaseSchemeType >,  boost::noncopyable >
+			(
+				"TrilinosResidualBasedLagrangianMonolithicScheme", init<int >()
+			);
+
+                typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme;
+
+		class_< TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme,
+			bases< TrilinosBaseSchemeType >,  boost::noncopyable >
+			(
+				"TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme", init<double, double >()
+			);
+
+		class_< TrilinosPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+			bases< TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme >,  boost::noncopyable >
+			(
+				"TrilinosPredictorCorrectorVelocityBossakScheme", init<double, double >()
+			);
+
 		//********************************************************************
 		//********************************************************************
 		//convergence criteria base class

@@ -57,7 +57,7 @@ class StaticStructuralSolver:
         
         import strategy_python
         self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
-        (self.solver).SetEchoLevel(3)
+        (self.solver).SetEchoLevel(2)
 
         #creating the solution strategy
  #       self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,True,True)

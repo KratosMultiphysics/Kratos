@@ -402,7 +402,7 @@ namespace Kratos
 				// computation of the nullspace
 				int numdf = 2; 
 				int dimns = 3; //
-				int lrows = A.NumMyCols (); //number of rows for calling processor
+//				int lrows = A.NumMyCols (); //number of rows for calling processor
 				MLList.set("PDE equations",numdf);
 				MLList.set("null space: dimension",dimns);	
 				//MLList.set("null space: type","pre-computed");
@@ -495,7 +495,7 @@ namespace Kratos
 				// computation of the nullspace
 				int numdf; // dofs per node
 				int dimns; // dimension of the null space
-				int lrows =  A.NumMyRows(); //number of rows for calling processor 
+//				int lrows =  A.NumMyRows(); //number of rows for calling processor
 
 				//Teuchos::RCP<vector<double> >  ns;
 				boost::shared_ptr<vector<double> > ns;
@@ -939,7 +939,7 @@ namespace Kratos
 						if(num_active_indices != 0)
 						{
 							int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-							assert(ierr == 0);
+//							if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 942","");
 						}						
 					}
 // KRATOS_WATCH("assemble conditions");		
@@ -963,13 +963,14 @@ namespace Kratos
 						if(num_active_indices != 0)
 						{
 							int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-							assert(ierr == 0);
+//							if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 966","");
 						}
 					}
 
 					//finalizing graph construction
 					int graph_assemble_ierr = Agraph.GlobalAssemble();
-					assert(graph_assemble_ierr == 0);
+					if(graph_assemble_ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.GlobalAssemble()","");
+
 // KRATOS_WATCH(Agraph);
 				
 					//generate a new matrix pointer according to this graph

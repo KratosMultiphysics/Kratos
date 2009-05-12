@@ -37,8 +37,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    $Author: kazem $
@@ -46,7 +46,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Revision:            $Revision: 1.6 $
 //
 //
- 
+
 //#define GRADPN_FORM
 //#define STOKES
 
@@ -63,1251 +63,1193 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "incompressible_fluid_application.h"
 #include "utilities/geometry_utilities.h" 
 
-namespace Kratos
-{
-        namespace ASGS2Dauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(DN_DX)
+namespace Kratos {
+    namespace ASGS2Dauxiliaries {
+        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
+#pragma omp threadprivate(DN_DX)
 
-        array_1d<double,3> N = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(N)
+        array_1d<double, 3 > N = ZeroVector(3); //dimension = number of nodes
+#pragma omp threadprivate(N)
 
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_adv_vel)
+        array_1d<double, 2 > ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
+#pragma omp threadprivate(ms_adv_vel)
 
     }
-    using  namespace ASGS2Dauxiliaries;
-
-
-	//************************************************************************************
-	//************************************************************************************
-	ASGS2D::ASGS2D(IndexType NewId, GeometryType::Pointer pGeometry)
-		: Element(NewId, pGeometry)
-	{		
-		//DO NOT ADD DOFS HERE!!!
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	ASGS2D::ASGS2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-		: Element(NewId, pGeometry, pProperties)
-	{
-		
-	}
-
-	Element::Pointer ASGS2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
-	{
-		
-		KRATOS_TRY
-		return Element::Pointer(new ASGS2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
-		KRATOS_CATCH("");
-	}
-
-	ASGS2D::~ASGS2D()
-	{
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-
-	int nodes_number = 3;
-	int dim = 2;
-	unsigned int matsize = nodes_number*(dim+1);
-
-	if(rLeftHandSideMatrix.size1() != matsize)
-			rLeftHandSideMatrix.resize(matsize,matsize); //false says not to preserve existing storage!!
-
-	if(rRightHandSideVector.size() != matsize)
-			rRightHandSideVector.resize(matsize); //false says not to preserve existing storage!!
-
-	
-	noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize,matsize); 
-	noalias(rRightHandSideVector) = ZeroVector(matsize); 
-	
-	double delta_t= rCurrentProcessInfo[DELTA_TIME];
-	
-	
-	
-	//getting data for the given geometry
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-	
-	double tauone;
-	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-
-
-	//add body force and momentum
-	AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone,tautwo);
-
-	//add projections
-	if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
-	    AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
-	
-
-		KRATOS_CATCH("")
-	}
-	//***********************************************************************************++
-	//**************************************************************************************++
-	void ASGS2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-
-		MatrixType temp = Matrix();
-		CalculateLocalSystem(temp, rRightHandSideVector,  rCurrentProcessInfo);
-
-		KRATOS_CATCH("")
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateMassContribution(MatrixType& K,const double time,const double area)
-	{
-		KRATOS_TRY
-	double lump_mass_fac = area * 0.333333333333333333333333;
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	int nodes_number = 3;
-	int dof = 2;
-	for ( int nd = 0; nd< nodes_number; nd++)
-	    {
-		int row = nd*(dof + 1);
-		for( int jj=0; jj< dof; jj++)
-			K(row + jj, row + jj) += density/1.0*lump_mass_fac;
-	    }
-	
-		KRATOS_CATCH("")
-	
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-
-			//lumped
-			unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-		unsigned int NumberOfNodes = GetGeometry().size();
-		unsigned int MatSize = (dimension + 1) * NumberOfNodes;
-		if(rMassMatrix.size1() != MatSize)
-			rMassMatrix.resize(MatSize,MatSize,false);
-
-		rMassMatrix = ZeroMatrix(MatSize,MatSize);
-	double delta_t= rCurrentProcessInfo[DELTA_TIME];
-		
-
-	//getting data for the given geometry
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-
-	//Calculate tau
-	double tauone;
-	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-
-	CalculateMassContribution(rMassMatrix,delta_t,Area); 
-	//add stablilization terms due to advective term (a)grad(V) * ro*Acce
-	CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
-	//add stablilization terms due to grad term grad(q) * ro*Acce
-	CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
-
-		KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-	int nodes_number = 3;
-	int dim = 2;
-	unsigned int matsize = nodes_number*(dim+1);
-
-	if(rDampMatrix.size1() != matsize)
-			rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
-
-
-	noalias(rDampMatrix) = ZeroMatrix(matsize,matsize); 
-	
-	double delta_t= rCurrentProcessInfo[DELTA_TIME];
-	
-	
-	
-	//getting data for the given geometry
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-	
-
-	//viscous term	
-	CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-	
-	//Advective term
-	double tauone;
-	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-
-	CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
-		
-	//calculate pressure term
-	CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
-
-	//compute projections
-	
-	//stabilization terms
-	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
-	CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
-	CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
-	//KRATOS_WATCH(rRightHandSideVector);
-
-
-		KRATOS_CATCH("")
-	}
-        
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area)
-	{
-		KRATOS_TRY
-	double mu;
-	/*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-	const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-	const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-	mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);*/
-	
-	double density;
-	calculatedensity(GetGeometry(), density, mu);
-
-
-	//nu = nu/density;	
-
-	int nodes_number = 3;
-	int dof = 2;
-
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-		K(row,column) += mu*1*area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
-		K(row + 1,column + 1) += mu*1*area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
-		   }	
-	    }
-					
-
-		KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double tauone, const double tautwo, const double time,const double area)
-	{
-		KRATOS_TRY
-	//calculate mean advective velocity and taus
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
-
-	//ms_adv_vel[0] = 0.0;
-	//ms_adv_vel[1] = 0.0;
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-
-	//calculate convective term	
-	int nodes_number = 3;
-	int dof = 2;
-	int matsize = dof*nodes_number;
-
-	boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
-	boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
-
-	for (int ii = 0; ii< nodes_number; ii++)
-	    {
-		int column = ii*dof;
-		conv_opr(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
-		conv_opr(1,column + 1) = conv_opr(0,column);
-
-		shape_func(column,0) = N[ii];
-		shape_func(column + 1, 1) = shape_func(column,0);
-	    }
-	boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
-	temp_convterm = prod(shape_func, conv_opr);
-
-	//double fac = tauone/time;
-	//fac = 0.0; 
-	//temp_convterm *= ((1 + fac*density)*density); // For the simplicity of implementation the stabilization term tau1*ro/deltat*(a.gradV U(n+1,t)) is added 	
-	
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-			int loc_column = jj*dof;
-
-			K(row,column) += area*density*temp_convterm(loc_row,loc_column);
-			K(row + 1,column + 1) += area*density*temp_convterm(loc_row + 1,loc_column + 1);
-		   }
-	    }
-
-		KRATOS_CATCH("")
-
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double time,const double area)
-	{
-		KRATOS_TRY
-	int nodes_number = 3;
-	int dof = 2;
-
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1) + dof;
-
-			K(row,column) += -1*area * N(jj) * DN_DX(ii,0);
-			K(column,row) += 1*area *density* N(jj) * DN_DX(ii,0);
-
-			K(row + 1,column) += -1*area * N(jj) * DN_DX(ii,1);
-			K(column,row + 1) += 1*area *density* N(jj) * DN_DX(ii,1);
-		   }
-	    }
-
-	
-		KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double tautwo,const double area)
-	{
-		KRATOS_TRY
-	int nodes_number = 3;
-	int dof = 2;
-	int matsize = dof*nodes_number;
-
-	boost::numeric::ublas::bounded_matrix<double,1,6> div_opr = ZeroMatrix(1,matsize);
-	for(int ii=0; ii<nodes_number; ii++)
-	  {
-		int index = dof*ii;
-		div_opr(0,index) = DN_DX(ii,0);
-		div_opr(0,index + 1) = DN_DX(ii,1);
-	  }
-
-
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-
-	boost::numeric::ublas::bounded_matrix<double,6,6> temp_div = ZeroMatrix(matsize,matsize);
-	temp_div = tautwo * prod(trans(div_opr),div_opr);
-
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-			int loc_column = jj*dof;
-
-			K(row,column) += 1*area*density*temp_div(loc_row,loc_column);
-			K(row,column + 1) += 1*area*density*temp_div(loc_row,loc_column + 1);
-			K(row + 1,column) += 1*area*density*temp_div(loc_row + 1,loc_column);
-			K(row + 1,column + 1) += 1*area*density*temp_div(loc_row + 1,loc_column + 1);
-		   }
-	    }
-
-		KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double time,const double area)
-	{
-		KRATOS_TRY
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
-
-		//ms_adv_vel[0] = 0.0;
-		//ms_adv_vel[1] = 0.0;
-
-	//calculate convective term	
-	int nodes_number = 3;
-	int dof = 2;
-	int matsize = dof*nodes_number;
-
-	boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
-	boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
-
-	for (int ii = 0; ii< nodes_number; ii++)
-	    {
-		int column = ii*dof;
-		conv_opr(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
-		conv_opr(1,column + 1) = conv_opr(0,column);
-		
-		shape_func(column,0) = N[ii];
-		shape_func(column + 1, 1) = shape_func(column,0);
-	    }
-
-	//build (a.grad V)(ro*a.grad U) stabilization term & assemble
-	boost::numeric::ublas::bounded_matrix<double,6,6> adv_stblterm = ZeroMatrix(matsize,matsize);		
-	adv_stblterm = tauone * prod(trans(conv_opr),conv_opr);
-
-
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-			int loc_column = jj*dof;
-			
-			K(row,column) += 1.0*area*density*adv_stblterm(loc_row,loc_column);
-			K(row,column + 1) += 1.0*area*density*adv_stblterm(loc_row,loc_column + 1);
-			K(row + 1,column) += 1.0*area*density*adv_stblterm(loc_row + 1,loc_column);
-			K(row + 1,column + 1) += 1.0*area*density*adv_stblterm(loc_row + 1,loc_column + 1);
-		   }
-	    }
-		
-	//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
-	boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
-	grad_stblterm = tauone * prod(trans(conv_opr),trans(DN_DX));
-
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1) + dof;
-
-			K(row,column) += 1.0*area *1.0* grad_stblterm(loc_row,jj);
-			K(row + 1,column) += 1.0*area *1.0* grad_stblterm(loc_row + 1, jj);
-
-			K(column, row) += 1.0*area * density*grad_stblterm(loc_row, jj);
-			K(column, row + 1) += 1.0*area *density* grad_stblterm(loc_row + 1, jj);
-		   }
-	    }
-
-	/*
-	//tau1*ro/dt*U(n+1,i+1).(1.0*a.grad V)
-	boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
-	temp_convterm = prod(trans(conv_opr),trans(shape_func));
-
-	double fac = tauone/time*density;	
-	
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-			int loc_column = jj*dof;
-
-			K(row,column) += area*fac*temp_convterm(loc_row,loc_column);
-			K(row + 1,column + 1) += area*fac*temp_convterm(loc_row + 1,loc_column + 1);
-		   }
-	    }
-
-	
-	//build (1.0*a.grad V) (Fbody + ro/dt * U(n)) stabilization term & assemble
-	array_1d<double,2> bdf = ZeroVector(2);
-	const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
-
-	const array_1d<double,3>& acce0 = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
-	const array_1d<double,3>& acce1 = GetGeometry()[1].FastGetSolutionStepValue(ACCELERATION);
-	const array_1d<double,3>& acce2 = GetGeometry()[2].FastGetSolutionStepValue(ACCELERATION);
-
-	bdf[0] = N[0]*(density*bdf0[0] + density/time * acce0[0] ) +  N[1]*(density*bdf1[0] + density/time * acce1[0]) + N[2]*(density*bdf2[0] + density/time * acce2[0]);
-	bdf[1] =  N[0]*(density*bdf0[1] + density/time * acce0[1] ) +  N[1]*(density*bdf1[1] + density/time * acce1[1]) + N[2]*(density*bdf2[1] + density/time * acce2[1]);
-	
-
-	array_1d<double,6> fbd_stblterm = ZeroVector(matsize);
-	fbd_stblterm = tauone *1.0* prod(trans(conv_opr),bdf);
-
-	for(int ii = 0; ii< nodes_number; ++ii)
-	  {
-		int index = ii*(dof + 1);
-		int loc_index = ii*dof;
-		F[index] += 1.0*area*fbd_stblterm[loc_index];
-		F[index + 1] += 1.0*area*fbd_stblterm[loc_index + 1];
-	  }
-	
-	*/
-	//build (1.0*a.grad V) (Fbody) stabilization term & assemble
-	array_1d<double,2> bdf = ZeroVector(2);
-	const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
-
-
-	bdf[0] = N[0]*(density*bdf0[0] ) +  N[1]*(density*bdf1[0]) + N[2]*(density*bdf2[0]);
-	bdf[1] =  N[0]*(density*bdf0[1]) +  N[1]*(density*bdf1[1] ) + N[2]*(density*bdf2[1] );
-	
-
-	array_1d<double,6> fbd_stblterm = ZeroVector(matsize);
-	fbd_stblterm = tauone *1.0* prod(trans(conv_opr),bdf);
-
-	for(int ii = 0; ii< nodes_number; ++ii)
-	  {
-		int index = ii*(dof + 1);
-		int loc_index = ii*dof;
-		F[index] += 1.0*area*fbd_stblterm[loc_index];
-		F[index + 1] += 1.0*area*fbd_stblterm[loc_index + 1];
-	  }
-	KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double area)
-	{
-		KRATOS_TRY
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
-
-		//ms_adv_vel[0] = 0.0;
-		//ms_adv_vel[1] = 0.0;
-
-	//calculate convective term	
-	int nodes_number = 3;
-	int dof = 2;
-	int matsize = dof*nodes_number;
-
-	//calculate density
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
-	boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
-
-	for (int ii = 0; ii< nodes_number; ii++)
-	    {
-		int column = ii*dof;
-		conv_opr(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
-		conv_opr(1,column + 1) = conv_opr(0,column);
-		
-		shape_func(column,0) = N[ii];
-		shape_func(column + 1, 1) = shape_func(column,0);
-	    }
-
-
-	//tau1*ro*Nacc.(1.0*a.grad V)
-	boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
-	temp_convterm = prod(trans(conv_opr),trans(shape_func));
-
-	double fac = tauone*density;	
-	
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-			int loc_column = jj*dof;
-
-			M(row,column) += area*fac*temp_convterm(loc_row,loc_column);
-			M(row + 1,column + 1) += area*fac*temp_convterm(loc_row + 1,loc_column + 1);
-		   }
-	    }
-
-
-	KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double time,const double tauone,const double area)
-	{
-		KRATOS_TRY
-	int nodes_number = 3;
-	int dof = 2;
-	
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	//build 1*(grad q . grad p) stabilization term & assemble
-	boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
-	gard_opr = 1.0*tauone * prod(DN_DX,trans(DN_DX)); 
-
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1) + dof;
-		
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1) + dof;
-
-		K(row,column) += area *1*gard_opr(ii,jj);
-
-		   }
-	    }
-	/*
-	//build 1*tau1*ro/deltat U grad q)
-	double fac = tauone*density/time;
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1) + dof;
-
-			//K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
-			K(column,row) += 1*area * fac* N(ii) * DN_DX(jj,0);
-
-			//K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
-			K(column,row + 1) += 1*area * fac* N(ii) * DN_DX(jj,1);
-		   }
-	    }
-
-	
-	//build 1*(grad q) (Fbody + ro/dt * U(n+1,i)) stabilization term & assemble
-	array_1d<double,2> bdf = ZeroVector(2);
-	const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
-
-
-	const array_1d<double,3>& vel0_n = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-	const array_1d<double,3>& vel1_n = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-	const array_1d<double,3>& vel2_n = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-
-
-	bdf[0] = N[0]*(density*bdf0[0] + density/time * vel0_n[0] ) +  N[1]*(density*bdf1[0] + density/time * vel1_n[0]) + N[2]*(density*bdf2[0] + density/time * vel2_n[0]);
-	bdf[1] =  N[0]*(density*bdf0[1] + density/time * vel0_n[1] ) +  N[1]*(density*bdf1[1] + density/time * vel1_n[1]) + N[2]*(density*bdf2[1] + density/time * vel2_n[1]);
-
-	array_1d<double,3> fbd_stblterm = ZeroVector(nodes_number);
-	fbd_stblterm = tauone * prod(DN_DX,bdf);
-	
-
-	for(int ii = 0; ii< nodes_number; ++ii)
-	  {
-		int index = ii*(dof + 1) + dof;
-		F[index] += 1*area*fbd_stblterm[ii];
-	  }*/
-
-
-	//build 1*(grad q) (Fbody ) stabilization term & assemble
-	array_1d<double,2> bdf = ZeroVector(2);
-	const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-	const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
-
-
-	bdf[0] = N[0]*(density*bdf0[0] ) +  N[1]*(density*bdf1[0] ) + N[2]*(density*bdf2[0]);
-	bdf[1] =  N[0]*(density*bdf0[1] ) +  N[1]*(density*bdf1[1] ) + N[2]*(density*bdf2[1]);
-
-	array_1d<double,3> fbd_stblterm = ZeroVector(nodes_number);
-	fbd_stblterm = tauone * prod(DN_DX,bdf);
-	
-
-	for(int ii = 0; ii< nodes_number; ++ii)
-	  {
-		int index = ii*(dof + 1) + dof;
-		F[index] += 1*area*fbd_stblterm[ii];
-	  }
-
-	KRATOS_CATCH("")
-
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double tauone,const double area)
-	{
-		KRATOS_TRY
-	int nodes_number = 3;
-	int dof = 2;
-	
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	//build 1*tau1*ro Nacc grad q)
-	double fac = tauone*density;
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1) + dof;
-
-			//K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
-			M(column,row) += area * fac* N[ii] * DN_DX(jj,0);
-
-			//K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
-			M(column,row + 1) += area * fac* N[ii] * DN_DX(jj,1);
-		   }
-	    }
-
-	KRATOS_CATCH("")
-
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::AddBodyForceAndMomentum(VectorType& F,const array_1d<double,3>& N, const double time,const double area,const double tauone,const double tautwo)
-	{
-		KRATOS_TRY
-	int nodes_number = 3;
-	int dof = 2;
-	
-
-	//double lump_mass_fac = area * 0.333333333333333333333333;
-
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	//for Arhenious
-	int matsize = dof*nodes_number;
-	boost::numeric::ublas::bounded_matrix<double,1,6> div_opr = ZeroMatrix(1,matsize);
-	for(int ii=0; ii<nodes_number; ii++)
-	  {
-		int index = dof*ii;
-		div_opr(0,index) = DN_DX(ii,0);
-		div_opr(0,index + 1) = DN_DX(ii,1);
-	  }
-	 const double ar_0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
-	 const double ar_1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
-	 const double ar_2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
-
-	double mean_ar = 0.333333333333333333*(ar_0 + ar_1 + ar_2);
-
-
-	//body  & momentum term force
-	for ( int ii = 0; ii < nodes_number; ii++)
-	   {
-		int index = ii*(dof + 1) ;
-		const array_1d<double,2> bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
-
-	
-		F[index] += area*N[ii]*density*bdf[0] ;
-		F[index + 1] += area*N[ii]*density*bdf[1];
-
-
-	//arrhenius
-		F[index + 2] += (area*N[ii]*mean_ar);
-		F[index] += tautwo*area*mean_ar*div_opr(0,index);
-		F[index + 1] += tautwo*area*mean_ar*div_opr(0,index + 1);
-	   }
-	
-
-	KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::CalculateResidual(const MatrixType& K, VectorType& F)
-	{
-	KRATOS_TRY
-
-	int nodes_number = 3;
-	int dof = 2;
-
-
-	array_1d<double,9> UP = ZeroVector(9);
-	for ( int ii = 0; ii < nodes_number; ++ii)
-	    {
-		int index = ii * (dof + 1);
-		UP[index] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY,0)[0];
-		UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY,0)[1];
-		UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE,0);
-	    }
-
-	F -= prod(K,UP);
-
-	KRATOS_CATCH("")
-	}
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const 			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double tauone,const double tautwo,const array_1d<double,3>& N,const double area, const double time)
-	{
-	unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	unsigned int dim = 2;
-
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-
-
-
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
-
-
-	double const_adv_proj_X =0.0;
-	double const_adv_proj_Y =0.0;
-	double mean_div_proj =0.0;
-	array_1d<double,3> mean_new_vel = ZeroVector(3);
-	array_1d<double,3> mean_old_vel = ZeroVector(3);
-	array_1d<double,3> mean_bdf = ZeroVector(3);
-
-	for (unsigned int i=0;i<number_of_nodes;i++)
-	 {
-		
-		//int index = i*dim;
-		double pr = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-		const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-		const array_1d<double,3>& old_vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-
-		//const array_1d<double,2>& bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-		// to consider the jump gradp/ro is calculated
-			//pr = pr/density;
-
-		//adv_proj = PI(ro*dv/dt + ro*a.gradU + gradP - f) considering lumped mass PI() = ()
-		//calculate constant part of RES ->ro*a.gradU + gradP
-		const_adv_proj_X += ( pr * DN_DX(i,0) + density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[0] );
-		const_adv_proj_Y +=  (pr * DN_DX(i,1) + density*(ms_adv_vel[0]*DN_DX(i,0) + ms_adv_vel[1]*DN_DX(i,1))*vel[1] );
-
-		//div_proj = PI(ro*divU)
-		mean_div_proj += density*(DN_DX(i,0)*vel[0] + DN_DX(i,1)*vel[1]);
-
-		//calcuale mean velocity and body force
-		mean_new_vel += 0.3333333333333333333333333333*vel;
-		mean_old_vel += 0.3333333333333333333333333333*old_vel;
-		mean_bdf += 0.3333333333333333333333333333*bdf;
-	}
-
-
-	for (unsigned int i=0;i<number_of_nodes;i++)
-	 {
-		int index = i*dim;
-
-		adv_proj[index] = area*N[i]*(density*(mean_new_vel[0]-mean_old_vel[0])/time + const_adv_proj_X - density*mean_bdf[0]);
-		adv_proj[index +1] = area*N[i]*(density*(mean_new_vel[1]-mean_old_vel[1])/time + const_adv_proj_Y - density*mean_bdf[1]);
-
-		div_proj[i] = area*N[i]*density*mean_div_proj;
-
-		//update projections
-		array_1d<double,3>& advtermproj = GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-		advtermproj[0]+= adv_proj[index];
-		advtermproj[1]+= adv_proj[index +1];
-
-		double& divtermproj = GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
-		divtermproj += div_proj[i] ;
-
-		
-
-		//calculate nodal area
-		
-		GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += 0.333333333333333333*area;
-
-	}
-
-	/*for (unsigned int i=0;i<number_of_nodes;i++)
-	 {
-		int index = i*dim;
-		const double pr = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-		const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-
-		const array_1d<double,3>& mesh_vel = GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-		array_1d<double,2> adv_vel = ZeroVector(2);
-		adv_vel[0] = vel[0]-mesh_vel[0];
-		adv_vel[1] = vel[1]-mesh_vel[1];
-
-		//adv_proj = PI(ro*a.gradU + gradP) considering lumped mass PI() = ()
-		adv_proj[index] = area*N[i]*(pr * DN_DX(i,0) +density*(adv_vel[0]*DN_DX(i,0) + adv_vel[1]*DN_DX(i,1))*vel[0]);
-		adv_proj[index +1] =  area*N[i]*(pr * DN_DX(i,1) + density*(adv_vel[0]*DN_DX(i,0) + adv_vel[1]*DN_DX(i,1))*vel[1]);
-
-		//div_proj = PI(ro*divU)
-		div_proj[i] = area*N[i]*density*(DN_DX(i,0)*vel[0] + DN_DX(i,1)*vel[1]);
-
-		//update projections
-		array_1d<double,3>& advtermproj = GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-		advtermproj[0]+= tauone*adv_proj[index];
-		advtermproj[1]+= tauone*adv_proj[index +1];
-
-		double& divtermproj = GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
-		divtermproj += tautwo*div_proj[i] ;
-		
-		//calculate nodal area
-		GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += 0.333333333333333333*area;
-	 }*/
-
-	
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-
-	void ASGS2D::AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area,const double tauone,const double tautwo)
-	{
-	unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	unsigned int dim = 2;
-
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
-
-	 const array_1d<double,3> advproj_0 = GetGeometry()[0].FastGetSolutionStepValue(ADVPROJ);
-	 const array_1d<double,3> advproj_1 = GetGeometry()[1].FastGetSolutionStepValue(ADVPROJ);
-	 const array_1d<double,3> advproj_2 = GetGeometry()[2].FastGetSolutionStepValue(ADVPROJ);
-
-	 const double div_proj_0 = GetGeometry()[0].FastGetSolutionStepValue(DIVPROJ);
-	 const double div_proj_1 = GetGeometry()[1].FastGetSolutionStepValue(DIVPROJ);
-	 const double div_proj_2 = GetGeometry()[2].FastGetSolutionStepValue(DIVPROJ);
-
-
-	
-	//mean values
-	double mean_x_adv = 0.3333333333333333*(advproj_0[0] +advproj_1[0] + advproj_2[0]); 
-	double mean_y_adv = 0.3333333333333333*(advproj_0[1] +advproj_1[1] + advproj_2[1]); 
-	
-	double mean_div = 0.3333333333333333*(div_proj_0 +div_proj_1 + div_proj_2); 
-	
-	for (unsigned int ii=0;ii<number_of_nodes;ii++)
-	 {
-		int index = ii*(dim + 1) ;
-		const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
-
-		const array_1d<double,3>& mesh_vel = GetGeometry()[ii].FastGetSolutionStepValue(MESH_VELOCITY);
-		array_1d<double,2> adv_vel = ZeroVector(2);
-		adv_vel[0] = vel[0]-mesh_vel[0];
-		adv_vel[1] = vel[1]-mesh_vel[1];
-	
-		//tauone*ro*(xi,a.gradv)
-		double proj;
-
-		proj = mean_x_adv*(adv_vel[0]*DN_DX(ii,0) + adv_vel[1]*DN_DX(ii,1));
-		F[index] += (tauone*1.0*area*proj);
-
-		proj = mean_y_adv*(adv_vel[0]*DN_DX(ii,0) + adv_vel[1]*DN_DX(ii,1));
-		F[index +1 ] += (tauone*1.0*area*proj);
-	
-
-		//tauone*(xi,gradq)
-		proj = (mean_x_adv*DN_DX(ii,0) + mean_y_adv*DN_DX(ii,1));
-		F[index + 2] += (tauone*area*proj);
-
-		//tautwo*(divv)
-
-		F[index] += (tautwo*area*mean_div*DN_DX(ii,0));
-		F[index +1] += (tautwo*area*mean_div*DN_DX(ii,1));
-		
-	}
-
-	
-
-
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	void ASGS2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-	{
-		KRATOS_TRY
-		unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		unsigned int dim = 2;
-		unsigned int node_size = dim+1;
-
-		
-			if(rResult.size() != number_of_nodes*node_size)
-				rResult.resize(number_of_nodes*node_size,false);	
-
-			for (unsigned int i=0;i<number_of_nodes;i++)
-			{
-				rResult[i*node_size] = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-				rResult[i*node_size+1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-				rResult[i*node_size+2] = GetGeometry()[i].GetDof(PRESSURE).EquationId();
-			}
-		KRATOS_CATCH("")
-		
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	  void ASGS2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
-	{
-		KRATOS_TRY
-		unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		unsigned int dim = 2;
-		unsigned int node_size = dim+1;
-
-
-			if(ElementalDofList.size() != number_of_nodes*node_size)
-				ElementalDofList.resize(number_of_nodes*node_size);	
-
-			for (unsigned int i=0;i<number_of_nodes;i++)
-			{
-				ElementalDofList[i*node_size] = GetGeometry()[i].pGetDof(VELOCITY_X);
-				ElementalDofList[i*node_size+1] = GetGeometry()[i].pGetDof(VELOCITY_Y);
-				ElementalDofList[i*node_size+2] = GetGeometry()[i].pGetDof(PRESSURE);
-			}
-		KRATOS_CATCH("");
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-
-   void ASGS2D::Calculate( const Variable<array_1d<double,3> >& rVariable, 
-                                    array_1d<double,3>& Output, 
-                                    const ProcessInfo& rCurrentProcessInfo)
-	{
-
-	array_1d<double,6> adv_proj = ZeroVector(6);
-	array_1d<double,3> div_proj = ZeroVector(3);
-
-	double delta_t= rCurrentProcessInfo[DELTA_TIME];
-
-	//getting data for the given geometry
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-
-	double tauone;
-	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-
-	ComputeProjections(adv_proj, div_proj, DN_DX,tauone,tautwo,N,Area, delta_t);
-
-
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-
-	void ASGS2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
-	{
-
-	double delta_t= rCurrentProcessInfo[DELTA_TIME];
-		
-	//getting data for the given geometry
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-	double tauone;
-	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-            if(rVariable==THAWONE)
-            {
-                for( unsigned int PointNumber = 0; 
-                     PointNumber < 1; 
-                     PointNumber++ )
-                {
-                    rValues[PointNumber] = tauone;
-                }
+    using namespace ASGS2Dauxiliaries;
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    ASGS2D::ASGS2D(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry) {
+        //DO NOT ADD DOFS HERE!!!
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    ASGS2D::ASGS2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties) {
+
+    }
+
+    Element::Pointer ASGS2D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
+
+        KRATOS_TRY
+        return Element::Pointer(new ASGS2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        KRATOS_CATCH("");
+    }
+
+    ASGS2D::~ASGS2D() {
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+        KRATOS_TRY
+
+                int nodes_number = 3;
+        int dim = 2;
+        unsigned int matsize = nodes_number * (dim + 1);
+
+        if (rLeftHandSideMatrix.size1() != matsize)
+            rLeftHandSideMatrix.resize(matsize, matsize); //false says not to preserve existing storage!!
+
+        if (rRightHandSideVector.size() != matsize)
+            rRightHandSideVector.resize(matsize); //false says not to preserve existing storage!!
+
+
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
+        noalias(rRightHandSideVector) = ZeroVector(matsize);
+
+        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+
+
+
+        //getting data for the given geometry
+        double Area;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+        double tauone;
+        double tautwo;
+        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+
+
+        //add body force and momentum
+        AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone, tautwo);
+
+        //add projections
+        if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+            AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
+
+
+        KRATOS_CATCH("")
+    }
+    //***********************************************************************************++
+    //**************************************************************************************++
+
+    void ASGS2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+        KRATOS_TRY
+
+        MatrixType temp = Matrix();
+        CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateMassContribution(MatrixType& K, const double time, const double area) {
+        KRATOS_TRY
+                double lump_mass_fac = area * 0.333333333333333333333333;
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        int nodes_number = 3;
+        int dof = 2;
+        for (int nd = 0; nd < nodes_number; nd++) {
+            int row = nd * (dof + 1);
+            for (int jj = 0; jj < dof; jj++)
+                K(row + jj, row + jj) += density / 1.0 * lump_mass_fac;
+        }
+
+        KRATOS_CATCH("")
+
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
+        KRATOS_TRY
+
+                //lumped
+                unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        unsigned int NumberOfNodes = GetGeometry().size();
+        unsigned int MatSize = (dimension + 1) * NumberOfNodes;
+        if (rMassMatrix.size1() != MatSize)
+            rMassMatrix.resize(MatSize, MatSize, false);
+
+        rMassMatrix = ZeroMatrix(MatSize, MatSize);
+        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+
+
+        //getting data for the given geometry
+        double Area;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+        //Calculate tau
+        double tauone;
+        double tautwo;
+        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+
+        CalculateMassContribution(rMassMatrix, delta_t, Area);
+        //add stablilization terms due to advective term (a)grad(V) * ro*Acce
+        CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Area);
+        //add stablilization terms due to grad term grad(q) * ro*Acce
+        CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone, Area);
+
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dim = 2;
+        unsigned int matsize = nodes_number * (dim + 1);
+
+        if (rDampMatrix.size1() != matsize)
+            rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
+
+
+        noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
+
+        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+
+
+
+        //getting data for the given geometry
+        double Area;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+
+        //viscous term
+        CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+
+        //Advective term
+        double tauone;
+        double tautwo;
+        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+
+        CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
+
+        //calculate pressure term
+        CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area);
+
+        //compute projections
+
+        //stabilization terms
+        CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
+        CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area);
+        CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, delta_t, tauone, Area);
+        //KRATOS_WATCH(rRightHandSideVector);
+
+
+        KRATOS_CATCH("")
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area) {
+        KRATOS_TRY
+                double mu;
+        /*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);*/
+
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+
+
+        //nu = nu/density;
+
+        int nodes_number = 3;
+        int dof = 2;
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1);
+                K(row, column) += mu * 1 * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
+                K(row + 1, column + 1) += mu * 1 * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
             }
-            if(rVariable==THAWTWO)
-            {
-                for( unsigned int PointNumber = 0; 
-                     PointNumber < 1; PointNumber++ )
-                {
-		
-                    rValues[PointNumber] = tautwo;
-                }
+        }
+
+
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double tautwo, const double time, const double area) {
+        KRATOS_TRY
+                //calculate mean advective velocity and taus
+                const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
+        ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
+
+        //ms_adv_vel[0] = 0.0;
+        //ms_adv_vel[1] = 0.0;
+
+
+        //calculate convective term
+        int nodes_number = 3;
+        int dof = 2;
+        int matsize = dof*nodes_number;
+
+        boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
+        boost::numeric::ublas::bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int column = ii*dof;
+            conv_opr(0, column) = DN_DX(ii, 0) * ms_adv_vel[0] + DN_DX(ii, 1) * ms_adv_vel[1];
+            conv_opr(1, column + 1) = conv_opr(0, column);
+
+            shape_func(column, 0) = N[ii];
+            shape_func(column + 1, 1) = shape_func(column, 0);
+        }
+        boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
+        temp_convterm = prod(shape_func, conv_opr);
+
+        //double fac = tauone/time;
+        //fac = 0.0;
+        //temp_convterm *= ((1 + fac*density)*density); // For the simplicity of implementation the stabilization term tau1*ro/deltat*(a.gradV U(n+1,t)) is added
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            int loc_row = ii*dof;
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1);
+                int loc_column = jj*dof;
+
+                K(row, column) += area * density * temp_convterm(loc_row, loc_column);
+                K(row + 1, column + 1) += area * density * temp_convterm(loc_row + 1, loc_column + 1);
             }
+        }
+
+        KRATOS_CATCH("")
+
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double time, const double area) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                K(row, column) += -1 * area * N(jj) * DN_DX(ii, 0);
+                K(column, row) += 1 * area * density * N(jj) * DN_DX(ii, 0);
+
+                K(row + 1, column) += -1 * area * N(jj) * DN_DX(ii, 1);
+                K(column, row + 1) += 1 * area * density * N(jj) * DN_DX(ii, 1);
+            }
+        }
+
+
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateDivStblTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tautwo, const double area) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
+        int matsize = dof*nodes_number;
+
+        boost::numeric::ublas::bounded_matrix<double, 1, 6 > div_opr = ZeroMatrix(1, matsize);
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int index = dof*ii;
+            div_opr(0, index) = DN_DX(ii, 0);
+            div_opr(0, index + 1) = DN_DX(ii, 1);
+        }
+
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+
+        boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_div = ZeroMatrix(matsize, matsize);
+        temp_div = tautwo * prod(trans(div_opr), div_opr);
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            int loc_row = ii*dof;
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1);
+                int loc_column = jj*dof;
+
+                K(row, column) += 1 * area * density * temp_div(loc_row, loc_column);
+                K(row, column + 1) += 1 * area * density * temp_div(loc_row, loc_column + 1);
+                K(row + 1, column) += 1 * area * density * temp_div(loc_row + 1, loc_column);
+                K(row + 1, column + 1) += 1 * area * density * temp_div(loc_row + 1, loc_column + 1);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double time, const double area) {
+        KRATOS_TRY
+                const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+
+        ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
+        ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
+
+        //ms_adv_vel[0] = 0.0;
+        //ms_adv_vel[1] = 0.0;
+
+        //calculate convective term
+        int nodes_number = 3;
+        int dof = 2;
+        int matsize = dof*nodes_number;
+
+        boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
+        boost::numeric::ublas::bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int column = ii*dof;
+            conv_opr(0, column) = DN_DX(ii, 0) * ms_adv_vel[0] + DN_DX(ii, 1) * ms_adv_vel[1];
+            conv_opr(1, column + 1) = conv_opr(0, column);
+
+            shape_func(column, 0) = N[ii];
+            shape_func(column + 1, 1) = shape_func(column, 0);
+        }
+
+        //build (a.grad V)(ro*a.grad U) stabilization term & assemble
+        boost::numeric::ublas::bounded_matrix<double, 6, 6 > adv_stblterm = ZeroMatrix(matsize, matsize);
+        adv_stblterm = tauone * prod(trans(conv_opr), conv_opr);
+
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            int loc_row = ii*dof;
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1);
+                int loc_column = jj*dof;
+
+                K(row, column) += 1.0 * area * density * adv_stblterm(loc_row, loc_column);
+                K(row, column + 1) += 1.0 * area * density * adv_stblterm(loc_row, loc_column + 1);
+                K(row + 1, column) += 1.0 * area * density * adv_stblterm(loc_row + 1, loc_column);
+                K(row + 1, column + 1) += 1.0 * area * density * adv_stblterm(loc_row + 1, loc_column + 1);
+            }
+        }
+
+        //build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
+        boost::numeric::ublas::bounded_matrix<double, 6, 3 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
+        grad_stblterm = tauone * prod(trans(conv_opr), trans(DN_DX));
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            int loc_row = ii*dof;
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                K(row, column) += 1.0 * area * 1.0 * grad_stblterm(loc_row, jj);
+                K(row + 1, column) += 1.0 * area * 1.0 * grad_stblterm(loc_row + 1, jj);
+
+                K(column, row) += 1.0 * area * density * grad_stblterm(loc_row, jj);
+                K(column, row + 1) += 1.0 * area * density * grad_stblterm(loc_row + 1, jj);
+            }
+        }
+
+        /*
+        //tau1*ro/dt*U(n+1,i+1).(1.0*a.grad V)
+        boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
+        temp_convterm = prod(trans(conv_opr),trans(shape_func));
+
+        double fac = tauone/time*density;
+	
+        for ( int ii = 0; ii < nodes_number; ii++)
+            {
+                int row = ii*(dof+1);
+                int loc_row = ii*dof;
+                for( int jj=0; jj < nodes_number; jj++)
+                   {
+                        int column = jj*(dof+1);
+                        int loc_column = jj*dof;
+
+                        K(row,column) += area*fac*temp_convterm(loc_row,loc_column);
+                        K(row + 1,column + 1) += area*fac*temp_convterm(loc_row + 1,loc_column + 1);
+                   }
+            }
+
+	
+        //build (1.0*a.grad V) (Fbody + ro/dt * U(n)) stabilization term & assemble
+        array_1d<double,2> bdf = ZeroVector(2);
+        const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+
+        const array_1d<double,3>& acce0 = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
+        const array_1d<double,3>& acce1 = GetGeometry()[1].FastGetSolutionStepValue(ACCELERATION);
+        const array_1d<double,3>& acce2 = GetGeometry()[2].FastGetSolutionStepValue(ACCELERATION);
+
+        bdf[0] = N[0]*(density*bdf0[0] + density/time * acce0[0] ) +  N[1]*(density*bdf1[0] + density/time * acce1[0]) + N[2]*(density*bdf2[0] + density/time * acce2[0]);
+        bdf[1] =  N[0]*(density*bdf0[1] + density/time * acce0[1] ) +  N[1]*(density*bdf1[1] + density/time * acce1[1]) + N[2]*(density*bdf2[1] + density/time * acce2[1]);
+	
+
+        array_1d<double,6> fbd_stblterm = ZeroVector(matsize);
+        fbd_stblterm = tauone *1.0* prod(trans(conv_opr),bdf);
+
+        for(int ii = 0; ii< nodes_number; ++ii)
+          {
+                int index = ii*(dof + 1);
+                int loc_index = ii*dof;
+                F[index] += 1.0*area*fbd_stblterm[loc_index];
+                F[index + 1] += 1.0*area*fbd_stblterm[loc_index + 1];
+          }
+	
+         */
+        //build (1.0*a.grad V) (Fbody) stabilization term & assemble
+        array_1d<double, 2 > bdf = ZeroVector(2);
+        const array_1d<double, 2 > bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 2 > bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 2 > bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+
+
+        bdf[0] = N[0]*(density * bdf0[0]) + N[1]*(density * bdf1[0]) + N[2]*(density * bdf2[0]);
+        bdf[1] = N[0]*(density * bdf0[1]) + N[1]*(density * bdf1[1]) + N[2]*(density * bdf2[1]);
+
+
+        array_1d<double, 6 > fbd_stblterm = ZeroVector(matsize);
+        fbd_stblterm = tauone * 1.0 * prod(trans(conv_opr), bdf);
+
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1);
+            int loc_index = ii*dof;
+            F[index] += 1.0 * area * fbd_stblterm[loc_index];
+            F[index + 1] += 1.0 * area * fbd_stblterm[loc_index + 1];
+        }
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateAdvMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double area) {
+        KRATOS_TRY
+                const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+
+        ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
+        ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
+
+        //ms_adv_vel[0] = 0.0;
+        //ms_adv_vel[1] = 0.0;
+
+        //calculate convective term
+        int nodes_number = 3;
+        int dof = 2;
+        int matsize = dof*nodes_number;
+
+        //calculate density
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
+        boost::numeric::ublas::bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int column = ii*dof;
+            conv_opr(0, column) = DN_DX(ii, 0) * ms_adv_vel[0] + DN_DX(ii, 1) * ms_adv_vel[1];
+            conv_opr(1, column + 1) = conv_opr(0, column);
+
+            shape_func(column, 0) = N[ii];
+            shape_func(column + 1, 1) = shape_func(column, 0);
+        }
+
+
+        //tau1*ro*Nacc.(1.0*a.grad V)
+        boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
+        temp_convterm = prod(trans(conv_opr), trans(shape_func));
+
+        double fac = tauone*density;
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            int loc_row = ii*dof;
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1);
+                int loc_column = jj*dof;
+
+                M(row, column) += area * fac * temp_convterm(loc_row, loc_column);
+                M(row + 1, column + 1) += area * fac * temp_convterm(loc_row + 1, loc_column + 1);
+            }
+        }
+
+
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double time, const double tauone, const double area) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        //build 1*(grad q . grad p) stabilization term & assemble
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+        gard_opr = 1.0 * tauone * prod(DN_DX, trans(DN_DX));
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1) + dof;
+
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                K(row, column) += area * 1 * gard_opr(ii, jj);
+
+            }
+        }
+        /*
+        //build 1*tau1*ro/deltat U grad q)
+        double fac = tauone*density/time;
+        for ( int ii = 0; ii < nodes_number; ii++)
+            {
+                int row = ii*(dof+1);
+                for( int jj=0; jj < nodes_number; jj++)
+                   {
+                        int column = jj*(dof+1) + dof;
+
+                        //K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
+                        K(column,row) += 1*area * fac* N(ii) * DN_DX(jj,0);
+
+                        //K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
+                        K(column,row + 1) += 1*area * fac* N(ii) * DN_DX(jj,1);
+                   }
+            }
+
+	
+        //build 1*(grad q) (Fbody + ro/dt * U(n+1,i)) stabilization term & assemble
+        array_1d<double,2> bdf = ZeroVector(2);
+        const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+
+
+        const array_1d<double,3>& vel0_n = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+        const array_1d<double,3>& vel1_n = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+        const array_1d<double,3>& vel2_n = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+
+
+        bdf[0] = N[0]*(density*bdf0[0] + density/time * vel0_n[0] ) +  N[1]*(density*bdf1[0] + density/time * vel1_n[0]) + N[2]*(density*bdf2[0] + density/time * vel2_n[0]);
+        bdf[1] =  N[0]*(density*bdf0[1] + density/time * vel0_n[1] ) +  N[1]*(density*bdf1[1] + density/time * vel1_n[1]) + N[2]*(density*bdf2[1] + density/time * vel2_n[1]);
+
+        array_1d<double,3> fbd_stblterm = ZeroVector(nodes_number);
+        fbd_stblterm = tauone * prod(DN_DX,bdf);
+	
+
+        for(int ii = 0; ii< nodes_number; ++ii)
+          {
+                int index = ii*(dof + 1) + dof;
+                F[index] += 1*area*fbd_stblterm[ii];
+          }*/
+
+
+        //build 1*(grad q) (Fbody ) stabilization term & assemble
+        array_1d<double, 2 > bdf = ZeroVector(2);
+        const array_1d<double, 2 > bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 2 > bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 2 > bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+
+
+        bdf[0] = N[0]*(density * bdf0[0]) + N[1]*(density * bdf1[0]) + N[2]*(density * bdf2[0]);
+        bdf[1] = N[0]*(density * bdf0[1]) + N[1]*(density * bdf1[1]) + N[2]*(density * bdf2[1]);
+
+        array_1d<double, 3 > fbd_stblterm = ZeroVector(nodes_number);
+        fbd_stblterm = tauone * prod(DN_DX, bdf);
+
+
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1) + dof;
+            F[index] += 1 * area * fbd_stblterm[ii];
+        }
+
+        KRATOS_CATCH("")
+
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double area) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        //build 1*tau1*ro Nacc grad q)
+        double fac = tauone*density;
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                //K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
+                M(column, row) += area * fac * N[ii] * DN_DX(jj, 0);
+
+                //K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
+                M(column, row + 1) += area * fac * N[ii] * DN_DX(jj, 1);
+            }
+        }
+
+        KRATOS_CATCH("")
+
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::AddBodyForceAndMomentum(VectorType& F, const array_1d<double, 3 > & N, const double time, const double area, const double tauone, const double tautwo) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
+
+
+        //double lump_mass_fac = area * 0.333333333333333333333333;
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        //for Arhenious
+        int matsize = dof*nodes_number;
+        boost::numeric::ublas::bounded_matrix<double, 1, 6 > div_opr = ZeroMatrix(1, matsize);
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int index = dof*ii;
+            div_opr(0, index) = DN_DX(ii, 0);
+            div_opr(0, index + 1) = DN_DX(ii, 1);
+        }
+        const double ar_0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
+        const double ar_1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
+        const double ar_2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
+
+        double mean_ar = 0.333333333333333333 * (ar_0 + ar_1 + ar_2);
+
+
+        //body  & momentum term force
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int index = ii * (dof + 1);
+            const array_1d<double, 2 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
+
+
+            F[index] += area * N[ii] * density * bdf[0];
+            F[index + 1] += area * N[ii] * density * bdf[1];
+
+
+            //arrhenius
+            F[index + 2] += (area * N[ii] * mean_ar);
+            F[index] += tautwo * area * mean_ar * div_opr(0, index);
+            F[index + 1] += tautwo * area * mean_ar * div_opr(0, index + 1);
+        }
+
+
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::CalculateResidual(const MatrixType& K, VectorType& F) {
+        KRATOS_TRY
+
+                int nodes_number = 3;
+        int dof = 2;
+
+
+        array_1d<double, 9 > UP = ZeroVector(9);
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1);
+            UP[index] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY, 0)[0];
+            UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY, 0)[1];
+            UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE, 0);
+        }
+
+        F -= prod(K, UP);
+
+        KRATOS_CATCH("")
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::ComputeProjections(array_1d<double, 6 > & adv_proj, array_1d<double, 3 > & div_proj, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double tautwo, const array_1d<double, 3 > & N, const double area, const double time) {
+        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        unsigned int dim = 2;
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+
+
+
+        ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
+        ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
+
+
+        double const_adv_proj_X = 0.0;
+        double const_adv_proj_Y = 0.0;
+        double mean_div_proj = 0.0;
+        array_1d<double, 3 > mean_new_vel = ZeroVector(3);
+        array_1d<double, 3 > mean_old_vel = ZeroVector(3);
+        array_1d<double, 3 > mean_bdf = ZeroVector(3);
+
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+
+            //int index = i*dim;
+            double pr = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+            const array_1d<double, 3 > & vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & old_vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3 > & bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+
+            //const array_1d<double,2>& bdf = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+            // to consider the jump gradp/ro is calculated
+            //pr = pr/density;
+
+            //adv_proj = PI(ro*dv/dt + ro*a.gradU + gradP - f) considering lumped mass PI() = ()
+            //calculate constant part of RES ->ro*a.gradU + gradP
+            const_adv_proj_X += (pr * DN_DX(i, 0) + density * (ms_adv_vel[0] * DN_DX(i, 0) + ms_adv_vel[1] * DN_DX(i, 1)) * vel[0]);
+            const_adv_proj_Y += (pr * DN_DX(i, 1) + density * (ms_adv_vel[0] * DN_DX(i, 0) + ms_adv_vel[1] * DN_DX(i, 1)) * vel[1]);
+
+            //div_proj = PI(ro*divU)
+            mean_div_proj += density * (DN_DX(i, 0) * vel[0] + DN_DX(i, 1) * vel[1]);
+
+            //calcuale mean velocity and body force
+            mean_new_vel += 0.3333333333333333333333333333 * vel;
+            mean_old_vel += 0.3333333333333333333333333333 * old_vel;
+            mean_bdf += 0.3333333333333333333333333333 * bdf;
+        }
+
+
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            int index = i*dim;
+
+            adv_proj[index] = area * N[i]*(density * (mean_new_vel[0] - mean_old_vel[0]) / time + const_adv_proj_X - density * mean_bdf[0]);
+            adv_proj[index + 1] = area * N[i]*(density * (mean_new_vel[1] - mean_old_vel[1]) / time + const_adv_proj_Y - density * mean_bdf[1]);
+
+            div_proj[i] = area * N[i] * density*mean_div_proj;
+
+            //update projections
+            array_1d<double, 3 > & advtermproj = GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
+            advtermproj[0] += adv_proj[index];
+            advtermproj[1] += adv_proj[index + 1];
+
+            double& divtermproj = GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+            divtermproj += div_proj[i];
+
+
+
+            //calculate nodal area
+
+            GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += 0.333333333333333333 * area;
 
         }
-	//*************************************************************************************
-	//*************************************************************************************
-	void ASGS2D::calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity)
-	{
 
-	/*double kk = 0.0;
-	for(int ii=0;ii<3;++ii)
-		if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
-			{
-				kk++;
-				density +=geom[ii].FastGetSolutionStepValue(DENSITY);
-			}
+        /*for (unsigned int i=0;i<number_of_nodes;i++)
+         {
+                int index = i*dim;
+                const double pr = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+                const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 
-	density/=kk;*/
-	/*
-		density = ZeroVector(3);
-	for(int ii=0;ii<3;++ii)
-		density[ii] = geom[ii].FastGetSolutionStepValue(DENSITY);*/
-	
-	/*const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY);
-	const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY);
-	const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY);
-	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
+                const array_1d<double,3>& mesh_vel = GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+                array_1d<double,2> adv_vel = ZeroVector(2);
+                adv_vel[0] = vel[0]-mesh_vel[0];
+                adv_vel[1] = vel[1]-mesh_vel[1];
 
+                //adv_proj = PI(ro*a.gradU + gradP) considering lumped mass PI() = ()
+                adv_proj[index] = area*N[i]*(pr * DN_DX(i,0) +density*(adv_vel[0]*DN_DX(i,0) + adv_vel[1]*DN_DX(i,1))*vel[0]);
+                adv_proj[index +1] =  area*N[i]*(pr * DN_DX(i,1) + density*(adv_vel[0]*DN_DX(i,0) + adv_vel[1]*DN_DX(i,1))*vel[1]);
 
-	double first = geom[0].FastGetSolutionStepValue(IS_POROUS);
-	double second = geom[1].FastGetSolutionStepValue(IS_POROUS);
-	double third = geom[2].FastGetSolutionStepValue(IS_POROUS);
+                //div_proj = PI(ro*divU)
+                div_proj[i] = area*N[i]*density*(DN_DX(i,0)*vel[0] + DN_DX(i,1)*vel[1]);
 
-	density = 0.0;
+                //update projections
+                array_1d<double,3>& advtermproj = GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
+                advtermproj[0]+= tauone*adv_proj[index];
+                advtermproj[1]+= tauone*adv_proj[index +1];
 
-	if(first == second && second==third)
-	  {
-		//for inside the domain totally inside one fluid
-		density = geom[0].FastGetSolutionStepValue(DENSITY);	
-		viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);	
-	  }
-	else
-	  {
-		//for element having common node between two fluids or boundary element with IS_POROUS==1 inside the domain
-		for(int ii=0;ii<3;++ii)
-			{
-			  if(geom[ii].GetSolutionStepValue(IS_POROUS) == 1.0 && geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
-				{
-			  	 density = geom[ii].FastGetSolutionStepValue(DENSITY);
-				 viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
-
-				}
-			}
-		//for boundary element with IS_POROUS==1 on the boundary
-		if(density == 0.0)
-			for(int ii=0;ii<3;++ii)	
-			 {
-			  if(geom[ii].GetSolutionStepValue(IS_POROUS) == 0.0)
-				{
-				 density = geom[ii].FastGetSolutionStepValue(DENSITY);
-				 viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
-
-			
-				}
-			 }	
-			
-	  }
-
-
-
-	}
-	//*************************************************************************************
-	//*************************************************************************************
-
-		void ASGS2D::CalculateTau(double& tauone, double& tautwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-	//calculate mean advective velocity and taus
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-
-
-
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
-
-	//ms_adv_vel[0] = 0.0;
-	//ms_adv_vel[1] = 0.0;
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-
-	double advvel_norm = ms_adv_vel[0]*ms_adv_vel[0]+ms_adv_vel[1]*ms_adv_vel[1];
-	advvel_norm = sqrt(advvel_norm);
-	
-	double ele_length = 2.0*sqrt(area/3.00);
-	
-	double mu;
-	///*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-	//const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-	//const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-	//mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
-
-	double density;
-	calculatedensity(GetGeometry(), density, mu);
-
-	int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
-	
-		if(dyn_st_switch)
-		  {
+                double& divtermproj = GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+                divtermproj += tautwo*div_proj[i] ;
 		
-			tauone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
-		  }
-		else
-		 {
-			
-			tauone = 1.0/(0.0+ 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
-		  }
-		
-	tautwo = mu/density + 1.0*ele_length*advvel_norm/2.0;
+                //calculate nodal area
+                GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += 0.333333333333333333*area;
+         }*/
 
 
-	KRATOS_CATCH("")
+    }
 
-	}
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area, const double tauone, const double tautwo) {
+        unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        unsigned int dim = 2;
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+        const array_1d<double, 3 > advproj_0 = GetGeometry()[0].FastGetSolutionStepValue(ADVPROJ);
+        const array_1d<double, 3 > advproj_1 = GetGeometry()[1].FastGetSolutionStepValue(ADVPROJ);
+        const array_1d<double, 3 > advproj_2 = GetGeometry()[2].FastGetSolutionStepValue(ADVPROJ);
+
+        const double div_proj_0 = GetGeometry()[0].FastGetSolutionStepValue(DIVPROJ);
+        const double div_proj_1 = GetGeometry()[1].FastGetSolutionStepValue(DIVPROJ);
+        const double div_proj_2 = GetGeometry()[2].FastGetSolutionStepValue(DIVPROJ);
 
 
-	//*************************************************************************************
-	//*************************************************************************************
 
-	  void ASGS2D::GetFirstDerivativesVector(Vector& values, int Step)
-	{
-		const unsigned int number_of_nodes = GetGeometry().size();
-		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-		unsigned int MatSize = number_of_nodes * (dim + 1);
-		if(values.size() != MatSize)   values.resize(MatSize,false);
-		for (unsigned int i=0;i<number_of_nodes;i++)
-		{
-			unsigned int index = i * (dim + 1);
-			values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X,Step);
-			values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y,Step);
-			values[index + 2] = GetGeometry()[i].GetSolutionStepValue(PRESSURE,Step);
+        //mean values
+        double mean_x_adv = 0.3333333333333333 * (advproj_0[0] + advproj_1[0] + advproj_2[0]);
+        double mean_y_adv = 0.3333333333333333 * (advproj_0[1] + advproj_1[1] + advproj_2[1]);
 
-		}
-	}
-	//************************************************************************************
-	//************************************************************************************
-	  void ASGS2D::GetSecondDerivativesVector(Vector& values, int Step)
-	{
-		const unsigned int number_of_nodes = GetGeometry().size();
-		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-		unsigned int MatSize = number_of_nodes * (dim + 1);
-		if(values.size() != MatSize) values.resize(MatSize,false);
-		for (unsigned int i=0;i<number_of_nodes;i++)
-		{
-			unsigned int index = i * (dim + 1);
-			values[index] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X,Step);
-			values[index + 1] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y,Step);
-			values[index + 2] = 0.0;
-		}
-	}
-	//************************************************************************************
-	//************************************************************************************
+        double mean_div = 0.3333333333333333 * (div_proj_0 + div_proj_1 + div_proj_2);
+
+        for (unsigned int ii = 0; ii < number_of_nodes; ii++) {
+            int index = ii * (dim + 1);
+            const array_1d<double, 3 > & vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+
+            const array_1d<double, 3 > & mesh_vel = GetGeometry()[ii].FastGetSolutionStepValue(MESH_VELOCITY);
+            array_1d<double, 2 > adv_vel = ZeroVector(2);
+            adv_vel[0] = vel[0] - mesh_vel[0];
+            adv_vel[1] = vel[1] - mesh_vel[1];
+
+            //tauone*ro*(xi,a.gradv)
+            double proj;
+
+            proj = mean_x_adv * (adv_vel[0] * DN_DX(ii, 0) + adv_vel[1] * DN_DX(ii, 1));
+            F[index] += (tauone * 1.0 * area * proj);
+
+            proj = mean_y_adv * (adv_vel[0] * DN_DX(ii, 0) + adv_vel[1] * DN_DX(ii, 1));
+            F[index + 1 ] += (tauone * 1.0 * area * proj);
+
+
+            //tauone*(xi,gradq)
+            proj = (mean_x_adv * DN_DX(ii, 0) + mean_y_adv * DN_DX(ii, 1));
+            F[index + 2] += (tauone * area * proj);
+
+            //tautwo*(divv)
+
+            F[index] += (tautwo * area * mean_div * DN_DX(ii, 0));
+            F[index + 1] += (tautwo * area * mean_div * DN_DX(ii, 1));
+
+        }
+
+
+
+
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) {
+        KRATOS_TRY
+                unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        unsigned int dim = 2;
+        unsigned int node_size = dim + 1;
+
+
+        if (rResult.size() != number_of_nodes * node_size)
+            rResult.resize(number_of_nodes * node_size, false);
+
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            rResult[i * node_size] = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+            rResult[i * node_size + 1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+            rResult[i * node_size + 2] = GetGeometry()[i].GetDof(PRESSURE).EquationId();
+        }
+        KRATOS_CATCH("")
+
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
+        KRATOS_TRY
+                unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        unsigned int dim = 2;
+        unsigned int node_size = dim + 1;
+
+
+        if (ElementalDofList.size() != number_of_nodes * node_size)
+            ElementalDofList.resize(number_of_nodes * node_size);
+
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            ElementalDofList[i * node_size] = GetGeometry()[i].pGetDof(VELOCITY_X);
+            ElementalDofList[i * node_size + 1] = GetGeometry()[i].pGetDof(VELOCITY_Y);
+            ElementalDofList[i * node_size + 2] = GetGeometry()[i].pGetDof(PRESSURE);
+        }
+        KRATOS_CATCH("");
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+            array_1d<double, 3 > & Output,
+            const ProcessInfo& rCurrentProcessInfo) {
+
+        array_1d<double, 6 > adv_proj = ZeroVector(6);
+        array_1d<double, 3 > div_proj = ZeroVector(3);
+
+        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+
+        //getting data for the given geometry
+        double Area;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+        double tauone;
+        double tautwo;
+        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+
+        ComputeProjections(adv_proj, div_proj, DN_DX, tauone, tautwo, N, Area, delta_t);
+
+
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
+
+        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+
+        //getting data for the given geometry
+        double Area;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+        double tauone;
+        double tautwo;
+        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        if (rVariable == THAWONE) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1;
+                    PointNumber++) {
+                rValues[PointNumber] = tauone;
+            }
+        }
+        if (rVariable == THAWTWO) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+
+                rValues[PointNumber] = tautwo;
+            }
+        }
+
+    }
+    //*************************************************************************************
+    //*************************************************************************************
+
+    void ASGS2D::calculatedensity(Geometry< Node < 3 > > geom, double& density, double& viscosity) {
+
+        /*double kk = 0.0;
+        for(int ii=0;ii<3;++ii)
+                if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
+                        {
+                                kk++;
+                                density +=geom[ii].FastGetSolutionStepValue(DENSITY);
+                        }
+
+        density/=kk;*/
+        /*
+                density = ZeroVector(3);
+        for(int ii=0;ii<3;++ii)
+                density[ii] = geom[ii].FastGetSolutionStepValue(DENSITY);*/
+
+        /*const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY);
+        const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY);
+        const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY);
+         density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
+
+
+        double first = geom[0].FastGetSolutionStepValue(IS_POROUS);
+        double second = geom[1].FastGetSolutionStepValue(IS_POROUS);
+        double third = geom[2].FastGetSolutionStepValue(IS_POROUS);
+
+        density = 0.0;
+
+        if (first == second && second == third) {
+            //for inside the domain totally inside one fluid
+            density = geom[0].FastGetSolutionStepValue(DENSITY);
+            viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);
+        } else {
+            //for element having common node between two fluids or boundary element with IS_POROUS==1 inside the domain
+            for (int ii = 0; ii < 3; ++ii) {
+                if (geom[ii].GetSolutionStepValue(IS_POROUS) == 1.0 && geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0) {
+                    density = geom[ii].FastGetSolutionStepValue(DENSITY);
+                    viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
+
+                }
+            }
+            //for boundary element with IS_POROUS==1 on the boundary
+            if (density == 0.0)
+                for (int ii = 0; ii < 3; ++ii) {
+                    if (geom[ii].GetSolutionStepValue(IS_POROUS) == 0.0) {
+                        density = geom[ii].FastGetSolutionStepValue(DENSITY);
+                        viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
+
+
+                    }
+                }
+
+        }
+
+
+
+    }
+    //*************************************************************************************
+    //*************************************************************************************
+
+    void ASGS2D::CalculateTau(double& tauone, double& tautwo, const double time, const double area, const ProcessInfo& rCurrentProcessInfo) {
+        KRATOS_TRY
+                //calculate mean advective velocity and taus
+                const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+
+
+
+        ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
+        ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
+
+        //ms_adv_vel[0] = 0.0;
+        //ms_adv_vel[1] = 0.0;
+
+
+        double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1];
+        advvel_norm = sqrt(advvel_norm);
+
+        double ele_length = 2.0 * sqrt(area / 3.00);
+
+        double mu;
+        ///*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        //mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
+
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+
+        int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
+
+        if (dyn_st_switch) {
+
+            tauone = 1.0 / (1.0 / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
+        } else {
+
+            tauone = 1.0 / (0.0 + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
+        }
+
+        tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
+
+
+        KRATOS_CATCH("")
+
+    }
+
+
+    //*************************************************************************************
+    //*************************************************************************************
+
+    void ASGS2D::GetFirstDerivativesVector(Vector& values, int Step) {
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        unsigned int MatSize = number_of_nodes * (dim + 1);
+        if (values.size() != MatSize) values.resize(MatSize, false);
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            unsigned int index = i * (dim + 1);
+            values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X, Step);
+            values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y, Step);
+            values[index + 2] = GetGeometry()[i].GetSolutionStepValue(PRESSURE, Step);
+
+        }
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS2D::GetSecondDerivativesVector(Vector& values, int Step) {
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        unsigned int MatSize = number_of_nodes * (dim + 1);
+        if (values.size() != MatSize) values.resize(MatSize, false);
+        for (unsigned int i = 0; i < number_of_nodes; i++) {
+            unsigned int index = i * (dim + 1);
+            values[index] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X, Step);
+            values[index + 1] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y, Step);
+            values[index + 2] = 0.0;
+        }
+    }
+    //************************************************************************************
+    //************************************************************************************
 } // Namespace Kratos
 
 

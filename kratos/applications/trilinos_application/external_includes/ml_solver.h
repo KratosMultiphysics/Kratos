@@ -196,6 +196,7 @@ namespace Kratos
     inline std::istream& operator >> (std::istream& rIStream, MultiLevelSolver< TSparseSpaceType, 
                                       TDenseSpaceType, TReordererType>& rThis)
     {
+        return rIStream;
     }
     
     /**

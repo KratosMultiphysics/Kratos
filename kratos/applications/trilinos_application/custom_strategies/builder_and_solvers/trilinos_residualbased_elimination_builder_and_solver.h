@@ -928,7 +928,8 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 					int temp_size = number_of_local_dofs;
 					if(temp_size <1000) temp_size = 1000;
-						int* temp = new int[temp_size]; //
+                                        int* temp = new int[temp_size]; //
+                                        int* assembling_temp = new int[temp_size];
 
 				
 					//generate map - use the "temp" array here 
@@ -952,7 +953,7 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 						for(unsigned int i=0; i<EquationId.size(); i++)
 							if ( EquationId[i] < BaseType::mEquationSystemSize ) 
 							{
-								temp[num_active_indices] =  EquationId[i];
+								assembling_temp[num_active_indices] =  EquationId[i];
 								num_active_indices += 1;
 // KRATOS_WATCH(temp[i]);
 							}
@@ -960,8 +961,13 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 // KRATOS_WATCH(" ");
 						if(num_active_indices != 0)
 						{
-							int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-							assert(ierr == 0);
+							int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
+//                                                        KRATOS_WATCH(num_active_indices);
+//                                                        KRATOS_WATCH(ierr);
+//                                                        for(unsigned aaa=0; aaa<num_active_indices; aaa++)
+//                                                            std::cout << assembling_temp[aaa] << " ";
+//                                                        std::cout << std::endl;
+//							if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
 						}						
 					}
 // KRATOS_WATCH("assemble conditions");		
@@ -976,21 +982,21 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 						for(unsigned int i=0; i<EquationId.size(); i++)
 							if ( EquationId[i] < BaseType::mEquationSystemSize ) 
 							{
-								temp[num_active_indices] =  EquationId[i];
+								assembling_temp[num_active_indices] =  EquationId[i];
 								num_active_indices += 1;
 							}
 
 						if(num_active_indices != 0)
 						{
-							int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-							assert(ierr == 0);
+							int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
+//							if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
 						}
 					}
 
 					//finalizing graph construction
 					int graph_assemble_ierr = Agraph.GlobalAssemble();
-					assert(graph_assemble_ierr == 0);
-// KRATOS_WATCH(Agraph);
+					if(graph_assemble_ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+
 				
 					//generate a new matrix pointer according to this graph
 					TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );	
@@ -1017,6 +1023,7 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 					}
 
 					delete [] temp;
+					delete [] assembling_temp;
 
 
 

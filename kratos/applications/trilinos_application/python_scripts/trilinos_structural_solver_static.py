@@ -58,7 +58,7 @@ class StaticStructuralSolver:
         self.max_iterations = 10
 
         if(domain_size == 2):
-            self.guess_row_size = 15
+            self.guess_row_size = 20
         else:
             self.guess_row_size = 45
             
