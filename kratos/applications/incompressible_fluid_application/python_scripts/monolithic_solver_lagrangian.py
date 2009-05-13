@@ -83,6 +83,7 @@ class MonolithicSolver:
 ##        self.ulf_time_step_dec_process = UlfTimeStepDecProcess(model_part);
       #  self.mark_close_nodes_process = MarkCloseNodesProcess(model_part);
 	self.PfemUtils = PfemUtils()
+	self.MeshMover= MoveMeshProcess(self.model_part);
                                        
         self.node_erase_process = NodeEraseProcess(model_part);
         
@@ -155,16 +156,46 @@ class MonolithicSolver:
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
     
+##    ########################################################################
+##    def Remesh(self):
+##
+##        if (self.remeshing_flag==True):
+##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)						      
+####	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)						      
+##
+##             #calculating fluid neighbours before applying boundary conditions
+##            (self.neigh_finder).Execute();
+
     ########################################################################
     def Remesh(self):
 
         if (self.remeshing_flag==True):
+            (self.PfemUtils).MoveLonelyNodes(self.model_part)
+            (self.MeshMover).Execute();
+
+            (self.neigh_finder).ClearNeighbours();
+
+            ((self.model_part).Elements).clear();
+            ((self.model_part).Conditions).clear();
+
+
+##            (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+
+ 
+            (self.node_erase_process).Execute();
+            
 	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)						      
 ##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)						      
 
              #calculating fluid neighbours before applying boundary conditions
             (self.neigh_finder).Execute();
+        
+            for node in self.model_part.Nodes:
+                node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
 
+            for node in self.model_part.Nodes:            
+                if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
+                    node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
 
         ##################################################################
     def FindNeighbours(self):
