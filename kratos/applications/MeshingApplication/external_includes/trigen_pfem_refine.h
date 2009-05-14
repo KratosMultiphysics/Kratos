@@ -364,7 +364,7 @@ namespace Kratos
 
 			clean_triangulateio(in_mid);
 			clean_triangulateio(vorout_mid);
-
+         KRATOS_WATCH("ln367");
 			//NOW WE SHALL PERFORM ADAPTIVE REMESHING, i.e. insert and remove nodes based upon mesh quality
 			// and prescribed sizes
 			struct triangulateio in2;
@@ -388,9 +388,12 @@ namespace Kratos
 			}
 			in2.numberoftriangles=number_of_preserved_elems;
 
-			in2.trianglelist = new int[in2.numberoftriangles * 3];
-			in2.trianglearealist = new double[in2.numberoftriangles];
+			in2.trianglelist = (int *) malloc(in2.numberoftriangles * 3 * sizeof(int));
+			in2.trianglearealist = (REAL *) malloc(in2.numberoftriangles * sizeof(REAL));
+//			in2.trianglelist = new int[in2.numberoftriangles * 3];
+//			in2.trianglearealist = new double[in2.numberoftriangles];
 
+KRATOS_WATCH(el_number);
 			int counter = 0;
 			for (unsigned int el=0; el<el_number; el++)
 			{
@@ -417,7 +420,8 @@ namespace Kratos
 			}
 			
 			clean_triangulateio(out_mid);
-			//here we generate a new mesh adding/removing nodes, by initializing "q"-quality mesh and "a"-area constraint switches
+KRATOS_WATCH("ln420");
+                        //here we generate a new mesh adding/removing nodes, by initializing "q"-quality mesh and "a"-area constraint switches
 			//
 			// MOST IMPORTANT IS "r" switch, that refines previously generated mesh!!!!!!!!!!(that is the one given inside in2)
 			//char mesh_regen_opts[] = "YYJaqrn";
@@ -444,6 +448,7 @@ namespace Kratos
 			typedef PointVector::iterator PointIterator;
 			typedef std::vector<double>               DistanceVector;
 			typedef std::vector<double>::iterator     DistanceIterator;
+KRATOS_WATCH("ln449");
 
 			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
 
@@ -743,8 +748,12 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 			
 			}
+KRATOS_WATCH("ln749");
+
 			clean_triangulateio(in2);
+KRATOS_WATCH("ln752");
 			clean_triangulateio(out2);
+KRATOS_WATCH("ln754");
 			clean_triangulateio(vorout2);
 			KRATOS_WATCH("Finished remeshing with Trigen_PFEM_Refine")
 
@@ -1054,20 +1063,20 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 		void clean_triangulateio( triangulateio& tr )
 		{
-			free(tr.pointlist );
-			free(tr.pointattributelist );
-			free(tr.pointmarkerlist   );
-			free(tr.trianglelist  );
-			free(tr.triangleattributelist );
-			free(tr.trianglearealist );
-			free(tr.neighborlist   );
-			free(tr.segmentlist    );
-			free(tr.segmentmarkerlist   );
-			free(tr.holelist      );
-			free(tr.regionlist  );
-			free(tr.edgelist   );
-			free(tr.edgemarkerlist   );
-			free(tr.normlist  );
+                        if(tr.pointlist != NULL) free(tr.pointlist );
+			if(tr.pointattributelist != NULL) free(tr.pointattributelist );
+			if(tr.pointmarkerlist != NULL) free(tr.pointmarkerlist   );
+			if(tr.trianglelist != NULL) free(tr.trianglelist  );
+			if(tr.triangleattributelist != NULL) free(tr.triangleattributelist );
+			if(tr.trianglearealist != NULL) free(tr.trianglearealist );
+			if(tr.neighborlist != NULL) free(tr.neighborlist   );
+			if(tr.segmentlist != NULL) free(tr.segmentlist    );
+			if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist   );
+			if(tr.holelist != NULL) free(tr.holelist      );
+			if(tr.regionlist != NULL) free(tr.regionlist  );
+			if(tr.edgelist != NULL) free(tr.edgelist   );
+			if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
+			if(tr.normlist != NULL) free(tr.normlist  );
 		};
 		///@} 
 		///@name Private Operations
