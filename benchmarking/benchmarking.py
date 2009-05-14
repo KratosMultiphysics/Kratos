@@ -151,6 +151,33 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 	
 	return True
 
+def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
+	os.system("mpirun --np 2 python " + ExamplePath + " --benchmarking | grep \"" + Header + "\" > BenchTemp.txt")
+
+	f = open("BenchTemp.txt", "r")
+	t = f.readlines()
+	f.close()
+
+	f = open(ReferenceBenchmarkFile, "r")
+	r = f.readlines()
+	f.close()
+
+	t = map(string.strip, t)
+	r = map(string.strip, r)
+
+	if (len(t) != len(r)):
+		Msg = "Different amount of benchmark data!"
+		return Msg
+
+	n = len(t)
+
+	for i in range(n):
+		Msg = TypedCompare(map(string.strip, r[i].split("|")), map(string.strip, t[i].split("|")))
+		if (Msg != True):
+			return Msg
+	
+	return True
+
 def StartTiming():
 	return (time.time())
 
