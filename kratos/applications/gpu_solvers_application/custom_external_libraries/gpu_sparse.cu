@@ -1,0 +1,480 @@
+/*
+==============================================================================
+Kratos
+A General Purpose Software for Multi-Physics Finite Element Analysis
+Version 1.0 (Released on march 05, 2007).
+
+Copyright 2007
+Pooyan Dadvand, Riccardo Rossi, Farshid Mossaiby
+pooyan@cimne.upc.edu
+rrossi@cimne.upc.edu
+mossaiby@yahoo.com
+CIMNE (International Center for Numerical Methods in Engineering),
+Gran Capita' s/n, 08034 Barcelona, Spain
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following condition:
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
+*/
+
+//
+// Sparse matrix and vector operations on GPU
+
+//
+// Notes!
+//
+//   * In case of VectorVectorMultiply and VectorNorm2, cuBlas library has been used, as it is much faster than a code without proper optimizations.
+//
+//   * In case of VectorScaleAndAdd, as there is no direct way of using cuBlas for this, we had to write our own kernel. It was 2 or 3 times faster
+//     than using cuBlas indirectly.
+//
+//   * Link with cuBlas library when compiling. For compilation command, refer to the end of this file.
+//
+//   * Removed templates to be able to link to Kratos.
+
+// Includes, system
+
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <cublas.h>
+
+// Includes, project
+
+#include "gpu_sparse.h"
+#include "gpu_sparse_utils.h"
+#include "gpu_sparse_kernels.h"
+
+namespace Kratos
+{
+
+namespace GPUSparse
+{
+
+// GPUVector class definition
+
+GPUVector::GPUVector(size_t _Size, double *_CPU_Values): Size(_Size), CPU_Values(_CPU_Values), GPU_Values(0), Allocated(false)
+{
+	// Nothing to do!
+}
+
+GPUVector::GPUVector(size_t _Size): Size(_Size), CPU_Values(0), GPU_Values(0), Allocated(false)
+{
+	// Nothing to do!
+}
+
+GPUVector::~GPUVector()
+{
+	if (Allocated)
+		GPU_Free();
+}
+
+bool GPUVector::GPU_Allocate()
+{
+	if (Allocated)
+		return false;
+
+	Allocated = true;
+
+	return CUDA_Success(cudaMalloc(reinterpret_cast <void **> (&GPU_Values), Size * sizeof(double)));
+}
+	
+bool GPUVector::GPU_Free()
+{
+	if (!Allocated)
+		return false;
+
+	Allocated = false;
+
+	return CUDA_Success(cudaFree(GPU_Values));
+}
+
+bool GPUVector::Copy(CopyDirection Direction)
+{
+	if (!Allocated)
+		return false;
+
+	switch (Direction)
+	{
+		case CPU_GPU:
+
+			return CUDA_Success(cudaMemcpy(GPU_Values, CPU_Values, Size * sizeof(double), cudaMemcpyHostToDevice));
+
+		case GPU_CPU: 
+
+			return CUDA_Success(cudaMemcpy(CPU_Values, GPU_Values, Size * sizeof(double), cudaMemcpyDeviceToHost));
+	}
+	
+	// We should never get here!
+	return false;
+}
+
+bool GPUVector::CopyGPUValuesFrom(GPUVector &V)
+{
+	if (V.Size != Size || !Allocated || !V.Allocated)
+		return false;
+		
+	return CUDA_Success(cudaMemcpy(GPU_Values, V.GPU_Values, Size * sizeof(double), cudaMemcpyDeviceToDevice));
+}
+
+// GPUCSRMatrix class definition
+
+GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values): NNZ(_NNZ), Size1(_Size1), Size2(_Size2), CPU_Columns(_CPU_Columns), CPU_RowIndices(_CPU_RowIndices), CPU_Values(_CPU_Values), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false)
+{
+	// Nothing to do!
+}
+	
+GPUCSRMatrix::~GPUCSRMatrix()
+{
+	if (Allocated)
+		GPU_Free();
+}
+
+bool GPUCSRMatrix::GPU_Allocate()
+{
+	if (Allocated)
+		return false;
+
+	Allocated = true;
+
+	return (CUDA_Success(cudaMalloc(reinterpret_cast <void **> (&GPU_Columns), NNZ * sizeof(size_t))) &&
+			CUDA_Success(cudaMalloc(reinterpret_cast <void **> (&GPU_RowIndices), (Size1 + 1) * sizeof(size_t))) &&
+			CUDA_Success(cudaMalloc(reinterpret_cast <void **> (&GPU_Values), NNZ * sizeof(double))));
+}
+
+bool GPUCSRMatrix::GPU_Free()
+{
+	if (!Allocated)
+		return false;
+
+	Allocated = false;
+
+	return (CUDA_Success(cudaFree(GPU_Columns)) &&
+			CUDA_Success(cudaFree(GPU_RowIndices)) &&
+			CUDA_Success(cudaFree(GPU_Values)));
+}
+
+bool GPUCSRMatrix::Copy(CopyDirection Direction, bool CopyValuesOnly)
+{
+	if (!Allocated)
+		return false;
+
+	switch (Direction)
+	{
+		case CPU_GPU:
+
+			if (CopyValuesOnly)
+				return CUDA_Success(cudaMemcpy(GPU_Values, CPU_Values, NNZ * sizeof(double), cudaMemcpyHostToDevice));
+			else
+				return CUDA_Success(cudaMemcpy(GPU_Columns, CPU_Columns, NNZ * sizeof(size_t), cudaMemcpyHostToDevice)) &&
+					CUDA_Success(cudaMemcpy(GPU_RowIndices, CPU_RowIndices, (Size1 + 1) * sizeof(size_t), cudaMemcpyHostToDevice)) &&
+					CUDA_Success(cudaMemcpy(GPU_Values, CPU_Values, NNZ * sizeof(double), cudaMemcpyHostToDevice));
+
+		case GPU_CPU: 
+
+			if (CopyValuesOnly)
+				return CUDA_Success(cudaMemcpy(CPU_Values, GPU_Values, NNZ * sizeof(double), cudaMemcpyDeviceToHost));
+			else
+				return CUDA_Success(cudaMemcpy(CPU_Columns, GPU_Columns, NNZ * sizeof(size_t), cudaMemcpyDeviceToHost)) &&
+					CUDA_Success(cudaMemcpy(CPU_RowIndices, GPU_RowIndices, (Size1 + 1) * sizeof(size_t), cudaMemcpyDeviceToHost)) &&
+					CUDA_Success(cudaMemcpy(CPU_Values, GPU_Values, NNZ * sizeof(double), cudaMemcpyDeviceToHost));
+
+	}
+
+	// We should never get here!
+	return false;
+}
+
+// Operations defined on GPUCSRMatrix and GPUVector
+
+//
+// CPU_MatrixVectorMultiply
+// Matrix-Vector multiply on CPU
+
+bool CPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
+{
+	// Primary checks
+	if (A.Size2 != X.Size || X.Size != Y.Size)
+		return false;
+
+	for (size_t i = 0; i < A.Size1; i++)
+	{
+		double YI = static_cast <double> (0);
+		
+		for (size_t j = A.CPU_RowIndices[i]; j < A.CPU_RowIndices[i + 1]; j++)
+			YI += A.CPU_Values[j] * X.CPU_Values[A.CPU_Columns[j]];
+			
+		Y.CPU_Values[i] = YI;
+	}
+	
+	return true;
+}
+
+//
+// GPU_MatrixVectorMultiply
+// Matrix-Vector multiply on GPU
+
+bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
+{
+	// Primary checks
+	if (A.Size2 != X.Size || X.Size != Y.Size || !X.Allocated || !Y.Allocated)
+		return false;
+
+#ifdef USE_TEXTURE_CACHING
+
+	// Bind the texture memory to X
+	if (!Bind_X(X.GPU_Values))
+		return false;
+
+#endif
+		
+	bool UseVectorizedVersion = (A.NNZ / A.Size2) > (WARP_SIZE / 2);	// Just a guess!
+
+	if (UseVectorizedVersion)
+	{
+		dim3 Grid = Build_Grid(A.Size1 *  WARP_SIZE, BLOCK_SIZE);
+		GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
+	}
+	
+	else
+	
+	{
+		dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+		GPU_MatrixVectorMultiply_CSR_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
+	}
+	
+#ifdef USE_TEXTURE_CACHING
+
+	// Unbind the texture memory
+	if (!Unbind_X())
+		return false;
+
+#endif
+	
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
+}
+
+//
+// CPU_VectorVectorMultiply
+// Vector-Vector multiply on CPU
+
+bool CPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
+{
+	// Primary check
+	if (X.Size != Y.Size)
+		return false;
+
+	Result = static_cast <double> (0);
+	
+	for (size_t i = 0; i < X.Size; i++)
+		Result += X.CPU_Values[i] * Y.CPU_Values[i];
+		
+	return true;
+}
+
+//
+// GPU_VectorVectorMultiply
+// Vector-Vector multiply on GPU
+
+bool GPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
+{
+	// Primary check
+	if (X.Size != Y.Size || !X.Allocated || !Y.Allocated)
+		return false;
+
+	Result = cublasDdot(X.Size, X.GPU_Values, 1, Y.GPU_Values, 1);
+
+	return CUBLAS_Success(cublasGetError());
+}
+
+//
+// CPU_VectorNorm2
+// Vector norm 2 on CPU
+
+bool CPU_VectorNorm2(GPUVector &X, double &Result)
+{
+	Result = static_cast <double> (0);
+	
+	for (size_t i = 0; i < X.Size; i++)
+		Result += X.CPU_Values[i] * X.CPU_Values[i];
+		
+	Result = sqrt(Result);
+		
+	return true;
+}
+
+//
+// GPU_VectorNorm2
+// Vector norm 2 on GPU
+
+bool GPU_VectorNorm2(GPUVector &X, double &Result)
+{
+	// Primary check
+	if (!X.Allocated)
+		return false;
+
+	Result = cublasDnrm2(X.Size, X.GPU_Values, 1);
+
+	return CUBLAS_Success(cublasGetError());
+}
+
+//
+// CPU_VectorScaleAndAdd
+// Vector scale-and-add on CPU
+
+// Variant 1: Z = A * X + B * Y
+
+bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
+{
+	// Primary check
+	if (X.Size != Y.Size || Y.Size != Z.Size)
+		return false;
+		
+	for (size_t i = 0; i < X.Size; i++)
+		Z.CPU_Values[i] = A * X.CPU_Values[i] + B * Y.CPU_Values[i];
+		
+	return true;
+}
+
+// Variant 2: Y = A * X + B * Y
+
+bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
+{
+	// Primary check
+	if (X.Size != Y.Size)
+		return false;
+		
+	for (size_t i = 0; i < X.Size; i++)
+		Y.CPU_Values[i] = A * X.CPU_Values[i] + B * Y.CPU_Values[i];
+		
+	return true;
+}
+
+//
+// GPU_VectorScaleAndAdd
+// Vector scale-and-add on GPU
+
+// Variant 1: Z = A * X + B * Y
+
+bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
+{
+	// Primary check
+	if (X.Size != Y.Size || Y.Size != Z.Size || !X.Allocated || !Y.Allocated || !Z.Allocated)
+		return false;
+		
+	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
+
+	if (A == 1.00)
+	{
+		if (B == 1.00)
+			GPU_VectorScaleAndAdd_1_A_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			
+		else if (B == -1.00)
+			GPU_VectorScaleAndAdd_1_B_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+				
+		else
+			GPU_VectorScaleAndAdd_1_E_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+	}
+	
+	else if (A == -1.00)
+	{
+		if (B == 1.00)
+			GPU_VectorScaleAndAdd_1_C_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			
+		else if (B == -1.00)
+			GPU_VectorScaleAndAdd_1_D_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			
+		else
+			GPU_VectorScaleAndAdd_1_F_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+	}
+	
+	else
+	{
+		if (B == 1.00)
+			GPU_VectorScaleAndAdd_1_G_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			
+		else if (B == -1.00)
+			GPU_VectorScaleAndAdd_1_H_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			
+		else
+			GPU_VectorScaleAndAdd_1_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+	}
+	
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());		
+}
+
+// Variant 2: Y = A * X + B * Y
+
+bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
+{
+	// Primary check
+	if (X.Size != Y.Size || !X.Allocated || !Y.Allocated)
+		return false;
+		
+	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
+
+	if (A == 1.00)
+	{
+		if (B == 1.00)
+			GPU_VectorScaleAndAdd_2_A_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			
+		else if (B == -1.00)
+			GPU_VectorScaleAndAdd_2_B_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+				
+		else
+			GPU_VectorScaleAndAdd_2_E_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+	}
+	
+	else if (A == -1.00)
+	{
+		if (B == 1.00)
+			GPU_VectorScaleAndAdd_2_C_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			
+		else if (B == -1.00)
+			GPU_VectorScaleAndAdd_2_D_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			
+		else
+			GPU_VectorScaleAndAdd_2_F_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+	}
+	
+	else
+	{
+		if (B == 1.00)
+			GPU_VectorScaleAndAdd_2_G_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			
+		else if (B == -1.00)
+			GPU_VectorScaleAndAdd_2_H_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			
+		else
+			GPU_VectorScaleAndAdd_2_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+	}
+	
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
+}
+
+}
+
+}
+
+//
+// Compilation command
+// ./build.sh
