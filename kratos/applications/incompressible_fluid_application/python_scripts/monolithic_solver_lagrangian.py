@@ -197,12 +197,12 @@ class MonolithicSolver:
             (self.PfemUtils).ApplyMinimalPressureConditions(self.model_part);
 
         
-            for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
-
-            for node in self.model_part.Nodes:            
-                if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
-                    node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
+##            for node in self.model_part.Nodes:
+##                node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
+##
+##            for node in self.model_part.Nodes:            
+##                if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
+##                    node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
 
         ##################################################################
     def FindNeighbours(self):
