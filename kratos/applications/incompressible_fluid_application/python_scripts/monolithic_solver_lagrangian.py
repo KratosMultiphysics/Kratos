@@ -132,13 +132,18 @@ class MonolithicSolver:
                  
     #######################################################################   
     def Solve(self,time,gid_io):
-        (self.neigh_finder).Execute();
+##        (self.neigh_finder).Execute();
+##        (self.solver).Solve()
+##	(self.solver).Clear()
+##        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+##	#(self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes, .05)
+##        (self.node_erase_process).Execute();
+##        self.Remesh()
+##        self.OutputStep(time,gid_io)
+
+        self.Remesh()
         (self.solver).Solve()
 	(self.solver).Clear()
-        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-	#(self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes, .05)
-        (self.node_erase_process).Execute();
-        self.Remesh()
         self.OutputStep(time,gid_io)
 
     #######################################################################  
@@ -173,22 +178,24 @@ class MonolithicSolver:
             (self.PfemUtils).MoveLonelyNodes(self.model_part)
             (self.MeshMover).Execute();
 
+            (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+            (self.node_erase_process).Execute();
+            
             (self.neigh_finder).ClearNeighbours();
 
             ((self.model_part).Elements).clear();
             ((self.model_part).Conditions).clear();
-
-
-##            (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-
- 
-            (self.node_erase_process).Execute();
             
 	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)						      
 ##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)						      
 
              #calculating fluid neighbours before applying boundary conditions
             (self.neigh_finder).Execute();
+
+            (self.PfemUtils).ApplyBoundaryConditions(self.model_part,2);
+            (self.PfemUtils).IdentifyFluidNodes(self.model_part);
+            (self.PfemUtils).ApplyMinimalPressureConditions(self.model_part);
+
         
             for node in self.model_part.Nodes:
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
