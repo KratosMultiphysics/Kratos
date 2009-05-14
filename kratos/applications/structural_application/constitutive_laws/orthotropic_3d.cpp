@@ -182,7 +182,6 @@ namespace Kratos
 		mCtangent = ZeroMatrix(6,6);
 		mInSituStress = ZeroVector(6);
 		mMaterialDirection = ZeroMatrix(3,3);
-		mT = ZeroMatrix(6,6);
 
         CalculateElasticMatrix(mCtangent, props[YOUNG_MODULUS], props[POISSON_RATIO]);
 //                 CalculateElasticMatrix(mCtangent, props[MATERIAL_PARAMETERS][0], props[MATERIAL_PARAMETERS][1]);
@@ -213,13 +212,13 @@ namespace Kratos
                                       const Vector& ShapeFunctionsValues,
                                       const ProcessInfo& CurrentProcessInfo )
     {
-        CalculateElasticMatrix(mCtangent, props[ORTHOTROPIC_YOUNG_MODULUS], props[ORTHOTROPIC_POISSON_RATIO], props[ORTHOTROPIC_SHEAR_RATIO]);    
+        CalculateElasticMatrix(mCtangent, props[ORTHOTROPIC_YOUNG_MODULUS], props[ORTHOTROPIC_POISSON_RATIO], props[ORTHOTROPIC_SHEAR_MODULUS]);    
     }
 		
 	/**
 	 *	TO BE TESTED!!!
 	 */
-	void Orthotropic3D::CalculateElasticMatrix(Matrix& C, const array_1d<double,3>r& E, const Matrix& NU, const array_1d<double,3>r& G)
+	void Orthotropic3D::CalculateElasticMatrix(Matrix& C, const array_1d<double,3>r& E, const Matrix& NU, const array_1d<double,3>& rG)
 	{ 
 		//setting up material matrix
 		double nu_xy = NU(0,1);
@@ -242,9 +241,9 @@ namespace Kratos
 		C(0,0) = dxx;    C(0,1) = dxy;    C(0,2) = dxz;    C(0,3) = 0.0;   C(0,4) = 0.0;   C(0,5) = 0.0;
 		C(1,0) = dxy;    C(1,1) = dyy;    C(1,2) = dyz;    C(1,3) = 0.0;   C(1,4) = 0.0;   C(1,5) = 0.0;
 		C(2,0) = dxz;    C(2,1) = dyz;    C(2,2) = dzz;    C(2,3) = 0.0;   C(2,4) = 0.0;   C(2,5) = 0.0;
-		C(3,0) = 0.0;    C(3,1) = 0.0;    C(3,2) = 0.0;    C(3,3) = G[0];  C(3,4) = 0.0;   C(3,5) = 0.0;
-		C(4,0) = 0.0;    C(4,1) = 0.0;    C(4,2) = 0.0;    C(4,3) = 0.0;   C(4,4) = G[1];  C(4,5) = 0.0;
-		C(5,0) = 0.0;    C(5,1) = 0.0;    C(5,2) = 0.0;    C(5,3) = 0.0;   C(5,4) = 0.0;   C(5,5) = G[2];
+		C(3,0) = 0.0;    C(3,1) = 0.0;    C(3,2) = 0.0;    C(3,3) = rG[0]; C(3,4) = 0.0;   C(3,5) = 0.0;
+		C(4,0) = 0.0;    C(4,1) = 0.0;    C(4,2) = 0.0;    C(4,3) = 0.0;   C(4,4) = rG[1]; C(4,5) = 0.0;
+		C(5,0) = 0.0;    C(5,1) = 0.0;    C(5,2) = 0.0;    C(5,3) = 0.0;   C(5,4) = 0.0;   C(5,5) = rG[2];
 
 		Matrix t_matrix(6,6);
 
@@ -260,8 +259,6 @@ namespace Kratos
 	 */
 	void Orthotropic3D::CalculateTransformationMatrix(Matrix& T)
 	{
-		Matrix& a = mMaterialDirection;
-
 		double a11 = mMaterialDirection(0,0);
 		double a12 = mMaterialDirection(0,0);
 		double a13 = mMaterialDirection(0,0);

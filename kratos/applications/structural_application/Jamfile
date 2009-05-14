@@ -93,6 +93,7 @@ alias sources_KratosStructuralApplication
 #	tensor.cpp
 	add_custom_parallel_strategies_to_python.cpp 
 	crisfield_truss_element.cpp
+#	orthotropic_3d.cpp
 #	
 
 	#####################kratos library as defined in the jamroot
