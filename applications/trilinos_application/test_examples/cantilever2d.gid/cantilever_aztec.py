@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #importing MPI ... for this boost 1.35 or superior is needed
 import mpi
 print "i am ",mpi.rank , " of ",mpi.size
@@ -14,9 +15,13 @@ domain_size = 2
 #including kratos path
 kratos_libs_path = '../../../../libs/' ##kratos_root/libs
 kratos_applications_path = '../../../../applications/' ##kratos_root/applications
+##kratos_python_scripts_path = '../../../../applications/structural_application/python_scripts'
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
+##sys.path.append(kratos_python_scripts_path)
+sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
 from Kratos import *
@@ -107,6 +112,41 @@ print "Linear elastic model selected"
 solver.Initialize()
 (solver.solver).SetEchoLevel(2);
 
+import benchmarking
+import math
+
+def BenchmarkCheck(time, model_part):
+    #find the largest displacement
+    local_max_disp = 0.0
+    for node in model_part.Nodes:
+        disp = node.GetSolutionStepValue(DISPLACEMENT,0)
+        disp_value = disp[0]**2 + disp[1]**2 + disp[2]**2
+        if(disp_value > local_max_disp):
+            local_max_disp = disp_value
+
+    max_values = mpi.gather(mpi.world,local_max_disp,0) ##all_gather would gather to all process .. this only gathers to the root
+    mpi.world.barrier()
+
+    if(mpi.rank == 0):
+        tot_max = 0.0
+        for i in range(0,len(max_values)):
+            if(max_values[i] > tot_max):
+                tot_max = max_values[i]
+
+        
+        tot_max = math.sqrt(tot_max)
+        print tot_max
+
+        if (benchmarking.InBenchmarkingMode()):
+            benchmarking.Output(time, "Time")
+            benchmarking.Output(tot_max, "maximum displacement in the model", 0.00001)
+
+    mpi.world.barrier()
+
+
+
+    
+
 Dt = 0.001
 nsteps = 10
 
@@ -123,7 +163,10 @@ for step in range(0,nsteps):
 
     #solving the fluid problem
     if(step > 3):
+
         solver.Solve()
+
+        BenchmarkCheck(time, model_part)
 
 #    if(step > 4):
 
