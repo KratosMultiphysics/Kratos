@@ -3,10 +3,8 @@ using intel : : : <cxxflags>"-fPIC -ansi -funroll-loops -cxxlib-gcc -openmp -wd6
 ##using msvc ;
 using python ; 
 
-##decomment and specify compiler to use MPI
+# uncomment and specify compiler to use MPI
 ##using mpi : /opt/openmpi/1.2.4/bin/mpiCC ;
-
-
 
 #################################################################################
 ## defining "common includes" and external libraries
@@ -15,6 +13,10 @@ path-constant TOP : . ;
 #path to the boost library -- FUNDAMENTAL --- ATTENTION: it is IMPORTANT to set to the directory FROM WHICH the boost was installed
 path-constant BOOST_LIB_DIR :  /usr/lib/ ; 
 path-constant BOOST_INCLUDE_DIR :  /usr/include/ ; 
+
+# Path to CUDA - required to compile and use GPU solvers
+path-constant CUDA_DIR :  /usr/local/cuda/ ;
+
 
 ##decomment and modify for parallel
 ##path-constant MPI_LIB_DIR : /usr/lib/openmpi/lib/ ;
@@ -31,19 +33,19 @@ path-constant BOOST_INCLUDE_DIR :  /usr/include/ ;
 project KratosProject 
 	:
 	#############################################################################
-	############### TO BE CUSTOMARIZED -- LINUX VERSION EXAMPLE!! ###############
-	requirements 	<include>$(BOOST_INCLUDE_DIR)          #to be customarized 
-			<include>/usr/include/python2.5/        #to be customarized 
+	############### TO BE CUSTOMIZED -- LINUX VERSION EXAMPLE!! #################
+	requirements 	<include>$(BOOST_INCLUDE_DIR)               #to be CUSTOMIZED 
+			<include>/usr/include/python2.5/                    #to be CUSTOMIZED 
 			<include>$(TOP)/kratos
 			<include>$(TOP)/external_libraries
 	#############################################################################
 
 	#############################################################################
-	############### TO BE CUSTOMARIZED -- WINDOWS VERSION EXAMPLE!! ###############
-	##requirements <include>"C:/Archivos de programa/boost/boost_1_34_1/"    #to be customarized
-	##		 <include>"C:/Python25/include"                                #to be customarized 
-      ##         <include>$(TOP)/kratos
-	##	     <include>$(TOP)/external_libraries
+	############### TO BE CUSTOMIZED -- WINDOWS VERSION EXAMPLE!! ###############
+	##requirements <include>"C:/Archivos de programa/boost/boost_1_34_1/"    #to be CUSTOMIZED
+	##		<include>"C:/Python25/include"                                  #to be CUSTOMIZED 
+	##		<include>$(TOP)/kratos
+	##		<include>$(TOP)/external_libraries
 	#############################################################################	
 
 		     ##omptl - necessary for parallelism
@@ -54,8 +56,8 @@ project KratosProject
 		     <define>NDEBUG
 ###		     <toolset>intel:<define>_GCC_LIMITS_H_
 
-			 #compiler settings - can be customarized by the user
-			 #WARNING -fPIC is NEEDED to compile on 64bit systems - it has to be specified here in order to include it in the 
+			 #compiler settings - can be CUSTOMIZED by the user
+			 #WARNING -fPIC is NEEDED to compile on 64 bit systems - it has to be specified here in order to include it in the 
 			 #kratos "static" library
 			 <warnings>on
 
@@ -78,7 +80,7 @@ project KratosProject
 ## the user should adapt this depending on the installations directories on his system
 
 #############################################################################
-############### TO BE CUSTOMARIZED -- LINUX VERSION EXAMPLE!! ###############
+############### TO BE CUSTOMIZED -- LINUX VERSION EXAMPLE!! #################
 lib pythonlib : : <name>python2.5 ; 
 lib boost_python_lib : : <variant>debug <name>boost_python-mt-d <search>$(BOOST_LIB_DIR) ;    
 lib boost_python_lib : : <variant>release <name>boost_python-mt <search>$(BOOST_LIB_DIR) ;    
@@ -88,7 +90,7 @@ lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/unix/rel
 #############################################################################
 
 #############################################################################
-############### TO BE CUSTOMARIZED -- WINDOWS VERSION EXAMPLE!! ###############
+############### TO BE CUSTOMIZED -- WINDOWS VERSION EXAMPLE!! ###############
 ##lib pythonlib : : <name>python25 <search>"C:/Python25/libs"  ; 
 ##lib boost_python_lib : : <variant>release <name>boost_python-vc80-mt-1_34_1 <search>"C:/Archivos de programa/boost/boost_1_34_1/lib" ;   
 ##lib boost_python_lib : : <variant>debug <name>boost_python-vc80-mt-gd-1_34_1 <search>"C:/Archivos de programa/boost/boost_1_34_1/lib" ;   
@@ -106,8 +108,6 @@ alias libomp : : <toolset>msvc ;
 ## MPI LIBRARIES - comment out if using mpi is not required
 ##lib mpilibrary : : <name>mpi <search>$(MPI_LIB_DIR) ;
 ##lib mpilibrary_cpp : : <name>mpi_cxx <search>$(MPI_LIB_DIR) ;
-
-
 
 #################################################################################
 # IN PRINCIPLE THIS SHOULD REQUIRE NO CUSTOMARIZATION .. apart for compiling new applications
@@ -138,6 +138,10 @@ use-project /kratos-prj/MeshingApplication : $(TOP)/applications/MeshingApplicat
 ## MKL solvers: will not be compiled by default ###################################################
 ## this requires intel MKL library (v. 10.0.1.014) installed properly on your system ##############
 #use-project /kratos-prj/mkl_solvers_application : $(TOP)/applications/mkl_solvers_application ;
+
+# GPU Solvers: needs CUDA to be installed, a GT200 series GPU card (GTX260, GTX 280, etc.) with the driver installed
+use-project /kratos-prj/gpu_solvers_application : $(TOP)/applications/gpu_solvers_application ;
+
 ###################################################################################################
 
 alias libkratos_static : /kratos-prj/kratos//libkratos/<link>static ;
@@ -156,9 +160,10 @@ alias install :
 		/kratos-prj/MeshingApplication//install
 #		/kratos-prj/FSIapplication//install
 #		/kratos-prj/mkl_solvers_application//install
-##         	/kratos-prj/Qcompressible_fluid_application//install
-##		/kratos-prj/MetisApplication//install
-##		/kratos-prj/TrilinosApplication//install
+#		/kratos-prj/Qcompressible_fluid_application//install
+#		/kratos-prj/MetisApplication//install
+#		/kratos-prj/TrilinosApplication//install
+#		/kratos-prj/gpu_solvers_application//install
 		;
  
 ECHO $(TOP) ;
