@@ -5,9 +5,10 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
+Pooyan Dadvand, Riccardo Rossi, Farshid Mossaiby
 pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
+mossaiby@yahoo.com
 CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
 
@@ -35,15 +36,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-03-05 09:39:14 $
-//   Revision:            $Revision: 1.4 $
-//
-//
-
 
 #if !defined(KRATOS_BICGSTAB_SOLVER_H_INCLUDED )
 #define  KRATOS_BICGSTAB_SOLVER_H_INCLUDED
@@ -52,6 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes 
 
+//#include <ctime>
 
 // External includes 
 #include "boost/smart_ptr.hpp"
@@ -61,6 +54,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
 
+#include "gpu_sparse.h"
+
+using namespace Kratos::GPUSparse;
 
 namespace Kratos
 {
@@ -88,7 +84,7 @@ namespace Kratos
   /** Detail class definition.
   */
   
-    class GPUBICGSTABSolver : public IterativeSolver<UblasSpace<CSRMatrix, Vector>, UblasSpace<Matrix, Vector>, Preconditioner<UblasSpace<CSRMatrix, Vector>, UblasSpace<Matrix, Vector> >, TReordererTyper<UblasSpace<CSRMatrix, Vector>, UblasSpace<Matrix, Vector> > >
+    class GPUBICGSTABSolver : public IterativeSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>, Preconditioner<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector> >, Reorderer<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector> > >
     {
     public:
       ///@name Type Definitions
@@ -97,17 +93,19 @@ namespace Kratos
       /// Counted pointer of GPUBICGSTABSolver
       typedef boost::shared_ptr<GPUBICGSTABSolver> Pointer;
 
-      typedef UblasSpace<CSRMatrix, Vector> SparseSpaceType;
+      typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 
-      typedef UblasSpace<Matrix, Vector> DenseSpaceType;
+      typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+      
+      typedef Reorderer<SparseSpaceType, DenseSpaceType > ReordererType;
 
-      typedef IterativeSolver<SparseSpaceType, DenseSpaceType, Preconditioner<SparseSpaceType, DenseSpaceType>, TReordererTyper<SparseSpaceType, DenseSpaceType> > BaseType; 
+      typedef IterativeSolver<SparseSpaceType, DenseSpaceType, Preconditioner<SparseSpaceType, DenseSpaceType>, ReordererType > BaseType; 
   
-      typedef typename SparseSpaceType::MatrixType SparseMatrixType;
+      typedef SparseSpaceType::MatrixType SparseMatrixType;
   
-      typedef typename SparseSpaceType::VectorType VectorType;
+      typedef SparseSpaceType::VectorType VectorType;
   
-      typedef typename DenseSpaceType::MatrixType DenseMatrixType;
+      typedef DenseSpaceType::MatrixType DenseMatrixType;
   
       ///@}
       ///@name Life Cycle 
@@ -187,7 +185,7 @@ namespace Kratos
 
 //  	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
 
-// 	  bool is_solved = true;
+ 	  bool is_solved = true;
 //	  VectorType x(TDenseSpaceType::Size1(rX));
 //	  VectorType b(TDenseSpaceType::Size1(rB));
 //	  for(unsigned int i = 0 ; i < TDenseSpaceType::Size2(rX) ; i++)
@@ -226,14 +224,14 @@ namespace Kratos
       virtual std::string Info() const
 	{
 	  std::stringstream buffer;
-	  buffer << "Biconjugate gradient stabilized linear solver with " << BaseType::GetPreconditioner()->Info();
+	  buffer << "GPU Biconjugate gradient stabilized linear solver with " << BaseType::GetPreconditioner()->Info();
 	  return  buffer.str();
 	}
       
       /// Print information about this object.
       void  PrintInfo(std::ostream& OStream) const
 	{
-	  OStream << "Biconjugate gradient stabilized linear solver with ";
+	  OStream << "GPU Biconjugate gradient stabilized linear solver with ";
 	  BaseType::GetPreconditioner()->PrintInfo(OStream);
 	}
 
@@ -307,28 +305,79 @@ namespace Kratos
       ///@name Private Operations
       ///@{ 
       
+#define CHECK(call)		if (!(call)) printf(#call " in file %s line %d failed.\n", __FILE__, __LINE__);
+      
+#define START_TIMING(t)		t = std::clock()
+#define STOP_TIMING(T, t)	T += std::clock() - t
+      
       bool IterativeSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
       {
-	const int size = TSparseSpaceType::Size(rX);
+
+
+	//std::time_t t1 = 0, t2 = 0, t;
+
+	//KRATOS_WATCH("============================ GPU Solver ============================");
+	
+	//KRATOS_WATCH(rA.nnz());
+	//KRATOS_WATCH(rA.size1());
+
+	// Inputs
+	GPUCSRMatrix gA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
+	CHECK(gA.GPU_Allocate());
+	CHECK(gA.Copy(CPU_GPU, false));
+	
+	GPUVector gX(rX.size(), &(rX[0]));
+	CHECK(gX.GPU_Allocate());
+	CHECK(gX.Copy(CPU_GPU));
+	
+	GPUVector gB(rB.size(), &(rB[0]));
+	CHECK(gB.GPU_Allocate());
+	CHECK(gB.Copy(CPU_GPU));
+
+	const int size = SparseSpaceType::Size(rX);
 	
 	BaseType::mIterationsNumber = 0;
     
-	VectorType r(size);
+	//VectorType r(size);
+	GPUVector r(size);
+	CHECK(r.GPU_Allocate());
 	
 //	PreconditionedMult(rA,rX,r);
-	TSparseSpaceType::Mult(rA,rX,r); // r = rA*rX
-	TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r); // r = rB - r
+	//SparseSpaceType::Mult(rA,rX,r); // r = rA*rX
+	CHECK(GPU_MatrixVectorMultiply(gA, gX, r));
+	
+	//SparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r); // r = rB - r
+	CHECK(GPU_VectorScaleAndAdd(1.00, gB, -1.00, r));
 
-	BaseType::mBNorm = TSparseSpaceType::TwoNorm(rB); 
+	//BaseType::mBNorm = SparseSpaceType::TwoNorm(rB); 
+	CHECK(GPU_VectorNorm2(gB, BaseType::mBNorm));
 
-	VectorType p(r);
-	VectorType s(size);
-	VectorType q(size);
+	//VectorType p(r);
+	GPUVector p(size);
+	CHECK(p.GPU_Allocate());
+	CHECK(p.CopyGPUValuesFrom(r));
+	
+	//VectorType s(size);
+	GPUVector s(size);
+	CHECK(s.GPU_Allocate());
+	
+	//VectorType q(size);
+	GPUVector q(size);
+	CHECK(q.GPU_Allocate());
 
- 	VectorType rs(r); 
- 	VectorType qs(size); 
+ 	//VectorType rs(r); 
+ 	GPUVector rs(size);
+ 	CHECK(rs.GPU_Allocate());
+ 	CHECK(rs.CopyGPUValuesFrom(r));
+ 	
+ 	//VectorType qs(size); 
+ 	GPUVector qs(size);
+ 	CHECK(qs.GPU_Allocate());
          
-	double roh0 = TSparseSpaceType::Dot(r, rs); 
+	//double roh0 = SparseSpaceType::Dot(r, rs);
+	double roh0;
+	CHECK(GPU_VectorVectorMultiply(r, rs, roh0));
+	
 	double roh1 = roh0;
 	double alpha = 0.00;
 	double beta = 0.00;
@@ -339,27 +388,58 @@ namespace Kratos
 
 	do
 	  {
-	    TSparseSpaceType::Mult(rA,p,q);  // q = rA * p
+	  
+	  	//START_TIMING(t);
+	  	  
+	    //SparseSpaceType::Mult(rA,p,q);  // q = rA * p
+	    CHECK(GPU_MatrixVectorMultiply(gA, p, q));
 
-	    alpha = roh0 / TSparseSpaceType::Dot(rs,q);
+		//STOP_TIMING(t1, t);
+		
+		//START_TIMING(t);
+
+	    //alpha = roh0 / SparseSpaceType::Dot(rs,q);
+	    double temp;
+	    CHECK(GPU_VectorVectorMultiply(rs, q, temp));
+	    alpha = roh0 / temp;
         
-	    TSparseSpaceType::ScaleAndAdd(1.00, r, -alpha, q, s); // s = r - alpha * q
+	    //SparseSpaceType::ScaleAndAdd(1.00, r, -alpha, q, s); // s = r - alpha * q
+	    CHECK(GPU_VectorScaleAndAdd(1.00, r, -alpha, q, s));
 
-	    PreconditionedMult(rA,s,qs);
+		//STOP_TIMING(t2, t);
+		
+		//START_TIMING(t);
 
-	    omega = TSparseSpaceType::Dot(qs,qs);
+	    //PreconditionedMult(rA,s,qs);
+	    // ...
+	    CHECK(GPU_MatrixVectorMultiply(gA, s, qs));
+
+		//STOP_TIMING(t1, t);
+
+		//START_TIMING(t);
+
+	    //omega = SparseSpaceType::Dot(qs,qs);
+	    CHECK(GPU_VectorVectorMultiply(qs, qs, omega));
 
 	    //if(omega == 0.00)
 	    if(fabs(omega) <= 1.0e-30)
 	      break;
 
-	    omega = TSparseSpaceType::Dot(qs,s) / omega;
+	    //omega = SparseSpaceType::Dot(qs,s) / omega;
+	    CHECK(GPU_VectorVectorMultiply(qs, s, temp));
+	    omega = temp / omega;
 
-	    TSparseSpaceType::ScaleAndAdd(alpha, p, 1.00, rX);
-	    TSparseSpaceType::ScaleAndAdd(omega, s, 1.00, rX);
-	    TSparseSpaceType::ScaleAndAdd(-omega, qs, 1.00, s, r);
+	    //SparseSpaceType::ScaleAndAdd(alpha, p, 1.00, rX);
+	    CHECK(GPU_VectorScaleAndAdd(alpha, p, 1.00, gX));	    
+	    
+	    //SparseSpaceType::ScaleAndAdd(omega, s, 1.00, rX);
+	    CHECK(GPU_VectorScaleAndAdd(omega, s, 1.00, gX));
+	    
+	    //SparseSpaceType::ScaleAndAdd(-omega, qs, 1.00, s, r);
+	    CHECK(GPU_VectorScaleAndAdd(-omega, qs, 1.00, s, r));
 
-	    roh1 = TSparseSpaceType::Dot(r,rs);
+	    //roh1 = SparseSpaceType::Dot(r,rs);
+	    CHECK(GPU_VectorVectorMultiply(r, rs, roh1));
 
 	    //if((roh0 == 0.00) || (omega == 0.00))
 	    if((fabs(roh0) <= 1.0e-30) || (fabs(omega) <= 1.0e-30))
@@ -367,15 +447,29 @@ namespace Kratos
 	    
 	    beta = (roh1 * alpha) / (roh0 * omega);
 	    
-	    TSparseSpaceType::ScaleAndAdd(1.00, p, -omega, q);
-	    TSparseSpaceType::ScaleAndAdd(1.00, r, beta, q, p);
+	    //SparseSpaceType::ScaleAndAdd(1.00, p, -omega, q);
+	    CHECK(GPU_VectorScaleAndAdd(1.00, p, -omega, q));
+	    
+	    //SparseSpaceType::ScaleAndAdd(1.00, r, beta, q, p);
+	    CHECK(GPU_VectorScaleAndAdd(1.00, r, beta, q, p));
 	      
 	    roh0 = roh1;
         
-		BaseType::mResidualNorm =TSparseSpaceType::TwoNorm(r);
+		//BaseType::mResidualNorm = SparseSpaceType::TwoNorm(r);
+		CHECK(GPU_VectorNorm2(r, BaseType::mResidualNorm));
+
+		//STOP_TIMING(t2, t);
+
 		BaseType::mIterationsNumber++;
 
 	  } while(BaseType::IterationNeeded());
+	  
+	  CHECK(gX.Copy(GPU_CPU));
+	  
+	  //t = t1 + t2;
+	  
+	  //KRATOS_WATCH(((double) t1) / ((double) t) * 100);
+	  //KRATOS_WATCH(((double) t2) / ((double) t) * 100);
 	  
 	return BaseType::IsConverged();
       }  
@@ -411,23 +505,16 @@ namespace Kratos
         
  
   /// input stream function
-  template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType, 
-    class TReordererType>
+  
   inline std::istream& operator >> (std::istream& IStream, 
-				      GPUBICGSTABSolver<TSparseSpaceType, TDenseSpaceType, 
-				      TPreconditionerType, TReordererType>& rThis)
+				      GPUBICGSTABSolver& rThis)
     {
 		return IStream;
     }
 
   /// output stream function
-  template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType, 
-    class TReordererType>
   inline std::ostream& operator << (std::ostream& OStream, 
-				    const GPUBICGSTABSolver<TSparseSpaceType, TDenseSpaceType, 
-				      TPreconditionerType, TReordererType>& rThis)
+				    const GPUBICGSTABSolver& rThis)
     {
       rThis.PrintInfo(OStream);
       OStream << std::endl;
