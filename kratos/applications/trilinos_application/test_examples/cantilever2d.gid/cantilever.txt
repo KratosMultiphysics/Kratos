@@ -1,0 +1,12 @@
+KRATOS_BENCHMARK | Float | Time | 0.004 | None | None
+KRATOS_BENCHMARK | Float | maximum displacement in the model | 0.170909388372 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Time | 0.005 | None | None
+KRATOS_BENCHMARK | Float | maximum displacement in the model | 0.17090938838 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Time | 0.006 | None | None
+KRATOS_BENCHMARK | Float | maximum displacement in the model | 0.17090938838 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Time | 0.007 | None | None
+KRATOS_BENCHMARK | Float | maximum displacement in the model | 0.17090938838 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Time | 0.008 | None | None
+KRATOS_BENCHMARK | Float | maximum displacement in the model | 0.17090938838 | 1e-05 | None
+KRATOS_BENCHMARK | Float | Time | 0.009 | None | None
+KRATOS_BENCHMARK | Float | maximum displacement in the model | 0.17090938838 | 1e-05 | None
