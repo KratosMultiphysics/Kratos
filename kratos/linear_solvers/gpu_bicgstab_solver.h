@@ -37,8 +37,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-#if !defined(KRATOS_BICGSTAB_SOLVER_H_INCLUDED )
-#define  KRATOS_BICGSTAB_SOLVER_H_INCLUDED
+#if !defined(KRATOS_GPU_BICGSTAB_SOLVER_H_INCLUDED )
+#define  KRATOS_GPU_BICGSTAB_SOLVER_H_INCLUDED
 
 
 
@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
+#include "gpu_sparse.h"
 
 #include "gpu_sparse.h"
 
@@ -527,6 +528,6 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_BICGSTAB_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_GPU_BICGSTAB_SOLVER_H_INCLUDED  defined 
 
 

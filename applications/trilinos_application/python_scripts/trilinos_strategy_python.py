@@ -27,7 +27,7 @@ class SolvingStrategyPython:
 	elif(builder_and_solver_type == "ML2D"):
         	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,2,self.linear_solver)
 	elif(builder_and_solver_type == "ML3D"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,3,self.linear_solver)
+        	self.builder_and_solver = TrilinosBuilderAndSolverML3D(Comm,guess_row_size,3,self.linear_solver)
 	elif(builder_and_solver_type == "ML2Dpress"):
         	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,2,self.linear_solver)
 	elif(builder_and_solver_type == "ML3Dpress"):

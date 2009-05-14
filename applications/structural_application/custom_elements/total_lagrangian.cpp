@@ -699,35 +699,54 @@ namespace TotalLagrangianAuxiliaries
 	void TotalLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
 // 		std::cout << mConstitutiveLawVector[0] << std::endl;
-		if (rVariable==INSITU_STRESS)
-		{
-                    for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
-			{
-				mConstitutiveLawVector[PointNumber]->SetValue(INSITU_STRESS, rValues[PointNumber],
-						rCurrentProcessInfo );
-			}
-		}
-                if (rVariable==MATERIAL_PARAMETERS)
-                {
-                    for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
-                    {
-                        mConstitutiveLawVector[PointNumber]->SetValue( MATERIAL_PARAMETERS,
+//		if (rVariable==INSITU_STRESS)
+//		{
+//                    for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+//			{
+//				mConstitutiveLawVector[PointNumber]->SetValue(INSITU_STRESS, rValues[PointNumber],
+//						rCurrentProcessInfo );
+//			}
+//		}
+//                if (rVariable==MATERIAL_PARAMETERS)
+//                {
+//                    for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+//                    {
+//                        mConstitutiveLawVector[PointNumber]->SetValue( MATERIAL_PARAMETERS,
+//                                rValues[PointNumber], rCurrentProcessInfo );
+//                    }
+//                }
+
+                  for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+                  {
+                        mConstitutiveLawVector[PointNumber]->SetValue(rVariable ,
                                 rValues[PointNumber], rCurrentProcessInfo );
-                    }
-                }
+                  }
+	
 	}
 	
+	
+	//************************************************************************************
+	//************************************************************************************
+	void TotalLagrangian::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+	{
+                  for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+                  {
+                        mConstitutiveLawVector[PointNumber]->SetValue(rVariable ,
+                                rValues[PointNumber], rCurrentProcessInfo );
+                  }
+	
+	}
 	//************************************************************************************
 	//************************************************************************************
 	void TotalLagrangian::GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
                                            std::vector<double>& rValues, 
                                            const ProcessInfo& rCurrentProcessInfo)
 	{
-     if(rValues.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
-                rValues.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
+     		if(rValues.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+                	rValues.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
 														
-					for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-																rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+			rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
 	}
 
 

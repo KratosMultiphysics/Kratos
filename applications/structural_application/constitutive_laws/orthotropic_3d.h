@@ -221,12 +221,15 @@ namespace Kratos
 			  * @param NU the Poisson ratio
 			  * @return the linear elastic constitutive matrix
 			  */
-			 void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
+			 void CalculateElasticMatrix(Matrix& C, const array_1d<double,3>r& E, const Matrix& NU, const array_1d<double,3>& rG);
 
 		         Vector mE,mNU;
+			 Matrix mMaterialDirection;
 				 Vector mInSituStress;
 				 Matrix mCtangent;
 				 Vector mCurrentStress;
+
+			void Orthotropic3D::CalculateTransformationMatrix(Matrix& T);
 
 			 /**
 			  * Un accessible methods 

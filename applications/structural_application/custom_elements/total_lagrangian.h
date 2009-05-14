@@ -172,6 +172,8 @@ namespace Kratos
 
             void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
             
+            void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+            
             void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 	  
             void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
@@ -216,7 +218,17 @@ namespace Kratos
             ///@} 
             ///@name Protected Operators
             ///@{ 
-            ///@} 
+
+             /**
+             * Calculates the elemental contributions
+             * \f$ K^e = w\,B^T\,D\,B \f$ and
+             * \f$ r^e \f$
+             */
+            virtual void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
+                              ProcessInfo& rCurrentProcessInfo,
+                              bool CalculateStiffnessMatrixFlag,
+                              bool CalculateResidualVectorFlag);
+           ///@} 
             ///@name Protected Operations
             ///@{ 
             ///@} 
@@ -259,15 +271,6 @@ namespace Kratos
             ///@} 
             ///@name Private Operators
             ///@{ 
-            /**
-             * Calculates the elemental contributions
-             * \f$ K^e = w\,B^T\,D\,B \f$ and
-             * \f$ r^e \f$
-             */
-            void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-                              ProcessInfo& rCurrentProcessInfo,
-                              bool CalculateStiffnessMatrixFlag,
-                              bool CalculateResidualVectorFlag);
 
             void CalculateAndAddKm(
                                    MatrixType& K,
