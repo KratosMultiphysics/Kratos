@@ -1,0 +1,48 @@
+project gpu_solvers_application
+    : 
+    source-location
+       .
+       custom_python
+       custom_external_libraries
+    :
+    requirements <include>.
+    	<include>$(CUDA_DIR)/include 
+		<include>custom_external_libraries
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+#################################################################################
+#################################################################################
+lib gpu_sparse : : <name>gpu_sparse <search>custom_external_libraries ;
+lib cudart : : <name>cudart <search>$(CUDA_DIR)/lib ;
+lib cublas : : <name>cublas <search>$(CUDA_DIR)/lib ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+import python ;
+python-extension KratosGPUSolversApplication
+    :  
+		add_linear_solvers_to_python.cpp 
+		gpu_solvers_python_application.cpp 
+		gpu_solvers_application.cpp
+        gpu_sparse/<link>static
+        cudart/<link>static
+        cublas/<link>static
+
+        #####################kratos library as defined in the jamroot
+    	/kratos-prj/kratos//libkratos/<link>static
+		/KratosProject//libkratos_static
+
+		#####################"system" includes as defined in the jamroot
+		/KratosProject//pythonlib
+		/KratosProject//boost_python_lib
+		/KratosProject//libomp      
+		;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+install install : KratosGPUSolversApplication : <location>$(TOP)/libs ;
+
