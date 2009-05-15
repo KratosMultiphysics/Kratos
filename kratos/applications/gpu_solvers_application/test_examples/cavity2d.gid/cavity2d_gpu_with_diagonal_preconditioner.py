@@ -121,8 +121,8 @@ fluid_solver.echo_level = 2
 ##fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pDiagPrecond)
 #fluid_solver.velocity_linear_solver = SkylineLUFactorizationSolver();
 #fluid_solver.pressure_linear_solver = SkylineLUFactorizationSolver();
-fluid_solver.velocity_linear_solver =  GPUBICGSTABSolver(1e-9, 5000)
-fluid_solver.pressure_linear_solver =  GPUBICGSTABSolver(1e-9, 5000)
+fluid_solver.velocity_linear_solver =  GPUBICGSTABSolverWithDiagonalPreconditioner(1e-9, 5000)
+fluid_solver.pressure_linear_solver =  GPUBICGSTABSolverWithDiagonalPreconditioner(1e-9, 5000)
 fluid_solver.Initialize()
 
 #settings to be changed

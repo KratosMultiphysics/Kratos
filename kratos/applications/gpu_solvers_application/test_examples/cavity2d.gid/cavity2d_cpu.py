@@ -110,7 +110,7 @@ fluid_solver.laplacian_form = 3;
 fluid_solver.predictor_corrector = True
 fluid_solver.vel_toll = 1e-3
 fluid_solver.time_order = 2
-fluid_solver.echo_level = 0
+fluid_solver.echo_level = 2
 
 
 
