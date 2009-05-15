@@ -1,0 +1,14 @@
+file	problemtype.bas
+where	*# Nodal Variable blocks
+
+*if(CondNumEntities > 0)
+Begin NodalData <NAME>
+*loop nodes *OnlyInCond
+*format "%i%i%f"
+*NodesNum *cond(Fixed) *cond(<NAME>)
+*end nodes
+End NodalData
+
+*endif
+
+
