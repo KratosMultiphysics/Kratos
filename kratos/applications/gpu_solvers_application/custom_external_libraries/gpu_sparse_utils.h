@@ -60,9 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Max possible number of blocks
 #define MAX_BLOCKS			65536
 
-// Maximum number of co-resident threads
-#define MAX_THREADS (27 * 1024)
-
 // Size of a block (threads per block)
 #define BLOCK_SIZE			256
 
@@ -79,6 +76,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	#define EMUSYNC
 
 #endif
+
+// Includes, system
 
 #include "cuda.h"
 
@@ -116,6 +115,9 @@ dim3 Build_Grid(const unsigned int Threads, const unsigned int BlockSize)
 
 bool inline CUDA_Success(cudaError_t ErrorCode)
 {
+	//if (ErrorCode != cudaSuccess)
+		//printf("*** CUDA error: %s ***\n", cudaGetErrorString(ErrorCode));
+		
 	return ErrorCode == cudaSuccess;
 }
 

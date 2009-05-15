@@ -74,21 +74,19 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Kernel(const size_t Rows, const siz
 // GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel
 // CSRMatrix Vector multiply vectorized kernel
 
-// WARNING! THIS HAS BUGS! DO NOT USE!
-
 __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
 {
 	size_t Idx = GlobalIdx();				// Global thread index
-	size_t WIdx = Idx / WARP_SIZE;			// There are 32 threads in a warp
 	size_t Lane = Idx & (WARP_SIZE - 1);	// Thread index within a warp
+	size_t WIdx = Idx / WARP_SIZE;			// There are 32 threads in a warp
 	
-	__shared__ double Tree[BLOCK_SIZE];
+	__shared__ double Buffer[BLOCK_SIZE];
 	
 	// We are doing one row per warp, so the row number is the same as WarpIdx
 	
 	if (WIdx < Rows)
 	{
-		Tree[threadIdx.x] = 0;		// Each thread zeros its own element in the tree
+		Buffer[threadIdx.x] = 0;		// Each thread zeros its own element in the Buffer
 		
 		size_t Start = A_RowIndices[WIdx];
 		size_t End = A_RowIndices[WIdx + 1];
@@ -99,38 +97,115 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows
 
 			// With caching
 
-			Tree[threadIdx.x] += A_Values[i] * Fetch_X(X_Values, A_Columns[i]);
+			Buffer[threadIdx.x] += A_Values[i] * Fetch_X(X_Values, A_Columns[i]);
 
 #else
 
 			// Without caching
-			Tree[threadIdx.x] += A_Values[i] * X_Values[A_Columns[i]];
+			Buffer[threadIdx.x] += A_Values[i] * X_Values[A_Columns[i]];
 
 #endif
 
-			// Reduce the results in the Tree; loops are unrolled!
-			// Note 1: There is 32 = 2 ^ 5 threads in a warp
-			// Note 2: This code relies on implicit synchronization of threads in a warp
+			// Reduce the results in the Buffer; loops are unrolled!
+			// There is 32 = 2 ^ 5 threads in a warp
 			
 			if (Lane < 16)
-				Tree[threadIdx.x] += Tree[threadIdx.x + 16];
+			{
+				Buffer[threadIdx.x] += Buffer[threadIdx.x + 16];
+				EMUSYNC
+			}
 				
 			if (Lane < 8) 
-				Tree[threadIdx.x] += Tree[threadIdx.x + 8];
+			{
+				Buffer[threadIdx.x] += Buffer[threadIdx.x + 8];
+				EMUSYNC
+			}
 				
 			if (Lane < 4)
-				Tree[threadIdx.x] += Tree[threadIdx.x + 4];
+			{
+				Buffer[threadIdx.x] += Buffer[threadIdx.x + 4];
+				EMUSYNC
+			}
 				
 			if (Lane < 2)
-				Tree[threadIdx.x] += Tree[threadIdx.x + 2];
+			{
+				Buffer[threadIdx.x] += Buffer[threadIdx.x + 2];
+				EMUSYNC
+			}
 			
 			if (Lane < 1)
-				Tree[threadIdx.x] += Tree[threadIdx.x + 1];
+			{
+				Buffer[threadIdx.x] += Buffer[threadIdx.x + 1];
+				EMUSYNC
+			}
 			
 			// The first thread in warp has the answer; write it back
 			if (Lane == 0)
-				 Y_Values[WIdx] = Tree[threadIdx.x];
+				 Y_Values[WIdx] = Buffer[threadIdx.x];
 	}
+}
+
+//
+// GPU_MatrixGetDiagonals_Kernel
+// Extract the diagonal elements of a matrix into a vector kernel
+
+__global__ void GPU_MatrixGetDiagonals_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, double *X_Values)
+{
+	size_t Idx = GlobalIdx();
+	
+	if (Idx < Rows)
+	{
+		X_Values[Idx] = static_cast <double> (0);
+		
+		for (size_t j = A_RowIndices[Idx]; j < A_RowIndices[Idx + 1]; j++)
+			if (A_Columns[j] == Idx)
+				X_Values[Idx] = A_Values[j];
+	}
+}
+
+//
+// GPU_MatrixGetDiagonals_Kernel
+// Extract the diagonal elements of a matrix into a vector kernel
+
+__global__ void GPU_MatrixMatrixDiagonalMultiply_Kernel(const size_t Size, const double *X_Values, const size_t *A_Columns, const size_t *A_RowIndices, double *A_Values)
+{
+	size_t Idx = GlobalIdx();
+	
+	if (Idx < Size)
+	{
+		double t = X_Values[Idx];
+	
+		for (size_t j = A_RowIndices[Idx]; j < A_RowIndices[Idx + 1]; j++)
+			A_Values[j] *= t;
+	}
+}
+
+//
+// GPU_VectorPrepareDiagonalPreconditionerValues_Kernel
+// Prepare diagonal values of the matrix for Diagonal Preconditioner kernel
+
+__global__ void GPU_VectorPrepareDiagonalPreconditionerValues_Kernel(const size_t Size, double *X_Values)
+{
+	size_t Idx = GlobalIdx();
+	
+	if (Idx < Size)
+		if (X_Values[Idx] == 0.00)
+			X_Values[Idx] = 1.00;
+			
+		else
+			X_Values[Idx] = 1.00 / sqrt(abs(X_Values[Idx]));
+}
+
+//
+// GPU_VectorVectorMultiplyElementWise_Kernel
+// Vector-Vector element-wise multiply kernel
+
+__global__ void GPU_VectorVectorMultiplyElementWise_Kernel(const size_t N, const double *X, const double *Y, double *Z)
+{
+	size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] = X[Idx] * Y[Idx];
 }
 
 //

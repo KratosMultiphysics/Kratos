@@ -247,7 +247,7 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 
 #endif
 		
-	bool UseVectorizedVersion = (A.NNZ / A.Size2) > (WARP_SIZE / 2);	// Just a guess!
+	bool UseVectorizedVersion = (A.NNZ / A.Size2) > 10;	// From nVidia forum
 
 	if (UseVectorizedVersion)
 	{
@@ -270,6 +270,112 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 
 #endif
 	
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
+}
+
+//
+// CPU_MatrixGetDiagonals
+// Extract the diagonal elements of a matrix into a vector on CPU
+
+bool CPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
+{
+	// Primary checks
+	if (A.Size1 != A.Size2 || A.Size2 != X.Size)
+		return false;
+
+	for (size_t i = 0; i < A.Size1; i++)
+	{
+		X.CPU_Values[i] = static_cast <double> (0);
+	
+		for (size_t j = A.CPU_RowIndices[i]; j < A.CPU_RowIndices[i + 1]; j++)
+			if (A.CPU_Columns[j] == i)
+				X.CPU_Values[i] = A.CPU_Values[j];
+	}
+	
+	return true;			
+}
+
+//
+// GPU_MatrixGetDiagonals
+// Extract the diagonal elements of a matrix into a vector on GPU
+
+bool GPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
+{
+	// Primary checks
+	if (A.Size1 != A.Size2 || A.Size2 != X.Size || !A.Allocated || !X.Allocated)
+		return false;
+		
+	dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	GPU_MatrixGetDiagonals_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values);
+
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
+}
+
+//
+// CPU_MatrixMatrixDiagonalMultiply
+// Multiply a digonal matrix specified with a vector with a matrix on CPU
+
+bool CPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
+{
+	// Primary checks
+	if (X.Size != A.Size1)
+		return false;
+
+	for (size_t i = 0; i < X.Size; i++)
+	{
+		double t = X.CPU_Values[i];
+		
+		for (size_t j = A.CPU_RowIndices[i]; j < A.CPU_RowIndices[i + 1]; j++)
+				A.CPU_Values[j] *= t;
+	}
+	
+	return true;			
+}
+
+//
+// GPU_MatrixMatrixDiagonalMultiply
+// Multiply a digonal matrix specified with a vector with a matrix on GPU
+
+bool GPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
+{
+	// Primary checks
+	if (X.Size != A.Size1 || !X.Allocated || !A.Allocated)
+		return false;
+		
+	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
+	GPU_MatrixMatrixDiagonalMultiply_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values);
+
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
+}
+
+//
+// CPU_VectorPrepareDiagonalPreconditionerValues
+// Prepare diagonal values of the matrix for Diagonal Preconditioner on CPU
+
+bool CPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X)
+{
+	for (size_t i = 0; i < X.Size; i++)
+		if (X.CPU_Values[i] == 0.00)
+			X.CPU_Values[i] = 1.00;
+		else
+			X.CPU_Values[i] = 1.00 / sqrt(abs(X.CPU_Values[i]));
+	
+	return true;
+}
+
+//
+// GPU_VectorPrepareDiagonalPreconditionerValues
+// Prepare diagonal values of the matrix for Diagonal Preconditioner on GPU
+
+bool GPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X)
+{
+	// Primary check
+	if (!X.Allocated)
+		return false;
+		
+	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
+	GPU_VectorPrepareDiagonalPreconditionerValues_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values);
+
 	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
 }
 
@@ -304,6 +410,39 @@ bool GPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
 	Result = cublasDdot(X.Size, X.GPU_Values, 1, Y.GPU_Values, 1);
 
 	return CUBLAS_Success(cublasGetError());
+}
+
+//
+// CPU_VectorVectorMultiplyElementWise
+// Vector-Vector element-wise multiply on CPU
+
+bool CPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y,  GPUVector &Z)
+{
+	// Primary check
+	if (X.Size != Y.Size || Y.Size != Z.Size)
+		return false;
+
+	for (size_t i = 0; i < X.Size; i++)
+		Z.CPU_Values[i] = X.CPU_Values[i] * Y.CPU_Values[i];
+		
+	return true;
+}
+
+//
+// GPU_VectorVectorMultiplyElementWise
+// Vector-Vector element-wise multiply on GPU
+
+bool GPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &Z)
+{
+	// Primary check
+	if (X.Size != Y.Size || Y.Size != Z.Size || !X.Allocated || !Y.Allocated || !Z.Allocated)
+		return false;
+
+	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
+
+	GPU_VectorVectorMultiplyElementWise_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values, Y.GPU_Values, Z.GPU_Values);
+
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
 }
 
 //
@@ -419,7 +558,7 @@ bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVe
 			GPU_VectorScaleAndAdd_1_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 	}
 	
-	return GPUSparse::CUDA_Success(cudaThreadSynchronize());		
+	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
 }
 
 // Variant 2: Y = A * X + B * Y

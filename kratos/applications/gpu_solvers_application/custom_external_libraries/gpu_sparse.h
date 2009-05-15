@@ -37,10 +37,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
+
 #if !defined(KRATOS_GPU_SPARSE_H_INCLUDED )
 #define  KRATOS_GPU_SPARSE_H_INCLUDED
-
-
 
 
 #include <stddef.h>
@@ -127,6 +126,42 @@ bool CPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y);
 bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y);
 
 //
+// CPU_MatrixGetDiagonals
+// Extract the diagonal elements of a matrix into a vector on CPU
+
+bool CPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X);
+
+//
+// GPU_MatrixGetDiagonals
+// Extract the diagonal elements of a matrix into a vector on GPU
+
+bool GPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X);
+
+//
+// CPU_MatrixMatrixDiagonalMultiply
+// Multiply a digonal matrix specified with a vector with a matrix on CPU
+
+bool CPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A);
+
+//
+// GPU_MatrixMatrixDiagonalMultiply
+// Multiply a digonal matrix specified with a vector with a matrix on GPU
+
+bool GPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A);
+
+//
+// CPU_VectorPrepareDiagonalPreconditionerValues
+// Prepare diagonal values of the matrix for Diagonal Preconditioner on CPU
+
+bool CPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X);
+
+//
+// GPU_VectorPrepareDiagonalPreconditionerValues
+// Prepare diagonal values of the matrix for Diagonal Preconditioner on GPU
+
+bool GPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X);
+
+//
 // CPU_VectorVectorMultiply
 // Vector-Vector multiply on CPU
 
@@ -137,6 +172,18 @@ bool CPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result);
 // Vector-Vector multiply on GPU
 
 bool GPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result);
+
+//
+// CPU_VectorVectorMultiplyElementWise
+// Vector-Vector element-wise multiply on CPU
+
+bool CPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y,  GPUVector &Z);
+
+//
+// GPU_VectorVectorMultiplyElementWise
+// Vector-Vector element-wise multiply on GPU
+
+bool GPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &Z);
 
 //
 // CPU_VectorNorm2
@@ -179,13 +226,3 @@ bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y);
 }
 
 #endif //KRATOS_GPU_SPARSE_H_INCLUDED
-
-
-
-
-
-
-
-
-
-
