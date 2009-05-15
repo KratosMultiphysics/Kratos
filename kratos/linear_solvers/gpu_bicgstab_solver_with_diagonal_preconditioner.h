@@ -38,8 +38,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-#if !defined(KRATOS_GPU_BICGSTAB_SOLVER_H_INCLUDED )
-#define  KRATOS_GPU_BICGSTAB_SOLVER_H_INCLUDED
+#if !defined(KRATOS_GPU_BICGSTAB_SOLVER_WITH_DIAGONAL_PRECONDITIONER_H_INCLUDED )
+#define  KRATOS_GPU_BICGSTAB_SOLVER_WITH_DIAGONAL_PRECONDITIONER_H_INCLUDED
 
 
 // System includes 
@@ -83,14 +83,14 @@ namespace Kratos
   /** Detail class definition.
   */
   
-    class GPUBICGSTABSolver : public IterativeSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>, Preconditioner<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector> >, Reorderer<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector> > >
+    class GPUBICGSTABSolverWithDiagonalPreconditioner : public IterativeSolver<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector>, Preconditioner<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector> >, Reorderer<UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector> > >
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Counted pointer of GPUBICGSTABSolver
-      typedef boost::shared_ptr<GPUBICGSTABSolver> Pointer;
+      /// Counted pointer of GPUBICGSTABSolverWithDiagonalPreconditioner
+      typedef boost::shared_ptr<GPUBICGSTABSolverWithDiagonalPreconditioner> Pointer;
 
       typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 
@@ -111,20 +111,20 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
-      GPUBICGSTABSolver(){}
+      GPUBICGSTABSolverWithDiagonalPreconditioner(){}
 
-      GPUBICGSTABSolver(double NewTolerance) : BaseType(NewTolerance){}
+      GPUBICGSTABSolverWithDiagonalPreconditioner(double NewTolerance) : BaseType(NewTolerance){}
 
-      GPUBICGSTABSolver(double NewTolerance, unsigned int NewMaxIterationsNumber) : BaseType(NewTolerance, NewMaxIterationsNumber){}
+      GPUBICGSTABSolverWithDiagonalPreconditioner(double NewTolerance, unsigned int NewMaxIterationsNumber) : BaseType(NewTolerance, NewMaxIterationsNumber){}
 
-//      GPUBICGSTABSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) : 
+//      GPUBICGSTABSolverWithDiagonalPreconditioner(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) : 
 //	BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner){}
 
       /// Copy constructor.
-    GPUBICGSTABSolver(const GPUBICGSTABSolver& Other) : BaseType(Other){}
+    GPUBICGSTABSolverWithDiagonalPreconditioner(const GPUBICGSTABSolverWithDiagonalPreconditioner& Other) : BaseType(Other){}
 
       /// Destructor.
-      virtual ~GPUBICGSTABSolver(){}
+      virtual ~GPUBICGSTABSolverWithDiagonalPreconditioner(){}
       
 
       ///@}
@@ -132,7 +132,7 @@ namespace Kratos
       ///@{
       
       /// Assignment operator.
-      GPUBICGSTABSolver& operator=(const GPUBICGSTABSolver& Other)
+      GPUBICGSTABSolverWithDiagonalPreconditioner& operator=(const GPUBICGSTABSolverWithDiagonalPreconditioner& Other)
       {
         BaseType::operator=(Other);
 	return *this;
@@ -223,14 +223,14 @@ namespace Kratos
       virtual std::string Info() const
 	{
 	  std::stringstream buffer;
-	  buffer << "GPU Biconjugate gradient stabilized linear solver with " << BaseType::GetPreconditioner()->Info();
+	  buffer << "GPU Biconjugate gradient stabilized linear solver with diagonal preconditioner with" << BaseType::GetPreconditioner()->Info();
 	  return  buffer.str();
 	}
       
       /// Print information about this object.
       void  PrintInfo(std::ostream& OStream) const
 	{
-	  OStream << "GPU Biconjugate gradient stabilized linear solver with ";
+	  OStream << "GPU Biconjugate gradient stabilized linear solver with diagonal preconditioner with ";
 	  BaseType::GetPreconditioner()->PrintInfo(OStream);
 	}
 
@@ -312,7 +312,6 @@ namespace Kratos
       bool IterativeSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
       {
 
-
 	//std::time_t t1 = 0, t2 = 0, t;
 
 	//KRATOS_WATCH("============================ GPU Solver ============================");
@@ -322,34 +321,68 @@ namespace Kratos
 
 	// Inputs
 	GPUCSRMatrix gA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
+
+	//KRATOS_WATCH(0);
+
 	KRATOS_GPU_CHECK(gA.GPU_Allocate());
 	KRATOS_GPU_CHECK(gA.Copy(CPU_GPU, false));
+	
+	//KRATOS_WATCH(1);
 	
 	GPUVector gX(rX.size(), &(rX[0]));
 	KRATOS_GPU_CHECK(gX.GPU_Allocate());
 	KRATOS_GPU_CHECK(gX.Copy(CPU_GPU));
 	
+	//KRATOS_WATCH(2);
+	
 	GPUVector gB(rB.size(), &(rB[0]));
 	KRATOS_GPU_CHECK(gB.GPU_Allocate());
 	KRATOS_GPU_CHECK(gB.Copy(CPU_GPU));
-
-	const int size = SparseSpaceType::Size(rX);
 	
+	//KRATOS_WATCH(3);
+	
+	// Diagonal Preconditioner
+	GPUVector d(rX.size());
+	KRATOS_GPU_CHECK(d.GPU_Allocate());
+	
+	//KRATOS_WATCH(4);
+	
+	KRATOS_GPU_CHECK(GPU_MatrixGetDiagonals(gA, d));
+	KRATOS_GPU_CHECK(GPU_VectorPrepareDiagonalPreconditionerValues(d));
+	KRATOS_GPU_CHECK(GPU_MatrixMatrixDiagonalMultiply(d, gA));
+	
+	//KRATOS_WATCH(5);
+
+	const int size = SparseSpaceType::Size(rX);	
 	BaseType::mIterationsNumber = 0;
+    
+    //KRATOS_WATCH(size);
     
 	//VectorType r(size);
 	GPUVector r(size);
 	KRATOS_GPU_CHECK(r.GPU_Allocate());
 	
-//	PreconditionedMult(rA,rX,r);
-	//SparseSpaceType::Mult(rA,rX,r); // r = rA*rX
-	KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, gX, r));
+	//KRATOS_WATCH(6);
+	
+	// Temp vector for PreconditionedMult operations
+	GPUVector t(size);
+	KRATOS_GPU_CHECK(t.GPU_Allocate());
+	
+	//KRATOS_WATCH(7);
+	
+	//PreconditionedMult(rA,rX,r); // r = rA*rX
+	KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, gX, t));
+	KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, t, r));
+	
+	//KRATOS_WATCH(8);
 	
 	//SparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r); // r = rB - r
 	KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gB, -1.00, r));
 
 	//BaseType::mBNorm = SparseSpaceType::TwoNorm(rB); 
 	KRATOS_GPU_CHECK(GPU_VectorNorm2(gB, BaseType::mBNorm));
+
+	//KRATOS_WATCH(9);
 
 	//VectorType p(r);
 	GPUVector p(size);
@@ -382,6 +415,8 @@ namespace Kratos
 	double beta = 0.00;
 	double omega = 0.00;
 	
+	//KRATOS_WATCH(10);
+	
 // 	if(roh0 < 1e-30) //we start from the real solution
 // 		return  BaseType::IsConverged();
 
@@ -389,13 +424,18 @@ namespace Kratos
 	  {
 	  
 	  	//START_TIMING(t);
+	  	
+	  	//KRATOS_WATCH(11);
 	  	  
 	    //PreconditionedMult(rA,p,q);  // q = rA * p
-	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, p, q));
+	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, p, t));
+	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, t, q));
 
 		//STOP_TIMING(t1, t);
 		
 		//START_TIMING(t);
+
+		//KRATOS_WATCH(12);
 
 	    //alpha = roh0 / SparseSpaceType::Dot(rs,q);
 	    double temp;
@@ -409,11 +449,15 @@ namespace Kratos
 		
 		//START_TIMING(t);
 
+		//KRATOS_WATCH(13);
+
 	    //PreconditionedMult(rA,s,qs);
-	    // ...
-	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, s, qs));
+	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, s, t));
+	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, t, qs));
 
 		//STOP_TIMING(t1, t);
+
+		//KRATOS_WATCH(14);
 
 		//START_TIMING(t);
 
@@ -459,11 +503,15 @@ namespace Kratos
 
 		//STOP_TIMING(t2, t);
 
+		//KRATOS_WATCH(15);
+
 		BaseType::mIterationsNumber++;
 
 	  } while(BaseType::IterationNeeded());
 	  
 	  KRATOS_GPU_CHECK(gX.Copy(GPU_CPU));
+	  
+	  //KRATOS_WATCH(16);
 	  
 	  //t = t1 + t2;
 	  
@@ -490,7 +538,7 @@ namespace Kratos
         
       ///@}    
         
-    }; // Class GPUBICGSTABSolver 
+    }; // Class GPUBICGSTABSolverWithDiagonalPreconditioner 
 
   ///@} 
   
@@ -506,14 +554,14 @@ namespace Kratos
   /// input stream function
   
   inline std::istream& operator >> (std::istream& IStream, 
-				      GPUBICGSTABSolver& rThis)
+				      GPUBICGSTABSolverWithDiagonalPreconditioner& rThis)
     {
 		return IStream;
     }
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& OStream, 
-				    const GPUBICGSTABSolver& rThis)
+				    const GPUBICGSTABSolverWithDiagonalPreconditioner& rThis)
     {
       rThis.PrintInfo(OStream);
       OStream << std::endl;
@@ -526,6 +574,6 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_GPU_BICGSTAB_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_GPU_BICGSTAB_SOLVER_WITH_DIAGONAL_PRECONDITIONER_H_INCLUDED  defined 
 
 
