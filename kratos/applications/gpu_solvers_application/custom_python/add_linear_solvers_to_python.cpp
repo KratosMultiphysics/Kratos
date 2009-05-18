@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/iterative_solver.h"
 #include "linear_solvers/gpu_bicgstab_solver.h"
+#include "linear_solvers/gpu_bicgstab_solver_with_diagonal_preconditioner.h"
 
 namespace Kratos
 {
@@ -67,6 +68,7 @@ namespace Python
         typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
         typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
         typedef GPUBICGSTABSolver GPUBICGSTABSolverType;
+        typedef GPUBICGSTABSolverWithDiagonalPreconditioner GPUBICGSTABSolverWithDiagonalPreconditionerType;
         
         using namespace boost::python;
         
@@ -76,6 +78,12 @@ namespace Python
         
         class_<GPUBICGSTABSolverType, GPUBICGSTABSolverType::Pointer,
         bases<LinearSolverType> >( "GPUBICGSTABSolver" )
+                .def(init<double, unsigned int>() )
+                .def(self_ns::str(self))
+                ;
+        
+        class_<GPUBICGSTABSolverWithDiagonalPreconditionerType, GPUBICGSTABSolverWithDiagonalPreconditionerType::Pointer,
+        bases<LinearSolverType> >( "GPUBICGSTABSolverWithDiagonalPreconditioner" )
                 .def(init<double, unsigned int>() )
                 .def(self_ns::str(self))
                 ;
