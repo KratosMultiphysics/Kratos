@@ -161,7 +161,7 @@ namespace Kratos
 
 	  for(i = 0 ; i < rA.size1() ; ++i)
 	    if(rA(i,i) != zero)
-	      mDiagonal[i] = 1.00 / sqrt(fabs(rA(i,i)));
+	      mDiagonal[i] = 1.00 / /*sqrt(fabs(*/rA(i,i)/*))*/;
 	    else
 	      mDiagonal[i] = one; 
 
@@ -183,7 +183,7 @@ namespace Kratos
 	for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
 	TSparseSpaceType::Mult(rA,mTemp, rY);
-	ApplyLeft(rY);
+	//ApplyLeft(rY);
       }
       
       void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
@@ -196,8 +196,8 @@ namespace Kratos
       
       VectorType& ApplyLeft(VectorType& rX)
 	{
-	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
-	    rX[i] *= mDiagonal[i];
+//	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+//	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
 	}
@@ -218,8 +218,8 @@ namespace Kratos
       */    
       VectorType& ApplyTransposeLeft(VectorType& rX)
 	{
-	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
-	    rX[i] *= mDiagonal[i];
+//	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+//	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
 	}
