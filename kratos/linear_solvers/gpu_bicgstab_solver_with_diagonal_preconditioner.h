@@ -311,7 +311,7 @@ namespace Kratos
       
       bool IterativeSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
       {
-
+	const int size = SparseSpaceType::Size(rX);
 	//std::time_t t1 = 0, t2 = 0, t;
 
 	//KRATOS_WATCH("============================ GPU Solver ============================");
@@ -319,70 +319,56 @@ namespace Kratos
 	//KRATOS_WATCH(rA.nnz());
 	//KRATOS_WATCH(rA.size1());
 
-	// Inputs
-	GPUCSRMatrix gA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
-
-	//KRATOS_WATCH(0);
-
+	// A
+	GPUCSRMatrix gA(rA.nnz(), size, size, &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
 	KRATOS_GPU_CHECK(gA.GPU_Allocate());
 	KRATOS_GPU_CHECK(gA.Copy(CPU_GPU, false));
 	
-	//KRATOS_WATCH(1);
-	
-	GPUVector gX(rX.size(), &(rX[0]));
+	// X
+	GPUVector gX(size, &(rX[0]));
 	KRATOS_GPU_CHECK(gX.GPU_Allocate());
 	KRATOS_GPU_CHECK(gX.Copy(CPU_GPU));
 	
-	//KRATOS_WATCH(2);
-	
-	GPUVector gB(rB.size(), &(rB[0]));
+	// B
+	GPUVector gB(size, &(rB[0]));
 	KRATOS_GPU_CHECK(gB.GPU_Allocate());
 	KRATOS_GPU_CHECK(gB.Copy(CPU_GPU));
 	
-	//KRATOS_WATCH(3);
-	
 	// Diagonal Preconditioner
-	GPUVector d(rX.size());
+	GPUVector d(size);
 	KRATOS_GPU_CHECK(d.GPU_Allocate());
 	
-	//KRATOS_WATCH(4);
-	
-	KRATOS_GPU_CHECK(GPU_MatrixGetDiagonals(gA, d));
-	KRATOS_GPU_CHECK(GPU_VectorPrepareDiagonalPreconditionerValues(d));
-	KRATOS_GPU_CHECK(GPU_MatrixMatrixDiagonalMultiply(d, gA));
-	
-	//KRATOS_WATCH(5);
+	GPUVector dp(size);
+	KRATOS_GPU_CHECK(dp.GPU_Allocate());
 
-	const int size = SparseSpaceType::Size(rX);	
+	KRATOS_GPU_CHECK(GPU_MatrixGetDiagonals(gA, d));
+	KRATOS_GPU_CHECK(dp.CopyGPUValuesFrom(d));
+	
+	KRATOS_GPU_CHECK(GPU_VectorPrepareDiagonalPreconditionerValues(d));
+	
 	BaseType::mIterationsNumber = 0;
-    
-    //KRATOS_WATCH(size);
     
 	//VectorType r(size);
 	GPUVector r(size);
 	KRATOS_GPU_CHECK(r.GPU_Allocate());
 	
-	//KRATOS_WATCH(6);
-	
 	// Temp vector for PreconditionedMult operations
 	GPUVector t(size);
 	KRATOS_GPU_CHECK(t.GPU_Allocate());
-	
-	//KRATOS_WATCH(7);
+
+	// ((BaseType::GetPreconditioner()->ApplyInverseRight(rX);))
+	KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(dp, gX, t));
+	KRATOS_GPU_CHECK(gX.CopyGPUValuesFrom(t));
 	
 	//PreconditionedMult(rA,rX,r); // r = rA*rX
 	KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, gX, t));
 	KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, t, r));
-	
-	//KRATOS_WATCH(8);
 	
 	//SparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r); // r = rB - r
 	KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gB, -1.00, r));
 
 	//BaseType::mBNorm = SparseSpaceType::TwoNorm(rB); 
 	KRATOS_GPU_CHECK(GPU_VectorNorm2(gB, BaseType::mBNorm));
-
-	//KRATOS_WATCH(9);
 
 	//VectorType p(r);
 	GPUVector p(size);
@@ -391,7 +377,7 @@ namespace Kratos
 	
 	//VectorType s(size);
 	GPUVector s(size);
-	KRATOS_GPU_CHECK(s.GPU_Allocate());
+	KRATOS_GPU_CHECK(s.GPU_Allocate());KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, s, t));
 	
 	//VectorType q(size);
 	GPUVector q(size);
@@ -415,27 +401,14 @@ namespace Kratos
 	double beta = 0.00;
 	double omega = 0.00;
 	
-	//KRATOS_WATCH(10);
-	
 // 	if(roh0 < 1e-30) //we start from the real solution
 // 		return  BaseType::IsConverged();
 
 	do
 	  {
-	  
-	  	//START_TIMING(t);
-	  	
-	  	//KRATOS_WATCH(11);
-	  	  
 	    //PreconditionedMult(rA,p,q);  // q = rA * p
 	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, p, t));
 	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, t, q));
-
-		//STOP_TIMING(t1, t);
-		
-		//START_TIMING(t);
-
-		//KRATOS_WATCH(12);
 
 	    //alpha = roh0 / SparseSpaceType::Dot(rs,q);
 	    double temp;
@@ -445,21 +418,9 @@ namespace Kratos
 	    //SparseSpaceType::ScaleAndAdd(1.00, r, -alpha, q, s); // s = r - alpha * q
 	    KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, r, -alpha, q, s));
 
-		//STOP_TIMING(t2, t);
-		
-		//START_TIMING(t);
-
-		//KRATOS_WATCH(13);
-
 	    //PreconditionedMult(rA,s,qs);
 	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, s, t));
 	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, t, qs));
-
-		//STOP_TIMING(t1, t);
-
-		//KRATOS_WATCH(14);
-
-		//START_TIMING(t);
 
 	    //omega = SparseSpaceType::Dot(qs,qs);
 	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiply(qs, qs, omega));
@@ -501,22 +462,12 @@ namespace Kratos
 		//BaseType::mResidualNorm = SparseSpaceType::TwoNorm(r);
 		KRATOS_GPU_CHECK(GPU_VectorNorm2(r, BaseType::mResidualNorm));
 
-		//STOP_TIMING(t2, t);
-
-		//KRATOS_WATCH(15);
-
 		BaseType::mIterationsNumber++;
 
 	  } while(BaseType::IterationNeeded());
 	  
+	  KRATOS_GPU_CHECK(GPU_VectorVectorMultiplyElementWise(d, gX, gX));
 	  KRATOS_GPU_CHECK(gX.Copy(GPU_CPU));
-	  
-	  //KRATOS_WATCH(16);
-	  
-	  //t = t1 + t2;
-	  
-	  //KRATOS_WATCH(((double) t1) / ((double) t) * 100);
-	  //KRATOS_WATCH(((double) t2) / ((double) t) * 100);
 	  
 	return BaseType::IsConverged();
       }  
