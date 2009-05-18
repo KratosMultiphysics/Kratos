@@ -193,7 +193,8 @@ __global__ void GPU_VectorPrepareDiagonalPreconditionerValues_Kernel(const size_
 			X_Values[Idx] = 1.00;
 			
 		else
-			X_Values[Idx] = 1.00 / sqrt(abs(X_Values[Idx]));
+			X_Values[Idx] = 1.00 / X_Values[Idx];
+//			X_Values[Idx] = 1.00 / sqrt(abs(X_Values[Idx]));
 }
 
 //
