@@ -257,7 +257,20 @@ namespace Kratos
                                          ProcessInfo& CurrentProcessInfo 
                                        )
    {
-	   rResult.resize(0);
+       KRATOS_TRY
+        unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int dim = number_of_nodes*3;
+        if(rResult.size() != dim)
+            rResult.resize(dim);
+
+        for (unsigned int i=0;i<number_of_nodes;i++)
+        {
+            int index = i*3;
+            rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+        }
+        KRATOS_CATCH("")
    }
        
     //************************************************************************************
@@ -268,6 +281,14 @@ namespace Kratos
    void MasterContactFace3D::GetDofList( DofsVectorType& ConditionalDofList,
                                    ProcessInfo& CurrentProcessInfo)
    {
+       ConditionalDofList.resize(0);
+
+        for (unsigned int i=0;i<GetGeometry().size();i++)
+        {
+            ConditionalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+            ConditionalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+            ConditionalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        }
    }
    
    void MasterContactFace3D::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
