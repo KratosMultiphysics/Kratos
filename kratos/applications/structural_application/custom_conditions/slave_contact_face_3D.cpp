@@ -222,7 +222,10 @@ namespace Kratos
     void SlaveContactFace3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo)
     {
-        rRightHandSideVector.resize(0,false);
+        int ndof = GetGeometry().size()*3;
+        if( rRightHandSideVector.size() != ndof )
+            rRightHandSideVector.resize(ndof,false);
+        rRightHandSideVector = ZeroVector(ndof);
     }
     
     //************************************************************************************
@@ -234,8 +237,14 @@ namespace Kratos
                                               VectorType& rRightHandSideVector, 
                                               ProcessInfo& rCurrentProcessInfo)
     {
-        rRightHandSideVector.resize(0,false);
-        rLeftHandSideMatrix(0,0);
+        int ndof = GetGeometry().size()*3;
+        if( rRightHandSideVector.size() != ndof )
+            rRightHandSideVector.resize(ndof,false);
+        rRightHandSideVector = ZeroVector(ndof);
+        if( rLeftHandSideMatrix.size1() != ndof )
+            rLeftHandSideMatrix(ndof,ndof);
+        rLeftHandSideMatrix = ZeroMatrix(ndof,ndof);
+        
     }
 
     //************************************************************************************
