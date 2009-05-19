@@ -133,8 +133,13 @@ class SolvingStrategyPython:
             ## updating the lagrange multipliers
             self.cu.Update( self.model_part, originalPosition, self.Parameters[3], self.Parameters[6], self.Parameters[8], self.Parameters[11], self.Parameters[9], self.Parameters[12], self.Parameters[7], self.Parameters[10]  )
             ## checking convergence
-            if( self.cu.IsConverged( self.model_part, uzawaStep, originalPosition, self.Parameters[3] ) == True ):
-                uzawaConverged = True
+            uzawaConverged = self.cu.IsConverged(self.model_part, uzawaStep, originalPosition, self.Parameters[3])
+            all_uzawa_converged = mpi.all_gather( mpi.world, uzawa_converged )
+            for flag in all_uzawa_converged:
+                if( flag == False ):
+                    uzawaConverged = False
+            mpi.world.barrier()
+            if( uzawaConverged ):
                 break
         if( uzawaConverged == False ):
             print "uzawa algorithm failes to converge within maximum number of iterations"
