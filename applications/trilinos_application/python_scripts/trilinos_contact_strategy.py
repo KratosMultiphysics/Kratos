@@ -134,7 +134,7 @@ class SolvingStrategyPython:
             self.cu.Update( self.model_part, originalPosition, self.Parameters[3], self.Parameters[6], self.Parameters[8], self.Parameters[11], self.Parameters[9], self.Parameters[12], self.Parameters[7], self.Parameters[10]  )
             ## checking convergence
             uzawaConverged = self.cu.IsConverged(self.model_part, uzawaStep, originalPosition, self.Parameters[3])
-            all_uzawa_converged = mpi.all_gather( mpi.world, uzawa_converged )
+            all_uzawa_converged = mpi.all_gather( mpi.world, uzawaConverged )
             for flag in all_uzawa_converged:
                 if( flag == False ):
                     uzawaConverged = False
