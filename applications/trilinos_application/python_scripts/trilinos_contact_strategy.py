@@ -97,7 +97,19 @@ class SolvingStrategyPython:
         ##  First step: reform DOF set and check if uzawa iteration is necessary
         self.PerformNewtonRaphsonIteration()
         self.cu.Update( self.model_part, originalPosition, self.Parameters[3], self.Parameters[6], self.Parameters[8], self.Parameters[11], self.Parameters[9], self.Parameters[12], self.Parameters[7], self.Parameters[10]  )
-        if( self.cu.IsConverged( self.model_part, 0,  originalPosition, self.Parameters[3] ) == True ):
+        ## CHECK FOR CONTACT CONVERGENCE AMONG ALL PROCESSES
+        contact_converged = self.cu.IsConverged( self.model_part, 0, originalPosition, self.Parameters[3] )
+        print("rank "+str(mpi.rank)+": contact converged = "+str(contact_converged) )
+        all_contact_converged = mpi.all_gather( mpi.world, contact_converged )
+        print("in rank "+str(mpi.rank)+": "+str(all_contact_converged) )
+        for flag in all_contact_converged:
+            if( flag == False ):
+                contact_converged = False
+        mpi.world.barrier()
+        print("################")
+        print("BEING ON BARRIER")
+        print("################")
+        if( contact_converged ):
             uzawaConverged = True
             (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
             self.cu.Clean( self.model_part, originalPosition );
@@ -216,12 +228,15 @@ class SolvingStrategyPython:
         self.space_utils.SetToZeroMatrix(self.A)
         self.space_utils.SetToZeroVector(self.Dx)			
         self.space_utils.SetToZeroVector(self.b)
+        print("SET TO ZERO COMPLETED")
 
         self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
+        print("ITERATION INITIALIZED")
         
         #build and solve the problem
         
         self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
+        print("BUILD_AND_SOLVE COMPLETED")
        
         #full output if needed
         if(echo_level >= 3):
