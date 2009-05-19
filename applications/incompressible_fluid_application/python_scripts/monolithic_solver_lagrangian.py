@@ -13,6 +13,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
     model_part.AddNodalSolutionStepVariable(IS_FLUID);
     model_part.AddNodalSolutionStepVariable(IS_POROUS);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
@@ -35,7 +36,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION); 
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(ARRHENIUS);     
+    model_part.AddNodalSolutionStepVariable(ARRHENIUS);  
+    model_part.AddNodalSolutionStepVariable(IS_WATER);   
 
 
     print "variables for the dynamic structural solution added correctly"
