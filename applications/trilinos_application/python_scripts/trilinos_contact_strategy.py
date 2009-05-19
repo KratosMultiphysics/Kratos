@@ -41,16 +41,16 @@ class SolvingStrategyPython:
         #default values for some variables
         self.max_iter = 30
         self.echo_level = 1
-	if(builder_and_solver_type == "standard"):
-        	self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
-	elif(builder_and_solver_type == "ML2D"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,2,self.linear_solver)
-	elif(builder_and_solver_type == "ML3D"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,3,self.linear_solver)
-	elif(builder_and_solver_type == "ML2Dpress"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,2,self.linear_solver)
-	elif(builder_and_solver_type == "ML3Dpress"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,3,self.linear_solver)
+        if(builder_and_solver_type == "standard"):
+            self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
+        elif(builder_and_solver_type == "ML2D"):
+            self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,2,self.linear_solver)
+        elif(builder_and_solver_type == "ML3D"):
+            self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,3,self.linear_solver)
+        elif(builder_and_solver_type == "ML2Dpress"):
+            self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,2,self.linear_solver)
+        elif(builder_and_solver_type == "ML3Dpress"):
+            self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,3,self.linear_solver)
         
         #local matrices and vectors
         self.pA = self.space_utils.CreateEmptyMatrixPointer(Comm)
@@ -106,6 +106,7 @@ class SolvingStrategyPython:
             #clear if needed - deallocates memory 
             if(self.ReformDofSetAtEachStep == True):
                 self.Clear();
+            return
 
         ## beginning of UZAWA loop
         print("##################")
