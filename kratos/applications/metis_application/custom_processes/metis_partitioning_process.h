@@ -472,9 +472,6 @@ namespace Kratos
 		  else
 		    KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 		  
-KRATOS_WATCH(number_of_element_nodes);
-KRATOS_WATCH(mDimension);
-KRATOS_WATCH(etype);
 
 		  int numflag = 0;
 		  int number_of_partitions = static_cast<int>(mNumberOfPartitions);
@@ -519,11 +516,11 @@ KRATOS_WATCH(etype);
   		  std::vector<int> interface_indices(mNumberOfPartitions, -1); 
 		  vector<int>& neighbours_indices = mrModelPart.GetCommunicator().NeighbourIndices();
 
+		
+
  		  for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
  		    if(SizeType(neighbours_indices[i]) < interface_indices.size())
  		     interface_indices[neighbours_indices[i]] = i;
-
-		  
 		  
 		  mLogFile << rank << " : Adding interface nodes to modelpart" << std::endl;
 		  // now adding interface nodes which belongs to other partitions
@@ -538,9 +535,16 @@ KRATOS_WATCH(etype);
 			  {
 			    mrModelPart.AssignNode(AllNodes((*i_node))); 
 			    mrModelPart.GetCommunicator().GhostMesh().AddNode(AllNodes((*i_node))); 
+if(interface_indices[node_partition] < neighbours_indices.size())
+{
 			    mrModelPart.GetCommunicator().GhostMesh(interface_indices[node_partition]).AddNode(AllNodes((*i_node))); 
-			    mrModelPart.GetCommunicator().InterfaceMesh().AddNode(AllNodes((*i_node))); 
 			    mrModelPart.GetCommunicator().InterfaceMesh(interface_indices[node_partition]).AddNode(AllNodes((*i_node))); 
+}
+else
+{
+	std::cout << rank << " : ERROR! Node #" << *i_node << " has not registered interface for partition #" << node_partition << std::endl;
+}
+			    mrModelPart.GetCommunicator().InterfaceMesh().AddNode(AllNodes((*i_node))); 
 //   			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
 			    AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
 			  }
@@ -553,9 +557,11 @@ KRATOS_WATCH(etype);
   			if(NPart[*i_node-1] == rank) 
  			  {
 			    SizeType mesh_index = interface_indices[EPart[i_element]];
-			    if(mesh_index > mNumberOfPartitions) // Means the neighbour domain is not registered!!
+			    if(mesh_index > neighbours_indices.size()) // Means the neighbour domain is not registered!!
+{
+//std::cout << rank << " : cannot find interface for element #" << i_element << " with rank " << EPart[i_element] << std::endl;
 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
- 			    
+} 			    
 			    mrModelPart.GetCommunicator().LocalMesh().AddNode(AllNodes((*i_node))); 
 			    mrModelPart.GetCommunicator().LocalMesh(mesh_index).AddNode(AllNodes((*i_node))); 
 			    mrModelPart.GetCommunicator().InterfaceMesh(mesh_index).AddNode(AllNodes((*i_node))); 
@@ -599,7 +605,7 @@ KRATOS_WATCH(etype);
 		  mLogFile << rank << " : Elements added" << std::endl;
 		}
 
-	  void AddingConditions(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart, ModelPart::ConditionsContainerType& AllConditions)
+	  virtual void AddingConditions(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart, ModelPart::ConditionsContainerType& AllConditions)
 	        {
 		  int rank = GetRank();
 
