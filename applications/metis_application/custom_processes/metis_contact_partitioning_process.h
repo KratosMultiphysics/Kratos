@@ -133,7 +133,7 @@ namespace Kratos
 		  
 		    std::stringstream log_filename;
 		    log_filename << "kratos_metis_" << rank << ".log";
-		    mLogFile.open(log_filename.str().c_str());
+//		    mLogFile.open(log_filename.str().c_str());
 		  KRATOS_CATCH("")
 		}
 
@@ -146,7 +146,7 @@ namespace Kratos
 		  
 		    std::stringstream log_filename;
 		    log_filename << "kratos_metis_" << rank << ".log";
-		    mLogFile.open(log_filename.str().c_str());
+//		    mLogFile.open(log_filename.str().c_str());
 		  KRATOS_CATCH("")
 		}
 
@@ -229,6 +229,7 @@ namespace Kratos
 		      GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
 // 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
 		      KRATOS_WATCH(colors_number);
+		      KRATOS_WATCH(domains_graph);
 		      KRATOS_WATCH(domains_colored_graph);
 
 		      // Filling the sending buffer
