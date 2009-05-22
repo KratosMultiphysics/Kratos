@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "custom_utilities/line_searches_utility.h"
 
 #include <cmath>
 
@@ -124,6 +125,8 @@ namespace Kratos
 	>
 	class ResidualBasedArcLenghtStrategy 
 		: public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+		 
+		  
 	{
 	public:
 		/**@name Type Definitions */       
@@ -173,19 +176,22 @@ namespace Kratos
 			typename TSchemeType::Pointer pScheme,
 			typename TLinearSolver::Pointer pNewLinearSolver,
 			typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+			unsigned  int Ide,
+			unsigned  int MaxIterations,
 			double factor_delta_lmax,
-			unsigned int Ide,
-			unsigned int MaxIterations = 30,
-			bool CalculateReactions = false,
-			bool ReformDofSetAtEachStep = false,
-			bool MoveMeshFlag = false
+			bool CalculateReactions     = true,
+			bool ReformDofSetAtEachStep = true,
+			bool MoveMeshFlag           = true,	
+			bool ApplyBodyForce         = true // if it is true step should begin in 0
 			)
 			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
-		{
+
+		 {
 			KRATOS_TRY
 			//set flags to default values
 			SetMaxIterationNumber(MaxIterations);
 			mCalculateReactionsFlag = CalculateReactions;
+			//KRATOS_WATCH(Parameters_Line_Searches)
 			//mstep = step;
 			// creating models part for analysis
 			mAuxElementModelPart.SetBufferSize(model_part.GetBufferSize());
@@ -194,6 +200,8 @@ namespace Kratos
 			
 		        mfactor_delta_lmax      = factor_delta_lmax;                            		
 		        mIde	                = Ide;
+			mApplyBodyForce         = ApplyBodyForce;
+                        
                         
 			
 			mReformDofSetAtEachStep = ReformDofSetAtEachStep;
@@ -233,71 +241,6 @@ namespace Kratos
 			KRATOS_CATCH("")			
 		}
                              
-		ResidualBasedArcLenghtStrategy(
-			ModelPart& model_part, 
-			typename TSchemeType::Pointer pScheme,
-			typename TLinearSolver::Pointer pNewLinearSolver,
-			typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-			typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-			double factor_delta_lmax,
-			unsigned int Ide,
-			unsigned int  MaxIterations = 30,
-			bool CalculateReactions = false,
-			bool ReformDofSetAtEachStep = false,
-			bool MoveMeshFlag = false
-			)
-			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
-		{     
-			KRATOS_TRY
-
-			// creating model part to use
-			mAuxElementModelPart.SetBufferSize(model_part.GetBufferSize());
-			mAuxConditionModelPart.SetBufferSize(model_part.GetBufferSize());
-			InitializeAuxiliaryModelParts(model_part);
-
-			
-		        mfactor_delta_lmax      = factor_delta_lmax;                        		
-		        mIde	                = Ide;
-                       
-
-		        //set flags to default values
-			SetMaxIterationNumber(MaxIterations);
-			mCalculateReactionsFlag = CalculateReactions;
-
-			mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-			//saving the convergence criteria to be used 
-			mpConvergenceCriteria = pNewConvergenceCriteria;
-
-			//saving the scheme
-			mpScheme = pScheme;
-
-			//saving the linear solver
-			mpLinearSolver = pNewLinearSolver;
-
-			//setting up the default builder and solver
-			mpBuilderAndSolver = pNewBuilderAndSolver;
-
-			//set flags to start correcty the calculations
-			mSolutionStepIsInitialized = false;
-			mInitializeWasPerformed = false;
-
-			//tells to the builder and solver if the reactions have to be Calculated or not
-			GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
-
-			//tells to the Builder And Solver if the system matrix and vectors need to
-			//be reshaped at each step or not
-			GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-			//set EchoLevel to the default value (only time is displayed)
-			SetEchoLevel(1);
-
-			//by default the matrices are rebuilt at each iteration
-			this->SetRebuildLevel(2);
-
-			KRATOS_CATCH("")			
-		}
-       
 
 		/** Destructor.
 		*/
@@ -342,9 +285,9 @@ namespace Kratos
 		void VariablesArcLenght()
 		{
 		  KRATOS_TRY
-                  this-> mlamda = BaseType::GetModelPart().GetProcessInfo()[LAMNDA];     
-		  this-> mdelta_lamda      = 1.00;
-		  this-> meta              = 1.00;
+                  mlamda = BaseType::GetModelPart().GetProcessInfo()[LAMNDA];     
+		  mdelta_lamda      = 1.00;
+		  meta              = 1.00;
                   KRATOS_CATCH("")	  
   	
 		}
@@ -392,11 +335,11 @@ namespace Kratos
 
 			TSystemMatrixType& mA = *mpA;
 			TSystemVectorType& mDx = *mpDx;
-			TSystemVectorType& mDx_old = *mpDx_old;
+			//TSystemVectorType& mDx_old = *mpDx_old;
 			TSystemVectorType& mb = *mpb;
-			TSystemVectorType& mRHS_cond =  *mpRHS_cond;
-			TSystemVectorType& mDelta_p    = *mpDelta_p;
-			TSystemVectorType& mDelta_pold = *mpDelta_pold;
+			//TSystemVectorType& mRHS_cond =  *mpRHS_cond;
+			//TSystemVectorType& mDelta_p    = *mpDelta_p;
+			//TSystemVectorType& mDelta_pold = *mpDelta_pold;
 
 
 
@@ -417,32 +360,34 @@ namespace Kratos
 		{
 		       KRATOS_TRY
 			
-		       TSystemVectorPointerType pSigma_q_cond;
-		       TSystemVectorPointerType pSigma_q_body;
-		       TSystemVectorPointerType pSigma_q;
-		       TSystemVectorPointerType pSigma_h;
-		       TSystemVectorPointerType ph;
+		       TSystemVectorPointerType pSigma_q_cond; // desplazamientos debido a  las cond
+		       TSystemVectorPointerType pSigma_q_body; // desplazamientos debido al peso propio
+		       TSystemVectorPointerType pSigma_q;      // suma de los dos anteriores
+		       TSystemVectorPointerType pSigma_h;      // desplazamiento debido al desequilibrado
+		       TSystemVectorPointerType ph;	       // Ortogonal component of h	
 		       TSystemVectorPointerType pAux_Vector;
-	               TSystemVectorPointerType pe;
+	               TSystemVectorPointerType pe;            // out of balance load
+		       //TSystemVectorPointerType pX_old;        // desplazamioento de la ultima iteracion convergida.
 
-		       double Ao  = 0.00;
-		       double aux = 0.00;
-		       double miu = 0.00;
-                       double g   = 0.00;
+		       unsigned int iteration_number=0;	
+		       double Ao   = 0.00;
+		       double A    = 1.00;
+		       double aux  = 0.00;
+		       double miu  = 0.00;
+                       double g    = 0.00;
                        bool reduce_arc_lenght = true;
-
-	               // Constantes necesarias para realizar la operacion de Ublas  
-		       double A = 1.00;
-                       //double B = 1.00;      
+		       bool is_converged      = false;
+		       bool ResidualIsUpdated = false;
+		       
 			
-			typename TSchemeType::Pointer pScheme = GetScheme();
-			typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+		       typename TSchemeType::Pointer pScheme = GetScheme();
+		       typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 			
-			std::cout<<"***************************************"<<std::endl;
-			std::cout<<"Solving System With Arc Lenght Strategy "<< std::endl;
-			std::cout<<"***************************************"<<std::endl;
+		       std::cout<<"***************************************"<<std::endl;
+		       std::cout<<"Solving System With Arc Lenght Strategy "<< std::endl;
+		       std::cout<<"***************************************"<<std::endl;
 
-			//int solstep = pCurrentProcessInfo.GetCurrentSolutionStep();
+		
 			DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
 			// Creating models part for analysis
@@ -492,7 +437,7 @@ namespace Kratos
 
 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,pSigma_q,pSigma_h,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
 
-			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,pSigma_q,ph,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpX_old,ph,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
 
 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,pe,pAux_Vector,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
 
@@ -510,23 +455,16 @@ namespace Kratos
 			TSystemVectorType& Sigma_h       = *pSigma_h;
 			TSystemVectorType& Aux_Vector    = *pAux_Vector;
 			TSystemVectorType& e             = *pe;
+			TSystemVectorType& mX_old        = *mpX_old;
 
 			
-			//initializing the parameters of the Newton-Raphson cicle
-			unsigned int iteration_number=0; 
-			BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;	
-//			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
-			bool is_converged = false;
-			bool ResidualIsUpdated = false;
-			pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
-			//is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb); // retorna true
 			
 			//function to perform the building and the solving phase.
 			if(BaseType::mRebuildLevel >1 || BaseType::mStiffnessMatrixIsBuilt == false)
 			{
 				TSparseSpace::SetToZero(mA);
 				TSparseSpace::SetToZero(mDx);
-				TSparseSpace::SetToZero(mb);
+				TSparseSpace::SetToZero(mb); // fuera interna
 				TSparseSpace::SetToZero(mRHS_cond);
 				TSparseSpace::SetToZero(Sigma_q_cond);   
 				TSparseSpace::SetToZero(Sigma_q_body);
@@ -536,20 +474,18 @@ namespace Kratos
 				TSparseSpace::SetToZero(Sigma_h);
 				TSparseSpace::SetToZero(Aux_Vector);
 				TSparseSpace::SetToZero(e);
+				TSparseSpace::SetToZero(mX_old);
 	    
-			
+				// mb        = Fuerza Interna
+				// RHS_cond  = Fuerza  Externa
 				pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb); 
-				pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart,mRHS_cond);
-                                ////KRATOS_WATCH(mb)
-			        ////KRATOS_WATCH(mRHS_cond)
-			      
-				
+				pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart,mRHS_cond);	
 			}
 			else
 			{
 				TSparseSpace::SetToZero(mA);
 				TSparseSpace::SetToZero(mDx); //mDx=0.00;
-				TSparseSpace::SetToZero(mb);
+				TSparseSpace::SetToZero(mb); // Fuerza interna
 				TSparseSpace::SetToZero(mRHS_cond);
 				TSparseSpace::SetToZero(Sigma_q_cond);   
 				TSparseSpace::SetToZero(Sigma_q_body); 
@@ -558,26 +494,34 @@ namespace Kratos
 				TSparseSpace::SetToZero(Sigma_h);
 				TSparseSpace::SetToZero(Aux_Vector);
 				TSparseSpace::SetToZero(e);
-				TSparseSpace::SetToZero(Sigma_q); 
-
+				TSparseSpace::SetToZero(Sigma_q);
+				TSparseSpace::SetToZero(mX_old); 
 
 				
 				pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb); 
 				pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart,mRHS_cond);
 			}
 			
+		    
+			// Guardando los desplazamientos antiguos en X_old. En 1era iteracion X_old = 0
+			this->BackupDatabase(rDofSet,mX_old); 
  
-			if (mstep==1) {pBuilderAndSolver->SystemSolve(mA,Sigma_q_body,mb);}
-			pBuilderAndSolver->SystemSolve(mA,Sigma_q_cond,mRHS_cond);
-			noalias(Sigma_q) = Sigma_q_body + Sigma_q_cond; 
-			//KRATOS_WATCH(Sigma_q)    
-			//KRATOS_WATCH(mA) 
-			//KRATOS_WATCH(mb)
-                        //KRATOS_WATCH(mRHS_cond)	  
+			// Siempre resolveremos primero bajo peso propio.
+                        // en caso de no considrerar peso propio colocar en body_force un valor cercano a cero.(1E-10)
+			if (mstep==0 and mApplyBodyForce==true) 
+			{
+			    pBuilderAndSolver->SystemSolve(mA,Sigma_q_body,mb);
+			    TSparseSpace::Copy(Sigma_q_body,mDelta_p); 
+			}
+                        else
 
+			{
+			    pBuilderAndSolver->SystemSolve(mA,Sigma_q_cond,mRHS_cond);
+			    TSparseSpace::Copy(Sigma_q_cond,Sigma_q);
+			}			
 			//Iteration Cicle... performed only for NonLinearProblems
 		        std::cout<<"************************************************************************"<<std::endl;
-		        std::cout<<"Begininning Newton Rapshon Iteration.Arc Lenght Icluded. Please Wait...."<<std::endl;
+		        std::cout<<"Begininning Arc Lenght Method.A Pseudo-Line Searches Included. Please Wait...."<<std::endl;
 			std::cout<<"************************************************************************"<<std::endl;
 			
 			while(reduce_arc_lenght==true)
@@ -589,17 +533,28 @@ namespace Kratos
 				KRATOS_WATCH(iteration_number);
 				KRATOS_WATCH(mstep);
 				KRATOS_WATCH(mMaxIterationNumber);
+				is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb); // retorna true
+			        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;	
+			        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
 				
 			   if (iteration_number==1)
 				{
-				    if (mstep==1)
+				   
+				  if (mstep==0 and mApplyBodyForce==true)
+				      {
+					 std::cout<<"Resolving Structure For Dead Load "<< std::endl;
+					 mlamda_old       = 0.00; 
+
+				      }
+
+				   else if (mstep==1)
 					{  
-					    Ao               = TSparseSpace::Dot(Sigma_q,Sigma_q);       //Ao   = inner_prod (Sigma_q, Sigma_q);
-                                            mlamda_old       = 0.00; 
+					    mlamda_old       = 0.00;  
+					    Ao               = TSparseSpace::Dot(Sigma_q,Sigma_q);     //Ao = inner_prod (Sigma_q, Sigma_q);
 					    mdelta_l         = sqrt(2*Ao*mdelta_lamda*mdelta_lamda);
                                             mdelta_lold      = mdelta_l;
                                             mdelta_lmax      = mdelta_l*mfactor_delta_lmax;              //  Tamaño maximo de arc-length
-                                            TSparseSpace::Assign(mDelta_p, mdelta_lamda,Sigma_q);       // mDelta_p = mdelta_lamda*Sigma_q;				    
+                                            TSparseSpace::Assign(mDelta_p, mdelta_lamda,Sigma_q);       // mDelta_p = mdelta_lamda*Sigma_q; 
 					    mdelta_lamda_old  = mdelta_lamda;
                                             TSparseSpace::Copy(mDelta_p ,mDelta_pold);                  // mDelta_pold      = mDelta_p;
 					    KRATOS_WATCH(mdelta_l)
@@ -630,18 +585,24 @@ namespace Kratos
 				  }
 			    else
 			        {
-				    
+				    if (mstep==0)
+				      {
+					pBuilderAndSolver->SystemSolve(mA,Sigma_q_body,mb);
+					TSparseSpace::Copy(Sigma_q_body,mDelta_p); 
+				      }
+				    else
+				    { 
 				    TSystemVectorType& Sigma_h = *pSigma_h;
 				    TSparseSpace::SetToZero(Sigma_h);
-				    TSparseSpace::SetToZero(mRHS_cond);
+				    //TSparseSpace::SetToZero(mRHS_cond);
 				    TSparseSpace::SetToZero(mDx);
 				    TSparseSpace::SetToZero(mDelta_p);
 				    TSparseSpace::SetToZero(h);
 				    
-				    pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart,mRHS_cond);
+				    //pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart,mRHS_cond);
 				    KRATOS_WATCH(mlamda)
                                     KRATOS_WATCH(meta)
-       
+                                    //KRATOS_WATCH(mRHS_cond)
                                     TSparseSpace::ScaleAndAdd(mlamda,mRHS_cond,A,mb,e);    //e = mlamda*mRHS_cond + mb; // desequilibrado=> e ver ecuacion (7)
 				    g = TSparseSpace::Dot(e,mRHS_cond)/TSparseSpace::Dot(mRHS_cond,mRHS_cond);
 				    TSparseSpace::ScaleAndAdd(A,e,-g,mRHS_cond,h);            //noalias(h) = (e - g*mRHS_cond); 
@@ -658,35 +619,79 @@ namespace Kratos
 				    				    
 				    //Funcion Recursiva
 				    Recursive_Function_Arc_Length(pSigma_q, pAux_Vector,pSigma_h, g, Ao);
+				    }
 				    
 				    }
 
+
 			 // Computing Convergence
                         TSparseSpace::SetToZero(mDx); //mDx=0.00;
-                        TSparseSpace::SetToZero(mb); //mDx=0.00;
+                        TSparseSpace::SetToZero(mb); //mDx=0.00; 
 			mlamda  = mlamda_old + mdelta_lamda;
                         TSparseSpace::Copy(mDelta_p,mDx); //mDx= mDelta_p;
 		        KRATOS_WATCH(mlamda_old);
-			//KRATOS_WATCH(mDx);
+			//KRATOS_WATCH(mb);
+			//KRATOS_WATCH(mDelta_p);
 
+                         // hay que resolver simultaneamente las ecuaciones para lamda y meta.
+			 // leer articulo An Al icluding line searches de crisfield, para proxima version 1.02
+			 // las contantes para resolver sistema de ecuacion cambia, ya que se multiplican por meta.
+
+			 /*
+                         if ( this->mApplyLineSearches==true)
+				    {
+					   
+					  Satisfactory_Line_Search = this->LineSearches(BaseType::GetModelPart(),
+											pScheme,
+											pBuilderAndSolver,
+											rDofSet,
+											X_old,mDelta_p,mDx,mb,mA);
+					  if ( Satisfactory_Line_Search== true)		
+					      {
+						    std::cout<<"***************************************************"<<std::endl; 
+						    std::cout<<"******Line Searches Has Succecfuly Finished*******"<<std::endl; 
+						    std::cout<<"***************************************************"<<std::endl;
+					      }
+					   
+				      
+					      
+					      rDofSet = pBuilderAndSolver->GetDofSet();
+					      this->SetDatabaseToValue(rDofSet, X_old);
+		 			      TSparseSpace::Assign(mDx,LineSearchesUtility<TSparseSpace,TDenseSpace,TLinearSolver>::meta,mDx);
+					      pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+				
+
+					 }
+
+				 else
+				      {
+					    //Updating the results stored in the database
+					    rDofSet = pBuilderAndSolver->GetDofSet();
+					    pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+				      }
+
+				  */
 			//update results
 			rDofSet = pBuilderAndSolver->GetDofSet();
 			pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 			//move the mesh if needed
 			if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+			
 
 			//KRATOS_WATCH(mA);	   
 		
 			// No hace nada  
-			pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+			//pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
 
 			// return true
-			is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+			//is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 				
 			// bucle sobre los elementos y condiciones
 			pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+			
                         //KRATOS_WATCH(mA)
                         //KRATOS_WATCH(mb)
+
 			
 			ResidualIsUpdated = false;
 
@@ -721,13 +726,12 @@ namespace Kratos
 				TSparseSpace::SetToZero(e);	  
   
 				pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb); 
+				if (mstep != 0)
+				{
 				pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart,mRHS_cond);
-				
-				//pBuilderAndSolver->SystemSolve(mA,Sigma_q_body,mb);
-			        pBuilderAndSolver->SystemSolve(mA,Sigma_q_cond,mRHS_cond);
-			        Sigma_q = Sigma_q_body + Sigma_q_cond;
-				//KRATOS_WATCH(Sigma_q)    
-			        //KRATOS_WATCH(mA)
+				pBuilderAndSolver->SystemSolve(mA,Sigma_q_cond,mRHS_cond);
+				TSparseSpace::Copy(Sigma_q_cond,Sigma_q);
+				}
 			   }
  
 				      
@@ -770,7 +774,7 @@ namespace Kratos
 			//to avoid error accumulation
 			pScheme->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
 			pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
-                        FinalizeSolutionStep(iteration_number,reduce_arc_lenght);
+                        this->FinalizeSolutionStep(iteration_number,reduce_arc_lenght);
 			BaseType::GetModelPart().GetProcessInfo()[LAMNDA] = mlamda;
                         KRATOS_WATCH(mdelta_l)
 
@@ -917,6 +921,7 @@ namespace Kratos
 			//TSystemVectorType& h             = *ph;
 			TSystemVectorType& Sigma_h       = *pSigma_h;
 			TSystemVectorType& Aux_Vector    = *pAux_Vector;
+			TSystemVectorType& mX_old        = *mpX_old;
 			//TSystemVectorType& e             = *pe;
 
 	                 // Constantes necesarias para realizar la operacion de Ublas  
@@ -929,12 +934,12 @@ namespace Kratos
 			 typename TSchemeType::Pointer pScheme = GetScheme();
 			 
 			    
-
 		         // necesario para encontrar raices. mDelta_p se convierte aDx de la iteracion anterior
-		         for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+		         /*for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
 			        if(i_dof->IsFree())
 				 mDelta_p[i_dof->EquationId()] = i_dof->GetSolutionStepValue(0)-i_dof->GetSolutionStepValue(1);
-				    
+			  */	    
+			  Calculate_Delta_pold(rDofSet,mDelta_p);
                           a = Ao + TSparseSpace::Dot(Sigma_q,Sigma_q);     
                           TSparseSpace::ScaleAndAdd(A,mDelta_p,meta,Sigma_h,Aux_Vector);   
 		          b = 2.00*(Ao*(mdelta_lamda-g) + TSparseSpace::Dot(Sigma_q,Aux_Vector)); 
@@ -1004,18 +1009,23 @@ namespace Kratos
 					}
 
 				    else
-					{
+					{   /*	
 					    for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
 						if(i_dof->IsFree())
 						mDelta_p[i_dof->EquationId()] = i_dof->GetSolutionStepValue(0)-i_dof->GetSolutionStepValue(1);
-						 
+					     */
+
+					    TSparseSpace::SetToZero(mX_old);
+					    this->BackupDatabase(rDofSet,mX_old); 
+					    Calculate_Delta_pold(rDofSet,mDelta_p);
 					    TSparseSpace::ScaleAndAdd(A,mDelta_p,B,Sigma_h,mDelta_p);  //mDelta_p = mDelta_p + Sigma_h; // delta p_cr
 					    TSparseSpace::Copy(mDelta_p,mDx);    //mDx      = mDelta_p;
                                                 
                                              //update results
-					    //rDofSet = pBuilderAndSolver->GetDofSet();
-					    //pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
-					    //pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+					    rDofSet = pBuilderAndSolver->GetDofSet();
+					    pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+					    if(this->MoveMeshFlag() == true) BaseType::MoveMesh();	
+					   
 					    TSparseSpace::SetToZero(mb);
 					    TSparseSpace::SetToZero(mRHS_cond);
 					    pBuilderAndSolver->BuildRHS(pScheme,mAuxElementModelPart,mb);
@@ -1024,7 +1034,8 @@ namespace Kratos
 	                                    delta_lamda_cr = lamda_cr - mlamda_old;
                                             delta_lcr = sqrt(inner_prod(mDelta_p,mDelta_p) + Ao*(delta_lamda_cr)*(delta_lamda_cr));
  				            miu = mdelta_l/delta_lcr;
-					    TSparseSpace::Assign(mDelta_p,(1.00-miu),mDelta_p);
+					    TSparseSpace::ScaleAndAdd((miu-1.00),mDelta_p,miu,Sigma_h,mDelta_p); 
+					    //TSparseSpace::Assign(mDelta_p,(miu-1),mDelta_p);
                                             //mDelta_p = (1.00-miu)*mDelta_p;
                                             mdelta_lamda = miu*delta_lamda_cr;
                                             KRATOS_WATCH(lamda_cr)
@@ -1033,12 +1044,13 @@ namespace Kratos
 				            KRATOS_WATCH(mdelta_lamda)
 				  
 					    // dejandolo como estaba antes
-					    mDx = -mDx;
+					    // mDx = -mDx;
+					     this->SetDatabaseToValue(rDofSet, mX_old);
 					
 					    //update results
-					    rDofSet = pBuilderAndSolver->GetDofSet();
-				            pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
-					    pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+					    //rDofSet = pBuilderAndSolver->GetDofSet();
+				            //pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+					    //pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
 
 					    TSparseSpace::SetToZero(mb);
 					    TSparseSpace::SetToZero(mDx);
@@ -1078,7 +1090,7 @@ namespace Kratos
 		TSystemVectorPointerType mpb;
 		TSystemMatrixPointerType mpA;
 		TSystemVectorPointerType mpRHS_cond;
-		TSystemVectorPointerType mpDx_old;  // Solucion en paso anterior convergido.
+		TSystemVectorPointerType mpX_old;  // Solucion en paso anterior convergido.
 		TSystemVectorPointerType mpDelta_p;
 		TSystemVectorPointerType mpDelta_pold;
 		
@@ -1098,11 +1110,13 @@ namespace Kratos
 		default = true
 		*/
 		bool mCalculateReactionsFlag;
+		bool mInitializeWasPerformed;
+                bool mApplyBodyForce; 
 
 		bool mSolutionStepIsInitialized;
 		unsigned int mMaxIterationNumber;
 		unsigned int mstep; 
-		bool mInitializeWasPerformed;
+		
 
 		// old = incremento anterior convergido
 
@@ -1165,7 +1179,7 @@ namespace Kratos
 			//setting up the Vectors involved to the correct size with value cero
 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
 		    
-			 pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx_old,mpRHS_cond,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo()); 
+			 pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpX_old,mpRHS_cond,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo()); 
 
 
 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDelta_p,mpDelta_pold,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo()); 
@@ -1173,11 +1187,11 @@ namespace Kratos
 			
 			TSystemMatrixType& mA          = *mpA;
 			TSystemVectorType& mDx         = *mpDx;
-			TSystemVectorType& mDx_old     = *mpDx_old;
+			//TSystemVectorType& mDx_old     = *mpDx_old;
 			TSystemVectorType& mb          = *mpb;
-			TSystemVectorType& mRHS_cond   = *mpRHS_cond;
-			TSystemVectorType& mDelta_p    = *mpDelta_p;
-			TSystemVectorType& mDelta_pold = *mpDelta_pold;
+			//TSystemVectorType& mRHS_cond   = *mpRHS_cond;
+			//TSystemVectorType& mDelta_p    = *mpDelta_p;
+			//TSystemVectorType& mDelta_pold = *mpDelta_pold;
 			
 
 			//initial operations ... things that are constant over the Solution Step
@@ -1207,6 +1221,7 @@ namespace Kratos
 		      DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
 	              TSystemVectorType& mDelta_pold = *mpDelta_pold;
+		      TSystemVectorType& mX_old = *mpX_old;
 				
 		      mdelta_lamda_old = mdelta_lamda;	
                       mdelta_l = mdelta_lold; 
@@ -1215,11 +1230,16 @@ namespace Kratos
 		      mlamda_old = mlamda;
                       //KRATOS_WATCH(iteration_number)
 		      TSparseSpace::SetToZero(mDelta_pold);
-
+		      /*
 		      for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
 					if(i_dof->IsFree())
 						mDelta_pold[i_dof->EquationId()] = i_dof->GetSolutionStepValue(0) - i_dof->GetSolutionStepValue(1);
-		      ////KRATOS_WATCH(mDelta_pold);
+		      */
+			
+		     Calculate_Delta_pold(rDofSet,mDelta_pold);
+		     this->BackupDatabase(rDofSet,mX_old);  
+
+		      //KRATOS_WATCH(mDelta_pold);
 		      // Controlo la longitud del arco.       
 		      if (mdelta_lold > mdelta_lmax)
 			 {
@@ -1290,11 +1310,13 @@ namespace Kratos
 			    rDofSet = pBuilderAndSolver->GetDofSet();
 
 			    // necesario para encontrar raices. mDelta_p se convierte aDx de la iteracion anterior
-			     for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+			    /* for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
 				if(i_dof->IsFree())
 				    mDelta_p[i_dof->EquationId()] = i_dof->GetSolutionStepValue(0)-i_dof->GetSolutionStepValue(1);
-			    //KRATOS_WATCH(mDelta_p)	  
-
+			    */
+			    //KRATOS_WATCH(mDelta_p)
+	  
+			    Calculate_Delta_pold(rDofSet,mDelta_p);  
 			    a_prima = (Ao + inner_prod(Sigma_q,Sigma_q))*(inner_prod(Sigma_h,Sigma_h))-(inner_prod(Sigma_q,Sigma_h))*(inner_prod(Sigma_q,Sigma_h)); 
 
 			    b_prima = 2.00*((Ao + inner_prod(Sigma_q,Sigma_q))*(inner_prod(mDelta_p,Sigma_h))-((Ao*(mdelta_lamda-g)+ inner_prod(Sigma_q,mDelta_p)))*(inner_prod(Sigma_q,Sigma_h)));
@@ -1349,6 +1371,54 @@ namespace Kratos
 				  imag  = true; 
 				 }
 		          }
+
+
+		// Calcula el incremento total producido desde la iteracion i hasta la i+1  
+		void Calculate_Delta_pold(
+			DofsArrayType const & rDofSet,
+			TSystemVectorType& Delta_pold
+			) 
+			{ 
+			KRATOS_TRY
+			      for(typename DofsArrayType::const_iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+				  if(i_dof->IsFree())
+				      {Delta_pold[i_dof->EquationId()] = i_dof->GetSolutionStepValue(0) - i_dof->GetSolutionStepValue(1);}
+
+			KRATOS_CATCH("")
+			 }
+		void SetDatabaseToValue(
+			DofsArrayType& rDofSet,
+			const TSystemVectorType& X_old
+			) 
+			{ 
+			KRATOS_TRY
+
+				for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+				{
+					if(i_dof->IsFree())
+					{i_dof->GetSolutionStepValue() = X_old[i_dof->EquationId()];}
+				}
+			KRATOS_CATCH("")
+			 }
+ 
+                  
+		     // Permite escribir los desplazamientos antiguos en el X_old
+		     void BackupDatabase(
+			DofsArrayType const& rDofSet,
+			TSystemVectorType& X_old
+			) 
+			{ 
+			KRATOS_TRY
+
+				 for(typename DofsArrayType::const_iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+				{
+					    if(i_dof->IsFree())
+					     { X_old[i_dof->EquationId()] = i_dof->GetSolutionStepValue();}
+				}
+			KRATOS_CATCH("")
+			 }
+
+
 		     
 
 		ResidualBasedArcLenghtStrategy(const ResidualBasedArcLenghtStrategy& Other);
