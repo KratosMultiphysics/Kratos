@@ -37,49 +37,49 @@ def AddDofs(model_part):
   print "Dofs for the Static Structural Arc Length Solution added correctly"
   print "*********************************************************************** "
 
-class StaticStructuralSolver:
+class StaticStructuralSolverArcLength:
     #######################################################################
     def __init__(self,model_part,domain_size):
 
         self.model_part    = model_part
         self.time_scheme   = ResidualBasedIncrementalUpdateStaticScheme()
+        #self.time_scheme   = ParallelResidualBasedIncrementalUpdateStaticScheme()
 
 	## Varibles de Control de Arc Lenght Method
-	self.Ide                  = 5
-	self.factor_delta_lmax    = 1.00
-        self.max_iteration        = 20
-	self.toler                = 1.0E-9
-        self.norm                 = 1.0E-6 
+	self.Ide                        = 20
+	self.factor_delta_lmax          = 1.00
+	self.toler                      = 1.0E-8
+        self.norm                       = 1.0E-6 
+	self.MaxIterations              = 100
        
+	
 
         #definition of the solvers. Super_Lu Default
         #self.structure_linear_solver    =   SkylineLUFactorizationSolver()
         self.structure_linear_solver      =   SuperLUSolver()
+        #pDiagPrecond = ParallelDiagonalPreconditioner()
+        #self.structure_linear_solver =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
 	#self.structure_linear_solver    =   Preconditioner()
         #self.structure_linear_solver    =   IterativeSolver() 
 
         #definition of the convergence criteria
-#        self.conv_criteria = DisplacementCriteria(0.0001,1e-6)
         self.conv_criteria = DisplacementCriteria(self.norm,self.toler)
+	#self.conv_criteria = ParallelDisplacementCriteria(0.000001,1e-9)
 
-        self.CalculateReactionFlag = True
-        self.ReformDofSetAtEachStep = False
-        self.MoveMeshFlag = True
+        #definition of the convergence criteria
+       
+
+        self.CalculateReactionFlag  = True
+        self.ReformDofSetAtEachStep = True
+        self.MoveMeshFlag           = True
+	self.ApplyBodyForce         = False
         
     #######################################################################
     def Initialize(self):
         
-        #creating the solution strategy
-        
-        #import strategy_python
-        #self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
-        #(self.solver).SetEchoLevel(3)
-
-        #creating the solution strategy
-        ##self.solver = 	ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,150,True,True,True)
-        ##(self.solver).SetReformDofSetAtEachStepFlag(True)
-        ##(self.solver).SetMoveMeshFlag(True)
-        self.solver = 	ResidualBasedArcLenghtStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.factor_delta_lmax,self.Ide,self.max_iteration,True,True,True)
+        self.solver = 	ResidualBasedArcLenghtStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.Ide,self.MaxIterations,self.factor_delta_lmax, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag,self.ApplyBodyForce)
+       
+         
                  
     #######################################################################   
     def Solve(self):
