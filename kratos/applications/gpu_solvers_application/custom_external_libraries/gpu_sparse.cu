@@ -358,7 +358,8 @@ bool CPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X)
 		if (X.CPU_Values[i] == 0.00)
 			X.CPU_Values[i] = 1.00;
 		else
-			X.CPU_Values[i] = 1.00 / sqrt(abs(X.CPU_Values[i]));
+			X.CPU_Values[i] = 1.00 / X.CPU_Values[i];
+//			X.CPU_Values[i] = 1.00 / sqrt(abs(X.CPU_Values[i]));
 	
 	return true;
 }
