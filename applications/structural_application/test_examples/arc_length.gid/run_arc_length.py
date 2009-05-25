@@ -62,10 +62,9 @@ from KratosExternalSolversApplication import *
 model_part = ModelPart("FluidPart");  
 
 #import structural_solver_static_arc_length
-import structural_solver_static
+import structural_solver_static_arc_length
 
-#structural_solver_static_arc_length.AddVariables(model_part)
-structural_solver_static.AddVariables(model_part)
+structural_solver_static_arc_length.AddVariables(model_part)
 
 ###################################################################
 ###################################################################
@@ -100,11 +99,12 @@ model_part.SetBufferSize(2)
 
 #importing the solver files
 #structural_solver_static_arc_length.AddDofs(model_part)
-structural_solver_static.AddDofs(model_part)
+structural_solver_static_arc_length.AddDofs(model_part)
 
 #creating a fluid solver object
 #solver = structural_solver_static_arc_length.StaticStructuralSolver(model_part,domain_size)
-solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size)
+solver = structural_solver_static_arc_length.StaticStructuralSolverArcLength(model_part,domain_size)
+
 
 node_1 = FindNode(model_part.Nodes, 2.5, 0.25, 0.00)
 
