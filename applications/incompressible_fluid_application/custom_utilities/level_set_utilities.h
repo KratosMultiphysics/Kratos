@@ -1172,7 +1172,7 @@ KRATOS_WATCH(surface_nodes.size());
 				WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES); 
 				for(WeakPointerVector< Node<3> >::iterator i=neighb_nodes.begin(); 				i !=neighb_nodes.end(); i++) 
 				{ 
-					if(i->GetValue(IS_VISITED) < il+1)
+					if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED) > 0)
 					{
 						noalias(aux) += i->FastGetSolutionStepValue(rConvVelVar);
 						avg_number += 1.0;
