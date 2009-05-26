@@ -720,7 +720,7 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 
 #ifdef SPLIT_OSS
 				
-				#pragma omp parallel for firstprivate(time_inv), private(work_array)
+// 				#pragma omp parallel for firstprivate(time_inv), private(work_array)
 				for (int i_node = 0; i_node < n_nodes; i_node++)
 				{
 					array_1d<double, TDim>& xi_i = mXi[i_node];
@@ -1127,13 +1127,13 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 					}
 				}
 
-				//reset is visited flag
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					inode->GetValue(IS_VISITED) = 0;
-				}
+// 				//reset is visited flag
+// 				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+// 								inode != mr_model_part.NodesEnd();
+// 								inode++)	
+// 				{
+// 					inode->GetValue(IS_VISITED) = 0;
+// 				}
 
 				//fill the following layers by neighbour relationships
 				//each layer fills the following
@@ -1195,7 +1195,7 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 						WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES); 
 						for(WeakPointerVector< Node<3> >::iterator i=neighb_nodes.begin(); 	i !=neighb_nodes.end(); i++) 
 						{ 
-							if(i->GetValue(IS_VISITED) < il+1)
+							if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED))
 							{
 								noalias(aux) += i->FastGetSolutionStepValue(VELOCITY);
 								avg_number += 1.0;
