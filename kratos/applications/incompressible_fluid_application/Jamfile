@@ -55,6 +55,8 @@ python-extension KratosIncompressibleFluidApplication
 	monolithic2d_neumann.cpp
 	#asgs_comp_pr_dc.cpp
 
+	fluid_2d_split.cpp
+
 	#kratos library
     #/kratos-prj/kratos//libkratos/<link>static
     /KratosProject//libkratos_static
