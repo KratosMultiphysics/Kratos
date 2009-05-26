@@ -67,6 +67,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/Turbolence_Smagorinsky.h" 
 #include "custom_utilities/pure_convection_edgebased.h" 
 #include "custom_utilities/elementbased_navierstokes_solver.h" 
+#include "custom_utilities/elembased_distance_utilities.h" 
+#include "custom_utilities/elembased_extrapolation_utilities.h" 
+#include "custom_utilities/elembased_BC_utilities.h" 
+
 
 
 
@@ -119,7 +123,27 @@ namespace Python
 			  .def("FluidDistanceComputation_FromBoundary",&LevelSetUtilitiesImplicitExtrapolation::FluidDistanceComputation_FromBoundary)
 			  .def("ApplyFluidProperties",&LevelSetUtilitiesImplicitExtrapolation::ApplyFluidProperties)
 			  ;
-	  
+
+	  class_< ElemBasedDistanceUtilities>("ElemBasedDistanceUtilities", init<ModelPart& >() )
+			  .def("IdentifyFreeSurface",&ElemBasedDistanceUtilities::IdentifyFreeSurface)
+			  .def("MarkExternalAndMixedNodes",&ElemBasedDistanceUtilities::MarkExternalAndMixedNodes)
+			  .def("MarkInternalAndMixedNodes",&ElemBasedDistanceUtilities::MarkInternalAndMixedNodes) 
+			  .def("SaveScalarVariableToOldStep",&ElemBasedDistanceUtilities::SaveScalarVariableToOldStep)
+			  .def("ChangeSignToDistance",&ElemBasedDistanceUtilities::ChangeSignToDistance)
+			  .def("MarkNodesByDistance",&ElemBasedDistanceUtilities::MarkNodesByDistance)
+			  ;
+
+	  class_< ElemBasedExtrapolationUtilities > ("ElemBasedExtrapolationUtilities", init<ModelPart& >() )
+			  .def("ExtrapolateVelocities",&ElemBasedExtrapolationUtilities::ExtrapolateVelocities)
+			  ;
+      
+	  class_< ElemBasedBCUtilities >("ElemBasedBCUtilities", init<ModelPart& >() )
+			.def("SetDividedElem_2D",&ElemBasedBCUtilities::SetDividedElem_2D)
+			.def("SetPressureAndVelocityFixities",&ElemBasedBCUtilities::SetPressureAndVelocityFixities) 
+			.def("FreePressureAndVelocity",&ElemBasedBCUtilities::FreePressureAndVelocity)
+			.def("SetToZeroPressureAndVelocity",&ElemBasedBCUtilities::SetToZeroPressureAndVelocity)
+			;
+
           typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
           typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
           typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
