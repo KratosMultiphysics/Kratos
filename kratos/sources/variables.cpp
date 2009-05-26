@@ -312,6 +312,9 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(double, CRACK_OPENING)
 	KRATOS_CREATE_VARIABLE(double, CRACK_TRANSLATION)
 
+	 //for level set application
+	 KRATOS_CREATE_VARIABLE(double, IS_DIVIDED)
+
 	  KratosApplication::KratosApplication() :
 		  	mCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 			mCondition2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
@@ -567,6 +570,9 @@ namespace Kratos
 	KRATOS_REGISTER_VARIABLE(ICE_VOLUME_FRACTION_NULL )
 	KRATOS_REGISTER_VARIABLE(ICE_VOLUME_FRACTION_EINS )
 
+
+	 //for level set application
+	 KRATOS_REGISTER_VARIABLE(IS_DIVIDED )
     }
 
 	// Specialize array of compenents for VariableData
