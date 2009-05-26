@@ -305,6 +305,10 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(double, PRESSUREAUX)
 	KRATOS_DEFINE_VARIABLE(double, NODAL_MAUX)	
 	KRATOS_DEFINE_VARIABLE(double, NODAL_PAUX)
+
+      //for level set application
+	KRATOS_DEFINE_VARIABLE(double,  IS_DIVIDED)
+
 }  // namespace Kratos.
 
 
