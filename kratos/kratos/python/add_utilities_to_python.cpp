@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
+#include "utilities/divide_elem_utils.h"
+
 
 
 namespace Kratos
@@ -93,6 +95,12 @@ namespace Python
 			  .def("CalculateDistances2D",&BodyDistanceCalculationUtils::CalculateDistances<2>)
 			  .def("CalculateDistances3D",&BodyDistanceCalculationUtils::CalculateDistances<3>)
 			  ;
+
+	  class_<DivideElemUtils>("DivideElemUtils", init<>())
+		.def("DivideElement_2D",&DivideElemUtils::DivideElement_2D)
+		;
+
+
   }
 	
 }  // namespace Python.
