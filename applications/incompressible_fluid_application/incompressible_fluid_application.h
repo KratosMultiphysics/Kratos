@@ -48,6 +48,8 @@
 
 #include "custom_elements/fluid_2dGLS_expl.h"
 #include "custom_elements/fluid_2dGLS_expl_comp.h"
+
+#include "custom_elements/fluid_2d_split.h"
 namespace Kratos
 {
 
@@ -251,7 +253,6 @@ namespace Kratos
 		const ASGS2D  mASGS2D; 
 		const ASGSCompressible2D mASGSCompressible2D;
 
-
 		const ASGSPRDC  mASGSPRDC; 
 
 		//const ASGSCOMPPRDC mASGSCOMPPRDC;
@@ -259,6 +260,8 @@ namespace Kratos
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
 		const Fluid2DGLS_expl_comp  mFluid2DGLS_expl_comp;  
+
+		const Fluid2DSplit mFluid2DSplit;
 
 		///@} 
 		///@name Private Operations
