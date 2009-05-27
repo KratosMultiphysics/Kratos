@@ -22,9 +22,9 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "incompressible_fluid_application.h"
+//#include "incompressible_fluid_application.h"
 #include "custom_strategies/strategies/solver_configuration.h"
-
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -148,7 +148,12 @@ namespace Kratos
 			//the system will be cleared at the end!
 //			ReformDofAtEachIteration = false;
 
-
+//std::cout << model_part.GetNodalSolutionStepVariablesList() << std::endl;
+//
+//KRATOS_WATCH(*(model_part.NodesBegin()->pGetVariablesList()))
+//KRATOS_WATCH(FRACT_VEL)
+//KRATOS_WATCH(VELOCITY)
+        
 			//veryfying that the model part has all the variables needed
 			if (model_part.NodesBegin()->SolutionStepsDataHas(FRACT_VEL)==false )
 				KRATOS_ERROR(std::logic_error,"Add  ----FRACT_VEL---- variable!!!!!! ERROR","");
@@ -305,7 +310,7 @@ namespace Kratos
 			KRATOS_TRY
 
 
-			double p_norm = 0.0;
+			double local_p_norm = 0.0;
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
 				i != BaseType::GetModelPart().NodesEnd() ; ++i)
 			{
@@ -313,8 +318,11 @@ namespace Kratos
 				const double& p = (i)->FastGetSolutionStepValue(PRESSURE);
 				(i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = p;
 
-				p_norm+=p*p;
+				local_p_norm+=p*p;
 			}
+
+                        double p_norm = BaseType::GetModelPart().GetCommunicator().SumAll(local_p_norm);
+                        
                         //TODO: prepare for parallelization
 			p_norm = sqrt(p_norm);
 				
@@ -351,8 +359,8 @@ namespace Kratos
 			this->SolveStep3();
 			std::cout << "projection calculation time " << projection_time.elapsed() << std::endl;
 
-			if(mdomain_size == 2)
-  				this->SolveStep2_Mp();
+//			if(mdomain_size == 2)
+//  				this->SolveStep2_Mp();
 
 
 			//correct velocities
@@ -376,12 +384,23 @@ namespace Kratos
 			array_1d<double,3> zero = ZeroVector(3);
 			Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
+
 			//first of all set to zero the nodal variables to be updated nodally
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ;
 				i != BaseType::GetModelPart().NodesEnd() ; ++i)
+//			for(ModelPart::NodeIterator i = BaseType::GetModelPart().GetCommunicator().LocalMesh().NodesBegin() ;
+//				i != BaseType::GetModelPart().GetCommunicator().LocalMesh().NodesEnd() ; ++i)
 			{
 				array_1d<double,3>& fract_v = (i)->FastGetSolutionStepValue(FRACT_VEL);
 				fract_v *= (i)->FastGetSolutionStepValue(NODAL_MASS) * BDFcoeffs[0];
+			}
+
+//                        //set to zero fract_v on ghost nodes --> does nothing on serial version
+                        for(ModelPart::NodeIterator i = BaseType::GetModelPart().GetCommunicator().GhostMesh().NodesBegin() ;
+				i != BaseType::GetModelPart().GetCommunicator().GhostMesh().NodesEnd() ; ++i)
+			{
+				array_1d<double,3>& fract_v = (i)->FastGetSolutionStepValue(FRACT_VEL);
+                                noalias(fract_v) = ZeroVector(3);
 			}
 
 			//add the elemental contributions for the calculation of the velocity
@@ -393,6 +412,7 @@ namespace Kratos
 				(i)->InitializeSolutionStep(rCurrentProcessInfo);
 			}
 
+                        BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(FRACT_VEL);
 
 
 			//solve nodally for the velocity
@@ -945,6 +965,7 @@ namespace Kratos
 				mpfracvel_z_strategy->SetEchoLevel(Level);
 			//
 			mppressurestep->SetEchoLevel(Level);
+                        std::cout << "Echo Level set to " << Level << std::endl;
 		}
 
 		//******************************************************************************************************

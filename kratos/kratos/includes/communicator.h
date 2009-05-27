@@ -259,6 +259,10 @@ namespace Kratos
       ///@}
       ///@name Access
       ///@{
+      int MyPID()
+      {
+          return 0;
+      }
 
       SizeType GetNumberOfColors()
       {
@@ -582,7 +586,28 @@ namespace Kratos
       ///@} 
       ///@name Protected member Variables 
       ///@{ 
-        
+      SizeType mNumberOfColors;
+
+      NeighbourIndicesContainerType mNeighbourIndices;
+
+      // To store all local entities
+      MeshType::Pointer mpLocalMesh;
+
+      // To store all ghost entities
+      MeshType::Pointer mpGhostMesh;
+
+      // To store all interface entities
+      MeshType::Pointer mpInterfaceMesh;
+
+      // To store interfaces local entities
+      MeshesContainerType mLocalMeshes;
+
+      // To store interfaces ghost entities
+      MeshesContainerType mGhostMeshes;
+
+      // To store interfaces ghost+local entities
+      MeshesContainerType mInterfaceMeshes;
+      
         
       ///@} 
       ///@name Protected Operators
@@ -621,27 +646,7 @@ namespace Kratos
       ///@{ 
         
 
-      SizeType mNumberOfColors;
 
-      NeighbourIndicesContainerType mNeighbourIndices;
-
-      // To store all local entities
-      MeshType::Pointer mpLocalMesh;
-
-      // To store all ghost entities
-      MeshType::Pointer mpGhostMesh;
-
-      // To store all interface entities
-      MeshType::Pointer mpInterfaceMesh;
-
-      // To store interfaces local entities
-      MeshesContainerType mLocalMeshes;
-
-      // To store interfaces ghost entities
-      MeshesContainerType mGhostMeshes;
-
-      // To store interfaces ghost+local entities
-      MeshesContainerType mInterfaceMeshes;
 
       ///@} 
       ///@name Private Operators

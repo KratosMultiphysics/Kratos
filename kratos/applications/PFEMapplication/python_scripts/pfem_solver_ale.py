@@ -323,7 +323,7 @@ class PFEMSolver:
         ##erase the nodes out of the bounding box
         print "h_factor=", self.h_factor        
         (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-#        (self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes,self.h_factor);
+        (self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes,self.h_factor);
         (self.EraseNodes).Execute();
         print "erase is executed"
 

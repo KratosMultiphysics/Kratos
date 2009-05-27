@@ -875,6 +875,8 @@ namespace Kratos
 
 			array_1d<double,3> DeltaDisp, acc;
 
+                        KRATOS_WATCH("in MoveLonelyNodes")
+
 			//const array_1d<double,3> body_force = ThisModelPart.ElementsBegin()->GetProperties()[BODY_FORCE];
 			for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; 
 				i != ThisModelPart.NodesEnd() ; ++i)
@@ -884,6 +886,7 @@ namespace Kratos
 					(i)->GetValue(NEIGHBOUR_ELEMENTS).size() == 0 //and it is lonely
 					)
 				{
+                                    KRATOS_WATCH(i->Id());
 					//set to zero the pressure
 					(i)->FastGetSolutionStepValue(PRESSURE) = 0;
 

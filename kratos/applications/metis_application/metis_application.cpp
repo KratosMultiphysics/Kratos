@@ -34,8 +34,8 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(double, IS_FREE_SURFACE)
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_TO_WALL)
 */
-	KRATOS_CREATE_VARIABLE(double, PRESSURE_OLD_IT)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
+//	KRATOS_CREATE_VARIABLE(double, PRESSURE_OLD_IT)
+//	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 	KratosMetisApplication::KratosMetisApplication()	
@@ -46,7 +46,7 @@ namespace Kratos
 	{
 		// calling base class register to register Kratos components
 		KratosApplication::Register();
-		std::cout << "Initializing Kratos PFEMApplication... " << std::endl;
+		std::cout << "Initializing Kratos MetisApplication... " << std::endl;
 
 	}
 
