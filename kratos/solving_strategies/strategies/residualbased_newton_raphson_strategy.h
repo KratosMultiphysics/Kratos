@@ -565,9 +565,11 @@ namespace Kratos
 				//TSparseSpace::Clear(mDx);
 				//TSparseSpace::Clear(mb);
 				
-				TSparseSpace::ClearData(mA);
-				TSparseSpace::ClearData(mDx);
-				TSparseSpace::ClearData(mb);
+//				TSparseSpace::ClearData(mA);
+//				TSparseSpace::ClearData(mDx);
+//				TSparseSpace::ClearData(mb);
+
+                                this->Clear();
 			}
 
 			return 0.00;

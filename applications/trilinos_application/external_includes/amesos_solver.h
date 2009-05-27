@@ -105,6 +105,7 @@ namespace Kratos
             bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
             {
 		KRATOS_TRY
+                rA.Comm().Barrier();
 		Epetra_LinearProblem Problem(&rA,&rX,&rB);
 		Amesos_BaseSolver* Solver;
 		Amesos Factory;
@@ -118,7 +119,10 @@ namespace Kratos
 		Solver->NumericFactorization();
 		Solver->Solve();
 
-		delete Solver;		
+		delete Solver;
+
+                rA.Comm().Barrier();
+                
                 return true;
 		KRATOS_CATCH("");
             }

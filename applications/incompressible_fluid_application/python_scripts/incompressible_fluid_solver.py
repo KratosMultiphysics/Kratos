@@ -89,12 +89,13 @@ class IncompressibleFluidSolver:
         self.CalculateNormDxFlag = True;
         self.laplacian_form = 2; #1 = laplacian, 2 = Discrete Laplacian
         self.predictor_corrector = False;
+        self.use_dt_in_stabilization = False
 
         self.echo_level = 0
 
         #definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
-        pILUPrecond = ILU0Preconditioner()
+#        pILUPrecond = ILU0Preconditioner()
 ##        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
 ##        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
         self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
@@ -107,7 +108,13 @@ class IncompressibleFluidSolver:
         
 #        self.solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
         print "in python: okkio using Coupled Strategy"
-        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
+##        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
+
+        solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form,self.use_dt_in_stabilization )
+        self.solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
+
+
+
 
         (self.solver).SetEchoLevel(self.echo_level)
         print "finished initialization of the fluid strategy"

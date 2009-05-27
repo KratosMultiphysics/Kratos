@@ -226,7 +226,12 @@ namespace Kratos
 	  return *this;
 	}
 
-
+      int MyPID()
+      {
+          int rank;
+	  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+          return rank;
+      }
 
       ///@}
       ///@name Access
@@ -519,27 +524,27 @@ namespace Kratos
       ///@{ 
         
 
-      SizeType mNumberOfColors;
+//      SizeType mNumberOfColors;
 
-      NeighbourIndicesContainerType mNeighbourIndices;
+//      NeighbourIndicesContainerType mNeighbourIndices;
+//
+//      // To store all local entities
+//      MeshType::Pointer mpLocalMesh;
+//
+//      // To store all ghost entities
+//      MeshType::Pointer mpGhostMesh;
+//
+//      // To store all interface entities
+//      MeshType::Pointer mpInterfaceMesh;
+//
+//      // To store interfaces local entities
+//      MeshesContainerType mLocalMeshes;
 
-      // To store all local entities
-      MeshType::Pointer mpLocalMesh;
-
-      // To store all ghost entities
-      MeshType::Pointer mpGhostMesh;
-
-      // To store all interface entities
-      MeshType::Pointer mpInterfaceMesh;
-
-      // To store interfaces local entities
-      MeshesContainerType mLocalMeshes;
-
-      // To store interfaces ghost entities
-      MeshesContainerType mGhostMeshes;
-
-      // To store interfaces ghost+local entities
-      MeshesContainerType mInterfaceMeshes;
+//      // To store interfaces ghost entities
+//      MeshesContainerType mGhostMeshes;
+//
+//      // To store interfaces ghost+local entities
+//      MeshesContainerType mInterfaceMeshes;
 
       ///@} 
       ///@name Private Operators

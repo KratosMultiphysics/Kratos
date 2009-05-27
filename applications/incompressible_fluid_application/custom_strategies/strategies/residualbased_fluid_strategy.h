@@ -470,8 +470,8 @@ namespace Kratos
 			this->SolveStep3();
 			std::cout << "projection calculation time " << projection_time.elapsed() << std::endl;
 
-			if(mdomain_size == 2)
-  				this->SolveStep2_Mp();
+//			if(mdomain_size == 2)
+//  				this->SolveStep2_Mp();
 
 
 			//correct velocities

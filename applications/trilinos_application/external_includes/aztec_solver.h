@@ -119,6 +119,8 @@ namespace Kratos
             bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
             {
 		KRATOS_TRY
+                rA.Comm().Barrier();
+
 		Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
  
 		AztecOO aztec_solver(AztecProblem);
@@ -146,6 +148,8 @@ namespace Kratos
 		// HERE WE SET THE IFPACK PRECONDITIONER
 		aztec_solver.SetPrecOperator(Prec);
 		aztec_solver.Iterate(mmax_iter,mtol);
+
+                delete Prec;
 		
 	
 
@@ -163,7 +167,10 @@ namespace Kratos
 /*   				aztec_solver.SetAztecOption(AZ_solver, AZ_gmres);
    				aztec_solver.SetAztecOption(AZ_kspace, 200);*/
 //  				aztec_solver.Iterate(mmax_iter,mtol);
-// // 				aztec_solver.Iterate(5000,1e-9);		
+// // 				aztec_solver.Iterate(5000,1e-9);
+
+                rA.Comm().Barrier();
+                
                 return true;
 		KRATOS_CATCH("");
             }

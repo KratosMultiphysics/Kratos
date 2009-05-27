@@ -11,8 +11,13 @@ project KratosTrilinosApplication
        custom_strategies
        custom_utilities
        external_includes
+
+##        ../incompressible_fluid_application
+
     :
     requirements <include>. 
+        <include>../incompressible_fluid_application/
+
 		<include>custom_external_libraries/
 
 		#includes for mpi
@@ -23,6 +28,8 @@ project KratosTrilinosApplication
 
 		<define>KRATOS_PYTHON
 		<link>shared
+
+
     ;
 
 #includes for trilinos
@@ -49,6 +56,11 @@ alias sources_KratosTrilinosApplication
     :  
 		trilinos_application.cpp
 		trilinos_python_application.cpp
+		add_trilinos_space_to_python.cpp
+		add_trilinos_convergence_criterias_to_python.cpp
+		add_trilinos_schemes_to_python.cpp
+		add_trilinos_linear_solvers_to_python.cpp
+		add_trilinos_strategies_to_python.cpp
 
 		/kratos-prj/kratos//libkratos/<link>static
 
