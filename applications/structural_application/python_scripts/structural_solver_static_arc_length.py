@@ -29,9 +29,9 @@ def AddDofs(model_part):
       node.AddDof(DISPLACEMENT_X,REACTION_X);
       node.AddDof(DISPLACEMENT_Y,REACTION_Y);
       node.AddDof(DISPLACEMENT_Z,REACTION_Z);
-      node.AddDof(ROTATION_X,MOMENTUM_X);
-      node.AddDof(ROTATION_Y,MOMENTUM_Y);
-      node.AddDof(ROTATION_Z,MOMENTUM_Z);
+      #node.AddDof(ROTATION_X,MOMENTUM_X);
+      #node.AddDof(ROTATION_Y,MOMENTUM_Y);
+      #node.AddDof(ROTATION_Z,MOMENTUM_Z);
  
   print "*********************************************************************** "
   print "Dofs for the Static Structural Arc Length Solution added correctly"
