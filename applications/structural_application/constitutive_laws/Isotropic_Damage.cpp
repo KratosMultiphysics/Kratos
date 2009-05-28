@@ -74,18 +74,52 @@ namespace Kratos
     namespace Isotropic_Damage_Auxiliaries
     {
         boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-        #pragma omp threadprivate(mstemp)
+	#ifdef _OPENMP
+	#pragma omp threadprivate(mstemp)
+	#endif
         boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
-        #pragma omp threadprivate(msaux)
- 	Matrix StressTensor(0,0);
-        #pragma omp threadprivate(StressTensor)
-	Matrix InvertedMatrix(0,0);
+	#ifdef _OPENMP
+	#pragma omp threadprivate(msaux)
+	#endif
+        Matrix StressTensor(2,2);
+        #ifdef _OPENMP
+	#pragma omp threadprivate(StressTensor)
+	#endif
+	Matrix InvertedMatrix(3,3);
+        #ifdef _OPENMP
 	#pragma omp threadprivate(InvertedMatrix)
-	Vector PrincipalStress(0);
+        #endif
+        Vector PrincipalStress(2);
+	#ifdef _OPENMP
 	#pragma omp threadprivate(PrincipalStress)
-	Vector Aux_Vector(0);
+        #endif
+	Vector Aux_Vector(3);
+        #ifdef _OPENMP
         #pragma omp threadprivate(Aux_Vector)
-       // Ver pagina 57 " Metodologia de Evaluacion de Estructuras de Hormigon Armado"								
+        #endif
+	Matrix ConstitutiveMatrixAux(3,3);
+        #ifdef _OPENMP
+        #pragma omp threadprivate(ConstitutiveMatrixAux)
+        #endif
+        Vector StrainVectorPerturbation(3);
+	#ifdef _OPENMP
+        #pragma omp threadprivate(StrainVectorPerturbation)
+        #endif
+	Vector StressVectorPerturbation(3);
+	#ifdef _OPENMP
+        #pragma omp threadprivate(StressVectorPerturbation)
+        #endif
+	Vector StrainVectorPerturbation_aux(3);
+	#ifdef _OPENMP
+        #pragma omp threadprivate(StrainVectorPerturbation_aux)
+        #endif
+	Vector StressVectorPerturbation_aux(3);
+	#ifdef _OPENMP
+        #pragma omp threadprivate(StressVectorPerturbation_aux)
+        #endif
+
+
+     /* // Ver pagina 57 " Metodologia de Evaluacion de Estructuras de Hormigon Armado"								
 	Matrix C(0,0);
 	#pragma omp threadprivate(C)
 	Matrix D(0,0);
@@ -94,7 +128,7 @@ namespace Kratos
 	#pragma omp threadprivate(V)
         Vector d_Sigma(0);
 	#pragma omp threadprivate(d_Sigma)
-
+      */
     } 
 
 
@@ -269,24 +303,24 @@ void Isotropic_Damage::InitializeSolutionStep( const Properties& props,
     double norma     = 0.00; 
 		  	
 
-				if (Aux_Vector.size() != 3)
-							{
-											StressTensor.resize(2,2,false);
-    							InvertedMatrix.resize(3,3, false);
-											PrincipalStress.resize(2, false);
-    							Aux_Vector.resize(3, false);
-							}
+     if (Aux_Vector.size() != 3)
+	 {
+	       StressTensor.resize(2,2,false);
+    	       InvertedMatrix.resize(3,3, false);
+	       PrincipalStress.resize(2, false);
+    	       Aux_Vector.resize(3, false);
+	  }
 
     
-				double ro  						= mFt/sqrt(mEc);       //Suponiendo el Ec=Ect 
-				double n         = mFc/mFt;
-				A                = 1.00/((mGE*mEc)/(ml*mFt*mFt)-0.5);
+	double ro = mFt/sqrt(mEc);       //Suponiendo el Ec=Ect 
+        double n  = mFc/mFt;
+	A         = 1.00/((mGE*mEc)/(ml*mFt*mFt)-0.5);
 				
-				if (A < 0.00)
-       {    
-										A  = 0.00;
-    						std::cout<< "Warning: A is less than zero"<<std::endl;
-		     }
+	if (A < 0.00)
+           {    
+		 A  = 0.00;
+    		 std::cout<< "Warning: A is less than zero"<<std::endl;
+            }
 				
     StressTensor  = MathUtils<double>::StressVectorToTensor(StressVector);
     SD_MathUtils<double>::InvertMatrix(ConstitutiveMatrix, InvertedMatrix);
@@ -391,12 +425,11 @@ void  Isotropic_Damage::FinalizeSolutionStep( const Properties& props,
  void Isotropic_Damage::CalculateStress( const Vector& StrainVector, Vector& StressVector)
             
 	{
-	    Matrix ConstitutiveMatrix;
-	    ConstitutiveMatrix.resize(3,3, false);
+	    ConstitutiveMatrixAux.resize(3,3, false);
 	    double d=0.00;
 	    Isotropic_Damage::CalculateNoDamageStress(StrainVector, StressVector);
-	    Isotropic_Damage::CalculateNoDamageElasticMatrix(ConstitutiveMatrix,mEc,mNU);
-	    Isotropic_Damage::CalculateDamage(ConstitutiveMatrix, StressVector, d);
+	    Isotropic_Damage::CalculateNoDamageElasticMatrix(ConstitutiveMatrixAux,mEc,mNU);
+	    Isotropic_Damage::CalculateDamage(ConstitutiveMatrixAux, StressVector, d);
 	    StressVector = (1.00-d)*StressVector;
 											
         }
@@ -439,28 +472,29 @@ void  Isotropic_Damage::FinalizeSolutionStep( const Properties& props,
                          long double max          =  1E-10;
                          double last_damage       =  md;
 			 double last_r            =  mr_new;
-                         Vector StrainVectorPerturbation;
-			 Vector StressVectorPerturbation;
-			 Vector StrainVectorPerturbation_aux;
-			 Vector StressVectorPerturbation_aux;
+                         //Vector StrainVectorPerturbation;
+			 //Vector StressVectorPerturbation;
+			 //Vector StrainVectorPerturbation_aux;
+			 //Vector StressVectorPerturbation_aux;
 			 
 			 StrainVectorPerturbation.resize(3, false);
 			 StressVectorPerturbation.resize(3, false);
 			 StrainVectorPerturbation_aux.resize(3, false);
 			 StressVectorPerturbation_aux.resize(3, false);
 			 
+			 // diferencia con caso Damage-3D
 			 StrainVectorPerturbation     = StrainVector;
 			 StrainVectorPerturbation_aux = StrainVector;  			  
 
 			 for (unsigned int i=0;i<StrainVectorPerturbation.size();i++)
 			    {
 				  
-				 if  (StrainVector(i)<1E-10)
+				 if  (fabs(StrainVector(i))<1E-10)
 				    {
 				     delta_strain = (*std::min_element(StrainVector.begin(),StrainVector.end()))*factor;
 				     if (delta_strain==0.00)
 					 {
-					    delta_strain = factor;
+					    delta_strain = factor;  //perturbacion
 					 }
 				    } 
 				 else
