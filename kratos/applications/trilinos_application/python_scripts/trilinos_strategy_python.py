@@ -107,9 +107,10 @@ class SolvingStrategyPython:
             #verify convergence
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
-           
+            
             #update iteration count
             it = it + 1
+
 
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
@@ -117,6 +118,8 @@ class SolvingStrategyPython:
         
         #clear if needed - deallocates memory
         print "ln 113 self.ReformDofSetAtEachStep = ",self.ReformDofSetAtEachStep
+        print mpi.rank
+        mpi.world.barrier()
  	if(self.ReformDofSetAtEachStep == True):
             self.Clear();
         print "Solve is Finished for rank : ", mpi.rank
@@ -199,6 +202,11 @@ class SolvingStrategyPython:
 
     #######################################################################
     def Clear(self):
+        mpi.world.barrier()
+        print self.pA
+        print self.pDx
+        print self.pb
+        print "Entered in Clear"
         self.space_utils.ClearMatrix(self.pA)
         self.space_utils.ClearVector(self.pDx)
         self.space_utils.ClearVector(self.pb)
@@ -210,6 +218,7 @@ class SolvingStrategyPython:
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
 
         self.builder_and_solver.Clear()
+        print "Clear is completed"
         
     #######################################################################   
     def SetEchoLevel(self,level):

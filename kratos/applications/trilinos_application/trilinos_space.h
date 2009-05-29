@@ -330,17 +330,23 @@ namespace Kratos {
         // 	}
 
         static void Clear(MatrixPointerType& pA) {
-            int global_elems = 0;
-            Epetra_Map Map(global_elems, 0, pA->Comm());
-            MatrixPointerType pNewEmptyA = MatrixPointerType(new TMatrixType(::Copy, Map, 0));
-            pA.swap(pNewEmptyA);
+	    if(pA != NULL)
+		{
+			int global_elems = 0;
+			Epetra_Map Map(global_elems, 0, pA->Comm());
+			MatrixPointerType pNewEmptyA = MatrixPointerType(new TMatrixType(::Copy, Map, 0));
+			pA.swap(pNewEmptyA);
+		}
         }
 
         static void Clear(VectorPointerType& pX) {
-            int global_elems = 0;
-            Epetra_Map Map(global_elems, 0, pX->Comm());
-            VectorPointerType pNewEmptyX = VectorPointerType(new VectorType(Map));
-            pX.swap(pNewEmptyX);
+		if(pX != NULL)
+		{
+			int global_elems = 0;
+			Epetra_Map Map(global_elems, 0, pX->Comm());
+			VectorPointerType pNewEmptyX = VectorPointerType(new VectorType(Map));
+			pX.swap(pNewEmptyX);
+		}
         }
 
         // 	static void Clear(VectorType& rX)
