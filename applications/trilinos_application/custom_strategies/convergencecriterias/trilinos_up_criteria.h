@@ -210,8 +210,8 @@ namespace Kratos
 			double difference_pr_norm = 0.0;
 			double reference_vel_norm = 0.0;
 			double difference_vel_norm = 0.0;
-			int pr_size = 0;
-			int vel_size = 0;
+//			int pr_size = 0;
+//			int vel_size = 0;
 
 		for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        	 {
@@ -233,6 +233,7 @@ namespace Kratos
 				
 
 			 }
+			mrComm.Barrier();
 
 			//perform the sum between all of the nodes
 			TDataType global_reference_vel_norm = TDataType();
@@ -247,13 +248,16 @@ namespace Kratos
 			mrComm.Barrier();
 		        
 
-			pr_size = SparseSpaceType::Size(Dx) / 3.0;
-			vel_size = 2 * pr_size;
+			TDataType pr_size = static_cast<double>(SparseSpaceType::Size(Dx)) / 3.0;
+			TDataType vel_size = 2.0 * pr_size;
 			double pr_ratio = sqrt(global_difference_pr_norm)/sqrt(global_reference_pr_norm);
 			double vel_ratio = sqrt(global_difference_vel_norm)/sqrt(global_reference_vel_norm);
-			
-			double pr_abs = sqrt(difference_pr_norm)/sqrt(static_cast<double>(pr_size));
-			double vel_abs = sqrt(difference_vel_norm)/sqrt(static_cast<double>(vel_size));
+
+//                        KRATOS_WATCH(pr_size);
+//                        KRATOS_WATCH(vel_size);
+
+			double pr_abs = sqrt(global_difference_pr_norm)/sqrt(pr_size);
+			double vel_abs = sqrt(global_difference_vel_norm)/sqrt(vel_size);
 
 
 //KRATOS_WATCH(AbsoluteNorm)
