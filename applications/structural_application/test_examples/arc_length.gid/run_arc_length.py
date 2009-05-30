@@ -2,6 +2,7 @@
 ##################################################################
 #setting the domain size for the problem to be solved
 domain_size = 3
+import math
 
 ##################################################################
 ##################################################################
@@ -9,17 +10,14 @@ domain_size = 3
 
 #including kratos path
 
-kratos_libs_path = '../../../../libs' ##kratos_root/libs
-kratos_applications_path = '../../../../applications' ##kratos_root/applications
-kratos_python_scripts_path = '../../../../applications/structural_application/python_scripts'
-kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
-
+kratos_libs_path = '/home/nelson/kratos/libs' ##kratos_root/libs
+kratos_applications_path = '/home/nelson/kratos/applications' ##kratos_root/applications
+kratos_python_scripts_path = '/home/nelson/kratos/applications/structural_application/python_scripts'
 
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 sys.path.append(kratos_python_scripts_path)
-sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
 from Kratos import *
@@ -33,26 +31,6 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 from KratosStructuralApplication import *
 print kernel
 
-
-import benchmarking
-
-def FindNode(node_list,x,y,z):
-    for node in node_list:
-        if ((node.X - x) ** 2 + (node.Y - y) ** 2 + (node.Z - z) ** 2 < 0.0000001):
-            print  node
-            return node
-    
-def BenchmarkCheck(time, node1):
-    benchmarking.Output(time, "Time")
-    benchmarking.Output(node1.GetSolutionStepValue(DISPLACEMENT_Y), "Node 1 Desplacement_y", 1.0)
-    benchmarking.Output(node1.GetSolutionStepValue(FORCE_Y), "Node 1 Force_y", 1.0)
-
-def AnalyticalResults(time, node1):
-    benchmarking.Output(time, "Time")
-    benchmarking.Output(-5.07526446248e-06 , "Node 1 Displacement_y", 1.0)
-    benchmarking.Output(-0.999984773962 , "Node 1 Force_y", 1.0)
-
-
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
@@ -61,10 +39,17 @@ from KratosExternalSolversApplication import *
 #defining a model part
 model_part = ModelPart("FluidPart");  
 
-#import structural_solver_static_arc_length
+#adding of Variables to Model Part should be here 
+#import structural_solver_dynamic
+#import structural_solver_dynamic_superlu
+#import structural_solver_relaxation
+##import structural_solver_static
 import structural_solver_static_arc_length
 
 structural_solver_static_arc_length.AddVariables(model_part)
+#structural_solver_relaxation.AddVariables(model_part)
+#structural_solver_dynamic.AddVariables(model_part)
+#structural_solver_dynamic_superlu.AddVariables(model_part)
 
 ###################################################################
 ###################################################################
@@ -98,22 +83,35 @@ print model_part
 model_part.SetBufferSize(2)
 
 #importing the solver files
-#structural_solver_static_arc_length.AddDofs(model_part)
+#structural_solver_dynamic.AddDofs(model_part)
+#structural_solver_dynamic_superlu.AddDofs(model_part)
+#structural_solver_relaxation.AddDofs(model_part)
 structural_solver_static_arc_length.AddDofs(model_part)
 
 #creating a fluid solver object
-#solver = structural_solver_static_arc_length.StaticStructuralSolver(model_part,domain_size)
+#solver = structural_solver_relaxation.RelaxationStructuralSolver(model_part,domain_size)
+#solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
+#solver = structural_solver_dynamic_superlu.DynamicStructuralSolver(model_part,domain_size)
 solver = structural_solver_static_arc_length.StaticStructuralSolverArcLength(model_part,domain_size)
 
-
-node_1 = FindNode(model_part.Nodes, 2.5, 0.25, 0.00)
+#solver.structure_linear_solver =  SuperLUSolver()
 
 ## Variables Arc Length
-solver.Ide               = 5
-solver.factor_delta_lmax = 1.00
-solver.max_iteration     = 20
-solver.toler             = 1.0E-10
-solver.norm              = 1.0E-7
+solver.Ide                        = 5
+solver.factor_delta_lmax          = 1.00
+solver.max_iteration              = 20
+solver.toler                      = 1.0E-10
+solver.norm                       = 1.0E-7
+solver.MaxLineSearchIterations    = 20
+solver.tolls                      = 0.000001          
+solver.amp                        = 1.618             
+solver.etmxa                      = 5                 
+solver.etmna                      = 0.1               
+solver.CalculateReactionFlag      = True
+solver.ReformDofSetAtEachStep     = True
+solver.MoveMeshFlag               = True
+solver.ApplyLineSearches          = True
+        
 
 
 solver.Initialize()
@@ -130,6 +128,7 @@ for node in forcing_nodes_list:
           print node.Id , " ", node.X, " ",node.Y
 
 
+##model_part.Nodes[1].SetSolutionStepValue(DISPLACEMENT_Y,0,0.00);
 model_part.Nodes[1].SetSolutionStepValue(FORCE_Y,0,0.00);
 
 
@@ -137,6 +136,12 @@ model_part.Nodes[1].SetSolutionStepValue(FORCE_Y,0,0.00);
 def IncreasePointLoad(forcing_nodes_list,Load):
     for node in forcing_nodes_list:
         node.SetSolutionStepValue(FORCE_Y,0,Load)
+
+
+
+def IncreaseDisplacement(forcing_nodes_list,disp):
+    for node in forcing_nodes_list:
+        node.SetSolutionStepValue(DISPLACEMENT_Y,0,disp)
 
 
 
@@ -158,16 +163,11 @@ def ChangeCondition(forcingnodelist,lamda):
 ## DATOS DE ENTRADA        
 
 Dt         =  1;
-nsteps     =  2;
+nsteps     =  60;
 Load_inc   = -1;
-P_load     = Vector(nsteps);
-Carga      = Vector(nsteps);
-Delta_1    = Vector(nsteps);
 Load       = 0.00;
 model_part.ProcessInfo[LAMNDA] = 0.00;
-Carga[0]   = 0.00;
-P_load[0]  = 0.00;
-Delta_1[0] = 0.00;
+
 
 
 print("Initializing Results. Please wait.....")
@@ -182,15 +182,12 @@ for inner_step in range(1,nsteps):
     print time
     
     
-    Load =  -0.999984773962 
+    #Load = Calculate_Next_Step_Load(Carga,Delta_1,inner_step,Load_inc);
+    Load =  Load_inc*inner_step;
     IncreasePointLoad(forcing_nodes_list,Load);
-    
-    if(inner_step > 0):
-       solver.Solve()
-       if (benchmarking.InBuildReferenceMode()):
-	 BenchmarkCheck(time, node_1)
-       else:     
-         AnalyticalResults(time, node_1)
+    solver.Solve()
+    print model_part.ProcessInfo[LAMNDA]
+    ChangeCondition(forcing_nodes_list, model_part.ProcessInfo[LAMNDA])  
            
     #print the results
     print " Writing Result in Gid"
@@ -199,7 +196,6 @@ for inner_step in range(1,nsteps):
     gid_io.WriteNodalResults(REACTION,model_part.Nodes,time,0)
     gid_io.PrintOnGaussPoints(PK2_STRESS_TENSOR,model_part,time)
     gid_io.PrintOnGaussPoints(DAMAGE,model_part,time)
-
 
 gid_io.FinalizeResults()
 print "COMPLETED ANALYSIS"   
