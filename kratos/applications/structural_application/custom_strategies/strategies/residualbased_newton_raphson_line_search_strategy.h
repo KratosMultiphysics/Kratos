@@ -40,7 +40,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *          
 *   Last Modified by:    $Author: Nelson Lafontaine //inglafontaine@gmail.com    $ 
 *   Date:                $Date: 2009-28-04 $
-*   Revision:            $Revision: 1.00   $
+*   Revision:            $Revision: 1.20   $
 *
 * ***********************************************************/
 
@@ -70,6 +70,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <iostream>
+
 
 
 namespace Kratos
@@ -124,16 +126,16 @@ namespace Kratos
 			typename TSchemeType::Pointer pScheme,
 			typename TLinearSolver::Pointer pNewLinearSolver,
 			typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-		        unsigned  int MaxNewtonRapshonIterations= 30,
-			unsigned  int MaxLineSearchIterations   = 20,
-                        double tolls  = 0.80, // energy tolerance factor on LineSearch (0.8 is ok) 
-			double amp    = 10,   // maximum amplification factor
-			double etmxa  = 10,   // maximum allowed step length
- 			double etmna  = 0.1,  // minimum allowed step length
-			bool CalculateReactions     = false,
-			bool ReformDofSetAtEachStep = false,
-			bool MoveMeshFlag           = true,
-                        bool ApplyLineSearches      = true
+		        unsigned  int MaxNewtonRapshonIterations,
+			unsigned  int MaxLineSearchIterations,
+                        double tolls, // energy tolerance factor on LineSearch (0.8 is ok) 
+			double amp,   // maximum amplification factor
+			double etmxa,   // maximum allowed step length
+ 			double etmna,  // minimum allowed step length
+			bool CalculateReactions,
+			bool ReformDofSetAtEachStep,
+			bool MoveMeshFlag,
+                        bool ApplyLineSearches
 			)
 			:  ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, 
 				pScheme,
@@ -145,9 +147,6 @@ namespace Kratos
 				MoveMeshFlag)
 			    ,
 			    LineSearchesUtility<TSparseSpace,TDenseSpace,TLinearSolver>(
-			        model_part, 
-				pNewLinearSolver,
-				pScheme,
 				MaxLineSearchIterations,
 				tolls,  
 				amp,   
@@ -157,8 +156,8 @@ namespace Kratos
 				ApplyLineSearches)
 				{
 				   KRATOS_TRY
-				    this->SetMaxIterationNumber(MaxNewtonRapshonIterations);
-				    this->SetParametersLineSearches(MaxLineSearchIterations,tolls,amp,etmxa,etmna,ApplyLineSearches,MoveMeshFlag);
+				    //this->SetMaxIterationNumber(MaxNewtonRapshonIterations);
+				    //this->SetParametersLineSearches(MaxLineSearchIterations,tolls,amp,etmxa,etmna,MoveMeshFlag,ApplyLineSearches);
 				   KRATOS_CATCH("")			
 				  }
 				
@@ -246,9 +245,7 @@ namespace Kratos
 		         TSparseSpace::SetToZero(X_old);
 		         TSparseSpace::SetToZero(Delta_p);
 
-			 this->BackupDatabase(rDofSet,X_old);
-			 
-		         
+			 this->BackupDatabase(rDofSet,X_old);	         
 			 //true  = 1
 			//false = 0
 				  
@@ -292,11 +289,16 @@ namespace Kratos
 
 				// Using LineSearch 
 				// booleano
-				
+                               // KRATOS_WATCH(mb)
+				//KRATOS_WATCH(mDx)
                                 if ( this->mApplyLineSearches==true)
 				    {
 					   
-					  Satisfactory_Line_Search = this->LineSearches(X_old,Delta_p,mDx,mb,mA);
+					  Satisfactory_Line_Search = this->LineSearches(BaseType::GetModelPart(),
+											pScheme,
+											pBuilderAndSolver,
+											rDofSet,
+											X_old,Delta_p,mDx,mb,mA);
 					  if ( Satisfactory_Line_Search== true)		
 					      {
 						    std::cout<<"***************************************************"<<std::endl; 
@@ -386,12 +388,13 @@ namespace Kratos
 			 //deallocate the systemvectors
 			if (this->mReformDofSetAtEachStep == true)
 			{
-				//TSparseSpace::Clear(mA);
-				//TSparseSpace::Clear(mDx);
-				//TSparseSpace::Clear(mb);
-				TSparseSpace::ClearData(mA);
-				TSparseSpace::ClearData(mDx); 
-				TSparseSpace::ClearData(mb);
+
+				SparseSpaceType::Clear(this->mpA);
+				SparseSpaceType::Clear(this->mpDx);
+				SparseSpaceType::Clear(this->mpb);
+				//TSparseSpace::ClearData(mA);
+				//TSparseSpace::ClearData(mDx); 
+				//TSparseSpace::ClearData(mb);
 			}
                         
 			
