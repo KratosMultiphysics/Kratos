@@ -75,7 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_strategies/strategies/residualbased_arc_lenght_strategy.h"
+#include "custom_strategies/strategies/residualbased_arc_length_strategy.h"
 #include "custom_strategies/strategies/residualbased_newton_raphson_line_search_strategy.h"
 // #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 // #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
@@ -247,7 +247,7 @@ namespace Kratos
 					"CompositScheme", init< BaseSchemeType&, BaseSchemeType& >()
 					);
 			
-			class_< ResidualBasedArcLenghtStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+			class_< ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
 				("ResidualBasedArcLenghtStrategy", 
 				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, 
                                 unsigned int, unsigned int,double,bool, bool, bool,bool
