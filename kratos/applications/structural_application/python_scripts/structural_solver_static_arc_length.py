@@ -37,7 +37,7 @@ def AddDofs(model_part):
   print "Dofs for the Static Structural Arc Length Solution added correctly"
   print "*********************************************************************** "
 
-class StaticStructuralSolverArcLength:
+class StaticStructuralSolver:
     #######################################################################
     def __init__(self,model_part,domain_size):
 
@@ -55,7 +55,7 @@ class StaticStructuralSolverArcLength:
 	
 
         #definition of the solvers. Super_Lu Default
-        #self.structure_linear_solver    =   SkylineLUFactorizationSolver()
+        #self.structure_linear_solver     =   SkylineLUFactorizationSolver()
         self.structure_linear_solver      =   SuperLUSolver()
         #pDiagPrecond = ParallelDiagonalPreconditioner()
         #self.structure_linear_solver =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
