@@ -561,13 +561,9 @@ namespace Kratos
 
 			if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
 			{
-				//TSparseSpace::Clear(mA);
-				//TSparseSpace::Clear(mDx);
-				//TSparseSpace::Clear(mb);
-				
-//				TSparseSpace::ClearData(mA);
-//				TSparseSpace::ClearData(mDx);
-//				TSparseSpace::ClearData(mb);
+			        SparseSpaceType::Clear(mpA);
+				SparseSpaceType::Clear(mpDx);
+				SparseSpaceType::Clear(mpb);
 
                                 this->Clear();
 			}
@@ -685,7 +681,7 @@ namespace Kratos
 
 		/*@} */
 
-	protected:
+	private:
 		/**@name Protected static Member Variables */
 		/*@{ */
 
@@ -724,7 +720,7 @@ namespace Kratos
 
 		/*@} */    
 
-	private:
+	protected:
 		/**@name Static Member Variables */
 		/*@{ */
 
