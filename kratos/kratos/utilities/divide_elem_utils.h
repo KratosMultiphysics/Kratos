@@ -103,7 +103,7 @@ namespace Kratos
 
 // 		boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX
 		static void DivideElement_2D( Element::GeometryType& geom, 
-					const double toll,
+// 					const double toll,
 // 					double is_divided, 
 					boost::numeric::ublas::bounded_matrix<double,4,2>& aux_gp,
 					array_1d<double,4>& A_on_agp,
