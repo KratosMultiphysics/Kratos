@@ -615,10 +615,11 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 						for (unsigned int comp = 0; comp < TDim; comp++)
 							norm_u_2 = a_i[comp]*a_i[comp];
 // 							norm_u_2 = U_i[comp]*U_i[comp];
-						//ERROR IN WRITING THE NON LINEAR TERM//
-// 						double nonlin_term = kinv*nu_i*eps + 1.75*sqrt(norm_u_2 * eps * kinv / (150.0));
+
 						//CORRECTED Term
-						double nonlin_term = kinv * nu_i * eps + 1.75 * norm_u_2  * sqrt(kinv / ( eps * 150.0));
+						double nonlin_term = kinv * nu_i * eps + 1.75 * sqrt(norm_u_2 *  kinv / (eps * 150.0));
+						//ERROR IN WRITING THE NON LINEAR TERM//
+// 						double nonlin_term = kinv * nu_i * eps + 1.75 * norm_u_2  * sqrt(kinv / ( eps * 150.0));
 						for (unsigned int comp = 0; comp < TDim; comp++)
 							rhs_i[comp] -= m_i * nonlin_term * U_i[comp];
 
