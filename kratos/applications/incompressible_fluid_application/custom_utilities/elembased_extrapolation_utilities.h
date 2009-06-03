@@ -103,26 +103,52 @@ namespace Kratos
 					inode->GetValue(IS_VISITED) = 0;
 				}
 
+//loop sugli elementi
+//if id_divided= 0 segna i nodi
+// 		i primi nodi NON segnati saranno il layer zero	
+
+
 //Fill layers begin			
 				//generate a container with the layers to be extrapolated
-				std::vector< PointVector > layers(extrapolation_layers);
+				std::vector< PointVector > layers(extrapolation_layers );
 
 				//detect the nodes inside the fluid surface
 				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
 								inode != mr_model_part.NodesEnd();
 								inode++)	
 				{
-					if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
+					//Layer(0) is constructed with the fluid nodes closest to the free surface BUT THEY ARE NOT THE MOST EXTERNAL LAYER CALUCLATED.
+// 					if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
+// 					{
+// 						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES); 
+// 						for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
+// 						{ 
+// 							if(i->FastGetSolutionStepValue(DISTANCE) > 0) //add the node as free surface if one of its neighb is outside
+// 							{
+// 								if( inode->GetValue(IS_VISITED) == 0)
+// 								{
+// 									layers[0].push_back( *(inode.base() ) );	
+// 									inode->GetValue(IS_VISITED) = 1;
+// 								}
+// 							}
+// 						} 
+// 					}
+
+// 		//			// Layer(0) is constructed with the NO fluid nodes closest to the free surface  THE MOST EXTERNAL LAYER CALUCLATED.
+ 					// AUX_INDEX = 1 indicates a calculated node!!!
+					if( inode->FastGetSolutionStepValue(AUX_INDEX) == 1) //candidates are only the ones inside the fluid domain
 					{
 						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES); 
 						for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
 						{ 
-							if(i->FastGetSolutionStepValue(DISTANCE) > 0) //add the node as free surface if one of its neighb is outside
+							if(i->FastGetSolutionStepValue(AUX_INDEX) != 1) //add the node as free surface if one of its neighb is outside
 							{
 								if( inode->GetValue(IS_VISITED) == 0)
 								{
 									layers[0].push_back( *(inode.base() ) );	
 									inode->GetValue(IS_VISITED) = 1;
+// 									 KRATOS_WATCH("layer0");
+// 									 KRATOS_WATCH(inode->Id());
 								}
 							}
 						} 
@@ -132,7 +158,8 @@ namespace Kratos
 
 				//fill the following layers by neighbour relationships
 				//each layer fills the following
-				for(unsigned int il = 0; il<extrapolation_layers-1; il++)
+ 				for(unsigned int il = 0; il<extrapolation_layers-1; il++)
+// 				for(unsigned int il = 1; il<extrapolation_layers-1; il++)
 				{
 					for( PointIterator iii=(layers[il]).begin(); iii!=(layers[il]).end(); iii++)
 					{
@@ -144,6 +171,9 @@ namespace Kratos
 							{
 								layers[il+1].push_back( Node<3>::Pointer( *(jjj.base() ) ) );
 								jjj->GetValue(IS_VISITED) = double(il+2.0);
+// 									 KRATOS_WATCH("layer i");
+// 									 KRATOS_WATCH(il+1);
+// 									 KRATOS_WATCH(jjj->Id());
 							}
 						}
 					}
@@ -163,25 +193,33 @@ namespace Kratos
 						
 						WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES); 
 						for(WeakPointerVector< Node<3> >::iterator i=neighb_nodes.begin(); 	i !=neighb_nodes.end(); i++) 
-						{ 
+						{ 	//if the neighbour is a node of the previous layer
 							if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED) > 0)
 							{
 								noalias(aux) += i->FastGetSolutionStepValue(VELOCITY);
 								avg_number += 1.0;
 							}
 						} 
+						if(avg_number != 0.0)
+						    aux /= avg_number;
 						
+// 						KRATOS_WATCH(iii->Id());
+// 						KRATOS_WATCH(aux);
+
+						      
 						array_1d<double,3>& Vel = iii->FastGetSolutionStepValue(VELOCITY);
-
+// // // 						array_1d<double,3> Vel = ZeroVector(3);
 						//we have to respect bc on velocity that otherwise will be deleted
-						if(iii->IsFixed(VELOCITY_X) == false && avg_number != 0.0)
-							 Vel[0] += aux[0]/avg_number;
-						if(iii->IsFixed(VELOCITY_Y) == false && avg_number != 0.0)
-							 Vel[1] += aux[1]/avg_number;
-						if(iii->IsFixed(VELOCITY_Z) == false && avg_number != 0.0)
-							 Vel[2] += aux[2]/avg_number;
+						if(iii->IsFixed(VELOCITY_X) == false )
+							 Vel[0] = aux[0];
+						if(iii->IsFixed(VELOCITY_Y) == false )
+							 Vel[1] = aux[1];
+						if(iii->IsFixed(VELOCITY_Z) == false )
+							 Vel[2] = aux[2];
+   
+// 						KRATOS_WATCH(Vel);
+// 						KRATOS_WATCH(iii->FastGetSolutionStepValue(DISTANCE));
 
-// 						noalias( iii->FastGetSolutionStepValue(VELOCITY) ) = aux;
 					}
 				}
 
