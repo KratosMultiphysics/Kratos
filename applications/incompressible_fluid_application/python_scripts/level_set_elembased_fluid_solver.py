@@ -134,7 +134,7 @@ class ElemBasedLevelSetSolver:
             self.reorder = True
 
             ##velocity extrapolation distance -- needed to accurately convect the distance function
-            self.extrapolation_distance = 0.5
+            self.extrapolation_distance = 1
             self.number_of_extrapolation_layers = 3
 
     ################################################################
@@ -149,10 +149,13 @@ class ElemBasedLevelSetSolver:
 
         #constructing the fluid solver
         self.solver = monolithic_solver_eulerian.MonolithicSolver(self.model_part, self.domain_size)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
         self.solver.Initialize()
-##        ResidualBasedPredictorCorrectorVelocityBossakScheme( -0.3, False)
-######        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector) 
+
+##        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector) 
 ##        (self.solver).SetEchoLevel(self.echo_level)
+
+
 
         #costruct matrices for convection solver -
         #note that it should be constructed here ONLY
@@ -256,11 +259,10 @@ class ElemBasedLevelSetSolver:
     def SetModelPart(self):
 
         self.bc_tools.SetDividedElem_2D()
-##        self.bc_tools.SetPressureAndVelocityFixities()
 
     def FreeModelPart(self):
-
-        self.bc_tools.SetToZeroPressureAndVelocity()
+        
+        self.bc_tools.SetToZeroPressureAndVelocity(self.extrapolation_distance)
 
 
     ################################################################
@@ -277,7 +279,10 @@ class ElemBasedLevelSetSolver:
         ## PREDICTION ##
         
         ############## extrapolating by layer v ###############
+        self.SetModelPart() #to identify the extrapolation domain
         self.Extrapolate()
+
+
         #   print "extrapolation finished"
         ############## convect distance function ##############
         self.Convect()
@@ -290,15 +295,16 @@ class ElemBasedLevelSetSolver:
             self.RecalculateDistanceFunction();
             self.dist_recalculation_step += self.redistance_frequency
         #   print "distance calculation finished"
-##        self.ComputeSmoothedDensities(delta)
+####        self.ComputeSmoothedDensities(delta)
 
-        self.SetModelPart()
+        self.SetModelPart() #to identify the fluid domain to be solved
         print "*******************  setting model part finished         *****************"
 
         #solve fluid domain
         (self.solver).Solve()
         print "solving procedure finished"
-
+##        for node in self.model_part.Nodes:
+##            print node.Id, "    ", node.GetSolutionStepValue(VELOCITY)
         self.FreeModelPart()
         print "freeing pressure and velocity finished"
 
@@ -306,10 +312,11 @@ class ElemBasedLevelSetSolver:
         self.solve_step = self.solve_step + 1;
 
         ## CORRECTION ##
+        
 ####        ############## identifying neighbours ################
 ####        (self.mesh_neighbour_search).Execute()
 ##        ############## extrapolating by layer v ##############
-##        self.Extrapolate()
+        self.Extrapolate()
 ##        ############## convect distance function #############
 ##        if(self.correct_levelset == True):
 ##            self.Convect()
