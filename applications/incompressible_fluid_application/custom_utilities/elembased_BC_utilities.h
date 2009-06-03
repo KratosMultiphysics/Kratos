@@ -103,7 +103,7 @@ namespace Kratos
 				{
 					 Geometry<Node<3> >& geom = iel->GetGeometry();
 					 double Area = GeometryUtils::CalculateVolume2D(geom);
-					 double toll = 0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
+					 double toll = 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 
 					 array_1d<double,3> dist = ZeroVector(3);
 					 for (unsigned int i = 0; i < geom.size(); i++)
@@ -111,14 +111,19 @@ namespace Kratos
 						
 					 //no fluid element
 					 if( dist[0] > -toll && dist[1] > -toll && dist[2] > -toll  ) 	
+//  					 if( dist[0] > 0.0 && dist[1] > 0.0 && dist[2] > 0.0  ) 	
 						{iel->GetValue(IS_DIVIDED) = 0.0;}
 					 //fluid element
-					 else if( dist[0] < 0.0 && dist[1] < 0.0 && dist[2] < 0.0  ) 	
-						{iel->GetValue(IS_DIVIDED) = -1.0;}
+					 else if( dist[0] <= 0.0 && dist[1] <= 0.0 && dist[2] <= 0.0  ) 	
+						{     iel->GetValue(IS_DIVIDED) = -1.0;
+						      for(unsigned int i=0; i< geom.size() ; i++)
+						      {
+							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1;
+						      }
+						}
 					 //half fluid half no fluid element
 					 else
-						{
-						      iel->GetValue(IS_DIVIDED) = 1.0;
+						{     iel->GetValue(IS_DIVIDED) = 1.0;
 						      for(unsigned int i=0; i< geom.size() ; i++)
 						      {
 							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1;
@@ -301,7 +306,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 			}
 
-			void SetToZeroPressureAndVelocity()
+			void SetToZeroPressureAndVelocity(double extrapolation_distance)
 			{
 			KRATOS_TRY	
 				for( ModelPart::ElementsContainerType::iterator iel = mr_model_part.ElementsBegin();
@@ -313,17 +318,21 @@ namespace Kratos
 					 if(iel->GetValue(IS_DIVIDED) == 0.0)
 					 {
 						for (unsigned int i = 0; i < geom.size(); i++)
-						{	 //if the node is out of the fluid domain and it is not part of a divided element
+						{	 //if the node is out of the fluid domain and its nodes are not part of a divided element
 							 //control if it has some fixities otherwise v = 0 and p = 0.
-							 if( geom[i].FastGetSolutionStepValue(AUX_INDEX) != 1)
+// 							 if( geom[i].FastGetSolutionStepValue(AUX_INDEX) != 1)
+							 if(geom[i].FastGetSolutionStepValue(DISTANCE) > extrapolation_distance)
 							 {
 								  geom[i].GetSolutionStepValue(PRESSURE) = 0.0;
-								  if(geom[i].IsFixed(VELOCITY_X) == false)
+								  if((geom[i].GetDof(VELOCITY_X)).IsFixed() == false )
 									   geom[i].GetSolutionStepValue(VELOCITY_X) = 0.0;
-								  if(geom[i].IsFixed(VELOCITY_Y) == false)
-									   geom[i].GetSolutionStepValue(VELOCITY_Y) = 0.0;
-								  if(geom[i].IsFixed(VELOCITY_Z) == false)
-									   geom[i].GetSolutionStepValue(VELOCITY_Z) = 0.0;				
+								  if((geom[i].GetDof(VELOCITY_Y)).IsFixed() == false  )
+								  	   geom[i].GetSolutionStepValue(VELOCITY_Y) = 0.0;
+								  if((geom[i].GetDof(VELOCITY_Z)).IsFixed() == false )
+								  	   geom[i].GetSolutionStepValue(VELOCITY_Z) = 0.0;	
+// 								  else
+// 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_Z");
+// 								      KRATOS_WATCH(iel->Id())}
 							 }
 						}
 					}
