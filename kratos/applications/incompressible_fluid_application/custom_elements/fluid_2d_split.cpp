@@ -140,13 +140,13 @@ namespace Kratos
 //************************************************************************************	
 	 //check if divided
 // 	double is_divided = 0;
-	double toll = 0.15* sqrt(Area * 2.30940108); //0.25* (h in a equailateral triangle of given area)
+//       double toll = 0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 // 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 // 	array_1d<double,4> A_on_agp = ZeroVector(4);
 // 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
 // 	array_1d<double,4> dist_on_agp = ZeroVector(4);
 // 
-// 	DivideElemUtils::DivideElement_2D(GetGeometry(), toll, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+// 	DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 
 	 if(GetValue(IS_DIVIDED) == 1.0)
 	 {
@@ -155,21 +155,22 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
 		array_1d<double,4> dist_on_agp = ZeroVector(4);
 
-		DivideElemUtils::DivideElement_2D(GetGeometry(), toll, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+		DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= toll)
-		  {
+// 		  if (dist_on_agp(i) <= toll)
+// 		  {
 
 		        double Area = A_on_agp(i);
 		      
 		        for (unsigned int j = 0; j < N.size(); j++)
 			     N[j] = N_on_agp(i,j);
 
-		        double tauone = delta_t;
-		        double tautwo = delta_t;
-// 		        CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
+/*		        double tauone = delta_t;
+		        double tautwo = delta_t;*/
+		        double tauone, tautwo;
+ 		        CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
 
 
 		        //add body force and momentum
@@ -178,19 +179,18 @@ namespace Kratos
 		        //add projections
 		        if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
 			   AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
-		  }
+// 		  }
 
 		}
 
 	 }
-	 else
-	 {
-	   if(GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) <= toll)
+	 else if(GetValue(IS_DIVIDED) == -1.0)
 	   {
 
-		double tauone = delta_t;
-		double tautwo = delta_t;
-// 		CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+/*		double tauone = delta_t;
+		double tautwo = delta_t;*/
+		double tauone, tautwo;
+		CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 
 		//add body force and momentum
@@ -200,7 +200,7 @@ namespace Kratos
 		if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
 		    AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
 	   }
-	 }
+	 
 
 		KRATOS_CATCH("")
 	}
@@ -224,7 +224,8 @@ namespace Kratos
 	double lump_mass_fac = area * 0.333333333333333333333333;
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	int nodes_number = 3;
 	int dof = 2;
@@ -262,13 +263,13 @@ namespace Kratos
 //************************************************************************************	
 	 //check if divided
 /*	double is_divided =  0;*/
-	double toll = 0.15* sqrt(Area * 2.30940108); //0.25* (h in a equailateral triangle of given area)
+//	double toll = 0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 // 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 // 	array_1d<double,4> A_on_agp = ZeroVector(4);
 // 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
 // 	array_1d<double,4> dist_on_agp = ZeroVector(4);
 // 
-// 	DivideElemUtils::DivideElement_2D(GetGeometry(), toll, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+// 	DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 	
 	 if(GetValue(IS_DIVIDED) == 1.0)
 	 {
@@ -277,37 +278,37 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
 		array_1d<double,4> dist_on_agp = ZeroVector(4);
 
-		DivideElemUtils::DivideElement_2D(GetGeometry(), toll, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= toll)
-		  {
+// 		  if (dist_on_agp(i) <= toll)
+// 		  {
 
 		        double Area = A_on_agp(i);
 		      
 		        for (unsigned int j = 0; j < N.size(); j++)
 			     N[j] = N_on_agp(i,j);
 
-		        double tauone = delta_t;
-		        double tautwo = delta_t;
-// 		        CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
+/*		        double tauone = delta_t;
+		        double tautwo = delta_t;*/
+		        double tauone, tautwo;
+ 		        CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
 
 		        CalculateMassContribution(rMassMatrix,delta_t,Area); 
 		        //add stablilization terms due to advective term (a)grad(V) * ro*Acce
 		        CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
 		        //add stablilization terms due to grad term grad(q) * ro*Acce
 		        CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
-		  }
+// 		  }
 		}
 	 }
-	 else
-	 {
-	   if(GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) <= toll)
+	 else if(GetValue(IS_DIVIDED) == -1.0)
 	   {
 		//Calculate tau
-		double tauone = delta_t;
-		double tautwo = delta_t;
-// 		CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+/*		double tauone = delta_t;
+		double tautwo = delta_t;*/
+		double tauone, tautwo;
+ 		CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 		CalculateMassContribution(rMassMatrix,delta_t,Area); 
 		//add stablilization terms due to advective term (a)grad(V) * ro*Acce
@@ -315,7 +316,7 @@ namespace Kratos
 		//add stablilization terms due to grad term grad(q) * ro*Acce
 		CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
 	   }
-	 }
+	 
 //***end
 		KRATOS_CATCH("")
 	}
@@ -346,13 +347,13 @@ namespace Kratos
 //************************************************************************************	
 	 //check if divided
 // 	double is_divided = 0;
-	double toll = 0.15 * sqrt(Area * 2.30940108);//0.25*(h in a equailateral triangle of given area)
+//	double toll = 0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 // 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 // 	array_1d<double,4> A_on_agp = ZeroVector(4);
 // 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
 // 	array_1d<double,4> dist_on_agp = ZeroVector(4);
 // 
-// 	DivideElemUtils::DivideElement_2D(GetGeometry(), toll, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+// 	DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 
 	 if(GetValue(IS_DIVIDED) == 1.0)
 	 {
@@ -361,12 +362,11 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
 		array_1d<double,4> dist_on_agp = ZeroVector(4);
 
-		DivideElemUtils::DivideElement_2D(GetGeometry(), toll, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
-
+		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= toll)
-		  {
+// 		  if (dist_on_agp(i) <= toll)
+// 		  {
 
 		        double Area = A_on_agp(i);
 		      
@@ -377,9 +377,10 @@ namespace Kratos
 		        CalculateViscousTerm(rDampMatrix, DN_DX, Area);
 		        
 		        //Advective term
-		        double tauone = delta_t;
-		        double tautwo = delta_t;
-// 		        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+/*		        double tauone = delta_t;
+		        double tautwo = delta_t;*/
+		        double tauone, tautwo;
+ 		        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 		        CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
 				
@@ -394,22 +395,21 @@ namespace Kratos
 		        CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
 		        //KRATOS_WATCH(rRightHandSideVector);
 
-		  }
+// 		  }
 
 		}
 
 	 }
-	 else
+	 else if(GetValue(IS_DIVIDED) == -1.0)
 	 {
-	   if(GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) <= toll)
-	   {
 		  //viscous term	
 		  CalculateViscousTerm(rDampMatrix, DN_DX, Area);
 		  
 		  //Advective term
-		  double tauone = delta_t;
-		  double tautwo = delta_t;
-// 		  CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+/*		  double tauone = delta_t;
+		  double tautwo = delta_t;*/
+		  double tauone, tautwo;
+ 		  CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 		  CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
 			   
@@ -423,12 +423,14 @@ namespace Kratos
 		  CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
 		  CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
 		  //KRATOS_WATCH(rRightHandSideVector);
-	   }
+	
 	 }
 //***end
 		KRATOS_CATCH("")
 	}
         
+
+
 	//************************************************************************************
 	//************************************************************************************
 	void Fluid2DSplit::CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area)
@@ -441,7 +443,8 @@ namespace Kratos
 	mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);*/
 	
 	double density;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 
 	//nu = nu/density;	
@@ -478,7 +481,8 @@ namespace Kratos
 
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
 	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
@@ -538,7 +542,8 @@ namespace Kratos
 
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 
 	for ( int ii = 0; ii < nodes_number; ii++)
@@ -579,7 +584,8 @@ namespace Kratos
 
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 
 	boost::numeric::ublas::bounded_matrix<double,6,6> temp_div = ZeroMatrix(matsize,matsize);
@@ -646,7 +652,8 @@ namespace Kratos
 
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
@@ -781,7 +788,8 @@ namespace Kratos
 	//calculate density
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
 	boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
@@ -830,7 +838,8 @@ namespace Kratos
 	
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	//build 1*(grad q . grad p) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
@@ -926,7 +935,8 @@ namespace Kratos
 	
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	//build 1*tau1*ro Nacc grad q)
 	double fac = tauone*density;
@@ -961,7 +971,8 @@ namespace Kratos
 
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	//for Arhenious
 	int matsize = dof*nodes_number;
@@ -1031,7 +1042,8 @@ namespace Kratos
 
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
 	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -1149,7 +1161,8 @@ namespace Kratos
 
 	double density;
 	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	 const array_1d<double,3> advproj_0 = GetGeometry()[0].FastGetSolutionStepValue(ADVPROJ);
 	 const array_1d<double,3> advproj_1 = GetGeometry()[1].FastGetSolutionStepValue(ADVPROJ);
@@ -1202,6 +1215,17 @@ namespace Kratos
 
 
 	}
+
+// 	//************************************************************************************
+// 	//************************************************************************************
+// 	void Fluid2DSplit::GetElementalDensity(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+// 	{
+// 
+// 	//************************************************************************************
+// 	//************************************************************************************
+// 	void Fluid2DSplit::GetElementalPorosity(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+// 	{
+
 
 	//************************************************************************************
 	//************************************************************************************
@@ -1279,9 +1303,10 @@ namespace Kratos
 	double Area;
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
 
-	double tauone = delta_t;
-	double tautwo = delta_t;
-// 	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+/*	double tauone = delta_t;
+	double tautwo = delta_t;*/
+        double tauone, tautwo;
+ 	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 	ComputeProjections(adv_proj, div_proj, DN_DX,tauone,tautwo,N,Area, delta_t);
 
@@ -1299,10 +1324,11 @@ namespace Kratos
 	//getting data for the given geometry
 	double Area;
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-	double tauone = delta_t;
-	double tautwo = delta_t;
+// 	double tauone = delta_t;
+// 	double tautwo = delta_t;
 
-// 	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        double tauone, tautwo;
+	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
             if(rVariable==THAWONE)
             {
                 for( unsigned int PointNumber = 0; 
@@ -1325,7 +1351,7 @@ namespace Kratos
         }
 	//*************************************************************************************
 	//*************************************************************************************
-	void Fluid2DSplit::calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity)
+	void Fluid2DSplit::CalculateDensity(Geometry< Node<3> > geom, double& elemental_density, double& elemental_viscosity, double& elemental_porosity)
 	{
 
 	/*double kk = 0.0;
@@ -1348,44 +1374,69 @@ namespace Kratos
 	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
 
 
-	double first = geom[0].FastGetSolutionStepValue(IS_POROUS);
-	double second = geom[1].FastGetSolutionStepValue(IS_POROUS);
-	double third = geom[2].FastGetSolutionStepValue(IS_POROUS);
+	double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
+	double eps1 = geom[1].FastGetSolutionStepValue(POROSITY);
+	double eps2 = geom[2].FastGetSolutionStepValue(POROSITY);
 
-	density = 0.0;
+	elemental_density = 0.0;
+	elemental_porosity = 1.0;
 
-	if(first == second && second==third)
+	if(eps0 == eps1 && eps1 == eps2 && eps2 == eps0)
 	  {
 		//for inside the domain totally inside one fluid
-		density = geom[0].FastGetSolutionStepValue(DENSITY);	
-		viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);	
+		elemental_porosity = eps0;
+		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY) * eps0;	
+		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);	
 	  }
-	else
-	  {
-		//for element having common node between two fluids or boundary element with IS_POROUS==1 inside the domain
-		for(int ii=0;ii<3;++ii)
-			{
-			  if(geom[ii].GetSolutionStepValue(IS_POROUS) == 1.0 && geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
-				{
-			  	 density = geom[ii].FastGetSolutionStepValue(DENSITY);
-				 viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
+	else if (eps0 == eps1)
+	 {
+	   	elemental_porosity = eps0;
+		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY) * eps0;	
+		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);
+	 }
+	else if (eps1 == eps2)
+	 {
+		elemental_porosity = eps1;
+		elemental_density = geom[1].FastGetSolutionStepValue(DENSITY) * eps1;	
+		elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY);
+	 }
+	else if (eps2 == eps0)
+	 {
+		elemental_porosity = eps2;
+		elemental_density = geom[2].FastGetSolutionStepValue(DENSITY) * eps2;	
+		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY);
+	 }
+	else ("ERROR!!! three different values of densities");
+  KRATOS_WATCH(elemental_porosity);
+KRATOS_WATCH(elemental_density);
+KRATOS_WATCH(elemental_viscosity);
 
-				}
-			}
-		//for boundary element with IS_POROUS==1 on the boundary
-		if(density == 0.0)
-			for(int ii=0;ii<3;++ii)	
-			 {
-			  if(geom[ii].GetSolutionStepValue(IS_POROUS) == 0.0)
-				{
-				 density = geom[ii].FastGetSolutionStepValue(DENSITY);
-				 viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
-
-			
-				}
-			 }	
-			
-	  }
+// 	  {
+// 	 
+// 		//for element having common node between two fluids or boundary element with POROSITY==1 inside the domain
+// 		for(int ii = 0 ; ii < geom.size();++ii)
+// 			{
+// 			  if(geom[ii].GetSolutionStepValue(IS_POROUS) == 1.0 && geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
+// 				{
+// 			  	 elemental_density = geom[ii].FastGetSolutionStepValue(DENSITY);
+// 				 elemental_viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
+// 
+// 				}
+// 			}
+// 		//for boundary element with IS_POROUS==1 on the boundary
+// 		if(elemental_density == 0.0)
+// 			 for(int ii = 0 ; ii < geom.size();++ii)
+// 			 {
+// 			  if(geom[ii].GetSolutionStepValue(IS_POROUS) == 0.0)
+// 				{
+// 				 elemental_density = geom[ii].FastGetSolutionStepValue(DENSITY);
+// 				 elemental_viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
+// 
+// 			
+// 				}
+// 			 }	
+// 			
+// 	  }
 
 
 
@@ -1425,7 +1476,8 @@ namespace Kratos
 	//mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
 
 	double density;
-	calculatedensity(GetGeometry(), density, mu);
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);
 
 	int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
 	
