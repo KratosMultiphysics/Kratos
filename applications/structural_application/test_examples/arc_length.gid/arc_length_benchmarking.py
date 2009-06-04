@@ -104,7 +104,7 @@ model_part.SetBufferSize(2)
 structural_solver_static_arc_length.AddDofs(model_part)
 
 #creating a fluid solver object
-solver = structural_solver_static_arc_length.StaticStructuralSolverArcLength(model_part,domain_size)
+solver = structural_solver_static_arc_length.StaticStructuralSolver(model_part,domain_size)
 
 
 solver.Initialize()
