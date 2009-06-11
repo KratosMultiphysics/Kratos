@@ -1,0 +1,19 @@
+BeginZE /data/ArchivosKratos/Domo.gid/Domo_0.post.vv
+   x -90.29 90.29
+   y 46.5883 -46.5883
+   z -141.819 137.711
+   e 46.5883
+   v 0.259006 -0.317067 0.647649
+   r 0.642601
+   m -0.0399602 -0.996603 -0.072005 0 0.668114 0.0269343 -0.743571 0 0.742985 -0.0778208 0.664769 0 0 0 0 1
+   c 0 0 2.054
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+EndZE /data/ArchivosKratos/Domo.gid/Domo_0.post.vv
+
