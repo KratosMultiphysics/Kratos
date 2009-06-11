@@ -181,12 +181,6 @@ namespace Kratos
 				mMoveMeshFlag      = MoveMeshFlag;
 				mApplyLineSearches = ApplyLineSearches;
 				meta= 1.00;
-				//KRATOS_WATCH(metmna)
-				//KRATOS_WATCH(mtolls)
-				//KRATOS_WATCH(mamp)
-				//KRATOS_WATCH(metmxa)
-				//KRATOS_WATCH(mMaxLineSearchIterations)
-
 			    KRATOS_CATCH("")
 			}
 
@@ -298,6 +292,7 @@ namespace Kratos
 				
 				iteration_number++;
 				}
+				return 0;  
 				KRATOS_CATCH("")			      
 			    }
                             
