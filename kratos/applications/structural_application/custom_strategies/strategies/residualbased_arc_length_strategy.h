@@ -529,7 +529,8 @@ namespace Kratos
 			while(	is_converged == false &&
 				iteration_number++<mMaxIterationNumber) 
 			{
-				//setting the number of iteration				
+				//setting the number of iteration
+                                std::cout<<std::endl;				
 				KRATOS_WATCH(iteration_number);
 				KRATOS_WATCH(mstep);
 				KRATOS_WATCH(mMaxIterationNumber);
@@ -737,9 +738,10 @@ namespace Kratos
 				      
 			if (is_converged == false && iteration_number>=mMaxIterationNumber)
 				 {
-				    //BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_REDUCED] = 1;
+				    
                                     reduce_arc_lenght = true;
                                     mdelta_l = sqrt(mIde/iteration_number)*mdelta_l;
+				    mdelta_lamda = mdelta_lamda_old;
 				    MaxIterationsExceeded();
                                     std::cout<<"Longitud de Arco Modificada"<<std::endl;
                                     KRATOS_WATCH(mdelta_l);
@@ -1222,11 +1224,19 @@ namespace Kratos
 
 	              TSystemVectorType& mDelta_pold = *mpDelta_pold;
 		      TSystemVectorType& mX_old = *mpX_old;
-				
+		      double factor = 0.00;			
 		      mdelta_lamda_old = mdelta_lamda;	
-                      mdelta_l = mdelta_lold; 
-		      //mdelta_l= sqrt(mIde/iteration_number)*mdelta_lold;   
-		      //if (sqrt(mIde/iteration_number) > 1.00){mdelta_l= mdelta_lold;}  // Controlando el tamaño del arco                                               
+                      //mdelta_l = mdelta_lold; 
+		      factor = sqrt(mIde/iteration_number);   
+		      if (factor > 1.5)
+			  {
+			    factor = 1.50;
+			  } 
+		      if (factor < 0.25)  
+			  {
+                            factor = 0.25;
+			  } 
+		      mdelta_l = factor*mdelta_lold;                                            
 		      mlamda_old = mlamda;
                       //KRATOS_WATCH(iteration_number)
 		      TSparseSpace::SetToZero(mDelta_pold);
