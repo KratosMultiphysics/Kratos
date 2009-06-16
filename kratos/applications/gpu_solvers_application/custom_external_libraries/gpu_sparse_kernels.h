@@ -79,7 +79,7 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows
 	const size_t Idx = GlobalIdx();									// Global thread index
 	const size_t Lane = Idx & (HALF_WARP_SIZE - 1);					// Thread index within a half warp
 	const size_t HWIdx = Idx >> HALF_WARP_SIZE_BITS;				// Half warp index
-	const size_t HWLane = HWIdx & 15;								// Half warp lane
+	const size_t HWLane = HWIdx & (HALF_WARP_SIZE - 1);				// Half warp lane
 	
 	__shared__ double Buffer[BLOCK_SIZE];							// Reduction buffer
 	__shared__ size_t Limits[BLOCK_SIZE / HALF_WARP_SIZE][2];		// Fetch buffer for upper and lower limits of a row
