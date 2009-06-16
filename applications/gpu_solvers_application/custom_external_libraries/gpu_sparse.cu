@@ -51,6 +51,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   * Link with cuBlas library when compiling. For compilation command, refer to the end of this file.
 //
 //   * Removed templates to be able to link to Kratos.
+//
+//   * Modified GPUCSRMatrix to keep no. of non-zeros per row constant and equal to HALF_WARP_SIZE (16) and use same no. threads to multiply a row
 
 // Includes, system
 
@@ -138,13 +140,67 @@ bool GPUVector::CopyGPUValuesFrom(GPUVector &V)
 
 // GPUCSRMatrix class definition
 
-GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values): NNZ(_NNZ), Size1(_Size1), Size2(_Size2), CPU_Columns(_CPU_Columns), CPU_RowIndices(_CPU_RowIndices), CPU_Values(_CPU_Values), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false)
+GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values): NNZ(0), Size1(_Size1), Size2(_Size2), CPU_Columns(0), CPU_RowIndices(0), CPU_Values(0), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false)
 {
-	// Nothing to do!
+	// Temporary RowIndices vector
+	size_t *Temp_CPU_RowIndices = new size_t[Size1 + 1];
+	Temp_CPU_RowIndices[0] = 0;
+
+	// Find out how many non-zeros are needed to pad all rows to 16 while building the RowIndices
+	for (size_t i = 0; i < Size1; i++)
+	{
+		size_t NZ = _CPU_RowIndices[i + 1] - _CPU_RowIndices[i];
+	
+		size_t R = NZ & HALF_WARP_SIZE_MASK;
+		if (R != 0)
+			NZ += HALF_WARP_SIZE - R;
+			
+		NNZ += NZ;
+		Temp_CPU_RowIndices[i + 1] = Temp_CPU_RowIndices[i] + NZ;
+	}
+	
+	// Allocate CPU memory for CSR structure using only one chunk of page-locked memory to speed up data transfer between CPU and GPU
+	void *CSR_Data;
+	
+	if (!CUDA_Success(cudaMallocHost(&CSR_Data, 2 * NNZ * sizeof(double) + (Size1 + 1) * sizeof(size_t))))  // TODO: What should be done?!
+		CSR_Data = 0;
+	
+	// We are sure that using this order, the memory alignment conditions will be satisfied as NNZ is a multiple of HALF_WARP_SIZE (16) and sizeof(double) = 8
+	CPU_Values = reinterpret_cast <double *> (CSR_Data);  // Size: NNZ * sizeof(double)
+	CPU_Columns = reinterpret_cast <size_t *> (reinterpret_cast <size_t> (CSR_Data) + NNZ * sizeof(double));  // Size: NNZ * sizeof(double)
+	CPU_RowIndices = reinterpret_cast <size_t *> (reinterpret_cast <size_t> (CSR_Data) + 2 * NNZ * sizeof(double));  // Size: (Size1 + 1) * sizeof(size_t)
+
+	// Move temporary data
+	memcpy(CPU_RowIndices, Temp_CPU_RowIndices, (Size1 + 1) * sizeof(size_t));
+	
+	delete[] Temp_CPU_RowIndices;
+	
+	// Build ECSR structure from given CSR
+	for (size_t i = 0; i < Size1; i++)
+	{
+		size_t _Start = _CPU_RowIndices[i], Start = CPU_RowIndices[i];
+		
+		for (size_t j = 0; j < _CPU_RowIndices[i + 1] - _CPU_RowIndices[i]; j++)
+		{
+			CPU_Columns[Start + j] = _CPU_Columns[_Start + j];
+			CPU_Values[Start + j] = _CPU_Values[_Start + j];
+		}
+		
+		size_t LastCol = _CPU_Columns[_CPU_RowIndices[i + 1] - 1];
+		
+		for (size_t j = _CPU_RowIndices[i + 1] - _CPU_RowIndices[i]; j < CPU_RowIndices[i + 1] - CPU_RowIndices[i]; j++)
+		{
+			CPU_Columns[Start + j] = LastCol;  // To maintain coalescing as much as possible
+			CPU_Values[Start + j] = 0.00;
+		}
+	}
 }
 	
 GPUCSRMatrix::~GPUCSRMatrix()
 {
+	// Free CSR data; as it is allocated in one chunk of memory, we need only to free the begining address
+	cudaFreeHost(CPU_Values);
+	
 	if (Allocated)
 		GPU_Free();
 }
@@ -156,9 +212,21 @@ bool GPUCSRMatrix::GPU_Allocate()
 
 	Allocated = true;
 
-	return (CUDA_Success(cudaMalloc(reinterpret_cast <void **> (&GPU_Columns), NNZ * sizeof(size_t))) &&
-			CUDA_Success(cudaMalloc(reinterpret_cast <void **> (&GPU_RowIndices), (Size1 + 1) * sizeof(size_t))) &&
-			CUDA_Success(cudaMalloc(reinterpret_cast <void **> (&GPU_Values), NNZ * sizeof(double))));
+	// Allocate GPU memory for CSR structure using only one chunk of memory to speed up data transfer between CPU and GPU
+	
+	void *CSR_Data;
+	
+	if (CUDA_Success(cudaMalloc(&CSR_Data, 2 * NNZ * sizeof(double) + (Size1 + 1) * sizeof(size_t))))
+	{
+		GPU_Values = reinterpret_cast <double *> (CSR_Data);  // Size: NNZ * sizeof(double)
+		GPU_Columns = reinterpret_cast <size_t *> (reinterpret_cast <size_t> (CSR_Data) + NNZ * sizeof(double));  // Size: NNZ * sizeof(double)
+		GPU_RowIndices = reinterpret_cast <size_t *> (reinterpret_cast <size_t> (CSR_Data) + 2 * NNZ * sizeof(double));  // Size: (Size1 + 1) * sizeof(size_t)
+		
+		return true;
+	}
+	
+	else
+		return false;
 }
 
 bool GPUCSRMatrix::GPU_Free()
@@ -167,10 +235,9 @@ bool GPUCSRMatrix::GPU_Free()
 		return false;
 
 	Allocated = false;
-
-	return (CUDA_Success(cudaFree(GPU_Columns)) &&
-			CUDA_Success(cudaFree(GPU_RowIndices)) &&
-			CUDA_Success(cudaFree(GPU_Values)));
+	
+	// Free CSR data; as it is allocated in one chunk of memory, we need only to free the begining address
+	return CUDA_Success(cudaFree(GPU_Values));
 }
 
 bool GPUCSRMatrix::Copy(CopyDirection Direction, bool CopyValuesOnly)
@@ -185,18 +252,14 @@ bool GPUCSRMatrix::Copy(CopyDirection Direction, bool CopyValuesOnly)
 			if (CopyValuesOnly)
 				return CUDA_Success(cudaMemcpy(GPU_Values, CPU_Values, NNZ * sizeof(double), cudaMemcpyHostToDevice));
 			else
-				return CUDA_Success(cudaMemcpy(GPU_Columns, CPU_Columns, NNZ * sizeof(size_t), cudaMemcpyHostToDevice)) &&
-					CUDA_Success(cudaMemcpy(GPU_RowIndices, CPU_RowIndices, (Size1 + 1) * sizeof(size_t), cudaMemcpyHostToDevice)) &&
-					CUDA_Success(cudaMemcpy(GPU_Values, CPU_Values, NNZ * sizeof(double), cudaMemcpyHostToDevice));
+				return CUDA_Success(cudaMemcpy(GPU_Values, CPU_Values, 2 * NNZ * sizeof(double) + (Size1 + 1) * sizeof(size_t), cudaMemcpyHostToDevice));
 
 		case GPU_CPU: 
 
 			if (CopyValuesOnly)
 				return CUDA_Success(cudaMemcpy(CPU_Values, GPU_Values, NNZ * sizeof(double), cudaMemcpyDeviceToHost));
 			else
-				return CUDA_Success(cudaMemcpy(CPU_Columns, GPU_Columns, NNZ * sizeof(size_t), cudaMemcpyDeviceToHost)) &&
-					CUDA_Success(cudaMemcpy(CPU_RowIndices, GPU_RowIndices, (Size1 + 1) * sizeof(size_t), cudaMemcpyDeviceToHost)) &&
-					CUDA_Success(cudaMemcpy(CPU_Values, GPU_Values, NNZ * sizeof(double), cudaMemcpyDeviceToHost));
+				return CUDA_Success(cudaMemcpy(CPU_Values, GPU_Values, 2 * NNZ * sizeof(double) + (Size1 + 1) * sizeof(size_t), cudaMemcpyDeviceToHost));
 
 	}
 
@@ -251,7 +314,7 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 
 	if (UseVectorizedVersion)
 	{
-		dim3 Grid = Build_Grid(A.Size1 *  WARP_SIZE, BLOCK_SIZE);
+		dim3 Grid = Build_Grid(A.Size1 *  HALF_WARP_SIZE, BLOCK_SIZE);
 		GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
 	}
 	
