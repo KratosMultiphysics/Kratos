@@ -387,6 +387,9 @@ namespace Kratos
 		        //calculate pressure term
 		        CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
 
+		        //calculate drag term
+// 		        CalculateDardcyTerm(rDampMatrix, r
+
 		        //compute projections
 		        
 		        //stabilization terms
@@ -1352,31 +1355,43 @@ namespace Kratos
 	//*************************************************************************************
 	//*************************************************************************************
 	void Fluid2DSplit::CalculateDensity(Geometry< Node<3> > geom, double& elemental_density, double& elemental_viscosity, double& elemental_porosity)
-	{
-
-	/*double kk = 0.0;
-	for(int ii=0;ii<3;++ii)
-		if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
-			{
-				kk++;
-				density +=geom[ii].FastGetSolutionStepValue(DENSITY);
-			}
-
-	density/=kk;*/
-	/*
-		density = ZeroVector(3);
-	for(int ii=0;ii<3;++ii)
-		density[ii] = geom[ii].FastGetSolutionStepValue(DENSITY);*/
-	
-	/*const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY);
-	const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY);
-	const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY);
-	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
-
-
+ 	{
+// 
+// 	/*double kk = 0.0;
+// 	for(int ii=0;ii<3;++ii)
+// 		if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
+// 			{
+// 				kk++;
+// 				density +=geom[ii].FastGetSolutionStepValue(DENSITY);
+// 			}
+// 
+// 	density/=kk;*/
+// 	/*
+// 		density = ZeroVector(3);
+// 	for(int ii=0;ii<3;++ii)
+// 		density[ii] = geom[ii].FastGetSolutionStepValue(DENSITY);*/
+// 	
+// 	/*const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY);
+// 	const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY);
+// 	const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY);
+// 	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
+// 
+// 
 	double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
+	if (eps0 == 0.0)
+	 {
+	     eps0 = 1.0;
+	 }
 	double eps1 = geom[1].FastGetSolutionStepValue(POROSITY);
+	if (eps1 == 0.0)
+	 {
+	     eps1 = 1.0;
+	 }
 	double eps2 = geom[2].FastGetSolutionStepValue(POROSITY);
+	if (eps2 == 0.0)
+	 {
+	     eps2 = 1.0;
+	 }
 
 	elemental_density = 0.0;
 	elemental_porosity = 1.0;
@@ -1407,9 +1422,9 @@ namespace Kratos
 		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY);
 	 }
 	else ("ERROR!!! three different values of densities");
-  KRATOS_WATCH(elemental_porosity);
-KRATOS_WATCH(elemental_density);
-KRATOS_WATCH(elemental_viscosity);
+// KRATOS_WATCH(elemental_porosity);
+// KRATOS_WATCH(elemental_density);
+// KRATOS_WATCH(elemental_viscosity);
 
 // 	  {
 // 	 
@@ -1436,11 +1451,7 @@ KRATOS_WATCH(elemental_viscosity);
 // 				}
 // 			 }	
 // 			
-// 	  }
-
-
-
-	}
+ 	}
 	//*************************************************************************************
 	//*************************************************************************************
 
