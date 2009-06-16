@@ -66,6 +66,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Size of a warp (threads per warp)
 #define WARP_SIZE			32
 
+// Warp size mask
+#define WARP_SIZE_MASK		31
+
+// Warp size log_2
+#define WARP_SIZE_BITS		5
+
+// Size of a half warp (threads per half warp)
+#define HALF_WARP_SIZE		16
+
+// Half warp size mask
+#define HALF_WARP_SIZE_MASK	15
+
+// Half warp size log_2
+#define HALF_WARP_SIZE_BITS	4
+
 // Macro to enforce intrawarp sychronization during emulation
 #ifdef __DEVICE_EMULATION__
 

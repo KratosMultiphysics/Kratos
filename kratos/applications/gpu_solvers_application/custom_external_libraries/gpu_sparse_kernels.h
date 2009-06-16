@@ -76,22 +76,27 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Kernel(const size_t Rows, const siz
 
 __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
 {
-	size_t Idx = GlobalIdx();				// Global thread index
-	size_t Lane = Idx & (WARP_SIZE - 1);	// Thread index within a warp
-	size_t WIdx = Idx / WARP_SIZE;			// There are 32 threads in a warp
+	const size_t Idx = GlobalIdx();									// Global thread index
+	const size_t Lane = Idx & (HALF_WARP_SIZE - 1);					// Thread index within a half warp
+	const size_t HWIdx = Idx >> HALF_WARP_SIZE_BITS;				// Half warp index
+	const size_t HWLane = HWIdx & 15;								// Half warp lane
 	
-	__shared__ double Buffer[BLOCK_SIZE];
+	__shared__ double Buffer[BLOCK_SIZE];							// Reduction buffer
+	__shared__ size_t Limits[BLOCK_SIZE / HALF_WARP_SIZE][2];		// Fetch buffer for upper and lower limits of a row
 	
-	// We are doing one row per warp, so the row number is the same as WarpIdx
+	// We are doing one row per half warp, so the row number is the same as HWIdx
 	
-	if (WIdx < Rows)
+	if (HWIdx < Rows)
 	{
-		Buffer[threadIdx.x] = 0;		// Each thread zeros its own element in the Buffer
+		Buffer[threadIdx.x] = 0;									// Each thread zeros its own element in the Buffer
 		
-		size_t Start = A_RowIndices[WIdx];
-		size_t End = A_RowIndices[WIdx + 1];
-		
-		for (size_t i = Start + Lane; i < End; i += WARP_SIZE)
+		if (Lane < 2)
+			Limits[HWLane][Lane] = A_RowIndices[HWIdx + Lane];
+
+		const size_t Start = Limits[HWLane][0];
+		const size_t End = Limits[HWLane][1];
+
+		for (size_t i = Start + Lane; i < End; i += HALF_WARP_SIZE)
 
 #ifdef USE_TEXTURE_CACHING
 
@@ -107,14 +112,8 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows
 #endif
 
 			// Reduce the results in the Buffer; loops are unrolled!
-			// There is 32 = 2 ^ 5 threads in a warp
+			// There is 16 = 2 ^ 4 threads in a half warp
 			
-			if (Lane < 16)
-			{
-				Buffer[threadIdx.x] += Buffer[threadIdx.x + 16];
-				EMUSYNC
-			}
-				
 			if (Lane < 8) 
 			{
 				Buffer[threadIdx.x] += Buffer[threadIdx.x + 8];
@@ -141,7 +140,7 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows
 			
 			// The first thread in warp has the answer; write it back
 			if (Lane == 0)
-				 Y_Values[WIdx] = Buffer[threadIdx.x];
+				 Y_Values[HWIdx] = Buffer[threadIdx.x];
 	}
 }
 
@@ -151,7 +150,7 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows
 
 __global__ void GPU_MatrixGetDiagonals_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, double *X_Values)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 	
 	if (Idx < Rows)
 	{
@@ -169,7 +168,7 @@ __global__ void GPU_MatrixGetDiagonals_Kernel(const size_t Rows, const size_t *A
 
 __global__ void GPU_MatrixMatrixDiagonalMultiply_Kernel(const size_t Size, const double *X_Values, const size_t *A_Columns, const size_t *A_RowIndices, double *A_Values)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 	
 	if (Idx < Size)
 	{
@@ -186,7 +185,7 @@ __global__ void GPU_MatrixMatrixDiagonalMultiply_Kernel(const size_t Size, const
 
 __global__ void GPU_VectorPrepareDiagonalPreconditionerValues_Kernel(const size_t Size, double *X_Values)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 	
 	if (Idx < Size)
 		if (X_Values[Idx] == 0.00)
@@ -203,7 +202,7 @@ __global__ void GPU_VectorPrepareDiagonalPreconditionerValues_Kernel(const size_
 
 __global__ void GPU_VectorVectorMultiplyElementWise_Kernel(const size_t N, const double *X, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = X[Idx] * Y[Idx];
@@ -217,7 +216,7 @@ __global__ void GPU_VectorVectorMultiplyElementWise_Kernel(const size_t N, const
 
 __global__ void GPU_VectorScaleAndAdd_1_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = A * X[Idx] + B * Y[Idx];
@@ -227,7 +226,7 @@ __global__ void GPU_VectorScaleAndAdd_1_Kernel(const size_t N, const double A, c
 
 __global__ void GPU_VectorScaleAndAdd_1_A_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = X[Idx] + Y[Idx];
@@ -237,7 +236,7 @@ __global__ void GPU_VectorScaleAndAdd_1_A_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_1_B_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = X[Idx] - Y[Idx];
@@ -247,7 +246,7 @@ __global__ void GPU_VectorScaleAndAdd_1_B_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_1_C_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = -X[Idx] + Y[Idx];
@@ -257,7 +256,7 @@ __global__ void GPU_VectorScaleAndAdd_1_C_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_1_D_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = -X[Idx] - Y[Idx];
@@ -267,7 +266,7 @@ __global__ void GPU_VectorScaleAndAdd_1_D_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_1_E_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = X[Idx] + B * Y[Idx];
@@ -277,7 +276,7 @@ __global__ void GPU_VectorScaleAndAdd_1_E_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_1_F_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = -X[Idx] + B * Y[Idx];
@@ -287,7 +286,7 @@ __global__ void GPU_VectorScaleAndAdd_1_F_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_1_G_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = A * X[Idx] + Y[Idx];
@@ -297,7 +296,7 @@ __global__ void GPU_VectorScaleAndAdd_1_G_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_1_H_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Z[Idx] = A * X[Idx] - Y[Idx];
@@ -307,7 +306,7 @@ __global__ void GPU_VectorScaleAndAdd_1_H_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] = A * X[Idx] + B * Y[Idx];
@@ -317,7 +316,7 @@ __global__ void GPU_VectorScaleAndAdd_2_Kernel(const size_t N, const double A, c
 
 __global__ void GPU_VectorScaleAndAdd_2_A_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] += X[Idx];
@@ -327,7 +326,7 @@ __global__ void GPU_VectorScaleAndAdd_2_A_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_B_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] = X[Idx] - Y[Idx];
@@ -337,7 +336,7 @@ __global__ void GPU_VectorScaleAndAdd_2_B_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_C_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] += -X[Idx];
@@ -347,7 +346,7 @@ __global__ void GPU_VectorScaleAndAdd_2_C_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_D_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] = -X[Idx] - Y[Idx];
@@ -357,7 +356,7 @@ __global__ void GPU_VectorScaleAndAdd_2_D_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_E_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] = X[Idx] + B * Y[Idx];
@@ -367,7 +366,7 @@ __global__ void GPU_VectorScaleAndAdd_2_E_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_F_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] = -X[Idx] + B * Y[Idx];
@@ -377,7 +376,7 @@ __global__ void GPU_VectorScaleAndAdd_2_F_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_G_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] += A * X[Idx];
@@ -387,7 +386,7 @@ __global__ void GPU_VectorScaleAndAdd_2_G_Kernel(const size_t N, const double A,
 
 __global__ void GPU_VectorScaleAndAdd_2_H_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
-	size_t Idx = GlobalIdx();
+	const size_t Idx = GlobalIdx();
 
 	if (Idx < N)
 		Y[Idx] = A * X[Idx] - Y[Idx];
