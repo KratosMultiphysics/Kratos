@@ -300,8 +300,9 @@ namespace Kratos
 		//calculating parameter tau 		
 		norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
-// KRATOS_WATCH(tau);
+
+                tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
+
 		//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
 		noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
 		noalias(msWorkMatrix) = outer_prod(msN,ms_u_DN);
@@ -331,8 +332,8 @@ namespace Kratos
 		//calculating parameter tau 		
 		norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
-// KRATOS_WATCH(tau);
+
+                tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
 
 		//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
 		noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
@@ -362,7 +363,9 @@ namespace Kratos
 		//calculating parameter tau 		
 		norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
+
+
+		tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
 // KRATOS_WATCH(tau);
 
 		//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
@@ -459,7 +462,7 @@ namespace Kratos
 		double h = sqrt(2.00*Area);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h );
+		double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
 
 		//getting the BDF2 coefficients (not fixed to allow variable time step)
 		//the coefficients INCLUDE the time step
@@ -760,6 +763,29 @@ namespace Kratos
 		else if(FractionalStepNumber == 4) // pressure correction step
 			for (unsigned int i=0;i<number_of_nodes;i++)
 				ElementalDofList[i] = GetGeometry()[i].pGetDof(PRESSURE);
+
+	}
+
+	//************************************************************************************
+	//************************************************************************************
+	inline double Fluid2D::CalculateTau(const double h, const double norm_u, const double nu, ProcessInfo& CurrentProcessInfo)
+	{
+              const double c1 = 4.00;
+              const double c2 = 2.00;
+              double tau;
+		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
+                if (dyn_st_switch)
+                {
+                    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+                    tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+//                    KRATOS_WATCH(tau);
+                }
+                else
+                {
+                    tau = 1.00 / (c1*nu/(h*h) + c2*norm_u/h );
+                }
+
+                return tau;
 
 	}
 
