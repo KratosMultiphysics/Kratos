@@ -233,9 +233,9 @@ namespace Kratos
 		//double h = pow(6.00*Volume,0.3333333);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
+		double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
 
-		//adjusting the stablization by a constant factor
+                //adjusting the stablization by a constant factor
 		//double stab_factor = GetProperties()[STABILIZATION_FACTOR];
 		//if(stab_factor != 0.0)
 		//	tau *= GetProperties()[STABILIZATION_FACTOR];
@@ -405,7 +405,7 @@ namespace Kratos
 		double h = CalculateH(Volume);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
+		double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
 		
 		//getting the BDF2 coefficients (not fixed to allow variable time step)
 		//the coefficients INCLUDE the time step
@@ -772,6 +772,29 @@ namespace Kratos
 		//h = sqrt(h);
 		
 		return h;
+	}
+
+	//************************************************************************************
+	//************************************************************************************
+	inline double Fluid3D::CalculateTau(const double h, const double norm_u, const double nu, ProcessInfo& CurrentProcessInfo)
+	{
+              const double c1 = 4.00;
+              const double c2 = 2.00;
+              double tau;
+		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
+                if (dyn_st_switch)
+                {
+                    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+                    tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+//                    KRATOS_WATCH(tau);
+                }
+                else
+                {
+                    tau = 1.00 / (c1*nu/(h*h) + c2*norm_u/h );
+                }
+
+                return tau;
+
 	}
 
 } // Namespace Kratos

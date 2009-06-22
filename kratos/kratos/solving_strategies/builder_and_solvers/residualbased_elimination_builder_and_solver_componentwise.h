@@ -52,6 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 #include <set>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
@@ -211,6 +215,8 @@ namespace Kratos
 			//resetting to zero the vector of reactions
 			TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
+#ifndef _OPENMP
+
 			//contributions to the system
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -218,11 +224,6 @@ namespace Kratos
 			//vector containing the localization in the system of the different
 			//terms
 			Element::EquationIdVectorType EquationId;
-/*double aaa = 0.00;
-double bbb = 0.00;
-double ccc = 0.00;
-double ddd = 0.00;*/
-//double StartTime = GetTickCount();
 
 			unsigned int pos = (r_model_part.Nodes().begin())->GetDofPosition(rVar);
 
@@ -230,34 +231,20 @@ double ddd = 0.00;*/
 			// assemble all elements
 			for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
 			{
-// 	aaa = GetTickCount();
 				//calculate elemental contribution
 				(*it)->InitializeNonLinearIteration(CurrentProcessInfo);
 				(*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
 				Geometry< Node<3> >& geom = (*it)->GetGeometry();
 				if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
-/*	bbb += GetTickCount() - aaa;
 
-	ccc = GetTickCount();*/
-				for(unsigned int i=0; i<geom.size(); i++)
+                                for(unsigned int i=0; i<geom.size(); i++)
 					EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
-// 	ddd += GetTickCount() - ccc;
 
-
-	//bbb = GetTickCount();
-				//assemble the elemental contribution
+                                //assemble the elemental contribution
 				AssembleLHS(A,LHS_Contribution,EquationId);
 				AssembleRHS(b,RHS_Contribution,EquationId);
-	//ccc += GetTickCount() - bbb;
-
-
 			}
-//double EndTime = GetTickCount();
-//
-//std::cout << "total time " << EndTime - StartTime << std::endl;
-//std::cout << "writing in the system matrix " << ccc << std::endl;
-//std::cout << "calculating the elemental contrib " << ddd << std::endl;
 
 			LHS_Contribution.resize(0,0,false);
 			RHS_Contribution.resize(0,false);
@@ -266,39 +253,137 @@ double ddd = 0.00;*/
 			// assemble all conditions
 			for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
 			{
-
-// 	aaa = GetTickCount();
 				//calculate elemental contribution
 				(*it)->InitializeNonLinearIteration(CurrentProcessInfo);
 				(*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
 				Geometry< Node<3> >& geom = (*it)->GetGeometry();
 				if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
-// 	bbb += GetTickCount() - aaa;
-//KRATOS_WATCH(RHS_Contribution);
-//KRATOS_WATCH(LHS_Contribution);
 
-// 	ccc = GetTickCount();
-				for(unsigned int i=0; i<geom.size(); i++)
+                                for(unsigned int i=0; i<geom.size(); i++)
 				{
 					EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 				}
-// 	ddd += GetTickCount() - ccc;
-				
-
 
 				//assemble the elemental contribution
 				AssembleLHS(A,LHS_Contribution,EquationId);
 				AssembleRHS(b,RHS_Contribution,EquationId);
 			}
+#else
+                        ////////////////////////////////////////////////////////////////////////
+                        //********************************************************************//
+                        ////////////////////////////////////////////////////////////////////////
+                        //OPENMP
+                        ////////////////////////////////////////////////////////////////////////
+                        //********************************************************************//
+                        ////////////////////////////////////////////////////////////////////////
+                        //create a partition of the element array
+			int number_of_threads = omp_get_max_threads();
+			vector<unsigned int> element_partition;
+			CreatePartition(number_of_threads, pElements.size(), element_partition);
+                        if (this->GetEchoLevel()>0)
+			{
+                            KRATOS_WATCH( number_of_threads );
+                            KRATOS_WATCH( element_partition );
+                        }
 
-/*for(int i = 0; i<b.size(); i++)
-std::cout << b[i] << std::endl;
+                        
+                        double start_prod = omp_get_wtime();
+
+			#pragma omp parallel for
+			for(int k=0; k<number_of_threads; k++)
+			{
+				//contributions to the system
+				LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
+				LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+				//vector containing the localization in the system of the different
+				//terms
+				Element::EquationIdVectorType EquationId;
+				ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+				typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
+				typename ElementsArrayType::ptr_iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+                                unsigned int pos = (r_model_part.Nodes().begin())->GetDofPosition(rVar);
 
 
-std::cout << "building time " << bbb <<std::endl;
-std::cout << "id time " << ddd <<std::endl;*/
-			KRATOS_CATCH("")
+				// assemble all elements
+				for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+				{
+
+                                    //calculate elemental contribution
+                                    (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
+                                    (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+
+                                    Geometry< Node<3> >& geom = (*it)->GetGeometry();
+                                    if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
+
+                                    for(unsigned int i=0; i<geom.size(); i++)
+                                            EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
+
+                                    //assemble the elemental contribution
+                                    #pragma omp critical
+                                    {
+                                        AssembleLHS(A,LHS_Contribution,EquationId);
+                                        AssembleRHS(b,RHS_Contribution,EquationId);
+                                    }
+                                }
+                        }
+
+			vector<unsigned int> condition_partition;
+			CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
+
+ 			#pragma omp parallel for
+			for(int k=0; k<number_of_threads; k++)
+			{
+				//contributions to the system
+				LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
+				LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+				Condition::EquationIdVectorType EquationId;
+
+				ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+				typename ConditionsArrayType::ptr_iterator it_begin=ConditionsArray.ptr_begin()+condition_partition[k];
+				typename ConditionsArrayType::ptr_iterator it_end=ConditionsArray.ptr_begin()+condition_partition[k+1];
+
+                                unsigned int pos = (r_model_part.Nodes().begin())->GetDofPosition(rVar);
+
+				// assemble all elements
+				for (typename ConditionsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+				{
+
+                                    //calculate elemental contribution
+                                    (*it)->InitializeNonLinearIteration(CurrentProcessInfo);
+                                    (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+
+                                    Geometry< Node<3> >& geom = (*it)->GetGeometry();
+                                    if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
+
+                                    for(unsigned int i=0; i<geom.size(); i++)
+                                    {
+                                            EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
+                                    }
+
+                                    //assemble the elemental contribution
+                                    #pragma omp critical
+                                    {
+                                        AssembleLHS(A,LHS_Contribution,EquationId);
+                                        AssembleRHS(b,RHS_Contribution,EquationId);
+                                    }
+                                }
+                        }
+                        if (this->GetEchoLevel()>0)
+			{
+                            double stop_prod = omp_get_wtime();
+                            std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
+                        }
+                        
+#endif
+
+
+
+                        KRATOS_CATCH("")
 
 		}
 
@@ -580,6 +665,17 @@ std::cout << "id time " << ddd <<std::endl;*/
 		/*@} */
 		/**@name Private Operators*/
 		/*@{ */
+                //******************************************************************************************
+		//******************************************************************************************
+		inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+		{
+			partitions.resize(number_of_threads+1);
+			int partition_size = number_of_rows / number_of_threads;
+			partitions[0] = 0;
+			partitions[number_of_threads] = number_of_rows;
+			for(int i = 1; i<number_of_threads; i++)
+			   partitions[i] = partitions[i-1] + partition_size ;
+		}
 
 
 		/*@} */

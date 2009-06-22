@@ -121,6 +121,7 @@ fluid_solver.echo_level = 0
 fluid_solver.velocity_linear_solver = SkylineLUFactorizationSolver();
 fluid_solver.pressure_linear_solver = SkylineLUFactorizationSolver();
 fluid_solver.Initialize()
+model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 1);
 
 #settings to be changed
 Re = 100.0
