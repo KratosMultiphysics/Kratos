@@ -251,9 +251,8 @@ namespace Kratos
 		const NDFluid2DCrankNicolson	 mNDFluid2DCrankNicolson;
 
 		const ASGS2D  mASGS2D; 
+		const ASGSPRDC  mASGSPRDC;
 		const ASGSCompressible2D mASGSCompressible2D;
-
-		const ASGSPRDC  mASGSPRDC; 
 
 		//const ASGSCOMPPRDC mASGSCOMPPRDC;
 
