@@ -151,7 +151,7 @@ namespace Kratos
 			ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
 				
 			//we set the minimal distance, where the refinement shall start
-			double min_dist=h_min;
+			double min_dist=h_min; 
 			//min_dist=0.0;	
 			for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 			{
