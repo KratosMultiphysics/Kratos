@@ -178,7 +178,7 @@ namespace Kratos
 			dist=in->FastGetSolutionStepValue(DISTANCE);
 			if (dist<0.75*max_dist && dist>=min_dist)
 				{
-                	if ((coef*dist+c)>h_min & (coef*dist+c)<h_max)
+                	if ((coef*dist+c)>h_min && (coef*dist+c)<h_max)
 					{
 					in->FastGetSolutionStepValue(NODAL_H)=coef*dist+c;
 					}

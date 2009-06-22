@@ -140,10 +140,14 @@ class MonolithicSolver:
 ##        (self.node_erase_process).Execute();
 ##        self.Remesh()
 ##        self.OutputStep(time,gid_io)
+        print "143"
 
         self.Remesh()
+        print "145"
         (self.solver).Solve()
+        print "a47"
 	(self.solver).Clear()
+	print "149"
         self.OutputStep(time,gid_io)
 
     #######################################################################  
