@@ -226,6 +226,13 @@ namespace Kratos
 	double mu;
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
+// KRATOS_WATCH(GetGeometry()[0])
+// KRATOS_WATCH(GetGeometry()[1])
+// KRATOS_WATCH(GetGeometry()[2])
+// KRATOS_WATCH(density)
+// KRATOS_WATCH(mu)
+// KRATOS_WATCH(eps)
+
 
 	int nodes_number = 3;
 	int dof = 2;
@@ -537,6 +544,7 @@ namespace Kratos
 	}
 	//************************************************************************************
 	//************************************************************************************
+	//Calculate the divergence and the gradient operators
 	void Fluid2DSplit::CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double time,const double area)
 	{
 		KRATOS_TRY
@@ -1243,7 +1251,7 @@ namespace Kratos
 			if(rResult.size() != number_of_nodes*node_size)
 				rResult.resize(number_of_nodes*node_size,false);	
 			
-			if ( this->GetValue(IS_DIVIDED) == 0.0 ) 
+			if( this->GetValue(IS_DIVIDED) == 0.0 ) 
 			{
 				rResult.resize(0);
 			}
@@ -1273,7 +1281,7 @@ namespace Kratos
 			if(ElementalDofList.size() != number_of_nodes*node_size)
 				ElementalDofList.resize(number_of_nodes*node_size);	
 
-			if ( this->GetValue(IS_DIVIDED) == 0.0 ) 
+			if( this->GetValue(IS_DIVIDED) == 0.0 ) 
 			{
 				ElementalDofList.resize(0);
 			}
@@ -1378,17 +1386,17 @@ namespace Kratos
 // 
 // 
 	double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
-	if (eps0 == 0.0)
+	if(eps0 == 0.0)
 	 {
 	     eps0 = 1.0;
 	 }
 	double eps1 = geom[1].FastGetSolutionStepValue(POROSITY);
-	if (eps1 == 0.0)
+	if(eps1 == 0.0)
 	 {
 	     eps1 = 1.0;
 	 }
 	double eps2 = geom[2].FastGetSolutionStepValue(POROSITY);
-	if (eps2 == 0.0)
+	if(eps2 == 0.0)
 	 {
 	     eps2 = 1.0;
 	 }
@@ -1396,32 +1404,46 @@ namespace Kratos
 	elemental_density = 0.0;
 	elemental_porosity = 1.0;
 
-	if(eps0 == eps1 && eps1 == eps2 && eps2 == eps0)
+	if(eps0 == eps1 && eps1 == eps2)
 	  {
 		//for inside the domain totally inside one fluid
 		elemental_porosity = eps0;
 		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY) * eps0;	
-		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);	
+		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);
+// 		KRATOS_WATCH("fluid nodes")
+// 		KRATOS_WATCH(geom[0].Id();)
+// 		KRATOS_WATCH(geom[1].Id();)
+// 		KRATOS_WATCH(geom[2].Id();)
 	  }
-	else if (eps0 == eps1)
+	else if(eps0 == eps1)
 	 {
 	   	elemental_porosity = eps0;
 		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY) * eps0;	
 		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);
 	 }
-	else if (eps1 == eps2)
+	else if(eps1 == eps2)
 	 {
 		elemental_porosity = eps1;
 		elemental_density = geom[1].FastGetSolutionStepValue(DENSITY) * eps1;	
 		elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY);
 	 }
-	else if (eps2 == eps0)
+	else if(eps2 == eps0)
 	 {
 		elemental_porosity = eps2;
 		elemental_density = geom[2].FastGetSolutionStepValue(DENSITY) * eps2;	
 		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY);
 	 }
-	else ("ERROR!!! three different values of densities");
+	else("ERROR!!! three different values of densities");
+/*
+	KRATOS_WATCH("nodes of the element")
+	KRATOS_WATCH(geom[0].Id())
+        KRATOS_WATCH(geom[1].Id())
+	KRATOS_WATCH(geom[2].Id())
+	KRATOS_WATCH(elemental_porosity)
+	KRATOS_WATCH(elemental_density)
+	KRATOS_WATCH(elemental_viscosity)
+      */
+
 // KRATOS_WATCH(elemental_porosity);
 // KRATOS_WATCH(elemental_density);
 // KRATOS_WATCH(elemental_viscosity);
