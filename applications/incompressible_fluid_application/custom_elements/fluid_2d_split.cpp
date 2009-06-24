@@ -624,7 +624,7 @@ namespace Kratos
 	//************************************************************************************
 	void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double time,const double area)
 	{
-		KRATOS_TRY
+	KRATOS_TRY
 	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
 	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
 	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
@@ -1433,7 +1433,7 @@ namespace Kratos
 		elemental_density = geom[2].FastGetSolutionStepValue(DENSITY) * eps2;	
 		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY);
 	 }
-	else("ERROR!!! three different values of densities");
+	else {"ERROR!!! three different values of densities";}
 /*
 	KRATOS_WATCH("nodes of the element")
 	KRATOS_WATCH(geom[0].Id())
