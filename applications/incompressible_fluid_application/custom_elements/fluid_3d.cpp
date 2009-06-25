@@ -227,8 +227,8 @@ namespace Kratos
 		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
 		//calculating parameter tau (saved internally to each element)
-		double c1 = 4.00;
-		double c2 = 2.00;
+//		double c1 = 4.00;
+//		double c2 = 2.00;
 		double h = CalculateH(Volume);
 		//double h = pow(6.00*Volume,0.3333333);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
@@ -399,8 +399,8 @@ namespace Kratos
  		double density = 0.25*(rho0 + rho1 + rho2 + rho3);
 
 		//calculating parameter tau (saved internally to each element)
-		double c1 = 4.00;
-		double c2 = 2.00;
+//		double c1 = 4.00;
+//		double c2 = 2.00;
 		//double h = pow(6.00*Volume,0.3333333333);
 		double h = CalculateH(Volume);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
@@ -776,7 +776,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	inline double Fluid3D::CalculateTau(const double h, const double norm_u, const double nu, ProcessInfo& CurrentProcessInfo)
+	inline double Fluid3D::CalculateTau(const double h, const double nu, const double norm_u, ProcessInfo& CurrentProcessInfo)
 	{
               const double c1 = 4.00;
               const double c2 = 2.00;

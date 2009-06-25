@@ -233,7 +233,7 @@ namespace Kratos
       ///@{ 
       void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
       void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      double CalculateTau(const double h, const double norm_u, const double nu, ProcessInfo& CurrentProcessInfo);
+      double CalculateTau(const double h, const double nu, const double norm_u, ProcessInfo& CurrentProcessInfo);
        
   
 	  //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)

@@ -81,7 +81,7 @@ GROUP NoSlipCondition SlipCondition IN point line surface
 NoSlipCondition SlipCondition  ASSIGN VELOCITY fixed 0.0 0.0 0.0
 
 GROUP VelocityInlet NoSlipCondition IN point line surface
-VelocityInlet NoSlipCondition ASSIGN VELOCITY FROM VelocityInlet 
+VelocityInlet NoSlipCondition ASSIGN VELOCITY FROM NoSlipCondition 
 
 GROUP VelocityInlet SlipCondition IN point line surface
 VelocityInlet SlipCondition ASSIGN VELOCITY FROM VelocityInlet 
