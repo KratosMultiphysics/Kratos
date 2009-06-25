@@ -563,17 +563,16 @@ namespace Kratos
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1) + dof;
-
+			//Elemental gradient of pressure term (momentum equation)
 			K(row,column) += -1*area * N(jj) * DN_DX(ii,0);
-			K(column,row) += 1*area *density* N(jj) * DN_DX(ii,0);
-
 			K(row + 1,column) += -1*area * N(jj) * DN_DX(ii,1);
+
+			//Elemental divergence terms (continuity equation)
+			K(column,row) += 1*area *density* N(jj) * DN_DX(ii,0);
 			K(column,row + 1) += 1*area *density* N(jj) * DN_DX(ii,1);
 		   }
 	    }
-
-	
-		KRATOS_CATCH("")
+	    KRATOS_CATCH("")
 	}
 	//************************************************************************************
 	//************************************************************************************
@@ -1433,7 +1432,7 @@ namespace Kratos
 		elemental_density = geom[2].FastGetSolutionStepValue(DENSITY) * eps2;	
 		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY);
 	 }
-	else {"ERROR!!! three different values of densities";}
+	else { KRATOS_WATCH("ERROR!!! three different values of densities");}
 /*
 	KRATOS_WATCH("nodes of the element")
 	KRATOS_WATCH(geom[0].Id())
