@@ -181,7 +181,6 @@ check_elemtype ASGSCompressible2D surface None
 			lreplace ${surfaceVelocityInletlist} ${VelocityInletpos} ${VelocityInletpos}
 			set NoSlipConditionpos [lsearch ${surfaceNoSlipConditionlist} $surface]
 			lreplace ${surfaceNoSlipConditionlist} ${NoSlipConditionpos} ${NoSlipConditionpos}
-			condfrompart VelocityInlet VELOCITY always surface $surface
 		} else {
 			puts "Unexpected combination of Model Parts in surface $surface"
 		}
@@ -321,7 +320,6 @@ check_elemtype ASGSCompressible2D surface None
 			lreplace ${lineVelocityInletlist} ${VelocityInletpos} ${VelocityInletpos}
 			set NoSlipConditionpos [lsearch ${lineNoSlipConditionlist} $line]
 			lreplace ${lineNoSlipConditionlist} ${NoSlipConditionpos} ${NoSlipConditionpos}
-			condfrompart VelocityInlet VELOCITY always line $line
 		} else {
 			puts "Unexpected combination of Model Parts in line $line"
 		}
@@ -444,7 +442,6 @@ check_elemtype ASGSCompressible2D surface None
 			lreplace ${pointVelocityInletlist} ${VelocityInletpos} ${VelocityInletpos}
 			set NoSlipConditionpos [lsearch ${pointNoSlipConditionlist} $point]
 			lreplace ${pointNoSlipConditionlist} ${NoSlipConditionpos} ${NoSlipConditionpos}
-			condfrompart VelocityInlet VELOCITY always point $point
 		} else {
 			puts "Unexpected combination of Model Parts in point $point"
 		}
@@ -923,10 +920,13 @@ proc create_point_elems { Condition } {
 }
 
 # Assign an element from an option
+# Assign an element from an option
 proc assign_element_choice { Option entity args } {
 	set user_elements {}
 	foreach possible_element $args {
-		lappend user_elements [createlist $entity $possible_element]
+		foreach item [createlist $entity $possible_element] {
+			lappend user_elements $item
+		}
 	}
 	foreach entinfo [GiD_Info conditions ${entity}_${Option} geometry] {
 		set entnum [lindex $entinfo 1]

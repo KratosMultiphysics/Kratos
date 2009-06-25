@@ -2,7 +2,7 @@ domain_size = *GenData(DOMAIN_SIZE)
 
 Dt = *GenData(Time_step)
 max_time = *GenData(max_time)
-SolverType = *GenData(SolverType)
+SolverType = "*GenData(SolverType)"
 laplacian_form = *GenData(laplacian_form)
 output_step = *GenData(output_step)
 predictor_corrector = *GenData(predictor_corrector)
