@@ -283,7 +283,7 @@ namespace Kratos
 		
 		//====================================================================
 		//calculation of convective and stabilizing terms ... using 3 gauss points (on the sides)
-		double c1 = 4.00; double c2 = 2.00;
+//		double c1 = 4.00; double c2 = 2.00;
 		double h = sqrt(2.00*Area/3.0);
 		double norm_u = 0.0; double tau=0.0;
 		double area_density_third = Area * density * 0.33333333333333333333;
@@ -768,7 +768,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	inline double Fluid2D::CalculateTau(const double h, const double norm_u, const double nu, ProcessInfo& CurrentProcessInfo)
+	inline double Fluid2D::CalculateTau(const double h, const double nu, const double norm_u, ProcessInfo& CurrentProcessInfo)
 	{
               const double c1 = 4.00;
               const double c2 = 2.00;
