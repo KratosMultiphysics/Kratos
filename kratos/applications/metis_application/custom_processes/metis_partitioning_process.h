@@ -533,12 +533,13 @@ namespace Kratos
 			  int node_partition = NPart[*i_node-1];
 			  if(node_partition != rank) 
 			  {
-			    mrModelPart.AssignNode(AllNodes((*i_node))); 
-			    mrModelPart.GetCommunicator().GhostMesh().AddNode(AllNodes((*i_node))); 
+			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
+			    mrModelPart.AssignNode(p_node); 
+			    mrModelPart.GetCommunicator().GhostMesh().AddNode(p_node); 
 if(interface_indices[node_partition] < neighbours_indices.size())
 {
-			    mrModelPart.GetCommunicator().GhostMesh(interface_indices[node_partition]).AddNode(AllNodes((*i_node))); 
-			    mrModelPart.GetCommunicator().InterfaceMesh(interface_indices[node_partition]).AddNode(AllNodes((*i_node))); 
+			    mrModelPart.GetCommunicator().GhostMesh(interface_indices[node_partition]).AddNode(p_node); 
+			    mrModelPart.GetCommunicator().InterfaceMesh(interface_indices[node_partition]).AddNode(p_node); 
 }
 else
 {
@@ -546,7 +547,7 @@ else
 }
 			    mrModelPart.GetCommunicator().InterfaceMesh().AddNode(AllNodes((*i_node))); 
 //   			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
-			    AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
+			    p_node->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
 			  }
 			}
 		    }
@@ -562,10 +563,11 @@ else
 //std::cout << rank << " : cannot find interface for element #" << i_element << " with rank " << EPart[i_element] << std::endl;
 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
 } 			    
-			    mrModelPart.GetCommunicator().LocalMesh().AddNode(AllNodes((*i_node))); 
-			    mrModelPart.GetCommunicator().LocalMesh(mesh_index).AddNode(AllNodes((*i_node))); 
-			    mrModelPart.GetCommunicator().InterfaceMesh(mesh_index).AddNode(AllNodes((*i_node))); 
-			    mrModelPart.GetCommunicator().InterfaceMesh().AddNode(AllNodes((*i_node))); 
+			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
+			    mrModelPart.GetCommunicator().LocalMesh().Nodes().push_back(p_node); 
+			    mrModelPart.GetCommunicator().LocalMesh(mesh_index).Nodes().push_back(p_node); 
+			    mrModelPart.GetCommunicator().InterfaceMesh(mesh_index).Nodes().push_back(p_node); 
+			    mrModelPart.GetCommunicator().InterfaceMesh().Nodes().push_back(p_node); 
 
 // 			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
 // 			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
