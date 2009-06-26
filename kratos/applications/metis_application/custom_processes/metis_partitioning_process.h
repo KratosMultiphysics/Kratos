@@ -535,7 +535,12 @@ namespace Kratos
 			  if(node_partition != rank) 
 			  {
 			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
-			    mrModelPart.AssignNode(p_node); 
+ 		           // Giving model part's variables list to the node
+	          	   p_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
+
+	          	  //set buffer size
+	          	   p_node->SetBufferSize(mrModelPart.GetBufferSize());
+			    mrModelPart.Nodes().push_back(p_node); 
 			    r_communicator.GhostMesh().Nodes().push_back(p_node); 
 if(SizeType(interface_indices[node_partition]) < neighbours_indices.size())
 {
@@ -582,6 +587,7 @@ else
 		    }
 
 		// After making push_back to the nodes list now we need to make unique and sort for all meshes in communicator
+		mrModelPart.Nodes().Unique();
 		r_communicator.LocalMesh().Nodes().Unique();
 		r_communicator.GhostMesh().Nodes().Unique();
 		r_communicator.InterfaceMesh().Nodes().Unique();
