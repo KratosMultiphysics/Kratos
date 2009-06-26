@@ -500,6 +500,7 @@ namespace Kratos
 	        void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
 	        {
 		  int rank = GetRank();
+		  Communicator& r_communicator = mrModelPart.GetCommunicator();
 
 		  mLogFile << rank << " : Adding nodes to modelpart" << std::endl;
 		  // first adding the partition's nodes
@@ -508,13 +509,13 @@ namespace Kratos
 		    if(NPart[i_node->Id()-1] == rank)
 		      {
 			mrModelPart.AssignNode(*(i_node.base()));
- 			mrModelPart.GetCommunicator().LocalMesh(). AddNode(*(i_node.base()));
+ 			r_communicator.LocalMesh().Nodes().push_back(*(i_node.base()));
 //  			mrModelPart.AssignNode(*(i_node.base()), ModelPart::Kratos_Local);
 			i_node->GetSolutionStepValue(PARTITION_INDEX) = rank;
 		      }
 
   		  std::vector<int> interface_indices(mNumberOfPartitions, -1); 
-		  vector<int>& neighbours_indices = mrModelPart.GetCommunicator().NeighbourIndices();
+		  vector<int>& neighbours_indices = r_communicator.NeighbourIndices();
 
 		
 
@@ -535,17 +536,17 @@ namespace Kratos
 			  {
 			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
 			    mrModelPart.AssignNode(p_node); 
-			    mrModelPart.GetCommunicator().GhostMesh().AddNode(p_node); 
-if(interface_indices[node_partition] < neighbours_indices.size())
+			    r_communicator.GhostMesh().Nodes().push_back(p_node); 
+if(SizeType(interface_indices[node_partition]) < neighbours_indices.size())
 {
-			    mrModelPart.GetCommunicator().GhostMesh(interface_indices[node_partition]).AddNode(p_node); 
-			    mrModelPart.GetCommunicator().InterfaceMesh(interface_indices[node_partition]).AddNode(p_node); 
+			    r_communicator.GhostMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
+			    r_communicator.InterfaceMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
 }
 else
 {
 	std::cout << rank << " : ERROR! Node #" << *i_node << " has not registered interface for partition #" << node_partition << std::endl;
 }
-			    mrModelPart.GetCommunicator().InterfaceMesh().AddNode(AllNodes((*i_node))); 
+			    r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
 //   			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
 			    p_node->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
 			  }
@@ -564,10 +565,10 @@ else
 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
 } 			    
 			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
-			    mrModelPart.GetCommunicator().LocalMesh().Nodes().push_back(p_node); 
-			    mrModelPart.GetCommunicator().LocalMesh(mesh_index).Nodes().push_back(p_node); 
-			    mrModelPart.GetCommunicator().InterfaceMesh(mesh_index).Nodes().push_back(p_node); 
-			    mrModelPart.GetCommunicator().InterfaceMesh().Nodes().push_back(p_node); 
+			    r_communicator.LocalMesh().Nodes().push_back(p_node); 
+			    r_communicator.LocalMesh(mesh_index).Nodes().push_back(p_node); 
+			    r_communicator.InterfaceMesh(mesh_index).Nodes().push_back(p_node); 
+			    r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
 
 // 			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
 // 			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
@@ -579,6 +580,18 @@ else
 // // 			mLogFile << rank << " : Adding interface node # " << AllNodes[(*i_node)] << "with partition index " << AllNodes[(*i_node)].GetSolutionStepValue(PARTITION_INDEX)  << " in " <<  AllNodes((*i_node)) << std::endl;
  			  }
 		    }
+
+		// After making push_back to the nodes list now we need to make unique and sort for all meshes in communicator
+		r_communicator.LocalMesh().Nodes().Unique();
+		r_communicator.GhostMesh().Nodes().Unique();
+		r_communicator.InterfaceMesh().Nodes().Unique();
+		for(SizeType i = 0 ; i < r_communicator.LocalMeshes().size() ; i++)
+			r_communicator.LocalMesh(i).Nodes().Unique();
+		for(SizeType i = 0 ; i < r_communicator.GhostMeshes().size() ; i++)
+			r_communicator.GhostMesh(i).Nodes().Unique();
+		for(SizeType i = 0 ; i < r_communicator.InterfaceMeshes().size() ; i++)
+			r_communicator.InterfaceMesh(i).Nodes().Unique();
+
 		  mLogFile << rank << " : Nodes added to modelpart" << std::endl;
 		}
 
