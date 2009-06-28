@@ -48,7 +48,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // External includes
 
-extern "C" { 
+// To avoid linking problems
+extern "C"
+{ 
 	#include "mmio.h"
 }
 
