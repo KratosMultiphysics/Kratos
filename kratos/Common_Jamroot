@@ -142,6 +142,7 @@ use-project /kratos-prj/MeshingApplication : $(TOP)/applications/MeshingApplicat
 # GPU Solvers: needs CUDA to be installed and appropriate environment variable set, a GT200 series GPU card (GTX260, GTX 280, etc.) with the *latest* driver installed
 # Before trying to compile this application, go to "~/kratos/applications/gpu_solvers_application/custom_external_libraries" and issue a "./build.sh" to build the "gpu_sparse.a" library
 use-project /kratos-prj/gpu_solvers_application : $(TOP)/applications/gpu_solvers_application ;
+use-project /kratos-prj/matrix_interface_application : $(TOP)/applications/matrix_interface_application ;
 
 ###################################################################################################
 
@@ -165,6 +166,7 @@ alias install :
 #		/kratos-prj/MetisApplication//install
 #		/kratos-prj/TrilinosApplication//install
 #		/kratos-prj/gpu_solvers_application//install
+#		/kratos-prj/matrix_interface_application//install
 		;
  
 ECHO $(TOP) ;
