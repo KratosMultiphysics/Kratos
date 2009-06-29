@@ -30,6 +30,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "meshing_application.h"
 #include "processes/node_erase_process.h" 
+#include "processes/find_nodal_neighbours_process.h" 
 #include "spatial_containers/spatial_containers.h"
 
 
@@ -118,12 +119,18 @@ namespace Kratos
 				KRATOS_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID)==false )
 				KRATOS_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
+			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_WATER)==false )
+				KRATOS_ERROR(std::logic_error,"Add  ----IS_WATER---- variable!!!!!! ERROR","");
+			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_INTERFACE)==false )
+				KRATOS_ERROR(std::logic_error,"Add  ----IS_INTERFACE---- variable!!!!!! ERROR","");
 
 			KRATOS_WATCH("Trigen PFEM Refining Mesher")
 			boost::timer auxiliary;
 			
 
 //clearing elements
+			KRATOS_WATCH(ThisModelPart.Elements().size());
+KRATOS_WATCH("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
 
 			ThisModelPart.Elements().clear();
 			ThisModelPart.Conditions().clear();
@@ -137,20 +144,20 @@ namespace Kratos
 			typedef std::vector<double>::iterator     DistanceIterator;
 
 			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
-
+			KRATOS_WATCH(step_data_size);
 			// bucket types
 			//typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
 			//typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
 			// bucket types
 			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
 		
-				
+					
 			//*************
 			// DynamicBins;	
 			typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
 			//typedef Tree< StaticBins > Bin; 			     //Binstree;
 			unsigned int bucket_size = 20;
-			
+
 			//performing the interpolation - all of the nodes in this list will be preserved
 			unsigned int max_results = 100;
 			//PointerVector<PointType> res(max_results);
@@ -158,9 +165,93 @@ namespace Kratos
 			PointVector res(max_results);
 			DistanceVector res_distances(max_results);
 			Node<3> work_point(0,0.0,0.0,0.0);
+
+			//****************************************************
+			//filling the interface list before removing the nodes
+			//****************************************************
+			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+			     in != ThisModelPart.NodesEnd(); in++)
+				{
+					in->FastGetSolutionStepValue(IS_VISITED) = 0.0;
+					in->FastGetSolutionStepValue(AUX_INDEX) = 0.0;
+				}
+			std::vector <int> mid_seg_list;
+			//list_of_nodes.reserve(ThisModelPart.Nodes().size());
+		        int seg_num = 0;
+
+			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+			     in != ThisModelPart.NodesEnd(); in++)
+				{
+			if(in->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+				  {
+
+				 WeakPointerVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+				 int num_of_intr_neigh = 0;
+					//KRATOS_WATCH(neighb.size());		
+			         for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+				    {
+					if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0) num_of_intr_neigh++;
+				    }	
+
+			  if(num_of_intr_neigh <= 2)
+				{   
+			         for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+				    {
+				
+				if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)   
+				      {
+					 if(ngh_ind->FastGetSolutionStepValue(IS_VISITED) != 10.0)
+					{
+//KRATOS_WATCH(ngh_ind->Id());
+					  mid_seg_list.push_back(in->Id());
+					  mid_seg_list.push_back(ngh_ind->Id());
+					  seg_num++;
+					  //row += 2;
+					}
+					  ngh_ind->FastGetSolutionStepValue(AUX_INDEX) += 1.0;
+				      }
+				    }
+				  in->FastGetSolutionStepValue(IS_VISITED) = 10.0;
+				 }
+			 else
+				{
+				  in->FastGetSolutionStepValue(IS_VISITED) = 5.0;
+				}
+KRATOS_WATCH("(((((((((after neighbour loop))))))))))))))))");
+
+				   }
+				}
+
+			//conecting remaining interface nodes( those which have more than two interface neighbors)
+			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+			     in != ThisModelPart.NodesEnd(); in++)
+				{
+			         if(in->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 && in->FastGetSolutionStepValue(IS_VISITED) == 5.0)
+				   {
+				     if(in->FastGetSolutionStepValue(AUX_INDEX) < 2.0)
+				       {
+				        WeakPointerVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+			                  for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+				             {
+ 					       if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 && ngh_ind->FastGetSolutionStepValue(IS_VISITED) != 10.0 && ngh_ind->FastGetSolutionStepValue(AUX_INDEX) < 2.0)
+					         {
+						 	 mid_seg_list.push_back(in->Id());
+					 		 mid_seg_list.push_back(ngh_ind->Id());
+					 		 seg_num++;
+							KRATOS_WATCH("**** A COMPLEX BOUNDARY IS DETECTED *******");
+						 }
+					  ngh_ind->FastGetSolutionStepValue(AUX_INDEX) += 1.0;
+					      }
+
+					}
+				           in->FastGetSolutionStepValue(IS_VISITED) = 10.0;
+				    }
+				 }
+
  			//if the remove_node switch is activated, we check if the nodes got too close
 			if (rem_nodes==true)
 			{
+	
 				PointVector list_of_nodes;
 				list_of_nodes.reserve(ThisModelPart.Nodes().size());
 				for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
@@ -169,7 +260,7 @@ namespace Kratos
 				}
 
 				kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
-			
+					
 				unsigned int n_points_in_radius;			
 				//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
 				double radius;
@@ -182,18 +273,18 @@ namespace Kratos
 					work_point[0]=in->X();
 					work_point[1]=in->Y();
 					work_point[2]=in->Z();
-				
+							
 					n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
 						if (n_points_in_radius>1)
 						{
-							if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+					    if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_INTERFACE)==0.0)
 							{
 								//look if we are already erasing any of the other nodes 
-								unsigned int erased_nodes = 0;
+								double erased_nodes = 0;
 								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-									erased_nodes += in->GetValue(ERASE_FLAG);
+									erased_nodes += (*i)->GetValue(ERASE_FLAG);
 
-								if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
+								if( erased_nodes < 1.0) //we cancel the node if no other nodes are being erased
 									in->GetValue(ERASE_FLAG)=1;
 							
 							}
@@ -218,8 +309,15 @@ namespace Kratos
 						}
 				
 					}
-			
+				//not erase INTERFACE node
+				for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+					in != ThisModelPart.NodesEnd(); in++)
+					{
+					if((in)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+						in->GetValue(ERASE_FLAG) = 0;
 
+					}
+						
 				node_erase.Execute();				
 
 				KRATOS_WATCH("Number of nodes after erasing")
@@ -246,12 +344,18 @@ namespace Kratos
 
 			//reorder the id's and give the coordinates to the mesher
 			ModelPart::NodesContainerType::iterator nodes_begin = ThisModelPart.NodesBegin();
+			std::vector <int> reorder_mid_seg_list;
+			 if(seg_num != 0)
+				reorder_mid_seg_list.resize(seg_num*2,false);
+
 			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
 			{ 
 				int base = i*2;
 				//int base = ((nodes_begin + i)->Id()   -  1 ) * 2;
 
 				//from now on it is consecutive
+				int pr_id = (nodes_begin + i)->Id();
+
 				(nodes_begin + i)->SetId(i+1);
 //				(nodes_begin + i)->Id() = i+1;
 
@@ -259,28 +363,67 @@ namespace Kratos
 				in_mid.pointlist[base+1] = (nodes_begin + i)->Y();
 
                                 Node<3>::DofsContainerType& node_dofs = (nodes_begin + i)->GetDofs();
+
                                 for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
                                 {
                                     iii->SetId(i+1);
 //                                    iii->Id() = i+1;
                                 }
+				//reordering segment list
+				if(seg_num != 0)
+				 {
+				   if( (nodes_begin + i)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 )
+				      {
+					for(int jj = 0; jj < seg_num*2; ++jj)
+					   if( mid_seg_list[jj] == pr_id)
+					  	reorder_mid_seg_list[jj] = (nodes_begin + i)->Id();
+
+				      }	
+				 }
 			}
+for(int ii = 0; ii<seg_num*2; ii++){
+KRATOS_WATCH(mid_seg_list[ii])
+KRATOS_WATCH(reorder_mid_seg_list[ii])}
 			//in_mid.numberoftriangles = ThisModelPart.Elements().size();
 			//in_mid.trianglelist = (int*) malloc(in_mid.numberoftriangles * 3 * sizeof(int));
-			
+
+			//***********preserving the list of interface segments
+
+
+		        if(seg_num != 0){
+				in_mid.numberofsegments = seg_num;
+				in_mid.segmentlist = (int*) malloc(in_mid.numberofsegments * 2 * sizeof(int));
+				in_mid.segmentmarkerlist = (int*) malloc(in_mid.numberofsegments * sizeof(int));
+				//in2.segmentlist = seg_list;
+					  for( int ii = 0; ii < seg_num*2; ++ii)
+						in_mid.segmentlist[ii] = reorder_mid_seg_list[ii];
+
+					  for( int jj = 0; jj < seg_num ; ++jj)
+						in_mid.segmentmarkerlist[jj] = 5;
+
+					}
+			//***********end ofsegments
+			KRATOS_WATCH(seg_num);
+			for(unsigned int ii=0;ii<mid_seg_list.size(); ++ii)
+				KRATOS_WATCH(in_mid.segmentlist[ii]);	
+
 			// "P" suppresses the output .poly file. Saves disk space, but you 				
 			//lose the ability to maintain constraining segments  on later refinements of the mesh. 
 			// "B" Suppresses boundary markers in the output .node, .poly, and .edge output files
 			// "n" outputs a list of triangles neighboring each triangle.
 			// "e" outputs edge list (i.e. all the "connectivities")
-			char options1[] = "Pne";
+			//char options1[] = "Pne";
+			char options1[] = "pcne";
+			KRATOS_WATCH(ThisModelPart.Nodes().size());
+			
 			triangulate(options1, &in_mid, &out_mid, &vorout_mid);
 			//print out the mesh generation time
 			std::cout<<"mesh generation time = "<<auxiliary.elapsed();
 			//number of newly generated triangles
 			unsigned int el_number=out_mid.numberoftriangles;
+			KRATOS_WATCH(el_number);
 
-			
+
 			//prepairing for alpha shape passing : creating necessary arrays
 			//list of preserved elements is created: at max el_number can be preserved (all elements)
 			std::vector<int> preserved_list1(el_number);
@@ -362,9 +505,7 @@ namespace Kratos
 			}
 			//freeing memory 
 
-			clean_triangulateio(in_mid);
-			clean_triangulateio(vorout_mid);
-         KRATOS_WATCH("ln367");
+
 			//NOW WE SHALL PERFORM ADAPTIVE REMESHING, i.e. insert and remove nodes based upon mesh quality
 			// and prescribed sizes
 			struct triangulateio in2;
@@ -393,7 +534,7 @@ namespace Kratos
 //			in2.trianglelist = new int[in2.numberoftriangles * 3];
 //			in2.trianglearealist = new double[in2.numberoftriangles];
 
-KRATOS_WATCH(el_number);
+
 			int counter = 0;
 			for (unsigned int el=0; el<el_number; el++)
 			{
@@ -418,17 +559,72 @@ KRATOS_WATCH(el_number);
 				}
 			
 			}
-			
-			clean_triangulateio(out_mid);
-KRATOS_WATCH("ln420");
+			//***********preserving the list of interface segments
+			/*std::vector <int> seg_list;
+			//list_of_nodes.reserve(ThisModelPart.Nodes().size());
+		         seg_num = 0;
+			//int row = 0;
+	//	FindNodalNeighboursProcess(ThisModelPart,10,10).Execute();
+			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+			     in != ThisModelPart.NodesEnd(); in++)
+				{
+					in->FastGetSolutionStepValue(IS_VISITED) = 0.0;
+				}
+
+			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+			     in != ThisModelPart.NodesEnd(); in++)
+				{
+					//KRATOS_WATCH("&&&&&&&&&&&&&&&&& inside node loops&&&&&&&&&&&&&&&&&&&&&&&&&");
+				if(in->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+				  {
+					//KRATOS_WATCH("@@@@@@@@@@@@@@@@2 an interface is detected@@@@@@@@@@@@@@@");
+
+				 WeakPointerVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+										     
+			         for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+				    {
+
+				    if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 && ngh_ind->FastGetSolutionStepValue(IS_VISITED) != 10.0)
+					{
+					  seg_list.push_back(in->Id());
+					  seg_list.push_back(ngh_ind->Id());
+					  seg_num++;
+					  //row += 2;
+					}
+				    }
+				  in->FastGetSolutionStepValue(IS_VISITED) = 10.0;
+				   }
+				}
+
+*/
+		        if(seg_num){
+				in2.numberofsegments = seg_num;
+				in2.segmentlist = (int*) malloc(in2.numberofsegments * 2 * sizeof(int));
+				in2.segmentmarkerlist = (int*) malloc(in2.numberofsegments * sizeof(int));
+				//in2.segmentlist = seg_list;
+					  for( int ii = 0; ii < seg_num*2; ++ii)
+						//in2.segmentlist[ii] = seg_list[ii];
+						in2.segmentlist[ii] = reorder_mid_seg_list[ii];
+
+					  for( int jj = 0; jj < seg_num ; ++jj)
+						in2.segmentmarkerlist[jj] = 5;
+
+					}
+			//***********end ofsegments
+			KRATOS_WATCH(seg_num);
+			for(unsigned int ii=0;ii<reorder_mid_seg_list.size(); ++ii)
+				KRATOS_WATCH(in2.segmentlist[ii]);
                         //here we generate a new mesh adding/removing nodes, by initializing "q"-quality mesh and "a"-area constraint switches
 			//
 			// MOST IMPORTANT IS "r" switch, that refines previously generated mesh!!!!!!!!!!(that is the one given inside in2)
 			//char mesh_regen_opts[] = "YYJaqrn";
-			//char mesh_regen_opts[] = "YJq1.4arn";
+			//char mesh_regen_opts[] = "YJq1.4arn";Yjaqrpcn
+			//Y means dont insert node in boundary
+			//YY meand no node on edges (inside)
+		
 			if (add_nodes==true)
 				{
-				char mesh_regen_opts[] = "YJq1.4arn";
+				char mesh_regen_opts[] = "Yjaqrpcn";
 				triangulate(mesh_regen_opts, &in2, &out2, &vorout2);
 				KRATOS_WATCH("Adaptive remeshing executed")
 				}
@@ -439,6 +635,37 @@ KRATOS_WATCH("ln420");
 				KRATOS_WATCH("Non-Adaptive remeshing executed")
 				}
 
+			//segment check
+			/*unsigned int input_num_of_marker = in2.numberofsegments;
+			unsigned int output_num_of_marker = out2.numberofsegments;
+			unsigned int in_point_attr = in2.numberofpointattributes;
+			unsigned int out_point_attr = out2.numberofpointattributes;*/
+
+			/*for( int ii = 0; ii<num_of_marker; ii++)
+				KRATOS_WATCH(out_mid.segmentmarkerlist[ii]);*/
+			/*KRATOS_WATCH(input_num_of_marker);
+			KRATOS_WATCH(output_num_of_marker);
+			KRATOS_WATCH(in_point_attr);
+			KRATOS_WATCH(out_point_attr);
+			
+
+			for(int ii = 0; ii<out2.numberofpoints; ii++)
+				{
+				KRATOS_WATCH("********* new pointr ***********")
+				KRATOS_WATCH(out2.pointmarkerlist[ii])
+				KRATOS_WATCH(out2.pointlist[ii*2])
+				KRATOS_WATCH(out2.pointlist[ii*2 + 1])
+
+				}
+
+*/
+
+			//end of segment check
+
+
+
+
+
 			//and now we shall find out where the new nodes belong to
 			//defintions for spatial search
 			typedef Node<3> PointType;
@@ -448,7 +675,7 @@ KRATOS_WATCH("ln420");
 			typedef PointVector::iterator PointIterator;
 			typedef std::vector<double>               DistanceVector;
 			typedef std::vector<double>::iterator     DistanceIterator;
-KRATOS_WATCH("ln449");
+
 
 			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
 
@@ -479,7 +706,19 @@ KRATOS_WATCH("ln449");
                                         pnode->SetBufferSize(ThisModelPart.NodesBegin()->GetBufferSize() );
 							
 					list_of_new_nodes.push_back( pnode );
-					
+
+					//assigning interface flag of segment
+					//segment are assigned to 5 so every new node on them have also flag 5
+					if(out2.pointmarkerlist[i] == 5)
+					     {
+						pnode->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+						KRATOS_WATCH("NEW INTERFACE ON SEGMEMNT is DETECTED");
+						KRATOS_WATCH(pnode->Id());
+					     }
+					else
+						pnode->FastGetSolutionStepValue(IS_INTERFACE) = 0;
+											
+					KRATOS_WATCH(pnode->FastGetSolutionStepValue(IS_INTERFACE));
 					//std::cout << "new node id = " << pnode->Id() << std::endl;
 					//generating the dofs
 					for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
@@ -658,9 +897,9 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				
 				ModelPart::ElementsContainerType::iterator el_neighb;
 				/*each face is opposite to the corresponding node number so
-				 0 ----- 1 2 
-				 1 ----- 2 0
-				 2 ----- 0 1 
+				 0 ----- 2 1 
+				 1 ----- 0 2
+				 2 ----- 1 0 
 				*/
 
 				////finding boundaries and creating the "skin"
@@ -678,17 +917,19 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					//Generate condition
 					Condition::NodesArrayType temp;
 					temp.reserve(2);
-					temp.push_back(iii->GetGeometry()(1)); 
-					temp.push_back(iii->GetGeometry()(2));
+					temp.push_back(iii->GetGeometry()(2)); 
+					temp.push_back(iii->GetGeometry()(1));
 				
 					Geometry< Node<3> >::Pointer cond = 
 						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
 					int id = (iii->Id()-1)*3;
 					
-					Condition::Pointer p_cond = 
-						Condition::Pointer(new Condition(id, cond, properties) );	
+					//Condition::Pointer p_cond = 
+					//	Condition::Pointer(new Condition(id, cond, properties) );	
 
-					ThisModelPart.Conditions().push_back(p_cond);
+					Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp, properties);
+					(ThisModelPart.Conditions()).push_back(p_cond);
+
 
 				}
 				
@@ -705,18 +946,19 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					//Generate condition
 					Condition::NodesArrayType temp;
 					temp.reserve(2);
-					temp.push_back(iii->GetGeometry()(2)); 
-					temp.push_back(iii->GetGeometry()(0));
+					temp.push_back(iii->GetGeometry()(0)); 
+					temp.push_back(iii->GetGeometry()(2));
 					
 					Geometry< Node<3> >::Pointer cond = 
 						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
 					int id = (iii->Id()-1)*3+1;
 					//
-					Condition::Pointer p_cond = 
-						Condition::Pointer(new Condition(id, cond, properties) );
-					
-					ThisModelPart.Conditions().push_back(p_cond);
-									
+					//Condition::Pointer p_cond = 
+					//	Condition::Pointer(new Condition(id, cond, properties) );
+
+					Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp, properties);
+					(ThisModelPart.Conditions()).push_back(p_cond);
+	
 
 				}
 
@@ -732,28 +974,31 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 //					Generate condition
 					Condition::NodesArrayType temp;
 					temp.reserve(2);
-					temp.push_back(iii->GetGeometry()(0)); 
-					temp.push_back(iii->GetGeometry()(1));
+					temp.push_back(iii->GetGeometry()(1)); 
+					temp.push_back(iii->GetGeometry()(0));
 					Geometry< Node<3> >::Pointer cond = 
 						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
 					int id = (iii->Id()-1)*3+2;
 					
-					Condition::Pointer p_cond = 
-						Condition::Pointer(new Condition(id, cond, properties) );
-					
-					ThisModelPart.Conditions().push_back(p_cond);
+					//Condition::Pointer p_cond = 
+					//	Condition::Pointer(new Condition(id, cond, properties) );
+
+					Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp, properties);
+					(ThisModelPart.Conditions()).push_back(p_cond);
+
 					
 
 				}
 
 			
 			}
-KRATOS_WATCH("ln749");
+
+
 
 			clean_triangulateio(in2);
-KRATOS_WATCH("ln752");
+
 			clean_triangulateio(out2);
-KRATOS_WATCH("ln754");
+
 			clean_triangulateio(vorout2);
 			KRATOS_WATCH("Finished remeshing with Trigen_PFEM_Refine")
 
@@ -994,6 +1239,9 @@ KRATOS_WATCH("ln754");
 			unsigned int buffer_size = pnode->GetBufferSize();
 			//KRATOS_WATCH("Buffer size")
 			//KRATOS_WATCH(buffer_size)
+KRATOS_WATCH(pnode->FastGetSolutionStepValue(IS_INTERFACE));
+			//here we want to keep the flag of aaded segment node and not interpolate it
+			double aux_interface = pnode->FastGetSolutionStepValue(IS_INTERFACE);
 
 			for(unsigned int step = 0; step<buffer_size; step++)
 			{	
@@ -1032,6 +1280,29 @@ KRATOS_WATCH("ln754");
 			pnode->GetValue(ERASE_FLAG)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
+			pnode->FastGetSolutionStepValue(IS_VISITED)=0.0;
+
+			//pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
+			pnode->FastGetSolutionStepValue(IS_INTERFACE) = aux_interface;
+
+			if(pnode->FastGetSolutionStepValue(IS_WATER)!= 1.0 && pnode->FastGetSolutionStepValue(IS_WATER)!= 0.0 && 
+pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)	   
+				{
+				pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
+				KRATOS_WATCH("$$$$$$$$$$$$$$$  A NEAR BOUNDARY NODE IS INSERTED $$$$$$$$$$$$$$$$$$$$$$");
+				}
+			/*if(pnode->FastGetSolutionStepValue(DISTANCE) <= 0.0)
+				{pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;}
+			else
+				{pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;}*/
+
+			if(aux_interface) 
+					pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;   
+				
+
+KRATOS_WATCH(pnode->FastGetSolutionStepValue(IS_INTERFACE));
+
+
 		}
 
 		void initialize_triangulateio( triangulateio& tr )
