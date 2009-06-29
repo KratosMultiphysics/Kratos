@@ -716,8 +716,10 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 				//read time step size from Kratos
 				ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 				double delta_t = CurrentProcessInfo[DELTA_TIME];
-				
+
+#ifdef _OPENMP
 				double time_inv = 0.0; //1.0/delta_t;
+#endif
 
 #ifdef SPLIT_OSS
 				
