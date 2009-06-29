@@ -568,6 +568,8 @@ namespace Kratos
 	int destination=0;
 
 	NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+	std::vector<double*> receive_buffer(neighbours_indices.size());
+	std::vector<int> receive_buffer_size(neighbours_indices.size());
 
 	for(unsigned int i_color = 0 ; i_color <  neighbours_indices.size() ; i_color++)
 	  if((destination = neighbours_indices[i_color]) >= 0)
@@ -581,14 +583,14 @@ namespace Kratos
 	      unsigned int local_nodes_size = r_local_nodes.size();
 	      unsigned int ghost_nodes_size = r_ghost_nodes.size();
 	      unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
-	      unsigned int receive_buffer_size = ghost_nodes_size * nodal_data_size;
+	      receive_buffer_size[i_color] = ghost_nodes_size * nodal_data_size;
 
 	      if((local_nodes_size == 0) && (ghost_nodes_size == 0))
 		  continue;  // nothing to transfer!
 
 	      unsigned int position = 0;
 	      double* send_buffer = new double[send_buffer_size];
-	      double* receive_buffer = new double[receive_buffer_size];
+	      receive_buffer[i_color] = new double[receive_buffer_size[i_color]];
 
 	      // Filling the buffer
 	      for(ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
@@ -606,21 +608,30 @@ namespace Kratos
 	      int receive_tag = i_color;
 
 	      MPI_Sendrecv (send_buffer, send_buffer_size, MPI_DOUBLE, destination, send_tag, 
-			    receive_buffer, receive_buffer_size, MPI_DOUBLE, destination, receive_tag,
+			    receive_buffer[i_color], receive_buffer_size[i_color], MPI_DOUBLE, destination, receive_tag,
 			    MPI_COMM_WORLD, &status);
-	      // Updating nodes
-	      position = 0;
-	      for(ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-	      {
-		i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*>(receive_buffer + position);
- 		position += nodal_data_size;
-	      }
-			
-	      if(position > receive_buffer_size)
-		std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
 			
 	      delete [] send_buffer;
-	      delete [] receive_buffer;
+	    }
+
+	for(unsigned int i_color = 0 ; i_color <  neighbours_indices.size() ; i_color++)
+	  if((destination = neighbours_indices[i_color]) >= 0)
+	    {
+	      // Updating nodes
+	      unsigned int position = 0;
+	      unsigned int nodal_data_size = sizeof(TDataType) / sizeof(double);
+	      NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
+
+	      for(ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+	      {
+		i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*>(receive_buffer[i_color] + position);
+ 		position += nodal_data_size;
+	      }
+	
+	      if(position > receive_buffer_size[i_color])
+		std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+
+	      delete [] receive_buffer[i_color];
 	    }
 
 	return true;
