@@ -63,7 +63,7 @@ extern "C"
 
 namespace Kratos {
 
-	bool ReadMatrixMarket(char *FileName, CompressedMatrix *m)
+	bool ReadMatrixMarket(char *FileName, CompressedMatrix &Matrix)
 	{
 		// Open MM file for reading
 		FILE *f = fopen(FileName, "r");
@@ -243,14 +243,16 @@ namespace Kratos {
 				}
 	
 		// Create the matrix
-		m = new CompressedMatrix(size1, size2, nnz2);
+		CompressedMatrix *m = new CompressedMatrix(size1, size2, nnz2);
 	
 		int k = 0;
 	
 		for (int i = 0; i < size1; i++)
 			for (int j = 0; j < nz[i]; j++)
 				(*m)(i, columns[indices[i] + j]) = values[k++];
-	
+		
+		Matrix = *m;
+		
 		delete[] I;
 		delete[] J;
 		delete[] V;
@@ -260,10 +262,12 @@ namespace Kratos {
 		delete[] columns;
 		delete[] values;
 
+		delete m;
+
 		return true;
 	}
 
-	bool WriteMatrixMarket(char *FileName, CompressedMatrix &m, bool Symmetric)
+	bool WriteMatrixMarket(char *FileName, CompressedMatrix &Matrix, bool Symmetric)
 	{
 		// Open MM file for writing
 		FILE *f = fopen(FileName, "w");
@@ -297,9 +301,9 @@ namespace Kratos {
 		{
 			nnz = 0;
 			
-			CompressedMatrix::iterator1 a_iterator = m.begin1();
+			CompressedMatrix::iterator1 a_iterator = Matrix.begin1();
 
-			for (unsigned int i = 0; i < m.size1(); i++)
+			for (unsigned int i = 0; i < Matrix.size1(); i++)
 			{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
 				for (CompressedMatrix::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator) 
@@ -315,16 +319,16 @@ namespace Kratos {
 			}
 		}
 		else
-			nnz = m.nnz();
+			nnz = Matrix.nnz();
 		
 		// Write MM file sizes
-		mm_write_mtx_crd_size(f, m.size1(), m.size2(), nnz);
+		mm_write_mtx_crd_size(f, Matrix.size1(), Matrix.size2(), nnz);
 
 		if (Symmetric)
 		{
-			CompressedMatrix::iterator1 a_iterator = m.begin1();
+			CompressedMatrix::iterator1 a_iterator = Matrix.begin1();
 
-			for (unsigned int i = 0; i < m.size1(); i++)
+			for (unsigned int i = 0; i < Matrix.size1(); i++)
 			{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
 				for (CompressedMatrix::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator) 
@@ -348,9 +352,9 @@ namespace Kratos {
 		}
 		else
 		{
-			CompressedMatrix::iterator1 a_iterator = m.begin1();
+			CompressedMatrix::iterator1 a_iterator = Matrix.begin1();
 
-			for (unsigned int i = 0; i < m.size1(); i++)
+			for (unsigned int i = 0; i < Matrix.size1(); i++)
 			{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
 				for (CompressedMatrix::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator) 
