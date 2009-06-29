@@ -103,7 +103,7 @@ namespace Kratos
 				{
 					 Geometry<Node<3> >& geom = iel->GetGeometry();
 					 double Area = GeometryUtils::CalculateVolume2D(geom);
-					 double toll = 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
+					 double toll = 0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 
 					 array_1d<double,3> dist = ZeroVector(3);
 					 for (unsigned int i = 0; i < geom.size(); i++)
@@ -111,26 +111,27 @@ namespace Kratos
 						
 					 //no fluid element
 					 if( dist[0] > -toll && dist[1] > -toll && dist[2] > -toll  ) 	
-//  					 if( dist[0] > 0.0 && dist[1] > 0.0 && dist[2] > 0.0  ) 	
-						{iel->GetValue(IS_DIVIDED) = 0.0;}
-					 //fluid element
-					 else if( dist[0] <= 0.0 && dist[1] <= 0.0 && dist[2] <= 0.0  ) 	
-						{     iel->GetValue(IS_DIVIDED) = -1.0;
-						      for(unsigned int i=0; i< geom.size() ; i++)
-						      {
-							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1;
-						      }
+						{iel->GetValue(IS_DIVIDED) = 0.0;
+						
 						}
+					 //fluid element
+					 //else if( dist[0] < 0.0 && dist[1] < 0.0 && dist[2] < 0.0  ) 	
+					 else if( dist[0] < toll && dist[1] < toll && dist[2] < toll  ) 
+						{iel->GetValue(IS_DIVIDED) = -1.0;
+
+							;}
 					 //half fluid half no fluid element
 					 else
-						{     iel->GetValue(IS_DIVIDED) = 1.0;
+						{
+						      iel->GetValue(IS_DIVIDED) = 1.0;
 						      for(unsigned int i=0; i< geom.size() ; i++)
 						      {
 							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1;
 						      }
-// 						      KRATOS_WATCH(iel->Id());
-						}
+ 						     // KRATOS_WATCH(iel->Id());
 
+						}
+				
 				 }
 			 KRATOS_CATCH("")
 			 }
