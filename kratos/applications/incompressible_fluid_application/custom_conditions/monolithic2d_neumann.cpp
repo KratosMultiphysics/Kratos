@@ -81,7 +81,7 @@ namespace Kratos
 	Condition::Pointer Monolithic2DNeumann::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
 		return Condition::Pointer(new Monolithic2DNeumann(NewId, GetGeometry().Create(ThisNodes), pProperties));
-
+KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	}
 
 	Monolithic2DNeumann::~Monolithic2DNeumann()
@@ -159,13 +159,33 @@ namespace Kratos
 // 			KRATOS_WATCH(An);
 //KRATOS_WATCH(p0);
 //KRATOS_WATCH(p1);
- //			KRATOS_WATCH(rRightHandSideVector);
+//KRATOS_WATCH("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+ 		//	KRATOS_WATCH(rRightHandSideVector);
 		
 
 
 		
 	}
 
+        //************************************************************************************
+	//************************************************************************************
+
+	void Monolithic2DNeumann::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+
+	int nodes_number = 2;
+	int dim = 2;
+	unsigned int matsize = nodes_number*(dim);
+
+	if(rDampMatrix.size1() != matsize)
+			rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
+
+
+	noalias(rDampMatrix) = ZeroMatrix(matsize,matsize); 
+
+		KRATOS_CATCH("")
+	}
 	//************************************************************************************
 	//************************************************************************************
 	void Monolithic2DNeumann::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
@@ -280,6 +300,40 @@ namespace Kratos
 		KRATOS_CATCH("");
 	}
 
+	//************************************************************************************
+	//*************************************************************************************
+
+	  void Monolithic2DNeumann::GetFirstDerivativesVector(Vector& values, int Step)
+	{
+		const unsigned int number_of_nodes = GetGeometry().size();
+		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+		unsigned int MatSize = number_of_nodes * (dim );
+		if(values.size() != MatSize)   values.resize(MatSize,false);
+		for (unsigned int i=0;i<number_of_nodes;i++)
+		{
+			unsigned int index = i * (dim );
+			values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X,Step);
+			values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y,Step);
+			//values[index + 2] = GetGeometry()[i].GetSolutionStepValue(PRESSURE,Step);
+
+		}
+	}
+	//************************************************************************************
+	//************************************************************************************
+	  void Monolithic2DNeumann::GetSecondDerivativesVector(Vector& values, int Step)
+	{
+		const unsigned int number_of_nodes = GetGeometry().size();
+		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+		unsigned int MatSize = number_of_nodes * (dim);
+		if(values.size() != MatSize) values.resize(MatSize,false);
+		for (unsigned int i=0;i<number_of_nodes;i++)
+		{
+			unsigned int index = i * (dim );
+			values[index] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X,Step);
+			values[index + 1] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y,Step);
+			//values[index + 2] = 0.0;
+		}
+	}
 	//************************************************************************************
 	//************************************************************************************
 
