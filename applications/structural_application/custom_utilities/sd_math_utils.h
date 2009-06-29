@@ -129,7 +129,7 @@ namespace Kratos
                         -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-PI/3.0)
                         -b/(3*a);
 
-				if(isnan(solution(0)) || isnan(solution(1))|| isnan(solution(2)))
+				if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
 				{
           		      return false;
 				}
