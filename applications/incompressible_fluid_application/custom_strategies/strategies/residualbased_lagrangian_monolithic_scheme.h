@@ -271,7 +271,7 @@ namespace Kratos
 		
 
 			//update density DENSITY_AIR 
-			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
+			//const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
 
 			const double pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
 			const double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
@@ -279,8 +279,8 @@ namespace Kratos
 			
 			alpha = pow(pr/old_pr, 1.0/1.4);
 
-			//ind->FastGetSolutionStepValue(DENSITY_AIR ) = old_rho*alpha;	
-
+			ind->FastGetSolutionStepValue(DENSITY_AIR ) = old_rho*alpha;	
+			//KRATOS_WATCH(old_rho*alpha);
 			//update water density DENSITY
 			
 			const double old_rho_w = ind->FastGetSolutionStepValue(DENSITY ,1);	
@@ -302,7 +302,7 @@ namespace Kratos
 
 			//loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
 			array_1d<double,3> output;
-			ProcessInfo& processinfo = r_model_part.GetProcessInfo();
+			//ProcessInfo& processinfo = r_model_part.GetProcessInfo();
 
 			for(typename  ModelPart::ElementsContainerType::iterator elem = r_model_part.ElementsBegin(); elem != r_model_part.ElementsEnd(); elem++)
 			{
