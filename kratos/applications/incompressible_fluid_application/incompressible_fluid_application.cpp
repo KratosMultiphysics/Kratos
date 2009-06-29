@@ -58,10 +58,11 @@ namespace Kratos
 		mNDFluid2DCrankNicolson(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> 
                 >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 
+		mASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 		mASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		mASGSPRDC(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		
+		mASGSCOMPPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+
 		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 
 		mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -118,10 +119,13 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("NDFluid2DCrankNicolson", mNDFluid2DCrankNicolson);
 
 
-		KRATOS_REGISTER_ELEMENT("ASGS2D", mASGS2D);	
-		KRATOS_REGISTER_ELEMENT("ASGSPRDC", mASGSPRDC);	
+		KRATOS_REGISTER_ELEMENT("ASGS2D", mASGS2D);
+		KRATOS_REGISTER_ELEMENT("ASGS3D", mASGS3D);	
+		//KRATOS_REGISTER_ELEMENT("ASGSPRDC", mASGSPRDC);	
 		KRATOS_REGISTER_ELEMENT("ASGSCompressible2D", mASGSCompressible2D);
-		//KRATOS_REGISTER_ELEMENT("ASGSCOMPPRDC", mASGSCOMPPRDC);
+		KRATOS_REGISTER_ELEMENT("ASGSCOMPPRDC2D", mASGSCOMPPRDC2D);
+
+	
 
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);		
