@@ -42,9 +42,12 @@
 #include "custom_elements/NDfluid_2d_CrankNicolson.h"
 
 #include "custom_elements/asgs_2d.h"
-#include "custom_elements/asgs_pr_dc.h"
+//#include "custom_elements/asgs_pr_dc.h"
 #include "custom_elements/asgs_compressible_2d.h"
-//#include "custom_elements/asgs_comp_pr_dc.h"
+#include "custom_elements/asgs_comp_pr_dc_2d.h"
+
+#include "custom_elements/asgs_3d.h"
+
 
 #include "custom_elements/fluid_2dGLS_expl.h"
 #include "custom_elements/fluid_2dGLS_expl_comp.h"
@@ -251,10 +254,14 @@ namespace Kratos
 		const NDFluid2DCrankNicolson	 mNDFluid2DCrankNicolson;
 
 		const ASGS2D  mASGS2D; 
-		const ASGSPRDC  mASGSPRDC;
-		const ASGSCompressible2D mASGSCompressible2D;
 
-		//const ASGSCOMPPRDC mASGSCOMPPRDC;
+		const ASGS3D  mASGS3D;
+
+		const ASGSPRDC  mASGSPRDC;
+
+		const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
+
+ 
 
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
