@@ -177,9 +177,9 @@ for step in range(1,nsteps):
 
     #solving the fluid problem
     if(step > 3):
-        mpi.world.barrier()
+##        mpi.world.barrier()
         fluid_solver.Solve()
-        mpi.world.barrier()
+##        mpi.world.barrier()
         if (benchmarking.InBuildReferenceMode()):
             BenchmarkCheck(time, model_part)
         else:

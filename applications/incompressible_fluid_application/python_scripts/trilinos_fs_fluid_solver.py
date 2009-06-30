@@ -159,15 +159,20 @@ class IncompressibleFluidSolver:
         if(self.ReformDofAtEachIteration == True):
             (self.neighbour_search).Execute()
 
-        print "just before solve"
+        print "just before solve",mpi.rank
 ##        (self.solver).Solve()
 
         (self.solver).ApplyFractionalVelocityFixity()
+        print "aaa",mpi.rank
         (self.solver).InitializeFractionalStep(self.step, self.time_order);
+        print "bbb"
         (self.solver).InitializeProjections(self.step,self.projections_are_initialized);
         self.projections_are_initialized = True;
+
+        print "ccc"
         (self.solver).AssignInitialStepValues();
 
+        print "ddd"
         (self.solver).SolveStep1(self.vel_toll,self.max_vel_its)
         (self.solver).SolveStep2();
         (self.solver).ActOnLonelyNodes();

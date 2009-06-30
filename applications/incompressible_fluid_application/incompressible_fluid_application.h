@@ -44,7 +44,7 @@
 #include "custom_elements/asgs_2d.h"
 //#include "custom_elements/asgs_pr_dc.h"
 #include "custom_elements/asgs_compressible_2d.h"
-#include "custom_elements/asgs_comp_pr_dc_2d.h"
+// #include "custom_elements/asgs_comp_pr_dc_2d.h"
 
 #include "custom_elements/asgs_3d.h"
 
@@ -257,9 +257,9 @@ namespace Kratos
 
 		const ASGS3D  mASGS3D;
 
-		const ASGSPRDC  mASGSPRDC;
+// 		const ASGSPRDC  mASGSPRDC;
 
-		const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
+// 		const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
 
  
 

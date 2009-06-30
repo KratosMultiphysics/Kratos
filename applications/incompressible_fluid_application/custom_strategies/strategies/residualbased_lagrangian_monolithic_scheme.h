@@ -271,7 +271,7 @@ namespace Kratos
 		
 
 			//update density DENSITY_AIR 
-			//const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
+			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
 
 			const double pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
 			const double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
