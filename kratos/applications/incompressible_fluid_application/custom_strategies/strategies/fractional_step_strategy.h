@@ -849,6 +849,7 @@ namespace Kratos
 		//******************************************************************************************************
 		void ApplyFractionalVelocityFixity()
 		{
+			KRATOS_WATCH("inside ApplyFractionalVelocityFixity");
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
 				i != BaseType::GetModelPart().NodesEnd() ; ++i)
 			{

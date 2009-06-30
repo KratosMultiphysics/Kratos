@@ -72,7 +72,7 @@ solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size)
 model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
 print "Linear elastic model selected"
 
-solver.structure_linear_solver =  ParallelMKLPardisoSolver()
+solver.structure_linear_solver =  MKLPardisoSolver()
 
 
 solver.Initialize()
