@@ -152,7 +152,6 @@ namespace Kratos
 		if(mdomain_size == 2)
 		{
 			double area = 0.0;
-			KRATOS_WATCH("bbb");				
 			for(ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin(); 
 						 i!=mr_model_part.ElementsEnd(); i++)
 			{	
@@ -188,6 +187,8 @@ namespace Kratos
 		}
 
 		mr_model_part.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+
+	      
 
 		KRATOS_CATCH("");
 

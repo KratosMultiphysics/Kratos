@@ -115,6 +115,7 @@ class IncompressibleFluidSolver:
         pressure_aztec_parameters = ParameterList()
         pressure_aztec_parameters.set("AZ_solver","CG");
         pressure_preconditioner_type = "IC"
+        pressure_aztec_parameters.set("AZ_output",32);
         pressure_preconditioner_parameters = ParameterList()
         pressure_overlap_level = 1
         pressure_nit_max = 1000

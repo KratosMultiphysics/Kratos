@@ -190,9 +190,9 @@ namespace Kratos
 		  if (mNumberOfPartitions == 0)
 		    mNumberOfPartitions = static_cast<SizeType>(number_of_processes);
 			
-		  KRATOS_WATCH(mNumberOfPartitions);
 
 		  int rank = GetRank();
+		  if(rank == 0) KRATOS_WATCH(mNumberOfPartitions);
 
 		
 		  // Reading connectivities
@@ -534,6 +534,7 @@ namespace Kratos
 			  int node_partition = NPart[*i_node-1];
 			  if(node_partition != rank) 
 			  {
+
 			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
  		           // Giving model part's variables list to the node
 	          	   p_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
@@ -569,6 +570,7 @@ else
 //std::cout << rank << " : cannot find interface for element #" << i_element << " with rank " << EPart[i_element] << std::endl;
 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
 } 			    
+
 			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
 			    r_communicator.LocalMesh().Nodes().push_back(p_node); 
 			    r_communicator.LocalMesh(mesh_index).Nodes().push_back(p_node); 

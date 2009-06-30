@@ -297,8 +297,8 @@ namespace Kratos
 
 	      // Filling the buffer
 	      for(ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-	      {
-		std::memcpy(send_buffer + position, i_node->SolutionStepData().Data(), nodal_data_size);
+	     {
+		std::memcpy(send_buffer + position, i_node->SolutionStepData().Data(), nodal_data_size*sizeof(double));
 		position += nodal_data_size;
 	      }
 
@@ -311,6 +311,10 @@ namespace Kratos
 	      int send_tag = i_color;
 	      int receive_tag = i_color;
 
+		std::cout << rank << " : ";
+		KRATOS_WATCH(send_buffer_size)
+		std::cout << rank << " : ";
+		KRATOS_WATCH(receive_buffer_size)
 
 	      MPI_Sendrecv (send_buffer, send_buffer_size, MPI_DOUBLE, destination, send_tag, receive_buffer, receive_buffer_size, MPI_DOUBLE, destination, receive_tag,
 			    MPI_COMM_WORLD, &status);
@@ -320,7 +324,7 @@ namespace Kratos
 	      for(ModelPart::NodeIterator i_node = GhostMesh(i_color).NodesBegin() ; 
 		  i_node != GhostMesh(i_color).NodesEnd() ; i_node++)
 	      {
-		std::memcpy(i_node->SolutionStepData().Data(), receive_buffer + position, nodal_data_size);
+		std::memcpy(i_node->SolutionStepData().Data(), receive_buffer + position, nodal_data_size*sizeof(double));
 		position += nodal_data_size;
 	      }
 			
@@ -633,6 +637,14 @@ namespace Kratos
 
 	      delete [] receive_buffer[i_color];
 	    }
+
+//MPI_Barrier(MPI_COMM_WORLD);
+
+
+  SynchronizeNodalSolutionStepsData();
+
+
+
 
 	return true;
       }
