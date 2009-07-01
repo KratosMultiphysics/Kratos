@@ -64,7 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
+#include "custom_elements/asgs_2d.h"
 
 namespace Kratos
 {
@@ -92,13 +92,13 @@ namespace Kratos
   /** Detail class definition.
   */
   class ASGSCompressible2D
-	  : public Element
+	  : public ASGS2D
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      /// Counted pointer of ASGSCompressible2D
+      /// Counted pointer of Fluid2DASGS
       KRATOS_CLASS_POINTER_DEFINITION(ASGSCompressible2D);
  
       ///@}
@@ -124,21 +124,14 @@ namespace Kratos
 
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
+       void GetSecondDerivativesVector(Vector& values, int Step = 0);
+       void GetFirstDerivativesVector(Vector& values, int Step = 0);
+
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+      void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+      void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-//	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-
-       void Calculate( const Variable<array_1d<double,3> >& rVariable, 
-                       array_1d<double,3>& Output, 
-                       const ProcessInfo& rCurrentProcessInfo);
-
+       void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
       ///@}
       ///@name Access
       ///@{ 
@@ -184,11 +177,10 @@ namespace Kratos
       ///@} 
       ///@name Protected member Variables 
       ///@{ 
-        void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
-	void CalculateResidual(const MatrixType& K, VectorType& F);
-       	void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time); 
-
-	void CalculateVCandupdatedensity(Geometry< Node<3> > geom, double& vc);
+       virtual void CalculateCompressibleStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,array_1d<double,3> N,const double thatwo,const double area);
+        virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 	
+	virtual void CalculateSoundVelocity(Geometry< Node<3> > geom, double& vc);
+       virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
       ///@} 
       ///@name Protected Operators
       ///@{ 
@@ -223,28 +215,11 @@ namespace Kratos
       ///@} 
       ///@name Member Variables 
       ///@{ 
-		
-        double m_thawone;
-        double m_thawtwo ;
         
       ///@} 
       ///@name Private Operators
       ///@{ 
-        void CalculateMassContribution(MatrixType& K,const double time,const double area); 
-	void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
-	void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawone, const double thawtwo, const double time,const double area);
-	void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
 
-	void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
-	void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
-	void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
-	void AddBodyForceAndMomentum(VectorType& F, const array_1d<double,3>& N, const double time,const double area);
-
-	void CalculateThaw(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
-	
-	void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area);
-
-	void CalculateCompressibleterm(MatrixType& K,VectorType& F,  const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,double& thawtwo, const double time,const double area, const double vc);
 
 
 	    private:
@@ -268,15 +243,15 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      //ASGSCompressible2D& operator=(const ASGSCompressible2D& rOther);
+      //Fluid2DASGS& operator=(const Fluid2DASGS& rOther);
 
       /// Copy constructor.
-      //ASGSCompressible2D(const ASGSCompressible2D& rOther);
+      //Fluid2DASGS(const Fluid2DASGS& rOther);
 
         
       ///@}    
         
-    }; // Class ASGSCompressible2D 
+    }; // Class Fluid2DASGS 
 
   ///@} 
   
@@ -291,11 +266,11 @@ namespace Kratos
  
   /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream, 
-				    ASGSCompressible2D& rThis);
+				    Fluid2DASGS& rThis);
 */
   /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const ASGSCompressible2D& rThis)
+				    const Fluid2DASGS& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -307,6 +282,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FLUID_2D_ASGS_H_INCLUDED  defined 
+#endif // KRATOS_ASGS_2D_H_INCLUDED  defined 
 
 
