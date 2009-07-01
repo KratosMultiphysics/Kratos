@@ -850,6 +850,7 @@ namespace Kratos {
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
+            int loc_index = ii * dof ;
             const array_1d<double, 3 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
@@ -860,9 +861,9 @@ namespace Kratos {
 
             //arrhenius
             F[index + 3] += (volume * N[ii] * mean_ar);
-            F[index] += tautwo * volume * mean_ar * div_opr(0, index);
-            F[index + 1] += tautwo * volume * mean_ar * div_opr(0, index + 1);
-            F[index + 2] += tautwo * volume * mean_ar * div_opr(0, index + 2);
+            F[index] += tautwo * volume * mean_ar * div_opr(0, loc_index);
+            F[index + 1] += tautwo * volume * mean_ar * div_opr(0, loc_index + 1);
+            F[index + 2] += tautwo * volume * mean_ar * div_opr(0, loc_index + 2);
         }
 
 
