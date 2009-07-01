@@ -246,7 +246,7 @@ namespace Kratos
 		const Fluid3DCoupled  mFluid3DCoupled; 
 
 		const Fluid3DNeumann  mFluid3DNeumann;  
-		const Monolithic2DNeumann  mMonolithic2DNeumann; 
+
 
 
 		const NDFluid2D  mNDFluid2D; 
@@ -254,14 +254,17 @@ namespace Kratos
 		const NDFluid2DCrankNicolson	 mNDFluid2DCrankNicolson;
 
 		const ASGS2D  mASGS2D; 
+		const ASGSCompressible2D  mASGSCompressible2D; 
 
 		const ASGS3D  mASGS3D;
 
-// 		const ASGSPRDC  mASGSPRDC;
+
+		//const ASGSPRDC  mASGSPRDC;
+
 
 // 		const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
 
- 
+ 		const Monolithic2DNeumann  mMonolithic2DNeumann; 
 
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
