@@ -43,13 +43,14 @@ from KratosIncompressibleFluidApplication import *
 ##################################################################
 def NodeFinder(node_list,X,Y,Z):
    for node in node_list:
-	if((node.X-X)**2 + (node.Y-Y)**2 + (node.Z-Z)**2 < .000001):
+	if((node.X-X)**2 + (node.Y-Y)**2 + (node.Z-Z)**2 < .0001):
 		return node
 
 def BenchmarkCheck(time, node1):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 1.0)
-    benchmarking.Output(node1.GetSolutionStepValue(VELOCITY_Y), "Node 2 velocity_y", 1.0)
+    print "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+    benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 1.0,.001)
+    benchmarking.Output(node1.GetSolutionStepValue(VELOCITY_Y), "Node 2 velocity_y", 1.0,.001)
 
 
 ##################################################################
