@@ -114,12 +114,12 @@ for node in model_part.Nodes:
 ##zero[2] = 0.0;
 gid_io.InitializeResults(mesh_name , model_part.GetMesh())
 for step in range(0,nsteps):
-    print "line49"
 
     time = Dt*step
     model_part.CloneTimeStep(time)
 
-    print time
+    if(mpi.rank == 0):
+        print time
     #print model_part.ProcessInfo()[TIME]
 
     #solving the fluid problem

@@ -131,9 +131,6 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-//                        bool CalculateReactions = false;
-//                        bool CalculateNormDxFlag = true;
-
 			this->mvelocity_toll = velocity_toll;
 			this->mpressure_toll = pressure_toll;
 			this->mMaxVelIterations = MaxVelocityIterations;
@@ -144,16 +141,7 @@ namespace Kratos
 			this->mpredictor_corrector = predictor_corrector;
 			this->mReformDofAtEachIteration = ReformDofAtEachIteration;
 			this->proj_is_initialized = false;
-                        
-			//the system will be cleared at the end!
-//			ReformDofAtEachIteration = false;
-
-//std::cout << model_part.GetNodalSolutionStepVariablesList() << std::endl;
-//
-//KRATOS_WATCH(*(model_part.NodesBegin()->pGetVariablesList()))
-//KRATOS_WATCH(FRACT_VEL)
-//KRATOS_WATCH(VELOCITY)
-        
+                                
 			//veryfying that the model part has all the variables needed
 			if (model_part.NodesBegin()->SolutionStepsDataHas(FRACT_VEL)==false )
 				KRATOS_ERROR(std::logic_error,"Add  ----FRACT_VEL---- variable!!!!!! ERROR","");
@@ -279,7 +267,8 @@ namespace Kratos
  
 			int MaxPressureIterations = this->mMaxPressIterations;
 
-			while(	Dp_norm >= this->mpressure_toll && iteration++ < MaxPressureIterations  ) 
+                        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+                        while(	Dp_norm >= this->mpressure_toll && iteration++ < MaxPressureIterations  )
 			{
 				double p_norm = SavePressureIteration();				
 
@@ -290,7 +279,7 @@ namespace Kratos
 				else
 					Dp_norm = 1.0;
 
-				std::cout << "it = " << iteration << " Pressure Variation Norm = " << Dp_norm << std::endl;
+				if(rank == 0)  std::cout << "it = " << iteration << " Pressure Variation Norm = " << Dp_norm << std::endl;
 
 			}
 
@@ -337,6 +326,8 @@ namespace Kratos
 		double FracStepSolution()
 		{
 			KRATOS_TRY
+
+                        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 				
 			//setting the fractional velocity to the value of the velocity
 			AssignInitialStepValues();
@@ -344,12 +335,12 @@ namespace Kratos
 			//solve first step for fractional step velocities
 			boost::timer step1time;
 			this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
-			std::cout << "step1 time " << step1time.elapsed() << std::endl;
+			if(rank == 0) std::cout << "step1 time " << step1time.elapsed() << std::endl;
 
 			//solve for pressures (and recalculate the nodal area)
 			boost::timer step2time;
 			double Dp_norm = this->SolveStep2();
-			std::cout << "pressure calculation time " << step2time.elapsed() << std::endl;
+			if(rank == 0) std::cout << "pressure calculation time " << step2time.elapsed() << std::endl;
 
 
 			this->ActOnLonelyNodes();
@@ -357,7 +348,7 @@ namespace Kratos
 			//calculate projection terms
 			boost::timer projection_time;
 			this->SolveStep3();
-			std::cout << "projection calculation time " << projection_time.elapsed() << std::endl;
+			if(rank == 0) std::cout << "projection calculation time " << projection_time.elapsed() << std::endl;
 
 //			if(mdomain_size == 2)
 //  				this->SolveStep2_Mp();
@@ -366,7 +357,7 @@ namespace Kratos
 			//correct velocities
 			boost::timer vel_time;
 			this->SolveStep4();
-			std::cout << "velocity correction time " << vel_time.elapsed() << std::endl;
+			if(rank == 0) std::cout << "velocity correction time " << vel_time.elapsed() << std::endl;
 
 			return Dp_norm;
 
@@ -580,6 +571,8 @@ namespace Kratos
 		void SolveStep1(double velocity_toll, int MaxIterations)
 		{
 			KRATOS_TRY;
+                        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+
 			array_1d<double,3> normDx = ZeroVector(3);
 
 			bool is_converged = false;
@@ -595,7 +588,7 @@ namespace Kratos
 			}
 
 			if (is_converged == false)
-				std::cout << "ATTENTION: convergence NOT achieved" << std::endl;
+				if(rank == 0)  std::cout << "ATTENTION: convergence NOT achieved" << std::endl;
 
 			//clear if needed
 			if(mReformDofAtEachIteration == true && mpredictor_corrector == false )
@@ -849,7 +842,6 @@ namespace Kratos
 		//******************************************************************************************************
 		void ApplyFractionalVelocityFixity()
 		{
-			KRATOS_WATCH("inside ApplyFractionalVelocityFixity");
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
 				i != BaseType::GetModelPart().NodesEnd() ; ++i)
 			{
@@ -908,12 +900,13 @@ namespace Kratos
 			double ratio_y = normDx[1]/norm_vy;
 			double ratio_z = normDx[2]/norm_vz;
 
-			std::cout << "ratio_x = " << ratio_x << " ratio_Y = " << ratio_y << " ratio_Z = " << ratio_z << std::endl; 
+                        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+                        if(rank == 0)  std::cout << "ratio_x = " << ratio_x << " ratio_Y = " << ratio_y << " ratio_Z = " << ratio_z << std::endl;
 
 
 			if(ratio_x < toll && ratio_y < toll && ratio_z < toll)
 			{
-				std::cout << "convergence achieved" << std::endl;
+				if(rank == 0)  std::cout << "convergence achieved" << std::endl;
 				return true;
 			}
 			
@@ -966,14 +959,14 @@ namespace Kratos
 				mpfracvel_z_strategy->SetEchoLevel(Level);
 			//
 			mppressurestep->SetEchoLevel(Level);
-                        std::cout << "Echo Level set to " << Level << std::endl;
 		}
 
 		//******************************************************************************************************
 		//******************************************************************************************************
 		virtual void Clear() 
 		{
-			KRATOS_WATCH("FractionalStepStrategy Clear Function called");
+                        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+                        if(rank == 0)  KRATOS_WATCH("FractionalStepStrategy Clear Function called");
 			mpfracvel_x_strategy->Clear();
 			mpfracvel_y_strategy->Clear();
 			if(mdomain_size == 3)
