@@ -99,7 +99,6 @@ namespace Kratos
                                             )
                         :  SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, mDomainSize)
                 {
-KRATOS_WATCH(Comm);
                         bool CalculateReactions = false;
                         bool CalculateNormDxFlag = true;
                         bool ReformDofAtEachIteration = false;

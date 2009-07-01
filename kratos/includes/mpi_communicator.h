@@ -311,10 +311,6 @@ namespace Kratos
 	      int send_tag = i_color;
 	      int receive_tag = i_color;
 
-		std::cout << rank << " : ";
-		KRATOS_WATCH(send_buffer_size)
-		std::cout << rank << " : ";
-		KRATOS_WATCH(receive_buffer_size)
 
 	      MPI_Sendrecv (send_buffer, send_buffer_size, MPI_DOUBLE, destination, send_tag, receive_buffer, receive_buffer_size, MPI_DOUBLE, destination, receive_tag,
 			    MPI_COMM_WORLD, &status);

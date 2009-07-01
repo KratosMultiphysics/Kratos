@@ -382,44 +382,10 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 			if(norm_b != 0.00)
 			  {
-				KRATOS_WATCH("entering in the solver");
-//  				Epetra_LinearProblem AztecProblem(&A,&Dx,&b);
-// 
-//  				AztecOO aztec_solver(AztecProblem);
-// //   				aztec_solver.SetAztecOption(AZ_precond, AZ_Jacobi);
-// //  				aztec_solver.SetAztecOption(AZ_solver, AZ_gmres);
-// 				aztec_solver.SetAztecOption(AZ_precond, AZ_dom_decomp);
-//  				aztec_solver.SetAztecOption(AZ_subdomain_solve, AZ_ilut);
-//   				aztec_solver.SetAztecOption(AZ_overlap, 3);
-// // 				aztec_solver.SetAztecOption(AZ_conv, AZ_sol);
-// //  				aztec_solver.SetAztecOption(AZ_graph_fill, 1);
-// //  				aztec_solver.SetAztecOption(AZ_output, AZ_warnings);
-// //   				aztec_solver.SetAztecOption(AZ_solver, AZ_bicgstab);
-//    				aztec_solver.SetAztecOption(AZ_solver, AZ_gmres);
-//    				aztec_solver.SetAztecOption(AZ_kspace, 200);
-//  				aztec_solver.Iterate(1000,1e-6);
-// // 				aztec_solver.Iterate(5000,1e-9);
-
-
-// // 				Epetra_LinearProblem Problem(&A,&Dx,&b);
-// // 				Amesos_BaseSolver* Solver;
-// // 				Amesos Factory;
-// // 				std::string SolverType = "Superludist";
-// // 				Solver = Factory.Create(SolverType, Problem);
-// // 				if (Solver == 0) 
-// // 					std::cout << "Specified solver is not available" << std::endl;
-// // 
-// // 				Solver->SymbolicFactorization();
-// // 				Solver->NumericFactorization();
-// // 				Solver->Solve();
-// // 
-// // 				delete Solver;
+                                if (this->GetEchoLevel()>1) 
+                                    if(mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
 				
 				BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
-	
-
-// 				EPETRA_CHK_ERR(ierr);
-
 
 			  }
 			else
@@ -450,12 +416,14 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 			boost::timer building_time;
 
+                        int rank = r_model_part.GetCommunicator().MyPID();
+
 
 			Build(pScheme,r_model_part,A,b);
 
 			if(BaseType::GetEchoLevel()>0)
 			{
-				std::cout << "Building Time : " << building_time.elapsed() << std::endl;
+				if(rank == 0) std::cout << "Building Time : " << building_time.elapsed() << std::endl;
 			}
 			
 			//does nothing...dirichlet conditions are naturally dealt with in defining the residual
@@ -463,10 +431,13 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 			if (BaseType::GetEchoLevel()== 3)
 			{
+                            if(rank == 0)
+                            {
 				std::cout << "before the solution of the system" << std::endl;
 				std::cout << "System Matrix = " << A << std::endl;
 				std::cout << "unknowns vector = " << Dx << std::endl;
 				std::cout << "RHS vector = " << b << std::endl;
+                            }
 			}
 
 			boost::timer solve_time;
@@ -475,14 +446,17 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 			if(BaseType::GetEchoLevel()>0)
 			{
-				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
+				if(rank == 0) std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
 			}
 			if (BaseType::GetEchoLevel()== 3)
 			{
+                            if(rank == 0)
+                            {
 				std::cout << "after the solution of the system" << std::endl;
 				std::cout << "System Matrix = " << A << std::endl;
 				std::cout << "unknowns vector = " << Dx << std::endl;
 				std::cout << "RHS vector = " << b << std::endl;
+                            }
 			}
 			
 			KRATOS_CATCH("")
@@ -677,13 +651,16 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 
 			fixed_offset += global_size - fixed_size;
 
-			if(BaseType::GetEchoLevel()>0)
+			if(BaseType::GetEchoLevel()>1)
 			{
+                            if(rank == 0)
+                            {
 				std::cout << rank << " : local size = " << BaseType::mDofSet.size() << std::endl; 
 				std::cout << rank << " : free_id = " << free_size << std::endl; 
 				std::cout << rank << " : fixed_size = " << fixed_size << std::endl; 
 				std::cout << rank << " : free_offset = " << free_offset << std::endl; 
 				std::cout << rank << " : fixed offset = " << fixed_offset << std::endl;
+                            }
 			}
 
 			// Now setting the equation id with .
@@ -701,12 +678,15 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 			BaseType::mEquationSystemSize = global_size;
 			mLocalSystemSize = free_size;
 
-			if(BaseType::GetEchoLevel()>0)
-			{			
+			if(BaseType::GetEchoLevel()>1)
+			{
+                            if(rank == 0)
+                            {
 				std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl; 
 				std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
 				std::cout << rank << " : free_offset = " << free_offset << std::endl; 
 				std::cout << rank << " : fixed_offset = " << fixed_offset << std::endl;
+                            }
 			}
 
 			//by Riccardo ... it may be wrong!	
@@ -917,7 +897,7 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 			)
 		{
 			KRATOS_TRY
-
+                            if (this->GetEchoLevel()>1)
 				std::cout << "entering ResizeAndInitializeVectors" << std::endl;
 
 				//resizing the system vectors and matrix

@@ -349,7 +349,7 @@ namespace Kratos
 			//pointers needed in the solution
 			typename TSchemeType::Pointer pScheme = GetScheme();
 			typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-			
+			int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
 			ProcessInfo& pCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
@@ -362,7 +362,7 @@ namespace Kratos
 			}
 
 			//prints informations about the current time
-			if (BaseType::GetEchoLevel()!=0)
+			if (BaseType::GetEchoLevel()!=0 && rank == 0)
 			{
 				std::cout << " " << std::endl;
 				std::cout << "CurrentTime = " << pCurrentProcessInfo[TIME] << std::endl;
@@ -435,7 +435,7 @@ namespace Kratos
 			//deallocate the systemvectors if needed
 			if (mReformDofSetAtEachStep == true) 
 			{
-				std::cout << "Clearing System" << std::endl;
+				if(rank == 0) std::cout << "Clearing System" << std::endl;
 				this->Clear();
 				//std::cout << "Clearing System" << std::endl;
 				//TSparseSpace::ClearData(mA);
@@ -611,16 +611,15 @@ namespace Kratos
 			//pointers needed in the solution
 			typename TSchemeType::Pointer pScheme = GetScheme();
 
-std::cout << "ln614" <<std::endl;
 			//Initialize The Scheme - OPERATIONS TO BE DONE ONCE
 			if (pScheme->SchemeIsInitialized() == false) 
 				pScheme->Initialize(BaseType::GetModelPart());
-std::cout << "ln618" <<std::endl;			
-			//Initialize The Elements - OPERATIONS TO BE DONE ONCE
+
+                        //Initialize The Elements - OPERATIONS TO BE DONE ONCE
 			if (pScheme->ElementsAreInitialized() == false) 
 				pScheme->InitializeElements(BaseType::GetModelPart());
-std::cout << "ln622" <<std::endl;
-			if(BaseType::GetEchoLevel()>2)
+
+                        if(BaseType::GetEchoLevel()>2)
 				std::cout << "exiting the  Initialize of the ResidualBasedLinearStrategy" << std::endl;
 
 						
@@ -636,8 +635,10 @@ std::cout << "ln622" <<std::endl;
 			
 			typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 			typename TSchemeType::Pointer pScheme = GetScheme();
+                        
+                        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
-			if(BaseType::GetEchoLevel()>2)
+			if(BaseType::GetEchoLevel()>2 && rank==0)
 				std::cout << "entering in the  InitializeSolutionStep of the ResidualBasedLinearStrategy" << std::endl;
 
 				
@@ -649,22 +650,22 @@ std::cout << "ln622" <<std::endl;
 				boost::timer setup_dofs_time;
 				//setting up the list of the DOFs to be solved
 				pBuilderAndSolver->SetUpDofSet(pScheme,BaseType::GetModelPart());
-				if(BaseType::GetEchoLevel()>0)
+				if(BaseType::GetEchoLevel()>0 && rank == 0)
 					std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
 	  			
 				//shaping correctly the system 
 				boost::timer setup_system_time;
 				pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());	
-				if(BaseType::GetEchoLevel()>0)
+				if(BaseType::GetEchoLevel()>0 && rank == 0)
 					std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
 
 				//setting up the Vectors involved to the correct size 
 				boost::timer system_matrix_resize_time;
 				pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
-				if(BaseType::GetEchoLevel()>0)
+				if(BaseType::GetEchoLevel()>0 && rank == 0)
 					std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
 			}
-			if(BaseType::GetEchoLevel()>0)
+			if(BaseType::GetEchoLevel()>0 && rank == 0)
 				std::cout << "System Construction Time : " << system_construction_time.elapsed() << std::endl;
 
 

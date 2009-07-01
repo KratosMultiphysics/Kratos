@@ -259,7 +259,7 @@ namespace Kratos
       ///@}
       ///@name Access
       ///@{
-      int MyPID()
+      virtual int MyPID()
       {
           return 0;
       }

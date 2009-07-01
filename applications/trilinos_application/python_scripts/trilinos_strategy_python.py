@@ -117,12 +117,11 @@ class SolvingStrategyPython:
         self.SolutionStepIsInitialized = False
         
         #clear if needed - deallocates memory
-        print "ln 113 self.ReformDofSetAtEachStep = ",self.ReformDofSetAtEachStep
-        print mpi.rank
         mpi.world.barrier()
- 	if(self.ReformDofSetAtEachStep == True):
+        if(self.ReformDofSetAtEachStep == True):
             self.Clear();
-        print "Solve is Finished for rank : ", mpi.rank
+        if(mpi.rank == 0):
+            print "Solve is Finished"
 
             
     #######################################################################
@@ -203,10 +202,8 @@ class SolvingStrategyPython:
     #######################################################################
     def Clear(self):
         mpi.world.barrier()
-        print self.pA
-        print self.pDx
-        print self.pb
-        print "Entered in Clear"
+        if(mpi.rank == 0):
+            print "Entered in Clear"
         self.space_utils.ClearMatrix(self.pA)
         self.space_utils.ClearVector(self.pDx)
         self.space_utils.ClearVector(self.pb)
@@ -218,7 +215,8 @@ class SolvingStrategyPython:
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
 
         self.builder_and_solver.Clear()
-        print "Clear is completed"
+        if(mpi.rank == 0):
+            print "Clear is completed"
         
     #######################################################################   
     def SetEchoLevel(self,level):
