@@ -140,6 +140,7 @@ namespace Kratos {
         //add body force and momentum
         AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone, tautwo);
 
+
         //add projections
         if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
             AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
@@ -535,8 +536,18 @@ namespace Kratos {
         const array_1d<double,3>& acce1 = GetGeometry()[1].FastGetSolutionStepValue(ACCELERATION);
         const array_1d<double,3>& acce2 = GetGeometry()[2].FastGetSolutionStepValue(ACCELERATION);
 
+<<<<<<< .mine
+	for(int ii = 0; ii< nodes_number; ++ii)
+	  {
+		int index = ii*(dof + 1);DN_DX
+		int loc_index = ii*dof;
+		F[index] += 1.0*area*fbd_stblterm[loc_index];
+		F[index + 1] += 1.0*area*fbd_stblterm[loc_index + 1];
+	  }
+=======
         bdf[0] = N[0]*(density*bdf0[0] + density/time * acce0[0] ) +  N[1]*(density*bdf1[0] + density/time * acce1[0]) + N[2]*(density*bdf2[0] + density/time * acce2[0]);
         bdf[1] =  N[0]*(density*bdf0[1] + density/time * acce0[1] ) +  N[1]*(density*bdf1[1] + density/time * acce1[1]) + N[2]*(density*bdf2[1] + density/time * acce2[1]);
+>>>>>>> .r469
 	
 
         array_1d<double,6> fbd_stblterm = ZeroVector(matsize);
@@ -791,6 +802,7 @@ namespace Kratos {
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
+            int loc_index = ii * dof;
             const array_1d<double, 2 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
@@ -800,8 +812,8 @@ namespace Kratos {
 
             //arrhenius
             F[index + 2] += (area * N[ii] * mean_ar);
-            F[index] += tautwo * area * mean_ar * div_opr(0, index);
-            F[index + 1] += tautwo * area * mean_ar * div_opr(0, index + 1);
+            F[index] += tautwo * area * mean_ar * div_opr(0, loc_index);
+            F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
         }
 
 
@@ -1212,7 +1224,9 @@ namespace Kratos {
         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
 
 
+
         KRATOS_CATCH("")
+
 
     }
 
