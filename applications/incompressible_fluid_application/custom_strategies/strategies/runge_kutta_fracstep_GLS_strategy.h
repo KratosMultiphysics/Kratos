@@ -339,10 +339,10 @@ namespace Kratos
 			//			SAVING VELOCITY B.C.'s							//
 			//												//
 			//////////////////////////////////////////////////////////////////////////////////////////////////
-//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
-//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
-//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
-//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
+			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
+			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
+			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
+			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
 			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
 			{
 				if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
