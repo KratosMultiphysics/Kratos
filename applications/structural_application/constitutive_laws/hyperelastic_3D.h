@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosR1StructuralApplication 
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -160,8 +160,14 @@ namespace Kratos
 			 * @param StrainVector the current vector of strains
 			 * @param rResult the stress vector corresponding to the given strains
 			 */
+
+
 			void CalculateStress(const Vector& StrainVector, Vector& rResult);
 			
+
+			void CalculateStressVector(const Vector& StrainVector, Vector& rResult);
+
+			void CalculateEnergy(const Vector& StrainVector, Vector& Energy);
 
 			//******************************************
 
@@ -247,7 +253,11 @@ namespace Kratos
 				 Vector mCurrentStress;*/
 
 			double mMU;
+			double mK;
+
 			Vector mInSituStress;
+			Matrix Ctang;
+			Matrix c;
 			Matrix CC;
 			 /**
 			  * Un accessible methods 
