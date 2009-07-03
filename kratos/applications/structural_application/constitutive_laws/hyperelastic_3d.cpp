@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes 
 
 #include "includes/define.h"
-#include "constitutive_laws/hyperelastic_3D.h"
+#include "constitutive_laws/hyperelastic_3d.h"
 #include "includes/constitutive_law.h" //nelson
 #include "custom_utilities/Tensor_utils.h" // nelson
 #include "custom_utilities/sd_math_utils.h"
