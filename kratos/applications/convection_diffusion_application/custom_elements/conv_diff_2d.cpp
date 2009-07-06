@@ -62,13 +62,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//static variables
-	boost::numeric::ublas::bounded_matrix<double,3,3> ConvDiff2D::msMassFactors;
-	boost::numeric::ublas::bounded_matrix<double,3,2> ConvDiff2D::msDN_DX;
-  	array_1d<double,3> ConvDiff2D::msN; //dimension = number of nodes
-	array_1d<double,2> ConvDiff2D::ms_vel_gauss; //dimesion coincides with space dimension
-  	array_1d<double,3> ConvDiff2D::ms_temp_vec_np; //dimension = number of nodes
-  	array_1d<double,3> ConvDiff2D::ms_u_DN; //dimension = number of nodes
+    namespace ConvDiff2Dauxiliaries
+    {
+        boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = ZeroMatrix(3,3);
+        #pragma omp threadprivate(msMassFactors)
+
+        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+        #pragma omp threadprivate(msDN_DX)
+
+        array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
+        #pragma omp threadprivate(msN)
+
+        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+        #pragma omp threadprivate(ms_vel_gauss)
+
+        array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+        #pragma omp threadprivate(ms_temp_vec_np)
+
+        array_1d<double,3> ms_u_DN = ZeroVector(3); //dimension = number of nodes
+        #pragma omp threadprivate(ms_u_DN)
+
+    }
+    using  namespace ConvDiff2Dauxiliaries;
 
 	//************************************************************************************
 	//************************************************************************************
@@ -111,7 +126,7 @@ namespace Kratos
 
 		const unsigned int number_of_points = GetGeometry().size();
 		const double lumping_factor = 1.00/double(number_of_points);
-unsigned int TDim = 2;
+		unsigned int TDim = 2;
 
 		if(rLeftHandSideMatrix.size1() != number_of_points)
 			rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);

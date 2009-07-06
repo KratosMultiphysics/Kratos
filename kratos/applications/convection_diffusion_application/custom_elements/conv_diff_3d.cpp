@@ -62,13 +62,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//static variables
-	boost::numeric::ublas::bounded_matrix<double,4,4> ConvDiff3D::msMassFactors;
-	boost::numeric::ublas::bounded_matrix<double,4,3> ConvDiff3D::msDN_DX;
-  	array_1d<double,4> ConvDiff3D::msN; //dimension = number of nodes
-	array_1d<double,3> ConvDiff3D::ms_vel_gauss; //dimesion coincides with space dimension
-  	array_1d<double,4> ConvDiff3D::ms_temp_vec_np; //dimension = number of nodes
-  	array_1d<double,4> ConvDiff3D::ms_u_DN; //dimension = number of nodes
+	//space defined to allow parallelism
+	 namespace ConvDiff3DAuxiliaries
+	 {
+	     boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = ZeroMatrix(4,4);
+	     #pragma omp threadprivate(msMassFactors)
+
+	     boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
+	     #pragma omp threadprivate(msDN_DX)
+
+	     array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
+	     #pragma omp threadprivate(msN)
+
+	     array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension
+	     #pragma omp threadprivate(ms_vel_gauss)
+
+	     array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes
+	     #pragma omp threadprivate(ms_temp_vec_np)
+
+	     array_1d<double,4> ms_u_DN = ZeroVector(4); //dimension = number of nodes
+	     #pragma omp threadprivate(ms_u_DN)
+
+	 }
+	 using namespace ConvDiff3DAuxiliaries;
 
 	//************************************************************************************
 	//************************************************************************************
