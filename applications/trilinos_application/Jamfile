@@ -2,6 +2,7 @@
 project KratosTrilinosApplication
     : 
     source-location
+       $(TOP)/applications
        .
        constitutive_laws
        custom_conditions
@@ -19,6 +20,7 @@ project KratosTrilinosApplication
         <include>../incompressible_fluid_application/
 
 		<include>custom_external_libraries/
+                <include>../../applications
 
 		#includes for mpi
 		<include>$(MPI_INCLUDE_DIR)
@@ -61,6 +63,7 @@ alias sources_KratosTrilinosApplication
 		add_trilinos_schemes_to_python.cpp
 		add_trilinos_linear_solvers_to_python.cpp
 		add_trilinos_strategies_to_python.cpp
+                add_custom_io_to_python.cpp
 
 		/kratos-prj/kratos//libkratos/<link>static
 
