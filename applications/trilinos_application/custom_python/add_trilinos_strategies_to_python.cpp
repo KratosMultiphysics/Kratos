@@ -53,11 +53,14 @@
 // //Builder And Solver
 // #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver_deactivation.h"
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_vec.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_mixed.h"
+#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation.h"
+#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation_vec.h"
 
 //linear solvers
 // #include "linear_solvers/linear_solver.h"
@@ -132,6 +135,36 @@ namespace Kratos {
                     .def("GetEchoLevel", &TrilinosBuilderAndSolverType::GetEchoLevel)
                     ;
 
+            typedef TrilinosResidualBasedEliminationBuilderAndSolverDeactivation< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverDeactivationType;
+
+            class_< TrilinosBuilderAndSolverDeactivationType, boost::noncopyable >
+                    ("TrilinosResidualBasedBuilderAndSolverDeactivation", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > ())
+                    .def("SetCalculateReactionsFlag", &TrilinosBuilderAndSolverDeactivationType::SetCalculateReactionsFlag)
+                    .def("GetCalculateReactionsFlag", &TrilinosBuilderAndSolverDeactivationType::GetCalculateReactionsFlag)
+                    .def("SetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverDeactivationType::SetDofSetIsInitializedFlag)
+                    .def("GetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverDeactivationType::GetDofSetIsInitializedFlag)
+                    .def("SetReshapeMatrixFlag", &TrilinosBuilderAndSolverDeactivationType::SetReshapeMatrixFlag)
+                    .def("GetReshapeMatrixFlag", &TrilinosBuilderAndSolverDeactivationType::GetReshapeMatrixFlag)
+                    .def("GetEquationSystemSize", &TrilinosBuilderAndSolverDeactivationType::GetEquationSystemSize)
+                    .def("BuildLHS", &TrilinosBuilderAndSolverDeactivationType::BuildLHS)
+                    .def("BuildRHS", &TrilinosBuilderAndSolverDeactivationType::BuildRHS)
+                    .def("Build", &TrilinosBuilderAndSolverDeactivationType::Build)
+                    .def("SystemSolve", &TrilinosBuilderAndSolverDeactivationType::SystemSolve)
+                    .def("BuildAndSolve", &TrilinosBuilderAndSolverDeactivationType::BuildAndSolve)
+                    .def("BuildRHSAndSolve", &TrilinosBuilderAndSolverDeactivationType::BuildRHSAndSolve)
+                    .def("ApplyDirichletConditions", &TrilinosBuilderAndSolverDeactivationType::ApplyDirichletConditions)
+                    .def("SetUpDofSet", &TrilinosBuilderAndSolverDeactivationType::SetUpDofSet)
+                    .def("GetDofSet", &TrilinosBuilderAndSolverDeactivationType::GetDofSet, return_internal_reference<>())
+                    .def("SetUpSystem", &TrilinosBuilderAndSolverDeactivationType::SetUpSystem)
+                    .def("ResizeAndInitializeVectors", &TrilinosBuilderAndSolverDeactivationType::ResizeAndInitializeVectors)
+                    .def("InitializeSolutionStep", &TrilinosBuilderAndSolverDeactivationType::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &TrilinosBuilderAndSolverDeactivationType::FinalizeSolutionStep)
+                    .def("CalculateReactions", &TrilinosBuilderAndSolverDeactivationType::CalculateReactions)
+                    .def("Clear", &TrilinosBuilderAndSolverDeactivationType::Clear)
+                    .def("SetEchoLevel", &TrilinosBuilderAndSolverDeactivationType::SetEchoLevel)
+                    .def("GetEchoLevel", &TrilinosBuilderAndSolverDeactivationType::GetEchoLevel)
+                    ;
+
 
             typedef TrilinosBuilderAndSolverML< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLtype;
 
@@ -161,6 +194,36 @@ namespace Kratos {
                     .def("Clear", &TrilinosBuilderAndSolverMLtype::Clear)
                     .def("SetEchoLevel", &TrilinosBuilderAndSolverMLtype::SetEchoLevel)
                     .def("GetEchoLevel", &TrilinosBuilderAndSolverMLtype::GetEchoLevel)
+                    ;
+
+            typedef TrilinosBuilderAndSolverMLDeactivation< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLDeactivationtype;
+
+            class_< TrilinosBuilderAndSolverMLDeactivationtype, bases<TrilinosBuilderAndSolverType>, boost::noncopyable >
+                    ("TrilinosBuilderAndSolverMLDeactivation", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > ())
+                    .def("SetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLDeactivationtype::SetCalculateReactionsFlag)
+                    .def("GetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLDeactivationtype::GetCalculateReactionsFlag)
+                    .def("SetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLDeactivationtype::SetDofSetIsInitializedFlag)
+                    .def("GetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLDeactivationtype::GetDofSetIsInitializedFlag)
+                    .def("SetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLDeactivationtype::SetReshapeMatrixFlag)
+                    .def("GetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLDeactivationtype::GetReshapeMatrixFlag)
+                    .def("GetEquationSystemSize", &TrilinosBuilderAndSolverMLDeactivationtype::GetEquationSystemSize)
+                    .def("BuildLHS", &TrilinosBuilderAndSolverMLDeactivationtype::BuildLHS)
+                    .def("BuildRHS", &TrilinosBuilderAndSolverMLDeactivationtype::BuildRHS)
+                    .def("Build", &TrilinosBuilderAndSolverMLDeactivationtype::Build)
+                    .def("SystemSolve", &TrilinosBuilderAndSolverMLDeactivationtype::SystemSolve)
+                    .def("BuildAndSolve", &TrilinosBuilderAndSolverMLDeactivationtype::BuildAndSolve)
+                    .def("BuildRHSAndSolve", &TrilinosBuilderAndSolverMLDeactivationtype::BuildRHSAndSolve)
+                    .def("ApplyDirichletConditions", &TrilinosBuilderAndSolverMLDeactivationtype::ApplyDirichletConditions)
+                    .def("SetUpDofSet", &TrilinosBuilderAndSolverMLDeactivationtype::SetUpDofSet)
+                    .def("GetDofSet", &TrilinosBuilderAndSolverMLDeactivationtype::GetDofSet, return_internal_reference<>())
+                    .def("SetUpSystem", &TrilinosBuilderAndSolverMLDeactivationtype::SetUpSystem)
+                    .def("ResizeAndInitializeVectors", &TrilinosBuilderAndSolverMLDeactivationtype::ResizeAndInitializeVectors)
+                    .def("InitializeSolutionStep", &TrilinosBuilderAndSolverMLDeactivationtype::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &TrilinosBuilderAndSolverMLDeactivationtype::FinalizeSolutionStep)
+                    .def("CalculateReactions", &TrilinosBuilderAndSolverMLDeactivationtype::CalculateReactions)
+                    .def("Clear", &TrilinosBuilderAndSolverMLDeactivationtype::Clear)
+                    .def("SetEchoLevel", &TrilinosBuilderAndSolverMLDeactivationtype::SetEchoLevel)
+                    .def("GetEchoLevel", &TrilinosBuilderAndSolverMLDeactivationtype::GetEchoLevel)
                     ;
 
 
@@ -225,6 +288,37 @@ namespace Kratos {
                     .def("SetEchoLevel", &TrilinosBuilderAndSolverMLmixedType::SetEchoLevel)
                     .def("GetEchoLevel", &TrilinosBuilderAndSolverMLmixedType::GetEchoLevel)
                     ;
+
+            typedef TrilinosBuilderAndSolverMLDeactivation2D< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLDeactivation2Dtype;
+
+            class_< TrilinosBuilderAndSolverMLDeactivation2Dtype, boost::noncopyable >
+                    ("TrilinosBuilderAndSolverMLDeactivation2D", init<Epetra_MpiComm&, int, int, TrilinosLinearSolverType::Pointer > ())
+                    .def("SetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetCalculateReactionsFlag)
+                    .def("GetCalculateReactionsFlag", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetCalculateReactionsFlag)
+                    .def("SetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetDofSetIsInitializedFlag)
+                    .def("GetDofSetIsInitializedFlag", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetDofSetIsInitializedFlag)
+                    .def("SetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetReshapeMatrixFlag)
+                    .def("GetReshapeMatrixFlag", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetReshapeMatrixFlag)
+                    .def("GetEquationSystemSize", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetEquationSystemSize)
+                    .def("BuildLHS", &TrilinosBuilderAndSolverMLDeactivation2Dtype::BuildLHS)
+                    .def("BuildRHS", &TrilinosBuilderAndSolverMLDeactivation2Dtype::BuildRHS)
+                    .def("Build", &TrilinosBuilderAndSolverMLDeactivation2Dtype::Build)
+                    .def("SystemSolve", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SystemSolve)
+                    .def("BuildAndSolve", &TrilinosBuilderAndSolverMLDeactivation2Dtype::BuildAndSolve)
+                    .def("BuildRHSAndSolve", &TrilinosBuilderAndSolverMLDeactivation2Dtype::BuildRHSAndSolve)
+                    .def("ApplyDirichletConditions", &TrilinosBuilderAndSolverMLDeactivation2Dtype::ApplyDirichletConditions)
+                    .def("SetUpDofSet", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetUpDofSet)
+                    .def("GetDofSet", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetDofSet, return_internal_reference<>())
+                    .def("SetUpSystem", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetUpSystem)
+                    .def("ResizeAndInitializeVectors", &TrilinosBuilderAndSolverMLDeactivation2Dtype::ResizeAndInitializeVectors)
+                    .def("InitializeSolutionStep", &TrilinosBuilderAndSolverMLDeactivation2Dtype::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &TrilinosBuilderAndSolverMLDeactivation2Dtype::FinalizeSolutionStep)
+                    .def("CalculateReactions", &TrilinosBuilderAndSolverMLDeactivation2Dtype::CalculateReactions)
+                    .def("Clear", &TrilinosBuilderAndSolverMLDeactivation2Dtype::Clear)
+                    .def("SetEchoLevel", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetEchoLevel)
+                    .def("GetEchoLevel", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetEchoLevel)
+                    ;
+
 
             //********************************************************************************************
             class_< SolverConfiguration<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
