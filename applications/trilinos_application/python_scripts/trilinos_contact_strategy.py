@@ -51,6 +51,16 @@ class SolvingStrategyPython:
             self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,2,self.linear_solver)
         elif(builder_and_solver_type == "ML3Dpress"):
             self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,3,self.linear_solver)
+        elif(builder_and_solver_type == "superludist"):
+            self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
+            print("######################### SUPERLU SOLVER GENERATED ##########################")
+        elif(builder_and_solver_type == "MLdeactivation"):
+            self.builder_and_solver = TrilinosBuilderAndSolverMLDeactivation2D(Comm,guess_row_size,3,self.linear_solver)
+        elif(builder_and_solver_type == "superludist_deactivation"):
+            self.builder_and_solver = TrilinosResidualBasedBuilderAndSolverDeactivation(Comm,guess_row_size,self.linear_solver)
+            print("######################### SUPERLU SOLVER GENERATED ##########################")
+
+
         
         #local matrices and vectors
         self.pA = self.space_utils.CreateEmptyMatrixPointer(Comm)
@@ -276,7 +286,7 @@ class SolvingStrategyPython:
         self.builder_and_solver.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
         self.scheme.Clean()
         #reset flags for the next step
-        self.mSolutionStepIsInitialized = False
+        self.SolutionStepIsInitialized = False
   
     #######################################################################
     def Clear(self):

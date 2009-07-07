@@ -88,10 +88,16 @@ class SolverAdvanced:
 
         self.Comm = CreateCommunicator()
 
-	self.buildertype="ML3D"
+	#self.buildertype="ML3D"
+        #self.buildertype="superludist"
+        self.buildertype="MLdeactivation"
+        self.buildertype="superludist_deactivation"
 
         #definition of the solvers
-        self.structure_linear_solver =  TrilinosLinearSolver()
+        #self.structure_linear_solver =  TrilinosLinearSolver()
+        self.solver_parameters = ParameterList()
+        self.structure_linear_solver =  AmesosSolver("Superludist",self.solver_parameters);
+
         
         #definition of the convergence criteria
         self.conv_criteria = TrilinosDisplacementCriteria(1e-6,1e-9,self.Comm)
