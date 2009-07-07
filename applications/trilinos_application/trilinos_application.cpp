@@ -23,16 +23,18 @@
 
 //#include "trilinos_solver.h"
 
-
 namespace Kratos
 {
 		
+	KRATOS_CREATE_VARIABLE( bool, IS_INACTIVE )
+
 
 	void KratosTrilinosApplication::Register()
 	{
 		// calling base class register to register Kratos components
 		KratosApplication::Register();
 		std::cout << "Initializing KratosTrilinosApplication... " << std::endl;
+		KRATOS_REGISTER_VARIABLE( IS_INACTIVE )
 	}
 
 
