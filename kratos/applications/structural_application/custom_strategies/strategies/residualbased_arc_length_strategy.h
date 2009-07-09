@@ -508,7 +508,7 @@ namespace Kratos
  
 			// Siempre resolveremos primero bajo peso propio.
                         // en caso de no considrerar peso propio colocar en body_force un valor cercano a cero.(1E-10)
-			if (mstep==0 and mApplyBodyForce==true) 
+			if (mstep==0 && mApplyBodyForce==true) 
 			{
 			    pBuilderAndSolver->SystemSolve(mA,Sigma_q_body,mb);
 			    TSparseSpace::Copy(Sigma_q_body,mDelta_p); 
@@ -541,7 +541,7 @@ namespace Kratos
 			   if (iteration_number==1)
 				{
 				   
-				  if (mstep==0 and mApplyBodyForce==true)
+				  if (mstep==0 && mApplyBodyForce==true)
 				      {
 					 std::cout<<"Resolving Structure For Dead Load "<< std::endl;
 					 mlamda_old       = 0.00; 
@@ -707,7 +707,7 @@ namespace Kratos
 						//std::cout << "mb is calculated" << std::endl;
 					}
 					 std::cout<<"Comprobando Convergencia"<<std::endl;
-					 is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+					 is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,h);
 				}
 
                         // recalculando mA y sigma_q
