@@ -408,7 +408,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//we are doing it explicitly, so adv vel is equal to the v_n
 		double norm_u = ms_adv_vel[0]*ms_adv_vel[0] + ms_adv_vel[1]*ms_adv_vel[1];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h );
+		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h +1.0/dt);
 		//calculate convective term	
 		int nodes_number = 3;
 		int dof = 2;
@@ -572,7 +572,7 @@ void Fluid2DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		double h = sqrt(2.00*Area);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h);
+		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h + 1.0/dt);
 		
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
 		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
