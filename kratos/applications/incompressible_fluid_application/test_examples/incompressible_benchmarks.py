@@ -64,26 +64,26 @@ def Run():
         ################################################################
 	# cylinder
 
-##	Text += "cylinder: "
-##	os.chdir("cylinder.gid")
-##	sys.path.append(os.getcwd())
-##
-##	#import column_benchmark
-##	#Msg = column_benchmark.Run()
-##
-##	print "Running cylinder.py..."
-##	Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_ref.txt")	
-##	
-##	if (Msg == True):
-##		Text += "OK\n"
-##		print "cylinder example succesful"
-##	else:
-##		Text += "FAILED\n"
-##		Text += Msg
-##		Text += "\n\n"
-##		print "cylinder example FAILED"
-##
-##	os.chdir("..")
+	Text += "cylinder: "
+	os.chdir("cylinder.gid")
+	sys.path.append(os.getcwd())
+
+	#import column_benchmark
+	#Msg = column_benchmark.Run()
+
+	print "Running cylinder.py..."
+	Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "cylinder example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "cylinder example FAILED"
+
+	os.chdir("..")
 	################################################################
 	# cilinderGLS
 
