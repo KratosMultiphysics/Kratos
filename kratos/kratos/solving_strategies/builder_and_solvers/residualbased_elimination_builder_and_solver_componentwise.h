@@ -277,9 +277,21 @@ namespace Kratos
                         ////////////////////////////////////////////////////////////////////////
                         //********************************************************************//
                         ////////////////////////////////////////////////////////////////////////
-                        //create a partition of the element array
+
+//create a partition of the element array
 			int number_of_threads = omp_get_max_threads();
-			vector<unsigned int> element_partition;
+
+			//creating an array of lock variables of the size of the system matrix
+			std::vector< omp_lock_t > lock_array(A.size1());
+			
+
+
+			int A_size = A.size1();
+			for(int i = 0; i<A_size; i++)
+			    omp_init_lock(&lock_array[i]);
+			
+
+                        vector<unsigned int> element_partition;
 			CreatePartition(number_of_threads, pElements.size(), element_partition);
                         if (this->GetEchoLevel()>0)
 			{
@@ -290,7 +302,7 @@ namespace Kratos
                         
                         double start_prod = omp_get_wtime();
 
-			#pragma omp parallel for
+			#pragma omp parallel for firstprivate(number_of_threads)
 			for(int k=0; k<number_of_threads; k++)
 			{
 				//contributions to the system
@@ -322,18 +334,20 @@ namespace Kratos
                                             EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 
                                     //assemble the elemental contribution
-                                    #pragma omp critical
+				    Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+
+/*                                    #pragma omp critical
                                     {
                                         AssembleLHS(A,LHS_Contribution,EquationId);
                                         AssembleRHS(b,RHS_Contribution,EquationId);
-                                    }
+                                    }*/
                                 }
                         }
 
 			vector<unsigned int> condition_partition;
 			CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
 
- 			#pragma omp parallel for
+ 			#pragma omp parallel for firstprivate(number_of_threads)
 			for(int k=0; k<number_of_threads; k++)
 			{
 				//contributions to the system
@@ -349,7 +363,7 @@ namespace Kratos
 
                                 unsigned int pos = (r_model_part.Nodes().begin())->GetDofPosition(rVar);
 
-				// assemble all elements
+				// A all elements
 				for (typename ConditionsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
 				{
 
@@ -366,11 +380,12 @@ namespace Kratos
                                     }
 
                                     //assemble the elemental contribution
-                                    #pragma omp critical
+				    Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+/*                                    #pragma omp critical
                                     {
                                         AssembleLHS(A,LHS_Contribution,EquationId);
                                         AssembleRHS(b,RHS_Contribution,EquationId);
-                                    }
+                                    }*/
                                 }
                         }
                         if (this->GetEchoLevel()>0)
@@ -378,7 +393,10 @@ namespace Kratos
                             double stop_prod = omp_get_wtime();
                             std::cout << "parallel building time: " << stop_prod - start_prod << std::endl;
                         }
-                        
+
+			for(int i = 0; i<A_size; i++)
+			    omp_destroy_lock(&lock_array[i]);
+
 #endif
 
 
@@ -676,6 +694,47 @@ namespace Kratos
 			for(int i = 1; i<number_of_threads; i++)
 			   partitions[i] = partitions[i-1] + partition_size ;
 		}
+		
+		
+
+		//**************************************************************************
+#ifdef _OPENMP
+		void Assemble(
+			TSystemMatrixType& A,
+			TSystemVectorType& b,
+			const LocalSystemMatrixType& LHS_Contribution,
+			const LocalSystemVectorType& RHS_Contribution,
+			Element::EquationIdVectorType& EquationId,
+			std::vector< omp_lock_t >& lock_array
+			)
+		{
+			unsigned int local_size = LHS_Contribution.size1();
+
+			for (unsigned int i_local=0; i_local<local_size; i_local++)
+			{
+				unsigned int i_global=EquationId[i_local];
+								
+				if ( i_global < BaseType::mEquationSystemSize )
+				{
+				        omp_set_lock(&lock_array[i_global]);
+					
+					b[i_global] += RHS_Contribution(i_local);
+					for (unsigned int j_local=0; j_local<local_size; j_local++)
+					{
+						unsigned int j_global=EquationId[j_local];
+						if ( j_global < BaseType::mEquationSystemSize )
+						{
+							A(i_global,j_global) += LHS_Contribution(i_local,j_local);
+						}
+					}
+					
+					omp_unset_lock(&lock_array[i_global]);
+					
+					
+				}
+			}
+		}
+#endif
 
 
 		/*@} */
