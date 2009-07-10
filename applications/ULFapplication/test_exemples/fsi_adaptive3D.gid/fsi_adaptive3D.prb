@@ -1,0 +1,55 @@
+PROBLEM DATA
+QUESTION: DOMAIN_SIZE
+VALUE: 2
+HELP: 1.0 - to remesh, 0.0 - not to remesh
+QUESTION: REMESHING_FLAG
+VALUE: 1.0
+HELP: 2 - for 2D, 3 - for 3D
+QUESTION: TOTAL_TIME
+VALUE: 5.0
+QUESTION: MAX_DELTA_TIME
+VALUE: 0.01
+QUESTION: OUTPUT_DT
+VALUE: 0.01
+QUESTION: SAFETY_FACTOR
+VALUE: 0.5
+HELP: Safety factor for the time estimation - meaningful values between 0.1-0.9
+QUESTION: BULK_MODULUS
+VALUE: -5000.0
+HELP: Compressibility for fluid: meaningful values: -100.0 - -1000000.0
+QUESTION: DENSITY
+VALUE: 1000.0
+HELP: Density of the fluid:
+QUESTION: ALPHA_SHAPE
+VALUE: 1.5
+HELP: Geometrical criterioon for element removal
+QUESTION: BOUNDING_BOX_LOWER_CORNER_X
+VALUE: -2.0
+HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
+QUESTION: BOUNDING_BOX_LOWER_CORNER_Y
+VALUE: -2.0
+HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
+QUESTION: BOUNDING_BOX_LOWER_CORNER_Z
+VALUE: -2.0
+HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
+QUESTION: BOUNDING_BOX_UPPER_CORNER_X
+VALUE: 2.0
+HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
+QUESTION: BOUNDING_BOX_UPPER_CORNER_Y
+VALUE: 2.0
+HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
+QUESTION: BOUNDING_BOX_UPPER_CORNER_Z
+VALUE: 2.0
+HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
+QUESTION: SOLVER_TYPE
+VALUE: 1
+HELP: 1 - iterative solver, 2 - direct solver
+QUESTION: KRATOS_LIBS_PATH
+VALUE: '../../../../libs/'
+HELP: set the path of the directory where the kratos.lib is installed
+QUESTION: KRATOS_APPLICATIONS_PATH
+VALUE: '../../../../applications/'
+HELP: path where you application is
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA
