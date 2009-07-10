@@ -26,6 +26,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_H);
 
     model_part.AddNodalSolutionStepVariable(NORMAL);
+    #this one is for Proj Dirichlet Conds
+    model_part.AddNodalSolutionStepVariable(AUX_VEL);
 
     print "variables for the Runge Kutta Frac Step GLS solver added correctly"
         
@@ -35,6 +37,10 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_X);
         node.AddDof(VELOCITY_Y);
         node.AddDof(VELOCITY_Z);
+        node.AddDof(AUX_VEL_X);
+        node.AddDof(AUX_VEL_Y);
+        node.AddDof(AUX_VEL_Z);
+
         node.AddDof(PRESSURE);
         
     print "dofs for the the Runge Kutta Frac Step GLS solver added correctly"
@@ -48,8 +54,8 @@ class RungeKuttaFracStepCompSolver:
         pDiagPrecond = DiagonalPreconditioner()
 
         #definition of the solvers
-        #self.linear_solver =  SkylineLUFactorizationSolver()
-        self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
+        self.linear_solver =  SkylineLUFactorizationSolver()
+        #self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
         #self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
 
         self.max_iter = 10
@@ -57,7 +63,7 @@ class RungeKuttaFracStepCompSolver:
         #default settings
         self.echo_level = 1
         self.CalculateReactionFlag = False
-        self.ReformDofSetAtEachStep = False
+        self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
         self.domain_size = 2;
         #self.MoveMeshFlag = True
