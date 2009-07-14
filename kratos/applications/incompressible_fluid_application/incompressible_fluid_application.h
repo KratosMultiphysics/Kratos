@@ -52,7 +52,11 @@
 #include "custom_elements/fluid_2dGLS_expl.h"
 #include "custom_elements/fluid_2dGLS_expl_comp.h"
 
+
+#include "custom_conditions/proj_dirichlet_cond.h"
+
 #include "custom_elements/fluid_2d_split.h"
+
 namespace Kratos
 {
 
@@ -73,6 +77,10 @@ namespace Kratos
 //	KRATOS_DEFINE_VARIABLE(double, EXTERNAL_PRESSURE)
 	KRATOS_DEFINE_VARIABLE(double, DIAMETER)
 	KRATOS_DEFINE_VARIABLE(double, PERMEABILITY_INV)
+	
+	//for disabling elements (e.g in the interaction)
+	KRATOS_DEFINE_VARIABLE(int, DISABLE)
+	
 	KRATOS_DEFINE_VARIABLE(double, DENSITY_AIR )
 
 	KRATOS_DEFINE_VARIABLE(double, AIR_SOUND_VELOCITY )
@@ -82,6 +90,8 @@ namespace Kratos
 
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
+	
 			
 	///@} 
 	///@name Type Definitions
@@ -269,6 +279,8 @@ namespace Kratos
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
 		const Fluid2DGLS_expl_comp  mFluid2DGLS_expl_comp;  
+
+		const ProjDirichletCond mProjDirichletCond;
 
 		const Fluid2DSplit mFluid2DSplit;
 

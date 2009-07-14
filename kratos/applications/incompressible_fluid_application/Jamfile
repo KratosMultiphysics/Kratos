@@ -48,6 +48,9 @@ python-extension KratosIncompressibleFluidApplication
 	
 	fluid_2dGLS_expl.cpp
 	fluid_2dGLS_expl_comp.cpp   
+	
+	proj_dirichlet_cond.cpp		
+	
 
 	asgs_2d.cpp 
 	asgs_3d.cpp 
