@@ -279,7 +279,8 @@ namespace Kratos {
                 }
                 if (mMeshVelocity == 2)//Lagrangian
                 {
-			noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = i->FastGetSolutionStepValue(VELOCITY);;                }
+			noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = i->FastGetSolutionStepValue(VELOCITY);;
+                }
 
 
 
@@ -358,11 +359,6 @@ namespace Kratos {
                     i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
                 }
 
-                if (mMeshVelocity == 1) {
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X, 1);
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y, 1);
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = i->FastGetSolutionStepValue(VELOCITY_Z, 1);
-                }
                 if (mMeshVelocity == 2) {
                     i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X);
                     i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y);
