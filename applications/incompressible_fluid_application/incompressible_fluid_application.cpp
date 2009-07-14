@@ -39,10 +39,14 @@ namespace Kratos
 //	KRATOS_CREATE_VARIABLE(double, EXTERNAL_PRESSURE)
 	KRATOS_CREATE_VARIABLE(double, DIAMETER)
 	KRATOS_CREATE_VARIABLE(double, PERMEABILITY_INV)
+	//for disabling elements
+	KRATOS_CREATE_VARIABLE(int, DISABLE)
 
 
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
+
 
 
 	KratosIncompressibleFluidApplication::KratosIncompressibleFluidApplication():	
@@ -69,9 +73,12 @@ namespace Kratos
 		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 
 		mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+
 		mFluid2DGLS_expl_comp(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		
+		mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+			
 		mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+
 	{}
 
 	void KratosIncompressibleFluidApplication::Register()
@@ -99,10 +106,13 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE( DENSITY_AIR )
 
 		KRATOS_REGISTER_VARIABLE( ARRHENIUS)
+		//for disabling elements
+		KRATOS_REGISTER_VARIABLE(DISABLE)
 
 
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
 
 		std::cout << "Initializing KratosIncompressibleFluidApplication...variables succesfully registered " << std::endl;
 
@@ -133,6 +143,10 @@ namespace Kratos
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);		
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl_comp", mFluid2DGLS_expl_comp);	
+
+
+		KRATOS_REGISTER_CONDITION("ProjDirichletCond", mProjDirichletCond);
+
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DSplit", mFluid2DSplit);		
 
