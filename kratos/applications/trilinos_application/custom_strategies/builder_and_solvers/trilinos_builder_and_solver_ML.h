@@ -499,7 +499,7 @@ namespace Kratos
 
 				//Teuchos::RCP<vector<double> >  ns;
 				boost::shared_ptr<vector<double> > ns;
-				double* nullsp;				
+				double* nullsp = NULL;				
 
 				GenerateNullSpace(A, r_model_part, nullsp, ns, numdf, dimns);							
 

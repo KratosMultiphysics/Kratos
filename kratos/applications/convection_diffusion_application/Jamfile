@@ -44,7 +44,9 @@ python-extension KratosConvectionDiffusionApplication
 
 	#kratos library
        ##/kratos-prj/kratos//libkratos/<link>static
-    /KratosProject//libkratos_static
+    	/KratosProject//libkratos_static
+
+	/KratosProject//libomp
     	 
 	#"system" includes	
 	/KratosProject//pythonlib

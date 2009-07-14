@@ -158,11 +158,15 @@ namespace Kratos
 
 	  //GetTimeTable()->Start(Info());
 
+// KRATOS_WATCH("ln161");
 	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
+// KRATOS_WATCH("ln163");
  	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
+// KRATOS_WATCH("ln165");
 	  BaseType::GetPreconditioner()->ApplyLeft(rB);
-
+// KRATOS_WATCH("ln167");
 	  bool is_solved = IterativeSolve(rA,rX,rB);
+// KRATOS_WATCH("ln169");
 
  	  BaseType::GetPreconditioner()->Finalize(rX);
 
@@ -308,16 +312,24 @@ namespace Kratos
       bool IterativeSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
       {
 	const int size = TSparseSpaceType::Size(rX);
-	
+// KRATOS_WATCH("ln316");	
 	BaseType::mIterationsNumber = 0;
     
 	VectorType r(size);
-	
+// KRATOS_WATCH(r.size());
+// KRATOS_WATCH("ln319");	
+// KRATOS_WATCH(rA.size1());
+// KRATOS_WATCH(rA.size2());
+// KRATOS_WATCH(r.size());
+// KRATOS_WATCH(rX.size());
+// KRATOS_WATCH(rB.size());
+
 	PreconditionedMult(rA,rX,r);
+// KRATOS_WATCH("ln321");	
 	TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
-
+// KRATOS_WATCH("ln322");
 	BaseType::mBNorm = TSparseSpaceType::TwoNorm(rB);
-
+// KRATOS_WATCH("ln324");
 	VectorType p(r);
 	VectorType s(size);
 	VectorType q(size);
@@ -330,18 +342,18 @@ namespace Kratos
 	double alpha = 0.00;
 	double beta = 0.00;
 	double omega = 0.00;
-	
+// KRATOS_WATCH("ln337");	
 // 	if(roh0 < 1e-30) //we start from the real solution
 // 		return  BaseType::IsConverged();
 
 	do
 	  {
 	    PreconditionedMult(rA,p,q);
-
+// KRATOS_WATCH("ln344");
 	    alpha = roh0 / TSparseSpaceType::Dot(rs,q);
         
 	    TSparseSpaceType::ScaleAndAdd(1.00, r, -alpha, q, s);
-
+// KRATOS_WATCH("ln348");
 	    PreconditionedMult(rA,s,qs);
 
 	    omega = TSparseSpaceType::Dot(qs,qs);
@@ -349,7 +361,7 @@ namespace Kratos
 	    //if(omega == 0.00)
 	    if(fabs(omega) <= 1.0e-30)
 	      break;
-
+// KRATOS_WATCH("ln356");
 	    omega = TSparseSpaceType::Dot(qs,s) / omega;
 
 	    TSparseSpaceType::ScaleAndAdd(alpha, p, 1.00, rX);
@@ -363,7 +375,7 @@ namespace Kratos
 	      break;
 	    
 	    beta = (roh1 * alpha) / (roh0 * omega);
-	    
+// KRATOS_WATCH("ln370");	    
 	    TSparseSpaceType::ScaleAndAdd(1.00, p, -omega, q);
 	    TSparseSpaceType::ScaleAndAdd(1.00, r, beta, q, p);
 	      

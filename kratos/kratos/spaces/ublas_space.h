@@ -166,7 +166,8 @@ class UblasSpace
 	
 	static void Mult(MatrixType& rA, VectorType& rX, VectorType& rY)
 		{
-		axpy_prod(rA, rX, rY, true);
+
+ 		axpy_prod(rA, rX, rY, true);
 		}
 	
 	static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)

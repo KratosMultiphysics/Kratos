@@ -145,8 +145,9 @@ namespace Kratos
                     work_array.push_back(index_i); 
                     for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
                     { 
-                        int index_j = i->GetDof(rScalarVar).EquationId(); 
-                        work_array.push_back(index_j); 
+                        int index_j = i->GetDof(rScalarVar).EquationId();
+                        if(index_j < mEquationSystemSize)
+                            work_array.push_back(index_j);
                     } 
                                     
                     //sorting the indices and elminating the duplicates 

@@ -37,7 +37,7 @@ class ConvectionDiffusionSolver:
 
         #assignation of parameters to be used
         self.time_order = 2;
-	self.prediction_order = 1;
+        self.prediction_order = 1;
         self.ReformDofAtEachIteration = False; 
 
         self.echo_level = 0
