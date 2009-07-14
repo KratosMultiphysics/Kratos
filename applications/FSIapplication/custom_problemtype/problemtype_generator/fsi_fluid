@@ -1,0 +1,78 @@
+PROBLEMTYPE fsi_fluid	# The name of your problemtype
+DEFINITION FOLDER fsi_fluid_problemtype # The folder containing the definition file and the .bas templates
+
+VECTOR CONDITION DISPLACEMENT 		point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION MESH_VELOCITY     	point line surface volume free 0.0 0.0 0.0
+VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
+SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
+SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
+SCALAR CONDITION VISCOSITY     		point line surface volume free  0.000001
+SCALAR CONDITION DENSITY     		point line surface volume free  1.0
+SCALAR CONDITION POROSITY     		point line surface volume free  1.0
+
+FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0
+FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
+FLAG CONDITION IS_BOUNDARY    		point line surface volume free 1.0 2.0 3.0 4.0 5.0
+FLAG CONDITION IS_SLIP    		point line surface volume free 1.0 0.0
+
+FACE CONDITION Condition2D line
+FACE CONDITION Condition3D surface 
+FACE CONDITION Face2DNeumann line
+FACE CONDITION Face3DNeumann surface 
+
+#this line allows to put a value on the "faces" 
+FLAG FACE VALUE Slip_Face line surface 0.0 1.0
+
+ELEMENT Fluid2D surface
+ELEMENT Fluid3D volume 
+ELEMENT Fluid2DCoupled surface
+ELEMENT Fluid3DCoupled volume 
+ELEMENT Fluid2DASGS surface 
+
+PROPERTY Time_step 0.1 Dt
+PROPERTY max_time 0.1 max_time
+PROPERTY nsteps 10 nsteps
+TEXT PROPERTY SolverType FractionalStepSolver SolverType # remember to begin the line with TEXT for string variables (will write the value between " ") !
+PROPERTY laplacian_form 2 laplacian_form
+
+FILE SELECTION structure_file structure.mdpa structure_file
+
+DEFINE MODEL PART VelocityInlet point line surface LOWER
+ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
+
+DEFINE MODEL PART SlipCondition point line surface LOWER
+ADD CONDITION IS_SLIP fixed 1.0
+ADD 2D CONDITION Slip_Face line 1.0
+ADD 3D CONDITION Slip_Face surface 1.0
+# We need to assign Slip_Face twice to ensure tha it's ONLY applied over surfaces in 3D
+
+DEFINE MODEL PART NoSlipCondition point line surface LOWER
+ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
+
+DEFINE BOUNDARY PART Boundary OUTWARDS NORMALS
+ADD 2D ELEMENT Condition2D
+ADD 3D ELEMENT Condition3D
+ADD 2D CONDITION DISPLACEMENT  point line surface volume fixed 0.0 0.0 0.0
+ADD 3D CONDITION DISPLACEMENT  point line surface volume fixed 0.0 0.0 0.0
+# ADD 2D CONDITION IS_STRUCTURE line 1.0
+# ADD 3D CONDITION IS_STRUCTURE surface 1.0
+# We need to assign IS_STUCTURE twice to ensure tha it's ONLY applied over surfaces in 3D
+
+
+# Part Interaction --> considering all of the combinations!!!
+GROUP NoSlipCondition SlipCondition IN point line surface
+NoSlipCondition SlipCondition  ASSIGN VELOCITY fixed 0.0 0.0 0.0
+
+GROUP VelocityInlet NoSlipCondition IN point line surface
+VelocityInlet NoSlipCondition ASSIGN VELOCITY FROM VelocityInlet 
+
+
+
+
+
+
+
+
+
+
