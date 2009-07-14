@@ -66,7 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/levelset_fluid_solver.h" 
 #include "custom_utilities/Turbolence_Smagorinsky.h" 
 #include "custom_utilities/pure_convection_edgebased.h" 
-#include "custom_utilities/elementbased_navierstokes_solver.h" 
+#include "custom_utilities/elementbased_navierstokes_solver.h"
+#include "custom_utilities/coupled_eulerian_ulf_utilities.h" 
 #include "custom_utilities/elembased_distance_utilities.h" 
 #include "custom_utilities/elembased_extrapolation_utilities.h" 
 #include "custom_utilities/elembased_BC_utilities.h" 
@@ -86,6 +87,14 @@ namespace Python
   void  AddCustomUtilitiesToPython()
   {
 	using namespace boost::python;
+
+ class_<CoupledEulerianUlfUtils>("CoupledEulerianUlfUtils", init<>())
+		.def("SavePseudoLagPart",&CoupledEulerianUlfUtils::SavePseudoLagPart)
+		.def("ApplyProjDirichlet",&CoupledEulerianUlfUtils::ApplyProjDirichlet)
+		.def("FindInterface",&CoupledEulerianUlfUtils::FindInterface)
+		.def("FindIntersectionOfEdges",&CoupledEulerianUlfUtils::FindIntersectionOfEdges)
+		.def("DisableSubdomain",&CoupledEulerianUlfUtils::DisableSubdomain)
+		;
 
 	  class_<CalculateForcesUtils>("CalculateForcesUtils", init<>())
 		.def("CalculateForces3D",&CalculateForcesUtils::CalculateForces3D)
