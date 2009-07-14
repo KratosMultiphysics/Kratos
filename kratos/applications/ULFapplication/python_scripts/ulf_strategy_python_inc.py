@@ -242,9 +242,10 @@ class ULFStrategyPythonInc:
             self.scheme.MoveMesh(self.model_part.Nodes);
         #updating pressures
 	#parameter is the bulk modulus, and the second one is density
-        #self.builder_and_solver.UpdatePressures(self.D, self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)	
+        self.builder_and_solver.UpdatePressures(self.D, self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)	
         UlfUtils.CalculateNodalArea(self.fluid_model_part,self.domain_size);
-        self.builder_and_solver.UpdatePressuresNew(self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)
+        #the one below updated pressures from the nodal volume change
+        #self.builder_and_solver.UpdatePressuresNew(self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)
         print "CALC FORCES of pres"
         self.builder_and_solver.CalculateNodalPressureForce(self.D, self.MPinv, self.model_part, )
         

@@ -280,7 +280,7 @@ class ULF_FSISolver:
         #mark outer nodes for erasing
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         #adaptivity=True
-        h_factor=0.8
+        h_factor=0.5
         if (self.remeshing_flag==1.0):
             if (self.domain_size == 2):
                 (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
