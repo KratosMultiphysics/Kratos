@@ -270,7 +270,7 @@ namespace Kratos
                 mMeshConditions.clear();
             }
             
-        private:
+        protected:
             ///member variables
             GeometryData::KratosGeometryType mGeometryType;
             GiD_ElementType mGidElementType;
