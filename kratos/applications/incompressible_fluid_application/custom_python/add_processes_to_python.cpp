@@ -66,6 +66,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "custom_processes/CFL_timestep_estimate_process.h" 
+#include "custom_processes/find_intersections_process.h" 
+#include "custom_processes/find_interface_process.h" 
+#include "custom_processes/apply_proj_dirichlet_process.h" 
+#include "custom_processes/subdomain_disable_process.h" 
+#include "custom_processes/pseudo_lag_part_process.h" 
 
 #include "includes/node.h"
 
@@ -90,6 +95,22 @@ namespace Python
 
 	class_<CFLProcess, bases<Process> >("CFLProcess", init<ModelPart&>())
 		   .def("EstimateTime", &CFLProcess::EstimateTime)
+		 ;
+
+	class_<ApplyProjDirichletProcess, bases<Process> >("ApplyProjDirichletProcess", init<>())
+		   .def("ApplyProjDirichlet", &ApplyProjDirichletProcess::ApplyProjDirichlet)
+		 ;
+	class_<FindIntersectionsProcess, bases<Process> >("FindIntersectionsProcess", init<>())
+		   .def("FindIntersectionOfEdges", &FindIntersectionsProcess::FindIntersectionOfEdges)
+		 ;
+	class_<FindInterfaceProcess, bases<Process> >("FindInterfaceProcess", init<>())
+			.def("FindInterface", &FindInterfaceProcess::FindInterface)
+		 ;
+	class_<SubdomainDisableProcess, bases<Process> >("SubdomainDisableProcess", init<>())
+		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)
+		 ;
+	class_<PseudoLagPartProcess, bases<Process> >("PseudoLagPartProcess", init<>())
+		   .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
 		 ;
 
 	
