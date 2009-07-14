@@ -46,6 +46,8 @@ class PureConvectionSolver:
         else: 
             self.convection_solver = PureConvectionCrankNUtilities3D();
 
+        self.first_initialize_performed = False
+
 
 
     def Initialize(self):
@@ -80,17 +82,14 @@ class PureConvectionSolver:
 ##        self.convection_solver.ClearSystem() 
 
     def Solve(self, scalar_variable):
-
-        print "84"
-        if(self.ReformDofAtEachIteration == True):
+        if(self.ReformDofAtEachIteration == True or self.first_initialize_performed == False):
             (self.neighbour_search).Execute()
-
-        print "88"
        
-        # construct system -- could be done once if the mesh does not change
-        self.convection_solver.ConstructSystem(self.model_part,scalar_variable,VELOCITY,MESH_VELOCITY);
+            # construct system -- could be done once if the mesh does not change
+            self.convection_solver.ConstructSystem(self.model_part,scalar_variable,VELOCITY,MESH_VELOCITY);
 
-        print "93"
+            self.first_initialize_performed = True
+
         #calculate projections
         self.convection_solver.CalculateProjection(self.model_part,scalar_variable,NODAL_AREA,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ);
 
@@ -100,4 +99,5 @@ class PureConvectionSolver:
 
         print "101"
         #free memory
-        self.convection_solver.ClearSystem() 
+        if(self.ReformDofAtEachIteration == True):
+            self.convection_solver.ClearSystem()

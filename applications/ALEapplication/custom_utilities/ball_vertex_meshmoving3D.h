@@ -155,10 +155,13 @@ namespace Kratos
                     { 
                         int index_l = i->GetDof(DISPLACEMENT_X).EquationId(); 
 			int index_r = i->GetDof(DISPLACEMENT_Y).EquationId(); 
-			int index_s = i->GetDof(DISPLACEMENT_Z).EquationId(); 
-                        work_array.push_back(index_l); 
-                        work_array.push_back(index_r); 
-                        work_array.push_back(index_s); 
+			int index_s = i->GetDof(DISPLACEMENT_Z).EquationId();
+                        if(index_l < mEquationSystemSize)
+                            work_array.push_back(index_l);
+                        if(index_r < mEquationSystemSize)
+                            work_array.push_back(index_r);
+                        if(index_s < mEquationSystemSize)
+                            work_array.push_back(index_s);
                     } 
                                     
                     //sorting the indices and elminating the duplicates 

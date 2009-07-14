@@ -136,7 +136,7 @@ neighbour_finder.Execute(); ##at wish ... when it is needed
 ##Variable to be convected:
 ## #1 = TEPERATURE
 ## #2 = DISTANCE
-##convection_solver.scalar_var_convected = 1
+convection_solver.scalar_var_convected = 1
 
 convection_solver.Initialize();
 print "pure convection solver initialized"

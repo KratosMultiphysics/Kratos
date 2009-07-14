@@ -180,8 +180,13 @@ namespace Kratos
 
       void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
       {
+/*KRATOS_WATCH(mTemp.size());
+KRATOS_WATCH(rX.size());
+KRATOS_WATCH(mDiagonal.size());
+KRATOS_WATCH(rY.size());*/
 	for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
+// KRATOS_WATCH("diag precond 188");
 	TSparseSpaceType::Mult(rA,mTemp, rY);
 	//ApplyLeft(rY);
       }
