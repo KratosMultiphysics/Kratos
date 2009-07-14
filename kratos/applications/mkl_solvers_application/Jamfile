@@ -29,6 +29,7 @@ lib mklcorelib : : <name>mkl_core <search>$(MKL_LIB_DIR)/em64t/ ;
 lib mklmclib : : <name>mkl_mc <search>$(MKL_LIB_DIR)/em64t/ ;
 lib mkllapacklib : : <name>mkl_lapack <search>$(MKL_LIB_DIR)/em64t/ ;
 lib threadlib : : <name>pthread ;
+lib guidelib : : <name>guide <search>$(MKL_LIB_DIR)/em64t/ ;
 
 #################################################################################
 #################################################################################
@@ -47,6 +48,7 @@ python-extension KratosMKLSolversApplication
         mkllapacklib/<link>shared
         mklmclib/<link>shared
         threadlib/<link>shared
+        guidelib/<link>shared
 
         #####################kratos library as defined in the jamroot
     	/kratos-prj/kratos//libkratos/<link>static
