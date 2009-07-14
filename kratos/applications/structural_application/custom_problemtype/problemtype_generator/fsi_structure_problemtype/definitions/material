@@ -1,0 +1,38 @@
+file	problemtype.bas
+where	*# Property blocks
+
+*loop materials
+*if(strcmp(MatProp(Type),"<TYPE>")==0)
+Begin Properties  *MatNum
+<FOR EACH PROPERTY>
+<BEGIN SCALAR>
+*format "%f"
+<PROPNAME> *MatProp(<PROPNAME>,real)
+<END SCALAR>
+<BEGIN 2DVECTOR>
+*format "%f%f"
+<PROPNAME> [2] (*MatProp(<PROPNAME>_X,real),*MatProp(<PROPNAME>_Y,real))
+<END 2DVECTOR>
+<BEGIN 3DVECTOR>
+*format "%f%f%f"
+<PROPNAME> [3] (*MatProp(<PROPNAME>_X,real),*MatProp(<PROPNAME>_Y,real),*MatProp(<PROPNAME>_Z,real))
+<END 3DVECTOR>
+<BEGIN 2X2MATRIX>
+*format "%f%f%f%f"
+<PROPNAME> [2,2] ((*MatProp(<PROPNAME>_XX,real),*MatProp(<PROPNAME>_XY,real)),(*MatProp(<PROPNAME>_YX,real),*MatProp(<PROPNAME>_YY,real)))
+<END 2X2MATRIX>
+<BEGIN 3X3MATRIX>
+*format "%f%f%f%f%f%f%f%f%f"
+<PROPNAME> [3,3] (*\
+(*MatProp(<PROPNAME>_XX,real),*MatProp(<PROPNAME>_XY,real),*MatProp(<PROPNAME>_XZ,real)),*\
+(*MatProp(<PROPNAME>_YX,real),*MatProp(<PROPNAME>_YY,real),*MatProp(<PROPNAME>_YY,real)),*\
+(*MatProp(<PROPNAME>_ZX,real),*MatProp(<PROPNAME>_ZY,real),*MatProp(<PROPNAME>_ZY,real)))
+<END 3X3MATRIX>
+<BEGIN TEXT>
+<PROPNAME> *MatProp(<PROPNAME>)
+<END>
+End Properties
+
+*endif
+*end materials
+
