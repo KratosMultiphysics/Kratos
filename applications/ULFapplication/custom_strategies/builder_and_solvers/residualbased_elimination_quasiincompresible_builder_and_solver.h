@@ -1302,7 +1302,7 @@ namespace Kratos
 		
 		KRATOS_CATCH("");
 		}
-			
+		/*
 		void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMdiagInv,ModelPart& r_model_part, double bulk_modulus, double density) 
 		{
 		KRATOS_TRY
@@ -1364,13 +1364,223 @@ namespace Kratos
 			
 			KRATOS_CATCH("");
 		}
+		*/
+void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMdiagInv,ModelPart& r_model_part, double bulk_modulus, double density) 
+		{
+		KRATOS_TRY
+			//getting the dof position
+			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
+			const double dt = r_model_part.GetProcessInfo()[DELTA_TIME];
+			
+			//!!!! LATER ON - CHANGE THE WAY TO COMPUTE BULK MODULUS INSTEAD OF PASSING IT AS A PARAMETER
+			//resetting  the pressures to zero
+			for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model_part.NodesEnd(); ++in)
+			{				
+			in->FastGetSolutionStepValue(PRESSURE)=0.0;				
+			}
+			//for pressure vectors
+			const int size = TSparseSpace::Size(mMdiagInv);
+			
+			TSystemVectorType p_n(size);
+			TSystemMatrixType aux(size,size);
+			aux=ZeroMatrix(size,size);
+			TSystemVectorType temp(size);
+			TSystemVectorType history(size);
+			
+			//TSparseSpace::SetToZero(p_n1);
+			TSparseSpace::SetToZero(p_n);
+			TSparseSpace::SetToZero(history);
 
+
+			TSystemMatrixType GlobLapl (size,size);
+			TSystemMatrixType  LocLapl (TDim+1,TDim+1);
+
+			for (typename ElementsArrayType::iterator im=r_model_part.ElementsBegin(); im!=r_model_part.ElementsEnd(); ++im)
+			{
+			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+			array_1d<double,TDim+1> N;
+			array_1d<unsigned int ,TDim+1> local_indices;
+			
+			Geometry< Node<3> >& geom = im->GetGeometry();
+			//calculating elemental values
+			double Volume;
+			GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+		
+			array_1d<double,3> ms_vel_gauss = ZeroVector(3);
+
+			const array_1d<double,3>& fv0 = geom[0].FastGetSolutionStepValue(VELOCITY);
+			const array_1d<double,3>& fv1 = geom[1].FastGetSolutionStepValue(VELOCITY);
+			const array_1d<double,3>& fv2 = geom[2].FastGetSolutionStepValue(VELOCITY);
+			array_1d<double,3> fv3 = ZeroVector(3);
+			if (TDim==3)
+				fv3 = geom[3].FastGetSolutionStepValue(VELOCITY);
+				
+
+			double nu = geom[0].FastGetSolutionStepValue(VISCOSITY)+
+							geom[1].FastGetSolutionStepValue(VISCOSITY) +
+							geom[2].FastGetSolutionStepValue(VISCOSITY);
+	
+			double density = geom[0].FastGetSolutionStepValue(DENSITY)+
+							geom[1].FastGetSolutionStepValue(DENSITY) +
+							geom[2].FastGetSolutionStepValue(DENSITY);		
+
+			ms_vel_gauss=fv0+fv1+fv2;
+			if (TDim==2)
+				{
+				nu*=0.33333333333;
+				density*=0.33333333333;
+				ms_vel_gauss*=0.33333333333;
+				}
+
+
+
+			if (TDim==3)
+				{
+				ms_vel_gauss+=fv3;
+				nu+=geom[3].FastGetSolutionStepValue(VISCOSITY);
+				density+=geom[3].FastGetSolutionStepValue(DENSITY);	
+				ms_vel_gauss*=0.25;
+				nu*=0.25;
+				density*=0.25;
+				}
+		      
+
+			//finiding local indices
+			//for(int ii = 0; ii<TDim+1; ii++)
+			for(unsigned int ii = 0; ii<geom.size(); ii++)
+			{
+				local_indices[ii] = geom[ii].GetDof(DISPLACEMENT_X,dof_position).EquationId();
+			}
+				
+
+			//the structural elements should not contribute to the Laplacian
+			int str_nr=0;
+			for (unsigned int k = 0;k<geom.size();k++)
+			{
+			  str_nr+=(unsigned int)(geom[k].FastGetSolutionStepValue(IS_STRUCTURE));
+			}
+			int switch_var=0;	
+			//set to zero the entries of the str. elements
+			if (str_nr==TDim+1)
+				switch_var=0;
+			else
+				switch_var =1;
+
+			//ms_vel_gauss[i] =  msN[0]*(fv0[i]) + msN[1]*(fv1[i]) +  msN[2]*(fv2[i]);
+			//but with one integration N=0.333333333
+			double norm_u;
+			double h;
+			if (TDim==2)
+			{
+			ms_vel_gauss[0] =  0.33333333333333*(fv0[0]+fv1[0]+fv2[0]);
+			ms_vel_gauss[1] =  0.33333333333333*(fv0[1]+fv1[1]+fv2[1]);
+			ms_vel_gauss[2] =  0.0;
+
+			//calculating parameter tau (saved internally to each element)
+			h = sqrt(2.00*Volume);
+			norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
+			norm_u = sqrt(norm_u);
+			}
+			if (TDim==3)
+			{
+			ms_vel_gauss[0] =  0.25*(fv0[0]+fv1[0]+fv2[0]+fv3[0]);
+			ms_vel_gauss[1] =  0.25*(fv0[1]+fv1[1]+fv2[1]+fv3[1]);
+			ms_vel_gauss[2] =  0.25*(fv0[2]+fv1[2]+fv2[2]+fv3[2]);
+
+			//calculating parameter tau (saved internally to each element)
+			h = sqrt(2.00*Volume);
+			norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
+			norm_u = sqrt(norm_u);
+			}
+			//- 4.0/(bulk_modulus*h*h)
+			//double tau = 1.00 / ( 4.00*nu/(h*h) - bulk_modulus*dt/h+2.00*norm_u/h);	
+			//double tau=(bulk_modulus)*dt*h/(norm_u+nu/h);
+			//double tau=(bulk_modulus)*dt*dt;//h/(norm_u+*nu/h);						
+			//my last proposal
+			double tau = (bulk_modulus)*dt*nu/(norm_u*norm_u+(nu/dt));
+			//Ric's proposal - doesnt work - checked with 2d-splash 
+			//double tau = (bulk_modulus)*dt*1.0/((1.0/dt)+(nu/h*h));
+
+			//STABILIZATION SWITCHED OFF NOW!
+			switch_var=0;
+		
+			noalias(LocLapl)=switch_var*prod(DN_DX,trans(DN_DX));		
+		
+			
+				
+			
+			
+			
+
+			for(unsigned int row = 0; row<TDim+1; row++)
+				{
+					unsigned int row_index = local_indices[row] / (TDim); 
+					for(unsigned int col = 0; col<TDim+1; col++)
+					{
+					unsigned int col_index = local_indices[col] /(TDim);
+
+						GlobLapl(row_index, col_index)+=tau*Volume*LocLapl(row,col);							
+					}				
+				}
+			//end of the loop over elements			
+			}
+			
+			for (int i=0;i<mMdiagInv.size(); i++)
+			{
+			aux(i,i)=GlobLapl(i,i)*mMdiagInv(i);
+			}
+			//KRATOS_WATCH(GlobLapl)
+
+			//assuming that the bulk modulus is the same for all nodes in the model part
+			//p_n is the history, d_a - change_of_nodal_area/current_nodal_area
+			int i=0;
+			for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model_part.NodesEnd(); ++in)
+			{
+				if( (in->GetValue(NEIGHBOUR_NODES)).size() != 0 )// && in->FastGetSolutionStepValue(IS_FLUID)==1.0)
+				{
+				i=in->GetDof(DISPLACEMENT_X,dof_position).EquationId()/TDim;
+				p_n[i]=in->FastGetSolutionStepValue(PRESSURE,1);
+				
+				}
+
+			
+			} 
+			//KRATOS_WATCH(p_n)
+						
+			//history (multiplied by the consistent mass matrix) and then by the inverse lumped mass matrix
+			TSparseSpace::Mult(mMconsistent, p_n, history);			
+			temp = prod(aux, p_n);
+			//KRATOS_WATCH(temp)
+			int aa=0;
+			
+			for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model_part.NodesEnd(); ++in)
+			{	
+			if( (in->GetValue(NEIGHBOUR_NODES)).size() != 0)// && in->FastGetSolutionStepValue(IS_FLUID)==1.0)
+				{
+				aa=in->GetDof(DISPLACEMENT_X,dof_position).EquationId()/TDim;
+					if (in->FastGetSolutionStepValue(IS_FLUID)==1.0)
+						{
+						//+temp[aa]/density
+						in->FastGetSolutionStepValue(PRESSURE)=(mMdiagInv[aa]*history[aa])+temp[aa]/density+bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));
+				
+						//this one is without mass matrix difference stab, just the laplacian
+						//in->FastGetSolutionStepValue(PRESSURE)=p_n[aa]+temp[aa]/density+bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));		
+						}
+				}
+					
+			}
+		
+			
+			KRATOS_CATCH("");
+		}
 		//this function updates pressure after the Dx is obtained at every step of N-R procedure
 		void UpdatePressures (	TSystemMatrixType& mD, 	
 		                             TSystemMatrixType& mMconsistent, TSystemVectorType& mMdiagInv,ModelPart& r_model_part, double bulk_modulus, double density) 
 		{
 			KRATOS_TRY
-
+			//getting the dof position
+			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
+			const double dt = r_model_part.GetProcessInfo()[DELTA_TIME];
 			
 			//!!!! LATER ON - CHANGE THE WAY TO COMPUTE BULK MODULUS INSTEAD OF PASSING IT AS A PARAMETER
 			
@@ -1393,8 +1603,146 @@ namespace Kratos
 			//TSparseSpace::SetToZero(temp1);
 			//TSparseSpace::SetToZero(temp2);
 
+			TSystemMatrixType aux(size,size);
+			TSystemVectorType temp(size);
+
 
 			TSystemVectorType displ(size_disp);
+TSystemMatrixType GlobLapl (size,size);
+			TSystemMatrixType  LocLapl (TDim+1,TDim+1);
+
+			for (typename ElementsArrayType::iterator im=r_model_part.ElementsBegin(); im!=r_model_part.ElementsEnd(); ++im)
+			{
+			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+			array_1d<double,TDim+1> N;
+			array_1d<unsigned int ,TDim+1> local_indices;
+			
+			Geometry< Node<3> >& geom = im->GetGeometry();
+			//calculating elemental values
+			double Volume;
+			GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+		
+			array_1d<double,3> ms_vel_gauss = ZeroVector(3);
+
+			const array_1d<double,3>& fv0 = geom[0].FastGetSolutionStepValue(VELOCITY);
+			const array_1d<double,3>& fv1 = geom[1].FastGetSolutionStepValue(VELOCITY);
+			const array_1d<double,3>& fv2 = geom[2].FastGetSolutionStepValue(VELOCITY);
+			array_1d<double,3> fv3 = ZeroVector(3);
+			if (TDim==3)
+				fv3 = geom[3].FastGetSolutionStepValue(VELOCITY);
+				
+
+			double nu = geom[0].FastGetSolutionStepValue(VISCOSITY)+
+							geom[1].FastGetSolutionStepValue(VISCOSITY) +
+							geom[2].FastGetSolutionStepValue(VISCOSITY);
+	
+			double density = geom[0].FastGetSolutionStepValue(DENSITY)+
+							geom[1].FastGetSolutionStepValue(DENSITY) +
+							geom[2].FastGetSolutionStepValue(DENSITY);		
+
+			ms_vel_gauss=fv0+fv1+fv2;
+			if (TDim==2)
+				{
+				nu*=0.33333333333;
+				density*=0.33333333333;
+				ms_vel_gauss*=0.33333333333;
+				}
+
+
+
+			if (TDim==3)
+				{
+				ms_vel_gauss+=fv3;
+				nu+=geom[3].FastGetSolutionStepValue(VISCOSITY);
+				density+=geom[3].FastGetSolutionStepValue(DENSITY);	
+				ms_vel_gauss*=0.25;
+				nu*=0.25;
+				density*=0.25;
+				}
+		      
+
+			//finiding local indices
+			//for(int ii = 0; ii<TDim+1; ii++)
+			for(unsigned int ii = 0; ii<geom.size(); ii++)
+			{
+				local_indices[ii] = geom[ii].GetDof(DISPLACEMENT_X,dof_position).EquationId();
+			}
+				
+
+			//the structural elements should not contribute to the Laplacian
+			int str_nr=0;
+			for (unsigned int k = 0;k<geom.size();k++)
+			{
+			  str_nr+=(unsigned int)(geom[k].FastGetSolutionStepValue(IS_STRUCTURE));
+			}
+			int switch_var=0;	
+			//set to zero the entries of the str. elements
+			if (str_nr==TDim+1)
+				switch_var=0;
+			else
+				switch_var =1;
+
+			//ms_vel_gauss[i] =  msN[0]*(fv0[i]) + msN[1]*(fv1[i]) +  msN[2]*(fv2[i]);
+			//but with one integration N=0.333333333
+			double norm_u;
+			double h;
+			if (TDim==2)
+			{
+			ms_vel_gauss[0] =  0.33333333333333*(fv0[0]+fv1[0]+fv2[0]);
+			ms_vel_gauss[1] =  0.33333333333333*(fv0[1]+fv1[1]+fv2[1]);
+			ms_vel_gauss[2] =  0.0;
+
+			//calculating parameter tau (saved internally to each element)
+			h = sqrt(2.00*Volume);
+			norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
+			norm_u = sqrt(norm_u);
+			}
+			if (TDim==3)
+			{
+			ms_vel_gauss[0] =  0.25*(fv0[0]+fv1[0]+fv2[0]+fv3[0]);
+			ms_vel_gauss[1] =  0.25*(fv0[1]+fv1[1]+fv2[1]+fv3[1]);
+			ms_vel_gauss[2] =  0.25*(fv0[2]+fv1[2]+fv2[2]+fv3[2]);
+
+			//calculating parameter tau (saved internally to each element)
+			h = sqrt(2.00*Volume);
+			norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
+			norm_u = sqrt(norm_u);
+			}
+			//- 4.0/(bulk_modulus*h*h)
+			//double tau = 1.00 / ( 4.00*nu/(h*h) - bulk_modulus*dt/h+2.00*norm_u/h);	
+			//double tau=(bulk_modulus)*dt*h/(norm_u+nu/h);
+			//double tau=(bulk_modulus)*dt*dt;//h/(norm_u+*nu/h);						
+			//my last proposal
+			double tau = (bulk_modulus)*dt*nu/(norm_u*norm_u+(nu/dt));
+			//Ric's proposal - doesnt work - checked with 2d-splash 
+			//double tau = (bulk_modulus)*dt*1.0/((1.0/dt)+(nu/h*h));
+
+			
+			noalias(LocLapl)=switch_var*prod(DN_DX,trans(DN_DX));		
+		
+			
+				
+			
+			
+			
+
+			for(unsigned int row = 0; row<TDim+1; row++)
+				{
+					unsigned int row_index = local_indices[row] / (TDim); 
+					for(unsigned int col = 0; col<TDim+1; col++)
+					{
+					unsigned int col_index = local_indices[col] /(TDim);
+
+						GlobLapl(row_index, col_index)+=tau*Volume*LocLapl(row,col);							
+					}				
+				}
+			//end of the loop over elements			
+			}
+
+			for (int i=0;i<mMdiagInv.size(); i++)
+			{
+			aux(i,i)=GlobLapl(i,i)*mMdiagInv(i);
+			}
 			//assuming that the bulk modulus is the same for all nodes in the model part
 			//
 			//additionally here we update densities, simply by implyimg: ro_0xV_0=ro_1xV_1
@@ -1413,7 +1761,7 @@ namespace Kratos
 				
 				}
 			}
-
+			temp = prod(aux, p_n);
 			//history (multiplied by the consistent mass matrix)
 			TSparseSpace::Mult(mMconsistent, p_n, history);
 			
@@ -1476,7 +1824,7 @@ namespace Kratos
 				{
 				//not to add the "lonely" nodes , that are not part of the model (e.g. structure walls)
 					if (aa<size)	
-						in->FastGetSolutionStepValue(PRESSURE)=p_n1[aa];
+						in->FastGetSolutionStepValue(PRESSURE)=p_n1[aa]+temp[aa]/density;
 					   //in->FastGetSolutionStepValue(PRESSURE)=temp2[aa];
 				aa++;
 				}
