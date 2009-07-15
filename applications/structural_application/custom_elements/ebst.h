@@ -110,7 +110,7 @@ class Ebst
 			DofsVectorType& ElementalDofList,
 			ProcessInfo& rCurrentProcessInfo);
 
-		void Initialize ();
+//		void Initialize ();
 
 		void CalculateRightHandSide(
 			VectorType& rRightHandSideVector,
@@ -149,8 +149,8 @@ class Ebst
 			Vector& values,
 			int Step = 0);
 	
-		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+//		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+//				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
 
 
