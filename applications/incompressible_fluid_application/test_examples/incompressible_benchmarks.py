@@ -131,6 +131,35 @@ def Run():
 		print "dam2d example FAILED"
 
 	os.chdir("..")
+	################################################################
+	# QuietWater_LevelSet
+
+	Text += "QuietWater_LevelSet: "
+	os.chdir("QuietWater_LevelSet.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running QuietWater_LevelSet..."
+	Msg = benchmarking.RunBenchmark("split_level_set_QuietWater.py", "QuietWater_LS_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "QuietWater_LevelSet example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "QuietWater_LevelSet example FAILED"
+
+	os.chdir("..")
+
+
+
+
+	
+        ################################################################
+
+
+	# Add other examples here
         ################################################################
         print "resume of all of the examples for the fluid application :"
         print Text
