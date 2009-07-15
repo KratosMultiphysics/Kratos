@@ -10,10 +10,10 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     ##velocities
     model_part.AddNodalSolutionStepVariable(VELOCITY);
-    model_part.AddNodalSolutionStepVariable(FRACT_VEL);
+##    model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(CONV_PROJ);
-##    model_part.AddNodalSolutionStepVariable(CONVECTION_VELOCITY);
+    model_part.AddNodalSolutionStepVariable(CONVECTION_VELOCITY); 
     model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
     ##pressures 
     model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -26,6 +26,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
+    model_part.AddNodalSolutionStepVariable(POROSITY);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
 
     model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -37,7 +38,10 @@ def AddVariables(model_part):
 ##    model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
     model_part.AddNodalSolutionStepVariable(ARRHENIUS)
     model_part.AddNodalSolutionStepVariable(IS_DIVIDED)
+    model_part.AddNodalSolutionStepVariable(AUX_INDEX)
     ##...aqui lista variables para utilizar
+
+#adding the variables of the Monolithic Solver
     monolithic_solver_eulerian.AddVariables(model_part)
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
 
@@ -224,11 +228,14 @@ class ElemBasedLevelSetSolver:
             # construct system -- could be done once if the mesh does not change
             self.convection_solver.ConstructSystem(self.model_part,DISTANCE,VELOCITY,MESH_VELOCITY);
 
-            #calculate projections
-            self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ);
+##            #calculate projections version#1 
+##            self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ);
+            
+            #calculate projections version#2 convecting with darcy_velocity / epsilon
+            self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA, CONVECTION_VELOCITY ,MESH_VELOCITY,TEMP_CONV_PROJ);
             
             #perform convection step
-            self.convection_solver.ConvectScalarVar(self.model_part,self.convection_linear_solver,DISTANCE,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ,self.convection_order);
+            self.convection_solver.ConvectScalarVar(self.model_part,self.convection_linear_solver,DISTANCE,CONVECTION_VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ,self.convection_order);
 
             #free memory
             self.convection_solver.ClearSystem()        
@@ -238,12 +245,15 @@ class ElemBasedLevelSetSolver:
             print "Convect without changing the matrix"
             #find neighbours
             (self.mesh_neighbour_search).Execute()
+
+##            #calculate projections version#1 
+##            self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ);
             
-            #calculate projections
-            self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ);
+            #calculate projections version#2 convecting with darcy_velocity / epsilon
+            self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA, CONVECTION_VELOCITY ,MESH_VELOCITY,TEMP_CONV_PROJ);
             
             #perform convection step
-            self.convection_solver.ConvectScalarVar(self.model_part,self.convection_linear_solver,DISTANCE,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ,self.convection_order);
+            self.convection_solver.ConvectScalarVar(self.model_part,self.convection_linear_solver,DISTANCE,CONVECTION_VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ,self.convection_order);
 
 
     
@@ -273,20 +283,32 @@ class ElemBasedLevelSetSolver:
     def Solve(self):
         ############## identifying neighbours #################
         (self.mesh_neighbour_search).Execute()
-        #   print "neighbour search finished"
+##        print "neighbour search finished"
 
 
         ## PREDICTION ##
         
         ############## extrapolating by layer v ###############
         self.SetModelPart() #to identify the extrapolation domain
+##        print "1st setting model part finished"
         self.Extrapolate()
 
 
-        #   print "extrapolation finished"
+##        print "1st extrapolation finished"
         ############## convect distance function ##############
+        for node in self.model_part.Nodes:
+            eps = node.GetSolutionStepValue(POROSITY,0)
+            if (eps == 0.0):
+                eps = 1.0
+            vx = node.GetSolutionStepValue(VELOCITY_X,0)/eps
+            vy = node.GetSolutionStepValue(VELOCITY_Y,0)/eps
+            vz = node.GetSolutionStepValue(VELOCITY_Z,0)/eps
+            node.SetSolutionStepValue(CONVECTION_VELOCITY_X,0,vx)
+            node.SetSolutionStepValue(CONVECTION_VELOCITY_Y,0,vy)
+            node.SetSolutionStepValue(CONVECTION_VELOCITY_Z,0,vz)
+
         self.Convect()
-        #   print "convection finished"
+##        print "convection finished"
         ############## calculate distances   ##################
         for node in self.model_part.Nodes:
             node.Free(DISTANCE);
@@ -294,19 +316,21 @@ class ElemBasedLevelSetSolver:
         if( self.solve_step > self.dist_recalculation_step):
             self.RecalculateDistanceFunction();
             self.dist_recalculation_step += self.redistance_frequency
-        #   print "distance calculation finished"
+##        print "distance calculation finished"
 ####        self.ComputeSmoothedDensities(delta)
 
         self.SetModelPart() #to identify the fluid domain to be solved
-        print "*******************  setting model part finished         *****************"
+##        print "2nd setting model part finished"
+
+        
 
         #solve fluid domain
         (self.solver).Solve()
-        print "solving procedure finished"
+##        print "****************      solving procedure finished     ***********************"
 ##        for node in self.model_part.Nodes:
 ##            print node.Id, "    ", node.GetSolutionStepValue(VELOCITY)
-        self.FreeModelPart()
-        print "freeing pressure and velocity finished"
+##        self.FreeModelPart()
+##        print "freeing pressure and velocity finished"
 
         #updating the step
         self.solve_step = self.solve_step + 1;
@@ -317,6 +341,8 @@ class ElemBasedLevelSetSolver:
 ####        (self.mesh_neighbour_search).Execute()
 ##        ############## extrapolating by layer v ##############
         self.Extrapolate()
+##        print "2nd extrapolation finished"
+
 ##        ############## convect distance function #############
 ##        if(self.correct_levelset == True):
 ##            self.Convect()
