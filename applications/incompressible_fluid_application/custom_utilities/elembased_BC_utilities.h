@@ -74,7 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 					
-			
+//REMEMBER to clear the AUX index loops that are now usless********************************			
 	class ElemBasedBCUtilities
 	{
 		public:
@@ -119,16 +119,18 @@ namespace Kratos
 					 else if( dist[0] < toll && dist[1] < toll && dist[2] < toll  ) 
 						{iel->GetValue(IS_DIVIDED) = -1.0;
 
-							;}
+						}
 					 //half fluid half no fluid element
 					 else
 						{
 						      iel->GetValue(IS_DIVIDED) = 1.0;
+// // 						      KRATOS_WATCH("IS DIVIDED ELEMENTS*******************")
+// // 						      KRATOS_WATCH(iel->Id())
 						      for(unsigned int i=0; i< geom.size() ; i++)
 						      {
 							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1;
 						      }
- 						     // KRATOS_WATCH(iel->Id());
+//  						     // KRATOS_WATCH(iel->Id());
 
 						}
 				
@@ -146,7 +148,7 @@ namespace Kratos
 								inode != mr_model_part.NodesEnd();
 								inode++)	
 				{	
-					 if(inode->FastGetSolutionStepValue(DISTANCE) > 0.0) //is-structe
+					 if(inode->FastGetSolutionStepValue(DISTANCE) > 0.0) //
 					 {
 					       inode->Fix(VELOCITY_X);
 					       inode->Fix(VELOCITY_Y);
@@ -186,7 +188,7 @@ namespace Kratos
 					       inode->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
 					       inode->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
 					       inode->FastGetSolutionStepValue(PRESSURE) = 0.0;
-// 					       KRATOS_WATCH(inode->Id());
+					       KRATOS_WATCH(inode->Id());
 					 }
 				}
 			 KRATOS_CATCH("")
@@ -301,7 +303,9 @@ namespace Kratos
 						inode->Free(PRESSURE);
 						inode->Free(VELOCITY_X);
 						inode->Free(VELOCITY_Y);
-						inode->Free(VELOCITY_Z);				
+						inode->Free(VELOCITY_Z);	
+/*KRATOS_WATCH("freed nodes")
+KRATOS_WATCH(inode->Id())	*/		
 					}
 				}
 			KRATOS_CATCH("")
@@ -327,13 +331,18 @@ namespace Kratos
 								  geom[i].GetSolutionStepValue(PRESSURE) = 0.0;
 								  if((geom[i].GetDof(VELOCITY_X)).IsFixed() == false )
 									   geom[i].GetSolutionStepValue(VELOCITY_X) = 0.0;
+// KRATOS_WATCH(geom[i].Id());}
+// 								  else
+// 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_X");
+// 								      KRATOS_WATCH(iel->Id())}
 								  if((geom[i].GetDof(VELOCITY_Y)).IsFixed() == false  )
 								  	   geom[i].GetSolutionStepValue(VELOCITY_Y) = 0.0;
+// 								  else
+// 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_Y");
+// 								      KRATOS_WATCH(iel->Id())}
 								  if((geom[i].GetDof(VELOCITY_Z)).IsFixed() == false )
 								  	   geom[i].GetSolutionStepValue(VELOCITY_Z) = 0.0;	
-// 								  else
-// 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_Z");
-// 								      KRATOS_WATCH(iel->Id())}
+
 							 }
 						}
 					}
