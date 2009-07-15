@@ -131,7 +131,7 @@ namespace Kratos {
             EquationIdVectorType& rResult,
             ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
-        WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+        WeakPointerVector< Node<3> >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
         unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
         unsigned int dim = number_of_nodes * 3;
@@ -141,21 +141,32 @@ namespace Kratos {
 
         //nodes of the central element
         for (int i = 0; i < 3; i++) {
-            int index = i*dim;
+            int index = i*3;
             rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
         }
 
+//        KRATOS_WATCH(Id());
+//
+//        for(unsigned int k = 0; k<rResult.size(); k++)
+//            std::cout << rResult[k] << " ";
+//        std::cout << std::endl;
+
         //adding the ids ofthe neighbouring nodes
-        for (int i = 0; i < 3; i++) {
-            if (HasNeighbour(neigb[i])) {
-                int index = i * dim + 9;
-                //               rResult[index] = neigb[i].GetDof(DISPLACEMENT_X).EquationId();
-                //rResult[index + 1] = neigb()[i].GetDof(DISPLACEMENT_Y).EquationId();
-                //rResult[index + 2] = neigb()[i].GetDof(DISPLACEMENT_Z).EquationId();
+        int index = 9;
+        for (unsigned int i = 0; i < 3; i++) {
+            if (HasNeighbour(i,neigb[i])) {
+                rResult[index] = neigb[i].GetDof(DISPLACEMENT_X).EquationId();
+                rResult[index + 1] = neigb[i].GetDof(DISPLACEMENT_Y).EquationId();
+                rResult[index + 2] = neigb[i].GetDof(DISPLACEMENT_Z).EquationId();
+                index += 3;
             }
         }
+        
+//        for(unsigned int k = 0; k<rResult.size(); k++)
+//            std::cout << rResult[k] << " ";
+//        std::cout << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -163,24 +174,28 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void Ebst::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
+    void Ebst::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+    {
         KRATOS_TRY
-        WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+        WeakPointerVector< Node<3> >& neigb = this->GetValue(NEIGHBOUR_NODES);
         ElementalDofList.resize(0);
 
         //nodes of the central element
-        for (unsigned int i = 0; i < GetGeometry().size(); i++) {
+        for (unsigned int i = 0; i < GetGeometry().size(); i++)
+        {
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
         }
 
         //adding the dofs ofthe neighbouring nodes
-        for (int i = 0; i < 3; i++) {
-            if (HasNeighbour(neigb[i])) {
-                //ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
-                //ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
-                //  ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            if (HasNeighbour(i,neigb[i]))
+            {
+                ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
+                ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_Y));
+                  ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_Z));
             }
         }
         KRATOS_CATCH("")
@@ -192,7 +207,7 @@ namespace Kratos {
     void Ebst::GetValuesVector(
             Vector& values,
             int Step) {
-        WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+        WeakPointerVector< Node<3> >& neigb = this->GetValue(NEIGHBOUR_NODES);
         unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
         const unsigned int MatSize = number_of_nodes * 3;
@@ -209,13 +224,14 @@ namespace Kratos {
         }
 
         //neighbour nodes
+        int index = 9;
         for (int i = 0; i < 3; i++) {
-            if (HasNeighbour(neigb[i])) {
-                int index = i * 3 + 9;
-                //const array_1d<double, 3 > & disp = neigb[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-                //values[index] = disp[0];
-                //values[index + 1] = disp[1];
-                //values[index + 2] = disp[2];
+            if (HasNeighbour(i,neigb[i])) {
+                const array_1d<double, 3 > & disp = neigb[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+                values[index] = disp[0];
+                values[index + 1] = disp[1];
+                values[index + 2] = disp[2];
+                index += 3;
             }
         }
     }
@@ -226,7 +242,7 @@ namespace Kratos {
     void Ebst::GetFirstDerivativesVector(
             Vector& values,
             int Step) {
-        WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+        WeakPointerVector< Node<3> >& neigb = this->GetValue(NEIGHBOUR_NODES);
         unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
         const unsigned int MatSize = number_of_nodes * 3;
@@ -243,13 +259,14 @@ namespace Kratos {
         }
 
         //neighbour nodes
+        int index = 9;
         for (int i = 0; i < 3; i++) {
-            if (HasNeighbour(neigb[i])) {
-                int index = i * 3 + 9;
-                //const array_1d<double, 3 > & vel = neighb[i].FastGetSolutionStepValue(VELOCITY, Step);
-                //values[index] = vel[0];
-                //values[index + 1] = vel[1];
-                //values[index + 2] = vel[2];
+            if (HasNeighbour(i,neigb[i])) {
+                const array_1d<double, 3 > & vel = neigb[i].FastGetSolutionStepValue(VELOCITY, Step);
+                values[index] = vel[0];
+                values[index + 1] = vel[1];
+                values[index + 2] = vel[2];
+                index += 3;
             }
         }
     }
@@ -260,7 +277,7 @@ namespace Kratos {
     void Ebst::GetSecondDerivativesVector(
             Vector& values,
             int Step) {
-        WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+        WeakPointerVector< Node<3> >& neigb = this->GetValue(NEIGHBOUR_NODES);
         unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
         const unsigned int MatSize = number_of_nodes * 3;
@@ -277,13 +294,14 @@ namespace Kratos {
         }
 
         //neighbour nodes
+        int index = 9;
         for (int i = 0; i < 3; i++) {
-            if (HasNeighbour(neigb[i])) {
-                int index = i * 3 + 9;
-                //const array_1d<double, 3 > & acc = neighb[i].FastGetSolutionStepValue(ACCELERATION, Step);
-                //values[index] = acc[0];
-                //values[index + 1] = acc[1];
-                //values[index + 2] = acc[2];
+            if (HasNeighbour(i,neigb[i])) {
+                const array_1d<double, 3 > & acc = neigb[i].FastGetSolutionStepValue(ACCELERATION, Step);
+                values[index] = acc[0];
+                values[index + 1] = acc[1];
+                values[index + 2] = acc[2];
+                index += 3;
             }
         }
     }
@@ -334,7 +352,7 @@ namespace Kratos {
             ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
 
-        WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+        WeakPointerVector< Node<3> >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
         //rMassMatrix.resize(0,0);
         // LUMPED MASS MATRIX
@@ -424,6 +442,70 @@ namespace Kratos {
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
         }
+
+        KRATOS_CATCH("");
+    }
+
+
+    //***********************************************************************************
+    //***********************************************************************************
+    bool Ebst::HasNeighbour(unsigned int index, const Node < 3 > & neighb)
+    {
+        if (neighb.Id() == GetGeometry()[index].Id())
+            return false;
+        else
+            return true;
+    }
+
+    //***********************************************************************************
+    //***********************************************************************************
+
+    unsigned int Ebst::NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs)
+    {
+        unsigned int active_neighbours = 0;
+        for (unsigned int i = 0; i < neighbs.size(); i++)
+            if (HasNeighbour(i,neighbs[i])) active_neighbours++;
+        return active_neighbours;
+    }
+
+    //***********************************************************************************
+    //***********************************************************************************
+    void Ebst::Initialize()
+    {
+        KRATOS_TRY
+        //find the "nodal neighbours" given the elemental neighbours
+        WeakPointerVector< Element >& elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
+        if(elem_neigb.size() == 0) KRATOS_ERROR(std::logic_error,"the neighbour elements are not calculated","")
+        WeakPointerVector< Node<3> >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
+        nodal_neigb.resize(3);
+        Geometry< Node<3> >& center_geom = GetGeometry();
+
+        std::cout << "I am elem" << Id() <<std::endl;
+        std::cout << "neighbours =" << elem_neigb[0].Id() << " " << elem_neigb[1].Id() << " " << elem_neigb[2].Id() << " " << std::endl;
+        for (unsigned int i = 0; i < center_geom.size(); i++)
+        {
+            if(elem_neigb[i].Id() != Id() ) //if the elemental neighbour exists
+            {
+                Geometry< Node<3> >& geom = elem_neigb[i].GetGeometry();
+                for (unsigned int j = 0; j < geom.size(); j++)
+                {
+                    bool aux = false;
+                    for (unsigned int k = 0; k < center_geom.size(); k++)
+                    {
+                        if(geom[j].Id()==center_geom[k].Id())
+                            aux = true;
+                    }
+
+                    if(aux == false) nodal_neigb(i) = Node<3>::WeakPointer( geom(j) );
+                }
+            }
+            else //the elemenetal neighbour does not exist
+	      nodal_neigb(i) = Node<3>::WeakPointer( center_geom(i) );
+        }
+
+        std::cout << "node1" << GetGeometry()[0].Id() << "opposite node =" << nodal_neigb[0].Id() << std::endl;
+        std::cout << "node2" << GetGeometry()[1].Id() << "opposite node =" << nodal_neigb[1].Id() << std::endl;
+        std::cout << "node3" << GetGeometry()[2].Id() << "opposite node =" << nodal_neigb[2].Id() << std::endl;
 
         KRATOS_CATCH("");
     }

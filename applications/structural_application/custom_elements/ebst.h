@@ -40,15 +40,15 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 /* *********************************************************   
-*          
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2008-10-13 07:00:53 $
-*   Revision:            $Revision: 1.4 $
-*
-* ***********************************************************/
+ *
+ *   Last Modified by:    $Author: rrossi $
+ *   Date:                $Date: 2008-10-13 07:00:53 $
+ *   Revision:            $Revision: 1.4 $
+ *
+ * ***********************************************************/
 
 
 #if !defined(KRATOS_EBST_H_INCLUDED )
@@ -71,129 +71,116 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 
-namespace Kratos
-{
-class Ebst
-	: public Element
-    {
-	public:
+namespace Kratos {
 
-		// Counted pointer of Ebst
-		KRATOS_CLASS_POINTER_DEFINITION(Ebst);
+    class Ebst
+    : public Element {
+    public:
 
-
-		// Constructor void
-		Ebst();
-
-		// Constructor using an array of nodes 
-		Ebst(IndexType NewId, GeometryType::Pointer pGeometry);
-
-		// Constructor using an array of nodes with properties
-		Ebst(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-		// Destructor
-		virtual ~Ebst();
-
-		
-		// Name Operations
-
-		Element::Pointer Create(
-			IndexType NewId,
-			NodesArrayType const& ThisNodes,
-			PropertiesType::Pointer pProperties) const;
-
-		void EquationIdVector(
-			EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void GetDofList(
-			DofsVectorType& ElementalDofList,
-			ProcessInfo& rCurrentProcessInfo);
-
-//		void Initialize ();
-
-		void CalculateRightHandSide(
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void CalculateLocalSystem(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void CalculateOnIntegrationPoints(
-			const Variable<Matrix>& rVariable,
-			std::vector<Matrix>& Output,
-			const ProcessInfo& rCurrentProcessInfo);
-
-		void MassMatrix(
-			MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void DampMatrix(
-			MatrixType& rDampMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void FinalizeSolutionStep(
-			ProcessInfo& rCurrentProcessInfo);
-
-		void GetValuesVector(
-			Vector& values,
-			int Step = 0);
-
-		void GetFirstDerivativesVector(
-			Vector& values,
-			int Step = 0);
-
-		void GetSecondDerivativesVector(
-			Vector& values,
-			int Step = 0);
-	
-//		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-//				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+        // Counted pointer of Ebst
+        KRATOS_CLASS_POINTER_DEFINITION(Ebst);
 
 
+        // Constructor void
+        Ebst();
 
-	protected:
+        // Constructor using an array of nodes
+        Ebst(IndexType NewId, GeometryType::Pointer pGeometry);
+
+        // Constructor using an array of nodes with properties
+        Ebst(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+        // Destructor
+        virtual ~Ebst();
 
 
-	private:
-		///@name Static Member Variables 
+        // Name Operations
 
-		// privat name Operations
+        Element::Pointer Create(
+                IndexType NewId,
+                NodesArrayType const& ThisNodes,
+                PropertiesType::Pointer pProperties) const;
 
-		//double GetElementalPressure(
-		//	const ProcessInfo& rCurrentProcessInfo);
+        void EquationIdVector(
+                EquationIdVectorType& rResult,
+                ProcessInfo& rCurrentProcessInfo);
 
-		bool HasNeighbour(const Element& neighb)
-            {
-	      if( neighb.Id() == Id() )
-                    return false;
-                else
-                    return true;
-            }
+        void GetDofList(
+                DofsVectorType& ElementalDofList,
+                ProcessInfo& rCurrentProcessInfo);
 
-            unsigned int NumberOfActiveNeighbours(WeakPointerVector< Element >& neighbs)
-            {
-                unsigned int active_neighbours = 0;
-                for(unsigned int i=0; i<neighbs.size(); i++)
-                    if( HasNeighbour(neighbs[i]) ) active_neighbours++;
-                return active_neighbours;
-            }
+        void Initialize();
 
-		void CalculateAll(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			const ProcessInfo& rCurrentProcessInfo,
-			bool CalculateStiffnessMatrixFlag,
-			bool CalculateResidualVectorFlag);
+        void CalculateRightHandSide(
+                VectorType& rRightHandSideVector,
+                ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateLocalSystem(
+                MatrixType& rLeftHandSideMatrix,
+                VectorType& rRightHandSideVector,
+                ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateOnIntegrationPoints(
+                const Variable<Matrix>& rVariable,
+                std::vector<Matrix>& Output,
+                const ProcessInfo& rCurrentProcessInfo);
+
+        void MassMatrix(
+                MatrixType& rMassMatrix,
+                ProcessInfo& rCurrentProcessInfo);
+
+        void DampMatrix(
+                MatrixType& rDampMatrix,
+                ProcessInfo& rCurrentProcessInfo);
+
+        void FinalizeSolutionStep(
+                ProcessInfo& rCurrentProcessInfo);
+
+        void GetValuesVector(
+                Vector& values,
+                int Step = 0);
+
+        void GetFirstDerivativesVector(
+                Vector& values,
+                int Step = 0);
+
+        void GetSecondDerivativesVector(
+                Vector& values,
+                int Step = 0);
+
+        //		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        //				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+
+    protected:
+
+
+    private:
+        ///@name Static Member Variables
+
+        // privat name Operations
+
+        //double GetElementalPressure(
+        //	const ProcessInfo& rCurrentProcessInfo);
+
+        bool HasNeighbour(unsigned int index, const Node < 3 > & neighb);
+
+        unsigned int NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs);
+
+        void CalculateAll(
+                MatrixType& rLeftHandSideMatrix,
+                VectorType& rRightHandSideVector,
+                const ProcessInfo& rCurrentProcessInfo,
+                bool CalculateStiffnessMatrixFlag,
+                bool CalculateResidualVectorFlag);
 
 
 
 
 
-	};	// class KRATOS_EBST_H_INCLUDED.
+    }; // class KRATOS_EBST_H_INCLUDED.
 
-}	// namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_MEMBRANE_BEPPE_ELEMENT_H_INCLUDED  defined 
