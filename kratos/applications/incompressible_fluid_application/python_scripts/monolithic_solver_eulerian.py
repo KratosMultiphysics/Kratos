@@ -20,6 +20,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
     model_part.AddNodalSolutionStepVariable(DENSITY);
+    model_part.AddNodalSolutionStepVariable(POROSITY);
     model_part.AddNodalSolutionStepVariable(DENSITY_AIR);
     model_part.AddNodalSolutionStepVariable(AIR_SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
@@ -71,13 +72,13 @@ class MonolithicSolver:
         self.max_iter = 20
                             
         #default settings
-        self.echo_level = 1
+        self.echo_level = 0
         self.CalculateReactionFlag = False
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
     
-
+##        print "Construction monolithic solver finished"
         
     #######################################################################
     def Initialize(self):
@@ -85,13 +86,13 @@ class MonolithicSolver:
         
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
-
+##        print "Initialization monolithic solver finished"
 	                     
     #######################################################################   
     def Solve(self):
-
+##        print "*****************entering solve?????????????"
         (self.solver).Solve()
-
+##        print "solving step monolithic solver finished"
        
 
     #######################################################################   
