@@ -67,13 +67,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos {
 
     namespace EbstAuxiliaries {
-        Matrix Ebst::msB(0, 0);
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > Ebst::msQ = ZeroMatrix(3, 3);
-        Matrix Ebst::msD = ZeroMatrix(3, 3);
-        Vector Ebst::msStrainVector = ZeroVector(3);
-        Vector Ebst::msStressVector = ZeroVector(3);
-        boost::numeric::ublas::bounded_matrix<double, 2, 2 > Ebst::msC = ZeroMatrix(2, 2);
-        Matrix Ebst::msDN_DX(0, 0);
+        Matrix msB(0, 0);
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > msQ = ZeroMatrix(3, 3);
+        Matrix msD = ZeroMatrix(3, 3);
+        Vector msStrainVector = ZeroVector(3);
+        Vector msStressVector = ZeroVector(3);
+        boost::numeric::ublas::bounded_matrix<double, 2, 2 > msC = ZeroMatrix(2, 2);
+        Matrix msDN_DX(0, 0);
     }
 
     using namespace EbstAuxiliaries;
@@ -99,8 +99,7 @@ namespace Kratos {
     // Constructor
 
     Ebst::Ebst(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
- {
+    : Element(NewId, pGeometry, pProperties) {
         //initializing static variables
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int dim = number_of_nodes * 3;
@@ -114,8 +113,7 @@ namespace Kratos {
     Element::Pointer Ebst::Create(
             IndexType NewId,
             NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties) const
- {
+            PropertiesType::Pointer pProperties) const {
         return Element::Pointer(new Ebst(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
@@ -131,12 +129,11 @@ namespace Kratos {
 
     void Ebst::EquationIdVector(
             EquationIdVectorType& rResult,
-            ProcessInfo& rCurrentProcessInfo)
- {
+            ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
         WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neighb);
+        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
         unsigned int dim = number_of_nodes * 3;
 
         if (rResult.size() != dim)
@@ -154,9 +151,9 @@ namespace Kratos {
         for (int i = 0; i < 3; i++) {
             if (HasNeighbour(neigb[i])) {
                 int index = i * dim + 9;
-                rResult[index] = neighb[i].GetDof(DISPLACEMENT_X).EquationId();
-                rResult[index + 1] = neighb()[i].GetDof(DISPLACEMENT_Y).EquationId();
-                rResult[index + 2] = neighb()[i].GetDof(DISPLACEMENT_Z).EquationId();
+                //               rResult[index] = neigb[i].GetDof(DISPLACEMENT_X).EquationId();
+                //rResult[index + 1] = neigb()[i].GetDof(DISPLACEMENT_Y).EquationId();
+                //rResult[index + 2] = neigb()[i].GetDof(DISPLACEMENT_Z).EquationId();
             }
         }
 
@@ -181,9 +178,9 @@ namespace Kratos {
         //adding the dofs ofthe neighbouring nodes
         for (int i = 0; i < 3; i++) {
             if (HasNeighbour(neigb[i])) {
-                ElementalDofList.push_back(neighb[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back(neighb[i].pGetDof(DISPLACEMENT_X));
-                ElementalDofList.push_back(neighb[i].pGetDof(DISPLACEMENT_X));
+                //ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
+                //ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
+                //  ElementalDofList.push_back(neigb[i].pGetDof(DISPLACEMENT_X));
             }
         }
         KRATOS_CATCH("")
@@ -194,10 +191,9 @@ namespace Kratos {
 
     void Ebst::GetValuesVector(
             Vector& values,
-            int Step)
- {
+            int Step) {
         WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neighb);
+        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
         const unsigned int MatSize = number_of_nodes * 3;
         if (values.size() != MatSize)
@@ -215,11 +211,11 @@ namespace Kratos {
         //neighbour nodes
         for (int i = 0; i < 3; i++) {
             if (HasNeighbour(neigb[i])) {
-                int index = i * dim + 9;
-                const array_1d<double, 3 > & disp = neighb[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-                values[index] = disp[0];
-                values[index + 1] = disp[1];
-                values[index + 2] = disp[2];
+                int index = i * 3 + 9;
+                //const array_1d<double, 3 > & disp = neigb[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+                //values[index] = disp[0];
+                //values[index + 1] = disp[1];
+                //values[index + 2] = disp[2];
             }
         }
     }
@@ -229,10 +225,9 @@ namespace Kratos {
 
     void Ebst::GetFirstDerivativesVector(
             Vector& values,
-            int Step)
- {
+            int Step) {
         WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neighb);
+        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
         const unsigned int MatSize = number_of_nodes * 3;
         if (values.size() != MatSize)
@@ -250,11 +245,11 @@ namespace Kratos {
         //neighbour nodes
         for (int i = 0; i < 3; i++) {
             if (HasNeighbour(neigb[i])) {
-                int index = i * dim + 9;
-                const array_1d<double, 3 > & vel = neighb[i].FastGetSolutionStepValue(VELOCITY, Step);
-                values[index] = vel[0];
-                values[index + 1] = vel[1];
-                values[index + 2] = vel[2];
+                int index = i * 3 + 9;
+                //const array_1d<double, 3 > & vel = neighb[i].FastGetSolutionStepValue(VELOCITY, Step);
+                //values[index] = vel[0];
+                //values[index + 1] = vel[1];
+                //values[index + 2] = vel[2];
             }
         }
     }
@@ -264,10 +259,9 @@ namespace Kratos {
 
     void Ebst::GetSecondDerivativesVector(
             Vector& values,
-            int Step)
- {
+            int Step) {
         WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neighb);
+        unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
 
         const unsigned int MatSize = number_of_nodes * 3;
         if (values.size() != MatSize)
@@ -285,11 +279,11 @@ namespace Kratos {
         //neighbour nodes
         for (int i = 0; i < 3; i++) {
             if (HasNeighbour(neigb[i])) {
-                int index = i * dim + 9;
-                const array_1d<double, 3 > & acc = neighb[i].FastGetSolutionStepValue(ACCELERATION, Step);
-                values[index] = acc[0];
-                values[index + 1] = acc[1];
-                values[index + 2] = acc[2];
+                int index = i * 3 + 9;
+                //const array_1d<double, 3 > & acc = neighb[i].FastGetSolutionStepValue(ACCELERATION, Step);
+                //values[index] = acc[0];
+                //values[index + 1] = acc[1];
+                //values[index + 2] = acc[2];
             }
         }
     }
@@ -299,8 +293,7 @@ namespace Kratos {
 
     void Ebst::CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
- {
+            ProcessInfo& rCurrentProcessInfo) {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = false;
         bool CalculateResidualVectorFlag = true;
@@ -315,8 +308,7 @@ namespace Kratos {
     void Ebst::CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
- {
+            ProcessInfo& rCurrentProcessInfo) {
         //calculation flags
         bool CalculateStiffnessMatrixFlag = true;
         bool CalculateResidualVectorFlag = true;
@@ -330,8 +322,7 @@ namespace Kratos {
     void Ebst::CalculateOnIntegrationPoints(
             const Variable<Matrix>& rVariable,
             std::vector<Matrix>& Output,
-            const ProcessInfo& rCurrentProcessInfo)
- {
+            const ProcessInfo& rCurrentProcessInfo) {
 
     }
 
@@ -340,8 +331,7 @@ namespace Kratos {
 
     void Ebst::MassMatrix(
             MatrixType& rMassMatrix,
-            ProcessInfo& rCurrentProcessInfo)
- {
+            ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
 
         WeakPointerVector< Element >& neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -354,7 +344,8 @@ namespace Kratos {
             rMassMatrix.resize(MatSize, MatSize, false);
         rMassMatrix = ZeroMatrix(MatSize, MatSize);
 
-        double TotalMass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
+        double Area = GetGeometry().Area();
+        double TotalMass = Area * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
         Vector LumpFact;
         LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
@@ -374,8 +365,7 @@ namespace Kratos {
 
     void Ebst::DampMatrix(
             MatrixType& rDampMatrix,
-            ProcessInfo& rCurrentProcessInfo)
- {
+            ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
 
         if (rDampMatrix.size1() != 0)
@@ -388,58 +378,55 @@ namespace Kratos {
     //***********************************************************************************
 
     void Ebst::FinalizeSolutionStep(
-            ProcessInfo& rCurrentProcessInfo)
-    {
+            ProcessInfo& rCurrentProcessInfo) {
     }
 
 
 
 
 
-//***********************************************************************************
-//***********************************************************************************
+    //***********************************************************************************
+    //***********************************************************************************
 
-void Ebst::CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag)
- {
-    KRATOS_TRY
+    void Ebst::CalculateAll(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo,
+            bool CalculateStiffnessMatrixFlag,
+            bool CalculateResidualVectorFlag) {
+        KRATOS_TRY
 
-            const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
+                const unsigned int number_of_nodes = GetGeometry().size();
+        unsigned int MatSize = number_of_nodes * 3;
 
-    //resizing as needed the LHS
-    if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
-    {
-        if (rLeftHandSideMatrix.size1() != MatSize)
-            rLeftHandSideMatrix.resize(MatSize, MatSize);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
+        //resizing as needed the LHS
+        if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
+        {
+            if (rLeftHandSideMatrix.size1() != MatSize)
+                rLeftHandSideMatrix.resize(MatSize, MatSize);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
+        }
+
+        //resizing as needed the RHS
+        if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
+        {
+            if (rRightHandSideVector.size() != MatSize)
+                rRightHandSideVector.resize(MatSize);
+            rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
+        }
+
+
+        // LEFT HAND SIDE MATRIX
+        if (CalculateStiffnessMatrixFlag == true) {
+        }
+
+        // RIGHT HAND SIDE VECTOR
+        if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
+        {
+        }
+
+        KRATOS_CATCH("");
     }
-
-    //resizing as needed the RHS
-    if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-    {
-        if (rRightHandSideVector.size() != MatSize)
-            rRightHandSideVector.resize(MatSize);
-        rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
-    }
-
-
-    // LEFT HAND SIDE MATRIX
-    if (CalculateStiffnessMatrixFlag == true) {
-    }
-
-    // RIGHT HAND SIDE VECTOR
-    if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-    {
-    }
-}
-
-
-
 
 
 } // Namespace Kratos.
