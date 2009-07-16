@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/trilinos_deactivation_utilitiy.h"
+#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos
