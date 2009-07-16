@@ -184,6 +184,10 @@ namespace Kratos
             void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, 
                            const ProcessInfo& rCurrentProcessInfo);
 
+			void CalculateStressAndTangentMatrix(Vector& StressVector,
+			      const Vector& StrainVector,
+			      Matrix& algorithmicTangent);
+
 			/**
 			 * Input and output
 			 */
