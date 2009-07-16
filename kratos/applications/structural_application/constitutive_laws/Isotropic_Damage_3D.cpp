@@ -65,10 +65,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "custom_utilities/Tensor_utils.h"
+#include "custom_utilities/tensor_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "structural_application.h"
 #include "includes/properties.h"
 
 
@@ -269,8 +268,8 @@ void Isotropic_Damage_3D::CalculateConstitutiveMatrix(const Vector& StrainVector
 	{
 		
 	   //StressVector_Aux.resize(6,false);
-	   Isotropic_Damage_3D::CalculateNoDamageElasticMatrix(ConstitutiveMatrix, mEc ,mNU);
-	   noalias(ConstitutiveMatrix) = (1-md)*ConstitutiveMatrix; 
+	    Isotropic_Damage_3D::CalculateNoDamageElasticMatrix(ConstitutiveMatrix, mEc ,mNU);
+	   //noalias(ConstitutiveMatrix) = (1-md)*ConstitutiveMatrix; 
 	   //Isotropic_Damage_3D::CalculateStress(StrainVector,StressVector_Aux);
 	   //Isotropic_Damage_3D::CalculateStressAndTangentMatrix(StressVector_Aux,StrainVector,ConstitutiveMatrix);
 	   //KRATOS_WATCH(ConstitutiveMatrix)
@@ -347,7 +346,7 @@ void Isotropic_Damage_3D::CalculateConstitutiveMatrix(const Vector& StrainVector
 
     else
     {
-      PrincipalStress  = SD_MathUtils<double>::EigneValues(StressTensor,crit, zero);
+      PrincipalStress  = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
     }
     //KRATOS_WATCH(PrincipalStress)
     teta_a =  Tensor_Utils<double>::Mc_aully(PrincipalStress);
@@ -425,6 +424,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 
 		ConstitutiveMatrixAux.resize(6,6,false);
                 StrainVector_Aux.resize(6,false);
+		//mstressVector.resize(6,false);
                 noalias(StrainVector_Aux) = StrainVector; 
 		double d=0.00;
 		for (unsigned int i=0;i<StrainVector.size();i++)
@@ -438,7 +438,8 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 		Isotropic_Damage_3D::CalculateNoDamageStress(StrainVector_Aux, StressVector);
 		Isotropic_Damage_3D::CalculateNoDamageElasticMatrix(ConstitutiveMatrixAux,mEc,mNU);
 		Isotropic_Damage_3D::CalculateDamage(ConstitutiveMatrixAux, StressVector, d);
-		noalias(StressVector) = (1.00-d)*StressVector;												
+		noalias(StressVector) = (1.00-d)*StressVector;
+		//noalias(mstressVector) = StressVector;											
    }
 
 
@@ -453,7 +454,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
     {
 		Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
-		double J = MathUtils<double>::Det2( rF );
+		double J = MathUtils<double>::Det3( rF );
 
 		noalias(mstemp) = prod(rF,S);
 		noalias(msaux)  = prod(mstemp,trans(rF));
@@ -478,8 +479,8 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
   {
 			 // Using perturbation methods
                          long double delta_strain =  0.00;
-			 long double factor       =  1E-5;
-                         long double max          =  1E-8;
+			 long double factor       =  1E-10;
+                         long double max          =  1E-14;
                          double last_damage       =  md;
 			 double last_r            =  mr_new;
 
@@ -496,7 +497,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 			 for (unsigned int i=0;i<StrainVectorPerturbation.size();i++)
 			    {
 				  
-				 if  (fabs(StrainVectorPerturbation(i))<1E-10)
+				 if  (fabs(StrainVectorPerturbation(i))<1E-15)
 				    {
 				     delta_strain = (*std::min_element(StrainVectorPerturbation.begin(),StrainVectorPerturbation.end()))*factor;
 				     if (delta_strain==0.00)
@@ -521,11 +522,11 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
                                      //Isotropic_Damage_3D::CalculateStress(StrainVectorPerturbation_aux, StressVectorPerturbation_aux);
 				     
                                      // Antiguo procedimiento
-			              noalias(StressVectorPerturbation) = StressVectorPerturbation-StressVector;
+			             noalias(StressVectorPerturbation) = StressVectorPerturbation-StressVector;
                                      
 				     //noalias(StressVectorPerturbation) = StressVectorPerturbation-StressVectorPerturbation_aux;
 				    
-                                      noalias(StressVectorPerturbation) = StressVectorPerturbation/delta_strain;
+                                     noalias(StressVectorPerturbation) = StressVectorPerturbation/delta_strain;
 				     //noalias(StressVectorPerturbation) = StressVectorPerturbation/(2.00*delta_strain);
 
 				      	  
@@ -534,16 +535,16 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 					 {
 					    algorithmicTangent(j,i) = StressVectorPerturbation(j); 
 					 } 
-				    
+				    //KRATOS_WATCH(algorithmicTangent)
 				    md     = last_damage;
 				    mr_new = last_r;
 				    StressVectorPerturbation.resize(6, false);
 				    StrainVectorPerturbation.resize(6, false);  
 				    noalias(StrainVectorPerturbation) = StrainVector;
 				    
-
 				  }
 
+				    
 				 
 		      }
 
