@@ -83,6 +83,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/isotropic_planestress_wrinkling.h"
 #include "constitutive_laws/Isotropic_Damage.h"
 #include "constitutive_laws/Isotropic_Damage_3D.h"
+#include "constitutive_laws/plane_stress_damage_orthotropic_2d.h"
+#include "constitutive_laws/compose_material.h"
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "includes/mesh.h"
@@ -92,6 +94,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/add_mesh_to_python.h"
 #include "python/pointer_vector_set_python_interface.h"
 #include "python/variable_indexing_python.h"
+#include "fluency_criteria/fluency_criteria.h"
+
 
 
 namespace Kratos
@@ -102,87 +106,98 @@ namespace Kratos
 	    using namespace boost::python;
 	    
 	    typedef ConstitutiveLaw<Node<3> > ConstitutiveLawBaseType;
-		typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+            typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+            typedef FluencyCriteria FluencyCriteriaType; 
+            typedef std::vector<ConstitutiveLaw<Node<3> >::Pointer> Materials;
 	    
 	    void  AddConstitutiveLawsToPython()
 	    {
 			class_< Isotropic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-					("Isotropic2D",
-					 init<>() )
-					;
+			("Isotropic2D",
+			init<>() )
+			;
 			class_< PlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-					("PlaneStrain",
-					 init<>() )
-					;
-		   	 class_< Isotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
-				    ("Isotropic3D", 
-				     init<>() ) 
-				     ;
-				   
-			 class_< Isotropic_Damage, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			     ("Isotropic_Damage",
-			      init<>() )
-			    ;
-				   
-			 class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			     ("Isotropic_Damage_3D",
-			      init<>() );
-            
-            class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
-                    ("VonMises3D", 
-                     init<>() ) 
-                    ;
-                    
-		    	class_< Hypoelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-					("Hypoelastic2D",
-					 init<>() )
-					;
-                    	    
-		    	class_< Fluid2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-					("Fluid2D",
-					 init<>() )
-					;
-                    class_< ExternalIsotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
-                            ("ExternalIsotropic3D", 
-                             init<>() ) 
-                            ;
-		    
-		    class_< DruckerPrager, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-				    ("DruckerPrager",
-				     init<>() )
-				    ;
+			("PlaneStrain",
+			init<>() )
+			;
+			class_< Isotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+			("Isotropic3D", 
+			init<>() ) 
+			;
 
-		/*	
+			class_< Isotropic_Damage, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("Isotropic_Damage",
+			init< >() )
+			;
 
-		    class_< IsotropicElasticLargeStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-				    ("IsotropicElasticLargeStrain",
-				     init<>() )
-				    ;
-                */
+			class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("Isotropic_Damage_3D",
+			init<>() );
 
-		    class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-				    ("HooksLaw",
-				     init<>() )
-				    ;
+			class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+			("VonMises3D", 
+			init<>() ) 
+			;
 
-		    class_< DruckerPragerLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-				    ("DruckerPragerLaw",
-				     init<>() )
-				    ;
-		    
-		    class_< IsotropicPlaneStressWrinkling, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-				    ("IsotropicPlaneStressWrinkling",
-				     init<>() )
-		    		    ;
-	     		    
-// 			class_< Hyperelastic3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-// 				    ("Hyperelastic3D",
-// 				     init<>() )
-// 				    ;
+			class_< Hypoelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("Hypoelastic2D",
+			init<>() )
+			;
+
+			class_< Fluid2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("Fluid2D",
+			init<>() )
+			;
+			class_< ExternalIsotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+			("ExternalIsotropic3D", 
+			init<>() ) 
+			;
+
+			class_< DruckerPrager, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("DruckerPrager",
+			init<>() )
+			;
+
+			/*	
+
+			class_< IsotropicElasticLargeStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("IsotropicElasticLargeStrain",
+			init<>() )
+			;
+			*/
+
+			class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("HooksLaw",
+			init<>() )
+			;
+
+			class_< DruckerPragerLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("DruckerPragerLaw",
+			init<>() )
+			;
+
+			class_< IsotropicPlaneStressWrinkling, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("IsotropicPlaneStressWrinkling",
+			init<>() )
+			;
+
+			// 			class_< Hyperelastic3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			// 				    ("Hyperelastic3D",
+			// 				     init<>() )
+			// 				    ;
 			class_< Hyperelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-				    ("Hyperelastic2D",
-				     init<>() )
-				    ;
+			("Hyperelastic2D",
+			init<>() )
+			;
+			class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("PlaneStressDamageOrthotropic2D",
+			init<FluencyCriteriaType& >() )
+			;
+
+			class_<ComposeMaterial , bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("ComposeMaterial",
+			init<const Materials&>() )
+			;
 
 
 	    }
