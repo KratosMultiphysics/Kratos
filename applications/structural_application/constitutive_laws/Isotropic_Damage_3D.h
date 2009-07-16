@@ -186,6 +186,7 @@ namespace Kratos
 		  double mr_old;
 		  double mr_new; 
 		  double mArea;
+                  //Vector mstressVector;
 
 			// Miembros Privados
    void CalculateNoDamageElasticMatrix(Matrix& C, const double E, const double NU);
