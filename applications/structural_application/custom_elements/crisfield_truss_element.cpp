@@ -315,7 +315,7 @@ namespace Kratos
             if(dimension == 3)
                 values[index + 2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z,Step);
         }
-        KRATOS_WATCH( values );
+        //KRATOS_WATCH( values );
     }
 
     /**
@@ -460,7 +460,7 @@ namespace Kratos
         }
         
         //calculation of the tangent stiffness matrix if required
-        KRATOS_WATCH(mArea);
+        //KRATOS_WATCH(mArea);
         if (CalculateStiffnessMatrixFlag == true) {
             
             double weight_Km = E * mArea / mLength / mLength / mLength;
