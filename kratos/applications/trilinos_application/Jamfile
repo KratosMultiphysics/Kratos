@@ -64,6 +64,7 @@ alias sources_KratosTrilinosApplication
 		add_trilinos_linear_solvers_to_python.cpp
 		add_trilinos_strategies_to_python.cpp
                 add_custom_io_to_python.cpp
+                add_custom_utilities_to_python.cpp
 
 		/kratos-prj/kratos//libkratos/<link>static
 
