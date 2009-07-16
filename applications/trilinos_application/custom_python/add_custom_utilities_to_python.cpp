@@ -67,11 +67,11 @@ namespace Kratos
             class_<TrilinosDeactivationUtility, boost::noncopyable >
                     ("TrilinosDeactivationUtility",
                      init<>() )
-                    .def("Deactivate", &DeactivationUtility::Deactivate )
-                    .def("Reactivate", &DeactivationUtility::Reactivate )
-                    .def("ReactivateStressFree", &DeactivationUtility::ReactivateStressFree )
-                    .def("ReactivateAll", &DeactivationUtility::ReactivateAll )
-                    .def("Initialize", &DeactivationUtility::Initialize )
+                    .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
+                    .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
+                    .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
+                    .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
+                    .def("Initialize", &TrilinosDeactivationUtility::Initialize )
                     ;
         }	
     }  // namespace Python.
