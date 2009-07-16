@@ -260,6 +260,15 @@ namespace Kratos
 		rResult = mCtangent;
 	}
 	
+	 void Isotropic3D::CalculateStressAndTangentMatrix(Vector& StressVector,
+                    const Vector& StrainVector,
+                    Matrix& algorithmicTangent)
+	{
+	   CalculateConstitutiveMatrix(StrainVector, algorithmicTangent);
+	}	
+
+
+
     //**********************************************************************
     void Isotropic3D::CalculateCauchyStresses(
 		Vector& rCauchy_StressVector,
