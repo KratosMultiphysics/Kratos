@@ -181,6 +181,9 @@ namespace Kratos
 					const Vector& PK2_StressVector,
 					const Vector& GreenLagrangeStrainVector);
 			
+			void CalculateStressAndTangentMatrix(Vector& StressVector,
+			      const Vector& StrainVector,
+			      Matrix& algorithmicTangent);
 			
 			/**
 			 * converts a strain vector styled variable into its form, which the
