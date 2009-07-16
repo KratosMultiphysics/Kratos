@@ -103,7 +103,7 @@ namespace Kratos
 		{
 		KRATOS_TRY
 		int n_int; 
-		int n_disabled;
+		//int n_disabled;
 		//clear reduced_model_part
 		pseudo_lag_part.Conditions().clear();
 		pseudo_lag_part.Elements().clear();
