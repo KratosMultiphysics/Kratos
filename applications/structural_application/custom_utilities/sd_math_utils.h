@@ -44,9 +44,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(SD_MATH_UTILS)
 #define SD_MATH_UTILS
-#define PI 3.141592654
+#define PI 3.1415926535898
 
 #include "utilities/math_utils.h"
+#include "geometries/point.h"
 #include <cmath>
 
 namespace Kratos
@@ -67,6 +68,15 @@ namespace Kratos
             typedef unsigned int SizeType;
             
             typedef MathUtils<TDataType> MathUtilsType;
+
+	    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector
+			  
+	    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
+			  
+            typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
+			  
+	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
+
             
 			/**
              * @}
@@ -149,7 +159,7 @@ namespace Kratos
              * WARNING only valid for 2*2 and 3*3 Matrices yet
              */ 
             
-            static inline Vector EigneValues(const Matrix& A, double crit, double zero)
+            static inline Vector EigenValues(const Matrix& A, double crit, double zero)
             {
                 int dim= A.size1();
             
@@ -841,6 +851,69 @@ namespace Kratos
 			Vector(3)= Tensor(0,1); Vector(4)= Tensor(1,2); Vector(5)= Tensor(2,0); 
 
 			return;
+		}
+
+static void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
+	{
+
+		if (Tensor[0].size()== 3)
+		{
+		 // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 3x3 
+		if(Matrix.size1()!=6 || Matrix.size2()!=6)
+		Matrix.resize(6,6,false);
+		Matrix(0,0) = Tensor[0][0](0,0);
+		Matrix(0,1) = Tensor[0][0](1,1);
+		Matrix(0,2) = Tensor[0][0](2,2);
+		Matrix(0,3) = Tensor[0][0](0,1);
+		Matrix(0,4) = Tensor[0][0](0,2);
+		Matrix(0,5) = Tensor[0][0](1,2);
+	  
+		Matrix(1,0) = Tensor[1][1](0,0); 
+		Matrix(1,1) = Tensor[1][1](1,1);
+		Matrix(1,2) = Tensor[1][1](2,2);
+		Matrix(1,3) = Tensor[1][1](0,1);
+		Matrix(1,4) = Tensor[1][1](0,2);
+		Matrix(1,5) = Tensor[1][1](1,2);
+		
+		Matrix(2,0) = Tensor[2][2](0,0); 
+		Matrix(2,1) = Tensor[2][2](1,1);
+		Matrix(2,2) = Tensor[2][2](2,2);
+		Matrix(2,3) = Tensor[2][2](0,1);
+		Matrix(2,4) = Tensor[2][2](0,2);
+		Matrix(2,5) = Tensor[2][2](1,2);
+		
+		Matrix(3,0) = Tensor[0][1](0,0);
+		Matrix(3,1) = Tensor[0][1](1,1);
+		Matrix(3,2) = Tensor[0][1](2,2);
+		Matrix(3,3) = Tensor[0][1](0,1);
+		Matrix(3,4) = Tensor[0][1](0,2);
+		Matrix(3,5) = Tensor[0][1](1,2);
+		
+		Matrix(4,0) = Tensor[0][2](0,0);
+		Matrix(4,1) = Tensor[0][2](1,1);
+		Matrix(4,2) = Tensor[0][2](2,2);
+		Matrix(4,3) = Tensor[0][2](0,1);
+		Matrix(4,4) = Tensor[0][2](0,2);
+		Matrix(4,5) = Tensor[0][2](1,2);
+		
+		Matrix(5,0) = Tensor[1][2](0,0);
+		Matrix(5,1) = Tensor[1][2](1,1);
+		Matrix(5,2) = Tensor[1][2](2,2);
+		Matrix(5,3) = Tensor[1][2](0,1);
+		Matrix(5,4) = Tensor[1][2](0,2);
+		Matrix(5,5) = Tensor[1][2](1,2);
+		}
+		else
+		{
+		// Tensor de cuarto orden cuyos componentes correspondes a una matriz de 2x2 
+	        if(Matrix.size1()!=3 || Matrix.size2()!=3)
+		Matrix.resize(3,3,false);
+		Matrix(0,0) = Tensor[0][0](0,0); Matrix(0,1) = Tensor[0][0](1,1); Matrix(0,2) = Tensor[0][0](0,1);
+                Matrix(1,0) = Tensor[1][1](0,0); Matrix(1,1) = Tensor[1][1](1,1); Matrix(1,2) = Tensor[1][1](0,1);
+                Matrix(2,0) = Tensor[0][1](0,0); Matrix(2,1) = Tensor[0][1](1,1); Matrix(2,2) = Tensor[0][1](0,1);
+               
+		}
+		return;
 		}
 
        /**
