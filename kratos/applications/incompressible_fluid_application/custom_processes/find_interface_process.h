@@ -165,7 +165,7 @@ namespace Kratos
 			array_1d<double, 3> vel2;
 
 
-			double x0, y0, x1, y1, x2, y2, xc, yc, l0, l1, l2, l, radius, x0_orig, x1_orig, y0_orig, y1_orig;
+			double x0, y0, x1, y1, x2, y2, xc, yc, l0, l1, l2, l, radius;
 			//PointVector IntersectionPoints;
 
 			std::vector<array_1d<double,3> > IntersectionPoints;
@@ -458,7 +458,7 @@ namespace Kratos
 		
 		inline bool IsAlreadyInList(array_1d<double,3>& current_point, std::vector<array_1d<double,3> >& IntersectionPointsList)
 		{
-		for (int i=0;i<IntersectionPointsList.size();i++)
+		for (unsigned int i=0;i<IntersectionPointsList.size();i++)
 			{
 			//temp=IntersectionPointsList[i];
 			if (std::equal(current_point.begin(), current_point.end(), IntersectionPointsList[i].begin()))

@@ -338,9 +338,9 @@ namespace Kratos
 			list_of_nodes.reserve(origin_model_part.Nodes().size());
 		
 			//number of IS_INTERFACE nodes
-			unsigned int n_int=0;
+			//unsigned int n_int=0;
 			//number of IS_BOUNDARY nodes
-			unsigned int n_b=0;
+			//unsigned int n_b=0;
 
 			ModelPart:: ConditionsContainerType list_of_conditions;
 
@@ -405,7 +405,7 @@ namespace Kratos
 						{
 						WeakPointerVector< Condition >& neighb_conds = (*i)->GetValue(NEIGHBOUR_CONDITIONS);
 						
-						for (int ii=0;ii<neighb_conds.size();ii++)
+						for (unsigned int ii=0;ii<neighb_conds.size();ii++)
 							{
 							//here we shall find whether 
 							x0_orig=neighb_conds[ii].GetGeometry()[0].X();
@@ -769,7 +769,7 @@ N);
 		
 		inline bool IsAlreadyInList(array_1d<double,3>& current_point, std::vector<array_1d<double,3> >& IntersectionPointsList)
 		{
-		for (int i=0;i<IntersectionPointsList.size();i++)
+		for (unsigned int i=0;i<IntersectionPointsList.size();i++)
 			{
 			//temp=IntersectionPointsList[i];
 			if (std::equal(current_point.begin(), current_point.end(), IntersectionPointsList[i].begin()))
