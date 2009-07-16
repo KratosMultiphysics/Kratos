@@ -50,7 +50,7 @@ namespace Kratos {
 		AddLinearSolvers();
 		AddStrategies();
         AddCustomIOToPython();
-        AddCustomUtilitiesTpPython();
+        AddCustomUtilitiesToPython();
 
         }
 
