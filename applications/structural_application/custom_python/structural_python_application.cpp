@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_parallel_strategies_to_python.h"
 #include "custom_python/add_conditions_to_python.h"
+#include "custom_python/add_fluency_criteria_to_python.h"
 
 namespace Kratos
 {
@@ -88,9 +89,10 @@ namespace Python
 	AddCustomStrategiesToPython();
 	AddConstitutiveLawsToPython();
 	AddCustomUtilitiesToPython();
-    AddCustomIOToPython();
+        AddCustomIOToPython();
 	AddCustomParallelStrategiesToPython();
-    AddCustomConditionsToPython();
+        AddCustomConditionsToPython();
+        AddFluencyCriteriaToPython();
 
 	//registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATRIX_A )
@@ -98,7 +100,6 @@ namespace Python
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATRIX_D )
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( COMPOSITE_DIRECTION )
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( GEOMETRIC_STIFFNESS )
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(DAMAGE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONTACT_PENETRATION )
 			
 	//KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(VAUX);
