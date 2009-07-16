@@ -62,10 +62,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
-#include "custom_utilities/Tensor_utils.h"
+#include "custom_utilities/tensor_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
-#include "structural_application.h"
 #include "includes/properties.h"
 
 
@@ -140,6 +139,7 @@ namespace Kratos
 	 Isotropic_Damage::Isotropic_Damage() 
 	: ConstitutiveLaw< Node<3> >()
 	{
+	      //mFluencyCriteria = FluencyCriteria;
 	}
 	/**
 	 *	TO BE TESTED!!!
@@ -229,7 +229,7 @@ namespace Kratos
   ml     = sqrt(fabs(geom.Area()));   // longitud del elemento
   mr_old = mFt/sqrt(mEc);
  // KRATOS_WATCH(geom.Area())
-
+  //mFluencyCriteria = props[FLUENCY_CRITERIA]->Clone();
 
 	}
 
@@ -272,12 +272,12 @@ void Isotropic_Damage::InitializeSolutionStep( const Properties& props,
 
 	void Isotropic_Damage::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& ConstitutiveMatrix)
 	{
-	      Vector StressVector;
-	      StressVector.resize(3, false);
-	      Isotropic_Damage::CalculateStress(StrainVector,StressVector);
-	      //Isotropic_Damage::CalculateNoDamageElasticMatrix(ConstitutiveMatrix,mEc,mNU);
+	      //Vector StressVector;
+	      //StressVector.resize(3, false);
+	      //Isotropic_Damage::CalculateStress(StrainVector,StressVector);
+	      Isotropic_Damage::CalculateNoDamageElasticMatrix(ConstitutiveMatrix,mEc,mNU);
 	      //KRATOS_WATCH(ConstitutiveMatrix);
-	      Isotropic_Damage::CalculateStressAndTangentMatrix(StressVector,StrainVector,ConstitutiveMatrix);
+	      //Isotropic_Damage::CalculateStressAndTangentMatrix(StressVector,StrainVector,ConstitutiveMatrix);
 	      //KRATOS_WATCH(ConstitutiveMatrix);
 
 		 
@@ -337,7 +337,7 @@ void Isotropic_Damage::InitializeSolutionStep( const Properties& props,
 
     else
     {
-    PrincipalStress  = SD_MathUtils<double>::EigneValues(StressTensor,crit, zero);
+    PrincipalStress  = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
     }
 
 			//Vector I(0); Vector J(0); Vector J_des(0);
@@ -468,11 +468,12 @@ void  Isotropic_Damage::FinalizeSolutionStep( const Properties& props,
    {
 			 // Using perturbation methods
                          long double delta_strain =  0.00;
-			 long double factor       =  1E-5;
-                         long double max          =  1E-10;
+			 long double factor       =  1E-10;
+                         long double max          =  1E-15;
                          double last_damage       =  md;
 			 double last_r            =  mr_new;
-                         //Vector StrainVectorPerturbation;
+                         
+			 //Vector StrainVectorPerturbation;
 			 //Vector StressVectorPerturbation;
 			 //Vector StrainVectorPerturbation_aux;
 			 //Vector StressVectorPerturbation_aux;
@@ -529,7 +530,7 @@ void  Isotropic_Damage::FinalizeSolutionStep( const Properties& props,
 				    for (unsigned int j = 0; j<StrainVectorPerturbation.size(); j++)
 					 {
 					    algorithmicTangent(j,i) = StressVectorPerturbation(j); 
-					 } 
+					 }
 				  
 				    md     = last_damage;
 				    mr_new = last_r;
