@@ -48,7 +48,7 @@ class StaticStructuralSolver:
 	## Varibles de Control de Arc Lenght Method
 	self.Ide                        = 20
 	self.factor_delta_lmax          = 1.00
-	self.toler                      = 1.0E-8
+	self.toler                      = 1.0E-9
         self.norm                       = 1.0E-6 
 	self.MaxIterations              = 100
        
@@ -63,8 +63,12 @@ class StaticStructuralSolver:
         #self.structure_linear_solver    =   IterativeSolver() 
 
         #definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(self.norm,self.toler)
-	#self.conv_criteria = ParallelDisplacementCriteria(0.000001,1e-9)
+        self.conv_Residual     = ResidualCriteria(0.000001,1E-9)
+	self.conv_Displacement = DisplacementCriteria(self.norm,self.toler)
+        self.conv_criteria     = ResDisCriteria(self.conv_Residual, self.conv_Displacement)
+	#self.conv_criteria    = ResidualDisplacementCriteria(self.norm,self.toler)
+	#self.conv_criteria     = DisplacementCriteria(self.norm,self.toler)
+	#self.conv_criteria    = ParallelDisplacementCriteria(0.000001,1e-9)
 
         #definition of the convergence criteria
        
