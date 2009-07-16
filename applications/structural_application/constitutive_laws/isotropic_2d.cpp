@@ -205,6 +205,15 @@ namespace Kratos
  //		C(2,0) = 0.0;	C(2,1) = 0.0;	C(2,2) = c3;
 //	KRATOS_WATCH("inside D")
  //	}
+
+	 void Isotropic2D::CalculateStressAndTangentMatrix(Vector& StressVector,
+                    const Vector& StrainVector,
+                    Matrix& algorithmicTangent)
+
+	  {
+		    Isotropic2D::CalculateConstitutiveMatrix(StrainVector, algorithmicTangent);
+	  }
+
 	/**
 	 *	TO BE REVIEWED!!!
 	 */
