@@ -314,7 +314,7 @@ namespace Kratos
 			array_1d<double, 3> vel2;
 
 
-			double x0, y0, x1, y1, x2, y2, xc, yc, l0, l1, l2, l, radius, x0_orig, x1_orig, y0_orig, y1_orig;
+			double x0, y0, x1, y1, x2, y2, xc, yc, l0, l1, l2, l, radius;//, x0_orig, x1_orig, y0_orig, y1_orig;
 			//PointVector IntersectionPoints;
 
 			std::vector<array_1d<double,3> > IntersectionPoints;
@@ -716,9 +716,9 @@ namespace Kratos
 			list_of_nodes.reserve(origin_model_part.Nodes().size());
 		
 			//number of IS_INTERFACE nodes
-			unsigned int n_int=0;
+			//unsigned int n_int=0;
 			//number of IS_BOUNDARY nodes
-			unsigned int n_b=0;
+			//unsigned int n_b=0;
 
 			ModelPart:: ConditionsContainerType list_of_conditions;
 
@@ -783,7 +783,7 @@ namespace Kratos
 						{
 						WeakPointerVector< Condition >& neighb_conds = (*i)->GetValue(NEIGHBOUR_CONDITIONS);
 						
-						for (int ii=0;ii<neighb_conds.size();ii++)
+						for (unsigned int ii=0;ii<neighb_conds.size();ii++)
 							{
 							//here we shall find whether 
 							x0_orig=neighb_conds[ii].GetGeometry()[0].X();
@@ -1200,7 +1200,7 @@ inline double CalculateVol(	const double x0, const double y0,
 		///////////////////////////////////////////////////////////////////////////////////////////
 		inline bool IsAlreadyInList(array_1d<double,3>& current_point, std::vector<array_1d<double,3> >& IntersectionPointsList)
 		{
-		for (int i=0;i<IntersectionPointsList.size();i++)
+		for (unsigned int i=0;i<IntersectionPointsList.size();i++)
 			{
 			//temp=IntersectionPointsList[i];
 			if (std::equal(current_point.begin(), current_point.end(), IntersectionPointsList[i].begin()))
