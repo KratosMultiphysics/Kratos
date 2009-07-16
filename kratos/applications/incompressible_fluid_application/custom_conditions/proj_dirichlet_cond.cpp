@@ -119,7 +119,7 @@ namespace Kratos
 			}
 
 		//here we fix the values of the nodes, that lie outside of origin fluid domain (i.e. IS_INTERFACE=0)
-		for (int i=0;i<GetGeometry().size();i++)
+		for (unsigned int i=0;i<GetGeometry().size();i++)
 			{
 			if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
 				{
@@ -472,7 +472,7 @@ namespace Kratos
 		//	
 		/////////////////////////////////////////////////////////////////////////////////////////
 		//now the case that a condition contains just one bad vertex
-		/*
+		
 		if (bad_vertex_index2<=2 || bad_vertex_index1<=2)
 		{
 		for (int i=0;i<GetGeometry().size();i++)
@@ -483,7 +483,7 @@ namespace Kratos
 			KRATOS_WATCH("Fixing the vel at bad vertices")
 			}
 		}
-		*/
+		
 
 		///////////////////////////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////
