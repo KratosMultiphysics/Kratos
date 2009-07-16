@@ -18,6 +18,7 @@
 #include "custom_python/add_trilinos_linear_solvers_to_python.h" 
 #include "custom_python/add_trilinos_strategies_to_python.h" 
 #include "custom_python/add_custom_io_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 ////utilities
 #include "python/pointer_vector_set_python_interface.h"
@@ -49,6 +50,7 @@ namespace Kratos {
 		AddLinearSolvers();
 		AddStrategies();
         AddCustomIOToPython();
+        AddCustomUtilitiesTpPython();
 
         }
 
