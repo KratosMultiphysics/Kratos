@@ -60,6 +60,8 @@ namespace Kratos
 {
     namespace Python
     {
+        using namespace boost::python;
+        
         void  AddCustomUtilitiesToPython()
         {
             class_<TrilinosDeactivationUtility, boost::noncopyable >
