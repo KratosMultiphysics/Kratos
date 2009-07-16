@@ -141,7 +141,7 @@ namespace Kratos
 //************************************************************************************	
 	 //check if divided
 // 	double is_divided = 0;
-      double toll = 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
+     // double toll =0.0;// 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 // 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 // 	array_1d<double,4> A_on_agp = ZeroVector(4);
 // 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
@@ -160,7 +160,7 @@ namespace Kratos
 
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= toll)
+		  if (dist_on_agp(i) <= 0.0)
 		  {
 // KRATOS_WATCH(this->Id())
 		        double Area = A_on_agp(i);
@@ -269,7 +269,7 @@ namespace Kratos
 //************************************************************************************	
 	 //check if divided
 /*	double is_divided =  0;*/
-	double toll = 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
+//	double toll =0.0;// 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 // 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 // 	array_1d<double,4> A_on_agp = ZeroVector(4);
 // 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
@@ -287,7 +287,7 @@ namespace Kratos
 		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= toll)
+		  if (dist_on_agp(i) <= 0.0)
 		  {
 		        double Area = A_on_agp(i);
 		      
@@ -354,7 +354,7 @@ namespace Kratos
 //************************************************************************************	
 	 //check if divided
 // 	double is_divided = 0;
-	double toll = 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
+	//double toll = 0.0;//0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 // 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 // 	array_1d<double,4> A_on_agp = ZeroVector(4);
 // 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
@@ -372,7 +372,7 @@ namespace Kratos
 		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= toll)
+		  if (dist_on_agp(i) <= 0.0)
 		  {
 
 		        double Area = A_on_agp(i);
@@ -542,6 +542,40 @@ namespace Kratos
 	}
 	//************************************************************************************
 	//************************************************************************************
+// 	 void Fluid2DSplit::CalculateDarcyTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double porosity,const double area)
+// 	 {
+// 		KRATOS_TRY
+// 		double dp = 0.01; //diameter of the particle	
+// 		KRATOS_CATCH("")
+// 	  }
+
+/*
+//porous contribution
+						double eps = mEps[i_node];
+						double dp = 0.01; //diameter of the particle	
+						double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
+						double norm_u_2 = 0.0;
+						for (unsigned int comp = 0; comp < TDim; comp++)
+							norm_u_2 = a_i[comp]*a_i[comp];
+// 							norm_u_2 = U_i[comp]*U_i[comp];
+
+						//CORRECTED Term
+						double nonlin_term = kinv * nu_i * eps + 1.75 * sqrt(norm_u_2 *  kinv / (eps * 150.0));
+						//ERROR IN WRITING THE NON LINEAR TERM//
+// 						double nonlin_term = kinv * nu_i * eps + 1.75 * norm_u_2  * sqrt(kinv / ( eps * 150.0));
+						for (unsigned int comp = 0; comp < TDim; comp++)
+							rhs_i[comp] -= m_i * nonlin_term * U_i[comp];*/
+
+
+
+
+
+
+
+
+
+	//************************************************************************************
+	//************************************************************************************
 	//Calculate the divergence and the gradient operators
 	void Fluid2DSplit::CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double time,const double area)
 	{
@@ -570,16 +604,16 @@ namespace Kratos
 	l_n(1,0) = -2.0 * area * DN_DX(1,0); l_n(1,1) = -2.0 * area * DN_DX(1,1); 
 	l_n(2,0) = -2.0 * area * DN_DX(2,0); l_n(2,1) = -2.0 * area * DN_DX(2,1);   
 
-	  const double& rho0 = 	GetGeometry()[0].FastGetSolutionStepValue(DENSITY,0);
-	  const double& rho1 =	GetGeometry()[1].FastGetSolutionStepValue(DENSITY,0);
-	  const double& rho2 =	GetGeometry()[2].FastGetSolutionStepValue(DENSITY,0);
-	  const double& eps0 = 	GetGeometry()[0].FastGetSolutionStepValue(POROSITY,0);
-	  const double& eps1 =	GetGeometry()[1].FastGetSolutionStepValue(POROSITY,0);
-	  const double& eps2 =	GetGeometry()[2].FastGetSolutionStepValue(POROSITY,0);
-	  array_1d<double,3> rho = ZeroVector(3);
-	 rho[0]= rho0 ; //* eps0;
-	 rho[1] = rho1 ; //* eps1;
-	 rho[2] = rho2 ; //* eps2;
+// 	  const double& rho0 = 	GetGeometry()[0].FastGetSolutionStepValue(DENSITY,0);
+// 	  const double& rho1 =	GetGeometry()[1].FastGetSolutionStepValue(DENSITY,0);
+// 	  const double& rho2 =	GetGeometry()[2].FastGetSolutionStepValue(DENSITY,0);
+// 	  const double& eps0 = 	GetGeometry()[0].FastGetSolutionStepValue(POROSITY,0);
+// 	  const double& eps1 =	GetGeometry()[1].FastGetSolutionStepValue(POROSITY,0);
+// 	  const double& eps2 =	GetGeometry()[2].FastGetSolutionStepValue(POROSITY,0);
+// 	  array_1d<double,3> rho = ZeroVector(3);
+// 	 rho[0]= rho0 ; //* eps0;
+// 	 rho[1] = rho1 ; //* eps1;
+// 	 rho[2] = rho2 ; //* eps2;
 
 
 
