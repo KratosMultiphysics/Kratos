@@ -63,7 +63,7 @@ namespace Kratos
         void  AddCustomUtilitiesToPython()
         {
             class_<TrilinosDeactivationUtility, boost::noncopyable >
-                    ("DeactivationUtility",
+                    ("TrilinosDeactivationUtility",
                      init<>() )
                     .def("Deactivate", &DeactivationUtility::Deactivate )
                     .def("Reactivate", &DeactivationUtility::Reactivate )
