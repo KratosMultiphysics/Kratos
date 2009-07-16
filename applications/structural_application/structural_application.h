@@ -378,7 +378,7 @@ namespace Kratos
                     mUnsaturatedSoilsElement3PhaseSmallStrain3D15N;
             const UnsaturatedSoilsElement_3phase_SmallStrain
                     mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
-            const Ebst Ebst3D3N;
+            const Ebst mEbst3D3N;
             
             const Face2D  mFace2D;
             const Face3D  mFace3D3N;

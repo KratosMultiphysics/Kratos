@@ -153,9 +153,9 @@ namespace Kratos
 		    work_array.push_back(index_k); 
                     for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
                     { 
-                        int index_l = i->GetDof(DISPLACEMENT_X).EquationId(); 
-			int index_r = i->GetDof(DISPLACEMENT_Y).EquationId(); 
-			int index_s = i->GetDof(DISPLACEMENT_Z).EquationId();
+                        unsigned int index_l = i->GetDof(DISPLACEMENT_X).EquationId();
+			unsigned int index_r = i->GetDof(DISPLACEMENT_Y).EquationId();
+			unsigned int index_s = i->GetDof(DISPLACEMENT_Z).EquationId();
                         if(index_l < mEquationSystemSize)
                             work_array.push_back(index_l);
                         if(index_r < mEquationSystemSize)

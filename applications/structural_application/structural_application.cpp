@@ -248,6 +248,8 @@ namespace Kratos
         mUnsaturatedSoilsElement3PhaseSmallStrain3D27N(0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27, Node<3>())))),
         mUnsaturatedSoilsElement3PhaseSmallStrain3D15N(0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15, Node<3>())))),
         mUnsaturatedSoilsElement3PhaseSmallStrain3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
+        mEbst3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+
         mFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
         mFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mFace3D6N(0, Element::GeometryType::Pointer(new Triangle2D6 <Node<3> >(Element::GeometryType::PointsArrayType(6, Node<3>())))),
@@ -264,8 +266,6 @@ namespace Kratos
         mFaceForce3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
         mFaceForce3D8N(0, Element::GeometryType::Pointer(new Quadrilateral3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mFaceForce3D9N(0, Element::GeometryType::Pointer(new Quadrilateral3D9 <Node<3> >(Element::GeometryType::PointsArrayType(9, Node<3>())))),
-        Ebst3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-
         mMasterContactFace3D(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
         mMasterContactFace3D3(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mMasterContactFace3D6(0, Element::GeometryType::Pointer(new Triangle2D6 <Node<3> >(Element::GeometryType::PointsArrayType(6, Node<3>())))),
@@ -454,6 +454,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D27N", mUnsaturatedSoilsElement3PhaseSmallStrain3D27N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D15N", mUnsaturatedSoilsElement3PhaseSmallStrain3D15N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D8N", mUnsaturatedSoilsElement3PhaseSmallStrain3D8N)
+        KRATOS_REGISTER_ELEMENT("Ebst3D3N", mEbst3D3N)
+
         KRATOS_REGISTER_CONDITION("Face2D", mFace2D)
         KRATOS_REGISTER_CONDITION("Face3D3N", mFace3D3N)
         KRATOS_REGISTER_CONDITION("Face3D6N", mFace3D6N)
