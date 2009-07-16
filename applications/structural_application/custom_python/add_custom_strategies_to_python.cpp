@@ -69,6 +69,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/convergencecriterias/multiphaseflow_criteria.h"
+#include "custom_strategies/convergencecriterias/residual_displacement_criteria.h"
+#include "custom_strategies/convergencecriterias/res_dis_criteria.h"
 // #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 //#include "solving_strategies/convergencecriterias/new_galerkin_displacement_criteria.h"
 
@@ -165,7 +167,10 @@ namespace Kratos
 	typedef InnerVolumetricDynamicScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType2D;
 	typedef InnerVolumetricDynamicScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType3D;
 
+	
 	typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
+	typedef ResidualCriteria < SparseSpaceType, LocalSpaceType >::Pointer TResidual;
+	typedef DisplacementCriteria < SparseSpaceType, LocalSpaceType>::Pointer TDisplacement;
 
 	
 // 					;
@@ -261,6 +266,17 @@ namespace Kratos
 				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int, double, double, double, double, bool, bool, bool, bool
 				>() )
 				;
+
+
+			class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
+			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+			         boost::noncopyable >
+			        ("ResidualDisplacementCriteria", init< double, double>() );
+
+			class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
+			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+			         boost::noncopyable >
+			        ("ResDisCriteria", init< TResidual,TDisplacement >());
 
            /*
            class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
