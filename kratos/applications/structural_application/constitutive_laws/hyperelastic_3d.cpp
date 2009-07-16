@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "constitutive_laws/hyperelastic_3d.h"
 #include "includes/constitutive_law.h" //nelson
-#include "custom_utilities/Tensor_utils.h" // nelson
+#include "custom_utilities/tensor_utils.h" // nelson
 #include "custom_utilities/sd_math_utils.h"
 #include "utilities/math_utils.h"
 #include "includes/variables.h"
