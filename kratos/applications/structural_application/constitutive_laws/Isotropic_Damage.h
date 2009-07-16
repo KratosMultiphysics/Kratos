@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "fluency_criteria/fluency_criteria.h"
 
 
 
@@ -76,14 +77,18 @@ namespace Kratos
 	class Isotropic_Damage : public ConstitutiveLaw<Node<3> >
 	{
 		public:
-			/**
-			 * Type Definitions
-			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;
+
+		      
+		        ///@name Type Definitions
+		        typedef ConstitutiveLaw<Node<3> > BaseType;
 			/**
 			 * Counted pointer of Isotropic_Damage
 			 */
 			typedef boost::shared_ptr<Isotropic_Damage> Pointer;
+
+			typedef FluencyCriteria FluencyCriteriaType; 
+
+                      
 			
 			/**
 			 * Life Cycle 
@@ -118,13 +123,13 @@ namespace Kratos
 			Vector GetValue( const Variable<Vector>& rThisVariable );
 			Matrix GetValue( const Variable<Matrix>& rThisVariable );
 			
-   void SetValue( const Variable<double>& rVariable, 
+			void SetValue( const Variable<double>& rVariable, 
                            const double& Value, 
                            const ProcessInfo& rCurrentProcessInfo );
-   void SetValue( const Variable<Vector>& rThisVariable, 
+			void SetValue( const Variable<Vector>& rThisVariable, 
                            const Vector& rValue, 
                            const ProcessInfo& rCurrentProcessInfo );
-   void SetValue( const Variable<Matrix>& rThisVariable, 
+			void SetValue( const Variable<Matrix>& rThisVariable, 
                            const Matrix& rValue, 
                            const ProcessInfo& rCurrentProcessInfo );
 			
@@ -168,24 +173,26 @@ namespace Kratos
   // d = variable de dano a calcular. 
  
 		
-		protected:
+		private:
+
 			/**
 			 * there are no protected class members
 			 */
-		private:
+		protected:
 			
 				// Atributos  Privados
-		  double mEc;
+    double mEc;
     double mEt; 
     double mFc;
     double mFt;
     double mGE;
     double mNU;
-				double ml;
+    double ml;
     double md;
     double mr_old;
     double mr_new; 
     double mArea;
+    FluencyCriteriaType mFluencyCriteria;
 
 			// Miembros Privados
    void CalculateNoDamageElasticMatrix(Matrix& C, const double E, const double NU);
