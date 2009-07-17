@@ -12,6 +12,7 @@ project StructuralApplication
        custom_utilities
        external_includes
        custom_external_libraries/tensor-cpp
+       fluency_criteria	
     :
     requirements <include>. 
 		<define>KRATOS_PYTHON
@@ -95,7 +96,13 @@ alias sources_KratosStructuralApplication
 	crisfield_truss_element.cpp
 	ebst.cpp
 #	orthotropic_3d.cpp
-#	
+        add_fluency_criteria_to_python.cpp
+        compose_material.cpp
+        plane_stress_damage_orthotropic_2d.cpp
+        energy_yield_function.cpp
+        rankine_yield_function.cpp
+        tresca_yield_function.cpp
+
 
 	#####################kratos library as defined in the jamroot
  #   	/kratos-prj/kratos//libkratos/<link>static
