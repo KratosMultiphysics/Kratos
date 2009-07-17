@@ -73,7 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
-//#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/residual_criteria.h"
 //#include "solving_strategies/convergencecriterias/and_criteria.h"
 
 //Builder And Solver
@@ -275,6 +275,11 @@ namespace Kratos
 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
 			         boost::noncopyable >
 			        ("DisplacementCriteria", init< double, double>() );
+
+			class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
+			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+			         boost::noncopyable >
+			        ("ResidualCriteria", init< double, double>() );
 			
 /*			class_< ResidualCriteria< SparseSpaceType >,
 			         bases<ConvergenceCriteria< SparseSpaceType > >,  
