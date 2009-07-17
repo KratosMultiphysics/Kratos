@@ -113,7 +113,7 @@ namespace Kratos
 	template<class TSparseSpace,
 	class TDenseSpace 
 	>
-	class DisplacementCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+	class DisplacementCriteria : virtual public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 	{
 	public:
 		/**@name Type Definitions */       
@@ -191,7 +191,7 @@ namespace Kratos
 //KRATOS_WATCH(mRatioTolerance)
 				std::cout << "DISPLACEMENT CRITERIA :: obtained tol = " << ratio << ";  expected ratio = " << mRatioTolerance << "absolute tol = " << AbsoluteNorm << std::endl;
 
-				if ( ratio <= mRatioTolerance || AbsoluteNorm<mAlwaysConvergedNorm ) // || (mFinalCorrectionNorm/x.size())<=1e-7) 
+				if ( ratio <= mRatioTolerance && AbsoluteNorm<mAlwaysConvergedNorm ) // || (mFinalCorrectionNorm/x.size())<=1e-7) 
 				{
 KRATOS_WATCH("convergence is achieved")
 					return true;
