@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2007-03-06 10:30:34 $
-*   Revision:            $Revision: 1.2 $
+*   Last Modified by:    $Author: antonia $
+*   Date:                $Date: 2008-06-20 18:20:16 $
+*   Revision:            $Revision: 1.7 $
 *
 * ***********************************************************/
 
@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/model_part.h"
 #include "includes/define.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
 {
@@ -110,32 +111,28 @@ namespace Kratos
 
 	*/
 	template<class TSparseSpace,
-	class TDenseSpace = DenseSpace<double>
+	class TDenseSpace 
 	>
-	class ResidualCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+	class ResidualCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 	{
 	public:
 		/**@name Type Definitions */       
 		/*@{ */
 
-		/** Counted pointer of ResidualCriteria */
-		typedef boost::shared_ptr< ResidualCriteria< TSparseSpace, TDenseSpace > > Pointer;		
+		//typedef boost::shared_ptr< DisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;		
+		KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
 		typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
+		typedef TSparseSpace SparseSpaceType;
+
 		typedef typename BaseType::TDataType TDataType;
 
-		typedef typename BaseType::DofSetType DofSetType;
-
-		//    typedef typename BaseType::DofArrayType DofArrayType;
+		typedef typename BaseType::DofsArrayType DofsArrayType;
 
 		typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
 		typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-		//    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-		//    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
 		/*@} */
 		/**@name Life Cycle 
@@ -144,21 +141,16 @@ namespace Kratos
 
 		/** Constructor.
 		*/
-
-
-		ResidualCriteria(Model::Pointer pNewModel,
-			TDataType NewRatioTolerance)
-			: ConvergenceCriteria< TSparseSpace, TDenseSpace >(pNewModel)
+		ResidualCriteria(
+			TDataType NewRatioTolerance,
+			TDataType AlwaysConvergedNorm)
+			: ConvergenceCriteria< TSparseSpace, TDenseSpace >()
 		{
-			mRatioTolerance = NewRatioTolerance;
+			mRatioTolerance       = NewRatioTolerance;
+			mAlwaysConvergedNorm  = AlwaysConvergedNorm;
+			mInitialResidualIsSet = false;
 
-			//if the norm is smaller than this, convergence is considered achieved
-			mAlwaysConvergedNorm = 1e-7;
-
-			//this criteria needs the recalculation of the residual!!
-			SetActualizeRHSFlag(true);
-
-			mInitialResidualIsSet=false;
+			//mActualizeRHSIsNeeded = false;
 		}
 
 		/** Destructor.
@@ -173,43 +165,43 @@ namespace Kratos
 
 		/*Criterias that need to be called after getting the solution */
 		bool PostCriteria(
-			const String& ElementGroupName,
-			DofSetType& rDofSet,
+			ModelPart& r_model_part,
+			DofsArrayType& rDofSet,
 			const TSystemMatrixType& A,
 			const TSystemVectorType& Dx,
-			const TSystemVectorType& b,
-			const ProcessInfo& CurrentProcessInfo
+			const TSystemVectorType& b
 			)
 		{
-
-			if (Dx.size() != 0) //if we are solving for something
+		if (b.size() != 0) //if we are solving for something
 			{
-				int It = CurrentProcessInfo.GetNonLinearIterationNumber();
 
 				if (mInitialResidualIsSet == false)
 				{
-					mInitialResidualNorm = sqrt(std::inner_product(b.begin(),b.end(),b.begin(),TDataType()));
+					mInitialResidualNorm = 1.00; //TSparseSpace::TwoNorm(b);
 					mCurrentResidualNorm = mInitialResidualNorm;
 					mInitialResidualIsSet = true;
+					//KRATOS_WATCH(mInitialResidualNorm)
 				}
 				else 
 				{
 					//std::cout << "B = " << b << std::endl;
-					mCurrentResidualNorm = sqrt(std::inner_product(b.begin(),b.end(),b.begin(),TDataType()));
+					mCurrentResidualNorm = TSparseSpace::TwoNorm(b);
 				}
 
 
 				TDataType ratio;
+                                //KRATOS_WATCH(mCurrentResidualNorm)
+				
 
 				if(mInitialResidualNorm == 0.00) ratio = 0.00;
 
 				else ratio = mCurrentResidualNorm/mInitialResidualNorm;
 
 				double b_size = b.size();
-				std::cout << "RESIDUAL CRITERIA :: ratio = " << ratio << "norm value = " << (mCurrentResidualNorm/sqrt(b_size)) << std::endl;
+				std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio << "Norm Value = " << (mCurrentResidualNorm/sqrt(b_size)) << std::endl;
 				if ( 
 					ratio <= mRatioTolerance 
-					|| 
+					and 
 					(mCurrentResidualNorm/sqrt(b_size))<mAlwaysConvergedNorm
 					)  
 				{
@@ -227,39 +219,55 @@ namespace Kratos
 		}
 
 
-		virtual void InitializeSolutionStep(
-			const String& ElementGroupName,
-			DofSetType& rDofSet,
+		void Initialize(
+			ModelPart& r_model_part
+			) 
+		{
+			BaseType::mConvergenceCriteriaIsInitialized = true;
+		}
+
+		void InitializeSolutionStep(
+			ModelPart& r_model_part,
+			DofsArrayType& rDofSet,
 			const TSystemMatrixType& A,
 			const TSystemVectorType& Dx,
-			const TSystemVectorType& b,
-			const ProcessInfo& CurrentProcessInfo
+			const TSystemVectorType& b
 			)
-		{mInitialResidualIsSet = false;}
+		{
+		mInitialResidualIsSet = false;
+		}
+
+		void FinalizeSolutionStep(
+			ModelPart& r_model_part,
+			DofsArrayType& rDofSet,
+			const TSystemMatrixType& A,
+			const TSystemVectorType& Dx,
+			const TSystemVectorType& b
+			){}
 
 
 
-		/*@} */
-		/**@name Operations */
-		/*@{ */
+			/*@} */
+			/**@name Operations */
+			/*@{ */
 
 
-		/*@} */  
-		/**@name Access */
-		/*@{ */
+			/*@} */  
+			/**@name Access */
+			/*@{ */
 
 
-		/*@} */
-		/**@name Inquiry */
-		/*@{ */
+			/*@} */
+			/**@name Inquiry */
+			/*@{ */
 
 
-		/*@} */      
-		/**@name Friends */
-		/*@{ */
+			/*@} */      
+			/**@name Friends */
+			/*@{ */
 
 
-		/*@} */
+			/*@} */
 
 	protected:
 		/**@name Protected static Member Variables */
@@ -308,6 +316,7 @@ namespace Kratos
 		/**@name Member Variables */
 		/*@{ */
 
+		
 		bool mInitialResidualIsSet;
 
 		TDataType mRatioTolerance;
@@ -320,10 +329,10 @@ namespace Kratos
 
 		TDataType mAlwaysConvergedNorm;
 
+		TDataType mReferenceDispNorm;
 		/*@} */
 		/**@name Private Operators*/
 		/*@{ */
-
 
 		/*@} */
 		/**@name Private Operations*/
@@ -359,5 +368,5 @@ namespace Kratos
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_RESIDUAL_CRITERIA  defined */
+#endif /* KRATOS_NEW_DISPLACEMENT_CRITERIA  defined */
 
