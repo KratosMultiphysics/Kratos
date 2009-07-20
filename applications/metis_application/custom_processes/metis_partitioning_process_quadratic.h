@@ -496,34 +496,22 @@ namespace Kratos
             //handle quadratic elements
             if( quadratic_type != 0 )
             {
-                //store condensed list of edge nodes
-                idxtype* elmnts_original_node_ids = new idxtype[connectivity_size];
-                std::vector<idxtype> edge_nodes;
-                
-                //store connectivity in edge nodes
+                idxtype index = 0;
+                idxtype* new_node_index = new idxtype[NumberOfNodes];
+                for( unsigned int k=0; k<NumberOfNodes; k++ )
+                    new_node_index[k] = NumberOfNodes+1;
                 for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ; i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
+                {
                     for(int j = 0 ; j < quadratic_type ; j++)
-                        elmnts_original_node_ids[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
-                
-                //collecting edge nodes
-                for( unsigned int i=0; i<connectivity_size; i++ )
-                {
-                    edge_nodes.push_back(elmnts_original_node_ids[i]);
+                    {
+                        std::cout << "real index: " << (*i_connectivities)[j] << std::endl;
+                        std::cout << "new_node_index: " << new_node_index[(*i_connectivities)[j]] << std::endl;
+                        if( new_node_index[(*i_connectivities)[j]-1] == NumberOfNodes+1 )
+                            new_node_index[(*i_connectivities)[j]-1] = index++;
+                        elmnts[i++] = new_node_index[(*i_connectivities)[j]-1]; // transforming to zero base indexing
+                    }
                 }
-                //std::cout << "############ before unique: number of nodes: " << edge_nodes.size() << " nn=" << nn << std::endl;
-                //making edge nodes container unique
-                std::sort(edge_nodes.begin(), edge_nodes.end());
-                std::vector<idxtype>::iterator newend = std::unique(edge_nodes.begin(), edge_nodes.end());
-                edge_nodes.erase(newend, edge_nodes.end());
-                //std::cout << "############ after unique: number of nodes: " << edge_nodes.size() << std::endl;
-                //update number of nodes
-                nn = edge_nodes.size();
-                
-                //convert indices
-                for( unsigned int i=0; i<connectivity_size; i++ )
-                {
-                    elmnts[i] = std::distance(std::find(edge_nodes.begin(), edge_nodes.end(), elmnts_original_node_ids[i]), edge_nodes.end()) -1;
-                }
+                nn = index;
                 
                 mLogFile << rank << " : Calling metis..." << std::endl;
                 // Calling Metis to partition
@@ -540,10 +528,6 @@ namespace Kratos
                         NPart[(ElementsConnectivities[i][j]-1)] = EPart[i]; // transforming to zero base indexing
                 }
                 
-                //deallocate memory
-                delete[] elmnts_original_node_ids;
-                delete[] elmnts;
-                
             }//end quadratic branch
             else //linear branch
             {
@@ -557,9 +541,9 @@ namespace Kratos
                 METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
                 mLogFile << rank << " : Metis Finished!!!" << std::endl;
                 mLogFile << rank << " :     edgecut = " << edgecut << std::endl;
-                //deallocate memory
-                delete[] elmnts;
             }
+            //deallocate memory
+            delete[] elmnts;
         }
 
             void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
