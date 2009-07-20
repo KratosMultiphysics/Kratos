@@ -284,8 +284,8 @@ namespace Kratos
       double density =0;
       double K =0;
 	    /*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-	    density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-	    K = 0.3333333333333333333333*(k0 + k1 + k2 );*/
+	    density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
+	    K = 0.3333333333333333333333*(k0 + k1 + k2 );
 
      if(j==3){
 	    nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
@@ -296,7 +296,7 @@ namespace Kratos
 	}
 	 else{
 
-		if(f0a == 1) {
+		/*if(f0a == 1) {
 			GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE)= 1;
  		}
 
@@ -307,21 +307,30 @@ namespace Kratos
 		if(f2a == 1) {
 			GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE)= 1;
  		}
-
-			nu = 1;
-			//nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-			density = 1; //0.3333333333333333333333*(rho0 + rho1 + rho2 );
-			//K = 0.3333333333333333333333*(k0 + k1 + k2 );
-			K= 100000;		
+		*/
+		 	/*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+		    	density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
+			nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+	    		density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+	    		K = 0.3333333333333333333333*(k0 + k1 + k2 );
+		    	/*K = 0.3333333333333333333333*(k0 + k1 + k2 );	*/		
+			nu = 0.001;
+			density = 1.3; //0.3333333333333333333333*(rho0 + rho1 + rho2 );
+			/*K= 100000;*/	
+		
 		}
+	/*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+	density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+	K = 0.3333333333333333333333*(k0 + k1 + k2 );	*/
+	/*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+	density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+	K = 0.3333333333333333333333*(k0 + k1 + k2 );*/
 
-
-	T = 0.3333333333333333333333*(T0 + T1 + T2 );
      const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
     	
     //nu=0;
-//		noalias(msDN_DX)=prod(msDN_DX,mInvJ[0]);
-     //msDN_DX=prod(msDN_DX,Jinvv);
+    //noalias(msDN_DX)=prod(msDN_DX,mInvJ[0]);
+    //msDN_DX=prod(msDN_DX,Jinvv);
 
     double k=K/BDFcoeffs[0];
 
@@ -453,22 +462,22 @@ namespace Kratos
   // this subroutine calculates the nodal contributions for the explicit steps of the 
   // fractional step procedure
   void QFluid2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
-  {
-	  KRATOS_TRY
-	    int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
+  	{
+	KRATOS_TRY
+	int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 	  
-	  //getting data for the given geometry
-	  double Area;
-	  GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
-	  if(FractionalStepNumber == 6) //calculation of velocities
-	    {
+	//getting data for the given geometry
+	double Area;
+	GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
+	if(FractionalStepNumber == 6) //calculation of velocities
+	{
 	      
 	      //Calculo de la presion
-	      const unsigned int number_of_nodes = GetGeometry().size();
-	      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-	      const unsigned int dim = 2;
-	      const Vector& BDFcoeffs = CurrentProcessInfo[BDF_COEFFICIENTS];
-	      int n=0; int j=0;
+		const unsigned int number_of_nodes = GetGeometry().size();
+	      	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+	      	const unsigned int dim = 2;
+	      	const Vector& BDFcoeffs = CurrentProcessInfo[BDF_COEFFICIENTS];
+	      	int n=0; int j=0;
 		//deformation gradient
  		noalias(msF)= ZeroMatrix(2,2);
  
@@ -560,112 +569,156 @@ namespace Kratos
 	      double Aver = 0.33333333333333*(A0 + A1 + A2 );
 	      double K = 0.33333333333333*(k0 + k1 + k2 );
 	      double k=K/BDFcoeffs[0];
-	      if(n==3){
-		GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += 0;
-		GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += 0;
-         	GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS)+=0; 
-		
- 	   	double nodal_contrib = 0.33333333333333 * Area;
- 	   	GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += 0;
- 	   	GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += 0;
- 	   	GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += 0;
-	   		}
-	      else			
+	      if(n==3)
+		{
+			GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += 0;
+			GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += 0;
+         		GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS) +=0; 
+			GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 
+			GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 
+			GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 		
+
+
+ 	   		double nodal_contrib = 0.33333333333333 * Area;
+ 	   		GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += 0;
+ 	   		GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += 0;
+ 	   		GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += 0;
+			GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
+			GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
+			GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
+
+
+	   	}
+		else			
 		{		  
-		  double aux0=0;
-		  double aux1=0;
-		  double aux2=0;
-		  if(j==3){
-		  double Gaux;
-		  k=100000/BDFcoeffs[0]; /*Aver=0;*/
-		  double p_avg = p0old + p1old + p2old;
-	          p_avg *= 0.33333333333333 ;
-		  Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1]; //LO COMENTE YO
-		  Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
-		  Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
-		  aux0 = - Gaux * msN[0] * k + p_avg * msN[0] + Aver * msN[0] * k; 
-		  aux1 = - Gaux * msN[1] * k + p_avg * msN[1] + Aver * msN[1] * k; 
-		  aux2 = - Gaux * msN[2] * k + p_avg * msN[2] + Aver * msN[2] * k; 
+		  	double aux0=0;
+		  	double aux1=0;
+		  	double aux2=0;
+		  	if(j==3)
+			{
+		  		double Gaux;
+		  		//k=100000/BDFcoeffs[0]; /*Aver=0;*/
+		  		double p_avg = p0old + p1old + p2old;
+	          		p_avg *= 0.33333333333333 ;
+		  		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1]; //LO COMENTE YO
+		  		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
+		  		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
+		  		aux0 = - Gaux * msN[0] * k + p_avg * msN[0] + Aver * msN[0] * k; 
+		  		aux1 = - Gaux * msN[1] * k + p_avg * msN[1] + Aver * msN[1] * k; 
+		  		aux2 = - Gaux * msN[2] * k + p_avg * msN[2] + Aver * msN[2] * k; 
 		  
-		  GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += aux0 * Area;
-		  GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += aux1 * Area;
-		  GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS) += aux2 * Area;		    	  
+		 	 	GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += aux0 * Area;
+		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += aux1 * Area;
+		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS) += aux2 * Area;		    	  
 		  
-		  double nodal_contrib = 0.33333333333333 * Area;
-		  
-		  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		  GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		  GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-  		}
-		else{
+		  		double nodal_contrib = 0.33333333333333 * Area;
+		  	
+		  		GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+  			}
+			else
+			{
 		    	// k=100000/BDFcoeffs[0]; 
-			k=100000/BDFcoeffs[0];
+				//k=100000/BDFcoeffs[0];
 	
-			double Gaux;
-			double p_avg = p0oldaux + p1oldaux + p2oldaux;
-	        	p_avg *= 0.33333333333333 ;
+				double Gaux;
+				double p_avg = p0oldaux + p1oldaux + p2oldaux;
+	        		p_avg *= 0.33333333333333 ;
 		  		//aqui genera masa
 
 //////////////////////////
- 			double Aver0 = 0; double  Aver1 = 0; double Aver2 = 0;
+ 				double Aver0 = 0; double  Aver1 = 0; double Aver2 = 0;
 			/*Aver=0;*/	int s=0;
-			if(f0a == 2) {
-			//Aver0 = A00 ; 
-			s++;
-			}
-			
-			if(f1a == 2) {
-			//Aver1 = A11 ;
-			s++;
-			}
-
-			if(f2a == 2) {
-			//Aver2 = A22 ;
-			s++;
-			}
-			if(s==2){
-			double pelotudo;
-			pelotudo=0;
-			}
-			if(s==1){
-			double pelotudo1;
-			pelotudo1=0;
-			}
-			if(s==0){
-			double pelotudo2;
-			pelotudo2=0;
-			}
-			Aver = A00 + A11 + A22; //Aver0 + Aver1 + Aver2;	
+						
+				Aver = A00 + A11 + A22; //Aver0 + Aver1 + Aver2;	
 			//Aver /= s;
-			Aver *= 0.33333333333333 ;
-			Aver *= -1;
+				Aver *= 0.33333333333333 ;
+				Aver *= -1;
 
 //////////////////////////
 
-		  	Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1]; //LO COMENTE YO
-		  	Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
-		  	Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
-		  	aux0 = - Gaux * msN[0] * k + p_avg * msN[0] + Aver * msN[0] * k; 
-		  	aux1 = - Gaux * msN[1] * k + p_avg * msN[1] + Aver * msN[1] * k; 
-		  	aux2 = - Gaux * msN[2] * k + p_avg * msN[2] + Aver * msN[2] * k; 
+		  		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1]; //LO COMENTE YO
+		  		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
+		  		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
+		  		aux0 = - Gaux * msN[0] * k + p_avg * msN[0] + Aver * msN[0] * k; 
+		  		aux1 = - Gaux * msN[1] * k + p_avg * msN[1] + Aver * msN[1] * k; 
+		  		aux2 = - Gaux * msN[2] * k + p_avg * msN[2] + Aver * msN[2] * k; 
 		  
-		  	GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux0 * Area;
-		  	GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux1 * Area;
-		  	GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux2 * Area;		    	  
+		  		GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux0 * Area;
+		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux1 * Area;
+		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux2 * Area;		    	  
 		  
-		  	double nodal_contribp = 0.33333333333333 * Area;
+		  		double nodal_contribp = 0.33333333333333 * Area;
 		  
-			double SS1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX); 
-			double SS2 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX); 
-			double SS3 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX); 
+				double SS1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX); 
+				double SS2 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX); 
+				double SS3 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX); 
 		
-			double ll1=GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
-			double ll2=GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
-			double ll3=GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
+				double ll1=GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
+				double ll2=GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
+				double ll3=GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
 			}
 		}
-	}
-	  KRATOS_CATCH("");
+		}
+		else if(FractionalStepNumber == 5)
+		{
+	      		const Vector& BDFcoeffs = CurrentProcessInfo[BDF_COEFFICIENTS];
+	      		int n=0; int j=0;
+		
+			double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX);
+			double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
+	      		const double rho0old = GetGeometry()[0].FastGetSolutionStepValue(DENSITY,1);
+	      		const int f0i = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE); 
+	      		const int f0a = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE); 
+      	      		const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
+	      		if(f0i) n++;
+	      		if(f0a==1) j++;
+
+
+	      		double& p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX);
+	        	double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
+	  		const double rho1old = GetGeometry()[1].FastGetSolutionStepValue(DENSITY,1);
+	        	const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
+	      		const int f1i = GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);  
+	      		const int f1a = GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE); 
+	      		if(f1i) n++;
+	      		if(f1a==1) j++;
+
+
+			double& p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX);
+	      		double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
+	      		const double rho2old = GetGeometry()[2].FastGetSolutionStepValue(DENSITY,1);
+	      		const int f2i = GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);    
+	      		const int f2a = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE); 
+			const double k2 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);	     
+	      		if(f2i) n++;
+	      		if(f2a==1) j++;	
+
+
+	      		double densityold = 0.33333333333333333333333*(rho0old + rho1old + rho2old);
+	      		double p_avg = 0.33333333333333333333333*(p0 + p1 + p2);
+			double p_avg_1 = 0.33333333333333333333333*(p0old + p1old + p2old);
+	      		double K = 0.33333333333333*(k0 + k1 + k2 );
+	      		double k=K/BDFcoeffs[0];
+	       		
+	
+	  		double aux0=0;
+		  	double aux1=0;
+		  	double aux2=0;
+		  	if(j<3){
+		  		double Gaux;
+		  		k=100000/*/BDFcoeffs[0]*/; /*Aver=0;*/
+				aux0 =  (densityold/k) * (p_avg-p_avg_1) * msN[0] + densityold * msN[0]; 
+		  		aux1 =  (densityold/k) * (p_avg-p_avg_1) * msN[1] + densityold * msN[1]; 
+		  		aux2 =  (densityold/k) * (p_avg-p_avg_1) * msN[2] + densityold * msN[2]; 
+		  
+		  		GetGeometry()[0].FastGetSolutionStepValue(NODAL_DENSITYAUX) += aux0 * Area;
+		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_DENSITYAUX) += aux1 * Area;
+		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_DENSITYAUX) += aux2 * Area;		    	  
+				}
+		}
+	KRATOS_CATCH("");
 }  
   //************************************************************************************
   //************************************************************************************
