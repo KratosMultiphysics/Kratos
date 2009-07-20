@@ -492,8 +492,6 @@ KRATOS_WATCH(rDomainsGraph)
                 {
                     for(int j = 0 ; j < quadratic_type ; j++)
                     {
-                        std::cout << "real index: " << (*i_connectivities)[j] << std::endl;
-                        std::cout << "new_node_index: " << new_node_index[(*i_connectivities)[j]] << std::endl;
                         if( new_node_index[(*i_connectivities)[j]-1] == NumberOfNodes+1 )
                             new_node_index[(*i_connectivities)[j]-1] = index++;
                         elmnts[i++] = new_node_index[(*i_connectivities)[j]-1]; // transforming to zero base indexing
@@ -506,8 +504,6 @@ KRATOS_WATCH(rDomainsGraph)
                 METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
                 mLogFile << rank << " : Metis Finished!!!" << std::endl;
                 mLogFile << rank << " :     edgecut = " << edgecut << std::endl;
-                
-                std::cout << "#### METIS FOR QUADRATIC ELEMENTS SUCCESSFULLY FINISHED" << std::endl;
                 
                 //distribution of nodeal partition indices by elemental partition indices
                 for(unsigned int i=0; i<NumberOfElements; i++)
