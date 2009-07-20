@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_processes/metis_partitioning_process.h" 
 #include "custom_processes/metis_contact_partitioning_process.h" 
+#include "custom_processes/metis_partitioning_process_quadratic.h"
 
 
 namespace Kratos
@@ -99,6 +100,11 @@ namespace Python
 							    init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
 	    .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
 		 ;
+                                
+      class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic",
+              init<ModelPart&, IO&, unsigned int, unsigned int>())
+                 .def(init<ModelPart&, IO&, unsigned int>())
+         ;
 
 	  def("GetRank", GetRank);
 
