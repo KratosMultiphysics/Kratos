@@ -429,62 +429,126 @@ KRATOS_WATCH(rDomainsGraph)
 		///@} 
 		///@name Protected Operations
 		///@{ 
-
-	        void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
-	        {
-		  int rank = GetRank();
-
-		  // calculating total size of connectivity vector 
-		  int connectivity_size = 0;
-		  for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ;
-		      i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-		    connectivity_size += i_connectivities->size();
-
-		  int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
-		  
-		  int ne = NumberOfElements;
-		  int nn = NumberOfNodes;
-
-
-
-		  int etype; 
-		  if(number_of_element_nodes == 3) // triangles
-		    etype = 1;
-		  else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
-		    {
-		      if(mDimension == 2) // quadilateral
-			etype = 4; 
-		      else  // tetrahedra
-			etype = 2;
-		    }
-		  else if(number_of_element_nodes == 8) // hexahedra
-		    etype = 3;
-		  else
-		    KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
-		  
-		  int numflag = 0;
-		  int number_of_partitions = static_cast<int>(mNumberOfPartitions) - 1; // we reserve one partition for contact
-		  int edgecut;
-		  
-		  idxtype* elmnts = new idxtype[connectivity_size];
-		  
-		  mLogFile << rank << " : Preparing Data for metis..." << std::endl;
-		  int i = 0;
-		  // Creating the elmnts array for Metis
-		  for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ; 
-		      i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-		    for(unsigned int j = 0 ; j < i_connectivities->size() ; j++)
-		      elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
-		  
-		  mLogFile << rank << " : Calling metis..." << std::endl;
-		  // Calling Metis to partition
-		  METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
-		  mLogFile << rank << " : Metis Finished!!!" << std::endl;
-		  mLogFile << rank << " :     edgecut = " << edgecut << std::endl;
-		  
-		  delete[] elmnts;
-		  
-		}
+        
+        void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
+        {
+            int rank = GetRank();
+            
+            // calculating total size of connectivity vector 
+            int connectivity_size = 0;
+            for( IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin(); i_connectivities != ElementsConnectivities.end(); i_connectivities++ )
+                connectivity_size += i_connectivities->size();
+            
+            int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
+            
+            int ne = NumberOfElements;
+            int nn = NumberOfNodes;
+            
+            int quadratic_type = 0;
+            int etype; 
+            if(number_of_element_nodes == 3) // triangles
+                etype = 1;
+            else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
+            {
+                if(mDimension == 2) // quadilateral
+                    etype = 4; 
+                else  // tetrahedra
+                    etype = 2;
+            }
+            else if(number_of_element_nodes == 10) //quadratic tetrahedra
+            {
+                etype = 2;
+                quadratic_type = 4;
+                connectivity_size = ne*quadratic_type;
+            }
+            else if(number_of_element_nodes == 8) // hexahedra
+                etype = 3;
+            else if(number_of_element_nodes == 20 || number_of_element_nodes == 27) //quadratic hexahedra
+            {
+                etype = 3;
+                quadratic_type = 8;
+                connectivity_size = ne*quadratic_type;
+            }
+            else
+                KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
+            
+            int numflag = 0;
+            int number_of_partitions = static_cast<int>(mNumberOfPartitions) - 1; // we reserve one partition for contact
+            int edgecut;
+            
+            idxtype* elmnts = new idxtype[connectivity_size];
+            
+            mLogFile << rank << " : Preparing Data for metis..." << std::endl;
+            int i = 0;
+            
+            //handle quadratic elements
+            if( quadratic_type != 0 )
+            {
+                //store condensed list of edge nodes
+                idxtype* elmnts_original_node_ids = new idxtype[connectivity_size];
+                std::vector<idxtype> edge_nodes;
+                
+                //store connectivity in edge nodes
+                for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ; i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
+                    for(int j = 0 ; j < quadratic_type ; j++)
+                        elmnts_original_node_ids[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
+                
+                //collecting edge nodes
+                for( unsigned int i=0; i<connectivity_size; i++ )
+                {
+                    edge_nodes.push_back(elmnts_original_node_ids[i]);
+                }
+                //std::cout << "############ before unique: number of nodes: " << edge_nodes.size() << " nn=" << nn << std::endl;
+                //making edge nodes container unique
+                std::sort(edge_nodes.begin(), edge_nodes.end());
+                std::vector<idxtype>::iterator newend = std::unique(edge_nodes.begin(), edge_nodes.end());
+                edge_nodes.erase(newend, edge_nodes.end());
+                //std::cout << "############ after unique: number of nodes: " << edge_nodes.size() << std::endl;
+                //update number of nodes
+                nn = edge_nodes.size();
+                
+                //convert indices
+                for( unsigned int i=0; i<connectivity_size; i++ )
+                {
+                    elmnts[i] = std::distance(std::find(edge_nodes.begin(), edge_nodes.end(), elmnts_original_node_ids[i]), edge_nodes.end()) -1;
+                }
+                
+                mLogFile << rank << " : Calling metis..." << std::endl;
+                // Calling Metis to partition
+                METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+                mLogFile << rank << " : Metis Finished!!!" << std::endl;
+                mLogFile << rank << " :     edgecut = " << edgecut << std::endl;
+                
+                std::cout << "#### METIS FOR QUADRATIC ELEMENTS SUCCESSFULLY FINISHED" << std::endl;
+                
+                //distribution of nodeal partition indices by elemental partition indices
+                for(unsigned int i=0; i<NumberOfElements; i++)
+                {
+                    for(unsigned int j = 0 ; j < ElementsConnectivities[i].size() ; j++)
+                        NPart[(ElementsConnectivities[i][j]-1)] = EPart[i]; // transforming to zero base indexing
+                }
+                
+                //deallocate memory
+                delete[] elmnts_original_node_ids;
+                delete[] elmnts;
+                
+            }//end quadratic branch
+            else //linear branch
+            {
+                // Creating the elmnts array for Metis
+                for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin(); i_connectivities != ElementsConnectivities.end(); i_connectivities++)
+                    for(unsigned int j = 0 ; j < i_connectivities->size() ; j++)
+                        elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
+                
+                mLogFile << rank << " : Calling metis..." << std::endl;
+                // Calling Metis to partition
+                METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+                mLogFile << rank << " : Metis Finished!!!" << std::endl;
+                mLogFile << rank << " :     edgecut = " << edgecut << std::endl;
+                
+                delete[] elmnts;
+            }
+        }
 
 /*	        void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
 	        {
