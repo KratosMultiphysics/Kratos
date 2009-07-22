@@ -82,6 +82,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_parallel_strategies_to_python.h"
 #include "add_parallel_linear_solvers_to_python.h"
 
+#include "add_matrix_market_interface_to_python.h"
+
 namespace Kratos
 { 
 
@@ -135,6 +137,7 @@ namespace Python
 
 	AddParallelStrategiesToPython();
 	AddParallelLinearSolversToPython();
+	AddMatrixMarketInterfaceToPython();
 
     def("Hello", greet);
   }

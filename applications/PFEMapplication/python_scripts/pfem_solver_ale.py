@@ -68,7 +68,7 @@ class PFEMSolver:
 #            self.Mesher = TriGenModeler()
             self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
         elif (domain_size == 3):
-            self.Mesher = TetGenModeler()
+            self.Mesher = TetGenPfemModeler()
             self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
 
         self.Hfinder  = FindNodalHProcess(model_part);  
@@ -184,7 +184,7 @@ class PFEMSolver:
         if(self.domain_size==2):
             (self.Mesher).ReGenerateMesh("Fluid2D","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape, self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape, self.h_factor)
+            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape, self.h_factor)
             
 #        (self.Mesher).ReGenerateMesh(self.model_part,self.alpha_shape)
         print "remeshing in initalize performed succesfully"
@@ -340,7 +340,7 @@ class PFEMSolver:
         if(self.domain_size==2):
             (self.Mesher).ReGenerateMesh("Fluid2D","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape,self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape,self.h_factor)
+            (self.Mesher).ReGenerateMesh("Fluid3D","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape, self.h_factor)
 
         print self.model_part
 

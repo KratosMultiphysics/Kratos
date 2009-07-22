@@ -933,13 +933,14 @@ class part(base):
             line=line[2:]
             mode='3D'
         condition=line.pop(0)
-        # The entities are optinal here, and can be used to specify that a condition will only be applied for some of the entities
+        
+        # The entities are optional here, and can be used to specify that a condition will only be applied for some of the entities
         # where it's available
         ents,line,stop=read_entities(line,numline,empty_is_error=False)
         if len(ents)==0:
             ents=('point','line','surface','volume')
         defvalues=condition_dictionary[condition].parseinput(line)
-
+        
         # Initiate an instance of the condition's class, to be able to access its valuestring method
         cond_class=condition_dictionary[condition]
 

@@ -95,6 +95,7 @@ def generate(input_file):
                 
             elif line[0]=='ADD':
                 # Data related to a material or part entry
+                #print 'ADDING ',line
                 if current_material!=None:
                     line.pop(0)
                     if current_material in material_dictionary.keys():
@@ -105,6 +106,9 @@ def generate(input_file):
                     print 'ERROR: Found material or part data in line',numline
                     print 'but no materials or parts have been defined yet'
                     stop=True
+                #print part_dictionary[current_material].conditions_always
+                #print part_dictionary[current_material].conditions_2Donly
+                #print part_dictionary[current_material].conditions_3Donly
                     
             elif line[0]=='GROUP':
                 # Group model parts and define their interaction
