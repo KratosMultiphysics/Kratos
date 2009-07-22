@@ -174,6 +174,18 @@ namespace Kratos {
                 const ProcessInfo& rCurrentProcessInfo,
                 bool CalculateStiffnessMatrixFlag,
                 bool CalculateResidualVectorFlag);
+		
+	void CalculateCartesianDerOnGauss(
+	      const double eta1, 
+	      const double eta2, 
+	      const boost::numeric::ublas::bounded_matrix<double, 6, 3 >& ms_coord,
+	      const array_1d<double,3>& vxe,
+	      const array_1d<double,3>& vye,
+	      boost::numeric::ublas::bounded_matrix<double, 3,2 >& phi,
+	      boost::numeric::ublas::bounded_matrix<double, 2,6 >& dcg
+	      );
+	      
+	   
 
 
 

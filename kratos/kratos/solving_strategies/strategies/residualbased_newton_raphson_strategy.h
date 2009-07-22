@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/matrix_market_interface.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
@@ -427,11 +428,17 @@ namespace Kratos
 
 			if (this->GetEchoLevel()==3) //if it is needed to print the debug info
 			{
-				std::cout << "After first system solution" << std::endl;
+// 				std::cout << "After first system solution" << std::endl;
 				std::cout << "SystemMatrix = " << mA << std::endl;
 				std::cout << "solution obtained = " << mDx << std::endl;
 				std::cout << "RHS  = " << mb << std::endl;
-			}	
+			}
+                       if (this->GetEchoLevel()==4) //print to matrix market file
+			{
+                           std::stringstream matrix_market_name;
+                           matrix_market_name << "A_"<< BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number  << ".mm";
+                           WriteMatrixMarket((char*)(matrix_market_name.str()).c_str() , mA, false);
+                       }
 
 			//update results
 			rDofSet = pBuilderAndSolver->GetDofSet();

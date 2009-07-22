@@ -51,7 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // To avoid linking problems
 extern "C"
 { 
-	#include "mmio.h"
+	#include "includes/mmio.h"
 }
 
 #include <boost/numeric/ublas/matrix_sparse.hpp>
@@ -63,7 +63,7 @@ extern "C"
 
 namespace Kratos {
 
-	bool ReadMatrixMarket(char *FileName, CompressedMatrix &Matrix)
+	static bool ReadMatrixMarket(char *FileName, CompressedMatrix &Matrix)
 	{
 		// Open MM file for reading
 		FILE *f = fopen(FileName, "r");
@@ -267,7 +267,7 @@ namespace Kratos {
 		return true;
 	}
 
-	bool WriteMatrixMarket(char *FileName, CompressedMatrix &Matrix, bool Symmetric)
+	static bool WriteMatrixMarket(char *FileName, CompressedMatrix &Matrix, bool Symmetric)
 	{
 		// Open MM file for writing
 		FILE *f = fopen(FileName, "w");

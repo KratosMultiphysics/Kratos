@@ -150,12 +150,17 @@ class SolvingStrategyPython:
         self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
 
 ##        print self.Dx
-        
+
+        print "just after solve and before echo"
         #full output if needed
-        if(echo_level >= 3):
+        if(echo_level == 3):
             print "SystemMatrix = ", self.A 
             print "solution obtained = ", self.Dx 
             print "RHS = ", self.b
+        elif(echo_level == 4):
+            filename = str("A_t_") + str(self.model_part.ProcessInfo[TIME]) + str(".mm");
+            WriteMatrixMarket(filename, self.A, False);
+        
             
         #perform update
 	self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);

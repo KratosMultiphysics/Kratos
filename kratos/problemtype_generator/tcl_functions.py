@@ -52,7 +52,7 @@ def basic_group_code(entity,group,parts_dict): #(string,list,dict)
             head=head+'\t\t\t}\n'
         if len(parts_dict[part].conditions_3Donly[index])>0:
             head=head+'\t\t\tif {[GiD_Info Geometry NumVolumes]>0} {\n'
-            for condition in parts_dict[part].conditions_2Donly[index]:
+            for condition in parts_dict[part].conditions_3Donly[index]:
                 head=head+'\t\t\t\tcondfrompart '+part+' '+condition+' only3D '+entity+' $'+entity+'\n'
             head=head+'\t\t\t}\n'
 
