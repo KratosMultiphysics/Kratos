@@ -460,7 +460,7 @@ namespace Kratos {
 				return false;
 			}
 			
-			(*v)[i] = T;		
+			(*v)(i) = T;		
 		}
 	
 		fclose(f);
@@ -498,7 +498,7 @@ namespace Kratos {
 		mm_write_mtx_array_size(f, V.size(), 1);
 
 		for (unsigned int i = 0; i < V.size(); i++)
-			if (fprintf(f, "%g\n", V[i]) < 0)
+			if (fprintf(f, "%g\n", V(i)) < 0)
 			{
 				printf("WriteMatrixMarketVector(): unable to write data.\n");
 				fclose(f);
