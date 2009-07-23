@@ -63,14 +63,16 @@ extern "C"
 
 namespace Kratos {
 
-	static bool ReadMatrixMarket(char *FileName, CompressedMatrix &Matrix)
+	// Matrix I/O routines
+	
+	static bool ReadMatrixMarketMatrix(char *FileName, CompressedMatrix &M)
 	{
 		// Open MM file for reading
 		FILE *f = fopen(FileName, "r");
 	
 		if (f == NULL)
 		{
-			printf("ReadMatrixMarket(): unable to open %s.\n", FileName);
+			printf("ReadMatrixMarketMatrix(): unable to open %s.\n", FileName);
 			return false;
 		}
 
@@ -79,20 +81,23 @@ namespace Kratos {
 	
 		if (mm_read_banner(f, &mm_code) != 0)
 		{
-			printf("ReadMatrixMarket(): unable to read MatrixMarket banner.\n");
+			printf("ReadMatrixMarketMatrix(): unable to read MatrixMarket banner.\n");
+			fclose(f);
 			return false;
 		}
 	
 		if (!mm_is_valid(mm_code))
 		{
-			printf("ReadMatrixMarket(): invalid MatrixMarket banner.\n");
+			printf("ReadMatrixMarketMatrix(): invalid MatrixMarket banner.\n");
+			fclose(f);
 			return false;
 		}
 	
 		// Check for supported types of MM file
 		if (!((mm_is_real(mm_code) || mm_is_integer(mm_code) || mm_is_pattern(mm_code)) && mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
 		{
-			printf("ReadMatrixMarket(): invalid MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+			printf("ReadMatrixMarketMatrix(): invalid MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+			fclose(f);
 			return false;
 		}
 	
@@ -101,7 +106,8 @@ namespace Kratos {
 	
 		if (mm_read_mtx_crd_size(f, &size1, &size2, &nnz) != 0)
 		{
-			printf("ReadMatrixMarket(): cannot read dimensions and NNZ.\n");
+			printf("ReadMatrixMarketMatrix(): cannot read dimensions and NNZ.\n");
+			fclose(f);
 			return false;
 		}
 	
@@ -118,7 +124,8 @@ namespace Kratos {
 			{
 				if (fscanf(f, "%d %d", &I[i], &J[i]) != 2)
 				{
-					printf("ReadMatrixMarket(): invalid data.\n");
+					printf("ReadMatrixMarketMatrix(): invalid data.\n");
+					fclose(f);					
 				
 					delete[] I;
 					delete[] J;
@@ -139,7 +146,8 @@ namespace Kratos {
 			{
 				if (fscanf(f, "%d %d %lg", &I[i], &J[i], &V[i]) != 3)
 				{
-					printf("ReadMatrixMarket(): invalid data.\n");
+					printf("ReadMatrixMarketMatrix(): invalid data.\n");
+					fclose(f);
 				
 					delete[] I;
 					delete[] J;
@@ -251,7 +259,7 @@ namespace Kratos {
 			for (int j = 0; j < nz[i]; j++)
 				(*m)(i, columns[indices[i] + j]) = values[k++];
 		
-		Matrix = *m;
+		M = *m;
 		
 		delete[] I;
 		delete[] J;
@@ -267,14 +275,14 @@ namespace Kratos {
 		return true;
 	}
 
-	static bool WriteMatrixMarket(char *FileName, CompressedMatrix &Matrix, bool Symmetric)
+	static bool WriteMatrixMarketMatrix(char *FileName, CompressedMatrix &M, bool Symmetric)
 	{
 		// Open MM file for writing
 		FILE *f = fopen(FileName, "w");
 	
 		if (f == NULL)
 		{
-			printf("WriteMatrixMarket(): unable to open %s.\n", FileName);
+			printf("WriteMatrixMarketMatrix(): unable to open %s.\n", FileName);
 			return false;
 		}
 
@@ -301,9 +309,9 @@ namespace Kratos {
 		{
 			nnz = 0;
 			
-			CompressedMatrix::iterator1 a_iterator = Matrix.begin1();
+			CompressedMatrix::iterator1 a_iterator = M.begin1();
 
-			for (unsigned int i = 0; i < Matrix.size1(); i++)
+			for (unsigned int i = 0; i < M.size1(); i++)
 			{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
 				for (CompressedMatrix::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator) 
@@ -319,16 +327,16 @@ namespace Kratos {
 			}
 		}
 		else
-			nnz = Matrix.nnz();
+			nnz = M.nnz();
 		
 		// Write MM file sizes
-		mm_write_mtx_crd_size(f, Matrix.size1(), Matrix.size2(), nnz);
+		mm_write_mtx_crd_size(f, M.size1(), M.size2(), nnz);
 
 		if (Symmetric)
 		{
-			CompressedMatrix::iterator1 a_iterator = Matrix.begin1();
+			CompressedMatrix::iterator1 a_iterator = M.begin1();
 
-			for (unsigned int i = 0; i < Matrix.size1(); i++)
+			for (unsigned int i = 0; i < M.size1(); i++)
 			{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
 				for (CompressedMatrix::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator) 
@@ -341,7 +349,7 @@ namespace Kratos {
 					if (I >= J)
 						if (fprintf(f, "%d %d %g\n", I + 1, J + 1, *row_iterator) < 0)
 						{
-							printf("WriteMatrixMarket(): unable to write data.\n");
+							printf("WriteMatrixMarketMatrix(): unable to write data.\n");
 							fclose(f);
 							return false;
 						}
@@ -352,9 +360,9 @@ namespace Kratos {
 		}
 		else
 		{
-			CompressedMatrix::iterator1 a_iterator = Matrix.begin1();
+			CompressedMatrix::iterator1 a_iterator = M.begin1();
 
-			for (unsigned int i = 0; i < Matrix.size1(); i++)
+			for (unsigned int i = 0; i < M.size1(); i++)
 			{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
 				for (CompressedMatrix::iterator2 row_iterator = a_iterator.begin(); row_iterator != a_iterator.end(); ++row_iterator) 
@@ -366,7 +374,7 @@ namespace Kratos {
 				
 					if (fprintf(f, "%d %d %g\n", I + 1, J + 1, *row_iterator) < 0)
 					{
-						printf("WriteMatrixMarket(): unable to write data.\n");
+						printf("WriteMatrixMarketMatrix(): unable to write data.\n");
 						fclose(f);
 						return false;
 					}
@@ -375,6 +383,127 @@ namespace Kratos {
 			   a_iterator++;
 			}
 		}
+	
+		fclose(f);
+	
+		return true;
+	}
+	
+	// Vector I/O routines
+	
+	static bool ReadMatrixMarketVector(char *FileName, Vector &V)
+	{
+		// Open MM file for reading
+		FILE *f = fopen(FileName, "r");
+	
+		if (f == NULL)
+		{
+			printf("ReadMatrixMarketVector(): unable to open %s.\n", FileName);
+			return false;
+		}
+
+		// Process MM file header
+		MM_typecode mm_code;
+	
+		if (mm_read_banner(f, &mm_code) != 0)
+		{
+			printf("ReadMatrixMarketVector(): unable to read MatrixMarket banner.\n");
+			fclose(f);
+			return false;
+		}
+	
+		if (!mm_is_valid(mm_code))
+		{
+			printf("ReadMatrixMarketVector(): invalid MatrixMarket banner.\n");
+			fclose(f);
+			return false;
+		}
+	
+		// Check for supported types of MM file
+		if (!((mm_is_real(mm_code) || mm_is_integer(mm_code)) && mm_is_array(mm_code)))
+		{
+			printf("ReadMatrixMarketVector(): invalid MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+			fclose(f);
+			return false;
+		}
+	
+		// Read MM dimensions
+		int size1, size2;
+	
+		if (mm_read_mtx_array_size(f, &size1, &size2) != 0)
+		{
+			printf("ReadMatrixMarketVector(): cannot read dimensions.\n");
+			fclose(f);
+			return false;
+		}
+		
+		// Check MM dimensions
+		if (size2 != 1)
+		{
+			printf("ReadMatrixMarketVector(): not a N x 1 array.\n");
+			fclose(f);
+			return false;
+		}
+	
+		Vector *v = new Vector(size1);
+		double T;
+	
+		// Read MM file
+	
+		for (int i = 0; i < size1; i++)
+		{
+			if (fscanf(f, "%lg", &T) != 1)
+			{
+				printf("ReadMatrixMarketVector(): invalid data.\n");
+				fclose(f);
+
+				return false;
+			}
+			
+			(*v)[i] = T;		
+		}
+	
+		fclose(f);
+		
+		V = *v;
+		
+		delete v;
+
+		return true;
+	}
+
+	static bool WriteMatrixMarketVector(char *FileName, Vector &V)
+	{
+		// Open MM file for writing
+		FILE *f = fopen(FileName, "w");
+	
+		if (f == NULL)
+		{
+			printf("WriteMatrixMarketVector(): unable to open %s.\n", FileName);
+			return false;
+		}
+
+		// Write MM file header
+		MM_typecode mm_code;
+	
+		mm_initialize_typecode(&mm_code);	
+	
+		mm_set_matrix(&mm_code);
+		mm_set_array(&mm_code);
+		mm_set_real(&mm_code);
+	
+		mm_write_banner(f, mm_code);
+		
+		// Write MM file sizes
+		mm_write_mtx_array_size(f, V.size(), 1);
+
+		for (unsigned int i = 0; i < V.size(); i++)
+			if (fprintf(f, "%g\n", V[i]) < 0)
+			{
+				printf("WriteMatrixMarketVector(): unable to write data.\n");
+				fclose(f);
+				return false;
+			}
 	
 		fclose(f);
 	
