@@ -437,7 +437,7 @@ namespace Kratos
 			{
                            std::stringstream matrix_market_name;
                            matrix_market_name << "A_"<< BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number  << ".mm";
-                           WriteMatrixMarket((char*)(matrix_market_name.str()).c_str() , mA, false);
+                           WriteMatrixMarketMatrix((char*)(matrix_market_name.str()).c_str() , mA, false);
                        }
 
 			//update results
