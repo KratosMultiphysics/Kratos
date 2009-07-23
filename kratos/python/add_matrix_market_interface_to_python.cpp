@@ -59,9 +59,12 @@ namespace Python
       
         using namespace boost::python;
         
-        def("ReadMatrixMarket", ReadMatrixMarket);
-        def("WriteMatrixMarket", WriteMatrixMarket);
+        def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix);
+        def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix);
         
+        def("ReadMatrixMarketVector", ReadMatrixMarketVector);
+        def("WriteMatrixMarketVector", WriteMatrixMarketVector);
+
   }
 	
 }  // namespace Python.
