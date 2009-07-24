@@ -237,6 +237,9 @@ namespace Kratos
         virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 
 	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
 	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawone, const double thawtwo, const double time,const double area);
+	virtual void CalculateDarcyTerm_SubElem(MatrixType& K, const array_1d<double,3>&  N, const double area);
+	virtual void CalculateDarcyTerm(MatrixType& K, const double area);
+
 	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
 
 	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
