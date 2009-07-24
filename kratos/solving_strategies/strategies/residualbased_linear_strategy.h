@@ -705,9 +705,9 @@ namespace Kratos
 			
 			if(mpA != NULL) {
 			  TSystemMatrixType& mA = *mpA;
+			  SparseSpaceType::Clear(mpA);
 			  SparseSpaceType::Resize(mA,0,0);
-			  
-			  SparseSpaceType::Clear(mpA);}
+			}			  
 			if(mpDx != NULL) {
 			  TSystemVectorType& mDx = *mpDx;
 			  SparseSpaceType::Clear(mpDx);
