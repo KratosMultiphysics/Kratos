@@ -138,17 +138,6 @@ namespace Kratos
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
 	 
 
-//************************************************************************************	
-	 //check if divided
-// 	double is_divided = 0;
-     // double toll =0.0;// 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
-// 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
-// 	array_1d<double,4> A_on_agp = ZeroVector(4);
-// 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
-// 	array_1d<double,4> dist_on_agp = ZeroVector(4);
-// 
-// 	DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
-
 	 if(GetValue(IS_DIVIDED) == 1.0)
 	 {
 		boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
@@ -239,12 +228,13 @@ namespace Kratos
 	    {
 		int row = nd*(dof + 1);
 		for( int jj=0; jj< dof; jj++)
-			K(row + jj, row + jj) += density/1.0*lump_mass_fac;
+			K(row + jj, row + jj) += density * lump_mass_fac;
 	    }
 	
 		KRATOS_CATCH("")
 	
 	}
+
 	//************************************************************************************
 	//************************************************************************************
 	void Fluid2DSplit::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
@@ -259,70 +249,124 @@ namespace Kratos
 			rMassMatrix.resize(MatSize,MatSize,false);
 
 		rMassMatrix = ZeroMatrix(MatSize,MatSize);
-	double delta_t= rCurrentProcessInfo[DELTA_TIME];
+		double delta_t= rCurrentProcessInfo[DELTA_TIME];
 		
 
-	//getting data for the given geometry
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
-//***begin
-//************************************************************************************	
-	 //check if divided
-/*	double is_divided =  0;*/
-//	double toll =0.0;// 0.015*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
-// 	boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
-// 	array_1d<double,4> A_on_agp = ZeroVector(4);
-// 	boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
-// 	array_1d<double,4> dist_on_agp = ZeroVector(4);
-// 
-// 	DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+		//getting data for the given geometry
+		double Area;
+		GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
 	
-	 if(GetValue(IS_DIVIDED) == 1.0)
-	 {
-		boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
-		array_1d<double,4> A_on_agp = ZeroVector(4);
-		boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
-		array_1d<double,4> dist_on_agp = ZeroVector(4);
+	       //In the case of the mass matrix of a divided element I have to calculate the contribution of the fluid part to the shape functions of the nodes of the elements.
+	       //And finally we lumpe the resulting matrix.
+		if(GetValue(IS_DIVIDED) == 1.0)
+		{	
+		        
+		        int nodes_number = 3;
+		        int dof = 2;
+		        int matsize = dof*nodes_number;
+		        double density;
+		        double mu;
+		        double eps;
+		        CalculateDensity(GetGeometry(), density, mu, eps);
 
-		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
-		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
-		{
-		  if (dist_on_agp(i) <= 0.0)
-		  {
-		        double Area = A_on_agp(i);
+		        boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+		        array_1d<double,4> A_on_agp = ZeroVector(4);
+		        boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+		        array_1d<double,4> dist_on_agp = ZeroVector(4);
+
+		        DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+		        
+		        boost::numeric::ublas::bounded_matrix<double,6,6> temp_MassMatr = ZeroMatrix(matsize,matsize);
+
+		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
+		        {
+			 //if the virtual sub element is a fluid element
+			 if (dist_on_agp(i) <= 0.0)
+			 {
+			       double Area = A_on_agp(i);
+			       //shape functions of the element calculated on the auxiliary gauss points (gp of the sub elements)
+			       for (unsigned int j = 0; j < N.size(); j++)
+				    N[j] = N_on_agp(i,j);
+
+			       boost::numeric::ublas::bounded_matrix<double,2,6> shape_func = ZeroMatrix(dof, matsize);
+
+			       for (int ii = 0; ii< N.size(); ii++)
+				  {
+				        int column = ii*2;
+				        shape_func(0,column) = N[ii]; 
+				        shape_func(1,column + 1) = shape_func(0, column);
+				  }
+		      // |  N0(agp_i)* N0(agp_i)		0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)	0	  |	
+		      // |  0			N0(agp_i)* N0(agp_i)	0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)|	
+        //temp_MassMatrix=	|N1(agp_i)* N0(agp_i)		0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)	0	  | * density * Area	
+		      // |  0			N1(agp_i)* N0(agp_i)	0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)|
+		      // |  N2(agp_i)* N0(agp_i)		0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)	0	  |	
+		      // |  0			N2(agp_i)* N0(agp_i)	0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)|	
+			       
+
+			       noalias(temp_MassMatr) += Area * density * prod(trans(shape_func),shape_func);	    
+ 
+			 }
+		        }
+//  KRATOS_WATCH(this->Id());
+//  KRATOS_WATCH(temp_MassMatr);
 		      
-		        for (unsigned int j = 0; j < N.size(); j++)
-			     N[j] = N_on_agp(i,j);
+		        //construing the lumped mass matrix from the 6*6 tempMassMatrix;
+		        for ( int ii = 0; ii < nodes_number; ii++)
+		        {
+			     int row = ii*(dof+1);
+			     int loc_row = ii*dof;
+			     for( int jj=0; jj < nodes_number; jj++)
+			       {
+				    int column = jj*(dof+1);
+				    int loc_column = jj*dof;
 
-// 		        double tauone = 0.0;//delta_t;
-// 		        double tautwo = 0.0;//delta_t;*/
-		       double tauone, tautwo;
- 		        CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
+				    rMassMatrix(row,row) += temp_MassMatr(loc_row,loc_column);
+				    rMassMatrix(row + 1,row + 1) += temp_MassMatr(loc_row + 1,loc_column + 1);
+			       }
+		        }
+//  KRATOS_WATCH(rMassMatrix);
+
+		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
+		        {
+			   //if the virtual sub element is a fluid element
+			   if (dist_on_agp(i) <= 0.0)
+			   {
+				double Area = A_on_agp(i);
+				//shape functions of the element calculated on the auxiliary gauss points (gp of the sub elements)
+				for (unsigned int j = 0; j < N.size(); j++)
+				      N[j] = N_on_agp(i,j);
+
+	 // 		        double tauone = 0.0;//delta_t;
+	 // 		        double tautwo = 0.0;//delta_t;*/
+				double tauone, tautwo;
+				CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
+				//add stablilization terms due to advective term (a)grad(V) * ro*Acce
+				CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
+				//add stablilization terms due to grad term grad(q) * ro*Acce
+				CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
+			   }
+		        }
+//  KRATOS_WATCH(rMassMatrix);
+		}
+		else if(GetValue(IS_DIVIDED) == -1.0)
+		  {
+		        //Calculate tau
+        /*		double tauone = 0.0;//delta_t;
+		        double tautwo = 0.0;// delta_t;*/
+		        double tauone, tautwo;
+		        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 		        CalculateMassContribution(rMassMatrix,delta_t,Area); 
-
-		        //add stablilization terms due to advective term (a)grad(V) * ro*Acce
+// KRATOS_WATCH(rMassMatrix);
+// //comment *******************************************************************************
+// 		        //add stablilization terms due to advective term (a)grad(V) * ro*Acce
 		        CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
 		        //add stablilization terms due to grad term grad(q) * ro*Acce
 		        CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
+//comment *******************************************************************************
+
 		  }
-		}
-	 }
-	 else if(GetValue(IS_DIVIDED) == -1.0)
-	   {
-		//Calculate tau
-/*		double tauone = 0.0;//delta_t;
-		double tautwo = 0.0;// delta_t;*/
-		double tauone, tautwo;
- 		CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-
-		CalculateMassContribution(rMassMatrix,delta_t,Area); 
-
-		//add stablilization terms due to advective term (a)grad(V) * ro*Acce
-		CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
-		//add stablilization terms due to grad term grad(q) * ro*Acce
-		CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
-	   }
 	 
 //***end*/
 		KRATOS_CATCH("")
@@ -393,16 +437,16 @@ namespace Kratos
 		        //calculate pressure term
 		        CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
 
-//calculate Darcy term
-//CalculateDarcyTerm();
+		        //calculate Darcy term
+		        CalculateDarcyTerm_SubElem(rDampMatrix, N, Area);
 
 		        //compute projections
 		        
 		        //stabilization terms
-
 		        CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
 		        CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
 		        CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
+// 		        CalculateDarcyStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
 		        //KRATOS_WATCH(rRightHandSideVector);
 
 		  }
@@ -411,29 +455,42 @@ namespace Kratos
 	 }
 	 else if(GetValue(IS_DIVIDED) == -1.0)
 	 {
-		  //viscous term	
+/*KRATOS_WATCH("K mass_matrix")
+KRATOS_WATCH(rDampMatrix)	*/		  //viscous term	
  		  CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-		  
+/*KRATOS_WATCH("K viscous")
+KRATOS_WATCH(rDampMatrix)	*/		  
 		  //Advective term
 		  //		  double tauone =0.0; //delta_t;
 		  //		  double tautwo =0.0;// delta_t;
 		  double tauone, tautwo;
  		  CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
  		  CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
-			   
+/*KRATOS_WATCH("K advection")
+KRATOS_WATCH(rDampMatrix)	*/		   
+
 		  //calculate pressure term
 		  CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
-
+// KRATOS_WATCH("K pressure")
+// KRATOS_WATCH(rDampMatrix)
+		  //calculate Darcy term
+// 		  CalculateDarcyTerm_SubElem(rDampMatrix, N, Area);
+		  CalculateDarcyTerm(rDampMatrix, Area);
+// KRATOS_WATCH("K darcy****************************************************")
+// KRATOS_WATCH(rDampMatrix)
 		  //compute projections
 
 		  //stabilization terms
+//comment *******************************************************************************
 		  CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
 		  CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
 		  CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
+// 		  CalculateDarcyStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
+//comment *******************************************************************************
 		  //KRATOS_WATCH(rRightHandSideVector);
 	
 	 }
-//***end
+
 		KRATOS_CATCH("")
 	}
         
@@ -453,9 +510,9 @@ namespace Kratos
 	double density;
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
+//KRATOS_WATCH(mu);
 
-
-	//nu = nu/density;	
+	//nu = mu/density;	
 
 	int nodes_number = 3;
 	int dof = 2;
@@ -466,8 +523,8 @@ namespace Kratos
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1);
-		K(row,column) += mu*1*area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
-		K(row + 1,column + 1) += mu*1*area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
+		K(row,column) += mu*area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
+		K(row + 1,column + 1) += mu*area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
 		   }	
 	    }
 					
@@ -542,38 +599,128 @@ namespace Kratos
 	}
 	//************************************************************************************
 	//************************************************************************************
-// 	 void Fluid2DSplit::CalculateDarcyTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double porosity,const double area)
-// 	 {
-// 		KRATOS_TRY
-// 		double dp = 0.01; //diameter of the particle	
-// 		KRATOS_CATCH("")
-// 	  }
+	 void Fluid2DSplit::CalculateDarcyTerm_SubElem(MatrixType& K, const array_1d<double,3>&  N, const double area)
+	 {
+		KRATOS_TRY
 
+		double density;
+		double mu;
+		double eps;
+		CalculateDensity(GetGeometry(), density, mu, eps);
+// KRATOS_WATCH(mu);
+		double dp = 0.01; //diameter of the particle	
+		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
+// KRATOS_WATCH(kinv);
+		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
+		const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
+		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+		
+		int nodes_number = 3;
+		int dof = 2;
+		int matsize = dof*nodes_number;
+
+		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_2[0] += vel0[ii]*vel0[ii];
+			 norm_vel_2[1] += vel1[ii]*vel1[ii];
+			 norm_vel_2[2] += vel2[ii]*vel2[ii];
+		}
 /*
-//porous contribution
-						double eps = mEps[i_node];
-						double dp = 0.01; //diameter of the particle	
-						double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
-						double norm_u_2 = 0.0;
-						for (unsigned int comp = 0; comp < TDim; comp++)
-							norm_u_2 = a_i[comp]*a_i[comp];
-// 							norm_u_2 = U_i[comp]*U_i[comp];
+		      // |  N0(agp_i)* N0(agp_i)		0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)	0	  |	
+		      // |  0			N0(agp_i)* N0(agp_i)	0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)|	
+        //temp_sfprod=	|N1(agp_i)* N0(agp_i)		0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)	0	  | * Darcy term	
+		      // |  0			N1(agp_i)* N0(agp_i)	0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)|
+		      // |  N2(agp_i)* N0(agp_i)		0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)	0	  |	
+		      // |  0			N2(agp_i)* N0(agp_i)	0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)|	
+			       
+ 
+*/
 
-						//CORRECTED Term
-						double nonlin_term = kinv * nu_i * eps + 1.75 * sqrt(norm_u_2 *  kinv / (eps * 150.0));
-						//ERROR IN WRITING THE NON LINEAR TERM//
-// 						double nonlin_term = kinv * nu_i * eps + 1.75 * norm_u_2  * sqrt(kinv / ( eps * 150.0));
-						for (unsigned int comp = 0; comp < TDim; comp++)
-							rhs_i[comp] -= m_i * nonlin_term * U_i[comp];*/
+		boost::numeric::ublas::bounded_matrix<double,2,6> shape_func = ZeroMatrix(dof, matsize);
 
+		for (int ii = 0; ii< nodes_number; ii++)
+		    {
+			 int column = ii*dof;
+			 shape_func(0,column) = N[ii];
+			 shape_func(1,column + 1) = shape_func(0,column);
+		    }
+// KRATOS_WATCH(shape_func)
+		boost::numeric::ublas::bounded_matrix<double,6,6> temp_sfprod = ZeroMatrix(matsize,matsize);
+		noalias(temp_sfprod) += area * prod(trans(shape_func),shape_func);	    
+// 		KRATOS_WATCH(temp_sfprod)
+		for ( int ii = 0; ii < nodes_number; ii++)
+		    {
+			 int row = ii*(dof+1);
+			 int loc_row = ii*dof;
+			 for( int jj=0; jj < nodes_number; jj++)
+			   {
+				int column = jj*(dof+1);
+				int loc_column = jj*dof;
+				//DARCY TERM linear part
+				K(row,column) += (kinv * mu) * temp_sfprod(loc_row,loc_column);
+/*double aux = (kinv * mu) * temp_sfprod(loc_row,loc_column);
+KRATOS_WATCH(aux)*/
+				K(row + 1,column + 1) += (kinv * mu) * temp_sfprod(loc_row + 1,loc_column + 1);
+/*double aux2 = (kinv * mu) * temp_sfprod(loc_row + 1,loc_column + 1);
+KRATOS_WATCH(aux2)*/
+// 				//DARCY TERM nonlinear part
+// 				K(row,column) += (1.75 * density /eps * sqrt(norm_vel_2[jj] *  kinv / (eps * 150.0))) * temp_sfprod(loc_row,loc_column);
+// 				K(row + 1,column + 1) += (1.75 * density /eps * sqrt(norm_vel_2[jj] *  kinv / (eps * 150.0))) * temp_sfprod(loc_row + 1,loc_column + 1);
+// KRATOS_WATCH(K(row,column))
 
+			   }
+		    }
 
+		KRATOS_CATCH("")
+	  }
 
+	 void Fluid2DSplit::CalculateDarcyTerm(MatrixType& K, const double area)
+	 {
+		KRATOS_TRY
+		double lump_mass_fac = area * 0.333333333333333333333333;
+		double density;
+		double mu;
+		double eps;
+		CalculateDensity(GetGeometry(), density, mu, eps);
+		
+		double dp = 0.01; //diameter of the particle	
+		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
+// KRATOS_WATCH(kinv);
+		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
+		const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
+		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+		
+		int nodes_number = 3;
+		int dof = 2;
+		int matsize = dof*nodes_number;
 
+		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_2[0] += vel0[ii]*vel0[ii];
+			 norm_vel_2[1] += vel1[ii]*vel1[ii];
+			 norm_vel_2[2] += vel2[ii]*vel2[ii];
+		}
 
-
-
-
+		for ( int nd = 0; nd< nodes_number; nd++)
+		{
+		      int row = nd*(dof + 1);
+		      for( int jj=0; jj< dof; jj++)
+		      {	   //DARCY TERM linear part:
+			   K(row + jj, row + jj) += (kinv * mu) * lump_mass_fac;
+			   //DARCY TERM nonlinear part:
+// 			   K(row + jj, row + jj) += (1.75 * density /eps * sqrt(norm_vel_2[nd] *  kinv / (eps * 150.0)))* lump_mass_fac;
+		      }
+		}
+// KRATOS_WATCH(area)
+// KRATOS_WATCH(kinv)
+// KRATOS_WATCH(lump_mass_fac)
+// 		KRATOS_WATCH((kinv * mu) * lump_mass_fac)
+		KRATOS_CATCH("")
+	 }
 	//************************************************************************************
 	//************************************************************************************
 	//Calculate the divergence and the gradient operators
@@ -1090,22 +1237,6 @@ namespace Kratos
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
 
-	//for Arhenious
-	int matsize = dof*nodes_number;
-	boost::numeric::ublas::bounded_matrix<double,1,6> div_opr = ZeroMatrix(1,matsize);
-	for(int ii=0; ii<nodes_number; ii++)
-	  {
-		int index = dof*ii;
-		div_opr(0,index) = DN_DX(ii,0);
-		div_opr(0,index + 1) = DN_DX(ii,1);
-	  }
-	 const double ar_0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
-	 const double ar_1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
-	 const double ar_2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
-
-	double mean_ar = 0.333333333333333333*(ar_0 + ar_1 + ar_2);
-
-
 	//body  & momentum term force
 	for ( int ii = 0; ii < nodes_number; ii++)
 	   {
@@ -1116,11 +1247,6 @@ namespace Kratos
 		F[index] += area*N[ii]*density*bdf[0] ;
 		F[index + 1] += area*N[ii]*density*bdf[1];
 
-
-	//arrhenius
-		F[index + 2] += (area*N[ii]*mean_ar);
-		F[index] += tautwo*area*mean_ar*div_opr(0,index);
-		F[index + 1] += tautwo*area*mean_ar*div_opr(0,index + 1);
 	   }
 	
 
@@ -1490,6 +1616,8 @@ namespace Kratos
 // 	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
 // 
 // 
+
+	////Check if some of the elements don't have a porosity assigned
 	double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
 	if(eps0 == 0.0)
 	 {
@@ -1514,7 +1642,7 @@ namespace Kratos
 		//for inside the domain totally inside one fluid
 		elemental_porosity = eps0;
 		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); //* eps0;	
-		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);
+		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
 // 		KRATOS_WATCH("fluid nodes")
 // 		KRATOS_WATCH(geom[0].Id();)
 // 		KRATOS_WATCH(geom[1].Id();)
@@ -1524,19 +1652,19 @@ namespace Kratos
 	 {
 	   	elemental_porosity = eps0;
 		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); // * eps0;	
-		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);
+		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density 
 	 }
 	else if(eps1 == eps2)
 	 {
 		elemental_porosity = eps1;
 		elemental_density = geom[1].FastGetSolutionStepValue(DENSITY); // * eps1;	
-		elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY);
+		elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY) * elemental_density;  //mu = nu * density 
 	 }
 	else if(eps2 == eps0)
 	 {
 		elemental_porosity = eps2;
 		elemental_density = geom[2].FastGetSolutionStepValue(DENSITY); // * eps2;	
-		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY);
+		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY)* elemental_density;  //mu = nu * density 
 	 }
 	else { KRATOS_WATCH("ERROR!!! three different values of densities");}
 /*
