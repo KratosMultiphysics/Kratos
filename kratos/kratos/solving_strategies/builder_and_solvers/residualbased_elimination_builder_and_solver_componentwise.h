@@ -533,7 +533,10 @@ namespace Kratos
 		{
 			this->mDofSet = DofsArrayType();
 
-			TSparseSpace::Clear( (this->mpReactionsVector) );
+			if(this->mpReactionsVector != NULL)
+			{
+				TSparseSpace::Clear( (this->mpReactionsVector) );
+			}
 // 			*(this->mpReactionsVector) = TSystemVectorType();
 
 			if (this->GetEchoLevel()>0)
