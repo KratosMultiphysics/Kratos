@@ -320,11 +320,11 @@ namespace Kratos
 
  		//DARCY linear CONTRIBUTION
 		//  rLeftHandSideMatrix -= nu/permeability (using the cinematic viscosity it is already divided for density: then we are going to multiplicate for density again);
- 		noalias(rLeftHandSideMatrix) += 0.5 * nu*msMassFactors*kinv;
+ 		noalias(rLeftHandSideMatrix) -= 0.5 * nu*msMassFactors*kinv;
 
  		//DARCY non linear CONTRIBUTION (brinkmann)
 		//rLeftHandSideMatrix -= 1.75*|u(n+1/2)|/[(150*k)^0.5*eps^(3/2)]
- 		noalias(rLeftHandSideMatrix) += 0.5 * msMassFactors*norm_u*1.75*sqrt(kinv)/12.2474487/sqrt(eps*eps*eps);
+ 		noalias(rLeftHandSideMatrix) -= 0.5 * msMassFactors*norm_u*1.75*sqrt(kinv)/12.2474487/sqrt(eps*eps*eps);
 
 		//multiplication by the area
 		rLeftHandSideMatrix *= (Area * density);
