@@ -850,7 +850,11 @@ KRATOS_WATCH("setting up the dofs");
 		void Clear() 
 		{
 			this->mDofSet = DofsArrayType();
-			TSparseSpace::Clear( (this->mpReactionsVector) );
+
+			if(this->mpReactionsVector != NULL)
+			{
+				TSparseSpace::Clear( (this->mpReactionsVector) );
+			}
 // 			this->mReactionsVector = TSystemVectorType();
 
 			if (this->GetEchoLevel()>0)
