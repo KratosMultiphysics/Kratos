@@ -219,6 +219,144 @@ namespace Kratos
 		
 		//**************************************************************************
 		//**************************************************************************
+		void BuildAndSolve(
+			typename TSchemeType::Pointer pScheme,
+			ModelPart& r_model_part,
+			TSystemMatrixType& A,
+			TSystemVectorType& Dx,
+			TSystemVectorType& b)
+		{
+			KRATOS_TRY
+
+			boost::timer building_time;
+
+			Build(pScheme,r_model_part,A,b);
+
+			if(BaseType::GetEchoLevel()>0)
+			{
+				std::cout << "Building Time : " << building_time.elapsed() << std::endl;
+			}
+			
+			//apply dirichlet conditions
+			ApplyDirichletConditions(pScheme,r_model_part,A,Dx,b);
+
+			if (BaseType::GetEchoLevel()== 3)
+			{
+				std::cout << "before the solution of the system" << std::endl;
+				std::cout << "System Matrix = " << A << std::endl;
+				std::cout << "unknowns vector = " << Dx << std::endl;
+				std::cout << "RHS vector = " << b << std::endl;
+			}
+
+			boost::timer solve_time;
+
+			SystemSolveML(A,Dx,b,r_model_part);
+
+			if(BaseType::GetEchoLevel()>0)
+			{
+				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
+			}
+			if (BaseType::GetEchoLevel()== 3)
+			{
+				std::cout << "after the solution of the system" << std::endl;
+				std::cout << "System Matrix = " << A << std::endl;
+				std::cout << "unknowns vector = " << Dx << std::endl;
+				std::cout << "RHS vector = " << b << std::endl;
+			}
+			
+			KRATOS_CATCH("")
+		}
+//**************************************************************************
+//**************************************************************************
+		void SystemSolveML(
+			TSystemMatrixType& A,
+			TSystemVectorType& Dx,
+			TSystemVectorType& b,
+			ModelPart& r_model_part
+			)
+		{
+			KRATOS_TRY
+
+			double norm_b;
+			if(TSparseSpace::Size(b) != 0)
+				norm_b = TSparseSpace::TwoNorm(b);
+			else
+				norm_b = 0.00;
+
+			if(norm_b != 0.00)
+			  {
+				KRATOS_WATCH("entering in the solver");
+				
+				int rank;
+				MPI_Comm_rank(MPI_COMM_WORLD,&rank);				
+
+				Epetra_LinearProblem AztecProblem(&A,&Dx,&b);
+
+				Teuchos::ParameterList MLList;
+ 				MLList.set("energy minimization: enable",true);
+         			MLList.set("energy minimization: type",3); // 1,2,3 cheap -> expensive
+       				MLList.set("aggregation: block scaling",false);
+				MLList.set("aggregation: type","Uncoupled");
+				MLList.set("smoother: type (level 0)","symmetric Gauss-Seidel");
+				MLList.set("smoother: sweeps (level 0)",2);
+				MLList.set("smoother: damping factor (level 0)",0.89);
+
+				// computation of the nullspace
+				int numdf; // dofs per node
+				int dimns; // dimension of the null space
+				int lrows =  A.NumMyRows(); //number of rows for calling processor
+
+				//Teuchos::RCP<vector<double> >  ns;
+				boost::shared_ptr<vector<double> > ns;
+				double* nullsp;				
+
+				GenerateNullSpace(A, r_model_part, nullsp, ns, numdf, dimns);							
+
+				nullsp= &((*ns)[0]);				
+
+				MLList.set("PDE equations",numdf);
+				MLList.set("null space: dimension",dimns);	
+				MLList.set("null space: type","pre-computed");
+				MLList.set("null space: add default vectors",false);
+				MLList.set("null space: vectors",nullsp);
+				
+				// create the preconditioner
+				ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(A, MLList, true);
+		
+				// create an AztecOO solver
+				AztecOO Solver(AztecProblem); 
+
+				// set preconditioner and solve
+				Solver.SetPrecOperator(MLPrec);
+				Solver.SetAztecOption(AZ_solver, AZ_gmres);
+				Solver.SetAztecOption(AZ_kspace, 200);
+				Solver.SetAztecOption(AZ_output,15); //SetAztecOption(AZ_output, AZ_none);
+								
+				int mmax_iter=300;
+				Solver.Iterate(mmax_iter, 1e-9);
+				delete MLPrec;
+
+		//		BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
+	
+			  }
+			else
+			{
+				TSparseSpace::SetToZero(Dx);
+			}
+
+			//prints informations about the current time
+			if (this->GetEchoLevel()>1)
+			{
+				std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
+			}
+
+			KRATOS_CATCH("")
+
+		}
+
+		//**************************************************************************
+		//**************************************************************************
+
 
 	
 	protected:
@@ -316,8 +454,8 @@ namespace Kratos
 					// creation of the nullspace vector nullsp
 
 					int k=0;
-	
-					for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it+=3)
+
+					for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it+=4)
 						{ 
 			  			if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)	
 			   				{
@@ -435,7 +573,7 @@ namespace Kratos
 
 					int k=0;
 	
-					for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it+=3)
+					for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it+=4)
 						{ 
 			  			if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)	
 			   				{
@@ -484,9 +622,10 @@ namespace Kratos
 							k=k+4;
 							}
 			   			 }	
-					}
+					std::cout<<"FINITO :-)"<<std::endl;}
 
 				}	
+
 		}	
 
 	private:
