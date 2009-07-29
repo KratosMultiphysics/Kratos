@@ -152,7 +152,29 @@ def Run():
 
 	os.chdir("..")
 
+        ################################################################
+	# cylinder
 
+	Text += "cylinder_3d: "
+	os.chdir("cylinder_3d.gid")
+	sys.path.append(os.getcwd())
+
+	#import column_benchmark
+	#Msg = column_benchmark.Run()
+
+	print "Running cylinder_3d.py..."
+	Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_3d_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "cylinder_3d example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "cylinder_3d example FAILED"
+
+	os.chdir("..")
 
 
 	
