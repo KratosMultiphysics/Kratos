@@ -108,9 +108,9 @@ namespace Kratos
 	    typedef ConstitutiveLaw<Node<3> > ConstitutiveLawBaseType;
             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
             //typedef FluencyCriteria FluencyCriteriaType;  
-            typedef typename FluencyCriteria::Pointer FluencyCriteriaPointer;  
-            typedef typename SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;  
-            typedef typename Properties::Pointer PropertiesPointer;
+            typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
+            typedef SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;  
+            typedef Properties::Pointer PropertiesPointer;
 	    
 
 

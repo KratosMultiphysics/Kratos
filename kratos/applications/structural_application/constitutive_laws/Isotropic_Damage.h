@@ -86,11 +86,11 @@ namespace Kratos
 			 */
 			typedef boost::shared_ptr<Isotropic_Damage> Pointer;
 
-			typedef typename FluencyCriteria::Pointer FluencyCriteriaPointer;  
+			typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
 
-                        typedef  typename SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;   
+                        typedef SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;   
                         
-                        typedef typename Properties::Pointer PropertiesPointer;
+                        typedef Properties::Pointer PropertiesPointer;
 
 			
 			/**

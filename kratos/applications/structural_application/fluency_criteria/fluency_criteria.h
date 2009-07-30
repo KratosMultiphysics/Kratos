@@ -85,7 +85,7 @@ namespace Kratos
 
 		    typedef FluencyCriteria FluencyCriteriaType;
 
-                    typedef typename Properties::Pointer PropertiesPointer;
+                    typedef Properties::Pointer PropertiesPointer;
 
                   
 
