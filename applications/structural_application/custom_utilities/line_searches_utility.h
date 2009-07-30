@@ -218,7 +218,7 @@ namespace Kratos
 			  //KRATOS_WATCH(mDx)
 			  //KRATOS_WATCH(mb)			  
 			  so = TSparseSpace::Dot(Delta_p,mb); // mb inicial 
-			  KRATOS_WATCH(so)
+			  //KRATOS_WATCH(so)
 
 
 			  while (iteration_number <= mMaxLineSearchIterations)
@@ -234,15 +234,15 @@ namespace Kratos
 			       pBuilderAndSolver->BuildRHS(pScheme,rmodel_part,mb); //mb para calculat eta
 			       TSparseSpace::Copy(Delta_p, mDx);	  
 			       seta = TSparseSpace::Dot(mDx,mb); //Delta_p =  Const
-			       KRATOS_WATCH(seta)
+			       //KRATOS_WATCH(seta)
 			       //KRATOS_WATCH(mb)
 			      // Posible restriccion en el denominador
 			       ils = iteration_number -1;
 			       prodr(ils+1) = (seta/so);
-                               KRATOS_WATCH(prodr(ils+1)) 
+                              
 			       if (fabs(prodr(ils+1)) < mtolls)
 				{ 
-				  KRATOS_WATCH(meta)
+				  //KRATOS_WATCH(meta)
 				  return true;
 				  //break;
 				 }
@@ -265,7 +265,7 @@ namespace Kratos
 				  }
 				
 				 meta = lseta(ils+2);
-				 KRATOS_WATCH(meta)
+				 
 				 TSparseSpace::Assign(mDx,meta, mDx); //mDx =lseta(iteration_number+1)*mDx
 				
 				 
