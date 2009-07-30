@@ -47,6 +47,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *   Date:                $Date: 2008-09-03 
 \*   Revision:            $Revision: 1.1 $
 *
+Nota: This constitutive law use the serial paralell mixing theory.
+
 * ***********************************************************/
 
 
@@ -72,15 +74,9 @@ namespace Kratos
 {
     namespace Compose_Material_Auxiliaries
     {
-        boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(mstemp)
-	#endif
-        boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(msaux)
-	#endif
-    } 
+	  Vector StressVectorAux; 
+
+    }
 
 
       using namespace Compose_Material_Auxiliaries;
@@ -88,16 +84,16 @@ namespace Kratos
       /**
       *	TO BE TESTED!!!
       */
-     ComposeMaterial::ComposeMaterial()
+     ComposeMaterial::ComposeMaterial() : ConstitutiveLaw< Node<3> >()
       {}
 
-
-      ComposeMaterial::ComposeMaterial(const Materials& Mat) 
+      ComposeMaterial::ComposeMaterial(MaterialsContainer Mat) 
       : ConstitutiveLaw< Node<3> >()
       {
 	mMaterials = Mat;
         mNumMat    = mMaterials.size();    
         KRATOS_WATCH(mNumMat )
+        
       }
 
       /**
@@ -169,10 +165,10 @@ namespace Kratos
       const Vector& ShapeFunctionsValues )
       {
     
-	    KRATOS_WATCH(props)
+	    
 	    for (unsigned int i=0; i< mNumMat; i++ )
 		{
-		  mMaterials[i]->InitializeMaterial(props,geom,ShapeFunctionsValues); 
+		     mMaterials[i]->InitializeMaterial(props,geom,ShapeFunctionsValues);
 		}
       
       }
@@ -186,6 +182,11 @@ namespace Kratos
       const Vector& ShapeFunctionsValues ,
       const ProcessInfo& CurrentProcessInfo)
       {
+	  for (unsigned int i=0; i< mNumMat; i++ )
+		{
+		  mMaterials[i]->InitializeSolutionStep(props,geom,ShapeFunctionsValues,CurrentProcessInfo); 
+		}
+
       }
 
       //***********************************************************************************************
@@ -194,6 +195,11 @@ namespace Kratos
 
       void ComposeMaterial::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& ConstitutiveMatrix)
       {
+
+	  for (unsigned int i=0; i< mNumMat; i++ )
+		{
+		  mMaterials[i]->CalculateConstitutiveMatrix(StrainVector, ConstitutiveMatrix); 
+		}
 
       }
 
@@ -208,6 +214,12 @@ namespace Kratos
       const ProcessInfo& CurrentProcessInfo)
 
       {
+	  for (unsigned int i=0; i< mNumMat; i++ )
+		{
+		  mMaterials[i]->FinalizeSolutionStep(props,geom,ShapeFunctionsValues,CurrentProcessInfo); 
+		}
+
+
       }
 
       //***********************************************************************************************
@@ -216,7 +228,12 @@ namespace Kratos
       void ComposeMaterial::CalculateStress( const Vector& StrainVector, Vector& StressVector)
 
       {
-		  
+	StressVectorAux.resize(StrainVector.size());  
+	for (unsigned int i=0; i< mNumMat; i++ )
+		{
+		  mMaterials[i]->CalculateStress(StrainVector, StressVectorAux);
+                  StressVector = StressVectorAux + StressVector;  
+		}
       }
 
       //***********************************************************************************************
@@ -228,20 +245,11 @@ namespace Kratos
       const Vector& rPK2_StressVector,
       const Vector& rGreenLagrangeStrainVector)
       {
-      Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
-      double J = MathUtils<double>::Det2( rF );
-
-      noalias(mstemp) = prod(rF,S);
-      noalias(msaux)  = prod(mstemp,trans(rF));
-      msaux *= J;
-
-      if(rCauchy_StressVector.size() != 3)
-      rCauchy_StressVector.resize(3);
-
-      rCauchy_StressVector[0] = msaux(0,0);
-      rCauchy_StressVector[1] = msaux(1,1);
-      rCauchy_StressVector[2] = msaux(1,2);
+	for (unsigned int i=0; i< mNumMat; i++ )
+		{
+		  mMaterials[i]->CalculateCauchyStresses(rCauchy_StressVector,rF,rPK2_StressVector,rGreenLagrangeStrainVector);
+		}
       }
 
       //***********************************************************************************************
@@ -250,6 +258,10 @@ namespace Kratos
       const Vector& StrainVector,
       Matrix& algorithmicTangent)
       {
+	for (unsigned int i=0; i< mNumMat; i++)
+		{
+		  mMaterials[i]->CalculateStressAndTangentMatrix(StressVector,StrainVector,algorithmicTangent); 
+		}
 
       }
 

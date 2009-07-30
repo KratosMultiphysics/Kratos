@@ -98,7 +98,7 @@ namespace Kratos
 			  
 			  typedef unsigned int NumMaterial;
 			  
-			  typedef std::vector<ConstitutiveLaw<Node<3> >::Pointer> Materials;
+			  typedef std::vector<ConstitutiveLaw<Node<3> >::Pointer> MaterialsContainer;
                           
 
 			  /**
@@ -113,7 +113,7 @@ namespace Kratos
 			  * Default constructor.
 			  */
                           ComposeMaterial();
-			  ComposeMaterial(const Materials& Mat);
+			  ComposeMaterial(MaterialsContainer Mat);
 
 
 			  virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
@@ -186,7 +186,7 @@ namespace Kratos
 		private:
 		// atributos
 		NumMaterial mNumMat; 
-                Materials mMaterials;
+                MaterialsContainer mMaterials;
 
       }; // Class Compose_Material
  }  // namespace Kratos.
