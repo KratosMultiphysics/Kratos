@@ -75,7 +75,7 @@ namespace Kratos
 		typedef ConstitutiveLaw<Node<3> > BaseType;
                 //typedef typename FluencyCriteria::Pointer FluencyCriteriaType;
                 typedef  FluencyCriteria FluencyCriteriaType; 
-                typedef typename FluencyCriteria::Pointer FluencyCriteriaPointer;  
+                typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
 		/**
 		* Counted pointer of Orthotropic3D
 		*/
