@@ -108,6 +108,12 @@ namespace Python
 		.def("IdentifyFluidNodes",&PfemUtils::IdentifyFluidNodes)
 		.def("ReduceTimeStep",&PfemUtils::ReduceTimeStep)
 		.def("MarkExcessivelyCloseNodes",&PfemUtils::MarkExcessivelyCloseNodes)
+		.def("MarkNodesTouchingWall",&PfemUtils::MarkNodesTouchingWall)
+		.def("MarkNodesTouchingInterface",&PfemUtils::MarkNodesTouchingInterface)
+		.def("InterfaceDetecting",&PfemUtils::InterfaceDetecting)
+		.def("ChangeWallWaterFlag",&PfemUtils::ChangeWallWaterFlag)
+		.def("ChangeInterfaceWaterFlag",&PfemUtils::ChangeInterfaceWaterFlag)
+		.def("ColourAirWaterElement",&PfemUtils::ColourAirWaterElement)
 		 ;
 	  
 	  class_<NormalToWallCalculationUtils>("NormalToWallCalculationUtils", init<>())
