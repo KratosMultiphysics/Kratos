@@ -107,7 +107,6 @@ namespace Kratos
 			   {
 				      
 	              unsigned int dim  = 3;
-                      double sigma_z    = 0.00;
                       long double tetha_Lode = 0.00;
                       Vector I          = ZeroVector(3);
 		      Vector J          = ZeroVector(3);
