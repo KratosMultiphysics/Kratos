@@ -912,7 +912,294 @@ namespace Kratos
 
 			KRATOS_CATCH("")
 		}
+		//*********************************************************************************************
+		//*********************************************************************************************
+		void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double factor)
+		{
+		KRATOS_TRY;
+			
+		if (domain_size==2)
+			{
+			
+			for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{	
+					double n_str=0;
+					
+					//counting number on nodes at the wall
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					n_str = geom[0].FastGetSolutionStepValue(IS_BOUNDARY);
+					n_str+= geom[1].FastGetSolutionStepValue(IS_BOUNDARY);
+					n_str+= geom[2].FastGetSolutionStepValue(IS_BOUNDARY);
+					//if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
+					if (n_str==2.0)
+						{
+						 boost::numeric::ublas::bounded_matrix<double,3,2> sort_coord = ZeroMatrix(3,2);
+						 int cnt=1;
+						for (int i=0; i<3;++i)
+						    if(geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
+						       {	
+							sort_coord(0,0) = geom[i].X();
+							sort_coord(0,1) = geom[i].Y();
+						       }
+						    else 
+							{
+							sort_coord(cnt,0) = geom[i].X();
+							sort_coord(cnt,1) = geom[i].Y();
+							cnt++;
+							}
 
+						 array_1d<double,2> vec1 = ZeroVector(2);
+						 array_1d<double,2> vec2 = ZeroVector(2);
+
+						 vec1[0] = sort_coord(0,0) - sort_coord(1,0);  		
+						 vec1[1] = sort_coord(0,1) - sort_coord(1,1); 
+						
+						 vec2[0] = sort_coord(2,0) - sort_coord(1,0);  		
+						 vec2[1] = sort_coord(2,1) - sort_coord(1,1); 
+	
+						 double outer_prod = 0.0;
+						 outer_prod = vec2[1]*vec1[0]-vec1[1]*vec2[0];
+
+						 double length_measure =0.0;
+						 length_measure = vec2[0]*vec2[0] + vec2[1]*vec2[1];
+						 length_measure = sqrt(length_measure);
+						 outer_prod/=length_measure;
+	 
+						//KRATOS_WATCH(fabs(outer_prod));
+					//	RATOS_WATCH(factor*length_measure);
+
+						if (fabs(outer_prod)<factor*length_measure)
+							{
+								for (int i=0;i<3;i++)
+									{
+									//if thats not the wall node, remove it
+									if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
+										{
+										geom[i].GetValue(ERASE_FLAG)=true;
+										KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
+										}
+									}
+							}
+						}
+
+				}
+			}
+		else
+			{
+				KRATOS_WATCH("MarkNodesTouchingWall FOR 3D IS NOT IMPLEMENTED");
+			}
+			KRATOS_CATCH("")
+		}
+
+		//**********************************************************************************************
+		//**********************************************************************************************
+		void MarkNodesTouchingInterface(ModelPart& ThisModelPart, int domain_size, double factor)
+		{
+		KRATOS_TRY;
+			
+		if (domain_size==2)
+			{
+			
+			for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{	
+					double n_intr=0;
+					
+					//counting number on nodes at the Interface
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					n_intr = geom[0].FastGetSolutionStepValue(IS_INTERFACE);
+					n_intr+= geom[1].FastGetSolutionStepValue(IS_INTERFACE);
+					n_intr+= geom[2].FastGetSolutionStepValue(IS_INTERFACE);
+				//if two interfaces are at the interface, we check if the third node is close to it or not by passing the alpha-shape
+					if (n_intr==2.0)
+						{
+						 boost::numeric::ublas::bounded_matrix<double,3,2> sort_coord = ZeroMatrix(3,2);
+						 int cnt=1;
+						for (int i=0; i<3;++i)
+						    if(geom[i].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
+						       {	
+							sort_coord(0,0) = geom[i].X();
+							sort_coord(0,1) = geom[i].Y();
+						       }
+						    else 
+							{
+							sort_coord(cnt,0) = geom[i].X();
+							sort_coord(cnt,1) = geom[i].Y();
+							cnt++;
+							}
+
+						 array_1d<double,2> vec1 = ZeroVector(2);
+						 array_1d<double,2> vec2 = ZeroVector(2);
+
+						 vec1[0] = sort_coord(0,0) - sort_coord(1,0);  		
+						 vec1[1] = sort_coord(0,1) - sort_coord(1,1); 
+						
+						 vec2[0] = sort_coord(2,0) - sort_coord(1,0);  		
+						 vec2[1] = sort_coord(2,1) - sort_coord(1,1); 
+	
+						 double outer_prod = 0.0;
+						 outer_prod = vec2[1]*vec1[0]-vec1[1]*vec2[0];
+
+						 double length_measure =0.0;
+						 length_measure = vec2[0]*vec2[0] + vec2[1]*vec2[1];
+						 length_measure = sqrt(length_measure);
+						 outer_prod/=length_measure;
+	 
+						//KRATOS_WATCH(fabs(outer_prod));
+					//	RATOS_WATCH(factor*length_measure);
+
+						if (fabs(outer_prod)<factor*length_measure)
+							{
+								for (int i=0;i<3;i++)
+									{
+									//if thats not the wall node, remove it
+					if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0 &&geom[i].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
+										{
+										geom[i].GetValue(ERASE_FLAG)=true;
+										KRATOS_WATCH("NODE TOUCHING THE INTERFACE - WILL BE ERASED!!!!")
+										}
+									}
+							}
+						}
+
+				}
+			//not to delete interface nodes
+			for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+				{
+				if(ind->FastGetSolutionStepValue(IS_INTERFACE) ==1.0)
+					ind->GetValue(ERASE_FLAG) = 0.0;
+
+				}
+
+
+
+			}
+		else
+			{
+				KRATOS_WATCH("MarkNodesTouchingWall FOR 3D IS NOT IMPLEMENTED");
+			}
+			KRATOS_CATCH("")
+		}
+		//**********************************************************************************************
+		//**********************************************************************************************
+		void InterfaceDetecting(ModelPart& ThisModelPart, int domain_size, double factor)
+		{
+		KRATOS_TRY;
+		 for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+			ind->FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
+	
+		 for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+			{
+			if(ind->FastGetSolutionStepValue(IS_WATER) == 0.0 && ind->FastGetSolutionStepValue(IS_STRUCTURE) !=1.0)
+				{
+				//to loop over just one kind of fluid (the one that  has boundary node  at the begining)
+				  WeakPointerVector< Node<3> >& neighb = ind->GetValue(NEIGHBOUR_NODES);
+				  int other_kind = 0;
+
+			          for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+				     {
+					if(ngh_ind->FastGetSolutionStepValue(IS_WATER) ==1.0 && ngh_ind->FastGetSolutionStepValue(IS_STRUCTURE) !=1.0)
+							other_kind++;
+			             }
+
+				   if(other_kind)
+				     ind->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+			        }
+
+			}
+KRATOS_WATCH("INSIDEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+
+		//free elements having three interface nodes
+			/*for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					double n_intr=0;
+					for(int ii=0;ii<3;++ii)
+						if(geom[ii].FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+							n_intr++;
+					
+					if(n_intr == 3.0)
+						for(int ii=0;ii<3;++ii)
+							geom[ii].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
+
+				}*/
+		KRATOS_CATCH("")
+		}
+
+		//**********************************************************************************************
+		//**********************************************************************************************
+		void ChangeWallWaterFlag(ModelPart& ThisModelPart, int domain_size)
+		{
+		KRATOS_TRY;
+		 for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+		     {
+			if(ind->FastGetSolutionStepValue(IS_STRUCTURE) ==1.0)
+			  {
+				double current_flag = ind->FastGetSolutionStepValue(IS_WATER) ;
+				double opposit_flag;
+					if(current_flag == 1.0)
+						opposit_flag = 0.0;
+					else
+						opposit_flag = 1.0;
+				int same_flag = 0;
+
+				WeakPointerVector< Node<3> >& neighb = ind->GetValue(NEIGHBOUR_NODES);
+
+			      for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+				     {	
+				if(ngh_ind->FastGetSolutionStepValue(IS_STRUCTURE) !=1.0 && ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) !=1.0)
+					  {
+					   double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
+						if(current_flag == ngh_flag)
+							same_flag++;
+						else
+							opposit_flag = ngh_flag;
+					  }
+				     }	
+				if(!same_flag)
+					ind->FastGetSolutionStepValue(IS_WATER) = opposit_flag;	
+		          }
+                     }
+		KRATOS_CATCH("")
+		}
+		//**********************************************************************************************
+		//**********************************************************************************************
+		void ChangeInterfaceWaterFlag(ModelPart& ThisModelPart, int domain_size)
+		{
+		KRATOS_TRY;
+		 for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+		     {
+			if(ind->FastGetSolutionStepValue(IS_INTERFACE) ==1.0)
+			  {
+				double current_flag = ind->FastGetSolutionStepValue(IS_WATER) ;
+				double opposit_flag;
+					if(current_flag == 1.0)
+						opposit_flag = 0.0;
+					else
+						opposit_flag = 1.0;
+				int same_flag = 0;
+
+				WeakPointerVector< Node<3> >& neighb = ind->GetValue(NEIGHBOUR_NODES);
+
+			      for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+				     {	
+				if(ngh_ind->FastGetSolutionStepValue(IS_STRUCTURE) !=1.0 && ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) !=1.0)
+					  {
+					   double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
+						if(current_flag == ngh_flag)
+							same_flag++;
+						else
+							opposit_flag = ngh_flag;
+					  }
+				     }	
+				if(!same_flag)
+					ind->FastGetSolutionStepValue(IS_WATER) = opposit_flag;	
+		          }
+                     }
+		KRATOS_CATCH("")
+		}
 		//**********************************************************************************************
 		//**********************************************************************************************
 		//ATTENTION:: returns a negative volume if inverted elements appear
@@ -958,6 +1245,77 @@ namespace Kratos
 			//return the total area
 			return Atot;
 			KRATOS_CATCH("");
+		}
+		//**********************************************************************************************
+		//**********************************************************************************************
+		void ColourAirWaterElement(ModelPart& ThisModelPart, int domain_size)
+		{
+		KRATOS_TRY;
+
+				for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin(); 
+					elem!=ThisModelPart.ElementsEnd(); elem++)
+				{
+					Geometry< Node<3> >& geom = elem->GetGeometry();
+					int same_colour= 0 ;
+
+					//count air flag
+					for(int ii= 0; ii<= domain_size; ++ii)
+						if(geom[ii].FastGetSolutionStepValue(IS_WATER) == 0.0)
+							same_colour++;
+					
+					if(same_colour == (domain_size + 1))
+						elem->GetValue(IS_WATER_ELEMENT) = 0.0;
+					else
+						elem->GetValue(IS_WATER_ELEMENT) = 1.0;						
+					
+
+											
+				}
+				//detecting interface nodes
+
+				//PfemUtils::InterfaceDetecting(ThisModelPart, domain_size, 5.0);
+
+
+
+				
+			/*	//chack for apex elements of all interface
+				for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin(); 
+					elem!=ThisModelPart.ElementsEnd(); elem++)
+				{
+				    if(elem->GetValue(IS_WATER_ELEMENT) == 0.0)	
+				 {
+					Geometry< Node<3> >& geom = elem->GetGeometry();
+					int is_interface = 0;
+					
+					for(int ii= 0; ii<= domain_size; ++ii)
+						if(geom[ii].FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+							is_interface++;				 
+
+					if(is_interface == (domain_size + 1))
+					  {
+	              WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);	
+					
+					   double ref_elem_flag = 0.0; //interface is always 0
+					   double water_neghbs = 0;
+
+ 					    for(int ii=0; ii<(domain_size+1); ++ii)
+						{
+
+					 	if(neighbor_els[ii].GetValue(IS_WATER_ELEMENT) != ref_elem_flag && neighbor_els[ii].Id() != elem->Id())
+					  	   water_neghbs++;
+						}
+
+					    if(water_neghbs == 1.0) //so change the flag to WATER
+						{
+							elem->GetValue(IS_WATER_ELEMENT) = 1.0;
+						KRATOS_WATCH("CHANGE    CHANGE   CHANGE   CHANGE   CHANGE   CHANGE");
+						KRATOS_WATCH(elem->Id());
+						}
+					   }
+				 }
+				}*/
+
+		KRATOS_CATCH("");
 		}
 
 		//**********************************************************************************************
