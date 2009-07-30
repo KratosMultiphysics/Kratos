@@ -1,4 +1,4 @@
-domain_size = 2
+domain_size = 3
 
 Dt = 0.01
 max_time = 1
