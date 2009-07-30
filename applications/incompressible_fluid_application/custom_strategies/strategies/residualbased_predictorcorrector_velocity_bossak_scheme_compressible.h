@@ -261,6 +261,10 @@ namespace Kratos
 	UpdateTimeDerivative(CurrentAirPressurerRate,DeltaAirPressure,OldAirPressurerRate);
 	(this)->UpdateAcceleration(CurrentAcceleration, DeltaVel,OldAcceleration);
 	(this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);
+//to not move nodes with fixed flag
+			if(i->IsFixed(DISPLACEMENT_X)) CurrentDisplacement[0] = 0.0;
+			if(i->IsFixed(DISPLACEMENT_Y)) CurrentDisplacement[1] = 0.0;
+			if(i->IsFixed(DISPLACEMENT_Z)) CurrentDisplacement[2] = 0.0;
 
 
 				i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
@@ -318,6 +322,7 @@ namespace Kratos
 			TSystemVectorType& b
 			) 
 		{
+			KRATOS_TRY
 	std::cout << "prediction" << std::endl;
 			array_1d<double,3> DeltaDisp;
 			array_1d<double,3> DeltaVel;
@@ -355,7 +360,7 @@ namespace Kratos
 				if( i->HasDofFor(AIR_PRESSURE))
 					if( i->pGetDof(AIR_PRESSURE)->IsFixed() == false )
 						CurrentAirPressure = OldAirPressure;
-		
+
 //KRATOS_WATCH("2")
 
 				//updating time derivatives ::: please note that displacements and its time derivatives
@@ -384,6 +389,10 @@ namespace Kratos
 	UpdateTimeDerivative(CurrentAirPressurerRate,DeltaAirPressure,OldAirPressurerRate);
 	(this)->UpdateAcceleration(CurrentAcceleration, DeltaVel,OldAcceleration);
 	(this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);
+//to not move nodes with fixed flag
+			if(i->IsFixed(DISPLACEMENT_X)) CurrentDisplacement[0] = 0.0;
+			if(i->IsFixed(DISPLACEMENT_Y)) CurrentDisplacement[1] = 0.0;
+			if(i->IsFixed(DISPLACEMENT_Z)) CurrentDisplacement[2] = 0.0;
 
 			    if(this->mMeshVelocity == 0)
 			     {
@@ -406,7 +415,7 @@ namespace Kratos
 			      }
 			}
 		std::cout << "end of prediction" << std::endl;
-
+		KRATOS_CATCH("")
 		}
 		
 		
@@ -464,43 +473,58 @@ namespace Kratos
 			 }
 
 	    }//end of orthogonal
-	
+
 	//loop over nodes to update density and sound velocity
 		double K1 = 2070000000;
 		double K2 = 7.15;
+		double alpha = 1.0;
 	for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        { 
-
-			//update density DENSITY_AIR 
+;
+			//*********update density DENSITY_AIR 
 			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
 
 			const double pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
 			const double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
 			double alpha = 1.0;
-			
+
+		if(old_pr == 0.0 ) 	
+			alpha = 0.0;
+		else
 			alpha = pow(pr/old_pr, 1.0/1.4);
 
 			ind->FastGetSolutionStepValue(DENSITY_AIR ) = old_rho*alpha;	
 
-			//update water density DENSITY
+			//*******update water density DENSITY
 			
-			const double old_rho_w = ind->FastGetSolutionStepValue(DENSITY ,1);	
+			const double old_rho_w = ind->FastGetSolutionStepValue(DENSITY_WATER ,1);	
 			const double pr_w = ind->FastGetSolutionStepValue(WATER_PRESSURE);	
 			const double old_pr_w = ind->FastGetSolutionStepValue(WATER_PRESSURE,1); 
 
 			alpha = (pr_w + K1/K2)/(old_pr_w + K1/K2);
-			ind->FastGetSolutionStepValue(DENSITY) = old_rho_w*pow(alpha,(1.0/K2));
+			ind->FastGetSolutionStepValue(DENSITY_WATER) = old_rho_w*pow(alpha,(1.0/K2));
+
+
+			//*************update AIr like water density DENSITY
+			
+			/*const double old_rho_a = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
+			const double pr_a = ind->FastGetSolutionStepValue(AIR_PRESSURE);	
+			const double old_pr_a = ind->FastGetSolutionStepValue(AIR_PRESSURE,1); 
+
+			alpha = (pr_a + K1/K2)/(old_pr_a + K1/K2);
+			ind->FastGetSolutionStepValue(DENSITY_AIR) = old_rho_a*pow(alpha,(1.0/K2));*/
 
 			//update sound velocity
+
 			CalculateSoundVelocity(ind);
 
 			//extrapolating
-			//double base_flag = ind->FastGetSolutionStepValue(IS_POROUS);
+			//double base_flag = ind->FastGetSolutionStepValue(IS_WATER);
 			//	if(base_flag == 0.0)//the node is AIR
 			//		CheckExtrapolate(ind);	
 
 			  }//end of loop over nodes
-			
+KRATOS_WATCH("END OF INITIALIZE");
 			KRATOS_CATCH("")
 		}
 //************************************************************************************************
@@ -543,20 +567,39 @@ namespace Kratos
 	  air_rho = base->FastGetSolutionStepValue(DENSITY_AIR );
 	  air_pr = base->FastGetSolutionStepValue(AIR_PRESSURE);
 
+	if(air_rho == 0.0)
+		base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY) = 340.0;
+	else
 	  base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY) = pow(1.4*air_pr/air_rho , 0.5);
+	
+
+
 
 	  //calculate sound velocity in WATER
 	  double K1 = 2070000000;
           double K2 = 7.15;
 
-	  double rho_w = base->FastGetSolutionStepValue(DENSITY );
-	  double old_rho_w = base->FastGetSolutionStepValue(DENSITY,1 );
-	  double old_pr_w = base->FastGetSolutionStepValue(WATER_PRESSURE,1);
+	//****air like water
+	/* const double old_pr_a = base->FastGetSolutionStepValue(AIR_PRESSURE,1);
+	 const double old_air_rho = base->FastGetSolutionStepValue(DENSITY_AIR,1 );
+	double alpha = (old_pr_a * K2 + K1)/old_air_rho;
 
-	  double alpha = (old_pr_w * K2 + K1)/old_rho_w;
+	 base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY) = pow(alpha*pow((air_rho/old_air_rho), (K2-1.0)),0.5);*/
+	//end of air like water
 
-	  base->FastGetSolutionStepValue(SOUND_VELOCITY) = pow(alpha*pow((rho_w/old_rho_w), (K2-1.0)),0.5);
+	const  double rho_w = base->FastGetSolutionStepValue(DENSITY_WATER );
+	 const double old_rho_w = base->FastGetSolutionStepValue(DENSITY_WATER,1 );
+	 const double old_pr_w = base->FastGetSolutionStepValue(WATER_PRESSURE,1);
 
+	if(old_rho_w == 0.0) 
+			base->FastGetSolutionStepValue(WATER_SOUND_VELOCITY) = 1500.0;
+		else
+		{
+		
+	  		double alpha = (old_pr_w * K2 + K1)/old_rho_w;
+
+	  		base->FastGetSolutionStepValue(WATER_SOUND_VELOCITY) = pow(alpha*pow((rho_w/old_rho_w), (K2-1.0)),0.5);
+		}
 
 	}
 	//************************************************************************************************
@@ -616,7 +659,7 @@ namespace Kratos
    			 //if there is a Water neighbor there is no need to extrapolate
    			 for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 				   {
-    					double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
+    					double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
 					if(ngh_flag == 1.0)
 					 extrapolate_flag = 0.0;
 		
@@ -631,7 +674,7 @@ namespace Kratos
 
 				for(WeakPointerVector< Node<3> >::iterator ngh_ngh_it = ngh_of_ngh.begin(); ngh_ngh_it !=ngh_of_ngh.end(); ngh_ngh_it++)
 				  {
-						double water_flag = ngh_ngh_it->FastGetSolutionStepValue(IS_POROUS);
+						double water_flag = ngh_ngh_it->FastGetSolutionStepValue(IS_WATER);
 						if(water_flag == 1.0)
 			 			   {
 							ngh_ngh_water_pr += ngh_ngh_it->FastGetSolutionStepValue(WATER_PRESSURE);
@@ -651,13 +694,13 @@ namespace Kratos
 			    
 /*
 			//extrapolating
-			double base_flag = ind->FastGetSolutionStepValue(IS_POROUS);
+			double base_flag = ind->FastGetSolutionStepValue(IS_WATER);
 			double extrapolate_flag = 0.0;
 			WeakPointerVector< Node<3> >& neighbor_nds = ind->GetValue(NEIGHBOUR_NODES);
 				//decide if it is neccesery or no
 			 for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 	  			  {
-					double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
+					double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
 					if(base_flag!=ngh_flag)
 						extrapolate_flag = 1.0;
 
@@ -674,7 +717,7 @@ namespace Kratos
 					//calculate mean water pressure
 				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 	  			  {
-				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
+				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
 
 					if(ngh_flag ==1.0)//the neighbor is water
 					   {
@@ -685,7 +728,7 @@ namespace Kratos
 					//add mean water pressure to AIR nodes
 				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 	  			  {
-				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
+				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
 					//calculate mean water pressure
 					if(ngh_flag ==0.0)					   
 					    ngh_ind->FastGetSolutionStepValue(WATER_PRESSURE) = mean_water_pr/cntr;
@@ -701,7 +744,7 @@ namespace Kratos
 					//calculate mean air pressure
 				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 	  			  {
-				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
+				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
 
 					if(ngh_flag ==0.0)//the neighbor is air
 					   {
@@ -712,7 +755,7 @@ namespace Kratos
 					//add mean air pressure to WATER nodes
 				for( WeakPointerVector< Node<3> >::iterator ngh_ind = neighbor_nds.begin(); ngh_ind!=neighbor_nds.end(); ngh_ind++)
 	  			  {
-				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_POROUS);
+				     double ngh_flag = ngh_ind->FastGetSolutionStepValue(IS_WATER);
 
 					if(ngh_flag ==1.0)					   
 					    ngh_ind->FastGetSolutionStepValue(AIR_PRESSURE) = mean_air_pr/cntr;
