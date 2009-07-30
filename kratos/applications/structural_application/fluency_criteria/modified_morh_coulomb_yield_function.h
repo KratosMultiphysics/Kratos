@@ -42,12 +42,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-#if !defined(KRATOS_ENERGY_YIELD_FUNCTION_H_INCLUDED)
-#define KRATOS_ENERGY_YIELD_FUNCTION_H_INCLUDED 
+#if !defined(MODIFIED_MORH_COULOMB_FUNCTION_UTILS)
+#define MODIFIED_MORH_COULOMB_FUNCTION_UTILS
 
 
-//#include "utilities/math_utils.h"
-//#include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/tensor_utils.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include <cmath>
@@ -58,7 +56,7 @@ namespace Kratos
   {
 
     	
-      class Energy_Yield_Function: public FluencyCriteria    
+      class Modified_Morh_Coulomb_Yield_Function: public FluencyCriteria    
       { 
     
         public:
@@ -70,22 +68,28 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri    
   
-            Energy_Yield_Function(myState State);
+            Modified_Morh_Coulomb_Yield_Function(myState State);
 	   
-            ~Energy_Yield_Function();
+            ~Modified_Morh_Coulomb_Yield_Function();
 
-           KRATOS_CLASS_POINTER_DEFINITION( Energy_Yield_Function );
+            KRATOS_CLASS_POINTER_DEFINITION( Modified_Morh_Coulomb_Yield_Function );
 
 //***********************************************************************
 //***********************************************************************
 // Energy_Criteria
 // Diferent limits in traccion and compresion
 
+
 		     void InitializeMaterial(const Properties& props);
 		     
 
 		    void  CalculateEquivalentUniaxialStress(
-		    const Vector& StressVector,const Vector& StrainVector,  const Matrix& Other, double& Result);
+		    const Vector& StressVector,double& Result); 
+
+
+		    void CalculateEquivalentUniaxialStressViaPrincipalStress(
+		    const Vector& StressVector,double& Result);
+
 
 
 		    void CalculateEquivalentUniaxialStressViaInvariants(
@@ -101,14 +105,11 @@ namespace Kratos
 		    
 
       
-
 	protected:
-
-
-
 
 
     };
 }
 #endif
+
 

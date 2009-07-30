@@ -62,11 +62,10 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
            
-            Rankine_Yield_Function::Rankine_Yield_Function(int dim, double sigma_max)
+            Rankine_Yield_Function::Rankine_Yield_Function(myState State)
 	    :FluencyCriteria()
 	    {
-              mdim       = dim;
-              msigma_max = sigma_max; 
+              mState = State;
 	    }
 
              Rankine_Yield_Function::~Rankine_Yield_Function() {}
@@ -74,62 +73,79 @@ namespace Kratos
     
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
-	void   Rankine_Yield_Function::CalculateEquivalentUniaxialStress(const Vector& StrainVector, 
-		    const Vector& StressVector,
-		    const Matrix& ConstitutiveMatrix,
-		    const double& ro, const double& n, 
-		    double& Result) 
-		    {
-		      
-		      CalculateEquivalentUniaxialStressViaPrincipalStress(StrainVector, 
-		      StressVector,Result);
-                      return;
+
+		    void Rankine_Yield_Function::InitializeMaterial(const Properties& props) { mprops = &props;}
 		     
-		    }
-      
+
+		    void Rankine_Yield_Function:: CalculateEquivalentUniaxialStress(
+		    const Vector& StressVector,double& Result){}
 
 
-	void Rankine_Yield_Function::InitializeMaterial() {}
-
-
-	void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(const Vector& StrainVector, 
- 	const Vector& StressVector,double& Result)
-	{
-
-		      double crit = 1E-10;
-                      double zero = 1E-10;  
+		    void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
+		    const Vector& StressVector,double& Result)
+                       {
+		      double crit = 1E-15;
+                      double zero = 1E-15;  
                       double max  = 0.00;
-		      unsigned int size = StressVector.size();
                       unsigned int dim  = 3;
-		      if (size==3){dim = 2;}
 
 
 		      Matrix StressTensor    = ZeroMatrix(dim,dim);
                       Vector PrincipalStress = ZeroVector(dim);
-                      StressTensor           = MathUtils<double>::StressVectorToTensor(StressVector);
-		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
-                      PrincipalStress        = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
+                      this->State_Tensor(StressVector,StressTensor);
+		      this->Comprobate_State_Tensor(StressTensor, StressVector);
+                      PrincipalStress = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
 		      max = (*std::max_element(PrincipalStress.begin(),PrincipalStress.end()));
-                      Result = max - msigma_max;  
-
-	}
-
-
-	void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(const Vector& StrainVector, 
-	const Vector& StressVector,double& Result)
-
-	{}
-
-	void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate(const Vector& StrainVector, 
-	const Vector& StressVector,double& Result)
-
-	{}
+                      //Result = max; // - msigma_max; 
+                      //KRATOS_WATCH(Result) 
+                   	}
 
 
-	  void Rankine_Yield_Function::CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria)
-	{}
+
+		    void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
+		    const Vector& StressVector,double& Result)
+			   {
+				      
+	              unsigned int dim  = 3;
+                      double sigma_z    = 0.00;
+                      long double tetha_Lode = 0.00;
+                      Vector I          = ZeroVector(3);
+		      Vector J          = ZeroVector(3);
+                      Vector J_des      = ZeroVector(3);		      
+
+		      Matrix StressTensor     = ZeroMatrix(dim,dim);
+		      Vector PrincipalStress  = ZeroVector(dim);
+
+		      this->State_Tensor(StressVector,StressTensor);
+		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
+		      Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
+		
+		      if (J_des(1)==0.00 && J_des(2)==0.00) 
+                        {
+			    tetha_Lode = PI/2.00;                           	   
+			}
+                      else
+		        {  
+			tetha_Lode = (3.00*sqrt(3)*J_des(2))/(2.00*pow(J_des(1), 1.50));
+			if(tetha_Lode > 1.00){tetha_Lode = 1.00; }
+			tetha_Lode = asin(-tetha_Lode)/3.00;
+		        }
+
+		      Result = 2.00*sqrt(3.00*J_des(1))*cos(tetha_Lode + PI/6.00) + I(0); // - msigma_max;
+                      Result = Result/3.00;
+		      //KRATOS_WATCH("----------")
+                      //KRATOS_WATCH(Result)
+				    
+
+			    }
+
+
+		    void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
+		    const Vector& StressVector,double& Result){}
+
+
+
+		    void Rankine_Yield_Function::CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria){}
 
 
     }

@@ -42,12 +42,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-#if !defined(KRATOS_ENERGY_YIELD_FUNCTION_H_INCLUDED)
-#define KRATOS_ENERGY_YIELD_FUNCTION_H_INCLUDED 
+#if !defined(VON_MISSES_FUNCTION_UTILS)
+#define VON_MISSES_FUNCTION_UTILS
 
 
-//#include "utilities/math_utils.h"
-//#include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/tensor_utils.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include <cmath>
@@ -58,7 +56,7 @@ namespace Kratos
   {
 
     	
-      class Energy_Yield_Function: public FluencyCriteria    
+      class Von_Misses_Yield_Function: public FluencyCriteria    
       { 
     
         public:
@@ -70,29 +68,35 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri    
   
-            Energy_Yield_Function(myState State);
+            Von_Misses_Yield_Function(myState State);
 	   
-            ~Energy_Yield_Function();
+            ~Von_Misses_Yield_Function();
 
-           KRATOS_CLASS_POINTER_DEFINITION( Energy_Yield_Function );
+            KRATOS_CLASS_POINTER_DEFINITION( Von_Misses_Yield_Function );
 
 //***********************************************************************
 //***********************************************************************
 // Energy_Criteria
 // Diferent limits in traccion and compresion
 
+
 		     void InitializeMaterial(const Properties& props);
 		     
 
-		    void  CalculateEquivalentUniaxialStress(
-		    const Vector& StressVector,const Vector& StrainVector,  const Matrix& Other, double& Result);
+		    void  CalculateEquivalentUniaxialStress(  
+		    const Vector& StressVector,double& Result); 
 
 
-		    void CalculateEquivalentUniaxialStressViaInvariants(
+		    void CalculateEquivalentUniaxialStressViaPrincipalStress(  
 		    const Vector& StressVector,double& Result);
 
 
-		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
+
+		    void CalculateEquivalentUniaxialStressViaInvariants( 
+		    const Vector& StressVector,double& Result);
+
+
+		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate( 
 		    const Vector& StressVector,double& Result);
 
 
@@ -101,14 +105,11 @@ namespace Kratos
 		    
 
       
-
 	protected:
-
-
-
 
 
     };
 }
 #endif
+
 
