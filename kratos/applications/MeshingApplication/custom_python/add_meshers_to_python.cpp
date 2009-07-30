@@ -19,6 +19,7 @@
 #include "custom_python/add_meshers_to_python.h"
 #include "external_includes/tetgen_pfem_refine.h"
 #include "external_includes/trigen_pfem_refine.h"
+#include "external_includes/trigen_pfem_refine_segment.h"
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
@@ -59,6 +60,7 @@ namespace Python
 			KratosComponents<Element>::Get(ElementName),
 			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
 	}
+
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
 	//											//
@@ -103,6 +105,22 @@ namespace Python
 	}
 	
 	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	//											//
+	//				ADAPTIVE 2D MESHER -->USING SEGMENT  		//
+	//											//
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+	//trigen pfem refine segment
+	void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
+	{
+		Mesher.ReGenerateMesh(model_part, 
+			KratosComponents<Element>::Get(ElementName),
+			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
+	}
+
+
+
 
   void  AddMeshersToPython()
   {
@@ -139,6 +157,11 @@ namespace Python
 	 class_<MSuitePFEMModeler >("MSuitePFEMModeler",
 		 init< >()) 
 	 .def("ReGenerateMesh",MsuiteRegenerateMesh);
+	//segment mesher adaptive
+	 class_<TriGenPFEMRefineSegment >("TriGenPFEMSegment",
+		 init< >()) 
+	 .def("ReGenerateMesh",TriRegenerateMeshWithSegment)
+		;
 
 
 	
