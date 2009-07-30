@@ -64,7 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/coordinate_laplacian_smoother_process.h" 
 #include "custom_processes/move_mesh_process.h" 
 // #include "custom_processes/node_erase_process.h" 
-//#include "custom_processes/ulf_time_step_dec_process.h" 
+#include "custom_processes/ulf_time_step_dec_process.h" 
 //#include "custom_processes/lagrangian_inlet_process.h" 
 #include "includes/node.h"
 
@@ -102,7 +102,9 @@ namespace Python
 // 	  class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
 // 		 init<ModelPart&>())
 // 		 ;
-
+         class_<UlfTimeStepDecProcess>("UlfTimeStepDecProcess", init<ModelPart&>())
+		.def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
+		;
   }
 	
 }  // namespace Python.
