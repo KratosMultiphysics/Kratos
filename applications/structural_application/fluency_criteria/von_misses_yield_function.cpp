@@ -87,7 +87,6 @@ namespace Kratos
                        {
 		      double crit = 1E-15;
                       double zero = 1E-15;  
-                      double max  = 0.00;
                       unsigned int dim  = 3;
 
 
@@ -111,8 +110,6 @@ namespace Kratos
 			   {
 				      
 	              unsigned int dim  = 3;
-                      double sigma_z    = 0.00;
-                      long double tetha_Lode = 0.00;
                       Vector I          = ZeroVector(3);
 		      Vector J          = ZeroVector(3);
                       Vector J_des      = ZeroVector(3);		      
