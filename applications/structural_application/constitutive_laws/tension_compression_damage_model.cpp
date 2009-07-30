@@ -318,7 +318,9 @@ void  Tension_Compression_Damage_Model::FinalizeSolutionStep( const Properties& 
 		EigenVector[0].resize(3,false);
 		EigenVector[1].resize(3,false);
 		EigenVector[2].resize(3,false);
-		
+
+	
+
 		if( StressVector.size() != 6 )
 		{
 			StressVector.resize(6);
