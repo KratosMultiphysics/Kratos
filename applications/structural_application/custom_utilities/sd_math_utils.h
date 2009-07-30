@@ -162,6 +162,7 @@ namespace Kratos
             static inline Vector EigenValues(const Matrix& A, double crit, double zero)
             {
                 int dim= A.size1();
+
             
                 Matrix Convergence(2,dim);
             
