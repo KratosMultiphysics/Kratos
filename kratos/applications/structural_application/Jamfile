@@ -47,6 +47,7 @@ alias sources_KratosStructuralApplication
 	linear_element.cpp
 	Hypoelastic_element.cpp
 	total_lagrangian.cpp
+        mixed_lagrangian.cpp
 	kinematic_linear.cpp
 	unsaturated_soils_element_2phase.cpp
 	unsaturated_soils_element_2phase_small_strain.cpp
