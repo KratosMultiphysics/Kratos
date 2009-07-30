@@ -784,6 +784,34 @@ namespace Kratos
                 return StrainTensor;
                 KRATOS_CATCH("")
             }
+
+            static inline Vector TensorToStrainVector( const Matrix& Tensor )
+            {
+                KRATOS_TRY
+                    Vector StrainVector;
+			
+                if (Tensor.size1()==2)
+                {
+                    noalias(StrainVector) = ZeroVector(3);
+                    StrainVector(0) = Tensor(0,0); 
+                    StrainVector(1) = Tensor(1,1); 
+                    StrainVector(2) = 2.00*Tensor(0,1);
+                }
+                else if (Tensor.size1()==3)
+                {
+                    noalias(StrainVector) = ZeroVector(6);
+                    StrainVector(0) = Tensor(0,0); 
+                    StrainVector(1) = Tensor(1,1); 
+                    StrainVector(2) = Tensor(2,2);
+                    StrainVector(3) = 2.00*Tensor(0,1); 
+                    StrainVector(4) = 2.00*Tensor(1,2); 
+                    StrainVector(5) = 2.00*Tensor(0,2);
+                }
+
+                return StrainVector;
+                KRATOS_CATCH("")
+            }
+
 	    
        /**
        * Builds the Inverse of Matrix input
@@ -845,12 +873,21 @@ namespace Kratos
        */
 		static void TensorToVector( const Matrix& Tensor, Vector& Vector)
 		{
-			if(Vector.size()!= 6)
+			//if(Vector.size()!= 6)
+                        unsigned int  dim  =  Tensor.size1();
+                        if (dim==3)
+                        { 
                         Vector.resize(6,false);
-
 			Vector(0)= Tensor(0,0); Vector(1)= Tensor(1,1); Vector(2)= Tensor(2,2); 
 			Vector(3)= Tensor(0,1); Vector(4)= Tensor(1,2); Vector(5)= Tensor(2,0); 
-
+                        }
+                       else if(dim==2)
+                       {
+                        Vector.resize(3,false);
+                        Vector(0)= Tensor(0,0); 
+                        Vector(1)= Tensor(1,1); 
+                        Vector(2)= Tensor(0,1); 		
+                       }
 			return;
 		}
 
