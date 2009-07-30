@@ -138,10 +138,12 @@ if(SolverType == "pfem_solver_ale"):
     solver.Initialize(initial_dt,output_Dt)
 elif(SolverType == "monolithic_solver_lagrangian"):
     #adding dofs
+
     monolithic_solver_lagrangian.AddDofs(model_part)
     solver = monolithic_solver_lagrangian.MonolithicSolver(model_part,domain_size,box_corner1,box_corner2)
     oss_swith = pfem_var.use_oss
     dynamic_tau = pfem_var.dynamic_tau
+    solver.echo_level = 2
     model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
     model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
     solver.Initialize(output_Dt)
