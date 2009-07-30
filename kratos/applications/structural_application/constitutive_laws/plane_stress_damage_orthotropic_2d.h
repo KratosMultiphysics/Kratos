@@ -73,7 +73,9 @@ namespace Kratos
 		* Type Definitions
 		*/
 		typedef ConstitutiveLaw<Node<3> > BaseType;
-                typedef FluencyCriteria FluencyCriteriaType; 
+                //typedef typename FluencyCriteria::Pointer FluencyCriteriaType;
+                typedef  FluencyCriteria FluencyCriteriaType; 
+                typedef typename FluencyCriteria::Pointer FluencyCriteriaPointer;  
 		/**
 		* Counted pointer of Orthotropic3D
 		*/
@@ -86,11 +88,11 @@ namespace Kratos
 		* Default constructor.
 		*/
                 Plane_Stress_Damage_Orthotropic_2D();
-		Plane_Stress_Damage_Orthotropic_2D(FluencyCriteriaType& FluencyCriteria);
+		Plane_Stress_Damage_Orthotropic_2D(FluencyCriteriaPointer FluencyCriteria); //FluencyCriteriaType const&  FluencyCriteria);
 
 		virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
 		{
-		boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Plane_Stress_Damage_Orthotropic_2D());
+		boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Plane_Stress_Damage_Orthotropic_2D(mFluencyCriteria ));
 		return p_clone;
 		}
 
@@ -164,13 +166,14 @@ namespace Kratos
 
 
                 protected:
-
+// 	      
 		void CalculateElasticMatrix(Matrix& C, const Vector& E, const Vector& NU, const double&  Orthotropic_Angle);
   
 		double mIsotropic_Elastic_Limit;
-                FluencyCriteriaType mFluencyCriteria;
+                FluencyCriteriaPointer mFluencyCriteria;
 		
 		Vector mInSituStress;
+                //Vector mstressVector;
 		Matrix mCtangent;
 		Vector mCurrentStress;
                 Vector mOrtotropic_Elastic_Limit;

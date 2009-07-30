@@ -90,13 +90,18 @@ namespace Kratos
 	/**
 	 *	TO BE TESTED!!!
 	 */
-        Plane_Stress_Damage_Orthotropic_2D::Plane_Stress_Damage_Orthotropic_2D(){}
+        Plane_Stress_Damage_Orthotropic_2D::Plane_Stress_Damage_Orthotropic_2D()
+	{
 
-	Plane_Stress_Damage_Orthotropic_2D::Plane_Stress_Damage_Orthotropic_2D(FluencyCriteriaType& FluencyCriteria) 
+	}
+
+	Plane_Stress_Damage_Orthotropic_2D::Plane_Stress_Damage_Orthotropic_2D(FluencyCriteriaPointer FluencyCriteria )//)const FluencyCriteriaType& FluencyCriteria)
 	: ConstitutiveLaw< Node<3> >()
 	{
-	  mFluencyCriteria = FluencyCriteria;
+	   mFluencyCriteria = FluencyCriteria;
+          
 	}
+
 	/**
 	 *	TO BE TESTED!!!
 	 */
@@ -108,16 +113,17 @@ namespace Kratos
 
 	bool Plane_Stress_Damage_Orthotropic_2D::Has( const Variable<double>& rThisVariable )
 	{
+	    return false;
 	}
 	
 	bool Plane_Stress_Damage_Orthotropic_2D::Has( const Variable<Vector>& rThisVariable )
 	{
-
+	   return false;
 	}
 	
 	bool Plane_Stress_Damage_Orthotropic_2D::Has( const Variable<Matrix>& rThisVariable )
 	{
-
+	   return false;
 	}
 	
    
@@ -129,10 +135,13 @@ namespace Kratos
 	Vector Plane_Stress_Damage_Orthotropic_2D ::GetValue( const Variable<Vector>& rThisVariable )
 	{
 
+	   KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+
 	}
 	
 	Matrix Plane_Stress_Damage_Orthotropic_2D ::GetValue( const Variable<Matrix>& rThisVariable )
 	{
+	  KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 	}
 
 	void Plane_Stress_Damage_Orthotropic_2D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
@@ -162,16 +171,16 @@ namespace Kratos
 			const GeometryType& geom,
 			const Vector& ShapeFunctionsValues )
 	{
-                mCurrentStress     = ZeroVector(3);
-		mCtangent          = ZeroMatrix(3,3);
-		mInSituStress      = ZeroVector(3);
+                mCurrentStress            = ZeroVector(3);
+		mCtangent                 = ZeroMatrix(3,3);
+		mInSituStress             = ZeroVector(3);
                 mOrtotropic_Elastic_Limit = ZeroVector(3); 
                 mOrtotropic_Elastic_Limit =  props(ORTHOTROPIC_ELASTIC_LIMIT);
 	        mIsotropic_Elastic_Limit  =  props(ISOTROPIC_ELASTIC_LIMIT);
        
+                
                 //KRATOS_WATCH(props)
-                //KRATOS_WATCH(props[ORTHOTROPIC_ANGLE])
-
+                mFluencyCriteria->InitializeMaterial(props);          
                 CalculateElasticMatrix(mCtangent, props[ORTHOTROPIC_YOUNG_MODULUS_2D],props[ORTHOTROPIC_POISSON_RATIO_2D],props[ORTHOTROPIC_ANGLE]);
                
 	}
@@ -189,7 +198,6 @@ namespace Kratos
 				   const Vector& ShapeFunctionsValues ,
 				   const ProcessInfo& CurrentProcessInfo)
 	{
-
 	}
     
     void Plane_Stress_Damage_Orthotropic_2D::UpdateMaterial( const Vector& StrainVector,
@@ -207,8 +215,10 @@ namespace Kratos
 
 		//KRATOS_WATCH(NU)
                 //KRATOS_WATCH(E)	
-		double nu_xy = NU[0];
-		double nu_yx = NU[1];
+
+	
+		double nu_xy   = NU[0];
+		double nu_yx   = NU[1];
 		
 		double xi = 1.00 - nu_xy*nu_yx;
                 
@@ -257,20 +267,28 @@ namespace Kratos
 		{
 			StressVector.resize(3,false);
 		}
+
+                double result = 0.00;
+		Vector I      = ZeroVector(3);
+                Vector J_des  = ZeroVector(3);
+                Vector J      = ZeroVector(3);
                 Matrix W_Matrix = ZeroMatrix(6,6);
 		noalias(StressVector) = prod(mCtangent,StrainVector);
 		mCurrentStress = StressVector;
 		//noalias(StressVector) -= mInSituStress;
 
-                Maped_Space<double>::Calculate_Omega_Tensor(mOrtotropic_Elastic_Limit, mIsotropic_Elastic_Limit, W_Matrix);
-                //KRATOS_WATCH(W_Matrix)
-
+                //Maped_Space<double>::Calculate_Omega_Tensor(mOrtotropic_Elastic_Limit, mIsotropic_Elastic_Limit, W_Matrix);         
+		 //mFluencyCriteria->CalculateEquivalentUniaxialStressViaInvariants(StressVector, result);
+                 //mFluencyCriteria->CalculateEquivalentUniaxialStressViaPrincipalStress(StressVector, result);
+                 //KRATOS_WATCH(result)
 	}
 	
 
 	void Plane_Stress_Damage_Orthotropic_2D::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult)
 	{
 		rResult = mCtangent;
+                
+              
 	}
 
 	
