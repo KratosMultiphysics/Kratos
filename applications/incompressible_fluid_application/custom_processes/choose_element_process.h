@@ -99,30 +99,30 @@ namespace Kratos
 //			Element const& rEl1 = KratosComponents<Element>::Get("Fluid2DASGS");
 //			Element const& rEl2 = KratosComponents<Element>::Get("ASGSPRDC");
 
-			Element const& rEl1 = KratosComponents<Element>::Get("ASGSCompressible");
-			Element const& rEl2 = KratosComponents<Element>::Get("ASGSCOMPPRDC");
+			Element const& rEl1 = KratosComponents<Element>::Get("ASGSCOMPPRDC2D"); //water element
+			Element const& rEl2 = KratosComponents<Element>::Get("ASGSCompressible2D"); // air element
 
 			for(ModelPart::ElementsContainerType::iterator Belem = mr_model_part.ElementsBegin(); Belem != mr_model_part.ElementsEnd(); ++Belem)
 			{
 				Geometry< Node<3> >& geom = Belem->GetGeometry();
 
 				//choose type:
-				// everywhere El1 is chosen unless 3 nodes have IS_PROUS = 0.0 or when the node with IS_POROUS = 1.0 is on the boundary
+				// everywhere El1 is chosen unless 3 nodes have IS_PROUS = 0.0 or when the node with IS_WATER = 1.0 is on the boundary
 				double chooseflag = 0.0;
-
-				double first = geom[0].FastGetSolutionStepValue(IS_POROUS);
-				double second = geom[1].FastGetSolutionStepValue(IS_POROUS);
-				double third = geom[2].FastGetSolutionStepValue(IS_POROUS);
+		/*	
+				double first = geom[0].FastGetSolutionStepValue(IS_WATER);
+				double second = geom[1].FastGetSolutionStepValue(IS_WATER);
+				double third = geom[2].FastGetSolutionStepValue(IS_WATER);
 
 				//three node of the same kind
 			 	if(first == second && second==third)
 					chooseflag = first;
-				//IS_POROUS = 1 is on the boundary
+				//IS_WATER = 1 is on the boundary
 				else
 				  {
 					//KRATOS_WATCH("***********INSIDE NOT SIMILAR POINTS ******************");
 				     for(int ii=0;ii<3;++ii)
-					 if(geom[ii].GetSolutionStepValue(IS_POROUS) == 1.0 && geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
+					 if(geom[ii].GetSolutionStepValue(IS_WATER) == 1.0 //&& geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0//)
 					    {
 						chooseflag = 1.0;
 						
@@ -137,16 +137,43 @@ namespace Kratos
 				unsigned int ele_id = Belem->Id();
 				
 				
-				
+		*/		
+
+				if(Belem->GetValue(IS_WATER_ELEMENT) == 1.0)
+					chooseflag = 1.0;
+				else
+					chooseflag = 0.0;					
+
+
 				if(chooseflag)
 				  {
-					Element::Pointer p_elem = rEl1.Create(ele_id,geom, Belem->pGetProperties());
+					Element::Pointer p_elem = rEl1.Create(Belem->Id(),geom, Belem->pGetProperties());
 					ElemPart.push_back(p_elem);
+					p_elem->GetValue(IS_WATER_ELEMENT) = 1.0;						
+					//copy element of other type to consider two elements in divided element
+						/*if(Belem->GetValue(IS_DIVIDED) == 1.0)
+							{
+								Element::Pointer p_elem_second = rEl2.Create(ele_id,geom, Belem->pGetProperties());
+								p_elem_second->GetValue(IS_DIVIDED) = 1.0;
+								ElemPart.push_back(p_elem_second);
+								
+				  			}*/
 				  }
 			        else
 				  {
-					Element::Pointer p_elem = rEl2.Create(ele_id, geom, Belem->pGetProperties() );
+					Element::Pointer p_elem = rEl2.Create(Belem->Id(), geom, Belem->pGetProperties() );
 					ElemPart.push_back(p_elem);
+					p_elem->GetValue(IS_WATER_ELEMENT) = 0.0;
+
+					//copy element of other type to consider two elements in divided element
+						/*if(Belem->GetValue(IS_DIVIDED) == 1.0)
+							{
+								Element::Pointer p_elem_second = rEl1.Create(ele_id,geom, Belem->pGetProperties());
+								p_elem_second->GetValue(IS_DIVIDED) = 1.0;
+								ElemPart.push_back(p_elem_second);
+	
+				  			}*/
+//KRATOS_WATCH("***********ASGSCompressible2D IS CHOSEN ******************");
 				  }
 
 				
