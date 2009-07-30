@@ -59,14 +59,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/tensor_utils.h"
 #include "includes/ublas_interface.h"
+#include "includes/properties.h"
 #include <cmath>
+#include <string>
+#include <iostream>
+
 
 
 namespace Kratos
 {
 
-     class FluencyCriteria
-    {
+     enum myState{Plane_Stress, Plane_Strain, Tri_D };
+    
+      class FluencyCriteria
+	  {
         public:
 
 
@@ -77,68 +83,125 @@ namespace Kratos
 
 		    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
 
-		    typedef FluencyCriteria FluencyCriteriaType; 
+		    typedef FluencyCriteria FluencyCriteriaType;
+
+                    typedef typename Properties::Pointer PropertiesPointer;
+
+                  
+
+
 
 		    FluencyCriteria(){}
 
 		    virtual ~FluencyCriteria(){}
 
-		    virtual void InitializeMaterial() {}
+                    KRATOS_CLASS_POINTER_DEFINITION( FluencyCriteria );
 
 
-		    virtual void CalculateEquivalentUniaxialStress(const Vector& StrainVector, 
-		    const Vector& StressVector,
-		    const Matrix& ConstitutiveMatrix,
-		    const double& ro, const double& n, 
-		    double& Result) 
-		    {}
 
-		    virtual void CalculateEquivalentUniaxialStressViaPrincipalStress(const Vector& StrainVector, 
+		    virtual void InitializeMaterial(const Properties& props)
+		      {
+			  KRATOS_ERROR(std::logic_error,  "Called the virtual function for InitializeMaterial" , "");
+		      }
+
+		    virtual void CalculateEquivalentUniaxialStress(  
+		    const Vector& StressVector, const Vector& StrainVector, const Matrix& Other, double& Result)
+		    {
+                        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStress" , "");
+		    }
+
+
+		    virtual void CalculateEquivalentUniaxialStress(  
 		    const Vector& StressVector,double& Result)
-		    {}
+		    {
+                        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStress" , "");
+		    }
+
+		    virtual void CalculateEquivalentUniaxialStressViaPrincipalStress(  
+		    const Vector& StressVector,double& Result)
+		    {
+	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaPrincipalStress" , "");
+		    }
 
 
-		    virtual void CalculateEquivalentUniaxialStressViaInvariants(const Vector& StrainVector, 
+		    virtual void CalculateEquivalentUniaxialStressViaInvariants( 
 		    const Vector& StressVector,double& Result)
 
-		    {}
+		    {
+	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaInvariants", "");
+		    }
 
-		    virtual void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(const Vector& StrainVector, 
+		    virtual void CalculateEquivalentUniaxialStressViaCilindricalCoordinate( 
 		    const Vector& StressVector,double& Result)
-
-		    {}
+		    {
+	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaCilindricalCoordinate", "");
+		    }
 
 
 		    virtual void CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria)
-		    {}
+		    {
+	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
+		     }
 
 		    protected:
 
-		    static void  Comprobate_State_Tensor(Matrix& StressTensor, const Vector& StressVector)
+		    void  Comprobate_State_Tensor(Matrix& StressTensor, const Vector& StressVector)
 		    {
-		  // Necesario para calcular eigen valores con subrutina de Jacobi, NO ACEPTA TERMINOS NULOS. 
-		  if (fabs(StressTensor(0,0))<1E-10){StressTensor(0,0) = 1E-10; }
-		  if (fabs(StressTensor(0,1))<1E-10){StressTensor(0,1) = 1E-10; }   
-		  if (fabs(StressTensor(1,0))<1E-10){StressTensor(1,0) = 1E-10; }
-		  if (fabs(StressTensor(1,1))<1E-10){StressTensor(1,1) = 1E-10; }
+		      // Necesario para calcular eigen valores con subrutina de Jacobi, NO ACEPTA TERMINOS NULOS en diagonal principal.
+		      if (fabs(StressTensor(0,0))<1E-10){StressTensor(0,0) = 1E-10; }
+		      if (fabs(StressTensor(1,1))<1E-10){StressTensor(1,1) = 1E-10; }
+		      if (fabs(StressTensor(2,2))<1E-10){StressTensor(2,2) = 1E-10; }       
+		     }
 
-		  if (StressVector.size()== 6) 
-		    {
-		  if (fabs(StressTensor(0,2))<1E-10){StressTensor(0,2) = 1E-10; }
-		  if (fabs(StressTensor(1,2))<1E-10){StressTensor(1,2) = 1E-10; }
-		  if (fabs(StressTensor(2,0))<1E-10){StressTensor(2,0) = 1E-10; }
-		  if (fabs(StressTensor(2,1))<1E-10){StressTensor(2,1) = 1E-10; }
-		  if (fabs(StressTensor(2,2))<1E-10){StressTensor(2,2) = 1E-10; }  
-		    }
+                  void State_Tensor( const Vector& StressVector, Matrix& StressTensor)
+                           {
 
-		  }
+				    
+				double sigma_z = 0.00;
+				switch (mState)
+				  {
+				    case Plane_Stress:
+                                          {
+					  
+					  StressTensor (0,0) = StressVector(0); StressTensor (0,1) = StressVector(2); StressTensor (0,2) = 0.00;
+					  StressTensor (1,0) = StressVector(2); StressTensor (1,1) = StressVector(1); StressTensor (1,2) = 0.00;
+					  StressTensor (2,0) = 0.00;            StressTensor (2,1) = 0.00;            StressTensor (2,2) = 1E-10;
+                                          
+					  break;
+                                          }
+				
+				      case Plane_Strain:
+					  sigma_z = (*mprops)[POISSON_RATIO]*(StressVector(0)+StressVector(1));
+					    
+					  {
+					  StressTensor (0,0) = StressVector(0); StressTensor (0,1) = StressVector(2); StressTensor (0,2) = 0.00;
+					  StressTensor (1,0) = StressVector(2); StressTensor (1,1) = StressVector(1); StressTensor (1,2) = 0.00;	
+					  StressTensor (2,0) = 0.00;            StressTensor (2,1) = 0.00;            StressTensor (2,2) =sigma_z;
+                                          }
+					  break;
+				      
+				      case Tri_D:
+					  StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
+					  break;
+                                      
+                                      default:
+				      std::cout<<"Warning: State not valid"<<std::endl;
+				  }
+                                    
+
+                           }
 
 		    private:
 
+		    protected:
+		    const Properties *mprops;
+                    myState mState;
+                      
 
-
+                 
     }; /* Class FluencyCriteria */
     
+
     /**
      * definition of CONSTITUTIVE_LAW variable
      */

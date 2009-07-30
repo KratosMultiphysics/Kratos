@@ -46,7 +46,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "utilities/math_utils.h"
 //#include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/tensor_utils.h"
-#include "fluency_criteria/tresca_yield_function.h"
+#include "fluency_criteria/drucker_prager_yield_function.h"
 #include <cmath>
 
 
@@ -62,66 +62,47 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
            
-            Tresca_Yield_Function::Tresca_Yield_Function(myState State )
+            Drucker_Prager_Yield_Function::Drucker_Prager_Yield_Function(myState State)
 	    :FluencyCriteria()
 	    {
+	     
               mState = State;
 	    }
 
-            Tresca_Yield_Function::~Tresca_Yield_Function() {}
+             Drucker_Prager_Yield_Function::~Drucker_Prager_Yield_Function() {}
 
     
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
-      void Tresca_Yield_Function::CalculateEquivalentUniaxialStress(
-            const Vector& StressVector,double& Result)
-            {}  
-      
-	void Tresca_Yield_Function::InitializeMaterial(const Properties& props)
-	{
-               mprops = &props;
-	}
+
+		    void Drucker_Prager_Yield_Function::InitializeMaterial(const Properties& props) {mprops = &props; }
+		     
+
+		    void Drucker_Prager_Yield_Function:: CalculateEquivalentUniaxialStress(
+		    const Vector& StressVector,double& Result)  {}
 
 
-	void Tresca_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
- 	const Vector& StressVector,double& Result)
-	{
-
-		      double crit      = 1E-10;
-                      double zero      = 1E-10;  
-                      double max       = 0.00;
-                      unsigned int dim = 3;
-		      
-		      Matrix StressTensor     = ZeroMatrix(dim,dim);
-                      Vector PrincipalStress  = ZeroVector(dim);
-                      Vector Aux_Vector       = ZeroVector(dim);
-   
-                      this->State_Tensor(StressVector,StressTensor);
-		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
-                      PrincipalStress         = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
-		      
-                     Aux_Vector(0) =  fabs(PrincipalStress(0)-PrincipalStress(1));
-		     Aux_Vector(1) =  fabs(PrincipalStress(0)-PrincipalStress(2));
-		     Aux_Vector(2) =  fabs(PrincipalStress(1)-PrincipalStress(2));
-		          
-		      max = (*std::max_element(Aux_Vector.begin(),Aux_Vector.end()));
-                     
-                      Result = 0.50*max; // - msigma_max; 
-                      //KRATOS_WATCH(Result)  
-           }
-	
+		    void Drucker_Prager_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
+		    const Vector& StressVector,double& Result)
+                       {
+                       }
 
 
-	void Tresca_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
-	const Vector& StressVector,double& Result)
 
-	{
-                    
+		    void Drucker_Prager_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
+		    const Vector& StressVector,double& Result)
+			   {
+		
+		      // Nota: la resistencia de comparacion de esta superficie de fluencia es FC.
+
                       unsigned int dim  = 3;
                       double sigma_z    = 0.00;
                       double tetha_Lode = 0.00;
+		      double frictional_internal = 0.00;
+                      double Alfa   = 0.00;
+                      double Beta  = 0.00;
+
+			
                       Vector I          = ZeroVector(3);
 		      Vector J          = ZeroVector(3);
                       Vector J_des      = ZeroVector(3);		      
@@ -129,36 +110,31 @@ namespace Kratos
 		      Matrix StressTensor     = ZeroMatrix(dim,dim);
 		      Vector PrincipalStress  = ZeroVector(dim);
 
+                      frictional_internal = (*mprops)[FRICTION_INTERNAL_ANGLE]*PI/180.00;
+			    
+		      double sin_phi = sin(frictional_internal);
+                      double cos_phi = cos(frictional_internal);			
+  
+
 		      this->State_Tensor(StressVector,StressTensor);
 		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
 		      Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
-		
-		      if (J_des(1)==0.00 && J_des(2)==0.00) 
-                        {
-			    tetha_Lode = PI/2.00;                           	   
-			}
-                      else
-		        {  
-			tetha_Lode = (3.00*sqrt(3)*J_des(2))/(2.00*pow(J_des(1), 1.50));
-			if(tetha_Lode > 1.00){tetha_Lode = 1.00; }
-			tetha_Lode = asin(-tetha_Lode)/3.00;
-		        }
 
-		      Result = sqrt(J_des(1))*cos(tetha_Lode);// - msigma_max;
-                      //KRATOS_WATCH("----------")
-                      //KRATOS_WATCH(Result)
+		      Alfa = 2.00* sin_phi/(sqrt(3.00)*(3- sin_phi));
+                      Beta = 6.00*(*mprops)[COHESION]*cos_phi/(sqrt(3.00)*(3- sin_phi));
+		      
+                      Result = I(0)*Alfa + sqrt(J_des(1)) - Beta;  // Beta es la resitencia de comparacion
+                      KRATOS_WATCH(Result)   
 
-	 }
+                           }
 
 
-	void Tresca_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
-	const Vector& StressVector,double& Result) 
+		    void Drucker_Prager_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
+		    const Vector& StressVector,double& Result){}
 
 
-	{}
 
-	  void Tresca_Yield_Function::CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria)
-	{}
+		    void Drucker_Prager_Yield_Function::CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria){}
 
 
     }

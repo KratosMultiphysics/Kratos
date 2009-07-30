@@ -68,50 +68,49 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri    
   
-            Tresca_Yield_Function(int dim, double sigma_max);
+            Tresca_Yield_Function(myState State);
 	   
             ~Tresca_Yield_Function();
 
+            KRATOS_CLASS_POINTER_DEFINITION( Tresca_Yield_Function );
+
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
 
 
-		    void InitializeMaterial();
+
+		     void InitializeMaterial(const Properties& props);
+		     
+
+		    void CalculateEquivalentUniaxialStress(
+		    const Vector& StressVector,double& Result); 
 
 
-		     void CalculateEquivalentUniaxialStress(const Vector& StrainVector, 
-		    const Vector& StressVector,
-		    const Matrix& ConstitutiveMatrix,
-		    const double& ro, const double& n, 
-		    double& Result);
- 
-		    
-
-		     void CalculateEquivalentUniaxialStressViaPrincipalStress(const Vector& StrainVector, 
-		    const Vector& StressVector,double& Result);
-		    
-
-
-		     void CalculateEquivalentUniaxialStressViaInvariants(const Vector& StrainVector, 
+		    void CalculateEquivalentUniaxialStressViaPrincipalStress(
 		    const Vector& StressVector,double& Result);
 
-		    
 
-		     void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(const Vector& StrainVector, 
-		   const Vector& StressVector,double& Result);
 
-		    
+		    void CalculateEquivalentUniaxialStressViaInvariants(
+		    const Vector& StressVector,double& Result);
+
+
+		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
+		    const Vector& StressVector,double& Result);
+
+
+
 		    void CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria);
-		    
 
-      
+
+		    
 
 	protected:
 
 	  unsigned int mdim;
-          double       msigma_max;
+          double       msigma_max;   
+
+          
 
     };
 }
