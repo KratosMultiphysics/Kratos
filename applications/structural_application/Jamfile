@@ -12,7 +12,8 @@ project StructuralApplication
        custom_utilities
        external_includes
        custom_external_libraries/tensor-cpp
-       fluency_criteria	
+       fluency_criteria
+       soft_hard_behavior
     :
     requirements <include>. 
 		<define>KRATOS_PYTHON
@@ -102,6 +103,11 @@ alias sources_KratosStructuralApplication
         energy_yield_function.cpp
         rankine_yield_function.cpp
         tresca_yield_function.cpp
+        von_misses_yield_function.cpp
+        modified_morh_coulomb_yield_function.cpp
+        drucker_prager_yield_function.cpp
+        exponencial_softening.cpp
+        lineal_softening.cpp
 
 
 	#####################kratos library as defined in the jamroot
