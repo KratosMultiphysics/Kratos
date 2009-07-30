@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/kratos_application.h"
 
 #include "custom_elements/total_lagrangian.h"
+#include "custom_elements/mixed_lagrangian.h"
 #include "custom_elements/beam_element.h"
 #include "custom_elements/kinematic_linear.h"
 #include "custom_elements/membrane_element.h"
@@ -337,6 +338,19 @@ namespace Kratos
             const TotalLagrangian mTotalLagrangian3D8N;
             const TotalLagrangian mTotalLagrangian3D20N;
             const TotalLagrangian mTotalLagrangian3D27N;
+
+            const MixedLagrangian mMixedLagrangian2D3N; 
+            const MixedLagrangian mMixedLagrangian2D4N; 
+            const MixedLagrangian mMixedLagrangian2D6N;
+            const MixedLagrangian mMixedLagrangian2D8N;
+            const MixedLagrangian mMixedLagrangian3D4N; 
+            const MixedLagrangian mMixedLagrangian3D10N;
+            const MixedLagrangian mMixedLagrangian3D6N;
+            const MixedLagrangian mMixedLagrangian3D15N;
+            const MixedLagrangian mMixedLagrangian3D8N;
+            const MixedLagrangian mMixedLagrangian3D20N;
+            const MixedLagrangian mMixedLagrangian3D27N;
+
             const KinematicLinear mKinematicLinear3D4N;
             const KinematicLinear mKinematicLinear3D10N;
             const KinematicLinear mKinematicLinear3D8N;
