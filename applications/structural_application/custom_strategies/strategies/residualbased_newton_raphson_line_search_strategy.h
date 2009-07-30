@@ -307,7 +307,7 @@ namespace Kratos
 					      }
 					   
 				      
-					      KRATOS_WATCH(this->meta);
+					      std::cout<<"Line-Search Step Factor:"<<this->meta<<std::endl;
 					      rDofSet = pBuilderAndSolver->GetDofSet();
 					      this->SetDatabaseToValue(rDofSet, X_old);
 					      TSparseSpace::Assign(mDx,this->meta,mDx);
