@@ -36,7 +36,8 @@ def AddDofs(model_part):
 
 class ULF_FSISolver:
 
-    def __init__(self, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, remeshing_flag, bulk_modulus, density):
+    def __init__(self, out_file, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, remeshing_flag, bulk_modulus, density):
+        self.out_file=out_file
 
         self.domain_size=domain_size;
         self.echo_level = 0
@@ -138,7 +139,7 @@ class ULF_FSISolver:
         ReformDofSetAtEachStep = True
         MoveMeshFlag = True
         import ulf_strategy_python_inc
-        self.solver = ulf_strategy_python_inc.ULFStrategyPythonInc(self.combined_model_part,self.fluid_model_part, self.time_scheme,self.model_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag,self.domain_size, self.bulk_modulus, self.density)
+        self.solver = ulf_strategy_python_inc.ULFStrategyPythonInc(self.out_file, self.combined_model_part,self.fluid_model_part, self.time_scheme,self.model_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag,self.domain_size, self.bulk_modulus, self.density)
         
         print "self.echo_level = " , self.echo_level
         (self.solver).SetEchoLevel(self.echo_level)

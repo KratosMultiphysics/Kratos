@@ -5,7 +5,10 @@ from KratosULFApplication import *
 
 class ULFStrategyPythonInc:
     #######################################################################
-    def __init__(self,combined_model_part, fluid_model_part, time_scheme,linear_solver,convergence_criteria,CalculateReactionsFlag,ReformDofSetAtEachStep,MoveMeshFlag,domain_size, bulk_modulus, density):
+    def __init__(self,out_file, combined_model_part, fluid_model_part, time_scheme,linear_solver,convergence_criteria,CalculateReactionsFlag,ReformDofSetAtEachStep,MoveMeshFlag,domain_size, bulk_modulus, density):
+
+        self.out_file=out_file
+        self.out_file.write("Bulk" + str(bulk_modulus)+"\n")
         #save the input parameters
         #the model_part is the combined model part
         self.model_part = combined_model_part
@@ -147,6 +150,8 @@ class ULFStrategyPythonInc:
             
             #update iteration count
             it = it + 1
+        
+        self.out_file.write(str(it)+" ")
 
             
         #Calculating the nodal pressure forces
@@ -242,10 +247,10 @@ class ULFStrategyPythonInc:
             self.scheme.MoveMesh(self.model_part.Nodes);
         #updating pressures
 	#parameter is the bulk modulus, and the second one is density
-        self.builder_and_solver.UpdatePressures(self.D, self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)	
+        #self.builder_and_solver.UpdatePressures(self.D, self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)	
         UlfUtils.CalculateNodalArea(self.fluid_model_part,self.domain_size);
         #the one below updated pressures from the nodal volume change
-        #self.builder_and_solver.UpdatePressuresNew(self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)
+        self.builder_and_solver.UpdatePressuresNew(self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)
         print "CALC FORCES of pres"
         self.builder_and_solver.CalculateNodalPressureForce(self.D, self.MPinv, self.model_part, )
         
@@ -382,6 +387,7 @@ class ULFStrategyPythonInc:
             if (self.builder_and_solver.ConvergenceCheck(ri, self.b, conv_criterion, counter, max_iterations)):
                 print "CONVERGENCE ACHIEVED TO THE REQUIRED PRECISION"
                 print "counter", counter
+                self.out_file.write(str(counter)+"\n")
                 self.builder_and_solver.ReturnDx(self.Dx, xi)
                 break
                 
