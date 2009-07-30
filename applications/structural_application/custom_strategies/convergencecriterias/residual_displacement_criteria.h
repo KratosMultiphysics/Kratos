@@ -182,7 +182,7 @@ namespace Kratos
 
 			mdisplacement_criteria =  this-> DisplacementCriteria< TSparseSpace, TDenseSpace >::PostCriteria(r_model_part,rDofSet,A,Dx,b);
   			mresidual_criteria     =  this-> ResidualCriteria< TSparseSpace, TDenseSpace > ::PostCriteria(r_model_part,rDofSet,A,Dx,b);
-                         if(mdisplacement_criteria==true and mresidual_criteria==true)
+                         if(mdisplacement_criteria==true && mresidual_criteria==true)
   			  { 
   			    return true;
   			  } 
