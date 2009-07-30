@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "fluency_criteria/fluency_criteria.h"
-
+#include "soft_hard_behavior/softening_hardening_criteria.h"
 
 
 namespace Kratos
@@ -86,9 +86,12 @@ namespace Kratos
 			 */
 			typedef boost::shared_ptr<Isotropic_Damage> Pointer;
 
-			typedef FluencyCriteria FluencyCriteriaType; 
+			typedef typename FluencyCriteria::Pointer FluencyCriteriaPointer;  
 
-                      
+                        typedef  typename SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;   
+                        
+                        typedef typename Properties::Pointer PropertiesPointer;
+
 			
 			/**
 			 * Life Cycle 
@@ -97,10 +100,11 @@ namespace Kratos
 			 * Default constructor.
 			 */
 			Isotropic_Damage();
+                        Isotropic_Damage(FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property);
 			
 			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Isotropic_Damage());
+				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Isotropic_Damage(mFluencyCriteria,mSofteningBehavior, mProperties));
 				return p_clone;
 			}
 
@@ -191,13 +195,23 @@ namespace Kratos
     double md;
     double mr_old;
     double mr_new; 
+    double mr_o;
     double mArea;
-    FluencyCriteriaType mFluencyCriteria;
+
+
+/*    enum myState
+         {PlaneStress=1, PlaneStrain, Tri_D }; 
+     
+    myState State; */ 
+    FluencyCriteriaPointer mFluencyCriteria;
+    SofteningHardeningCriteriaPointer mSofteningBehavior;
+    PropertiesPointer mProperties;
+
 
 			// Miembros Privados
    void CalculateNoDamageElasticMatrix(Matrix& C, const double E, const double NU);
    void CalculateNoDamageStress(const Vector& StrainVector, Vector& rResult);
-   void CalculateDamage(const Matrix& ConstitutiveMatrix, const Vector& Stress, double& d);
+   void CalculateDamage(const Matrix& ConstitutiveMatrix, const Vector& Stress,const Vector& StressVector);
 
 
 	}; // Class Isotropic_Damage 
