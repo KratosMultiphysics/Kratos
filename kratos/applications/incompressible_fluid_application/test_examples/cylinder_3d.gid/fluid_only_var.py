@@ -12,5 +12,5 @@ dynamic_tau = 1
 # Declare Python Variables
 
 problem_name="cylinder_3d"
-problem_path="/home/kazem/kratos/applications/incompressible_fluid_application/test_examples/cylinder_3d.gid"
-kratos_path="/home/kazem/kratos"
+problem_path="."
+kratos_path="../../../../"
