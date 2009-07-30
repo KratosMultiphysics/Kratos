@@ -89,7 +89,7 @@ namespace Kratos
 			    double teta_a    = 0.00;
 			    double teta_b    = 0.00;
 			    double teta      = 0.00;
-			    double norma     = 0.00; 
+			    //double norma     = 0.00; 
                             double n         = (*mprops)[FC]/(*mprops)[FT];
                        
 
