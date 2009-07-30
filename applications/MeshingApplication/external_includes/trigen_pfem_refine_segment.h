@@ -132,6 +132,14 @@ namespace Kratos
 //clearing elements
 			KRATOS_WATCH(ThisModelPart.Elements().size());
 //KRATOS_WATCH("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
+			//****************************************************
+			//filling the interface list before removing the elements and nodes
+			//****************************************************
+			std::vector <int> mid_seg_list;
+		        int seg_num = 0;
+		        int num_interface = 0;
+			SegmentDetecting(ThisModelPart,  mid_seg_list, seg_num, num_interface);
+
 
 			ThisModelPart.Elements().clear();
 			ThisModelPart.Conditions().clear();
@@ -170,7 +178,7 @@ namespace Kratos
 			//****************************************************
 			//filling the interface list before removing the nodes
 			//****************************************************
-			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
+		/*	for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
 			     in != ThisModelPart.NodesEnd(); in++)
 				{
 					in->FastGetSolutionStepValue(IS_VISITED) = 0.0;
@@ -179,6 +187,7 @@ namespace Kratos
 			std::vector <int> mid_seg_list;
 			//list_of_nodes.reserve(ThisModelPart.Nodes().size());
 		        int seg_num = 0;
+
 
 			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
 			     in != ThisModelPart.NodesEnd(); in++)
@@ -247,7 +256,7 @@ namespace Kratos
 					}
 				           in->FastGetSolutionStepValue(IS_VISITED) = 10.0;
 				    }
-				 }
+				 }*/
 
  			//if the remove_node switch is activated, we check if the nodes got too close
 			if (rem_nodes==true)
@@ -382,7 +391,7 @@ namespace Kratos
 				      }	
 				 }
 			}
-//for(int ii = 0; ii<seg_num*2; ii++){
+//(for(int ii = 0; ii<seg_num*2; ii++){
 //KRATOS_WATCH(mid_seg_list[ii])
 //KRATOS_WATCH(reorder_mid_seg_list[ii])}
 			//in_mid.numberoftriangles = ThisModelPart.Elements().size();
@@ -405,6 +414,44 @@ namespace Kratos
 					}
 			//***********end ofsegments
 			KRATOS_WATCH(seg_num);
+			//********************************REGIONAL ATTRIBUTE
+			/*int num_water_node= 0;
+			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
+			{ 
+				if((nodes_begin + i)->FastGetSolutionStepValue(IS_WATER) == 1.0)
+					num_water_node++;
+
+			}
+			in_mid.numberofregions = num_water_node;
+			in_mid.regionlist = (REAL *) malloc(in_mid.numberofregions * 3 * sizeof(REAL));
+
+			int base = 0;
+			for(unsigned int i = 0; i<ThisModelPart.Nodes().size(); i++)
+			{ 
+
+				if((nodes_begin + i)->FastGetSolutionStepValue(IS_WATER) == 1.0)
+				{
+				  in_mid.regionlist[base] = (nodes_begin + i)->X();
+				  in_mid.regionlist[base + 1] = (nodes_begin + i)->Y();
+				  in_mid.regionlist[base + 2] = 14.0;
+				  base+=3;
+				}			
+			}*/
+
+			/*for(unsigned int i = 0; i<ThisModelPart.Nodes().size() ; i++)
+			 { 
+			   if( (nodes_begin + i)->FastGetSolutionStepValue(IS_INTERFACE) != 1.0)
+			     {
+				if((nodes_begin + i)->FastGetSolutionStepValue(IS_WATER) == 0.0)
+					in_mid.regionlist[i] = 7.0;
+				else
+					in_mid.regionlist[i] = 14.0;					
+			     }
+			   else
+				in_mid.regionlist[i] = 0.0;		
+
+			}*/
+			//********************************end of REGIONAL ATTRIBUTE
 			//for(unsigned int ii=0;ii<mid_seg_list.size(); ++ii)
 			//	KRATOS_WATCH(in_mid.segmentlist[ii]);	
 
@@ -425,14 +472,28 @@ namespace Kratos
 			KRATOS_WATCH("*********NUMBER OF ELEMENTS***********");
 			KRATOS_WATCH(el_number);
 
-
 			//prepairing for alpha shape passing : creating necessary arrays
 			//list of preserved elements is created: at max el_number can be preserved (all elements)
 			std::vector<int> preserved_list1(el_number);
 			preserved_list1.resize(el_number);
 
 			array_1d<double,3> x1,x2,x3,xc;
+			///*******************************************************************************************
+			///*******************************************************************************************
+			//region flag check
+		/*	for(unsigned int i = 0; i<num_water_node*3 ; i++)
+			 { 
+				KRATOS_WATCH(in_mid.regionlist[i]);
+			 }
+			for(unsigned int el = 0; el< el_number; el++)
+			{
+				KRATOS_WATCH("*""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""*");
 
+				KRATOS_WATCH(out_mid.triangleattributelist[el]);
+			}		*/
+			//end of region flag check
+			///*******************************************************************************************
+			///*******************************************************************************************
 			//int number_of_preserved_elems=0;
 			int number_of_preserved_elems=0;
 			int point_base;
@@ -474,6 +535,20 @@ namespace Kratos
 				int nfluid = int( temp[0].FastGetSolutionStepValue(IS_FLUID) );
 				nfluid += int( temp[1].FastGetSolutionStepValue(IS_FLUID) );
 				nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
+
+				//check a three nodede interface element
+				int num_interface = 0;
+				for( int ii = 0; ii<3; ++ii)
+					if(temp[ii].FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+						num_interface++;
+
+				if(num_interface == 3)
+					{
+						KRATOS_WATCH("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO inside mesher w 3 interface");
+				               // KRATOS_WATCH(out_mid.triangleattributelist[el]);						
+					}
+
+
 				//first check that we are working with fluid elements, otherwise throw an error
 				//if (nfluid!=3)
 				//	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
@@ -494,7 +569,7 @@ namespace Kratos
 					}
 					else //internal triangle --- should be ALWAYS preserved
 					{							
-						double bigger_alpha = my_alpha*10.0;
+						double bigger_alpha = my_alpha*5.0;
 						if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3) 
 							{
 							preserved_list1[el] = true;
@@ -718,7 +793,7 @@ namespace Kratos
 						//KRATOS_WATCH(pnode->Id());
 					     }
 					else
-						pnode->FastGetSolutionStepValue(IS_INTERFACE) = 0;
+						pnode->FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
 											
 					//KRATOS_WATCH(pnode->FastGetSolutionStepValue(IS_INTERFACE));
 					//std::cout << "new node id = " << pnode->Id() << std::endl;
@@ -751,6 +826,7 @@ namespace Kratos
 			DistanceVector ResultsDistances(MaximumNumberOfResults);
 
 			step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
+
 
 			if(out2.numberofpoints-n_points_before_refinement > 0) //if we added points
 			{
@@ -807,7 +883,9 @@ namespace Kratos
 						
 						if(is_inside == true)
 						{
-							Interpolate(  geom,  N, step_data_size, *(it_found ) );
+							double regionflag = 0.0;
+							//regionflag = out_mid.triangleattributelist[el];
+							Interpolate(  geom,  N, step_data_size, *(it_found ), regionflag);
 							
 						}
 					}
@@ -1233,10 +1311,11 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			
 			return false;
 		}	
-			
+		//**********************************************************************************************
+		//**********************************************************************************************			
 		void Interpolate( Triangle2D3<Node<3> >& geom, const array_1d<double,3>& N, 
 				  unsigned int step_data_size,
-      				Node<3>::Pointer pnode)
+      				Node<3>::Pointer pnode, double region_flag)
 		{
 			unsigned int buffer_size = pnode->GetBufferSize();
 			//KRATOS_WATCH("Buffer size")
@@ -1282,17 +1361,32 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			pnode->GetValue(ERASE_FLAG)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
-			pnode->FastGetSolutionStepValue(IS_VISITED)=0.0;
+			//pnode->FastGetSolutionStepValue(IS_VISITED)=0.0;
 
 			//pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
 			pnode->FastGetSolutionStepValue(IS_INTERFACE) = aux_interface;
 
-			if(pnode->FastGetSolutionStepValue(IS_WATER)!= 1.0 && pnode->FastGetSolutionStepValue(IS_WATER)!= 0.0 && 
+			double same_colour = 0.0;
+			for(int ii= 0; ii<= 2; ++ii)
+				if(geom[ii].FastGetSolutionStepValue(IS_WATER) == 0.0)
+							same_colour++;
+			if(same_colour == 3.0)
+				pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;
+			else
+				pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
+
+			/*if(region_flag == 14.0)
+				{
+				pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
+				KRATOS_WATCH("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR");
+				KRATOS_WATCH(region_flag);
+				}*/
+			/*if(pnode->FastGetSolutionStepValue(IS_WATER)!= 1.0 && pnode->FastGetSolutionStepValue(IS_WATER)!= 0.0 && 
 pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)	   
 				{
 				pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
 				KRATOS_WATCH("$$$$$$$$$$$$$$$  A NEAR BOUNDARY NODE IS INSERTED $$$$$$$$$$$$$$$$$$$$$$");
-				}
+				}*/
 			/*if(pnode->FastGetSolutionStepValue(DISTANCE) <= 0.0)
 				{pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;}
 			else
@@ -1307,6 +1401,89 @@ pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)
 
 		}
 
+		//**********************************************************************************************
+		//**********************************************************************************************
+		void SegmentDetecting(ModelPart& ThisModelPart, std::vector <int>& seg_list, int& seg_num, int& num_interface)
+		{
+		KRATOS_TRY;
+			int Tdim = 2;
+                        seg_list.clear();
+			num_interface = 0;
+
+		//delete interface flag
+		   for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+			ind->FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
+
+
+
+			for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin(); 
+					elem!=ThisModelPart.ElementsEnd(); elem++)
+			  {
+	
+			    if(elem->GetValue(IS_WATER_ELEMENT) == 0)
+				{
+
+				 WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
+				Geometry< Node<3> >& geom = elem->GetGeometry();
+
+				 for(int ii=0; ii<(Tdim+1); ++ii)
+					{
+
+					 if(neighbor_els[ii].GetValue(IS_WATER_ELEMENT) == 1 && neighbor_els[ii].Id() != elem->Id())
+					  {
+
+					   if(ii == 0) // 1,2
+						{
+				if(geom[1].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 && geom[2].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+						      {  
+						//one segment is detected
+						++seg_num;
+							seg_list.push_back(geom[1].Id());
+							seg_list.push_back(geom[2].Id());
+							geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+							geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+						      }
+						}
+					   if(ii == 1) // 0,2
+						{
+				if(geom[0].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 && geom[2].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+						      {  
+						//one segment is detected
+						++seg_num;
+							seg_list.push_back(geom[0].Id());
+							seg_list.push_back(geom[2].Id());
+							geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+							geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+						      }
+						}
+					   if(ii == 2) // 0,1
+						{
+				if(geom[0].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 && geom[1].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+						      {  
+						//one segment is detected
+						++seg_num;
+							seg_list.push_back(geom[0].Id());
+							seg_list.push_back(geom[1].Id());
+							geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+							geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+						      }
+						}
+
+					  }
+					}
+
+			  	}
+			  }
+
+		         //count interface nodes
+			 for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+				if(ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+					num_interface++;
+
+		KRATOS_CATCH("");
+		}
+		//**********************************************************************************************
+		//**********************************************************************************************
 		void initialize_triangulateio( triangulateio& tr )
 		{
 			tr.pointlist                  = (REAL*) NULL;
