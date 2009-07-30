@@ -96,8 +96,6 @@ namespace Kratos
 		      // Nota: la resistencia de comparacion de esta superficie de fluencia es FC.
 
                       unsigned int dim  = 3;
-                      double sigma_z    = 0.00;
-                      double tetha_Lode = 0.00;
 		      double frictional_internal = 0.00;
                       double Alfa   = 0.00;
                       double Beta  = 0.00;
