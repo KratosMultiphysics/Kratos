@@ -65,9 +65,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/variable_indexing_python.h"
 #include "custom_python/add_fluency_criteria_to_python.h"
 #include "fluency_criteria/fluency_criteria.h"
+#include "python/vector_python_interface.h"
 #include "fluency_criteria/energy_yield_function.h"
 #include "fluency_criteria/rankine_yield_function.h"
 #include "fluency_criteria/tresca_yield_function.h"
+#include "fluency_criteria/von_misses_yield_function.h"     
+#include "fluency_criteria/modified_morh_coulomb_yield_function.h"
+#include "fluency_criteria/drucker_prager_yield_function.h"
+
+
+#include "soft_hard_behavior/softening_hardening_criteria.h"
+#include "soft_hard_behavior/exponencial_softening.h"
+#include "soft_hard_behavior/lineal_softening.h"
 
 
 #include "spaces/ublas_space.h"
@@ -83,6 +92,8 @@ namespace Kratos
     {
 	    using namespace boost::python;
             typedef FluencyCriteria  FluencyCriteriaBaseType; 
+            typedef SofteningHardeningCriteria SofteningHardeningCriteriaType;
+           
 	   
 	        void  AddFluencyCriteriaToPython()
 			      {
@@ -92,20 +103,59 @@ namespace Kratos
 				init<>() )
 			      ;
 
-			     class_<Energy_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
-			      ("EnergyYieldFunction",
-			      init<int, double > () ) // dimesion, limite elastico
-			      ;  
-                             
+			      class_< SofteningHardeningCriteriaType, boost::noncopyable >
+			      ("SofteningHardeningCriteriaType",
+				init<>() )
+			      ;
+
+			      enum_<myState>("myState")
+				 .value("Plane_Stress", Plane_Stress)
+				 .value("Plane_Strain", Plane_Strain)
+                                 .value("Tri_D", Tri_D)
+				  ;
+ 
+           
 			       class_<Rankine_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
 			      ("RankineYieldFunction",
-			      init<int, double > () )
+			      init<myState> () )
 			      ;  
 
 			      class_<Tresca_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
 			      ("TrescaYieldFunction",
-			      init<int, double > () )
+			      init<myState> () )
 			      ;  
+
+			      class_<Von_Misses_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
+			      ("VonMissesYieldFunction",
+			      init<myState> () )
+			      ;  
+
+			      class_<Modified_Morh_Coulomb_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
+			      ("ModifiedMorhCoulombYieldFunction",
+			      init<myState> () )
+			      ;  
+
+			      class_<Drucker_Prager_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
+			      ("DruckerPragerYieldFunction",
+			      init<myState> () )
+			      ;  
+
+			      class_<Energy_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
+			      ("EnergyYieldFunction",
+			      init<myState> () )
+			      ;  
+
+			      class_<Exponential_Softening, bases< SofteningHardeningCriteriaType>, boost::noncopyable >
+			      ("ExponentialSoftening",
+			      init<> () )
+			      ; 
+
+			      class_<Lineal_Softening, bases< SofteningHardeningCriteriaType>, boost::noncopyable >
+			      ("LinealSoftening",
+			      init<> () )
+			      ; 
+
+
 
 
                                 }
