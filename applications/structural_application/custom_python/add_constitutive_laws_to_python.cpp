@@ -107,11 +107,30 @@ namespace Kratos
 	    
 	    typedef ConstitutiveLaw<Node<3> > ConstitutiveLawBaseType;
             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-            typedef FluencyCriteria FluencyCriteriaType; 
-            typedef std::vector<ConstitutiveLaw<Node<3> >::Pointer> Materials;
+            //typedef FluencyCriteria FluencyCriteriaType;  
+            typedef typename FluencyCriteria::Pointer FluencyCriteriaPointer;  
+            typedef typename SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;  
+            typedef typename Properties::Pointer PropertiesPointer;
+	    
+
+
+            typedef std::vector<ConstitutiveLaw<Node<3> >::Pointer> MaterialsContainer;
+            typedef ConstitutiveLaw<Node<3> >::Pointer  ConstitutiveLawPointer;
+            
+
+
+	    void Push_Back_Constitutive_Laws(MaterialsContainer&  ThisMaterialsContainer, ConstitutiveLawPointer ThisConstitutiveLaw)
+		      {
+			  ThisMaterialsContainer.push_back(ThisConstitutiveLaw);
+		      }  
 	    
 	    void  AddConstitutiveLawsToPython()
 	    {
+
+		        class_< MaterialsContainer >("MaterialsContainer", init<>() )
+                        .def("PushBack", Push_Back_Constitutive_Laws)
+			;
+
 			class_< Isotropic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 			("Isotropic2D",
 			init<>() )
@@ -127,7 +146,8 @@ namespace Kratos
 
 			class_< Isotropic_Damage, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 			("Isotropic_Damage",
-			init< >() )
+			init<>() )
+                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
 			;
 
 			class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
@@ -189,14 +209,18 @@ namespace Kratos
 			("Hyperelastic2D",
 			init<>() )
 			;
+    
 			class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >, boost::noncopyable >
 			("PlaneStressDamageOrthotropic2D",
-			init<FluencyCriteriaType& >() )
+			init<>() )
+			//.def(init<FluencyCriteriaType const&>())
+                        .def(init<FluencyCriteriaPointer>())
 			;
 
 			class_<ComposeMaterial , bases< ConstitutiveLawBaseType >, boost::noncopyable >
 			("ComposeMaterial",
-			init<const Materials&>() )
+			init<>() )
+                        .def(init<MaterialsContainer>())
 			;
 
 
