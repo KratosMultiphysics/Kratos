@@ -176,54 +176,6 @@ static inline double double_product(const Matrix &A,const Matrix &B)  //A:B = Tr
 
 
 //***********************************************************************
-//***********************************************************************
-
-static inline void SphericandDesviatoricTensor(const Vector & StressVector, Matrix &SphericComponent, Matrix &DesviatoricComponent)
-
-	{
-	  KRATOS_TRY
-	  double crit      = 1.0E-15;
-	  double zero      = 1.0E-15;	
-	  double Sigma_m   = 0.00;          // Tension Media
-	  unsigned int dim = StressVector.size();            
-	  matrix<double> Tensor(0,0);
-	  vector<double> PrincipalStress(0);
-
-	  if(dim==3)
-	  {
-	  Tensor= zero_matrix<double>(2,2);
-	  SphericComponent = zero_matrix<double>(2,2);    
-	  DesviatoricComponent = zero_matrix<double>(2,2);
-	  PrincipalStress = zero_vector<double>(2);  
-	  }
-	  else
-	  {
-	  Tensor= zero_matrix<double>(3,3);
-	  SphericComponent = zero_matrix<double>(3,3);    
-	  DesviatoricComponent= zero_matrix<double>(3,3);
-	  PrincipalStress = zero_vector<double>(3);      
-	  }
-
-
-	  Tensor  = MathUtils<double>::StressVectorToTensor(StressVector);
-	  PrincipalStress  = SD_MathUtils<double>::EigenValues(Tensor,crit, zero);
-
-	  if(dim==3)			    				
-	  Sigma_m = (sum(PrincipalStress))/2.00;
-	  else
-	  Sigma_m = (sum(PrincipalStress))/3.00;
-
-	  for(unsigned int i=0; i<SphericComponent.size1(); ++i)
-	  {
-	  SphericComponent(i,i) = Sigma_m;
-	  }
-
-	  noalias(DesviatoricComponent) = Tensor - SphericComponent;
-	  KRATOS_CATCH("") 
-
-	  }
-
-//***********************************************************************
 //*********************************************************************** 
 
 // Calculo de los invariantes 
@@ -234,118 +186,71 @@ static inline void SphericandDesviatoricTensor(const Vector & StressVector, Matr
 
 //NOTA: Los invariantes se calculan para un estado tridimensional.
 
-static inline void TensorialInvariants(const Vector & StressVector,Vector &I, Vector &J, Vector &J_des, double& sigma_z)
+static inline void TensorialInvariants(const Matrix& Tensor, Vector& I, Vector& J, Vector& J_des)
 
 {
 	KRATOS_TRY
-	int iter          = 50;
-	double zero       = 1.0E-15;
-	unsigned int dim  = StressVector.size();
-	unsigned int size = 3;
-	matrix<double> Tensor(0,0);
-	matrix<double> Aux_Tensor(0,0);
-	matrix<double> Aux_Matrix(0,0);
-	matrix<double> SphericComponent(0,0);
-	matrix<double> DesviatoricComponent(0,0);
-	vector<double> PrincipalStress(0);  
-        matrix<double> EigenVectors(0,0);  
-
-/*	if(dim==3)
-	{  
-	size       = 2; 
-	Tensor     = zero_matrix<double>(2,2);
-	Aux_Tensor = zero_matrix<double>(2,2);    
-	Aux_Matrix = zero_matrix<double>(2,2);
-	PrincipalStress = zero_vector<double>(2);
-        EigenVectors = zero_matrix<double>(2,2);
-	}
-	else
-*/
+	int iter                            = 50;
+	double zero                         = 1.0E-15;
+	matrix<double> Aux_Tensor           = ZeroMatrix(3,3);
+	matrix<double> Aux_Matrix           = ZeroMatrix(3,3);
+	matrix<double> SphericComponent     = IdentityMatrix(3,3);
+	matrix<double> DesviatoricComponent = ZeroMatrix(3,3);
+	vector<double> PrincipalStress      = ZeroVector(3);
+        matrix<double> EigenVectors         = ZeroMatrix(3,3);  
 	
-	Tensor            = zero_matrix<double>(3,3);
-	Aux_Tensor        = zero_matrix<double>(3,3);    
-	Aux_Matrix        = zero_matrix<double>(3,3);
-	PrincipalStress   = zero_vector<double>(3);
-        EigenVectors      = zero_matrix<double>(3,3);
-
-        if(dim==3)
-	  {
-	      Tensor(0,0) = StressVector(0); Tensor(0,1) = StressVector(2); Tensor(0,0) = 0.00;
-	      Tensor(0,0) = StressVector(2); Tensor(0,0) = StressVector(1); Tensor(0,0) = 0.00;	
-	      Tensor(0,0) = 0.00;            Tensor(0,0) = 0.00;            Tensor(0,0) = sigma_z;  
-	  }
-     
-	else
-	  {
-	     Tensor  = MathUtils<double>::StressVectorToTensor(StressVector);
-	  }
 
 	// Los invariantes seran representados como vectores
 	I     = zero_vector<double>(3);
 	J     = zero_vector<double>(3);
 	J_des = zero_vector<double>(3);
     
-        
-//	
-        Comprobate_State_Tensor(Tensor, StressVector);
-    
 	SD_MathUtils<double>::EigenVectors(Tensor, EigenVectors, PrincipalStress, zero, iter); 
-	for(unsigned int i = 0; i<PrincipalStress.size(); ++i)
-	{
-	    Aux_Tensor(i,i) = PrincipalStress(i);
-	}
-
 	
-	KRATOS_WATCH(Tensor)
-        KRATOS_WATCH(Aux_Tensor)
+	  
 	
 	// Invariantes I	
-	I[0] = Trace(Aux_Tensor);
-	noalias(Aux_Matrix) = prod(trans(Aux_Tensor),Aux_Tensor);
-	I[1] = 0.5*(Trace(Aux_Matrix)-I[0]*I[0]);
+	I[0] = PrincipalStress(0) + PrincipalStress(1) + PrincipalStress(2);
+	I[1] = (PrincipalStress(0)*PrincipalStress(1) + PrincipalStress(0)*PrincipalStress(2) + PrincipalStress(1)*PrincipalStress(2)); //Pag 39 javier Bonet
 	I[2] = MathUtils<double>::Det(Tensor);
 	  
-	KRATOS_WATCH(I)
+	
 
 	// Invariantes J
-// 	J[0] =  I[0];
-// 	J[1] =  0.50*(I[0]*I[0]+2.00*I[1]);
-// 	J[2] =  (I[0]*I[0]*I[0] + 3.00*I[0]*I[1]+3.00*I[2])/3.00;
-// 
-// 
-// 	SphericandDesviatoricTensor(StressVector, SphericComponent, DesviatoricComponent);
-// 
-// // 	PrincipalStress  = SD_MathUtils<double>::EigenValues(DesviatoricComponent,crit, zero);
-// // 	for(unsigned int i = 0; i<PrincipalStress.size(); ++i)
-// // 	{
-// // 		      Aux_Tensor(i,i) = PrincipalStress(i);
-// // 	}
-// 
-// 	J_des[0] = Trace(Aux_Tensor);
-// 	noalias(Aux_Matrix) = prod(trans(Aux_Tensor),Aux_Tensor);
-// 	J_des[1] = 0.5*(Trace(Aux_Matrix));
-// 	J_des[2] = MathUtils<double>::Det(Aux_Tensor);
+ 	J[0] =  I[0];
+ 	J[1] =  0.50*(I[0]*I[0]+2.00*I[1]);
+ 	J[2] =  (I[0]*I[0]*I[0] + 3.00*I[0]*I[1]+3.00*I[2])/3.00;
+
+        noalias(SphericComponent)     =  (I(0)/3.00)*SphericComponent;
+        noalias(DesviatoricComponent) =  Tensor - SphericComponent;
+
+        J_des[0] = 0.00;
+        J_des[1] = 0.50*double_product(DesviatoricComponent,DesviatoricComponent);
+        J_des[2] = MathUtils<double>::Det(DesviatoricComponent);
+
+	//KRATOS_WATCH(Tensor)
+        //KRATOS_WATCH(DesviatoricComponent)
+        //KRATOS_WATCH(I)
+        //KRATOS_WATCH(J)
+        //KRATOS_WATCH(J_des)
+
 
 	KRATOS_CATCH("")
 }
 
-static inline void  Comprobate_State_Tensor(Matrix& StressTensor, const Vector& StressVector)
-		    {
-		  // Necesario para calcular eigen valores con subrutina de Jacobi, NO ACEPTA TERMINOS NULOS. 
-		  if (fabs(StressTensor(0,0))<1E-10){StressTensor(0,0) = 1E-10; }
-		  //if (fabs(StressTensor(0,1))<1E-10){StressTensor(0,1) = 1E-10; }   
-		  //if (fabs(StressTensor(1,0))<1E-10){StressTensor(1,0) = 1E-10; }
-		  if (fabs(StressTensor(1,1))<1E-10){StressTensor(1,1) = 1E-10; }
+//***********************************************************************
+//*********************************************************************** 
 
-		  //if (fabs(StressTensor(0,2))<1E-10){StressTensor(0,2) = 1E-10; }
-		  //if (fabs(StressTensor(1,2))<1E-10){StressTensor(1,2) = 1E-10; }
-		  //if (fabs(StressTensor(2,0))<1E-10){StressTensor(2,0) = 1E-10; }
-		  //if (fabs(StressTensor(2,1))<1E-10){StressTensor(2,1) = 1E-10; }
+static inline void  Comprobate_State_Tensor(Matrix& StressTensor, const Vector& StressVector)
+		    { 
+		  if (fabs(StressTensor(0,0))<1E-10){StressTensor(0,0) = 1E-10; }
+		  if (fabs(StressTensor(1,1))<1E-10){StressTensor(1,1) = 1E-10; }
 		  if (fabs(StressTensor(2,2))<1E-10){StressTensor(2,2) = 1E-10; }  
 		    }
 
 
-
+//***********************************************************************
+//*********************************************************************** 
 
 static inline void Prod_Second_Order_Tensor(const Second_Order_Tensor& A,const Second_Order_Tensor& B, Fourth_Order_Tensor& Result)
 {
