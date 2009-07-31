@@ -297,7 +297,8 @@ namespace Kratos
          			MLList.set("energy minimization: type",3); // 1,2,3 cheap -> expensive
        				MLList.set("aggregation: block scaling",false);
 				MLList.set("aggregation: type","Uncoupled");
-				MLList.set("smoother: type (level 0)","symmetric Gauss-Seidel");
+//				MLList.set("smoother: type (level 0)","symmetric Gauss-Seidel");
+				MLList.set("smoother: type (level 0)","Jacobi");
 				MLList.set("smoother: sweeps (level 0)",2);
 				MLList.set("smoother: damping factor (level 0)",0.89);
 
@@ -444,7 +445,7 @@ namespace Kratos
 				
 					// computation of the nullspace 3D
 					numdf = 4; // dofs per node
-					dimns = 7; // dimension of the null space
+					dimns = 4; // dimension of the null space
 					int lrows =  A.NumMyRows(); //number of rows for calling processor 
 
 					//Teuchos::RCP<vector<double> >  aaa = Teuchos::rcp(new vector<double>(dimns*lrows));
@@ -486,21 +487,6 @@ namespace Kratos
 							(*ns)[k+3*lrows+1]=0.0;
 							(*ns)[k+3*lrows+2]=1.0;
 							(*ns)[k+3*lrows+3]=0.0;
-
-							(*ns)[k+4*lrows]=0.0;
-							(*ns)[k+4*lrows+1]=-zz;
-							(*ns)[k+4*lrows+2]=yy;
-							(*ns)[k+4*lrows+3]=0.0;
-
-							(*ns)[k+5*lrows]=zz;
-							(*ns)[k+5*lrows+1]=0.0;
-							(*ns)[k+5*lrows+2]=-xx;
-							(*ns)[k+5*lrows+3]=0.0;
-
-							(*ns)[k+6*lrows]=-yy;
-							(*ns)[k+6*lrows+1]=xx;
-							(*ns)[k+6*lrows+2]=0.0;
-							(*ns)[k+6*lrows+3]=0.0;
 
 							k=k+4;
 							}
@@ -598,21 +584,6 @@ namespace Kratos
 							(*ns)[k+2*lrows+1]=0.0;
 							(*ns)[k+2*lrows+2]=1.0;
 							(*ns)[k+2*lrows+3]=0.0;
-
-							(*ns)[k+3*lrows]=0.0;
-							(*ns)[k+3*lrows+1]=-zz;
-							(*ns)[k+3*lrows+2]=yy;
-							(*ns)[k+3*lrows+3]=0.0;
-
-							(*ns)[k+4*lrows]=zz;
-							(*ns)[k+4*lrows+1]=0.0;
-							(*ns)[k+4*lrows+2]=-xx;
-							(*ns)[k+4*lrows+3]=0.0;
-
-							(*ns)[k+5*lrows]=-yy;
-							(*ns)[k+5*lrows+1]=xx;
-							(*ns)[k+5*lrows+2]=0.0;
-							(*ns)[k+5*lrows+3]=0.0;
 
 							(*ns)[k+6*lrows]=0.0;
 							(*ns)[k+6*lrows+1]=0.0;
