@@ -269,7 +269,7 @@ void Isotropic_Damage::InitializeSolutionStep( const Properties& props,
 
       void Isotropic_Damage::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& ConstitutiveMatrix)
       {
-      Isotropic_Damage::CalculateNoDamageElasticMatrix(ConstitutiveMatrix,mEc,mNU); 
+      Isotropic_Damage::CalculateNoDamageElasticMatrix(ConstitutiveMatrix,mEc,mNU);
       }
 
 
@@ -284,7 +284,7 @@ void Isotropic_Damage::InitializeSolutionStep( const Properties& props,
 	double Tau 	 = 0.00;
 	double A   	 = 0.00;
 	double r         = 0.00;
-	double elev      = 0.00; 
+	//double elev      = 0.00; 
          
 
 	
