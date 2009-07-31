@@ -268,7 +268,7 @@ namespace Kratos
 			StressVector.resize(3,false);
 		}
 
-                double result = 0.00;
+                //double result = 0.00;
 		Vector I      = ZeroVector(3);
                 Vector J_des  = ZeroVector(3);
                 Vector J      = ZeroVector(3);
