@@ -274,7 +274,6 @@ namespace Kratos
 				    // clean local elemental memory
 				    pScheme->CleanMemory(*it);
                                 }
-				else KRATOS_WATCH("LEFT OUT ELEMENT");
 			}
 
 			LHS_Contribution.resize(0,0,false);
