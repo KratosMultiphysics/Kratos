@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <sstream>
 #include <cstddef>
+#include <iomanip>
 
 // External includes 
 #include "gidpost/source/gidpost.h"
@@ -569,7 +570,7 @@ namespace Kratos
                     if( mMode == GiD_PostAscii && ! mMeshFileOpen )
                     {
                         std::stringstream file_name;
-                        file_name << mMeshFileName << "_" << name << ".post.msh";
+                        file_name << std::setprecision(12) << mMeshFileName << "_" << name << ".post.msh";
                         GiD_OpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
                         mMeshFileOpen = true;
                     }
