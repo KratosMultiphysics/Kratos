@@ -577,7 +577,7 @@ namespace Kratos
                     if( mMode == GiD_PostBinary && ! mResultFileOpen )
                     {
                         std::stringstream file_name;
-                        file_name << mResultFileName << "_" << name << ".post.bin";
+                        file_name << std::setprecision(12) << mResultFileName << "_" << name << ".post.bin";
                         if( ! mResultFileOpen )
                         {
                             GiD_OpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
