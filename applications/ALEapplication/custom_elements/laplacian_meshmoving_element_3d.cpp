@@ -67,10 +67,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    namespace ALE3Dauxiliaries
+    {
 	//static variables
-	boost::numeric::ublas::bounded_matrix<double,4,3> LaplacianMeshMovingElem3D::msDN_DX;
-  	array_1d<double,4> LaplacianMeshMovingElem3D::msN; //dimension = number of nodes
-  	array_1d<double,4> LaplacianMeshMovingElem3D::ms_temp_vec_np; //dimension = number of nodes
+	boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+	#pragma omp threadprivate(msDN_DX)
+  	array_1d<double,4> msN; //dimension = number of nodes
+	#pragma omp threadprivate(msN)
+  	array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
+	#pragma omp threadprivate(ms_temp_vec_np)
+	}
+	using namespace ALE3Dauxiliaries;
 
 
 	//************************************************************************************
@@ -118,10 +125,10 @@ namespace Kratos
 
 		noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
-		array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-		array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
-		array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
-		array_1d<double,3>& disp3 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
+		const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+		const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
+		const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
+		const array_1d<double,3>& disp3 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
 
 		//dirichlet contribution
 		ms_temp_vec_np[0] = disp0[ComponentIndex]; 
@@ -144,7 +151,7 @@ namespace Kratos
 	{
 		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes)
-			rResult.resize(number_of_nodes);	
+			rResult.resize(number_of_nodes,false);	
 
 		for (unsigned int i=0;i<number_of_nodes;i++)
 				rResult[i] = GetGeometry()[i].GetDof(AUX_MESH_VAR).EquationId();

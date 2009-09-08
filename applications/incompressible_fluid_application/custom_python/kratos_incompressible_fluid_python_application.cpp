@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_processes_to_python.h"
+#include "custom_python/add_custom_edgebased_levelset_solver_to_python.h"
  
 namespace Kratos
 {
@@ -83,6 +84,8 @@ namespace Python
 		AddCustomUtilitiesToPython();
 		AddCustomIOToPython();
 		AddProcessesToPython();
+		AddProcessesToPython();
+                AddCustomEdgeBasedLevelSetToPython();
 
 		//registering variables in python
 //		KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)

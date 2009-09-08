@@ -74,6 +74,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "containers/weak_pointer_vector.h"
 
+#ifdef _OPENMP
+ #include "omp.h"
+#endif
+
 
 namespace Kratos
 {
@@ -164,6 +168,10 @@ namespace Kratos
 	, mInitialPosition()
 	{
 		CreateSolutionStepData();
+
+                #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
 	}
 	
       Node(IndexType NewId ) 
@@ -176,6 +184,10 @@ namespace Kratos
 	{
 		KRATOS_ERROR(std::logic_error, "calling the default constructor for the node ... illegal operation!!","");
 	  CreateSolutionStepData();
+
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
 	}
 
       /// 1d constructor.
@@ -188,6 +200,10 @@ namespace Kratos
 	, mInitialPosition(NewX)
       {
 	  CreateSolutionStepData();
+
+          #ifdef _OPENMP
+              omp_init_lock(&mnode_lock);
+          #endif
       }
       
       /// 2d constructor.
@@ -200,6 +216,10 @@ namespace Kratos
 	, mInitialPosition(NewX, NewY)
       {
 	  CreateSolutionStepData();
+
+            #ifdef _OPENMP
+               omp_init_lock(&mnode_lock);
+            #endif
       }
       
       /// 3d constructor.
@@ -212,6 +232,10 @@ namespace Kratos
 	, mInitialPosition(NewX, NewY, NewZ)
       {
 	  CreateSolutionStepData();
+
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
       }
       
       /// Point constructor.
@@ -224,6 +248,10 @@ namespace Kratos
 	, mInitialPosition(rThisPoint)
       {
 	  CreateSolutionStepData();
+
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
       }
       
       /** Copy constructor. Initialize this node with given node.*/
@@ -237,6 +265,10 @@ namespace Kratos
 	{
 		//TODO ... this copy constructor should be removed sometimes as it is often source of error
 		//KRATOS_ERROR(std::logic_error, "copying Nodes is not allowed", "");
+
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
 	}
       
       /** Copy constructor from a node with different dimension.*/
@@ -249,6 +281,10 @@ namespace Kratos
 	, mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
 	, mInitialPosition(rOtherNode.mInitialPosition)
       {
+
+     #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
       }
       
       /** Copy constructor from a point with different dimension.*/
@@ -262,6 +298,10 @@ namespace Kratos
 	, mInitialPosition(rThisPoint)
       {
 	  CreateSolutionStepData();
+
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
       }
       
         /** Constructor using coordinates stored in given array. Initialize
@@ -276,6 +316,10 @@ namespace Kratos
 	, mInitialPosition(rOtherCoordinates)
       {
 	  CreateSolutionStepData();
+
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
       }
       
 
@@ -291,6 +335,10 @@ namespace Kratos
 	, mInitialPosition()
       {
 	  CreateSolutionStepData();
+
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
       }
 
        /// 3d with variables list and data constructor.
@@ -302,14 +350,17 @@ namespace Kratos
 	, mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
 	, mInitialPosition(NewX, NewY, NewZ)
       {
+          #ifdef _OPENMP
+                    omp_init_lock(&mnode_lock);
+                #endif
       }
       
        
       /// Destructor.
       virtual ~Node(){
-/*	std::cout << "destructing node " << this->Id() << std::endl;
-	KRATOS_WATCH(*this);*/
-	//KRATOS_WATCH("NODE DESTRUCTING...");
+          #ifdef _OPENMP
+            omp_destroy_lock(&mnode_lock);
+          #endif
 	}
 
       void SetId(IndexType NewId)
@@ -321,7 +372,26 @@ namespace Kratos
                 iii->SetId(NewId);
             }
       }
-      
+
+      #ifdef _OPENMP
+      omp_lock_t& GetLock(){return mnode_lock;}
+      #endif
+
+      inline void SetLock()
+      {
+           //does nothing if openMP is not present
+           #ifdef _OPENMP
+          omp_set_lock(&mnode_lock);
+          #endif
+      }
+
+      inline void UnSetLock()
+      {
+           //does nothing if openMP is not present
+           #ifdef _OPENMP
+          omp_unset_lock(&mnode_lock);
+          #endif
+      }
 
       ///@}
       ///@name Operators 
@@ -982,7 +1052,11 @@ namespace Kratos
         
       ///@} 
       ///@name Protected member Variables 
-      ///@{ 
+      ///@{
+
+     #ifdef _OPENMP
+        omp_lock_t mnode_lock;
+     #endif
         
         
       ///@} 

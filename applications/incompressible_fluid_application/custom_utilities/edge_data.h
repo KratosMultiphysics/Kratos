@@ -51,6 +51,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_EDGE_DATA_H_INCLUDED )
 #define  KRATOS_EDGE_DATA_H_INCLUDED
 
+//we suggest defining the following macro
+#define USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
+
+//we suggest defining the following macro
+#define USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+
 
 // System includes
 #include <string>
@@ -192,13 +198,14 @@ namespace Kratos
 			inline void Add_ConvectiveContribution( array_1d<double,TDim>& destination,
 					const array_1d<double,TDim>& a_i, const array_1d<double,TDim>& U_i,
      					const array_1d<double,TDim>& a_j, const array_1d<double,TDim>& U_j)
-			{     
-/*				double temp = a_i[0] * Ni_DNj[0];
+			{
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+				double temp = a_i[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
 					temp += a_i[k_comp] * Ni_DNj[k_comp];
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					destination[l_comp] += temp * (U_j[l_comp] - U_i[l_comp]);*/
-			
+					destination[l_comp] += temp * (U_j[l_comp] - U_i[l_comp]);
+#else
 				double aux_i = a_i[0] * Ni_DNj[0];
 				double aux_j = a_j[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -208,16 +215,7 @@ namespace Kratos
 				}
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 					destination[l_comp] += aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
-				
-// 				double aux_i = a_i[0] * DNi_Nj[0];
-// 				double aux_j = a_j[0] * Ni_DNj[0];
-// 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-// 				{
-// 					aux_i += a_i[k_comp] * DNi_Nj[k_comp];
-// 					aux_j += a_j[k_comp] * Ni_DNj[k_comp];
-// 				}
-// 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-// 					destination[l_comp] += aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
+#endif
 
 			}
 			
@@ -225,12 +223,13 @@ namespace Kratos
 					const array_1d<double,TDim>& a_i, const array_1d<double,TDim>& U_i,
 					const array_1d<double,TDim>& a_j, const array_1d<double,TDim>& U_j)
 			{     
-/*				double temp = a_i[0] * Ni_DNj[0];
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+				double temp = a_i[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
 					temp += a_i[k_comp] * Ni_DNj[k_comp];
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					destination[l_comp] -= temp * (U_j[l_comp] - U_i[l_comp]);*/
-				
+					destination[l_comp] -= temp * (U_j[l_comp] - U_i[l_comp]);
+#else
 				double aux_i = a_i[0] * Ni_DNj[0];
 				double aux_j = a_j[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -240,23 +239,20 @@ namespace Kratos
 				}
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 					destination[l_comp] -= aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
-
-// 				double aux_i = a_i[0] * DNi_Nj[0];
-// 				double aux_j = a_j[0] * Ni_DNj[0];
-// 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-// 				{
-// 					aux_i += a_i[k_comp] * DNi_Nj[k_comp];
-// 					aux_j += a_j[k_comp] * Ni_DNj[k_comp];
-// 				}
-// 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-// 					destination[l_comp] -= aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
-
+#endif
 			}
 
 			inline void Sub_ConvectiveContribution( double& destination,
 					const array_1d<double,TDim>& a_i, const double& phi_i,
 					const array_1d<double,TDim>& a_j, const double& phi_j)
-			{     				
+			{
+#ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
+                                double temp = a_i[0] * Ni_DNj[0];
+				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
+					temp += a_i[k_comp] * Ni_DNj[k_comp];
+
+                                destination -= temp * (phi_j - phi_i);
+#else
 				double aux_i = a_i[0] * Ni_DNj[0];
 				double aux_j = a_j[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -265,6 +261,7 @@ namespace Kratos
 					aux_j += a_j[k_comp] * Ni_DNj[k_comp];
 				}
 				destination -= aux_j * phi_j - aux_i * phi_i;
+#endif
 
 
 			}
@@ -272,7 +269,14 @@ namespace Kratos
 			inline void Add_ConvectiveContribution( double& destination,
 					const array_1d<double,TDim>& a_i, const double& phi_i,
 					const array_1d<double,TDim>& a_j, const double& phi_j)
-			{     				
+			{
+#ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
+                                double temp = a_i[0] * Ni_DNj[0];
+				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
+					temp += a_i[k_comp] * Ni_DNj[k_comp];
+
+                                destination += temp * (phi_j - phi_i);
+#else
 				double aux_i = a_i[0] * Ni_DNj[0];
 				double aux_j = a_j[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -281,7 +285,7 @@ namespace Kratos
 					aux_j += a_j[k_comp] * Ni_DNj[k_comp];
 				}
 				destination += aux_j * phi_j - aux_i * phi_i;
-
+#endif
 
 			}
 						
@@ -322,24 +326,7 @@ namespace Kratos
 					for (unsigned int i_comp = 0; i_comp < TDim; i_comp++)
 						stab_low[j_comp] -= a_i[i_comp] * LaplacianIJ(i_comp,j_comp) * press_diff ;
 				}
-				
-				
-
-				
-				//finite volume style stabilization
-/*				double norm_D = 0.0;
-				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-					norm_D += Ni_DNj[k_comp] * Ni_DNj[k_comp];
-				norm_D = sqrt(norm_D);
-				
-				double norm_a = 0.0;
-				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-					norm_a += (a_j[k_comp] + a_i[k_comp]) * (a_j[k_comp] + a_i[k_comp]);
-				double lambda = 0.5 * sqrt(norm_a) * norm_D;
-								
-				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					stab_low[l_comp] =  0.5  * lambda  * (U_j[l_comp]- U_i[l_comp]);*/
-									
+													
 			}
 			inline void CalculateConvectionStabilization_LOW( double& stab_low,
 					const array_1d<double,TDim>& a_i, const double& phi_i,
@@ -357,12 +344,13 @@ namespace Kratos
 					const array_1d<double,TDim>& a_i, const array_1d<double,TDim>& pi_i,
      					const array_1d<double,TDim>& a_j, const array_1d<double,TDim>& pi_j)
 			{
-/*				double temp = 0.0;
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+				double temp = 0.0;
 				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
 					temp += a_i[k_comp] * Ni_DNj[k_comp];
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					stab_high[l_comp] = temp * (pi_j[l_comp] - pi_i[l_comp]);*/
-				
+					stab_high[l_comp] = -temp * (pi_j[l_comp] - pi_i[l_comp]); //check if the minus sign is correct
+#else
 				double aux_i = a_i[0] * Ni_DNj[0];
 				double aux_j = a_j[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -372,37 +360,23 @@ namespace Kratos
 				}
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 					stab_high[l_comp] =  -(aux_j * pi_j[l_comp] - aux_i * pi_i[l_comp]);
+#endif
 
 				
-/*				double temp1 = a_j[0] * Ni_DNj[0];
-				double temp2 = a_i[0] * DNi_Nj[0];
-				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-				{
-					temp1 += a_j[k_comp] * Ni_DNj[k_comp];
-					temp2 += a_i[k_comp] * DNi_Nj[k_comp];
-				}
-				for (unsigned int comp = 0; comp < TDim; comp++)
-					stab_high[comp] = - (temp1 * pi_j[comp] - temp2 * pi_i[comp]); */
-				
-/*				double aaa = 0.5*(a_i[0]+a_j[0]);
-				double temp1 = aaa * Ni_DNj[0];
-				double temp2 = aaa * DNi_Nj[0];
-				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-				{
-					aaa = 0.5*(a_i[k_comp]+a_j[k_comp]);
-					temp1 += aaa * Ni_DNj[k_comp];
-					temp2 += aaa * DNi_Nj[k_comp];
-				}
-				for (unsigned int comp = 0; comp < TDim; comp++)
-					stab_high[comp] =  (temp1 * pi_j[comp] - temp2 * pi_i[comp]); */
-				
 			}
-			
+
+
 			inline void CalculateConvectionStabilization_HIGH( double& stab_high,
 					const array_1d<double,TDim>& a_i, const double& pi_i,
      					const array_1d<double,TDim>& a_j, const double& pi_j)
 			{
-				
+#ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
+                                double temp = 0.0;
+				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
+					temp += a_i[k_comp] * Ni_DNj[k_comp];
+
+                                stab_high  = -temp * (pi_j - pi_i); //check if the minus sign is correct
+#else
 				double aux_i = a_i[0] * Ni_DNj[0];
 				double aux_j = a_j[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
@@ -410,9 +384,9 @@ namespace Kratos
 					aux_i += a_i[k_comp] * Ni_DNj[k_comp];
 					aux_j += a_j[k_comp] * Ni_DNj[k_comp];
 				}
-				
-				stab_high =  -(aux_j * pi_j- aux_i * pi_i);
 
+				stab_high =  -(aux_j * pi_j- aux_i * pi_i);
+#endif
 			}
 			//*************************************************************************************
 			//*************************************************************************************

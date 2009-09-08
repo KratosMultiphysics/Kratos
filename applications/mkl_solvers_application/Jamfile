@@ -48,7 +48,7 @@ python-extension KratosMKLSolversApplication
         mkllapacklib/<link>shared
         mklmclib/<link>shared
         threadlib/<link>shared
-        guidelib/<link>shared
+##        guidelib/<link>shared
 
         #####################kratos library as defined in the jamroot
     	/kratos-prj/kratos//libkratos/<link>static

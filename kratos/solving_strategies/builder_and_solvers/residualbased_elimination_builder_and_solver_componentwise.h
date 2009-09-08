@@ -302,7 +302,7 @@ namespace Kratos
                         
                         double start_prod = omp_get_wtime();
 
-			#pragma omp parallel for firstprivate(number_of_threads)
+			#pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
 			for(int k=0; k<number_of_threads; k++)
 			{
 				//contributions to the system
@@ -336,18 +336,13 @@ namespace Kratos
                                     //assemble the elemental contribution
 				    Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 
-/*                                    #pragma omp critical
-                                    {
-                                        AssembleLHS(A,LHS_Contribution,EquationId);
-                                        AssembleRHS(b,RHS_Contribution,EquationId);
-                                    }*/
                                 }
                         }
 
 			vector<unsigned int> condition_partition;
 			CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
 
- 			#pragma omp parallel for firstprivate(number_of_threads)
+ 			#pragma omp parallel for firstprivate(number_of_threads) schedule(static,1)
 			for(int k=0; k<number_of_threads; k++)
 			{
 				//contributions to the system
@@ -381,11 +376,7 @@ namespace Kratos
 
                                     //assemble the elemental contribution
 				    Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
-/*                                    #pragma omp critical
-                                    {
-                                        AssembleLHS(A,LHS_Contribution,EquationId);
-                                        AssembleRHS(b,RHS_Contribution,EquationId);
-                                    }*/
+
                                 }
                         }
                         if (this->GetEchoLevel()>0)
@@ -491,7 +482,11 @@ namespace Kratos
 				if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
 				{
 					A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,false);
-					ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+                                        #ifdef _OPENMP
+                                            ParallelConstructGraph(A);
+                                        #else
+                                            ConstructGraph(A);
+                                        #endif
 				}
 				else
 				{
@@ -499,7 +494,11 @@ namespace Kratos
 					{
 						KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
 						A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
-						ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
+						#ifdef _OPENMP
+							ParallelConstructGraph(A);
+						#else
+							ConstructGraph(A);
+						#endif
 					}
 				}
 				if(Dx.size() != BaseType::mEquationSystemSize)
@@ -580,11 +579,10 @@ namespace Kratos
 		/**@name Protected Operators*/
 		/*@{ */
 		//**************************************************************************
-		void ConstructMatrixStructure(
-					      TSystemMatrixType& A,
-			ElementsContainerType& rElements,
-			ConditionsArrayType& rConditions,
-			ProcessInfo& CurrentProcessInfo)
+                //**************************************************************************
+                //**************************************************************************
+                //**************************************************************************
+		void ConstructGraph(TSystemMatrixType& A)
 		{ 
 			KRATOS_TRY
 
@@ -605,7 +603,7 @@ namespace Kratos
 					WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
 					std::vector<int>& indices = index_list[index_i];
-					indices.reserve(neighb_nodes.size());
+					indices.reserve(neighb_nodes.size()+1);
 
 					//filling the first neighbours list
 					indices.push_back(index_i);
@@ -625,7 +623,7 @@ namespace Kratos
 					std::sort(indices.begin(),indices.end());
 					typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
 
-//					indices.erase(new_end,indices.end());
+					indices.erase(new_end,indices.end());
 
 					total_size += indices.size();
 				}
@@ -646,6 +644,91 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+                //**************************************************************************
+                //**************************************************************************
+                //**************************************************************************
+                //**************************************************************************
+#ifdef _OPENMP
+		void ParallelConstructGraph(TSystemMatrixType& A)
+		{
+			KRATOS_TRY
+
+				std::vector< std::vector<int> > index_list(BaseType::mEquationSystemSize);
+
+                        int number_of_threads = omp_get_max_threads();
+
+			unsigned int pos = (mActiveNodes.begin())->GetDofPosition(rVar);
+			//constructing the system matrix row by row
+
+                        vector<unsigned int> partition;
+                        vector<unsigned int> local_sizes(number_of_threads);
+			for(unsigned int i=0; i<number_of_threads; i++)
+                            local_sizes[i] = 0;
+
+			CreatePartition(number_of_threads, mActiveNodes.size(), partition);
+
+                        #pragma omp parallel for firstprivate(number_of_threads,pos) schedule(static,1)
+			for(int k=0; k<number_of_threads; k++)
+			{
+                            WeakPointerVector< Node<3> >::iterator it_begin = mActiveNodes.begin()+partition[k];
+                            WeakPointerVector< Node<3> >::iterator it_end = mActiveNodes.begin()+partition[k+1];
+
+                            for(WeakPointerVector< Node<3> >::iterator in = it_begin;
+                                    in!=it_end; in++)
+                            {
+                                    Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+                                    if( current_dof.IsFixed() == false)
+                                    {
+                                            int index_i = (current_dof).EquationId();
+                                            WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+
+                                            std::vector<int>& indices = index_list[index_i];
+                                            indices.reserve(neighb_nodes.size()+1);
+
+                                            //filling the first neighbours list
+                                            indices.push_back(index_i);
+                                            for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                                                    i != neighb_nodes.end(); i++)
+                                            {
+
+                                                    Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                                                    if(neighb_dof.IsFixed() == false )
+                                                    {
+                                                            int index_j = (neighb_dof).EquationId();
+                                                            indices.push_back(index_j);
+                                                    }
+                                            }
+
+                                            //sorting the indices and elminating the duplicates
+                                            std::sort(indices.begin(),indices.end());
+                                            typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
+                                            indices.erase(new_end,indices.end());
+
+                                            local_sizes[k] += indices.size();
+                                    }
+                            }
+                        }
+
+                        //calculate the total size of the system
+                        int total_size = 0.0;
+                        for(unsigned int i=0; i<number_of_threads; i++)
+                            total_size += local_sizes[i];
+
+			A.reserve(total_size,false);
+
+			//setting to zero the matrix (and the diagonal matrix)
+			for(unsigned int i=0; i<BaseType::mEquationSystemSize; i++)
+			{
+				std::vector<int>& indices = index_list[i];
+				for(unsigned int j=0; j<indices.size(); j++)
+				{
+					A.push_back(i,indices[j] , 0.00);
+				}
+			}
+
+			KRATOS_CATCH("")
+		}
+#endif
 
 
 

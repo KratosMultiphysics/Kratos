@@ -43,6 +43,9 @@ alias sources_KratosMetisApplication
 
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
+
+    /KratosProject//libomp
+
     ;
 
 lib KratosMetisApplicationStatic
