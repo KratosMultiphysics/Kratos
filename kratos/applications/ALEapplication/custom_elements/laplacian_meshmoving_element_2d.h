@@ -208,9 +208,9 @@ namespace Kratos
     private:
       ///@name Static Member Variables 
       ///@{ 
-		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+/*		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
   		static array_1d<double,3> msN; //dimension = number of nodes
-  		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
+  		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes*/
         
       ///@} 
       ///@name Member Variables 
@@ -221,8 +221,6 @@ namespace Kratos
       ///@} 
       ///@name Private Operators
       ///@{ 
-   
-	  inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
         
       ///@} 
       ///@name Private Operations

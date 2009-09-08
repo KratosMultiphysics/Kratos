@@ -89,6 +89,7 @@ alias sources_KratosTrilinosApplication
 
 		/KratosProject//libkratos_static
 
+        /KratosProject//libomp
 
 		/KratosProject//pythonlib
 		/KratosProject//boost_python_lib

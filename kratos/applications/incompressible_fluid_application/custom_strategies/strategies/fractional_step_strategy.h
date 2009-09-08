@@ -26,6 +26,10 @@
 #include "custom_strategies/strategies/solver_configuration.h"
 #include "utilities/geometry_utilities.h"
 
+#ifdef _OPENMP
+    #include "omp.h"
+#endif
+
 namespace Kratos
 {
 
@@ -619,46 +623,76 @@ namespace Kratos
 		{
 			KRATOS_TRY;
 
-			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-			array_1d<double,3> zero = ZeroVector(3);
+#ifdef _OPENMP
+                        int number_of_threads = omp_get_max_threads();
+#else
+                        int number_of_threads = 1;
+#endif
 
-			//first of all set to zero the nodal variables to be updated nodally
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				array_1d<double,3>& press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
-				array_1d<double,3>& conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
-				noalias(press_proj) = zero;
-				noalias(conv_proj) = zero;
-			}
+                        vector<unsigned int> partition;
+			CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
+
+                        #pragma omp parallel for schedule(static,1)
+                        for(int k=0; k<number_of_threads; k++)
+                        {
+                            ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                            ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k+1];
+
+                            ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+                            array_1d<double,3> zero = ZeroVector(3);
+
+                            //first of all set to zero the nodal variables to be updated nodally
+                            for(ModelPart::NodeIterator i = it_begin ; i != it_end ; ++i)
+                            {
+                                    array_1d<double,3>& press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
+                                    array_1d<double,3>& conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
+                                    noalias(press_proj) = zero;
+                                    noalias(conv_proj) = zero;
+                            }
+                        }
 
 			//add the elemental contributions for the calculation of the velocity
 			//and the determination of the nodal area
+                        ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 			rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
-			for(ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin() ; 
-				i != BaseType::GetModelPart().ElementsEnd() ; ++i)
-			{
-				(i)->InitializeSolutionStep(rCurrentProcessInfo);
-			}
+
+                        vector<unsigned int> elem_partition;
+			CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
+
+                        #pragma omp parallel for schedule(static,1)
+                        for(int k=0; k<number_of_threads; k++)
+                        {
+                            ModelPart::ElementIterator it_begin = BaseType::GetModelPart().ElementsBegin() + elem_partition[k];
+                            ModelPart::ElementIterator it_end = BaseType::GetModelPart().ElementsBegin() + elem_partition[k+1];
+                            for(ModelPart::ElementIterator i = it_begin ; i!=it_end ; ++i)
+                            {
+                                    (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+                            }
+                        }
 
                         BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(NODAL_MASS);
                         BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(PRESS_PROJ);
                         BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(CONV_PROJ);
 
 			//solve nodally for the velocity
-			double temp;
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				array_1d<double,3>& press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
-				array_1d<double,3>& conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
-				double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
-				
-				temp = 1.00 / A;
-				press_proj *= temp; 
-				conv_proj *= temp; 
-				
-			}
+                        #pragma omp parallel for schedule(static,1)
+                        for(int k=0; k<number_of_threads; k++)
+                        {
+                            ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                            ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k+1];
+
+                            for(ModelPart::NodeIterator i =it_begin ; i != it_end ; ++i)
+                            {
+                                    array_1d<double,3>& press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
+                                    array_1d<double,3>& conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
+                                    double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
+
+                                    double temp = 1.00 / A;
+                                    press_proj *= temp;
+                                    conv_proj *= temp;
+
+                            }
+                        }
 
 			KRATOS_CATCH("");
 		}
@@ -842,24 +876,38 @@ namespace Kratos
 		//******************************************************************************************************
 		void ApplyFractionalVelocityFixity()
 		{
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				if(i->IsFixed(VELOCITY_X))
-					(i)->Fix(FRACT_VEL_X);
-				else
-					(i)->Free(FRACT_VEL_X);
+#ifdef _OPENMP
+                        int number_of_threads = omp_get_max_threads();
+#else
+                        int number_of_threads = 1;
+#endif
 
-				if(i->IsFixed(VELOCITY_Y))
-					(i)->Fix(FRACT_VEL_Y);
-				else
-					(i)->Free(FRACT_VEL_Y);
+                        vector<unsigned int> partition;
+			CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
 
-				if(i->IsFixed(VELOCITY_Z))
-					(i)->Fix(FRACT_VEL_Z);
-				else
-					(i)->Free(FRACT_VEL_Z);
-			}
+//                        #pragma omp parallel for schedule(static,1)
+                        for(int k=0; k<number_of_threads; k++)
+                        {
+                            ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                            ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k+1];
+                                for(ModelPart::NodeIterator i = it_begin ; i != it_end ; ++i)
+                                {
+                                        if(i->IsFixed(VELOCITY_X))
+                                                (i)->Fix(FRACT_VEL_X);
+                                        else
+                                                (i)->Free(FRACT_VEL_X);
+
+                                        if(i->IsFixed(VELOCITY_Y))
+                                                (i)->Fix(FRACT_VEL_Y);
+                                        else
+                                                (i)->Free(FRACT_VEL_Y);
+
+                                        if(i->IsFixed(VELOCITY_Z))
+                                                (i)->Fix(FRACT_VEL_Z);
+                                        else
+                                                (i)->Free(FRACT_VEL_Z);
+                                }
+                        }
 		}
 
 
@@ -1065,6 +1113,18 @@ namespace Kratos
 		unsigned int mdomain_size;
 		double mOldDt;
 		bool proj_is_initialized;
+
+                //******************************************************************************************
+		//******************************************************************************************
+		inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+		{
+			partitions.resize(number_of_threads+1);
+			int partition_size = number_of_rows / number_of_threads;
+			partitions[0] = 0;
+			partitions[number_of_threads] = number_of_rows;
+			for(int i = 1; i<number_of_threads; i++)
+			   partitions[i] = partitions[i-1] + partition_size ;
+		}
 
 
 		/*@} */

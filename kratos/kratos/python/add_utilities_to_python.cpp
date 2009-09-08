@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
+#include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/divide_elem_utils.h"
 
 
@@ -95,6 +96,15 @@ namespace Python
 			  .def("CalculateDistances2D",&BodyDistanceCalculationUtils::CalculateDistances<2>)
 			  .def("CalculateDistances3D",&BodyDistanceCalculationUtils::CalculateDistances<3>)
 			  ;
+
+	  class_<SignedDistanceCalculationUtils<2> >("SignedDistanceCalculationUtils2D", init<>())
+			  .def("CalculateDistances",&SignedDistanceCalculationUtils<2>::CalculateDistances )
+			  ;
+
+	  class_<SignedDistanceCalculationUtils<3> >("SignedDistanceCalculationUtils3D", init<>())
+			  .def("CalculateDistances",&SignedDistanceCalculationUtils<3>::CalculateDistances )
+			  ;
+
 
 	  class_<DivideElemUtils>("DivideElemUtils", init<>())
 		.def("DivideElement_2D",&DivideElemUtils::DivideElement_2D)

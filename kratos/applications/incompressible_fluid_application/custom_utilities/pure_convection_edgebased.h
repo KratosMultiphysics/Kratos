@@ -185,7 +185,7 @@ namespace Kratos
 
 			//**********************************************************************************
 			//function to solve fluid equations - fractional step 1: compute fractional momentum
-			Vector Solve()
+			void Solve()
 			{
 			KRATOS_TRY
 
@@ -261,14 +261,6 @@ namespace Kratos
 				mr_matrix_container.WriteScalarToDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
 
 
-
-// 				//compute ratio for iteration
- 				Vector stop_criteria(TDim);
-				noalias(stop_criteria) = ZeroVector(TDim);
-//  				stop_criteria[0] = 0.0;
-//  				stop_criteria[1] = 0.0;
-
-				return stop_criteria;
 
 			KRATOS_CATCH("")
 			}

@@ -66,10 +66,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//static variables
-	boost::numeric::ublas::bounded_matrix<double,3,2> LaplacianMeshMovingElem2D::msDN_DX;
-  	array_1d<double,3> LaplacianMeshMovingElem2D::msN; //dimension = number of nodes
-  	array_1d<double,3> LaplacianMeshMovingElem2D::ms_temp_vec_np; //dimension = number of nodes
+    namespace ALE2Dauxiliaries
+    {
+ 	//static variables
+	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+        #pragma omp threadprivate(msDN_DX)
+  	array_1d<double,3> msN; //dimension = number of nodes
+        #pragma omp threadprivate(msN)
+  	array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
+        #pragma omp threadprivate(ms_temp_vec_np)
+	}
+	using namespace ALE2Dauxiliaries;
 
 
 	//************************************************************************************
@@ -112,20 +119,20 @@ namespace Kratos
 		unsigned int number_of_points = 3;
 
 		if(rLeftHandSideMatrix.size1() != number_of_points)
-			rLeftHandSideMatrix.resize(number_of_points,number_of_points);
+			rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
 
 		if(rRightHandSideVector.size() != number_of_points)
-			rRightHandSideVector.resize(number_of_points);
+			rRightHandSideVector.resize(number_of_points,false);
 
 		unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
 		//getting data for the given geometry
 		double Area;
-		CalculateGeometryData(msDN_DX,msN,Area);
+		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
 					
-		array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-		array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
-		array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
+		const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+		const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
+		const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
 
 		noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
@@ -148,7 +155,7 @@ namespace Kratos
 	{
 		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes)
-			rResult.resize(number_of_nodes);	
+			rResult.resize(number_of_nodes,false);	
 
 		for (unsigned int i=0;i<number_of_nodes;i++)
 				rResult[i] = GetGeometry()[i].GetDof(AUX_MESH_VAR).EquationId();
@@ -167,35 +174,7 @@ namespace Kratos
 
 	}
 
-	//************************************************************************************
-	//************************************************************************************
-	inline void LaplacianMeshMovingElem2D::CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area)
-	{
-		double det_J = GetGeometry()[1].X() * GetGeometry()[2].Y()
-	               - GetGeometry()[1].X() * GetGeometry()[0].Y()
-	               - GetGeometry()[0].X() * GetGeometry()[2].Y()
- 				   - GetGeometry()[1].Y() * GetGeometry()[2].X() 
- 	               + GetGeometry()[1].Y() * GetGeometry()[0].X() 
-	               + GetGeometry()[0].Y() * GetGeometry()[2].X();
-
-		double temp = 1.00/det_J;
-
-		Area = fabs(det_J) * 0.5;
-		
-		// X derivatives
-		DN_DX(0, 0) = (GetGeometry()[1].Y() - GetGeometry()[2].Y()) *temp;	
-		DN_DX(1, 0) = (GetGeometry()[2].Y() - GetGeometry()[0].Y()) *temp;
-		DN_DX(2, 0) = (GetGeometry()[0].Y() - GetGeometry()[1].Y()) *temp;
-		// Y derivatives
-		DN_DX(0, 1) = (GetGeometry()[2].X() - GetGeometry()[1].X()) *temp;
-		DN_DX(1, 1) = (GetGeometry()[0].X() - GetGeometry()[2].X()) *temp;
-		DN_DX(2, 1) = (GetGeometry()[1].X() - GetGeometry()[0].X()) *temp;
-
-		//shape functions
-		N[0] = 0.333333333333333333333333333;
-		N[1] = 0.333333333333333333333333333;
-		N[2] = 0.333333333333333333333333333;
-	}
+	
 
 } // Namespace Kratos
 

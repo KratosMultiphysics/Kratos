@@ -510,9 +510,21 @@ namespace Kratos
 
 		//adding contributions to nodal areas following the corresponding lumping term
 		double nodal_contrib = 0.333333333333333333333333333 * Area*density;
-		GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+//		GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+//		GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+//		GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+
+                GetGeometry()[0].SetLock();
+                GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+                GetGeometry()[0].UnSetLock();
+
+                GetGeometry()[1].SetLock();
+                GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+                GetGeometry()[1].UnSetLock();
+
+                GetGeometry()[2].SetLock();
+                GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+                GetGeometry()[2].UnSetLock();
 
 		KRATOS_CATCH("");
 	}
@@ -563,14 +575,20 @@ namespace Kratos
 			ms_vel_gauss *= Area;
 
 			//press_proj += G*p
+                        GetGeometry()[0].SetLock();
 			press_proj0[0] += msN[0]*ms_vel_gauss[0]; 
 			press_proj0[1] += msN[0]*ms_vel_gauss[1]; 
+                        GetGeometry()[0].UnSetLock();
 
+                        GetGeometry()[1].SetLock();
 			press_proj1[0] += msN[1]*ms_vel_gauss[0]; 
 			press_proj1[1] += msN[1]*ms_vel_gauss[1]; 
-
+                        GetGeometry()[1].UnSetLock();
+                        
+                        GetGeometry()[2].SetLock();
 			press_proj2[0] += msN[2]*ms_vel_gauss[0]; 
 			press_proj2[1] += msN[2]*ms_vel_gauss[1]; 
+                        GetGeometry()[2].UnSetLock();
 			
 			//CONVECTIVE PROJECTION			
 			
@@ -654,14 +672,21 @@ namespace Kratos
 
 			// conv_proj += C*u
 			double temp = Area*density*0.33333333333333333333333333;
+
+                        GetGeometry()[0].SetLock();
 			conv_proj0[0] += temp*ms_aux0[0]; 
 			conv_proj0[1] +=  temp*ms_aux0[1];
+                        GetGeometry()[0].UnSetLock();
 
+                        GetGeometry()[1].SetLock();
 			conv_proj1[0] +=  temp*ms_aux1[0]; 
 			conv_proj1[1] +=  temp*ms_aux1[1];
+                        GetGeometry()[1].UnSetLock();
 
+                        GetGeometry()[2].SetLock();
 			conv_proj2[0] +=  temp*ms_aux2[0];
 			conv_proj2[1] +=  temp*ms_aux2[1];
+                        GetGeometry()[2].UnSetLock();
 		}		
 		else if(FractionalStepNumber == 6) //calculation of velocities
 		{

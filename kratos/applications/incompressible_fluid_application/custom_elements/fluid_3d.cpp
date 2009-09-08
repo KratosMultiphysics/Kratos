@@ -81,6 +81,9 @@ namespace Kratos
         array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension
         #pragma omp threadprivate(ms_vel_gauss)
 
+        array_1d<double,3> ms_temp; //dimesion coincides with space dimension
+        #pragma omp threadprivate(ms_temp)
+
         array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes
         #pragma omp threadprivate(ms_temp_vec_np)
 
@@ -462,10 +465,39 @@ namespace Kratos
 
 		//adding contributions to nodal Volumes following the corresponding lumping term
 		double nodal_contrib = 0.25 * Volume * density;
-		GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+
+//                GetGeometry()[0].SetLock();
+//                GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+//                GetGeometry()[0].UnSetLock();
+//
+//                GetGeometry()[1].SetLock();
+//                GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+//                GetGeometry()[1].UnSetLock();
+//
+//                GetGeometry()[2].SetLock();
+//                GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+//                GetGeometry()[2].UnSetLock();
+//
+//                GetGeometry()[3].SetLock();
+//                GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+//                GetGeometry()[3].UnSetLock();
+
+                double& m0 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+                #pragma omp atomic
+                m0 +=  nodal_contrib;
+
+                double& m1 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS);
+                #pragma omp atomic
+                m1 +=  nodal_contrib;
+
+                double& m2 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS);
+                #pragma omp atomic
+                m2 +=  nodal_contrib;
+                
+                double& m3 = GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS);
+                #pragma omp atomic
+                m3 +=  nodal_contrib;
+
 
 		KRATOS_CATCH("");
 	}
@@ -524,14 +556,60 @@ namespace Kratos
 			ms_temp_vec_np[3] = p3;
 			noalias(ms_vel_gauss) = prod(trans(msDN_DX),ms_temp_vec_np);
 // 			ms_vel_gauss *= Volume/density;
-			ms_vel_gauss *= Volume;
+			ms_vel_gauss *= Volume * 0.3333333333333333333;
+
+                        noalias(ms_temp) = ms_vel_gauss;
 
 			//press_proj += G*p
-			noalias(press_proj0) += msN[0]*ms_vel_gauss;
-			noalias(press_proj1) += msN[1]*ms_vel_gauss;
-			noalias(press_proj2) += msN[2]*ms_vel_gauss;
-			noalias(press_proj3) += msN[3]*ms_vel_gauss;
+//			noalias(press_proj0) += msN[0]*ms_vel_gauss;
+//			noalias(press_proj1) += msN[1]*ms_vel_gauss;
+//			noalias(press_proj2) += msN[2]*ms_vel_gauss;
+//			noalias(press_proj3) += msN[3]*ms_vel_gauss;
 
+////                        GetGeometry()[0].SetLock();
+////                        noalias(press_proj0) += msN[0]*ms_vel_gauss;
+////                        GetGeometry()[0].UnSetLock();
+////
+////                        GetGeometry()[1].SetLock();
+////                        noalias(press_proj1) += msN[1]*ms_vel_gauss;
+////                        GetGeometry()[1].UnSetLock();
+////
+////                        GetGeometry()[2].SetLock();
+////                        noalias(press_proj2) += msN[2]*ms_vel_gauss;
+////                        GetGeometry()[2].UnSetLock();
+////
+////                        GetGeometry()[3].SetLock();
+////                        noalias(press_proj3) += msN[3]*ms_vel_gauss;
+////                        GetGeometry()[3].UnSetLock();
+
+//                        #pragma omp atomic
+//                        press_proj0[0] += msN[0]*ms_vel_gauss[0];
+//                        #pragma omp atomic
+//                        press_proj0[1] += msN[0]*ms_vel_gauss[1];
+//                        #pragma omp atomic
+//                        press_proj0[2] += msN[0]*ms_vel_gauss[2];
+//
+//                        #pragma omp atomic
+//                        press_proj1[0] += msN[1]*ms_vel_gauss[0];
+//                        #pragma omp atomic
+//                        press_proj1[1] += msN[1]*ms_vel_gauss[1];
+//                        #pragma omp atomic
+//                        press_proj1[2] += msN[1]*ms_vel_gauss[2];
+//
+//                        #pragma omp atomic
+//                        press_proj2[0] += msN[2]*ms_vel_gauss[0];
+//                        #pragma omp atomic
+//                        press_proj2[1] += msN[2]*ms_vel_gauss[1];
+//                        #pragma omp atomic
+//                        press_proj2[2] += msN[2]*ms_vel_gauss[2];
+//
+//                        #pragma omp atomic
+//                        press_proj3[0] += msN[3]*ms_vel_gauss[0];
+//                        #pragma omp atomic
+//                        press_proj3[1] += msN[3]*ms_vel_gauss[1];
+//                        #pragma omp atomic
+//                        press_proj3[2] += msN[3]*ms_vel_gauss[2];
+                        
 			// vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
 			noalias(ms_aux) = fv0;		
 			ms_aux[0] -= w0[0]; ms_aux[1] -= w0[1]; ms_aux[2] -= w0[2];
@@ -562,11 +640,29 @@ namespace Kratos
 			ms_vel_gauss *= Volume * density;
 
 			// conv_proj += C*u
-			noalias(conv_proj0) += msN[0]*ms_vel_gauss;
-			noalias(conv_proj1) += msN[1]*ms_vel_gauss;
-			noalias(conv_proj2) += msN[2]*ms_vel_gauss;
-			noalias(conv_proj3) += msN[3]*ms_vel_gauss;
- 
+                        GetGeometry()[0].SetLock();
+                        noalias(conv_proj0) += msN[0]*ms_vel_gauss;
+                        noalias(press_proj0) += ms_temp;
+                        GetGeometry()[0].UnSetLock();
+
+                        GetGeometry()[1].SetLock();
+                        noalias(conv_proj1) += msN[1]*ms_vel_gauss;
+                        noalias(press_proj1) += ms_temp;
+                        GetGeometry()[1].UnSetLock();
+
+                        GetGeometry()[2].SetLock();
+                        noalias(conv_proj2) += msN[2]*ms_vel_gauss;
+                        noalias(press_proj2) += ms_temp;
+                        GetGeometry()[2].UnSetLock();
+
+                        GetGeometry()[3].SetLock();
+                        noalias(conv_proj3) += msN[3]*ms_vel_gauss;
+                        noalias(press_proj3) += ms_temp;
+                        GetGeometry()[3].UnSetLock();
+
+                        
+
+
 		}		
 		else if(FractionalStepNumber == 6) //calculation of velocities
 		{

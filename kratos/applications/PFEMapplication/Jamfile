@@ -45,6 +45,9 @@ python-extension KratosPFEMApplication
 	#compilation of external libraries specific to this application
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
+
+    /KratosProject//libomp
+
     ;
 
 
