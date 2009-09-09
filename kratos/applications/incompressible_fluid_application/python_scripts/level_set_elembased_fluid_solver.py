@@ -2,6 +2,7 @@
 from Kratos import *
 from KratosConvectionDiffusionApplication import *
 from KratosIncompressibleFluidApplication import *
+import math
 
 import monolithic_solver_eulerian
 
@@ -95,33 +96,24 @@ class ElemBasedLevelSetSolver:
             self.bc_tools = ElemBasedBCUtilities(model_part)
               
 ##            #assignation of parameters to be used in the strategy (go to line 161)
-            self.CalculateReactions = False;
-            self.CalculateNormDxFlag = True;
-            self.vel_toll = 0.001;
-            self.press_toll = 0.001; 
-            self.max_vel_its = 3;
-            self.max_press_its = 10;
-            self.time_order = 1;
-            self.laplacian_form = 3; #1 = laplacian, #2 = Discrete Laplacian, #3 discrete laplacian tau=Dt
-            self.predictor_corrector = True;
-            self.echo_level = 0
+##            self.CalculateReactions = False;
+##            self.CalculateNormDxFlag = True;
+##            self.vel_toll = 0.0000001;
+##            self.press_toll = 0.001; 
+##            self.max_vel_its = 3;
+##            self.max_press_its = 10;
+     #1 = laplacian, #2 = Discrete Laplacian, #3 discrete laplacian tau=Dt
+##            self.predictor_corrector = True;
+##            self.echo_level = 0
 
-            #convection solver order
+            #convection solver setting
             self.convection_order = 2 #order of the time scheme of the convection solver
             self.reform_convection_matrix = True
             self.ReformDofAtEachIteration = True
-##            self.predict_levelset = True
-            self.correct_levelset = True
 
-            #definition of the SOLVERS and related tools
+            #definition of the CONVECTION-SOLVERS and related tools
             pConvPrecond = DiagonalPreconditioner()
             self.convection_linear_solver =  BICGSTABSolver(1e-9, 5000,pConvPrecond)
-
-            pDiagPrecond = DiagonalPreconditioner()
-##    ##        pILUPrecond = ILU0Preconditioner()
-            self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-            self.pressure_linear_solver =  BICGSTABSolver(1e-4, 5000,pDiagPrecond)
-##    ##        self.pressure_linear_solver =  BICGSTABSolver(1e-4, 5000,pILUPrecond)
 
             ##pure convection tool
             if(self.domain_size == 2):
@@ -133,12 +125,13 @@ class ElemBasedLevelSetSolver:
 
             ##redistancing settings
             self.solve_step = 0
-            self.dist_recalculation_step = 2
+            self.dist_recalculation_step = 1
             self.redistance_frequency  = 1
             self.reorder = True
 
             ##velocity extrapolation distance -- needed to accurately convect the distance function
-            self.extrapolation_distance = 1
+            ##ATTENTION!!! extrapolation distance has to cover a smaller space than the number_of_extrapolation_layers do!!
+            self.extrapolation_distance = 0.2
             self.number_of_extrapolation_layers = 3
 
     ################################################################
@@ -153,12 +146,9 @@ class ElemBasedLevelSetSolver:
 
         #constructing the fluid solver
         self.solver = monolithic_solver_eulerian.MonolithicSolver(self.model_part, self.domain_size)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,0)
+        self.max_iter = 10
         self.solver.Initialize()
-
-##        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector) 
-##        (self.solver).SetEchoLevel(self.echo_level)
-
 
 
         #costruct matrices for convection solver -
@@ -226,7 +216,7 @@ class ElemBasedLevelSetSolver:
             (self.mesh_neighbour_search).Execute()            
             
             # construct system -- could be done once if the mesh does not change
-            self.convection_solver.ConstructSystem(self.model_part,DISTANCE,VELOCITY,MESH_VELOCITY);
+            self.convection_solver.ConstructSystem(self.model_part,DISTANCE,CONVECTION_VELOCITY,MESH_VELOCITY);
 
 ##            #calculate projections version#1 
 ##            self.convection_solver.CalculateProjection(self.model_part,DISTANCE,NODAL_AREA,VELOCITY,MESH_VELOCITY,TEMP_CONV_PROJ);
@@ -274,7 +264,49 @@ class ElemBasedLevelSetSolver:
         
         self.bc_tools.SetToZeroPressureAndVelocity(self.extrapolation_distance)
 
+    ################################################################
+    ################################################################
 
+    def CalculateDelta_t(self, delta_t):
+
+
+        for node in self.model_part.Nodes:
+
+            velx = node.GetSolutionStepValue(VELOCITY_X,0)
+            vely = node.GetSolutionStepValue(VELOCITY_Y,0)
+            velz = node.GetSolutionStepValue(VELOCITY_Z,0)
+            vel = math.sqrt(velx*velx + vely*vely + velz*velz)
+            eps = node.GetSolutionStepValue(POROSITY,0)
+            if (eps == 0.0):
+                eps = 1.0
+                
+            density = 1000;
+            mu = 1e-3;
+            dp = 0.01;
+            
+            kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
+    ##        print kinv
+    ##        print max_vel
+
+            A = kinv * mu 
+    ##        print A
+            B = 1.75 * density /eps * vel * math.sqrt( kinv / (eps * 150.0))
+    ##        print B
+
+            temp_delta_t = 1e6            
+            if((A+B) != 0.0):
+                if(node.GetSolutionStepValue(DISTANCE) <= 0.0):
+                    temp_delta_t = 1/(A + B)
+
+
+            if (temp_delta_t < delta_t):
+                delta_t = temp_delta_t
+            
+##        print delta_t
+
+        return delta_t
+
+        
     ################################################################
     ################################################################
 
@@ -306,12 +338,18 @@ class ElemBasedLevelSetSolver:
             node.SetSolutionStepValue(CONVECTION_VELOCITY_X,0,vx)
             node.SetSolutionStepValue(CONVECTION_VELOCITY_Y,0,vy)
             node.SetSolutionStepValue(CONVECTION_VELOCITY_Z,0,vz)
+##            if (node.GetSolutionStepValue(VELOCITY_X) != 0.0):
+##                if (node.GetSolutionStepValue(POROSITY) == 0.5):
+##                    print node.Id
+##                    print node.GetSolutionStepValue(VELOCITY,0)
+##                    print node.GetSolutionStepValue(CONVECTION_VELOCITY,0)
 
-        self.Convect()
+                
+##        self.Convect()
 ##        print "convection finished"
         ############## calculate distances   ##################
-        for node in self.model_part.Nodes:
-            node.Free(DISTANCE);
+##        for node in self.model_part.Nodes:
+##            node.Free(DISTANCE);
             
         if( self.solve_step > self.dist_recalculation_step):
             self.RecalculateDistanceFunction();
@@ -344,10 +382,10 @@ class ElemBasedLevelSetSolver:
 ##        print "2nd extrapolation finished"
 
 ##        ############## convect distance function #############
-##        if(self.correct_levelset == True):
-##            self.Convect()
+        self.Convect()
 ##            print "corrected level set function"
 ##        ############## calculate distances   ##################
 ##        if( self.solve_step > self.dist_recalculation_step):
 ##            self.RecalculateDistanceFunction();
 ##            self.dist_recalculation_step += self.redistance_frequency
+        
