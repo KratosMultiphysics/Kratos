@@ -631,12 +631,19 @@ KRATOS_WATCH(rDampMatrix)	*/
 		int matsize = dof*nodes_number;
 
 		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		array_1d<double,3> vel_gp = ZeroVector(nodes_number);
 		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
 		for (int ii = 0; ii < nodes_number; ii++)
 		{
 			 norm_vel_2[0] += vel0[ii]*vel0[ii];
 			 norm_vel_2[1] += vel1[ii]*vel1[ii];
 			 norm_vel_2[2] += vel2[ii]*vel2[ii];
+			 vel_gp[ii] = N[0]*vel0[ii] + N[1]*vel1[ii] + N[2]*vel2[ii];
+		}
+		double norm_vel_gp = 0.0;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
 		}
 /*
 		      // |  N0(agp_i)* N0(agp_i)		0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)	0	  |	
@@ -688,6 +695,9 @@ KRATOS_WATCH(rDampMatrix)	*/
 // KRATOS_WATCH("after")
 // 	KRATOS_WATCH(mu)
 // Lumped form
+		double fac_linear = kinv * mu;	
+		double fac_nonlinear = (1.75 * density /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0))) ;
+
 		for ( int ii = 0; ii < nodes_number; ii++)
 		    {
 			 int row = ii*(dof+1);
@@ -697,15 +707,15 @@ KRATOS_WATCH(rDampMatrix)	*/
 /*				int column = jj*(dof+1);*/
 				int loc_column = jj*dof;
 				//DARCY TERM linear part
-				K(row,row) += (kinv * mu) * temp_sfprod(loc_row,loc_column);
+				K(row,row) += fac_linear * temp_sfprod(loc_row,loc_column);
 /*double aux = (kinv * mu) * temp_sfprod(loc_row,loc_column);
 KRATOS_WATCH(aux)*/
-				K(row + 1,row + 1) += (kinv * mu) * temp_sfprod(loc_row + 1,loc_column + 1);
+				K(row + 1,row + 1) += fac_linear * temp_sfprod(loc_row + 1,loc_column + 1);
 /*double aux2 = (kinv * mu) * temp_sfprod(loc_row + 1,loc_column + 1);
 KRATOS_WATCH(aux2)*/
 				//DARCY TERM nonlinear part
-				K(row,row) += (1.75 * density /eps * sqrt(norm_vel_2[jj] *  kinv / (eps * 150.0))) * temp_sfprod(loc_row,loc_column);
-				K(row + 1,row + 1) += (1.75 * density /eps * sqrt(norm_vel_2[jj] *  kinv / (eps * 150.0))) * temp_sfprod(loc_row + 1,loc_column + 1);
+				K(row    ,row    ) += fac_nonlinear * temp_sfprod(loc_row,loc_column);
+				K(row + 1,row + 1) += fac_nonlinear * temp_sfprod(loc_row + 1,loc_column + 1);
 			   }
 // KRATOS_WATCH(K(row,column))
 		    }
@@ -738,27 +748,38 @@ KRATOS_WATCH(aux2)*/
 		int dof = 2;
 // 		int matsize = dof*nodes_number;
 
+		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
 		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		array_1d<double,3> vel_gp = ZeroVector(nodes_number);
 		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
 		for (int ii = 0; ii < nodes_number; ii++)
 		{
 			 norm_vel_2[0] += vel0[ii]*vel0[ii];
 			 norm_vel_2[1] += vel1[ii]*vel1[ii];
 			 norm_vel_2[2] += vel2[ii]*vel2[ii];
+			 vel_gp[ii] = 0.33333333333 * (vel0[ii] + vel1[ii] + vel2[ii]);
 		}
+		double norm_vel_gp = 0.0;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
+		}		
 //delete *******************************************************************
 // 	boost::numeric::ublas::bounded_matrix<double,2,2> temporary_DARCYterm = ZeroMatrix(2,2);
 // // 	array_1d<double,2> AUX_VEL = ZeroVector(2);
 
 //delete *******************************************************************
+		double fac_linear = kinv * mu;	
+		double fac_nonlinear = (1.75 * density /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0))) ;
+
 		for ( int nd = 0; nd< nodes_number; nd++)
 		{
 		      int row = nd*(dof + 1);
 		      for( int jj=0; jj< dof; jj++)
 		      {	   //DARCY TERM linear part:
-			   K(row + jj, row + jj) +=  (kinv * mu) * lump_mass_fac;
+			   K(row + jj, row + jj) +=  fac_linear * lump_mass_fac;
 			   //DARCY TERM nonlinear part:
-			   K(row + jj, row + jj) += (1.75 * density /eps * sqrt(norm_vel_2[nd] *  kinv / (eps * 150.0)))* lump_mass_fac;
+			   K(row + jj, row + jj) += fac_nonlinear * lump_mass_fac;
 		      
 //delete *******************************************************************
 // 			   temporary_DARCYterm(jj, jj) =  (kinv * mu) * lump_mass_fac;
@@ -1051,13 +1072,22 @@ KRATOS_WATCH(aux2)*/
 // 	 const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
 
 	 array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+	 array_1d<double,3> vel_gp = ZeroVector(nodes_number);
 	 //	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
 	 for (int ii = 0; ii < nodes_number; ii++)
 	 {
 		  norm_vel_2[0] += adv_vel0[ii]*adv_vel0[ii];
 		  norm_vel_2[1] += adv_vel1[ii]*adv_vel1[ii];
 		  norm_vel_2[2] += adv_vel2[ii]*adv_vel2[ii];
+		  vel_gp[ii] = N[0]*adv_vel0[ii] + N[1]*adv_vel1[ii] + N[2]*adv_vel2[ii];
 	 }
+	 double norm_vel_gp = 0.0;
+	 for (int ii = 0; ii < nodes_number; ii++)
+	 {
+		  norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
+	 }
+
+
 
 	boost::numeric::ublas::bounded_matrix<double,2,6> darcy_opr = ZeroMatrix(dof,matsize);
 
@@ -1069,8 +1099,8 @@ KRATOS_WATCH(aux2)*/
 		darcy_opr(0,column) = N[ii] * kinv * mu / density;
 		darcy_opr(1,column + 1) = darcy_opr(0,column);
 		//DARCY TERM nonlinear part /rho
-		darcy_opr(0,column) += N[ii] * 1.75  /eps * sqrt(norm_vel_2[ii] *  kinv / (eps * 150.0));
-		darcy_opr(1,column + 1) += N[ii] * 1.75  /eps * sqrt(norm_vel_2[ii] *  kinv / (eps * 150.0));
+		darcy_opr(0,column) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
+		darcy_opr(1,column + 1) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
 
 	    }
 //delete *******************************************************************
@@ -1279,12 +1309,19 @@ KRATOS_WATCH(aux2)*/
 	 const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
 
 	 array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+	 array_1d<double,3> vel_gp = ZeroVector(nodes_number);
 	 //	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
 	 for (int ii = 0; ii < nodes_number; ii++)
 	 {
 		  norm_vel_2[0] += vel0[ii]*vel0[ii];
 		  norm_vel_2[1] += vel1[ii]*vel1[ii];
 		  norm_vel_2[2] += vel2[ii]*vel2[ii];
+		  vel_gp[ii] = N[0]*vel0[ii] + N[1]*vel1[ii] + N[2]*vel2[ii];
+	 }
+	 double norm_vel_gp = 0.0;
+	 for (int ii = 0; ii < nodes_number; ii++)
+	 {
+		  norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
 	 }
 
 	double fac_1 = tauone * kinv * mu / density;
@@ -1292,7 +1329,7 @@ KRATOS_WATCH(aux2)*/
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
 		int row = ii*(dof+1);
-		double fac_2 = tauone * 1.75 /eps * sqrt(norm_vel_2[ii] *  kinv / (eps * 150.0));
+		double fac_2 = tauone * 1.75 /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
 
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
@@ -1407,12 +1444,19 @@ KRATOS_WATCH(aux2)*/
 		  const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
 
 		  array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		  array_1d<double,3> vel_gp = ZeroVector(nodes_number);
 		  //	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
 		  for (int ii = 0; ii < nodes_number; ii++)
 		  {
 			   norm_vel_2[0] += vel0[ii]*vel0[ii];
 			   norm_vel_2[1] += vel1[ii]*vel1[ii];
 			   norm_vel_2[2] += vel2[ii]*vel2[ii];
+			   vel_gp[ii] = N[0]*vel0[ii] + N[1]*vel1[ii] + N[2]*vel2[ii];
+		  }
+		  double norm_vel_gp = 0.0;
+		  for (int ii = 0; ii < nodes_number; ii++)
+		  {
+			   norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
 		  }
 
 		  boost::numeric::ublas::bounded_matrix<double,2,6> darcy_opr = ZeroMatrix(dof,matsize);
@@ -1424,8 +1468,8 @@ KRATOS_WATCH(aux2)*/
 		        darcy_opr(0,column) = N[ii] *  kinv * mu / density;
 		        darcy_opr(1,column + 1) = darcy_opr(0,column);
 		        //DARCY TERM nonlinear part / rho
-		        darcy_opr(0,column) += N[ii] * 1.75  /eps * sqrt(norm_vel_2[ii] *  kinv / (eps * 150.0));
-		        darcy_opr(1,column + 1) += N[ii] * 1.75  /eps * sqrt(norm_vel_2[ii] *  kinv / (eps * 150.0));
+		        darcy_opr(0,column) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
+		        darcy_opr(1,column + 1) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
 
 		  }
 		  boost::numeric::ublas::bounded_matrix<double,6,6> darcy_stblterm = ZeroMatrix(matsize,matsize);		
@@ -1498,14 +1542,21 @@ KRATOS_WATCH(aux2)*/
 		  const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
 		  const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
 
-		  array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
-		  //	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
-		  for (int ii = 0; ii < nodes_number; ii++)
-		  {
-			   norm_vel_2[0] += vel0[ii]*vel0[ii];
-			   norm_vel_2[1] += vel1[ii]*vel1[ii];
-			   norm_vel_2[2] += vel2[ii]*vel2[ii];
-		  }
+		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		array_1d<double,3> vel_gp = ZeroVector(nodes_number);
+		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_2[0] += vel0[ii]*vel0[ii];
+			 norm_vel_2[1] += vel1[ii]*vel1[ii];
+			 norm_vel_2[2] += vel2[ii]*vel2[ii];
+			 vel_gp[ii] = N[0]*vel0[ii] + N[1]*vel1[ii] + N[2]*vel2[ii];
+		}
+		double norm_vel_gp = 0.0;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
+		}
 
 		  boost::numeric::ublas::bounded_matrix<double,2,6> darcy_opr = ZeroMatrix(dof,matsize);
 		  boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
@@ -1521,8 +1572,8 @@ KRATOS_WATCH(aux2)*/
 // KRATOS_WATCH(darcy_opr)
 
 		        //DARCY TERM nonlinear part /rho
-		        darcy_opr(0,column) += N[ii] * 1.75  /eps * sqrt(norm_vel_2[ii] *  kinv / (eps * 150.0));
-		        darcy_opr(1,column + 1) += N[ii] * 1.75  /eps * sqrt(norm_vel_2[ii] *  kinv / (eps * 150.0));
+		        darcy_opr(0,column) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
+		        darcy_opr(1,column + 1) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
 // KRATOS_WATCH("NON LIN PART")
 // KRATOS_WATCH(darcy_opr)
 		        shape_func(column,0) = N[ii];
