@@ -131,7 +131,7 @@ class ElemBasedLevelSetSolver:
 
             ##velocity extrapolation distance -- needed to accurately convect the distance function
             ##ATTENTION!!! extrapolation distance has to cover a smaller space than the number_of_extrapolation_layers do!!
-            self.extrapolation_distance = 0.2
+##            self.extrapolation_distance = 0.2
             self.number_of_extrapolation_layers = 3
 
     ################################################################
@@ -263,7 +263,7 @@ class ElemBasedLevelSetSolver:
     def FreeModelPart(self):
         
         self.bc_tools.SetToZeroPressureAndVelocity(self.extrapolation_distance)
-
+        print "MODEL PART FREE *****************************************************************"
     ################################################################
     ################################################################
 
