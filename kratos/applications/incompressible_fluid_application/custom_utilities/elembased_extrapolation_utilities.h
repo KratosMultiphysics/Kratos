@@ -100,7 +100,7 @@ namespace Kratos
 								inode != mr_model_part.NodesEnd();
 								inode++)	
 				{
-					inode->GetValue(IS_VISITED) = 0;
+					inode->GetValue(IS_VISITED) = 0.0;
 				}
 
 //loop sugli elementi
@@ -123,12 +123,12 @@ namespace Kratos
 // 						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES); 
 // 						for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
 // 						{ 
-// 							if(i->FastGetSolutionStepValue(DISTANCE) > 0) //add the node as free surface if one of its neighb is outside
+// 							if(i->FastGetSolutionStepValue(DISTANCE) > 0.0) //add the node as free surface if one of its neighb is outside
 // 							{
-// 								if( inode->GetValue(IS_VISITED) == 0)
+// 								if( inode->GetValue(IS_VISITED) == 0.0).
 // 								{
 // 									layers[0].push_back( *(inode.base() ) );	
-// 									inode->GetValue(IS_VISITED) = 1;
+// 									inode->GetValue(IS_VISITED) = 1.0;
 // 								}
 // 							}
 // 						} 
@@ -136,17 +136,17 @@ namespace Kratos
 
 // 		//			// Layer(0) is constructed with the NO fluid nodes closest to the free surface  THE MOST EXTERNAL LAYER CALUCLATED.
  					// AUX_INDEX = 1 indicates a calculated node!!!
-					if( inode->FastGetSolutionStepValue(AUX_INDEX) == 1) //candidates are only the ones inside the fluid domain
+					if( inode->FastGetSolutionStepValue(AUX_INDEX) == 1.0) //candidates are only the ones inside the fluid domain
 					{
 						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES); 
 						for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
 						{ 
-							if(i->FastGetSolutionStepValue(AUX_INDEX) != 1) //add the node as free surface if one of its neighb is outside
+							if(i->FastGetSolutionStepValue(AUX_INDEX) != 1.0) //add the node as free surface if one of its neighb is outside
 							{
-								if( inode->GetValue(IS_VISITED) == 0)
+								if( inode->GetValue(IS_VISITED) == 0.0)
 								{
 									layers[0].push_back( *(inode.base() ) );	
-									inode->GetValue(IS_VISITED) = 1;
+									inode->GetValue(IS_VISITED) = 1.0;
 // 									 KRATOS_WATCH("layer0");
 // 									 KRATOS_WATCH(inode->Id());
 								}
@@ -194,10 +194,13 @@ namespace Kratos
 						WeakPointerVector< Node<3> >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES); 
 						for(WeakPointerVector< Node<3> >::iterator i=neighb_nodes.begin(); 	i !=neighb_nodes.end(); i++) 
 						{ 	//if the neighbour is a node of the previous layer
-							if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED) > 0)
+							if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED) > 0.0)
 							{
 								noalias(aux) += i->FastGetSolutionStepValue(VELOCITY);
 								avg_number += 1.0;
+// 								KRATOS_WATCH("neighbours:			")
+// 								KRATOS_WATCH(i->Id());
+
 							}
 						} 
 						if(avg_number != 0.0)
@@ -216,11 +219,32 @@ namespace Kratos
 							 Vel[1] = aux[1];
 						if(iii->IsFixed(VELOCITY_Z) == false )
 							 Vel[2] = aux[2];
-   
+// 						KRATOS_WATCH("Of node:	");
+// 						KRATOS_WATCH(iii->Id());
 // 						KRATOS_WATCH(Vel);
 // 						KRATOS_WATCH(iii->FastGetSolutionStepValue(DISTANCE));
 
 					}
+				}
+				//Inserting BC
+				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+								inode != mr_model_part.NodesEnd();
+								inode++)	
+				{
+					 //if the node is out of the fluid domain and it is not part of a layer of extrapolation
+					 //control if it has some fixities otherwise v = 0 and p = 0.
+					 if(inode->FastGetSolutionStepValue(DISTANCE) > 0.0 && inode->GetValue(IS_VISITED) == 0)
+					 {
+						  inode->GetSolutionStepValue(PRESSURE) = 0.0;
+						  if(inode->IsFixed(VELOCITY_X) == false  )
+							   inode->GetSolutionStepValue(VELOCITY_X) = 0.0;
+						  if(inode->IsFixed(VELOCITY_Y) == false  )
+							   inode->GetSolutionStepValue(VELOCITY_Y) = 0.0;
+						  if(inode->IsFixed(VELOCITY_Z) == false  )
+							   inode->GetSolutionStepValue(VELOCITY_Z) = 0.0;	
+
+					 }
+						
 				}
 
 				
