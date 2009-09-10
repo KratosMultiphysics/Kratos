@@ -74,7 +74,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 					
-//REMEMBER to clear the AUX index loops that are now usless********************************			
 	class ElemBasedBCUtilities
 	{
 		public:
@@ -94,7 +93,7 @@ namespace Kratos
 								inode != mr_model_part.NodesEnd();
 								inode++)	
 				{	
-					 inode->FastGetSolutionStepValue(AUX_INDEX) = 0;
+					 inode->FastGetSolutionStepValue(AUX_INDEX) = 0.0;
 				}
 				
 				for( ModelPart::ElementsContainerType::iterator iel = mr_model_part.ElementsBegin();
@@ -103,7 +102,8 @@ namespace Kratos
 				{
 					 Geometry<Node<3> >& geom = iel->GetGeometry();
 					 double Area = GeometryUtils::CalculateVolume2D(geom);
-					 double toll = 0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
+
+					 double toll =  0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
 
 					 array_1d<double,3> dist = ZeroVector(3);
 					 for (unsigned int i = 0; i < geom.size(); i++)
@@ -115,8 +115,8 @@ namespace Kratos
 						
 						}
 					 //fluid element
-					 //else if( dist[0] < 0.0 && dist[1] < 0.0 && dist[2] < 0.0  ) 	
-					 else if( dist[0] < toll && dist[1] < toll && dist[2] < toll  ) 
+					 else if( dist[0] < 0.0 && dist[1] < 0.0 && dist[2] < 0.0  ) 	
+// 					 else if( dist[0] < toll && dist[1] < toll && dist[2] < toll  ) 
 						{iel->GetValue(IS_DIVIDED) = -1.0;
 
 						}
@@ -128,7 +128,7 @@ namespace Kratos
 // // 						      KRATOS_WATCH(iel->Id())
 						      for(unsigned int i=0; i< geom.size() ; i++)
 						      {
-							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1;
+							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1.0;
 						      }
 //  						     // KRATOS_WATCH(iel->Id());
 
@@ -325,7 +325,7 @@ KRATOS_WATCH(inode->Id())	*/
 						for (unsigned int i = 0; i < geom.size(); i++)
 						{	 //if the node is out of the fluid domain and its nodes are not part of a divided element
 							 //control if it has some fixities otherwise v = 0 and p = 0.
-// 							 if( geom[i].FastGetSolutionStepValue(AUX_INDEX) != 1)
+// 							 if( geom[i].FastGetSolutionStepValue(AUX_INDEX) != 1.0)
 							 if(geom[i].FastGetSolutionStepValue(DISTANCE) > extrapolation_distance)
 							 {
 								  geom[i].GetSolutionStepValue(PRESSURE) = 0.0;
