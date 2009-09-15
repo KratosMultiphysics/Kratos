@@ -117,8 +117,11 @@ namespace Kratos
 					 //fluid element
 					 else if( dist[0] < 0.0 && dist[1] < 0.0 && dist[2] < 0.0  ) 	
 // 					 else if( dist[0] < toll && dist[1] < toll && dist[2] < toll  ) 
-						{iel->GetValue(IS_DIVIDED) = -1.0;
-
+						{     iel->GetValue(IS_DIVIDED) = -1.0;
+						      for(unsigned int i=0; i< geom.size() ; i++)
+						      {
+							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 2.0;
+						      }
 						}
 					 //half fluid half no fluid element
 					 else
@@ -144,7 +147,7 @@ namespace Kratos
 			{
 			KRATOS_TRY	
 				
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+/*				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
 								inode != mr_model_part.NodesEnd();
 								inode++)	
 				{	
@@ -190,7 +193,7 @@ namespace Kratos
 					       inode->FastGetSolutionStepValue(PRESSURE) = 0.0;
 					       KRATOS_WATCH(inode->Id());
 					 }
-				}
+				}*/
 			 KRATOS_CATCH("")
 			 }
 
@@ -293,7 +296,7 @@ namespace Kratos
 			void FreePressureAndVelocity()
 			{
 			KRATOS_TRY	
-
+/*
 				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
 								inode != mr_model_part.NodesEnd();
 								inode++)	
@@ -304,49 +307,49 @@ namespace Kratos
 						inode->Free(VELOCITY_X);
 						inode->Free(VELOCITY_Y);
 						inode->Free(VELOCITY_Z);	
-/*KRATOS_WATCH("freed nodes")
-KRATOS_WATCH(inode->Id())	*/		
+//KRATOS_WATCH("freed nodes")
+//KRATOS_WATCH(inode->Id())			
 					}
-				}
+				}*/
 			KRATOS_CATCH("")
 			}
 
 			void SetToZeroPressureAndVelocity(double extrapolation_distance)
 			{
 			KRATOS_TRY	
-				for( ModelPart::ElementsContainerType::iterator iel = mr_model_part.ElementsBegin();
-								iel != mr_model_part.ElementsEnd();
-								iel++)	
-				{
-					 Geometry<Node<3> >& geom = iel->GetGeometry();
-					 //if it is a NO fluid element
-					 if(iel->GetValue(IS_DIVIDED) == 0.0)
-					 {
-						for (unsigned int i = 0; i < geom.size(); i++)
-						{	 //if the node is out of the fluid domain and its nodes are not part of a divided element
-							 //control if it has some fixities otherwise v = 0 and p = 0.
-// 							 if( geom[i].FastGetSolutionStepValue(AUX_INDEX) != 1.0)
-							 if(geom[i].FastGetSolutionStepValue(DISTANCE) > extrapolation_distance)
-							 {
-								  geom[i].GetSolutionStepValue(PRESSURE) = 0.0;
-								  if((geom[i].GetDof(VELOCITY_X)).IsFixed() == false )
-									   geom[i].GetSolutionStepValue(VELOCITY_X) = 0.0;
-// KRATOS_WATCH(geom[i].Id());}
-// 								  else
-// 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_X");
-// 								      KRATOS_WATCH(iel->Id())}
-								  if((geom[i].GetDof(VELOCITY_Y)).IsFixed() == false  )
-								  	   geom[i].GetSolutionStepValue(VELOCITY_Y) = 0.0;
-// 								  else
-// 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_Y");
-// 								      KRATOS_WATCH(iel->Id())}
-								  if((geom[i].GetDof(VELOCITY_Z)).IsFixed() == false )
-								  	   geom[i].GetSolutionStepValue(VELOCITY_Z) = 0.0;	
-
-							 }
-						}
-					}
-				}
+// 				for( ModelPart::ElementsContainerType::iterator iel = mr_model_part.ElementsBegin();
+// 								iel != mr_model_part.ElementsEnd();
+// 								iel++)	
+// 				{
+// 					 Geometry<Node<3> >& geom = iel->GetGeometry();
+// 					 //if it is a NO fluid element
+// 					 if(iel->GetValue(IS_DIVIDED) == 0.0)
+// 					 {
+// 						for (unsigned int i = 0; i < geom.size(); i++)
+// 						{	 //if the node is out of the fluid domain and its nodes are not part of a divided element
+// 							 //control if it has some fixities otherwise v = 0 and p = 0.
+// // 							 if( geom[i].FastGetSolutionStepValue(AUX_INDEX) != 1.0)
+// 							 if(geom[i].FastGetSolutionStepValue(DISTANCE) > extrapolation_distance)
+// 							 {
+// 								  geom[i].GetSolutionStepValue(PRESSURE) = 0.0;
+// 								  if((geom[i].GetDof(VELOCITY_X)).IsFixed() == false )
+// 									   geom[i].GetSolutionStepValue(VELOCITY_X) = 0.0;
+// // KRATOS_WATCH(geom[i].Id());}
+// // 								  else
+// // 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_X");
+// // 								      KRATOS_WATCH(iel->Id())}
+// 								  if((geom[i].GetDof(VELOCITY_Y)).IsFixed() == false  )
+// 								  	   geom[i].GetSolutionStepValue(VELOCITY_Y) = 0.0;
+// // 								  else
+// // 								  {  KRATOS_WATCH("ELEMENTI CON BC IN VEL_Y");
+// // 								      KRATOS_WATCH(iel->Id())}
+// 								  if((geom[i].GetDof(VELOCITY_Z)).IsFixed() == false )
+// 								  	   geom[i].GetSolutionStepValue(VELOCITY_Z) = 0.0;	
+// 
+// 							 }
+// 						}
+// 					}
+// 				}
 			KRATOS_CATCH("")
 			}
 
