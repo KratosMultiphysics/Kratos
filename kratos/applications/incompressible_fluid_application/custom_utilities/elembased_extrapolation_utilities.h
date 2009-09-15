@@ -117,7 +117,7 @@ namespace Kratos
 								inode != mr_model_part.NodesEnd();
 								inode++)	
 				{
-					//Layer(0) is constructed with the fluid nodes closest to the free surface BUT THEY ARE NOT THE MOST EXTERNAL LAYER CALUCLATED.
+// 					//Layer(0) is constructed with the fluid nodes closest to the free surface BUT THEY ARE NOT THE MOST EXTERNAL LAYER CALUCLATED.
 // 					if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
 // 					{
 // 						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES); 
@@ -125,7 +125,7 @@ namespace Kratos
 // 						{ 
 // 							if(i->FastGetSolutionStepValue(DISTANCE) > 0.0) //add the node as free surface if one of its neighb is outside
 // 							{
-// 								if( inode->GetValue(IS_VISITED) == 0.0).
+// 								if( inode->GetValue(IS_VISITED) == 0.0)
 // 								{
 // 									layers[0].push_back( *(inode.base() ) );	
 // 									inode->GetValue(IS_VISITED) = 1.0;
@@ -134,14 +134,14 @@ namespace Kratos
 // 						} 
 // 					}
 
-// 		//			// Layer(0) is constructed with the NO fluid nodes closest to the free surface  THE MOST EXTERNAL LAYER CALUCLATED.
+		//			// Layer(0) is constructed with the NO fluid nodes closest to the free surface  THE MOST EXTERNAL LAYER CALUCLATED.
  					// AUX_INDEX = 1 indicates a calculated node!!!
-					if( inode->FastGetSolutionStepValue(AUX_INDEX) == 1.0) //candidates are only the ones inside the fluid domain
+					if( inode->FastGetSolutionStepValue(AUX_INDEX) != 0.0) //candidates are only the ones inside the fluid domain
 					{
 						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES); 
 						for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
 						{ 
-							if(i->FastGetSolutionStepValue(AUX_INDEX) != 1.0) //add the node as free surface if one of its neighb is outside
+							if(i->FastGetSolutionStepValue(AUX_INDEX) == 0.0) //add the node as free surface if one of its neighb is outside
 							{
 								if( inode->GetValue(IS_VISITED) == 0.0)
 								{
@@ -231,9 +231,13 @@ namespace Kratos
 								inode != mr_model_part.NodesEnd();
 								inode++)	
 				{
+
+// 					 if(inode->FastGetSolutionStepValue(DISTANCE) > 0.0 && inode->GetValue(IS_VISITED) != 1.0)
+// 						  inode->GetSolutionStepValue(PRESSURE) = 0.0;
+
 					 //if the node is out of the fluid domain and it is not part of a layer of extrapolation
 					 //control if it has some fixities otherwise v = 0 and p = 0.
-					 if(inode->FastGetSolutionStepValue(DISTANCE) > 0.0 && inode->GetValue(IS_VISITED) == 0)
+					 if(inode->FastGetSolutionStepValue(DISTANCE) > 0.0 && inode->GetValue(IS_VISITED) == 0.0)
 					 {
 						  inode->GetSolutionStepValue(PRESSURE) = 0.0;
 						  if(inode->IsFixed(VELOCITY_X) == false  )
