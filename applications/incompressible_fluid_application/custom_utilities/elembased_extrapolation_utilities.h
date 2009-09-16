@@ -147,8 +147,8 @@ namespace Kratos
 								{
 									layers[0].push_back( *(inode.base() ) );	
 									inode->GetValue(IS_VISITED) = 1.0;
-// 									 KRATOS_WATCH("layer0");
-// 									 KRATOS_WATCH(inode->Id());
+									 KRATOS_WATCH("layer0");
+									 KRATOS_WATCH(inode->Id());
 								}
 							}
 						} 
@@ -197,6 +197,7 @@ namespace Kratos
 							if(i->GetValue(IS_VISITED) < il+1 && i->GetValue(IS_VISITED) > 0.0)
 							{
 								noalias(aux) += i->FastGetSolutionStepValue(VELOCITY);
+// 								noalias(aux) += i->FastGetSolutionStepValue(VELOCITY);
 								avg_number += 1.0;
 // 								KRATOS_WATCH("neighbours:			")
 // 								KRATOS_WATCH(i->Id());
@@ -211,14 +212,19 @@ namespace Kratos
 
 						      
 						array_1d<double,3>& Vel = iii->FastGetSolutionStepValue(VELOCITY);
+						array_1d<double,3>& Vel_old = iii->FastGetSolutionStepValue(VELOCITY,1);
+
 // // // 						array_1d<double,3> Vel = ZeroVector(3);
 						//we have to respect bc on velocity that otherwise will be deleted
 						if(iii->IsFixed(VELOCITY_X) == false )
-							 Vel[0] = aux[0];
+							{ Vel[0] = aux[0];
+							 Vel_old[0] = aux[0];}
 						if(iii->IsFixed(VELOCITY_Y) == false )
-							 Vel[1] = aux[1];
+							{ Vel[1] = aux[1];
+							 Vel_old[1] = aux[1];}
 						if(iii->IsFixed(VELOCITY_Z) == false )
-							 Vel[2] = aux[2];
+							{ Vel[2] = aux[2];
+							 Vel_old[2] = aux[2];}
 // 						KRATOS_WATCH("Of node:	");
 // 						KRATOS_WATCH(iii->Id());
 // 						KRATOS_WATCH(Vel);
