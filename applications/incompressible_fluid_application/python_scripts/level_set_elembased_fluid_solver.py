@@ -88,23 +88,17 @@ class ElemBasedLevelSetSolver:
 
             ##distance function calculator
             self.distance_calculator = BodyDistanceCalculationUtils()
+            ##redistance calculator
+            if(self.domain_size == 2):
+                self.distance_utils = SignedDistanceCalculationUtils2D();
+            else: 
+                self.distance_utils = SignedDistanceCalculationUtils3D();
                 
             ##distance tools
             self.distance_tools = ElemBasedDistanceUtilities(model_part)
 
             ##BC tools
             self.bc_tools = ElemBasedBCUtilities(model_part)
-              
-##            #assignation of parameters to be used in the strategy (go to line 161)
-##            self.CalculateReactions = False;
-##            self.CalculateNormDxFlag = True;
-##            self.vel_toll = 0.0000001;
-##            self.press_toll = 0.001; 
-##            self.max_vel_its = 3;
-##            self.max_press_its = 10;
-     #1 = laplacian, #2 = Discrete Laplacian, #3 discrete laplacian tau=Dt
-##            self.predictor_corrector = True;
-##            self.echo_level = 0
 
             #convection solver setting
             self.convection_order = 2 #order of the time scheme of the convection solver
@@ -129,10 +123,8 @@ class ElemBasedLevelSetSolver:
             self.redistance_frequency  = 1
             self.reorder = True
 
-            ##velocity extrapolation distance -- needed to accurately convect the distance function
-            ##ATTENTION!!! extrapolation distance has to cover a smaller space than the number_of_extrapolation_layers do!!
-##            self.extrapolation_distance = 0.2
             self.number_of_extrapolation_layers = 3
+            
 
     ################################################################
     ################################################################
@@ -146,7 +138,7 @@ class ElemBasedLevelSetSolver:
 
         #constructing the fluid solver
         self.solver = monolithic_solver_eulerian.MonolithicSolver(self.model_part, self.domain_size)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,0)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
         self.max_iter = 10
         self.solver.Initialize()
 
@@ -178,31 +170,34 @@ class ElemBasedLevelSetSolver:
     ################################################################
     #take care! needs neighbours on the overall domain
     def RecalculateDistanceFunction(self):
-        print "entered in RecalculateDistanceFunction"
-        #mark all nodes outside of the fluid domain and the first layer of nodes inside
-        self.distance_tools.MarkExternalAndMixedNodes()
+########        old
+####        print "entered in RecalculateDistanceFunction"
+####        #mark all nodes outside of the fluid domain and the first layer of nodes inside
+####        self.distance_tools.MarkExternalAndMixedNodes()
+####
+####        #change sign
+####        self.distance_tools.ChangeSignToDistance()
+####
+####        #calculate distances towards the interior of the domain
+####        self.CalculateDistances();
+####        
+####        #change sign 
+####        self.distance_tools.ChangeSignToDistance()
+####
+####        #mark as visited all of the nodes inside the fluid domain
+####        self.distance_tools.MarkInternalAndMixedNodes()
+####
+####        #calculate distances towards the outside
+####        if(self.domain_size == 2):
+####            self.distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE, True);
+####        else:
+####            self.distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE, True);
+####
+####        #save as distance of the old time step
+####        self.distance_tools.SaveScalarVariableToOldStep(DISTANCE)
+####        print "finished RecalculateDistanceFunction"
+        self.distance_utils.CalculateDistances(self.model_part,DISTANCE)
 
-        #change sign
-        self.distance_tools.ChangeSignToDistance()
-
-        #calculate distances towards the interior of the domain
-        self.CalculateDistances();
-        
-        #change sign 
-        self.distance_tools.ChangeSignToDistance()
-
-        #mark as visited all of the nodes inside the fluid domain
-        self.distance_tools.MarkInternalAndMixedNodes()
-
-        #calculate distances towards the outside
-        if(self.domain_size == 2):
-            self.distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE, True);
-        else:
-            self.distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE, True);
-
-        #save as distance of the old time step
-        self.distance_tools.SaveScalarVariableToOldStep(DISTANCE)
-        print "finished RecalculateDistanceFunction"
 
     ################################################################
     ################################################################
@@ -345,8 +340,18 @@ class ElemBasedLevelSetSolver:
 ##                    print node.GetSolutionStepValue(CONVECTION_VELOCITY,0)
 
                 
-##        self.Convect()
+        self.Convect()
 ##        print "convection finished"
+
+##        for node in self.model_part.Nodes:
+##            if (node.GetSolutionStepValue(DISTANCE) >= 0.0):
+##                if(node.X >= 0.1):
+##                    if(node.X<= 9.9):
+##                        node.SetSolutionStepValue(VELOCITY_X,0,0.0)
+##                        node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
+##                        node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
+        
+        
         ############## calculate distances   ##################
 ##        for node in self.model_part.Nodes:
 ##            node.Free(DISTANCE);
@@ -375,14 +380,32 @@ class ElemBasedLevelSetSolver:
 
         ## CORRECTION ##
         
-####        ############## identifying neighbours ################
-####        (self.mesh_neighbour_search).Execute()
-##        ############## extrapolating by layer v ##############
+##        ############## identifying neighbours ################
+##        (self.mesh_neighbour_search).Execute()
+        ############## extrapolating by layer v ##############
         self.Extrapolate()
 ##        print "2nd extrapolation finished"
 
-##        ############## convect distance function #############
+        ############## convect distance function #############
+        for node in self.model_part.Nodes:
+            eps = node.GetSolutionStepValue(POROSITY,0)
+            if (eps == 0.0):
+                eps = 1.0
+            vx = node.GetSolutionStepValue(VELOCITY_X,0)/eps
+            vy = node.GetSolutionStepValue(VELOCITY_Y,0)/eps
+            vz = node.GetSolutionStepValue(VELOCITY_Z,0)/eps
+            node.SetSolutionStepValue(CONVECTION_VELOCITY_X,0,vx)
+            node.SetSolutionStepValue(CONVECTION_VELOCITY_Y,0,vy)
+            node.SetSolutionStepValue(CONVECTION_VELOCITY_Z,0,vz)
+##            if (node.GetSolutionStepValue(VELOCITY_X) != 0.0):
+##                if (node.GetSolutionStepValue(POROSITY) == 0.5):
+##                    print node.Id
+##                    print node.GetSolutionStepValue(VELOCITY,0)
+##                    print node.GetSolutionStepValue(CONVECTION_VELOCITY,0)
+
+        
         self.Convect()
+##        
 ##            print "corrected level set function"
 ##        ############## calculate distances   ##################
 ##        if( self.solve_step > self.dist_recalculation_step):
