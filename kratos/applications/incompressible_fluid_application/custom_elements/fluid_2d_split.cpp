@@ -146,9 +146,9 @@ namespace Kratos
 		array_1d<double,4> dist_on_agp = ZeroVector(4);
 
 		DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
-KRATOS_WATCH("BEFORE********************")
- KRATOS_WATCH(rRightHandSideVector)
-KRATOS_WATCH(this->Id())
+// KRATOS_WATCH("BEFORE********************")
+//  KRATOS_WATCH(rRightHandSideVector)
+// KRATOS_WATCH(this->Id())
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
 		  if (dist_on_agp(i) < 0.0)
@@ -175,8 +175,8 @@ KRATOS_WATCH(this->Id())
 		  }
 
 		}
-KRATOS_WATCH("AFTER********************")
-KRATOS_WATCH(rRightHandSideVector)
+// KRATOS_WATCH("AFTER********************")
+// KRATOS_WATCH(rRightHandSideVector)
 	 }
 	 else if(GetValue(IS_DIVIDED) == -1.0)
 	   {
@@ -2123,20 +2123,21 @@ KRATOS_WATCH(M)	*/
 		KRATOS_TRY
 	//calculate mean advective velocity and taus
 	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+// 	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
 	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+// 	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
 	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+// 	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
 
 
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
-
+// 	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
+// 	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
+	ms_adv_vel[0] = N[0]*(adv_vel0[0])+N[1]*(adv_vel1[0])+N[2]*(adv_vel2[0]);
+	ms_adv_vel[1] = N[0]*(adv_vel0[1])+N[1]*(adv_vel1[1])+N[2]*(adv_vel2[1]);
 	//ms_adv_vel[0] = 0.0;
 	//ms_adv_vel[1] = 0.0;
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+																					                                                                                                                                                                                                  
 
 	double advvel_norm = ms_adv_vel[0]*ms_adv_vel[0]+ms_adv_vel[1]*ms_adv_vel[1];
 	advvel_norm = sqrt(advvel_norm);
@@ -2153,16 +2154,23 @@ KRATOS_WATCH(M)	*/
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
 
+        	double dp = 0.01; //diameter of the particle	
+	double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
+
+	double fac_linear = kinv * mu /density;	
+	double fac_nonlinear = (1.75/eps * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;     
+
+
 	int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
 	
 		if(dyn_st_switch)
 		  {
-			tauone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
+			tauone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length + fac_linear +  fac_nonlinear);
 		  }
 		else
 		 {
 			
-			tauone = 1.0/(0.0+ 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
+			tauone = 1.0/(0.0+ 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length + fac_linear +  fac_nonlinear);
 		  }
 		
 	tautwo = mu/density + 1.0*ele_length*advvel_norm/2.0;
