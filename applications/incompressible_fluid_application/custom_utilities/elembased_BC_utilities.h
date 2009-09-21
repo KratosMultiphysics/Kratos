@@ -103,7 +103,7 @@ namespace Kratos
 					 Geometry<Node<3> >& geom = iel->GetGeometry();
 					 double Area = GeometryUtils::CalculateVolume2D(geom);
 
-					 double toll =  0.15*sqrt(Area * 2.30940108);//0.15*(h in a equailateral triangle of given area)
+					 double toll =  0.1*sqrt(Area * 2.30940108);//0.1*(h in a equailateral triangle of given area)
 
 					 array_1d<double,3> dist = ZeroVector(3);
 					 for (unsigned int i = 0; i < geom.size(); i++)
