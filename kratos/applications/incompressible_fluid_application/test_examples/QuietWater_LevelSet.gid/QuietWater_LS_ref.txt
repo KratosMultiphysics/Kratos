@@ -1,591 +1,591 @@
 KRATOS_BENCHMARK | Float | Time | 0.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9989014 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9997994 | 0.05 | None
 KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9996091 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001443 | 0.05 | None
 KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9991132 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001779 | 0.05 | None
 KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.999109 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001497 | 0.05 | None
 KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.999236 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001409 | 0.05 | None
 KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9991421 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001446 | 0.05 | None
 KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9993325 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -2.99999999358 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001487 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9990533 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -2.99999999501 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001505 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9992961 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -2.99999999705 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001511 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9993507 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -2.99999999967 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001513 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9994018 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000000284 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001513 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9993074 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000000663 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001513 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9995753 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000001104 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001511 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9995498 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000001604 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001509 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9995381 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000002165 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001506 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 0.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9998007 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000002788 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001504 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.999741 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000000347 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001501 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9999636 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000004211 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001499 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29417.9999488 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000005016 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001496 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0000752 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000005884 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001494 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0002529 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000006816 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001492 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0002764 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000000781 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000149 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0005045 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000000887 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001488 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0004659 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000009998 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001486 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000724 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000011195 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001484 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0007986 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000001246 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001482 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0008783 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000013795 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001481 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0011113 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000015201 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001479 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0011273 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000016678 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001478 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0013345 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000018228 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001476 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0014921 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000019849 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001475 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0015464 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000021542 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001474 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0018889 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000023307 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001472 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.001889 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000025146 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001471 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0020263 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000027063 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000147 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 1.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0023473 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000029056 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001469 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.002427 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000031121 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001468 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0025421 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000033263 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001467 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0029187 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000003548 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001466 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0029302 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000037769 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001465 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0031437 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000040132 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001464 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0034042 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000042565 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001463 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.003649 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000045059 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001462 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0037689 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000047613 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001461 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0041736 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000050224 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000146 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0042116 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000052887 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001459 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0045183 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000055599 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001458 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0049061 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000058352 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001458 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0050319 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000061137 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001457 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0052684 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000063954 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001456 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0056553 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000066797 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001455 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0057569 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000069657 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001455 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.006206 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000007253 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001454 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0064321 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000075409 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001453 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0067111 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000078294 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001452 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 2.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0068666 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000081188 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001452 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0075088 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000008409 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001451 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.007398 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000087005 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000145 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0079495 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000089945 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000145 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0081662 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000092921 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001449 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0085031 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000095945 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001448 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0087879 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000099025 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001448 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0090077 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000102161 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001447 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0093707 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000010536 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001447 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0096329 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000108638 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001446 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0098162 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000112019 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001445 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0102557 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000115527 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001445 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0104845 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000119188 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001444 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0107617 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000123031 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001444 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0110591 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000127071 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001443 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0113487 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000131294 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001443 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0117294 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000135694 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001442 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0119557 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000140295 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001442 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0124807 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000145122 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001441 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0127052 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000150184 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000144 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 3.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.013114 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000155485 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000144 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0137295 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000161012 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001439 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0140745 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000166739 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001439 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0144875 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000172636 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001438 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0149911 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000178661 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001438 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0154292 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000184755 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001437 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0158611 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000190851 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001437 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0163389 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000196871 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001436 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0166401 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000202731 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001436 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0172807 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000208335 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001435 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0176646 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000213544 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001435 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0181524 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000218204 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001434 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0185605 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000222379 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001434 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0190696 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000226068 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001433 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0194805 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000229295 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001433 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0200631 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000232043 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001432 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0204027 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000234311 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001432 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0207526 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000236184 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001431 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.021383 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000236308 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001431 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.021506 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000235566 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000143 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 4.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0217274 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000234373 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000143 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0221585 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000232876 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001429 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0221334 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000231429 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001429 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0224836 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000229455 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001428 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0224421 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000227075 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001428 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0225875 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000224447 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001427 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0227916 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000221727 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001427 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0227077 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000219007 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001427 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0227179 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000216088 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001426 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0227629 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000212821 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001426 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0228777 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000209164 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001425 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0228885 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000205195 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001425 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0228939 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000201083 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001424 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.023082 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000197017 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001424 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0231672 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000193144 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001423 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0235114 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000189611 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001423 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0236175 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000018658 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001422 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.024022 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000018423 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001422 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0243968 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000182757 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001421 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.024782 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000182397 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001421 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 5.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0254871 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000183514 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000142 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0261639 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000186734 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000142 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0270709 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000192482 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000142 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0277589 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000200128 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001419 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0287341 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000209395 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001419 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0295512 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000220398 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001418 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0305743 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.000002329 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001418 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0311973 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000246866 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001417 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0323204 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000262203 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001417 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.033087 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000278779 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001416 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0340774 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000296423 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001416 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0348935 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000314929 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001415 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0359155 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000334059 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001415 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0367696 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000353588 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001415 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0377134 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000373332 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001414 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0387197 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000393152 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001414 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0395502 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000412926 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001413 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0405171 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000432521 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001413 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.041551 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000451795 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001412 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0425145 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000470594 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001412 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 6.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0433922 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000488763 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001412 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.044592 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000050615 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001411 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0456058 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000522612 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001411 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0464692 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000538021 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000141 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0475264 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000055222 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000141 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0484215 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000564886 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001409 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0493748 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000575543 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001409 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0505746 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000583201 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001408 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.051356 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000587939 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001408 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0522503 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000590429 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001408 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0528934 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000590804 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001407 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0530086 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000589721 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001407 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0529201 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000587934 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001406 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0525951 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000585091 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001406 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0522397 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000581811 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001405 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0516597 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000578288 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001405 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0510539 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000573634 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001405 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0501638 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000567361 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001404 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0492275 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000559357 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001404 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0482127 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000549728 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001403 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 7.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0470456 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000538678 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001403 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0458989 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000526335 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001403 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0447253 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000512794 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001402 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0434357 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000498159 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001402 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0421705 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000482539 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001401 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0411717 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000466051 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001401 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0397847 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000448812 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.00014 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0389967 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000430923 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.00014 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0377219 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000412492 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.00014 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0368347 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000393678 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001399 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0368343 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000374658 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001399 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0374533 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000355632 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001398 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0381539 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000033687 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001398 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0394751 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000318748 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001398 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.041789 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000301712 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001397 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0438778 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000286259 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001397 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0458205 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000273012 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001396 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0478569 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000262493 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001396 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0500135 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000255613 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001396 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.052176 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000255386 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001395 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 8.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0543915 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000264598 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001395 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0565977 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000281179 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001394 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.05 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0587931 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.000003034 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001394 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.1 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0606666 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000330722 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001394 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.15 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0624168 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000362449 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001393 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.2 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0643653 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000398095 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001393 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.25 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0662464 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000437695 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001392 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.3 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0680913 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000481267 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001392 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.35 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0699554 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000528587 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001392 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.4 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0718614 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000579229 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001391 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.45 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0737017 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000632511 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001391 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.5 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0753898 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000687671 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001391 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.55 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0773309 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000074407 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000139 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.6 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0788101 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000801083 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.000139 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.65 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0806287 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000858071 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001389 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.7 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0819788 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000914369 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001389 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.75 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0834802 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00000969254 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001389 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.8 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0851004 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.0000102198 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001388 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.85 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0868389 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00001071813 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001388 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.9 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0890013 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00001118053 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001388 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 9.95 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0919702 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00001160074 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001387 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
 KRATOS_BENCHMARK | Float | Time | 10.0 | None | None
-KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0953226 | 0.05 | None
-KRATOS_BENCHMARK | Float | Node 1 distance | -3.00001197405 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 pressure | 29418.0001387 | 0.05 | None
+KRATOS_BENCHMARK | Float | Node 1 distance | -3.0 | 0.05 | None
