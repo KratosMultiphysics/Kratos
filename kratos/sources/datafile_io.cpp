@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/kratos_components.h"
 #include "includes/mesh.h"
 #include "includes/model_part.h"
+#include "utilities/timer.h"
 
 #ifdef KRATOS_INDEX_PARSER
 #undef KRATOS_INDEX_PARSER
@@ -650,6 +651,9 @@ namespace Kratos
     mElementDatafileIterator = FileIterator(element_filename);
 	 mConditionDatafileIterator = FileIterator(condition_filename);
 	 mInitialValueDatafileIterator = FileIterator(init_filename);
+
+	  Timer::SetOuputFile(rDatafile + ".time");
+
 		std::cout << rDatafile << " opened for io" << std::endl;
 		std::cout << node_filename << " opened for io" << std::endl;
 		std::cout << properties_filename << " opened for io" << std::endl;

@@ -53,11 +53,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream> 
+#include <fstream> 
+#include <map>
+#include <ctime>
+
 
 
 // External includes 
-#include <boost/timer.hpp>
 #include <boost/array.hpp>
+#include <boost/timer.hpp> // to be removed after replacing the boost timers with Kratos timer.
 
 
 // Project includes
@@ -85,12 +89,46 @@ namespace Kratos
   ///@}
   ///@name Kratos Classes
   ///@{
-  
+
   /// Short class definition.
   /** Detail class definition.
   */
-  class Timer : public boost::timer
+  class Timer
     {
+      class TimerData
+      {
+	int mRepeatNumber;
+	double mStartTime;
+	double mTotalElapsedTime;
+	double mMaximumTime;
+	double mMinimumTime;
+      public:
+      TimerData() : mRepeatNumber(int()), mStartTime(double()), mTotalElapsedTime(double()), mMaximumTime(double()), mMinimumTime(double()){}
+	double GetStartTime(){return mStartTime;}
+	void SetStartTime(double StartTime){mStartTime = StartTime;}
+	void Update(double StopTime)
+	{
+	  double elapsed = StopTime - mStartTime;
+	  if(mRepeatNumber == 0)
+	     mMinimumTime = elapsed;
+	  mTotalElapsedTime += elapsed;
+	  if(mMaximumTime < elapsed)
+	    mMaximumTime = elapsed;
+
+	  if((mMinimumTime > elapsed))
+	    mMinimumTime = elapsed;
+
+	  mRepeatNumber++;
+
+	}
+      /// Print object's data.
+      void PrintData(std::ostream& rOStream) const
+      {
+	if(mRepeatNumber != 0)
+	  rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) ;
+      }
+      };
+
     public:
       ///@name Type Definitions
       ///@{
@@ -98,18 +136,17 @@ namespace Kratos
       /// Pointer definition of Timer
       KRATOS_CLASS_POINTER_DEFINITION(Timer);
 
-      typedef boost::timer BaseType;
-  
       typedef double TimeType;
 
-      typedef std::map<std::string, boost::array<double,2> > ContainerType;
+
+      typedef std::map<std::string, TimerData> ContainerType;
 
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      Timer() : BaseType() {}
+      Timer();
 
       /// Destructor.
       virtual ~Timer() 
@@ -126,11 +163,44 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+
+      static void Start(std::string const& IntervalName)
+      {
+	msTimeTable[IntervalName].SetStartTime(std::clock()/static_cast<double>(CLOCKS_PER_SEC));
+      }
+
+      static void Stop(std::string const& IntervalName)
+      {
+	double stop_time = std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+
+	ContainerType::iterator i_time_data = msTimeTable.find(IntervalName);
+
+	if(i_time_data == msTimeTable.end())
+	  return;
+/* 	  KRATOS_ERROR(std::logical_error, "Stopping a not running time interval: ", IntervalName); */
+
+	i_time_data->second.Update(stop_time);
+
+	PrintIntervalInformation(IntervalName, i_time_data->second.GetStartTime(), stop_time);
+      }
+
       
       
       ///@}
       ///@name Access
-      ///@{ 
+      ///@{
+
+      static int SetOuputFile(std::string const& OutputFileName)
+      {
+	if(msOutputFile.is_open())
+	  msOutputFile.close();
+
+	msOutputFile.open(OutputFileName.c_str());
+
+	msOutputFile << "                                         Start   \tStop     \tElapsed " << std::endl;
+
+	return msOutputFile.is_open();
+      }
       
       
       ///@}
@@ -142,14 +212,67 @@ namespace Kratos
       ///@name Input and output
       ///@{
 
+      static void PrintIntervalInformation(std::string const& IntervalName, double StartTime, double StopTime)
+      {
+	if(msOutputFile.is_open())
+	  {
+	    msOutputFile << IntervalName << " ";
+	    
+	    for(int i = IntervalName.size() + 1 ; i < 40 ; i++)
+	      msOutputFile << ".";
+	    
+	    msOutputFile << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
+	  }
+	else
+	  {
+	    std::cout << IntervalName << " ";
+	    
+	    for(int i = IntervalName.size() + 1 ; i < 40 ; i++)
+	      std::cout << ".";
+	    
+	    std::cout << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
+	  }
+      }
+
+      static void PrintTimingInformation()
+      {
+	if(msOutputFile.is_open())
+	  PrintTimingInformation(msOutputFile);
+	else
+	  PrintTimingInformation(std::cout);
+      }
+
+      static void PrintTimingInformation(std::ostream& rOStream)
+      {
+	rOStream << "                                 Repeat # \tTotal     \tMax     \tMin     \tAverage" << std::endl;
+	for(ContainerType::iterator i_time_data = msTimeTable.begin() ; i_time_data != msTimeTable.end() ; i_time_data++)
+	  {
+	    rOStream << i_time_data->first;
+	    for(int i =  i_time_data->first.size() + 1 ; i < 40 ; i++)
+	      rOStream << ".";
+	    
+	    rOStream << " ";
+	    i_time_data->second.PrintData(rOStream);
+	    rOStream << std::endl;
+	  }
+      }
+
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      virtual std::string Info() const
+	{
+	  return "Timer";
+	}
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      virtual void PrintInfo(std::ostream& rOStream) const
+      {
+      }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      virtual void PrintData(std::ostream& rOStream) const
+      {
+	  PrintTimingInformation(rOStream);
+      }
       
             
       ///@}      
@@ -197,8 +320,14 @@ namespace Kratos
       ///@}
       
     private:
+
       ///@name Static Member Variables 
-      ///@{ 
+      ///@{
+
+      static ContainerType msTimeTable;
+
+      static std::ofstream msOutputFile;
+
         
         
       ///@} 
@@ -231,10 +360,13 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      Timer& operator=(Timer const& rOther);
+      Timer& operator=(Timer const& rOther)
+      {
+	return *this;
+      }
 
       /// Copy constructor.
-      Timer(Timer const& rOther);
+/*       Timer(Timer const& rOther); */
 
         
       ///@}    
@@ -253,8 +385,8 @@ namespace Kratos
         
  
   /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    Timer& rThis);
+//   inline std::istream& operator >> (std::istream& rIStream, 
+// 				    Timer& rThis){}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 

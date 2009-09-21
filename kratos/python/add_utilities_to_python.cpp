@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/divide_elem_utils.h"
+#include "utilities/timer.h"
 
 
 
@@ -110,6 +111,12 @@ namespace Python
 		.def("DivideElement_2D",&DivideElemUtils::DivideElement_2D)
 		;
 
+	  class_<Timer>("Timer", init<>())
+// 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
+	    .def(self_ns::str(self))
+		;
+
+// 	  def("PrintTimingInformation",Timer::PrintTimingInformation);
 
   }
 	

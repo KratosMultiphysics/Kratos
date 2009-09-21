@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
+#include "utilities/timer.h"
 
 
 namespace Kratos
@@ -133,6 +134,8 @@ namespace Kratos
 	  if(!mOutput)
 	    KRATOS_ERROR(std::invalid_argument, "Error opening output file : ", mOutputFilename.c_str());
 
+	  Timer::SetOuputFile(Filename + ".time");
+
       }
       
       /// Constructor with input and output filenames.
@@ -147,6 +150,7 @@ namespace Kratos
 	  if(!mOutput)
 	    KRATOS_ERROR(std::invalid_argument, "Error opening output file : ", mOutputFilename.c_str());
 
+	  Timer::SetOuputFile(InputFilename + ".time");
       }
 
 
@@ -378,6 +382,9 @@ namespace Kratos
       virtual void ReadModelPart(ModelPart & rThisModelPart)
       {
 	KRATOS_TRY
+
+	  Timer::Start("Reading Input");
+
 	ResetInput();
 	std::string word;
 	while(true)
@@ -406,6 +413,7 @@ namespace Kratos
 	  }
 	std::cout << "lines read : " << mNumberOfLines;
 	std::cout << std::endl;
+	  Timer::Stop("Reading Input");
 	KRATOS_CATCH("")
       }
 
