@@ -146,15 +146,16 @@ namespace Kratos
 		array_1d<double,4> dist_on_agp = ZeroVector(4);
 
 		DivideElemUtils::DivideElement_2D(GetGeometry(),  aux_gp, A_on_agp, N_on_agp, dist_on_agp);
- 
+KRATOS_WATCH("BEFORE********************")
+ KRATOS_WATCH(rRightHandSideVector)
+KRATOS_WATCH(this->Id())
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= 0.0)
+		  if (dist_on_agp(i) < 0.0)
 		  {
 // KRATOS_WATCH(this->Id())
 		        double Area = A_on_agp(i);
 // KRATOS_WATCH(Area);
-
 		      
 		        for (unsigned int j = 0; j < N.size(); j++)
 			     N[j] = N_on_agp(i,j);
@@ -168,13 +169,14 @@ namespace Kratos
 		        //add body force and momentum
 		        AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone,tautwo);
 
-		        //add projections
-		        if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
-			   AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
+// 		        //add projections
+// 		        if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+// 			   AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
 		  }
 
 		}
-
+KRATOS_WATCH("AFTER********************")
+KRATOS_WATCH(rRightHandSideVector)
 	 }
 	 else if(GetValue(IS_DIVIDED) == -1.0)
 	   {
@@ -188,16 +190,16 @@ namespace Kratos
 		//add body force and momentum
 		AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone,tautwo);
 
-		//add projections
-		if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
-		    AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
+// 		//add projections
+// 		if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+// 		    AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
 	   }
 	 
 
 		KRATOS_CATCH("")
 	}
-	//***********************************************************************************++
-	//**************************************************************************************++
+	//***********************************************************************************
+	//**************************************************************************************
 	void Fluid2DSplit::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
@@ -282,7 +284,7 @@ namespace Kratos
 		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		        {
 			 //if the virtual sub element is a fluid element
-			 if (dist_on_agp(i) <= 0.0)
+			 if (dist_on_agp(i) < 0.0)
 			 {
 			       double Area = A_on_agp(i);
 			       //shape functions of the element calculated on the auxiliary gauss points (gp of the sub elements)
@@ -329,7 +331,7 @@ namespace Kratos
 		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		        {
 			   //if the virtual sub element is a fluid element
-			   if (dist_on_agp(i) <= 0.0)
+			   if (dist_on_agp(i) < 0.0)
 			   {
 				double Area = A_on_agp(i);
 				//shape functions of the element calculated on the auxiliary gauss points (gp of the sub elements)
@@ -405,9 +407,13 @@ namespace Kratos
 		array_1d<double,4> dist_on_agp = ZeroVector(4);
 
 		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+// KRATOS_WATCH(aux_gp)
+// KRATOS_WATCH(A_on_agp)
+// KRATOS_WATCH(N_on_agp)
+// KRATOS_WATCH(dist_on_agp)
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) <= 0.0)
+		  if (dist_on_agp(i) < 0.0)
 		  {
 
 		        double Area = A_on_agp(i);
@@ -640,6 +646,14 @@ KRATOS_WATCH(rDampMatrix)	*/
 			 norm_vel_2[2] += vel2[ii]*vel2[ii];
 			 vel_gp[ii] = N[0]*vel0[ii] + N[1]*vel1[ii] + N[2]*vel2[ii];
 		}
+// KRATOS_WATCH(GetGeometry()[0].Id())
+// KRATOS_WATCH(vel0)
+// KRATOS_WATCH(GetGeometry()[1].Id())
+// KRATOS_WATCH(vel1)
+// KRATOS_WATCH(GetGeometry()[2].Id())
+// KRATOS_WATCH(vel2)
+// KRATOS_WATCH(N)
+// KRATOS_WATCH(vel_gp)
 		double norm_vel_gp = 0.0;
 		for (int ii = 0; ii < nodes_number; ii++)
 		{
@@ -1614,7 +1628,7 @@ KRATOS_WATCH(M)	*/
 	int nodes_number = 3;
 	int dof = 2;
 	
-
+	
 	//double lump_mass_fac = area * 0.333333333333333333333333;
 
 	double density;
@@ -1627,8 +1641,17 @@ KRATOS_WATCH(M)	*/
 	   {
 		int index = ii*(dof + 1) ;
 		const array_1d<double,2> bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
-
-	
+/*prova*/
+// 	const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+// 	const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+// 	const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+// 	array_1d<double,2> bdf = ZeroVector(2);
+// 
+// 	bdf[0] = N[0]*(density*bdf0[0] ) +  N[1]*(density*bdf1[0]) + N[2]*(density*bdf2[0]);
+// 	bdf[1] =  N[0]*(density*bdf0[1]) +  N[1]*(density*bdf1[1] ) + N[2]*(density*bdf2[1] );
+// 		F[index] += area*N[ii]*bdf[0] ;
+// 		F[index + 1] += area*N[ii]*bdf[1];
+/**/	
 		F[index] += area*N[ii]*density*bdf[0] ;
 		F[index + 1] += area*N[ii]*density*bdf[1];
 
@@ -2134,7 +2157,6 @@ KRATOS_WATCH(M)	*/
 	
 		if(dyn_st_switch)
 		  {
-		
 			tauone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length);
 		  }
 		else
