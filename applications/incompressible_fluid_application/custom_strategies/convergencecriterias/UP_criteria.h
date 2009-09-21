@@ -271,10 +271,10 @@ namespace Kratos
 			double water_pr_ratio = sqrt(difference_water_pr_norm/reference_pr_norm);
 			
 
-			double pr_abs = sqrt(difference_pr_norm/pr_size);
-			double vel_abs = sqrt(difference_vel_norm/vel_size);
-			double air_pr_abs = sqrt(difference_air_pr_norm/pr_size);
-			double water_pr_abs = sqrt(difference_water_pr_norm/pr_size);
+			double pr_abs = sqrt(difference_pr_norm)/pr_size;
+			double vel_abs = sqrt(difference_vel_norm)/vel_size;
+			double air_pr_abs = sqrt(difference_air_pr_norm)/pr_size;
+			double water_pr_abs = sqrt(difference_water_pr_norm)/pr_size;
 
 
 
