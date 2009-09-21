@@ -23,6 +23,7 @@ lib libkratos
     	integration_rules.cpp 
 	variables_list_data_value_container.cpp
 	mmio.c
+	timer.cpp
 
 	##gidpost library
 	/KratosProject//gidpost

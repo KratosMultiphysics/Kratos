@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/gid_gauss_point_container.h"
 #include "includes/gid_mesh_container.h"
+#include "utilities/timer.h"
 
 namespace Kratos
 {
@@ -159,6 +160,8 @@ namespace Kratos
             ///Destructor.
             virtual ~GidIO()
             {
+		Timer::PrintTimingInformation();
+
                 if( mResultFileOpen )
                 {
                     GiD_ClosePostResultFile();
@@ -479,6 +482,9 @@ namespace Kratos
                                     NodesContainerType& rNodes, double SolutionTag, 
                                     std::size_t SolutionStepNumber)
             {
+
+		Timer::Stop("Writing Results");
+
                 GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
                                   SolutionTag, GiD_Scalar, 
                                   GiD_OnNodes, NULL, NULL, 0, NULL );
@@ -487,6 +493,9 @@ namespace Kratos
                     GiD_WriteScalar( i_node->Id(), i_node->GetSolutionStepValue(rVariable,
                                      SolutionStepNumber) );
                 GiD_EndResult();
+
+		Timer::Stop("Writing Results");
+
             }
             
             /**
@@ -497,6 +506,9 @@ namespace Kratos
                                     NodesContainerType& rNodes, 
                                     double SolutionTag, std::size_t SolutionStepNumber)
             {
+
+		Timer::Start("Writing Results");
+
                 GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
                                   SolutionTag, GiD_Vector, 
                                   GiD_OnNodes, NULL, NULL, 0, NULL );
@@ -508,6 +520,9 @@ namespace Kratos
                     GiD_WriteVector( i_node->Id(), temp[0], temp[1], temp[2] );
                 }
                 GiD_EndResult();
+
+		Timer::Stop("Writing Results");
+
             }
             
             
@@ -519,6 +534,9 @@ namespace Kratos
                                     NodesContainerType& rNodes, 
                                     double SolutionTag, std::size_t SolutionStepNumber)
             {
+
+		Timer::Start("Writing Results");
+
                 GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
                                   SolutionTag, GiD_Matrix, 
                                   GiD_OnNodes, NULL, NULL, 0, NULL );
@@ -534,6 +552,9 @@ namespace Kratos
                                             tempVector(3), tempVector(4), tempVector(5) );
                 }
                 GiD_EndResult();
+
+		Timer::Stop("Writing Results");
+
             }
             
             /**
@@ -543,6 +564,9 @@ namespace Kratos
                                     NodesContainerType& rNodes, 
                                     double SolutionTag, std::size_t SolutionStepNumber)
             {
+
+		Timer::Start("Writing Results");
+
                 GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
                                   SolutionTag, GiD_Matrix, 
                                   GiD_OnNodes, NULL, NULL, 0, NULL );
@@ -557,6 +581,9 @@ namespace Kratos
                                                     tempMatrix(0,2) );
                 }
                 GiD_EndResult();
+
+		Timer::Stop("Writing Results");
+
             }
             
             ///mesh writing functions
@@ -646,6 +673,9 @@ namespace Kratos
             void WriteNodeMesh( MeshType& rThisMesh )
             {
                 KRATOS_TRY
+
+		Timer::Start("Writing Mesh");
+
                 GiD_BeginMesh("Kratos Mesh",GiD_3D,GiD_Point,1);
                 GiD_BeginCoordinates();
                 for( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
@@ -673,6 +703,9 @@ namespace Kratos
                 }
                 GiD_EndElements();
                 GiD_EndMesh();
+
+		Timer::Stop("Writing Mesh");
+
                 KRATOS_CATCH("")
             }//WriteNodeMesh
             
@@ -687,6 +720,9 @@ namespace Kratos
             void WriteMesh( MeshType& rThisMesh )
             {
                 KRATOS_TRY
+
+		Timer::Start("Writing Mesh");
+
                 for( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
                         for( typename std::vector<TMeshContainer>::iterator it = mGidMeshContainers.begin();
@@ -713,6 +749,9 @@ namespace Kratos
                         KRATOS_ERROR( std::logic_error, "undefined WriteDeformedMeshFlag" , "" );
                     it->Reset();
                 }
+
+		Timer::Stop("Writing Mesh");
+
                 KRATOS_CATCH("")
             }//WriteMesh
             
@@ -727,12 +766,18 @@ namespace Kratos
                                      double SolutionTag, int value_index = 0 )
             {
                 KRATOS_TRY;
+
+		Timer::Start("Writing Results");
+
                 for( typename std::vector<TGaussPointContainer>::iterator it =
                      mGidGaussPointContainers.begin();
                      it != mGidGaussPointContainers.end(); it++ )
                 {
                     it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
                 }
+
+		Timer::Stop("Writing Results");
+
                 KRATOS_CATCH("");
             }
             
@@ -744,12 +789,18 @@ namespace Kratos
             void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
             {
                 KRATOS_TRY;
+
+		Timer::Start("Writing Results");
+
                 for( typename std::vector<TGaussPointContainer>::iterator it =
                      mGidGaussPointContainers.begin();
                      it != mGidGaussPointContainers.end(); it++ )
                 {
                     it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
                 }
+
+		Timer::Stop("Writing Results");
+
                 KRATOS_CATCH("");
             }
             
@@ -762,6 +813,9 @@ namespace Kratos
                                              double SolutionTag, int value_index = 0 )
             {
                 KRATOS_TRY;
+
+		Timer::Start("Writing Results");
+
                 for( typename std::vector<TGaussPointContainer>::iterator it =
                      mGidGaussPointContainers.begin();
                      it != mGidGaussPointContainers.end(); it++ )
@@ -769,6 +823,9 @@ namespace Kratos
                     it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
 		    //KRATOS_WATCH(rVariable)
                 }
+
+		Timer::Stop("Writing Results");
+
                 KRATOS_CATCH("");
             }
             
@@ -781,6 +838,9 @@ namespace Kratos
                                              double SolutionTag, int value_index = 0 )
             {
                 KRATOS_TRY;
+
+		Timer::Start("Writing Results");
+
                 for( typename std::vector<TGaussPointContainer>::iterator it =
                      mGidGaussPointContainers.begin();
                      it != mGidGaussPointContainers.end(); it++ )
@@ -788,6 +848,9 @@ namespace Kratos
                     it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
 		    //KRATOS_WATCH(r_model_part)
                 }
+
+		Timer::Stop("Writing Results");
+
                 KRATOS_CATCH("");
             }
         

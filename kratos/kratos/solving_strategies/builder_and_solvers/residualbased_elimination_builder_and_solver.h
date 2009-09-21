@@ -425,14 +425,19 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-			boost::timer building_time;
+// 			boost::timer building_time;
+
+			Timer::Start("Build");
 				
 			Build(pScheme,r_model_part,A,b);
 
-			if(this->GetEchoLevel()>0)
-			{
-				std::cout << "Building Time : " << building_time.elapsed() << std::endl;
-			}
+			Timer::Stop("Build");
+
+
+// 			if(this->GetEchoLevel()>0)
+// 			{
+// 				std::cout << "Building Time : " << building_time.elapsed() << std::endl;
+// 			}
 
 //			ApplyPointLoads(pScheme,r_model_part,b);
 
@@ -447,14 +452,17 @@ namespace Kratos
 				std::cout << "RHS vector = " << b << std::endl;
 			}
 
-			boost::timer solve_time;
+// 			boost::timer solve_time;
+			Timer::Start("Solve");
 
 			SystemSolve(A,Dx,b);
 
-			if(this->GetEchoLevel()>0)
-			{
-				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
-			}
+			Timer::Stop("Solve");
+
+// 			if(this->GetEchoLevel()>0)
+// 			{
+// 				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
+// 			}
 			if (this->GetEchoLevel()== 3)
 			{
 				std::cout << "after the solution of the system" << std::endl;
