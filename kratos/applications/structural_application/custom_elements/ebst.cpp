@@ -414,9 +414,7 @@ namespace Kratos {
         KRATOS_TRY
 
 	WeakPointerVector< Node<3> >& neigb = this->GetValue(NEIGHBOUR_NODES);
-	
-// KRATOS_WATCH(Id());
-	
+		
 	array_1d<double,3> v12,v13,vze,vxe,vye;
 	
 	//fill the aux matrix of coordinates
@@ -430,7 +428,6 @@ namespace Kratos {
 	    ms_coord(i+3,1)=neigb[i].Y(); 
 	    ms_coord(i+3,2)=neigb[i].Z();  
 	}
-// KRATOS_WATCH(coord);
 	
 	//calculate local system of coordinates of the elem ->SysCartE
 	v12[0] = GetGeometry()[1].X() -  GetGeometry()[0].X();
@@ -454,15 +451,7 @@ namespace Kratos {
 	noalias(vxe) = v12;
 	
 	MathUtils<double>::CrossProduct(vye,vze,vxe);
-	
-// am
-	
-/*	KRATOS_WATCH(v12);
-	KRATOS_WATCH(v13);
-	KRATOS_WATCH(vze);
-	KRATOS_WATCH(vxe);
-	KRATOS_WATCH(vye);*/
-	
+		
 	//*****************************************************************************
 	//calculate cartesian derivatives for the central element
 	ms_loc_der_central(0,0) = -1.0  ; ms_loc_der_central(0,1) = -1.0  ;
@@ -489,10 +478,8 @@ namespace Kratos {
 	ijac(1,0) = -jac(1,0) / detJ;
 	ijac(1,1) =  jac(0,0) / detJ;
 	double Area = 0.5 * detJ;
-// KRATOS_WATCH(Area);
 	boost::numeric::ublas::bounded_matrix<double, 3,2 > dcgM = prod(ijac,trans(ms_loc_der_central));
 
-// KRATOS_WATCH(dcgM);
 	//*****************************************************************************
 	boost::numeric::ublas::bounded_matrix<double, 3,2 > phi;	
 	
@@ -506,8 +493,6 @@ namespace Kratos {
 	    dcg1(0,i) = dcgM(0,i); dcg1(1,i) = dcgM(1,i);
 	  }
 	}
-// KRATOS_WATCH(phi);
-// KRATOS_WATCH(dcg1);
 
 	eta1 = 0.0   ; eta2 = 0.5;
 	boost::numeric::ublas::bounded_matrix<double, 2,6 > dcg2; //cartesian derivatives on gauss 2
@@ -519,8 +504,6 @@ namespace Kratos {
 	    dcg2(0,i) = dcgM(0,i); dcg2(1,i) = dcgM(1,i);
 	  }
 	}
-// KRATOS_WATCH(phi);
-// KRATOS_WATCH(dcg2);
 
 	eta1 = 0.5   ; eta2 = 0.0;
 	boost::numeric::ublas::bounded_matrix<double, 2,6 > dcg3; //cartesian derivatives on gauss 3
@@ -532,8 +515,6 @@ namespace Kratos {
 	    dcg3(0,i) = dcgM(0,i); dcg3(1,i) = dcgM(1,i);
 	  }
 	}
-// KRATOS_WATCH(phi);
-// KRATOS_WATCH(dcg3);
 
 	//*****************************************************************************
 	//calculating derivative of h --> see Eqn 62
@@ -553,7 +534,8 @@ namespace Kratos {
 	    ind++;
 	  }
 	}
-// KRATOS_WATCH(msL1);
+
+
 	
 	boost::numeric::ublas::bounded_matrix<double, 3,6 > DN = ZeroMatrix(3,6);
 	DN(0,0) = dcgM(0,0);
@@ -571,6 +553,9 @@ namespace Kratos {
 // KRATOS_WATCH(DN);
 
 	noalias(msB_f) = 2.0*prod(DN,msL1);
+
+        //in msB_f we miss the second part of Eqn 62!
+
 // KRATOS_WATCH(msB_f);
 
 
@@ -592,6 +577,9 @@ namespace Kratos {
 	boost::numeric::ublas::bounded_matrix<double, 3,18 > aux;
 	noalias(aux) = prod(msDmat_f,msB_f);
 	noalias(msK) = prod(trans(msB_f),aux);
+
+
+        //calculating here the membrane stiffness
 	
 	unsigned int number_of_nodes = 3 + NumberOfActiveNeighbours(neigb);
         unsigned int MatSize = number_of_nodes * 3;

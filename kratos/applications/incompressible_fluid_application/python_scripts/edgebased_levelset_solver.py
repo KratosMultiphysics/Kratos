@@ -48,8 +48,11 @@ class EdgeBasedLevelSetSolver:
         #definition of the solvers
 #        pDiagPrecond = DiagonalPreconditioner()
 #        self.pressure_linear_solver =  CGSolver(1e-3, 5000,pDiagPrecond)
-        pDiagPrecond = DiagonalPreconditioner()
-        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+#        self.pressure_linear_solver =  CGSolver(1e-3, 5000)
+
+#        pDiagPrecond = DiagonalPreconditioner()
+#        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+        self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000)
 
         ##initializing the press proj to -body_force
         press_proj_init = Vector(3)
@@ -57,7 +60,8 @@ class EdgeBasedLevelSetSolver:
         press_proj_init[1] = body_force[1]*density
         press_proj_init[2] = body_force[2]*density
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(PRESS_PROJ,0,press_proj_init)
+            eps = node.GetSolutionStepValue(POROSITY)
+            node.SetSolutionStepValue(PRESS_PROJ,0,press_proj_init*eps)
         print "entered in EdgeBasedLevelSetSolver initialize"
 
 
@@ -91,6 +95,11 @@ class EdgeBasedLevelSetSolver:
 
 
         self.fluid_solver.Initialize()
+
+#        for node in self.model_part.Nodes:
+#            dist = node.GetSolutionStepValue(DISTANCE)
+#            node.SetSolutionStepValue(DISTANCE,1,dist)
+#        self.Redistance()
 
 
         print "**********************************************"
@@ -137,14 +146,13 @@ class EdgeBasedLevelSetSolver:
         ##convect levelset function
        # self.convection_solver.Solve();
         (self.fluid_solver).ConvectDistance()
-        
+
+
 
         ##solve fluid
         (self.fluid_solver).SolveStep1();
         (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
         (self.fluid_solver).SolveStep3();
-
-
 
         if(self.step == self.redistance_frequency):
             self.Redistance()
@@ -153,9 +161,37 @@ class EdgeBasedLevelSetSolver:
         self.step += 1
 
     ################################################################
+#    ################################################################
+#    def Solve(self):
+#        (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
+#
+#        ##convect levelset function
+#        (self.fluid_solver).ConvectDistance()
+#
+#        convection_success = (self.fluid_solver).CheckDistanceConvection()
+#        if(convection_success == False):
+#            #time step reduction is needed
+#            print "############### distance convection failed!! ###############"
+#            return False
+#            errrrrrrrrr
+#
+#        ##solve fluid
+#        (self.fluid_solver).SolveStep1();
+#        (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
+#        (self.fluid_solver).SolveStep3();
+#
+#        if(self.step == self.redistance_frequency):
+#            self.Redistance()
+#            self.step = 0
+#            print "redistance was executed"
+#        self.step += 1
+#
+#        return True
+
+    ################################################################
     ################################################################
     def EstimateTimeStep(self,safety_factor,max_Dt):
-        dt = (self.fluid_solver).ComputeTimeStep(safety_factor);
+        dt = (self.fluid_solver).ComputeTimeStep(safety_factor,max_Dt);
 
         if(dt > max_Dt):
             dt = max_Dt
