@@ -45,8 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 
-#if !defined(KRATOS_PARALLEL_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
-#define  KRATOS_PARALLEL_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER
+#if !defined(KRATOS_PARALLEL_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_DEACTIVATION )
+#define  KRATOS_PARALLEL_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_DEACTIVATION
 
 
 /* System includes */
@@ -129,14 +129,14 @@ namespace Kratos
 	class TDenseSpace , //= DenseSpace<double>,
 	class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
 	>
-	class ParallelResidualBasedEliminationBuilderAndSolver 
+	class ParallelResidualBasedEliminationBuilderAndSolverDeactivation 
 		: public BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >
 	{
 	public:
 		/**@name Type Definitions */       
 		/*@{ */
-		//typedef boost::shared_ptr< ParallelResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;		
-		KRATOS_CLASS_POINTER_DEFINITION( ParallelResidualBasedEliminationBuilderAndSolver );
+		//typedef boost::shared_ptr< ParallelResidualBasedEliminationBuilderAndSolverDeactivation<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;		
+		KRATOS_CLASS_POINTER_DEFINITION( ParallelResidualBasedEliminationBuilderAndSolverDeactivation );
 
 
 		typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> BaseType;
@@ -171,7 +171,7 @@ namespace Kratos
 
 		/** Constructor.
 		*/
-		ParallelResidualBasedEliminationBuilderAndSolver(
+		ParallelResidualBasedEliminationBuilderAndSolverDeactivation(
 			typename TLinearSolver::Pointer pNewLinearSystemSolver)
 			: BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
 		{
@@ -183,7 +183,7 @@ namespace Kratos
 
 		/** Destructor.
 		*/
-		virtual ~ParallelResidualBasedEliminationBuilderAndSolver(){}
+		virtual ~ParallelResidualBasedEliminationBuilderAndSolverDeactivation(){}
 
 
 		/*@} */
@@ -888,7 +888,7 @@ KRATOS_WATCH("setting up the dofs");
 			if (this->GetEchoLevel()>0)
 			{
 
-				KRATOS_WATCH("ParallelResidualBasedEliminationBuilderAndSolver Clear Function called");
+				KRATOS_WATCH("ParallelResidualBasedEliminationBuilderAndSolverDeactivation Clear Function called");
 			}
 		}
 
@@ -1181,7 +1181,7 @@ KRATOS_WATCH("setting up the dofs");
 
 		/*@} */   
 
-	}; /* Class ParallelResidualBasedEliminationBuilderAndSolver */
+	}; /* Class ParallelResidualBasedEliminationBuilderAndSolverDeactivationDeactivation */
 
 	/*@} */
 
@@ -1193,5 +1193,5 @@ KRATOS_WATCH("setting up the dofs");
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_PARALLEL_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */
+#endif /* KRATOS_PARALLEL_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_DEACTIVATION  defined */
 
