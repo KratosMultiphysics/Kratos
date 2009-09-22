@@ -82,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/parallel_residualbased_elimination_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/parallel_residualbased_elimination_builder_and_solver_deactivation.h"
 
 
 //linear solvers
@@ -285,6 +286,10 @@ namespace Kratos
 			typedef ParallelResidualBasedEliminationBuilderAndSolver< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelResidualBasedEliminationBuilderAndSolverType;
 
 			class_< ParallelResidualBasedEliminationBuilderAndSolverType, bases<ParallelBuilderAndSolverType>, boost::noncopyable> ("ParallelResidualBasedEliminationBuilderAndSolver", init< ParallelLinearSolverType::Pointer>() );
+            
+            typedef ParallelResidualBasedEliminationBuilderAndSolverDeactivation< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelResidualBasedEliminationBuilderAndSolverDeactivationType;
+            
+            class_< ParallelResidualBasedEliminationBuilderAndSolverDeactivationType, bases<ParallelBuilderAndSolverType>, boost::noncopyable> ("ParallelResidualBasedEliminationBuilderAndSolverDeactivation", init< ParallelLinearSolverType::Pointer>() );
 
 
 			//********************************************************************
