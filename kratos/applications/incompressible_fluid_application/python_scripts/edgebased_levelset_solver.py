@@ -34,6 +34,8 @@ class EdgeBasedLevelSetSolver:
         self.density = density
         self.viscosity = viscosity
 
+        self.use_mass_correction = True
+
         self.redistance_frequency = 5;
         self.step = 0;
 
@@ -50,9 +52,9 @@ class EdgeBasedLevelSetSolver:
 #        self.pressure_linear_solver =  CGSolver(1e-3, 5000,pDiagPrecond)
 #        self.pressure_linear_solver =  CGSolver(1e-3, 5000)
 
-#        pDiagPrecond = DiagonalPreconditioner()
-#        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
-        self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000)
+        pDiagPrecond = DiagonalPreconditioner()
+        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+#        self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000)
 
         ##initializing the press proj to -body_force
         press_proj_init = Vector(3)
@@ -85,10 +87,10 @@ class EdgeBasedLevelSetSolver:
         ##constructing the solver
         if(self.domain_size == 2):
             self.distance_utils = SignedDistanceCalculationUtils2D()
-            self.fluid_solver = EdgeBasedLevelSet2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force)
+            self.fluid_solver = EdgeBasedLevelSet2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction)
         else:
             self.distance_utils = SignedDistanceCalculationUtils3D()
-            self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force)
+            self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction)
 
         self.reorder = True
         self.distance_tools = BodyDistanceCalculationUtils()

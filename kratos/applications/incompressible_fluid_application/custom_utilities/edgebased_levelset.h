@@ -4,7 +4,7 @@
  *
  * Created on July 31, 2009, 10:51 AM
  */
-
+ 
 /*
 ==============================================================================
 KratosPFEMApplication
@@ -108,7 +108,8 @@ namespace Kratos {
                 ModelPart& mr_model_part,
                 const double viscosity,
                 const double density,
-                const Vector body_force
+                const Vector body_force,
+                bool use_mass_correction
                 )
         : mr_matrix_container(mr_matrix_container), mr_model_part(mr_model_part) {
             //to be changed
@@ -120,6 +121,8 @@ namespace Kratos {
             mdelta_t_avg = 1000.0;
 
             max_dt = 1.0;
+
+            muse_mass_correction = use_mass_correction;
 
 //            for (unsigned int i = 0; i < TDim; i++) mBodyForce[i] = 0;
 //            mBodyForce[1] = -9.81;
@@ -172,6 +175,9 @@ namespace Kratos {
             mphi_n1.resize(n_nodes);
 
             mEps.resize(n_nodes);
+            
+            mdiv_error.resize(n_nodes);
+            mr_matrix_container.SetToZero(mdiv_error);
 
 
             ValuesVectorType external_pressure;
@@ -388,15 +394,15 @@ namespace Kratos {
 
 
             //compute intrinsic time
-            double time_inv = 1.0 / delta_t;
-            double time_inv_avg = 1.0/mdelta_t_avg;
+//            double time_inv = 1.0 / delta_t;
+            const double time_inv_avg = 1.0/mdelta_t_avg;
 
-            double max_dt_inv = 1.0 / max_dt;
+//            const double max_dt_inv = 1.0 / max_dt;
 
 //            double max_dt_inv_coeff = 0.1 / max_dt;
 //            const double max_dt_coeff = 10.0*max_dt;
 
-#pragma omp parallel for firstprivate(max_dt_inv)
+            #pragma omp parallel for firstprivate(time_inv_avg)
             for (int i_node = 0; i_node < n_nodes; i_node++) {
                 // 					double& h_i = mHavg[i_node];
                 double& h_avg_i = mHavg[i_node];
@@ -551,24 +557,26 @@ namespace Kratos {
                 {
                     array_1d<double, TDim>& rhs_i = rhs[i_node];
                     const array_1d<double, TDim>& f_i = mBodyForce;
-                    const array_1d<double, TDim>& a_i = convective_velocity[i_node];
+                    array_1d<double, TDim> a_i = convective_velocity[i_node];
+
                     const array_1d<double, TDim>& U_i = vel[i_node];
                     const array_1d<double, TDim>& pi_i = mPi[i_node];
                     const double& p_i = pressure[i_node];
-                    const double& eps = mEps[i_node];
+                    const double& eps_i = mEps[i_node];
                     const double& tau2_i = mTau2[i_node];
 
                     double edge_tau = mTauConvection[i_node];
+                    a_i /= eps_i;
 
                     //double& h_i = mHmin[i_node];
 
                     //initializing with the external forces (e.g. gravity)
                     double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
                     for (unsigned int comp = 0; comp < TDim; comp++)
-                        rhs_i[comp] = m_i * f_i[comp];
+                        rhs_i[comp] = m_i * eps_i * f_i[comp] ;
 
                     //applying the effect of the porosity
-                    double porosity_coefficient = ComputePorosityCoefficient(mViscosity,norm_2(U_i),eps);
+                    double porosity_coefficient = ComputePorosityCoefficient(mViscosity,norm_2(U_i),eps_i);
                     for (unsigned int comp = 0; comp < TDim; comp++)
                         rhs_i[comp] -= m_i * porosity_coefficient * U_i[comp];
 
@@ -576,10 +584,13 @@ namespace Kratos {
                     //convective term
                     for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
                         unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-                            const array_1d<double, TDim>& a_j = convective_velocity[j_neighbour];
+                            array_1d<double, TDim> a_j = convective_velocity[j_neighbour];
                             const array_1d<double, TDim>& U_j = vel[j_neighbour];
                             const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
                             const double& p_j = pressure[j_neighbour];
+                            const double& eps_j = mEps[j_neighbour];
+
+                            a_j /= eps_j;
 
                             CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
@@ -588,7 +599,7 @@ namespace Kratos {
 
                             //take care! we miss including a B.C.  for the external pressure
                             //							edge_ij.Add_Gp(rhs_i,p_i*inverse_rho,p_j*inverse_rho);
-                            edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
+                            edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho*eps_i, p_j * inverse_rho*eps_i);
                             //                        edge_ij.Add_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
                             //std::cout << i_node << "rhs =" << rhs_i << "after Gp" << std::endl;
 
@@ -672,8 +683,8 @@ namespace Kratos {
             //    std::cout << mvel_n1[i_node] << std::endl;
 
             //loop over all nodes
-            double rho_inv = 1.0 / mRho;
-#pragma omp parallel for firstprivate(time_inv,rho_inv)
+//            double rho_inv = 1.0 / mRho;
+#pragma omp parallel for firstprivate(time_inv)
             for (int i_node = 0; i_node < n_nodes; i_node++) {
 
                 double& rhs_i = rhs[i_node];
@@ -681,13 +692,13 @@ namespace Kratos {
                 const double& p_i = mPn1[i_node];
                 const double& p_old_i = mPn[i_node];
                 const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-                const double& eps_i = mEps[i_node];
+//                const double& eps_i = mEps[i_node];
 
                 array_1d<double, TDim>& xi_i = mXi[i_node];
 
                 double l_ii = 0.0;
 
-                double div_i = 0.0;
+//                double div_i = 0.0;
 
                 //loop over all neighbours
                 for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
@@ -696,7 +707,7 @@ namespace Kratos {
                     const double& p_old_j = mPn[j_neighbour];
                     const array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
                     const array_1d<double, TDim>& xi_j = mXi[j_neighbour];
-                    const double& eps_j = mEps[j_neighbour];
+//                    const double& eps_j = mEps[j_neighbour];
 
                     CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
@@ -713,7 +724,7 @@ namespace Kratos {
                     //compute laplacian operator
                     double sum_l_ikjk;
                     edge_ij.CalculateScalarLaplacian(sum_l_ikjk);
-                    double sum_l_ikjk_onlystab = sum_l_ikjk * (edge_tau);
+//                    double sum_l_ikjk_onlystab = sum_l_ikjk * (edge_tau);
                     double sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
                     sum_l_ikjk *= (delta_t + edge_tau);
 
@@ -725,8 +736,8 @@ namespace Kratos {
 
 
                     //calculating the divergence of the fract vel
-                    edge_ij.Sub_D_v(div_i, U_i_curr*mRho*eps_i, U_j_curr * mRho*eps_j);
-//                    edge_ij.Sub_D_v(rhs_i, U_i_curr*mRho, U_j_curr * mRho);
+//                    edge_ij.Sub_D_v(div_i, U_i_curr*mRho*eps_i, U_j_curr * mRho*eps_j);
+                    edge_ij.Sub_D_v(rhs_i, U_i_curr*mRho, U_j_curr * mRho);
                     //       						edge_ij.Sub_D_v(rhs_i,a_i*rho_i,a_j*rho_i);
 
                     //high order stabilizing term
@@ -739,8 +750,22 @@ namespace Kratos {
                     mL(i_node, j_neighbour) = sum_l_ikjk;
                     l_ii -= sum_l_ikjk;
                 }
-                rhs_i += div_i * eps_i;
+
+//                //area correction to prevent mass loss
+//                rhs_i -= mdiv_error[i_node];
+
+//                rhs_i += div_i * eps_i;
                 mL(i_node, i_node) = l_ii;
+            }
+
+            if(muse_mass_correction == true)
+            {
+                #pragma omp parallel for
+                for (int i_node = 0; i_node < n_nodes; i_node++)
+                {
+                    double& rhs_i = rhs[i_node];
+                    rhs_i -= mdiv_error[i_node];
+                }
             }
 
             //find the max diagonal term
@@ -910,6 +935,35 @@ namespace Kratos {
 
             //write velocity of time step n+1 to Kratos
             mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
+
+
+
+            //calculate the error on the divergence
+            if(muse_mass_correction == true)
+            {
+                #pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
+                for (int i_node = 0; i_node < n_nodes; i_node++)
+                {
+                    const double dist = mdistances[i_node];
+                    double& div_i_err = mdiv_error[i_node];
+                    div_i_err = 0.0;
+                    if (dist < 0.0) //node is inside domain ---- if outside do nothing
+                    {
+                        const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
+
+                        //compute edge contributions dt*M^(-1)Gp
+                        for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                        {
+                            unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+                            array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
+
+                            CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+                            edge_ij.Add_D_v(div_i_err, U_i_curr*mRho, U_j_curr * mRho);
+                        }
+                    }
+                }
+            }
 
             KRATOS_CATCH("")
         }
@@ -1502,6 +1556,7 @@ namespace Kratos {
             mphi_n1.clear();
 
             mEps.clear();
+            mdiv_error.clear();
 
             KRATOS_CATCH("")
         }
@@ -1762,6 +1817,8 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
         MatrixContainer& mr_matrix_container;
         ModelPart& mr_model_part;
 
+        bool muse_mass_correction;
+
         //nodal values
         //velocity vector U at time steps n and n+1
         CalcVectorType mWork, mvel_n, mvel_n1, mx;
@@ -1793,6 +1850,8 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
         ValuesVectorType mTauPressure;
         ValuesVectorType mTauConvection;
         ValuesVectorType mTau2;
+
+        ValuesVectorType mdiv_error;
 
         //variables for resolving pressure equation
         //laplacian matrix
@@ -2123,7 +2182,7 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
             }            
 
             //loop over all faces
-            const double node_factor = 1.0 / TDim;
+//            const double node_factor = 1.0 / TDim;
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 //get geometry data of the face
