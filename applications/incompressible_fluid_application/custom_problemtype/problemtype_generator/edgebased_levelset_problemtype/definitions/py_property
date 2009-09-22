@@ -1,0 +1,5 @@
+file	003_problemtype_var.py.bas
+where	# Declare Python Variables
+
+<VAR_NAME> = *GenData(<NAME>)
+
