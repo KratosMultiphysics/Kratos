@@ -99,7 +99,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #definition of the convergence criteria
         self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
-        builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
+        builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
         #creating the solution strategy
         self.ReformDofSetAtEachStep = True
         #KLUDGE: this has to be True!
