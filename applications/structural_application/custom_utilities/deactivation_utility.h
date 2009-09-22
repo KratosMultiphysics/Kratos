@@ -51,8 +51,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_DEACTIVATION_UTILITY_INCLUDED )
-#define  KRATOS_DEACTIVATION_UTILITY_INCLUDED
+#if !defined(KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED )
+#define  KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED
 
 // System includes
 #include <string>
@@ -73,7 +73,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
-
 
 namespace Kratos
 {
@@ -131,6 +130,8 @@ namespace Kratos
                 for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                       it!=model_part.Elements().ptr_end(); ++it)
                 {
+                    if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->SetValue(IS_INACTIVE, true);
+                    else (*it)->SetValue(IS_INACTIVE, false);
                     (*it)->Initialize();
                 }
                 for ( ConditionsArrayType::ptr_iterator it=model_part.Conditions().ptr_begin();
@@ -140,10 +141,10 @@ namespace Kratos
                     {
                         (*it)->SetValue(ACTIVATION_LEVEL, 0 );
                     }
+                    if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->SetValue(IS_INACTIVE, true);
+                    else (*it)->SetValue(IS_INACTIVE, false);
                     (*it)->Initialize();
                 }
-                mDeactivatedElements.clear();
-                mDeactivatedConditions.clear();
                 std::cout << "deactivation utility initialized" << std::endl;
             }
             
@@ -162,8 +163,6 @@ namespace Kratos
                 ReactivateAll( model_part );
                 //second step: deactivate elements and conditions to be deactivated currently
                 // identify elements to be deactivated
-                std::vector<int> elements_to_be_deleted;
-                std::vector<int> conditions_to_be_deleted;
                 for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                       it!=model_part.Elements().ptr_end(); ++it)
                 {
@@ -174,16 +173,7 @@ namespace Kratos
                             || ( (*it)->GetValue( ACTIVATION_LEVEL ) < 0 )
                       )
                     {
-                        elements_to_be_deleted.push_back((*it)->Id());
-                        mDeactivatedElements.push_back( *(it) );
-  //                      mDeactivatedElements.push_back( *(it.base()) );
-                        //deactivate associated conditions (unless they are contact master)
-//                         Condition Cond = model_part.Conditions()[(*it)->Id()];
-//                         if( Cond.GetValue( IS_CONTACT_MASTER ) == false )
-//                         {
-//                             mDeactivatedConditions.push_back( Cond );
-//                             model_part.RemoveCondition( Cond );
-//                         }
+            (*it)->GetValue( IS_INACTIVE ) = true;
                     }
                 }
                 for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
@@ -198,23 +188,11 @@ namespace Kratos
                     {
                         if( !( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue( IS_CONTACT_SLAVE ) ) )
                         {
-                            conditions_to_be_deleted.push_back( (*it)->Id() );
-                            mDeactivatedConditions.push_back( *it );
-//                             std::cout << "deactivated condition: " << (*it)->Id() << std::endl;
+                (*it)->GetValue( IS_INACTIVE ) = true;
                         }
                     }
                 }
-                // deactivate identified elements
-                for( std::vector<int>::iterator it=elements_to_be_deleted.begin();
-                     it != elements_to_be_deleted.end(); it++ )
-                    model_part.RemoveElement( *it );
-                for( std::vector<int>::iterator it=conditions_to_be_deleted.begin();
-                     it != conditions_to_be_deleted.end(); it++ )
-                    model_part.RemoveCondition( *it );
-                //re-sort the elements
-                model_part.Elements().Sort();
-                model_part.Conditions().Sort();
-				
+                
                 KRATOS_CATCH("")
             }
             
@@ -224,22 +202,12 @@ namespace Kratos
              */
             void ReactivateAll( ModelPart& model_part )
             {
-                for( ElementsArrayType::iterator it = mDeactivatedElements.begin();
-                     it != mDeactivatedElements.end(); it++ )
-                {
-                    model_part.AddElement( *(it.base()));
-                }
-                for( ConditionsArrayType::iterator jt = mDeactivatedConditions.begin();
-                     jt != mDeactivatedConditions.end(); jt++ )
-                {
-//                     std::cout << "reactivated condition: " << jt->Id() << std::endl;
-                    model_part.AddCondition( *(jt.base()));
-                }
-                model_part.Elements().Sort();
-                model_part.Conditions().Sort();
-
-                mDeactivatedElements.clear();
-                mDeactivatedConditions.clear();
+                for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
+                      it!=model_part.Elements().ptr_end(); ++it)
+            (*it)->GetValue( IS_INACTIVE ) = false;
+                for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+                     it != model_part.Conditions().ptr_end(); ++it )
+            (*it)->GetValue( IS_INACTIVE ) = false;
             }
             
             /**
@@ -249,34 +217,25 @@ namespace Kratos
             void Reactivate( ModelPart& model_part, int from_level, int to_level )
             {
                 KRATOS_TRY;
-//                 KRATOS_WATCH( from_level );
-//                 KRATOS_WATCH( to_level );
-//                 ElementsArrayType elements_to_be_restored;
-//                 ConditionsArrayType conditions_to_be_restored;
-                for( ElementsArrayType::iterator it = mDeactivatedElements.begin();
-                     it != mDeactivatedElements.end(); it++ )
+                for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
+                      it!=model_part.Elements().ptr_end(); ++it)
                 {
-//                     KRATOS_WATCH( (*it).GetValue( ACTIVATION_LEVEL ) );
-					//if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
+                    //if element is to be reactivated
+                    if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level 
+                          && (*it)->GetValue( ACTIVATION_LEVEL ) <= to_level)
                     {
-//                         std::cout << "reactivating element: " << it->Id() << std::endl;
-                        (*it).SetValue(ACTIVATION_LEVEL, 0 );
-//                         Condition Cond = model_part.Conditions()[it->Id()];
-//                         Cond.SetValue(ACTIVATION_LEVEL, 0 );
+                        (*it)->SetValue(ACTIVATION_LEVEL, 0 );
                     }
                 }
-                for( ConditionsArrayType::iterator it = mDeactivatedConditions.begin();
-                     it != mDeactivatedConditions.end(); it++ )
+                for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+                     it != model_part.Conditions().ptr_end(); ++it )
                 {
-                    if( ! ( it->GetValue( IS_CONTACT_MASTER ) || it->GetValue(IS_CONTACT_SLAVE) ) )
+                    if( ! ( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue(IS_CONTACT_SLAVE) ) )
                     {
-                        //if condition is to be reactivated
-                        if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level
-                              && (*it).GetValue(ACTIVATION_LEVEL) <= to_level)
+                        if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
+                              && (*it)->GetValue(ACTIVATION_LEVEL) <= to_level)
                         {
-                            (*it).SetValue(ACTIVATION_LEVEL, 0);
+                            (*it)->SetValue(ACTIVATION_LEVEL, 0);
                         }
                     }
                 }
@@ -291,224 +250,18 @@ namespace Kratos
             {
                 KRATOS_TRY;
                 
-                /*for(ModelPart::NodeIterator i = model_part.NodesBegin() ; 
-                i != model_part.NodesEnd() ; ++i)
-                {
-                (i)->X() = (i)->X0() + i->GetSolutionStepValue(DISPLACEMENT_NULL_X);
-                (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(DISPLACEMENT_NULL_Y);
-                (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(DISPLACEMENT_NULL_Z);
-
-                outfile<<"NODE["<<(i)->Id()<<"]";
-                outfile<<"["<<(i)->X()<<","<<(i)->Y()<<","<<(i)->Z()<<"]\n";
-                }*/
-
-                ElementsArrayType elements_to_be_restored;
-                ConditionsArrayType conditions_to_be_restored;
-
-                for( ElementsArrayType::iterator it = mDeactivatedElements.begin();
-                     it != mDeactivatedElements.end(); it++ )
+                for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
+                      it!=model_part.Elements().ptr_end(); ++it)
                 {
                     //if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
+                    if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level 
+                          && (*it)->GetValue( ACTIVATION_LEVEL ) <= to_level)
                     {
-//                         std::cout << "reactivating stressfree element: " << it->Id() << std::endl;
-                        (*it).Initialize();
-                        (*it).SetValue(ACTIVATION_LEVEL, 0 );
-                    }
-                }
-                //outfile.close();
-                KRATOS_CATCH("");
-
-            }
-            
-            /**
-             * reactivate all elements with activation level in range
-             * (from_level, to_level)
-             */
-/*            void ReactivateStressFree( ModelPart& model_part, int from_level, int to_level, const std::string& rDatafilename )
-            {
-                KRATOS_TRY;
-
-                std::string nodesfile= rDatafilename+".deactivation.restart";
-                std::ofstream outfile;
-                outfile.open((char*)nodesfile.c_str());
-                outfile.precision(12);
-
-                for(ModelPart::NodeIterator i = model_part.NodesBegin() ; 
-                    i != model_part.NodesEnd() ; ++i)
-                {
-                    (i)->X() = (i)->X0() + i->GetSolutionStepValue(DISPLACEMENT_NULL_X);
-                    (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(DISPLACEMENT_NULL_Y);
-                    (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(DISPLACEMENT_NULL_Z);
-
-                    outfile<<"NODE["<<(i)->Id()<<"]";
-                    outfile<<"["<<(i)->X()<<","<<(i)->Y()<<","<<(i)->Z()<<"]\n";
-                }
-
-                ElementsArrayType elements_to_be_restored;
-                ConditionsArrayType conditions_to_be_restored;
-
-                for( ElementsArrayType::iterator it = mDeactivatedElements.begin();
-                     it != mDeactivatedElements.end(); it++ )
-                {
-                    //if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) > from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) < to_level)
-                    {
-                        (*it).Initialize();
-                        (*it).SetValue(ACTIVATION_LEVEL, 0 );
-                    }
-                }
-
-                outfile.close();
-                KRATOS_CATCH("");
-
-            }*/
-            
-            void ReactivateStressFreeFromFile( ModelPart& model_part, int from_level, int to_level, const std::string& rDatafilename )
-            {
-                KRATOS_TRY;
-                unsigned int id;
-                char c;
-                std::string line;
-                std::string out;
-                std::string nodesfile= rDatafilename+".deactivation.restart";
-                std::ifstream infile;
-                infile.open((char*)nodesfile.c_str());
-                infile.precision(20);
-                infile.seekg(0,std::ios::beg);
-
-                for(ModelPart::NodeIterator i = model_part.NodesBegin() ; 
-                    i != model_part.NodesEnd() ; ++i)
-                {
-                    bool node_found= false;
-                    std::streampos sp = infile.tellg(); 
-
-                    for(int try_number=0; try_number<2; try_number++)//Loop searches first from last pointer position and thereafter from begining of file
-                    {
-                        while (!infile.eof()|| (try_number=1 && (infile.tellg()> sp) )) 
-                        {
-                            out="";
-                            while(c!='\n')
-                            {
-                                infile.get(c);
-                                if(c=='[') break;
-                                out+=c;
-                            }
-                            if(out=="NODE")
-                            {
-                                out="";
-                                while(c!='\n')
-                                {
-                                    infile.get(c);
-                                    if(c==']') break;
-                                    out+=c;
-                                }
-                                id= std::atoi((char*)out.c_str());
-                                infile.get(c);
-                                if(id== (i)->Id())
-                                {
-                                    node_found= true;
-                                    out="";
-                                    while(c!='\n')
-                                    {
-                                        infile.get(c);
-                                        if(c== ',') break;
-                                        out+=c;
-                                    }
-                                    double value= std::atof((char*)out.c_str());
-									if(isnan(value))
-                                    {
-                                        std::cout<<"##### NaN FOUND ("<<i->Id()<<") ####"<<std::endl;
-                                        continue;
-                                    }
-
-                                    (i)->X() = value;
-	
-                                    out="";
-                                    while(c!='\n')
-                                    {
-                                        infile.get(c);
-                                        if(c== ',') break;
-                                        out+=c;
-                                    }
-                                    value= std::atof((char*)out.c_str());
-									if(isnan(value))
-                                    {
-                                        std::cout<<"##### NaN FOUND ("<<i->Id()<<") ####"<<std::endl;
-                                        continue;
-                                    }
-                                    (i)->Y() = value;
-	
-                                    out="";
-                                    while(c!='\n')
-                                    {
-                                        infile.get(c);
-                                        if(c== ']') break;
-                                        out+=c;
-                                    }
-                                    value= std::atof((char*)out.c_str());
-                                    if(isnan(value))
-                                    {
-                                        std::cout<<"##### NaN FOUND ("<<i->Id()<<") ####"<<std::endl;
-                                        continue;
-                                    }
-	
-                                    (i)->Z() = value;
-	
-                                    std::getline(infile, line);
-                                    break;
-                                }
-                                else
-                                {
-                                    std::getline(infile, line);
-                                    continue;
-                                }
-                            }
-                        }
-                        if(node_found)
-                        {
-                            break;
-                        }
-                        infile.seekg(0,std::ios::beg);
-                    }
-                    if(!node_found)
-                        std::cout<<"##### NO CORRESPONDING NODE ("<<i->Id()<<") IN INPUT FILE ####"<<std::endl;
-                }
-
-                for( ElementsArrayType::iterator it = mDeactivatedElements.begin();
-                     it != mDeactivatedElements.end(); it++ )
-                {
-					//if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
-                    {
-                        (*it).Initialize();
-                        (*it).SetValue(ACTIVATION_LEVEL, 0 );
-                    }
-                }
-
-                for( ElementsArrayType::iterator it = mDeactivatedElements.begin();
-                     it != mDeactivatedElements.end(); it++ )
-                {
-					//if element is to be reactivated
-                    if( (*it).GetValue( ACTIVATION_LEVEL ) >= from_level 
-                          && (*it).GetValue( ACTIVATION_LEVEL ) <= to_level)
-                    {
-                        for(unsigned int node=0; node<(*it).GetGeometry().size(); node++)
-                        {
-                            (*it).GetGeometry()[node].X() = (*it).GetGeometry()[node].X0() +
-                                    (*it).GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT_X);
-                            (*it).GetGeometry()[node].Y() = (*it).GetGeometry()[node].Y0() +
-                                    (*it).GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT_Y);
-                            (*it).GetGeometry()[node].Z() = (*it).GetGeometry()[node].Z0() +
-                                    (*it).GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT_Z);
-                        }
+                        (*it)->Initialize();
+                        (*it)->SetValue(ACTIVATION_LEVEL, 0 );
                     }
                 }
                 KRATOS_CATCH("");
-
             }
             
             /**
@@ -516,7 +269,7 @@ namespace Kratos
              */
             virtual std::string Info() const
             {
-                return "DeactivationUtility";
+                return "TrilinosDeactivationUtility";
             }
             
             /**
@@ -524,7 +277,7 @@ namespace Kratos
              */
             virtual void PrintInfo(std::ostream& rOStream) const
             {
-                rOStream << "DeactivationUtility";
+                rOStream << "TrilinosDeactivationUtility";
             }
             
             /**
@@ -533,7 +286,7 @@ namespace Kratos
             virtual void PrintData(std::ostream& rOStream) const
             {
             }
-		
+        
         private:
             
             /**
@@ -545,15 +298,15 @@ namespace Kratos
             /**
              * Assignment operator
              */
-            //DeactivationUtility& operator=(DeactivationUtility const& rOther);
+            //TrilinosDeactivationUtility& operator=(TrilinosDeactivationUtility const& rOther);
             
             /**
              * Copy constructor
              */
-            //DeactivationUtility(DeactivationUtility const& rOther);
+            //TrilinosDeactivationUtility(TrilinosDeactivationUtility const& rOther);
     
-    };//class DeactivationUtility
+    };//class TrilinosDeactivationUtility
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DEACTIVATION_UTILITY_INCLUDED  defined 
+#endif // KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED  defined 
