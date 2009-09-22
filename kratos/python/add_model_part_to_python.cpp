@@ -197,6 +197,7 @@ namespace Python
 	  .def("CreateSolutionStep",&ModelPart::CreateSolutionStep)
 	  .def("CloneSolutionStep",&ModelPart::CloneSolutionStep)
 	  .def("CreateTimeStep",&ModelPart::CreateTimeStep)
+          .def("ReduceTimeStep",&ModelPart::ReduceTimeStep)
 	  .def("CloneTimeStep",pointer_to_clone_time_step_1)
 	  .def("CloneTimeStep",pointer_to_clone_time_step_2)
 // 	  .def("CopySolutionStepData",&ModelPart::CopySolutionStepData)
