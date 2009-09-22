@@ -1,0 +1,79 @@
+PROBLEMTYPE edgebased_levelset	# The name of your problemtype
+DEFINITION FOLDER edgebased_levelset_problemtype # The folder containing the definition file and the .bas templates
+
+VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
+SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
+SCALAR CONDITION DISTANCE     		point line surface volume free  -1.0
+SCALAR CONDITION POROSITY     		point line surface volume free  1.0
+
+FACE CONDITION Condition2D line
+FACE CONDITION Condition3D surface 
+
+#this line allows to put a value on the "faces" -- NOTE THAT WE CAN NOT USE THE SAME NAME FOR A "FACE CONDITION" and a "FLAG FACE VALUE"
+FLAG FACE VALUE IS_STRUCTURE line surface 0.0 1.0
+
+ELEMENT Fluid2D surface
+ELEMENT Fluid3D volume 
+
+OPTION 2D_Boundary_Condition line Condition2D
+OPTION 3D_Boundary_Condition surface Condition3D
+OPTION 2D_Body_Element surface Fluid2D
+OPTION 3D_Body_Element volume Fluid3D
+
+PROPERTY max_time 1.0 max_time
+PROPERTY safety_factor 0.5 safety_factor
+PROPERTY max_time_step 0.001 max_time_step
+PROPERTY output_dt 0.01 output_dt
+PROPERTY density 1000.0 density
+PROPERTY viscosity 0.000001 viscosity
+PROPERTY body_force_x 0.0 body_force_x
+PROPERTY body_force_y -9.81 body_force_y
+PROPERTY body_force_z 0.0 body_force_z
+PROPERTY print_layers True print_layers
+PROPERTY use_mass_correction True use_mass_correction
+PROPERTY redistance_frequency 5 redistance_frequency
+PROPERTY extrapolation_layers 5 extrapolation_layers
+PROPERTY number_of_inital_steps 100 number_of_inital_steps
+PROPERTY initial_time_step 0.01 initial_time_step
+
+DEFINE MODEL PART FixedVelocity point line surface LOWER
+ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
+
+DEFINE MODEL PART SlipCondition point line surface LOWER
+ADD 2D CONDITION IS_STRUCTURE line 1.0
+ADD 3D CONDITION IS_STRUCTURE surface 1.0
+# We need to assign Slip_Face twice to ensure tha it's ONLY applied over surfaces in 3D
+
+DEFINE MODEL PART FixedPressure point line surface LOWER
+ADD CONDITION PRESSURE point line surface volume fixed 0.0
+
+DEFINE BOUNDARY PART Boundary OUTWARDS NORMALS
+ADD 2D ELEMENT 2D_Boundary_Condition
+ADD 3D ELEMENT 3D_Boundary_Condition
+##ADD 2D CONDITION IS_STRUCTURE line 1.0
+##ADD 3D CONDITION IS_STRUCTURE surface 1.0
+# We need to assign IS_STUCTURE twice to ensure tha it's ONLY applied over surfaces in 3D
+
+DEFINE ALL ENTITIES PART Body surface volume
+ADD 2D ELEMENT 2D_Body_Element surface
+ADD 3D ELEMENT 3D_Body_Element volume
+
+# Part Interaction --> considering all of the combinations!!!
+GROUP FixedVelocity SlipCondition IN point line surface
+FixedVelocity SlipCondition  ASSIGN VELOCITY FROM FixedVelocity 
+
+GROUP FixedVelocity FixedPressure IN point line surface
+FixedVelocity FixedPressure ASSIGN VELOCITY FROM FixedVelocity 
+
+GROUP FixedPressure SlipCondition IN point line surface
+FixedPressure SlipCondition ASSIGN PRESSURE fixed 0.0
+
+
+
+
+
+
+
+
+
+
