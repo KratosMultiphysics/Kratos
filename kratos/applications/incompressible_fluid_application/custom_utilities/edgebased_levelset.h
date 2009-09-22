@@ -1262,7 +1262,7 @@ namespace Kratos {
                         }
                         else
                         {
-                            std::cout << "attention gradient of distance much greater than 1 on node:" << i_node  <<std::endl;
+//                            std::cout << "attention gradient of distance much greater than 1 on node:" << i_node  <<std::endl;
                             iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
 //                            double avg_number = 0.0;
 //
@@ -1286,7 +1286,7 @@ namespace Kratos {
                     }
                     else
                     {
-                        std::cout << "attention very small gradient of distance found on node;" << i_node  <<std::endl;
+//                        std::cout << "attention very small gradient of distance found on node;" << i_node  <<std::endl;
                         iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
                     }
             }
