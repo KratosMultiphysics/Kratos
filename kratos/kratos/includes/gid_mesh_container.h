@@ -175,29 +175,32 @@ namespace Kratos
                     for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin(); 
                          it != mMeshElements.end(); ++it )
                     {
-                        for( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
-                            nodes_id[i] = (it)->GetGeometry()[i].Id();
-                        //workaround: reordering node ids for Hexahedra20 elements
-                        if( mGeometryType == GeometryData::Kratos_Hexahedra3D20 )
+                        if( ! it->GetValue( IS_INACTIVE ) )
                         {
-                            nodes_id[12] = (it)->GetGeometry()[16].Id();
-                            nodes_id[13] = (it)->GetGeometry()[17].Id();
-                            nodes_id[14] = (it)->GetGeometry()[18].Id();
-                            nodes_id[15] = (it)->GetGeometry()[19].Id();
-                            nodes_id[16] = (it)->GetGeometry()[12].Id();
-                            nodes_id[17] = (it)->GetGeometry()[13].Id();
-                            nodes_id[18] = (it)->GetGeometry()[14].Id();
-                            nodes_id[19] = (it)->GetGeometry()[15].Id();
+                            for( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
+                                nodes_id[i] = (it)->GetGeometry()[i].Id();
+                            //workaround: reordering node ids for Hexahedra20 elements
+                            if( mGeometryType == GeometryData::Kratos_Hexahedra3D20 )
+                            {
+                                nodes_id[12] = (it)->GetGeometry()[16].Id();
+                                nodes_id[13] = (it)->GetGeometry()[17].Id();
+                                nodes_id[14] = (it)->GetGeometry()[18].Id();
+                                nodes_id[15] = (it)->GetGeometry()[19].Id();
+                                nodes_id[16] = (it)->GetGeometry()[12].Id();
+                                nodes_id[17] = (it)->GetGeometry()[13].Id();
+                                nodes_id[18] = (it)->GetGeometry()[14].Id();
+                                nodes_id[19] = (it)->GetGeometry()[15].Id();
+                            }
+                            if( mGeometryType == GeometryData::Kratos_Line2D3 
+                                || mGeometryType == GeometryData::Kratos_Line3D3 )
+                            {
+                                nodes_id[0] = (it)->GetGeometry()[0].Id();
+                                nodes_id[1] = (it)->GetGeometry()[2].Id();
+                                nodes_id[2] = (it)->GetGeometry()[1].Id();
+                            }
+                            nodes_id[(it)->GetGeometry().size()]= (it)->GetProperties().Id();
+                            GiD_WriteElementMat((it)->Id(), nodes_id);
                         }
-                        if( mGeometryType == GeometryData::Kratos_Line2D3 
-                            || mGeometryType == GeometryData::Kratos_Line3D3 )
-                        {
-                            nodes_id[0] = (it)->GetGeometry()[0].Id();
-                            nodes_id[1] = (it)->GetGeometry()[2].Id();
-                            nodes_id[2] = (it)->GetGeometry()[1].Id();
-                        }
-                        nodes_id[(it)->GetGeometry().size()]= (it)->GetProperties().Id();
-                        GiD_WriteElementMat((it)->Id(), nodes_id);
                     }
                     delete [] nodes_id;
                     GiD_EndElements();
@@ -239,22 +242,25 @@ namespace Kratos
                     for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(	); 
                          it != mMeshConditions.end(); ++it )
                     {
-                        for( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
-                            nodes_id[i] = (it)->GetGeometry()[i].Id();
-                        //workaround: reordering node ids for Hexahedra20 elements
-                        if( mGeometryType == GeometryData::Kratos_Hexahedra3D20 )
+                        if( ! it->GetValue( IS_INACTIVE ) )
                         {
-                            nodes_id[12] = (it)->GetGeometry()[16].Id();
-                            nodes_id[13] = (it)->GetGeometry()[17].Id();
-                            nodes_id[14] = (it)->GetGeometry()[18].Id();
-                            nodes_id[15] = (it)->GetGeometry()[19].Id();
-                            nodes_id[16] = (it)->GetGeometry()[12].Id();
-                            nodes_id[17] = (it)->GetGeometry()[13].Id();
-                            nodes_id[18] = (it)->GetGeometry()[14].Id();
-                            nodes_id[19] = (it)->GetGeometry()[15].Id();
+                            for( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
+                                nodes_id[i] = (it)->GetGeometry()[i].Id();
+                            //workaround: reordering node ids for Hexahedra20 elements
+                            if( mGeometryType == GeometryData::Kratos_Hexahedra3D20 )
+                            {
+                                nodes_id[12] = (it)->GetGeometry()[16].Id();
+                                nodes_id[13] = (it)->GetGeometry()[17].Id();
+                                nodes_id[14] = (it)->GetGeometry()[18].Id();
+                                nodes_id[15] = (it)->GetGeometry()[19].Id();
+                                nodes_id[16] = (it)->GetGeometry()[12].Id();
+                                nodes_id[17] = (it)->GetGeometry()[13].Id();
+                                nodes_id[18] = (it)->GetGeometry()[14].Id();
+                                nodes_id[19] = (it)->GetGeometry()[15].Id();
+                            }
+                            nodes_id[(it)->GetGeometry().size()]= (it)->GetProperties().Id();
+                            GiD_WriteElementMat((it)->Id(), nodes_id);
                         }
-                        nodes_id[(it)->GetGeometry().size()]= (it)->GetProperties().Id();
-                        GiD_WriteElementMat((it)->Id(), nodes_id);
                     }
                     delete [] nodes_id;
                     GiD_EndElements();
