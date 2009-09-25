@@ -13,6 +13,8 @@ Import_MeshingApplication = False
 Import_KratosMKLSolversApplication = False
 Import_KratosTrilinosApplication = False
 Import_KratosMetisApplication = False
+Import_PoissonApplication = False
+Import_ElectrostaticApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -26,7 +28,8 @@ print "Import_MeshingApplication: False"
 print "Import_KratosMKLSolversApplication: False"
 print "Import_KratosTrilinosApplication: False"
 print "Import_KratosMetisApplication: False"
-  
+print "Import_PoissonApplication: False"  
+print "Import_ElectrostaticApplication: False"  
 
 
 def ImportApplications(kernel, applications_path):
@@ -43,6 +46,9 @@ def ImportApplications(kernel, applications_path):
     print "Import_MeshingApplication: "+str(Import_MeshingApplication)
     print "Import_KratosTrilinosApplication: "+str(Import_KratosTrilinosApplication)
     print "Import_KratosMetisApplication: "+str(Import_KratosMetisApplication)
+    print "Import_ PoissonApplication: "+str(Import_PoissonApplication)
+    print "Import_ ElectrostaticApplication: "+str(Import_ElectrostaticApplication)
+   
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
         sys.path.append(applications_path + '/ALEapplication/python_scripts' )
@@ -148,6 +154,22 @@ def ImportApplications(kernel, applications_path):
         metis_application = KratosMetisApplication()
         kernel.AddApplication(metis_application)
         print "KratosMetisApplication sucessfully imported"
+
+    if(Import_PoissonApplication == True):
+        print "importing KratosR1PoissonApplication ..."
+        sys.path.append(applications_path + '/kPoisson/python_scripts')
+        from KratosR1PoissonApplication import *
+        kPoisson = KratosR1PoissonApplication()
+        kernel.AddApplication(kPoisson)
+        print "Kratos PoissonApplication1 sucessfully imported"
+        
+    if(Import_ElectrostaticApplication == True):
+        print "importing KratosR1ElectrostaticApplication ..."
+        sys.path.append(applications_path + '/kElectrostatic/python_scripts')
+        from KratosR1ElectrostaticApplication import *
+        kElectrostatic = KratosR1ElectrostaticApplication()
+        kernel.AddApplication(kElectrostatic)
+        print "Kratos ElectromagnecticApplication1 sucessfully imported"
        
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
@@ -176,4 +198,8 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(trilinos_application);
     if(Import_KratosMetisApplication == True):
         kernel.InitializeApplication(metis_application);
+    if(Import_PoissonApplication == True):
+        kernel.InitializeApplication(kPoisson);
+    if(Import_ElectrostaticApplication == True):
+        kernel.InitializeApplication(kElectrostatic);
 

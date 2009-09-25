@@ -79,7 +79,7 @@ namespace Kratos
     {
         public:
             ///Constructor
-            EdgebasedGidGaussPointsContainer( const char* gp_title, KratosGeometryFamily geometryFamily,
+            EdgebasedGidGaussPointsContainer( char* gp_title, KratosGeometryFamily geometryFamily,
                                      GiD_ElementType gid_element_type,
                                      int number_of_integration_points,
                                      std::vector<int> index_container )
@@ -120,7 +120,7 @@ namespace Kratos
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
                     WriteGaussPoints();
-                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (const char*)("Kratos"), SolutionTag,
+                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                                       GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<double> ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
@@ -161,7 +161,7 @@ namespace Kratos
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
                     WriteGaussPoints();
-                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (const char*)("Kratos"), SolutionTag,
+                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (char*)("Kratos"), SolutionTag,
                                       GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<Vector> ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
@@ -206,7 +206,7 @@ namespace Kratos
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
                     WriteGaussPoints();
-                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (const char*)("Kratos"), SolutionTag,
+                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (char*)("Kratos"), SolutionTag,
                                       GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<Matrix> ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
@@ -300,7 +300,7 @@ namespace Kratos
             }
             
             ///member variables
-            const char* mGPTitle;
+            char* mGPTitle;
             KratosGeometryFamily mKratosElementFamily;
             GiD_ElementType mGidElementFamily;
             unsigned int mSize;
