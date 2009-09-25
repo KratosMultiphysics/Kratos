@@ -138,7 +138,7 @@ namespace Kratos
 			}
                       else
 		        {  
-			tetha_Lode = (3.00*sqrt(3)*J_des(2))/(2.00*pow(J_des(1), 1.50));
+			tetha_Lode = (3.00*sqrt(3.00)*J_des(2))/(2.00*pow(J_des(1), 1.50));
 			if(tetha_Lode > 1.00){tetha_Lode = 1.00; }
 			tetha_Lode = asin(-tetha_Lode)/3.00;
 		        }
