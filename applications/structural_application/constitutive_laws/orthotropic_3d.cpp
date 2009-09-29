@@ -88,9 +88,18 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	Orthotropic3D::Orthotropic3D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw< Node<3> >(), mMaterialDirection(IdentityMatrix(3))
 	{
 	}
+			
+	/**
+	* Copy constructor.
+	*/
+	Orthotropic3D::Orthotropic3D(const Orthotropic3D& rOther)
+		: ConstitutiveLaw< Node<3> >(rOther), mMaterialDirection(rOther.mMaterialDirection)
+	{
+	}
+
 	/**
 	 *	TO BE TESTED!!!
 	 */
@@ -181,10 +190,26 @@ namespace Kratos
 // 		mNU = props[POISSON_RATIO];
 		mCtangent = ZeroMatrix(6,6);
 		mInSituStress = ZeroVector(6);
-		mMaterialDirection = ZeroMatrix(3,3);
 
-        CalculateElasticMatrix(mCtangent, props[YOUNG_MODULUS], props[POISSON_RATIO]);
-//                 CalculateElasticMatrix(mCtangent, props[MATERIAL_PARAMETERS][0], props[MATERIAL_PARAMETERS][1]);
+//// test part to be removed!
+//		Vector young_modulus = ZeroVector(3);
+//		young_modulus[0] = 1000000;
+//		young_modulus[1] = 1000000;
+//		young_modulus[2] = 1000000;
+//		Vector shear_modulus = ZeroVector(3);
+//		shear_modulus [0] = 400000;
+//		shear_modulus [1] = 400000;
+//		shear_modulus [2] = 400000;
+//
+//		mMaterialDirection = IdentityMatrix(3,3);
+//		//KRATOS_WATCH(props[ORTHOTROPIC_YOUNG_MODULUS]);
+//		//KRATOS_WATCH(props[ORTHOTROPIC_POISSON_RATIO]);
+//		//KRATOS_WATCH(props[ORTHOTROPIC_SHEAR_MODULUS]);
+//        CalculateElasticMatrix(mCtangent, young_modulus, props[ORTHOTROPIC_POISSON_RATIO], shear_modulus);    
+//// end test part
+
+		// corect implementation
+        CalculateElasticMatrix(mCtangent, props[ORTHOTROPIC_YOUNG_MODULUS], props[ORTHOTROPIC_POISSON_RATIO], props[ORTHOTROPIC_SHEAR_MODULUS]);    
 	}
 	
 	void Orthotropic3D::InitializeSolutionStep( const Properties& props,
@@ -212,35 +237,53 @@ namespace Kratos
                                       const Vector& ShapeFunctionsValues,
                                       const ProcessInfo& CurrentProcessInfo )
     {
+		// the correct implemenation
         CalculateElasticMatrix(mCtangent, props[ORTHOTROPIC_YOUNG_MODULUS], props[ORTHOTROPIC_POISSON_RATIO], props[ORTHOTROPIC_SHEAR_MODULUS]);    
+
+		//// test part to be removed
+ 	//	Vector young_modulus = ZeroVector(3);
+		//young_modulus[0] = 1000000;
+		//young_modulus[1] = 1000000;
+		//young_modulus[2] = 1000000;
+		//Vector shear_modulus = ZeroVector(3);
+		//shear_modulus [0] = 400000;
+		//shear_modulus [1] = 400000;
+		//shear_modulus [2] = 400000;
+  //     CalculateElasticMatrix(mCtangent, young_modulus, props[ORTHOTROPIC_POISSON_RATIO], shear_modulus);    
+	 //  // end test part
     }
 		
 	/**
 	 *	TO BE TESTED!!!
 	 */
-	void Orthotropic3D::CalculateElasticMatrix(Matrix& C, const array_1d<double,3>r& E, const Matrix& NU, const array_1d<double,3>& rG)
+	void Orthotropic3D::CalculateElasticMatrix(Matrix& C, const array_1d<double,3>& E, const Matrix& NU, const array_1d<double,3>& rG)
 	{ 
 		//setting up material matrix
-		double nu_xy = NU(0,1);
-		double nu_yx = NU(1,0);
+		double nu_xy = NU(1,0);
+		double nu_yx = E[1]*nu_xy / E[0];//NU(0,1);
 		double nu_yz = NU(1,2);
-		double nu_zy = NU(2,1);
 		double nu_xz = NU(0,2);
 		double nu_zx = NU(2,0);
+		double nu_zy = NU(2,1);
 
 		double xi = 1.00 - (nu_xy * nu_yx + nu_yz * nu_zy + nu_zx * nu_xz) - (nu_xy * nu_yz * nu_zx + nu_yx * nu_zy * nu_xz);
 
 		double dxx = E[0] * (1.00 - nu_yz * nu_zy) / xi;
-		double dxy = E[0] * (nu_xy + nu_xz * nu_zy) / xi;
-		double dxz = E[0] * (nu_xz + nu_yz * nu_xy) / xi;
+		double dxy = E[0] * (nu_yx + nu_zx * nu_yz) / xi;
+		double dxz = E[0] * (nu_zx + nu_yx * nu_zy) / xi;
+
+		double dyx = E[1] * (nu_xy + nu_xz * nu_zy) / xi;
 		double dyy = E[1] * (1.00 - nu_xz * nu_zx) / xi;
-		double dyz = E[1] * (nu_yz + nu_yx * nu_xz) / xi;
+		double dyz = E[1] * (nu_zy + nu_zx * nu_xy) / xi;
+
+		double dzx = E[2] * (nu_xz + nu_yz * nu_xy) / xi;
+		double dzy = E[2] * (nu_yz + nu_yx * nu_xz) / xi;
 		double dzz = E[2] * (1.00 - nu_yx * nu_xy) / xi;
 
 		//filling material matrix
 		C(0,0) = dxx;    C(0,1) = dxy;    C(0,2) = dxz;    C(0,3) = 0.0;   C(0,4) = 0.0;   C(0,5) = 0.0;
-		C(1,0) = dxy;    C(1,1) = dyy;    C(1,2) = dyz;    C(1,3) = 0.0;   C(1,4) = 0.0;   C(1,5) = 0.0;
-		C(2,0) = dxz;    C(2,1) = dyz;    C(2,2) = dzz;    C(2,3) = 0.0;   C(2,4) = 0.0;   C(2,5) = 0.0;
+		C(1,0) = dyx;    C(1,1) = dyy;    C(1,2) = dyz;    C(1,3) = 0.0;   C(1,4) = 0.0;   C(1,5) = 0.0;
+		C(2,0) = dzx;    C(2,1) = dzy;    C(2,2) = dzz;    C(2,3) = 0.0;   C(2,4) = 0.0;   C(2,5) = 0.0;
 		C(3,0) = 0.0;    C(3,1) = 0.0;    C(3,2) = 0.0;    C(3,3) = rG[0]; C(3,4) = 0.0;   C(3,5) = 0.0;
 		C(4,0) = 0.0;    C(4,1) = 0.0;    C(4,2) = 0.0;    C(4,3) = 0.0;   C(4,4) = rG[1]; C(4,5) = 0.0;
 		C(5,0) = 0.0;    C(5,1) = 0.0;    C(5,2) = 0.0;    C(5,3) = 0.0;   C(5,4) = 0.0;   C(5,5) = rG[2];
@@ -249,7 +292,12 @@ namespace Kratos
 
 		CalculateTransformationMatrix(t_matrix);
 
-		Matrix temp(6,6) = prod(C,t_matrix);
+		Matrix temp(6,6);
+		// test. to be removed!
+		//C=IdentityMatrix(6,6);
+		// End test
+
+		noalias(temp) = prod(C,t_matrix);
 		noalias(C) = prod(trans(t_matrix), temp);
 		
 	}
@@ -260,8 +308,8 @@ namespace Kratos
 	void Orthotropic3D::CalculateTransformationMatrix(Matrix& T)
 	{
 		double a11 = mMaterialDirection(0,0);
-		double a12 = mMaterialDirection(0,0);
-		double a13 = mMaterialDirection(0,0);
+		double a12 = mMaterialDirection(0,1);
+		double a13 = mMaterialDirection(0,2);
 
 		double a21 = mMaterialDirection(1,0);
 		double a22 = mMaterialDirection(1,1);
