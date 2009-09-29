@@ -92,6 +92,11 @@ namespace Kratos
 			 */
 			Orthotropic3D();
 			
+			 /**
+			  * Copy constructor.
+			  */
+			 Orthotropic3D(const Orthotropic3D& rOther);
+
 			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
 			{
 				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Orthotropic3D());
@@ -221,7 +226,7 @@ namespace Kratos
 			  * @param NU the Poisson ratio
 			  * @return the linear elastic constitutive matrix
 			  */
-			 void CalculateElasticMatrix(Matrix& C, const array_1d<double,3>r& E, const Matrix& NU, const array_1d<double,3>& rG);
+			 void CalculateElasticMatrix(Matrix& C, const array_1d<double,3>& E, const Matrix& NU, const array_1d<double,3>& rG);
 
 		         Vector mE,mNU;
 			 Matrix mMaterialDirection;
@@ -238,10 +243,6 @@ namespace Kratos
 			  * Assignment operator.
 			  */
 			 //Orthotropic3D& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
-			 /**
-			  * Copy constructor.
-			  */
-			 //Orthotropic3D(const IsotropicPlaneStressWrinklingNew& rOther);
 	}; // Class Orthotropic3D 
 }  // namespace Kratos.
 #endif // KRATOS_ORTHOTROPIC_3D_H_INCLUDED  defined 
