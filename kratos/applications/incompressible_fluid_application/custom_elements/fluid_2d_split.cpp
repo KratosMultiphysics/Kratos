@@ -110,7 +110,7 @@ namespace Kratos
 	}
 
 	//************************************************************************************
-	//************************************************************************************
+	//***************************************boost::numeric::ublas::bounded_matrix<double,4,2> *********************************************
 	void Fluid2DSplit::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
@@ -134,7 +134,7 @@ namespace Kratos
 	
 	//getting data for the given geometry
 	double Area;
-	//The shape functions are calculated on the unique gauss point (their value is then 1/3. 
+	//The shape functions are calculated on the unique gauss point (their value is then 1/3). 
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
 	 
 
@@ -151,10 +151,10 @@ namespace Kratos
 // KRATOS_WATCH(this->Id())
 		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		  if (dist_on_agp(i) < 0.0)
+		  if (dist_on_agp[i] < 0.0)
 		  {
 // KRATOS_WATCH(this->Id())
-		        double Area = A_on_agp(i);
+		        double Area_se = A_on_agp(i);
 // KRATOS_WATCH(Area);
 		      
 		        for (unsigned int j = 0; j < N.size(); j++)
@@ -163,12 +163,14 @@ namespace Kratos
 // 		        double tauone = 0.0;//delta_t;
 // 		        double tautwo = 0.0;//delta_t;*/
 		        double tauone, tautwo;
- 		        CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
+ 		        CalculateTau(tauone, tautwo, delta_t, Area ,  rCurrentProcessInfo);
 
 
 		        //add body force and momentum
-		        AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone,tautwo);
-
+		        AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area_se, tauone,tautwo);
+		        
+		        //add volume correction - q * div vn
+		        AddVolumeCorrection(rRightHandSideVector, N, delta_t, Area_se) ;
 // 		        //add projections
 // 		        if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
 // 			   AddProjectionForces(rRightHandSideVector,DN_DX,Area,tauone, tautwo);	
@@ -184,11 +186,13 @@ namespace Kratos
 // 		double tauone = 0.0;//delta_t;
 // 		double tautwo = 0.0;//delta_t;
 		double tauone, tautwo;
-		CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+		CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
 
 
 		//add body force and momentum
 		AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone,tautwo);
+
+		AddVolumeCorrection(rRightHandSideVector, N, delta_t, Area) ;
 
 // 		//add projections
 // 		if(rCurrentProcessInfo[OSS_SWITCH] == 1.0)
@@ -215,11 +219,11 @@ namespace Kratos
 	void Fluid2DSplit::CalculateMassContribution(MatrixType& K,const double time,const double area)
 	{
 	KRATOS_TRY
-	double lump_mass_fac = area * 0.333333333333333333333333;
 	double density;
 	double mu;
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
+	double lump_mass_fac = density * area * 0.333333333333333333333333;
 
 // KRATOS_WATCH(mu)
 // KRATOS_WATCH(eps)
@@ -231,7 +235,7 @@ namespace Kratos
 	    {
 		int row = nd*(dof + 1);
 		for( int jj=0; jj< dof; jj++)
-			K(row + jj, row + jj) += density * lump_mass_fac;
+			K(row + jj, row + jj) +=  lump_mass_fac;
 	    }
 	
 		KRATOS_CATCH("")
@@ -279,61 +283,53 @@ namespace Kratos
 
 		        DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 		        
-		        boost::numeric::ublas::bounded_matrix<double,6,6> temp_MassMatr = ZeroMatrix(matsize,matsize);
+		        boost::numeric::ublas::bounded_matrix<double,3,3> temp_MassMatr = ZeroMatrix(dof + 1, dof +1);
 
 		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		        {
 			 //if the virtual sub element is a fluid element
-			 if (dist_on_agp(i) < 0.0)
+			 if (dist_on_agp[i] < 0.0)
 			 {
 			       double Area = A_on_agp(i);
+			       double fac = Area * density;
 			       //shape functions of the element calculated on the auxiliary gauss points (gp of the sub elements)
 			       for (unsigned int j = 0; j < N.size(); j++)
 				    N[j] = N_on_agp(i,j);
 
-			       boost::numeric::ublas::bounded_matrix<double,2,6> shape_func = ZeroMatrix(dof, matsize);
+			       array_1d<double,3> shape_func = ZeroVector(dof + 1);
+
 
 			       for (unsigned int ii = 0; ii< N.size(); ii++)
 				  {
-				        int column = ii*2;
-				        shape_func(0,column) = N[ii]; 
-				        shape_func(1,column + 1) = shape_func(0, column);
+				        shape_func[ii] = N[ii]; 
 				  }
-		      // |  N0(agp_i)* N0(agp_i)		0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)	0	  |	
-		      // |  0			N0(agp_i)* N0(agp_i)	0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)|	
-        //temp_MassMatrix=	|N1(agp_i)* N0(agp_i)		0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)	0	  | * density * Area	(sum on agp_i)
-		      // |  0			N1(agp_i)* N0(agp_i)	0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)|
-		      // |  N2(agp_i)* N0(agp_i)		0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)	0	  |	
-		      // |  0			N2(agp_i)* N0(agp_i)	0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)|	
+		      // |  N0(agp_i)* N0(agp_i)		N0(agp_i)* N1(agp_i)	N0(agp_i)* N2(agp_i)	 |	
+        //temp_MassMatrix=	|N1(agp_i)* N0(agp_i)		N1(agp_i)* N1(agp_i)	N1(agp_i)* N2(agp_i)	  | * density * Area	(sum on agp_i)
+		      // |  N2(agp_i)* N0(agp_i)		N2(agp_i)* N1(agp_i)	N2(agp_i)* N2(agp_i)	  |	
 			       
+			       noalias(temp_MassMatr) +=  fac * outer_prod(shape_func,shape_func);	    
 
-			       noalias(temp_MassMatr) += Area * density * prod(trans(shape_func),shape_func);	    
- 
 			 }
 		        }
 
-		      
-		        //construing the lumped mass matrix from the 6*6 tempMassMatrix;
 		        for ( int ii = 0; ii < nodes_number; ii++)
 		        {
 			     int row = ii*(dof+1);
-			     int loc_row = ii*dof;
 			     for( int jj=0; jj < nodes_number; jj++)
 			       {
-// 				    int column = jj*(dof+1);
-				    int loc_column = jj*dof;
+				    rMassMatrix(row,row) += temp_MassMatr(ii,jj);
+				    rMassMatrix(row + 1,row + 1) += temp_MassMatr(ii,jj);
 
-				    rMassMatrix(row,row) += temp_MassMatr(loc_row,loc_column);
-				    rMassMatrix(row + 1,row + 1) += temp_MassMatr(loc_row + 1,loc_column + 1);
 			       }
 		        }
+
 
 		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		        {
 			   //if the virtual sub element is a fluid element
-			   if (dist_on_agp(i) < 0.0)
+			   if (dist_on_agp[i] < 0.0)
 			   {
-				double Area = A_on_agp(i);
+				double Area_se = A_on_agp[i];
 				//shape functions of the element calculated on the auxiliary gauss points (gp of the sub elements)
 				for (unsigned int j = 0; j < N.size(); j++)
 				      N[j] = N_on_agp(i,j);
@@ -341,15 +337,11 @@ namespace Kratos
 	 // 		        double tauone = 0.0;//delta_t;
 	 // 		        double tautwo = 0.0;//delta_t;*/
 				double tauone, tautwo;
-//comment***************************************************************
-				CalculateTau(tauone, tautwo, delta_t, Area , rCurrentProcessInfo);
+				CalculateTau(tauone, tautwo, delta_t, Area ,  rCurrentProcessInfo);
 				//add stablilization terms due to advective term (a)grad(V) * rho*Acc
-				CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
+				CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area_se);
 				//add stablilization terms due to grad term grad(q) * rho*Acc
-				CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
-// 				//add stabilization due to darcy term (rho*Acc, (Av+B|v|v)/rho)
-// // 				/*CalculateDarcyMassStblTerms(rMassMatrix, DN_DX, tauone,Area);*/
-//comment***************************************************************
+				CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area_se);
 			   }	
 		        }
 		}
@@ -359,20 +351,15 @@ namespace Kratos
         /*		double tauone = 0.0;//delta_t;
 		        double tautwo = 0.0;// delta_t;*/
 		        double tauone, tautwo;
-		        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-//comment***************************************************************
+		        CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
 		        CalculateMassContribution(rMassMatrix,delta_t,Area); 
 		        //add stablilization terms due to advective term (a)grad(V) * ro*Acce
 		        CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
 		        //add stablilization terms due to grad term grad(q) * ro*Acce
 		        CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
-// 		        //add stabilization due to darcy term (rho*Acc, (Av+B|v|v)/rho)
-// // 		        /*CalculateDarcyMassStblTerms(rMassMatrix, DN_DX, tauone,Area);*/
-//comment***************************************************************
 
 		  }
 	 
-//***end*/
 		KRATOS_CATCH("")
 	}
 	//************************************************************************************
@@ -399,113 +386,74 @@ namespace Kratos
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
 	
 
-	 if(GetValue(IS_DIVIDED) == 1.0)
-	 {
-		boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
-		array_1d<double,4> A_on_agp = ZeroVector(4);
-		boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
-		array_1d<double,4> dist_on_agp = ZeroVector(4);
-
-		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
-// KRATOS_WATCH(aux_gp)
-// KRATOS_WATCH(A_on_agp)
-// KRATOS_WATCH(N_on_agp)
-// KRATOS_WATCH(dist_on_agp)
-		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
+	if(GetValue(IS_DIVIDED) == 1.0)
 		{
-		  if (dist_on_agp(i) < 0.0)
-		  {
+		        boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+		        array_1d<double,4> A_on_agp = ZeroVector(4);
+		        boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+		        array_1d<double,4> dist_on_agp = ZeroVector(4);
 
-		        double Area = A_on_agp(i);
-		      
-		        for (unsigned int j = 0; j < N.size(); j++)
-			     N[j] = N_on_agp(i,j);
+		        DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
 
-		        //viscous term	
-//comment *****************************************************************************
-		        CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-//comment *****************************************************************************
-		        //Advective term
-// 		        double tauone = 0.0;//delta_t;
-// 		        double tautwo = 0.0;//delta_t;
-		        double tauone, tautwo;
-  		        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-//comment *****************************************************************************
-		        CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
-//comment *****************************************************************************				
-// 		        //calculate pressure term
-		        CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
-//decomment*********************************************************************
+		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
+		        {
+			 if (dist_on_agp[i] < 0.0)
+			 {
+			       double Area_se = A_on_agp[i];
+			     
+			       for (unsigned int j = 0; j < N.size(); j++)
+				    N[j] = N_on_agp(i,j);
 
-		        //calculate Darcy term
-		        CalculateDarcyTerm_SubElem(rDampMatrix, N, Area);
-//decomment*********************************************************************
+			       //viscous term	
+			       CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+			       //Advective term
+        // 		        double tauone = 0.0;//delta_t;
+        // 		        double tautwo = 0.0;//delta_t;
+			       double tauone, tautwo;
+			       CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+			       CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area_se);
+        // 		        //calculate pressure term
+			       CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area_se);
+			       //calculate Darcy term
+			       CalculateDarcyTerm_SubElem(rDampMatrix, N, Area_se);
 
-		        //compute projections
+			       //compute projections
 
-		        //stabilization terms
-		        CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
-		        CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
-		        CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
-//  /*		        CalculateDarcyStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);*/
-// 		        //KRATOS_WATCH(rRightHandSideVector);
+			       //stabilization terms
+			       CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area_se);
+			       CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area_se);
+			       CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area_se);
 
-		  }
+			 }
 
+		        }
 		}
-	 }
-	 else if(GetValue(IS_DIVIDED) == -1.0)
-	 {
-/*KRATOS_WATCH("K mass_matrix")
-KRATOS_WATCH(rDampMatrix)	*/		  //viscous term	
-//comment *****************************************************************************
- 		  CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-//comment *****************************************************************************
-/*KRATOS_WATCH("K viscous")
-KRATOS_WATCH(rDampMatrix)	*/		  
-		  //Advective term
-		  //		  double tauone =0.0; //delta_t;
-		  //		  double tautwo =0.0;// delta_t;
-		  double tauone, tautwo;
- 		  CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-//comment *****************************************************************************
- 		  CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
-// //comment *****************************************************************************
-/*KRATOS_WATCH("K advection")
-KRATOS_WATCH(rDampMatrix)	*/		   
+		else if(GetValue(IS_DIVIDED) == -1.0)
+		{
 
-		  //calculate pressure term
-		  CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
-// KRATOS_WATCH("K pressure")
-// KRATOS_WATCH(rDampMatrix)
-//decomment*********************************************************************
-		  //calculate Darcy term
-		  CalculateDarcyTerm(rDampMatrix, Area);
-//decomment*********************************************************************
-// KRATOS_WATCH("K darcy****************************************************")
-// KRATOS_WATCH(rDampMatrix)
-		  //compute projections
+			 CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+		
+			 //Advective term
+			 //		  double tauone =0.0; //delta_t;
+			 //		  double tautwo =0.0;// delta_t;
+			 double tauone, tautwo;
+			 CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+			 CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);		   
 
-		  //stabilization terms
-//comment *******************************************************************************
-		  CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
-		  CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
-		  CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
-// 		  /*CalculateDarcyStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);*/
-//comment *******************************************************************************
-		  //KRATOS_WATCH(rRightHandSideVector);
-	
-	 }
-//delete *******************
-//calculating 
+			 //calculate pressure term
+			 CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
 
+			 //calculate Darcy term
+			 CalculateDarcyTerm(rDampMatrix, Area);
 
+			 //compute projections
 
-      
-
-
-//delete *******************
-
+			 //stabilization terms
+			 CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
+			 CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
+			 CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
+	       
+		}
 
 		KRATOS_CATCH("")
 	}
@@ -518,29 +466,23 @@ KRATOS_WATCH(rDampMatrix)	*/
 	{
 		KRATOS_TRY
 	double mu;
-	/*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-	const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-	const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-	mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);*/
-	
 	double density;
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
-//KRATOS_WATCH(mu);
 
 	//nu = mu/density;	
 
 	int nodes_number = 3;
 	int dof = 2;
-
+	 double fac = mu * area;
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
 		int row = ii*(dof+1);
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
-			int column = jj*(dof+1);
-		K(row,column) += mu * area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
-		K(row + 1,column + 1) += mu * area*(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
+			 int column = jj*(dof+1);
+			 K(row,column) += fac *(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
+			 K(row + 1,column + 1) += fac *(DN_DX(ii,0)*DN_DX(jj,0) + DN_DX(ii,1)*DN_DX(jj,1));
 		   }	
 	    }
 					
@@ -553,20 +495,17 @@ KRATOS_WATCH(rDampMatrix)	*/
 	{
 		KRATOS_TRY
 	//calculate mean advective velocity and taus
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
 	double density;
 	double mu;
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
 
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
+	ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
+	ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
 
 	//ms_adv_vel[0] = 0.0;
 	//ms_adv_vel[1] = 0.0;
@@ -576,36 +515,28 @@ KRATOS_WATCH(rDampMatrix)	*/
 	int dof = 2;
 	int matsize = dof*nodes_number;
 
-	boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
-	boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
-
+	array_1d<double,3> conv_opr = ZeroVector(dof+1);
+	array_1d<double,3> shape_func = ZeroVector(dof+1);
 	for (int ii = 0; ii< nodes_number; ii++)
 	    {
 		int column = ii*dof;
-		conv_opr(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
-		conv_opr(1,column + 1) = conv_opr(0,column);
-
-		shape_func(column,0) = N[ii];
-		shape_func(column + 1, 1) = shape_func(column,0);
+		conv_opr[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
+		shape_func[ii] = N[ii];
 	    }
-	boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
-	temp_convterm = prod(shape_func, conv_opr);
+	boost::numeric::ublas::bounded_matrix<double,3,3> temp_convterm;
 
-	//double fac = tauone/time;
-	//fac = 0.0; 
-	//temp_convterm *= ((1 + fac*density)*density); // For the simplicity of implementation the stabilization term tau1*rho/deltat*(a.gradV U(n+1,t)) is added 	
-	
+	noalias(temp_convterm) = outer_prod(shape_func, conv_opr);
+
+	double fac = area * density;
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
 		int row = ii*(dof+1);
-		int loc_row = ii*dof;
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1);
-			int loc_column = jj*dof;
 
-			K(row,column) += area * density * temp_convterm(loc_row,loc_column);
-			K(row + 1,column + 1) += area * density * temp_convterm(loc_row + 1,loc_column + 1);
+			K(row,column) += fac * temp_convterm(ii,jj);
+			K(row + 1,column + 1) += fac * temp_convterm(ii,jj);
 		   }
 	    }
 
@@ -622,16 +553,12 @@ KRATOS_WATCH(rDampMatrix)	*/
 		double mu;
 		double eps;
 		CalculateDensity(GetGeometry(), density, mu, eps);
-// KRATOS_WATCH(mu);
 		double dp = 0.01; //diameter of the particle	
 		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
-// KRATOS_WATCH(kinv);
-		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-		const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-// KRATOS_WATCH(vel0);	
-// KRATOS_WATCH(vel1);
-// KRATOS_WATCH(vel2);
+		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+
 		int nodes_number = 3;
 		int dof = 2;
 		int matsize = dof*nodes_number;
@@ -646,69 +573,29 @@ KRATOS_WATCH(rDampMatrix)	*/
 			 norm_vel_2[2] += vel2[ii]*vel2[ii];
 			 vel_gp[ii] = N[0]*vel0[ii] + N[1]*vel1[ii] + N[2]*vel2[ii];
 		}
-// KRATOS_WATCH(GetGeometry()[0].Id())
-// KRATOS_WATCH(vel0)
-// KRATOS_WATCH(GetGeometry()[1].Id())
-// KRATOS_WATCH(vel1)
-// KRATOS_WATCH(GetGeometry()[2].Id())
-// KRATOS_WATCH(vel2)
-// KRATOS_WATCH(N)
-// KRATOS_WATCH(vel_gp)
+
 		double norm_vel_gp = 0.0;
 		for (int ii = 0; ii < nodes_number; ii++)
 		{
 			 norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
 		}
 /*
-		      // |  N0(agp_i)* N0(agp_i)		0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)	0	  |	
-		      // |  0			N0(agp_i)* N0(agp_i)	0	N0(agp_i)* N1(agp_i)	0	N0(agp_i)* N2(agp_i)|	
-        //temp_sfprod=	|N1(agp_i)* N0(agp_i)		0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)	0	  | * Darcy term	
-		      // |  0			N1(agp_i)* N0(agp_i)	0	N1(agp_i)* N1(agp_i)	0	N1(agp_i)* N2(agp_i)|
-		      // |  N2(agp_i)* N0(agp_i)		0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)	0	  |	
-		      // |  0			N2(agp_i)* N0(agp_i)	0	N2(agp_i)* N1(agp_i)	0	N2(agp_i)* N2(agp_i)|	
+		      // |  N0(agp_i)* N0(agp_i)	N0(agp_i)* N1(agp_i)	N0(agp_i)* N2(agp_i)  |	
+        //temp_sfprod=	| N1(agp_i)* N0(agp_i)	N1(agp_i)* N1(agp_i)	N1(agp_i)* N2(agp_i)  | * Darcy term	
+		      // |  N2(agp_i)* N0(agp_i)	N2(agp_i)* N1(agp_i)	N2(agp_i)* N2(agp_i)  |	
 			       
- 
 */
-
-		boost::numeric::ublas::bounded_matrix<double,2,6> shape_func = ZeroMatrix(dof, matsize);
-
-		for (int ii = 0; ii< nodes_number; ii++)
+		//boost::numeric::ublas::bounded_matrix<double,2,6> shape_func = ZeroMatrix(dof, matsize);
+		array_1d<double,3> shape_func = ZeroVector(dof + 1);
+		for (int ii = 0; ii< N.size(); ii++)
 		    {
-			 int column = ii*dof;
-			 shape_func(0,column) = N[ii];
-			 shape_func(1,column + 1) = shape_func(0,column);
+			 shape_func[ii] = N[ii]; 
 		    }
-// KRATOS_WATCH(shape_func)
-		boost::numeric::ublas::bounded_matrix<double,6,6> temp_sfprod = ZeroMatrix(matsize,matsize);
-		noalias(temp_sfprod) = area * prod(trans(shape_func),shape_func);	    
-// 		KRATOS_WATCH(temp_sfprod)
+	    
+		boost::numeric::ublas::bounded_matrix<double,3,3> temp_sfprod = ZeroMatrix(dof +1,dof +1);
+		noalias(temp_sfprod) = area * outer_prod(shape_func,shape_func);
 
-// Consistent form
-// 		for ( int ii = 0; ii < nodes_number; ii++)
-// 		    {
-// 			 int row = ii*(dof+1);
-// 			 int loc_row = ii*dof;
-// 			 for( int jj=0; jj < nodes_number; jj++)
-// 			   {
-// 				int column = jj*(dof+1);
-// 				int loc_column = jj*dof;
-// 				//DARCY TERM linear part
-// 				K(row,column) += (kinv * mu) * temp_sfprod(loc_row,loc_column);
-// /*double aux = (kinv * mu) * temp_sfprod(loc_row,loc_column);
-// KRATOS_WATCH(aux)*/
-// 				K(row + 1,column + 1) += (kinv * mu) * temp_sfprod(loc_row + 1,loc_column + 1);
-// /*double aux2 = (kinv * mu) * temp_sfprod(loc_row + 1,loc_column + 1);
-// KRATOS_WATCH(aux2)*/
-// 				//DARCY TERM nonlinear part
-// 				K(row,column) += (1.75 * density /eps * sqrt(norm_vel_2[jj] *  kinv / (eps * 150.0))) * temp_sfprod(loc_row,loc_column);
-// 				K(row + 1,column + 1) += (1.75 * density /eps * sqrt(norm_vel_2[jj] *  kinv / (eps * 150.0))) * temp_sfprod(loc_row + 1,loc_column + 1);
-// // KRATOS_WATCH(K(row,column))
-// 
-// 			   }
-// 		    }
-// KRATOS_WATCH("after")
-// 	KRATOS_WATCH(mu)
-// Lumped form
+		// Lumped form
 		double fac_linear = kinv * mu;	
 		double fac_nonlinear = (1.75 * density /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0))) ;
 
@@ -718,20 +605,16 @@ KRATOS_WATCH(rDampMatrix)	*/
 			 int loc_row = ii*dof;
 			 for( int jj=0; jj < nodes_number; jj++)
 			   {
-/*				int column = jj*(dof+1);*/
+
 				int loc_column = jj*dof;
 				//DARCY TERM linear part
-				K(row,row) += fac_linear * temp_sfprod(loc_row,loc_column);
-/*double aux = (kinv * mu) * temp_sfprod(loc_row,loc_column);
-KRATOS_WATCH(aux)*/
-				K(row + 1,row + 1) += fac_linear * temp_sfprod(loc_row + 1,loc_column + 1);
-/*double aux2 = (kinv * mu) * temp_sfprod(loc_row + 1,loc_column + 1);
-KRATOS_WATCH(aux2)*/
+				K(row,row) += fac_linear * temp_sfprod(ii,jj);
+				K(row + 1,row + 1) += fac_linear * temp_sfprod(ii,jj);
+
 				//DARCY TERM nonlinear part
-				K(row    ,row    ) += fac_nonlinear * temp_sfprod(loc_row,loc_column);
-				K(row + 1,row + 1) += fac_nonlinear * temp_sfprod(loc_row + 1,loc_column + 1);
+				K(row    ,row    ) += fac_nonlinear * temp_sfprod(ii,jj);
+				K(row + 1,row + 1) += fac_nonlinear * temp_sfprod(ii,jj);
 			   }
-// KRATOS_WATCH(K(row,column))
 		    }
 
 		KRATOS_CATCH("")
@@ -748,19 +631,13 @@ KRATOS_WATCH(aux2)*/
 		
 		double dp = 0.01; //diameter of the particle	
 		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
-// KRATOS_WATCH(kinv);
-// KRATOS_WATCH(mu);
-// KRATOS_WATCH(lump_mass_fac);
-// KRATOS_WATCH(density);
-// KRATOS_WATCH(eps);
 
-		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-		const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 		
 		int nodes_number = 3;
 		int dof = 2;
-// 		int matsize = dof*nodes_number;
 
 		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
 		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
@@ -778,11 +655,7 @@ KRATOS_WATCH(aux2)*/
 		{
 			 norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
 		}		
-//delete *******************************************************************
-// 	boost::numeric::ublas::bounded_matrix<double,2,2> temporary_DARCYterm = ZeroMatrix(2,2);
-// // 	array_1d<double,2> AUX_VEL = ZeroVector(2);
 
-//delete *******************************************************************
 		double fac_linear = kinv * mu;	
 		double fac_nonlinear = (1.75 * density /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0))) ;
 
@@ -794,36 +667,9 @@ KRATOS_WATCH(aux2)*/
 			   K(row + jj, row + jj) +=  fac_linear * lump_mass_fac;
 			   //DARCY TERM nonlinear part:
 			   K(row + jj, row + jj) += fac_nonlinear * lump_mass_fac;
-		      
-//delete *******************************************************************
-// 			   temporary_DARCYterm(jj, jj) =  (kinv * mu) * lump_mass_fac;
-// // 			   //DARCY TERM nonlinear part:
-// 			   temporary_DARCYterm(jj, jj) += (1.75 * density /eps * sqrt(norm_vel_2[nd] *  kinv / (eps * 150.0)))* lump_mass_fac;
-//delete *******************************************************************
 		      }
-//delete *******************************************************************
-// AUX_VEL(0)=GetGeometry()[nd].FastGetSolutionStepValue(VELOCITY_X,0);
-// AUX_VEL(1)=GetGeometry()[nd].FastGetSolutionStepValue(VELOCITY_Y,0);
-// // 
-// KRATOS_WATCH(AUX_VEL);
-// // KRATOS_WATCH(nd);
-// KRATOS_WATCH(prod(temporary_DARCYterm, AUX_VEL));
-/*			   AUX_VEL(row) = GetGeometry()[nd].FastGetSolutionStepValue(VELOCITY_X,0);
-			   AUX_VEL(row + 1) = GetGeometry()[nd].FastGetSolutionStepValue(VELOCITY_Y,0);*/
-//delete *******************************************************************
 		}
-//delete *******************************************************************
-// KRATOS_WATCH(AUX_VEL);
-// KRATOS_WATCH(temporary_DARCYterm);
-//delete *******************************************************************
 
-// KRATOS_WATCH(area)
-// KRATOS_WATCH(kinv)
-// KRATOS_WATCH(lump_mass_fac)
-// 		KRATOS_WATCH((kinv * mu) * lump_mass_fac)
-//delete *******************************************************************
-// 		KRATOS_WATCH(prod(temp_DARCYterm,AUX_VEL));
-//delete *******************************************************************
 		KRATOS_CATCH("")
 	 }
 	//************************************************************************************
@@ -839,8 +685,6 @@ KRATOS_WATCH(aux2)*/
 	double mu;
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
-//KRATOS_WATCH(this->Id())
-//KRATOS_WATCH(density)
 
         //Pj mean point of the edge ik
         //N_on_meanp(i,j) = shape function od the node i calculated on the point Pj
@@ -851,33 +695,11 @@ KRATOS_WATCH(aux2)*/
 
 
 	// the matrix l_n contain the product of edge lengh l_jk*n_i (1st column x-comp, 2nd column y-comp, i = row index).
-	boost::numeric::ublas::bounded_matrix<double,3,2> l_n = ZeroMatrix(3,2);
-	l_n(0,0) = -2.0 * area * DN_DX(0,0); l_n(0,1) = -2.0 * area * DN_DX(0,1);
-	l_n(1,0) = -2.0 * area * DN_DX(1,0); l_n(1,1) = -2.0 * area * DN_DX(1,1); 
-	l_n(2,0) = -2.0 * area * DN_DX(2,0); l_n(2,1) = -2.0 * area * DN_DX(2,1);   
-
-// 	  const double& rho0 = 	GetGeometry()[0].FastGetSolutionStepValue(DENSITY,0);
-// 	  const double& rho1 =	GetGeometry()[1].FastGetSolutionStepValue(DENSITY,0);
-// 	  const double& rho2 =	GetGeometry()[2].FastGetSolutionStepValue(DENSITY,0);
-// 	  const double& eps0 = 	GetGeometry()[0].FastGetSolutionStepValue(POROSITY,0);
-// 	  const double& eps1 =	GetGeometry()[1].FastGetSolutionStepValue(POROSITY,0);
-// 	  const double& eps2 =	GetGeometry()[2].FastGetSolutionStepValue(POROSITY,0);
-// 	  array_1d<double,3> rho = ZeroVector(3);
-// 	 rho[0]= rho0 ; //* eps0;
-// 	 rho[1] = rho1 ; //* eps1;
-// 	 rho[2] = rho2 ; //* eps2;
+	boost::numeric::ublas::bounded_matrix<double,3,2> l_n = ZeroMatrix(3,2); 
+	noalias(l_n) = -2.0 * area *DN_DX;
 
 
-
-// KRATOS_WATCH(l_n);
-//KRATOS_WATCH(rho);
-//delete *******************************************************************
-// 	boost::numeric::ublas::bounded_matrix<double,9,9> temp_PRESSterm = ZeroMatrix(9,9);
-// 	array_1d<double,9> AUX_PRES = ZeroVector(9);
-// array_1d<double,3> AUX_PRES = ZeroVector(3);
-//delete *******************************************************************
-
-
+	 double fac = area *density;
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
 		int row = ii*(dof+1);
@@ -886,76 +708,18 @@ KRATOS_WATCH(aux2)*/
 			int column = jj*(dof+1) + dof;
 			//**************************************************************
  			//Elemental gradient of pressure term (momentum equation)
-			K(row,column) -= area * N(jj) * DN_DX(ii,0);
-			K(row + 1,column) -= area * N(jj) * DN_DX(ii,1);
-// 			 double prova = 0.0;
-// 			 double prova2 = 0.0;
+			K(row,column) -= area * N[jj] * DN_DX(ii,0);
+			K(row + 1,column) -= area * N[jj] * DN_DX(ii,1);
 
 			//**************************************************************
 // 			//Elemental divergence terms (continuity equation)
-
-			 //Formulation n2 calculate int_Area(q * Div( rho * u ) ) = - int_Area(Grad q * (rho*u)  + int_bound(rho * v dot n *q)
-			 //in order to take into account the jump in the density value. NOT EFFECTIVE ----> exactly equal to Formulation n1
-// 			for(int kk = 0; kk < nodes_number; kk++)
-// 			{
-// 				//	//int_bound(rho * v dot n *q)
-// 				K(column,row) +=  density*N_on_meanp(jj,kk)*l_n(kk,0)*N_on_meanp(ii,kk);
-// 				K(column,row + 1) +=  density*N_on_meanp(jj,kk)*l_n(kk,1)*N_on_meanp(ii,kk);
-// // // 				prova += density*N_on_meanp(jj,kk)*l_n(kk,0)*N_on_meanp(ii,kk);
-// // // 				prova2  +=  density*N_on_meanp(jj,kk)*l_n(kk,1)*N_on_meanp(ii,kk);
-// 			}
-// KRATOS_WATCH("K(column, row)")	KRATOS_WATCH(column)  	 KRATOS_WATCH(row)
-// 				KRATOS_WATCH(prova);
-// KRATOS_WATCH(row+1)
-// KRATOS_WATCH(prova2)
-//			//- int_Area(Grad q * (rho*u) 
-//			K(column,row) -= area*density*DN_DX(jj,0)*N(ii);
-//			K(column,row + 1) -= area*density*DN_DX(jj,1)*N(ii);
-// KRATOS_WATCH("prova_2parte")
-// KRATOS_WATCH(row)
-// KRATOS_WATCH(area*density*(jj,0)*N(ii));
-// KRATOS_WATCH(row+1)
-// KRATOS_WATCH(area*density*DN_DX(jj,1)*N(ii));
-// KRATOS_WATCH("old version ****************************************************************************")
-// KRATOS_WATCH(area *density* N(jj) * DN_DX(ii,0));
-// KRATOS_WATCH(row+1)
-// KRATOS_WATCH(area *density* N(jj) * DN_DX(ii,1));
-// 
-
-
-
 // 	 		// Fomulation n1  int( q * rho * Div( u ))
-			K(column,row) += area *density * N(jj) * DN_DX(ii,0);
-			K(column,row + 1) += area *density * N(jj) * DN_DX(ii,1);
-
-//delete *******************************************************************
-// 			temp_PRESSterm(row,column) -= area * N(jj) * DN_DX(ii,0);
-// 			temp_PRESSterm(row+1,column) -= area * N(jj) * DN_DX(ii,1);
-// 			AUX_PRES(column) = GetGeometry()[jj].FastGetSolutionStepValue(PRESSURE,0);
-// 			AUX_PRES(jj) = GetGeometry()[jj].FastGetSolutionStepValue(PRESSURE,0);
-
-//delete *******************************************************************
-
-
-// 			// Fomulation n3  Ni * DN_DX(j,k)* (rho_i * u_i)  ******* int(q * Div( rho * u ) ) (RHO NODAL!!!!!!!!!!)
-// 			K(column,row) += area * N(jj) * DN_DX(ii,0) * rho(ii);
-// 			K(column,row + 1) += area * N(jj) * DN_DX(ii,1) * rho (ii);
- 
-
-
+			K(column,row) += fac * N[jj] * DN_DX(ii,0);
+			K(column,row + 1) += fac * N[jj] * DN_DX(ii,1);
 
 		   }
 	    }
-//delete *******************************************************************
-// KRATOS_WATCH(temp_PRESSterm);
-//KRATOS_WATCH(AUX_PRES);
-// KRATOS_WATCH(prod(trans(DN_DX),AUX_PRES))
-//delete *******************************************************************
 
-// KRATOS_WATCH(K);
-//delete *******************************************************************
-// 			KRATOS_WATCH(prod(temp_PRESSterm,AUX_PRES));
-//delete *******************************************************************
 
 	    KRATOS_CATCH("")
 	}
@@ -968,12 +732,13 @@ KRATOS_WATCH(aux2)*/
 	int dof = 2;
 	int matsize = dof*nodes_number;
 
-	boost::numeric::ublas::bounded_matrix<double,1,6> div_opr = ZeroMatrix(1,matsize);
+// 	boost::numeric::ublas::bounded_matrix<double,1,6> div_opr = ZeroMatrix(1,matsize);
+	array_1d<double,6> div_opr;
 	for(int ii=0; ii<nodes_number; ii++)
 	  {
 		int index = dof*ii;
-		div_opr(0,index) = DN_DX(ii,0);
-		div_opr(0,index + 1) = DN_DX(ii,1);
+		div_opr[index] = DN_DX(ii,0);
+		div_opr[index + 1] = DN_DX(ii,1);
 	  }
 
 
@@ -984,184 +749,287 @@ KRATOS_WATCH(aux2)*/
 
 
 	boost::numeric::ublas::bounded_matrix<double,6,6> temp_div = ZeroMatrix(matsize,matsize);
-	temp_div = tautwo * prod(trans(div_opr),div_opr);
-//delete *******************************************************************
-// 	boost::numeric::ublas::bounded_matrix<double,9,9> temp_divSTBLterm = ZeroMatrix(9,9);
-//delete *******************************************************************
+	noalias(temp_div) = tautwo * outer_prod(div_opr,div_opr);
+
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
 		int row = ii*(dof+1);
 		int loc_row = ii*dof;
+		double fac = area*density;
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1);
 			int loc_column = jj*dof;
 
-			K(row,column) += area*density*temp_div(loc_row,loc_column);
-			K(row,column + 1) += area*density*temp_div(loc_row,loc_column + 1);
-			K(row + 1,column) += area*density*temp_div(loc_row + 1,loc_column);
-			K(row + 1,column + 1) += area*density*temp_div(loc_row + 1,loc_column + 1);
-//delete *******************************************************************
-// 			temp_divSTBLterm(row,column) +=area*density*temp_div(loc_row,loc_column);
-// 			temp_divSTBLterm(row,column + 1) += area*density*temp_div(loc_row,loc_column + 1);
-// 			temp_divSTBLterm(row + 1,column) += area*density*temp_div(loc_row + 1,loc_column);
-// 			temp_divSTBLterm(row + 1,column + 1) += area*density*temp_div(loc_row + 1,loc_column + 1);
-//delete *******************************************************************
+			K(row,column) += fac*temp_div(loc_row,loc_column);
+			K(row,column + 1) += fac*temp_div(loc_row,loc_column + 1);
+			K(row + 1,column) += fac*temp_div(loc_row + 1,loc_column);
+			K(row + 1,column + 1) += fac*temp_div(loc_row + 1,loc_column + 1);
+
 		   }
 	    }
-//delete *******************************************************************
-// 			KRATOS_WATCH(temp_divSTBLterm);
-//delete *******************************************************************
+
 		KRATOS_CATCH("")
 	}
 	//************************************************************************************
 	//************************************************************************************
 	void Fluid2DSplit::CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double time,const double area)
 	{
-	KRATOS_TRY
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+/*		KRATOS_TRY
+		const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
+		ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
+		ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
 
-		//ms_adv_vel[0] = 0.0;
-		//ms_adv_vel[1] = 0.0;
+		//calculate convective term	
+		int nodes_number = 3;
+		int dof = 2;
+		int matsize = dof*nodes_number;
 
-	//calculate convective term	
-	int nodes_number = 3;
-	int dof = 2;
-	int matsize = dof*nodes_number;
+		array_1d<double,3> conv_opr;
+		for (int ii = 0; ii< nodes_number; ii++)
+		    {
+			 conv_opr[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
+			 
+		    }
 
-	boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
-	boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(matsize, dof);
+		//build (a.grad V)(ro*a.grad U) stabilization term & assemble
+		boost::numeric::ublas::bounded_matrix<double,6,6> adv_stbltermOLD = ZeroMatrix(matsize,matsize);		
+		boost::numeric::ublas::bounded_matrix<double,3,3> adv_stblterm = ZeroMatrix(dof+1,dof +1);		
+		adv_stblterm = tauone * outer_prod(conv_opr,conv_opr);
+		adv_stbltermOLD = tauone * prod(trans(conv_oprOLD),conv_oprOLD);
 
-	for (int ii = 0; ii< nodes_number; ii++)
-	    {
-		int column = ii*dof;
-		conv_opr(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
-		conv_opr(1,column + 1) = conv_opr(0,column);
+		double density;
+		double mu;
+		double eps;
+		CalculateDensity(GetGeometry(), density, mu, eps);
+		double fac = area * density;
+		for ( int ii = 0; ii < nodes_number; ii++)
+		    {
+			 int row = ii*(dof+1);
+			 int loc_row = ii*dof;
+			 for( int jj=0; jj < nodes_number; jj++)
+			   {
+				int column = jj*(dof+1);
+				int loc_column = jj*dof;
+				
+				K(row,column) += area*density*adv_stbltermOLD(loc_row,loc_column);
+				K(row,column + 1) += area*density*adv_stbltermOLD(loc_row,loc_column + 1);//why??? it's a zero
+				K(row + 1,column) += area*density*adv_stbltermOLD(loc_row + 1,loc_column);//why??? it's a zero
+				K(row + 1,column + 1) += area*density*adv_stbltermOLD(loc_row + 1,loc_column + 1);
+// 				K(row,column) += fac * adv_stblterm(ii,jj);
+// 				K(row + 1,column + 1) +=  fac * adv_stblterm(ii,jj);
+			   }
+		    }
 		
-		shape_func(column,0) = N[ii];
-		shape_func(column + 1, 1) = shape_func(column,0);
-	    }
-
-	//build (a.grad V)(ro*a.grad U) stabilization term & assemble
-	boost::numeric::ublas::bounded_matrix<double,6,6> adv_stblterm = ZeroMatrix(matsize,matsize);		
-	adv_stblterm = tauone * prod(trans(conv_opr),conv_opr);
+		//build Darcy Au+B|u|u * (a.grad v) stabilization term & assemble + build (rho a.grad u)* (Av+B|v|v)/rho   stabilization term & assemble
+		double dp = 0.01; //diameter of the particle	
+		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
 
-	double density;
-	double mu;
-	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
-
-	for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-			int loc_column = jj*dof;
-			
-			K(row,column) += area*density*adv_stblterm(loc_row,loc_column);
-			K(row,column + 1) += area*density*adv_stblterm(loc_row,loc_column + 1);
-			K(row + 1,column) += area*density*adv_stblterm(loc_row + 1,loc_column);
-			K(row + 1,column + 1) += area*density*adv_stblterm(loc_row + 1,loc_column + 1);
-		   }
-	    }
-//decomment*********************************************************************
-	
-	 //build Darcy Au+B|u|u * (a.grad v) stabilization term & assemble + build (rho a.grad u)* (Av+B|v|v)/rho   stabilization term & assemble
-         double dp = 0.01; //diameter of the particle	
-         double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
-
-// 	 const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-// 	 const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-// 	 const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-
-	 array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
-	 array_1d<double,3> vel_gp = ZeroVector(nodes_number);
-	 //	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
-	 for (int ii = 0; ii < nodes_number; ii++)
-	 {
-		  norm_vel_2[0] += adv_vel0[ii]*adv_vel0[ii];
-		  norm_vel_2[1] += adv_vel1[ii]*adv_vel1[ii];
-		  norm_vel_2[2] += adv_vel2[ii]*adv_vel2[ii];
-		  vel_gp[ii] = N[0]*adv_vel0[ii] + N[1]*adv_vel1[ii] + N[2]*adv_vel2[ii];
-	 }
-	 double norm_vel_gp = 0.0;
-	 for (int ii = 0; ii < nodes_number; ii++)
-	 {
-		  norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
-	 }
+		  array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		  array_1d<double,3> vel_gp;
+		  //	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
+		  for (int ii = 0; ii < nodes_number; ii++)
+		  {
+			   norm_vel_2[0] += adv_vel0[ii]*adv_vel0[ii];
+			   norm_vel_2[1] += adv_vel1[ii]*adv_vel1[ii];
+			   norm_vel_2[2] += adv_vel2[ii]*adv_vel2[ii];
+			   vel_gp[ii] = N[0]*adv_vel0[ii] + N[1]*adv_vel1[ii] + N[2]*adv_vel2[ii];
+		  }
+		  double norm_vel_gp = 0.0;
+		  for (int ii = 0; ii < nodes_number; ii++)
+		  {
+			   norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
+		  }
 
 
 
-	boost::numeric::ublas::bounded_matrix<double,2,6> darcy_opr = ZeroMatrix(dof,matsize);
+		array_1d<double,3> darcy_opr;
+		double fac_linear = kinv * mu / density;
+		double fac_nonlinear = 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
+		for (int ii = 0; ii< nodes_number; ii++)
+		    {
+			 //DARCY TERM linear part /rho
+			 darcy_opr[ii] = N[ii] * fac_linear;
+			 //DARCY TERM nonlinear part /rho
+			 darcy_opr[ii] += N[ii] * fac_nonlinear;
+		    }
+
+		boost::numeric::ublas::bounded_matrix<double,3,3> darcy_stblterm = ZeroMatrix(dof +1,dof +1);
+		
+		darcy_stblterm = tauone * outer_prod(conv_opr,darcy_opr);
+
+		  for ( int ii = 0; ii < nodes_number; ii++)
+		    {
+			 int row = ii*(dof+1);
+			 for( int jj=0; jj < nodes_number; jj++)
+			   {
+				int column = jj*(dof+1);
+// 				Au+B|u|u * (a.grad v)
+
+				K(row,column) += fac *darcy_stblterm(ii,jj);
+				K(row + 1,column + 1) += fac *darcy_stblterm(ii,jj);
+
+			   }
+		    }
+
+
+		//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
+		boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
+ 		boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr_aux = ZeroMatrix(dof,matsize);
+		for (int ii = 0; ii< nodes_number; ii++)
+		    {
+			 int column = ii*dof;
+			 conv_opr_aux(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
+			 conv_opr_aux(1,column + 1) = conv_opr_aux(0,column);
+		    }
+		grad_stblterm = tauone * area * prod(trans(conv_opr_aux),trans(DN_DX));
+
+		for ( int ii = 0; ii < nodes_number; ii++)
+		    {
+			 int row = ii*(dof+1);
+			 int loc_row = ii*dof;
+			 for( int jj=0; jj < nodes_number; jj++)
+			   {
+				int column = jj*(dof+1) + dof;
+				//1*tau1*(a.grad V)(grad P)
+				K(row,column) +=  grad_stblterm(loc_row,jj);
+				K(row + 1,column) +=  grad_stblterm(loc_row + 1, jj);
+
+				//1*tau1*(grad q)(ro*a.grad U) 
+				K(column, row) += density * grad_stblterm(loc_row, jj);
+				K(column, row + 1) += density * grad_stblterm(loc_row + 1, jj);
+			   }
+		    }
+
+		//build (1.0*a.grad V) (Fbody) stabilization term & assemble
+		array_1d<double,2> bdf = ZeroVector(2);
+		const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+		const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+		const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+
+
+		bdf[0] =  (N[0]*bdf0[0] +  N[1]*bdf1[0] + N[2]*bdf2[0]);
+		bdf[1] =  (N[0]*bdf0[1] +  N[1]*bdf1[1] + N[2]*bdf2[1]);
+		
+
+		fbd_stblterm = tauone * prod(trans(conv_oprOLD),bdf);
+		fac = tauone * area * density;
+		for(int ii = 0; ii< nodes_number; ++ii)
+		  {
+			 int index = ii*(dof + 1);
+			 F[index]     += fac * conv_opr[ii] * bdf[0];
+			 F[index + 1] += fac * conv_opr[ii] * bdf[1];
+		  }
+		KRATOS_CATCH("")
+*/
+
+	KRATOS_TRY
+		const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+
+		ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
+		ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
+
+
+		//calculate convective term	
+		int nodes_number = 3;
+		int dof = 2;
+		int matsize = dof*nodes_number;
+/*begin TO DELETE AND REMEMBER TO CAHNGE conv_opr1 to conv_opr*/
+	boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr = ZeroMatrix(dof,matsize);
 
 	for (int ii = 0; ii< nodes_number; ii++)
 	    {
-		int column = ii*dof;
-					
-		//DARCY TERM linear part /rho
-		darcy_opr(0,column) = N[ii] * kinv * mu / density;
-		darcy_opr(1,column + 1) = darcy_opr(0,column);
-		//DARCY TERM nonlinear part /rho
-		darcy_opr(0,column) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
-		darcy_opr(1,column + 1) += N[ii] * 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
-
+		 int column = ii*dof;
+		 conv_opr(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
+		 conv_opr(1,column + 1) = conv_opr(0,column);
+		 
 	    }
-//delete *******************************************************************
-// 	boost::numeric::ublas::bounded_matrix<double,9,9> temp_pressSTBLterm = ZeroMatrix(9,9);
-// 	boost::numeric::ublas::bounded_matrix<double,9,9> temp_darcySTBLterm = ZeroMatrix(9,9);
-// 	array_1d<double,9> AUX_PRES = ZeroVector(9);
-// 	array_1d<double,9> AUX_VEL = ZeroVector(9);
-//delete *******************************************************************
+/*end TO DELETE AND REMEMBER TO CAHNGE conv_opr1 to conv_opr*/
+		array_1d<double,3> conv_opr1;
+		for (int ii = 0; ii< nodes_number; ii++)
+		    {
+			 conv_opr1[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
+			 
+		    }
+
+		//build (a.grad V)(ro*a.grad U) stabilization term & assemble
+		boost::numeric::ublas::bounded_matrix<double,3,3> adv_stblterm = ZeroMatrix(dof+1,dof +1);		
+		adv_stblterm = tauone * outer_prod(conv_opr1,conv_opr1);
+
+		double density;
+		double mu;
+		double eps;
+		CalculateDensity(GetGeometry(), density, mu, eps);
+		double fac = area * density;
+		for ( int ii = 0; ii < nodes_number; ii++)
+		    {
+			 int row = ii*(dof+1);
+			 for( int jj=0; jj < nodes_number; jj++)
+			   {
+				int column = jj*(dof+1);
+			
+				K(row,column) += fac * adv_stblterm(ii,jj);
+				K(row + 1,column + 1) +=  fac * adv_stblterm(ii,jj);
+			   }
+		    }
 
 
-	boost::numeric::ublas::bounded_matrix<double,6,6> darcy_stblterm = ZeroMatrix(matsize,matsize);		
-	darcy_stblterm = tauone * prod(trans(conv_opr),darcy_opr);
 
-	 for ( int ii = 0; ii < nodes_number; ii++)
-	    {
-		int row = ii*(dof+1);
-		int loc_row = ii*dof;
-		for( int jj=0; jj < nodes_number; jj++)
-		   {
-			int column = jj*(dof+1);
-			int loc_column = jj*dof;
-			//Au+B|u|u * (a.grad v)
-			K(row,column) += area*density *darcy_stblterm(loc_row,loc_column);
-			K(row,column + 1) += area*density *darcy_stblterm(loc_row,loc_column + 1);
-			K(row + 1,column) += area*density *darcy_stblterm(loc_row + 1,loc_column);
-			K(row + 1,column + 1) += area*density *darcy_stblterm(loc_row + 1,loc_column + 1);
+	
+	       //build Darcy Au+B|u|u * (a.grad v) stabilization term & assemble + build (rho a.grad u)* (Av+B|v|v)/rho   stabilization term & assemble
+	       double dp = 0.01; //diameter of the particle	
+	       double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
-//delete *******************************************************************
-// 			temp_darcySTBLterm(row,column) += area*density *darcy_stblterm(loc_row,loc_column);
-// 			temp_darcySTBLterm(row,column + 1) += area*density *darcy_stblterm(loc_row,loc_column + 1);
-// 			temp_darcySTBLterm(row + 1,column) += area*density *darcy_stblterm(loc_row + 1,loc_column);
-// 			temp_darcySTBLterm(row + 1,column + 1) += area*density *darcy_stblterm(loc_row + 1,loc_column + 1);
-// 			AUX_VEL(column) = GetGeometry()[jj].FastGetSolutionStepValue(VELOCITY_X,0);
-// 			AUX_VEL(column+1) = GetGeometry()[jj].FastGetSolutionStepValue(VELOCITY_Y,0);
-//delete *******************************************************************
+		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
+		array_1d<double,3> vel_gp = ZeroVector(nodes_number);
+		//	vector with the norm^2 of the velocity of the three nodes at the previous iteration;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_2[0] += adv_vel0[ii]*adv_vel0[ii];
+			 norm_vel_2[1] += adv_vel1[ii]*adv_vel1[ii];
+			 norm_vel_2[2] += adv_vel2[ii]*adv_vel2[ii];
+			 vel_gp[ii] = N[0]*adv_vel0[ii] + N[1]*adv_vel1[ii] + N[2]*adv_vel2[ii];
+		}
+		double norm_vel_gp = 0.0;
+		for (int ii = 0; ii < nodes_number; ii++)
+		{
+			 norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
+		}
 
+		array_1d<double,3> darcy_opr;
+		double fac_linear = kinv * mu / density;
+		double fac_nonlinear = 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
+		for (int ii = 0; ii< nodes_number; ii++)
+		    {
+			 //DARCY TERM linear part /rho
+			 darcy_opr[ii] = N[ii] * fac_linear;
+			 //DARCY TERM nonlinear part /rho
+			 darcy_opr[ii] += N[ii] * fac_nonlinear;
+		    }
 
-// 			//(rho a.grad u)* (Av+B|v|v)/rho
-// 			K(column, row) += area*density *darcy_stblterm(loc_row,loc_column);
-// 			K(column + 1, row) += area*density *darcy_stblterm(loc_row,loc_column + 1);
-// 			K(column, row + 1) += area*density *darcy_stblterm(loc_row + 1,loc_column);
-// 			K(column + 1, row + 1) += area*density *darcy_stblterm(loc_row + 1,loc_column + 1);
+		boost::numeric::ublas::bounded_matrix<double,3,3> darcy_stblterm = ZeroMatrix(dof +1,dof +1);
+		
+		darcy_stblterm = tauone * outer_prod(conv_opr1,darcy_opr);
 
-		   }
-	    }
-//decomment*********************************************************************
+		  for ( int ii = 0; ii < nodes_number; ii++)
+		    {
+			 int row = ii*(dof+1);
+			 for( int jj=0; jj < nodes_number; jj++)
+			   {
+				int column = jj*(dof+1);
+// 				Au+B|u|u * (a.grad v)
 
+				K(row,column) += fac *darcy_stblterm(ii,jj);
+				K(row + 1,column + 1) += fac *darcy_stblterm(ii,jj);
+
+			   }
+		    }
 
 	//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
 	boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
@@ -1178,24 +1046,41 @@ KRATOS_WATCH(aux2)*/
 			K(row,column) += area * grad_stblterm(loc_row,jj);
 			K(row + 1,column) += area * grad_stblterm(loc_row + 1, jj);
 
-//delete *******************************************************************
-/*
-			temp_pressSTBLterm(row,column) += area * grad_stblterm(loc_row,jj);
-			temp_pressSTBLterm(row + 1,column) += area * grad_stblterm(loc_row + 1, jj);
-			AUX_PRES(column) = GetGeometry()[jj].FastGetSolutionStepValue(PRESSURE,0);*/
-//delete *******************************************************************
-
 			//1*tau1*(grad q)(ro*a.grad U) 
 			K(column, row) += area * density*grad_stblterm(loc_row, jj);
 			K(column, row + 1) += area *density* grad_stblterm(loc_row + 1, jj);
 		   }
 	    }
-
-//delete *******************************************************************
-// KRATOS_WATCH(this->Id())
-// KRATOS_WATCH(prod(temp_darcySTBLterm,AUX_VEL));
-// KRATOS_WATCH(prod(temp_pressSTBLterm, AUX_PRES));
-//delete ******************************************************************* 
+// KRATOS_WATCH(conv_opr)
+// KRATOS_WATCH(DN_DX)
+// KRATOS_WATCH(grad_stblterm)
+// 		//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
+// 		boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
+//  		boost::numeric::ublas::bounded_matrix<double,2,6> conv_opr_aux = ZeroMatrix(dof,matsize);
+// 		for (int ii = 0; ii< nodes_number; ii++)
+// 		    {
+// 			 int column = ii*dof;
+// 			 conv_opr_aux(0,column) = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
+// 			 conv_opr_aux(1,column + 1) = conv_opr_aux(0,column);
+// 		    }
+// 		grad_stblterm = tauone * area * prod(trans(conv_opr_aux),trans(DN_DX));
+// 
+// 		for ( int ii = 0; ii < nodes_number; ii++)
+// 		    {
+// 			 int row = ii*(dof+1);
+// 			 int loc_row = ii*dof;
+// 			 for( int jj=0; jj < nodes_number; jj++)
+// 			   {
+// 				int column = jj*(dof+1) + dof;
+// 				//1*tau1*(a.grad V)(grad P)
+// 				K(row,column) +=  grad_stblterm(loc_row,jj);
+// 				K(row + 1,column) +=  grad_stblterm(loc_row + 1, jj);
+// 
+// 				//1*tau1*(grad q)(ro*a.grad U) 
+// 				K(column, row) += density * grad_stblterm(loc_row, jj);
+// 				K(column, row + 1) += density * grad_stblterm(loc_row + 1, jj);
+// 			   }
+// 		    }
 
 	//build (1.0*a.grad V) (Fbody) stabilization term & assemble
 	array_1d<double,2> bdf = ZeroVector(2);
@@ -1218,22 +1103,41 @@ KRATOS_WATCH(aux2)*/
 		F[index] += area*fbd_stblterm[loc_index];
 		F[index + 1] += area*fbd_stblterm[loc_index + 1];
 	  }
+
+/*		//build (1.0*a.grad V) (Fbody) stabilization term & assemble
+		array_1d<double,2> bdf = ZeroVector(2);
+		const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+		const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+		const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+
+
+		bdf[0] =  (N[0]*bdf0[0] +  N[1]*bdf1[0] + N[2]*bdf2[0]);
+		bdf[1] =  (N[0]*bdf0[1] +  N[1]*bdf1[1] + N[2]*bdf2[1]);
+		
+		fac = tauone * area * density;
+		for(int ii = 0; ii< nodes_number; ++ii)
+		  {
+			 int index = ii*(dof + 1);
+			 F[index]     += fac * conv_opr1[ii] * bdf[0];
+			 F[index + 1] += fac * conv_opr1[ii] * bdf[1];
+		  }
+*/
+
+
 	KRATOS_CATCH("")
+
 	}
 	//************************************************************************************
 	//************************************************************************************
 	void Fluid2DSplit::CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double area)
 	{
 		KRATOS_TRY
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
-	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
-	ms_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
-	ms_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);
+	ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
+	ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
 
 		//ms_adv_vel[0] = 0.0;
 		//ms_adv_vel[1] = 0.0;
@@ -1313,14 +1217,13 @@ KRATOS_WATCH(aux2)*/
 			K(row,column) += area *gard_opr(ii,jj);
 		   }
 	    }
-//decomment*********************************************************************
-	//build Darcy Au+B|u|u * grad q stabilization term and assemble and grad p * Av+B|v|v and assemble
+	//build Darcy Au+B|u|u * grad q stabilization term and assemble and assemble
          double dp = 0.01; //diameter of the particle	
          double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
-	 const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-	 const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-	 const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+	 const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+	 const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+	 const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
 	 array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
 	 array_1d<double,3> vel_gp = ZeroVector(nodes_number);
@@ -1337,35 +1240,49 @@ KRATOS_WATCH(aux2)*/
 	 {
 		  norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
 	 }
-
-	double fac_1 = tauone * kinv * mu / density;
+	
+	double fac_linear = tauone * area * kinv * mu ;
 
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
 		int row = ii*(dof+1);
-		double fac_2 = tauone * 1.75 /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
+		double fac_nonlinear = tauone * area * 1.75  * density /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
 
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1) + dof;
 			//Au+B|u|u * grad q
-			//DARCY TERM linear part /rho
-			K(column,row) += area * density * fac_1* N[ii] * DN_DX(jj,0);
-			K(column,row + 1) += area * density * fac_1* N[ii] * DN_DX(jj,1);
-			//DARCY TERM nonlinear part /rho
-			K(column,row) += area * density * fac_2* N[ii] * DN_DX(jj,0);
-			K(column,row + 1) += area * density * fac_2* N[ii] * DN_DX(jj,1);
+			//DARCY TERM linear part
+			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0);
+			K(column,row + 1) +=  fac_linear* N[ii] * DN_DX(jj,1);
+			//DARCY TERM nonlinear part 
+			K(column,row) +=  fac_nonlinear* N[ii] * DN_DX(jj,0);
+			K(column,row + 1) +=  fac_nonlinear* N[ii] * DN_DX(jj,1);
 
 
 		   }
 	    }
-//decomment*********************************************************************
-
-//delete *******************************************************************
-// KRATOS_WATCH(prod(temp_darcySTBLterm,AUX_VEL));
-// KRATOS_WATCH(prod(temp_pressSTBLterm, AUX_PRES));
-//delete ******************************************************************* 
-//COMMENT*********************************************************************************     
+//    	double fac_1 = tauone * kinv * mu / density;
+// 
+// 	for ( int ii = 0; ii < nodes_number; ii++)
+// 	    {
+// 		int row = ii*(dof+1);
+// 		double fac_2 = tauone * 1.75 /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
+// 
+// 		for( int jj=0; jj < nodes_number; jj++)
+// 		   {
+// 			int column = jj*(dof+1) + dof;
+// 			//Au+B|u|u * grad q
+// 			//DARCY TERM linear part /rho
+// 			K(column,row) += area * density * fac_1* N[ii] * DN_DX(jj,0);
+// 			K(column,row + 1) += area * density * fac_1* N[ii] * DN_DX(jj,1);
+// 			//DARCY TERM nonlinear part /rho
+// 			K(column,row) += area * density * fac_2* N[ii] * DN_DX(jj,0);
+// 			K(column,row + 1) += area * density * fac_2* N[ii] * DN_DX(jj,1);
+// 
+// 
+// 		   }
+// 	    }
 
 	//build 1*(grad q) (Fbody ) stabilization term & assemble
 	array_1d<double,2> bdf = ZeroVector(2);
@@ -1453,9 +1370,9 @@ KRATOS_WATCH(aux2)*/
 		double dp = 0.01; //diameter of the particle	
 		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
-		  const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-		  const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-		  const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+		  const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		  const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		  const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
 		  array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
 		  array_1d<double,3> vel_gp = ZeroVector(nodes_number);
@@ -1552,9 +1469,9 @@ KRATOS_WATCH(aux2)*/
 		double dp = 0.01; //diameter of the particle	
 		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
-		  const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
-		  const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
-		  const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+		  const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		  const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		  const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
 		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
 		array_1d<double,3> vel_gp = ZeroVector(nodes_number);
@@ -1662,6 +1579,52 @@ KRATOS_WATCH(M)	*/
 	}
 	//************************************************************************************
 	//************************************************************************************
+	 void Fluid2DSplit::AddVolumeCorrection(VectorType& F,const array_1d<double,3>& N, const double time,const double area)
+	   {
+		  KRATOS_TRY
+	int nodes_number = 3;
+	int dof = 2;
+	
+	double density;
+	double mu;
+	double eps;
+	CalculateDensity(GetGeometry(), density, mu, eps);	     
+
+	const array_1d<double,3> vel0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+	const array_1d<double,3> vel1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+	const array_1d<double,3> vel2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+
+
+	for ( int ii = 0; ii < nodes_number; ii++)
+	   {
+		int row = ii*(dof + 1) + dof ;
+		for( int jj=0; jj < dof; jj++)
+		{		        
+		        F[row] -= area * density * N(ii) * (DN_DX(0,jj) * vel0_old(jj) + DN_DX(1,jj) * vel1_old(jj)  + DN_DX(2,jj) * vel2_old(jj));
+		        //F[row] -= area * density * DN_DX(ii) * (N[0] * vel0_old(jj) + N[1] * vel1_old(jj)  + N[2] * vel2_old(jj));
+		}
+	   }
+
+/* 
+	for ( int ii = 0; ii < nodes_number; ii++)
+	    {
+		int row = ii*(dof+1);
+		for( int jj=0; jj < nodes_number; jj++)
+		   {
+			int column = jj*(dof+1) + dof;
+
+// 	 		// Fomulation n1  int( q * rho * Div( u ))
+			K(column,row) += area *density * N(jj) * DN_DX(ii,0);
+			K(column, row + 1) += area *density * N(jj) * DN_DX(ii,1);
+*/
+
+		KRATOS_CATCH("")     
+	   }
+
+	//************************************************************************************
+	//************************************************************************************
+
+
 	void Fluid2DSplit::CalculateResidual(const MatrixType& K, VectorType& F)
 	{
 	KRATOS_TRY
@@ -1674,9 +1637,9 @@ KRATOS_WATCH(M)	*/
 	for ( int ii = 0; ii < nodes_number; ++ii)
 	    {
 		int index = ii * (dof + 1);
-		UP[index] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY,0)[0];
-		UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY,0)[1];
-		UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE,0);
+		UP[index] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY)[0];
+		UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY)[1];
+		UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
 	    }
 
 	F -= prod(K,UP);
@@ -1695,11 +1658,11 @@ KRATOS_WATCH(M)	*/
 	double eps;
 	CalculateDensity(GetGeometry(), density, mu, eps);
 
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
 
@@ -1956,7 +1919,7 @@ KRATOS_WATCH(M)	*/
 // 	double tauone = 0.0;//delta_t;
 // 	double tautwo = 0.0;//delta_t;*/
         double tauone, tautwo;
- 	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+ 	CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
 
 	ComputeProjections(adv_proj, div_proj, DN_DX,tauone,tautwo,N,Area, delta_t);
 
@@ -1978,7 +1941,7 @@ KRATOS_WATCH(M)	*/
 // 	double tautwo = 0.0;//delta_t;*/
 
        double tauone, tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+	CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
             if(rVariable==THAWONE)
             {
                 for( unsigned int PointNumber = 0; 
@@ -2118,15 +2081,15 @@ KRATOS_WATCH(M)	*/
 	//*************************************************************************************
 	//*************************************************************************************
 
-		void Fluid2DSplit::CalculateTau(double& tauone, double& tautwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo)
+		void Fluid2DSplit::CalculateTau(double& tauone, double& tautwo, const double time,const double area, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 	//calculate mean advective velocity and taus
-	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 // 	const array_1d<double,3>& mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 // 	const array_1d<double,3>& mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
+	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 // 	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
 
@@ -2217,6 +2180,7 @@ KRATOS_WATCH(M)	*/
 	}
 	//************************************************************************************
 	//************************************************************************************
+
 } // Namespace Kratos
 
 
