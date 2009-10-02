@@ -138,7 +138,7 @@ class ElemBasedLevelSetSolver:
 
         #constructing the fluid solver
         self.solver = monolithic_solver_eulerian.MonolithicSolver(self.model_part, self.domain_size)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,0)
         self.max_iter = 10
         self.solver.Initialize()
 
@@ -370,10 +370,7 @@ class ElemBasedLevelSetSolver:
         #solve fluid domain
         (self.solver).Solve()
 ##        print "****************      solving procedure finished     ***********************"
-##        for node in self.model_part.Nodes:
-##            print node.Id, "    ", node.GetSolutionStepValue(VELOCITY)
-##        self.FreeModelPart()
-##        print "freeing pressure and velocity finished"
+
 
         #updating the step
         self.solve_step = self.solve_step + 1;
@@ -405,10 +402,10 @@ class ElemBasedLevelSetSolver:
 
         
         self.Convect()
-##        
+        
 ##            print "corrected level set function"
-##        ############## calculate distances   ##################
-##        if( self.solve_step > self.dist_recalculation_step):
-##            self.RecalculateDistanceFunction();
-##            self.dist_recalculation_step += self.redistance_frequency
+        ############## calculate distances   ##################
+        if( self.solve_step > self.dist_recalculation_step):
+            self.RecalculateDistanceFunction();
+            self.dist_recalculation_step += self.redistance_frequency
         
