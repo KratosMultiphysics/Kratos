@@ -249,6 +249,7 @@ namespace Kratos
 	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
 	virtual void CalculateDarcyStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
         virtual void AddBodyForceAndMomentum(VectorType& F,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
+        virtual void AddVolumeCorrection(VectorType& F,const array_1d<double,3>& N, const double time,const double area);
 
 	virtual void CalculateTau(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
 	
