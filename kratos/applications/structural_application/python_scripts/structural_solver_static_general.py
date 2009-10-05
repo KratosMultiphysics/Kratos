@@ -33,7 +33,7 @@ def AddDofs(model_part):
         node.AddDof(DISPLACEMENT_Z,REACTION_Z);
     print "dofs for the dynamic structural solution added correctly"
 
-class StaticStructuralSolverGeneral:
+class StaticStructuralSolver:
     #######################################################################
     def __init__(self,model_part,domain_size):
 
