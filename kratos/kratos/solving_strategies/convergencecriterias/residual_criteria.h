@@ -201,7 +201,7 @@ namespace Kratos
 				std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio << "Norm Value = " << (mCurrentResidualNorm/sqrt(b_size)) << std::endl;
 				if ( 
 					ratio <= mRatioTolerance 
-					and 
+					|| 
 					(mCurrentResidualNorm/sqrt(b_size))<mAlwaysConvergedNorm
 					)  
 				{
