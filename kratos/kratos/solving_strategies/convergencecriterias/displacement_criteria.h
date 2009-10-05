@@ -191,7 +191,7 @@ namespace Kratos
 //KRATOS_WATCH(mRatioTolerance)
 				std::cout << "DISPLACEMENT CRITERIA :: obtained tol = " << ratio << ";  expected ratio = " << mRatioTolerance << "absolute tol = " << AbsoluteNorm << std::endl;
 
-				if ( ratio <= mRatioTolerance ||  AbsoluteNorm<mAlwaysConvergedNorm ) // || (mFinalCorrectionNorm/x.size())<=1e-7) 
+				if ( ratio <= mRatioTolerance ||  AbsoluteNorm<mAlwaysConvergedNorm )  //  || (mFinalCorrectionNorm/x.size())<=1e-7) 
 				{
 KRATOS_WATCH("convergence is achieved")
 					return true;
