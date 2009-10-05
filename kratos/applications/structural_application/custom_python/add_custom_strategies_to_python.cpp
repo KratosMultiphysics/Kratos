@@ -69,8 +69,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/convergencecriterias/multiphaseflow_criteria.h"
-#include "custom_strategies/convergencecriterias/residual_displacement_criteria.h"
-#include "custom_strategies/convergencecriterias/res_dis_criteria.h"
+//#include "custom_strategies/convergencecriterias/residual_displacement_criteria.h"
+//#include "custom_strategies/convergencecriterias/res_dis_criteria.h"
 // #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 //#include "solving_strategies/convergencecriterias/new_galerkin_displacement_criteria.h"
 
@@ -89,6 +89,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 // #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
+#include "custom_strategies/schemes/residualbased_central_diferences_scheme.h"
 // #include "custom_strategies/schemes/testing_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme_rotation.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_relaxation_scheme.h"
@@ -137,9 +138,9 @@ namespace Kratos
                     ResidualBasedPredictorCorrectorBossakSchemeType;
             typedef ResidualBasedPredictorCorrectorBossakRotationScheme< SparseSpaceType, LocalSpaceType >
                     ResidualBasedPredictorCorrectorBossakRotationSchemeType;
+
             
-            typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType >
-                    ResidualBasedNewmarkSchemeType;
+            typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
 
 //             typedef TestingScheme< SparseSpaceType, LocalSpaceType >
 //                     TestingSchemeType;
@@ -169,8 +170,8 @@ namespace Kratos
 
 	
 	typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
-	typedef ResidualCriteria < SparseSpaceType, LocalSpaceType >::Pointer TResidual;
-	typedef DisplacementCriteria < SparseSpaceType, LocalSpaceType>::Pointer TDisplacement;
+	//typedef ResidualCriteria < SparseSpaceType, LocalSpaceType >::Pointer TResidual;
+	//typedef DisplacementCriteria < SparseSpaceType, LocalSpaceType>::Pointer TDisplacement;
 
 	
 // 					;
@@ -181,12 +182,17 @@ namespace Kratos
                    (
                     "ResidualBasedPredictorCorrectorBossakScheme", init< double >()
                    );
-           
+
+           class_< ResidualBasedCentralDiferencesScheme< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+                   (
+                    "ResidualBasedCentralDiferencesScheme", init< ModelPart&,  double, bool,  bool >())
+                   ;
+
 	   class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType,
  	   bases< BaseSchemeType >,  boost::noncopyable >
 		    (
 		     "ResidualBasedPredictorCorrectorBossakRotationScheme", init< double >()
-		    );
+	            );
     
            typedef ResidualBasedPredictorCorrectorRelaxationScheme< SparseSpaceType,
            LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
@@ -195,7 +201,8 @@ namespace Kratos
            bases< BaseSchemeType >,  boost::noncopyable >
                    (
                     "ResidualBasedPredictorCorrectorRelaxationScheme", init< double, double >()
-                   );	
+                   );
+
            class_< ResidualBasedNewmarkSchemeType,
            bases< BaseSchemeType >, boost::noncopyable >
                    (
@@ -268,15 +275,17 @@ namespace Kratos
 				;
 
 
-			class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
-			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
-			         boost::noncopyable >
-			        ("ResidualDisplacementCriteria", init< double, double>() );
 
-			class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
-			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
-			         boost::noncopyable >
-			        ("ResDisCriteria", init< TResidual,TDisplacement >());
+
+// 			class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
+// 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+// 			         boost::noncopyable >
+// 			        ("ResidualDisplacementCriteria", init< double, double>() );
+// 
+// 			class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
+// 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+// 			         boost::noncopyable >
+// 			        ("ResDisCriteria", init< TResidual,TDisplacement >());
 
            /*
            class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
