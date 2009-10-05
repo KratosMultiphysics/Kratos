@@ -48,7 +48,7 @@ TEXT FLAG PROPERTY Linear_Solver  SkylineLUFactorization SuperLUSolver  BiCGStab
 PROPERTY Linear_Solver_Tolerance 1E-9  Linear_Solver_Tolerance # Only Itertaive Solver
 PROPERTY Linear_Solver_Max_Iteration 5000  Linear_Solver_Max_Iteration    
 #TEXT FLAG PROPERTY Constitutive_Law_Name  Isotropic2D  Isotropic3D ConstitutiveLawName 
-TEXT FLAG PROPERTY Convergence_Criteria  Displacement_Criteria Residual_Criteria  Both_Criteria Convergence_Criteria        
+TEXT FLAG PROPERTY Convergence_Criteria  Displacement_Criteria Residual_Criteria  And_Criteria Or_Criteria Convergence_Criteria        
 PROPERTY Convergence_Tolerance 1E-6 Convergence_Tolerance 
 PROPERTY Absolute_Tolerance     1E-9 Absolute_Tolerance
 PROPERTY Max_Iter   30 Max_Iter  
