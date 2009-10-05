@@ -38,15 +38,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 /* *********************************************************   
 *          
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2007-03-06 10:30:34 $
+*   Last Modified by:    $Author: Nelson $
+*   Date:                $Date: 2009-29-06$
 *   Revision:            $Revision: 1.2 $
 *
 * ***********************************************************/
 
 
-#if !defined(KRATOS_NEW_AND_CRITERIA )
-#define  KRATOS_NEW_AND_CRITERIA
+#if !defined(KRATOS_AND_CRITERIA_H)
+#define  KRATOS_AND_CRITERIA_H
  
 
 /* System includes */
@@ -57,8 +57,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/model.h"
-#include "solving_strategies_riccardo/convergencecriterias/convergence_criteria.h"
+#include "includes/model_part.h"
+//#include "solving_strategies/convergencecriterias/displacement_criteria.h"
+//#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
 {
@@ -91,53 +93,51 @@ namespace Kratos
 	/** Short class definition.
 	Detail class definition.
 	
-      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-	  
-		\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-		
-		  \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-		  
-			\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-			
-			  
-				\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-				
-				  \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-				  
-					\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-					
-					  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-					  
-						
+	      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+
+	      \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+
+	      \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+
+	      \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+
+
+	      \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+
+	      \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+
+	      \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+
+	      \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+		    
 	*/
+	
 	template<class TSparseSpace,
-		class TDenseSpace = DenseSpace<double>
-		>
-		class AndCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+	class TDenseSpace 
+	>
+	class And_Criteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
     {
-    public:
+	      public:
 		/**@name Type Definitions */       
 		/*@{ */
 		
-		/** Counted pointer of AndCriteria */
-		typedef boost::shared_ptr< AndCriteria< TSparseSpace, TDenseSpace > > Pointer;		
+		/** Counted pointer of And_Criteria */
+				
+				
+		KRATOS_CLASS_POINTER_DEFINITION(And_Criteria );		
 		
 		typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-    typedef typename BaseType::TDataType TDataType;
-		
-    typedef typename BaseType::DofSetType DofSetType;
-		
-//    typedef typename BaseType::DofArrayType DofArrayType;
-		
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-		
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-		
-//    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-		
-//    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-		
+		typedef TSparseSpace SparseSpaceType;
+
+		typedef typename BaseType::TDataType TDataType;
+
+		typedef typename BaseType::DofsArrayType DofsArrayType;
+
+		typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+		typedef typename BaseType::TSystemVectorType TSystemVectorType;
+					    
 		
 		/*@} */
 		/**@name Life Cycle 
@@ -146,26 +146,19 @@ namespace Kratos
 		
 		/** Constructor.
 		*/
-		AndCriteria(
-			Model:: Pointer pNewModel,
-			typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer FirstCriteria,
-			typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer SecondCriteria)
-			: ConvergenceCriteria< TSparseSpace, TDenseSpace >(pNewModel)
+		And_Criteria 
+			(	
+			typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer first_criteria,
+			typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer second_criteria)
+			:ConvergenceCriteria< TSparseSpace, TDenseSpace >()
 		{
-			mpFirst = FirstCriteria;
-			mpSecond = SecondCriteria;
-			
-			//set flags
-			SetActualizeRHSFlag(
-				mpFirst->GetActualizeRHSflag()
-				||
-				mpSecond->GetActualizeRHSflag()
-				);
+			mpfirst_criteria   =  first_criteria;
+			mpsecond_criteria  =  second_criteria;
 		}
 		
 		/** Destructor.
 		*/
-		virtual ~AndCriteria(){}
+		virtual ~And_Criteria (){}
 		
 		
 		/*@} */
@@ -173,83 +166,21 @@ namespace Kratos
 		*/  
 		/*@{ */
 		
-		/*Criterias that need to be called before getting the solution */
-		bool PreCriteria(
-			const String& ElementGroupName,
-			DofSetType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b,
-			const ProcessInfo& CurrentProcessInfo
-			)
-		{
-			return (		
-				mpFirst->PreCriteria(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo)
-				&& 
-				mpSecond->PreCriteria(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo)
-				);
-		}
-		
-		
 		/*Criterias that need to be called after getting the solution */
 		bool PostCriteria(
-			const String& ElementGroupName,
-			DofSetType& rDofSet,
+			ModelPart& r_model_part,
+			DofsArrayType& rDofSet,
 			const TSystemMatrixType& A,
 			const TSystemVectorType& Dx,
-			const TSystemVectorType& b,
-			const ProcessInfo& CurrentProcessInfo
+			const TSystemVectorType& b
 			)
 		{
-			bool first_criteria_result = mpFirst->PostCriteria(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo);
-			bool second_criteria_result = mpSecond->PostCriteria(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo);
+			bool first_criteria_result  = mpfirst_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
+			bool second_criteria_result = mpsecond_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
 			
 			return (first_criteria_result && second_criteria_result);
-			/*		return (
-			mpFirst->PostCriteria(ElementGroupName,rDofSet,A,Dx,b,pCurrentProcessInfo);
-			&& 
-			mpSecond->PostCriteria(ElementGroupName,rDofSet,A,Dx,b,pCurrentProcessInfo);
-			);*/
+			
 		}
-		
-		void Initialize(
-			const String& ElementGroupName,
-			const ProcessInfo& CurrentProcessInfo
-			) 
-		{
-			mpFirst -> Initialize(ElementGroupName,CurrentProcessInfo);
-			mpSecond -> Initialize(ElementGroupName,CurrentProcessInfo);
-		}
-		
-		
-		void InitializeSolutionStep(
-			const String& ElementGroupName,
-			DofSetType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b,
-			const ProcessInfo& CurrentProcessInfo
-			)
-		{
-			mpFirst -> InitializeSolutionStep(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo);
-			mpSecond -> InitializeSolutionStep(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo);
-		}
-		
-		
-		void FinalizeSolutionStep(
-			const String& ElementGroupName,
-			DofSetType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b,
-			const ProcessInfo& CurrentProcessInfo
-			)
-		{
-			mpFirst -> FinalizeSolutionStep(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo);
-			mpSecond -> FinalizeSolutionStep(ElementGroupName,rDofSet,A,Dx,b,CurrentProcessInfo);
-		}
-		
-		
 		
 		
 		
@@ -322,8 +253,8 @@ namespace Kratos
         /*@} */
         /**@name Member Variables */
         /*@{ */
-		typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer mpFirst;
-		typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer mpSecond;
+		typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpfirst_criteria; 
+		typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpsecond_criteria; 
 		
 		
         /*@} */
