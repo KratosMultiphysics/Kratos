@@ -1,5 +1,5 @@
-PROBLEMTYPE Structural_Aplication	# The name of your problemtype
-DEFINITION FOLDER Structural_Aplication_problemtype # The folder containing the definition file and the .bas templates
+PROBLEMTYPE Structural_Application	# The name of your problemtype
+DEFINITION FOLDER Structural_Application_problemtype # The folder containing the definition file and the .bas templates
 
 VECTOR CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
 VECTOR CONDITION VELOCITY     point line surface volume free 0.0 0.0 0.0
