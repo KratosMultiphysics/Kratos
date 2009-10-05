@@ -1,0 +1,78 @@
+PROBLEMTYPE Structural_Aplication	# The name of your problemtype
+DEFINITION FOLDER Structural_Aplication_problemtype # The folder containing the definition file and the .bas templates
+
+VECTOR CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION VELOCITY     point line surface volume free 0.0 0.0 0.0
+VECTOR CONDITION FORCE        point line surface volume free 0.0 0.0 0.0
+SCALAR CONDITION PRESSURE     point line surface volume free  0.0
+SCALAR CONDITION NEGATIVE_FACE_PRESSURE     point line surface volume free  0.0
+SCALAR CONDITION POSITIVE_FACE_PRESSURE     point line surface volume free  0.0
+
+FLAG CONDITION IS_INTERFACE point line surface volume fixed 1.0
+
+POINT CONDITION PointForce3D
+POINT CONDITION PointForce2D
+FACE CONDITION Face2D line
+FACE CONDITION Face3D3N surface 
+FACE CONDITION Face3D4N surface Quadrilateral
+
+ELEMENT CrisfieldTrussElement3D2N line
+ELEMENT CrisfieldTrussElement3D3N line
+ELEMENT BeamElement3D2N line
+ELEMENT TotalLagrangian2D3N surface
+ELEMENT TotalLagrangian2D4N surface
+ELEMENT TotalLagrangian3D4N volume Tetrahedra
+ELEMENT TotalLagrangian3D8N volume Hexahedra
+ELEMENT MixedLagrangian2D3N surface Triangle
+ELEMENT MixedLagrangian2D4N surface Quadrilateral
+ELEMENT MixedLagrangian3D4N volume  Tetrahedra
+ELEMENT MixedLagrangian3D8N volume  Hexahedra
+ELEMENT IsoShellElement surface
+ELEMENT Ebst3D3N  surface
+#ELEMENT AnisoShellElement  surface
+#ELEMENT AnisoLinearShellElement surface
+ELEMENT MembraneElement surface
+
+#OPTION 3D_Boundary_Condition surface Face3D3N Face3D4N
+#OPTION 2D_Body_Element surface TotalLagrangian2D3N IsoShellElement
+#OPTION 3D_Body_Element volume TotalLagrangian3D4N TotalLagrangian3D8N
+
+PROPERTY Time_Step 0.01 Dt
+PROPERTY Max_Time 1 max_time
+PROPERTY Nsteps   5 nsteps
+TEXT FLAG PROPERTY Rotational_Dofs False True Rotational_Dofs
+TEXT FLAG PROPERTY Solver_Type    StaticSolver ArcLengthSolver LineSearchesSolver  DynamicSolver ParallelSolver  SolverType
+TEXT FLAG PROPERTY Linear_Solver  SkylineLUFactorization SuperLUSolver  BiCGStab_ILU0 BiCGStab_DIAG   LinearSolver 
+PROPERTY Linear_Solver_Tolerance 1E-9  Linear_Solver_Tolerance # Only Itertaive Solver
+PROPERTY Linear_Solver_Max_Iteration 5000  Linear_Solver_Max_Iteration    
+#TEXT FLAG PROPERTY Constitutive_Law_Name  Isotropic2D  Isotropic3D ConstitutiveLawName 
+TEXT FLAG PROPERTY Convergence_Criteria  Displacement_Criteria Residual_Criteria  Both_Criteria Convergence_Criteria        
+PROPERTY Convergence_Tolerance 1E-6 Convergence_Tolerance 
+PROPERTY Absolute_Tolerance     1E-9 Absolute_Tolerance
+PROPERTY Max_Iter   30 Max_Iter  
+
+# TAKE CARE: the name of the particular material should not be repeated even between different groups
+#DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR CONSTITUTIVE_LAW_NAME TEXT
+#ADD MATERIAL Aluminium 2700 70000000000  0.3 (0.0,-26487.0,0.0) 1.0 Isotropic2D #do not put spaces in the definition of the vector
+#ADD MATERIAL Steel     7600 210000000000 0.3 (0.0,-74556.0,0.0) 1.0 Isotropic2D #do not put spaces in the definition of the vector
+#ADD MATERIAL Concrete  2500 30000000000  0.3  (0.0,-24525.0,0.0) 1.0 Isotropic2D #do not put spaces in the definition of the vector
+DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR 
+ADD MATERIAL Other     0.00 0.00  0.00 (0.0,0.00,0.0) 0.0  #do not put spaces in the definition of the vector
+ADD MATERIAL Steel     76972.86 1.999E11   0.3  (0.0,-76.972.86,0.0) 1.0  #do not put spaces in the definition of the vector
+ADD MATERIAL Concrete  2402.7696 2.486E10  0.2  (0.0,-23563.122,0.0) 1.0  #do not put spaces in the definition of the vector
+
+#DEFINE MATERIAL Cable DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR CROSS_AREA SCALAR 
+#ADD MATERIAL Aluminium2 2700 70000000000  0.3 (0.0,-26487.0,0.0)  0.1 #do not put spaces in the definition of the vector
+#ADD MATERIAL Steel2     7600 210000000000 0.3 (0.0,-74556.0,0.0)  0.1 #do not put spaces in the definition of the vector
+
+#DEFINE BOUNDARY PART Boundary OUTWARDS NORMALS
+#ADD 2D ELEMENT Face2D
+#ADD 3D ELEMENT 3D_Boundary_Condition
+
+#DEFINE ALL ENTITIES PART Body surface volume
+#ADD 2D ELEMENT 2D_Body_Element surface
+#ADD 3D ELEMENT 3D_Body_Element volume
+
+
+
+
