@@ -23,6 +23,12 @@ def AddVariables(model_part):
     print "*********************************************************************** "    
 
 
+def ChangeCondition(model_part, lamda):
+	for node in model_part.Nodes:
+	    new_load = node.GetSolutionStepValue(FORCE)*lamda;
+	    node.SetSolutionStepValue(FORCE,0,new_load)
+
+
 def AddDofs(model_part):
   for node in model_part.Nodes:
     #adding dofs
@@ -43,17 +49,19 @@ class StaticStructuralSolver:
 
         self.model_part    = model_part
         self.time_scheme   = ResidualBasedIncrementalUpdateStaticScheme()
+        
         #self.time_scheme   = ParallelResidualBasedIncrementalUpdateStaticScheme()
 
 	## Varibles de Control de Arc Lenght Method
 	self.Ide                        = 20
 	self.factor_delta_lmax          = 1.00
 	self.toler                      = 1.0E-9
-        self.norm                       = 1.0E-6 
-	self.MaxIterations              = 100
+        self.norm                       = 1.0E-5 
+	self.max_iter                   = 100
+        self.damp_factor                = 0;
        
 	
-
+         #self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(self.damp_factor)
         #definition of the solvers. Super_Lu Default
         #self.structure_linear_solver     =   SkylineLUFactorizationSolver()
         self.structure_linear_solver      =   SuperLUSolver()
@@ -63,12 +71,13 @@ class StaticStructuralSolver:
         #self.structure_linear_solver    =   IterativeSolver() 
 
         #definition of the convergence criteria
-        self.conv_Residual     = ResidualCriteria(0.000001,1E-9)
-	self.conv_Displacement = DisplacementCriteria(self.norm,self.toler)
-        self.conv_criteria     = ResDisCriteria(self.conv_Residual, self.conv_Displacement)
-	#self.conv_criteria    = ResidualDisplacementCriteria(self.norm,self.toler)
+        #self.conv_Residual     = ResidualCriteria(0.000001,1E-9)
+	#self.conv_Displacement = DisplacementCriteria(self.norm,self.toler)
+        #self.conv_criteria     = ResDisCriteria(self.conv_Residual, self.conv_Displacement)
+	#self.conv_criteria     = ResidualDisplacementCriteria(self.norm,self.toler)
 	#self.conv_criteria     = DisplacementCriteria(self.norm,self.toler)
 	#self.conv_criteria    = ParallelDisplacementCriteria(0.000001,1e-9)
+        self.conv_criteria     = DisplacementCriteria(self.norm,self.toler)
 
         #definition of the convergence criteria
        
@@ -81,7 +90,7 @@ class StaticStructuralSolver:
     #######################################################################
     def Initialize(self):
         
-        self.solver = 	ResidualBasedArcLenghtStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.Ide,self.MaxIterations,self.factor_delta_lmax, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag,self.ApplyBodyForce)
+        self.solver = 	ResidualBasedArcLenghtStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.Ide,self.max_iter,self.factor_delta_lmax, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag,self.ApplyBodyForce)
        
          
                  
@@ -92,6 +101,8 @@ class StaticStructuralSolver:
     #######################################################################   
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
+
+
 
       
 
