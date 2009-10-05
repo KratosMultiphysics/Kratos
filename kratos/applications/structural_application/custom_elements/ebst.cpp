@@ -70,14 +70,25 @@ namespace Kratos
   namespace EbstAuxiliaries
   {
     boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
+    #pragma omp threadprivate(msL1)
+
     boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
+    #pragma omp threadprivate(msB_f)
+
     boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
+    #pragma omp threadprivate(msB_m)
+
     boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
+    #pragma omp threadprivate(msK)
 
     boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
+    #pragma omp threadprivate(ms_coord)
 
     boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
+    #pragma omp threadprivate(ms_loc_der_central)
+
     boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
+    #pragma omp threadprivate(ms_loc_der_patch)
 
   }
 
@@ -597,14 +608,25 @@ namespace Kratos
     //         KRATOS_WATCH(prod(m,n));
 
     //calculate bending strain
-    array_1d<double, 3 > bending_strain;
+    array_1d<double, 3 > bending_strain; 
     bending_strain[0] = inner_prod(h00, t3e);
     bending_strain[1] = inner_prod(h11, t3e);
     bending_strain[2] = inner_prod(h01, t3e);
-    //KRATOS_WATCH(bending_strain);
+//    KRATOS_WATCH(bending_strain);
 
-//    array_1d<double,18> aaa;
-//    for(unsigned int i=0; i<6)
+    //if the original curvature was not yet initialized
+    if(mK0[0] == 1234567.89)
+    {
+//        KRATOS_WATCH("initializing the initial bending strain")
+      noalias(mK0) = bending_strain;
+    }
+
+    //subtract to the curvature the original curvature
+    noalias(bending_strain) -= mK0;
+//KRATOS_WATCH(norm_2(bending_strain));
+
+    //    array_1d<double,18> aaa;
+    //    for(unsigned int i=0; i<6)
     //calculate flexural strain
     //         array_1d<double,3> bending_strain = prod(msB_f,membrane_Strain);
 
@@ -634,9 +656,9 @@ namespace Kratos
     // KRATOS_WATCH(msDmat_f);
     msDmat_f *= Area0;
 
-    array_1d<double,3> bending_stress;
-    noalias(bending_stress) = prod(msDmat_f,bending_strain);
-//    KRATOS_WATCH(bending_stress);
+    array_1d<double, 3 > bending_stress;
+    noalias(bending_stress) = prod(msDmat_f, bending_strain);
+    //    KRATOS_WATCH(bending_stress);
     boost::numeric::ublas::bounded_matrix<double, 3, 18 > aux;
     noalias(aux) = prod(msDmat_f, msB_f);
     noalias(msK) = prod(trans(msB_f), aux);
@@ -652,6 +674,7 @@ namespace Kratos
     CalculateAndAdd_MembraneStrain(membrane_strain, phiG3);
     membrane_strain *= 0.333333333333333333333333333333333;
     //KRATOS_WATCH(membrane_strain);
+//KRATOS_WATCH(norm_2(membrane_strain));
 
     //calculating the membrane strain-displacement matrix
     noalias(msB_m) = ZeroMatrix(3, 18);
@@ -681,14 +704,14 @@ namespace Kratos
 
     array_1d<double, 3 > membrane_stress;
     noalias(membrane_stress) = prod(Dmat_m, membrane_strain);
-//    KRATOS_WATCH(membrane_stress);
+    //    KRATOS_WATCH(membrane_stress);
 
     //adding the membrane contribution to the elemental stiffness
     noalias(aux) = prod(Dmat_m, msB_m);
     noalias(msK) += prod(trans(msB_m), aux);
 
     //adding the geometric membrane stiffness
-    CalculateAndAdd_Membrane_Kg(msK,mdcg1,mdcg2,mdcg3,membrane_stress);
+    CalculateAndAdd_Membrane_Kg(msK, mdcg1, mdcg2, mdcg3, membrane_stress);
 
 
     //KRATOS_WATCH(msK);
@@ -705,13 +728,13 @@ namespace Kratos
 
 
 
-//rhs_full *= 0.0;
+    //rhs_full *= 0.0;
     //apply bending stress
-    noalias(rhs_full) -= prod(trans(msB_f),bending_stress);
+    noalias(rhs_full) -= prod(trans(msB_f), bending_stress);
 
 
     //apply membrane stress
-    noalias(rhs_full) -= prod(trans(msB_m),membrane_stress);
+    noalias(rhs_full) -= prod(trans(msB_m), membrane_stress);
 
 
     //*****************************************************************************
@@ -726,10 +749,10 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize(MatSize, MatSize);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
-    
+
     if (rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);
-//    rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
+    //    rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
 
     array_1d<unsigned int, 18 > id_vec;
     for (unsigned int i = 0; i < 9; i++) id_vec[i] = i;
@@ -751,7 +774,7 @@ namespace Kratos
 
 
     //add the first 9*9 block
-//    KRATOS_WATCH(rhs_full);
+    //    KRATOS_WATCH(rhs_full);
     for (unsigned int i = 0; i < 18; i++)
       {
         if (id_vec[i] < 1000)
@@ -767,22 +790,29 @@ namespace Kratos
     // KRATOS_WATCH(id_vec);
 
 
-////Vector values(MatSize);
-////GetValuesVector(values, 0);
-////    // KRATOS_WATCH(values);
-////noalias(rRightHandSideVector) += prod(rLeftHandSideMatrix, values);
-////KRATOS_WATCH(norm_2(rRightHandSideVector));
+    ////Vector values(MatSize);
+    ////GetValuesVector(values, 0);
+    ////    // KRATOS_WATCH(values);
+    ////noalias(rRightHandSideVector) += prod(rLeftHandSideMatrix, values);
+    ////KRATOS_WATCH(norm_2(rRightHandSideVector));
 
 
 
-//    //RHS -= K*disp;
-//    Vector values(MatSize);
-//    GetValuesVector(values, 0);
+    //    //RHS -= K*disp;
+    //    Vector values(MatSize);
+    //    GetValuesVector(values, 0);
     // KRATOS_WATCH(values);
-//    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
+    //    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, values);
     //KRATOS_WATCH(Id());
     //KRATOS_WATCH(rLeftHandSideMatrix);
     //KRATOS_WATCH(rRightHandSideVector);
+
+//    double bbb = norm_2(rRightHandSideVector);
+//    if(bbb > 1e-9)
+//    {
+//        KRATOS_WATCH(Id());
+//        KRATOS_WATCH(bbb);
+//      }
 
 
     //            KRATOS_WATCH("finished CalculateAll");
@@ -835,8 +865,8 @@ namespace Kratos
     nodal_neigb.resize(3);
     Geometry< Node < 3 > >& center_geom = GetGeometry();
 
-    std::cout << "I am elem" << Id() << std::endl;
-    std::cout << "neighbours =" << elem_neigb[0].Id() << " " << elem_neigb[1].Id() << " " << elem_neigb[2].Id() << " " << std::endl;
+//    std::cout << "I am elem" << Id() << std::endl;
+//    std::cout << "neighbours =" << elem_neigb[0].Id() << " " << elem_neigb[1].Id() << " " << elem_neigb[2].Id() << " " << std::endl;
     for (unsigned int i = 0; i < center_geom.size(); i++)
       {
         if (elem_neigb[i].Id() != Id()) //if the elemental neighbour exists
@@ -856,10 +886,10 @@ namespace Kratos
           } else //the elemenetal neighbour does not exist
           nodal_neigb(i) = Node < 3 > ::WeakPointer(center_geom(i));
       }
-
-    std::cout << "node1" << GetGeometry()[0].Id() << "opposite node =" << nodal_neigb[0].Id() << std::endl;
-    std::cout << "node2" << GetGeometry()[1].Id() << "opposite node =" << nodal_neigb[1].Id() << std::endl;
-    std::cout << "node3" << GetGeometry()[2].Id() << "opposite node =" << nodal_neigb[2].Id() << std::endl;
+ 
+//    std::cout << "node1" << GetGeometry()[0].Id() << "opposite node =" << nodal_neigb[0].Id() << std::endl;
+//    std::cout << "node2" << GetGeometry()[1].Id() << "opposite node =" << nodal_neigb[1].Id() << std::endl;
+//    std::cout << "node3" << GetGeometry()[2].Id() << "opposite node =" << nodal_neigb[2].Id() << std::endl;
 
     boost::numeric::ublas::bounded_matrix<double, 2, 2 > ijac;
 
@@ -904,18 +934,18 @@ namespace Kratos
 
     MathUtils<double>::CrossProduct(mvye, vze, mvxe);
 
-    //to compare with francisco
-    mvxe[0] = 1.0;
-    mvxe[1] = 0.0;
-    mvxe[2] = 0.0;
-
-    mvye[0] = 0.0;
-    mvye[1] = 1.0;
-    mvye[2] = 0.0;
-
-    vze[0] = 0.0;
-    vze[1] = 0.0;
-    vze[2] = 1.0;
+//    //to compare with francisco
+//    mvxe[0] = 1.0;
+//    mvxe[1] = 0.0;
+//    mvxe[2] = 0.0;
+//
+//    mvye[0] = 0.0;
+//    mvye[1] = 1.0;
+//    mvye[2] = 0.0;
+//
+//    vze[0] = 0.0;
+//    vze[1] = 0.0;
+//    vze[2] = 1.0;
 
     //*****************************************************************************
     //calculate cartesian derivatives for the central element
@@ -993,8 +1023,10 @@ namespace Kratos
           }
       }
 
-
-
+    //initialize the initial curvature to a well defined value
+    mK0[0] = 1234567.89;
+    mK0[1] = 1234567.89;
+    mK0[2] = 1234567.89;
 
 
     KRATOS_CATCH("");
@@ -1206,51 +1238,51 @@ namespace Kratos
   }
 
   void Ebst::CalculateAndAdd_Membrane_Kg(
-		boost::numeric::ublas::bounded_matrix<double, 18, 18 >& K,
-		const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG1,
-                const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG2,
-                const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG3,
-		const array_1d<double,3>& membrane_stress
-		)
+          boost::numeric::ublas::bounded_matrix<double, 18, 18 > & K,
+          const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcgG1,
+          const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcgG2,
+          const boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcgG3,
+          const array_1d<double, 3 > & membrane_stress
+          )
   {
     boost::numeric::ublas::bounded_matrix<double, 6, 6 > A;
 
 
-    for(unsigned int i=0; i<6; i++)
-    {
-        for(unsigned int j=0; j<6; j++)
+    for (unsigned int i = 0; i < 6; i++)
+      {
+        for (unsigned int j = 0; j < 6; j++)
           {
             //gauss 1
-            A(i,j) = membrane_stress[0]*dcgG1(0,i)*dcgG1(0,j)
-                   + membrane_stress[1]*dcgG1(1,i)*dcgG1(1,j)
-                   + membrane_stress[2]*(dcgG1(0,i)*dcgG1(1,j) + dcgG1(1,i)*dcgG1(0,j));
+            A(i, j) = membrane_stress[0] * dcgG1(0, i) * dcgG1(0, j)
+                    + membrane_stress[1] * dcgG1(1, i) * dcgG1(1, j)
+                    + membrane_stress[2]*(dcgG1(0, i) * dcgG1(1, j) + dcgG1(1, i) * dcgG1(0, j));
 
             //gauss 2
-            A(i,j) += membrane_stress[0]*dcgG2(0,i)*dcgG2(0,j)
-                   + membrane_stress[1]*dcgG2(1,i)*dcgG2(1,j)
-                   + membrane_stress[2]*(dcgG2(0,i)*dcgG2(1,j) + dcgG2(1,i)*dcgG2(0,j));
+            A(i, j) += membrane_stress[0] * dcgG2(0, i) * dcgG2(0, j)
+                    + membrane_stress[1] * dcgG2(1, i) * dcgG2(1, j)
+                    + membrane_stress[2]*(dcgG2(0, i) * dcgG2(1, j) + dcgG2(1, i) * dcgG2(0, j));
 
             //gauss 3
-            A(i,j) += membrane_stress[0]*dcgG3(0,i)*dcgG3(0,j)
-                   + membrane_stress[1]*dcgG3(1,i)*dcgG3(1,j)
-                   + membrane_stress[2]*(dcgG3(0,i)*dcgG3(1,j) + dcgG3(1,i)*dcgG3(0,j));
+            A(i, j) += membrane_stress[0] * dcgG3(0, i) * dcgG3(0, j)
+                    + membrane_stress[1] * dcgG3(1, i) * dcgG3(1, j)
+                    + membrane_stress[2]*(dcgG3(0, i) * dcgG3(1, j) + dcgG3(1, i) * dcgG3(0, j));
           }
-    }
+      }
 
     A *= 0.333333333333333333333333333;
 
     //now assemble in K
-    for(unsigned int i=0; i<6; i++)
-    {
-        unsigned int base_i = i*3;
-        for(unsigned int j=0; j<6; j++)
+    for (unsigned int i = 0; i < 6; i++)
+      {
+        unsigned int base_i = i * 3;
+        for (unsigned int j = 0; j < 6; j++)
           {
-            unsigned int base_j = j*3;
-            K(base_i  ,base_j  ) += A(i,j);
-            K(base_i+1,base_j+1) += A(i,j);
-            K(base_i+2,base_j+2) += A(i,j);
+            unsigned int base_j = j * 3;
+            K(base_i, base_j) += A(i, j);
+            K(base_i + 1, base_j + 1) += A(i, j);
+            K(base_i + 2, base_j + 2) += A(i, j);
           }
-    }
+      }
 
 
   }

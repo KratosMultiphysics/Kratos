@@ -37,7 +37,7 @@ if(Structural_Aplication_var.LinearSolver == "SuperLUSolver"):
 #defining a model part
 model_part = ModelPart("StructurePart");  
 model_part.AddNodalSolutionStepVariable(FORCE);
-if(Rotational_Dofs == True):
+if(Structural_Aplication_var.Rotational_Dofs == "True"):
   model_part.AddNodalSolutionStepVariable(ROTATION);
 
 
@@ -46,7 +46,7 @@ if(Structural_Aplication_var.SolverType == "StaticSolver"):
     import structural_solver_static
     structural_solver_static.AddVariables(model_part)
 elif(Structural_Aplication_var.SolverType == "DynamicSolver"):
-    if(Rotational_Dofs == False):
+    if(Structural_Aplication_var.Rotational_Dofs == "False"):
 	import structural_solver_dynamic
 	structural_solver_dynamic.AddVariables(model_part)
     else:
@@ -78,6 +78,17 @@ gid_io.InitializeMesh( mesh_name );
 gid_io.WriteMesh((model_part).GetMesh());
 gid_io.FinalizeMesh()
 
+##find neighbours if required
+if(Structural_Aplication_var.FindNodalNeighbours == "True"):
+    number_of_avg_elems = 10
+    number_of_avg_nodes = 10
+    nodal_neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+    nodal_neighbour_search.Execute()
+if(Structural_Aplication_var.FindElementalNeighbours == "True"):
+    neighbour_calculator = FindElementalNeighboursProcess(model_part,2,10);
+    neighbour_calculator.Execute()
+
+
 print model_part
 print model_part.Properties
 
@@ -85,7 +96,7 @@ print model_part.Properties
 model_part.SetBufferSize(2)
 
 ##importing the rotational dofs degrees of freedom if necessary
-if(Structural_Aplication_var.Rotational_Dofs == True):
+if(Structural_Aplication_var.Rotational_Dofs == "True"):
   for node in model_part.Nodes:
     node.AddDof(ROTATION_X)
     node.AddDof(ROTATION_Y)
@@ -96,7 +107,7 @@ if(Structural_Aplication_var.SolverType == "StaticSolver"):
     structural_solver_static.AddDofs(model_part)
     solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size) 
 elif(Structural_Aplication_var.SolverType == "DynamicSolver"):
-    if(Structural_Aplication_var.Rotational_Dofs == False):
+    if(Structural_Aplication_var.Rotational_Dofs == "False"):
 	structural_solver_dynamic.AddDofs(model_part)
 	solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
     else:
@@ -107,7 +118,7 @@ elif(Structural_Aplication_var.SolverType == "ParallelSolver"):
     solver = structural_solver_static_parallel.StaticStructuralSolver(model_part,domain_size)
 elif(Structural_Aplication_var.SolverType == "ArcLengthSolver"):
     structural_solver_static_arc_length.AddDofs(model_part)
-    solver = structural_solver_static_general.StaticStructuralSolver(model_part,domain_size)
+    solver = structural_solver_static_arc_length.StaticStructuralSolver(model_part,domain_size)
 elif(Structural_Aplication_var.SolverType == "LineSearchesSolver"):
     structural_solver_static_general.AddDofs(model_part)
     solver = structural_solver_static_general.StaticStructuralSolver(model_part,domain_size)
@@ -116,7 +127,7 @@ elif(Structural_Aplication_var.SolverType == "LineSearchesSolver"):
 if(domain_size == 2):
   for prop in model_part.Properties:
     prop.SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
-else
+else:
   for prop in model_part.Properties:
     prop.SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
 #creating a fluid solver object
@@ -149,10 +160,10 @@ AT = Structural_Aplication_var.Absolute_Tolerance;
 if(Structural_Aplication_var.Convergence_Criteria == "Displacement_Criteria"):
     solver.conv_criteria  =  DisplacementCriteria(CT,AT)
 elif(Structural_Aplication_var.Convergence_Criteria == "Residual_Criteria"): 
-    solver.conv_criteria  =   Residual_Criteria(CT,AT)
+    solver.conv_criteria  =   ResidualCriteria(CT,AT)
 elif(Structural_Aplication_var.Convergence_Criteria == " Both_Criteria"): 
     Displacement   =  DisplacementCriteria(CT,AT)
-    Residual       =   Residual_Criteria(CT,AT)
+    Residual       =   ResidualCriteria(CT,AT)
     solver.conv_criteria  = ResDisCriteria(Residual, Displacement)
         
 
@@ -191,7 +202,7 @@ for step in range(0,Nsteps):
 	gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR,model_part,time)
 	#gid_io.PrintOnGaussPoints(DAMAGE,model_part,time)
         gid_io.WriteNodalResults(DISPLACEMENT,model_part.Nodes,time,0)
-	if(Structural_Aplication_var.Rotational_Dofs == True):
+	if(Structural_Aplication_var.Rotational_Dofs == "True"):
 	  gid_io.WriteNodalResults(ROTATION,model_part.Nodes,time,0)
         gid_io.PrintOnGaussPoints(PK2_STRESS_TENSOR,model_part,time)
         if(Structural_Aplication_var.SolverType == "DynamicSolver"):
