@@ -149,7 +149,7 @@ namespace Kratos
 			KRATOS_TRY
 
                         double large_distance = 1e6;
-                        double tol = 1.0/large_distance;
+//                        double tol = 1.0/large_distance;
 
 			//copy rDistance var to GetValue database
 			for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)

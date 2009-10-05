@@ -40,6 +40,8 @@ ELEMENT MembraneElement surface
 PROPERTY Time_Step 0.01 Dt
 PROPERTY Max_Time 1 max_time
 PROPERTY Nsteps   5 nsteps
+TEXT FLAG PROPERTY FindNodalNeighbours False True FindNodalNeighbours
+TEXT FLAG PROPERTY FindElementalNeighbours False True FindElementalNeighbours
 TEXT FLAG PROPERTY Rotational_Dofs False True Rotational_Dofs
 TEXT FLAG PROPERTY Solver_Type    StaticSolver ArcLengthSolver LineSearchesSolver  DynamicSolver ParallelSolver  SolverType
 TEXT FLAG PROPERTY Linear_Solver  SkylineLUFactorization SuperLUSolver  BiCGStab_ILU0 BiCGStab_DIAG   LinearSolver 

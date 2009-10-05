@@ -477,7 +477,7 @@ namespace Kratos
 	//loop over nodes to update density and sound velocity
 		double K1 = 2070000000;
 		double K2 = 7.15;
-		double alpha = 1.0;
+//		double alpha = 1.0;
 	for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        { 
 ;

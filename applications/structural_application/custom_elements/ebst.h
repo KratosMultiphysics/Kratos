@@ -169,6 +169,7 @@ namespace Kratos {
         
         //area in the reference configuration
         double Area0;
+        array_1d<double,3> mK0;
         
         //double GetElementalPressure(
         //	const ProcessInfo& rCurrentProcessInfo);
