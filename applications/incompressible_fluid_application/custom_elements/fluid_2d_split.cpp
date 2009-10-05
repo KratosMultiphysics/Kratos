@@ -270,7 +270,7 @@ namespace Kratos
 		        
 		        int nodes_number = 3;
 		        int dof = 2;
-		        int matsize = dof*nodes_number;
+// 		        int matsize = dof*nodes_number;
 		        double density;
 		        double mu;
 		        double eps;
@@ -513,13 +513,13 @@ namespace Kratos
 	//calculate convective term	
 	int nodes_number = 3;
 	int dof = 2;
-	int matsize = dof*nodes_number;
+// 	int matsize = dof*nodes_number;
 
 	array_1d<double,3> conv_opr = ZeroVector(dof+1);
 	array_1d<double,3> shape_func = ZeroVector(dof+1);
 	for (int ii = 0; ii< nodes_number; ii++)
 	    {
-		int column = ii*dof;
+// 		int column = ii*dof;
 		conv_opr[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
 		shape_func[ii] = N[ii];
 	    }
@@ -561,7 +561,7 @@ namespace Kratos
 
 		int nodes_number = 3;
 		int dof = 2;
-		int matsize = dof*nodes_number;
+// 		int matsize = dof*nodes_number;
 
 		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
 		array_1d<double,3> vel_gp = ZeroVector(nodes_number);
@@ -587,7 +587,7 @@ namespace Kratos
 */
 		//boost::numeric::ublas::bounded_matrix<double,2,6> shape_func = ZeroMatrix(dof, matsize);
 		array_1d<double,3> shape_func = ZeroVector(dof + 1);
-		for (int ii = 0; ii< N.size(); ii++)
+		for (unsigned int ii = 0; ii< N.size(); ii++)
 		    {
 			 shape_func[ii] = N[ii]; 
 		    }
@@ -602,11 +602,11 @@ namespace Kratos
 		for ( int ii = 0; ii < nodes_number; ii++)
 		    {
 			 int row = ii*(dof+1);
-			 int loc_row = ii*dof;
+// 			 int loc_row = ii*dof;
 			 for( int jj=0; jj < nodes_number; jj++)
 			   {
 
-				int loc_column = jj*dof;
+// 				int loc_column = jj*dof;
 				//DARCY TERM linear part
 				K(row,row) += fac_linear * temp_sfprod(ii,jj);
 				K(row + 1,row + 1) += fac_linear * temp_sfprod(ii,jj);
