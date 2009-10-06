@@ -66,7 +66,7 @@ structure_model_part.AddNodalSolutionStepVariable(NORMAL)
 
 #introducing input file name
 input_file_name = fsi_fluid_var.problem_name
-input_file_name_structure = "curved_vessel_structure"
+input_file_name_structure = fsi_fluid_var.structure_file
 
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
