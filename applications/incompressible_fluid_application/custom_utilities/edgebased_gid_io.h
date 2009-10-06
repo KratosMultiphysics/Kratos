@@ -79,7 +79,7 @@ namespace Kratos
     {
         public:
             ///Constructor
-            EdgebasedGidGaussPointsContainer( char* gp_title, KratosGeometryFamily geometryFamily,
+            EdgebasedGidGaussPointsContainer( const char* gp_title, KratosGeometryFamily geometryFamily,
                                      GiD_ElementType gid_element_type,
                                      int number_of_integration_points,
                                      std::vector<int> index_container )
