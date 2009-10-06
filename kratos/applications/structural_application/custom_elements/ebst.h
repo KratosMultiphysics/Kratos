@@ -155,6 +155,16 @@ namespace Kratos {
 
     protected:
 
+      virtual void CalculateEquivalentStresses(
+          const array_1d<double, 3 > & membrane_strain,
+          const array_1d<double, 3 > & bending_strain,
+          boost::numeric::ublas::bounded_matrix<double, 3, 3 >& Dmat_m,
+          boost::numeric::ublas::bounded_matrix<double, 3, 3 >& Dmat_f,
+          array_1d<double, 3 > & membrane_stress,
+          array_1d<double, 3 > & bending_stress,
+          double& h_on_h0 //  ratio between current thickness and original thickness h/h0
+          );
+
 
     private:
         ///@name Static Member Variables
@@ -208,7 +218,7 @@ namespace Kratos {
 		);
 		
 	void CalculateAndAdd_MembraneStrain(
-		Vector& strain,
+		array_1d<double,3>& strain,
 		const boost::numeric::ublas::bounded_matrix<double, 2,3 >& phiG
 		);
 
