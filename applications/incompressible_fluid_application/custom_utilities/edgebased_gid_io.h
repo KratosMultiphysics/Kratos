@@ -75,7 +75,7 @@ namespace Kratos
      * Auxiliary class to store gauss point containers and perform result printing
      * on gauss points
      */
-    class EdgebasedGidGaussPointsContainer
+    class EdgebasedGidGaussPointsContainer : public GidGaussPointsContainer
     {
         public:
             ///Constructor
