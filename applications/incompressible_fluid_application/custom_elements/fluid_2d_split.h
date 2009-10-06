@@ -135,9 +135,9 @@ namespace Kratos
 	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 //	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-       void Calculate( const Variable<array_1d<double,3> >& rVariable, 
-                       array_1d<double,3>& Output, 
-                       const ProcessInfo& rCurrentProcessInfo);
+//        void Calculate( const Variable<array_1d<double,3> >& rVariable, 
+//                        array_1d<double,3>& Output, 
+//                        const ProcessInfo& rCurrentProcessInfo);
 
        void GetFirstDerivativesVector(Vector& values, int Step = 0);
        void GetSecondDerivativesVector(Vector& values, int Step = 0);
@@ -193,10 +193,10 @@ namespace Kratos
       ///@{ 
        virtual void CalculateDensity(Geometry< Node<3> > geom, double& density, double& viscosity, double& porosity);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
-       virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time); 
+//        virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time); 
        virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone,const double area);
        virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double area);
-       virtual void CalculateDarcyMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double area);
+//        virtual void CalculateDarcyMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double area);
       ///@} 
 
       ///@name Protected Operators
@@ -247,13 +247,13 @@ namespace Kratos
 	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
 	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
 	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
-	virtual void CalculateDarcyStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
+// 	virtual void CalculateDarcyStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
         virtual void AddBodyForceAndMomentum(VectorType& F,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
         virtual void AddVolumeCorrection(VectorType& F,const array_1d<double,3>& N, const double time,const double area);
 
 	virtual void CalculateTau(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
 	
-	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
+// 	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
         virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 	    private:
       ///@} 
