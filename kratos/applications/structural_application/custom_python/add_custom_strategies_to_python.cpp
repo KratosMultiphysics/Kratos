@@ -89,7 +89,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 // #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
-#include "custom_strategies/schemes/residualbased_central_diferences_scheme.h"
+//#include "custom_strategies/schemes/residualbased_central_diferences_scheme.h"
 // #include "custom_strategies/schemes/testing_scheme.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme_rotation.h"
 #include "custom_strategies/schemes/residualbased_predictorcorrector_relaxation_scheme.h"
@@ -183,10 +183,10 @@ namespace Kratos
                     "ResidualBasedPredictorCorrectorBossakScheme", init< double >()
                    );
 
-           class_< ResidualBasedCentralDiferencesScheme< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-                   (
-                    "ResidualBasedCentralDiferencesScheme", init< ModelPart&,  double, bool,  bool >())
-                   ;
+//           class_< ResidualBasedCentralDiferencesScheme< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+//                   (
+//                    "ResidualBasedCentralDiferencesScheme", init< ModelPart&,  double, bool,  bool >())
+//                   ;
 
 	   class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType,
  	   bases< BaseSchemeType >,  boost::noncopyable >
