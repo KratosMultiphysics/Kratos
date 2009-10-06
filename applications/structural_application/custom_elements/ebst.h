@@ -164,11 +164,7 @@ namespace Kratos {
           array_1d<double, 3 > & bending_stress,
           double& h_on_h0 //  ratio between current thickness and original thickness h/h0
           );
-
-
-    private:
-        ///@name Static Member Variables
-
+      
         //cartesian derivatives (reference configuration)
 	array_1d<double,3> mvxe;
 	array_1d<double,3> mvye;
@@ -176,10 +172,15 @@ namespace Kratos {
         boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg1;
         boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg2;
         boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg3;
-        
+
         //area in the reference configuration
         double Area0;
         array_1d<double,3> mK0;
+
+
+    private:
+        ///@name Static Member Variables
+
         
         //double GetElementalPressure(
         //	const ProcessInfo& rCurrentProcessInfo);
