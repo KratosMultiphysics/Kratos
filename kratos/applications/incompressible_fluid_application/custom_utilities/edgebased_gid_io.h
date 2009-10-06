@@ -300,7 +300,7 @@ namespace Kratos
             }
             
             ///member variables
-            char* mGPTitle;
+            const char* mGPTitle;
             KratosGeometryFamily mKratosElementFamily;
             GiD_ElementType mGidElementFamily;
             unsigned int mSize;
