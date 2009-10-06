@@ -676,13 +676,13 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					iii->GetGeometry()[2].FastGetSolutionStepValue(IS_BOUNDARY) = 1;
 				
 					//Generate condition
-					Condition::NodesArrayType temp;
-					temp.reserve(2);
-					temp.push_back(iii->GetGeometry()(1)); 
-					temp.push_back(iii->GetGeometry()(2));
+					Condition::NodesArrayType temp1;
+					temp1.reserve(2);
+					temp1.push_back(iii->GetGeometry()(1)); 
+					temp1.push_back(iii->GetGeometry()(2));
 				
 					Geometry< Node<3> >::Pointer cond = 
-						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
 					int id = (iii->Id()-1)*3;
 					
 					Condition::Pointer p_cond = 
@@ -703,13 +703,13 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					iii->GetGeometry()[0].FastGetSolutionStepValue(IS_BOUNDARY) = 1;
 
 					//Generate condition
-					Condition::NodesArrayType temp;
-					temp.reserve(2);
-					temp.push_back(iii->GetGeometry()(2)); 
-					temp.push_back(iii->GetGeometry()(0));
+					Condition::NodesArrayType temp1;
+					temp1.reserve(2);
+					temp1.push_back(iii->GetGeometry()(2)); 
+					temp1.push_back(iii->GetGeometry()(0));
 					
 					Geometry< Node<3> >::Pointer cond = 
-						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
 					int id = (iii->Id()-1)*3+1;
 					//
 					Condition::Pointer p_cond = 
@@ -730,12 +730,12 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					iii->GetGeometry()[1].FastGetSolutionStepValue(IS_BOUNDARY) = 1;
 					
 //					Generate condition
-					Condition::NodesArrayType temp;
-					temp.reserve(2);
-					temp.push_back(iii->GetGeometry()(0)); 
-					temp.push_back(iii->GetGeometry()(1));
+					Condition::NodesArrayType temp1;
+					temp1.reserve(2);
+					temp1.push_back(iii->GetGeometry()(0)); 
+					temp1.push_back(iii->GetGeometry()(1));
 					Geometry< Node<3> >::Pointer cond = 
-						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
 					int id = (iii->Id()-1)*3+2;
 					
 					Condition::Pointer p_cond = 
@@ -1029,6 +1029,7 @@ KRATOS_WATCH("ln754");
 			
 			pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
 			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
+			pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
 			pnode->GetValue(ERASE_FLAG)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
