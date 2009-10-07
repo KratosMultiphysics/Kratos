@@ -65,6 +65,7 @@ namespace Kratos {
 
 	// Matrix I/O routines
 	
+//	bool ReadMatrixMarketMatrix1(char *FileName, CompressedMatrix &M)
 	static bool ReadMatrixMarketMatrix(char *FileName, CompressedMatrix &M)
 	{
 		// Open MM file for reading
