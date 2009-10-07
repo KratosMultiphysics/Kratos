@@ -76,7 +76,7 @@ namespace Kratos
         public:
             typedef GidGaussPointsContainer BaseType;
             ///Constructor
-            StructuralGidGaussPointsContainer( char* gp_title, KratosGeometryFamily geometryFamily,
+            StructuralGidGaussPointsContainer( const char* gp_title, KratosGeometryFamily geometryFamily,
                                      GiD_ElementType gid_element_type,
                                      int number_of_integration_points,
                                      std::vector<int> index_container )

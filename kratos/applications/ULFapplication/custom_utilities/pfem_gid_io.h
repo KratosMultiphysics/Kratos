@@ -79,7 +79,7 @@ namespace Kratos
     {
         public:
             ///Constructor
-            PfemGidGaussPointsContainer( char* gp_title, KratosGeometryFamily geometryFamily,
+            PfemGidGaussPointsContainer( const char* gp_title, KratosGeometryFamily geometryFamily,
                                      GiD_ElementType gid_element_type,
                                      unsigned int number_of_integration_points,
                                      std::vector<int> index_container )
@@ -120,7 +120,7 @@ namespace Kratos
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
                     WriteGaussPoints();
-                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                    GiD_BeginResult( (char*)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                       GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<double> ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
@@ -301,7 +301,7 @@ namespace Kratos
             
             ///member variables
             
-            char* mGPTitle;
+            const char* mGPTitle;
             KratosGeometryFamily mKratosElementFamily;
             GiD_ElementType mGidElementFamily;
             unsigned int mSize;
@@ -319,7 +319,7 @@ namespace Kratos
         public:
             ///Constructor
             PfemGidMeshContainer( GeometryData::KratosGeometryType geometryType, 
-                              GiD_ElementType elementType, char* mesh_title )
+                              GiD_ElementType elementType, const char* mesh_title )
             :mGeometryType(geometryType), mGidElementType(elementType), mMeshTitle(mesh_title){}
             
             bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
@@ -558,7 +558,7 @@ namespace Kratos
             ModelPart::NodesContainerType mMeshNodes;
             ModelPart::ElementsContainerType mMeshElements;
             ModelPart::ConditionsContainerType mMeshConditions;
-            char* mMeshTitle;
+            const char* mMeshTitle;
     };//class PfemGidMeshContainer
 
 }// namespace Kratos.
