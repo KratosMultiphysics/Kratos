@@ -143,6 +143,8 @@ class EdgeBasedLevelSetSolver:
     ################################################################
     ################################################################
     def Solve(self):
+        (self.fluid_solver).UpdateFixedVelocityValues()
+
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
 
         ##convect levelset function

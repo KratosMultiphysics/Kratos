@@ -363,6 +363,28 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
+        void UpdateFixedVelocityValues()
+        {
+            KRATOS_TRY
+
+            //read velocity and pressure data from Kratos
+            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+
+            int fixed_size = mFixedVelocities.size();
+            #pragma omp parallel for firstprivate(fixed_size)
+            for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
+            {
+                unsigned int i_node = mFixedVelocities[i_velocity];
+                array_1d<double, TDim>& u_i_fix = mFixedVelocitiesValues[i_velocity];
+                const array_1d<double, TDim>& u_i = mvel_n1[i_node];
+
+                for (unsigned int comp = 0; comp < TDim; comp++)
+                        u_i_fix[comp] = u_i[comp];
+            }
+            KRATOS_CATCH("");
+        }
+
         //**********************************************************************************
         //function to solve fluid equations - fractional step 1: compute fractional momentum
 
@@ -391,6 +413,54 @@ namespace Kratos {
             //read time step size from Kratos
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
             double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+
+
+//            //read the prescribed values of velocity
+//            int fixed_size = mFixedVelocities.size();
+////            #pragma omp parallel for firstprivate(fixed_size)
+//            for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
+//            {
+//                unsigned int i_node = mFixedVelocities[i_velocity];
+//                     array_1d<double, TDim>& u_i_fix = mFixedVelocitiesValues[i_velocity];
+//                    const array_1d<double, TDim>& u_i = mvel_n1[i_node];
+//                    KRATOS_WATCH(mvel_n1[i_node-1]);
+//                    KRATOS_WATCH(mvel_n1[i_node]);
+//                    KRATOS_WATCH(mvel_n1[i_node+1]);
+//                    for (unsigned int comp = 0; comp < TDim; comp++)
+//                        u_i_fix[comp] = u_i[comp];
+//            }
+//            KRATOS_WATCH("AAAAAAAAAAAAAAAAA")
+//            mFixedVelocities.resize(0);
+//            mFixedVelocitiesValues.resize(0);
+//            mFixedVelocities.clear();
+//            mFixedVelocitiesValues.clear();
+//
+//            for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+//                    inode != mr_model_part.NodesEnd();
+//                    inode++) {
+//                int index = inode->FastGetSolutionStepValue(AUX_INDEX);
+//                if (inode->IsFixed(VELOCITY_X)) //note that the variables can be either all fixed or no one fixed
+//                {
+//                    KRATOS_WATCH(index);
+//                    KRATOS_WATCH(inode->FastGetSolutionStepValue(VELOCITY));
+//                    mFixedVelocities.push_back(index);
+//                    mFixedVelocitiesValues.push_back(mvel_n1[index]);
+//
+//
+//                }
+//            }
+//
+//            int fixed_size = mFixedVelocities.size();
+////            #pragma omp parallel for firstprivate(fixed_size)
+//            for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
+//            {
+////                                    mFixedVelocitiesValues[i_velocity][0] = 10.0;
+////                    mFixedVelocitiesValues[i_velocity][1] = 10.0;
+////                    mFixedVelocitiesValues[i_velocity][2] = 10.0;
+//                KRATOS_WATCH( mFixedVelocitiesValues[i_velocity] );
+//            }
+
 
 
             //compute intrinsic time
