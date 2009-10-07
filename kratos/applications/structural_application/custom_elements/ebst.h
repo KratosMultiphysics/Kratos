@@ -155,14 +155,15 @@ namespace Kratos {
 
     protected:
 
-      virtual void CalculateEquivalentStresses(
+      void CalculateEquivalentStresses(
           const array_1d<double, 3 > & membrane_strain,
           const array_1d<double, 3 > & bending_strain,
           boost::numeric::ublas::bounded_matrix<double, 3, 3 >& Dmat_m,
           boost::numeric::ublas::bounded_matrix<double, 3, 3 >& Dmat_f,
           array_1d<double, 3 > & membrane_stress,
           array_1d<double, 3 > & bending_stress,
-          double& h_on_h0 //  ratio between current thickness and original thickness h/h0
+          double& h_on_h0, //  ratio between current thickness and original thickness h/h0
+          const ProcessInfo& rCurrentProcessInfo
           );
       
         //cartesian derivatives (reference configuration)
@@ -176,6 +177,9 @@ namespace Kratos {
         //area in the reference configuration
         double Area0;
         array_1d<double,3> mK0;
+
+        //vector of constitutive laws across the thickness
+        std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
 
 
     private:
