@@ -51,7 +51,7 @@ class DynamicStructuralSolver:
         self.time_scheme = ResidualBasedPredictorCorrectorBossakRotationScheme(self.damp_factor)
 
         #definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
+        #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
 
         #creating the solution strategy
