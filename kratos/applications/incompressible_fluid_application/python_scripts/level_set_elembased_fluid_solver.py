@@ -138,7 +138,7 @@ class ElemBasedLevelSetSolver:
 
         #constructing the fluid solver
         self.solver = monolithic_solver_eulerian.MonolithicSolver(self.model_part, self.domain_size)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,0)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
         self.max_iter = 10
         self.solver.Initialize()
 
@@ -170,32 +170,6 @@ class ElemBasedLevelSetSolver:
     ################################################################
     #take care! needs neighbours on the overall domain
     def RecalculateDistanceFunction(self):
-########        old
-####        print "entered in RecalculateDistanceFunction"
-####        #mark all nodes outside of the fluid domain and the first layer of nodes inside
-####        self.distance_tools.MarkExternalAndMixedNodes()
-####
-####        #change sign
-####        self.distance_tools.ChangeSignToDistance()
-####
-####        #calculate distances towards the interior of the domain
-####        self.CalculateDistances();
-####        
-####        #change sign 
-####        self.distance_tools.ChangeSignToDistance()
-####
-####        #mark as visited all of the nodes inside the fluid domain
-####        self.distance_tools.MarkInternalAndMixedNodes()
-####
-####        #calculate distances towards the outside
-####        if(self.domain_size == 2):
-####            self.distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE, True);
-####        else:
-####            self.distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE, True);
-####
-####        #save as distance of the old time step
-####        self.distance_tools.SaveScalarVariableToOldStep(DISTANCE)
-####        print "finished RecalculateDistanceFunction"
         self.distance_utils.CalculateDistances(self.model_part,DISTANCE)
 
 
@@ -226,7 +200,6 @@ class ElemBasedLevelSetSolver:
             self.convection_solver.ClearSystem()        
             
         else:
-            error
             print "Convect without changing the matrix"
             #find neighbours
             (self.mesh_neighbour_search).Execute()
@@ -255,14 +228,14 @@ class ElemBasedLevelSetSolver:
 
         self.bc_tools.SetDividedElem_2D()
 
-    def FreeModelPart(self):
-        
-        self.bc_tools.SetToZeroPressureAndVelocity(self.extrapolation_distance)
-        print "MODEL PART FREE *****************************************************************"
+##    def FreeModelPart(self):
+##        
+##        self.bc_tools.SetToZeroPressureAndVelocity(self.extrapolation_distance)
+##        print "MODEL PART FREE *****************************************************************"
     ################################################################
     ################################################################
 
-    def CalculateDelta_t(self, delta_t):
+    def CalculateDelta_t(self, delta_t_in):
 
 
         for node in self.model_part.Nodes:
@@ -288,13 +261,14 @@ class ElemBasedLevelSetSolver:
             B = 1.75 * density /eps * vel * math.sqrt( kinv / (eps * 150.0))
     ##        print B
 
-            temp_delta_t = 1e6            
+            temp_delta_t = 1e6
+            delta_t = delta_t_in
             if((A+B) != 0.0):
                 if(node.GetSolutionStepValue(DISTANCE) <= 0.0):
                     temp_delta_t = 1/(A + B)
 
 
-            if (temp_delta_t < delta_t):
+            if (temp_delta_t < delta_t_in):
                 delta_t = temp_delta_t
             
 ##        print delta_t
