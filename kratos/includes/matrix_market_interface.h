@@ -65,8 +65,7 @@ namespace Kratos {
 
 	// Matrix I/O routines
 	
-//	bool ReadMatrixMarketMatrix1(char *FileName, CompressedMatrix &M)
-	static bool ReadMatrixMarketMatrix(char *FileName, CompressedMatrix &M)
+	inline bool ReadMatrixMarketMatrix(char *FileName, CompressedMatrix &M)
 	{
 		// Open MM file for reading
 		FILE *f = fopen(FileName, "r");
@@ -276,7 +275,7 @@ namespace Kratos {
 		return true;
 	}
 
-	static bool WriteMatrixMarketMatrix(char *FileName, CompressedMatrix &M, bool Symmetric)
+	inline bool WriteMatrixMarketMatrix(char *FileName, CompressedMatrix &M, bool Symmetric)
 	{
 		// Open MM file for writing
 		FILE *f = fopen(FileName, "w");
@@ -392,7 +391,7 @@ namespace Kratos {
 	
 	// Vector I/O routines
 	
-	static bool ReadMatrixMarketVector(char *FileName, Vector &V)
+	inline bool ReadMatrixMarketVector(char *FileName, Vector &V)
 	{
 		// Open MM file for reading
 		FILE *f = fopen(FileName, "r");
@@ -473,7 +472,7 @@ namespace Kratos {
 		return true;
 	}
 
-	static bool WriteMatrixMarketVector(char *FileName, Vector &V)
+	inline bool WriteMatrixMarketVector(char *FileName, Vector &V)
 	{
 		// Open MM file for writing
 		FILE *f = fopen(FileName, "w");
