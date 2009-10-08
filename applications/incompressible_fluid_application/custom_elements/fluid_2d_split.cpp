@@ -907,7 +907,7 @@ namespace Kratos
 	//calculate convective term	
 	int nodes_number = 3;
 	int dof = 2;
-	int matsize = dof*nodes_number;
+//	int matsize = dof*nodes_number;
 
 	//calculate density
 	double density;
