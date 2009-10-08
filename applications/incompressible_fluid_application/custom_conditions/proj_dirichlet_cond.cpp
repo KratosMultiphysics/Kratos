@@ -490,35 +490,35 @@ namespace Kratos
 		///////////////////////////////////////////////////////////////////////////////////////////
 		
 		//and also directly applying Dirichlet onto the nodes that are too close to the interface (those are defined by bad_vertex_index)
-		/*
-		if (bad_vertex_index1<=2)
-		{
-			if (bad_vertex_index2<=2)
-			{	
-				//check if they are close to the same vertex - if so, apply half of the sum
-				if (bad_vertex_index2=bad_vertex_index1)
-					{	
-					GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=(mVel1+mVel2)/2.0;
-					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
-					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
-					}
-				
-			}
-			//if only one bad vertex
-			else 
-			{
-				//directly apply the origin velocity				
-				GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=mVel1;
-				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
-				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
-			}
-		}
-		else if (bad_vertex_index2<=2)
-		{
-		GetGeometry()[bad_vertex_index2].FastGetSolutionStepValue(AUX_VEL)=mVel2;
-		GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_X);
-		GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_Y);
-		}
+		
+//		if (bad_vertex_index1<=2)
+//		{
+//			if (bad_vertex_index2<=2)
+//			{
+//				//check if they are close to the same vertex - if so, apply half of the sum
+//				if (bad_vertex_index2=bad_vertex_index1)
+//					{
+//					GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=(mVel1+mVel2)/2.0;
+//					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+//					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+//					}
+//
+//			}
+//			//if only one bad vertex
+//			else
+//			{
+//				//directly apply the origin velocity
+//				GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=mVel1;
+//				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+//				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+//			}
+//		}
+//		else if (bad_vertex_index2<=2)
+//		{
+//		GetGeometry()[bad_vertex_index2].FastGetSolutionStepValue(AUX_VEL)=mVel2;
+//		GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_X);
+//		GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_Y);
+//		}
 		
 		*/
 		
