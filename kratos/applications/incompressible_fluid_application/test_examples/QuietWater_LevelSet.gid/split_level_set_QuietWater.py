@@ -134,9 +134,8 @@ fluid_solver.redistance_frequency  = 1
 fluid_solver.predictor_corrector = True
 fluid_solver.reform_convection_matrix = True
 fluid_solver.ReformDofAtEachIteration = True
-fluid_solver.max_press_its = 3;
-fluid_solver.max_vel_its = 6;
-fluid_solver.press_toll = 0.005;
+
+
 
 fluid_solver.number_of_extrapolation_layers = 3
 
@@ -147,6 +146,7 @@ neighbour_finder.Execute(); ##at wish ... when it is needed
 fluid_solver.Initialize()
 print "fluid solver initialized"
 
+fluid_solver.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
 
 while time < max_time:
     
