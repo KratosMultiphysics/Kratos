@@ -1,18 +1,18 @@
 #import the configuration data as read from the GiD
-import Structural_Application_var
+import Kratos_Structural_Application_var
 
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = Structural_Application_var.domain_size
+domain_size = Kratos_Structural_Application_var.domain_size
 
 ##################################################################
 ##################################################################
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = Structural_Application_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = Structural_Application_var.kratos_path + '/applications' ##kratos_root/applications
+kratos_libs_path            = Kratos_Structural_Application_var.kratos_path + '/libs' ##kratos_root/libs
+kratos_applications_path    = Kratos_Structural_Application_var.kratos_path + '/applications' ##kratos_root/applications
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
@@ -27,9 +27,12 @@ applications_interface.Import_StructuralApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 from KratosStructuralApplication import *
 
-if(Structural_Application_var.LinearSolver == "SuperLUSolver"):
+if(Kratos_Structural_Application_var.LinearSolver == "SuperLUSolver"):
     from KratosExternalSolversApplication import *
 
+if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
+    applications_interface.Import_KratosMKLSolversApplication = True
+    from KratosMKLSolversApplication import *
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
@@ -37,33 +40,33 @@ if(Structural_Application_var.LinearSolver == "SuperLUSolver"):
 #defining a model part
 model_part = ModelPart("StructurePart");  
 model_part.AddNodalSolutionStepVariable(FORCE);
-if(Structural_Application_var.Rotational_Dofs == "True"):
+if(Kratos_Structural_Application_var.Rotational_Dofs == "True"):
   model_part.AddNodalSolutionStepVariable(ROTATION);
 
 
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
-if(Structural_Application_var.SolverType == "StaticSolver"): 
+if(Kratos_Structural_Application_var.SolverType == "StaticSolver"): 
     import structural_solver_static
     structural_solver_static.AddVariables(model_part)
-elif(Structural_Application_var.SolverType == "DynamicSolver"):
-    if(Structural_Application_var.Rotational_Dofs == "False"):
+elif(Kratos_Structural_Application_var.SolverType == "DynamicSolver"):
+    if(Kratos_Structural_Application_var.Rotational_Dofs == "False"):
 	import structural_solver_dynamic
 	structural_solver_dynamic.AddVariables(model_part)
     else:
 	import structural_solver_dynamic_rotation
 	structural_solver_dynamic_rotation.AddVariables(model_part)
-elif(Structural_Application_var.SolverType == "ParallelSolver"):
+elif(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
     import structural_solver_static_parallel
     structural_solver_static_parallel.AddVariables(model_part)
-elif(Structural_Application_var.SolverType == "ArcLengthSolver"):
+elif(Kratos_Structural_Application_var.SolverType == "ArcLengthSolver"):
     import structural_solver_static_arc_length
     structural_solver_static_arc_length.AddVariables(model_part)
-elif(Structural_Application_var.SolverType == "LineSearchesSolver"):
+elif(Kratos_Structural_Application_var.SolverType == "LineSearchesSolver"):
     import structural_solver_static_general
     structural_solver_static_general.AddVariables(model_part)
 
 #reading a model
-name = Structural_Application_var.problem_name
+name = Kratos_Structural_Application_var.problem_name
 
 gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
@@ -79,12 +82,12 @@ gid_io.WriteMesh((model_part).GetMesh());
 gid_io.FinalizeMesh()
 
 ##find neighbours if required
-if(Structural_Application_var.FindNodalNeighbours == "True"):
+if(Kratos_Structural_Application_var.FindNodalNeighbours == "True"):
     number_of_avg_elems = 10
     number_of_avg_nodes = 10
     nodal_neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
     nodal_neighbour_search.Execute()
-if(Structural_Application_var.FindElementalNeighbours == "True"):
+if(Kratos_Structural_Application_var.FindElementalNeighbours == "True"):
     neighbour_calculator = FindElementalNeighboursProcess(model_part,2,10);
     neighbour_calculator.Execute()
 
@@ -96,31 +99,31 @@ print model_part.Properties
 model_part.SetBufferSize(2)
 
 ##importing the rotational dofs degrees of freedom if necessary
-if(Structural_Application_var.Rotational_Dofs == "True"):
+if(Kratos_Structural_Application_var.Rotational_Dofs == "True"):
   for node in model_part.Nodes:
     node.AddDof(ROTATION_X)
     node.AddDof(ROTATION_Y)
     node.AddDof(ROTATION_Z)
 
 #importing the solver files
-if(Structural_Application_var.SolverType == "StaticSolver"):
+if(Kratos_Structural_Application_var.SolverType == "StaticSolver"):
     structural_solver_static.AddDofs(model_part)
     solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size) 
-elif(Structural_Application_var.SolverType == "DynamicSolver"):
-    if(Structural_Application_var.Rotational_Dofs == "False"):
+elif(Kratos_Structural_Application_var.SolverType == "DynamicSolver"):
+    if(Kratos_Structural_Application_var.Rotational_Dofs == "False"):
 	structural_solver_dynamic.AddDofs(model_part)
 	solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
     else:
 	structural_solver_dynamic_rotation.AddDofs(model_part)
 	solver = structural_solver_dynamic_rotation.DynamicStructuralSolver(model_part,domain_size)
-elif(Structural_Application_var.SolverType == "ParallelSolver"):
+elif(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
     structural_solver_static_parallel.AddDofs(model_part)
     solver = structural_solver_static_parallel.StaticStructuralSolver(model_part,domain_size)
-elif(Structural_Application_var.SolverType == "ArcLengthSolver"):
+elif(Kratos_Structural_Application_var.SolverType == "ArcLengthSolver"):
     structural_solver_static_arc_length.AddDofs(model_part)
     solver = structural_solver_static_arc_length.StaticStructuralSolver(model_part,domain_size)
     model_part.ProcessInfo[LAMNDA] = 0.00;  
-elif(Structural_Application_var.SolverType == "LineSearchesSolver"):
+elif(Kratos_Structural_Application_var.SolverType == "LineSearchesSolver"):
     structural_solver_static_general.AddDofs(model_part)
     solver = structural_solver_static_general.StaticStructuralSolver(model_part,domain_size)
 
@@ -137,36 +140,36 @@ else:
 
 print "Linear elastic model selected"
 
-#solver.structure_linear_solver = Structural_Application_var.problem_name.LinearSolver()  
-if(Structural_Application_var.LinearSolver == "SkylineLUFactorization"):
+#solver.structure_linear_solver = Kratos_Structural_Application_var.problem_name.LinearSolver()  
+if(Kratos_Structural_Application_var.LinearSolver == "SkylineLUFactorization"):
     solver.structure_linear_solver  =  SkylineLUFactorizationSolver()
-elif(Structural_Application_var.LinearSolver == "SuperLUSolver"):
+elif(Kratos_Structural_Application_var.LinearSolver == "SuperLUSolver"):
     solver.structure_linear_solver  =  SuperLUSolver()
-elif(Structural_Application_var.LinearSolver == "BiCGStab_ILU0"):
+elif(Kratos_Structural_Application_var.LinearSolver == "BiCGStab_ILU0"):
     pILUPrecond = ILU0Preconditioner() 
-    LST  = Structural_Application_var.Linear_Solver_Tolerance
-    LSMI = Structural_Application_var.Linear_Solver_Max_Iteration 
+    LST  = Kratos_Structural_Application_var.Linear_Solver_Tolerance
+    LSMI = Kratos_Structural_Application_var.Linear_Solver_Max_Iteration 
     solver.structure_linear_solver  =  BICGSTABSolver(LST, LSMI, pILUPrecond)
-elif(Structural_Application_var.LinearSolver == "BiCGStab_DIAG"):
+elif(Kratos_Structural_Application_var.LinearSolver == "BiCGStab_DIAG"):
     pDiagPrecond = DiagonalPreconditioner()
-    LST  = Structural_Application_var.Linear_Solver_Tolerance
-    LSMI = Structural_Application_var.Linear_Solver_Max_Iteration  
+    LST  = Kratos_Structural_Application_var.Linear_Solver_Tolerance
+    LSMI = Kratos_Structural_Application_var.Linear_Solver_Max_Iteration  
     solver.structure_linear_solver  =  BICGSTABSolver(LST,LSMI,pDiagPrecond)
+elif(Kratos_Structural_Application_var.LinearSolver == "ParallelMKLPardisoSolver"):
+    solver.structure_linear_solver =  ParallelMKLPardisoSolver()
 
+CT = Kratos_Structural_Application_var.Convergence_Tolerance;
+AT = Kratos_Structural_Application_var.Absolute_Tolerance; 
 
-
-CT = Structural_Application_var.Convergence_Tolerance;
-AT = Structural_Application_var.Absolute_Tolerance; 
-
-if(Structural_Application_var.Convergence_Criteria == "Displacement_Criteria"):
+if(Kratos_Structural_Application_var.Convergence_Criteria == "Displacement_Criteria"):
     solver.conv_criteria  =  DisplacementCriteria(CT,AT)
-elif(Structural_Application_var.Convergence_Criteria == "Residual_Criteria"): 
+elif(Kratos_Structural_Application_var.Convergence_Criteria == "Residual_Criteria"): 
     solver.conv_criteria  =   ResidualCriteria(CT,AT)
-elif(Structural_Application_var.Convergence_Criteria == "And_Criteria"): 
+elif(Kratos_Structural_Application_var.Convergence_Criteria == "And_Criteria"): 
     Displacement   =   DisplacementCriteria(CT,AT)
     Residual       =   ResidualCriteria(CT,AT)
     solver.conv_criteria  = AndCriteria(Residual, Displacement)
-elif(Structural_Application_var.Convergence_Criteria == "Or_Criteria"): 
+elif(Kratos_Structural_Application_var.Convergence_Criteria == "Or_Criteria"): 
     Displacement   =   DisplacementCriteria(CT,AT)
     Residual       =   ResidualCriteria(CT,AT)
     solver.conv_criteria  = OrCriteria(Residual, Displacement)
@@ -178,10 +181,10 @@ solver.Initialize()
 (solver.solver).SetEchoLevel(2);
 
 
-Dt      = Structural_Application_var.Dt
-MaxTime = Structural_Application_var.max_time
-Nsteps  = Structural_Application_var.nsteps
-solver.max_iter =  Structural_Application_var.Max_Iter
+Dt      = Kratos_Structural_Application_var.Dt
+MaxTime = Kratos_Structural_Application_var.max_time
+Nsteps  = Kratos_Structural_Application_var.nsteps
+solver.max_iter =  Kratos_Structural_Application_var.Max_Iter
 
 
 gid_io.InitializeResults(mesh_name,(model_part).GetMesh())
@@ -199,7 +202,7 @@ for step in range(1,Nsteps):
     #solving the fluid problem
     if(step > 0):
         solver.Solve()
-        if(Structural_Application_var.SolverType == "ArcLengthSolver"):
+        if(Kratos_Structural_Application_var.SolverType == "ArcLengthSolver"):
 	    structural_solver_static_arc_length.ChangeCondition(model_part, model_part.ProcessInfo[LAMNDA])
 	    print model_part.ProcessInfo[LAMNDA];
 
@@ -212,10 +215,10 @@ for step in range(1,Nsteps):
 	gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR,model_part,time)
 	#gid_io.PrintOnGaussPoints(DAMAGE,model_part,time)
         gid_io.WriteNodalResults(DISPLACEMENT,model_part.Nodes,time,0)
-	if(Structural_Application_var.Rotational_Dofs == "True"):
+	if(Kratos_Structural_Application_var.Rotational_Dofs == "True"):
 	  gid_io.WriteNodalResults(ROTATION,model_part.Nodes,time,0)
         gid_io.PrintOnGaussPoints(PK2_STRESS_TENSOR,model_part,time)
-        if(Structural_Application_var.SolverType == "DynamicSolver"):
+        if(Kratos_Structural_Application_var.SolverType == "DynamicSolver"):
 	  gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
 	  gid_io.WriteNodalResults(ACCELERATION,model_part.Nodes,time,0)
 
