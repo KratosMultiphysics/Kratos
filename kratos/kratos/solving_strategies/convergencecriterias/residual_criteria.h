@@ -198,7 +198,7 @@ namespace Kratos
 				else ratio = mCurrentResidualNorm/mInitialResidualNorm;
 
 				double b_size = b.size();
-				std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio << "Norm Value = " << (mCurrentResidualNorm/sqrt(b_size)) << std::endl;
+				std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio << ";   Norm Value = " << (mCurrentResidualNorm/sqrt(b_size)) << std::endl;
 				if ( 
 					ratio <= mRatioTolerance 
 					|| 
