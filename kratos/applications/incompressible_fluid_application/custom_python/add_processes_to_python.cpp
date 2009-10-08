@@ -84,34 +84,34 @@ namespace Python
 	using namespace boost::python;
 
 	 
-//  	class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
-//		   .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
-//		 ;
-//	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
-//		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
-//		 ;
-//	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int >())
-//		 ;
-//
-//	class_<CFLProcess, bases<Process> >("CFLProcess", init<ModelPart&>())
-//		   .def("EstimateTime", &CFLProcess::EstimateTime)
-//		 ;
-//
-//	class_<ApplyProjDirichletProcess, bases<Process> >("ApplyProjDirichletProcess", init<>())
-//		   .def("ApplyProjDirichlet", &ApplyProjDirichletProcess::ApplyProjDirichlet)
-//		 ;
-//	class_<FindIntersectionsProcess, bases<Process> >("FindIntersectionsProcess", init<>())
-//		   .def("FindIntersectionOfEdges", &FindIntersectionsProcess::FindIntersectionOfEdges)
-//		 ;
-//	class_<FindInterfaceProcess, bases<Process> >("FindInterfaceProcess", init<>())
-//			.def("FindInterface", &FindInterfaceProcess::FindInterface)
-//		 ;
-//	class_<SubdomainDisableProcess, bases<Process> >("SubdomainDisableProcess", init<>())
-//		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)
-//		 ;
-//	class_<PseudoLagPartProcess, bases<Process> >("PseudoLagPartProcess", init<>())
-//		   .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
-//		 ;
+  	class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
+		   .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
+		 ;
+	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
+		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
+		 ;
+	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int >())
+		 ;
+
+	class_<CFLProcess, bases<Process> >("CFLProcess", init<ModelPart&>())
+		   .def("EstimateTime", &CFLProcess::EstimateTime)
+		 ;
+
+	class_<ApplyProjDirichletProcess, bases<Process> >("ApplyProjDirichletProcess", init<>())
+		   .def("ApplyProjDirichlet", &ApplyProjDirichletProcess::ApplyProjDirichlet)
+		 ;
+	class_<FindIntersectionsProcess, bases<Process> >("FindIntersectionsProcess", init<>())
+		   .def("FindIntersectionOfEdges", &FindIntersectionsProcess::FindIntersectionOfEdges)
+		 ;
+	class_<FindInterfaceProcess, bases<Process> >("FindInterfaceProcess", init<>())
+			.def("FindInterface", &FindInterfaceProcess::FindInterface)
+		 ;
+	class_<SubdomainDisableProcess, bases<Process> >("SubdomainDisableProcess", init<>())
+		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)
+		 ;
+	class_<PseudoLagPartProcess, bases<Process> >("PseudoLagPartProcess", init<>())
+		   .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
+		 ;
 
 	
   }
