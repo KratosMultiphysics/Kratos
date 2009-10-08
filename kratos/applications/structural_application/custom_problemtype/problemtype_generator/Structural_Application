@@ -1,4 +1,4 @@
-PROBLEMTYPE Structural_Application	# The name of your problemtype
+PROBLEMTYPE Kratos_Structural_Application	# The name of your problemtype
 DEFINITION FOLDER Structural_Application_problemtype # The folder containing the definition file and the .bas templates
 
 VECTOR CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
@@ -44,7 +44,7 @@ TEXT FLAG PROPERTY FindNodalNeighbours False True FindNodalNeighbours
 TEXT FLAG PROPERTY FindElementalNeighbours False True FindElementalNeighbours
 TEXT FLAG PROPERTY Rotational_Dofs False True Rotational_Dofs
 TEXT FLAG PROPERTY Solver_Type    StaticSolver ArcLengthSolver LineSearchesSolver  DynamicSolver ParallelSolver  SolverType
-TEXT FLAG PROPERTY Linear_Solver  SkylineLUFactorization SuperLUSolver  BiCGStab_ILU0 BiCGStab_DIAG   LinearSolver 
+TEXT FLAG PROPERTY Linear_Solver  SkylineLUFactorization SuperLUSolver  BiCGStab_ILU0 BiCGStab_DIAG  ParallelMKLPardisoSolver  LinearSolver 
 PROPERTY Linear_Solver_Tolerance 1E-9  Linear_Solver_Tolerance # Only Itertaive Solver
 PROPERTY Linear_Solver_Max_Iteration 5000  Linear_Solver_Max_Iteration    
 #TEXT FLAG PROPERTY Constitutive_Law_Name  Isotropic2D  Isotropic3D ConstitutiveLawName 
