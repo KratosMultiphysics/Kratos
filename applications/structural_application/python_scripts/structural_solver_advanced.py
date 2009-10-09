@@ -63,6 +63,8 @@ def AddDofs(model_part):
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
         node.AddDof(DISPLACEMENT_Z);
+        node.AddDof(WATER_PRESSURE);
+        node.AddDof(AIR_PRESSURE);
         node.AddDof(LAGRANGE_DISPLACEMENT_X);
         node.AddDof(LAGRANGE_DISPLACEMENT_Y);
         node.AddDof(LAGRANGE_DISPLACEMENT_Z);
