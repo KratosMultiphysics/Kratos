@@ -1,0 +1,11 @@
+"d:\kratos2009\kratos\applications\kElectrostatic\custom_conditions\pointcharge2D.cpp" -Fo"d:\kratos2009\kratos\applications\kElectrostatic\bin\msvc-8.0\release\threading-multi\pointcharge2D.obj"   -TP /O2 /Ob2 /W3 /GR /MD /Zc:forScope /Zc:wchar_t /wd4675 /EHs /D_SCL_SECURE_NO_DEPRECATE  /wd4335 -c 
+-DKRATOS_PYTHON 
+-DNDEBUG 
+"-IC:\Archivos de programa\pythonxy\python\Include" 
+"-ID:\Python26\include" 
+"-ID:\kratos2009\kratos\external_libraries\boost\boost_1_39" 
+"-Id:\kratos2009\kratos\applications\kElectrostatic" 
+"-Id:\kratos2009\kratos\external_libraries" 
+"-Id:\kratos2009\kratos\external_libraries\omptl" 
+"-Id:\kratos2009\kratos\kratos" 
+"-Ikratos\kratos"
