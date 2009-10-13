@@ -1,0 +1,11 @@
+
+"d:\kratos2009\kratos\applications\kElectrostatic\bin\msvc-8.0\release\threading-multi\kElectrostatic.obj" 
+"d:\kratos2009\kratos\applications\kElectrostatic\bin\msvc-8.0\release\threading-multi\kElectrostatic_python_application.obj" 
+"d:\kratos2009\kratos\applications\kElectrostatic\bin\msvc-8.0\release\threading-multi\electrostatic_2d.obj" 
+"d:\kratos2009\kratos\applications\kElectrostatic\bin\msvc-8.0\release\threading-multi\pointcharge2D.obj" 
+"d:\kratos2009\kratos\applications\kElectrostatic\bin\msvc-8.0\release\threading-multi\efield2D.obj" 
+"kratos\bin\msvc-8.0\release\link-static\threading-multi\libkratos.lib"   
+"gidpost.lib" 
+"python26.lib" 
+"boost_python-vc80-mt-1_39.lib" 
+"python25.lib"

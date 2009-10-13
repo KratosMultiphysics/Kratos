@@ -1,0 +1,50 @@
+BOOK:Electric_Conditions
+NUMBER: 1 CONDITION: Point_Voltage
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Voltage
+VALUE: 0.0
+HELP: Value of the voltage over points
+image: ../images/PointCond.gif
+END CONDITION
+NUMBER: 2 CONDITION: Line_Voltage
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Voltage
+VALUE: 0.0
+HELP: Value of the voltage over lines
+image: ../images/PointCond.gif
+END CONDITION
+NUMBER: 3 CONDITION: Surface_Voltage
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Voltage
+VALUE: 0.0
+HELP: Value of the voltage over surfaces
+image: ../images/BoundCond.gif
+END CONDITION
+BOOK:Electric_Contour_Conditions
+NUMBER: 4 CONDITION: Contour_Electric_Displacement
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: Dn
+VALUE: 0.0
+HELP: Value of the normal electric displacement over the line
+image: ../images/Flux.gif
+END CONDITION
+BOOK:Electric_Sources
+NUMBER: 5 CONDITION: Point_Electrical_Charge
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Q
+VALUE: 0.0
+HELP: Value of the electrical charge over a point
+image: ../images/Source.gif
+END CONDITION
+NUMBER: 6 CONDITION: Surface_Electrical_Charge
+CONDTYPE: over surfaces
+QUESTION: Qs
+VALUE: 0.0
+HELP: Value of the electrical charge over a surface
+image: ../images/Source.gif
+END CONDITION

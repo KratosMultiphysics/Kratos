@@ -1,0 +1,79 @@
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosR1ElectrostaticApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+cubito_2 opened for io
+cubito_2.node opened for io
+cubito_2.prop opened for io
+cubito_2.elem opened for io
+cubito_2.cond opened for io
+cubito_2.init opened for io
+initializing result files
+reading nodes
+temp : Node #504 : (0 , 7 , 0)
+Nodes succesfully read
+reading Properties
+Properties succesfully read
+reading Elements
+Properties succesfully read
+reading Conditions
+Properties succesfully read
+reading Initial Values
+ reading initiali values 
+ finished reading initial values 
+Initial Values succesfully read
+Reading completed succesfully
+writing a 2D mesh
+"setting up the dofs" : setting up the dofs
+DISPLACEMENT CRITERIA :: obtained tol = 1.46032e-014;  expected ratio = 1e-006absolute tol = 4.96843e-014
+"convergence is achieved" : convergence is achieved
+before importing kratos
+Kratos library imported
+kernel created
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_ PoissonApplication: False
+Import_ ElectrostaticApplication: True
+importing KratosR1ElectrostaticApplication ...
+Kratos ElectromagnecticApplication1 sucessfully imported
+ASABERQUEElectrostaticPart model part
+    Buffer Size : 1
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 504
+    Number of Properties : 2
+    Number of Elements   : 877
+    Number of Conditions : 0
+
+variables for the Poisson solver added correctly
+variables for the electromagnetic solver added correctly
+static poisson solver created
+GiD IO initialized
+fist iteration is done
+solver solved

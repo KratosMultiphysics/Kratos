@@ -1,0 +1,28 @@
+BOOK:Materials
+NUMBER: 1 MATERIAL: Aluminium
+QUESTION: property
+VALUE: material
+STATE: HIDDEN
+QUESTION: Electrical_Permittivity
+VALUE: 1210.0
+HELP: Electrical Permittivity for Isotropic Materials
+image: ../images/Materials.gif
+END MATERIAL
+NUMBER: 2 MATERIAL: Air
+QUESTION: property
+VALUE: material
+STATE: HIDDEN
+QUESTION: Electrical_Permittivity
+VALUE: 1.0
+HELP: Electrical Permittivity for Isotropic Materials
+image: ../images/Materials.gif
+END MATERIAL
+NUMBER: 3 MATERIAL: cubito0
+QUESTION: property
+VALUE: material
+STATE: HIDDEN
+QUESTION: Electrical_Permittivity
+VALUE: 14.0
+HELP: Electrical Permittivity for Isotropic Materials
+image: ../images/Materials.gif
+END MATERIAL

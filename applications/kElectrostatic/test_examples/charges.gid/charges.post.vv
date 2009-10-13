@@ -1,0 +1,19 @@
+BeginZE D:\kratos2009\kratos\applications\kElectrostatic\test_examples\charges.gid\charges.post.vv
+   x -36.6069 27.0338
+   y 30.1577 -16.1577
+   z -69.473 69.473
+   e 23.1577
+   v 0 0 0
+   r 1
+   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   c -3.5 7 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+EndZE D:\kratos2009\kratos\applications\kElectrostatic\test_examples\charges.gid\charges.post.vv
+
