@@ -92,7 +92,7 @@ namespace Kratos
 		 {
 			KRATOS_WATCH("++++++++++++++++++++BEGIN OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 			ModelPart::ElementsContainerType ElemPart;
-			KRATOS_WATCH(mr_model_part.Elements().size());
+			//KRATOS_WATCH(mr_model_part.Elements().size());
 			ElemPart.reserve(mr_model_part.Elements().size());
 
 								
@@ -178,12 +178,12 @@ namespace Kratos
 
 				
 			}
-			KRATOS_WATCH(ElemPart.size());
-			KRATOS_WATCH((mr_model_part.Elements()).size());
+			//KRATOS_WATCH(ElemPart.size());
+			//KRATOS_WATCH((mr_model_part.Elements()).size());
 
 			mr_model_part.Elements() = ElemPart;
 
-			KRATOS_WATCH(mr_model_part.Elements().size());
+			//KRATOS_WATCH(mr_model_part.Elements().size());
 			KRATOS_WATCH("++++++++++++++++++++END OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 		 }
 
