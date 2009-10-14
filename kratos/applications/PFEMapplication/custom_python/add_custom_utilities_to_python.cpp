@@ -114,6 +114,8 @@ namespace Python
 		.def("ChangeWallWaterFlag",&PfemUtils::ChangeWallWaterFlag)
 		.def("ChangeInterfaceWaterFlag",&PfemUtils::ChangeInterfaceWaterFlag)
 		.def("ColourAirWaterElement",&PfemUtils::ColourAirWaterElement)
+		.def("AssignNearBoundaryH",&PfemUtils::AssignNearBoundaryH)
+		.def("MoveNodes",&PfemUtils::MoveNodes)
 		 ;
 	  
 	  class_<NormalToWallCalculationUtils>("NormalToWallCalculationUtils", init<>())
