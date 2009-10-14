@@ -1113,6 +1113,14 @@ namespace Kratos {
                 rValues[PointNumber] = tautwo;
             }
         }
+        if (rVariable == IS_WATER_ELEMENT) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+	//	KRATOS_WATCH(this->GetValue(IS_WATER));
+	//	KRATOS_WATCH(this->Info());
+                rValues[PointNumber] = this->GetValue(IS_WATER_ELEMENT);
+            }
+        }
 
     }
     //*************************************************************************************
