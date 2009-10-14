@@ -158,6 +158,9 @@ namespace Kratos
 	//KRATOS_WATCH(rRightHandSideVector);
 
 
+        //add body force and momentum
+       // AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone, tautwo);
+
 		KRATOS_CATCH("")
 	}
         
