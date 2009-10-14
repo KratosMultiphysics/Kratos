@@ -47,7 +47,8 @@
  #include "custom_elements/asgs_comp_pr_dc_2d.h"
 
 #include "custom_elements/asgs_3d.h"
-
+#include "custom_elements/asgs_compressible_3d.h"
+ #include "custom_elements/asgs_comp_pr_dc_3d.h"
 
 #include "custom_elements/fluid_2dGLS_expl.h"
 #include "custom_elements/fluid_2dGLS_expl_comp.h"
@@ -265,14 +266,16 @@ namespace Kratos
 
 		const ASGS2D  mASGS2D; 
 		const ASGSCompressible2D  mASGSCompressible2D; 
-
+		      
 		const ASGS3D  mASGS3D;
+		const ASGSCompressible3D  mASGSCompressible3D; 
 
 
 		//const ASGSPRDC  mASGSPRDC;
 
 
  		const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
+ 		const ASGSCOMPPRDC3D mASGSCOMPPRDC3D;
 
  		const Monolithic2DNeumann  mMonolithic2DNeumann; 
 
