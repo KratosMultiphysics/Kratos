@@ -70,6 +70,7 @@ class MonolithicSolver:
         pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
         self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+##        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
         
         #definition of the convergence criteria
         self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
