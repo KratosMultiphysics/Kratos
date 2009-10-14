@@ -181,6 +181,7 @@ namespace Kratos
         virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 	
 	virtual void CalculateSoundVelocity(Geometry< Node<3> > geom, double& vc);
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
+        //virtual void AddBodyForceAndMomentum(VectorType& F,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
       ///@} 
       ///@name Protected Operators
       ///@{ 
