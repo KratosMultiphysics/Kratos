@@ -148,15 +148,13 @@ namespace Kratos
 
 			temp_nodes_container.swap(mr_model_part.Nodes());
 
-                        KRATOS_WATCH(mr_model_part.Nodes().size());
-                        KRATOS_WATCH(temp_nodes_container.size());
+
 
 			for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
 			{
 				if( static_cast<bool>(i_node->GetValue(ERASE_FLAG)) == false)
 					(mr_model_part.Nodes()).push_back(*(i_node.base()));
 			}
-                        KRATOS_WATCH(temp_nodes_container.size());
 
 			KRATOS_CATCH("")
 		}
