@@ -77,9 +77,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_compressible.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_crni_scheme_compressible.h"
 #include "custom_strategies/convergencecriterias/UP_criteria.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_comp_strategy.h"
+#include "custom_strategies/strategies/newton_raphson_strategy.h"
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -108,8 +110,10 @@ namespace Kratos
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 			typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
 			typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
+
 			typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType;
 
+			typedef ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressible< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType;
 			//********************************************************************
 			//********************************************************************
 			//
@@ -230,6 +234,18 @@ namespace Kratos
 					(
 					"ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible", init< double, double >()
 					);
+
+			class_< ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType,
+				bases< BaseSchemeType >,  boost::noncopyable >
+					(
+					"ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressible", init< double, double >()
+					);
+
+			class_< NewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("NewtonRaphsonStrategy", 
+				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
+				>() )
+				;
 
 			class_< RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
