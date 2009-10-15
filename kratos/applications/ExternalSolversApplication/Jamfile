@@ -42,8 +42,8 @@ python-extension KratosExternalSolversApplication
 		externalsolvers_python_application.cpp 
 		externalsolvers_application.cpp
 		
-		libsuperlu
 		/kratos-prj/superlu_compilation//install
+		libsuperlu
 		
 	        blaslib/<link>static
         
