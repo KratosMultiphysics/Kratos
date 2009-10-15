@@ -25,7 +25,7 @@ lib libsuperlu_win 		: : <name>libsuperlu_prova <search>custom_external_librarie
 lib libsuperlu_linux		: : <name>superlu_prova <search>custom_external_libraries/SuperLU_3.0/ <link>static ;
 alias libsuperlu : libsuperlu_win : <toolset>msvc ;
 alias libsuperlu : libsuperlu_linux : <toolset>gcc ;
-alias libsuperlu : libtsuperlu_linux : <toolset>intel ;
+alias libsuperlu : libsuperlu_linux : <toolset>intel ;
 
 #################################################################################
 #################################################################################
