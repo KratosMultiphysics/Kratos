@@ -12,8 +12,6 @@ project ExternalSolversApplication
        external_includes
     :
     requirements <include>. 
-		<include>custom_external_libraries/SuperLU_MT_2.0/lib
-#<include>/opt/intel/mkl/10.0.1.014/include/
 		<include>external_includes
 		<define>KRATOS_PYTHON
 		<link>shared
@@ -21,21 +19,19 @@ project ExternalSolversApplication
 
 #################################################################################
 #################################################################################
+#compilation of superlu library
+use-project /kratos-prj/superlu_compilation   : custom_external_libraries/SuperLU_3.0 ;
+lib libsuperlu_win 		: : <name>libsuperlu_prova <search>custom_external_libraries/SuperLU_3.0/ <link>static ;
+lib libsuperlu_linux		: : <name>superlu_prova <search>custom_external_libraries/SuperLU_3.0/ <link>static ;
+alias libsuperlu : libsuperlu_win : <toolset>msvc ;
+alias libsuperlu : libsuperlu_linux : <toolset>gcc ;
+alias libsuperlu : libtsuperlu_linux : <toolset>intel ;
+
+#################################################################################
+#################################################################################
 ##definition of "dependencies for the project"
-#lib libsuperlu 		: : <name>superlu ;
-lib libsuperlu 		: : <name>superlu_3.0 <search>custom_external_libraries/SuperLU_3.0 ;
-#lib libsuperlu_mt   : : <name>superlu_mt_sp <search>custom_external_libraries/SuperLU_MT_2.0/lib ;
-#lib libsuperlu : : <name>superlu_mt_sp <search>custom_external_libraries/SuperLU_MT_2.0/lib ;
-#lib blaslib : : <name>mkl <search>/opt/intel/mkl/9.1.023/lib/em64t ;
 lib blaslib : : <name>blas ;
-#lib blaslib : : <name>blas_sp <search>custom_external_libraries/SuperLU_MT_2.0/lib ;
-#lib mklsolverlib : : <name>mkl_solver_lp64 <search>/opt/intel/mkl/10.0.1.014/lib/em64t/ ;
-#lib mklintellib : : <name>mkl_intel_lp64 <search>/opt/intel/mkl/10.0.1.014/lib/em64t/ ;
-#lib mklthreadlib : : <name>mkl_intel_thread <search>/opt/intel/mkl/10.0.1.014/lib/em64t/ ;
-#lib mklcorelib : : <name>mkl_core <search>/opt/intel/mkl/10.0.1.014/lib/em64t/ ;
-#lib mklmclib : : <name>mkl_mc <search>/opt/intel/mkl/10.0.1.014/lib/em64t/ ;
-#lib mkllapacklib : : <name>mkl_lapack <search>/opt/intel/mkl/10.0.1.014/lib/em64t/ ;
-#lib threadlib : : <name>pthread ;
+
 #################################################################################
 #################################################################################
 ## list of files to be build, including dependencies to other libraries
@@ -45,19 +41,14 @@ python-extension KratosExternalSolversApplication
 		add_linear_solvers_to_python.cpp 
 		externalsolvers_python_application.cpp 
 		externalsolvers_application.cpp
-#blaslib
+		
 		libsuperlu
-#        mklsolverlib/<link>static
-#        mklintellib/<link>shared
-#        mklthreadlib/<link>shared
-#        mklcorelib/<link>shared
-#        mkllapacklib/<link>shared
-#        mklmclib/<link>shared
-#threadlib/<link>shared
-        blaslib/<link>static
-        #####################kratos library as defined in the jamroot
- #   	/kratos-prj/kratos//libkratos/<link>static
-	    /KratosProject//libkratos_static
+		/kratos-prj/superlu_compilation//install
+		
+	        blaslib/<link>static
+        
+		#####################kratos library as defined in the jamroot
+	        /KratosProject//libkratos_static
 
 		#####################"system" includes as defined in the jamroot
 		/KratosProject//pythonlib
