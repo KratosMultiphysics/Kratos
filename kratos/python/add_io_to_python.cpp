@@ -94,7 +94,13 @@ namespace Kratos
         {
             dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
         }
-        
+
+        void Array1DPrintOnGaussPoints( GidIO<>& dummy, const Variable<array_1d<double,3>>& rVariable,
+                                       ModelPart& r_model_part, double SolutionTag )
+        {
+            dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+        }
+
         void VectorPrintOnGaussPoints( GidIO<>& dummy, const Variable<Vector>& rVariable,
                                        ModelPart& r_model_part, double SolutionTag )
         {
@@ -195,6 +201,7 @@ namespace Kratos
                     
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
                     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
+                    .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
                     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
                     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
 //                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
