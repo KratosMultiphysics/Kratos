@@ -45,8 +45,6 @@ python-extension KratosExternalSolversApplication
 		/kratos-prj/superlu_compilation//install
 		libsuperlu
 		
-		#####################blas library
-	        /KratosProject//blaslibrary
         
 		#####################kratos library as defined in the jamroot
 	        /KratosProject//libkratos_static
