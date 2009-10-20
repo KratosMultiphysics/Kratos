@@ -14,9 +14,12 @@ path-constant TOP : . ;
 path-constant BOOST_LIB_DIR :  /usr/lib/ ; 
 path-constant BOOST_INCLUDE_DIR :  /usr/include/ ; 
 
-# Path to CUDA - required to compile and use GPU solvers
-path-constant CUDA_DIR :  /usr/local/cuda/ ;
+##blas/lapack lib dir
+path-constant BLAS_LIB_DIR : /usr/lib/ ;
+path-constant LAPACK_LIB_DIR : /usr/lib/ ;
 
+# Path to CUDA - required to compile and use GPU solvers - strictly optional
+##path-constant CUDA_DIR :  /usr/local/cuda/ ;
 
 ##decomment and modify for parallel
 ##path-constant MPI_LIB_DIR : /usr/lib/openmpi/lib/ ;
@@ -96,6 +99,10 @@ lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/unix/rel
 ##lib boost_python_lib : : <variant>debug <name>boost_python-vc80-mt-gd-1_34_1 <search>"C:/Archivos de programa/boost/boost_1_34_1/lib" ;   
 ##lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/win/Release/ ; 
 #############################################################################
+
+#blas and lapack libraries
+lib blaslibrary : : <name>blas <search>$(BLAS_LIB_DIR) ;
+lib lapacklibrary : : <name>lapack <search>$(LAPACK_LIB_DIR) ;
 
 #intel omp library...
 lib intelomp  : : <name>guide  ; 
