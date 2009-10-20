@@ -8,10 +8,10 @@ project SuperLU_LIB
 		<include>SRC
 		<link>static
 		<warnings>off
+		<define>USE_VENDOR_BLAS
     ;
 
 
-lib blaslib : : <name>blas ;
 
 #################################################################################
 #################################################################################
@@ -155,7 +155,8 @@ zsp_blas2.c
 zsp_blas3.c
 zutil.c
 
-		blaslib/<link>static
+		#####################blas library
+	        /KratosProject//blaslibrary
     ;
 
 #################################################################################
