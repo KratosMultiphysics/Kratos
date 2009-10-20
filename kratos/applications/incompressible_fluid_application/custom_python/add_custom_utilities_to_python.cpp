@@ -66,7 +66,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/levelset_fluid_solver.h" 
 #include "custom_utilities/Turbolence_Smagorinsky.h" 
 #include "custom_utilities/pure_convection_edgebased.h" 
-#include "custom_utilities/elementbased_navierstokes_solver.h"
 #include "custom_utilities/coupled_eulerian_ulf_utilities.h" 
 #include "custom_utilities/elembased_distance_utilities.h" 
 #include "custom_utilities/elembased_extrapolation_utilities.h" 
@@ -256,14 +255,14 @@ namespace Python
 			  .def("ComputeTimeStep",&PureConvectionEdgeBased< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
                         ;
 
-	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
-                          .def("ConstructSystemStructure",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::ConstructSystemStructure)
-                          .def("Clear",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::Clear)
-                          .def("SolveStep1",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::SolveStep1)
-                          .def("SolveStep2",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::SolveStep2)
-                          .def("SolveStep3",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::SolveStep3)
-			  .def("CalculateProjection",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::CalculateProjection)
-			;
+// 	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
+//                           .def("ConstructSystemStructure",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::ConstructSystemStructure)
+//                           .def("Clear",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::Clear)
+//                           .def("SolveStep1",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::SolveStep1)
+//                           .def("SolveStep2",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::SolveStep2)
+//                           .def("SolveStep3",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::SolveStep3)
+// 			  .def("CalculateProjection",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::CalculateProjection)
+// 			;
 
 //	  class_< EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("EdgeBasedLevelSet2D", init< MatrixContainer< 2, SparseSpaceType>&, ModelPart& >() )
 //			  .def("Initialize",&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
