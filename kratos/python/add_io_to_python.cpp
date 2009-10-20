@@ -95,7 +95,7 @@ namespace Kratos
             dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
         }
 
-        void Array1DPrintOnGaussPoints( GidIO<>& dummy, const Variable<array_1d<double,3>>& rVariable,
+        void Array1DPrintOnGaussPoints( GidIO<>& dummy, const Variable<array_1d<double,3> >& rVariable,
                                        ModelPart& r_model_part, double SolutionTag )
         {
             dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
