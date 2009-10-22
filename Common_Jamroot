@@ -101,8 +101,8 @@ lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/unix/rel
 #############################################################################
 
 #blas and lapack libraries
-lib blaslibrary : : <name>blas <search>$(BLAS_LIB_DIR) ;
-lib lapacklibrary : : <name>lapack <search>$(LAPACK_LIB_DIR) ;
+lib blaslibrary : : <name>blas <search>$(BLAS_LIB_DIR) <link>shared ;
+lib lapacklibrary : : <name>lapack <search>$(LAPACK_LIB_DIR) <link>shared ;
 
 #intel omp library...
 lib intelomp  : : <name>guide  ; 
