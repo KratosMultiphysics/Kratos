@@ -1,0 +1,19 @@
+BeginZE /home/antonia/Desktop/EXAMPLES/PFEM_Examples/TESTS/Moving_Sphere.gid/Moving_Sphere.vv
+   x -6.3655 6.3655
+   y 1.73205 -1.73205
+   z -5.19615 5.19615
+   e 1.73205
+   v -0.033869 0.304125 0.0869002
+   r 0.948056
+   m 0.799913 -0.185373 0.570768 0 0.144172 0.982602 0.117076 0 -0.582541 -0.0113623 0.812722 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+EndZE /home/antonia/Desktop/EXAMPLES/PFEM_Examples/TESTS/Moving_Sphere.gid/Moving_Sphere.vv
+
