@@ -49,14 +49,22 @@ namespace Python
 	
 	using namespace boost::python;
 	
-	  class_<MeshTransfer<2> >("MeshTransfer",init< >()) 
-	  	.def("DirectModelPartInterpolation", &MeshTransfer<2>::Direct_Interpolation)
-		.def("DirectScalarVarInterpolation", &MeshTransfer<2>::Direct_Variable_Interpolation<double>)
-		.def("DirectVectorialVarInterpolation", &MeshTransfer<2>::Direct_Variable_Interpolation< array_1d < double,3 > >);
-	
+	  class_<MeshTransfer<2> >("MeshTransfer2D",init< >()) 
+	  	.def("DirectModelPartInterpolation", &MeshTransfer<2>::DirectInterpolation)
+		.def("DirectScalarVarInterpolation", &MeshTransfer<2>::DirectVariableInterpolation<double>)
+		.def("DirectVectorialVarInterpolation", &MeshTransfer<2>::DirectVariableInterpolation< array_1d < double,3 > >);
+	  
+	 class_<MeshTransfer<3> >("MeshTransfer3D",init< >()) 
+	  	.def("DirectModelPartInterpolation", &MeshTransfer<3>::DirectInterpolation)
+		.def("DirectScalarVarInterpolation", &MeshTransfer<3>::DirectVariableInterpolation<double>)
+		.def("DirectVectorialVarInterpolation", &MeshTransfer<3>::DirectVariableInterpolation< array_1d < double,3 > >);
+
 	 class_<GenerateModelPartUtilities >("GenerateModelPartUtilities",init< >()) 
 	   .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart );
 	
+
+
+
   }
 
 	
