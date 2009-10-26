@@ -1,0 +1,19 @@
+BeginZE /home/antonia/Desktop/EXAMPLES/PFEM_Examples/TESTS/Sphere_fixed.gid/Sphere_fixed.vv
+   x -36.8193 36.8193
+   y 10 -10
+   z -23.2164 23.2164
+   e 7.73879
+   v -0.033869 0.304125 0.0869002
+   r 0.948056
+   m 0.799913 -0.185373 0.570768 0 0.144172 0.982602 0.117076 0 -0.582541 -0.0113623 0.812722 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+EndZE /home/antonia/Desktop/EXAMPLES/PFEM_Examples/TESTS/Sphere_fixed.gid/Sphere_fixed.vv
+
