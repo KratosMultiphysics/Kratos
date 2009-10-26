@@ -351,32 +351,32 @@ namespace Kratos
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
 		const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
 		const array_1d<double,3>& proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
-		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE); 
-		double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT); 
+		const double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+		const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 		
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
 		const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
 		const array_1d<double,3>& proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
-		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE); 
-		double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT); 
+		const double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+		const double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 		
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
 		const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 		const array_1d<double,3>& proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
-		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE); 
-		double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT); 
+		const double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+		const double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 
 		const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
 		const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
 		const array_1d<double,3>& proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
-		double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE); 
-		double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT); 
+		const double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
+		const double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
 		const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
 		const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
 
@@ -519,29 +519,29 @@ namespace Kratos
 		if(FractionalStepNumber  == 5) //calculation of stabilization terms
 		{
 
-			array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
-			array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+			const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
+			const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
 			array_1d<double,3>& press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
 			array_1d<double,3>& conv_proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
 			double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
 			const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 			
-			array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-			array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+			const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
+			const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
 			array_1d<double,3>& press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
 			array_1d<double,3>& conv_proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
 			double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
 			const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 
-			array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-			array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+			const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
+			const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 			array_1d<double,3>& press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
 			array_1d<double,3>& conv_proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
 			double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
 			const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 
-			array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
-			array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+			const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
+			const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
 			array_1d<double,3>& press_proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
 			array_1d<double,3>& conv_proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
 			double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
@@ -554,11 +554,9 @@ namespace Kratos
 			ms_temp_vec_np[1] = p1;
 			ms_temp_vec_np[2] = p2;
 			ms_temp_vec_np[3] = p3;
-			noalias(ms_vel_gauss) = prod(trans(msDN_DX),ms_temp_vec_np);
+			noalias(ms_temp) = prod(trans(msDN_DX),ms_temp_vec_np);
 // 			ms_vel_gauss *= Volume/density;
-			ms_vel_gauss *= Volume * 0.3333333333333333333;
-
-                        noalias(ms_temp) = ms_vel_gauss;
+			ms_temp *= Volume * 0.25;
 
 			//press_proj += G*p
 //			noalias(press_proj0) += msN[0]*ms_vel_gauss;
@@ -877,17 +875,17 @@ namespace Kratos
               const double c1 = 4.00;
               const double c2 = 2.00;
               double tau;
-		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
-                if (dyn_st_switch)
-                {
-                    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
-                    tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
-//                    KRATOS_WATCH(tau);
-                }
-                else
-                {
+//		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
+//                if (dyn_st_switch)
+//                {
+//                    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+//                    tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+////                    KRATOS_WATCH(tau);
+//                }
+//                else
+//                {
                     tau = 1.00 / (c1*nu/(h*h) + c2*norm_u/h );
-                }
+//                }
 
                 return tau;
 
