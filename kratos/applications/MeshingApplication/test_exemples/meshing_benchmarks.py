@@ -52,6 +52,47 @@ def Run():
 
         ################################################################
 
+	Text += "ProjectionTest_2D: "
+	os.chdir("Moving_Circle.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running Moving_Circle benchmark..."
+	Msg = benchmarking.RunBenchmark("ProjectionTest_2D_benchmarking.py", "ProjectionTest_2D_benchmarking_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "Moving_Circle benchmarking example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "Moving_Circle benchmarking example FAILED"
+
+	os.chdir("..")
+	
+
+        ################################################################
+
+	Text += "ProjectionTest_3D: "
+	os.chdir("Moving_Sphere.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running Moving_Sphere benchmark..."
+	Msg = benchmarking.RunBenchmark("ProjectionTest_3D_benchmarking.py", "ProjectionTest_3D_benchmarking_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "Moving_Sphere benchmarking example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "Moving_Sphere benchmarking example FAILED"
+
+	os.chdir("..")
+	
+
+        ################################################################
         ################################################################
 
 
