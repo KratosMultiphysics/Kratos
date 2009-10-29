@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/volume_correction_utils.h" 
 #include "custom_utilities/lagrangian_utilities.h" 
 #include "custom_utilities/nist_utilities.h" 
+#include "custom_utilities/erosion_utilities.h" 
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -139,7 +140,13 @@ namespace Python
 		.def("FindFluidLevel",&NistUtils::FindFluidLevel)
 		;
 
+	  class_<ErosionUtils<2>,  boost::noncopyable>  ("ErosionUtils2D", init< >())
+		.def("CheckErosionableNodes",&ErosionUtils<2>::CheckErosionableNodes)
+		;
 
+	  class_<ErosionUtils<3>,  boost::noncopyable>  ("ErosionUtils3D", init< >())
+		.def("CheckErosionableNodes",&ErosionUtils<3>::CheckErosionableNodes)
+		;
 
 		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
