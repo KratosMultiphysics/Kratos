@@ -54,7 +54,8 @@ class IncompressibleFluidSolver:
         else:
             number_of_avg_elems = 25
             number_of_avg_nodes = 15
-
+            
+        
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
 
         self.model_part = model_part
@@ -81,6 +82,7 @@ class IncompressibleFluidSolver:
         self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
         self.pressure_linear_solver =  CGSolver(1e-3, 5000,pDiagPrecond)
 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0);
 
     def Initialize(self):
         (self.neighbour_search).Execute()
