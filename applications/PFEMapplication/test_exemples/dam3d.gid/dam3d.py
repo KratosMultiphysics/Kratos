@@ -22,6 +22,7 @@ kernel = Kernel()   #defining kernel
 import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
 applications_interface.Import_PFEMApplication = True
+applications_interface.Import_MeshingApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 ## from now on the order is not anymore crucial
