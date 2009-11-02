@@ -532,13 +532,14 @@ class PFEMSolver:
             gid_io.FinalizeMesh();
 
             gid_io.InitializeResults(time, (self.model_part).GetMesh());
-
+            
+            gid_io.WriteNodalResults(VELOCITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(PRESSURE, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(IS_FREE_SURFACE, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(IS_BOUNDARY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(IS_STRUCTURE, (self.model_part).Nodes, time, 0);
-            gid_io.WriteNodalResults(VELOCITY, (self.model_part).Nodes, time, 0);
-
+            gid_io.WriteNodalResults(VISCOSITY, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(DENSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(IS_FLUID, (self.model_part).Nodes, time, 0);
 
             gid_io.Flush()
