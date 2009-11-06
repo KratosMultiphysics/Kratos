@@ -230,6 +230,7 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(double, IS_LAGRANGIAN_INLET )
 	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE )
 	KRATOS_DEFINE_VARIABLE(double, IS_VISITED )
+	KRATOS_DEFINE_VARIABLE(double, IS_EROSIONABLE )
 
             
     //for electric_application
