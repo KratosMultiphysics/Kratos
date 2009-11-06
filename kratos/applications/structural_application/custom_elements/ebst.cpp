@@ -148,6 +148,7 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
+
         WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
         unsigned int number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(neigb);
@@ -188,6 +189,7 @@ namespace Kratos
     void Ebst::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
+
         WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
         ElementalDofList.resize(0);
 
