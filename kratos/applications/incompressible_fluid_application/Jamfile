@@ -38,8 +38,8 @@ python-extension KratosIncompressibleFluidApplication
 	add_custom_strategies_to_python.cpp 
 	add_custom_utilities_to_python.cpp 
 	add_custom_io_to_python.cpp 
-	add_processes_to_python.cpp
-    add_custom_edgebased_levelset_solver_to_python.cpp
+	add_custom_processes_to_python.cpp
+        add_custom_edgebased_levelset_solver_to_python.cpp
 
 	fluid_2dcoupled.cpp 
 	fluid_3dcoupled.cpp
