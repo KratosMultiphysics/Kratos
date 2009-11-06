@@ -262,6 +262,7 @@ namespace Kratos
         mUnsaturatedSoilsElement3PhaseSmallStrain3D15N(0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >(Element::GeometryType::PointsArrayType(15, Node<3>())))),
         mUnsaturatedSoilsElement3PhaseSmallStrain3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mEbst3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+        mEbstVel3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 
         mFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
         mFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3 <Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -476,6 +477,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D15N", mUnsaturatedSoilsElement3PhaseSmallStrain3D15N)
         KRATOS_REGISTER_ELEMENT("UnsaturatedSoilsElement3PhaseSmallStrain3D8N", mUnsaturatedSoilsElement3PhaseSmallStrain3D8N)
         KRATOS_REGISTER_ELEMENT("Ebst3D3N", mEbst3D3N)
+        KRATOS_REGISTER_ELEMENT("EbstVel3D3N", mEbstVel3D3N)
 
         KRATOS_REGISTER_CONDITION("Face2D", mFace2D)
         KRATOS_REGISTER_CONDITION("Face3D3N", mFace3D3N)

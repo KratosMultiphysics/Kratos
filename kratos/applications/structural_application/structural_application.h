@@ -84,6 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/crisfield_truss_element.h"
 #include "custom_elements/Hypoelastic_element.h"
 #include "custom_elements/ebst.h"
+#include "custom_elements/ebst_vel.h"
 
 
 #include "custom_conditions/pointforce3D.h"
@@ -393,6 +394,7 @@ namespace Kratos
             const UnsaturatedSoilsElement_3phase_SmallStrain
                     mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
             const Ebst mEbst3D3N;
+            const EbstVel mEbstVel3D3N;
             
             const Face2D  mFace2D;
             const Face3D  mFace3D3N;
