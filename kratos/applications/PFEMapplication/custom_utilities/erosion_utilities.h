@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 
+#include "PFEM_application.h"
 
 
 //Database includes
@@ -160,13 +161,13 @@ namespace Kratos
 			ModelPart& rDestination_ModelPart,
 			//ElementsArrayType& rElements, already included in  rDestination_ModelPart.Elements
 // 			Variable<double>& rDistanceVar,
-			std::vector< double> rCriticalVel, //TO BE INSERTED
-			double rCriticalEnergy
+			const Vector& rCriticalVel, //TO BE INSERTED
+			const double rCriticalEnergy
 			)
  		{
 
 			KRATOS_TRY
-
+KRATOS_WATCH(	"Line 170")
 // 			//properties to be used in the generation
 // 			Properties::Pointer properties = rDestination_ModelPart.GetMesh().pGetProperties(1);
 // 
@@ -195,29 +196,66 @@ namespace Kratos
 /*			
 			   typedef Bins< TDim, PointType, stdPointVector> stdBins;
 			   typedef Tree< Bins<TDim,PointType,stdPointVector> > tree; 	//stdStaticBins;*/
+KRATOS_WATCH(	"Line 199")
 
+			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
+						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
+			{
+			     node_it->GetValue(IS_VISITED) = 0.0;
+			}
 			 //********************************************************************
 			 //Build an auxiliary ModelPart with all the PFEM free surface nodes
 			 //********************************************************************
-			PointVector list_of_surface_nodes;
+			PointVector list_of_erosionable_nodes;
+// 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
+// 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
+// 			{
+// 				//PointType::Pointer pnode(new PointType(*node_it));
+//  				Node<3>::Pointer pnode = *(node_it.base());
+// 
+// 				if(pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
+// 				{//putting the surface nodes of the destination_model part in an auxiliary list
+// 					   list_of_erosionable_nodes.push_back( pnode );
+// KRATOS_WATCH("is_free_erosionable_node")
+// KRATOS_WATCH(pnode->Id());
+// 				}
+// 			}
+// KRATOS_WATCH("is_free_erosionable_node");
+KRATOS_WATCH(	"Line 224")
+
 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
 			{
 				//PointType::Pointer pnode(new PointType(*node_it));
  				Node<3>::Pointer pnode = *(node_it.base());
-
-				if(pnode->GetSolutionStepValue(IS_FREE_SURFACE)==1.0)
+				if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0 && pnode->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0)
 				{//putting the surface nodes of the destination_model part in an auxiliary list
-					   list_of_surface_nodes.push_back( pnode );
+					list_of_erosionable_nodes.push_back( pnode );
+					pnode->GetValue(IS_VISITED) = 3.0; //FREE SURFACE NODES
+// KRATOS_WATCH(pnode->Id());
+					WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
+					for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
+					{
+					   if(j->GetValue(IS_VISITED)==0.0 && j->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0 && j->FastGetSolutionStepValue(IS_FREE_SURFACE)!=1.0)
+						{
+						    list_of_erosionable_nodes.push_back( Node<3>::Pointer( *(j.base() ) ) );
+						    j->GetValue(IS_VISITED) = 2.0;    //FIRST LAYER OF FLUID NODES
+// KRATOS_WATCH(j->Id());
+						}
+					}
 				}
 			}
+
+
+KRATOS_WATCH(	"Line 250")
+
 
 			//********************************************************************
 			//Calculate velocity of the free surface nodes by direct variable interpolation
 			//********************************************************************
 			//create a spatial database with the list of new nodes
 			unsigned int bucket_size = 20;
-			tree nodes_tree(list_of_surface_nodes.begin(),list_of_surface_nodes.end(),bucket_size);
+			tree nodes_tree(list_of_erosionable_nodes.begin(),list_of_erosionable_nodes.end(),bucket_size);
 			//work arrays
 			Node<3> work_point(0,0.0,0.0,0.0);
 			unsigned int MaximumNumberOfResults = 10000;
@@ -229,12 +267,7 @@ namespace Kratos
 			boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Grad_v; 
 			int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
 
-// 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
-// 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
-// 			{
-// 				//Setting to zero the whole model part
-// 				Clear(node_it,  step_data_size );
-// 			}
+
 			//loop over all of the elements in the "old" list to perform the interpolation
 			for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
 						el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
@@ -252,6 +285,7 @@ namespace Kratos
 				//look between the new nodes which of them is inside the radius of the circumscribed cyrcle
 				number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
  						ResultsDistances.begin(),  MaximumNumberOfResults);
+KRATOS_WATCH(	"Line 288")
 
 				//check if inside 
 				for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
@@ -259,20 +293,30 @@ namespace Kratos
  				
 					bool is_inside = false;
 					//once we are sure the node in inside the circle we have to see if it is inside the triangle i.e. if all the Origin element shape functions are >1
+					double is_visited = (*it_found)->GetValue(IS_VISITED);
 					is_inside = CalculatePosition(geom,	(*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
 
 					//if the node falls inside the element interpolate
-					if(is_inside == true)
+					if(is_inside == true && is_visited != 1.0)
 					{
+// KRATOS_WATCH("is_inside")
+// KRATOS_WATCH((*it_found)->Id())
+KRATOS_WATCH(	"Line 304")
+
+						array_1d<double,3> InterpolatedVelocity; 
+
 						//Interpolating all the rVariables of the rOrigin_ModelPart to get their nodal value in the rDestination_ModelPart
-						Interpolate(  el_it,  N, *it_found , VELOCITY );
+						Interpolate(  el_it,  N, *it_found , InterpolatedVelocity , VELOCITY );
+// 						Interpolate(  el_it,  N,  InterpolatedVelocity , VELOCITY );
+// KRATOS_WATCH(InterpolatedVelocity)
 						//Calculate the velocity gradient of the element of the original mesh that contain the free surface node
 						boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> vel;
 						CalculateNodalVelocityMatrix(geom, vel);
 						Calculate_DN_DX(geom, DN_DX);
-						
-						Grad_v = prod(trans(DN_DX),vel);
+// KRATOS_WATCH(DN_DX)						
 
+						Grad_v = prod(trans(DN_DX),vel);
+// KRATOS_WATCH(Grad_v)
 						double Grad_vGrad_v = 0.0;
 						for (unsigned int i=0; i< Grad_v.size1(); i++)
 					         {  for (unsigned int j=0; j< Grad_v.size2(); j++)
@@ -280,37 +324,46 @@ namespace Kratos
 						        Grad_vGrad_v += Grad_v(i,j)*Grad_v(i,j);
 						    }
 						}
-
+// KRATOS_WATCH(Grad_vGrad_v)
 						 //********************************************************************
 						 //Check if the velocity of PFEM free surface node is >= v_critical (Shield)
 						 //********************************************************************
 						double norm2_vcr = 0.0;
 						for (unsigned int i=0; i< TDim; i++)
 						      norm2_vcr +=  rCriticalVel[i]*rCriticalVel[i];
-						for( PointIterator it_found = list_of_surface_nodes.begin(); it_found != list_of_surface_nodes.begin(); it_found++)
-						{		
-						      double nu = (*it_found)->GetSolutionStepValue(VISCOSITY);
-						      double density = (*it_found)->GetSolutionStepValue(DENSITY);
+/*						for( PointIterator it_found2 = list_of_erosionable_nodes.begin(); it_found2 != list_of_erosionable_nodes.begin(); it_found2++)
+						{*/		
+						      double nu = (*it_found)->FastGetSolutionStepValue(VISCOSITY);
+// 						      double density = (*it_found)->FastGetSolutionStepValue(DENSITY);
 						      double dt = rDestination_ModelPart.GetProcessInfo()[DELTA_TIME];
-			 			      double Vol = TDim * (*it_found)->GetSolutionStepValue(NODAL_AREA);
-						      double coeff = 0.25 * nu * density * dt * Vol;
-						    
-
+			 			      double rhoVol = (TDim + 1 ) * (*it_found)->FastGetSolutionStepValue(NODAL_MASS);
+						      double coeff = 0.25 * nu * dt * rhoVol;
+// KRATOS_WATCH(norm2_vcr)					    
+// KRATOS_WATCH(nu)
+// KRATOS_WATCH(density)
+// KRATOS_WATCH(dt)
+// KRATOS_WATCH(rhoVol)
+// KRATOS_WATCH(coeff)
 						      double norm2_vcr_fsn = 0.0;
+						      //Interpolated vel (not node real velocity)
 						      for (unsigned int i=0; i< TDim; i++)
 						      {   	  
-							   norm2_vcr_fsn +=  (*it_found)->GetSolutionStepValue(VELOCITY_X)*(*it_found)->GetSolutionStepValue(VELOCITY_X) +                                                                    
-									   (*it_found)->GetSolutionStepValue(VELOCITY_Y)*(*it_found)->GetSolutionStepValue(VELOCITY_Y) +                 (*it_found)->GetSolutionStepValue(VELOCITY_Z)*(*it_found)->GetSolutionStepValue(VELOCITY_Z);
-						      }
+// 							   norm2_vcr_fsn +=  (*it_found)->FastGetSolutionStepValue(VELOCITY_X)*(*it_found)->FastGetSolutionStepValue(VELOCITY_X) +                                                                    
+// 									   (*it_found)->FastGetSolutionStepValue(VELOCITY_Y)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Y) +             (*it_found)->FastGetSolutionStepValue(VELOCITY_Z)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Z); //a che serviva il loop?????
+						        	 norm2_vcr_fsn +=  InterpolatedVelocity[i] * InterpolatedVelocity[i];
+
+						       }
+// KRATOS_WATCH(norm2_vcr_fsn)					    
 						      
 						      if(norm2_vcr_fsn > norm2_vcr)
 						      {
-							 (*it_found)->GetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
-
+							 (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
 						      }  
-						      if( (*it_found)->GetSolutionStepValue(FRICTION_COEFFICIENT)>= rCriticalEnergy)
-						      {(*it_found)->GetSolutionStepValue(VISCOSITY) = 1.0;}
-						 }
+// KRATOS_WATCH((*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) )
+						      if( (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT)>= rCriticalEnergy)
+						      {(*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+						      (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;}						 
+//}
 					}
 				}
  			}	
@@ -611,28 +664,40 @@ namespace Kratos
 				ModelPart::ElementsContainerType::iterator el_it, 
 				const array_1d<double,3>& N, 
       				Node<3>::Pointer pnode,
+				array_1d<double,3>& Interpolated_velocity,
 				Variable<array_1d<double,3> >& rVariable)
 		{
 			//Geometry element of the rOrigin_ModelPart
 			Geometry< Node<3> >& geom = el_it->GetGeometry();
-			
-			unsigned int buffer_size = pnode->GetBufferSize();
+// 			KRATOS_WATCH(geom[0].Id());
+// 			KRATOS_WATCH(geom[1].Id());
+// 			KRATOS_WATCH(geom[2].Id());
+// 			unsigned int buffer_size = pnode->GetBufferSize();
 
-			for(unsigned int step = 0; step<buffer_size; step++)
-			{
+// 			for(unsigned int step = 0; step<buffer_size; step++)
+// 			{
 				//getting the data of the solution step
-				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
+// 				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
 				//Reference or no reference???//CANCELLA
-				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable);
+// KRATOS_WATCH(node0_data);
+				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable);
+// KRATOS_WATCH(node1_data);
+				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable);
+// KRATOS_WATCH(node2_data);
+
 					
 				//copying this data in the position of the vector we are interested in
 				for(unsigned int j= 0; j< TDim; j++)
 				{
-					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+// 					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+					Interpolated_velocity[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+
 				}						
-			}				
+// KRATOS_WATCH(Interpolated_velocity);
+
+// 			}	
+			pnode->GetValue(IS_VISITED) = 1.0;
 		}
 
 		//projecting an array1D 3Dversion
@@ -640,29 +705,31 @@ namespace Kratos
 				ModelPart::ElementsContainerType::iterator el_it, 
 				const array_1d<double,4>& N, 
       				Node<3>::Pointer pnode,
+				array_1d<double,3>& Interpolated_velocity,
 				Variable<array_1d<double,3> >& rVariable)
 		{
 			//Geometry element of the rOrigin_ModelPart
 			Geometry< Node<3> >& geom = el_it->GetGeometry();
 			
-			unsigned int buffer_size = pnode->GetBufferSize();
+// 			unsigned int buffer_size = pnode->GetBufferSize();
 
-			for(unsigned int step = 0; step<buffer_size; step++)
-			{
+// 			for(unsigned int step = 0; step<buffer_size; step++)
+// 			{
 				//getting the data of the solution step
-				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
+/*				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);*/
 				//Reference or no reference???//CANCELLA
-				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node3_data = geom[3].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable);
+				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable);
+				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable);
+				const array_1d<double,3> node3_data = geom[3].FastGetSolutionStepValue(rVariable);
 
 				//copying this data in the position of the vector we are interested in
 				for(unsigned int j= 0; j< TDim; j++)
 				{
-					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
+					Interpolated_velocity[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
 				}						
-			}				
+// 			}				
+			pnode->GetValue(IS_VISITED) = 1.0;
 		}
 
 
