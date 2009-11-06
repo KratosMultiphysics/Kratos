@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "custom_python/add_processes_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/save_structure_conditions_process.h" 
 #include "custom_processes/merge_model_parts_process.h" 
 
@@ -79,7 +79,7 @@ namespace Kratos
 	
 namespace Python
 {
-  void  AddProcessesToPython()
+  void  AddCustomProcessesToPython()
   {
 	using namespace boost::python;
 
