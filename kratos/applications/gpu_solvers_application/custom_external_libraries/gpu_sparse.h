@@ -82,7 +82,7 @@ public:
 	bool GPU_Free();
 
 	bool Copy(CopyDirection Direction);
-	bool CopyGPUValuesFrom(GPUVector &V);
+	bool CopyFromGPU(GPUVector &V);
 };
 
 //
@@ -102,13 +102,15 @@ public:
 
 	bool Allocated;
 
-	GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values);
+	GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values, bool _NZMultiple16 = true);
+	GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2);
 	~GPUCSRMatrix();
 
 	bool GPU_Allocate();
 	bool GPU_Free();
-	
+
 	bool Copy(CopyDirection Direction, bool CopyValuesOnly);
+	bool CopyFromGPU(GPUCSRMatrix &M, bool CopyStructure, bool CopyValues);
 };
 
 // Operations defined on GPUCSRMatrix and GPUVector
@@ -160,6 +162,12 @@ bool CPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X);
 // Prepare diagonal values of the matrix for Diagonal Preconditioner on GPU
 
 bool GPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X);
+
+//
+// GPU_PrepareSPAIPreconditioner
+// Prepare SPAI preconditioner on GPU
+
+bool GPU_PrepareSPAIPreconditioner(GPUCSRMatrix &A, GPUCSRMatrix &M);
 
 //
 // CPU_VectorVectorMultiply

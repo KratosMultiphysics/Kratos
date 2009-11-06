@@ -38,6 +38,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 //
+// SPAI preconditioner by Borja Servan
+
+#include "spai_preconditioner.h"
+
+//
 // Kernels used in gpu_sparse.cu
 
 //
@@ -117,25 +122,25 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows
 			if (Lane < 8) 
 			{
 				Buffer[threadIdx.x] += Buffer[threadIdx.x + 8];
-				EMUSYNC
+				EMUSYNC;
 			}
 				
 			if (Lane < 4)
 			{
 				Buffer[threadIdx.x] += Buffer[threadIdx.x + 4];
-				EMUSYNC
+				EMUSYNC;
 			}
 				
 			if (Lane < 2)
 			{
 				Buffer[threadIdx.x] += Buffer[threadIdx.x + 2];
-				EMUSYNC
+				EMUSYNC;
 			}
 			
 			if (Lane < 1)
 			{
 				Buffer[threadIdx.x] += Buffer[threadIdx.x + 1];
-				EMUSYNC
+				EMUSYNC;
 			}
 			
 			// The first thread in warp has the answer; write it back
