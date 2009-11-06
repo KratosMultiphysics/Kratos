@@ -101,50 +101,50 @@ namespace Kratos {
                 NodesArrayType const& ThisNodes,
                 PropertiesType::Pointer pProperties) const;
 
-        void EquationIdVector(
+        virtual void EquationIdVector(
                 EquationIdVectorType& rResult,
                 ProcessInfo& rCurrentProcessInfo);
 
-        void GetDofList(
+        virtual void GetDofList(
                 DofsVectorType& ElementalDofList,
                 ProcessInfo& rCurrentProcessInfo);
 
-        void Initialize();
+        virtual void Initialize();
 
-        void CalculateRightHandSide(
+        virtual void CalculateRightHandSide(
                 VectorType& rRightHandSideVector,
                 ProcessInfo& rCurrentProcessInfo);
 
-        void CalculateLocalSystem(
+        virtual void CalculateLocalSystem(
                 MatrixType& rLeftHandSideMatrix,
                 VectorType& rRightHandSideVector,
                 ProcessInfo& rCurrentProcessInfo);
 
-        void CalculateOnIntegrationPoints(
+        virtual void CalculateOnIntegrationPoints(
                 const Variable<Matrix>& rVariable,
                 std::vector<Matrix>& Output,
                 const ProcessInfo& rCurrentProcessInfo);
 
-        void MassMatrix(
+        virtual void MassMatrix(
                 MatrixType& rMassMatrix,
                 ProcessInfo& rCurrentProcessInfo);
 
-        void DampMatrix(
+        virtual void DampMatrix(
                 MatrixType& rDampMatrix,
                 ProcessInfo& rCurrentProcessInfo);
 
-        void FinalizeSolutionStep(
+        virtual void FinalizeSolutionStep(
                 ProcessInfo& rCurrentProcessInfo);
 
-        void GetValuesVector(
+        virtual void GetValuesVector(
                 Vector& values,
                 int Step = 0);
 
-        void GetFirstDerivativesVector(
+        virtual void GetFirstDerivativesVector(
                 Vector& values,
                 int Step = 0);
 
-        void GetSecondDerivativesVector(
+        virtual void GetSecondDerivativesVector(
                 Vector& values,
                 int Step = 0);
 
@@ -155,7 +155,7 @@ namespace Kratos {
 
     protected:
 
-      void CalculateEquivalentStresses(
+      virtual void CalculateEquivalentStresses(
           const array_1d<double, 3 > & membrane_strain,
           const array_1d<double, 3 > & bending_strain,
           boost::numeric::ublas::bounded_matrix<double, 3, 3 >& Dmat_m,
@@ -182,18 +182,18 @@ namespace Kratos {
         std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
 
 
-    private:
+
         ///@name Static Member Variables
 
         
         //double GetElementalPressure(
         //	const ProcessInfo& rCurrentProcessInfo);
 
-        bool HasNeighbour(unsigned int index, const Node < 3 > & neighb);
+        virtual bool HasNeighbour(unsigned int index, const Node < 3 > & neighb);
 
-        unsigned int NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs);
+        virtual unsigned int NumberOfActiveNeighbours(WeakPointerVector< Node < 3 > >& neighbs);
 
-        void CalculateAll(
+        virtual void CalculateAll(
                 MatrixType& rLeftHandSideMatrix,
                 VectorType& rRightHandSideVector,
                 const ProcessInfo& rCurrentProcessInfo,
@@ -251,6 +251,8 @@ namespace Kratos {
 		const array_1d<double,3>& membrane_stress
 		);
 
+    private:
+        
     }; // class KRATOS_EBST_H_INCLUDED.
 
 } // namespace Kratos.
