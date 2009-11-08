@@ -68,8 +68,8 @@ namespace Kratos
 	 {
 	   public:
 
-	      ChooseElementProcess(ModelPart& model_part, unsigned int domain_size)
-			:Process(), mr_model_part(model_part), mdomain_size(domain_size)
+	      ChooseElementProcess(ModelPart& model_part, unsigned int domain_size, char* water_element, char*  air_element)
+			:Process(), mr_model_part(model_part), mdomain_size(domain_size), rElWater(KratosComponents<Element>::Get(water_element)), rElAir(KratosComponents<Element>::Get(air_element))
 		{
 		}
 
@@ -99,8 +99,8 @@ namespace Kratos
 //			Element const& rEl1 = KratosComponents<Element>::Get("Fluid2DASGS");
 //			Element const& rEl2 = KratosComponents<Element>::Get("ASGSPRDC");
 
-			Element const& rEl1 = KratosComponents<Element>::Get("ASGSCOMPPRDC2D"); //water element
-			Element const& rEl2 = KratosComponents<Element>::Get("ASGSCompressible2D"); // air element
+			//Element const& rEl1 = KratosComponents<Element>::Get("ASGSCOMPPRDC2D"); //water element
+			//Element const& rEl2 = KratosComponents<Element>::Get("ASGSCompressible2D"); // air element
 
 			for(ModelPart::ElementsContainerType::iterator Belem = mr_model_part.ElementsBegin(); Belem != mr_model_part.ElementsEnd(); ++Belem)
 			{
@@ -147,7 +147,7 @@ namespace Kratos
 
 				if(chooseflag)
 				  {
-					Element::Pointer p_elem = rEl1.Create(Belem->Id(),geom, Belem->pGetProperties());
+					Element::Pointer p_elem = rElWater.Create(Belem->Id(),geom, Belem->pGetProperties());
 					ElemPart.push_back(p_elem);
 					p_elem->GetValue(IS_WATER_ELEMENT) = 1.0;						
 					//copy element of other type to consider two elements in divided element
@@ -161,7 +161,7 @@ namespace Kratos
 				  }
 			        else
 				  {
-					Element::Pointer p_elem = rEl2.Create(Belem->Id(), geom, Belem->pGetProperties() );
+					Element::Pointer p_elem = rElAir.Create(Belem->Id(), geom, Belem->pGetProperties() );
 					ElemPart.push_back(p_elem);
 					p_elem->GetValue(IS_WATER_ELEMENT) = 0.0;
 
@@ -178,18 +178,20 @@ namespace Kratos
 
 				
 			}
-			//KRATOS_WATCH(ElemPart.size());
-			//KRATOS_WATCH((mr_model_part.Elements()).size());
+			KRATOS_WATCH(ElemPart.size());
+			KRATOS_WATCH((mr_model_part.Elements()).size());
 
 			mr_model_part.Elements() = ElemPart;
 
-			//KRATOS_WATCH(mr_model_part.Elements().size());
+			KRATOS_WATCH(mr_model_part.Elements().size());
 			KRATOS_WATCH("++++++++++++++++++++END OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 		 }
 
 		private:
 			ModelPart& mr_model_part;
 			unsigned int mdomain_size;
+			Element const& rElWater;
+			Element const& rElAir;
 
 	};
 
