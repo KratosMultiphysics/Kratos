@@ -13,6 +13,7 @@ project ExternalSolversApplication
     :
     requirements <include>. 
 		<include>external_includes
+		<include>custom_external_libraries/SuperLU_3.0
 		<define>KRATOS_PYTHON
 		<link>shared
     ;
@@ -21,8 +22,8 @@ project ExternalSolversApplication
 #################################################################################
 #compilation of superlu library
 use-project /kratos-prj/superlu_compilation   : custom_external_libraries/SuperLU_3.0 ;
-lib libsuperlu_win 		: : <name>libsuperlu_prova <search>custom_external_libraries/SuperLU_3.0/  ;
-lib libsuperlu_linux		: : <name>superlu_prova <search>custom_external_libraries/SuperLU_3.0/  ;
+lib libsuperlu_win 		: : <name>libsuperlu_prova <search>custom_external_libraries/SuperLU_3.0 <link>static  ;
+lib libsuperlu_linux		: : <name>superlu_prova <search>custom_external_libraries/SuperLU_3.0 <link>static ;
 alias libsuperlu : libsuperlu_win : <toolset>msvc ;
 alias libsuperlu : libsuperlu_linux : <toolset>gcc ;
 alias libsuperlu : libsuperlu_linux : <toolset>intel ;
@@ -42,7 +43,7 @@ python-extension KratosExternalSolversApplication
 		externalsolvers_application.cpp
 		
 		/kratos-prj/superlu_compilation//install
-		libsuperlu
+ 		libsuperlu
 		
 		#####################blas library
 	        /KratosProject//blaslibrary   
