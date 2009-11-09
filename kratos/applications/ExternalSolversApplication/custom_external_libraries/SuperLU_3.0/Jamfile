@@ -6,7 +6,7 @@ project SuperLU_LIB
     :
     requirements <include>. 
 		<include>SRC
-		<link>static
+#		<link>static
 		<warnings>off
 		<define>USE_VENDOR_BLAS
     ;
@@ -59,14 +59,14 @@ dcolumn_bmod.c
 dcolumn_dfs.c
 dcomplex.c
 dcopy_to_ucol.c
-#dGetDiagU.c
+##dGetDiagU.c
 dgscon.c
 dgsequ.c
 dgsrfs.c
 dgssv.c
 dgssvx.c
 dgstrf.c
-dgstrs.c
+##dgstrs.c
 dgstrsL.c
 dlacon.c
 dlangs.c
