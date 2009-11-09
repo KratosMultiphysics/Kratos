@@ -90,7 +90,7 @@ namespace Python
 	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
 		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
 		 ;
-	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int >())
+	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int,char*, char* >())
 		 ;
 
 	class_<CFLProcess, bases<Process> >("CFLProcess", init<ModelPart&>())
