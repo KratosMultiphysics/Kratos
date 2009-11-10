@@ -84,18 +84,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Macro to enforce intrawarp sychronization during emulation
 #ifdef __DEVICE_EMULATION__
 
-	#define EMUSYNC __syncthreads()
+	#define EMUSYNC 
 
 #else
 
-	#define EMUSYNC
+	#define EMUSYNC 
 
 #endif
+
+//defines for preconditioner
+#define HWS 16
+#define HWSB 4
+#define HWSM 15
+#define BS 256
+#define WS 32
+#define WSM 31
+#define WSB 5
 
 // Includes, system
 
 #include "cuda.h"
-
+#include <iostream>
+using namespace std;
 namespace Kratos
 {
 
@@ -141,8 +151,126 @@ bool inline CUBLAS_Success(cublasStatus ErrorCode)
 	return ErrorCode == CUBLAS_STATUS_SUCCESS;
 }
 
+/** ADDED FUNCTIONS **/
+
+void CUDA_CHECK(cudaError_t ErrorCode)
+{
+    if (ErrorCode != cudaSuccess)
+        printf("*** CUDA error: %s ***\n", cudaGetErrorString(ErrorCode));
 }
 
+void sortElems_CPU(size_t* array, double* array2, size_t numElems){
+    size_t i, temp, flag = 1, numLength = numElems;
+    size_t d = numLength;
+    double tempData;
+    while( flag || (d > 1))      // boolean flag (true when not equal to 0)
+     {
+          flag = 0;           // reset flag to 0 to check for future swaps
+          d = (d+1) / 2;
+          for (i = 0; i < (numLength - d); i++)
+        {
+               if (array[i + d] < array[i])
+              {
+                      temp = array[i + d];      // swap positions i+d and i
+                      array[i + d] = array[i];
+                      array[i] = temp;
+                      tempData = array2[i+d];
+                      array2[i+d] = array2[i];
+                      array2[i] = tempData;
+                      flag = 1;                  // tells swap has occurred
+              }
+         }
+     }
+}
+void sortElems_CPU(size_t* array, size_t numElems){
+    size_t i, temp, flag = 1, numLength = numElems;
+    size_t d = numLength;
+    while( flag || (d > 1))      // boolean flag (true when not equal to 0)
+     {
+          flag = 0;           // reset flag to 0 to check for future swaps
+          d = (d+1) / 2;
+          for (i = 0; i < (numLength - d); i++)
+        {
+               if (array[i + d] < array[i])
+              {
+                      temp = array[i + d];      // swap positions i+d and i
+                      array[i + d] = array[i];
+                      array[i] = temp;
+                      flag = 1;                  // tells swap has occurred
+              }
+         }
+     }
+}
+/** implementation of quicksort algorithm **/
+void sortMatrix(_Matrix& C, bool sortingValues){
+    switch(sortingValues){
+        case false:
+            for(size_t i = 0; i < C.numRows; i++){
+                size_t firstElem = C.ptr_cpu[i];
+                size_t numElems = C.ptr_cpu[i+1] - firstElem;
+                sortElems_CPU(&C.indices_cpu[firstElem], numElems);
+            }
+            break;
+        case true:
+            for(size_t i = 0; i < C.numRows; i++){
+                size_t firstElem = C.ptr_cpu[i];
+                size_t numElems = C.ptr_cpu[i+1] - firstElem;
+                sortElems_CPU(&C.indices_cpu[firstElem], &C.values_cpu[firstElem], numElems);
+            }
+            break;
+    }
+
+}
+
+void printVector(const _Vector& vec){
+    cout << "Num elems: " << vec.numElems << endl;
+    for(size_t i = 0; i < vec.numElems; i++){
+        cout << vec.values_cpu[i] << " ";
+    }
+    cout << endl << endl;
+}
+
+void printMatrix(const _Matrix& mat){
+    size_t index = 0;
+    cout << "Num rows: " << mat.numRows << ", Num cols: " << mat.numCols << ", numNNZ: " << mat.numNNZ << endl;
+    for(size_t i = 0; i < mat.numRows; i++){
+        size_t currentCol = 0;
+        size_t numPtr = mat.ptr_cpu[i+1] - mat.ptr_cpu[i];
+        while(currentCol < mat.numCols && numPtr > 0){
+            if(mat.indices_cpu[index] == currentCol){
+                cout << mat.values_cpu[index] << " ";
+                index++;
+                numPtr--;
+            }else
+                cout << "0" << " ";
+            currentCol++;
+        }
+        while(currentCol < mat.numCols){
+            cout << "0" << " ";
+            currentCol++;
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+void printMatrix_csr(const _Matrix& mat){
+    for(size_t i = 0; i < mat.numRows; i++){
+        for(size_t j = mat.ptr_cpu[i]; j < mat.ptr_cpu[i+1]; j++){
+            cout << "(" << i << ", " << mat.indices_cpu[j] << ") -> " << mat.values_cpu[j] << endl;
+        }
+    }
+}
+
+double computeSingleSize(_Matrix& m){
+    return (((double)m.numNNZ * (sizeof(size_t) + sizeof(double)) + m.numRows * sizeof(size_t))/1024)/1024;
+}
+
+double computeSingleSize(_Vector& v){
+    return (((double)v.numElems * (sizeof(double))) / 1024) / 1024;
+}
+
+}
 }
 
 //
@@ -164,3 +292,6 @@ __inline__ __device__ double Fetch_X(const double *X, const size_t &i)
 	int2 V = tex1Dfetch(Texture_double, i);
 	return __hiloint2double(V.y, V.x);
 }
+
+
+
