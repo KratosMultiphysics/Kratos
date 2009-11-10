@@ -229,8 +229,83 @@ bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVe
 
 bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y);
 
-}
 
+//Wrapper for cublas dotProduct in double precision
+/*double GPU_dotProduct(size_t numElems, const double *firstVec, int incFirstVec,
+    const double *secondVec, int incSecondVec);*/
+
+/** ADDED FUNCTIONS AND STRUCTURES **/
+
+typedef struct{
+    size_t numRows;
+    size_t numCols;
+    size_t numNNZ;
+    size_t* ptr_cpu;
+    size_t* ptr_gpu;
+    size_t* indices_cpu;
+    size_t* indices_gpu;
+
+    double* values_cpu;
+    double* values_gpu;
+
+    double* matAuxValues;
+    size_t numValuesDenseRep;
+}_Matrix;
+
+typedef struct{
+    size_t numElems;
+    double* values_cpu;
+    double* values_gpu;
+}_Vector;
+
+
+//kernel for fill an array with zeros
+void GPU_fillWithZeros(size_t numElems, double* gpuVec);
+
+//kernel with VectorScaleAndAdd, adding to Z version
+bool GPU_VectorScaleAndAdd_addingVersion(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z);
+
+//preconditioner classes
+void generateResidual(const _Matrix& R, const _Vector& b, const _Matrix& A, const _Vector& u, _Vector& r);
+void calculateInstantVector(_Vector& u, const _Vector& b, const _Matrix& A, const _Matrix& G);
+void generateResidual_vectorized(const _Matrix& R, const _Vector& b, const _Matrix& A, const _Vector& u, _Vector& r);
+void calculateInstantVector_vectorized(_Vector& u, const _Vector& b, const _Matrix& A, const _Matrix& G);
+void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, _Vector& u,
+			unsigned short lvl, unsigned short maxLevels, size_t* preSweeps, size_t* postSweeps, bool assumeZeros);
+size_t generateHierarchy(_Matrix*& Matrices, _Matrix*& Pmat, _Matrix*& Qmat,
+        _Matrix*& Gmat, double W, size_t numLevelsRoh, size_t max_levels, size_t min_system_size);
+_Matrix generateP_vCPU(const _Matrix& A, const _Vector& diag, double W, size_t numLevelsRoh);
+_Matrix generateQ(const _Matrix& P);
+
+void createPTent(const _Matrix& A, _Matrix& P);
+void createDiagonal(const _Matrix& A, _Vector& G);
+void createDiagonal_vCPU(const _Matrix& A, _Matrix& G, _Vector& res);
+void computeDenseMatrix(const _Matrix& A, double *& vec);
+void subIdentityMatrix_cpu(const _Matrix& A, _Matrix& sub);
+void csr_tocsc(const size_t n_row,
+	           const size_t n_col,
+	           const size_t Ap[],
+	           const size_t Aj[],
+	           const double Ax[],
+	                 size_t*& Bp,
+	                 size_t* Bi,
+	                 double* Bx);
+double checkResidual(const _Vector& u, const _Vector& b, const _Matrix& A);
+double roh(const _Matrix& A, size_t iter);
+bool checkConvergence(const _Vector& u, const _Vector& b, const _Matrix& A, const double lastResidual, const double threshold);
+void mallocAndCopyMem(double*& CPU, double*& GPU, size_t size);
+void mallocAndCopyMem(size_t*& CPU, size_t*& GPU, size_t size);
+void malloc_(double*& GPU, size_t size);
+void malloc_(size_t*& GPU, size_t size);
+template <class Q>
+void copyMem(Q*& source, Q*& destiny, size_t size, unsigned short way);
+
+void deletingStuff(size_t* stuff);
+void deletingStuff(double* stuff);
+
+void GPU_VectorMultiply(double* sourceVec, double* destinyVec, size_t N);
+
+}
 }
 
 #endif //KRATOS_GPU_SPARSE_H_INCLUDED

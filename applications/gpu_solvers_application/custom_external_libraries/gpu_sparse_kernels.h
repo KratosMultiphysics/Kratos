@@ -79,6 +79,8 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Kernel(const size_t Rows, const siz
 // GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel
 // CSRMatrix Vector multiply vectorized kernel
 
+
+
 __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
 {
 	const size_t Idx = GlobalIdx();									// Global thread index
@@ -362,9 +364,12 @@ __global__ void GPU_VectorScaleAndAdd_2_D_Kernel(const size_t N, const double A,
 __global__ void GPU_VectorScaleAndAdd_2_E_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
-
-	if (Idx < N)
-		Y[Idx] = X[Idx] + B * Y[Idx];
+	if (Idx < N){
+		Y[Idx] *= B;
+		Y[Idx] += X[Idx];
+	}
+//	if (Idx < N)
+//		Y[Idx] = X[Idx] + B * Y[Idx];
 }
 
 // Variant 2-F: Y = A * X + B * Y (A = -1.00, B = *)
@@ -396,4 +401,183 @@ __global__ void GPU_VectorScaleAndAdd_2_H_Kernel(const size_t N, const double A,
 	if (Idx < N)
 		Y[Idx] = A * X[Idx] - Y[Idx];
 }
+
+	/** ADDED KERNELS  **/
+/** FOR GPU_SPARSE **/
+
+//
+// GPU_VectorScaleAndAdd_1_Kernel ADDING VERSIONS
+// VectorScaleAndAdd kernel
+
+// Variant 1: Z = A * X + B * Y
+
+__global__ void GPU_VectorScaleAndAdd_1_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += A * X[Idx] + B * Y[Idx];
+}
+
+// Variant 1-A: Z = A * X + B * Y (A = 1.00; B = 1.00)
+
+__global__ void GPU_VectorScaleAndAdd_1_A_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += X[Idx] + Y[Idx];
+}
+
+// Variant 1-B: Z = A * X + B * Y (A = 1.00; B = -1.00)
+
+__global__ void GPU_VectorScaleAndAdd_1_B_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += X[Idx] - Y[Idx];
+}
+
+// Variant 1-C: Z = A * X + B * Y (A = -1.00; B = 1.00)
+
+__global__ void GPU_VectorScaleAndAdd_1_C_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += -X[Idx] + Y[Idx];
+}
+
+// Variant 1-D: Z = A * X + B * Y (A = -1.00; B = -1.00)
+
+__global__ void GPU_VectorScaleAndAdd_1_D_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += -X[Idx] - Y[Idx];
+}
+
+// Variant 1-E: Z = A * X + B * Y (A = 1.00; B = *)
+
+__global__ void GPU_VectorScaleAndAdd_1_E_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += X[Idx] + B * Y[Idx];
+}
+
+// Variant 1-F: Z = A * X + B * Y (A = -1.00; B = *)
+
+__global__ void GPU_VectorScaleAndAdd_1_F_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += -X[Idx] + B * Y[Idx];
+}
+
+// Variant 1-G: Z = A * X + B * Y (A = *; B = 1.00)
+
+__global__ void GPU_VectorScaleAndAdd_1_G_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += A * X[Idx] + Y[Idx];
+}
+
+// Variant 1-H: Z = A * X + B * Y (A = *; B = -1.00)
+
+__global__ void GPU_VectorScaleAndAdd_1_H_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+{
+	const size_t Idx = GlobalIdx();
+
+	if (Idx < N)
+		Z[Idx] += A * X[Idx] - Y[Idx];
+}
+
+/** FOR PRECONDITIONER **/
+/** Adding version of MatrixVector multiply **/
+__global__ void GPU_MatrixVectorMultiply_CSR_Kernel_addingVersion(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
+{
+	size_t Idx = GlobalIdx();
+
+	if (Idx < Rows)
+	{
+		double YI = static_cast <double> (0);
+
+		for (size_t j = A_RowIndices[Idx]; j < A_RowIndices[Idx + 1]; j++)
+
+#ifdef USE_TEXTURE_CACHING
+
+			// With caching
+			YI += A_Values[j] * Fetch_X(X_Values, A_Columns[j]);
+
+#else
+
+			// Without caching
+			YI += A_Values[j] * X_Values[A_Columns[j]];
+
+#endif
+
+		Y_Values[Idx] += YI;
+	}
+}
+
+/** Kernel for fill a vector with zeros **/
+__global__ void fillWithZeros (double* values, size_t rows){
+    size_t idx = GlobalIdx();
+    if(idx < rows)
+        values[idx] = 0.0;
+}
+
+/** Kernel to add 2 vectors
+ *  version that let the result on first vector **/
+__global__ void sumVectorVector(double* source, double* dest, size_t size){
+    size_t idx = GlobalIdx();
+    if(idx < size){
+        dest[idx] = dest[idx] + source[idx];
+    }
+}
+
+        /** NEW KERNELS **/
+/** kernel to subtract source of dest **/
+template < class G >
+__global__ void subVectorVector(G* source, G* dest, size_t size){
+    size_t idx = GlobalIdx();
+    if(idx < size){
+        dest[idx] -= source[idx];
+    }
+}
+/** kernel to subtract source2 from source1 and save result on dest **/
+template < class G >
+__global__ void subVectorVector(G* source1, G* source2, G* dest, size_t size){
+    size_t idx = GlobalIdx();
+    if(idx < size){
+        dest[idx] = source1[idx] - source2[idx];
+    }
+}
+
+/** kernel to subtract a value from each elem of G **/
+template < class G >
+__global__ void subVectorConstantValue (G* subVector, G num, G* sourceVector, size_t numElems){
+    size_t idx = GlobalIdx();
+    if(idx < numElems){
+        subVector[idx] -= num * sourceVector[idx];
+    }
+}
+
+
+/** kernel to divide a value from each elem of G **/
+template < class G >
+__global__ void divideVectorConstantValue (G* vector, G elem, size_t numElems){
+    size_t idx = GlobalIdx();
+    if(idx < numElems){
+        vector[idx] /= elem;
+    }
+}
+
 

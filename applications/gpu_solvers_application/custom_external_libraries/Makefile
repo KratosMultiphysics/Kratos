@@ -1,52 +1,71 @@
-# nvcc compiler to use
-NVCC = nvcc
+## -*- Makefile -*-
+##
+## User: isaac
+## Time: 09/11/2009 08:18:44
+## Makefile created by Sun Studio.
+##
+## This file is generated automatically.
+##
 
-# nvcc flags
-NVCC_FLAGS = -Xcompiler -fPIC -arch compute_13 -code compute_13
 
-# Behavior of gpu_sparse library
-#   -DUSE_UMUL24: Use __umul24 in GlobalIdx() instead of simple multiplication
-#   -DUSE_TEXTURE_CACHING: Use texture caching in matrix vector multiplication kernels
-DEF = -DUSE_UMUL24 -DUSE_TEXTURE_CACHING
+#### Compiler and tool definitions shared by all build targets #####
+CCC = nvcc
+CXX = nvcc
+BASICOPTS = -g -arch compute_13 -O3 -Xcompiler -fPIC -deviceemu 
+CCFLAGS = $(BASICOPTS)
+CXXFLAGS = $(BASICOPTS)
+CCADMIN = 
 
-# Main source file
-SRC = gpu_sparse.cu
 
-# Dependencies
-DEP = gpu_sparse.h gpu_sparse_kernels.h gpu_sparse_utils.h spai_preconditioner.h
+# Define the target directories.
+TARGETDIR_libGPUSparse.a=.
 
-# Libraries to link with
-LNK = -lcublas
 
-# Object file name
-OBJ = gpu_sparse.o
+all: libGPUSparse.a
 
-# Library file name
-LIB = libgpu_sparse.a
+## Target: libGPUSparse.a
+CPPFLAGS_libGPUSparse.a = \
+	-I/usr/local/cuda/include \
+	-I/usr/local/lapackpp/include/lapackpp \
+	-I../custom_linear_solvers
+OBJS_libGPUSparse.a =  \
+	$(TARGETDIR_libGPUSparse.a)/cwrapper.o \
+	$(TARGETDIR_libGPUSparse.a)/Diagonalpreconditioner.o \
+	$(TARGETDIR_libGPUSparse.a)/gpu_sparse.o \
+	$(TARGETDIR_libGPUSparse.a)/AMGpreconditioner.o
 
-# Defaults: no emulation, no debug data
-emu = 0
-dbg = 0
 
-# Device emulation mode
-ifeq ($(emu), 1)
-	NVCC_FLAGS += -deviceemu
-endif
+# Link or archive
+ARCPP = $(AR) $(ARFLAGS) $@ 
+$(TARGETDIR_libGPUSparse.a)/libGPUSparse.a: $(TARGETDIR_libGPUSparse.a) $(OBJS_libGPUSparse.a)
+	$(ARCPP) $(OBJS_libGPUSparse.a)
 
-# Debug mode
-ifeq ($(dbg), 1)
-	NVCC_FLAGS += -g
-else
-	NVCC_FLAGS += -O3
-	DEF += -DNDEBUG
-endif
 
-$(LIB): $(OBJ)
-	ar cr $(LIB) $(OBJ)
+# Compile source files into .o files
 
-$(OBJ): $(SRC) $(DEP)
-	$(NVCC) $(SRC) -c -o $(OBJ) $(NVCC_FLAGS) $(DEF) $(LNK)
+$(TARGETDIR_libGPUSparse.a)/cwrapper.o: $(TARGETDIR_libGPUSparse.a) cwrapper.cpp
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ cwrapper.cpp
 
+$(TARGETDIR_libGPUSparse.a)/Diagonalpreconditioner.o: $(TARGETDIR_libGPUSparse.a) Diagonalpreconditioner.cpp
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ Diagonalpreconditioner.cpp
+
+$(TARGETDIR_libGPUSparse.a)/gpu_sparse.o: $(TARGETDIR_libGPUSparse.a) gpu_sparse.cu
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ gpu_sparse.cu
+
+$(TARGETDIR_libGPUSparse.a)/AMGpreconditioner.o: $(TARGETDIR_libGPUSparse.a) AMGpreconditioner.cu
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ AMGpreconditioner.cu
+
+
+
+#### Clean target deletes all generated files ####
 clean:
-	rm *.o *.a *.linkinfo
-	
+	rm -f \
+		$(TARGETDIR_libGPUSparse.a)/libGPUSparse.a \
+		$(TARGETDIR_libGPUSparse.a)/cwrapper.o \
+		$(TARGETDIR_libGPUSparse.a)/Diagonalpreconditioner.o \
+		$(TARGETDIR_libGPUSparse.a)/gpu_sparse.o \
+		$(TARGETDIR_libGPUSparse.a)/AMGpreconditioner.o
+# Enable dependency checking
+.KEEP_STATE:
+.KEEP_STATE_FILE:.make.state.GNU-i386-Linux
+
