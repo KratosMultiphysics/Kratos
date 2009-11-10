@@ -8,15 +8,18 @@ project gpu_solvers_application
     requirements <include>.
     	<include>$(CUDA_DIR)/include 
 		<include>custom_external_libraries
+		<include>custom_linear_solvers
+		<include>/usr/local/lapackpp/include/lapackpp
 		<define>KRATOS_PYTHON
 		<link>shared
     ;
 
 #################################################################################
 #################################################################################
-lib gpu_sparse : : <name>gpu_sparse <search>custom_external_libraries ;
+lib gpu_sparse : : <name>GPUSparse <search>custom_external_libraries ;
+lib lapackpp : : <name>lapackpp <search>/usr/local/lapackpp/lib ;
 lib cudart : : <name>cudart <search>$(CUDA_DIR)/lib ;
-lib cublas : : <name>cublas <search>$(CUDA_DIR)/lib ;
+lib cublas : : <name>cublasemu <search>$(CUDA_DIR)/lib ;
 
 #################################################################################
 #################################################################################
@@ -28,6 +31,7 @@ python-extension KratosGPUSolversApplication
 		gpu_solvers_python_application.cpp 
 		gpu_solvers_application.cpp
         gpu_sparse/<link>static
+	lapackpp/<link>shared
         cudart/<link>static
         cublas/<link>static
 
