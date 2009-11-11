@@ -157,7 +157,7 @@ fluid_solver.Initialize()
 
 #settings to be changed
 Re = 100.0
-nsteps = 5 #200
+nsteps = 100
 output_step = 1
 
 Dt = 1000.0/Re
