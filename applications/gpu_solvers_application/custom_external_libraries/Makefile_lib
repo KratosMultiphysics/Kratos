@@ -24,8 +24,7 @@ all: libGPUSparse.a
 ## Target: libGPUSparse.a
 CPPFLAGS_libGPUSparse.a = \
 	-I/usr/local/cuda/include \
-	-I/usr/local/lapackpp/include/lapackpp \
-	-I../custom_linear_solvers
+	-I/usr/local/lapackpp/include/lapackpp 
 OBJS_libGPUSparse.a =  \
 	$(TARGETDIR_libGPUSparse.a)/cwrapper.o \
 	$(TARGETDIR_libGPUSparse.a)/mmio.o \
