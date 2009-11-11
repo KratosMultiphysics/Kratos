@@ -1,14 +1,49 @@
-/* 
- * File:   AMGpreconditioner.cpp
- * Author: isaac
- * 
- * Created on 1 / octubre / 2009, 09:39
+/*
+==============================================================================
+KratosGPUApplication 
+A library based on:
+Kratos
+A General Purpose Software for Multi-Physics Finite Element Analysis
+Version 1.0 (Released on march 05, 2007).
+
+Copyright 2009
+Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby 
+pooyan@cimne.upc.edu 
+rrossi@cimne.upc.edu
+isaac.gallego.pla@gmail.com
+mossaiby@yahoo.com
+- CIMNE (International Center for Numerical Methods in Engineering),
+Gran Capita' s/n, 08034 Barcelona, Spain
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following condition:
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
  */
 
 #include "AMGpreconditioner.h"
 #include <cstdio>
 
-AMGpreconditioner::AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, size_t* _preSweeps, size_t* _postSweeps) {
+AMGpreconditioner::AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, size_t* _preSweeps, size_t* _postSweeps, bool actAsPreconditioner) {
         W = _W;
         numLevelsRoh = _numLevelsRoh;
 	assumeZerosForEachStep = _assumeZerosForEachStep;
@@ -17,17 +52,18 @@ AMGpreconditioner::AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assu
 
 	preSweeps = _preSweeps;
 	postSweeps = _postSweeps;
-
+	isPreconditioner = actAsPreconditioner;
 	numFinalLevels = 0;
         //printf("Minimum size allowed set in constructor: %lu\n", minimumSizeAllowed);
 }
 
-AMGpreconditioner::AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed){
+AMGpreconditioner::AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, bool actAsPreconditioner){
 	W = _W;
         numLevelsRoh = _numLevelsRoh;
 	assumeZerosForEachStep = _assumeZerosForEachStep;
 	numMaxHierarchyLevels = _numMaxHierarchyLevels;
 	minimumSizeAllowed = _minimumSizeAllowed;
+	isPreconditioner = actAsPreconditioner;
 	numFinalLevels = 0;
 }
 
@@ -131,13 +167,20 @@ void AMGpreconditioner::initialize(size_t* ptr_cpu, size_t* indices_cpu, double*
 }
 
 void AMGpreconditioner::singleStep(double* b_gpu, double* x_gpu){
-    _Vector u;
-    u.numElems = Matrices[0].numCols;
-    u.values_cpu = new double[u.numElems];
-    u.values_gpu = x_gpu;
-    b.values_gpu = b_gpu;
-    multilevel(Matrices, P, R, G, b, u, 0, numFinalLevels, preSweeps, postSweeps, assumeZerosForEachStep);
-    delete[] u.values_cpu;
+
+	_Vector u;
+	u.numElems = Matrices[0].numCols;
+	u.values_cpu = new double[u.numElems];
+	if(isPreconditioner){
+		GPU_fillWithZeros(u.numElems, x_gpu);
+	}
+
+	u.values_gpu = x_gpu;
+	b.values_gpu = b_gpu;
+	b.values_cpu = new double[u.numElems];
+	multilevel(Matrices, P, R, G, b, u, 0, numFinalLevels, preSweeps, postSweeps, assumeZerosForEachStep);
+	delete[] u.values_cpu;
+	delete[] b.values_cpu;
 }
 
 size_t AMGpreconditioner::solve(double* b_gpu, double* b_cpu, double* x_gpu, double* x_cpu, double _precision, size_t maxIters){

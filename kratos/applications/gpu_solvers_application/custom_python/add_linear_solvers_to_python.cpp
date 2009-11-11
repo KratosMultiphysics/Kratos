@@ -102,14 +102,14 @@ namespace Python
 
 	class_<AMGPreconditionerType, bases<GPUPreconditionerType> >( "AMGPreconditioner" )
 		//.def(init<>() )
-                .def(init<double, size_t, bool, size_t, size_t, size_t*, size_t*>() )
+                .def(init<double, size_t, bool, size_t, size_t, size_t*, size_t*, bool>() )
                 ;
 	class_<DiagonalpreconditionerType, bases<GPUPreconditionerType> >( "DiagonalpreconditionerType" )
-		.def(init<>() )
+		.def(init<bool>() )
 	        ;
 
 	class_<Kratos_AMGPreconditionerType, bases<AMGPreconditionerType> >( "KratosAMGPreconditioner" )
-                .def(init<double, size_t, bool, size_t, size_t, const Vector, const Vector>() )
+                .def(init<double, size_t, bool, size_t, size_t, const Vector, const Vector, bool>() )
                 ;
 
 

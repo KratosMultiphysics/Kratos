@@ -130,7 +130,7 @@ namespace Kratos
       {
 		tol = NewMaxTolerance;
 		maxIter = NewMaxIterationsNumber;
-		preconditioner = new Kratos_AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed, _preSweeps, _postSweeps);
+		preconditioner = new Kratos_AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed, _preSweeps, _postSweeps, false);
       }
 
       /// Copy constructor.
@@ -182,18 +182,18 @@ namespace Kratos
 		/** TODO here preconditioner must solve the problem **/
 	//Allocating matrix A
 	GPUCSRMatrix gpuA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
-	KRATOS_GPU_CHECK(gpuA.GPU_Allocate());
-	KRATOS_GPU_CHECK(gpuA.Copy(CPU_GPU, false));
+	GPU_CHECK(gpuA.GPU_Allocate());
+	GPU_CHECK(gpuA.Copy(CPU_GPU, false));
 
 	//Allocating vector b
 	GPUVector gpuB(rB.size(), &(rB[0]));
-	KRATOS_GPU_CHECK(gpuB.GPU_Allocate());
-	KRATOS_GPU_CHECK(gpuB.Copy(CPU_GPU));
+	GPU_CHECK(gpuB.GPU_Allocate());
+	GPU_CHECK(gpuB.Copy(CPU_GPU));
 
 	//Allocating vector x
 	GPUVector gpuX(rX.size(), &(rX[0]));
-	KRATOS_GPU_CHECK(gpuX.GPU_Allocate());
-	KRATOS_GPU_CHECK(gpuX.Copy(CPU_GPU));
+	GPU_CHECK(gpuX.GPU_Allocate());
+	GPU_CHECK(gpuX.Copy(CPU_GPU));
 
 	this->preconditioner->initialize(gpuA.CPU_RowIndices, gpuA.CPU_Columns, gpuA.CPU_Values,
 				gpuA.GPU_RowIndices, gpuA.GPU_Columns, gpuA.GPU_Values,
@@ -201,7 +201,7 @@ namespace Kratos
 
 	BaseType::mIterationsNumber = this->preconditioner->solve(gpuB.GPU_Values, gpuB.CPU_Values, gpuX.GPU_Values, gpuX.CPU_Values, tol, maxIter);
 
-	KRATOS_GPU_CHECK(gpuX.Copy(GPU_CPU));
+	GPU_CHECK(gpuX.Copy(GPU_CPU));
 	this->preconditioner->cleanPreconditioner();
 
 
