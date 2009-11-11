@@ -20,6 +20,8 @@ path-constant LAPACK_LIB_DIR : /usr/lib/ ;
 
 # Path to CUDA - required to compile and use GPU solvers - strictly optional
 ##path-constant CUDA_DIR :  /usr/local/cuda/ ;
+##path-constant LAPACKPP_LIB_DIR :  /usr/local/lapackpp/lib ; #directory in which we installed the LAPACK++ lib
+##path-constant LAPACKPP_INCLUDE_DIR :  /usr/local/lapackpp/include/lapackpp ; #directory in which we installed the LAPACK++ lib
 
 ##decomment and modify for parallel
 ##path-constant MPI_LIB_DIR : /usr/lib/openmpi/lib/ ;
