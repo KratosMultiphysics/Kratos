@@ -145,9 +145,9 @@ postSweeps[6] = 2
 postSweeps[7] = 2
 postSweeps[8] = 2
 postSweeps[9] = 2
+is_preconditioner = True
 
-
-precond = KratosAMGPreconditioner(4.0/3.0, 3, 1==1, 10, 1000, preSweeps, postSweeps)
+precond = KratosAMGPreconditioner(4.0/3.0, 3,True, 10, 1000, preSweeps, postSweeps,is_preconditioner)
 #precond = AMGPreconditioner()
 fluid_solver.velocity_linear_solver =  GPUBICGSTABSolver(1e-9, 5000)
 fluid_solver.pressure_linear_solver =  GPUCGSolver(1e-9, 5000, precond)
