@@ -235,6 +235,7 @@ namespace Kratos
 					"ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible", init< double, double >()
 					);
 
+
 			class_< ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType,
 				bases< BaseSchemeType >,  boost::noncopyable >
 					(
@@ -247,18 +248,31 @@ namespace Kratos
 				>() )
 				;
 
-			class_< RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+			class_< RungeKuttaFracStepStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >,				
+			
 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("RungeKuttaFracStepStrategy", 
+				("RungeKuttaFracStepStrategy2D", 
 				init<ModelPart&, LinearSolverType::Pointer,
-				bool, bool, bool,
-				int 
+				bool, bool, bool
 				>() )
-				  .def("SolveStep1",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
-				  .def("SolveStep2",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
-				  .def("SolveStep3",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+				  .def("SolveStep1",&RungeKuttaFracStepStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&RungeKuttaFracStepStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&RungeKuttaFracStepStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
 				  
 				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
+
+			class_< RungeKuttaFracStepStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("RungeKuttaFracStepStrategy3D", 
+				init<ModelPart&, LinearSolverType::Pointer,
+				bool, bool, bool
+				>() )
+				  .def("SolveStep1",&RungeKuttaFracStepStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&RungeKuttaFracStepStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&RungeKuttaFracStepStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+				  
+				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
+
 			
 			class_< RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
@@ -267,9 +281,9 @@ namespace Kratos
 				bool, bool, bool,
 				int 
 				>() )
-				  .def("SolveStep1",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
-				  .def("SolveStep2",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
-				  .def("SolveStep3",&RungeKuttaFracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+				  .def("SolveStep1",&RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
 				  
 				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
