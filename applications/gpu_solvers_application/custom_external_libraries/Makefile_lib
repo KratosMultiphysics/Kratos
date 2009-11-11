@@ -1,0 +1,74 @@
+## -*- Makefile -*-
+##
+## User: isaac
+## Time: 09/11/2009 08:18:44
+##
+
+
+#### Compiler and tool definitions shared by all build targets #####
+PURE_CC = gcc
+PCC_FLAGS = -c -L. -lGPUSparse
+CCC = nvcc
+CXX = nvcc
+BASICOPTS = -g -arch compute_13 -O3 -Xcompiler -fPIC 
+CCFLAGS = $(BASICOPTS)
+CXXFLAGS = $(BASICOPTS)
+CCADMIN = 
+
+
+# Define the target directories.
+TARGETDIR_libGPUSparse.a=.
+
+all: libGPUSparse.a
+
+## Target: libGPUSparse.a
+CPPFLAGS_libGPUSparse.a = \
+	-I/usr/local/cuda/include \
+	-I/usr/local/lapackpp/include/lapackpp \
+	-I../custom_linear_solvers
+OBJS_libGPUSparse.a =  \
+	$(TARGETDIR_libGPUSparse.a)/cwrapper.o \
+	$(TARGETDIR_libGPUSparse.a)/mmio.o \
+	$(TARGETDIR_libGPUSparse.a)/Diagonalpreconditioner.o \
+	$(TARGETDIR_libGPUSparse.a)/gpu_sparse.o \
+	$(TARGETDIR_libGPUSparse.a)/AMGpreconditioner.o
+
+
+# Link or archive
+ARCPP = $(AR) $(ARFLAGS) $@ 
+$(TARGETDIR_libGPUSparse.a)/libGPUSparse.a: $(TARGETDIR_libGPUSparse.a) $(OBJS_libGPUSparse.a)
+	$(ARCPP) $(OBJS_libGPUSparse.a)
+
+
+# Compile source files into .o files
+
+$(TARGETDIR_libGPUSparse.a)/cwrapper.o: $(TARGETDIR_libGPUSparse.a) cwrapper.cpp
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ cwrapper.cpp
+
+$(TARGETDIR_libGPUSparse.a)/Diagonalpreconditioner.o: $(TARGETDIR_libGPUSparse.a) Diagonalpreconditioner.cpp
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ Diagonalpreconditioner.cpp
+
+$(TARGETDIR_libGPUSparse.a)/mmio.o: $(TARGETDIR_libGPUSparse.a) mmio.cpp
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ mmio.cpp
+
+$(TARGETDIR_libGPUSparse.a)/gpu_sparse.o: $(TARGETDIR_libGPUSparse.a) gpu_sparse.cu
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ gpu_sparse.cu
+
+$(TARGETDIR_libGPUSparse.a)/AMGpreconditioner.o: $(TARGETDIR_libGPUSparse.a) AMGpreconditioner.cu
+	$(COMPILE.cc) $(CCFLAGS_libGPUSparse.a) $(CPPFLAGS_libGPUSparse.a) -o $@ AMGpreconditioner.cu
+
+
+
+#### Clean target deletes all generated files ####
+clean:
+	rm -f \
+		$(TARGETDIR_libGPUSparse.a)/libGPUSparse.a \
+		$(TARGETDIR_libGPUSparse.a)/cwrapper.o \
+		$(TARGETDIR_libGPUSparse.a)/mmio.o \
+		$(TARGETDIR_libGPUSparse.a)/Diagonalpreconditioner.o \
+		$(TARGETDIR_libGPUSparse.a)/gpu_sparse.o \
+		$(TARGETDIR_libGPUSparse.a)/AMGpreconditioner.o
+# Enable dependency checking
+.KEEP_STATE:
+.KEEP_STATE_FILE:.make.state.GNU-i386-Linux
+

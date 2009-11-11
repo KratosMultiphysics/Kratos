@@ -1,8 +1,43 @@
-/* 
- * File:   AMGpreconditioner.h
- * Author: isaac
- *
- * Created on 1 / octubre / 2009, 09:39
+/*
+==============================================================================
+KratosGPUApplication 
+A library based on:
+Kratos
+A General Purpose Software for Multi-Physics Finite Element Analysis
+Version 1.0 (Released on march 05, 2007).
+
+Copyright 2009
+Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby 
+pooyan@cimne.upc.edu 
+rrossi@cimne.upc.edu
+isaac.gallego.pla@gmail.com
+mossaiby@yahoo.com
+- CIMNE (International Center for Numerical Methods in Engineering),
+Gran Capita' s/n, 08034 Barcelona, Spain
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following condition:
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
  */
 
 #ifndef _KRATOS_AMGPRECONDITIONER_H
@@ -17,26 +52,19 @@
 class Kratos_AMGpreconditioner : public AMGpreconditioner {
 public:
 	Kratos_AMGpreconditioner() {};
-    	Kratos_AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, const Kratos::Vector _preSweeps, const Kratos::Vector _postSweeps) : AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed)
+    	Kratos_AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, const Kratos::Vector _preSweeps, const Kratos::Vector _postSweeps, bool isPreconditioner) : AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed, isPreconditioner)
 	{
 		 preSww = new size_t [_numMaxHierarchyLevels];
 		 postSww = new size_t [_numMaxHierarchyLevels];
 
-
-		//size_t pp [_numMaxHierarchyLevels];
-		//size_t qq [_numMaxHierarchyLevels];
 		for(size_t i=0; i < _numMaxHierarchyLevels; i++){
 			preSww[i] = (size_t)_preSweeps[i];
 			postSww[i] = (size_t)_postSweeps[i];
 		}
-		//printf("\n\nEstem a KRATOS_AMGPReconditioner, i posem ara la W = %f, i despres els sweeps %u, i %u, i %u, i %u\n", _W, preSww[0], preSww[1], preSww[2], preSww[3]);
 
 		setPreSweeps( preSww);
 		setPostSweeps( postSww);
 		
-		/*printf("PRINTING from KratosAMGPreconditioner variable values:\n W = %f, Roh = %u, Zeros = %s, HierarchyLevels = %u, minimumSize = %u, firstPre = %u, secondPre = %u\n", _W, _numLevelsRoh, (_assumeZerosForEachStep)?"true":"false", _numMaxHierarchyLevels, _minimumSizeAllowed, preSww[0], preSww[1]);*/
-
-		//exit(0);
 	};
     	virtual ~Kratos_AMGpreconditioner(){
 		delete[] preSww;

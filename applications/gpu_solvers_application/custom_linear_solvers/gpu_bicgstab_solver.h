@@ -351,18 +351,18 @@ namespace Kratos
 
 	// Inputs
 	GPUCSRMatrix gA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
-	KRATOS_GPU_CHECK(gA.GPU_Allocate());
-	KRATOS_GPU_CHECK(gA.Copy(CPU_GPU, false));
+	GPU_CHECK(gA.GPU_Allocate());
+	GPU_CHECK(gA.Copy(CPU_GPU, false));
 //KRATOS_WATCH("327");
 	
 	GPUVector gX(rX.size(), &(rX[0]));
-	KRATOS_GPU_CHECK(gX.GPU_Allocate());
-	KRATOS_GPU_CHECK(gX.Copy(CPU_GPU));
+	GPU_CHECK(gX.GPU_Allocate());
+	GPU_CHECK(gX.Copy(CPU_GPU));
 //KRATOS_WATCH("332");
 	
 	GPUVector gB(rB.size(), &(rB[0]));
-	KRATOS_GPU_CHECK(gB.GPU_Allocate());
-	KRATOS_GPU_CHECK(gB.Copy(CPU_GPU));
+	GPU_CHECK(gB.GPU_Allocate());
+	GPU_CHECK(gB.Copy(CPU_GPU));
 //KRATOS_WATCH("337");
 
 	const int size = SparseSpaceType::Size(rX);
@@ -372,43 +372,43 @@ namespace Kratos
     
 	//VectorType r(size);
 	GPUVector r(size);
-	KRATOS_GPU_CHECK(r.GPU_Allocate());
+	GPU_CHECK(r.GPU_Allocate());
 //KRATOS_WATCH("344");	
 //	PreconditionedMult(rA,rX,r);
 	//SparseSpaceType::Mult(rA,rX,r); // r = rA*rX
-	KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, gX, r));
+	GPU_CHECK(GPU_MatrixVectorMultiply(gA, gX, r));
 //KRATOS_WATCH("348");	
 	//SparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r); // r = rB - r
-	KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gB, -1.00, r));
+	GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gB, -1.00, r));
 //KRATOS_WATCH("351");
 	//BaseType::mBNorm = SparseSpaceType::TwoNorm(rB); 
-	KRATOS_GPU_CHECK(GPU_VectorNorm2(gB, BaseType::mBNorm));
+	GPU_CHECK(GPU_VectorNorm2(gB, BaseType::mBNorm));
 //KRATOS_WATCH("354");
 	//VectorType p(r);
 	GPUVector p(size);
-	KRATOS_GPU_CHECK(p.GPU_Allocate());
-	KRATOS_GPU_CHECK(p.CopyGPUValuesFrom(r));
+	GPU_CHECK(p.GPU_Allocate());
+	GPU_CHECK(p.CopyGPUValuesFrom(r));
 	
 	//VectorType s(size);
 	GPUVector s(size);
-	KRATOS_GPU_CHECK(s.GPU_Allocate());
+	GPU_CHECK(s.GPU_Allocate());
 	
 	//VectorType q(size);
 	GPUVector q(size);
-	KRATOS_GPU_CHECK(q.GPU_Allocate());
+	GPU_CHECK(q.GPU_Allocate());
 
  	//VectorType rs(r); 
  	GPUVector rs(size);
- 	KRATOS_GPU_CHECK(rs.GPU_Allocate());
- 	KRATOS_GPU_CHECK(rs.CopyGPUValuesFrom(r));
+ 	GPU_CHECK(rs.GPU_Allocate());
+ 	GPU_CHECK(rs.CopyGPUValuesFrom(r));
  	
  	//VectorType qs(size); 
  	GPUVector qs(size);
- 	KRATOS_GPU_CHECK(qs.GPU_Allocate());
+ 	GPU_CHECK(qs.GPU_Allocate());
 //KRATOS_WATCH("376");         
 	//double roh0 = SparseSpaceType::Dot(r, rs);
 	double roh0;
-	KRATOS_GPU_CHECK(GPU_VectorVectorMultiply(r, rs, roh0));
+	GPU_CHECK(GPU_VectorVectorMultiply(r, rs, roh0));
 	
 	double roh1 = roh0;
 	double alpha = 0.00;
@@ -425,7 +425,7 @@ namespace Kratos
   	//START_TIMING(t);
 	  	  
 	    //PreconditionedMult(rA,p,q);  // q = rA * p
-	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, p, q));
+	    GPU_CHECK(GPU_MatrixVectorMultiply(gA, p, q));
 
 		//STOP_TIMING(t1, t);
 		
@@ -433,45 +433,45 @@ namespace Kratos
 
 	    //alpha = roh0 / SparseSpaceType::Dot(rs,q);
 	    double temp;
-	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiply(rs, q, temp));
+	    GPU_CHECK(GPU_VectorVectorMultiply(rs, q, temp));
 	    alpha = roh0 / temp;
         
 	    //SparseSpaceType::ScaleAndAdd(1.00, r, -alpha, q, s); // s = r - alpha * q
-	    KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, r, -alpha, q, s));
+	    GPU_CHECK(GPU_VectorScaleAndAdd(1.00, r, -alpha, q, s));
 		//STOP_TIMING(t2, t);
 		
 		//START_TIMING(t);
 
 	    //PreconditionedMult(rA,s,qs);
 	    // ...
-	    KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gA, s, qs));
+	    GPU_CHECK(GPU_MatrixVectorMultiply(gA, s, qs));
 
 		//STOP_TIMING(t1, t);
 
 		//START_TIMING(t);
 
 	    //omega = SparseSpaceType::Dot(qs,qs);
-	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiply(qs, qs, omega));
+	    GPU_CHECK(GPU_VectorVectorMultiply(qs, qs, omega));
 
 	    //if(omega == 0.00)
 	    if(fabs(omega) <= 1.0e-30)
 	      break;
 
 	    //omega = SparseSpaceType::Dot(qs,s) / omega;
-	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiply(qs, s, temp));
+	    GPU_CHECK(GPU_VectorVectorMultiply(qs, s, temp));
 	    omega = temp / omega;
 
 	    //SparseSpaceType::ScaleAndAdd(alpha, p, 1.00, rX);
-	    KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(alpha, p, 1.00, gX));	    
+	    GPU_CHECK(GPU_VectorScaleAndAdd(alpha, p, 1.00, gX));	    
 	    
 	    //SparseSpaceType::ScaleAndAdd(omega, s, 1.00, rX);
-	    KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(omega, s, 1.00, gX));
+	    GPU_CHECK(GPU_VectorScaleAndAdd(omega, s, 1.00, gX));
 	    
 	    //SparseSpaceType::ScaleAndAdd(-omega, qs, 1.00, s, r);
-	    KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(-omega, qs, 1.00, s, r));
+	    GPU_CHECK(GPU_VectorScaleAndAdd(-omega, qs, 1.00, s, r));
 
 	    //roh1 = SparseSpaceType::Dot(r,rs);
-	    KRATOS_GPU_CHECK(GPU_VectorVectorMultiply(r, rs, roh1));
+	    GPU_CHECK(GPU_VectorVectorMultiply(r, rs, roh1));
 
 	    //if((roh0 == 0.00) || (omega == 0.00))
 	    if((fabs(roh0) <= 1.0e-30) || (fabs(omega) <= 1.0e-30))
@@ -480,15 +480,15 @@ namespace Kratos
 	    beta = (roh1 * alpha) / (roh0 * omega);
 	    
 	    //SparseSpaceType::ScaleAndAdd(1.00, p, -omega, q);
-	    KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, p, -omega, q));
+	    GPU_CHECK(GPU_VectorScaleAndAdd(1.00, p, -omega, q));
 	    
 	    //SparseSpaceType::ScaleAndAdd(1.00, r, beta, q, p);
-	    KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, r, beta, q, p));
+	    GPU_CHECK(GPU_VectorScaleAndAdd(1.00, r, beta, q, p));
 	      
 	    roh0 = roh1;
         
 		//BaseType::mResidualNorm = SparseSpaceType::TwoNorm(r);
-		KRATOS_GPU_CHECK(GPU_VectorNorm2(r, BaseType::mResidualNorm));
+		GPU_CHECK(GPU_VectorNorm2(r, BaseType::mResidualNorm));
 
 		//STOP_TIMING(t2, t);
 
@@ -497,18 +497,18 @@ namespace Kratos
 
 	  } while(BaseType::IterationNeeded());
 
-	  KRATOS_GPU_CHECK(gX.Copy(GPU_CPU));
+	  GPU_CHECK(gX.Copy(GPU_CPU));
 	  
 
-	KRATOS_GPU_CHECK(gA.GPU_Free());
-	KRATOS_GPU_CHECK(gX.GPU_Free());
-	KRATOS_GPU_CHECK(gB.GPU_Free());
-	KRATOS_GPU_CHECK(r.GPU_Free());
-	KRATOS_GPU_CHECK(p.GPU_Free());
-	KRATOS_GPU_CHECK(s.GPU_Free());
-	KRATOS_GPU_CHECK(q.GPU_Free());
-	KRATOS_GPU_CHECK(rs.GPU_Free());
-	KRATOS_GPU_CHECK(qs.GPU_Free());
+	GPU_CHECK(gA.GPU_Free());
+	GPU_CHECK(gX.GPU_Free());
+	GPU_CHECK(gB.GPU_Free());
+	GPU_CHECK(r.GPU_Free());
+	GPU_CHECK(p.GPU_Free());
+	GPU_CHECK(s.GPU_Free());
+	GPU_CHECK(q.GPU_Free());
+	GPU_CHECK(rs.GPU_Free());
+	GPU_CHECK(qs.GPU_Free());
 
 	  //t = t1 + t2;
 	  

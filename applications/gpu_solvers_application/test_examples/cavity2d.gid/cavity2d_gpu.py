@@ -121,15 +121,43 @@ fluid_solver.echo_level = 2
 ##fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pDiagPrecond)
 #fluid_solver.velocity_linear_solver = SkylineLUFactorizationSolver();
 #fluid_solver.pressure_linear_solver = SkylineLUFactorizationSolver();
+
+preSweeps = Vector(10)
+postSweeps = Vector(10)
+preSweeps[0] = 1
+preSweeps[1] = 2
+preSweeps[2] = 2
+preSweeps[3] = 2
+preSweeps[4] = 2
+preSweeps[5] = 2
+preSweeps[6] = 2
+preSweeps[7] = 2
+preSweeps[8] = 2
+preSweeps[9] = 2
+
+postSweeps[0] = 1
+postSweeps[1] = 2
+postSweeps[2] = 2
+postSweeps[3] = 2
+postSweeps[4] = 2
+postSweeps[5] = 2
+postSweeps[6] = 2
+postSweeps[7] = 2
+postSweeps[8] = 2
+postSweeps[9] = 2
+
+
+precond = KratosAMGPreconditioner(4.0/3.0, 3, 1==1, 10, 1000, preSweeps, postSweeps)
+#precond = AMGPreconditioner()
 fluid_solver.velocity_linear_solver =  GPUBICGSTABSolver(1e-9, 5000)
-fluid_solver.pressure_linear_solver =  GPUBICGSTABSolver(1e-9, 5000)
+fluid_solver.pressure_linear_solver =  GPUCGSolver(1e-9, 5000, precond)
 #fluid_solver.velocity_linear_solver =  GPUBICGSTABSolverWithDiagonalPreconditioner(1e-9, 5000)
 #fluid_solver.pressure_linear_solver =  GPUBICGSTABSolverWithDiagonalPreconditioner(1e-9, 5000)
 fluid_solver.Initialize()
 
 #settings to be changed
 Re = 100.0
-nsteps = 200
+nsteps = 5 #200
 output_step = 1
 
 Dt = 1000.0/Re

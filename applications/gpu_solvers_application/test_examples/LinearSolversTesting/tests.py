@@ -32,13 +32,13 @@ b = (pb).GetReference()
 
 
 
-#matrix_filename = "mat8.mm"
-matrix_filename = "A_0.01005_.mm"
+matrix_filename = "mat8.mm"
+#matrix_filename = "A_0.01005_.mm"
 ReadMatrixMarketMatrix(matrix_filename,A)
 print "finished reading matrix"
 
-#vector_filename = "vecb8.mm"
-vector_filename = "b_0.01005_.mm"
+vector_filename = "vecb8.mm"
+#vector_filename = "b_0.01005_.mm"
 ReadMatrixMarketVector(vector_filename,b)
 print "finished reading vector"
 

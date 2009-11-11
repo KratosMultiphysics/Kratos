@@ -159,7 +159,7 @@ bool GPUVector::CopyFromGPU(GPUVector &V)
 GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values, bool _NZMultiple16): NNZ(_NNZ), Size1(_Size1), Size2(_Size2), CPU_Columns(0), CPU_RowIndices(0), CPU_Values(0), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false)
 
 {
-printf("ln146\n");
+
 	if (_NZMultiple16)
 	{
 
@@ -185,8 +185,8 @@ printf("ln146\n");
 
 		// Allocate CPU memory for CSR structure using only one chunk of page-locked memory to speed up data transfer between CPU and GPU
 		void *CSR_Data;
-printf("ln163\n");	
-printf("ln166\n");	
+
+
 		if (!CUDA_Success(cudaMallocHost(&CSR_Data, NNZ * (sizeof(double) + sizeof(size_t)) + (Size1 + 1) * sizeof(size_t))))  // TODO: What should be done?!
 			CSR_Data = 0;
 
@@ -199,12 +199,12 @@ CPU_Values = (double*)CSR_Data;
 CPU_Columns = (size_t*)((double*) CSR_Data + NNZ);
 CPU_RowIndices = (size_t*)((size_t*)((double*) CSR_Data + NNZ) + NNZ);
 		// Move temporary data
-printf("ln174\n");	
+
 		memcpy(CPU_RowIndices, Temp_CPU_RowIndices, (Size1 + 1) * sizeof(size_t));
-printf("sizeof(size_t)%u\n",sizeof(size_t));	
-printf("ln178\n");	
+
+
 		delete[] Temp_CPU_RowIndices;
-printf("ln181\n");
+
 		// Build ECSR structure from given CSR
 		for (size_t i = 0; i < Size1; i++)
 		{
@@ -248,7 +248,6 @@ CPU_RowIndices = (size_t*)((size_t*)((double*) CSR_Data + NNZ) + NNZ);
 		memcpy(CPU_Columns, _CPU_Columns, NNZ * sizeof(size_t));
 		memcpy(CPU_RowIndices, _CPU_RowIndices, (Size1 + 1) * sizeof(size_t));
 	}
-printf("ln202\n");	
 }
 
 GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2): NNZ(_NNZ), Size1(_Size1), Size2(_Size2), CPU_Columns(0), CPU_RowIndices(0), CPU_Values(0), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false)
@@ -412,7 +411,7 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 
 	bool UseVectorizedVersion = (A.NNZ / A.Size2) > 10;	// From nVidia forum
 
-/*	if (UseVectorizedVersion)
+	if (UseVectorizedVersion)
 	{
 		dim3 Grid = Build_Grid(A.Size1 *  HALF_WARP_SIZE, BLOCK_SIZE);
 		GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
@@ -423,13 +422,13 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 
 	else
 
-	{*/
+	{
 		dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
 		GPU_MatrixVectorMultiply_CSR_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
 
 		if (!GPUSparse::CUDA_Success(cudaGetLastError()))
 			return false;
-//	}
+	}
 
 #ifdef USE_TEXTURE_CACHING
 
@@ -893,7 +892,11 @@ void csr_matmat_pass1(const I n_row,
                       const I Bp[],
                       const I Bj[],
                             I Cp[]){
-    std::vector<I> mask(n_col,-1);
+    //std::vector<I> mask(n_col,-1);
+    int* mask = new int[n_col];
+    for(size_t aux = 0; aux < n_col; aux++){
+	mask[aux] = -1;
+    }
     Cp[0] = 0;
 
     I nnz = 0;
@@ -902,14 +905,15 @@ void csr_matmat_pass1(const I n_row,
             I j = Aj[jj];
             for(I kk = Bp[j]; kk < Bp[j+1]; kk++){
                 I k = Bj[kk];
-                if(mask[k] != i){
-                    mask[k] = i;
+                if(mask[k] != (int)i){
+                    mask[k] = (int)i;
                     nnz++;
                 }
             }
         }
         Cp[i+1] = nnz;
     }
+    delete[] mask;
 }
 
 template <class I, class T>
@@ -925,15 +929,22 @@ void csr_matmat_pass2(const I n_row,
       	                    I Cj[],
       	                    T Cx[])
 {
-    std::vector<I> next(n_col,-1);
-    std::vector<T> sums(n_col, 0);
+//    std::vector<I> next(n_col,-1);
+ //   std::vector<T> sums(n_col, 0);
+
+    int* next = new int[n_col];
+    T* sums = new T[n_col];
+    for(size_t aux = 0; aux < n_col; aux++){
+	next[aux] = -1;
+	sums[aux] = 0;
+    }
 
     I nnz = 0;
 
     Cp[0] = 0;
 
     for(I i = 0; i < n_row; i++){
-        I head   = -2;
+        int head   = -2;
         I length =  0;
 
         I jj_start = Ap[i];
@@ -951,7 +962,7 @@ void csr_matmat_pass2(const I n_row,
 
                 if(next[k] == -1){
                     next[k] = head;
-                    head = k;
+                    head = (int)k;
                     length++;
                 }
             }
@@ -960,13 +971,13 @@ void csr_matmat_pass2(const I n_row,
         for(I jj = 0; jj < length; jj++){
 
             if(sums[head] != 0){
-                Cj[nnz] = head;
+                Cj[nnz] = (size_t)head;
                 Cx[nnz] = sums[head];
                 nnz++;
             }
 
-            I temp = head;
-            head = next[head];
+            I temp = (size_t)head;
+            head = (I)next[head];
 
             next[temp] = -1; //clear arrays
             sums[temp] =  0;
@@ -974,6 +985,9 @@ void csr_matmat_pass2(const I n_row,
 
         Cp[i+1] = nnz;
     }
+
+	delete[] sums;
+	delete[] next;
 }
 
 /** maxLevels define the maxLevels of that execution
@@ -997,7 +1011,6 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
                 if(!CUDA_Success(cudaThreadSynchronize())){
                     cout << "Error en linea 130" << endl;
                 }
-
                 //from the second sweel on we need to recompute the residual
                 for(size_t i = 1; i < preSweeps[lvl]; i++){
 		    if(!vectorized)
@@ -1006,11 +1019,11 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
 			calculateInstantVector_vectorized(u, b, A[lvl], G[lvl]);
 		}
 
-
                 if(!vectorized)
                     generateResidual(R[lvl], b, A[lvl], u, r);
                 else
                     generateResidual_vectorized(R[lvl], b, A[lvl], u, r);
+
 
             }
             else //preSweeps[0] == 0 case
@@ -1039,7 +1052,6 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
                 else
                     generateResidual_vectorized(R[lvl], b, A[lvl], u, r);
         }
-
         _Vector v;
         v.numElems = r.numElems;
         v.values_cpu = new double[v.numElems];
@@ -1084,13 +1096,14 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
 	    else
 		calculateInstantVector_vectorized(u, b, A[lvl], G[lvl]);
 	}
-	
 
     }else{
 	//clock_t t1 = clock();
         //here lapack direct solver
+
         copyMem(u.values_gpu, u.values_cpu, u.numElems, 1);
         copyMem(b.values_gpu, b.values_cpu, b.numElems, 1);
+
 
         LaGenMatDouble _A(A[lvl].matAuxValues, A[lvl].numRows, A[lvl].numCols);
         LaGenMatDouble _b(b.values_cpu, b.numElems, 1);
@@ -1105,8 +1118,8 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
 
 	integer K = _x.size(1);
 	integer ldx = _x.inc(0) * _x.gdim(0);
-
 	F77NAME(dgetrs) ("No transpose", &Ml, &K, &_A(0,0), &lda, &ipiv(0), &_x(0,0), &ldx, &info);
+
 	//int res = clapack_dgetrs(CblasRowMajor, CblasNoTrans, &Ml, &K, &_A(0,0), &lda, &ipiv(0), &_x(0,0), &ldx);
 	//std::cout << "Problem with lapack, num " << res << std:endl;
 	copyMem(u.values_cpu, u.values_gpu, u.numElems, 0);
@@ -1266,8 +1279,11 @@ size_t generateHierarchy(_Matrix*& Matrices, _Matrix*& Pmat, _Matrix*& Qmat,
     for(i = 0; i < max_levels; i++){
         /** This condition controls MAX_SYSTEM_SIZE for the last matrix in hierarchy **/
         if(Matrices[i].numRows < min_system_size || i == max_levels-1){
-
-            //double* vec;
+/*		cout << "BEFORE" << endl;
+		for(size_t j = 0; j < Matrices[i].numNNZ; j++){
+			cout << Matrices[i].values_cpu[j] << " ";
+		}
+		cout << endl << endl;*/
             computeDenseMatrix(Matrices[i], Matrices[i].matAuxValues);
             LaGenMatDouble A(Matrices[i].matAuxValues, Matrices[i].numRows, Matrices[i].numCols);
 
@@ -1295,7 +1311,12 @@ size_t generateHierarchy(_Matrix*& Matrices, _Matrix*& Pmat, _Matrix*& Qmat,
 		    if(Matrices[i].indices_cpu != NULL) delete[] Matrices[i].ptr_cpu;
 	    }
             Matrices[i].numValuesDenseRep = A.inc(0) * A.gdim(0);
-
+/*		cout << "AFTER" << endl;
+		for(size_t j = 0; j < Matrices[i].numValuesDenseRep; j++){
+			cout << Matrices[i].matAuxValues[j] << " ";
+		}
+		cout << endl << endl;
+		exit(1);*/
             break;
         }
         _Matrix newDiag;

@@ -358,18 +358,18 @@ namespace Kratos
 
 	//Allocating matrix A
 	GPUCSRMatrix gpuA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
-	KRATOS_GPU_CHECK(gpuA.GPU_Allocate());
-	KRATOS_GPU_CHECK(gpuA.Copy(CPU_GPU, false));
+	GPU_CHECK(gpuA.GPU_Allocate());
+	GPU_CHECK(gpuA.Copy(CPU_GPU, false));
 
 	//Allocating vector b
 	GPUVector gpuB(rB.size(), &(rB[0]));
-	KRATOS_GPU_CHECK(gpuB.GPU_Allocate());
-	KRATOS_GPU_CHECK(gpuB.Copy(CPU_GPU));
+	GPU_CHECK(gpuB.GPU_Allocate());
+	GPU_CHECK(gpuB.Copy(CPU_GPU));
 
 	//Allocating vector x
 	GPUVector gpuX(rX.size(), &(rX[0]));
-	KRATOS_GPU_CHECK(gpuX.GPU_Allocate());
-	KRATOS_GPU_CHECK(gpuX.Copy(CPU_GPU));
+	GPU_CHECK(gpuX.GPU_Allocate());
+	GPU_CHECK(gpuX.Copy(CPU_GPU));
 
 	if(havePreconditioner){
 		double alpha, beta, rho, rho_1 = 1.0;
@@ -384,13 +384,13 @@ namespace Kratos
 
 
 		//Norm(b)
-		KRATOS_GPU_CHECK(GPU_VectorNorm2(gpuB, BaseType::mBNorm));
+		GPU_CHECK(GPU_VectorNorm2(gpuB, BaseType::mBNorm));
 
 		//r = b - A*x
 		GPUVector gpuR(size);
-		KRATOS_GPU_CHECK(gpuR.GPU_Allocate());
-		KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuX, gpuR));
-		KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuB, -1.00, gpuR));
+		GPU_CHECK(gpuR.GPU_Allocate());
+		GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuX, gpuR));
+		GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuB, -1.00, gpuR));
 
 		//std::cout << "BNORM " << BaseType::mBNorm << std::endl;
 		if(BaseType::mBNorm == 0.0)
@@ -398,15 +398,15 @@ namespace Kratos
 
 		//Norm(r)
 		double normr, resid;
-		KRATOS_GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
+		GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
 		if((resid = normr/BaseType::mBNorm) <= 1.0e-30){
 			std::cout << "Out from outer return" << std::endl;
 			return false;
 		}
 		GPUVector gpuP(size), gpuZ(size), gpuQ(size);
-		KRATOS_GPU_CHECK(gpuP.GPU_Allocate());
-		KRATOS_GPU_CHECK(gpuZ.GPU_Allocate());
-		KRATOS_GPU_CHECK(gpuQ.GPU_Allocate());
+		GPU_CHECK(gpuP.GPU_Allocate());
+		GPU_CHECK(gpuZ.GPU_Allocate());
+		GPU_CHECK(gpuQ.GPU_Allocate());
 		
 		BaseType::mIterationsNumber = 0;
 
@@ -426,15 +426,15 @@ namespace Kratos
 				gpuP.CopyGPUValuesFrom(gpuZ);
 			else{
 				beta = rho / rho_1; 
-				KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuZ, beta, gpuP));
+				GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuZ, beta, gpuP));
 			}
 
-			KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuP, gpuQ));
+			GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuP, gpuQ));
 			alpha = rho / GPU_dotProduct(gpuP.Size, gpuP.GPU_Values, 1, gpuQ.GPU_Values, 1);
-			KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(alpha, gpuP, 1.00, gpuX));
-			KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(-alpha, gpuQ, 1.00, gpuR));
+			GPU_CHECK(GPU_VectorScaleAndAdd(alpha, gpuP, 1.00, gpuX));
+			GPU_CHECK(GPU_VectorScaleAndAdd(-alpha, gpuQ, 1.00, gpuR));
 		
-			KRATOS_GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
+			GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
 			BaseType::mResidualNorm = normr;
 			if((resid = normr/BaseType::mBNorm) <= 1.0e-30){
 				break;
@@ -449,19 +449,19 @@ namespace Kratos
 		}while(BaseType::IterationNeeded());
 		std::cout << "Average time for single step" << (double(s3)/(i-1)) / CLOCKS_PER_SEC << "s" << std::endl;
 
-		KRATOS_GPU_CHECK(gpuX.Copy(GPU_CPU));
+		GPU_CHECK(gpuX.Copy(GPU_CPU));
 		this->preconditioner->cleanPreconditioner();
 	}else{     		
 		double alpha, beta, rho, rho_1 = 1.0;
 
 		//Norm(b)
-		KRATOS_GPU_CHECK(GPU_VectorNorm2(gpuB, BaseType::mBNorm));
+		GPU_CHECK(GPU_VectorNorm2(gpuB, BaseType::mBNorm));
 
 		//r = b - A*x
 		GPUVector gpuR(size);
-		KRATOS_GPU_CHECK(gpuR.GPU_Allocate());
-		KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuX, gpuR));
-		KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuB, -1.00, gpuR));
+		GPU_CHECK(gpuR.GPU_Allocate());
+		GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuX, gpuR));
+		GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuB, -1.00, gpuR));
 
 		//std::cout << "BNORM " << BaseType::mBNorm << std::endl
 		if(BaseType::mBNorm == 0.0)
@@ -469,14 +469,14 @@ namespace Kratos
 
 		//Norm(r)
 		double normr, resid;
-		KRATOS_GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
+		GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
 		if((resid = normr/BaseType::mBNorm) <= 1.0e-30){
 			std::cout << "Out from outer return" << std::endl;
 			return false;
 		}
 		GPUVector gpuP(size), gpuQ(size);
-		KRATOS_GPU_CHECK(gpuP.GPU_Allocate());
-		KRATOS_GPU_CHECK(gpuQ.GPU_Allocate());
+		GPU_CHECK(gpuP.GPU_Allocate());
+		GPU_CHECK(gpuQ.GPU_Allocate());
 		
 		BaseType::mIterationsNumber = 0;
 
@@ -490,15 +490,15 @@ namespace Kratos
 				gpuP.CopyGPUValuesFrom(gpuR);
 			else{
 				beta = rho / rho_1; 
-				KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuR, beta, gpuP));
+				GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuR, beta, gpuP));
 			}
 
-			KRATOS_GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuP, gpuQ));
+			GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuP, gpuQ));
 			alpha = rho / GPU_dotProduct(gpuP.Size, gpuP.GPU_Values, 1, gpuQ.GPU_Values, 1);
-			KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(alpha, gpuP, 1.00, gpuX));
-			KRATOS_GPU_CHECK(GPU_VectorScaleAndAdd(-alpha, gpuQ, 1.00, gpuR));
+			GPU_CHECK(GPU_VectorScaleAndAdd(alpha, gpuP, 1.00, gpuX));
+			GPU_CHECK(GPU_VectorScaleAndAdd(-alpha, gpuQ, 1.00, gpuR));
 		
-			KRATOS_GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
+			GPU_CHECK(GPU_VectorNorm2(gpuR, normr));
 			BaseType::mResidualNorm = normr;
 			if((resid = normr/BaseType::mBNorm) <= 1.0e-30){
 				break;
@@ -512,7 +512,7 @@ namespace Kratos
 			KRATOS_WATCH(BaseType::mResidualNorm/BaseType::mBNorm);
 		}while(BaseType::IterationNeeded());
 
-		KRATOS_GPU_CHECK(gpuX.Copy(GPU_CPU));
+		GPU_CHECK(gpuX.Copy(GPU_CPU));
 
 	}*/
 	//std::cout << "Got return with value of convergence " << BaseType::IsConverged() << ", and finalIterations " << BaseType::mIterationsNumber << std::endl;	return BaseType::IsConverged();
