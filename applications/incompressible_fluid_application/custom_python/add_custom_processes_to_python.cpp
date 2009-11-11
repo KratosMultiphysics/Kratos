@@ -93,8 +93,11 @@ namespace Python
 	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int,char*, char* >())
 		 ;
 
-	class_<CFLProcess, bases<Process> >("CFLProcess", init<ModelPart&>())
-		   .def("EstimateTime", &CFLProcess::EstimateTime)
+	class_<CFLProcess <2>, bases<Process> >("CFLProcess2D", init<ModelPart&>())
+		   .def("EstimateTime", &CFLProcess<2>::EstimateTime)
+		 ;
+	class_<CFLProcess <3>, bases<Process> >("CFLProcess3D", init<ModelPart&>())
+		   .def("EstimateTime", &CFLProcess<3>::EstimateTime)
 		 ;
 
 	class_<ApplyProjDirichletProcess, bases<Process> >("ApplyProjDirichletProcess", init<>())
