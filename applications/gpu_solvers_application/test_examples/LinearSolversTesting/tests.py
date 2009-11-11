@@ -1,5 +1,4 @@
 import time
-import fluid_only_var
 
 #including kratos path
 kratos_libs_path            = fluid_only_var.kratos_path + '/libs' ##kratos_root/libs
