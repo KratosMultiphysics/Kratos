@@ -1,8 +1,8 @@
 import time
 
 #including kratos path
-kratos_libs_path            = fluid_only_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = fluid_only_var.kratos_path + '/applications' ##kratos_root/applications
+kratos_libs_path            = '../../../../libs' ##kratos_root/libs
+kratos_applications_path    = '../../../../applications' ##kratos_root/applications
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
