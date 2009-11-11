@@ -100,7 +100,7 @@ fluid_solver.Initialize()
 #settings to be changed
 Re = 100.0
 nsteps = 300
-output_step = 50
+output_step = 1
 
 for node in model_part.Nodes :
     node.SetSolutionStepValue(VISCOSITY,0,1.0/Re);
@@ -115,7 +115,7 @@ for node in model_part.Nodes :
     #node.SetSolutionStepValue(BODY_FORCE_X,0,0.0)
 
 #now we compute the delta time using CFL law
-CFL_time_estimate_process=CFLProcess(model_part)
+CFL_time_estimate_process=CFLProcess2D(model_part)
 CFL=0.8;
 
 #value to initialize only
