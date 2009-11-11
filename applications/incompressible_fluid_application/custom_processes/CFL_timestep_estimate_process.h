@@ -57,7 +57,7 @@ namespace Kratos
 
 		
 	*/
-
+	template<unsigned int TDim>
 	class CFLProcess 
 		: public Process
 	{
@@ -103,35 +103,73 @@ namespace Kratos
 		KRATOS_TRY
 		//initializee dt with max dt
 		//initialize dt with incredible value
-		array_1d<double,3> N = ZeroVector(3); 
-		array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
-		array_1d<double,3> vel = ZeroVector(3); //dimension = number of nodes
-		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
 		double h, dt, glob_min_dt, nu, dummy;  
-		//initialize it with given value
-		glob_min_dt=max_dt;
+		if (TDim==2)
+		{
+			array_1d<double,3> N = ZeroVector(3); 
+			array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
+			array_1d<double,3> vel = ZeroVector(3); //dimension = number of nodes
+			boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
+			
+			//initialize it with given value
+			glob_min_dt=max_dt;
 
 
-		dt=0.0;
-		for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ; 
-				im != mr_model_part.ElementsEnd() ; ++im)
-		{	  
-			GeometryUtils::CalculateGeometryData(im->GetGeometry(),DN_DX,N,dummy);
-			//direction of the height is stored in the auxilliary vector
-			for (unsigned int i=0; i<3;i++)			
-			{
-			aux[0]=DN_DX(i,0);
-			aux[1]=DN_DX(i,1);
-			aux[2]=0.0;
-			//and the value of the height: hi=1/norm(nablaNi)*(NablaNi/norm(nablaNi))
-			h=1.0/norm_2(aux);
-			//and now the velocity and viscosity
-			vel=im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-			nu=im->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
-			//reuse dummy to temporarily store the scalar product of vel and height
-			dt=1.0/(fabs(inner_prod(vel,aux)) + 2.0*nu/h*h);
-			if(dt<glob_min_dt) 
-				glob_min_dt=dt;
+			dt=0.0;
+			for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ; 
+					im != mr_model_part.ElementsEnd() ; ++im)
+			{	  
+				GeometryUtils::CalculateGeometryData(im->GetGeometry(),DN_DX,N,dummy);
+				//direction of the height is stored in the auxilliary vector
+				for (unsigned int i=0; i<3;i++)			
+				{
+				aux[0]=DN_DX(i,0);
+				aux[1]=DN_DX(i,1);
+				aux[2]=0.0;
+				//and the value of the height: hi=1/norm(nablaNi)*(NablaNi/norm(nablaNi))
+				h=1.0/norm_2(aux);
+				//and now the velocity and viscosity
+				vel=im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+				nu=im->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
+				//reuse dummy to temporarily store the scalar product of vel and height
+				dt=1.0/(fabs(inner_prod(vel,aux)) + 2.0*nu/h*h);
+				if(dt<glob_min_dt) 
+					glob_min_dt=dt;
+				}
+			}
+		}
+		if (TDim==3)
+		{
+			array_1d<double,4> N = ZeroVector(4); //dimension = number of nodes
+			array_1d<double,3> aux = ZeroVector(3); //dimension = space dim
+			array_1d<double,3> vel = ZeroVector(3); //dimension = space dim
+			boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
+			
+			//initialize it with given value
+			glob_min_dt=max_dt;
+
+
+			dt=0.0;
+			for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ; 
+					im != mr_model_part.ElementsEnd() ; ++im)
+			{	  
+				GeometryUtils::CalculateGeometryData(im->GetGeometry(),DN_DX,N,dummy);
+				//direction of the height is stored in the auxilliary vector
+				for (unsigned int i=0; i<4;i++)			
+				{
+				aux[0]=DN_DX(i,0);
+				aux[1]=DN_DX(i,1);
+				aux[2]=DN_DX(i,2);
+				//and the value of the height: hi=1/norm(nablaNi)*(NablaNi/norm(nablaNi))
+				h=1.0/norm_2(aux);
+				//and now the velocity and viscosity
+				vel=im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+				nu=im->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
+				//reuse dummy to temporarily store the scalar product of vel and height
+				dt=1.0/(fabs(inner_prod(vel,aux)) + 2.0*nu/h*h);
+				if(dt<glob_min_dt) 
+					glob_min_dt=dt;
+				}
 			}
 		}
 		if (dt<0.0)			
@@ -278,6 +316,7 @@ namespace Kratos
 
 
 	/// input stream function
+	/*
 	inline std::istream& operator >> (std::istream& rIStream,   
 		CFLProcess& rThis);
 
@@ -291,6 +330,7 @@ namespace Kratos
 
 		return rOStream;
 	}
+	*/
 	///@} 
 
 
