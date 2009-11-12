@@ -18,8 +18,8 @@ project gpu_solvers_application
 #################################################################################
 lib gpu_sparse : : <name>GPUSparse <search>custom_external_libraries ;
 lib lapackpp : : <name>lapackpp <search>$(LAPACKPP_LIB_DIR) ;
-lib cudart : : <name>cudart <search>$(CUDA_DIR)/lib ;
-lib cublas : : <name>cublas <search>$(CUDA_DIR)/lib ;
+lib cudart : : <name>cudart <search>$(CUDA_DIR)/lib64 ;
+lib cublas : : <name>cublas <search>$(CUDA_DIR)/lib64 ;
 
 #################################################################################
 #################################################################################
