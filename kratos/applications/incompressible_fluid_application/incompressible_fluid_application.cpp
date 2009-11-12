@@ -74,6 +74,7 @@ namespace Kratos
 		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 
 		mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mFluid3DGLS_expl(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
 		mFluid2DGLS_expl_comp(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -144,7 +145,9 @@ namespace Kratos
 	
 
 
-		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);		
+		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);
+		KRATOS_REGISTER_ELEMENT("Fluid3DGLS_expl", mFluid3DGLS_expl);		
+		
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl_comp", mFluid2DGLS_expl_comp);	
 
 

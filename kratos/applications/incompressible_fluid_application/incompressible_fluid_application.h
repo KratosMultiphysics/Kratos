@@ -51,6 +51,8 @@
  #include "custom_elements/asgs_comp_pr_dc_3d.h"
 
 #include "custom_elements/fluid_2dGLS_expl.h"
+#include "custom_elements/fluid_3dGLS_expl.h"
+
 #include "custom_elements/fluid_2dGLS_expl_comp.h"
 
 
@@ -281,6 +283,8 @@ namespace Kratos
 
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
+		const Fluid3DGLS_expl  mFluid3DGLS_expl;
+
 		const Fluid2DGLS_expl_comp  mFluid2DGLS_expl_comp;  
 
 		const ProjDirichletCond mProjDirichletCond;
