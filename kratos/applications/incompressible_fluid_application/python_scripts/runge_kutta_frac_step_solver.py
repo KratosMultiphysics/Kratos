@@ -65,7 +65,7 @@ class RungeKuttaFracStepSolver:
         self.CalculateReactionFlag = False
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
-        self.domain_size = 2;
+        self.domain_size = domain_size;
         #self.MoveMeshFlag = True
 
         self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
@@ -88,8 +88,13 @@ class RungeKuttaFracStepSolver:
         #by now SLIP conditions are identified by FLAG_VARIABLE=3.0. this is done in the constructir of the strategy
         
         #creating the solution strategy
-        self.solver = RungeKuttaFracStepStrategy(self.model_part,self.linear_solver,self.CalculateReactionFlag,
-                                                  self.ReformDofSetAtEachStep, self.CalculateNormDxFlag, self.domain_size )   
+        if (self.domain_size==2):
+            self.solver = RungeKuttaFracStepStrategy2D(self.model_part,self.linear_solver,self.CalculateReactionFlag,
+                                                  self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)
+        if (self.domain_size==3):
+            self.solver = RungeKuttaFracStepStrategy3D(self.model_part,self.linear_solver,self.CalculateReactionFlag,
+                                                  self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)   
+
         (self.solver).SetEchoLevel(self.echo_level)
 
         (self.neigh_finder).Execute();
