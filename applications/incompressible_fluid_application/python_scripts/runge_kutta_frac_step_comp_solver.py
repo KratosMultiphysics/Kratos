@@ -54,8 +54,8 @@ class RungeKuttaFracStepCompSolver:
         pDiagPrecond = DiagonalPreconditioner()
 
         #definition of the solvers
-        self.linear_solver =  SkylineLUFactorizationSolver()
-        #self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
+        #self.linear_solver =  SkylineLUFactorizationSolver()
+        self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
         #self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
 
         self.max_iter = 10
