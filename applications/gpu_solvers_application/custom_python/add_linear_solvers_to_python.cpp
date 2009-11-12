@@ -80,7 +80,7 @@ namespace Python
 	typedef GPUPreconditioner GPUPreconditionerType;
 	typedef AMGpreconditioner AMGPreconditionerType;
 	typedef Kratos_AMGpreconditioner Kratos_AMGPreconditionerType;
-	typedef Diagonalpreconditioner DiagonalpreconditionerType;
+	typedef Diagonalpreconditioner GpuDiagonalPreconditionerType;
 
         
         using namespace boost::python; 
@@ -92,7 +92,8 @@ namespace Python
         class_<GPUBICGSTABSolverType, GPUBICGSTABSolverType::Pointer,
         bases<LinearSolverType> >( "GPUBICGSTABSolver" )
                 .def(init<double, unsigned int>() )
-		.def(init<double, unsigned int, DiagonalpreconditionerType& >() )
+                .def(init<double, unsigned int, Kratos_AMGPreconditionerType& >() )
+		.def(init<double, unsigned int, GpuDiagonalPreconditionerType& >() )
                 .def(self_ns::str(self))
                 ;
 	
@@ -104,7 +105,7 @@ namespace Python
 		//.def(init<>() )
                 .def(init<double, size_t, bool, size_t, size_t, size_t*, size_t*, bool>() )
                 ;
-	class_<DiagonalpreconditionerType, bases<GPUPreconditionerType> >( "DiagonalpreconditionerType" )
+	class_<GpuDiagonalPreconditionerType, bases<GPUPreconditionerType> >( "GPUDiagonalPreconditioner" )
 		.def(init<bool>() )
 	        ;
 
@@ -117,7 +118,7 @@ namespace Python
         bases<LinearSolverType> >( "GPUCGSolver" )
                 .def(init<double, unsigned int>() )
                 .def(init<double, unsigned int, Kratos_AMGPreconditionerType& >() )
-		.def(init<double, unsigned int, DiagonalpreconditionerType& >() )
+		.def(init<double, unsigned int, GpuDiagonalPreconditionerType& >() )
                 .def(self_ns::str(self))
                 ;
 	
