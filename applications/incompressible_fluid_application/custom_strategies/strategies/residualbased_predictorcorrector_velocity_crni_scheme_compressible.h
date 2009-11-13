@@ -657,7 +657,7 @@ KRATOS_WATCH("END OF INITIALIZE");
 	//************************************************************************************************
 	//************************************************************************************************
 
-	virtual void UpdateTimeDerivative(double& CurrentPressureRate,
+	 void UpdateTimeDerivative(double& CurrentPressureRate,
 					  const double& DeltaPressure,
 					  const double& OldPressureRate
 					 )
@@ -673,7 +673,7 @@ KRATOS_WATCH("END OF INITIALIZE");
 	//****************************************************************************
         //*********************************************************************************
 
-        virtual void UpdateDisplacement(array_1d<double, 3 > & CurrentDisplacement,
+         void UpdateDisplacement(array_1d<double, 3 > & CurrentDisplacement,
                 const array_1d<double, 3 > & OldDisplacement,
                 const array_1d<double, 3 > & OldVelocity,
                 const array_1d<double, 3 > & CurrentVelocity) {
@@ -684,7 +684,7 @@ KRATOS_WATCH("END OF INITIALIZE");
         }
         //**************************************************************************
 
-        virtual void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
+         void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
                 const array_1d<double, 3 > & DeltaVel,
                 const array_1d<double, 3 > & OldAcceleration) {
 
@@ -696,7 +696,7 @@ KRATOS_WATCH("END OF INITIALIZE");
         //****************************************************************************
         //*********************************************************************************
 
-        virtual void FinalUpdateDisplacement(array_1d<double, 3 > & CurrentDisplacement,
+         void FinalUpdateDisplacement(array_1d<double, 3 > & CurrentDisplacement,
                 const array_1d<double, 3 > & OldVelocity,
                 const array_1d<double, 3 > & CurrentVelocity) {
 
