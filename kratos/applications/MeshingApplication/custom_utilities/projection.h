@@ -258,12 +258,14 @@ namespace Kratos
 // 									       (*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
 // 				        
 // 				        }
-				        is_inside = CalculatePosition(geom, (*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
-				        //if the node falls inside the element interpolate
-				        if(is_inside == true)
+					double is_visited = (*it_found)->GetValue(IS_VISITED);
+					is_inside = CalculatePosition(geom,	(*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
+
+					//if the node falls inside the element interpolate
+					if(is_inside == true && is_visited != 1.0)
 				        {
 						        //Interpolating all the rVariables of the rOrigin_ModelPart to get their nodal value in the rDestination_ModelPart
-						        Interpolate(  el_it,  N, step_data_size, *it_found );
+						Interpolate(  el_it,  N, step_data_size, *it_found );
 						        
 				        }
 				}
@@ -324,8 +326,13 @@ namespace Kratos
 			   typedef Bins< TDim, PointType, stdPointVector> stdBins;
 			   typedef Tree< Bins<TDim,PointType,stdPointVector> > tree; 	//stdStaticBins;*/
 
+			   for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
+						    node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
+			   {
+				node_it->GetValue(IS_VISITED) = 0.0;
+			   }
 			
-
+// KRATOS_WATCH("line 328")
 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
 			{
@@ -338,9 +345,11 @@ namespace Kratos
 
 				//putting the nodes of the destination_model part in an auxiliary list
 				list_of_new_nodes.push_back( pnode );
+				
+
 			}
 
-			std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
+			std::cout << "kdt construction time " << kdtree_construction.elapsed() << std::endl;
 			//finishing calculating time of construction of the kdtree	
 // 			KRATOS_WATCH("FINISHING KDTREE CONSTRUCTION");
 			
@@ -356,7 +365,7 @@ namespace Kratos
 			array_1d<double,TDim+1> N; //Shape functions vector//
 			//int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
 			//unsigned int TDim = 3;
-
+// KRATOS_WATCH("line 359")
 			//loop over all of the elements in the "old" list to perform the interpolation
 			for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
 						el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
@@ -388,7 +397,7 @@ namespace Kratos
 				double xc, yc, zc,  radius;	
 				CalculateCenterAndSearchRadius( geom, xc,yc,zc, radius, N);   
 				work_point.X() = xc; work_point.Y() = yc; work_point.Z() = zc; 
- 
+// KRATOS_WATCH("line 391") 
 				//find all of the new nodes within the radius
 				int number_of_points_in_radius;
 
@@ -399,7 +408,7 @@ namespace Kratos
 				//check if inside 
 				for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
 				{	
- 				
+// KRATOS_WATCH("line 402") 				
 					bool is_inside = false;
 					//once we are sure the node in inside the circle we have to see if it is inside the triangle i.e. if all the Origin element shape functions are >1
 // 					 if(TDim == 2)
@@ -419,10 +428,14 @@ namespace Kratos
 // 										(*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
 // 					 
 // 					 }
-				        is_inside = CalculatePosition(geom, (*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
 
+					double is_visited = (*it_found)->GetValue(IS_VISITED);
+					is_inside = CalculatePosition(geom,	(*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
+// KRATOS_WATCH("line 423")
+// KRATOS_WATCH("IS INSIDE")
+// KRATOS_WATCH((*it_found)->Id())
 					//if the node falls inside the element interpolate
-					if(is_inside == true)
+					if(is_inside == true && is_visited != 1.0)
 					{//CANCELLA insert the variable TDim
 						//Interpolating all the rVariables of the rOrigin_ModelPart to get their nodal value in the rDestination_ModelPart
 						Interpolate(  el_it,  N, *it_found , rVariable );
@@ -513,6 +526,9 @@ namespace Kratos
 		///@} 
 		///@name Member rVariables 
 		///@{ 
+
+
+
 		inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
 	  					double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N		
 					       )
@@ -703,7 +719,9 @@ namespace Kratos
 				{
 					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
 				}						
-			}				
+			}
+			pnode->GetValue(IS_VISITED) = 1.0;
+				
 		}
 		//projecting total model part 3Dversion
 		void Interpolate( 
@@ -732,7 +750,9 @@ namespace Kratos
 				{
 					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
 				}						
-			}				
+			}
+			pnode->GetValue(IS_VISITED) = 1.0;
+				
 		}
 
 
@@ -753,16 +773,18 @@ namespace Kratos
 				//getting the data of the solution step
 				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
 				//Reference or no reference???//CANCELLA
-				array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
 					
 				//copying this data in the position of the vector we are interested in
 				for(unsigned int j= 0; j< TDim; j++)
 				{
 					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
 				}						
-			}				
+			}	
+			pnode->GetValue(IS_VISITED) = 1.0;
+			
 		}
 
 		//projecting an array1D 3Dversion
@@ -782,17 +804,19 @@ namespace Kratos
 				//getting the data of the solution step
 				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
 				//Reference or no reference???//CANCELLA
-				array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
-				array_1d<double,3>& node3_data = geom[3].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node3_data = geom[3].FastGetSolutionStepValue(rVariable , step);
 
 				//copying this data in the position of the vector we are interested in
 				for(unsigned int j= 0; j< TDim; j++)
 				{
 					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
 				}						
-			}				
+			}
+			pnode->GetValue(IS_VISITED) = 1.0;
+				
 		}
 		//projecting a scalar 2Dversion
 		void Interpolate( 
@@ -811,15 +835,17 @@ namespace Kratos
 				//getting the data of the solution step
 				double& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
 				//Reference or no reference???//CANCELLA
-				double& node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				double& node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				double& node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
+				const double node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
+				const double node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
+				const double node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
 					
 				//copying this data in the position of the vector we are interested in
 				
 				step_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data;
 										
-			}				
+			}	
+			pnode->GetValue(IS_VISITED) = 1.0;
+			
 		}
 		//projecting a scalar 3Dversion
 		void Interpolate( 
@@ -838,16 +864,18 @@ namespace Kratos
 				//getting the data of the solution step
 				double& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
 				//Reference or no reference???//CANCELLA
-				double& node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				double& node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				double& node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
-				double& node3_data = geom[3].FastGetSolutionStepValue(rVariable , step);
+				const double node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
+				const double node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
+				const double node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
+				const double node3_data = geom[3].FastGetSolutionStepValue(rVariable , step);
 
 				//copying this data in the position of the vector we are interested in
 				
 				step_data = N[0]*node0_data + N[1]*node1_data + N[2]*node2_data + N[3]*node3_data; 
 										
-			}				
+			}	
+			pnode->GetValue(IS_VISITED) = 1.0;
+			
 		}
 		inline void Clear(ModelPart::NodesContainerType::iterator node_it,  int step_data_size )	
 		{
