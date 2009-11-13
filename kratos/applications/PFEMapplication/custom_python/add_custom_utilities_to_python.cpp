@@ -142,10 +142,12 @@ namespace Python
 
 	  class_<ErosionUtils<2>,  boost::noncopyable>  ("ErosionUtils2D", init< >())
 		.def("CheckErosionableNodes",&ErosionUtils<2>::CheckErosionableNodes)
+		.def("SetErosionableNodes", &ErosionUtils<2>::SetErosionableNodes)
 		;
 
 	  class_<ErosionUtils<3>,  boost::noncopyable>  ("ErosionUtils3D", init< >())
 		.def("CheckErosionableNodes",&ErosionUtils<3>::CheckErosionableNodes)
+		.def("SetErosionableNodes", &ErosionUtils<3>::SetErosionableNodes)
 		;
 
 		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
