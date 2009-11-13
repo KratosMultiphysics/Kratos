@@ -167,7 +167,7 @@ namespace Kratos
  		{
 
 			KRATOS_TRY
-KRATOS_WATCH(	"Line 170")
+// KRATOS_WATCH(	"Line 170")
 // 			//properties to be used in the generation
 // 			Properties::Pointer properties = rDestination_ModelPart.GetMesh().pGetProperties(1);
 // 
@@ -196,7 +196,7 @@ KRATOS_WATCH(	"Line 170")
 /*			
 			   typedef Bins< TDim, PointType, stdPointVector> stdBins;
 			   typedef Tree< Bins<TDim,PointType,stdPointVector> > tree; 	//stdStaticBins;*/
-KRATOS_WATCH(	"Line 199")
+// KRATOS_WATCH(	"Line 199")
 
 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
@@ -221,7 +221,7 @@ KRATOS_WATCH(	"Line 199")
 // 				}
 // 			}
 // KRATOS_WATCH("is_free_erosionable_node");
-KRATOS_WATCH(	"Line 224")
+// KRATOS_WATCH(	"list of erosionable nodes *****************************************************************************")
 
 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
@@ -239,15 +239,24 @@ KRATOS_WATCH(	"Line 224")
 					   if(j->GetValue(IS_VISITED)==0.0 && j->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0 && j->FastGetSolutionStepValue(IS_FREE_SURFACE)!=1.0)
 						{
 						    list_of_erosionable_nodes.push_back( Node<3>::Pointer( *(j.base() ) ) );
-						    j->GetValue(IS_VISITED) = 2.0;    //FIRST LAYER OF FLUID NODES
+						    j->GetValue(IS_VISITED) = 2.0;    //FIRST LAYER OF INTERIOR NODES
 // KRATOS_WATCH(j->Id());
 						}
 					}
 				}
 			}
 
+// 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
+// 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
+// 			{
+// 				Node<3>::Pointer pnode = *(node_it.base());
+// 				KRATOS_WATCH("is-visited ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+// 				KRATOS_WATCH(pnode->Id())
+// 				KRATOS_WATCH(pnode->GetValue(IS_VISITED));
+// 
+// 			 }
 
-KRATOS_WATCH(	"Line 250")
+// KRATOS_WATCH(	"Line 250")
 
 
 			//********************************************************************
@@ -255,17 +264,21 @@ KRATOS_WATCH(	"Line 250")
 			//********************************************************************
 			//create a spatial database with the list of new nodes
 			unsigned int bucket_size = 20;
+// KRATOS_WATCH(	"Line 258")
+
 			tree nodes_tree(list_of_erosionable_nodes.begin(),list_of_erosionable_nodes.end(),bucket_size);
 			//work arrays
 			Node<3> work_point(0,0.0,0.0,0.0);
 			unsigned int MaximumNumberOfResults = 10000;
 			PointVector Results(MaximumNumberOfResults);
 			DistanceVector ResultsDistances(MaximumNumberOfResults);
+// KRATOS_WATCH(	"Line 266")
 			
 			boost::numeric::ublas::bounded_matrix<double,TDim + 1,TDim> DN_DX; 
 			array_1d<double,TDim+1> N; //Shape functions vector//
 			boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Grad_v; 
 			int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
+// KRATOS_WATCH(	"Line 272")
 
 
 			//loop over all of the elements in the "old" list to perform the interpolation
@@ -273,10 +286,12 @@ KRATOS_WATCH(	"Line 250")
 						el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
 			{
 				Geometry<Node<3> >&geom = el_it->GetGeometry();
+// KRATOS_WATCH(	"Line 280")
 				
 				//find the center and "radius" of the element
 				double xc, yc, zc, radius;	
 				CalculateCenterAndSearchRadius( geom,xc,yc,zc, radius, N);
+// KRATOS_WATCH(	"Line 285")
 								
 				//find all of the new nodes within the radius
 				int number_of_points_in_radius;
@@ -285,7 +300,7 @@ KRATOS_WATCH(	"Line 250")
 				//look between the new nodes which of them is inside the radius of the circumscribed cyrcle
 				number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
  						ResultsDistances.begin(),  MaximumNumberOfResults);
-KRATOS_WATCH(	"Line 288")
+// KRATOS_WATCH(	"Line 288")
 
 				//check if inside 
 				for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
@@ -299,9 +314,10 @@ KRATOS_WATCH(	"Line 288")
 					//if the node falls inside the element interpolate
 					if(is_inside == true && is_visited != 1.0)
 					{
-// KRATOS_WATCH("is_inside")
+// KRATOS_WATCH("is_inside~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 // KRATOS_WATCH((*it_found)->Id())
-KRATOS_WATCH(	"Line 304")
+// KRATOS_WATCH((*it_found)->GetValue(IS_VISITED))
+// KRATOS_WATCH(	"Line 304")
 
 						array_1d<double,3> InterpolatedVelocity; 
 
@@ -333,48 +349,120 @@ KRATOS_WATCH(	"Line 304")
 						      norm2_vcr +=  rCriticalVel[i]*rCriticalVel[i];
 /*						for( PointIterator it_found2 = list_of_erosionable_nodes.begin(); it_found2 != list_of_erosionable_nodes.begin(); it_found2++)
 						{*/		
-						      double nu = (*it_found)->FastGetSolutionStepValue(VISCOSITY);
+						double nu = (*it_found)->FastGetSolutionStepValue(VISCOSITY);
 // 						      double density = (*it_found)->FastGetSolutionStepValue(DENSITY);
-						      double dt = rDestination_ModelPart.GetProcessInfo()[DELTA_TIME];
-			 			      double rhoVol = (TDim + 1 ) * (*it_found)->FastGetSolutionStepValue(NODAL_MASS);
-						      double coeff = 0.25 * nu * dt * rhoVol;
+						double dt = rDestination_ModelPart.GetProcessInfo()[DELTA_TIME];
+						double rhoVol = (TDim + 1 ) * (*it_found)->FastGetSolutionStepValue(NODAL_MASS);
+						double coeff = 0.25 * nu * dt * rhoVol;
 // KRATOS_WATCH(norm2_vcr)					    
 // KRATOS_WATCH(nu)
 // KRATOS_WATCH(density)
 // KRATOS_WATCH(dt)
 // KRATOS_WATCH(rhoVol)
 // KRATOS_WATCH(coeff)
-						      double norm2_vcr_fsn = 0.0;
-						      //Interpolated vel (not node real velocity)
-						      for (unsigned int i=0; i< TDim; i++)
-						      {   	  
+						double norm2_vcr_fsn = 0.0;
+						//Interpolated vel (not node real velocity)
+						for (unsigned int i=0; i< TDim; i++)
+						{   	  
 // 							   norm2_vcr_fsn +=  (*it_found)->FastGetSolutionStepValue(VELOCITY_X)*(*it_found)->FastGetSolutionStepValue(VELOCITY_X) +                                                                    
 // 									   (*it_found)->FastGetSolutionStepValue(VELOCITY_Y)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Y) +             (*it_found)->FastGetSolutionStepValue(VELOCITY_Z)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Z); //a che serviva il loop?????
-						        	 norm2_vcr_fsn +=  InterpolatedVelocity[i] * InterpolatedVelocity[i];
+						    norm2_vcr_fsn +=  InterpolatedVelocity[i] * InterpolatedVelocity[i];
 
-						       }
-// KRATOS_WATCH(norm2_vcr_fsn)					    
-						      
-						      if(norm2_vcr_fsn > norm2_vcr)
-						      {
-							 (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
-						      }  
+						  }
+// KRATOS_WATCH(norm2_vcr_fsn)
+// KRATOS_WATCH(norm2_vcr)					    
+					    
+// KRATOS_WATCH((*it_found)->Id())
+				
+						if(norm2_vcr_fsn > norm2_vcr)
+						{
+						    (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
+						}  
 // KRATOS_WATCH((*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) )
-						      if( (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT)>= rCriticalEnergy)
-						      {(*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
-						      (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;}						 
+						if( (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT)>= rCriticalEnergy)
+						{
+// KRATOS_WATCH(rCriticalEnergy )
+
+// KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
+
+// KRATOS_WATCH((*it_found)->Id())
+
+						  (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+						(*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;}						 
 //}
 					}
 				}
  			}	
 
 
-
-			
+			 //CHANGE DENSITY AND VISCOSITY IF ALL THE NODES OF AN ELEMENT ARE FREE SURFACE
+			for( ModelPart::ElementsContainerType::iterator el_it = rDestination_ModelPart.ElementsBegin();
+						el_it != rDestination_ModelPart.ElementsEnd(); el_it++)
+			{
+				 Geometry< Node<3> >& geom = el_it->GetGeometry();
+				 unsigned int n_freesurf_nodes = 0;
+				 for(unsigned int i =0; i<TDim+1; i++)
+				 {
+				        if(geom[i].FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
+					     n_freesurf_nodes ++;
+				 }
+				if(n_freesurf_nodes == TDim+1)
+				 {
+				    for(unsigned int i =0; i<TDim+1; i++)
+				    {
+				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+				      geom[i].FastGetSolutionStepValue(DENSITY) = 1000.0;
+				    }
+				  }
+			}
+			//CHANGE DENSITY AND VISCOSITY IF A NODE HAS MORE THAN 3 NEIGHBOURS THAT ARE FREE SURFACE 
+			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
+						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
+			{
+				double count = 0.0;
+				//PointType::Pointer pnode(new PointType(*node_it));
+ 				Node<3>::Pointer pnode = *(node_it.base());
+				WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
+				for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
+				{ 
+				    if( j->FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
+				        count ++;
+				}
+				if (count >= (TDim + 2))
+				{  
+				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+				  (pnode)->FastGetSolutionStepValue(DENSITY) = 1000.0;
+				}
+			 }
 			KRATOS_CATCH("")
+
+// KRATOS_WATCH("check erosion finished+++++++++++++++++++++++++++++++++++++++++++++++++")
 		}
 			
-
+		void SetErosionableNodes(	ModelPart& rModelPart)
+ 		{
+			KRATOS_TRY
+			
+			for(ModelPart::NodesContainerType::iterator node_it = rModelPart.NodesBegin();
+						node_it != rModelPart.NodesEnd(); ++node_it)
+			{
+				//PointType::Pointer pnode(new PointType(*node_it));
+ 				Node<3>::Pointer pnode = *(node_it.base());
+				if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0)
+				{
+					WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
+					for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
+					{
+					     if(j->FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
+					     {
+						  j->FastGetSolutionStepValue(IS_EROSIONABLE) = 1.0;					  
+					     } 
+					   
+					}
+				}
+			}
+			KRATOS_CATCH("")
+		}
 	
 			/*@} */  
 		/**@name Acces */
