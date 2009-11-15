@@ -1421,6 +1421,7 @@ pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)
                         seg_list.clear();
 			num_interface = 0;
 			std::vector <int> nodes_of_bad_segments;
+			//PointVector nodes_of_bad_segments
 			std::vector <int> raw_seg_list;
 
 		if(h_factor > 0.1)
@@ -1463,6 +1464,8 @@ pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)
 								//detect bad segment and mark to earase first node
 								nodes_of_bad_segments.push_back(geom[2].Id());
 								nodes_of_bad_segments.push_back(geom[1].Id());
+								//nodes_of_bad_segments.push_back(geom[2]);
+								//nodes_of_bad_segments.push_back(geom[1]);
 
 								
 								//earse bad node
@@ -1494,6 +1497,8 @@ pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)
 								//detect bad segment and mark to earase first node
 								nodes_of_bad_segments.push_back(geom[0].Id());
 								nodes_of_bad_segments.push_back(geom[2].Id());
+								//nodes_of_bad_segments.push_back(geom[0]);
+								//nodes_of_bad_segments.push_back(geom[2]);
 
 								//earse bad node
 								geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
@@ -1524,6 +1529,8 @@ pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)
 								//detect bad segment and mark to earase first node
 								nodes_of_bad_segments.push_back(geom[1].Id());
 								nodes_of_bad_segments.push_back(geom[0].Id());
+								//nodes_of_bad_segments.push_back(geom[1]);
+								//nodes_of_bad_segments.push_back(geom[0]);
 
 								//earse bad node
 								geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
@@ -1564,7 +1571,7 @@ pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)
 
 
 			//merge for mark to erase node (the node marked for erase is relpaced byanother node of deleted segment on remaining segment)
-			for(int ii=0; ii<nodes_of_bad_segments.size(); ii+=2)
+			for(unsigned int ii=0; ii<nodes_of_bad_segments.size(); ii+=2)
 			   {
 				KRATOS_WATCH("!!!!!!!!!!!!!!!!!!! BAD NODES !!!!!!!!!!!!!!!!!!!!!!");
 
@@ -1575,7 +1582,7 @@ KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].X());
 KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].Y());
 //ens of COORDINTAES
 	  
-			    for(int jj=0; jj<raw_seg_list.size(); jj++)
+			    for(unsigned int jj=0; jj<raw_seg_list.size(); jj++)
 			      {
 			//merge in segment list
 			       if(raw_seg_list[jj] == bad_node )
@@ -1585,7 +1592,7 @@ KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].Y());
 					}
 			      }
 			//possible replace in nodes_of_bad_segments for adjacent bad segments
-			    for(int kk=0; kk<nodes_of_bad_segments.size(); kk+=2)
+			    for(unsigned int kk=0; kk<nodes_of_bad_segments.size(); kk+=2)
 			      {					
 			       if(nodes_of_bad_segments[kk + 1] == bad_node )
 					{
@@ -1600,15 +1607,29 @@ KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].Y());
 
 			//fill de final list
 			seg_num = 0 ;
-			for(int seg=0; seg < raw_seg_list.size(); seg+=2)
+			for(unsigned int seg=0; seg < raw_seg_list.size(); seg+=2)
 			   {
 				if(raw_seg_list[seg] != raw_seg_list[seg + 1])
 				    {
 					seg_list.push_back(raw_seg_list[seg]);
 					seg_list.push_back(raw_seg_list[seg + 1]);
 					seg_num++;
+
+					ModelPart::NodesContainerType::iterator inode = ThisModelPart.Nodes().find(raw_seg_list[seg]);
+					inode->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+					inode->GetValue(ERASE_FLAG) = 0.0;
+
+					ModelPart::NodesContainerType::iterator iinode = ThisModelPart.Nodes().find(raw_seg_list[seg+1]);
+					iinode->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+					iinode->GetValue(ERASE_FLAG) = 0.0;
+	
+					//ThisModelPart.Nodes()[raw_seg_list[seg]].GetValue(ERASE_FLAG) = 0.0;
+					//ThisModelPart.Nodes()[raw_seg_list[seg + 1]].GetValue(ERASE_FLAG) = 0.0;
 				    }
 			   }
+
+			
+	
 
 		KRATOS_CATCH("");
 		}
