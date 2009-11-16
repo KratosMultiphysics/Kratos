@@ -147,8 +147,8 @@ namespace Kratos
 								{
 									layers[0].push_back( *(inode.base() ) );	
 									inode->GetValue(IS_VISITED) = 1.0;
-									 KRATOS_WATCH("layer0");
-									 KRATOS_WATCH(inode->Id());
+// 									 KRATOS_WATCH("layer0");
+// 									 KRATOS_WATCH(inode->Id());
 								}
 							}
 						} 
@@ -172,8 +172,9 @@ namespace Kratos
 								layers[il+1].push_back( Node<3>::Pointer( *(jjj.base() ) ) );
 								jjj->GetValue(IS_VISITED) = double(il+2.0);
 // 									 KRATOS_WATCH("layer i");
-// 									 KRATOS_WATCH(il+1);
-// 									 KRATOS_WATCH(jjj->Id());
+// 									 if(il == 0)
+// 									     {KRATOS_WATCH("layer 1 def");
+// 									     KRATOS_WATCH(jjj->Id());}
 							}
 						}
 					}
@@ -256,8 +257,51 @@ namespace Kratos
 					 }
 						
 				}
+/*********************/
+// 		for (PointIterator iii = layers[1].begin(); iii != layers[1].end(); iii++) {
+// 
+//                     const array_1d<double, 3 > & coords_top = iii->Coordinates();
+// 
+//                     //extrapolate the average velocity
+//                     noalias(aux) = ZeroVector(3);
+//                     double avg_number = 0.0;
+// 
+//                     double pavg = 0.0;
+// // 		  KRATOS_WATCH("layer 1**************final");
+// // 		  KRATOS_WATCH(iii->Id());
+// 
+//                     WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+//                     for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+//                     {
+//                         if (i->GetValue(IS_VISITED) < 2 && i->GetValue(IS_VISITED) > 0) {
+// // KRATOS_WATCH("layer 0**************final");
+// // KRATOS_WATCH(i->Id());
+//                             const array_1d<double, 3 > & coords_bottom = i->Coordinates();
+//                             array_1d<double, 3 > direction_vec = coords_top;
+//                             noalias(direction_vec) -= coords_bottom;
+//                             const array_1d<double, 3 > & press_grad =  i->FastGetSolutionStepValue(DENSITY)* i->FastGetSolutionStepValue(BODY_FORCE);//i->FastGetSolutionStepValue(PRESS_PROJ);
+//                             double temp = inner_prod(direction_vec, press_grad);
+//                             double pestimate = i->FastGetSolutionStepValue(PRESSURE,1) + temp;
+//                             pavg += pestimate;
+// 
+//                             avg_number += 1.0;
+//                         }
+//                     }
+// 
+// 
+// 
+//                     if (avg_number != 0.0) {
+//                         pavg /= avg_number;
+//                     } else {
+//                         KRATOS_ERROR(std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
+//                     }
+// 
+//                iii->FastGetSolutionStepValue(PRESSURE, 0) = pavg;
+//  
+// 
+// 	       }
+/********************/
 
-				
 
 			KRATOS_CATCH("")
 			}
