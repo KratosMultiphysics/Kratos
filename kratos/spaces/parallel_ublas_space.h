@@ -308,7 +308,7 @@ namespace Kratos
 // 		  noalias(rX) = -rY;
 	  else
       {
-         omptl::transform( rY.begin(), rY.end(), rX.begin(), MultValue<double>( A ) );   
+         omptl::transform( rY.begin(), rY.end(), rX.begin(), MultValue<double>( A ) );
 //TODO .. parallelize
 // 		  noalias(rX) = A*rY;
       }
@@ -327,7 +327,7 @@ namespace Kratos
       }
 	  else if( A == -1.00)
       {
- 		  noalias(rX) -= rY;
+// 		  noalias(rX) -= rY;
             omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::minus<double>() );
 //        omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), std::minus<double>() );
       }
