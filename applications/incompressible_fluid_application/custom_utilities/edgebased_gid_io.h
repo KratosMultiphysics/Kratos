@@ -538,7 +538,6 @@ namespace Kratos
 			{
 			n_str+=(it)->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE);
 			n_fl+=(it)->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID);
-
 			}       
 			//if (n_free_surf==it->GetGeometry().size())
 			//	nodes_id[3]=1;
