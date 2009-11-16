@@ -277,7 +277,7 @@ namespace Kratos
 			boost::numeric::ublas::bounded_matrix<double,TDim + 1,TDim> DN_DX; 
 			array_1d<double,TDim+1> N; //Shape functions vector//
 			boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Grad_v; 
-			int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
+// 			int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
 // KRATOS_WATCH(	"Line 272")
 
 
