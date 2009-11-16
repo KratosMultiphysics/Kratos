@@ -163,6 +163,7 @@ namespace Kratos
 // 			Variable<double>& rDistanceVar,
 			const Vector& rCriticalVel, //TO BE INSERTED
 			const double rCriticalEnergy
+			bool rFixedDam
 			)
  		{
 
@@ -386,9 +387,13 @@ namespace Kratos
 // KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
 
 // KRATOS_WATCH((*it_found)->Id())
-
-						  (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
-						(*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;}						 
+						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;
+						    if(rFixedDam == true)
+						    {
+						     (*it_found).Free(VELOCITY);
+						    }
+}						 
 //}
 					}
 				}
@@ -438,7 +443,12 @@ namespace Kratos
 
 // KRATOS_WATCH("check erosion finished+++++++++++++++++++++++++++++++++++++++++++++++++")
 		}
-			
+
+
+
+
+
+
 		void SetErosionableNodes(	ModelPart& rModelPart)
  		{
 			KRATOS_TRY
