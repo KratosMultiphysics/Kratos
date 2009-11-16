@@ -162,7 +162,7 @@ namespace Kratos
 			//ElementsArrayType& rElements, already included in  rDestination_ModelPart.Elements
 // 			Variable<double>& rDistanceVar,
 			const Vector& rCriticalVel, //TO BE INSERTED
-			const double rCriticalEnergy
+			const double rCriticalEnergy,
 			bool rFixedDam
 			)
  		{
@@ -391,7 +391,9 @@ namespace Kratos
 						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;
 						    if(rFixedDam == true)
 						    {
-						     (*it_found).Free(VELOCITY);
+						     (*it_found)->Free(VELOCITY_X);
+						     (*it_found)->Free(VELOCITY_Y);
+						     (*it_found)->Free(VELOCITY_Z);
 						    }
 }						 
 //}
