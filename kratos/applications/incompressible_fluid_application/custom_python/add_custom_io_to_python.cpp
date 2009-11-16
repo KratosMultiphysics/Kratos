@@ -166,6 +166,7 @@ namespace Kratos
 //                     .def("CondPrintOnGaussPoints", pointer_to_double_cond_print_on_gauss_points)
                     
                     .def("Flush",&GidIOType::Flush)
+                    .def("ChangeOutputName",&GidIOType::ChangeOutputName)
                     .def("CloseResultFile",&GidIOType::CloseResultFile)
                     //.def("",&DatafileIO::) 
                     //.def(self_ns::str(self))
