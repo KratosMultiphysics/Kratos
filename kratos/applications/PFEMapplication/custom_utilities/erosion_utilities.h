@@ -163,7 +163,7 @@ namespace Kratos
 // 			Variable<double>& rDistanceVar,
 			const Vector& rCriticalVel, //TO BE INSERTED
 			const double rCriticalEnergy,
-			bool rFixedDam
+			double rFixedDam
 			)
  		{
 
@@ -419,6 +419,12 @@ namespace Kratos
 				    {
 				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.000001;
 				      geom[i].FastGetSolutionStepValue(DENSITY) = 1000.0;
+				      if(rFixedDam == true)
+				      {
+					geom[i].Free(VELOCITY_X);
+					geom[i].Free(VELOCITY_Y);
+					geom[i].Free(VELOCITY_Z);
+				      }
 				    }
 				  }
 			}
@@ -439,6 +445,12 @@ namespace Kratos
 				{  
 				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
 				  (pnode)->FastGetSolutionStepValue(DENSITY) = 1000.0;
+				  if(rFixedDam == true)
+				  {
+				    (pnode)->Free(VELOCITY_X);
+				    (pnode)->Free(VELOCITY_Y);
+				    (pnode)->Free(VELOCITY_Z);
+				  }
 				}
 			 }
 			KRATOS_CATCH("")
