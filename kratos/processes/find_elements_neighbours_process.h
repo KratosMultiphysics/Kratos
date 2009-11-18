@@ -155,7 +155,11 @@ namespace Kratos
 		}
 		for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
 		{
-			(ie->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3);
+			//(ie->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3);
+		  if (mTDim==2)
+			  (ie->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3);
+		  else
+			  (ie->GetValue(NEIGHBOUR_ELEMENTS)).reserve(4);
 			WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 			rE.erase(rE.begin(),rE.end() );	
 		}
@@ -189,6 +193,25 @@ namespace Kratos
 				neighb_elems(0) = CheckForNeighbourElems(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
 				neighb_elems(1) = CheckForNeighbourElems(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
 				neighb_elems(2) = CheckForNeighbourElems(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+
+			}
+		}
+		if (mTDim==3)
+		{
+			for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
+			{	//face nodes
+				Geometry<Node<3> >& geom = (ie)->GetGeometry();
+				//vector of the 3 faces around the given face
+				(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
+				WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
+				//neighb_face is the vector containing pointers to the three faces around ic
+				//neighb_face[0] = neighbour face over edge 1-2 of element ic;
+				//neighb_face[1] = neighbour face over edge 2-0 of element ic;
+				//neighb_face[2] = neighbour face over edge 0-1 of element ic;
+				neighb_elems(0) = CheckForNeighbourElems3D(geom[1].Id(), geom[2].Id(), geom[3].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+				neighb_elems(1) = CheckForNeighbourElems3D(geom[2].Id(), geom[3].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+				neighb_elems(2) = CheckForNeighbourElems3D(geom[3].Id(), geom[0].Id(), geom[1].Id(), geom[3].GetValue(NEIGHBOUR_ELEMENTS), ie);
+				neighb_elems(3) = CheckForNeighbourElems3D(geom[0].Id(), geom[1].Id(), geom[2].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
 
 			}
 		}
@@ -337,6 +360,29 @@ namespace Kratos
 						{
 							return *(i.base());
 						}
+					}
+				}			
+			}
+			return *(elem.base());
+		}
+
+		Element::WeakPointer CheckForNeighbourElems3D (unsigned int Id_1, unsigned int Id_2, unsigned int Id_3, WeakPointerVector< Element >& neighbour_elem, ElementsContainerType::iterator elem)
+		{	//look for the faces around node Id_1
+			for( WeakPointerVector< Element >::iterator i = neighbour_elem.begin(); i != neighbour_elem.end(); i++) 
+			{	//look for the nodes of the neighbour faces
+				Geometry<Node<3> >& neigh_elem_geometry = (i)->GetGeometry();
+				for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); node_i++) 
+				{	
+					if (neigh_elem_geometry[node_i].Id() == Id_2)
+					{
+					    for( unsigned int node_j = 0 ; node_j < neigh_elem_geometry.size(); node_j++) 
+					      {
+						if (neigh_elem_geometry[node_j].Id() == Id_3)
+						    if(i->Id() != elem->Id())
+							{
+							  return *(i.base());
+							}
+					      }
 					}
 				}			
 			}
