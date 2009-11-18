@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_meshers_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_processes_to_python.h"
+#include "custom_python/add_custom_io_to_python.h"
 
  
 namespace Kratos
@@ -81,6 +82,7 @@ namespace Python
 			;
 		AddMeshersToPython();
 		AddCustomUtilitiesToPython();
+		AddCustomIOToPython();
 		AddProcessesToPython();
 
 		//registering variables in python
