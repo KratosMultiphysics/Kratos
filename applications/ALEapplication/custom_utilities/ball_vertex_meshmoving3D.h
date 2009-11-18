@@ -252,7 +252,7 @@ namespace Kratos
 					unsigned int base = ii*TDim;
 					local_indices[base]=geom[ii].GetDof(DISPLACEMENT_X).EquationId();
 					local_indices[base+1]=geom[ii].GetDof(DISPLACEMENT_Y).EquationId();
-					local_indices[base+2]=geom[ii].GetDof(DISPLACEMENT_Y).EquationId();
+					local_indices[base+2]=geom[ii].GetDof(DISPLACEMENT_Z).EquationId();
 				}
 
 
