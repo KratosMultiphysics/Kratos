@@ -18,6 +18,7 @@
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
 #include "external_includes/tetgen_pfem_refine.h"
+#include "external_includes/tetgen_pfem_refine_face.h"
 #include "external_includes/trigen_pfem_refine.h"
 #include "external_includes/trigen_pfem_refine_segment.h"
 
@@ -49,6 +50,20 @@ namespace Python
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	//											//
+	//				ADAPTIVE 3D MESHER ----> Using Face			//
+	//											//
+	//////////////////////////////////////////////////////////////////////////////////////////
+	
+	//tetgen pfem refine
+	void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
+	{
+		Mesher.ReGenerateMesh(model_part, 
+			KratosComponents<Element>::Get(ElementName),
+			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////////
+	//											//
 	//				ADAPTIVE 2D MESHER					//
 	//											//
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +75,6 @@ namespace Python
 			KratosComponents<Element>::Get(ElementName),
 			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
 	}
-
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
 	//											//
@@ -131,11 +145,17 @@ namespace Python
 		 init< >()) 
    	  .def("ReGenerateMesh",TetRegenerateMesh)
 		;  
+
+	class_<TetGenPfemRefineFace >("TetGenPfemRefineFace",
+		 init< >()) 
+   	  .def("ReGenerateMesh",TetRegenerateMeshWithFace)
+		; 
 	//class that allows 2D adaptive remeshing (inserting and erasing nodes)
 	 class_<TriGenPFEMModeler >("TriGenPFEMModeler",
 		 init< >()) 
 	 .def("ReGenerateMesh",TriRegenerateMesh)
 		;
+
 	/*	  
 	 class_<TriGenModeler >("TriGenModeler",
 		 init< >()) 
