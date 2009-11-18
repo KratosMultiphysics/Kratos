@@ -39,6 +39,7 @@ python-extension KratosPFEMApplication
 	add_custom_utilities_to_python.cpp 
 	add_processes_to_python.cpp 
 	free_surface_cond2d.cpp
+	add_custom_io_to_python.cpp 
 
     /KratosProject//libkratos_static
 
