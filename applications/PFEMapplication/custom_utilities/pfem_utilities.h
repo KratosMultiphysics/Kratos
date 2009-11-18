@@ -320,8 +320,213 @@ namespace Kratos
 		}
 		std::cout << "number of connected components" <<  number_of_connected_components << std::endl;
 			KRATOS_CATCH("");   
-		}	
+		}
 
+                //**********************************************************************************************
+		//**********************************************************************************************
+		double CFLdeltaT(double CFL,double max_dt, ModelPart& ThisModelPart)
+		{
+                 KRATOS_TRY
+
+                  array_1d<double,3> vel, pt0, pt1;
+                 double max_dt_cfl= max_dt, a1, b1, a2, b2, X_target, Y_target, top_x, top_y, flag= 0.0;
+
+
+
+                  for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+				i!=ThisModelPart.ElementsEnd(); i++)
+		    {
+                      Geometry< Node<3> >& geom = i->GetGeometry();
+                      double  this_node_dt;
+
+                      for(int ii=0; ii< 3; ++ii)
+                      {
+                       vel = geom[ii].FastGetSolutionStepValue(VELOCITY);
+                       double vel_square = inner_prod(vel,vel);
+                       if(vel_square != 0.0 && geom[ii].FastGetSolutionStepValue(IS_STRUCTURE)== 0.0)
+                       {
+                       a1=a2=b1=b2=0.0;
+                       top_x = geom[ii].X();
+                       top_y = geom[ii].Y();
+                       flag = 0.0;
+                       //take line points
+                       if(ii == 0)
+                       {
+                           pt1[0] = geom[1].X();
+                           pt1[1] = geom[1].Y();
+                           pt1[2] = geom[1].Z();
+
+
+                           pt0[0] = geom[2].X();
+                           pt0[1] = geom[2].Y();
+                           pt0[2] = geom[2].Z();
+                       }
+                       if(ii == 1)
+                       {
+                           pt1[0] = geom[0].X();
+                           pt1[1] = geom[0].Y();
+                           pt1[2] = geom[0].Z();
+
+
+                           pt0[0] = geom[2].X();
+                           pt0[1] = geom[2].Y();
+                           pt0[2] = geom[2].Z();
+                       }
+                       if(ii == 2)
+                       {
+                           pt1[0] = geom[1].X();
+                           pt1[1] = geom[1].Y();
+                           pt1[2] = geom[1].Z();
+
+
+                           pt0[0] = geom[0].X();
+                           pt0[1] = geom[0].Y();
+                           pt0[2] = geom[0].Z();
+                       }
+
+                       //check possible combination
+                       if(vel[0] == 0.0)
+                       {
+                           if(pt1[0] == pt0[0]) flag = 1.0;
+                           else
+                           {
+                               a2 = ( pt1[1] - pt0[1] )/( pt1[0] - pt0[0] );
+                               b2 = ( pt1[0]*pt0[1] - pt1[1]*pt0[0] )/( pt1[0] - pt0[0] );
+                               X_target = top_x;
+                               Y_target = a2*X_target + b2;
+                           }
+                       }
+                       else
+                       {
+                           a1 = vel[1]/vel[0];
+                           b1 = top_y - a1*top_x;
+
+                           if(pt1[0] == pt0[0])
+                           {
+                               X_target = pt0[0];
+                               Y_target = a1*X_target + b1;
+                           }
+                           else
+                           {
+                              a2 = ( pt1[1] - pt0[1] )/( pt1[0] - pt0[0] );
+                              b2 = ( pt1[0]*pt0[1] - pt1[1]*pt0[0] )/( pt1[0] - pt0[0] );
+
+                              if(a1 == a2) flag = 1.0;
+                              else
+                              {
+                                  X_target = (b2 - b1)/(a1 - a2);
+                                  Y_target = a2 * X_target + b2;
+                              }
+                           }
+                       }
+
+                       if(flag == 0.0)
+                       {
+                           double l_square = (top_x - X_target)*(top_x - X_target) + (top_y - Y_target)*(top_y - Y_target);
+                           this_node_dt = l_square/vel_square;
+                           this_node_dt = CFL*sqrt(this_node_dt);
+                       }
+                       else this_node_dt = 1000000;
+
+
+                       if(this_node_dt<max_dt_cfl ) 
+                       {
+                           max_dt_cfl = this_node_dt;
+
+                       }
+
+                      }
+
+
+                    }//end of loop over element nodes
+
+                  }//end of loop over elements
+                 return max_dt_cfl;
+
+		 KRATOS_CATCH("");
+		}
+                //**********************************************************************************************
+		//**********************************************************************************************
+		double ExactDtEstimate(double dt_max, ModelPart& ThisModelPart)
+		{
+			KRATOS_TRY
+
+			array_1d<double,3> dxprim12, dx32, dxprim32, dv12, dv32, dvprim12;
+			double deltatime = dt_max;
+			double B, A, C;
+
+
+			for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+				i!=ThisModelPart.ElementsEnd(); i++)
+			{
+				//calculating velocity and displacement vectors
+				Geometry< Node<3> >& geom = i->GetGeometry();
+                                noalias(dv32) = geom[2].FastGetSolutionStepValue(VELOCITY);
+                                dv32 -= geom[1].FastGetSolutionStepValue(VELOCITY);
+
+                                noalias(dv12) = geom[0].FastGetSolutionStepValue(VELOCITY);
+                                dv12 -= geom[1].FastGetSolutionStepValue(VELOCITY);
+
+                                dvprim12[0] = dv12[1];
+                                dvprim12[1] = -1*dv12[0];
+
+                                dxprim12[0] = geom[0].Y() - geom[1].Y();
+                                dxprim12[1] = geom[1].X() - geom[0].X();
+
+                                dx32[0] = geom[2].X() - geom[1].X();
+                                dx32[1] = geom[2].Y() - geom[1].Y();
+
+                                dxprim32[0] = geom[1].Y() - geom[2].Y();
+                                dxprim32[1] = geom[2].X() - geom[1].X();
+
+                                //Calculate A,B and C to calculate zero´s of dt
+                                B = inner_prod(dv32,dxprim12);
+                                B += inner_prod(dv12,dxprim32);
+
+                                A = inner_prod(dv32,dvprim12);
+
+                                C = inner_prod(dx32, dxprim12);
+
+                               double zerodt = dt_max;
+                               double Zdt1;
+                               double Zdt2;
+
+                                if(A==0.0)
+                                  {
+                                    if(B != 0.0) zerodt = -1.0*C/B;
+
+                                  }
+
+                                else
+                                    {
+                                      double delta = 0.0;
+                                      delta = B*B - 4.0*A*C;
+                                      if(delta > 0.0)
+                                      {
+                                           Zdt1 = (-1*B + sqrt(delta))/(2.0*A);
+                                           Zdt2 = (-1*B - sqrt(delta))/(2.0*A);
+
+                                          //zerodt = -1.0;
+                                          if(Zdt1 > 0.0) zerodt = Zdt1;
+                                          if(zerodt>Zdt2 && Zdt2 > 0.0) zerodt = Zdt2;
+                                      }
+
+                                    }
+
+                                //negative race means evert dt is acceptable
+                                  if(zerodt<0.0) zerodt = dt_max;
+
+                                //global check
+                                if(zerodt < deltatime)
+                                {
+                                    deltatime = zerodt;
+                                    KRATOS_WATCH("(((((((((((((((INSIDE ESTIMATE)))))))))))))))");
+                                }
+                        }
+			return deltatime;
+
+			KRATOS_CATCH("")
+		}
 		//**********************************************************************************************
 		//**********************************************************************************************
 		double EstimateDeltaTime(double dt_min, double dt_max, ModelPart& ThisModelPart)
@@ -1071,20 +1276,102 @@ namespace Kratos
 
 				}
 			//not to delete interface nodes
-			for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+			/*for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
 				{
 				if(ind->FastGetSolutionStepValue(IS_INTERFACE) ==1.0)
 					ind->GetValue(ERASE_FLAG) = 0.0;
 
-				}
+				}*/
 
 
 
 			}
-		else
+		else if(domain_size == 3)
 			{
-				KRATOS_WATCH("MarkNodesTouchingWall FOR 3D IS NOT IMPLEMENTED");
-			}
+			  for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{	
+					int n_intr=0;
+					
+					//counting number on nodes at the Interface
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					for(int ii = 0; ii <= domain_size ; ++ii)
+						n_intr+= int(geom[ii].FastGetSolutionStepValue(IS_INTERFACE));
+
+				//if three interfaces are at the interface, we check if the third node is close to it or not by passing the alpha-shape
+					if (n_intr == domain_size)
+					  {
+						 boost::numeric::ublas::bounded_matrix<double,4,3> sort_coord = ZeroMatrix(4,3);
+						 int cnt=1;
+						 int non_interface_id;
+						for (int j=0; j<=domain_size;++j)
+						  {
+						    if(geom[j].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
+						       {	
+							sort_coord(0,0) = geom[j].X();
+							sort_coord(0,1) = geom[j].Y();
+							sort_coord(0,2) = geom[j].Z();
+							non_interface_id = j;
+						       }
+						    else 
+							{
+							sort_coord(cnt,0) = geom[j].X();
+							sort_coord(cnt,1) = geom[j].Y();
+							sort_coord(cnt,2) = geom[j].Z();
+							cnt++;
+							}	
+						  }
+						 array_1d<double,3> outplane = ZeroVector(3);
+						 array_1d<double,3> inplane1 = ZeroVector(3);
+						 array_1d<double,3> inplane2 = ZeroVector(3);
+
+						 outplane[0] = sort_coord(0,0) - sort_coord(1,0);  		
+						 outplane[1] = sort_coord(0,1) - sort_coord(1,1); 
+						 outplane[2] = sort_coord(0,2) - sort_coord(1,2); 
+						
+						 inplane1[0] = sort_coord(2,0) - sort_coord(1,0);  		
+						 inplane1[1] = sort_coord(2,1) - sort_coord(1,1); 
+						 inplane1[2] = sort_coord(2,2) - sort_coord(1,2); 
+
+						 inplane2[0] = sort_coord(3,0) - sort_coord(1,0);  		
+						 inplane2[1] = sort_coord(3,1) - sort_coord(1,1); 
+						 inplane2[2] = sort_coord(3,2) - sort_coord(1,2); 
+				
+						//calculate normal to the surface
+					          array_1d<double,3> outerprod = ZeroVector(3);
+                                                 //boost::numeric::ublas::bounded_matrix<double, 1, 3 > outerprod = ZeroMatrix(1, 3);
+                                                  outerprod[0] = inplane1[1]*inplane2[2] - inplane1[2]*inplane2[1];
+                                                  outerprod[1] = inplane1[2]*inplane2[0] - inplane1[0]*inplane2[2];
+                                                  outerprod[2] = inplane1[0]*inplane2[1] - inplane1[1]*inplane2[0];
+                                                  
+						  //outerprod = outer_prod(inplane1,inplane2);
+				
+
+						 double len = inner_prod(outerprod,outerprod);
+                                                 len /= sqrt(len);
+           				        // double len = outerprod(0,0)*outerprod(0,0) + outerprod(1,0)*outerprod(1,0) + outerprod(2,0)*outerprod(2,0);
+						 outerprod /= len;
+
+						//calc distance to surface
+						double dist_to_surf = 0.0;
+						dist_to_surf = inner_prod(outerprod, outplane);
+                                               // dist_to_surf = outerprod(0,0)*outplane(0)+ outerprod(1,0)*outplane(1)+outerprod(2,0)*outplane(2);
+
+						//get H
+						double hnode2 = geom[non_interface_id].FastGetSolutionStepValue(NODAL_H);
+                                                hnode2*=hnode2;
+								
+						//mark node to delete
+						if (fabs(dist_to_surf)<factor*hnode2 )
+							{
+							   geom[non_interface_id].GetValue(ERASE_FLAG)=true;
+							   KRATOS_WATCH("NODE TOUCHING THE SURFACE - WILL BE ERASED!!!!")
+							   KRATOS_WATCH(dist_to_surf)
+							}
+			
+					  }//interface elemenets
+				}//all elements loop	
+			}//domain_size==3
 			KRATOS_CATCH("")
 		}
 		//**********************************************************************************************
@@ -1114,7 +1401,7 @@ namespace Kratos
 					 if(neighbor_els[ii].GetValue(IS_WATER_ELEMENT) == 1 && neighbor_els[ii].Id() != elem->Id())
 					  {
 
-					   if(ii == 0) // 1,2
+					   if(ii == 0) // 1,2 and/or 3
 						{
 				if(geom[1].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 && geom[2].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
 						      {  
@@ -1122,10 +1409,12 @@ namespace Kratos
 
 							        geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 							        geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+								if(domain_size == 3)
+									geom[3].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 
 						      }
 						}
-					   if(ii == 1) // 0,2
+					   if(ii == 1) // 0,2 and/or 3
 						{
 				if(geom[0].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 && geom[2].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
 						      {  
@@ -1133,16 +1422,32 @@ namespace Kratos
 
 								geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 								geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+								if(domain_size == 3)
+									geom[3].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 
 						      }
 						}
-					   if(ii == 2) // 0,1
+					   if(ii == 2) // 0,1 and/or 3
 						{
 				if(geom[0].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 && geom[1].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
 						      {  
 
 								geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 								geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+								if(domain_size == 3)
+									geom[3].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+
+						      }
+						}
+					   if(ii == 3) // 0,1 and/or 2
+						{
+				if(geom[0].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0 && geom[1].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+						      {  
+
+								geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+								geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+								if(domain_size == 3)
+									geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 
 						      }
 						}
@@ -1174,7 +1479,7 @@ namespace Kratos
 			        }
 
 			}*/
-KRATOS_WATCH("NEw interface nodes are detected");
+//KRATOS_WATCH("NEw interface nodes are detected");
 
 		//free elements having three interface nodes
 			/*for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
@@ -1320,7 +1625,23 @@ KRATOS_WATCH("NEw interface nodes are detected");
 			KRATOS_CATCH("")
 		}
 		
+		//**********************************************************************************************
+		//**********************************************************************************************
+		void AssignMeshVelocity(ModelPart& ThisModelPart)
+		{
+			KRATOS_TRY
 
+		 for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
+		       {
+
+				(ind)->FastGetSolutionStepValue(MESH_VELOCITY_X) = (ind)->FastGetSolutionStepValue(VELOCITY_X);
+				(ind)->FastGetSolutionStepValue(MESH_VELOCITY_Y) = (ind)->FastGetSolutionStepValue(VELOCITY_Y);
+				(ind)->FastGetSolutionStepValue(MESH_VELOCITY_Z) = (ind)->FastGetSolutionStepValue(VELOCITY_Z);
+
+			}
+			KRATOS_CATCH("")
+		}
+		
 		//**********************************************************************************************
 		//**********************************************************************************************
 		//ATTENTION:: returns a negative volume if inverted elements appear
@@ -1372,7 +1693,7 @@ KRATOS_WATCH("NEw interface nodes are detected");
 		void ColourAirWaterElement(ModelPart& ThisModelPart, int domain_size)
 		{
 		KRATOS_TRY;
-
+KRATOS_WATCH("INSSSSSSSSSIDE COLOUR");
 				for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin(); 
 					elem!=ThisModelPart.ElementsEnd(); elem++)
 				{
@@ -1383,13 +1704,18 @@ KRATOS_WATCH("NEw interface nodes are detected");
 					for(int ii= 0; ii<= domain_size; ++ii)
 						if(geom[ii].FastGetSolutionStepValue(IS_WATER) == 0.0)
 							same_colour++;
-					
+                                       
 					if(same_colour == (domain_size + 1))
+					      {
 						elem->GetValue(IS_WATER_ELEMENT) = 0.0;
-					else
-						elem->GetValue(IS_WATER_ELEMENT) = 1.0;						
-					
 
+                                              }
+					else
+                                             {
+						elem->GetValue(IS_WATER_ELEMENT) = 1.0;
+                                              
+
+                                              }
 											
 				}
 				//detecting interface nodes
