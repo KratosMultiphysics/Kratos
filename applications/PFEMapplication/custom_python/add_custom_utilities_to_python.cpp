@@ -117,6 +117,10 @@ namespace Python
 		.def("ColourAirWaterElement",&PfemUtils::ColourAirWaterElement)
 		.def("AssignNearBoundaryH",&PfemUtils::AssignNearBoundaryH)
 		.def("MoveNodes",&PfemUtils::MoveNodes)
+		.def("AssignMeshVelocity",&PfemUtils::AssignMeshVelocity)
+                .def("ExactDtEstimate",&PfemUtils::ExactDtEstimate)
+                .def("CFLdeltaT",&PfemUtils::CFLdeltaT)
+						     
 		 ;
 	  
 	  class_<NormalToWallCalculationUtils>("NormalToWallCalculationUtils", init<>())
