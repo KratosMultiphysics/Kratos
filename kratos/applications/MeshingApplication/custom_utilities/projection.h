@@ -282,8 +282,9 @@ namespace Kratos
 		void DirectVariableInterpolation(
 			ModelPart& rOrigin_ModelPart , 
 			ModelPart& rDestination_ModelPart,
-			Variable<TDataType>& rVariable 
-			)
+			Variable<TDataType>& rOriginVariable ,
+			Variable<TDataType>& rDestinationVariable 
+		)
  		{
 
 			KRATOS_TRY
@@ -337,7 +338,7 @@ namespace Kratos
 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
 			{
 
-				ClearVariables(node_it, rVariable);			
+				ClearVariables(node_it, rDestinationVariable);			
 
 
 				//PointType::Pointer pnode(new PointType(*node_it));
@@ -437,8 +438,8 @@ namespace Kratos
 					//if the node falls inside the element interpolate
 					if(is_inside == true && is_visited != 1.0)
 					{//CANCELLA insert the variable TDim
-						//Interpolating all the rVariables of the rOrigin_ModelPart to get their nodal value in the rDestination_ModelPart
-						Interpolate(  el_it,  N, *it_found , rVariable );
+						//Interpolating all the rOriginVariables to get their nodal value in the rDestination_ModelPart
+						Interpolate(  el_it,  N, *it_found , rOriginVariable , rDestinationVariable  );
 						
 					}
 				}
@@ -761,7 +762,8 @@ namespace Kratos
 				ModelPart::ElementsContainerType::iterator el_it, 
 				const array_1d<double,3>& N, 
       				Node<3>::Pointer pnode,
-				Variable<array_1d<double,3> >& rVariable)
+				Variable<array_1d<double,3> >& rOriginVariable,
+				Variable<array_1d<double,3> >& rDestinationVariable)
 		{
 			//Geometry element of the rOrigin_ModelPart
 			Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -771,11 +773,11 @@ namespace Kratos
 			for(unsigned int step = 0; step<buffer_size; step++)
 			{
 				//getting the data of the solution step
-				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
+				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
 				//Reference or no reference???//CANCELLA
-				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
+				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
+				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
 					
 				//copying this data in the position of the vector we are interested in
 				for(unsigned int j= 0; j< TDim; j++)
@@ -792,7 +794,9 @@ namespace Kratos
 				ModelPart::ElementsContainerType::iterator el_it, 
 				const array_1d<double,4>& N, 
       				Node<3>::Pointer pnode,
-				Variable<array_1d<double,3> >& rVariable)
+				Variable<array_1d<double,3> >& rOriginVariable,
+				Variable<array_1d<double,3> >& rDestinationVariable)
+
 		{
 			//Geometry element of the rOrigin_ModelPart
 			Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -802,12 +806,12 @@ namespace Kratos
 			for(unsigned int step = 0; step<buffer_size; step++)
 			{
 				//getting the data of the solution step
-				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
+				array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
 				//Reference or no reference???//CANCELLA
-				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
-				const array_1d<double,3> node3_data = geom[3].FastGetSolutionStepValue(rVariable , step);
+				const array_1d<double,3> node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
+				const array_1d<double,3> node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
+				const array_1d<double,3> node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
+				const array_1d<double,3> node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable , step);
 
 				//copying this data in the position of the vector we are interested in
 				for(unsigned int j= 0; j< TDim; j++)
@@ -823,7 +827,8 @@ namespace Kratos
 				ModelPart::ElementsContainerType::iterator el_it, 
 				const array_1d<double,3>& N, 
       				Node<3>::Pointer pnode,
-				Variable<double>& rVariable)
+				Variable<double>& rOriginVariable,
+				Variable<double>& rDestinationVariable)
 		{
 			//Geometry element of the rOrigin_ModelPart
 			Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -833,11 +838,11 @@ namespace Kratos
 			for(unsigned int step = 0; step<buffer_size; step++)
 			{
 				//getting the data of the solution step
-				double& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
+				double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
 				//Reference or no reference???//CANCELLA
-				const double node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				const double node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				const double node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
+				const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
+				const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
+				const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
 					
 				//copying this data in the position of the vector we are interested in
 				
@@ -852,7 +857,8 @@ namespace Kratos
 				ModelPart::ElementsContainerType::iterator el_it, 
 				const array_1d<double,4>& N, 
       				Node<3>::Pointer pnode,
-				Variable<double>& rVariable)
+				Variable<double>& rOriginVariable,
+				Variable<double>& rDestinationVariable)
 		{
 			//Geometry element of the rOrigin_ModelPart
 			Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -862,12 +868,12 @@ namespace Kratos
 			for(unsigned int step = 0; step<buffer_size; step++)
 			{
 				//getting the data of the solution step
-				double& step_data = (pnode)->FastGetSolutionStepValue(rVariable , step);
+				double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
 				//Reference or no reference???//CANCELLA
-				const double node0_data = geom[0].FastGetSolutionStepValue(rVariable , step);
-				const double node1_data = geom[1].FastGetSolutionStepValue(rVariable , step);
-				const double node2_data = geom[2].FastGetSolutionStepValue(rVariable , step);
-				const double node3_data = geom[3].FastGetSolutionStepValue(rVariable , step);
+				const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
+				const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
+				const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable , step);
+				const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable , step);
 
 				//copying this data in the position of the vector we are interested in
 				
