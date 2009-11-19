@@ -133,7 +133,7 @@ while (time < tmax):
         elif(r < R):
             node.SetSolutionStepValue(DISTANCE,0,R-r)
 
-    Projection.DirectScalarVarInterpolation(pfem_model_part,fixed_model_part, DISTANCE);
+    Projection.DirectScalarVarInterpolation(pfem_model_part,fixed_model_part, DISTANCE, DISTANCE);
     BenchmarkCheck(time, fixed_model_part)  
 
     output = time - output_Dt_old
