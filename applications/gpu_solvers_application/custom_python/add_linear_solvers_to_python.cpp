@@ -106,7 +106,7 @@ namespace Python
                 .def(init<double, size_t, bool, size_t, size_t, size_t*, size_t*, bool>() )
                 ;
 	class_<GpuDiagonalPreconditionerType, bases<GPUPreconditionerType> >( "GPUDiagonalPreconditioner" )
-		.def(init<bool>() )
+		.def(init<>() )
 	        ;
 
 	class_<Kratos_AMGPreconditionerType, bases<AMGPreconditionerType> >( "KratosAMGPreconditioner" )
