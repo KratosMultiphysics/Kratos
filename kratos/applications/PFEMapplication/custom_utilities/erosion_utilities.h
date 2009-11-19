@@ -222,18 +222,24 @@ namespace Kratos
 // 				}
 // 			}
 // KRATOS_WATCH("is_free_erosionable_node");
-// KRATOS_WATCH(	"list of erosionable nodes *****************************************************************************")
+KRATOS_WATCH(	"list of erosionable nodes *****************************************************************************")
 
 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
 			{
+
 				//PointType::Pointer pnode(new PointType(*node_it));
  				Node<3>::Pointer pnode = *(node_it.base());
+if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0)
+{
+KRATOS_WATCH("IS_EROSIONABLE");
+KRATOS_WATCH(pnode->Id());
+}
 				if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0 && pnode->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0)
 				{//putting the surface nodes of the destination_model part in an auxiliary list
 					list_of_erosionable_nodes.push_back( pnode );
 					pnode->GetValue(IS_VISITED) = 3.0; //FREE SURFACE NODES
-// KRATOS_WATCH(pnode->Id());
+KRATOS_WATCH(pnode->Id());
 					WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
 					for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
 					{
@@ -241,7 +247,7 @@ namespace Kratos
 						{
 						    list_of_erosionable_nodes.push_back( Node<3>::Pointer( *(j.base() ) ) );
 						    j->GetValue(IS_VISITED) = 2.0;    //FIRST LAYER OF INTERIOR NODES
-// KRATOS_WATCH(j->Id());
+KRATOS_WATCH(j->Id());
 						}
 					}
 				}
@@ -357,7 +363,6 @@ namespace Kratos
 						double coeff = 0.25 * nu * dt * rhoVol;
 // KRATOS_WATCH(norm2_vcr)					    
 // KRATOS_WATCH(nu)
-// KRATOS_WATCH(density)
 // KRATOS_WATCH(dt)
 // KRATOS_WATCH(rhoVol)
 // KRATOS_WATCH(coeff)
@@ -380,11 +385,14 @@ namespace Kratos
 						    (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
 						}  
 // KRATOS_WATCH((*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) )
-						if( (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT)>= rCriticalEnergy)
+						double volumetric_parameter = (*it_found)->FastGetSolutionStepValue(NODAL_H);
+						for(unsigned int i = 0; i<TDim-1; i++)
+						      volumetric_parameter *= (*it_found)->FastGetSolutionStepValue(NODAL_H);
+						if( (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT)>=(rCriticalEnergy * volumetric_parameter))
 						{
 // KRATOS_WATCH(rCriticalEnergy )
 
-// KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
+// KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERG+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++Y")
 
 // KRATOS_WATCH((*it_found)->Id())
 						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
@@ -467,24 +475,24 @@ namespace Kratos
  		{
 			KRATOS_TRY
 			
-			for(ModelPart::NodesContainerType::iterator node_it = rModelPart.NodesBegin();
-						node_it != rModelPart.NodesEnd(); ++node_it)
-			{
-				//PointType::Pointer pnode(new PointType(*node_it));
- 				Node<3>::Pointer pnode = *(node_it.base());
-				if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0)
-				{
-					WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
-					for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
-					{
-					     if(j->FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
-					     {
-						  j->FastGetSolutionStepValue(IS_EROSIONABLE) = 1.0;					  
-					     } 
-					   
-					}
-				}
-			}
+// 			for(ModelPart::NodesContainerType::iterator node_it = rModelPart.NodesBegin();
+// 						node_it != rModelPart.NodesEnd(); ++node_it)
+// 			{
+// 				//PointType::Pointer pnode(new PointType(*node_it));
+//  				Node<3>::Pointer pnode = *(node_it.base());
+// 				if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0)
+// 				{
+// 					WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
+// 					for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
+// 					{
+// 					     if(j->FastGetSolutionStepValue(IS_FREE_SURFACE) == 1.0)
+// 					     {
+// 						  j->FastGetSolutionStepValue(IS_EROSIONABLE) = 1.0;					  
+// 					     } 
+// 					   
+// 					}
+// 				}
+// 			}
 			KRATOS_CATCH("")
 		}
 	
