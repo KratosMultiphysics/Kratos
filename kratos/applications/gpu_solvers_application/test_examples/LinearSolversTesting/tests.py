@@ -31,13 +31,13 @@ b = (pb).GetReference()
 
 
 
-#matrix_filename = "mat8.mm"
-matrix_filename = "A_0.01005_.mm"
+matrix_filename = "mat8.mm"
+#matrix_filename = "A_0.01005_.mm"
 ReadMatrixMarketMatrix(matrix_filename,A)
 print "finished reading matrix"
 
-#vector_filename = "vecb8.mm"
-vector_filename = "b_0.01005_.mm"
+vector_filename = "vecb8.mm"
+#vector_filename = "b_0.01005_.mm"
 ReadMatrixMarketVector(vector_filename,b)
 print "finished reading vector"
 
@@ -61,9 +61,9 @@ x = Vector(len(b))
 
 space_utils.SetToZeroVector(x)	
 
+print "GPU CG + SA-AMG"
 t1 = time.time()
 precond1 = KratosAMGPreconditioner(W, 2, True, 5, 1000, preSweeps, postSweeps, True)
-#precond = GPUDiagonalPreconditioner()
 linear_solver1 = GPUCGSolver(1e-9, 5000, precond1)
 linear_solver1.Solve(A, x, b)
 print linear_solver1
@@ -72,13 +72,25 @@ t2 = time.time()
 print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
 #linear_solver=0
 
-exit(0)
+
 space_utils.SetToZeroVector(x)	
 
+print "GPU CG + diag precond"
 t1 = time.time()
-#precond = KratosAMGPreconditioner(W, 2, True, 5, 100, preSweeps, postSweeps, True)
 precond2 = GPUDiagonalPreconditioner()
 linear_solver2 = GPUCGSolver(1e-9, 5000, precond2)
+linear_solver2.Solve(A, x, b)
+print linear_solver2
+print "\n\n"
+t2 = time.time()
+print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
+#linear_solver=0
+
+space_utils.SetToZeroVector(x)	
+
+print "GPU CG"
+t1 = time.time()
+linear_solver2 = GPUCGSolver(1e-9, 5000)
 linear_solver2.Solve(A, x, b)
 print linear_solver2
 print "\n\n"
@@ -89,9 +101,8 @@ print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
 
 space_utils.SetToZeroVector(x)	
 
+print "CPU CG + diag precond"
 t1 = time.time()
-#precond = KratosAMGPreconditioner(W, 2, True, 5, 100, preSweeps, postSweeps, True)
-#precond = GPUDiagonalPreconditioner()
 precond3 = DiagonalPreconditioner()
 linear_solver3 = CGSolver(1e-9, 5000, precond3)
 linear_solver3.Solve(A, x, b)
@@ -100,6 +111,44 @@ print "\n\n"
 t2 = time.time()
 print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
 #linear_solver3=0
+
+space_utils.SetToZeroVector(x)	
+
+print "GPU BICG + diag precond"
+t1 = time.time()
+precond2 = GPUDiagonalPreconditioner()
+linear_solver2 = GPUBICGSTABSolver(1e-9, 5000, precond2)
+linear_solver2.Solve(A, x, b)
+print linear_solver2
+print "\n\n"
+t2 = time.time()
+print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
+#linear_solver=0
+
+space_utils.SetToZeroVector(x)	
+
+print "GPU BICG"
+t1 = time.time()
+linear_solver2 = GPUBICGSTABSolver(1e-9, 5000)
+linear_solver2.Solve(A, x, b)
+print linear_solver2
+print "\n\n"
+t2 = time.time()
+print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
+#linear_solver=0
+
+space_utils.SetToZeroVector(x)	
+
+print "CPU BICG + diag precond"
+t1 = time.time()
+precond2 = DiagonalPreconditioner()
+linear_solver2 = BICGSTABSolver(1e-9, 5000, precond2)
+linear_solver2.Solve(A, x, b)
+print linear_solver2
+print "\n\n"
+t2 = time.time()
+print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
+#linear_solver=0
 	
 
 exit(0)
