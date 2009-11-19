@@ -159,6 +159,7 @@ bool GPUVector::CopyFromGPU(GPUVector &V)
 GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values, bool _NZMultiple16): NNZ(_NNZ), Size1(_Size1), Size2(_Size2), CPU_Columns(0), CPU_RowIndices(0), CPU_Values(0), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false)
 
 {
+	haveDenseRepresentation = false;
 
 	if (_NZMultiple16)
 	{
@@ -250,7 +251,7 @@ CPU_RowIndices = (size_t*)((size_t*)((double*) CSR_Data + NNZ) + NNZ);
 	}
 }
 
-GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2): NNZ(_NNZ), Size1(_Size1), Size2(_Size2), CPU_Columns(0), CPU_RowIndices(0), CPU_Values(0), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false)
+GPUCSRMatrix::GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2): NNZ(_NNZ), Size1(_Size1), Size2(_Size2), CPU_Columns(0), CPU_RowIndices(0), CPU_Values(0), GPU_Columns(0), GPU_RowIndices(0), GPU_Values(0), Allocated(false), haveDenseRepresentation(false)
 {
 	// Nothing to do!
 }
@@ -262,6 +263,8 @@ GPUCSRMatrix::~GPUCSRMatrix()
 
 	if (Allocated)
 		GPU_Free();
+	if (haveDenseRepresentation)
+		delete[] matAuxValues;
 }
 
 bool GPUCSRMatrix::GPU_Allocate()
@@ -366,13 +369,43 @@ bool GPUCSRMatrix::CopyFromGPU(GPUCSRMatrix &M, bool CopyStructure, bool CopyVal
 		return true;
 }
 
+bool GPUCSRMatrix::GenerateDenseRepresentation(bool FortranRep){
+	haveDenseRepresentation = true;
+	numValuesDenseRep = Size2 * Size1;
+	matAuxValues = new double[Size2 * Size1];
+	size_t pointer = 0;
+	size_t currentIndice = 0;
+	for(size_t i = 0; i < Size1; i++){
+		size_t nonZeros = CPU_RowIndices[i+1] - CPU_RowIndices[i];
+		//cout << "	!!!! " << nonZeros << ", and Size1 is " << Size1 << ", and Size2 is " << Size2 << endl;
+		for(size_t j = 0; j < Size2; j++){
+
+		    if(nonZeros > 0  && CPU_Columns[currentIndice] == j){
+			matAuxValues[pointer] = (double)CPU_Values[currentIndice];
+			currentIndice++;
+			nonZeros--;
+		    }else{
+			matAuxValues[pointer] = 0.0;
+		    }
+		    pointer++;
+		}
+		if(nonZeros != 0){
+			cout << "there are " << nonZeros << " values not represented in row " << i << endl;
+			cout << CPU_Columns[currentIndice] << endl;
+			exit(0);
+		}
+		
+	}
+	return true;
+}
+
 // Operations defined on GPUCSRMatrix and GPUVector
 
 //
-// CPU_MatrixVectorMultiply
+// CPUGPUCSRMatrixVectorMultiply
 // Matrix-Vector multiply on CPU
 
-bool CPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
+bool CPUGPUCSRMatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 {
 	// Primary checks
 	if (A.Size2 != X.Size || X.Size != Y.Size)
@@ -392,10 +425,10 @@ bool CPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 }
 
 //
-// GPU_MatrixVectorMultiply
+// GPUGPUCSRMatrixVectorMultiply
 // Matrix-Vector multiply on GPU
 
-bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
+bool GPUGPUCSRMatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 {
 	// Primary checks
 	if (A.Size2 != X.Size || X.Size != Y.Size || !X.Allocated || !Y.Allocated)
@@ -414,7 +447,7 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 	if (UseVectorizedVersion)
 	{
 		dim3 Grid = Build_Grid(A.Size1 *  HALF_WARP_SIZE, BLOCK_SIZE);
-		GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
+		GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
 
 		if (!GPUSparse::CUDA_Success(cudaGetLastError()))
 			return false;
@@ -424,7 +457,7 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 
 	{
 		dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
-		GPU_MatrixVectorMultiply_CSR_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
+		GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values, Y.GPU_Values);
 
 		if (!GPUSparse::CUDA_Success(cudaGetLastError()))
 			return false;
@@ -442,10 +475,10 @@ bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 }
 
 //
-// CPU_MatrixGetDiagonals
+// CPUGPUCSRMatrixGetDiagonals
 // Extract the diagonal elements of a matrix into a vector on CPU
 
-bool CPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
+bool CPUGPUCSRMatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
 {
 	// Primary checks
 	if (A.Size1 != A.Size2 || A.Size2 != X.Size)
@@ -464,17 +497,17 @@ bool CPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
 }
 
 //
-// GPU_MatrixGetDiagonals
+// GPUGPUCSRMatrixGetDiagonals
 // Extract the diagonal elements of a matrix into a vector on GPU
 
-bool GPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
+bool GPUGPUCSRMatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
 {
 	// Primary checks
 	if (A.Size1 != A.Size2 || A.Size2 != X.Size || !A.Allocated || !X.Allocated)
 		return false;
 
 	dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
-	GPU_MatrixGetDiagonals_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values);
+	GPUGPUCSRMatrixGetDiagonals_Kernel <<<Grid, BLOCK_SIZE>>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, X.GPU_Values);
 	if (!GPUSparse::CUDA_Success(cudaGetLastError()))
 		return false;
 
@@ -482,10 +515,10 @@ bool GPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X)
 }
 
 //
-// CPU_MatrixMatrixDiagonalMultiply
+// CPUGPUCSRMatrixMatrixDiagonalMultiply
 // Multiply a digonal matrix specified with a vector with a matrix on CPU
 
-bool CPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
+bool CPUGPUCSRMatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
 {
 	// Primary checks
 	if (X.Size != A.Size1)
@@ -503,17 +536,17 @@ bool CPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
 }
 
 //
-// GPU_MatrixMatrixDiagonalMultiply
+// GPUGPUCSRMatrixMatrixDiagonalMultiply
 // Multiply a digonal matrix specified with a vector with a matrix on GPU
 
-bool GPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
+bool GPUGPUCSRMatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
 {
 	// Primary checks
 	if (X.Size != A.Size1 || !X.Allocated || !A.Allocated)
 		return false;
 
 	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
-	GPU_MatrixMatrixDiagonalMultiply_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values);
+	GPUGPUCSRMatrixMatrixDiagonalMultiply_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values);
 	if (!GPUSparse::CUDA_Success(cudaGetLastError()))
 		return false;
 
@@ -521,10 +554,10 @@ bool GPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A)
 }
 
 //
-// CPU_VectorPrepareDiagonalPreconditionerValues
+// CPUGPUVectorPrepareDiagonalPreconditionerValues
 // Prepare diagonal values of the matrix for Diagonal Preconditioner on CPU
 
-bool CPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X)
+bool CPUGPUVectorPrepareDiagonalPreconditionerValues(GPUVector &X)
 {
 	for (size_t i = 0; i < X.Size; i++)
 		if (X.CPU_Values[i] == 0.00)
@@ -537,17 +570,17 @@ bool CPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X)
 }
 
 //
-// GPU_VectorPrepareDiagonalPreconditionerValues
+// GPUGPUVectorPrepareDiagonalPreconditionerValues
 // Prepare diagonal values of the matrix for Diagonal Preconditioner on GPU
 
-bool GPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X)
+bool GPUGPUVectorPrepareDiagonalPreconditionerValues(GPUVector &X)
 {
 	// Primary check
 	if (!X.Allocated)
 		return false;
 
 	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
-	GPU_VectorPrepareDiagonalPreconditionerValues_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values);
+	GPUGPUVectorPrepareDiagonalPreconditionerValues_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values);
 	if (!GPUSparse::CUDA_Success(cudaGetLastError()))
 		return false;
 
@@ -573,10 +606,10 @@ bool GPU_PrepareSPAIPreconditioner(GPUCSRMatrix &A, GPUCSRMatrix &M)
 }
 
 //
-// CPU_VectorVectorMultiply
+// CPUGPUVectorVectorMultiply
 // Vector-Vector multiply on CPU
 
-bool CPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
+bool CPUGPUVectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
 {
 	// Primary check
 	if (X.Size != Y.Size)
@@ -591,10 +624,10 @@ bool CPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
 }
 
 //
-// GPU_VectorVectorMultiply
+// GPUGPUVectorVectorMultiply
 // Vector-Vector multiply on GPU
 
-bool GPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
+bool GPUGPUVectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
 {
 	// Primary check
 	if (X.Size != Y.Size || !X.Allocated || !Y.Allocated)
@@ -606,10 +639,10 @@ bool GPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result)
 }
 
 //
-// CPU_VectorVectorMultiplyElementWise
+// CPUGPUVectorVectorMultiplyElementWise
 // Vector-Vector element-wise multiply on CPU
 
-bool CPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y,  GPUVector &Z)
+bool CPUGPUVectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y,  GPUVector &Z)
 {
 	// Primary check
 	if (X.Size != Y.Size || Y.Size != Z.Size)
@@ -622,10 +655,10 @@ bool CPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y,  GPUVector 
 }
 
 //
-// GPU_VectorVectorMultiplyElementWise
+// GPUGPUVectorVectorMultiplyElementWise
 // Vector-Vector element-wise multiply on GPU
 
-bool GPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &Z)
+bool GPUGPUVectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &Z)
 {
 	// Primary check
 	if (X.Size != Y.Size || Y.Size != Z.Size || !X.Allocated || !Y.Allocated || !Z.Allocated)
@@ -633,7 +666,7 @@ bool GPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &
 
 	dim3 Grid = Build_Grid(X.Size, BLOCK_SIZE);
 
-	GPU_VectorVectorMultiplyElementWise_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values, Y.GPU_Values, Z.GPU_Values);
+	GPUGPUVectorVectorMultiplyElementWise_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, X.GPU_Values, Y.GPU_Values, Z.GPU_Values);
 	if (!GPUSparse::CUDA_Success(cudaGetLastError()))
 		return false;
 
@@ -641,10 +674,10 @@ bool GPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &
 }
 
 //
-// CPU_VectorNorm2
+// CPUGPUVectorNorm2
 // Vector norm 2 on CPU
 
-bool CPU_VectorNorm2(GPUVector &X, double &Result)
+bool CPUGPUVectorNorm2(GPUVector &X, double &Result)
 {
 	Result = static_cast <double> (0);
 
@@ -657,10 +690,10 @@ bool CPU_VectorNorm2(GPUVector &X, double &Result)
 }
 
 //
-// GPU_VectorNorm2
+// GPUGPUVectorNorm2
 // Vector norm 2 on GPU
 
-bool GPU_VectorNorm2(GPUVector &X, double &Result)
+bool GPUGPUVectorNorm2(GPUVector &X, double &Result)
 {
 	// Primary check
 	if (!X.Allocated)
@@ -672,12 +705,12 @@ bool GPU_VectorNorm2(GPUVector &X, double &Result)
 }
 
 //
-// CPU_VectorScaleAndAdd
+// CPUGPUVectorScaleAndAdd
 // Vector scale-and-add on CPU
 
 // Variant 1: Z = A * X + B * Y
 
-bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
+bool CPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
 {
 	// Primary check
 	if (X.Size != Y.Size || Y.Size != Z.Size)
@@ -691,7 +724,7 @@ bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVe
 
 // Variant 2: Y = A * X + B * Y
 
-bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
+bool CPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
 {
 	// Primary check
 	if (X.Size != Y.Size)
@@ -704,12 +737,12 @@ bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
 }
 
 //
-// GPU_VectorScaleAndAdd
+// GPUGPUVectorScaleAndAdd
 // Vector scale-and-add on GPU
 
 // Variant 1: Z = A * X + B * Y
 
-bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
+bool GPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
 {
 	// Primary check
 	if (X.Size != Y.Size || Y.Size != Z.Size || !X.Allocated || !Y.Allocated || !Z.Allocated)
@@ -721,39 +754,39 @@ bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVe
 	{
 	//printf("A = 1.0\n");
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_1_A_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_A_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_1_B_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_B_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 
 		else
-			GPU_VectorScaleAndAdd_1_E_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_E_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 	}
 
 	else if (A == -1.00)
 	{
 	//printf("A = -1.0\n");
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_1_C_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_C_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_1_D_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_D_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 
 		else
-			GPU_VectorScaleAndAdd_1_F_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_F_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 	}
 
 	else
 	{
 	//printf("B = 1.0\n");
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_1_G_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_G_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_1_H_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_H_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 
 		else
-			GPU_VectorScaleAndAdd_1_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 	}
 
 	if (!GPUSparse::CUDA_Success(cudaGetLastError()))
@@ -764,7 +797,7 @@ bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVe
 
 // Variant 2: Y = A * X + B * Y
 
-bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
+bool GPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
 {
 	// Primary check
 	if (X.Size != Y.Size || !X.Allocated || !Y.Allocated)
@@ -775,37 +808,37 @@ bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y)
 	if (A == 1.00)
 	{
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_2_A_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_A_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_2_B_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_B_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 
 		else
-			GPU_VectorScaleAndAdd_2_E_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_E_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 	}
 
 	else if (A == -1.00)
 	{
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_2_C_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_C_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_2_D_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_D_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 
 		else
-			GPU_VectorScaleAndAdd_2_F_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_F_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 	}
 
 	else
 	{
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_2_G_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_G_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_2_H_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_H_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 
 		else
-			GPU_VectorScaleAndAdd_2_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
+			GPUGPUVectorScaleAndAdd_2_Kernel <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values);
 	}
 
 	if (!GPUSparse::CUDA_Success(cudaGetLastError()))
@@ -827,7 +860,7 @@ void GPU_fillWithZeros(size_t numElems, double* gpuVec){
 	fillWithZeros <<< grid, BLOCK_SIZE >>> (gpuVec, numElems);
 }
 
-bool GPU_VectorScaleAndAdd_addingVersion(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
+bool GPUGPUVectorScaleAndAdd_addingVersion(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z)
 {
 	// Primary check
 	if (X.Size != Y.Size || Y.Size != Z.Size || !X.Allocated || !Y.Allocated || !Z.Allocated){
@@ -841,40 +874,40 @@ bool GPU_VectorScaleAndAdd_addingVersion(double A, GPUVector &X, double B, GPUVe
 	{
 	//printf("A = 1.0\n");
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_1_A_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_A_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 
 			
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_1_B_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_B_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 				
 		else
-			GPU_VectorScaleAndAdd_1_E_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_E_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 	}
 	
 	else if (A == -1.00)
 	{
 	//printf("A = -1.0\n");
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_1_C_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_C_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 			
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_1_D_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_D_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 			
 		else
-			GPU_VectorScaleAndAdd_1_F_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_F_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 	}
 	
 	else
 	{
 	//printf("B = 1.0\n");
 		if (B == 1.00)
-			GPU_VectorScaleAndAdd_1_G_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_G_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 			
 		else if (B == -1.00)
-			GPU_VectorScaleAndAdd_1_H_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_H_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 			
 		else
-			GPU_VectorScaleAndAdd_1_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
+			GPUGPUVectorScaleAndAdd_1_Kernel_addingVersion <<<Grid, BLOCK_SIZE>>> (X.Size, A, X.GPU_Values, B, Y.GPU_Values, Z.GPU_Values);
 	}
 	return GPUSparse::CUDA_Success(cudaThreadSynchronize());
 	
@@ -882,6 +915,11 @@ bool GPU_VectorScaleAndAdd_addingVersion(double A, GPUVector &X, double B, GPUVe
 
 /** temp variables for LU decomposition **/
 LaVectorLongInt ipiv;
+typedef struct{
+    size_t Size;
+    double* CPU_Values;
+    double* GPU_Values;
+}_Vector;
 
 /** functions from scipy for mat-mat calculation **/
 template <class I>
@@ -992,37 +1030,42 @@ void csr_matmat_pass2(const I n_row,
 
 /** maxLevels define the maxLevels of that execution
 	G defines the diagonals of each lvl of A, created on previous step**/
-void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, _Vector& u,
+void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRMatrix**& G, GPUVector& b, GPUVector& u,
 			unsigned short lvl, unsigned short maxLevels, size_t* preSweeps, size_t* postSweeps, bool assumeZeros)
 {
-    bool vectorized = (A[lvl].numNNZ / A[lvl].numCols) > 10;
-    _Vector r;
+    bool vectorized = (A[lvl]->NNZ / A[lvl]->Size2) > 10;
+
     //calculateInstantVector(u, b, A[lvl], G[lvl]);
     if(lvl < maxLevels){
+
+	double* vecR = new double[R[lvl]->Size1];
+    	GPUVector r(R[lvl]->Size1, vecR);
+	r.GPU_Allocate();
+	
 	//clock_t t1 = clock();
         if(assumeZeros) //we receive from the upper level a zero start vector
         {
             if(preSweeps[lvl] != 0)
             {
                 //first iteration (does not require computation of residual
-                dim3 Grid = Build_Grid(A[lvl].numRows, BLOCK_SIZE);
-                GPU_MatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G[lvl].numRows, G[lvl].indices_gpu,
-		    G[lvl].ptr_gpu, G[lvl].values_gpu, b.values_gpu, u.values_gpu);
+                dim3 Grid = Build_Grid(A[lvl]->Size1, BLOCK_SIZE);
+                GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G[lvl]->Size1, G[lvl]->GPU_Columns,
+		    G[lvl]->GPU_RowIndices, G[lvl]->GPU_Values, b.GPU_Values, u.GPU_Values);
                 if(!CUDA_Success(cudaThreadSynchronize())){
                     cout << "Error en linea 130" << endl;
                 }
                 //from the second sweel on we need to recompute the residual
                 for(size_t i = 1; i < preSweeps[lvl]; i++){
 		    if(!vectorized)
-			calculateInstantVector(u, b, A[lvl], G[lvl]);
+			calculateInstantVector(u, b, *A[lvl], *G[lvl]);
 		    else
-			calculateInstantVector_vectorized(u, b, A[lvl], G[lvl]);
+			calculateInstantVectorGPUVectorized(u, b, *A[lvl], *G[lvl]);
 		}
 
                 if(!vectorized)
-                    generateResidual(R[lvl], b, A[lvl], u, r);
+                    generateResidual(*R[lvl], b, *A[lvl], u, r);
                 else
-                    generateResidual_vectorized(R[lvl], b, A[lvl], u, r);
+                    generateResidualGPUVectorized(*R[lvl], b, *A[lvl], u, r);
 
 
             }
@@ -1030,9 +1073,9 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
             {
                 //inefficient! -- in this case we do not need to recompute the residual
                 if(!vectorized)
-                    generateResidual(R[lvl], b, A[lvl], u, r);
+                    generateResidual(*R[lvl], b, *A[lvl], u, r);
                 else
-                    generateResidual_vectorized(R[lvl], b, A[lvl], u, r);
+                    generateResidualGPUVectorized(*R[lvl], b, *A[lvl], u, r);
 
             }
         }
@@ -1041,73 +1084,73 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
           //from the second sweel on we need to recompute the residual
                 for(size_t i = 0; i < preSweeps[lvl]; i++){
 		    if(!vectorized)
-			calculateInstantVector(u, b, A[lvl], G[lvl]);
+			calculateInstantVector(u, b, *A[lvl], *G[lvl]);
 		    else
-			calculateInstantVector_vectorized(u, b, A[lvl], G[lvl]);
+			calculateInstantVectorGPUVectorized(u, b, *A[lvl], *G[lvl]);
 		}
 
 
                 if(!vectorized)
-                    generateResidual(R[lvl], b, A[lvl], u, r);
+                    generateResidual(*R[lvl], b, *A[lvl], u, r);
                 else
-                    generateResidual_vectorized(R[lvl], b, A[lvl], u, r);
+                    generateResidualGPUVectorized(*R[lvl], b, *A[lvl], u, r);
         }
-        _Vector v;
-        v.numElems = r.numElems;
-        v.values_cpu = new double[v.numElems];
-        malloc_(v.values_gpu, v.numElems);
-        dim3 Grid = Build_Grid(v.numElems, BLOCK_SIZE);
-        fillWithZeros <<< Grid, BLOCK_SIZE >>>(v.values_gpu, v.numElems);
+	double *vecV = new double[r.Size];
+        GPUVector v(r.Size, vecV);
+        v.GPU_Allocate();
+        dim3 Grid = Build_Grid(v.Size, BLOCK_SIZE);
+        fillWithZeros <<< Grid, BLOCK_SIZE >>>(v.GPU_Values, v.Size);
         if(!CUDA_Success(cudaThreadSynchronize())){
                 cout << "Error en linea 160" << endl;
         }
 
         multilevel(A, P, R, G, r, v, lvl+1, maxLevels, preSweeps, postSweeps, assumeZeros);
 
-        _Vector pv;
-        pv.numElems = P[lvl].numRows;
-        // malloc de pv.values_gpu
-        malloc_(pv.values_gpu, pv.numElems);
-        Grid = Build_Grid(pv.numElems, BLOCK_SIZE);
+        GPUVector pv(P[lvl]->Size1);
+	pv.GPU_Allocate();
+        Grid = Build_Grid(pv.Size, BLOCK_SIZE);
         // here product matrix P with vector v
-        GPU_MatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(P[lvl].numRows,
-                P[lvl].indices_gpu, P[lvl].ptr_gpu, P[lvl].values_gpu, v.values_gpu, pv.values_gpu);
+        GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(P[lvl]->Size1,
+                P[lvl]->GPU_Columns, P[lvl]->GPU_RowIndices, P[lvl]->GPU_Values, v.GPU_Values, pv.GPU_Values);
         if(!CUDA_Success(cudaThreadSynchronize())){
             cout << "Error en linea 173" << endl;
         }
         // here the addition of pv to u
-        Grid = Build_Grid(u.numElems, BLOCK_SIZE);
-        sumVectorVector <<< Grid, BLOCK_SIZE >>> (pv.values_gpu, u.values_gpu, u.numElems);
+        Grid = Build_Grid(u.Size, BLOCK_SIZE);
+        sumVectorVector <<< Grid, BLOCK_SIZE >>> (pv.GPU_Values, u.GPU_Values, u.Size);
         if(!CUDA_Success(cudaThreadSynchronize())){
             cout << "Error en linea 180" << endl;
         }
         //delete de pv, v i r
-        CUDA_CHECK(cudaFree(pv.values_gpu));
-        CUDA_CHECK(cudaFree(v.values_gpu));
-        CUDA_CHECK(cudaFree(r.values_gpu));
-        delete[] r.values_cpu;
-        delete[] v.values_cpu;
+        delete[] vecV;
+        delete[] vecR;
 
         //double norm2 = checkResidual(u, b, A[lvl]);
 
 	for(size_t i = 0; i < postSweeps[lvl]; i++){
 	    if(!vectorized)
-		calculateInstantVector(u, b, A[lvl], G[lvl]);
+		calculateInstantVector(u, b, *A[lvl], *G[lvl]);
 	    else
-		calculateInstantVector_vectorized(u, b, A[lvl], G[lvl]);
+		calculateInstantVectorGPUVectorized(u, b, *A[lvl], *G[lvl]);
 	}
 
     }else{
 	//clock_t t1 = clock();
         //here lapack direct solver
 
-        copyMem(u.values_gpu, u.values_cpu, u.numElems, 1);
-        copyMem(b.values_gpu, b.values_cpu, b.numElems, 1);
+	u.Copy(GPU_CPU);
+	b.Copy(GPU_CPU);
 
+/*        copyMem(u.GPU_Values, u.CPU_Values, u.Size, 1);
+        copyMem(b.GPU_Values, b.CPU_Values, b.Size, 1);*/
 
-        LaGenMatDouble _A(A[lvl].matAuxValues, A[lvl].numRows, A[lvl].numCols);
-        LaGenMatDouble _b(b.values_cpu, b.numElems, 1);
-        LaGenMatDouble _x(u.values_cpu, u.numElems, 1);
+/*	cout << "Size1 " << A[lvl]->Size1 << ", Size2 " << A[lvl]->Size2 << endl;
+	cout << "u " << u.Size << endl;
+	cout << "b " << b.Size << endl;*/
+        LaGenMatDouble _A(A[lvl]->matAuxValues, A[lvl]->Size1, A[lvl]->Size2);
+        LaGenMatDouble _b(b.CPU_Values, b.Size, 1);
+        LaGenMatDouble _x(u.CPU_Values, u.Size, 1);
+//	LaLinearSolve( _A, _x, _b );
 
     	_x.inject(_b);            // will throw exception if not conformant
 
@@ -1122,7 +1165,8 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
 
 	//int res = clapack_dgetrs(CblasRowMajor, CblasNoTrans, &Ml, &K, &_A(0,0), &lda, &ipiv(0), &_x(0,0), &ldx);
 	//std::cout << "Problem with lapack, num " << res << std:endl;
-	copyMem(u.values_cpu, u.values_gpu, u.numElems, 0);
+	//copyMem(u.CPU_Values, u.GPU_Values, u.Size, 0);
+	u.Copy(CPU_GPU);
 
 	//clock_t t2 = clock();
 	//cout << "Lower lvl timing " << double(t2-t1) / CLOCKS_PER_SEC << "s" << endl;
@@ -1130,162 +1174,137 @@ void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, 
 
 }
 /** This function is a wrapper for u += G ( A, b, u) **/
-void calculateInstantVector(_Vector& u, const _Vector& b, const _Matrix& A, const _Matrix& G)
+void calculateInstantVector(GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const GPUCSRMatrix& G)
 {
-    /** Au **/
-    _Vector auxAU;
-    auxAU.numElems = A.numRows;
-    malloc_(auxAU.values_gpu, auxAU.numElems);
-    dim3 Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    GPU_MatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.numRows, A.indices_gpu,
-            A.ptr_gpu, A.values_gpu, u.values_gpu, auxAU.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 238" << endl;
-    }
+		/** Au **/
+	GPUVector auxAU(A.Size1);
+	auxAU.GPU_Allocate();
+	dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
+	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 238" << endl;
+	}
 
-    /** b - AU **/
-    _Vector auxABU;
-    auxABU.numElems = auxAU.numElems;
-    malloc_(auxABU.values_gpu, auxABU.numElems);
-    Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    subVectorVector <<< Grid, BLOCK_SIZE >>>(b.values_gpu, auxAU.values_gpu, auxABU.values_gpu, auxABU.numElems);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 249" << endl;
-    }
-    /** u += G ( b - Au ) **/
-    Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    GPU_MatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G.numRows, G.indices_gpu,
-            G.ptr_gpu, G.values_gpu, auxABU.values_gpu, u.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 255" << endl;
-    }
-    //deleting structures
-    CUDA_CHECK(cudaFree(auxABU.values_gpu));
-    CUDA_CHECK(cudaFree(auxAU.values_gpu));
+		/** b - AU **/
+	GPUVector auxABU(A.Size1);
+	auxABU.GPU_Allocate();
+	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values, auxABU.GPU_Values, auxABU.Size);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 249" << endl;
+	}
+		/** u += G ( b - Au ) **/
+	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G.Size1, G.GPU_Columns,
+	    G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 255" << endl;
+	}
+	//deleting structures
 
 }
-void calculateInstantVector_vectorized(_Vector& u, const _Vector& b, const _Matrix& A, const _Matrix& G)
+void calculateInstantVectorGPUVectorized(GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const GPUCSRMatrix& G)
 {
-    /** Au **/
-    _Vector auxAU;
-    auxAU.numElems = A.numRows;
-    malloc_(auxAU.values_gpu, auxAU.numElems);
-    dim3 Grid = Build_Grid(A.numRows * HWS, BS);
-    GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel <<< Grid, BS >>>(A.numRows, A.indices_gpu,
-            A.ptr_gpu, A.values_gpu, u.values_gpu, auxAU.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 272" << endl;
-    }
-    /** b - AU **/
-    _Vector auxABU;
-    auxABU.numElems = auxAU.numElems;
-    malloc_(auxABU.values_gpu, auxABU.numElems);
-    Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    subVectorVector <<< Grid, BLOCK_SIZE >>>(b.values_gpu, auxAU.values_gpu, auxABU.values_gpu, auxABU.numElems);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 282" << endl;
-    }
-    /** u += G ( b - Au ) **/
-    Grid = Build_Grid(A.numRows, BS);
-    GPU_MatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BS >>>(G.numRows, G.indices_gpu,
-            G.ptr_gpu, G.values_gpu, auxABU.values_gpu, u.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 288" << endl;
-    }
-    //deleting structures
-    CUDA_CHECK(cudaFree(auxABU.values_gpu));
-    CUDA_CHECK(cudaFree(auxAU.values_gpu));
+		/** Au **/
+	GPUVector auxAU(A.Size1);
+	auxAU.GPU_Allocate();
+	dim3 Grid = Build_Grid(A.Size1 * HWS, BS);
+	GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel <<< Grid, BS >>>(A.Size1, A.GPU_Columns,
+	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 272" << endl;
+	}
+		/** b - AU **/
+	GPUVector auxABU(A.Size1);
+	auxABU.GPU_Allocate();
+	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values, auxABU.GPU_Values, auxABU.Size);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 282" << endl;
+	}
+		/** u += G ( b - Au ) **/
+	Grid = Build_Grid(A.Size1, BS);
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BS >>>(G.Size1, G.GPU_Columns,
+	    G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+		cout << "Error en linea 288" << endl;
+	}
+	//deleting structures
 
 }
 
-void generateResidual(const _Matrix& R, const _Vector& b, const _Matrix& A, const _Vector& u, _Vector& r){
-    /** Au **/
-    _Vector auxAU;
-    auxAU.numElems = A.numRows;
-    malloc_(auxAU.values_gpu, auxAU.numElems);
-    dim3 Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    GPU_MatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.numRows, A.indices_gpu,
-            A.ptr_gpu, A.values_gpu, u.values_gpu, auxAU.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 305" << endl;
-    }
-    /** b - AU **/
-    _Vector auxABU;
-    auxABU.numElems = auxAU.numElems;
-    malloc_(auxABU.values_gpu, auxABU.numElems);
-    Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    subVectorVector <<< Grid, BLOCK_SIZE >>>(b.values_gpu, auxAU.values_gpu,
-            auxABU.values_gpu, auxABU.numElems);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 315" << endl;
-    }
-    /** r = R ( b - Au ) **/
-    r.numElems = R.numRows;
-    malloc_(r.values_gpu, r.numElems);
-    r.values_cpu = new double[r.numElems];
-    Grid = Build_Grid(R.numRows, BLOCK_SIZE);
-    GPU_MatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(R.numRows, R.indices_gpu,
-            R.ptr_gpu, R.values_gpu, auxABU.values_gpu, r.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 325" << endl;
-    }
+void generateResidual(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMatrix& A, const GPUVector& u, GPUVector& r){
+		/** Au **/
+	GPUVector auxAU(A.Size1);
+	auxAU.GPU_Allocate();
+	dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
+	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+		cout << "Error en linea 305" << endl;
+	}
+		/** b - AU **/
+	GPUVector auxABU(A.Size1);
+	auxABU.GPU_Allocate();
+	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values,
+	    auxABU.GPU_Values, auxABU.Size);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+		cout << "Error en linea 315" << endl;
+	}
+		/** r = R ( b - Au ) **/
+	Grid = Build_Grid(R.Size1, BLOCK_SIZE);
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(R.Size1, R.GPU_Columns,
+	    R.GPU_RowIndices, R.GPU_Values, auxABU.GPU_Values, r.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+		cout << "Error en linea 325" << endl;
+	}
     //deleting structures
-    CUDA_CHECK(cudaFree(auxABU.values_gpu));
-    CUDA_CHECK(cudaFree(auxAU.values_gpu));
+
 }
-void generateResidual_vectorized(const _Matrix& R, const _Vector& b, const _Matrix& A, const _Vector& u, _Vector& r){
-    /** Au **/
-    _Vector auxAU;
-    auxAU.numElems = A.numRows;
-    malloc_(auxAU.values_gpu, auxAU.numElems);
-    dim3 Grid = Build_Grid(A.numRows * HWS, BS);
-    GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel <<< Grid, BS >>>(A.numRows, A.indices_gpu,
-            A.ptr_gpu, A.values_gpu, u.values_gpu, auxAU.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 340" << endl;
-    }
-    /** b - AU **/
-    _Vector auxABU;
-    auxABU.numElems = auxAU.numElems;
-    malloc_(auxABU.values_gpu, auxABU.numElems);
-    Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    subVectorVector <<< Grid, BLOCK_SIZE >>>(b.values_gpu, auxAU.values_gpu,
-            auxABU.values_gpu, auxABU.numElems);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 350" << endl;
-    }
-    /** r = R ( b - Au ) **/
-    r.numElems = R.numRows;
-    malloc_(r.values_gpu, r.numElems);
-    r.values_cpu = new double[r.numElems];
-    Grid = Build_Grid(R.numRows *  HWS, BS);
-    GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel <<< Grid, BS >>>(R.numRows, R.indices_gpu,
-            R.ptr_gpu, R.values_gpu, auxABU.values_gpu, r.values_gpu);
-    if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 360" << endl;
-    }
-    //deleting structures
-    CUDA_CHECK(cudaFree(auxABU.values_gpu));
-    CUDA_CHECK(cudaFree(auxAU.values_gpu));
+void generateResidualGPUVectorized(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMatrix& A, const GPUVector& u, GPUVector& r){
+		/** Au **/
+		GPUVector auxAU(A.Size1);
+	auxAU.GPU_Allocate();
+	dim3 Grid = Build_Grid(A.Size1 * HWS, BS);
+	GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel <<< Grid, BS >>>(A.Size1, A.GPU_Columns,
+	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 340" << endl;
+	}
+		/** b - AU **/
+	GPUVector auxABU(A.Size1);
+	auxABU.GPU_Allocate();
+	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values,
+	    auxABU.GPU_Values, auxABU.Size);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 350" << endl;
+	}
+		/** r = R ( b - Au ) **/
+	Grid = Build_Grid(R.Size1 *  HWS, BS);
+	GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel <<< Grid, BS >>>(R.Size1, R.GPU_Columns,
+	    R.GPU_RowIndices, R.GPU_Values, auxABU.GPU_Values, r.GPU_Values);
+	if(!CUDA_Success(cudaThreadSynchronize())){
+	cout << "Error en linea 360" << endl;
+	}
+	//deleting structures
+
 }
 
 /** This function will return the hierarchy reconstructed of A and b;
     Additionally return the number of real hierarchy levels.
     All matrices and vectors are returned as GPU structures**/
-size_t generateHierarchy(_Matrix*& Matrices, _Matrix*& Pmat, _Matrix*& Qmat,
-        _Matrix*& Gmat, double W, size_t numLevelsRoh, size_t max_levels, size_t min_system_size)
+size_t generateHierarchy(GPUCSRMatrix**& Matrices, GPUCSRMatrix**& Pmat, GPUCSRMatrix**& Qmat,
+        GPUCSRMatrix**& Gmat, double W, size_t numLevelsRoh, size_t max_levels, size_t min_system_size)
 {
     size_t i = 0;
     for(i = 0; i < max_levels; i++){
         /** This condition controls MAX_SYSTEM_SIZE for the last matrix in hierarchy **/
-        if(Matrices[i].numRows < min_system_size || i == max_levels-1){
-/*		cout << "BEFORE" << endl;
-		for(size_t j = 0; j < Matrices[i].numNNZ; j++){
-			cout << Matrices[i].values_cpu[j] << " ";
-		}
-		cout << endl << endl;*/
-            computeDenseMatrix(Matrices[i], Matrices[i].matAuxValues);
-            LaGenMatDouble A(Matrices[i].matAuxValues, Matrices[i].numRows, Matrices[i].numCols);
+        if(Matrices[i]->Size1 < min_system_size || i == max_levels-1){
+	    Matrices[i]->GenerateDenseRepresentation();
+            LaGenMatDouble A(Matrices[i]->matAuxValues, Matrices[i]->Size1, Matrices[i]->Size2);
 
             int M = A.size(0);
             integer Ml = M;
@@ -1305,317 +1324,285 @@ size_t generateHierarchy(_Matrix*& Matrices, _Matrix*& Pmat, _Matrix*& Qmat,
             F77NAME(dgetrf) (&Ml, &Ml, &A(0,0), &lda, &ipiv(0), &info);
 
 		
-	    if( i > 0 ){ //A matrix is not the first one in hierarchy
-		    if(Matrices[i].ptr_cpu != NULL) delete[] Matrices[i].indices_cpu;
-		    if(Matrices[i].values_cpu != NULL) delete[] Matrices[i].values_cpu;
-		    if(Matrices[i].indices_cpu != NULL) delete[] Matrices[i].ptr_cpu;
-	    }
-            Matrices[i].numValuesDenseRep = A.inc(0) * A.gdim(0);
-/*		cout << "AFTER" << endl;
-		for(size_t j = 0; j < Matrices[i].numValuesDenseRep; j++){
-			cout << Matrices[i].matAuxValues[j] << " ";
-		}
-		cout << endl << endl;
-		exit(1);*/
+/*	    if( i > 0 ){ //A matrix is not the first one in hierarchy
+		    if(Matrices[i].CPU_RowIndices != NULL) delete[] Matrices[i].CPU_Columns;
+		    if(Matrices[i].CPU_Values != NULL) delete[] Matrices[i].CPU_Values;
+		    if(Matrices[i].CPU_Columns != NULL) delete[] Matrices[i].CPU_RowIndices;
+	    }*/
+            Matrices[i]->numValuesDenseRep = A.inc(0) * A.gdim(0);
+
             break;
         }
-        _Matrix newDiag;
-        _Vector diag;
-        clock_t t1 = clock();
-        createDiagonal_vCPU(Matrices[i], newDiag, diag);
-        clock_t t2 = clock();
-        Gmat[i] = newDiag;
-        /** Generating P and Q for the current A level **/
-        _Matrix P = generateP_vCPU(Matrices[i], diag, W, numLevelsRoh);
-        clock_t t3 = clock();
-        _Matrix Q = generateQ(P);
-        clock_t t4 = clock();
-        Pmat[i] = P;
-        Qmat[i] = Q;
 
-        //CUDA_CHECK(cudaFree(diag.values_gpu));
-	delete[] diag.values_cpu;
+	double *values, *values_2;
+	size_t *ptr, *indices, *ptr_2, *indices_2;
+	size_t NNZ, NNZ_2, Size1, Size2;
+	double *vecDiag;
+        createDiagonal_vCPU(*Matrices[i], NNZ, Size1, Size2, indices, ptr, values, vecDiag);
+        GPUVector diag(Matrices[i]->Size1, vecDiag);
+	Gmat[i] = new GPUCSRMatrix(NNZ, Size1, Size2, indices, ptr, values, false);
+	Gmat[i]->GPU_Allocate();
+	Gmat[i]->Copy(CPU_GPU, false);
+	delete[] values;
+	delete[] ptr;
+	delete[] indices;
+	
+        /** Generating P and Q for the current A level **/
+	
+        generateP_vCPU(*Matrices[i], diag, W, numLevelsRoh, NNZ, Size1, Size2, indices, ptr, values);
+	Pmat[i] = new GPUCSRMatrix(NNZ, Size1, Size2, indices, ptr, values, false);
+	Pmat[i]->GPU_Allocate();
+	Pmat[i]->Copy(CPU_GPU, false);
+	delete[] values;
+	delete[] ptr;
+	delete[] indices;
+        generateQ(*Pmat[i], NNZ, Size1, Size2, indices, ptr, values);
+        Qmat[i] = new GPUCSRMatrix(NNZ, Size1, Size2, indices, ptr, values, false);
+	Qmat[i]->GPU_Allocate();
+	Qmat[i]->Copy(CPU_GPU, false);
+	delete[] values;
+	delete[] ptr;
+	delete[] indices;
+        //CUDA_CHECK(cudaFree(diag.GPU_Values));
+	delete[] diag.CPU_Values;
 
         /** Allocating result matrix, and partialResult matrix **/
-        _Matrix matResult, matPartialResult;
 
-        matPartialResult.numRows = Q.numRows;
-        matPartialResult.numCols = Matrices[i].numCols;
-        matPartialResult.ptr_cpu = new size_t[matPartialResult.numRows+1];
+	//R * A = AUX
+	ptr = new size_t[Qmat[i]->Size1+1];
 
-        csr_matmat_pass1(Q.numRows,
-                      Matrices[i].numCols,
-                      Q.ptr_cpu,
-                      Q.indices_cpu,
-                      Matrices[i].ptr_cpu,
-                      Matrices[i].indices_cpu,
-                            matPartialResult.ptr_cpu);
-        matPartialResult.numNNZ = matPartialResult.ptr_cpu[matPartialResult.numRows];
-        matPartialResult.indices_cpu = new size_t[matPartialResult.numNNZ];
-        matPartialResult.values_cpu = new double[matPartialResult.numNNZ];
-        csr_matmat_pass2(Q.numRows,
-      	              Matrices[i].numCols,
-      	              Q.ptr_cpu,
-                      Q.indices_cpu,
-      	              Q.values_cpu,
-      	              Matrices[i].ptr_cpu,
-                      Matrices[i].indices_cpu,
-      	              Matrices[i].values_cpu,
-      	                    matPartialResult.ptr_cpu,
-      	                    matPartialResult.indices_cpu,
-                            matPartialResult.values_cpu);
-        matPartialResult.numNNZ = matPartialResult.ptr_cpu[matPartialResult.numRows];
+        csr_matmat_pass1(Qmat[i]->Size1,
+                      Matrices[i]->Size2,
+                      Qmat[i]->CPU_RowIndices,
+                      Qmat[i]->CPU_Columns,
+                      Matrices[i]->CPU_RowIndices,
+                      Matrices[i]->CPU_Columns,
+                            ptr);
+        NNZ = ptr[Qmat[i]->Size1];
+        indices = new size_t[NNZ];
+        values = new double[NNZ];
+        csr_matmat_pass2(Qmat[i]->Size1,
+      	              Matrices[i]->Size2,
+      	              Qmat[i]->CPU_RowIndices,
+                      Qmat[i]->CPU_Columns,
+      	              Qmat[i]->CPU_Values,
+      	              Matrices[i]->CPU_RowIndices,
+                      Matrices[i]->CPU_Columns,
+      	              Matrices[i]->CPU_Values,
+      	                    ptr,
+      	                    indices,
+                            values);
+        NNZ = ptr[Qmat[i]->Size1];
+	//newA = AUX * P
+        ptr_2 = new size_t[Qmat[i]->Size1+1];
+        csr_matmat_pass1(Qmat[i]->Size1,
+                      Pmat[i]->Size2,
+                      ptr,
+                      indices,
+                      Pmat[i]->CPU_RowIndices,
+                      Pmat[i]->CPU_Columns,
+                            ptr_2);
+        NNZ_2 = ptr_2[Qmat[i]->Size1];
+        indices_2 = new size_t[NNZ_2];
+        values_2 = new double[NNZ_2];
+        csr_matmat_pass2(Qmat[i]->Size1,
+                      Pmat[i]->Size2,
+                      ptr,
+                      indices,
+      	              values,
+      	              Pmat[i]->CPU_RowIndices,
+                      Pmat[i]->CPU_Columns,
+      	              Pmat[i]->CPU_Values,
+      	                    ptr_2,
+      	                    indices_2,
+      	                    values_2);
+        NNZ_2 = ptr_2[Qmat[i]->Size1];
 
-        matResult.numRows = matPartialResult.numRows;
-        matResult.numCols = P.numCols;
-        matResult.ptr_cpu = new size_t[matResult.numRows+1];
-        csr_matmat_pass1(matPartialResult.numRows,
-                      P.numCols,
-                      matPartialResult.ptr_cpu,
-                      matPartialResult.indices_cpu,
-                      P.ptr_cpu,
-                      P.indices_cpu,
-                            matResult.ptr_cpu);
-        matResult.numNNZ = matResult.ptr_cpu[matResult.numRows];
-        matResult.indices_cpu = new size_t[matResult.numNNZ];
-        matResult.values_cpu = new double[matResult.numNNZ];
-        csr_matmat_pass2(matPartialResult.numRows,
-                      P.numCols,
-                      matPartialResult.ptr_cpu,
-                      matPartialResult.indices_cpu,
-      	              matPartialResult.values_cpu,
-      	              P.ptr_cpu,
-                      P.indices_cpu,
-      	              P.values_cpu,
-      	                    matResult.ptr_cpu,
-      	                    matResult.indices_cpu,
-      	                    matResult.values_cpu);
-        matResult.numNNZ = matResult.ptr_cpu[matResult.numRows];
+	/** Store new matrix in the next lvl of hierarchy, i+1 **/
+	Matrices[i+1] = new GPUCSRMatrix(NNZ_2, Qmat[i]->Size1, Pmat[i]->Size2, indices_2, ptr_2, values_2, false);
 
-        sortMatrix(matResult, true);
-        if(matResult.numRows >= min_system_size || i+1 == max_levels-1 ){
-            mallocAndCopyMem(matResult.indices_cpu, matResult.indices_gpu, matResult.numNNZ);
-            mallocAndCopyMem(matResult.ptr_cpu, matResult.ptr_gpu, matResult.numRows+1);
-            mallocAndCopyMem(matResult.values_cpu, matResult.values_gpu, matResult.numNNZ);
+        sortMatrix(Matrices[i+1]->CPU_RowIndices, Matrices[i+1]->CPU_Columns, Matrices[i+1]->CPU_Values, Matrices[i+1]->Size1, Matrices[i+1]->NNZ, true);
+        if(Matrices[i+1]->Size1 >= min_system_size || i+1 == max_levels-1 ){
+		Matrices[i+1]->GPU_Allocate();
+		Matrices[i+1]->Copy(CPU_GPU, false);
         }
-        clock_t t5 = clock();
-        /** Store new matrix in the next lvl of hierarchy, i+1 **/
-        Matrices[i+1] = matResult;
 
         /** Free memory from useless structures **/
-        delete[] matPartialResult.indices_cpu;
-        delete[] matPartialResult.ptr_cpu;
-        delete[] matPartialResult.values_cpu;
+	delete[] values;
+	delete[] ptr;
+	delete[] indices;
+	delete[] values_2;
+	delete[] ptr_2;
+	delete[] indices_2;
 
-/*        cout << "Level " << i << endl;
-        cout << "   Time to create diagonal " << double(t2-t1) / CLOCKS_PER_SEC << "s" << endl;
-        cout << "   Time to create P " << double(t3-t2) / CLOCKS_PER_SEC << "s" << endl;
-        cout << "   Time to create Q " << double(t4-t3) / CLOCKS_PER_SEC << "s" << endl;
-        cout << "   Time to create mat " << double(t5-t4) / CLOCKS_PER_SEC << "s" << endl;*/
     }
     return i;
 }
 
-_Matrix generateP_vCPU(const _Matrix& A, const _Vector& diag, double W, size_t numLevelsRoh){
-    _Matrix Ptent;
-    createPTent(A, Ptent);
+void generateP_vCPU(const GPUCSRMatrix& A, const GPUVector& diag, double W, size_t numLevelsRoh, size_t &pNNZ, size_t &pSize1, size_t &pSize2, size_t *&pindices, size_t *&pptr, double *&pvalues){
+    size_t NNZ_ptent, Size1_ptent, Size2_ptent, *ptr_ptent, *indices_ptent;
+    double *values_ptent;
+    createPTent(A, NNZ_ptent, Size1_ptent, Size2_ptent, ptr_ptent, indices_ptent, values_ptent);
 
-    _Matrix P;
     /** Create P from Ptent **/
     //wDA
-    _Matrix prodMat;
-    prodMat.numNNZ = A.numNNZ;
-    prodMat.numRows = A.numRows;
-    prodMat.numCols = A.numCols;
 
-    prodMat.indices_cpu = new size_t[prodMat.numNNZ];
-    prodMat.values_cpu = new double[prodMat.numNNZ];
-    prodMat.ptr_cpu = new size_t[prodMat.numRows+1];
+    size_t NNZ_prod, *ptr_prod, *indices_prod;
+    double *values_prod;
 
-    prodMat.ptr_cpu[0] = 0;
+    indices_prod = new size_t[A.NNZ];
+    values_prod = new double[A.NNZ];
+    ptr_prod = new size_t[A.Size1+1];
+
+    ptr_prod[0] = 0;
     size_t currentIndice = 0;
-    for(size_t i = 0; i < A.numRows; i++){
-        prodMat.ptr_cpu[i+1] = prodMat.ptr_cpu[i];
-        if(diag.values_cpu[i] != 0.0){
-            for(size_t r = A.ptr_cpu[i]; r < A.ptr_cpu[i+1]; r++){
-                prodMat.ptr_cpu[i+1]++;
-                prodMat.indices_cpu[currentIndice] = A.indices_cpu[r];
-                prodMat.values_cpu[currentIndice] = A.values_cpu[r] * diag.values_cpu[i];
+    for(size_t i = 0; i < A.Size1; i++){
+        ptr_prod[i+1] = ptr_prod[i];
+        if(diag.CPU_Values[i] != 0.0){
+            for(size_t r = A.CPU_RowIndices[i]; r < A.CPU_RowIndices[i+1]; r++){
+                ptr_prod[i+1]++;
+                indices_prod[currentIndice] = A.CPU_Columns[r];
+                values_prod[currentIndice] = A.CPU_Values[r] * diag.CPU_Values[i];
                 currentIndice++;
             }
         }
     }
 
-    prodMat.numNNZ = prodMat.ptr_cpu[prodMat.numRows];
-    mallocAndCopyMem(prodMat.indices_cpu, prodMat.indices_gpu, prodMat.numNNZ);
-    mallocAndCopyMem(prodMat.values_cpu, prodMat.values_gpu, prodMat.numNNZ);
-    mallocAndCopyMem(prodMat.ptr_cpu, prodMat.ptr_gpu, prodMat.numRows+1);
+    NNZ_prod = ptr_prod[A.Size1];
+    GPUCSRMatrix prodMat(NNZ_prod, A.Size1, A.Size2, indices_prod, ptr_prod, values_prod);
+    delete[] indices_prod;
+    delete[] values_prod;
+    delete[] ptr_prod;
+    prodMat.GPU_Allocate();
+    prodMat.Copy(CPU_GPU, false);
 
     double roh_ = roh(prodMat, numLevelsRoh);
     double W_ = W / roh_;
-    //cout << "La W queda aixi: " << W_ << ", i la W es: " << W << endl;
 
-    for(size_t i = 0; i < prodMat.numNNZ; i++){
-        prodMat.values_cpu[i] *= W_;
+    for(size_t i = 0; i < prodMat.NNZ; i++){
+        prodMat.CPU_Values[i] *= W_;
     }
 
-    //printMatrix(prodMat);
-
     //I - wDA
-    _Matrix subMat;
-    subMat.numNNZ = prodMat.numRows + prodMat.numNNZ;
-    subMat.numRows = prodMat.numRows;
-    subMat.numCols = prodMat.numCols;
 
-    subMat.ptr_cpu = new size_t[subMat.numRows+1];
-    subMat.indices_cpu = new size_t[subMat.numNNZ];
-    subMat.values_cpu = new double[subMat.numNNZ];
-    subIdentityMatrix_cpu(prodMat, subMat);
-    subMat.numNNZ = subMat.ptr_cpu[subMat.numRows];
+    size_t subNNZ = prodMat.Size1 + prodMat.NNZ;
+    size_t* ptr_sub = new size_t[prodMat.Size1+1];
+    size_t* indices_sub = new size_t[subNNZ];
+    double* values_sub = new double[subNNZ];
 
+    subIdentityMatrix_cpu(prodMat, ptr_sub, indices_sub, values_sub);
 
     //(I - wDA) * PTent
-    P.numRows = subMat.numRows;
-    P.numCols = Ptent.numCols;
-    P.ptr_cpu = new size_t[P.numRows+1];
+    pSize1 = prodMat.Size1;
+    pSize2 = Size2_ptent;
+    pptr = new size_t[pSize1+1];
     
-    csr_matmat_pass1(subMat.numRows,
-                      Ptent.numCols,
-                      subMat.ptr_cpu,
-                      subMat.indices_cpu,
-                      Ptent.ptr_cpu,
-                      Ptent.indices_cpu,
-                            P.ptr_cpu);
-    P.numNNZ = P.ptr_cpu[P.numRows];
-    P.indices_cpu = new size_t[P.numNNZ];
-    P.values_cpu = new double[P.numNNZ];
-    csr_matmat_pass2(subMat.numRows,
-                      Ptent.numCols,
-                      subMat.ptr_cpu,
-                      subMat.indices_cpu,
-      	              subMat.values_cpu,
-      	              Ptent.ptr_cpu,
-                      Ptent.indices_cpu,
-      	              Ptent.values_cpu,
-      	                    P.ptr_cpu,
-                            P.indices_cpu,
-                            P.values_cpu);
-    P.numNNZ = P.ptr_cpu[P.numRows];
-    sortMatrix(P, true);
+    csr_matmat_pass1(prodMat.Size1,
+                      Size2_ptent,
+                      ptr_sub,
+                      indices_sub,
+                      ptr_ptent,
+                      indices_ptent,
+                            pptr);
+    pNNZ = pptr[pSize1];
+    pindices = new size_t[pNNZ];
+    pvalues = new double[pNNZ];
+    csr_matmat_pass2(prodMat.Size1,
+                      Size2_ptent,
+                      ptr_sub,
+                      indices_sub,
+      	              values_sub,
+      	              ptr_ptent,
+                      indices_ptent,
+      	              values_ptent,
+      	                    pptr,
+                            pindices,
+                            pvalues);
+    pNNZ = pptr[pSize1];
 
-
-    mallocAndCopyMem(P.ptr_cpu, P.ptr_gpu, P.numRows+1);
-    mallocAndCopyMem(P.indices_cpu, P.indices_gpu, P.numNNZ);
-    mallocAndCopyMem(P.values_cpu, P.values_gpu, P.numNNZ);
+    sortMatrix(pptr, pindices, pvalues, pSize1, pNNZ, true);
 
     /** Free resources **/
-    delete[] prodMat.ptr_cpu;
-    delete[] prodMat.indices_cpu;
-    delete[] prodMat.values_cpu;
-    delete[] Ptent.indices_cpu;
-    delete[] Ptent.ptr_cpu;
-    delete[] Ptent.values_cpu;
+    delete[] values_ptent;
+    delete[] indices_ptent;
+    delete[] ptr_ptent;
 
+    delete[] indices_sub;
+    delete[] values_sub;
+    delete[] ptr_sub;
 
-    CUDA_CHECK(cudaFree(prodMat.ptr_gpu));
-    CUDA_CHECK(cudaFree(prodMat.indices_gpu));
-    CUDA_CHECK(cudaFree(prodMat.values_gpu));
-
-    delete[] subMat.ptr_cpu;
-    delete[] subMat.indices_cpu;
-    delete[] subMat.values_cpu;
-
-    /** Return P **/
-    return P;
 }
 
 /** This is a simple function that transposes P assuming symmetric matrix
  *  Soon it will be need to implementate the non-symmetric construction of Q*/
-_Matrix generateQ(const _Matrix& P){
-    _Matrix Q;
-    Q.numNNZ = P.numNNZ;
-    Q.numCols = P.numRows;
-    Q.numRows = P.numCols;
-    Q.indices_cpu = new size_t[Q.numNNZ];
-    Q.values_cpu = new double[Q.numNNZ];
-    Q.ptr_cpu = new size_t[Q.numRows+1];
-    malloc_(Q.indices_gpu, Q.numNNZ);
-    malloc_(Q.values_gpu, Q.numNNZ);
-    malloc_(Q.ptr_gpu, Q.numRows+1);
+void generateQ(const GPUCSRMatrix &P, size_t &NNZ, size_t &Size1, size_t &Size2, size_t *&indices, size_t *&ptr, double *&values){
+    NNZ = P.NNZ;
+    Size2 = P.Size1;
+    Size1 = P.Size2;
+    indices = new size_t[NNZ];
+    values = new double[NNZ];
+    ptr = new size_t[Size1+1];
     //ens es suficient amb utilitzar la funcio csr_tocsc i prendre-ho com csr
-    csr_tocsc(P.numRows,
-	           P.numCols,
-	           P.ptr_cpu,
-	           P.indices_cpu,
-	           P.values_cpu,
-	                 Q.ptr_cpu,
-	                 Q.indices_cpu,
-	                 Q.values_cpu);
-    //copy back
-    copyMem(Q.values_cpu, Q.values_gpu, Q.numNNZ, 0);
-    copyMem(Q.indices_cpu, Q.indices_gpu, Q.numNNZ, 0);
-    copyMem(Q.ptr_cpu, Q.ptr_gpu, Q.numRows+1, 0);
-    return Q;
+    csr_tocsc(P.Size1,
+	           P.Size2,
+	           P.CPU_RowIndices,
+	           P.CPU_Columns,
+	           P.CPU_Values,
+	                 ptr,
+	                 indices,
+	                 values);
 }
 
 /** This function will create G from diagonal of A **/
-void createDiagonal(const _Matrix& A, _Vector& res){
-    res.numElems = A.numRows;
-    //malloc_(res.values_gpu, res.numElems);
-    res.values_cpu = new double[res.numElems];
-    malloc_(res.values_gpu, res.numElems);
-    
-    for(size_t i = 0; i < A.numRows; i++){
-        res.values_cpu[i] = 0.0;
-        for(size_t r = A.ptr_cpu[i]; r < A.ptr_cpu[i+1]; r++){
-            if(A.indices_cpu[r] == i){
-                res.values_cpu[i] =1.0/A.values_cpu[r];
+void createDiagonal(const GPUCSRMatrix &A, size_t &Size, double *&values){
+    Size = A.Size1;
+    values = new double[Size];
+
+    for(size_t i = 0; i < A.Size1; i++){
+        values[i] = 0.0;
+        for(size_t r = A.CPU_RowIndices[i]; r < A.CPU_RowIndices[i+1]; r++){
+            if(A.CPU_Columns[r] == i){
+		if(fabs(A.CPU_Values[r]) > 1e-30)
+                	values[i] =1.0/A.CPU_Values[r];
+		else{
+			values[i]  =1.0;
+			//cout << "Zero found at row " << i  << "(inverse substituted with one)"<< endl;
+		}
+	
                 break;
             }
         }
     }
-    //copia cpu->gpu
-    copyMem(res.values_cpu, res.values_gpu, res.numElems, 0);
+
 }
 
-void createDiagonal_vCPU(const _Matrix& A, _Matrix&G, _Vector& res){
-    res.numElems = A.numRows;
-    //malloc_(res.values_gpu, res.numElems);
-    res.values_cpu = new double[res.numElems];
+void createDiagonal_vCPU(const GPUCSRMatrix& A, size_t &NNZ, size_t &Size1, size_t &Size2, size_t *&indices, size_t *&ptr, double *&values, double *&vecDiag){
 
-    G.numRows = A.numRows;
-    G.numCols = A.numCols;
-    malloc_(G.values_gpu, G.numRows);
-    malloc_(G.indices_gpu, G.numRows);
-    malloc_(G.ptr_gpu, G.numRows+1);
-    G.ptr_cpu = new size_t[G.numRows+1];
-    G.indices_cpu = new size_t[G.numRows];
-    G.values_cpu = new double[G.numRows];
+    vecDiag = new double[A.Size1];
+
+    Size1 = A.Size1;
+    Size2 = A.Size2;
+
+    ptr = new size_t[Size1+1];
+    indices = new size_t[Size1];
+    values = new double[Size1];
 
     size_t currentIndice = 0;
-    G.ptr_cpu[0] = 0;
-    for(size_t i = 0; i < A.numRows; i++){
-        G.ptr_cpu[i+1] = G.ptr_cpu[i];
-        res.values_cpu[i] = 0.0;
-        for(size_t r = A.ptr_cpu[i]; r < A.ptr_cpu[i+1]; r++){
-            if(A.indices_cpu[r] == i){
-                G.indices_cpu[currentIndice] = A.indices_cpu[r];
-                res.values_cpu[i] = G.values_cpu[currentIndice] = 1.0/A.values_cpu[r];
-                G.ptr_cpu[i+1]++;
+    ptr[0] = 0;
+    for(size_t i = 0; i < A.Size1; i++){
+        ptr[i+1] = ptr[i];
+        vecDiag[i] = 0.0;
+        for(size_t r = A.CPU_RowIndices[i]; r < A.CPU_RowIndices[i+1]; r++){
+            if(A.CPU_Columns[r] == i){
+                indices[currentIndice] = A.CPU_Columns[r];
+                vecDiag[i] = values[currentIndice] = 1.0/A.CPU_Values[r];
+                ptr[i+1]++;
                 currentIndice++;
                 break;
             }
         }
     }
-
-    //copia cpu->gpu
-
-    G.numNNZ = G.ptr_cpu[G.numRows];
-    copyMem(G.ptr_cpu, G.ptr_gpu, G.numRows+1, 0);
-    copyMem(G.values_cpu, G.values_gpu, G.numNNZ, 0);
-    copyMem(G.indices_cpu, G.indices_gpu, G.numNNZ, 0);
-
-    //copyMem(res.values_cpu, res.values_gpu, res.numElems, 0);
+    NNZ = ptr[Size1];
 }
 /** Aggregation of A to generate the colored graph **/
 template <class I>
@@ -1718,14 +1705,15 @@ I standardAggregation(const I n_row,
 }
 
 /** This function will create Ptent from a given A **/
-void createPTent(const _Matrix& A, _Matrix& P){
+void createPTent(const GPUCSRMatrix &A, size_t &NNZ_ptent, size_t &Size1_ptent, size_t &Size2_ptent, size_t *&ptr_ptent, size_t *&indices_ptent, double *&values_ptent){
     long *x;
-    long size = A.numRows;
+    long size = A.Size1;
     x = new long[size];
-    size_t maxColumn = standardAggregation(size, (long*)A.ptr_cpu, (long*)A.indices_cpu, x);
-    P.ptr_cpu = new size_t[size+1];
-    P.indices_cpu = new size_t[size];
-    P.values_cpu = new double[size];
+    size_t maxColumn = standardAggregation(size, (long*)A.CPU_RowIndices, (long*)A.CPU_Columns, x);
+
+    ptr_ptent = new size_t[size+1];
+    indices_ptent = new size_t[size];
+    values_ptent = new double[size];
 
     long* auxValues = new long[size];
     //ini auxValues to 0
@@ -1736,22 +1724,22 @@ void createPTent(const _Matrix& A, _Matrix& P){
     for(size_t i = 0; i < size; i++){
         auxValues[x[i]]++;
     }
-    for(size_t i = 0; i < size; i++){
+/*    for(size_t i = 0; i < size; i++){
         if(x[i] >= size)
             cout << "a l'index " << i << " tenim un valor de " << x[i]  << ", i el size es: " << size << endl;
-    }
+    }*/
     //assign indices and right values
-    P.ptr_cpu[0] = 0;
+    ptr_ptent[0] = 0;
     for(size_t i = 0; i < size; i++){
         size_t j = x[i];
-        P.ptr_cpu[i+1] = P.ptr_cpu[i] + 1;
-        P.indices_cpu[i] = j;
-        P.values_cpu[i] = 1.0/sqrt(auxValues[j]);
+        ptr_ptent[i+1] = ptr_ptent[i] + 1;
+        indices_ptent[i] = j;
+        values_ptent[i] = 1.0/sqrt(auxValues[j]);
     }
 
-    P.numCols = maxColumn;
-    P.numRows = size;
-    P.numNNZ = size;
+    Size2_ptent = maxColumn;
+    Size1_ptent = size;
+    NNZ_ptent = size;
 
     delete[] x;
     delete[] auxValues;
@@ -1802,58 +1790,48 @@ void csr_tocsc(const size_t n_row,
     }
 }
 
-double calculateNorm(_Vector& b){
+double calculateNorm(_Vector &b){
     double finalNum = 0.0;
-    for(size_t i = 0; i < b.numElems; i++){
-        finalNum += pow(b.values_cpu[i], 2);
+    for(size_t i = 0; i < b.Size; i++){
+        finalNum += pow(b.CPU_Values[i], 2);
     }
     return sqrt(finalNum);
 }
 
-double calculateNorm_GPU(_Vector&b){
-    return cublasDnrm2(b.numElems, b.values_gpu, 1);
+double calculateNorm_GPU(GPUVector &b){
+    return cublasDnrm2(b.Size, b.GPU_Values, 1);
 }
 
-double checkResidual(const _Vector& u, const _Vector& b, const _Matrix& A){
+double checkResidual(const GPUVector &u, const GPUVector &b, const GPUCSRMatrix &A){
     /** Au **/
-    _Vector auxAU;
-    auxAU.numElems = A.numRows;
-    malloc_(auxAU.values_gpu, auxAU.numElems);
-    dim3 Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    GPU_MatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.numRows, A.indices_gpu,
-            A.ptr_gpu, A.values_gpu, u.values_gpu, auxAU.values_gpu);
+    GPUVector auxAU(A.Size1);
+    auxAU.GPU_Allocate();
+    dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+    GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
+            A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
     if(!CUDA_Success(cudaThreadSynchronize())){
         cout << "Error en linea 1208" << endl;
     }
+
     /** b - AU **/
-    _Vector auxABU;
-    auxABU.numElems = auxAU.numElems;
-    auxABU.values_cpu = new double[auxABU.numElems];
-    malloc_(auxABU.values_gpu, auxABU.numElems);
-    Grid = Build_Grid(A.numRows, BLOCK_SIZE);
-    subVectorVector <<< Grid, BLOCK_SIZE >>>(b.values_gpu, auxAU.values_gpu,
-            auxABU.values_gpu, auxABU.numElems);
+    GPUVector auxABU(auxAU.Size);
+    auxABU.GPU_Allocate();
+    Grid = Build_Grid(A.Size1, BLOCK_SIZE);
+    subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values,
+            auxABU.GPU_Values, auxABU.Size);
     if(!CUDA_Success(cudaThreadSynchronize())){
         cout << "Error en linea 1219" << endl;
     }
-    copyMem(auxABU.values_gpu, auxABU.values_cpu, auxABU.numElems, 1);
     double finalNum = calculateNorm_GPU(auxABU);
-    delete[] auxABU.values_cpu;
-    CUDA_CHECK(cudaFree(auxAU.values_gpu));
-    CUDA_CHECK(cudaFree(auxABU.values_gpu));
 
     return finalNum;
 }
 
-bool checkConvergence(const _Vector& u, const _Vector& b, const _Matrix& A, const double lastResidual, const double threshold){
-    //double threshold = 1e-9;
+bool checkConvergence(const GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const double lastResidual, const double threshold){
     double newResidual = checkResidual(u, b, A);
-    cout << "New norm: " << newResidual << endl;
+/*    cout << "New norm: " << newResidual << endl;
     cout << "Current status: " << newResidual/lastResidual << endl;
-/*    for(size_t i = 0; i < 5; i++){
-        cout << "Element " << i << ": " << u.values_cpu[i] << endl;
-    }*/
-    cout << endl;
+    cout << endl;*/
     if(newResidual/lastResidual < threshold){
         return true;
     }
@@ -1861,16 +1839,16 @@ bool checkConvergence(const _Vector& u, const _Vector& b, const _Matrix& A, cons
 
 }
 
-void computeDenseMatrix(const _Matrix& A, double *& vec){
-    vec = new double[A.numCols * A.numRows];
+void computeDenseMatrix(const GPUCSRMatrix& A, double *& vec){
+    vec = new double[A.Size2 * A.Size1];
     size_t pointer = 0;
     size_t currentIndice = 0;
-    for(size_t i = 0; i < A.numRows; i++){
-        size_t nonZeros = A.ptr_cpu[i+1] - A.ptr_cpu[i];
+    for(size_t i = 0; i < A.Size1; i++){
+        size_t nonZeros = A.CPU_RowIndices[i+1] - A.CPU_RowIndices[i];
         size_t columnPointer = 0;
-        for(size_t j = 0; j < A.numCols; j++){
-            if(nonZeros > 0  && A.indices_cpu[currentIndice] == columnPointer){
-                vec[pointer] = (double)A.values_cpu[currentIndice];
+        for(size_t j = 0; j < A.Size2; j++){
+            if(nonZeros > 0  && A.CPU_Columns[currentIndice] == columnPointer){
+                vec[pointer] = (double)A.CPU_Values[currentIndice];
                 currentIndice++;
                 nonZeros--;
             }else{
@@ -1882,49 +1860,49 @@ void computeDenseMatrix(const _Matrix& A, double *& vec){
     }
 }
 
-void subIdentityMatrix_cpu(const _Matrix& A, _Matrix& sub){
+void subIdentityMatrix_cpu(const GPUCSRMatrix& A, size_t* CPU_RowIndices, size_t* CPU_Columns, double* CPU_Values){
     size_t currentIndex = 0;
-    sub.ptr_cpu[0] = 0;
-    for(size_t i = 0; i < A.numRows; i++){
+    CPU_RowIndices[0] = 0;
+    for(size_t i = 0; i < A.Size1; i++){
         bool haveDiagonal = false;
         size_t numElems = 0;
         long lastIndex = -1;
-        for(size_t r = A.ptr_cpu[i]; r < A.ptr_cpu[i+1]; r++){
-            lastIndex = A.indices_cpu[r];
-            if(A.indices_cpu[r] > i && !haveDiagonal){
-                sub.indices_cpu[currentIndex] = i;
-                sub.values_cpu[currentIndex] = 1.0;
+        for(size_t r = A.CPU_RowIndices[i]; r < A.CPU_RowIndices[i+1]; r++){
+            lastIndex = A.CPU_Columns[r];
+            if(A.CPU_Columns[r] > i && !haveDiagonal){
+                CPU_Columns[currentIndex] = i;
+                CPU_Values[currentIndex] = 1.0;
                 currentIndex++;
                 haveDiagonal = true;
                 numElems++;
             }
-            if(A.indices_cpu[r] == i){
+            if(A.CPU_Columns[r] == i){
                 haveDiagonal = true;
-                if(A.values_cpu[r] != 1.0){
-                    sub.indices_cpu[currentIndex] = A.indices_cpu[r];
-                    sub.values_cpu[currentIndex] = 1.0 - A.values_cpu[r];
+                if(A.CPU_Values[r] != 1.0){
+                    CPU_Columns[currentIndex] = A.CPU_Columns[r];
+                    CPU_Values[currentIndex] = 1.0 - A.CPU_Values[r];
                     currentIndex++;
                     numElems++;
                 }
             }else{
-                sub.indices_cpu[currentIndex] = A.indices_cpu[r];
-                sub.values_cpu[currentIndex] = -A.values_cpu[r];
+                CPU_Columns[currentIndex] = A.CPU_Columns[r];
+                CPU_Values[currentIndex] = -A.CPU_Values[r];
                 currentIndex++;
                 numElems++;
             }
         }
         if(lastIndex < i){
-            sub.indices_cpu[currentIndex] = i;
-            sub.values_cpu[currentIndex] = 1.0;
+            CPU_Columns[currentIndex] = i;
+            CPU_Values[currentIndex] = 1.0;
             currentIndex++;
             numElems++;
         }
-        sub.ptr_cpu[i+1] = sub.ptr_cpu[i] + numElems;
+        CPU_RowIndices[i+1] = CPU_RowIndices[i] + numElems;
     }
 }
 
 double eigVals(_Vector& H, size_t finalIters){
-    LaGenMatDouble A( H.values_cpu, finalIters, finalIters);
+    LaGenMatDouble A( H.CPU_Values, finalIters, finalIters);
     LaVectorDouble eigvals_real(finalIters);
     LaVectorDouble eigvals_imag(finalIters);
     LaGenMatDouble VR(finalIters, finalIters);
@@ -1943,97 +1921,92 @@ double eigVals(_Vector& H, size_t finalIters){
         if(real[i] > max)
             max = real[i];
     }
-
- /*   cout << "ROH VALUES " << endl;
-    for(size_t i = 0; i < finalIters; i++)
-        cout << real[i] << " ";
-    cout << endl;*/
     return max;
 }
 
-double roh(const _Matrix& A, size_t iter){
+double roh(const GPUCSRMatrix& A, size_t iter){
     double threshold = 1e-10;
 
     size_t maxIter;
-    maxIter = A.numCols < iter ?  A.numCols : iter;
+    maxIter = A.Size2 < iter ?  A.Size2 : iter;
 
     _Vector *V = new _Vector[maxIter+1];
 
-    V[0].numElems = A.numCols;
-    V[0].values_cpu = new double[V[0].numElems];
+    V[0].Size = A.Size2;
+    V[0].CPU_Values = new double[V[0].Size];
     srand(0);
-    for(size_t i = 0; i < V[0].numElems; i++){
-        V[0].values_cpu[i] = (double)(((int)rand())%100000000)/100000000.0;
-        //cout << V[0].values_cpu[i]<< endl;
+    for(size_t i = 0; i < V[0].Size; i++){
+        V[0].CPU_Values[i] = (double)(((int)rand())%100000000)/100000000.0;
+        //cout << V[0].CPU_Values[i]<< endl;
     }
     double v0Norm = calculateNorm(V[0]);
-    for(size_t i = 0; i < V[0].numElems; i++){
-        V[0].values_cpu[i] /= v0Norm;
+    for(size_t i = 0; i < V[0].Size; i++){
+        V[0].CPU_Values[i] /= v0Norm;
     }
-    mallocAndCopyMem(V[0].values_cpu, V[0].values_gpu, V[0].numElems);
-    //delete[] V[0].values_cpu;
+    mallocAndCopyMem(V[0].CPU_Values, V[0].GPU_Values, V[0].Size);
+    //delete[] V[0].CPU_Values;
 
     _Vector H;
-    H.numElems = (maxIter+1) * (maxIter+1);
-    H.values_cpu = new double[H.numElems];
-    for(size_t q = 0; q < H.numElems; q++){
-        H.values_cpu[q] = 0.0;
+    H.Size = (maxIter+1) * (maxIter+1);
+    H.CPU_Values = new double[H.Size];
+    for(size_t q = 0; q < H.Size; q++){
+        H.CPU_Values[q] = 0.0;
     }
     size_t numCurrentV = 1;
 
     size_t j;
 
     for(j = 0; j < maxIter; j++){
-        V[numCurrentV].numElems = A.numRows;
-        malloc_(V[numCurrentV].values_gpu, V[numCurrentV].numElems);
-        V[numCurrentV].values_cpu = new double[V[numCurrentV].numElems];
-        dim3 grid = Build_Grid(V[numCurrentV].numElems, BLOCK_SIZE);
-        GPU_MatrixVectorMultiply_CSR_Kernel <<< grid, BLOCK_SIZE >>> (A.numRows, A.indices_gpu, A.ptr_gpu,
-            A.values_gpu, V[numCurrentV-1].values_gpu, V[numCurrentV].values_gpu);
+        V[numCurrentV].Size = A.Size1;
+        malloc_(V[numCurrentV].GPU_Values, V[numCurrentV].Size);
+        V[numCurrentV].CPU_Values = new double[V[numCurrentV].Size];
+        dim3 grid = Build_Grid(V[numCurrentV].Size, BLOCK_SIZE);
+        GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< grid, BLOCK_SIZE >>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices,
+            A.GPU_Values, V[numCurrentV-1].GPU_Values, V[numCurrentV].GPU_Values);
         if(!CUDA_Success(cudaThreadSynchronize())){
             cout << "Error en linea 1379" << endl;
         }
-        copyMem(V[numCurrentV].values_gpu, V[numCurrentV].values_cpu, V[numCurrentV].numElems, 1);
+        copyMem(V[numCurrentV].GPU_Values, V[numCurrentV].CPU_Values, V[numCurrentV].Size, 1);
 
         _Vector auxVec;
-        auxVec.numElems = V[numCurrentV].numElems;
-        malloc_(auxVec.values_gpu, auxVec.numElems);
+        auxVec.Size = V[numCurrentV].Size;
+        malloc_(auxVec.GPU_Values, auxVec.Size);
 
-        grid = Build_Grid(V[numCurrentV-1].numElems, BLOCK_SIZE);
+        grid = Build_Grid(V[numCurrentV-1].Size, BLOCK_SIZE);
         for(size_t i = 0; i < numCurrentV; i++){
             size_t matrixIndice = (i*(maxIter+1))+j;
-            double auxVal = H.values_cpu[matrixIndice] = cublasDdot(V[i].numElems, V[i].values_gpu, 1, V[numCurrentV].values_gpu, 1);
-            subVectorConstantValue <<< grid, BLOCK_SIZE>>> (V[numCurrentV].values_gpu, H.values_cpu[matrixIndice], V[i].values_gpu, V[numCurrentV].numElems);
+            double auxVal = H.CPU_Values[matrixIndice] = cublasDdot(V[i].Size, V[i].GPU_Values, 1, V[numCurrentV].GPU_Values, 1);
+            subVectorConstantValue <<< grid, BLOCK_SIZE>>> (V[numCurrentV].GPU_Values, H.CPU_Values[matrixIndice], V[i].GPU_Values, V[numCurrentV].Size);
             if(!CUDA_Success(cudaThreadSynchronize())){
                 cout << "Error en linea 1394" << endl;
             }
         }
         size_t matrixIndice = ((j+1) * (maxIter+1)) + j;
-        copyMem(V[numCurrentV].values_gpu, V[numCurrentV].values_cpu, V[numCurrentV].numElems, 1);
-        //copyMem(H.values_gpu, H.values_cpu, H.numElems, 1);
-        H.values_cpu[matrixIndice] = calculateNorm(V[numCurrentV]);
-        if(H.values_cpu[matrixIndice] < threshold)
+        copyMem(V[numCurrentV].GPU_Values, V[numCurrentV].CPU_Values, V[numCurrentV].Size, 1);
+        //copyMem(H.GPU_Values, H.CPU_Values, H.Size, 1);
+        H.CPU_Values[matrixIndice] = calculateNorm(V[numCurrentV]);
+        if(H.CPU_Values[matrixIndice] < threshold)
             break;
-        //copyMem(H.values_cpu, H.values_gpu, H.numElems, 0);
+        //copyMem(H.CPU_Values, H.GPU_Values, H.Size, 0);
 
-        divideVectorConstantValue <<< grid, BLOCK_SIZE >>> (V[numCurrentV].values_gpu, H.values_cpu[matrixIndice], V[numCurrentV].numElems);
+        divideVectorConstantValue <<< grid, BLOCK_SIZE >>> (V[numCurrentV].GPU_Values, H.CPU_Values[matrixIndice], V[numCurrentV].Size);
         if(!CUDA_Success(cudaThreadSynchronize())){
             cout << "Error en linea 1407" << endl;
         }
-        CUDA_CHECK(cudaFree(auxVec.values_gpu));
+        CUDA_CHECK(cudaFree(auxVec.GPU_Values));
 
         numCurrentV++;
 
     }
     for(size_t i = 0; i < numCurrentV; i++){
-        delete[] V[i].values_cpu;
-        CUDA_CHECK(cudaFree(V[i].values_gpu));
+        delete[] V[i].CPU_Values;
+        CUDA_CHECK(cudaFree(V[i].GPU_Values));
     }
     delete[] V;
 
 /*    for(size_t q = 0; q < maxIter+1; q++){
         for(size_t w = 0; w < maxIter+1; w++){
-            cout << H.values_cpu[(q*(maxIter+1)) + w] << " ";
+            cout << H.CPU_Values[(q*(maxIter+1)) + w] << " ";
         }
         cout << endl;
     }
@@ -2041,7 +2014,7 @@ double roh(const _Matrix& A, size_t iter){
 
     double max = eigVals(H, maxIter+1);
 
-    delete[] H.values_cpu;
+    delete[] H.CPU_Values;
 
     return max;
 }
@@ -2099,9 +2072,9 @@ void deletingStuff(double* stuff){
     CUDA_CHECK(cudaFree(stuff));
 }
 
-void GPU_VectorMultiply(double* sourceVec, double* destinyVec, size_t N){
+void GPUGPUVectorMultiply(double* sourceVec, double* destinyVec, size_t N){
 	dim3 Grid = Build_Grid(N, BLOCK_SIZE);
-	GPU_VectorVectorMultiplyElementWise_Kernel <<<Grid, BLOCK_SIZE>>> (N, sourceVec, destinyVec, destinyVec);
+	GPUGPUVectorVectorMultiplyElementWise_Kernel <<<Grid, BLOCK_SIZE>>> (N, sourceVec, destinyVec, destinyVec);
 	GPUSparse::CUDA_Success(cudaThreadSynchronize());
 }
 

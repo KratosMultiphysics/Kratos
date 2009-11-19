@@ -66,6 +66,7 @@ enum CopyDirection
 // GPUVector
 // GPUVector class
 
+
 class GPUVector
 {
 public:
@@ -100,6 +101,11 @@ public:
 	size_t *GPU_Columns, *GPU_RowIndices;
 	double *GPU_Values;
 
+	//variables for a dense representation
+	bool haveDenseRepresentation;
+	double* matAuxValues;
+	size_t numValuesDenseRep;
+
 	bool Allocated;
 
 	GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values, bool _NZMultiple16 = true);
@@ -109,6 +115,9 @@ public:
 	bool GPU_Allocate();
 	bool GPU_Free();
 
+	//function for dense conversion
+	bool GenerateDenseRepresentation(bool FortranRep = false);
+
 	bool Copy(CopyDirection Direction, bool CopyValuesOnly);
 	bool CopyFromGPU(GPUCSRMatrix &M, bool CopyStructure, bool CopyValues);
 };
@@ -116,52 +125,52 @@ public:
 // Operations defined on GPUCSRMatrix and GPUVector
 
 //
-// CPU_MatrixVectorMultiply
+// CPUGPUCSRMatrixVectorMultiply
 // Matrix-Vector multiply on CPU
 
-bool CPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y);
+bool CPUGPUCSRMatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y);
 
 //
-// GPU_MatrixVectorMultiply
+// GPUGPUCSRMatrixVectorMultiply
 // Matrix-Vector multiply on GPU
 
-bool GPU_MatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y);
+bool GPUGPUCSRMatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y);
 
 //
-// CPU_MatrixGetDiagonals
+// CPUGPUCSRMatrixGetDiagonals
 // Extract the diagonal elements of a matrix into a vector on CPU
 
-bool CPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X);
+bool CPUGPUCSRMatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X);
 
 //
-// GPU_MatrixGetDiagonals
+// GPUGPUCSRMatrixGetDiagonals
 // Extract the diagonal elements of a matrix into a vector on GPU
 
-bool GPU_MatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X);
+bool GPUGPUCSRMatrixGetDiagonals(GPUCSRMatrix &A, GPUVector &X);
 
 //
-// CPU_MatrixMatrixDiagonalMultiply
+// CPUGPUCSRMatrixMatrixDiagonalMultiply
 // Multiply a digonal matrix specified with a vector with a matrix on CPU
 
-bool CPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A);
+bool CPUGPUCSRMatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A);
 
 //
-// GPU_MatrixMatrixDiagonalMultiply
+// GPUGPUCSRMatrixMatrixDiagonalMultiply
 // Multiply a digonal matrix specified with a vector with a matrix on GPU
 
-bool GPU_MatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A);
+bool GPUGPUCSRMatrixMatrixDiagonalMultiply(GPUVector &X, GPUCSRMatrix &A);
 
 //
-// CPU_VectorPrepareDiagonalPreconditionerValues
+// CPUGPUVectorPrepareDiagonalPreconditionerValues
 // Prepare diagonal values of the matrix for Diagonal Preconditioner on CPU
 
-bool CPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X);
+bool CPUGPUVectorPrepareDiagonalPreconditionerValues(GPUVector &X);
 
 //
-// GPU_VectorPrepareDiagonalPreconditionerValues
+// GPUGPUVectorPrepareDiagonalPreconditionerValues
 // Prepare diagonal values of the matrix for Diagonal Preconditioner on GPU
 
-bool GPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X);
+bool GPUGPUVectorPrepareDiagonalPreconditionerValues(GPUVector &X);
 
 //
 // GPU_PrepareSPAIPreconditioner
@@ -170,64 +179,64 @@ bool GPU_VectorPrepareDiagonalPreconditionerValues(GPUVector &X);
 bool GPU_PrepareSPAIPreconditioner(GPUCSRMatrix &A, GPUCSRMatrix &M);
 
 //
-// CPU_VectorVectorMultiply
+// CPUGPUVectorVectorMultiply
 // Vector-Vector multiply on CPU
 
-bool CPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result);
+bool CPUGPUVectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result);
 
 //
-// GPU_VectorVectorMultiply
+// GPUGPUVectorVectorMultiply
 // Vector-Vector multiply on GPU
 
-bool GPU_VectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result);
+bool GPUGPUVectorVectorMultiply(GPUVector &X, GPUVector &Y, double &Result);
 
 //
-// CPU_VectorVectorMultiplyElementWise
+// CPUGPUVectorVectorMultiplyElementWise
 // Vector-Vector element-wise multiply on CPU
 
-bool CPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y,  GPUVector &Z);
+bool CPUGPUVectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y,  GPUVector &Z);
 
 //
-// GPU_VectorVectorMultiplyElementWise
+// GPUGPUVectorVectorMultiplyElementWise
 // Vector-Vector element-wise multiply on GPU
 
-bool GPU_VectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &Z);
+bool GPUGPUVectorVectorMultiplyElementWise(GPUVector &X, GPUVector &Y, GPUVector &Z);
 
 //
-// CPU_VectorNorm2
+// CPUGPUVectorNorm2
 // Vector norm 2 on CPU
 
-bool CPU_VectorNorm2(GPUVector &X, double &Result);
+bool CPUGPUVectorNorm2(GPUVector &X, double &Result);
 
 //
-// GPU_VectorNorm2
+// GPUGPUVectorNorm2
 // Vector norm 2 on GPU
 
-bool GPU_VectorNorm2(GPUVector &X, double &Result);
+bool GPUGPUVectorNorm2(GPUVector &X, double &Result);
 
 //
-// CPU_VectorScaleAndAdd
+// CPUGPUVectorScaleAndAdd
 // Vector scale-and-add on GPU
 
 // Variant 1: Z = A * X + B * Y
 
-bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z);
+bool CPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z);
 
 // Variant 2: Y = A * X + B * Y
 
-bool CPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y);
+bool CPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y);
 
 //
-// GPU_VectorScaleAndAdd
+// GPUGPUVectorScaleAndAdd
 // Vector scale-and-add on GPU
 
 // Variant 1: Z = A * X + B * Y
 
-bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z);
+bool GPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z);
 
 // Variant 2: Y = A * X + B * Y
 
-bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y);
+bool GPUGPUVectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y);
 
 
 //Wrapper for cublas dotProduct in double precision
@@ -236,52 +245,30 @@ bool GPU_VectorScaleAndAdd(double A, GPUVector &X, double B, GPUVector &Y);
 
 /** ADDED FUNCTIONS AND STRUCTURES **/
 
-typedef struct{
-    size_t numRows;
-    size_t numCols;
-    size_t numNNZ;
-    size_t* ptr_cpu;
-    size_t* ptr_gpu;
-    size_t* indices_cpu;
-    size_t* indices_gpu;
-
-    double* values_cpu;
-    double* values_gpu;
-
-    double* matAuxValues;
-    size_t numValuesDenseRep;
-}_Matrix;
-
-typedef struct{
-    size_t numElems;
-    double* values_cpu;
-    double* values_gpu;
-}_Vector;
-
 
 //kernel for fill an array with zeros
 void GPU_fillWithZeros(size_t numElems, double* gpuVec);
 
 //kernel with VectorScaleAndAdd, adding to Z version
-bool GPU_VectorScaleAndAdd_addingVersion(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z);
+bool GPUGPUVectorScaleAndAdd_addingVersion(double A, GPUVector &X, double B, GPUVector &Y, GPUVector &Z);
 
 //preconditioner classes
-void generateResidual(const _Matrix& R, const _Vector& b, const _Matrix& A, const _Vector& u, _Vector& r);
-void calculateInstantVector(_Vector& u, const _Vector& b, const _Matrix& A, const _Matrix& G);
-void generateResidual_vectorized(const _Matrix& R, const _Vector& b, const _Matrix& A, const _Vector& u, _Vector& r);
-void calculateInstantVector_vectorized(_Vector& u, const _Vector& b, const _Matrix& A, const _Matrix& G);
-void multilevel(_Matrix*& A, _Matrix*& P, _Matrix*& R, _Matrix*& G, _Vector& b, _Vector& u,
+void generateResidual(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMatrix& A, const GPUVector& u, GPUVector& r);
+void calculateInstantVector(GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const GPUCSRMatrix& G);
+void generateResidualGPUVectorized(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMatrix& A, const GPUVector& u, GPUVector& r);
+void calculateInstantVectorGPUVectorized(GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const GPUCSRMatrix& G);
+void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRMatrix**& G, GPUVector& b, GPUVector& u,
 			unsigned short lvl, unsigned short maxLevels, size_t* preSweeps, size_t* postSweeps, bool assumeZeros);
-size_t generateHierarchy(_Matrix*& Matrices, _Matrix*& Pmat, _Matrix*& Qmat,
-        _Matrix*& Gmat, double W, size_t numLevelsRoh, size_t max_levels, size_t min_system_size);
-_Matrix generateP_vCPU(const _Matrix& A, const _Vector& diag, double W, size_t numLevelsRoh);
-_Matrix generateQ(const _Matrix& P);
+size_t generateHierarchy(GPUCSRMatrix**& Matrices, GPUCSRMatrix**& Pmat, GPUCSRMatrix**& Qmat,
+        GPUCSRMatrix**& Gmat, double W, size_t numLevelsRoh, size_t max_levels, size_t min_system_size);
+void generateP_vCPU(const GPUCSRMatrix& A, const GPUVector& diag, double W, size_t numLevelsRoh, size_t &pNNZ, size_t &pSize1, size_t &pSize2, size_t *&pindices, size_t *&pptr, double *&pvalues);
+void generateQ(const GPUCSRMatrix &P, size_t &NNZ, size_t &Size1, size_t &Size2, size_t *&indices, size_t *&ptr, double *&values);
 
-void createPTent(const _Matrix& A, _Matrix& P);
-void createDiagonal(const _Matrix& A, _Vector& G);
-void createDiagonal_vCPU(const _Matrix& A, _Matrix& G, _Vector& res);
-void computeDenseMatrix(const _Matrix& A, double *& vec);
-void subIdentityMatrix_cpu(const _Matrix& A, _Matrix& sub);
+void createPTent(const GPUCSRMatrix &A, size_t &NNZ_ptent, size_t &Size1_ptent, size_t &Size2_ptent, size_t *&ptr_ptent, size_t *&indices_ptent, double *&values_ptent);
+void createDiagonal(const GPUCSRMatrix &A, size_t &Size, double *&values);
+void createDiagonal_vCPU(const GPUCSRMatrix& A, size_t &NNZ, size_t &Size1, size_t &Size2, size_t *&indices, size_t *&ptr, double *&values, double *&vecDiag);
+void computeDenseMatrix(const GPUCSRMatrix& A, double *& vec);
+void subIdentityMatrix_cpu(const GPUCSRMatrix& A, size_t* CPU_RowIndices, size_t* CPU_Columns, double* CPU_Values);
 void csr_tocsc(const size_t n_row,
 	           const size_t n_col,
 	           const size_t Ap[],
@@ -290,9 +277,9 @@ void csr_tocsc(const size_t n_row,
 	                 size_t*& Bp,
 	                 size_t* Bi,
 	                 double* Bx);
-double checkResidual(const _Vector& u, const _Vector& b, const _Matrix& A);
-double roh(const _Matrix& A, size_t iter);
-bool checkConvergence(const _Vector& u, const _Vector& b, const _Matrix& A, const double lastResidual, const double threshold);
+double checkResidual(const GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A);
+double roh(const GPUCSRMatrix& A, size_t iter);
+bool checkConvergence(const GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const double lastResidual, const double threshold);
 void mallocAndCopyMem(double*& CPU, double*& GPU, size_t size);
 void mallocAndCopyMem(size_t*& CPU, size_t*& GPU, size_t size);
 void malloc_(double*& GPU, size_t size);
@@ -303,7 +290,7 @@ void copyMem(Q*& source, Q*& destiny, size_t size, unsigned short way);
 void deletingStuff(size_t* stuff);
 void deletingStuff(double* stuff);
 
-void GPU_VectorMultiply(double* sourceVec, double* destinyVec, size_t N);
+void GPUGPUVectorMultiply(double* sourceVec, double* destinyVec, size_t N);
 
 }
 }

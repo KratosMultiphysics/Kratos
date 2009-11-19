@@ -62,9 +62,9 @@ public:
     void singleStep(double* b_gpu, double* x_gpu);
     void cleanPreconditioner();
 private:
-    _Matrix* Matrices;
-    _Matrix *P, *R, *G;
-    _Vector b;
+    GPUCSRMatrix **Matrices;
+    GPUCSRMatrix **P, **R, **G;
+    GPUVector *b;
     size_t numFinalLevels;
     double W;
     double threshold;

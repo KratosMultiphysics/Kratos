@@ -50,8 +50,7 @@ using namespace Kratos::GPUSparse;
 
 class Diagonalpreconditioner : public GPUPreconditioner {
 public:
-    Diagonalpreconditioner(){};
-    Diagonalpreconditioner(bool actAsPreconditioner);
+    Diagonalpreconditioner();
     virtual ~Diagonalpreconditioner();
 
     void initialize(size_t* ptr_cpu, size_t* indices_cpu, double* values_cpu,
@@ -61,12 +60,11 @@ public:
     void singleStep(double* b_gpu, double* x_gpu);
     void cleanPreconditioner() ;
 private:
-    _Vector G;
+    GPUVector *G;
     bool allocated;
     double threshold;
-    _Matrix A;
+    GPUCSRMatrix *A;
     bool isPreconditioner;
-    bool exactly;
 };
 
 #endif	/* _DIAGONALPRECONDITIONER_H */

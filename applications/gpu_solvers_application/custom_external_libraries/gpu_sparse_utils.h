@@ -202,50 +202,50 @@ void sortElems_CPU(size_t* array, size_t numElems){
      }
 }
 /** implementation of quicksort algorithm **/
-void sortMatrix(_Matrix& C, bool sortingValues){
+void sortMatrix(size_t *CPU_RowIndices, size_t *CPU_Columns, double *CPU_Values, size_t Size1, size_t NNZ, bool sortingValues){
     switch(sortingValues){
         case false:
-            for(size_t i = 0; i < C.numRows; i++){
-                size_t firstElem = C.ptr_cpu[i];
-                size_t numElems = C.ptr_cpu[i+1] - firstElem;
-                sortElems_CPU(&C.indices_cpu[firstElem], numElems);
+            for(size_t i = 0; i < Size1; i++){
+                size_t firstElem = CPU_RowIndices[i];
+                size_t numElems = CPU_RowIndices[i+1] - firstElem;
+                sortElems_CPU(&CPU_Columns[firstElem], numElems);
             }
             break;
         case true:
-            for(size_t i = 0; i < C.numRows; i++){
-                size_t firstElem = C.ptr_cpu[i];
-                size_t numElems = C.ptr_cpu[i+1] - firstElem;
-                sortElems_CPU(&C.indices_cpu[firstElem], &C.values_cpu[firstElem], numElems);
+            for(size_t i = 0; i < Size1; i++){
+                size_t firstElem = CPU_RowIndices[i];
+                size_t numElems = CPU_RowIndices[i+1] - firstElem;
+                sortElems_CPU(&CPU_Columns[firstElem], &CPU_Values[firstElem], numElems);
             }
             break;
     }
 
 }
 
-void printVector(const _Vector& vec){
-    cout << "Num elems: " << vec.numElems << endl;
-    for(size_t i = 0; i < vec.numElems; i++){
-        cout << vec.values_cpu[i] << " ";
+void printVector(const GPUVector& vec){
+    cout << "Num elems: " << vec.Size << endl;
+    for(size_t i = 0; i < vec.Size; i++){
+        cout << vec.CPU_Values[i] << " ";
     }
     cout << endl << endl;
 }
 
-void printMatrix(const _Matrix& mat){
+void printMatrix(const GPUCSRMatrix& mat){
     size_t index = 0;
-    cout << "Num rows: " << mat.numRows << ", Num cols: " << mat.numCols << ", numNNZ: " << mat.numNNZ << endl;
-    for(size_t i = 0; i < mat.numRows; i++){
+    cout << "Num rows: " << mat.Size1 << ", Num cols: " << mat.Size2 << ", numNNZ: " << mat.NNZ << endl;
+    for(size_t i = 0; i < mat.Size1; i++){
         size_t currentCol = 0;
-        size_t numPtr = mat.ptr_cpu[i+1] - mat.ptr_cpu[i];
-        while(currentCol < mat.numCols && numPtr > 0){
-            if(mat.indices_cpu[index] == currentCol){
-                cout << mat.values_cpu[index] << " ";
+        size_t numPtr = mat.CPU_RowIndices[i+1] - mat.CPU_RowIndices[i];
+        while(currentCol < mat.Size2 && numPtr > 0){
+            if(mat.CPU_Columns[index] == currentCol){
+                cout << mat.CPU_Values[index] << " ";
                 index++;
                 numPtr--;
             }else
                 cout << "0" << " ";
             currentCol++;
         }
-        while(currentCol < mat.numCols){
+        while(currentCol < mat.Size2){
             cout << "0" << " ";
             currentCol++;
         }
@@ -254,27 +254,27 @@ void printMatrix(const _Matrix& mat){
     cout << endl;
 }
 
-void printMatrix_csr(const _Matrix& mat){
-    for(size_t i = 0; i < mat.numRows; i++){
-        for(size_t j = mat.ptr_cpu[i]; j < mat.ptr_cpu[i+1]; j++){
-            cout << "(" << i << ", " << mat.indices_cpu[j] << ") -> " << mat.values_cpu[j] << endl;
+void printMatrix_csr(const GPUCSRMatrix& mat){
+    for(size_t i = 0; i < mat.Size1; i++){
+        for(size_t j = mat.CPU_RowIndices[i]; j < mat.CPU_RowIndices[i+1]; j++){
+            cout << "(" << i << ", " << mat.CPU_Columns[j] << ") -> " << mat.CPU_Values[j] << endl;
         }
     }
 }
 
-double computeSingleSize(_Matrix& m){
-    return (((double)m.numNNZ * (sizeof(size_t) + sizeof(double)) + m.numRows * sizeof(size_t))/1024)/1024;
+double computeSingleSize(GPUCSRMatrix& m){
+    return (((double)m.NNZ * (sizeof(size_t) + sizeof(double)) + m.Size1 * sizeof(size_t))/1024)/1024;
 }
 
-double computeSingleSize(_Vector& v){
-    return (((double)v.numElems * (sizeof(double))) / 1024) / 1024;
+double computeSingleSize(GPUVector& v){
+    return (((double)v.Size * (sizeof(double))) / 1024) / 1024;
 }
 
 }
 }
 
 //
-// To use texture memory in GPU_MatrixVectorMultiply_CSR_Kernel; using two int2 to read a double
+// To use texture memory in GPUGPUCSRMatrixVectorMultiply_CSR_Kernel; using two int2 to read a double
 texture <int2, 1>  Texture_double;
 
 bool Bind_X(const double *X)
