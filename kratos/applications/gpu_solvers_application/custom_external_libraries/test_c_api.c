@@ -41,7 +41,13 @@ int main(){
 	//FillMatrix_CPU(ptr, indices, values, NNZ, numRows);
 	char* name = "mat8.mm";
 	char* name_vec = "vecb8.mm";
+
+//	char* name = "examples/aa.mm";
+//	char* name_vec = "examples/bb.mm";
 	
+
+	double tolerance = 1e-9;
+	size_t maxIters = 5000;
 
 	loadDataFromFile(name, &indices, &ptr, &values, &numRows, &numCols, &NNZ);
 	
@@ -50,46 +56,34 @@ int main(){
 	double* b;
 	size_t b_rows;
 	size_t b_cols;
-//	b = allocate_double(numRows);
 	x = allocate_double(numRows);
 	loadDataFromFile_vector(name_vec, &b,
 		&b_rows, &b_cols);
-	//b = A[rowChoice]; b is copied from the row number rowChoice of A
-/*	size_t rowChoice = 2;
-	selectB(ptr, indices, values, b, rowChoice, numRows);	
 
-	size_t cn;
-	for(cn = 0; cn < numRows; cn++){
-		printf("%lg, ", b[cn]);
-	}
-	printf("\n\n");*/
-	
 	//Solving strategies	
 		//BICGSTAB without preconditioner
-
-
 	setZeros(x, numRows);
-	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, 1e-9, 100, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_BICGSTAB, NOPRECOND);
+	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, tolerance, maxIters, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_BICGSTAB, NOPRECOND);
 	printf("Finished BICGSTAB without preconditioner with norm(b) = %lg, norm(residual) = %lg, numIterationsPerformed = %u\n\n", mBNorm, mResidualNorm, mIterationsNumber);
 
 		//BICGSTAB with diagonal preconditioner
 	setZeros(x, numRows);
-	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, 1e-9, 100, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_BICGSTAB, DIAGONAL);
+	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, tolerance, maxIters, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_BICGSTAB, DIAGONAL);
 	printf("Finished BICGSTAB with diagonal preconditioner with norm(b) = %lg, norm(residual) = %lg, numIterationsPerformed = %u\n\n", mBNorm, mResidualNorm, mIterationsNumber);
 	
 		//CG without preconditioner
 	setZeros(x, numRows);
-	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, 1e-9, 100, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_CG, NOPRECOND);
+	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, tolerance, maxIters, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_CG, NOPRECOND);
 	printf("Finished CG without preconditioner with norm(b) = %lg, norm(residual) = %lg, numIterationsPerformed = %u\n\n", mBNorm, mResidualNorm, mIterationsNumber);
 		
 		//CG with diagonal preconditioner
 	setZeros(x, numRows);
-	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, 1e-9, 100, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_CG, DIAGONAL);
+	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, tolerance, maxIters, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_CG, DIAGONAL);
 	printf("Finished CG with diagonal preconditioner with norm(b) = %lg, norm(residual) = %lg, numIterationsPerformed = %u\n\n", mBNorm, mResidualNorm, mIterationsNumber);
 		
 		//CG with amg preconditioner
 	setZeros(x, numRows);
-	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, 1e-9, 100, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_CG, AMG);
+	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, tolerance, maxIters, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_CG, AMG);
 	printf("Finished CG with amg preconditioner with norm(b) = %lg, norm(residual) = %lg, numIterationsPerformed = %u\n\n", mBNorm, mResidualNorm, mIterationsNumber);
 
 	//Cleaning resources	

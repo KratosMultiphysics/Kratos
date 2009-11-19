@@ -42,11 +42,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "Diagonalpreconditioner.h"
 #include <cstdio>
+#include <cmath>
 
+Diagonalpreconditioner::Diagonalpreconditioner() {
 
-Diagonalpreconditioner::Diagonalpreconditioner(bool actAsPreconditioner) {
-	isPreconditioner = actAsPreconditioner;
 }
+
+
 
 Diagonalpreconditioner::~Diagonalpreconditioner() {
     if(allocated)
@@ -57,45 +59,50 @@ void Diagonalpreconditioner::initialize(size_t* ptr_cpu, size_t* indices_cpu, do
     //Sacar la diagonal y guardarla en cpu-gpu
     allocated = true;
     //aqui gpu
-    A.numRows = numRows;
-    A.numCols = numCols;
-    A.numNNZ = numNNZ;
-    A.ptr_cpu = ptr_cpu;
-    A.indices_cpu = indices_cpu;
-    A.values_cpu = values_cpu;
-    A.ptr_gpu = ptr_gpu;
-    A.indices_gpu = indices_gpu;
-    A.values_gpu = values_gpu;
-    createDiagonal(A, G);
+    A = new GPUCSRMatrix(numNNZ, numRows, numCols, indices_cpu, ptr_cpu, values_cpu);
+    size_t Size;
+    double *Gval;
+    createDiagonal(*A, Size, Gval);
+	double acum = 0.0;
+	for(size_t i = 0; i < Size; i++){
+		acum += pow(Gval[i], 2);
+	}
+	acum = sqrt(acum);
+	printf("Init Diagonal Norm %lg\n", acum);
+    G = new GPUVector(Size, Gval);
+    G->GPU_Allocate();
+    G->Copy(CPU_GPU);
 }
 
 void Diagonalpreconditioner::cleanPreconditioner(){
     //borrar los dos vectores de la diagonal
-    deletingStuff(G.values_gpu);
-    delete[] G.values_cpu;
+    delete[] G->CPU_Values;
+    delete G;
+    delete A;
     allocated = false;
 }
 
 void Diagonalpreconditioner::singleStep(double* b_gpu, double* x_gpu){
     //aplicar una multiplicación vector vector, de nuestra diagonal a su vector
-	if(isPreconditioner)
-		copyMem(b_gpu, x_gpu, G.numElems, 2);
-    GPU_VectorMultiply(G.values_gpu, x_gpu, G.numElems);
+    copyMem(b_gpu, x_gpu, G->Size, 2);
+    GPUGPUVectorMultiply(G->GPU_Values, x_gpu, G->Size);
 }
 
 size_t Diagonalpreconditioner::solve(double* b_cpu, double* b_gpu, double* x_cpu, double* x_gpu, double _precision, size_t maxIters){
     threshold = _precision;
-    _Vector u;
-    double residual;
-    u.numElems = G.numElems;
-    u.values_cpu = x_cpu;
-    u.values_gpu = x_gpu;
-    _Vector b;
-    b.numElems = G.numElems;
-    b.values_cpu = b_cpu;
-    b.values_gpu = b_gpu;
+    GPUVector u(G->Size, x_cpu);
+    GPUVector b(G->Size, b_cpu);
 
-    residual = checkResidual(u, b, A);
+    u.GPU_Allocate();
+    u.Copy(CPU_GPU);
+
+    b.GPU_Allocate();
+    b.Copy(CPU_GPU);
+    
+    A->GPU_Allocate();
+    A->Copy(CPU_GPU, false);
+
+    double residual = checkResidual(u, b, *A);
 
     bool done = false;
     size_t iterations = 0;
@@ -103,9 +110,9 @@ size_t Diagonalpreconditioner::solve(double* b_cpu, double* b_gpu, double* x_cpu
     while(!done && iterations < maxIters){
         iterations++;
         //multilevel(Matrices, P, R, G, b, u, 0, numFinalLevels);
-        singleStep(b_gpu, x_gpu);
-        copyMem(u.values_gpu, u.values_cpu, u.numElems, 1);
-        done = checkConvergence(u, b, A, residual, threshold);
+        GPUGPUVectorMultiply(G->GPU_Values, x_gpu, G->Size);
+	u.Copy(GPU_CPU);
+        done = checkConvergence(u, b, *A, residual, threshold);
     }
     if(iterations == maxIters)
         printf("It haven't converged!!\n");

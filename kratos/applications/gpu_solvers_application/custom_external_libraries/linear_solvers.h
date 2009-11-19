@@ -56,8 +56,9 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
       {
 	bool havePreconditioner = (&preconditioner != NULL);
 
+
 	// Inputs
-	GPUCSRMatrix gA(A_NNZ, A_Size1, A_size2, A_indices, A_ptr, A_values);
+	GPUCSRMatrix gA(A_NNZ, A_Size1, A_size2, A_indices, A_ptr, A_values, false);
 	GPU_CHECK(gA.GPU_Allocate());
 	GPU_CHECK(gA.Copy(CPU_GPU, false));
 	
@@ -70,9 +71,9 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 	GPU_CHECK(gB.Copy(CPU_GPU));
 
 	if(havePreconditioner){
-		preconditioner.initialize(gA.CPU_RowIndices, gA.CPU_Columns, gA.CPU_Values,
+		preconditioner.initialize(A_ptr, A_indices, A_values,
 			gA.GPU_RowIndices, gA.GPU_Columns, gA.GPU_Values,
-			gA.Size1, gA.Size2, gA.NNZ, true, true);
+			A_Size1, A_size2, A_NNZ, true, true);
 	}
 
 	double resid;
@@ -99,17 +100,17 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 
 
 		// Real normb = norm(b);
-	GPU_CHECK(GPU_VectorNorm2(gB, mBNorm));
+	GPU_CHECK(GPUGPUVectorNorm2(gB, mBNorm));
 
 		//  Vector r = b - A * x;
 	//VectorType r(size);
 	GPUVector r(size);
 	GPU_CHECK(r.GPU_Allocate());
 	//SparseSpaceType::Mult(rA,rX,r); // r = rA*rX
-	GPU_CHECK(GPU_MatrixVectorMultiply(gA, gX, r));
+	GPU_CHECK(GPUGPUCSRMatrixVectorMultiply(gA, gX, r));
 
 	//SparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r); // r = rB - r
-	GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gB, -1.00, r));
+	GPU_CHECK(GPUGPUVectorScaleAndAdd(1.00, gB, -1.00, r));
 		// rtilde
 	//VectorType rtilde(size);
 	GPUVector rtilde(size);
@@ -120,7 +121,7 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 		mBNorm = 1.0;
 
 	mIterationsNumber = 0;
-	GPU_CHECK(GPU_VectorNorm2(r, mResidualNorm));
+	GPU_CHECK(GPUGPUVectorNorm2(r, mResidualNorm));
 	if((resid = mResidualNorm/mBNorm) <= 1.0e-30){
 		if(havePreconditioner)
 			preconditioner.cleanPreconditioner();
@@ -130,10 +131,10 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 
 	do{
 		//roh_1 = dotProduct(rtilde, r);
-		GPU_CHECK(GPU_VectorVectorMultiply(rtilde, r, roh_1));
+		GPU_CHECK(GPUGPUVectorVectorMultiply(rtilde, r, roh_1));
 
 		if(roh_1 == 0){
-			GPU_CHECK(GPU_VectorNorm2(r, mResidualNorm));
+			GPU_CHECK(GPUGPUVectorNorm2(r, mResidualNorm));
 			break;
 		}
 
@@ -143,8 +144,8 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 		}else{
 			beta = (roh_1/roh_2) * (alpha/omega);
       			//p = r + beta * (p - omega * v);
-			GPU_CHECK(GPU_VectorScaleAndAdd(-omega, v, 1.0, p));
-			GPU_CHECK(GPU_VectorScaleAndAdd(1.0, r, beta, p));
+			GPU_CHECK(GPUGPUVectorScaleAndAdd(-omega, v, 1.0, p));
+			GPU_CHECK(GPUGPUVectorScaleAndAdd(1.0, r, beta, p));
 		}
 		if(havePreconditioner){
 			//phat = M.solve(p);
@@ -155,18 +156,18 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 		}
 		
 		//v = A * phat;
-		GPU_CHECK(GPU_MatrixVectorMultiply(gA, phat, v));
+		GPU_CHECK(GPUGPUCSRMatrixVectorMultiply(gA, phat, v));
 		//dot(rtilde, v)
 		double dotRtildeV = 0.0;
-		GPU_CHECK(GPU_VectorVectorMultiply(rtilde, v, dotRtildeV));
+		GPU_CHECK(GPUGPUVectorVectorMultiply(rtilde, v, dotRtildeV));
 
 		alpha = roh_1 / dotRtildeV;
 
 		//s = r - alpha(0) * v;
-		GPU_CHECK(GPU_VectorScaleAndAdd(1.0, r, -alpha, v, s));
+		GPU_CHECK(GPUGPUVectorScaleAndAdd(1.0, r, -alpha, v, s));
 
 		//norm(s)
-		GPU_CHECK(GPU_VectorNorm2(s, norms));
+		GPU_CHECK(GPUGPUVectorNorm2(s, norms));
 
 		if ((resid = norms/mBNorm) < tol) {
 			//x += alpha(0) * phat;
@@ -183,22 +184,22 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 		}
 
 		//t = A * shat;
-		GPU_CHECK(GPU_MatrixVectorMultiply(gA, shat, t));
+		GPU_CHECK(GPUGPUCSRMatrixVectorMultiply(gA, shat, t));
 
 		//omega = dot(t,s) / dot(t,t);
 		double dotTS = 0.0, dotTT = 0.0;
-		GPU_CHECK(GPU_VectorVectorMultiply(t, s, dotTS));
-		GPU_CHECK(GPU_VectorVectorMultiply(t, t, dotTT));
+		GPU_CHECK(GPUGPUVectorVectorMultiply(t, s, dotTS));
+		GPU_CHECK(GPUGPUVectorVectorMultiply(t, t, dotTT));
 		omega = dotTS / dotTT;
 		
 		//x += alpha(0) * phat + omega(0) * shat;
-		GPU_CHECK(GPU_VectorScaleAndAdd_addingVersion(alpha, phat, omega, shat, gX));
+		GPU_CHECK(GPUGPUVectorScaleAndAdd_addingVersion(alpha, phat, omega, shat, gX));
 		//r = s - omega(0) * t;
-		GPU_CHECK(GPU_VectorScaleAndAdd(1.0, s, -omega, t, r));
+		GPU_CHECK(GPUGPUVectorScaleAndAdd(1.0, s, -omega, t, r));
 
 		roh_2 = roh_1;
 		//norm(r)
-		GPU_CHECK(GPU_VectorNorm2(r, mResidualNorm));
+		GPU_CHECK(GPUGPUVectorNorm2(r, mResidualNorm));
 		mIterationsNumber++;
 		if ((resid = mResidualNorm / mBNorm) < tol) {
 			//tol = resid;
@@ -226,11 +227,11 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 	double tol, size_t maxIterations, double &mBNorm, double &mResidualNorm, size_t &mIterationsNumber, GPUPreconditioner& preconditioner)
       {
 
-	bool havePreconditioner = (&preconditioner != 0);
+	bool havePreconditioner = (&preconditioner != 0);
 	const int size = vectorSize;
 
 	//Allocating matrix A
-	GPUCSRMatrix gpuA(A_NNZ, A_Size1, A_size2, A_indices, A_ptr, A_values, true);
+	GPUCSRMatrix gpuA(A_NNZ, A_Size1, A_size2, A_indices, A_ptr, A_values, false);
 	GPU_CHECK(gpuA.GPU_Allocate());
 	GPU_CHECK(gpuA.Copy(CPU_GPU, false));
 
@@ -244,25 +245,26 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 	GPU_CHECK(gpuX.GPU_Allocate());
 	GPU_CHECK(gpuX.Copy(CPU_GPU));
 
+
 	double alpha, beta, roh, roh_1 = 1.0;
-		
+
 	//Ini preconditioner
 	//clock_t s1 = clock();
 	if(havePreconditioner){
-		preconditioner.initialize(gpuA.CPU_RowIndices, gpuA.CPU_Columns, gpuA.CPU_Values,
+		preconditioner.initialize(A_ptr, A_indices, A_values,
 				gpuA.GPU_RowIndices, gpuA.GPU_Columns, gpuA.GPU_Values,
-				gpuA.Size1, gpuA.Size2, gpuA.NNZ, true, true);
+				gpuA.Size1, gpuA.Size2, A_NNZ, true, true);
 	}
 	//clock_t s2 = clock();
 	//std::cout << "Time to create hierarchy" << double(s2-s1) / CLOCKS_PER_SEC << "s" << std::endl;
 	//Norm(b)
-	GPU_CHECK(GPU_VectorNorm2(gpuB, mBNorm));
+	GPU_CHECK(GPUGPUVectorNorm2(gpuB, mBNorm));
 
 	//r = b - A*x
 	GPUVector gpuR(size);
 	GPU_CHECK(gpuR.GPU_Allocate());
-	GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuX, gpuR));
-	GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuB, -1.00, gpuR));
+	GPU_CHECK(GPUGPUCSRMatrixVectorMultiply(gpuA, gpuX, gpuR));
+	GPU_CHECK(GPUGPUVectorScaleAndAdd(1.00, gpuB, -1.00, gpuR));
 
 	if(mBNorm == 0.0)
 		mBNorm = 1.0;
@@ -270,7 +272,7 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 	mIterationsNumber = 0;
 	//Norm(r)
 	double resid;
-	GPU_CHECK(GPU_VectorNorm2(gpuR, mResidualNorm));
+	GPU_CHECK(GPUGPUVectorNorm2(gpuR, mResidualNorm));
 	if((resid = mResidualNorm/mBNorm) <= 1.0e-30){
 		if(havePreconditioner)
 			preconditioner.cleanPreconditioner();
@@ -293,25 +295,25 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 		//s2 = clock();
 		//s3 += s2-s1;
 		//roh = GPU_dotProduct(gpuR.Size, gpuR.GPU_Values, 1, gpuZ.GPU_Values, 1);
-		GPU_CHECK(GPU_VectorVectorMultiply(gpuR, gpuZ, roh));
+		GPU_CHECK(GPUGPUVectorVectorMultiply(gpuR, gpuZ, roh));
 
 		if(i == 1)
 			//gpuP = gpuZ
 			gpuP.CopyFromGPU(gpuZ);
 		else{
 			beta = roh / roh_1; 
-			GPU_CHECK(GPU_VectorScaleAndAdd(1.00, gpuZ, beta, gpuP));
+			GPU_CHECK(GPUGPUVectorScaleAndAdd(1.00, gpuZ, beta, gpuP));
 		}
 
-		GPU_CHECK(GPU_MatrixVectorMultiply(gpuA, gpuP, gpuQ));
+		GPU_CHECK(GPUGPUCSRMatrixVectorMultiply(gpuA, gpuP, gpuQ));
 		//roh_1 = dotProduct(p, q);
 		double dotPQ;
-		GPU_CHECK(GPU_VectorVectorMultiply(gpuP, gpuQ, dotPQ));
+		GPU_CHECK(GPUGPUVectorVectorMultiply(gpuP, gpuQ, dotPQ));
 		alpha = roh / dotPQ;
-		GPU_CHECK(GPU_VectorScaleAndAdd(alpha, gpuP, 1.00, gpuX));
-		GPU_CHECK(GPU_VectorScaleAndAdd(-alpha, gpuQ, 1.00, gpuR));
+		GPU_CHECK(GPUGPUVectorScaleAndAdd(alpha, gpuP, 1.00, gpuX));
+		GPU_CHECK(GPUGPUVectorScaleAndAdd(-alpha, gpuQ, 1.00, gpuR));
 	
-		GPU_CHECK(GPU_VectorNorm2(gpuR, mResidualNorm));
+		GPU_CHECK(GPUGPUVectorNorm2(gpuR, mResidualNorm));
 		//std::cout << mResidualNorm << std::endl;
 		//std::cout << mResidualNorm/mBNorm << std::endl;
 		if((resid = mResidualNorm/mBNorm) <= 1.0e-30){

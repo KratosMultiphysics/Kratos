@@ -94,11 +94,11 @@ void Solve(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size_
 		for(size_t i = 0; i < 10; i++){
 			preSweeps[i] = postSweeps[i] = 1;
 		}
-		preconditioner = new AMGpreconditioner(4.0/3.0, 2, true, 10, 100, preSweeps, postSweeps, true);
+		preconditioner = new AMGpreconditioner(4.0/3.0, 2, true, 10, 1000, preSweeps, postSweeps, true);
 		preconditionerSet = true;
 		sweepsSet = true;
 	}else if(b == DIAGONAL){
-		preconditioner = new Diagonalpreconditioner(true);
+		preconditioner = new Diagonalpreconditioner();
 		preconditionerSet = true;
 	}else if(b == NOPRECOND){
 		preconditioner = NULL;

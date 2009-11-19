@@ -77,59 +77,18 @@ AMGpreconditioner::~AMGpreconditioner() {
 
 void AMGpreconditioner::cleanPreconditioner(){
 	if(numFinalLevels > 0){
-		//P
-		delete[] P[0].indices_cpu;
-		delete[] P[0].values_cpu;
-		delete[] P[0].ptr_cpu;
-		deletingStuff(P[0].indices_gpu);
-		deletingStuff(P[0].values_gpu);
-		deletingStuff(P[0].ptr_gpu);
-		//R
-		delete[] R[0].indices_cpu;
-		delete[] R[0].values_cpu;
-		delete[] R[0].ptr_cpu;
-		deletingStuff(R[0].indices_gpu);
-		deletingStuff(R[0].values_gpu);
-		deletingStuff(R[0].ptr_gpu);
-		//G
-		delete[] G[0].indices_cpu;
-		delete[] G[0].values_cpu;
-		delete[] G[0].ptr_cpu;
-		deletingStuff(G[0].indices_gpu);
-		deletingStuff(G[0].values_gpu);
-		deletingStuff(G[0].ptr_gpu);
-		for(size_t i = 1; i < numFinalLevels; i++){
+		for(size_t i = 0; i < numFinalLevels; i++){
 		    //P
-		    delete[] P[i].indices_cpu;
-		    delete[] P[i].values_cpu;
-		    delete[] P[i].ptr_cpu;
-		    deletingStuff(P[i].indices_gpu);
-		    deletingStuff(P[i].values_gpu);
-		    deletingStuff(P[i].ptr_gpu);
+		    delete P[i];
 		    //R
-		    delete[] R[i].indices_cpu;
-		    delete[] R[i].values_cpu;
-		    delete[] R[i].ptr_cpu;
-		    deletingStuff(R[i].indices_gpu);
-		    deletingStuff(R[i].values_gpu);
-		    deletingStuff(R[i].ptr_gpu);
+		    delete R[i];
 		    //G
-		    delete[] G[i].indices_cpu;
-		    delete[] G[i].values_cpu;
-		    delete[] G[i].ptr_cpu;
-		    deletingStuff(G[i].indices_gpu);
-		    deletingStuff(G[i].values_gpu);
-		    deletingStuff(G[i].ptr_gpu);
+		    delete G[i];
 		    //A
-		    delete[] Matrices[i].indices_cpu;
-		    delete[] Matrices[i].values_cpu;
-		    delete[] Matrices[i].ptr_cpu;
-		    deletingStuff(Matrices[i].indices_gpu);
-		    deletingStuff(Matrices[i].values_gpu);
-		    deletingStuff(Matrices[i].ptr_gpu);
+		    delete Matrices[i];
 		}
     	}
-	delete[] Matrices[numFinalLevels].matAuxValues;
+	delete Matrices[numFinalLevels];
 	delete[] P;
 	delete[] R;
 	delete[] G;
@@ -144,22 +103,16 @@ void AMGpreconditioner::initialize(size_t* ptr_cpu, size_t* indices_cpu, double*
 
 	//printf("El valor de minimumSizeAllowed es: %u\n", minimumSizeAllowed);
 
-    Matrices = new _Matrix[numMaxHierarchyLevels];
-    P = new _Matrix[numMaxHierarchyLevels];
-    R = new _Matrix[numMaxHierarchyLevels];
-    G = new _Matrix[numMaxHierarchyLevels];
-    b.numElems = numCols;
+    Matrices = new GPUCSRMatrix*[numMaxHierarchyLevels];
+    P = new GPUCSRMatrix*[numMaxHierarchyLevels];
+    R = new GPUCSRMatrix*[numMaxHierarchyLevels];
+    G = new GPUCSRMatrix*[numMaxHierarchyLevels];
+    b = new GPUVector(numCols);
 
-    Matrices[0].numRows = numRows;
-    Matrices[0].numCols = numCols;
-    Matrices[0].numNNZ = numNNZ;
-    Matrices[0].indices_cpu = indices_cpu;
-    Matrices[0].ptr_cpu = ptr_cpu;
-    Matrices[0].values_cpu = values_cpu;
+    Matrices[0] = new GPUCSRMatrix(numNNZ, numRows, numCols, indices_cpu, ptr_cpu, values_cpu, false);
+    Matrices[0]->GPU_Allocate();
+    Matrices[0]->Copy(CPU_GPU, false);
 
-    Matrices[0].indices_gpu = indices_gpu;
-    Matrices[0].ptr_gpu = ptr_gpu;
-    Matrices[0].values_gpu = values_gpu;
 
         /** Generating hierarchy **/
     numFinalLevels = generateHierarchy(Matrices, P, R, G, W, numLevelsRoh, numMaxHierarchyLevels, minimumSizeAllowed);
@@ -168,32 +121,33 @@ void AMGpreconditioner::initialize(size_t* ptr_cpu, size_t* indices_cpu, double*
 
 void AMGpreconditioner::singleStep(double* b_gpu, double* x_gpu){
 
-	_Vector u;
-	u.numElems = Matrices[0].numCols;
-	u.values_cpu = new double[u.numElems];
+	GPUVector u(Matrices[0]->Size2);
+	u.CPU_Values = new double[u.Size];
 	if(isPreconditioner){
-		GPU_fillWithZeros(u.numElems, x_gpu);
+		GPU_fillWithZeros(u.Size, x_gpu);
 	}
 
-	u.values_gpu = x_gpu;
-	b.values_gpu = b_gpu;
-	b.values_cpu = new double[u.numElems];
-	multilevel(Matrices, P, R, G, b, u, 0, numFinalLevels, preSweeps, postSweeps, assumeZerosForEachStep);
-	delete[] u.values_cpu;
-	delete[] b.values_cpu;
+	u.GPU_Values = x_gpu;
+	u.Allocated = true;
+	b->GPU_Values = b_gpu;
+	b->CPU_Values = new double[u.Size];
+	b->Allocated = true;
+	multilevel(Matrices, P, R, G, *b, u, 0, numFinalLevels, preSweeps, postSweeps, assumeZerosForEachStep);
+	u.Allocated = false;
+	b->Allocated = false;
+	delete[] u.CPU_Values;
+	delete[] b->CPU_Values;
 }
 
 size_t AMGpreconditioner::solve(double* b_gpu, double* b_cpu, double* x_gpu, double* x_cpu, double _precision, size_t maxIters){
     threshold = _precision;
-    _Vector u;
+    GPUVector u(Matrices[0]->Size2, x_cpu);
     double residual;
-    u.numElems = Matrices[0].numCols;
-    u.values_cpu = x_cpu;
-    u.values_gpu = x_gpu;
-    b.values_cpu = b_cpu;
-    b.values_gpu = b_gpu;
+    u.GPU_Values = x_gpu;
+    b->CPU_Values = b_cpu;
+    b->GPU_Values = b_gpu;
 
-    residual = checkResidual(u, b, Matrices[0]);
+    residual = checkResidual(u, *b, *Matrices[0]);
 
     bool done = false;
     size_t iterations = 0;
@@ -202,9 +156,9 @@ size_t AMGpreconditioner::solve(double* b_gpu, double* b_cpu, double* x_gpu, dou
         iterations++;
         //multilevel(Matrices, P, R, G, b, u, 0, numFinalLevels);
         singleStep(b_gpu, x_gpu);        
-        done = checkConvergence(u, b, Matrices[0], residual, threshold);
+        done = checkConvergence(u, *b, *Matrices[0], residual, threshold);
     }
-    copyMem(u.values_gpu, u.values_cpu, u.numElems, 1);
+    copyMem(u.GPU_Values, u.CPU_Values, u.Size, 1);
     if(iterations == maxIters)
         printf("It haven't converged!!\n");
     else

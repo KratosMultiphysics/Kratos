@@ -49,7 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // GPU_MatrixVectorMultiply_CSR_Kernel
 // CSRMatrix Vector multiply kernel
 
-__global__ void GPU_MatrixVectorMultiply_CSR_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
+__global__ void GPUGPUCSRMatrixVectorMultiply_CSR_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
 {
 	size_t Idx = GlobalIdx();
 	
@@ -81,7 +81,7 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Kernel(const size_t Rows, const siz
 
 
 
-__global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
+__global__ void GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
 {
 	const size_t Idx = GlobalIdx();									// Global thread index
 	const size_t Lane = Idx & (HALF_WARP_SIZE - 1);					// Thread index within a half warp
@@ -155,7 +155,7 @@ __global__ void GPU_MatrixVectorMultiply_CSR_Vectorized_Kernel(const size_t Rows
 // GPU_MatrixGetDiagonals_Kernel
 // Extract the diagonal elements of a matrix into a vector kernel
 
-__global__ void GPU_MatrixGetDiagonals_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, double *X_Values)
+__global__ void GPUGPUCSRMatrixGetDiagonals_Kernel(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, double *X_Values)
 {
 	const size_t Idx = GlobalIdx();
 	
@@ -173,7 +173,7 @@ __global__ void GPU_MatrixGetDiagonals_Kernel(const size_t Rows, const size_t *A
 // GPU_MatrixGetDiagonals_Kernel
 // Extract the diagonal elements of a matrix into a vector kernel
 
-__global__ void GPU_MatrixMatrixDiagonalMultiply_Kernel(const size_t Size, const double *X_Values, const size_t *A_Columns, const size_t *A_RowIndices, double *A_Values)
+__global__ void GPUGPUCSRMatrixMatrixDiagonalMultiply_Kernel(const size_t Size, const double *X_Values, const size_t *A_Columns, const size_t *A_RowIndices, double *A_Values)
 {
 	const size_t Idx = GlobalIdx();
 	
@@ -190,7 +190,7 @@ __global__ void GPU_MatrixMatrixDiagonalMultiply_Kernel(const size_t Size, const
 // GPU_VectorPrepareDiagonalPreconditionerValues_Kernel
 // Prepare diagonal values of the matrix for Diagonal Preconditioner kernel
 
-__global__ void GPU_VectorPrepareDiagonalPreconditionerValues_Kernel(const size_t Size, double *X_Values)
+__global__ void GPUGPUVectorPrepareDiagonalPreconditionerValues_Kernel(const size_t Size, double *X_Values)
 {
 	const size_t Idx = GlobalIdx();
 	
@@ -207,7 +207,7 @@ __global__ void GPU_VectorPrepareDiagonalPreconditionerValues_Kernel(const size_
 // GPU_VectorVectorMultiplyElementWise_Kernel
 // Vector-Vector element-wise multiply kernel
 
-__global__ void GPU_VectorVectorMultiplyElementWise_Kernel(const size_t N, const double *X, const double *Y, double *Z)
+__global__ void GPUGPUVectorVectorMultiplyElementWise_Kernel(const size_t N, const double *X, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -216,12 +216,12 @@ __global__ void GPU_VectorVectorMultiplyElementWise_Kernel(const size_t N, const
 }
 
 //
-// GPU_VectorScaleAndAdd_1_Kernel
+// GPUGPUVectorScaleAndAdd_1_Kernel
 // VectorScaleAndAdd kernel
 
 // Variant 1: Z = A * X + B * Y
 
-__global__ void GPU_VectorScaleAndAdd_1_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -231,7 +231,7 @@ __global__ void GPU_VectorScaleAndAdd_1_Kernel(const size_t N, const double A, c
 
 // Variant 1-A: Z = A * X + B * Y (A = 1.00; B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_A_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_A_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -241,7 +241,7 @@ __global__ void GPU_VectorScaleAndAdd_1_A_Kernel(const size_t N, const double A,
 
 // Variant 1-B: Z = A * X + B * Y (A = 1.00; B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_B_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_B_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -251,7 +251,7 @@ __global__ void GPU_VectorScaleAndAdd_1_B_Kernel(const size_t N, const double A,
 
 // Variant 1-C: Z = A * X + B * Y (A = -1.00; B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_C_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_C_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -261,7 +261,7 @@ __global__ void GPU_VectorScaleAndAdd_1_C_Kernel(const size_t N, const double A,
 
 // Variant 1-D: Z = A * X + B * Y (A = -1.00; B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_D_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_D_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -271,7 +271,7 @@ __global__ void GPU_VectorScaleAndAdd_1_D_Kernel(const size_t N, const double A,
 
 // Variant 1-E: Z = A * X + B * Y (A = 1.00; B = *)
 
-__global__ void GPU_VectorScaleAndAdd_1_E_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_E_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -281,7 +281,7 @@ __global__ void GPU_VectorScaleAndAdd_1_E_Kernel(const size_t N, const double A,
 
 // Variant 1-F: Z = A * X + B * Y (A = -1.00; B = *)
 
-__global__ void GPU_VectorScaleAndAdd_1_F_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_F_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -291,7 +291,7 @@ __global__ void GPU_VectorScaleAndAdd_1_F_Kernel(const size_t N, const double A,
 
 // Variant 1-G: Z = A * X + B * Y (A = *; B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_G_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_G_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -301,7 +301,7 @@ __global__ void GPU_VectorScaleAndAdd_1_G_Kernel(const size_t N, const double A,
 
 // Variant 1-H: Z = A * X + B * Y (A = *; B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_H_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_H_Kernel(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -311,7 +311,7 @@ __global__ void GPU_VectorScaleAndAdd_1_H_Kernel(const size_t N, const double A,
 
 // Variant 2: Y = A * X + B * Y
 
-__global__ void GPU_VectorScaleAndAdd_2_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -321,7 +321,7 @@ __global__ void GPU_VectorScaleAndAdd_2_Kernel(const size_t N, const double A, c
 
 // Variant 2-A: Y = A * X + B * Y (A = 1.00, B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_2_A_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_A_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -331,7 +331,7 @@ __global__ void GPU_VectorScaleAndAdd_2_A_Kernel(const size_t N, const double A,
 
 // Variant 2-B: Y = A * X + B * Y (A = 1.00, B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_2_B_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_B_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -341,7 +341,7 @@ __global__ void GPU_VectorScaleAndAdd_2_B_Kernel(const size_t N, const double A,
 
 // Variant 2-C: Y = A * X + B * Y (A = -1.00, B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_2_C_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_C_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -351,7 +351,7 @@ __global__ void GPU_VectorScaleAndAdd_2_C_Kernel(const size_t N, const double A,
 
 // Variant 2-D: Y = A * X + B * Y (A = -1.00, B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_2_D_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_D_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -361,7 +361,7 @@ __global__ void GPU_VectorScaleAndAdd_2_D_Kernel(const size_t N, const double A,
 
 // Variant 2-E: Y = A * X + B * Y (A = 1.00, B = *)
 
-__global__ void GPU_VectorScaleAndAdd_2_E_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_E_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 	if (Idx < N){
@@ -374,7 +374,7 @@ __global__ void GPU_VectorScaleAndAdd_2_E_Kernel(const size_t N, const double A,
 
 // Variant 2-F: Y = A * X + B * Y (A = -1.00, B = *)
 
-__global__ void GPU_VectorScaleAndAdd_2_F_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_F_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -384,7 +384,7 @@ __global__ void GPU_VectorScaleAndAdd_2_F_Kernel(const size_t N, const double A,
 
 // Variant 2-G: Y = A * X + B * Y (A = *, B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_2_G_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_G_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -394,7 +394,7 @@ __global__ void GPU_VectorScaleAndAdd_2_G_Kernel(const size_t N, const double A,
 
 // Variant 2-H: Y = A * X + B * Y (A = *, B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_2_H_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
+__global__ void GPUGPUVectorScaleAndAdd_2_H_Kernel(const size_t N, const double A, const double *X, const double B, double *Y)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -406,12 +406,12 @@ __global__ void GPU_VectorScaleAndAdd_2_H_Kernel(const size_t N, const double A,
 /** FOR GPU_SPARSE **/
 
 //
-// GPU_VectorScaleAndAdd_1_Kernel ADDING VERSIONS
+// GPUGPUVectorScaleAndAdd_1_Kernel ADDING VERSIONS
 // VectorScaleAndAdd kernel
 
 // Variant 1: Z = A * X + B * Y
 
-__global__ void GPU_VectorScaleAndAdd_1_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -421,7 +421,7 @@ __global__ void GPU_VectorScaleAndAdd_1_Kernel_addingVersion(const size_t N, con
 
 // Variant 1-A: Z = A * X + B * Y (A = 1.00; B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_A_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_A_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -431,7 +431,7 @@ __global__ void GPU_VectorScaleAndAdd_1_A_Kernel_addingVersion(const size_t N, c
 
 // Variant 1-B: Z = A * X + B * Y (A = 1.00; B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_B_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_B_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -441,7 +441,7 @@ __global__ void GPU_VectorScaleAndAdd_1_B_Kernel_addingVersion(const size_t N, c
 
 // Variant 1-C: Z = A * X + B * Y (A = -1.00; B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_C_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_C_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -451,7 +451,7 @@ __global__ void GPU_VectorScaleAndAdd_1_C_Kernel_addingVersion(const size_t N, c
 
 // Variant 1-D: Z = A * X + B * Y (A = -1.00; B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_D_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_D_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -461,7 +461,7 @@ __global__ void GPU_VectorScaleAndAdd_1_D_Kernel_addingVersion(const size_t N, c
 
 // Variant 1-E: Z = A * X + B * Y (A = 1.00; B = *)
 
-__global__ void GPU_VectorScaleAndAdd_1_E_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_E_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -471,7 +471,7 @@ __global__ void GPU_VectorScaleAndAdd_1_E_Kernel_addingVersion(const size_t N, c
 
 // Variant 1-F: Z = A * X + B * Y (A = -1.00; B = *)
 
-__global__ void GPU_VectorScaleAndAdd_1_F_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_F_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -481,7 +481,7 @@ __global__ void GPU_VectorScaleAndAdd_1_F_Kernel_addingVersion(const size_t N, c
 
 // Variant 1-G: Z = A * X + B * Y (A = *; B = 1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_G_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_G_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -491,7 +491,7 @@ __global__ void GPU_VectorScaleAndAdd_1_G_Kernel_addingVersion(const size_t N, c
 
 // Variant 1-H: Z = A * X + B * Y (A = *; B = -1.00)
 
-__global__ void GPU_VectorScaleAndAdd_1_H_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
+__global__ void GPUGPUVectorScaleAndAdd_1_H_Kernel_addingVersion(const size_t N, const double A, const double *X, const double B, const double *Y, double *Z)
 {
 	const size_t Idx = GlobalIdx();
 
@@ -501,7 +501,7 @@ __global__ void GPU_VectorScaleAndAdd_1_H_Kernel_addingVersion(const size_t N, c
 
 /** FOR PRECONDITIONER **/
 /** Adding version of MatrixVector multiply **/
-__global__ void GPU_MatrixVectorMultiply_CSR_Kernel_addingVersion(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
+__global__ void GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion(const size_t Rows, const size_t *A_Columns, const size_t *A_RowIndices, const double *A_Values, const double *X_Values, double *Y_Values)
 {
 	size_t Idx = GlobalIdx();
 
