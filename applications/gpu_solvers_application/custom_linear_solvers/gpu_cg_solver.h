@@ -194,13 +194,12 @@ namespace Kratos
 	  
 // 	  GetTimeTable()->Start(Info());
 
-	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
- 	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
-	  BaseType::GetPreconditioner()->ApplyLeft(rB);
-
+//	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
+// 	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
+//	  BaseType::GetPreconditioner()->ApplyLeft(rB);
 	  bool is_solved = IterativeSolve(rA,rX,rB);
 
- 	  BaseType::GetPreconditioner()->Finalize(rX);
+// 	  BaseType::GetPreconditioner()->Finalize(rX);
 
 // 	  GetTimeTable()->Stop(Info());
 
