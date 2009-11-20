@@ -181,7 +181,7 @@ namespace Kratos
 	  
 		/** TODO here preconditioner must solve the problem **/
 	//Allocating matrix A
-	GPUCSRMatrix gpuA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]));
+	GPUCSRMatrix gpuA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]), false);
 	GPU_CHECK(gpuA.GPU_Allocate());
 	GPU_CHECK(gpuA.Copy(CPU_GPU, false));
 
@@ -195,7 +195,7 @@ namespace Kratos
 	GPU_CHECK(gpuX.GPU_Allocate());
 	GPU_CHECK(gpuX.Copy(CPU_GPU));
 
-	this->preconditioner->initialize(gpuA.CPU_RowIndices, gpuA.CPU_Columns, gpuA.CPU_Values,
+	this->preconditioner->initialize(&(rA.index1_data() [0]), &(rA.index2_data() [0]), &(rA.value_data() [0]),
 				gpuA.GPU_RowIndices, gpuA.GPU_Columns, gpuA.GPU_Values,
 				gpuA.Size1, gpuA.Size2, gpuA.NNZ, true, true);
 
