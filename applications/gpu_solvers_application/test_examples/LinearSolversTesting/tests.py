@@ -33,11 +33,15 @@ b = (pb).GetReference()
 
 matrix_filename = "mat8.mm"
 #matrix_filename = "A_0.01005_.mm"
+#matrix_filename = "toTest/mat80.mm"
+
 ReadMatrixMarketMatrix(matrix_filename,A)
 print "finished reading matrix"
 
 vector_filename = "vecb8.mm"
 #vector_filename = "b_0.01005_.mm"
+#vector_filename = "toTest/vecb80.mm"
+
 ReadMatrixMarketVector(vector_filename,b)
 print "finished reading vector"
 
@@ -57,7 +61,6 @@ W = 4.0/3.0
 
 #TESTING IF CG AND BICGSTAB CAN ITERATE INDEFINITIVELY
 x = Vector(len(b))
-
 
 space_utils.SetToZeroVector(x)	
 
@@ -149,7 +152,18 @@ print "\n\n"
 t2 = time.time()
 print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
 #linear_solver=0
-	
+
+space_utils.SetToZeroVector(x)	
+
+print "AMG standalone"
+t1 = time.time()
+linear_solver2 = AMGSolver(1e-9, 5000, W, 2, False, 5, 100, preSweeps, postSweeps)
+linear_solver2.Solve(A, x, b)
+print linear_solver2
+print "\n\n"
+t2 = time.time()
+print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
+#linear_solver=0
 
 exit(0)
 
