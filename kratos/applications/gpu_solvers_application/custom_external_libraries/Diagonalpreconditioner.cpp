@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "Diagonalpreconditioner.h"
-#include <cstdio>
-#include <cmath>
+#include <stdio.h>
+#include <math.h>
 
 Diagonalpreconditioner::Diagonalpreconditioner() {
 

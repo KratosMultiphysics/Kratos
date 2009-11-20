@@ -80,7 +80,7 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 	double roh_1 = 0.0, roh_2 = 0.0, alpha = 0.0, beta = 0.0, omega = 0.0;
 
 
-	const int size = vectorSize;
+	const int size = (int)vectorSize;
 	mBNorm = 0.0;
 	double norms = 0.0;
 	mResidualNorm = 0.0;
@@ -213,10 +213,7 @@ void BICGSTAB_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values
 			break;
     		}
 		i++;
-//		std::cout << "end iteration" << std::endl;
-		//std::cout << mResidualNorm << std::endl;
-//		std::cout << mBNorm << std::endl;
-		//std::cout << mResidualNorm/mBNorm << std::endl;
+
 	}while((mIterationsNumber < maxIterations) && (mResidualNorm > tol * mBNorm));
 	GPU_CHECK(gX.Copy(GPU_CPU));
 	if(havePreconditioner)
@@ -228,7 +225,7 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
       {
 
 	bool havePreconditioner = (&preconditioner != 0);
-	const int size = vectorSize;
+	const int size = (int)vectorSize;
 
 	//Allocating matrix A
 	GPUCSRMatrix gpuA(A_NNZ, A_Size1, A_size2, A_indices, A_ptr, A_values, false);
@@ -255,8 +252,7 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 				gpuA.GPU_RowIndices, gpuA.GPU_Columns, gpuA.GPU_Values,
 				gpuA.Size1, gpuA.Size2, A_NNZ, true, true);
 	}
-	//clock_t s2 = clock();
-	//std::cout << "Time to create hierarchy" << double(s2-s1) / CLOCKS_PER_SEC << "s" << std::endl;
+	
 	//Norm(b)
 	GPU_CHECK(GPUGPUVectorNorm2(gpuB, mBNorm));
 
@@ -314,8 +310,7 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 		GPU_CHECK(GPUGPUVectorScaleAndAdd(-alpha, gpuQ, 1.00, gpuR));
 	
 		GPU_CHECK(GPUGPUVectorNorm2(gpuR, mResidualNorm));
-		//std::cout << mResidualNorm << std::endl;
-		//std::cout << mResidualNorm/mBNorm << std::endl;
+
 		if((resid = mResidualNorm/mBNorm) <= 1.0e-30){
 			break;
 		}
@@ -323,8 +318,7 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 		mIterationsNumber++;			
 		i++;
 	}while((mIterationsNumber < maxIterations) && (mResidualNorm > tol * mBNorm));
-	//std::cout << "Average time for single step" << (double(s3)/(i-1)) / CLOCKS_PER_SEC << "s" << std::endl;
-	//std::cout << "the final RESIDUAL NORM is " << mResidualNorm << std::endl;
+
 	GPU_CHECK(gpuX.Copy(GPU_CPU));
 	if(havePreconditioner)
 		preconditioner.cleanPreconditioner();
