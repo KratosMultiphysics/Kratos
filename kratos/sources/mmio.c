@@ -74,7 +74,8 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
  
     for (i=0; i<nz; i++)
     {
-        (void) fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+        int rr = fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+ 	if(rr == 0)  printf("some error in reading mm file");
         I[i]--;  /* adjust from 1-based to 0-based */
         J[i]--;
     }
