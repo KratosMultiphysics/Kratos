@@ -53,13 +53,37 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes 
-#include <boost/spirit/core.hpp>
-#include <boost/spirit/symbols/symbols.hpp>
-#include <boost/spirit/actor/assign_key_actor.hpp>
-#include <boost/spirit/utility/confix.hpp>
-#include <boost/spirit/utility/lists.hpp>
-#include <boost/spirit/actor/clear_actor.hpp>
-#include <boost/spirit/actor/increment_actor.hpp>
+// External includes 
+#include <boost/version.hpp>
+
+#if BOOST_VERSION >= 103800
+   #include <boost/spirit/include/classic_core.hpp>
+   #include <boost/spirit/include/classic_symbols.hpp>
+   #include <boost/spirit/include/classic_assign_key_actor.hpp>
+   
+   #include <boost/spirit/include/classic_assign_key_actor.hpp>
+  #include <boost/spirit/include/classic_confix.hpp>
+  #include <boost/spirit/include/classic_lists.hpp>
+  #include <boost/spirit/include/classic_clear_actor.hpp>
+  #include <boost/spirit/include/classic_increment_actor.hpp>
+#else
+   #include <boost/spirit/core.hpp> 
+   #include <boost/spirit/symbols/symbols.hpp>
+   #include <boost/spirit/actor/assign_key_actor.hpp>
+   
+   #include <boost/spirit/actor/assign_key_actor.hpp>
+  #include <boost/spirit/utility/confix.hpp>
+  #include <boost/spirit/utility/lists.hpp>
+  #include <boost/spirit/actor/clear_actor.hpp>
+  #include <boost/spirit/actor/increment_actor.hpp>
+#endif
+//#include <boost/spirit/core.hpp>
+// #include <boost/spirit/symbols/symbols.hpp>
+// #include <boost/spirit/actor/assign_key_actor.hpp>
+// #include <boost/spirit/utility/confix.hpp>
+// #include <boost/spirit/utility/lists.hpp>
+// #include <boost/spirit/actor/clear_actor.hpp>
+// #include <boost/spirit/actor/increment_actor.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -282,7 +306,7 @@ namespace Kratos
     };
 
       template<class TComponentType>
-      class  ComponentParser : public boost::spirit::symbols<boost::reference_wrapper<TComponentType const> >
+      class  ComponentParser : public KRATOS_BOOST_SPIRIT::symbols<boost::reference_wrapper<TComponentType const> >
       {
 	  public:
     	ComponentParser()
@@ -414,7 +438,7 @@ namespace Kratos
         typename ValueT,
         typename KeyT
     >
-    inline boost::spirit::ref_const_ref_const_ref_actor<
+    inline KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
         T,
         ValueT,
         KeyT,
@@ -426,7 +450,7 @@ namespace Kratos
             KeyT const& key_
     )
     {
-        return boost::spirit::ref_const_ref_const_ref_actor<
+        return KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
             T,
             ValueT,
             KeyT,
@@ -442,7 +466,7 @@ namespace Kratos
         typename T,
         typename ValueT
     >
-    inline boost::spirit::ref_const_ref_actor<
+    inline KRATOS_BOOST_SPIRIT::ref_const_ref_actor<
         T,
         ValueT,
         add_row_action
@@ -452,7 +476,7 @@ namespace Kratos
             ValueT const& row_
     )
     {
-        return boost::spirit::ref_const_ref_actor<
+        return KRATOS_BOOST_SPIRIT::ref_const_ref_actor<
             T,
             ValueT,
             add_row_action
@@ -515,7 +539,7 @@ namespace Kratos
         typename ValueT,
         typename KeyT
     >
-    inline boost::spirit::ref_const_ref_const_ref_actor<
+    inline KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
         T,
         ValueT,
         KeyT,
@@ -527,7 +551,7 @@ namespace Kratos
             KeyT const& key_
     )
     {
-        return boost::spirit::ref_const_ref_const_ref_actor<
+        return KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
             T,
             ValueT,
             KeyT,
@@ -544,7 +568,7 @@ namespace Kratos
         typename ValueT,
         typename KeyT
     >
-    inline boost::spirit::ref_const_ref_const_ref_actor<
+    inline KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
         T,
         ValueT,
         KeyT,
@@ -556,7 +580,7 @@ namespace Kratos
             KeyT const& key_
     )
     {
-        return boost::spirit::ref_const_ref_const_ref_actor<
+        return KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
             T,
             ValueT,
             KeyT,
@@ -574,7 +598,7 @@ namespace Kratos
         typename ValueT,
         typename KeyT
     >
-    inline boost::spirit::ref_const_ref_const_ref_actor<
+    inline KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
         T,
         ValueT,
         KeyT,
@@ -586,7 +610,7 @@ namespace Kratos
             KeyT const& key_
     )
     {
-        return boost::spirit::ref_const_ref_const_ref_actor<
+        return KRATOS_BOOST_SPIRIT::ref_const_ref_const_ref_actor<
             T,
             ValueT,
             KeyT,
@@ -685,7 +709,7 @@ namespace Kratos
       
       bool DatafileIO::ReadNode(NodeType& rThisNode)
       {
-		using namespace boost::spirit;
+		using namespace KRATOS_BOOST_SPIRIT;
 		FileIterator end_of_file = mNodeDatafileIterator.make_end();
 
 		return parse(mNodeDatafileIterator, end_of_file,
@@ -704,7 +728,7 @@ namespace Kratos
       bool DatafileIO::ReadNodes(NodesContainerType& rThisNodes)
 	{
 		KRATOS_TRY
-	  using namespace boost::spirit;
+	  using namespace KRATOS_BOOST_SPIRIT;
 
 	  ParseNodes(rThisNodes, str_p("NODES"));
 
@@ -736,7 +760,7 @@ namespace Kratos
       void DatafileIO::ReadProperties(PropertiesContainerType& rThisProperties)
       {
 		KRATOS_TRY
-	  using namespace boost::spirit;
+	  using namespace KRATOS_BOOST_SPIRIT;
 
 	  typedef array_1d<double, 3> array_1d_3_type;
 	  KRATOS_PROPERTIES_TEMPORARY_VARIABLES(Variable<int>, int, int_index, int_value);
@@ -793,7 +817,7 @@ namespace Kratos
       void DatafileIO::ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements)
       {
 		KRATOS_TRY
-	  using namespace boost::spirit;
+	  using namespace KRATOS_BOOST_SPIRIT;
 
 	  Element dummy(0, Element::GeometryType( Element::GeometryType::PointsArrayType()));
 
@@ -860,7 +884,7 @@ namespace Kratos
        std::size_t DatafileIO::ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities)
       {
 	KRATOS_TRY
-	  using namespace boost::spirit;
+	  using namespace KRATOS_BOOST_SPIRIT;
 
 	std::size_t index;
 
@@ -977,7 +1001,7 @@ namespace Kratos
       void DatafileIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
       {
 		KRATOS_TRY
-	  using namespace boost::spirit;
+	  using namespace KRATOS_BOOST_SPIRIT;
 
 	  Condition dummy(0, Condition::GeometryType( Condition::GeometryType::PointsArrayType()));
 
@@ -1056,7 +1080,7 @@ namespace Kratos
       std::size_t  DatafileIO::ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities)
       {
 	KRATOS_TRY
-	  using namespace boost::spirit;
+	  using namespace KRATOS_BOOST_SPIRIT;
 
 	std::size_t index;
 
@@ -1147,7 +1171,7 @@ namespace Kratos
       {
 		KRATOS_TRY
 	//NODES[1].GetSolutionStepValue(TEMPERATURE, 0) = 10.00;
- 	  using namespace boost::spirit;
+ 	  using namespace KRATOS_BOOST_SPIRIT;
 
  	  //std::size_t index;
 		std::cout << " reading initiali values " << std::endl;
@@ -1233,7 +1257,7 @@ std::cout << " finished reading initial values " << std::endl;
 
       void DatafileIO::ReadModelPart(ModelPart & rThisModelPart)
 	{
- 	 // using namespace boost::spirit;
+ 	 // using namespace KRATOS_BOOST_SPIRIT;
 	  //ParseNodes(rThisModelPart.Nodes(), str_p("MODEL") >> '[' >> str_p(rThisModelPart.Name().c_str()) >> ']' >> '.' >>  str_p("Nodes"));
 		KRATOS_TRY
 
@@ -1293,7 +1317,12 @@ std::cout << " finished reading initial values " << std::endl;
       void DatafileIO::ParseNodes(NodesContainerType& rThisNodes, TParserType const& rThisParser)
 	{
 		KRATOS_TRY
-	  using namespace boost::spirit;
+#if BOOST_VERSION >= 103800
+   using namespace KRATOS_BOOST_SPIRIT;
+#else
+   using namespace KRATOS_BOOST_SPIRIT;
+#endif
+	  
 	  FileIterator end_of_file = mNodeDatafileIterator.make_end();
 	  
 	  typedef rule<scanner<FileIterator> > rule_type;
