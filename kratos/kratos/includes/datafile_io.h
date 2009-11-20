@@ -55,9 +55,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream> 
 #include <fstream>
 
+#include <boost/version.hpp>
 
 // External includes 
-#include <boost/spirit/iterator/file_iterator.hpp>
+#if BOOST_VERSION >= 103800
+   #include <boost/spirit/include/classic_file_iterator.hpp>
+   #define KRATOS_BOOST_SPIRIT boost::spirit::classic
+#else
+   #include <boost/spirit/iterator/file_iterator.hpp>
+   #define KRATOS_BOOST_SPIRIT boost::spirit
+#endif
 
 // Project includes
 #include "includes/define.h"
@@ -100,7 +107,12 @@ namespace Kratos
       /// Pointer definition of DatafileIO
       KRATOS_CLASS_POINTER_DEFINITION(DatafileIO);
 
-      typedef boost::spirit::file_iterator<> FileIterator;
+#if BOOST_VERSION >= 103800
+   typedef boost::spirit::classic::file_iterator<> FileIterator;
+#else
+   typedef boost::spirit::file_iterator<> FileIterator;
+#endif
+      
   
       typedef IO::ConnectivitiesContainerType ConnectivitiesContainerType;
   
