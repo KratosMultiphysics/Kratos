@@ -43,7 +43,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _GPUPRECONDITIONER_H
 #define	_GPUPRECONDITIONER_H
 
-#include <cstdlib>
+#include <stdlib.h>
 
 class GPUPreconditioner {
 public:
