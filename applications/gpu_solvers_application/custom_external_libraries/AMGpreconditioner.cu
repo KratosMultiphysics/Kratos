@@ -41,7 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "AMGpreconditioner.h"
-#include <cstdio>
+#include <stdio.h>
 
 AMGpreconditioner::AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, size_t* _preSweeps, size_t* _postSweeps, bool actAsPreconditioner) {
         W = _W;

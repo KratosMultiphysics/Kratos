@@ -449,7 +449,7 @@ int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I[], int J[],
 */
 char *mm_strdup(const char *s)
 {
-	int len = strlen(s);
+	int len = (int)strlen(s);
 	char *s2 = (char *) malloc((len+1)*sizeof(char));
 	return strcpy(s2, s);
 }

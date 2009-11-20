@@ -104,8 +104,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Includes, system
 
 #include "cuda.h"
-#include <iostream>
-using namespace std;
+
+
 namespace Kratos
 {
 
@@ -223,41 +223,47 @@ void sortMatrix(size_t *CPU_RowIndices, size_t *CPU_Columns, double *CPU_Values,
 }
 
 void printVector(const GPUVector& vec){
-    cout << "Num elems: " << vec.Size << endl;
+    //cout << "Num elems: " << vec.Size << endl;
+	printf("Num elems: %u\n", vec.Size);
     for(size_t i = 0; i < vec.Size; i++){
-        cout << vec.CPU_Values[i] << " ";
+        //cout << vec.CPU_Values[i] << " ";
+		printf("%lg ", vec.CPU_Values[i]);
     }
-    cout << endl << endl;
+    printf("\n");
 }
 
 void printMatrix(const GPUCSRMatrix& mat){
     size_t index = 0;
-    cout << "Num rows: " << mat.Size1 << ", Num cols: " << mat.Size2 << ", numNNZ: " << mat.NNZ << endl;
+    //cout << "Num rows: " << mat.Size1 << ", Num cols: " << mat.Size2 << ", numNNZ: " << mat.NNZ << endl;
+	printf("Num rows: %u, Num cols: %u, numNNZ %u\n", mat.Size1, mat.Size2, mat.NNZ);
     for(size_t i = 0; i < mat.Size1; i++){
         size_t currentCol = 0;
         size_t numPtr = mat.CPU_RowIndices[i+1] - mat.CPU_RowIndices[i];
         while(currentCol < mat.Size2 && numPtr > 0){
             if(mat.CPU_Columns[index] == currentCol){
-                cout << mat.CPU_Values[index] << " ";
+//                cout << mat.CPU_Values[index] << " ";
+				printf("%lg ", mat.CPU_Values[index]);
                 index++;
                 numPtr--;
             }else
-                cout << "0" << " ";
+                printf("0 ");
             currentCol++;
         }
         while(currentCol < mat.Size2){
-            cout << "0" << " ";
+            //cout << "0" << " ";
+			printf("0 ");
             currentCol++;
         }
-        cout << endl;
+        printf("\n");
     }
-    cout << endl;
+    printf("\n");
 }
 
 void printMatrix_csr(const GPUCSRMatrix& mat){
     for(size_t i = 0; i < mat.Size1; i++){
         for(size_t j = mat.CPU_RowIndices[i]; j < mat.CPU_RowIndices[i+1]; j++){
-            cout << "(" << i << ", " << mat.CPU_Columns[j] << ") -> " << mat.CPU_Values[j] << endl;
+            //cout << "(" << i << ", " << mat.CPU_Columns[j] << ") -> " << mat.CPU_Values[j] << endl;
+			printf("(%u, %u) -> %lg\n", i, mat.CPU_Columns[j], mat.CPU_Values[j]);
         }
     }
 }

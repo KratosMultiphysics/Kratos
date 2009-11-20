@@ -64,7 +64,7 @@ void AMGInitialize(double _W, size_t _numLevelsRoh, BOOLEAN _assumeZerosForEachS
 	if(preconditionerSet) AMGClean();
 	preconditioner = new AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep == TRUE, _numMaxHierarchyLevels, minimumSizeAllowed, _preSweeps, _postSweeps, actAsPreconditioner == TRUE);
 	preconditioner->initialize(ptr_cpu, indices_cpu, values_cpu,
-		ptr_gpu, indices_gpu, values_gpu, numRows, numCols, numNNZ, dataIsChanged, structureIsChanged);
+		ptr_gpu, indices_gpu, values_gpu, numRows, numCols, numNNZ, dataIsChanged == TRUE, structureIsChanged == TRUE);
 	preconditionerSet = true;
 }
 size_t AMGSolve(double* b_gpu, double* b_cpu, double* x_gpu, double* x_cpu, double precision, size_t maxIters){
@@ -213,7 +213,7 @@ void loadDataFromFile(char* name, size_t ** indices_cpu, size_t **ptr_cpu, doubl
 		printf("%u, %u, %lg\n", nextRow, (*indices_cpu)[i], zz);
 		exit(1);
 	}*/
-        position = (*indices_cpu)[i];
+        position = (int)(*indices_cpu)[i];
         (*values_cpu)[i] = zz;
         if(nextRow > currentRow){
             (*ptr_cpu)[currentRow] = counter + (*ptr_cpu)[currentRow-1];
@@ -230,7 +230,9 @@ void loadDataFromFile(char* name, size_t ** indices_cpu, size_t **ptr_cpu, doubl
 
 void loadDataFromFile_vector(char* name, double **values_cpu,
 	size_t *numRows, size_t *numCols){
-    int ret_code;
+
+
+    //int ret_code;
     MM_typecode matcode;
     FILE *f;
 
@@ -294,6 +296,7 @@ void loadDataFromFile_vector(char* name, double **values_cpu,
     }
 
     fclose(f);
+
 }
 
 double* allocate_double(size_t size){

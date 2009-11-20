@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cublas.h>
-#include <cstdio>
+#include <stdio.h>
 
 // Includes, project
 
@@ -377,7 +377,7 @@ bool GPUCSRMatrix::GenerateDenseRepresentation(bool FortranRep){
 	size_t currentIndice = 0;
 	for(size_t i = 0; i < Size1; i++){
 		size_t nonZeros = CPU_RowIndices[i+1] - CPU_RowIndices[i];
-		//cout << "	!!!! " << nonZeros << ", and Size1 is " << Size1 << ", and Size2 is " << Size2 << endl;
+		
 		for(size_t j = 0; j < Size2; j++){
 
 		    if(nonZeros > 0  && CPU_Columns[currentIndice] == j){
@@ -388,11 +388,6 @@ bool GPUCSRMatrix::GenerateDenseRepresentation(bool FortranRep){
 			matAuxValues[pointer] = 0.0;
 		    }
 		    pointer++;
-		}
-		if(nonZeros != 0){
-			cout << "there are " << nonZeros << " values not represented in row " << i << endl;
-			cout << CPU_Columns[currentIndice] << endl;
-			exit(0);
 		}
 		
 	}
@@ -930,7 +925,6 @@ void csr_matmat_pass1(const I n_row,
                       const I Bp[],
                       const I Bj[],
                             I Cp[]){
-    //std::vector<I> mask(n_col,-1);
     int* mask = new int[n_col];
     for(size_t aux = 0; aux < n_col; aux++){
 	mask[aux] = -1;
@@ -967,8 +961,7 @@ void csr_matmat_pass2(const I n_row,
       	                    I Cj[],
       	                    T Cx[])
 {
-//    std::vector<I> next(n_col,-1);
- //   std::vector<T> sums(n_col, 0);
+
 
     int* next = new int[n_col];
     T* sums = new T[n_col];
@@ -1052,7 +1045,7 @@ void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRM
                 GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G[lvl]->Size1, G[lvl]->GPU_Columns,
 		    G[lvl]->GPU_RowIndices, G[lvl]->GPU_Values, b.GPU_Values, u.GPU_Values);
                 if(!CUDA_Success(cudaThreadSynchronize())){
-                    cout << "Error en linea 130" << endl;
+                    printf("Error en linea 130\n");
                 }
                 //from the second sweel on we need to recompute the residual
                 for(size_t i = 1; i < preSweeps[lvl]; i++){
@@ -1101,7 +1094,7 @@ void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRM
         dim3 Grid = Build_Grid(v.Size, BLOCK_SIZE);
         fillWithZeros <<< Grid, BLOCK_SIZE >>>(v.GPU_Values, v.Size);
         if(!CUDA_Success(cudaThreadSynchronize())){
-                cout << "Error en linea 160" << endl;
+                printf("Error en linea 160\n");
         }
 
         multilevel(A, P, R, G, r, v, lvl+1, maxLevels, preSweeps, postSweeps, assumeZeros);
@@ -1113,13 +1106,13 @@ void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRM
         GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(P[lvl]->Size1,
                 P[lvl]->GPU_Columns, P[lvl]->GPU_RowIndices, P[lvl]->GPU_Values, v.GPU_Values, pv.GPU_Values);
         if(!CUDA_Success(cudaThreadSynchronize())){
-            cout << "Error en linea 173" << endl;
+            printf("Error en linea 173\n");
         }
         // here the addition of pv to u
         Grid = Build_Grid(u.Size, BLOCK_SIZE);
         sumVectorVector <<< Grid, BLOCK_SIZE >>> (pv.GPU_Values, u.GPU_Values, u.Size);
         if(!CUDA_Success(cudaThreadSynchronize())){
-            cout << "Error en linea 180" << endl;
+            printf("Error in the line 180");
         }
         //delete de pv, v i r
         delete[] vecV;
@@ -1141,12 +1134,7 @@ void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRM
 	u.Copy(GPU_CPU);
 	b.Copy(GPU_CPU);
 
-/*        copyMem(u.GPU_Values, u.CPU_Values, u.Size, 1);
-        copyMem(b.GPU_Values, b.CPU_Values, b.Size, 1);*/
 
-/*	cout << "Size1 " << A[lvl]->Size1 << ", Size2 " << A[lvl]->Size2 << endl;
-	cout << "u " << u.Size << endl;
-	cout << "b " << b.Size << endl;*/
         LaGenMatDouble _A(A[lvl]->matAuxValues, A[lvl]->Size1, A[lvl]->Size2);
         LaGenMatDouble _b(b.CPU_Values, b.Size, 1);
         LaGenMatDouble _x(u.CPU_Values, u.Size, 1);
@@ -1164,12 +1152,12 @@ void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRM
 	F77NAME(dgetrs) ("No transpose", &Ml, &K, &_A(0,0), &lda, &ipiv(0), &_x(0,0), &ldx, &info);
 
 	//int res = clapack_dgetrs(CblasRowMajor, CblasNoTrans, &Ml, &K, &_A(0,0), &lda, &ipiv(0), &_x(0,0), &ldx);
-	//std::cout << "Problem with lapack, num " << res << std:endl;
+
 	//copyMem(u.CPU_Values, u.GPU_Values, u.Size, 0);
 	u.Copy(CPU_GPU);
 
 	//clock_t t2 = clock();
-	//cout << "Lower lvl timing " << double(t2-t1) / CLOCKS_PER_SEC << "s" << endl;
+
    }
 
 }
@@ -1183,7 +1171,7 @@ void calculateInstantVector(GPUVector& u, const GPUVector& b, const GPUCSRMatrix
 	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
 	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 238" << endl;
+	printf("Error in the line 238");
 	}
 
 		/** b - AU **/
@@ -1192,14 +1180,14 @@ void calculateInstantVector(GPUVector& u, const GPUVector& b, const GPUCSRMatrix
 	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
 	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values, auxABU.GPU_Values, auxABU.Size);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 249" << endl;
+	printf("Error in the line 249");
 	}
 		/** u += G ( b - Au ) **/
 	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
 	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G.Size1, G.GPU_Columns,
 	    G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 255" << endl;
+	printf("Error in the line 255");
 	}
 	//deleting structures
 
@@ -1213,7 +1201,7 @@ void calculateInstantVectorGPUVectorized(GPUVector& u, const GPUVector& b, const
 	GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel <<< Grid, BS >>>(A.Size1, A.GPU_Columns,
 	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 272" << endl;
+	printf("Error in the line 272");
 	}
 		/** b - AU **/
 	GPUVector auxABU(A.Size1);
@@ -1221,14 +1209,14 @@ void calculateInstantVectorGPUVectorized(GPUVector& u, const GPUVector& b, const
 	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
 	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values, auxABU.GPU_Values, auxABU.Size);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 282" << endl;
+	printf("Error in the line 282");
 	}
 		/** u += G ( b - Au ) **/
 	Grid = Build_Grid(A.Size1, BS);
 	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BS >>>(G.Size1, G.GPU_Columns,
 	    G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-		cout << "Error en linea 288" << endl;
+		printf("Error in the line 288");
 	}
 	//deleting structures
 
@@ -1242,7 +1230,7 @@ void generateResidual(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMat
 	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
 	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-		cout << "Error en linea 305" << endl;
+		printf("Error in the line 305");
 	}
 		/** b - AU **/
 	GPUVector auxABU(A.Size1);
@@ -1251,14 +1239,14 @@ void generateResidual(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMat
 	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values,
 	    auxABU.GPU_Values, auxABU.Size);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-		cout << "Error en linea 315" << endl;
+		printf("Error in the line 315");
 	}
 		/** r = R ( b - Au ) **/
 	Grid = Build_Grid(R.Size1, BLOCK_SIZE);
 	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(R.Size1, R.GPU_Columns,
 	    R.GPU_RowIndices, R.GPU_Values, auxABU.GPU_Values, r.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-		cout << "Error en linea 325" << endl;
+		printf("Error in the line 325");
 	}
     //deleting structures
 
@@ -1271,7 +1259,7 @@ void generateResidualGPUVectorized(const GPUCSRMatrix& R, const GPUVector& b, co
 	GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel <<< Grid, BS >>>(A.Size1, A.GPU_Columns,
 	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 340" << endl;
+	printf("Error in the line 340");
 	}
 		/** b - AU **/
 	GPUVector auxABU(A.Size1);
@@ -1280,14 +1268,14 @@ void generateResidualGPUVectorized(const GPUCSRMatrix& R, const GPUVector& b, co
 	subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values,
 	    auxABU.GPU_Values, auxABU.Size);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 350" << endl;
+	printf("Error in the line 350");
 	}
 		/** r = R ( b - Au ) **/
 	Grid = Build_Grid(R.Size1 *  HWS, BS);
 	GPUGPUCSRMatrixVectorMultiply_CSRGPUVectorized_Kernel <<< Grid, BS >>>(R.Size1, R.GPU_Columns,
 	    R.GPU_RowIndices, R.GPU_Values, auxABU.GPU_Values, r.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
-	cout << "Error en linea 360" << endl;
+	printf("Error in the line 360");
 	}
 	//deleting structures
 
@@ -1566,7 +1554,6 @@ void createDiagonal(const GPUCSRMatrix &A, size_t &Size, double *&values){
                 	values[i] =1.0/A.CPU_Values[r];
 		else{
 			values[i]  =1.0;
-			//cout << "Zero found at row " << i  << "(inverse substituted with one)"<< endl;
 		}
 	
                 break;
@@ -1612,7 +1599,9 @@ I standardAggregation(const I n_row,
                              I  x[])
 {
     // Bj[n] == -1 means i-th node has not been aggregated
-    std::fill(x, x + n_row, 0);
+    //std::fill(x, x + n_row, 0);
+    for(long q = 0; q < n_row; q++)
+		x[q] = 0;
 
     I next_aggregate = 1; // number of aggregates + 1
 
@@ -1717,24 +1706,21 @@ void createPTent(const GPUCSRMatrix &A, size_t &NNZ_ptent, size_t &Size1_ptent, 
 
     long* auxValues = new long[size];
     //ini auxValues to 0
-    for(size_t i = 0; i < size; i++){
+    for(long i = 0; i < size; i++){
         auxValues[i] = 0;
     }
     //calculate each value group num
-    for(size_t i = 0; i < size; i++){
+    for(long i = 0; i < size; i++){
         auxValues[x[i]]++;
     }
-/*    for(size_t i = 0; i < size; i++){
-        if(x[i] >= size)
-            cout << "a l'index " << i << " tenim un valor de " << x[i]  << ", i el size es: " << size << endl;
-    }*/
+
     //assign indices and right values
     ptr_ptent[0] = 0;
-    for(size_t i = 0; i < size; i++){
+    for(long i = 0; i < size; i++){
         size_t j = x[i];
         ptr_ptent[i+1] = ptr_ptent[i] + 1;
         indices_ptent[i] = j;
-        values_ptent[i] = 1.0/sqrt(auxValues[j]);
+        values_ptent[i] = 1.0/sqrt((double)auxValues[j]);
     }
 
     Size2_ptent = maxColumn;
@@ -1757,7 +1743,9 @@ void csr_tocsc(const size_t n_row,
     const size_t nnz = Ap[n_row];
     Bp = new size_t[n_col+1];
     //compute number of non-zero entries per column of A
-    std::fill(Bp, Bp + n_col, 0);
+    //std::fill(Bp, Bp + n_col, 0);
+	for(size_t q = 0; q < n_col; q++)
+		Bp[q] = 0;
 
     for (size_t n = 0; n < nnz; n++){
         Bp[Aj[n]]++;
@@ -1810,7 +1798,7 @@ double checkResidual(const GPUVector &u, const GPUVector &b, const GPUCSRMatrix 
     GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
             A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
     if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 1208" << endl;
+        printf("Error in the line 1208");
     }
 
     /** b - AU **/
@@ -1820,7 +1808,7 @@ double checkResidual(const GPUVector &u, const GPUVector &b, const GPUCSRMatrix 
     subVectorVector <<< Grid, BLOCK_SIZE >>>(b.GPU_Values, auxAU.GPU_Values,
             auxABU.GPU_Values, auxABU.Size);
     if(!CUDA_Success(cudaThreadSynchronize())){
-        cout << "Error en linea 1219" << endl;
+        printf("Error in the line 1219");
     }
     double finalNum = calculateNorm_GPU(auxABU);
 
@@ -1829,9 +1817,7 @@ double checkResidual(const GPUVector &u, const GPUVector &b, const GPUCSRMatrix 
 
 bool checkConvergence(const GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const double lastResidual, const double threshold){
     double newResidual = checkResidual(u, b, A);
-/*    cout << "New norm: " << newResidual << endl;
-    cout << "Current status: " << newResidual/lastResidual << endl;
-    cout << endl;*/
+
     if(newResidual/lastResidual < threshold){
         return true;
     }
@@ -1891,7 +1877,7 @@ void subIdentityMatrix_cpu(const GPUCSRMatrix& A, size_t* CPU_RowIndices, size_t
                 numElems++;
             }
         }
-        if(lastIndex < i){
+        if(lastIndex < (long)i){
             CPU_Columns[currentIndex] = i;
             CPU_Values[currentIndex] = 1.0;
             currentIndex++;
@@ -1937,7 +1923,7 @@ double roh(const GPUCSRMatrix& A, size_t iter){
     srand(0);
     for(size_t i = 0; i < V[0].Size; i++){
         V[0].CPU_Values[i] = (double)(((int)rand())%100000000)/100000000.0;
-        //cout << V[0].CPU_Values[i]<< endl;
+
     }
     double v0Norm = calculateNorm(V[0]);
     for(size_t i = 0; i < V[0].Size; i++){
@@ -1964,7 +1950,7 @@ double roh(const GPUCSRMatrix& A, size_t iter){
         GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< grid, BLOCK_SIZE >>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices,
             A.GPU_Values, V[numCurrentV-1].GPU_Values, V[numCurrentV].GPU_Values);
         if(!CUDA_Success(cudaThreadSynchronize())){
-            cout << "Error en linea 1379" << endl;
+            printf("Error in line 1379\n");
         }
         copyMem(V[numCurrentV].GPU_Values, V[numCurrentV].CPU_Values, V[numCurrentV].Size, 1);
 
@@ -1978,7 +1964,7 @@ double roh(const GPUCSRMatrix& A, size_t iter){
             double auxVal = H.CPU_Values[matrixIndice] = cublasDdot(V[i].Size, V[i].GPU_Values, 1, V[numCurrentV].GPU_Values, 1);
             subVectorConstantValue <<< grid, BLOCK_SIZE>>> (V[numCurrentV].GPU_Values, H.CPU_Values[matrixIndice], V[i].GPU_Values, V[numCurrentV].Size);
             if(!CUDA_Success(cudaThreadSynchronize())){
-                cout << "Error en linea 1394" << endl;
+                printf("Error in line 1394\n");
             }
         }
         size_t matrixIndice = ((j+1) * (maxIter+1)) + j;
@@ -1991,7 +1977,7 @@ double roh(const GPUCSRMatrix& A, size_t iter){
 
         divideVectorConstantValue <<< grid, BLOCK_SIZE >>> (V[numCurrentV].GPU_Values, H.CPU_Values[matrixIndice], V[numCurrentV].Size);
         if(!CUDA_Success(cudaThreadSynchronize())){
-            cout << "Error en linea 1407" << endl;
+            printf("Error in line 1407\n");
         }
         CUDA_CHECK(cudaFree(auxVec.GPU_Values));
 
@@ -2003,14 +1989,6 @@ double roh(const GPUCSRMatrix& A, size_t iter){
         CUDA_CHECK(cudaFree(V[i].GPU_Values));
     }
     delete[] V;
-
-/*    for(size_t q = 0; q < maxIter+1; q++){
-        for(size_t w = 0; w < maxIter+1; w++){
-            cout << H.CPU_Values[(q*(maxIter+1)) + w] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;*/
 
     double max = eigVals(H, maxIter+1);
 
