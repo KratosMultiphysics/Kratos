@@ -116,7 +116,11 @@ namespace Kratos
 	
 	array_1d<double,4> ms_aux1 = ZeroVector(4); //dimension = number of nodes
 	#pragma omp threadprivate(ms_aux1)
-	
+
+	array_1d<double,3> ms_aux2 = ZeroVector(3); //dimension = number of nodes
+	#pragma omp threadprivate(ms_aux0)
+		
+
     }
     using  namespace Fluid3DGLS_explauxiliaries;
 
@@ -758,13 +762,16 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//RHS = +tau*nablaN*f, we reuse aux
 		//ms_aux0 stores ff_gauss; 
 		
-		ms_aux0=0.25*(ff0+ff1+ff2+ff3);
+		ms_aux2=0.25*(ff0+ff1+ff2+ff3);
+		
+		
 		//ms_aux1 - is the product of: (nabla q, f)
-		ms_aux1[0]=msDN_DX(0,0)*ms_aux0[0]+msDN_DX(0,1)*ms_aux0[1]+msDN_DX(0,2)*ms_aux0[2];
-		ms_aux1[1]=msDN_DX(1,0)*ms_aux0[0]+msDN_DX(1,1)*ms_aux0[1]+msDN_DX(1,2)*ms_aux0[2];
-		ms_aux1[2]=msDN_DX(2,0)*ms_aux0[0]+msDN_DX(2,1)*ms_aux0[1]+msDN_DX(2,2)*ms_aux0[2];
-		ms_aux1[3]=msDN_DX(3,0)*ms_aux0[0]+msDN_DX(3,1)*ms_aux0[1]+msDN_DX(3,2)*ms_aux0[2];
+		ms_aux1[0]=msDN_DX(0,0)*ms_aux2[0]+msDN_DX(0,1)*ms_aux2[1]+msDN_DX(0,2)*ms_aux2[2];
+		ms_aux1[1]=msDN_DX(1,0)*ms_aux2[0]+msDN_DX(1,1)*ms_aux2[1]+msDN_DX(1,2)*ms_aux2[2];
+		ms_aux1[2]=msDN_DX(2,0)*ms_aux2[0]+msDN_DX(2,1)*ms_aux2[1]+msDN_DX(2,2)*ms_aux2[2];
+		ms_aux1[3]=msDN_DX(3,0)*ms_aux2[0]+msDN_DX(3,1)*ms_aux2[1]+msDN_DX(3,2)*ms_aux2[2];
 		//KRATOS_WATCH(temp)
+
 		rRightHandSideVector += tau*density*Area*ms_aux1;
 		
 		
@@ -820,11 +827,12 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		     0.25*(msAuxVec[2]+msAuxVec[5]+msAuxVec[8]+msAuxVec[11])*msGrad_ug(1,2);
 
 		a[2]=0.25*(msAuxVec[0]+msAuxVec[3]+msAuxVec[6]+msAuxVec[9])*msGrad_ug(2,0)+
-		     0.25*(msAuxVec[1]+msAuxVec[4]+msAuxVec[7]+msAuxVec[10])*msGrad_ug(2,1)+
+		     0.25*(msAuxVec[1]+msAuxVec[4]+msAuxVec[7]+msAuxVec[10])*msGrad_ug(2,1)+   
 		     0.25*(msAuxVec[2]+msAuxVec[5]+msAuxVec[8]+msAuxVec[11])*msGrad_ug(2,2);
 
+
 		//we again reuse ms_aux0
-		noalias(ms_aux0) = prod(msDN_DX,a);
+		noalias(ms_aux0) = prod(msDN_DX,a); 
 		
 		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
 		
