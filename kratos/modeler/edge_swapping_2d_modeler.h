@@ -145,11 +145,22 @@ namespace Kratos
 
 	    KRATOS_WATCH(number_of_bad_quality_elements);
 
-	    FindElementalNeighboursProcess find_element_neighbours_process(rThisModelPart, 2);
+//  	    FindElementalNeighboursProcess find_element_neighbours_process(rThisModelPart, 2); 
 
-	    find_element_neighbours_process.Execute();
+
+// 	    find_element_neighbours_process.Execute(); 
 
 	    ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
+
+	    FindNodalNeighbours(rThisModelPart);
+
+// 	    for(int i = 0 ; i < 10 ; i++)
+// 	      {
+// 		std::cout << "Node #" << i + 1 << " : " ;
+// 		for(std::vector<int>::iterator j = mNodalNeighbours[i].begin() ; j != mNodalNeighbours[i].end() ; j++)
+// 		  std::cout << *j << ",";
+// 		std::cout << std::endl;
+// 	      }
 
 
 	    for(int i = 0 ; i < number_of_elements ; i++)
@@ -207,13 +218,16 @@ namespace Kratos
 
 	    if(mNodalNeighbours.size() != number_of_nodes)
 	      mNodalNeighbours.resize(number_of_nodes);
+	    else
+	      for(int i = 0 ; i < number_of_nodes ; i++)
+		mNodalNeighbours[i].clear();
 
 	    for(int i = 0 ; i < number_of_elements ; i++)
 	      {
-		Element::GeometryType& r_geometry = elements_array.GetGeometry();
-		for(unsigned int i = 0; i < r_geometry.size(); i++)
+		Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
+		for(unsigned int j = 0; j < r_geometry.size(); j++)
 		  {
-		    mNodalNeighbours[r_geometry[i].Id()-1].push_back(i);
+		    mNodalNeighbours[r_geometry[j].Id()-1].push_back(elements_array[i]->Id());
 		  }
 	      }
 	    
@@ -221,7 +235,7 @@ namespace Kratos
 	      {
 		std::sort(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
 		std::vector<int>::iterator new_end = std::unique(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
-		mNodalNeighbours[i].erase(new_end_it, mNodalNeighbours[i].end());
+		mNodalNeighbours[i].erase(new_end, mNodalNeighbours[i].end());
 	      }
 	  }
 
@@ -231,16 +245,16 @@ namespace Kratos
 	    const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
 	    const int number_of_elements = rThisModelPart.NumberOfElements(); 
 
-	    if(mElementalNeighbours.size() != number_of_nodes)
-	      mElementalNeighbours.resize(number_of_nodes);
+	    if(mNodalNeighbours.size() != number_of_nodes)
+	      mNodalNeighbours.resize(number_of_nodes);
 
 
 	    for(int i = 0 ; i < number_of_elements ; i++)
 	      {
-		Element::GeometryType& r_geometry = elements_array.GetGeometry();
+		Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
 		for(unsigned int i = 0; i < r_geometry.size(); i++)
 		  {
-		    mNodalNeighbours[r_geometry[i].Id()-1].push_back(i);
+		    mNodalNeighbours[r_geometry[i].Id()-1].push_back(elements_array[i]->Id());
 		  }
 	      }
 	    
@@ -248,7 +262,7 @@ namespace Kratos
 	      {
 		std::sort(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
 		std::vector<int>::iterator new_end = std::unique(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
-		mNodalNeighbours[i].erase(new_end_it, mNodalNeighbours[i].end());
+		mNodalNeighbours[i].erase(new_end, mNodalNeighbours[i].end());
 	      }
 	  }
 
