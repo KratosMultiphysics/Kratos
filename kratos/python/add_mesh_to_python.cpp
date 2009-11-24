@@ -200,6 +200,30 @@ namespace Kratos
             return( values_list );
         }
         
+        void SetValuesOnIntegrationPointsVector( Element& dummy,
+                const Variable<Vector>& rVariable, boost::python::list values_list, int len_values_list_item, const ProcessInfo& rCurrentProcessInfo )
+        {
+            IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints( 
+                    dummy.GetIntegrationMethod() );
+            std::vector<Vector> values( integration_points.size() );
+            for( unsigned int i=0; i<integration_points.size(); i++ )
+            {
+                Vector value_item = ZeroVector(len_values_list_item);
+                for( unsigned int j=0; j<len_values_list_item; j++ )
+                { 
+                    boost::python::extract<double> x( values_list[i][j] );
+                    if( x.check() )
+                    {
+                        value_item[j] = x();
+                    }
+                    else
+                        break;
+                }
+                values[i] = value_item;
+            }
+            dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+        }
+        
         boost::python::list GetValuesOnIntegrationPointsMatrix( Element& dummy, 
                 const Variable<Matrix>& rVariable, const ProcessInfo& rCurrentProcessInfo )
         {
@@ -275,6 +299,8 @@ namespace Kratos
                     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d)
                     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector)
                     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix)
+                    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector)
+                    .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
                     
                     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
                     //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
