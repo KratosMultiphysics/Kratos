@@ -239,6 +239,9 @@ namespace Kratos
              * @param rRightHandSideVector: the elemental right hand side
              * @param rCurrentProcessInfo: the current process info instance
              */
+            
+            virtual void ResetConstitutiveLaw(){}
+            
             virtual void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                                VectorType& rRightHandSideVector, 
                                                ProcessInfo& rCurrentProcessInfo){}
