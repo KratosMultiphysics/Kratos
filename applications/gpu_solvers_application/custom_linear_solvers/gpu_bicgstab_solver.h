@@ -338,10 +338,10 @@ namespace Kratos
       
       bool IterativeSolve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
       {
-
+	size_t iterNum = 0;
 	BICGSTAB_GPU(rA.size1(), rA.size2(), rA.nnz(), &(rA.value_data() [0]), &(rA.index2_data() [0]), &(rA.index1_data() [0]), rB.size(), &(rX[0]), &(rB[0]), 
-			tol, maxIter, BaseType::mBNorm, BaseType::mResidualNorm, BaseType::mIterationsNumber, *(this->preconditioner));
-
+			tol, maxIter, BaseType::mBNorm, BaseType::mResidualNorm, iterNum, *(this->preconditioner));
+	BaseType::mIterationsNumber = (unsigned int) iterNum;
 /*	//std::time_t t1 = 0, t2 = 0, t;
 
 	//KRATOS_WATCH("============================ GPU Solver ============================");
