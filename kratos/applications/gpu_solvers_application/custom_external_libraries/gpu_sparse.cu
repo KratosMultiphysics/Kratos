@@ -80,7 +80,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <laslv.h>
 #include <gmd.h>
 #include <gmf.h>
-#include <vector>
+
+
+using namespace std;
 
 namespace Kratos
 {
