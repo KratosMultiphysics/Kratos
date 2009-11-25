@@ -101,13 +101,13 @@ namespace Kratos
 	  typedef std::size_t SizeType;
 	  typedef std::size_t IndexType;
 	  	  
-	  typedef ModelPart::GeometricalDataContainerType GeometricalDataContainerType;
+	  //typedef ModelPart::GeometricalDataContainerType GeometricalDataContainerType;
 
-	  typedef GeometricalDataContainerType::GeometricalDataType GeometricalDataType;
+	  //typedef GeometricalDataContainerType::GeometricalDataType GeometricalDataType;
 
-	  typedef ModelPart::GeometryType GeometryType;
+	  //typedef ModelPart::GeometryType GeometryType;
 
-	  typedef ModelPart::GeometriesContainerType GeometriesContainerType;
+	  //typedef ModelPart::GeometriesContainerType GeometriesContainerType;
 
 
       ///@}
@@ -131,7 +131,7 @@ namespace Kratos
       ///@{
 
 	  
-	  void CollapsePoints(ModelPart& rThisModelPart, double Tolerance)
+	  /*	  void CollapsePoints(ModelPart& rThisModelPart, double Tolerance)
 	  {
 		  double distance;
 		  Point3D<Node<3> >::Pointer p_founded_point;
@@ -172,7 +172,7 @@ namespace Kratos
 		  }
 
 	  }
-      
+	  */
 
       
 	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement)
