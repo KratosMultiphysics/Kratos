@@ -201,7 +201,7 @@ namespace Kratos
         }
         
         void SetValuesOnIntegrationPointsVector( Element& dummy,
-                const Variable<Vector>& rVariable, boost::python::list values_list, int len_values_list_item, const ProcessInfo& rCurrentProcessInfo )
+                const Variable<Vector>& rVariable, boost::python::list values_list, unsigned int len_values_list_item, const ProcessInfo& rCurrentProcessInfo )
         {
             IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints( 
                     dummy.GetIntegrationMethod() );
