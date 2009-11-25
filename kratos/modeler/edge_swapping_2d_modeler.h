@@ -175,16 +175,22 @@ namespace Kratos
 		const int number_of_elements = rThisModelPart.NumberOfElements(); 
 
 	    unsigned int number_of_bad_quality_elements = MarkBadQualityElements(rThisModelPart);
-
-	    KRATOS_WATCH(number_of_bad_quality_elements);
+	    unsigned int number_of_bad_quality_elements_old = number_of_bad_quality_elements;
+	    const int maximum_repeat_number = 10;
 
 //  	    FindElementalNeighboursProcess find_element_neighbours_process(rThisModelPart, 2); 
-
-		SetSwappingData(rThisModelPart);
 
 
 // 	    find_element_neighbours_process.Execute(); 
 
+
+	    for(int repeat = 0 ; (repeat < maximum_repeat_number) & (number_of_bad_quality_elements != 0) ; repeat++)
+	      {
+		KRATOS_WATCH(repeat);
+		KRATOS_WATCH(number_of_bad_quality_elements);
+		SetSwappingData(rThisModelPart);
+
+		KRATOS_WATCH("SwappingData created!!");
 
 		for(int i = 0 ; i < number_of_elements ; i++)
 		{
@@ -209,29 +215,42 @@ namespace Kratos
 				}
 			}
 		}
+		KRATOS_WATCH("Swapping elements are marked!!");
+
+// 		for(int i = 0 ; i < number_of_elements ; i++)
+// 		{
+// 			if(mSwappingData[i].SwapWith != -1)
+// 			{
+// 				std::cout << "Element #" << i + 1 << " : " ;
+// 				std::cout << mSwappingData[i].NeighbourElements << ",";
+// 				std::cout << mSwappingData[i].OppositeNodes << ",";
+// 				std::cout << mSwappingData[i].SwapWith;
+// 				std::cout << std::endl;
+// 			}
+// 		}
+
 
 		for(int i = 0 ; i < number_of_elements ; i++)
 		{
 			if(mSwappingData[i].SwapWith != -1)
 			{
-				std::cout << "Element #" << i + 1 << " : " ;
-				std::cout << mSwappingData[i].NeighbourElements << ",";
-				std::cout << mSwappingData[i].OppositeNodes << ",";
-				std::cout << mSwappingData[i].SwapWith;
-				std::cout << std::endl;
-			}
-		}
-
-
-		for(int i = 0 ; i < number_of_elements ; i++)
-		{
-			if(mSwappingData[i].SwapWith != -1)
-			{
+			  std::cout << "swapping element #" << elements_array[i]->Id() << " with element #" << elements_array[mSwappingData[i].SwapWith]->Id() << std::endl;
 				Swap(*(elements_array[i]),*(elements_array[mSwappingData[i].SwapWith]), mSwappingData[i].SwapEdge, mSwappingData[mSwappingData[i].SwapWith].SwapEdge);
 			}
 		}
-
-		Timer::Stop("Edge Swapping");
+		KRATOS_WATCH("Swapping done!!");
+		number_of_bad_quality_elements = MarkBadQualityElements(rThisModelPart);
+		KRATOS_WATCH(number_of_bad_quality_elements);
+		if(number_of_bad_quality_elements == number_of_bad_quality_elements_old)
+		  {
+		    break;
+		  }
+		else
+		  {
+		    number_of_bad_quality_elements_old=number_of_bad_quality_elements;
+		  }
+	      }
+	    Timer::Stop("Edge Swapping");
 	  }
       
 	  void Swap(Element& rElement1, Element& rElement2, int Edge1, int Edge2)
@@ -249,7 +268,7 @@ namespace Kratos
 	    unsigned int counter = 0;
 	    unsigned int marked = 0;
 
-	    const double threshold = 0.1;
+	    const double threshold = 0.25;
 
 	    if(mBadQuality.size() != rThisModelPart.NumberOfElements())
 	      mBadQuality.resize(rThisModelPart.NumberOfElements());
@@ -282,8 +301,8 @@ namespace Kratos
 	  void FindNodalNeighbours(ModelPart& rThisModelPart)
 	  {
 		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-		  const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
-		  const int number_of_elements = rThisModelPart.NumberOfElements(); 
+		  const unsigned int number_of_nodes = rThisModelPart.NumberOfNodes(); 
+		  const unsigned int number_of_elements = rThisModelPart.NumberOfElements(); 
 
 		  if(mNodalNeighbourElements.size() != number_of_nodes)
 			  mNodalNeighbourElements.resize(number_of_nodes);
@@ -311,8 +330,7 @@ namespace Kratos
 	  void SetSwappingData(ModelPart& rThisModelPart)
 	  {
 		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-		  const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
-		  const int number_of_elements = rThisModelPart.NumberOfElements(); 
+		  const unsigned int number_of_elements = rThisModelPart.NumberOfElements(); 
 
 		  FindNodalNeighbours(rThisModelPart);
 
