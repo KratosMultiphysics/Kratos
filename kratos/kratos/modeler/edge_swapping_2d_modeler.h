@@ -92,7 +92,37 @@ namespace Kratos
   */
 	class EdgeSwapping2DModeler : public Modeler
     {
-    public:
+
+			
+		struct SwappingData
+		{
+		public:
+			SwappingData()
+			{
+				Reset();
+			}
+			void Reset()
+			{
+				for(int i = 0 ; i < 3 ; i++)
+				{
+					NeighbourElements[i] = -1;
+					OppositeNodes[i] = -1;
+					OppositeEdge[i] = -1;
+				}
+				IsSwapCandidate = false;
+				SwapWith = -1;
+			}
+			array_1d<int, 3> NeighbourElements;
+			array_1d<int, 3> OppositeNodes;
+			array_1d<int, 3> OppositeEdge;
+			bool IsSwapCandidate;
+			int SwapWith;
+			int SwapEdge;
+		};
+
+	
+	
+	public:
       ///@name Type Definitions
       ///@{
       
@@ -138,8 +168,11 @@ namespace Kratos
 	  void Remesh(ModelPart& rThisModelPart)
 	  {
 	    Timer::Start("Edge Swapping");
+  	  
+		ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
+		ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
 
-	    const int number_of_elements = rThisModelPart.NumberOfElements(); 
+		const int number_of_elements = rThisModelPart.NumberOfElements(); 
 
 	    unsigned int number_of_bad_quality_elements = MarkBadQualityElements(rThisModelPart);
 
@@ -147,33 +180,69 @@ namespace Kratos
 
 //  	    FindElementalNeighboursProcess find_element_neighbours_process(rThisModelPart, 2); 
 
+		SetSwappingData(rThisModelPart);
+
 
 // 	    find_element_neighbours_process.Execute(); 
 
-	    ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
 
-	    FindNodalNeighbours(rThisModelPart);
+		for(int i = 0 ; i < number_of_elements ; i++)
+		{
+			if(mBadQuality[i])
+			{
+				for(int j = 0 ; j < 3 ; j++)
+				{
+					const int neighbour_index = mSwappingData[i].NeighbourElements[j] - 1;
+					if(neighbour_index >= 0)
+					{
+						if(mSwappingData[neighbour_index].IsSwapCandidate == false)
+						{
+							if(IsInElementSphere(*(elements_array[i]), *(nodes_array[mSwappingData[i].OppositeNodes[j]])))
+							{
+								mSwappingData[neighbour_index].IsSwapCandidate = true;
+								mSwappingData[neighbour_index].SwapEdge = mSwappingData[i].OppositeEdge[j];
+								mSwappingData[i].SwapWith = neighbour_index;
+								mSwappingData[i].SwapEdge = j;
+							}
+						}
+					}
+				}
+			}
+		}
 
-// 	    for(int i = 0 ; i < 10 ; i++)
-// 	      {
-// 		std::cout << "Node #" << i + 1 << " : " ;
-// 		for(std::vector<int>::iterator j = mNodalNeighbours[i].begin() ; j != mNodalNeighbours[i].end() ; j++)
-// 		  std::cout << *j << ",";
-// 		std::cout << std::endl;
-// 	      }
+		for(int i = 0 ; i < number_of_elements ; i++)
+		{
+			if(mSwappingData[i].SwapWith != -1)
+			{
+				std::cout << "Element #" << i + 1 << " : " ;
+				std::cout << mSwappingData[i].NeighbourElements << ",";
+				std::cout << mSwappingData[i].OppositeNodes << ",";
+				std::cout << mSwappingData[i].SwapWith;
+				std::cout << std::endl;
+			}
+		}
 
 
-	    for(int i = 0 ; i < number_of_elements ; i++)
-	      {
-		if(mBadQuality[i])
-		  {
-		    
-		  }
-	      }
- 
-	    Timer::Stop("Edge Swapping");
+		for(int i = 0 ; i < number_of_elements ; i++)
+		{
+			if(mSwappingData[i].SwapWith != -1)
+			{
+				Swap(*(elements_array[i]),*(elements_array[mSwappingData[i].SwapWith]), mSwappingData[i].SwapEdge, mSwappingData[mSwappingData[i].SwapWith].SwapEdge);
+			}
+		}
+
+		Timer::Stop("Edge Swapping");
 	  }
       
+	  void Swap(Element& rElement1, Element& rElement2, int Edge1, int Edge2)
+	  {
+
+		  int next2[3] = {2,0,1};
+
+		  rElement1.GetGeometry()(next2[Edge1]) = rElement2.GetGeometry()(Edge2);
+		  rElement2.GetGeometry()(next2[Edge2]) = rElement1.GetGeometry()(Edge1);
+
+	  }
 
 	  unsigned int MarkBadQualityElements(ModelPart& rThisModelPart)
 	  {
@@ -212,60 +281,98 @@ namespace Kratos
 
 	  void FindNodalNeighbours(ModelPart& rThisModelPart)
 	  {
-	    ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-	    const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
-	    const int number_of_elements = rThisModelPart.NumberOfElements(); 
+		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
+		  const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
+		  const int number_of_elements = rThisModelPart.NumberOfElements(); 
 
-	    if(mNodalNeighbours.size() != number_of_nodes)
-	      mNodalNeighbours.resize(number_of_nodes);
-	    else
-	      for(int i = 0 ; i < number_of_nodes ; i++)
-		mNodalNeighbours[i].clear();
+		  if(mNodalNeighbourElements.size() != number_of_nodes)
+			  mNodalNeighbourElements.resize(number_of_nodes);
+		  else
+			  for(int i = 0 ; i < number_of_nodes ; i++)
+				  mNodalNeighbourElements[i].clear();
 
-	    for(int i = 0 ; i < number_of_elements ; i++)
-	      {
-		Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
-		for(unsigned int j = 0; j < r_geometry.size(); j++)
+		  for(int i = 0 ; i < number_of_elements ; i++)
 		  {
-		    mNodalNeighbours[r_geometry[j].Id()-1].push_back(elements_array[i]->Id());
+			  Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
+			  for(unsigned int j = 0; j < r_geometry.size(); j++)
+			  {
+				  mNodalNeighbourElements[r_geometry[j].Id()-1].push_back(elements_array[i]->Id());
+			  }
 		  }
-	      }
-	    
-	    for(int i = 0 ; i < number_of_nodes ; i++)
-	      {
-		std::sort(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
-		std::vector<int>::iterator new_end = std::unique(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
-		mNodalNeighbours[i].erase(new_end, mNodalNeighbours[i].end());
-	      }
+
+		  for(int i = 0 ; i < number_of_nodes ; i++)
+		  {
+			  std::sort(mNodalNeighbourElements[i].begin(),mNodalNeighbourElements[i].end());
+			  std::vector<int>::iterator new_end = std::unique(mNodalNeighbourElements[i].begin(),mNodalNeighbourElements[i].end());
+			  mNodalNeighbourElements[i].erase(new_end, mNodalNeighbourElements[i].end());
+		  }
 	  }
 
-	  void FindElementalNeighbours(ModelPart& rThisModelPart)
+	  void SetSwappingData(ModelPart& rThisModelPart)
 	  {
-	    ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-	    const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
-	    const int number_of_elements = rThisModelPart.NumberOfElements(); 
+		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
+		  const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
+		  const int number_of_elements = rThisModelPart.NumberOfElements(); 
 
-	    if(mNodalNeighbours.size() != number_of_nodes)
-	      mNodalNeighbours.resize(number_of_nodes);
+		  FindNodalNeighbours(rThisModelPart);
 
+		  if(mSwappingData.size() != number_of_elements)
+			  mSwappingData.resize(number_of_elements);
+		  else
+			  for(int i = 0 ; i < number_of_elements ; i++)
+				  mSwappingData[i].Reset();
 
-	    for(int i = 0 ; i < number_of_elements ; i++)
-	      {
-		Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
-		for(unsigned int i = 0; i < r_geometry.size(); i++)
+		  for(int i = 0 ; i < number_of_elements ; i++)
 		  {
-		    mNodalNeighbours[r_geometry[i].Id()-1].push_back(elements_array[i]->Id());
+			  Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
+			  int id = elements_array[i]->Id();
+			  for(unsigned int j = 0; j < r_geometry.size(); j++)
+			  {
+				FindNeighbourElement(r_geometry[1].Id(), r_geometry[2].Id(), id, elements_array, mSwappingData[i], 0);
+				FindNeighbourElement(r_geometry[2].Id(), r_geometry[0].Id(), id, elements_array, mSwappingData[i], 1);
+				FindNeighbourElement(r_geometry[0].Id(), r_geometry[1].Id(), id, elements_array, mSwappingData[i], 2);
+			  }
 		  }
-	      }
-	    
-	    for(int i = 0 ; i < number_of_nodes ; i++)
-	      {
-		std::sort(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
-		std::vector<int>::iterator new_end = std::unique(mNodalNeighbours[i].begin(),mNodalNeighbours[i].end());
-		mNodalNeighbours[i].erase(new_end, mNodalNeighbours[i].end());
-	      }
+
+
 	  }
 
+
+	  void FindNeighbourElement(unsigned int NodeId1, unsigned int NodeId2, int ElementId, ModelPart::ElementsContainerType::ContainerType const& ElementsArray, SwappingData& rSwappingData, int EdgeIndex)
+	  {
+		  const int node_index_1 = NodeId1 - 1;
+
+		  rSwappingData.NeighbourElements[EdgeIndex] = -1;
+
+
+		  //look for the elements around node NodeId1
+ 		  for(std::vector<int>::iterator i = mNodalNeighbourElements[node_index_1].begin() ; i != mNodalNeighbourElements[node_index_1].end() ; i++)
+		  {	//look for the nodes of the neighbour faces
+			  Geometry<Node<3> >& r_neighbour_element_geometry = ElementsArray[*i-1]->GetGeometry();
+			  rSwappingData.OppositeNodes[EdgeIndex] = -1;
+			  for( unsigned int node_i = 0 ; node_i < r_neighbour_element_geometry.size(); node_i++) 
+			  {	
+				  int other_node_id = r_neighbour_element_geometry[node_i].Id();
+				  if ((other_node_id != NodeId1) && (other_node_id != NodeId2))
+				  {
+					  rSwappingData.OppositeNodes[EdgeIndex] = other_node_id;
+					  rSwappingData.OppositeEdge[EdgeIndex] = node_i;
+				  }
+
+				  if (r_neighbour_element_geometry[node_i].Id() == NodeId2)
+				  {
+					  if(*i != ElementId)
+					  {
+						  rSwappingData.NeighbourElements[EdgeIndex] =  *i;
+					  }
+				  }
+			  }
+			  if(rSwappingData.NeighbourElements[EdgeIndex] != -1)
+				  return;
+		  }
+		  return;
+	  }
+	  
 	  void PrepareForSwapping(ModelPart& rThisModelPart)
 	  {
 	    for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
@@ -370,6 +477,8 @@ namespace Kratos
       ///@}
       
     private:
+
+
       ///@name Static Member Variables 
       ///@{ 
         
@@ -379,7 +488,8 @@ namespace Kratos
       ///@{ 
         
       std::vector<int> mBadQuality;
-      std::vector<std::vector<int> > mNodalNeighbours;
+      std::vector<std::vector<int> > mNodalNeighbourElements;
+      std::vector<SwappingData > mSwappingData;
         
       ///@} 
       ///@name Private Operators

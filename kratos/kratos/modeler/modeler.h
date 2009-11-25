@@ -60,6 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
+#include "spatial_containers/spatial_containers.h"
 
 
 namespace Kratos
@@ -95,7 +97,19 @@ namespace Kratos
       
       /// Pointer definition of Modeler
       KRATOS_CLASS_POINTER_DEFINITION(Modeler);
-  
+
+	  typedef std::size_t SizeType;
+	  typedef std::size_t IndexType;
+	  	  
+	  typedef ModelPart::GeometricalDataContainerType GeometricalDataContainerType;
+
+	  typedef GeometricalDataContainerType::GeometricalDataType GeometricalDataType;
+
+	  typedef ModelPart::GeometryType GeometryType;
+
+	  typedef ModelPart::GeometriesContainerType GeometriesContainerType;
+
+
       ///@}
       ///@name Life Cycle 
       ///@{ 
@@ -104,7 +118,7 @@ namespace Kratos
       Modeler(){}
 
       /// Destructor.
-      virtual ~Modeler(){}
+	  virtual ~Modeler(){}
       
 
       ///@}
@@ -115,7 +129,61 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+
+	  
+	  void CollapsePoints(ModelPart& rThisModelPart, double Tolerance)
+	  {
+		  double distance;
+		  Point3D<Node<3> >::Pointer p_founded_point;
+
+		  GeometriesContainerType& geometries = rThisModelPart.Geometries();
+		  GeometriesContainerType::PointsArrayType& r_points_array = geometries.Points();
+
+		  if(geometries.NumberOfGeometries() == 0)
+			  return;
+
+		  for(GeometriesContainerType::GeometryIterator i_geometry = geometries.GeometriesBegin() ; 
+			  i_geometry != geometries.GeometriesEnd() ; i_geometry++)
+		  {
+		  // At this moment a brute force search is used
+			  for(GeometryType::iterator i_point = i_geometry->begin() ; i_point != i_geometry->end() ; i_point++)
+			  {
+				  bool founded = false;
+				  for(GeometriesContainerType::PointIterator j_point = r_points_array.begin() ; 
+					  j_point != r_points_array.end() ; j_point++)
+				  {
+					distance = j_point->Distance(*i_point); 
+					if(distance < Tolerance)
+					{
+						founded = true;
+						p_founded_point = *(j_point.base());
+						break;
+					}
+				  }
+				  if(founded)
+				  {
+					  *(i_point.base()) = p_founded_point->pGetPoint(0);
+				  }
+				  else
+				  {
+					  r_points_array.push_back(Point3D<Node<3> >(*(i_point.base())));
+				  }
+			  }
+		  }
+
+	  }
       
+
+      
+	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement)
+	  {
+		  KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
+	  }
+      
+	  virtual void GenerateNodes(ModelPart& ThisModelPart)
+	  {
+		  KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for node generation.", "");
+	  }
       
       ///@}
       ///@name Access
@@ -133,15 +201,20 @@ namespace Kratos
 
       /// Turn back information as a string.
       virtual std::string Info() const
-      {
-	return "Modeler";
-      }
+	  {
+		  return "Modeler";
+	  }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const{}
+      virtual void PrintInfo(std::ostream& rOStream) const
+	  {
+		  rOStream << Info();
+	  }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const{}
+      virtual void PrintData(std::ostream& rOStream) const
+	  {
+	  }
       
             
       ///@}      
