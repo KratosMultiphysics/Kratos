@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "modeler/modeler.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/math_utils.h"
 #include "processes/find_elements_neighbours_process.h"
 
 namespace Kratos
@@ -167,92 +168,97 @@ namespace Kratos
 
 	  void Remesh(ModelPart& rThisModelPart)
 	  {
-	    Timer::Start("Edge Swapping");
-  	  
-		ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
-		ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
+		  Timer::Start("Edge Swapping");
 
-		const int number_of_elements = rThisModelPart.NumberOfElements(); 
+		  ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
+		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
 
-	    unsigned int number_of_bad_quality_elements = MarkBadQualityElements(rThisModelPart);
-	    unsigned int number_of_bad_quality_elements_old = number_of_bad_quality_elements;
-	    const int maximum_repeat_number = 10;
+		  const int number_of_elements = rThisModelPart.NumberOfElements(); 
 
-//  	    FindElementalNeighboursProcess find_element_neighbours_process(rThisModelPart, 2); 
+		  unsigned int number_of_bad_quality_elements = 1 ;//MarkBadQualityElements(rThisModelPart);
+		  unsigned int number_of_bad_quality_elements_old = number_of_bad_quality_elements;
+		  const int maximum_repeat_number = 10;
 
-
-// 	    find_element_neighbours_process.Execute(); 
+		  //  	    FindElementalNeighboursProcess find_element_neighbours_process(rThisModelPart, 2); 
 
 
-	    for(int repeat = 0 ; (repeat < maximum_repeat_number) & (number_of_bad_quality_elements != 0) ; repeat++)
-	      {
-		KRATOS_WATCH(repeat);
-		KRATOS_WATCH(number_of_bad_quality_elements);
-		SetSwappingData(rThisModelPart);
-
-		KRATOS_WATCH("SwappingData created!!");
-
-		for(int i = 0 ; i < number_of_elements ; i++)
-		{
-			if(mBadQuality[i])
-			{
-				for(int j = 0 ; j < 3 ; j++)
-				{
-					const int neighbour_index = mSwappingData[i].NeighbourElements[j] - 1;
-					if(neighbour_index >= 0)
-					{
-						if(mSwappingData[neighbour_index].IsSwapCandidate == false)
-						{
-							if(IsInElementSphere(*(elements_array[i]), *(nodes_array[mSwappingData[i].OppositeNodes[j]])))
-							{
-								mSwappingData[neighbour_index].IsSwapCandidate = true;
-								mSwappingData[neighbour_index].SwapEdge = mSwappingData[i].OppositeEdge[j];
-								mSwappingData[i].SwapWith = neighbour_index;
-								mSwappingData[i].SwapEdge = j;
-							}
-						}
-					}
-				}
-			}
-		}
-		KRATOS_WATCH("Swapping elements are marked!!");
-
-// 		for(int i = 0 ; i < number_of_elements ; i++)
-// 		{
-// 			if(mSwappingData[i].SwapWith != -1)
-// 			{
-// 				std::cout << "Element #" << i + 1 << " : " ;
-// 				std::cout << mSwappingData[i].NeighbourElements << ",";
-// 				std::cout << mSwappingData[i].OppositeNodes << ",";
-// 				std::cout << mSwappingData[i].SwapWith;
-// 				std::cout << std::endl;
-// 			}
-// 		}
+		  // 	    find_element_neighbours_process.Execute(); 
 
 
-		for(int i = 0 ; i < number_of_elements ; i++)
-		{
-			if(mSwappingData[i].SwapWith != -1)
-			{
-			  std::cout << "swapping element #" << elements_array[i]->Id() << " with element #" << elements_array[mSwappingData[i].SwapWith]->Id() << std::endl;
-				Swap(*(elements_array[i]),*(elements_array[mSwappingData[i].SwapWith]), mSwappingData[i].SwapEdge, mSwappingData[mSwappingData[i].SwapWith].SwapEdge);
-			}
-		}
-		KRATOS_WATCH("Swapping done!!");
-		number_of_bad_quality_elements = MarkBadQualityElements(rThisModelPart);
-		KRATOS_WATCH(number_of_bad_quality_elements);
-		if(number_of_bad_quality_elements == number_of_bad_quality_elements_old)
+		  for(int repeat = 0 ; (repeat < maximum_repeat_number) & (number_of_bad_quality_elements != 0) ; repeat++)
 		  {
-		    break;
+			  //std::cout << "Edge swapping iteration #" << repeat; // << " : No. of bad quality elements = " << number_of_bad_quality_elements;
+			  SetSwappingData(rThisModelPart);
+
+
+			  unsigned int swap_counter = 0;
+			  for(int i = 0 ; i < number_of_elements ; i++)
+			  {
+				  if(mSwappingData[i].IsSwapCandidate == false)
+					  //if(mBadQuality[i])
+					  {
+						  for(int j = 0 ; j < 3 ; j++)
+						  {
+							  const int neighbour_index = mSwappingData[i].NeighbourElements[j] - 1;
+							  if(neighbour_index >= 0)
+							  {
+								  if(mSwappingData[neighbour_index].IsSwapCandidate == false)
+								  {
+									  if(IsInElementSphere(*(elements_array[i]), *(nodes_array[mSwappingData[i].OppositeNodes[j]-1])))
+									  {
+										  swap_counter++;
+										  mSwappingData[neighbour_index].IsSwapCandidate = true;
+										  mSwappingData[neighbour_index].SwapEdge = mSwappingData[i].OppositeEdge[j];
+										  mSwappingData[i].IsSwapCandidate = true;
+										  mSwappingData[i].SwapWith = neighbour_index;
+										  mSwappingData[i].SwapEdge = j;
+										  break;
+									  }
+								  }
+							  }
+						  }
+					  }
+			  }
+			  //std::cout << " number of swaps = " << swap_counter << std::endl;
+			  if(swap_counter == 0)
+				  break;
+
+			  // 		for(int i = 0 ; i < number_of_elements ; i++)
+			  // 		{
+			  // 			if(mSwappingData[i].SwapWith != -1)
+			  // 			{
+			  // 				std::cout << "Element #" << i + 1 << " : " ;
+			  // 				std::cout << mSwappingData[i].NeighbourElements << ",";
+			  // 				std::cout << mSwappingData[i].OppositeNodes << ",";
+			  // 				std::cout << mSwappingData[i].SwapWith;
+			  // 				std::cout << std::endl;
+			  // 			}
+			  // 		}
+
+
+			  for(int i = 0 ; i < number_of_elements ; i++)
+			  {
+				  if(mSwappingData[i].SwapWith != -1)
+				  {
+					  //if((elements_array[i]->Id() > 3100 ) && (elements_array[i]->Id() < 3200 ))
+					  // std::cout << "swapping element #" << elements_array[i]->Id() << " with element #" << elements_array[mSwappingData[i].SwapWith]->Id() << std::endl;
+					  Swap(*(elements_array[i]),*(elements_array[mSwappingData[i].SwapWith]), mSwappingData[i].SwapEdge, mSwappingData[mSwappingData[i].SwapWith].SwapEdge);
+				  }
+			  }
+			  //KRATOS_WATCH("Swapping done!!");
+			  //number_of_bad_quality_elements = MarkBadQualityElements(rThisModelPart);
+			  //if(number_of_bad_quality_elements == number_of_bad_quality_elements_old)
+			  //{
+				 // break;
+			  //}
+			  //else
+			  //{
+				 // number_of_bad_quality_elements_old=number_of_bad_quality_elements;
+			  //}
 		  }
-		else
-		  {
-		    number_of_bad_quality_elements_old=number_of_bad_quality_elements;
-		  }
-	      }
-	    Timer::Stop("Edge Swapping");
+		  Timer::Stop("Edge Swapping");
 	  }
-      
+
 	  void Swap(Element& rElement1, Element& rElement2, int Edge1, int Edge2)
 	  {
 
@@ -265,37 +271,37 @@ namespace Kratos
 
 	  unsigned int MarkBadQualityElements(ModelPart& rThisModelPart)
 	  {
-	    unsigned int counter = 0;
-	    unsigned int marked = 0;
+		  unsigned int counter = 0;
+		  unsigned int marked = 0;
 
-	    const double threshold = 0.25;
+		  const double threshold = 0.25;
 
-	    if(mBadQuality.size() != rThisModelPart.NumberOfElements())
-	      mBadQuality.resize(rThisModelPart.NumberOfElements());
-	    
-	    // To be parallelized.
-	    for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
-	      {
-		if(ElementQuality(*i_element) < threshold)
+		  if(mBadQuality.size() != rThisModelPart.NumberOfElements())
+			  mBadQuality.resize(rThisModelPart.NumberOfElements());
+
+		  // To be parallelized.
+		  for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
 		  {
-		    marked++;
-		    mBadQuality[counter] = true;
+			  if(ElementQuality(*i_element) < threshold)
+			  {
+				  marked++;
+				  mBadQuality[counter] = true;
+			  }
+			  counter++;
 		  }
-		counter++;
-	      }
 
-	    return marked;
+		  return marked;
 	  }
 
 	  double ElementQuality(Element& rThisElement)
 	  {
-	    double h_min;
-	    double h_max;
-	    double area = rThisElement.GetGeometry().Area();
+		  double h_min;
+		  double h_max;
+		  double area = rThisElement.GetGeometry().Area();
 
-	    GeometryUtils::SideLenghts2D(rThisElement.GetGeometry(), h_min, h_max);
+		  GeometryUtils::SideLenghts2D(rThisElement.GetGeometry(), h_min, h_max);
 
-	    return (area / (h_max*h_max));
+		  return (area / (h_max*h_max));
 	  }
 
 	  void FindNodalNeighbours(ModelPart& rThisModelPart)
@@ -346,9 +352,9 @@ namespace Kratos
 			  int id = elements_array[i]->Id();
 			  for(unsigned int j = 0; j < r_geometry.size(); j++)
 			  {
-				FindNeighbourElement(r_geometry[1].Id(), r_geometry[2].Id(), id, elements_array, mSwappingData[i], 0);
-				FindNeighbourElement(r_geometry[2].Id(), r_geometry[0].Id(), id, elements_array, mSwappingData[i], 1);
-				FindNeighbourElement(r_geometry[0].Id(), r_geometry[1].Id(), id, elements_array, mSwappingData[i], 2);
+				  FindNeighbourElement(r_geometry[1].Id(), r_geometry[2].Id(), id, elements_array, mSwappingData[i], 0);
+				  FindNeighbourElement(r_geometry[2].Id(), r_geometry[0].Id(), id, elements_array, mSwappingData[i], 1);
+				  FindNeighbourElement(r_geometry[0].Id(), r_geometry[1].Id(), id, elements_array, mSwappingData[i], 2);
 			  }
 		  }
 
@@ -364,7 +370,7 @@ namespace Kratos
 
 
 		  //look for the elements around node NodeId1
- 		  for(std::vector<int>::iterator i = mNodalNeighbourElements[node_index_1].begin() ; i != mNodalNeighbourElements[node_index_1].end() ; i++)
+		  for(std::vector<int>::iterator i = mNodalNeighbourElements[node_index_1].begin() ; i != mNodalNeighbourElements[node_index_1].end() ; i++)
 		  {	//look for the nodes of the neighbour faces
 			  Geometry<Node<3> >& r_neighbour_element_geometry = ElementsArray[*i-1]->GetGeometry();
 			  rSwappingData.OppositeNodes[EdgeIndex] = -1;
@@ -390,29 +396,49 @@ namespace Kratos
 		  }
 		  return;
 	  }
-	  
+
 	  void PrepareForSwapping(ModelPart& rThisModelPart)
 	  {
-	    for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
-	      {
-	      }	    
+		  for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
+		  {
+		  }	    
 	  }
 
 	  bool IsInElementSphere(Element& rThisElement, NodeType& rThisNode)
 	  {
-	    Element::GeometryType& r_geometry = rThisElement.GetGeometry();
+		  Element::GeometryType& r_geometry = rThisElement.GetGeometry();
+
+
+		  double ax = r_geometry[0].X();
+		  double ay = r_geometry[0].Y();
+
+		  double bx = r_geometry[1].X();
+		  double by = r_geometry[1].Y();
+
+		  double cx = r_geometry[2].X();
+		  double cy = r_geometry[2].Y();
+
+		  double a2 = ax*ax + ay*ay;
+		  double b2 = bx*bx + by*by;
+		  double c2 = cx*cx + cy*cy;
+
+		  double vx = rThisNode.X();
+		  double vy = rThisNode.Y();
+
+		  double v2 = vx*vx + vy*vy;
+
 
 	    double a11 = r_geometry[0].X()-rThisNode.X();
 	    double a12 = r_geometry[0].Y()-rThisNode.Y();
-	    double a13 = 1.00;
+	    double a13 = a2 - v2;
 	    
 	    double a21 = r_geometry[1].X()-rThisNode.X();
 	    double a22 = r_geometry[1].Y()-rThisNode.Y();
-	    double a23 = 1.00;
+	    double a23 = b2 - v2;
 	    
 	    double a31 = r_geometry[2].X()-rThisNode.X();
 	    double a32 = r_geometry[2].Y()-rThisNode.Y();
-	    double a33 = 1.00;
+	    double a33 = c2 - v2;
 	    
 	    return ( ( a11*(a22*a33-a23*a32) + a12*(a23*a31-a21*a33) + a13*(a21*a32-a22*a31) ) > 0.0 );
 	  }
