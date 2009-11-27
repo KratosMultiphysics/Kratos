@@ -172,9 +172,14 @@ namespace Kratos
 			typename SchemeType::Pointer pscheme = typename SchemeType::Pointer
 				( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
 
+			//commented the 3 lines below
+
+			/*
 			bool CalculateReactions = false;
 			bool ReformDofAtEachIteration = true;
 			bool CalculateNormDxFlag = true;
+			*/
+
 
 			//computation of the fractional vel velocity (first step)
 				//3 dimensional case
@@ -201,7 +206,27 @@ namespace Kratos
 			mSlipBoundaryList.push_back(*(it.base()));
 			//mSlipBoundaryList.push_back(it);
 			}
-			
+
+			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+			{
+				if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
+				{
+					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X) );
+					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_X)->GetSolutionStepValue() );
+				}
+
+				if(it->pGetDof(VELOCITY_Y)->IsFixed() == true)
+				{
+					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y) );
+					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Y)->GetSolutionStepValue() );
+				}
+
+				if(it->pGetDof(VELOCITY_Z)->IsFixed() == true)
+				{
+					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z) );
+					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Z)->GetSolutionStepValue() );
+				}
+			}
 			
 			/*
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
@@ -258,18 +283,21 @@ namespace Kratos
 		KRATOS_WATCH("Solve of Runge Kutta GLS Frac Step Strategy")
 		//we estimate the time step for the explicit time integration schem estability
 		//ComputeTimeStep(0.8);
-		
+		Timer::Start("SolveStep1");
 		SolveStep1();
+		Timer::Stop("SolveStep1");
 		KRATOS_WATCH("First frac step completed")
 		//we write now the beginning of step pressure to OLD_IT to use it in the second frac step
 		
 		SavePressureIt();
+		Timer::Start("SolveStep2");
 		double Dp_norm = this->SolveStep2();
-		
+		Timer::Stop("SolveStep2");
 		//if(this->mReformDofAtEachIteration == true )
 		//		this->Clear();
+		Timer::Start("SolveStep3");
 		SolveStep3();
-
+		Timer::Stop("SolveStep3");
 
 		//return 0.0;//
 		return Dp_norm;
@@ -352,28 +380,32 @@ namespace Kratos
 			//			SAVING VELOCITY B.C.'s							//
 			//												//
 			//////////////////////////////////////////////////////////////////////////////////////////////////
-			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
-			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
-			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
-			//TODO:!!!!reset mFixedVelocityDofset y mFixedVelocityDofValues
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+			//if the DOFsets are reformed at every step, we have to find the Dirichlet B.C.s every time again (think of coupling with Lag)
+			//otherwise do nothing
+			if (this->mReformDofAtEachIteration==true)
 			{
-				if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
-				{
-					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X) );
-					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_X)->GetSolutionStepValue() );
-				}
+				mFixedVelocityDofSet.clear();
+				mFixedVelocityDofValues.clear();
 
-				if(it->pGetDof(VELOCITY_Y)->IsFixed() == true)
+				for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
 				{
-					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y) );
-					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Y)->GetSolutionStepValue() );
-				}
+					if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
+					{
+						mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X) );
+						mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_X)->GetSolutionStepValue() );
+					}
 
-				if(it->pGetDof(VELOCITY_Z)->IsFixed() == true)
-				{
-					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z) );
-					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Z)->GetSolutionStepValue() );
+					if(it->pGetDof(VELOCITY_Y)->IsFixed() == true)
+					{
+						mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y) );
+						mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Y)->GetSolutionStepValue() );
+					}
+
+					if(it->pGetDof(VELOCITY_Z)->IsFixed() == true)
+					{
+						mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z) );
+						mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Z)->GetSolutionStepValue() );
+					}
 				}
 			}
 			
@@ -423,7 +455,10 @@ namespace Kratos
 				noalias(it->FastGetSolutionStepValue(VELOCITY)) += 0.5 * aux;			
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
-			ApplySlipBC();
+			//apply the slip BC only if there are some slip BCs identified 	
+			if (mSlipBoundaryList.size()!=0)
+				ApplySlipBC();
+
 			SetToZero(RHS_VECTOR,model_part.Nodes());
 
 			/////////////////////////////////	
@@ -447,7 +482,10 @@ namespace Kratos
 				noalias(it->FastGetSolutionStepValue(VELOCITY)) += 0.5 * aux;		
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
-			ApplySlipBC();
+			//apply the slip BC only if there are some slip BCs identified 	
+			if (mSlipBoundaryList.size()!=0)
+				ApplySlipBC();
+
 			SetToZero(RHS_VECTOR,model_part.Nodes());
 
 			///////////////////////////////
@@ -469,7 +507,10 @@ namespace Kratos
 				noalias(it->FastGetSolutionStepValue(VELOCITY)) += aux;		
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
-			ApplySlipBC();
+			//apply the slip BC only if there are some slip BCs identified 	
+			if (mSlipBoundaryList.size()!=0)
+				ApplySlipBC();
+
 			SetToZero(RHS_VECTOR,model_part.Nodes());
 			/////////////////////////////
 			//last step of Runge Kutta //
@@ -498,7 +539,11 @@ namespace Kratos
 				//KRATOS_WATCH(it->FastGetSolutionStepValue(VELOCITY))
 			}
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
-			ApplySlipBC();
+			//apply the slip BC only if there are some slip BCs identified 	
+			if (mSlipBoundaryList.size()!=0)
+				ApplySlipBC();
+
+
 			KRATOS_WATCH("FINISHED STAGE1 OF FRACTIONAL STEP")
 			
 			KRATOS_CATCH("")
