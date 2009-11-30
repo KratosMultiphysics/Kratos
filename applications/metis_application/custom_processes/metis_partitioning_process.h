@@ -523,7 +523,7 @@ namespace Kratos
  		    if(SizeType(neighbours_indices[i]) < interface_indices.size())
  		     interface_indices[neighbours_indices[i]] = i;
 		  
-		  mLogFile << rank << " : Adding interface nodes to modelpart" << std::endl;
+//		  mLogFile << rank << " : Adding interface nodes to modelpart" << std::endl;
 		  // now adding interface nodes which belongs to other partitions
  		  for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
  		    if(EPart[i_element] == rank)
