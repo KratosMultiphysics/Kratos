@@ -158,29 +158,35 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
 	 void CalculateCellSize() {
 
-	   CoordinateType delta[TDimension];
-	   CoordinateType alpha[TDimension];
-	   CoordinateType mult_delta = 1.00;
-	   for(SizeType i = 0 ; i < TDimension ; i++) {
-		 delta[i] = mMaxPoint[i] - mMinPoint[i];
-		 delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
-	   }
+       CoordinateType delta[TDimension];
+       CoordinateType alpha[TDimension];
+       CoordinateType mult_delta = 1.00;
+       SizeType index = 0;
+       for(SizeType i = 0 ; i < TDimension ; i++) {
+         delta[i] = mMaxPoint[i] - mMinPoint[i];
+         if ( delta[i] > delta[index] )
+           index = i;
+         delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+       }
 
-	   alpha[0] = 1.00;
-	   for(SizeType i = 1 ; i < TDimension ; i++){
-		 alpha[i] = delta[i] / delta[0];
-		 mult_delta *= alpha[i];
-	   }
+       for(SizeType i = 0 ; i < TDimension ; i++){
+         alpha[i] = delta[i] / delta[index];
+         mult_delta *= alpha[i];
+       }
 
-	   mN[0] = static_cast<SizeType>( pow(static_cast<CoordinateType>(std::distance(mPointBegin,mPointEnd)/mult_delta), 1.00/3.00)+1 );
+       mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(PointerDistance(mPointBegin,mPointEnd)/mult_delta), 1.00/TDimension)+1 );
 
-	   for(SizeType i = 1 ; i < TDimension ; i++)
-		 mN[i] = static_cast<SizeType>(alpha[i] * mN[0] + 1);
+       for(SizeType i = 0 ; i < TDimension ; i++){
+         if(i!=index) {
+           mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
+           mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
+         }
+       }
 
-	   for(SizeType i = 0 ; i < TDimension ; i++){
-		 mCellSize[i] = delta[i] / mN[i];
-		 mInvCellSize[i] = 1.00 / mCellSize[i];
-	   }
+       for(SizeType i = 0 ; i < TDimension ; i++){
+         mCellSize[i] = delta[i] / mN[i];
+         mInvCellSize[i] = 1.00 / mCellSize[i];
+       }
 	 }
 
 	 //************************************************************************
@@ -222,7 +228,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
 	   // Update storage counter and store
 	   for( IteratorIterator Iter = mIndexCell.begin()+1 ; Iter != mIndexCell.end() ; Iter++)
-		 *Iter = *(Iter-1) + std::distance(mPointBegin,*Iter);
+		 *Iter = *(Iter-1) + PointerDistance(mPointBegin,*Iter);
 
 	   // Point pass 2
 	   // Store the points in lbin1
@@ -358,6 +364,25 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
        {
 		 *Results++ = *Point++;
          NumberOfResults++;
+       }
+       /*        IteratorType Point = mRowBegin; */
+       /* 	   while( Point != mRowBegin+Size ) *Results++ = *Point++; */
+	 }
+
+	 //************************************************************************
+
+	 void SearchInBoxRow(PointType const& MinBoxPoint, PointType const& MaxBoxPoint, IteratorType const& mRowBegin, IteratorType const& mRowEnd, IteratorType& Results,
+         SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+	 {
+       IteratorType Point = mRowBegin;
+	   while( Point != mRowEnd && NumberOfResults < MaxNumberOfResults )
+       {
+         if ( SpatialSearchPointInBox<Dimension,PointType>(MinBoxPoint,MaxBoxPoint,**Point) )
+         {
+           *Results++ = *Point;
+           NumberOfResults++;
+         }
+         Point++;
        }
        /*        IteratorType Point = mRowBegin; */
        /* 	   while( Point != mRowBegin+Size ) *Results++ = *Point++; */
@@ -635,16 +660,19 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	   {
 		 for(IndexType II = Box.Axis[2].Begin() ; II <= Box.Axis[2].End() ; II += Box.Axis[2].Block )
 		   for(IndexType I = II + Box.Axis[1].Begin() ; I <= II + Box.Axis[1].End() ; I += Box.Axis[1].Block )
-			 CopyPointInRow( Box.RowBegin[I], Box.RowEnd[I], ResultsPoint, NumberOfResults, MaxNumberOfResults );
+             SearchInBoxRow(SearchMinPoint,SearchMaxPoint,Box.RowBegin[I],Box.RowEnd[I],ResultsPoint,NumberOfResults,MaxNumberOfResults);
+			 //CopyPointInRow( Box.RowBegin[I], Box.RowEnd[I], ResultsPoint, NumberOfResults, MaxNumberOfResults );
 	   }
 	   else if( TDimension == 2 )
 	   {
 		 for(IndexType I = Box.Axis[1].Begin() ; I <= Box.Axis[1].End() ; I += Box.Axis[1].Block )
-		   CopyPointInRow( Box.RowBegin[I], Box.RowEnd[I], ResultsPoint, NumberOfResults, MaxNumberOfResults );
+           SearchInBoxRow(SearchMinPoint,SearchMaxPoint,Box.RowBegin[I],Box.RowEnd[I],ResultsPoint,NumberOfResults,MaxNumberOfResults);
+		   //CopyPointInRow( Box.RowBegin[I], Box.RowEnd[I], ResultsPoint, NumberOfResults, MaxNumberOfResults );
 	   }
 	   else if( TDimension == 1 )
 	   {
-		 CopyPointInRow( *(Box.RowBegin), *(Box.RowEnd), ResultsPoint, NumberOfResults, MaxNumberOfResults );
+         SearchInBoxRow(SearchMinPoint,SearchMaxPoint,*(Box.RowBegin),*(Box.RowEnd),ResultsPoint,NumberOfResults,MaxNumberOfResults);
+         //CopyPointInRow( *(Box.RowBegin), *(Box.RowEnd), ResultsPoint, NumberOfResults, MaxNumberOfResults );
 	   }
 	   else
 	   {
@@ -670,7 +698,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	 /// Print object's data.
 	 virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
 	 {
-	   rOStream << Perfix << "Bin[" << std::distance(mPointBegin, mPointEnd) << "] : " << std::endl;
+	   rOStream << Perfix << "Bin[" << PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
 	   for(IteratorConstIterator i_cell = mIndexCell.begin() ; i_cell != mIndexCell.end()-1 ; i_cell++)
 	   {
 		 rOStream << Perfix << "[ " ;
@@ -745,7 +773,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
 	 static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType MaxPoint, PointType MinPoint, SizeType BucketSize)
 	 {
-	   SizeType number_of_points = std::distance(PointsBegin,PointsEnd);
+	   SizeType number_of_points = PointerDistance(PointsBegin,PointsEnd);
 	   if (number_of_points == 0)
 		 return NULL;
 	   else 

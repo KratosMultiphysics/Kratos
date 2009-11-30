@@ -41,6 +41,7 @@ namespace Kratos {
 		typedef TDistanceIteratorType              DistanceIteratorType;
 		typedef TPointerType                       PointerType;
 		typedef TDistanceFunction                  DistanceFunction;
+        enum { Dimension = TDimension };
 
 		typedef typename TreeNodeType::CoordinateType  CoordinateType;  // double
 		typedef typename TreeNodeType::SizeType        SizeType;        // std::size_t
@@ -48,16 +49,19 @@ namespace Kratos {
 
 		typedef TreeNodeType LeafType;
 
-        enum { Dimension = TDimension };
-
+        typedef typename TreeNodeType::SearchStructureType SearchStructureType;
 
 		// Local Container ( PointPointer Container per Cell )
 		// can be different to ContainerType
-		typedef std::vector<PointerType>      CellPointVector;
-		typedef typename CellPointVector::iterator CellPointIterator;
+        // not always PointVector == ContainerType ( if ContainerType = C array )
+		typedef std::vector<PointerType>       PointVector;
+		typedef typename PointVector::iterator PointIterator;
+        //typedef std::vector<IteratorType>          IteratorVector;
+        //typedef typename IteratorVector::iterator  IteratorIterator;
+        //typedef typename IteratorVector::const_iterator IteratorConstIterator;
 
 		// Global Container
-		typedef std::vector<CellPointVector>        CellsContainerType; 
+		typedef std::vector<PointVector>        CellsContainerType; 
 
 		typedef Tvector<IndexType,TDimension>   CellType;
 
@@ -66,7 +70,7 @@ namespace Kratos {
 		//************************************************************************
 
 		// constructor 1
-		BinsDynamic() : mPointBegin(this->NullIterator()), mPointEnd(this->NullIterator())
+		BinsDynamic() : mPointBegin(this->NullIterator()), mPointEnd(this->NullIterator()), mNumPoints(0)
 		{};
 
         //************************************************************************
@@ -76,6 +80,7 @@ namespace Kratos {
         {
            if(mPointBegin==mPointEnd)
               return;
+           mNumPoints = std::distance(mPointBegin,mPointEnd);
            CalculateBoundingBox();
            CalculateCellSize();
            AllocateCellsContainer();
@@ -89,6 +94,8 @@ namespace Kratos {
         {
            if(mPointBegin==mPointEnd)
               return;
+
+           mNumPoints = std::distance(mPointBegin,mPointEnd);
 		   for(SizeType i = 0 ; i < TDimension ; i++)
 		   {
 			 mMinPoint[i] = MinPoint[i];
@@ -100,12 +107,27 @@ namespace Kratos {
         }
         
         //************************************************************************
+         
+        BinsDynamic( PointType const& MinPoint, PointType const& MaxPoint, SizeType BucketSize )
+          : mNumPoints(0)
+        {
+		   for(SizeType i = 0 ; i < TDimension ; i++)
+		   {
+			 mMinPoint[i] = MinPoint[i];
+			 mMaxPoint[i] = MaxPoint[i];
+		   }
+           CalculateCellSize(BucketSize);
+           AllocateCellsContainer();
+        }
+        
+        //************************************************************************
         
         BinsDynamic( IteratorType const& PointBegin, IteratorType const& PointEnd, CoordinateType BoxSize, SizeType BucketSize = 1 )
         : mPointBegin(PointBegin), mPointEnd(PointEnd)
         {
            if(mPointBegin==mPointEnd)
               return;
+           mNumPoints = std::distance(mPointBegin,mPointEnd);
            CalculateBoundingBox();
            CalculateCellSize(BoxSize);
            AllocateCellsContainer();
@@ -136,16 +158,16 @@ namespace Kratos {
         //************************************************************************
         
         void CalculateBoundingBox() {
+          for(SizeType i = 0 ; i < TDimension ; i++){
+            mMinPoint[i] = (**mPointBegin)[i];
+            mMaxPoint[i] = (**mPointBegin)[i];
+          }
+          for(IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
             for(SizeType i = 0 ; i < TDimension ; i++){
-                mMinPoint[i] = (**mPointBegin)[i];
-                mMaxPoint[i] = (**mPointBegin)[i];
+              if( (**Point)[i] < mMinPoint[i] ) mMinPoint[i] = (**Point)[i];
+              if( (**Point)[i] > mMaxPoint[i] ) mMaxPoint[i] = (**Point)[i];
             }
-            for(IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
-                for(SizeType i = 0 ; i < TDimension ; i++){
-                    if( (**Point)[i] < mMinPoint[i] ) mMinPoint[i] = (**Point)[i];
-                    if( (**Point)[i] > mMaxPoint[i] ) mMaxPoint[i] = (**Point)[i];
-                }
-            }
+        }
         
         //************************************************************************
         
@@ -165,10 +187,10 @@ namespace Kratos {
                 mult_delta *= alpha[i];
             }
 
-            mN[0] = static_cast<SizeType>( pow(static_cast<CoordinateType>(std::distance(mPointBegin,mPointEnd)/mult_delta), 1.00/3.00)+1 );
+            mN[0] = static_cast<SizeType>( pow(static_cast<CoordinateType>(PointerDistance(mPointBegin,mPointEnd)/mult_delta), 1.00/TDimension)+1 );
 
             for(SizeType i = 1 ; i < TDimension ; i++)
-                mN[i] = static_cast<SizeType>(alpha[i] * mN[0] + 1);
+                mN[i] = static_cast<SizeType>(alpha[i] * mN[0]);
 
             for(SizeType i = 0 ; i < TDimension ; i++){
                 mCellSize[i] = delta[i] / mN[i];
@@ -258,9 +280,41 @@ namespace Kratos {
         
         //************************************************************************
         
-         void AddPoint( PointType const* ThisPoint ){
+         /*          void AddPoint( PointType const& ThisPoint ){ */
+         /*             mPoints[CalculateIndex(ThisPoint)].push_back(&ThisPoint); */
+         /*          } */
+        
+        //************************************************************************
+        
+         void AddPoint( PointerType const& ThisPoint ){
             mPoints[CalculateIndex(*ThisPoint)].push_back(ThisPoint);
+            mNumPoints++;
          }
+        
+        //************************************************************************
+        
+        PointerType ExistPoint( PointType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
+        {
+         CoordinateType Tolerance2 = Tolerance*Tolerance;
+         PointerType nearest = SearchNearestPoint(ThisPoint);
+         if( nearest != this->NullPointer() )
+           if( TDistanceFunction()(*nearest,*ThisPoint) < Tolerance2 )
+             return nearest;
+         return this->NullPointer();
+        }
+        
+        //************************************************************************
+        
+        PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
+        {
+         CoordinateType Tolerance2 = Tolerance*Tolerance;
+         PointerType nearest;
+         SearchNearestPoint(*ThisPoint,nearest,Tolerance2);
+         if( nearest != this->NullPointer() )
+           if( TDistanceFunction()(*nearest,*ThisPoint) < Tolerance2 )
+             return nearest;
+         return this->NullPointer();
+        }
         
         //************************************************************************
 
@@ -369,10 +423,10 @@ namespace Kratos {
 
         //************************************************************************
         
-        void SearchInRadiusRow( CellPointIterator const& StoreBegin, CellPointIterator const& StoreEnd, PointType const& ThisPoint,
+        void SearchInRadiusRow( PointIterator const& StoreBegin, PointIterator const& StoreEnd, PointType const& ThisPoint,
               CoordinateType const& Radius, IteratorType& Result, DistanceIteratorType& Distance, SizeType const& MaxResult, SizeType& nRes )
         {
-           for(CellPointIterator Point = StoreBegin ; (Point != StoreEnd) && (nRes < MaxResult) ; Point++){
+           for(PointIterator Point = StoreBegin ; (Point != StoreEnd) && (nRes < MaxResult) ; Point++){
               CoordinateType dist = TDistanceFunction()(**Point,ThisPoint);
               if( dist < Radius ){
                  *Result++   = *Point;
@@ -384,10 +438,10 @@ namespace Kratos {
          
          //************************************************************************
         
-        void SearchInRadiusRow( CellPointIterator const& StoreBegin, CellPointIterator const& StoreEnd, PointType const& ThisPoint,
+        void SearchInRadiusRow( PointIterator const& StoreBegin, PointIterator const& StoreEnd, PointType const& ThisPoint,
               CoordinateType const& Radius, IteratorType& Result, SizeType const& MaxResult, SizeType& nRes )
         {
-           for(CellPointIterator Point = StoreBegin ; (Point != StoreEnd) && (nRes < MaxResult) ; Point++){
+           for(PointIterator Point = StoreBegin ; (Point != StoreEnd) && (nRes < MaxResult) ; Point++){
               if( TDistanceFunction()(**Point,ThisPoint) < Radius ){
                  *Result++   = *Point;
                  nRes++;
@@ -397,9 +451,9 @@ namespace Kratos {
          
          //************************************************************************
          
-         void SearchNearestInRow( CellPointIterator const& mRowBegin, CellPointIterator const& mRowEnd, PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance ){
+         void SearchNearestInRow( PointIterator const& mRowBegin, PointIterator const& mRowEnd, PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance ){
                   
-            for(CellPointIterator Point = mRowBegin ; Point != mRowEnd ; Point++){
+            for(PointIterator Point = mRowBegin ; Point != mRowEnd ; Point++){
                CoordinateType Distance = TDistanceFunction()(**Point,ThisPoint);
                if( Distance < ResultDistance ){
                   ResultPoint = *Point;
@@ -411,9 +465,9 @@ namespace Kratos {
 
          //************************************************************************
          
-         void CopyPointInRow( CellPointIterator const& mRowBegin, CellPointIterator const& mRowEnd, IteratorType& ResultsPoint, SizeType const& MaxResults, SizeType& NumResults )
+         void CopyPointInRow( PointIterator const& mRowBegin, PointIterator const& mRowEnd, IteratorType& ResultsPoint, SizeType const& MaxResults, SizeType& NumResults )
          {
-            CellPointIterator Point = mRowBegin;
+            PointIterator Point = mRowBegin;
             while( Point != mRowEnd && NumResults < MaxResults )
                *ResultsPoint++ = *Point++;
          }
@@ -422,37 +476,39 @@ namespace Kratos {
          
          PointerType SearchNearestPoint( PointType const& ThisPoint )
          {
-            CoordinateType ResultDistance;
+            CoordinateType ResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON);
             PointerType Result;
             SearchNearestPoint( ThisPoint, Result, ResultDistance );
             return Result;
          }
-
          
          //************************************************************************
-
-         PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance )
+         
+         PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType ResultDistance )
+         {
+            ResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON);
+            PointerType Result;
+            SearchNearestPoint( ThisPoint, Result, ResultDistance );
+            return Result;
+         }
+         
+         //************************************************************************
+/*
+         PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON) )
          {
             PointerType Result;
             SearchNearestPoint( ThisPoint, Result, rResultDistance );
             return Result;
          }
-
+*/
          //************************************************************************
 
-         void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
+         void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON) )
          {
-            // If empty Bin --> endless loop  /// -> Verification in Tree constructor ??
+            // Verification in Tree constructor
             rResult = this->NullPointer();
-            if( mPointBegin == mPointEnd )
-               return; //this->NullPointer();
-
-			// initializing rResultDistance with distance to first point
-            //rResultDistance = TDistanceFunction()(ThisPoint,**mPointsBegin);
-            //PointerType ResultPoint = *mPointsBegin; // NULL ??
-            
-            // If I use *mPointsBegin an endless loop it is possible !!!
-            rResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON);
+            if( mNumPoints == 0 )
+              return;
 
             SearchBoxCalculate(ThisPoint,ThisPoint);
 
@@ -463,13 +519,7 @@ namespace Kratos {
                ++SearchBox;
                SearchNearestInBox( SearchBox, ThisPoint, rResult, rResultDistance );
             }
-            /*             while(1){ */
-            /*                SearchNearestInBox( SearchBox, ThisPoint, ResultPoint, rResultDistance ); */
-            /*                if( ResultPoint != this->NullPointer() ) return ResultPoint; */
-            /*                ++SearchBox; */
-            /*             } */
 
-            return rResult;
          }
 
          //************************************************************************
@@ -640,11 +690,11 @@ namespace Kratos {
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
          {
-			rOStream << Perfix << "Bin[" << std::distance(mPointBegin, mPointEnd) << "] : " << std::endl;
+			rOStream << Perfix << "Bin[" << PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
 			for(typename CellsContainerType::const_iterator i_cell = mPoints.begin() ; i_cell != mPoints.end() ; i_cell++)
 			{
 			    rOStream << Perfix << "[ " ;
-			    for(typename CellPointVector::const_iterator i_point = i_cell->begin() ; i_point != i_cell->end() ; i_point++)
+			    for(typename PointVector::const_iterator i_point = i_cell->begin() ; i_point != i_cell->end() ; i_point++)
 				rOStream << **i_point << "    ";
 			    rOStream << " ]" << std::endl;
 			}
@@ -683,6 +733,7 @@ namespace Kratos {
          Tvector<CoordinateType,TDimension>  mCellSize;
          Tvector<CoordinateType,TDimension>  mInvCellSize;
          Tvector<SizeType,TDimension>        mN;
+         SizeType                            mNumPoints;
 
          // Bins Access Vector ( vector<Iterator> )
          CellsContainerType mPoints;
@@ -694,7 +745,7 @@ namespace Kratos {
 	  static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType MaxPoint, PointType MinPoint, SizeType BucketSize)
 	  {
 		 
-		SizeType number_of_points = std::distance(PointsBegin,PointsEnd);
+		SizeType number_of_points = PointerDistance(PointsBegin,PointsEnd);
 		if (number_of_points == 0)
 		  return NULL;
 		else 

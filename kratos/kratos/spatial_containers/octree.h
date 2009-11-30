@@ -11,13 +11,11 @@
 #define  KRATOS_OCT_TREE_H_INCLUDED
 
 
-
 // System includes
 #include <string>
 #include <iostream> 
 #include <cstddef>
 #include <vector>
-
 
 // External includes 
 
@@ -58,7 +56,7 @@ namespace Kratos
 		  for(std::size_t i = 0 ; i < Dimension ; i++)
 			Position[i] += (**i_point)[i];
 		for(std::size_t i = 0 ; i < Dimension ; i++)
-		  Position[i] /= static_cast<CoordinateType>(std::distance(PointsBegin,PointsEnd));
+		  Position[i] /= static_cast<CoordinateType>(PointerDistance(PointsBegin,PointsEnd));
 	  }
   };
 
@@ -138,7 +136,7 @@ namespace Kratos
 		/* 	      const SizeType number_of_childs = 8; */
 	      PointType mid_cell_lenght;
 		  
-		  SizeType TempSize = std::distance(PointsBegin,PointsEnd);
+		  SizeType TempSize = PointerDistance(PointsBegin,PointsEnd);
 		  PointerType* Temp = new PointerType[ TempSize ];
 
 		  // Template definition of SplitMode
@@ -190,30 +188,30 @@ namespace Kratos
 		  PointType new_max_point;
 
 	      // Creating the rest of the childs
-	      for(IndexType i = 1 ; i < number_of_childs ; i++)
-	      {
-		  if(cell_sizes[i] > BucketSize)
-		  {
-			 IndexType factor = 1;
-			 for(IndexType j = 0 ; j < Dimension ; j++)
-			 {
-			   if(i & factor){
-				 new_min_point[j] = mPosition[j];
-				 new_max_point[j] = MaxPoint[j];
-			   } else {
-				 new_min_point[j] = MinPoint[j];
-				 new_max_point[j] = mPosition[j];
-			   }
-			   factor <<= 1;
-			 }
-			 
-			 mpChilds[i]= new OCTreePartition(cell_position[i-1], cell_position[i], 
-				                              new_min_point , new_max_point,  BucketSize);
-		  }
-		  else
-		      mpChilds[i]= new LeafType(cell_position[i-1], cell_position[i]);
-		  
-	      }
+          for(IndexType i = 1 ; i < number_of_childs ; i++)
+          {
+            if(cell_sizes[i] > BucketSize)
+            {
+              IndexType factor = 1;
+              for(IndexType j = 0 ; j < Dimension ; j++)
+              {
+                if(i & factor){
+                  new_min_point[j] = mPosition[j];
+                  new_max_point[j] = MaxPoint[j];
+                } else {
+                  new_min_point[j] = MinPoint[j];
+                  new_max_point[j] = mPosition[j];
+                }
+                factor <<= 1;
+              }
+
+              mpChilds[i]= new OCTreePartition(cell_position[i-1], cell_position[i], 
+                  new_min_point , new_max_point,  BucketSize);
+            }
+            else
+              mpChilds[i]= new LeafType(cell_position[i-1], cell_position[i]);
+
+          }
 		  
 	  }
 
@@ -378,7 +376,7 @@ namespace Kratos
 									   PointType LowPoint,
 									   SizeType BucketSize)
 		{
-		  SizeType number_of_points = std::distance(PointsBegin,PointsEnd);
+		  SizeType number_of_points = PointerDistance(PointsBegin,PointsEnd);
 		  if (number_of_points == 0)
 			return NULL;
 		  else if (number_of_points <= BucketSize)
