@@ -300,7 +300,7 @@ namespace Kratos
 
 	  static IteratorType Partition( IteratorType PointsBegin, IteratorType PointsEnd, IndexType& rCuttingDimension, CoordinateType& rCuttingValue )
 	  {
-		 SizeType n = std::distance(PointsBegin, PointsEnd);
+		 SizeType n = PointerDistance(PointsBegin, PointsEnd);
 		 // find dimension of maximum spread
 		 rCuttingDimension = MaxSpread(PointsBegin, PointsEnd);
 		 IteratorType partition = PointsBegin + n / 2;
@@ -312,85 +312,102 @@ namespace Kratos
 
       static IteratorType PartitionAverage( IteratorType PointsBegin, IteratorType PointsEnd, IndexType& rCuttingDimension, CoordinateType& rCuttingValue )
       { 
-        IteratorType left  = PointsBegin;
-        IteratorType right = PointsEnd - 1;
-        SizeType size = std::distance(left,right);
+        /*         if(PointsBegin == PointsEnd)  // If there is no point return the first coordinate */
+        /*           return PointsBegin; */
+		 
+        rCuttingDimension = MaxSpread( PointsBegin, PointsEnd, rCuttingValue );
 
+        IteratorType partition;
+        AverageSplit(PointsBegin, partition, PointsEnd, rCuttingDimension, rCuttingValue);
 
-        // Find cutting value & dimension
-        CoordinateType Values[Dimension];
-        for(IndexType i_dim = 0 ; i_dim < Dimension ; i_dim++)
-          Values[i_dim] = 0.0;
-        for(IteratorType i_point = left ; i_point != right ; i_point++)
-          for(IndexType i_dim = 0 ; i_dim < Dimension ; i_dim++)
-            Values[i_dim] += (**i_point)[i_dim];
-        rCuttingValue = 0.0;
-        for(IndexType i_dim = 0 ; i_dim < Dimension ; i_dim++)
-        {
-          CoordinateType temp = Values[i_dim] / static_cast<CoordinateType>(size);
-          if( temp > rCuttingValue ){
-            rCuttingValue = temp;
-            rCuttingDimension = i_dim;
-          }
-        }
-
-        // reorder by cutting_dimension
-        while (left < right) {
-          //if ( (**left)[rCuttingDimension] <= rCuttingValue ) {
-          if ( (**left)[rCuttingDimension] < rCuttingValue ) {
-            left++; // good where it is.
-          } else {
-            std::swap(*left,*right);
-            right--;
-          }
-        }
-        // here left=right
-        /*         IteratorType PartitionPosition; */
-        /*         if( (**left)[rCuttingDimension] <= rCuttingValue ) */
-        /*           PartitionPosition = left; */
-        /*         else */
-        /*           PartitionPosition = left-1; */
-        IteratorType PartitionPosition = left;
-
-        return PartitionPosition;
+        return partition;
+        
       }
 
-
-	  static CoordinateType Spread(	IteratorType PointsBegin, IteratorType PointsEnd, IndexType CoordinateIndex )
-	  {
-		 if(PointsBegin == PointsEnd) 
-			return CoordinateType(); // If there is no point so the distance is zero!!
-
-		 CoordinateType min = (**PointsBegin)[CoordinateIndex];
-		 CoordinateType max = (**PointsBegin)[CoordinateIndex];
-		 for (; PointsBegin != PointsEnd; PointsBegin++) 
-		 {
-			CoordinateType c = (**PointsBegin)[CoordinateIndex];
-			if (c < min) 
-			   min = c;
-			else if (c > max) 
-			   max = c;
-		 }
-		 return (max - min);
-	  }
-	  
-	  // compute dimension of max spread
 	  static SizeType MaxSpread( IteratorType PointsBegin, IteratorType PointsEnd )
 	  {
 		  SizeType max_dimension = 0;					// dimension of max spread
 		  CoordinateType max_spread = 0;				// amount of max spread
 
-		  if(PointsBegin == PointsEnd)  // If there is no point return the first coordinate
-			  return max_dimension;
+          /* 		  if(PointsBegin == PointsEnd)  // If there is no point return the first coordinate */
+          /* 			  return max_dimension; */
 
-		  for (std::size_t d = 0; d < Dimension; d++) {		// compute spread along each dim
-			  CoordinateType spread = Spread(PointsBegin, PointsEnd,d);
-			  if (spread > max_spread) {			// bigger than current max
-				  max_spread = spread;
-				  max_dimension = d;
-			  }
-		  }
-		  return max_dimension;
+		 CoordinateType min[Dimension];
+		 CoordinateType max[Dimension];
+         for (SizeType d = 0; d < Dimension; d++) {
+           min[d] = (**PointsBegin)[d];
+           max[d] = (**PointsBegin)[d];
+         }
+		 for (IteratorType i_point = PointsBegin; i_point != PointsEnd; i_point++) 
+		 {
+           for (SizeType d = 0; d < Dimension; d++)
+           {
+             CoordinateType c = (**i_point)[d];
+             if (c < min[d]) 
+               min[d] = c;
+             else if (c > max[d]) 
+               max[d] = c;
+           }
+		 }
+         max_dimension = 0;
+         max_spread = max[0] - min[0];
+         for (SizeType d = 1; d < Dimension; d++)
+         {
+           CoordinateType spread = max[d] - min[d];
+           if (spread > max_spread){
+             max_spread = spread;
+             max_dimension = d;
+           }
+         }
+
+         return max_dimension;
+	  }
+	  
+      static SizeType MaxSpread( IteratorType PointsBegin, IteratorType PointsEnd, CoordinateType& AverageValue )
+	  {
+		  SizeType max_dimension = 0;					// dimension of max spread
+		  CoordinateType max_spread = 0;				// amount of max spread
+          AverageValue = 0.0;
+
+          /* 		  if(PointsBegin == PointsEnd)  // If there is no point return the first coordinate */
+          /* 			  return max_dimension; */
+
+          CoordinateType size = static_cast<CoordinateType>(PointerDistance(PointsBegin,PointsEnd));
+
+          CoordinateType min[Dimension];
+          CoordinateType max[Dimension];
+          CoordinateType Average[Dimension];
+          for (SizeType d = 0; d < Dimension; d++) {
+            Average[d] = 0.0;
+            min[d] = (**PointsBegin)[d];
+            max[d] = (**PointsBegin)[d];
+          }
+          for (IteratorType i_point = PointsBegin; i_point != PointsEnd; i_point++) 
+          {
+            for (SizeType d = 0; d < Dimension; d++)
+            {
+              CoordinateType c = (**i_point)[d];
+              Average[d] += c;
+              if (c < min[d]) 
+                min[d] = c;
+              else if (c > max[d]) 
+                max[d] = c;
+            }
+          }
+          max_dimension = 0;
+          max_spread = max[0] - min[0];
+          AverageValue = Average[0] / size;
+          for (SizeType d = 1; d < Dimension; d++)
+          {
+            CoordinateType spread = max[d] - min[d];
+            if (spread > max_spread){
+              max_spread = spread;
+              max_dimension = d;
+              AverageValue = Average[d] / size;
+            }
+          }
+
+          return max_dimension;
 	  }
 
 
@@ -411,7 +428,7 @@ namespace Kratos
 			{
 			   while ((**(++i))[CuttingDimension] < value);
 			   while ((**(--j))[CuttingDimension] > value);
-			   if (i < j) std::swap(*i,*j); else break;
+               if (i < j) std::swap(*i,*j); else break;
 			}
 			std::swap(*left,*j);
 
@@ -438,6 +455,22 @@ namespace Kratos
 
 		 rCuttingValue = ((**last)[CuttingDimension] + (**PartitionPosition)[CuttingDimension])/2.0;
 	  }
+	  
+      static void AverageSplit( IteratorType PointsBegin, IteratorType& PartitionPosition, IteratorType PointsEnd,
+			                   IndexType& CuttingDimension, CoordinateType& rCuttingValue )
+	  {
+        // reorder by cutting_dimension
+        IteratorType left  = PointsBegin;
+        IteratorType right = PointsEnd - 1;
+        for(;;)
+        {
+          while( (**left)[CuttingDimension] < rCuttingValue ) left++;
+          while( (**right)[CuttingDimension] >= rCuttingValue ) right--;
+          if (left < right) std::swap(*left,*right); else break;
+        }
+
+        PartitionPosition = left;
+      }
 
 	private:
 
@@ -450,11 +483,10 @@ namespace Kratos
 
 
 
-
 	public:
 	  static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType HighPoint, PointType LowPoint,	SizeType BucketSize)
 	  {
-		 SizeType number_of_points = std::distance(PointsBegin,PointsEnd);
+		 SizeType number_of_points = PointerDistance(PointsBegin,PointsEnd);
 		 if (number_of_points == 0)
 			return NULL;
 		 else if (number_of_points <= BucketSize)
@@ -466,8 +498,8 @@ namespace Kratos
 			IndexType cutting_dimension;
 			CoordinateType cutting_value;
 
-			IteratorType partition = Partition(PointsBegin, PointsEnd, cutting_dimension, cutting_value);
-			//IteratorType partition = PartitionAverage(PointsBegin, PointsEnd, cutting_dimension, cutting_value);
+            IteratorType partition = Partition(PointsBegin, PointsEnd, cutting_dimension, cutting_value);
+            /*             IteratorType partition = PartitionAverage(PointsBegin, PointsEnd, cutting_dimension, cutting_value); */
 
 			PointType partition_high_point = HighPoint;
 			PointType partition_low_point = LowPoint;

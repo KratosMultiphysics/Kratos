@@ -57,7 +57,22 @@ namespace Kratos
 			   return dist;
 			}
 	  };
-  
+
+   template< class TPointerType >
+     std::size_t PointerDistance( TPointerType const& PointerBegin, TPointerType const& PointerEnd )
+     {
+       //return std::distance(PointerBegin,PointerEnd);
+       return ( PointerEnd - PointerBegin );  // required for SUN Compiler
+     };
+
+   template< std::size_t TDimension, class TPointType >
+     bool SpatialSearchPointInBox( TPointType const& BoxMinPoint, TPointType const& BoxMaxPoint, TPointType const& ThisPoint )
+      {
+        for(std::size_t i = 0 ; i < TDimension ; i++)
+          if( ThisPoint[i] < BoxMinPoint[i] || ThisPoint[i] > BoxMaxPoint[i] )
+            return false;
+        return true;
+      }
 
   ///@}
   ///@name Kratos Classes
@@ -251,7 +266,7 @@ namespace Kratos
 		if(mPointsBegin == mPointsEnd)
 			return;
 
-        SizeType NumPoints = std::distance(mPointsBegin,mPointsEnd);
+        SizeType NumPoints = PointerDistance(mPointsBegin,mPointsEnd);
         mBucketSize = static_cast<std::size_t>( (double) NumPoints / (double) Parts.mNumPartitions ) + 1;
 
 		PointType max_point = **mPointsBegin;

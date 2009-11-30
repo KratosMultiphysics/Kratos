@@ -223,7 +223,7 @@ namespace Kratos
         {
           for(IteratorType i = mPointsBegin ; (i != mPointsEnd) && (NumberOfResults < MaxNumberOfResults) ; i++)
           {
-            if( PointInBox(SearchMinPoint,SearchMaxPoint,**i) )
+            if( SpatialSearchPointInBox<Dimension,PointType>(SearchMinPoint,SearchMaxPoint,**i) )
             {
               *(Results) = *i;
               Results++;
@@ -262,7 +262,7 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
       {
-         rOStream << Perfix << "Leaf[" << std::distance(mPointsBegin, mPointsEnd) << "] : ";
+         rOStream << Perfix << "Leaf[" << PointerDistance(mPointsBegin, mPointsEnd) << "] : ";
          for(IteratorType i = mPointsBegin ; i != mPointsEnd ; i++)
             rOStream << **i << "    ";
          rOStream << std::endl;
@@ -290,13 +290,13 @@ namespace Kratos
       ///@name Protected Operators
       ///@{ 
        
-      bool PointInBox(PointType const& BoxMinPoint, PointType const& BoxMaxPoint, PointType const& ThisPoint)
-      {
-        for(SizeType i = 0 ; i < Dimension ; i++)
-          if( ThisPoint[i] < BoxMinPoint[i] || ThisPoint[i] > BoxMaxPoint[i] )
-            return false;
-        return true;
-      }
+      /*       bool PointInBox(PointType const& BoxMinPoint, PointType const& BoxMaxPoint, PointType const& ThisPoint) */
+      /*       { */
+      /*         for(SizeType i = 0 ; i < Dimension ; i++) */
+      /*           if( ThisPoint[i] < BoxMinPoint[i] || ThisPoint[i] > BoxMaxPoint[i] ) */
+      /*             return false; */
+      /*         return true; */
+      /*       } */
         
       ///@} 
       ///@name Protected Operations
