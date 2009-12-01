@@ -222,7 +222,7 @@ namespace Kratos
 // 				}
 // 			}
 // KRATOS_WATCH("is_free_erosionable_node");
-KRATOS_WATCH(	"list of erosionable nodes *****************************************************************************")
+// KRATOS_WATCH(	"list of erosionable nodes *****************************************************************************")
 
 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
@@ -230,16 +230,16 @@ KRATOS_WATCH(	"list of erosionable nodes ***************************************
 
 				//PointType::Pointer pnode(new PointType(*node_it));
  				Node<3>::Pointer pnode = *(node_it.base());
-if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0)
-{
-KRATOS_WATCH("IS_EROSIONABLE");
-KRATOS_WATCH(pnode->Id());
-}
+// if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0)
+// {
+// KRATOS_WATCH("IS_EROSIONABLE");
+// KRATOS_WATCH(pnode->Id());
+// }
 				if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0 && pnode->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0)
 				{//putting the surface nodes of the destination_model part in an auxiliary list
 					list_of_erosionable_nodes.push_back( pnode );
 					pnode->GetValue(IS_VISITED) = 3.0; //FREE SURFACE NODES
-KRATOS_WATCH(pnode->Id());
+// KRATOS_WATCH(pnode->Id());
 					WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
 					for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
 					{
@@ -247,7 +247,7 @@ KRATOS_WATCH(pnode->Id());
 						{
 						    list_of_erosionable_nodes.push_back( Node<3>::Pointer( *(j.base() ) ) );
 						    j->GetValue(IS_VISITED) = 2.0;    //FIRST LAYER OF INTERIOR NODES
-KRATOS_WATCH(j->Id());
+// KRATOS_WATCH(j->Id());
 						}
 					}
 				}
@@ -308,7 +308,16 @@ KRATOS_WATCH(j->Id());
 				number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
  						ResultsDistances.begin(),  MaximumNumberOfResults);
 // KRATOS_WATCH(	"Line 288")
-
+				//check if the element is a fluid element or an element of the extrapolation domain
+				bool is_fluid = false;
+				double fluid_nodes_num = 0.0;
+				for (unsigned int i = 0; i<TDim+1 ; i++)
+				{
+				     if (geom[i].FastGetSolutionStepValue(DISTANCE) <= 0)
+				        {fluid_nodes_num ++;}
+				 }
+				if(fluid_nodes_num == TDim+1 ){ is_fluid = true;}
+			     
 				//check if inside 
 				for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
 				{	
@@ -319,7 +328,7 @@ KRATOS_WATCH(j->Id());
 					is_inside = CalculatePosition(geom,	(*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
 
 					//if the node falls inside the element interpolate
-					if(is_inside == true && is_visited != 1.0)
+					if(is_inside == true && is_visited != 1.0 && is_fluid == true)
 					{
 // KRATOS_WATCH("is_inside~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 // KRATOS_WATCH((*it_found)->Id())
@@ -395,7 +404,7 @@ KRATOS_WATCH(j->Id());
 // KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERG+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++Y")
 
 // KRATOS_WATCH((*it_found)->Id())
-						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.0001;
 						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;
 						    if(rFixedDam == true)
 						    {
@@ -425,7 +434,7 @@ KRATOS_WATCH(j->Id());
 				 {
 				    for(unsigned int i =0; i<TDim+1; i++)
 				    {
-				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.0001;
 				      geom[i].FastGetSolutionStepValue(DENSITY) = 1000.0;
 				      if(rFixedDam == true)
 				      {
