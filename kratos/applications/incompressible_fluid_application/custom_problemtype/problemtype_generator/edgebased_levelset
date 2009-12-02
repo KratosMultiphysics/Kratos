@@ -20,7 +20,7 @@ OPTION 3D_Boundary_Condition surface Condition3D
 OPTION 2D_Body_Element surface Fluid2D
 OPTION 3D_Body_Element volume Fluid3D
 
-PROPERTY max_time 1.0 max_time
+PROPERTY max_time 10.0 max_time
 PROPERTY safety_factor 0.5 safety_factor
 PROPERTY max_time_step 0.001 max_time_step
 PROPERTY output_dt 0.01 output_dt
@@ -33,8 +33,8 @@ PROPERTY print_layers True print_layers
 PROPERTY use_mass_correction True use_mass_correction
 PROPERTY redistance_frequency 5 redistance_frequency
 PROPERTY extrapolation_layers 5 extrapolation_layers
-PROPERTY number_of_inital_steps 100 number_of_inital_steps
-PROPERTY initial_time_step 0.01 initial_time_step
+PROPERTY number_of_inital_steps 10 number_of_inital_steps
+PROPERTY initial_time_step 0.00001 initial_time_step
 
 DEFINE MODEL PART FixedVelocity point line surface LOWER
 ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
