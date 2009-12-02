@@ -27,6 +27,7 @@
 #include "external_includes/trigen_refine.h"
 
 #include "external_includes/msuite_pfem_refine.h"
+#include "modeler/edge_swapping_2d_modeler.h"
 
 
 namespace Kratos
@@ -74,6 +75,15 @@ namespace Python
 		Mesher.ReGenerateMesh(model_part, 
 			KratosComponents<Element>::Get(ElementName),
 			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
+	}
+	
+	//2d edge swapping
+	void EdgeSwapping2D(EdgeSwapping2DModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
+	{
+		KRATOS_WATCH("inside EdgeSwapping2D");
+		KRATOS_WATCH(model_part);
+		Mesher.Remesh(model_part); 
+		KRATOS_WATCH(model_part);
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -181,6 +191,11 @@ namespace Python
 	 class_<TriGenPFEMRefineSegment >("TriGenPFEMSegment",
 		 init< >()) 
 	 .def("ReGenerateMesh",TriRegenerateMeshWithSegment)
+		;
+
+	 class_<EdgeSwapping2DModeler, boost::noncopyable  >("EdgeSwapping2DModeler",
+		 init< >()) 
+		 .def("ReGenerateMesh",EdgeSwapping2D)
 		;
 
 
