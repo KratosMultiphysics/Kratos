@@ -1,0 +1,92 @@
+PROBLEMTYPE pfem_antonia	# The name of your problemtype
+DEFINITION FOLDER pfem_problemtype # The folder containing the definition file and the .bas templates
+
+VECTOR CONDITION DISPLACEMENT 		point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION MESH_VELOCITY     		point line surface volume free 0.0 0.0 0.0
+#VECTOR CONDITION BODY_FORCE     		point line surface volume free 0.0 0.0 0.0
+SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
+SCALAR CONDITION WATER_PRESSURE     	point line surface volume free  0.0
+#SCALAR CONDITION POROSITY			point line surface volume free  1.0
+SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
+#SCALAR CONDITION VISCOSITY     		point line surface volume free  0.000001
+#SCALAR CONDITION DENSITY     		point line surface volume free  1.0
+
+FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0
+FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
+FLAG CONDITION IS_BOUNDARY    		point line surface volume free 1.0 2.0 3.0 4.0 5.0
+FLAG CONDITION IS_FREE_SURFACE    	point line surface volume free 1.0 0.0
+FLAG CONDITION IS_EROSIONABLE    	point line surface volume free 1.0 0.0
+FLAG CONDITION IS_STRUCTURE    	point line surface volume free 1.0 0.0
+
+FACE CONDITION Condition2D line
+FACE CONDITION Condition3D surface 
+FACE CONDITION Fluid2DNeumann line
+FACE CONDITION Fluid3DNeumann surface 
+
+ELEMENT Fluid2D surface
+ELEMENT ASGS2D surface
+ELEMENT Fluid3D volume 
+ELEMENT ASGS3D volume
+ELEMENT Fluid2DCoupled surface
+ELEMENT Fluid3DCoupled volume 
+
+PROPERTY Density 1000.0 Density
+PROPERTY Viscosity 0.000001 Viscosity
+PROPERTY Gravity_X 0.0 Gravity_X
+PROPERTY Gravity_Y 0.0 Gravity_Y
+PROPERTY Gravity_Z -9.806 Gravity_Z
+PROPERTY Porosity 1.0 Porosity
+PROPERTY fixed_dam 0.0 fixed_dam
+
+PROPERTY max_time 100.0 max_time
+PROPERTY max_x 10.0 max_x
+PROPERTY max_y 10.0 max_y
+PROPERTY max_z 10.0 max_z
+PROPERTY min_x -1.0 min_x
+PROPERTY min_y -1.0 min_y
+PROPERTY min_z -1.0 min_z
+PROPERTY use_oss 0 use_oss
+PROPERTY dynamic_tau 1 dynamic_tau
+PROPERTY nsteps 100 nsteps
+PROPERTY output_dt 0.1 output_Dt
+PROPERTY min_dt 0.001 min_dt
+PROPERTY max_dt 0.1 max_dt
+PROPERTY safety_factor 0.5 safety_factor
+
+TEXT FLAG PROPERTY SolverType pfem_solver_ale monolithic_solver_lagrangian SolverType # remember to put the text between " " !
+PROPERTY laplacian_form 3 laplacian_form
+
+FILE SELECTION fluid_file fluid.mdpa fluid_file
+
+DEFINE MODEL PART WallBoundary point line surface LOWER
+ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
+ADD CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
+ADD CONDITION IS_STRUCTURE point line surface volume free 1.0
+
+DEFINE MODEL PART FreeSurfaceBoundary point line surface LOWER
+ADD CONDITION IS_FREE_SURFACE point line surface volume free 1.0
+
+DEFINE BOUNDARY PART Boundary OUTWARDS NORMALS
+ADD 2D ELEMENT Condition2D
+ADD 3D ELEMENT Condition3D
+ADD 2D CONDITION IS_BOUNDARY point line surface 1.0
+
+#DEFINE ALL ENTITIES PART All_volumes volume 
+#ADD 3D ELEMENT Fluid3D
+
+# Part Interaction --> considering all of the combinations!!!
+GROUP WallBoundary FreeSurfaceBoundary IN point line surface
+WallBoundary FreeSurfaceBoundary ASSIGN VELOCITY fixed 0.0 0.0 0.0 DISPLACEMENT fixed 0.0 0.0 0.0 IS_STRUCTURE free 1.0
+# WallBoundary FreeSurfaceBoundary ASSIGN DISPLACEMENT fixed 0.0 0.0 0.0
+# WallBoundary FreeSurfaceBoundary ASSIGN IS_STRUCTURE free 1.0
+
+
+
+
+
+
+
+
+
+
