@@ -421,27 +421,19 @@ namespace Kratos
 
 			if (n_dist> 0.0 && n_por== (it)->GetGeometry().size())//air
 				{
-				color=7;
-// 				KRATOS_WATCH(it->Id());
-// 				KRATOS_WATCH("color 4")	;			
+				    color=7;			
 				}
-			else if (n_dist<= 0.0 && n_por== (it)->GetGeometry().size())//free fluid
+			else if (n_dist<= 0.0 && n_por== (it)->GetGeometry().size())//free fluid 
 				{
-				color=4;
-// 				KRATOS_WATCH(it->Id());
-// 				KRATOS_WATCH("color 14");				
+				    color=4;				
 				}
-			else if (n_dist> 0.0 && n_por< (it)->GetGeometry().size())//porous medium
+			else if (n_dist> 0.0 && n_por< (it)->GetGeometry().size())//porous medium 
 				{
-				color=5;	
-// 				KRATOS_WATCH(it->Id());
-// 				KRATOS_WATCH("color 10");			
+				    color=5;				
 				}
-			else //fluid into the porous medium
+			else //fluid into the porous medium 
 				{
-				color=20;
-// 				KRATOS_WATCH(it->Id());
-// 				KRATOS_WATCH("color 15");		
+				    color=20;		
 				}
 			
 			
