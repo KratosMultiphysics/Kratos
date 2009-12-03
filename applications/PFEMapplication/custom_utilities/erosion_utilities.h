@@ -286,7 +286,9 @@ namespace Kratos
 			boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Grad_v; 
 // 			int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
 // KRATOS_WATCH(	"Line 272")
-
+		        double norm2_vcr = 0.0;
+		        for (unsigned int i=0; i< TDim; i++)
+			     norm2_vcr +=  rCriticalVel[i]*rCriticalVel[i];
 
 			//loop over all of the elements in the "old" list to perform the interpolation
 			for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
@@ -348,7 +350,7 @@ namespace Kratos
 // KRATOS_WATCH(DN_DX)						
 
 						Grad_v = prod(trans(DN_DX),vel);
-// KRATOS_WATCH(Grad_v)
+KRATOS_WATCH(Grad_v)
 						double Grad_vGrad_v = 0.0;
 						for (unsigned int i=0; i< Grad_v.size1(); i++)
 					         {  for (unsigned int j=0; j< Grad_v.size2(); j++)
@@ -356,13 +358,11 @@ namespace Kratos
 						        Grad_vGrad_v += Grad_v(i,j)*Grad_v(i,j);
 						    }
 						}
-// KRATOS_WATCH(Grad_vGrad_v)
+KRATOS_WATCH(Grad_vGrad_v)
 						 //********************************************************************
 						 //Check if the velocity of PFEM free surface node is >= v_critical (Shield)
 						 //********************************************************************
-						double norm2_vcr = 0.0;
-						for (unsigned int i=0; i< TDim; i++)
-						      norm2_vcr +=  rCriticalVel[i]*rCriticalVel[i];
+
 /*						for( PointIterator it_found2 = list_of_erosionable_nodes.begin(); it_found2 != list_of_erosionable_nodes.begin(); it_found2++)
 						{*/		
 						double nu = (*it_found)->FastGetSolutionStepValue(VISCOSITY);
@@ -370,13 +370,13 @@ namespace Kratos
 						double dt = rDestination_ModelPart.GetProcessInfo()[DELTA_TIME];
 						double rhoVol = (TDim + 1 ) * (*it_found)->FastGetSolutionStepValue(NODAL_MASS);
 						double coeff = 0.25 * nu * dt * rhoVol;
-// KRATOS_WATCH(norm2_vcr)					    
-// KRATOS_WATCH(nu)
-// KRATOS_WATCH(dt)
-// KRATOS_WATCH(rhoVol)
-// KRATOS_WATCH(coeff)
+KRATOS_WATCH(norm2_vcr)					    
+KRATOS_WATCH(nu)
+KRATOS_WATCH(dt)
+KRATOS_WATCH(rhoVol)
+KRATOS_WATCH(coeff)
 						double norm2_vcr_fsn = 0.0;
-						//Interpolated vel (not node real velocity)
+// 						//Interpolated vel (not node real velocity)
 						for (unsigned int i=0; i< TDim; i++)
 						{   	  
 // 							   norm2_vcr_fsn +=  (*it_found)->FastGetSolutionStepValue(VELOCITY_X)*(*it_found)->FastGetSolutionStepValue(VELOCITY_X) +                                                                    
@@ -384,14 +384,22 @@ namespace Kratos
 						    norm2_vcr_fsn +=  InterpolatedVelocity[i] * InterpolatedVelocity[i];
 
 						  }
-// KRATOS_WATCH(norm2_vcr_fsn)
+KRATOS_WATCH(norm2_vcr_fsn)
 // KRATOS_WATCH(norm2_vcr)					    
 					    
 // KRATOS_WATCH((*it_found)->Id())
 				
 						if(norm2_vcr_fsn > norm2_vcr)
 						{
+
+// KRATOS_WATCH(	"*************** 			STORING FRICTION COEFFICIENT			************")
+// KRATOS_WATCH("before")
+KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
+
 						    (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
+// KRATOS_WATCH("after")
+KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
+KRATOS_WATCH(coeff)
 						}  
 // KRATOS_WATCH((*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) )
 						double volumetric_parameter = (*it_found)->FastGetSolutionStepValue(NODAL_H);
@@ -401,10 +409,10 @@ namespace Kratos
 						{
 // KRATOS_WATCH(rCriticalEnergy )
 
-// KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERG+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++Y")
+KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
 
-// KRATOS_WATCH((*it_found)->Id())
-						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.0001;
+KRATOS_WATCH((*it_found)->Id())
+						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.001;
 						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;
 						    if(rFixedDam == true)
 						    {
@@ -412,7 +420,7 @@ namespace Kratos
 						     (*it_found)->Free(VELOCITY_Y);
 						     (*it_found)->Free(VELOCITY_Z);
 						    }
-}						 
+						}						 
 //}
 					}
 				}
@@ -434,7 +442,7 @@ namespace Kratos
 				 {
 				    for(unsigned int i =0; i<TDim+1; i++)
 				    {
-				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.0001;
+				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.001;
 				      geom[i].FastGetSolutionStepValue(DENSITY) = 1000.0;
 				      if(rFixedDam == true)
 				      {
@@ -460,7 +468,7 @@ namespace Kratos
 				}
 				if (count >= (TDim + 2))
 				{  
-				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
+				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.001;
 				  (pnode)->FastGetSolutionStepValue(DENSITY) = 1000.0;
 				  if(rFixedDam == true)
 				  {
