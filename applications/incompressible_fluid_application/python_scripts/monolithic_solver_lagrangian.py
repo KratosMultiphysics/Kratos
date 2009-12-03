@@ -6,7 +6,6 @@ from KratosMeshingApplication import *
 from KratosExternalSolversApplication import *
 #from KratosStructuralApplication import *
 
-
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
@@ -36,6 +35,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION); 
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);  
     model_part.AddNodalSolutionStepVariable(IS_WATER);   
 
@@ -151,6 +151,8 @@ class MonolithicSolver:
         self.Remesh()
         print "145"
         (self.solver).Solve()
+	#print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+        (self.PfemUtils).MoveLonelyNodes(self.model_part)
         print "a47"
 	(self.solver).Clear()
 	print "149"
@@ -185,7 +187,7 @@ class MonolithicSolver:
     def Remesh(self):
 
         if (self.remeshing_flag==True):
-            (self.PfemUtils).MoveLonelyNodes(self.model_part)
+           # (self.PfemUtils).MoveLonelyNodes(self.model_part)
             (self.MeshMover).Execute();
 
             (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
