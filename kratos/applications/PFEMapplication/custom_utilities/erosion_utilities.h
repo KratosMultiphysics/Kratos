@@ -350,7 +350,7 @@ namespace Kratos
 // KRATOS_WATCH(DN_DX)						
 
 						Grad_v = prod(trans(DN_DX),vel);
-KRATOS_WATCH(Grad_v)
+// KRATOS_WATCH(Grad_v)
 						double Grad_vGrad_v = 0.0;
 						for (unsigned int i=0; i< Grad_v.size1(); i++)
 					         {  for (unsigned int j=0; j< Grad_v.size2(); j++)
@@ -358,7 +358,7 @@ KRATOS_WATCH(Grad_v)
 						        Grad_vGrad_v += Grad_v(i,j)*Grad_v(i,j);
 						    }
 						}
-KRATOS_WATCH(Grad_vGrad_v)
+// KRATOS_WATCH(Grad_vGrad_v)
 						 //********************************************************************
 						 //Check if the velocity of PFEM free surface node is >= v_critical (Shield)
 						 //********************************************************************
@@ -370,11 +370,11 @@ KRATOS_WATCH(Grad_vGrad_v)
 						double dt = rDestination_ModelPart.GetProcessInfo()[DELTA_TIME];
 						double rhoVol = (TDim + 1 ) * (*it_found)->FastGetSolutionStepValue(NODAL_MASS);
 						double coeff = 0.25 * nu * dt * rhoVol;
-KRATOS_WATCH(norm2_vcr)					    
-KRATOS_WATCH(nu)
-KRATOS_WATCH(dt)
-KRATOS_WATCH(rhoVol)
-KRATOS_WATCH(coeff)
+// KRATOS_WATCH(norm2_vcr)					    
+// KRATOS_WATCH(nu)
+// KRATOS_WATCH(dt)
+// KRATOS_WATCH(rhoVol)
+// KRATOS_WATCH(coeff)
 						double norm2_vcr_fsn = 0.0;
 // 						//Interpolated vel (not node real velocity)
 						for (unsigned int i=0; i< TDim; i++)
@@ -384,7 +384,7 @@ KRATOS_WATCH(coeff)
 						    norm2_vcr_fsn +=  InterpolatedVelocity[i] * InterpolatedVelocity[i];
 
 						  }
-KRATOS_WATCH(norm2_vcr_fsn)
+// KRATOS_WATCH(norm2_vcr_fsn)
 // KRATOS_WATCH(norm2_vcr)					    
 					    
 // KRATOS_WATCH((*it_found)->Id())
@@ -394,12 +394,12 @@ KRATOS_WATCH(norm2_vcr_fsn)
 
 // KRATOS_WATCH(	"*************** 			STORING FRICTION COEFFICIENT			************")
 // KRATOS_WATCH("before")
-KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
+// KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
 
 						    (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
 // KRATOS_WATCH("after")
-KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
-KRATOS_WATCH(coeff)
+// KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
+// KRATOS_WATCH(coeff)
 						}  
 // KRATOS_WATCH((*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) )
 						double volumetric_parameter = (*it_found)->FastGetSolutionStepValue(NODAL_H);
@@ -409,9 +409,9 @@ KRATOS_WATCH(coeff)
 						{
 // KRATOS_WATCH(rCriticalEnergy )
 
-KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
+// KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
 
-KRATOS_WATCH((*it_found)->Id())
+// KRATOS_WATCH((*it_found)->Id())
 						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.001;
 						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;
 						    if(rFixedDam == true)
