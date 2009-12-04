@@ -197,7 +197,7 @@ namespace Kratos
 		  const int maximum_repeat_number = 10;
 
 			  unsigned int number_of_bad_quality_elements = 1 ;//MarkBadQualityElements(rThisModelPart);
-			  unsigned int number_of_bad_quality_elements_old = number_of_bad_quality_elements;
+			  //unsigned int number_of_bad_quality_elements_old = number_of_bad_quality_elements;
 
 
 		  //  	    FindElementalNeighboursProcess find_element_neighbours_process(rThisModelPart, 2); 
@@ -326,7 +326,7 @@ namespace Kratos
 						  for( unsigned int node_i = 0 ; node_i < r_neighbour_element_geometry.size(); node_i++) 
 						  {
 							  int other_node_id = r_neighbour_element_geometry[node_i].Id();
-							  if(other_node_id == r_node.Id())
+							  if(other_node_id == static_cast<int>(r_node.Id()))
 							  {
 								  r_neighbour_element_geometry(node_i) = p_node;
 							  }
@@ -369,10 +369,10 @@ namespace Kratos
 
 	  void SetCollapsingData(ModelPart& rThisModelPart)
 	  {
-		  const unsigned int number_of_nodes = rThisModelPart.NumberOfNodes(); 
+	    const int number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes()); 
 		  ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
 
-		  if(mCollapsingData.size() != number_of_nodes)
+		  if(static_cast<int>(mCollapsingData.size()) != number_of_nodes)
 			  mCollapsingData.resize(number_of_nodes);
 
 		  for(int i = 0 ; i < number_of_nodes ; i++)
@@ -499,10 +499,10 @@ namespace Kratos
 	  void FindNodalNeighbours(ModelPart& rThisModelPart)
 	  {
 		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-		  const unsigned int number_of_nodes = rThisModelPart.NumberOfNodes(); 
-		  const unsigned int number_of_elements = rThisModelPart.NumberOfElements(); 
+		  const int number_of_nodes = static_cast<int>(rThisModelPart.NumberOfNodes()); 
+		  const int number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements()); 
 
-		  if(mNodalNeighbourElements.size() != number_of_nodes)
+		  if(static_cast<int>(mNodalNeighbourElements.size()) != number_of_nodes)
 			  mNodalNeighbourElements.resize(number_of_nodes);
 
 		  for(int i = 0 ; i < number_of_nodes ; i++)
@@ -528,11 +528,11 @@ namespace Kratos
 	  void SetSwappingData(ModelPart& rThisModelPart)
 	  {
 		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
-		  const unsigned int number_of_elements = rThisModelPart.NumberOfElements(); 
+		  const int number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements()); 
 
 		  FindNodalNeighbours(rThisModelPart);
 
-		  if(mSwappingData.size() != number_of_elements)
+		  if(static_cast<int>(mSwappingData.size()) != number_of_elements)
 			  mSwappingData.resize(number_of_elements);
 
 		  for(int i = 0 ; i < number_of_elements ; i++)
@@ -566,10 +566,10 @@ namespace Kratos
 		  {	//look for the nodes of the neighbour faces
 			  Geometry<Node<3> >& r_neighbour_element_geometry = ElementsArray[*i-1]->GetGeometry();
 			  rSwappingData.OppositeNodes[EdgeIndex] = -1;
-			  for( unsigned int node_i = 0 ; node_i < r_neighbour_element_geometry.size(); node_i++) 
+			  for( int node_i = 0 ; node_i < static_cast<int>(r_neighbour_element_geometry.size()); node_i++) 
 			  {	
 				  int other_node_id = r_neighbour_element_geometry[node_i].Id();
-				  if ((other_node_id != NodeId1) && (other_node_id != NodeId2))
+				  if ((other_node_id !=  static_cast<int>(NodeId1)) && (other_node_id !=  static_cast<int>(NodeId2)))
 				  {
 					  rSwappingData.OppositeNodes[EdgeIndex] = other_node_id;
 					  rSwappingData.OppositeEdge[EdgeIndex] = node_i;
