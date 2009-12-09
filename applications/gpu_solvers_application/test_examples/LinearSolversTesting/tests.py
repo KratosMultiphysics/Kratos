@@ -64,6 +64,19 @@ x = Vector(len(b))
 
 space_utils.SetToZeroVector(x)	
 
+print "AMG standalone"
+t1 = time.time()
+linear_solver2 = AMGSolver(1e-9, 5000, W, 2, False, 5, 100, preSweeps, postSweeps)
+linear_solver2.Solve(A, x, b)
+print linear_solver2
+print "\n\n"
+t2 = time.time()
+print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
+
+exit(0)
+
+space_utils.SetToZeroVector(x)	
+
 print "GPU CG + SA-AMG"
 t1 = time.time()
 precond1 = KratosAMGPreconditioner(W, 2, True, 5, 1000, preSweeps, postSweeps, True)
@@ -153,16 +166,7 @@ t2 = time.time()
 print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
 #linear_solver=0
 
-space_utils.SetToZeroVector(x)	
 
-print "AMG standalone"
-t1 = time.time()
-linear_solver2 = AMGSolver(1e-9, 5000, W, 2, False, 5, 100, preSweeps, postSweeps)
-linear_solver2.Solve(A, x, b)
-print linear_solver2
-print "\n\n"
-t2 = time.time()
-print 'Solve time: %0.3f ms' % ((t2-t1)*1000.0)
 #linear_solver=0
 
 exit(0)

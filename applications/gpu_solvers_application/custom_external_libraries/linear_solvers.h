@@ -44,10 +44,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  LINEAR_GPU_SOLVERS_H_INCLUDED
 
 
-#include <cmath>
-#include <iostream>
+#include <math.h>
+#include <stdio.h>
 #include "gpu_sparse.h"
 #include "GPUPreconditioner.h"
+#include <time.h>
 
 using namespace Kratos::GPUSparse;
 
@@ -248,9 +249,12 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 	//Ini preconditioner
 	//clock_t s1 = clock();
 	if(havePreconditioner){
+		clock_t t_init_1 = clock();
 		preconditioner.initialize(A_ptr, A_indices, A_values,
 				gpuA.GPU_RowIndices, gpuA.GPU_Columns, gpuA.GPU_Values,
 				gpuA.Size1, gpuA.Size2, A_NNZ, true, true);
+		clock_t t_init_2 = clock();
+		printf("CT %lg\n", ((t_init_2 - t_init_1) / CLOCKS_PER_SEC));
 	}
 	
 	//Norm(b)
@@ -279,17 +283,17 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 	GPU_CHECK(gpuZ.GPU_Allocate());
 	GPU_CHECK(gpuQ.GPU_Allocate());
 	
-	//clock_t s3 = 0.0;
+	clock_t s1, s2, s3 = 0.0;
 	size_t i = 1;
 	do{
-		//s1 = clock();
+		s1 = clock();
 		if(havePreconditioner){	
 			preconditioner.singleStep(gpuR.GPU_Values, gpuZ.GPU_Values);	
 		}else{
 			gpuZ.CopyFromGPU(gpuR);
 		}
-		//s2 = clock();
-		//s3 += s2-s1;
+		s2 = clock();
+		s3 += s2-s1;
 		//roh = GPU_dotProduct(gpuR.Size, gpuR.GPU_Values, 1, gpuZ.GPU_Values, 1);
 		GPU_CHECK(GPUGPUVectorVectorMultiply(gpuR, gpuZ, roh));
 
@@ -318,7 +322,7 @@ void CG_GPU(size_t A_Size1, size_t A_size2, size_t A_NNZ, double *A_values, size
 		mIterationsNumber++;			
 		i++;
 	}while((mIterationsNumber < maxIterations) && (mResidualNorm > tol * mBNorm));
-
+	printf("AT %lg\n", s3/ CLOCKS_PER_SEC);
 	GPU_CHECK(gpuX.Copy(GPU_CPU));
 	if(havePreconditioner)
 		preconditioner.cleanPreconditioner();
