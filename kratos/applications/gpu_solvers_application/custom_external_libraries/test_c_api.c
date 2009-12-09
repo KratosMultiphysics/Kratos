@@ -39,14 +39,17 @@ int main(){
 	double mBNorm, mResidualNorm;
 	size_t mIterationsNumber;
 	//FillMatrix_CPU(ptr, indices, values, NNZ, numRows);
-	char* name = "mat8.mm";
-	char* name_vec = "vecb8.mm";
+//	char* name = "mat8.mm";
+//	char* name_vec = "vecb8.mm";
 
 //	char* name = "examples/aa.mm";
 //	char* name_vec = "examples/bb.mm";
 
 //	char* name = "data/mat90.mm";
 //	char* name_vec = "data/vecb90.mm";
+
+	char* name = "examples/mat40.mm";
+	char* name_vec = "examples/vecb40.mm";
 	
 
 	double tolerance = 1e-9;
@@ -68,6 +71,7 @@ int main(){
 	//Solving strategies	
 		//BICGSTAB without preconditioner
 	setZeros(x, numRows);
+	printf("	STARTING TESTS\n");
 	in = clock();
 	Solve(numRows, numCols, NNZ, values, indices, ptr, numRows, x, b, tolerance, maxIters, &mBNorm, &mResidualNorm, &mIterationsNumber, GPU_BICGSTAB, NOPRECOND);
 	out = clock();

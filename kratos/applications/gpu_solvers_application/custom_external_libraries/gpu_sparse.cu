@@ -464,7 +464,7 @@ bool GPUGPUCSRMatrixVectorMultiply(GPUCSRMatrix &A, GPUVector &X, GPUVector &Y)
 
 	// Unbind the texture memory
 	Unbind_X();
-	}
+	
 
 #endif
 
