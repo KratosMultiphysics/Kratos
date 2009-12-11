@@ -72,7 +72,15 @@ namespace Kratos
 
 		/// Pointer definition of TriGenModeler
 		KRATOS_CLASS_POINTER_DEFINITION(TriGenPFEMModeler);
-
+		typedef Node<3> PointType;
+		typedef Node<3>::Pointer PointPointerType;
+		typedef std::vector<PointType::Pointer>           PointVector;
+		typedef PointVector::iterator PointIterator;
+		typedef std::vector<double>               DistanceVector;
+		typedef std::vector<double>::iterator     DistanceIterator;
+		typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
+		typedef Tree< KDTreePartition<BucketType> > KdtreeType; //Kdtree;
+				
 		///@}
 		///@name Life Cycle 
 		///@{ 
@@ -129,12 +137,7 @@ namespace Kratos
 			ThisModelPart.Conditions().clear();
 
 			////////////////////////////////////////////////////////////
-			typedef Node<3> PointType;
-			typedef Node<3>::Pointer PointPointerType;
-			typedef std::vector<PointType::Pointer>           PointVector;
-			typedef PointVector::iterator PointIterator;
-			typedef std::vector<double>               DistanceVector;
-			typedef std::vector<double>::iterator     DistanceIterator;
+			
 
 			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 
@@ -142,12 +145,7 @@ namespace Kratos
 			//typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
 			//typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
 			// bucket types
-			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
-		
-				
-			//*************
-			// DynamicBins;	
-			typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
+			
 			//typedef Tree< StaticBins > Bin; 			     //Binstree;
 			unsigned int bucket_size = 20;
 			
@@ -159,71 +157,19 @@ namespace Kratos
 			DistanceVector res_distances(max_results);
 			Node<3> work_point(0,0.0,0.0,0.0);
  			//if the remove_node switch is activated, we check if the nodes got too close
+			
 			if (rem_nodes==true)
 			{
-				PointVector list_of_nodes;
-				list_of_nodes.reserve(ThisModelPart.Nodes().size());
-				for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
-				{
-						(list_of_nodes).push_back(*(i_node.base()));
-				}
+			PointVector list_of_nodes;
+			list_of_nodes.reserve(ThisModelPart.Nodes().size());
+			for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
+			{
+			(list_of_nodes).push_back(*(i_node.base()));
+			}
 
-				kd_tree  nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
+			KdtreeType nodes_tree1(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
 			
-				unsigned int n_points_in_radius;			
-				//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
-				double radius;
-				
-				for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
-					in != ThisModelPart.NodesEnd(); in++)
-					{
-					radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
-				
-					work_point[0]=in->X();
-					work_point[1]=in->Y();
-					work_point[2]=in->Z();
-				
-					n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
-						if (n_points_in_radius>1)
-						{
-							if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
-							{
-								//look if we are already erasing any of the other nodes 
-								unsigned int erased_nodes = 0;
-								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-									erased_nodes += in->GetValue(ERASE_FLAG);
-
-								if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
-									in->GetValue(ERASE_FLAG)=1;
-							
-							}
-							else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
-							{
-								//here we loop over the neighbouring nodes and if there are nodes
-								//with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
-								unsigned int k = 0;
-								unsigned int counter = 0;
-								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-									{
-										if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
-										{
-	// 										KRATOS_WATCH( res_distances[k] );
-											counter += 1;
-										}
-										k++;
-									}
-								if(counter > 0)
-									in->GetValue(ERASE_FLAG)=1;
-							}
-						}
-				
-					}
-			
-
-				node_erase.Execute();				
-
-				KRATOS_WATCH("Number of nodes after erasing")
-				KRATOS_WATCH(ThisModelPart.Nodes().size())	
+			RemoveCloseNodes(ThisModelPart, nodes_tree1, node_erase, h_factor);
 			}
 			
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -280,86 +226,12 @@ namespace Kratos
 			//number of newly generated triangles
 			unsigned int el_number=out_mid.numberoftriangles;
 
-			
-			//prepairing for alpha shape passing : creating necessary arrays
-			//list of preserved elements is created: at max el_number can be preserved (all elements)
+			//PASSING THE CREATED ELEMENTS TO THE ALPHA-SHAPE
 			std::vector<int> preserved_list1(el_number);
-			preserved_list1.resize(el_number);
+			preserved_list1.resize(el_number);			
 
-			array_1d<double,3> x1,x2,x3,xc;
+			int number_of_preserved_elems= PassAlphaShape(ThisModelPart, preserved_list1, el_number, my_alpha, out_mid);
 
-			//int number_of_preserved_elems=0;
-			int number_of_preserved_elems=0;
-			int point_base;
-			//loop for passing alpha shape			
-			for(unsigned int el = 0; el< el_number; el++)
-			{
-				int base = el * 3;
-
-				//coordinates
-				point_base = (out_mid.trianglelist[base] - 1)*2;
-				x1[0] = out_mid.pointlist[point_base]; 
-				x1[1] = out_mid.pointlist[point_base+1]; 
-
-				point_base = (out_mid.trianglelist[base+1] - 1)*2;
-				x2[0] = out_mid.pointlist[point_base]; 
-				x2[1] = out_mid.pointlist[point_base+1]; 
-
-				point_base = (out_mid.trianglelist[base+2] - 1)*2;
-				x3[0] = out_mid.pointlist[point_base]; 
-				x3[1] = out_mid.pointlist[point_base+1]; 
-
-				//here we shall temporarily save the elements and pass them afterwards to the alpha shape
-				Geometry<Node<3> > temp;
-
-				temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base]).base()	) );
-				temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+1]).base()	) );
-				temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+2]).base()	) );
-
-				int number_of_structure_nodes = int( temp[0].FastGetSolutionStepValue(IS_STRUCTURE) );
-				number_of_structure_nodes += int( temp[1].FastGetSolutionStepValue(IS_STRUCTURE) );
-				number_of_structure_nodes += int( temp[2].FastGetSolutionStepValue(IS_STRUCTURE) );
-
-				//check the number of nodes of boundary
-				int nfs = int( temp[0].FastGetSolutionStepValue(IS_FREE_SURFACE) );
-				nfs += int( temp[1].FastGetSolutionStepValue(IS_FREE_SURFACE) );
-				nfs += int( temp[2].FastGetSolutionStepValue(IS_FREE_SURFACE) );
-				
-				//check the number of nodes of boundary
-				int nfluid = int( temp[0].FastGetSolutionStepValue(IS_FLUID) );
-				nfluid += int( temp[1].FastGetSolutionStepValue(IS_FLUID) );
-				nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
-				//first check that we are working with fluid elements, otherwise throw an error
-				//if (nfluid!=3)
-				//	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
-				//otherwise perform alpha shape check
-
-				
-				if(number_of_structure_nodes!=3) //if it is = 3 it is a completely fixed element -> do not add it
-				{
-					if (nfs != 0 || nfluid != 3)  //in this case it is close to the surface so i should use alpha shape 
-					{
-						
-						if( AlphaShape(my_alpha,temp) && number_of_structure_nodes!=3) //if alpha shape says to preserve
-						{
-							preserved_list1[el] = true;
-							number_of_preserved_elems += 1;
-														
-						}
-					}
-					else //internal triangle --- should be ALWAYS preserved
-					{							
-						double bigger_alpha = my_alpha*10.0;
-						if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3) 
-							{
-							preserved_list1[el] = true;
-							number_of_preserved_elems += 1;							
-							}
-					}				
-				}
-				else 
-					preserved_list1[el] = false;
-			}
 			//freeing memory 
 
 			clean_triangulateio(in_mid);
@@ -502,7 +374,12 @@ KRATOS_WATCH("ln449");
 			//PointVector results(max_results);
 			//DistanceVector results_distances(max_results);
 			array_1d<double,3> N;
-				
+			
+			array_1d<double,3> x1,x2,x3,xc;
+
+			//int number_of_preserved_elems=0;
+
+			int point_base;
 			//WHAT ARE THOSE????
 // 			Node<3> work_point(0,0.0,0.0,0.0);
  			unsigned int MaximumNumberOfResults = 500;
@@ -640,6 +517,267 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 						neighb(i) = Element::WeakPointer();
 				}
 			}
+			//identifying boundary, creating skin
+			IdentifyBoundary(ThisModelPart, properties, out2);
+
+KRATOS_WATCH("ln749");
+
+			clean_triangulateio(in2);
+KRATOS_WATCH("ln752");
+			clean_triangulateio(out2);
+KRATOS_WATCH("ln754");
+			clean_triangulateio(vorout2);
+			KRATOS_WATCH("Finished remeshing with Trigen_PFEM_Refine")
+
+			KRATOS_CATCH("")
+			}
+			
+			
+		///@}
+		///@name Access
+		///@{ 
+
+
+		///@}
+		///@name Inquiry
+		///@{
+
+
+		///@}      
+		///@name Input and output
+		///@{
+
+		/// Turn back information as a string.
+		virtual std::string Info() const{return "";}
+
+		/// Print information about this object.
+		virtual void PrintInfo(std::ostream& rOStream) const{}
+
+		/// Print object's data.
+		virtual void PrintData(std::ostream& rOStream) const{}
+
+
+		///@}      
+		///@name Friends
+		///@{
+
+
+		///@}
+
+	protected:
+		///@name Protected static Member Variables 
+		///@{ 
+
+
+		///@} 
+		///@name Protected member Variables 
+		///@{ 
+		//KdtreeType mKdtree;
+		
+		///@} 
+		///@name Protected Operators
+		///@{ 
+
+
+		///@} 
+		///@name Protected Operations
+		///@{ 
+
+
+		///@} 
+		///@name Protected  Access 
+		///@{ 
+
+
+		///@}      
+		///@name Protected Inquiry 
+		///@{ 
+
+
+		///@}    
+		///@name Protected LifeCycle 
+		///@{ 
+
+
+		///@}
+
+	private:
+		///@name Static Member Variables 
+		///@{ 
+
+
+		///@} 
+		///@name Member Variables 
+		///@{ 
+		 boost::numeric::ublas::bounded_matrix<double,2,2> mJ; //local jacobian
+		 boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
+		 array_1d<double,2> mC; //center pos
+		 array_1d<double,2> mRhs; //center pos
+		 //NodeEraseProcess* mpNodeEraseProcess;
+
+
+		///@} 
+		///@name Private Operators
+		///@{ 
+		void RemoveCloseNodes(ModelPart& ThisModelPart, KdtreeType& nodes_tree1, NodeEraseProcess& node_erase, double& h_factor)
+		{
+			//unsigned int bucket_size = 20;
+			
+			//performing the interpolation - all of the nodes in this list will be preserved
+			unsigned int max_results = 100;
+			//PointerVector<PointType> res(max_results);
+			//NodeIterator res(max_results);
+			PointVector res(max_results);
+			DistanceVector res_distances(max_results);
+			Node<3> work_point(0,0.0,0.0,0.0);
+			
+		unsigned int n_points_in_radius;			
+		//radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+		double radius;
+				
+		for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();in != ThisModelPart.NodesEnd(); in++)
+		{
+			radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
+				
+					work_point[0]=in->X();
+					work_point[1]=in->Y();
+					work_point[2]=in->Z();
+				
+					n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
+						if (n_points_in_radius>1)
+						{
+							if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+							{
+								//look if we are already erasing any of the other nodes 
+								double erased_nodes = 0;
+								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+									erased_nodes += in->GetValue(ERASE_FLAG);
+
+								if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
+									in->GetValue(ERASE_FLAG)=1;
+							
+							}
+							else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
+							{
+								//here we loop over the neighbouring nodes and if there are nodes
+								//with IS_BOUNDARY=1 which are closer than 0.2*nodal_h from our we remove the node we are considering
+								unsigned int k = 0;
+								unsigned int counter = 0;
+								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+									{
+										if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY,1)==1.0 && res_distances[k] < 0.2*radius && res_distances[k] > 0.0 )
+										{
+	// 										KRATOS_WATCH( res_distances[k] );
+											counter += 1;
+										}
+										k++;
+									}
+								if(counter > 0)
+									in->GetValue(ERASE_FLAG)=1;
+							}
+						}
+				
+					}
+			
+
+				node_erase.Execute();				
+
+				KRATOS_WATCH("Number of nodes after erasing")
+				KRATOS_WATCH(ThisModelPart.Nodes().size())	
+		}
+		
+
+		int PassAlphaShape(ModelPart& ThisModelPart, std::vector<int>& preserved_list1, unsigned int & el_number, double& my_alpha, struct triangulateio& out_mid)
+		{
+			//NOTE THAT preserved_list1 will be overwritten, only the elements that passed alpha-shaoe check will enter it			
+		
+			//prepairing for alpha shape passing : creating necessary arrays
+			//list of preserved elements is created: at max el_number can be preserved (all elements)
+			
+
+			array_1d<double,3> x1,x2,x3,xc;
+
+			//int number_of_preserved_elems=0;
+			int number_of_preserved_elems=0;
+			int point_base;
+			//loop for passing alpha shape			
+			for(unsigned int el = 0; el< el_number; el++)
+			{
+				int base = el * 3;
+
+				//coordinates
+				point_base = (out_mid.trianglelist[base] - 1)*2;
+				x1[0] = out_mid.pointlist[point_base]; 
+				x1[1] = out_mid.pointlist[point_base+1]; 
+
+				point_base = (out_mid.trianglelist[base+1] - 1)*2;
+				x2[0] = out_mid.pointlist[point_base]; 
+				x2[1] = out_mid.pointlist[point_base+1]; 
+
+				point_base = (out_mid.trianglelist[base+2] - 1)*2;
+				x3[0] = out_mid.pointlist[point_base]; 
+				x3[1] = out_mid.pointlist[point_base+1]; 
+
+				//here we shall temporarily save the elements and pass them afterwards to the alpha shape
+				Geometry<Node<3> > temp;
+
+				temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base]).base()	) );
+				temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+1]).base()	) );
+				temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+2]).base()	) );
+
+				int number_of_structure_nodes = int( temp[0].FastGetSolutionStepValue(IS_STRUCTURE) );
+				number_of_structure_nodes += int( temp[1].FastGetSolutionStepValue(IS_STRUCTURE) );
+				number_of_structure_nodes += int( temp[2].FastGetSolutionStepValue(IS_STRUCTURE) );
+
+				//check the number of nodes of boundary
+				int nfs = int( temp[0].FastGetSolutionStepValue(IS_FREE_SURFACE) );
+				nfs += int( temp[1].FastGetSolutionStepValue(IS_FREE_SURFACE) );
+				nfs += int( temp[2].FastGetSolutionStepValue(IS_FREE_SURFACE) );
+				
+				//check the number of nodes of boundary
+				int nfluid = int( temp[0].FastGetSolutionStepValue(IS_FLUID) );
+				nfluid += int( temp[1].FastGetSolutionStepValue(IS_FLUID) );
+				nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
+				//first check that we are working with fluid elements, otherwise throw an error
+				//if (nfluid!=3)
+				//	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
+				//otherwise perform alpha shape check
+
+				
+				if(number_of_structure_nodes!=3) //if it is = 3 it is a completely fixed element -> do not add it
+				{
+					if (nfs != 0 || nfluid != 3)  //in this case it is close to the surface so i should use alpha shape 
+					{
+						
+						if( AlphaShape(my_alpha,temp) && number_of_structure_nodes!=3) //if alpha shape says to preserve
+						{
+							preserved_list1[el] = true;
+							number_of_preserved_elems += 1;
+														
+						}
+					}
+					else //internal triangle --- should be ALWAYS preserved
+					{							
+						double bigger_alpha = my_alpha*10.0;
+						if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3) 
+							{
+							preserved_list1[el] = true;
+							number_of_preserved_elems += 1;							
+							}
+					}				
+				}
+				else 
+					preserved_list1[el] = false;
+			}
+		return number_of_preserved_elems;
+		}	
+
+
+
+
+
+		void IdentifyBoundary(ModelPart& ThisModelPart, Properties::Pointer& properties, struct triangulateio& out2)
+		{
 
 			//reset the boundary flag
 			for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
@@ -748,105 +886,9 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 			
 			}
-KRATOS_WATCH("ln749");
-
-			clean_triangulateio(in2);
-KRATOS_WATCH("ln752");
-			clean_triangulateio(out2);
-KRATOS_WATCH("ln754");
-			clean_triangulateio(vorout2);
-			KRATOS_WATCH("Finished remeshing with Trigen_PFEM_Refine")
-
-			KRATOS_CATCH("")
-			}
-			
-			
-		///@}
-		///@name Access
-		///@{ 
+		}
 
 
-		///@}
-		///@name Inquiry
-		///@{
-
-
-		///@}      
-		///@name Input and output
-		///@{
-
-		/// Turn back information as a string.
-		virtual std::string Info() const{return "";}
-
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const{}
-
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const{}
-
-
-		///@}      
-		///@name Friends
-		///@{
-
-
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operators
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operations
-		///@{ 
-
-
-		///@} 
-		///@name Protected  Access 
-		///@{ 
-
-
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
-
-
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
-
-
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		 boost::numeric::ublas::bounded_matrix<double,2,2> mJ; //local jacobian
-		 boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
-		 array_1d<double,2> mC; //center pos
-		 array_1d<double,2> mRhs; //center pos
-		 //NodeEraseProcess* mpNodeEraseProcess;
-
-
-		///@} 
-		///@name Private Operators
-		///@{ 
 		//returns false if it should be removed
 		bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
 			//bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
