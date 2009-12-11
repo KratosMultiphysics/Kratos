@@ -331,7 +331,8 @@ proc condfrompart {Part Condition mode entity args} {
 			set current_auto 100
 		}
 		if {$new_auto <= $current_auto} {
-			set exp [format {BEGIN%s%s ([\w. ]*) END%s%s} $modestring $Condition $modestring $Condition]
+			set exp [format {BEGIN%s%s (.*?) END%s%s} $modestring $Condition $modestring $Condition]
+			# matches everything (non-greedy) between 'BEGIN...COND_NAME ' and ' END...COND_NAME'
 			set val [regexp -linestop -all -inline $exp $item]
 			set val [lindex $val 1]
 			set val "$new_auto $val"

@@ -93,6 +93,22 @@ proc AfterMeshGeneration {fail} {
 	# After Mesh Generation
 }
 
+proc BeforeWriteCalcFileGIDProject { file } { 
+	# Before Write Calc File
+	# Set the domain_size variable again (in case was General Data changed after meshing)
+	if { [GiD_AccessValue get gendata Let_GiD_determine_domain_size] == 1 } {
+		GiD_AccessValue set gendata DOMAIN_SIZE [domainsize]
+	}
+	#set D [GiD_AccessValue get gendata DOMAIN_SIZE]
+	#WarnWinText "ProblemData's DOMAIN_SIZE is $D"
+	return 0 
+}
+
+# proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
+# # Please Note: This is run AFTER writing the problem files (??)
+# 	}
+# }
+
 proc domainsize { } {
 	# Returns 2 for 2D problems and 3 for 3d problems
 	set bbox [GiD_Info Layers -bbox]
@@ -102,6 +118,7 @@ proc domainsize { } {
 	set dz [expr {[lindex $bbox 2]-[lindex $bbox 5]}]
 	set depth [expr {$dx*$dy*$dz}]
 	if {$depth == 0} {set ds 2} else {set ds 3}
+	#WarnWinText "Checked domain size: It is $ds"
 	return $ds
 }
 
@@ -340,7 +357,8 @@ proc condfrompart {Part Condition mode entity args} {
 			set current_auto 100
 		}
 		if {$new_auto <= $current_auto} {
-			set exp [format {BEGIN%s%s ([\w. ]*) END%s%s} $modestring $Condition $modestring $Condition]
+			set exp [format {BEGIN%s%s (.*?) END%s%s} $modestring $Condition $modestring $Condition]
+			# matches everything (non-greedy) between 'BEGIN...COND_NAME ' and ' END...COND_NAME'
 			set val [regexp -linestop -all -inline $exp $item]
 			set val [lindex $val 1]
 			set val "$new_auto $val"
