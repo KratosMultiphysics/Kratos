@@ -24,7 +24,7 @@
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
-#include "external_includes/trigen_refine.h"
+//#include "external_includes/trigen_refine.h"
 
 #include "external_includes/msuite_pfem_refine.h"
 #include "modeler/edge_swapping_2d_modeler.h"
@@ -99,7 +99,7 @@ namespace Python
 				      KratosComponents<Element>::Get("Fluid2D")
 				     ); 
 	}
-	
+	/*
 	void RefineCDT(TriGenCDTrefine& Mesher,ModelPart& model_part)
 	{
 		Mesher.RefineCDT(model_part, true,
@@ -113,7 +113,7 @@ namespace Python
 				 KratosComponents<Element>::Get("Fluid2D")
 				); 
 	}
-
+	*/
 	///////////////////////////////////////////////////////////////////////////////////////////
 	//											//
 	//				ADAPTIVE 2D MESHER -->USING MESH SUITE  		//
@@ -172,6 +172,7 @@ namespace Python
 	 .def("ReGenerateMesh",TriRegenerateMesh)
 		;
 	*/
+	/*
 	  class_<TriGenCDT >("TriGenCDT",
 		init< >()) 
 	  .def("GenerateFluidElements",TriGenCDTFluid)
@@ -182,7 +183,7 @@ namespace Python
 			  .def("RefineCDT",RefineCDT)
 			  .def("QualityCDT",QualityCDT)
 			  ;
-          
+          */
 	//class that allows 2D adaptive remeshing (inserting and erasing nodes)
 	 class_<MSuitePFEMModeler >("MSuitePFEMModeler",
 		 init< >()) 
