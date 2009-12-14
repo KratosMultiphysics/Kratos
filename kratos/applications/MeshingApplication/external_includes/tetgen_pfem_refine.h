@@ -490,7 +490,7 @@ namespace Kratos
 			//char regeneration_options[] = "rQJYq1.8anS";
 			if (add_nodes==true)
 				{
-				char mesh_regen_opts[] = "rQJYq1.5anS";
+				char mesh_regen_opts[] = "rQJYYq1.5anS";
 				tetrahedralize(mesh_regen_opts, &in2, &outnew);
 				KRATOS_WATCH("Adaptive remeshing executed")
 				}
@@ -567,7 +567,7 @@ namespace Kratos
 			std::cout << "During refinement we added " << outnew.numberofpoints-n_points_before_refinement<< "nodes " <<std::endl;
 
 						
-			bucket_size = 20;
+			bucket_size = 50;
 			
 			//performing the interpolation - all of the nodes in this list will be preserved
 			max_results = 800;
