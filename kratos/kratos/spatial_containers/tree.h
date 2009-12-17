@@ -43,36 +43,6 @@ namespace Kratos
   ///@name  Functions 
   ///@{
   
-   template< std::size_t TDimension, class TPointType >
-	  class SpacialSearchSquaredDistanceFunction
-	  {
-		 public:
-			double operator()( TPointType const& p1, TPointType const& p2 ){
-			   double tmp = p1[0] - p2[0];
-			   double dist = tmp*tmp;
-			   for( std::size_t i = 1 ; i < TDimension ; i++){
-				  tmp = p1[i] - p2[i];
-				  dist += tmp*tmp;
-			   }
-			   return dist;
-			}
-	  };
-
-   template< class TPointerType >
-     std::size_t PointerDistance( TPointerType const& PointerBegin, TPointerType const& PointerEnd )
-     {
-       //return std::distance(PointerBegin,PointerEnd);
-       return ( PointerEnd - PointerBegin );  // required for SUN Compiler
-     };
-
-   template< std::size_t TDimension, class TPointType >
-     bool SpatialSearchPointInBox( TPointType const& BoxMinPoint, TPointType const& BoxMaxPoint, TPointType const& ThisPoint )
-      {
-        for(std::size_t i = 0 ; i < TDimension ; i++)
-          if( ThisPoint[i] < BoxMinPoint[i] || ThisPoint[i] > BoxMaxPoint[i] )
-            return false;
-        return true;
-      }
 
   ///@}
   ///@name Kratos Classes
@@ -101,7 +71,11 @@ namespace Kratos
 		typedef TIteratorType IteratorType;
 		typedef TDistanceIteratorType DistanceIteratorType;
 
-        typedef AuxiliarSearchStructure<TDimension,IndexType,SizeType,CoordinateType,TIteratorType> SearchStructureType;
+        typedef TreeNode<TDimension,TPointType,TPointerType,TIteratorType,TDistanceIteratorType> TreeNodeType;
+
+        typedef typename std::vector<IteratorType>::iterator IteratorIteratorType;
+
+        typedef SearchStructure<IndexType,SizeType,CoordinateType,TIteratorType,IteratorIteratorType,TDimension> SearchStructureType;
 
 		virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const{}
 		
@@ -266,7 +240,7 @@ namespace Kratos
 		if(mPointsBegin == mPointsEnd)
 			return;
 
-        SizeType NumPoints = PointerDistance(mPointsBegin,mPointsEnd);
+        SizeType NumPoints = SearchUtils::PointerDistance(mPointsBegin,mPointsEnd);
         mBucketSize = static_cast<std::size_t>( (double) NumPoints / (double) Parts.mNumPartitions ) + 1;
 
 		PointType max_point = **mPointsBegin;
@@ -461,7 +435,7 @@ namespace Kratos
 	  NodeType* mRoot;
         
       ///@} 
-      ///@name Private Operators
+      ///@name Private Operators:
       ///@{ 
         
         
