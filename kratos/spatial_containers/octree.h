@@ -56,7 +56,7 @@ namespace Kratos
 		  for(std::size_t i = 0 ; i < Dimension ; i++)
 			Position[i] += (**i_point)[i];
 		for(std::size_t i = 0 ; i < Dimension ; i++)
-		  Position[i] /= static_cast<CoordinateType>(PointerDistance(PointsBegin,PointsEnd));
+		  Position[i] /= static_cast<CoordinateType>(SearchUtils::PointerDistance(PointsBegin,PointsEnd));
 	  }
   };
 
@@ -136,7 +136,7 @@ namespace Kratos
 		/* 	      const SizeType number_of_childs = 8; */
 	      PointType mid_cell_lenght;
 		  
-		  SizeType TempSize = PointerDistance(PointsBegin,PointsEnd);
+		  SizeType TempSize = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
 		  PointerType* Temp = new PointerType[ TempSize ];
 
 		  // Template definition of SplitMode
@@ -376,7 +376,7 @@ namespace Kratos
 									   PointType LowPoint,
 									   SizeType BucketSize)
 		{
-		  SizeType number_of_points = PointerDistance(PointsBegin,PointsEnd);
+		  SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
 		  if (number_of_points == 0)
 			return NULL;
 		  else if (number_of_points <= BucketSize)

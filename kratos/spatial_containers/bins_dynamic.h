@@ -24,7 +24,7 @@ namespace Kratos {
       class TPointerType = typename TContainerType::value_type,
       class TIteratorType = typename TContainerType::iterator,
       class TDistanceIteratorType = typename std::vector<double>::iterator,
-      class TDistanceFunction = SpacialSearchSquaredDistanceFunction<TDimension,TPointType>
+      class TDistanceFunction = Kratos::SearchUtils::SquaredDistanceFunction<TDimension,TPointType>
       >
    class BinsDynamic : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType, TDistanceIteratorType>
 	  {
@@ -187,7 +187,7 @@ namespace Kratos {
                 mult_delta *= alpha[i];
             }
 
-            mN[0] = static_cast<SizeType>( pow(static_cast<CoordinateType>(PointerDistance(mPointBegin,mPointEnd)/mult_delta), 1.00/TDimension)+1 );
+            mN[0] = static_cast<SizeType>( pow(static_cast<CoordinateType>(SearchUtils::PointerDistance(mPointBegin,mPointEnd)/mult_delta), 1.00/TDimension)+1 );
 
             for(SizeType i = 1 ; i < TDimension ; i++)
                 mN[i] = static_cast<SizeType>(alpha[i] * mN[0]);
@@ -690,7 +690,7 @@ namespace Kratos {
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
          {
-			rOStream << Perfix << "Bin[" << PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
+			rOStream << Perfix << "Bin[" << SearchUtils::PointerDistance(mPointBegin, mPointEnd) << "] : " << std::endl;
 			for(typename CellsContainerType::const_iterator i_cell = mPoints.begin() ; i_cell != mPoints.end() ; i_cell++)
 			{
 			    rOStream << Perfix << "[ " ;
@@ -745,7 +745,7 @@ namespace Kratos {
 	  static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType MaxPoint, PointType MinPoint, SizeType BucketSize)
 	  {
 		 
-		SizeType number_of_points = PointerDistance(PointsBegin,PointsEnd);
+		SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
 		if (number_of_points == 0)
 		  return NULL;
 		else 

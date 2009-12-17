@@ -63,6 +63,134 @@ namespace Kratos
   };
 
 
+  /// SEARCH UTILS ////
+
+   namespace SearchUtils
+   {
+
+    
+     template< class TPointerType >
+       std::size_t PointerDistance( TPointerType const& PointerBegin, TPointerType const& PointerEnd )
+       {
+         //return std::distance(PointerBegin,PointerEnd);
+         return ( PointerEnd - PointerBegin );  // required for SUN Compiler
+       };
+  
+
+     template< std::size_t TDimension, class TPointType >
+     bool PointInBox( TPointType const& BoxMinPoint, TPointType const& BoxMaxPoint, TPointType const& ThisPoint )
+      {
+        for(std::size_t i = 0 ; i < TDimension ; i++)
+          if( ThisPoint[i] < BoxMinPoint[i] || ThisPoint[i] > BoxMaxPoint[i] )
+            return false;
+        return true;
+      }
+    
+     template< std::size_t TDimension, class TPointType >
+       class SquaredDistanceFunction
+       {
+         public:
+           double operator()( TPointType const& p1, TPointType const& p2 ){
+             double tmp = p1[0] - p2[0];
+             double dist = tmp*tmp;
+             for( std::size_t i = 1 ; i < TDimension ; i++){
+               tmp = p1[i] - p2[i];
+               dist += tmp*tmp;
+             }
+             return dist;
+           }
+       };
+
+     template< class TIteratorType, class TSizeType >
+       class CopyRange
+       {
+         public:
+           void operator()( TIteratorType const& RangeBegin, TIteratorType const& RangeEnd, TIteratorType& Results,
+               TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
+           {
+             for( TIteratorType Point = RangeBegin; (Point != RangeEnd)&&(NumberOfResults < MaxNumberOfResults); Point++)
+             {
+               *Results++ = *Point;
+               NumberOfResults++;
+             }
+           }
+       };
+
+     template< class TPointType, class TIteratorType, class TSizeType, std::size_t TDimension >
+       class SearchBoxInRange
+       {
+         public:
+           void operator()( TPointType const& MinBoxPoint, TPointType const& MaxBoxPoint, TIteratorType const& RangeBegin, TIteratorType const& RangeEnd,
+                            TIteratorType& Results, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
+           {
+             for( TIteratorType Point = RangeBegin; (Point != RangeEnd)&&(NumberOfResults < MaxNumberOfResults); Point++)
+               if ( PointInBox<TDimension,TPointType>(MinBoxPoint,MaxBoxPoint,**Point) )
+               {
+                 *Results++ = *Point;
+                 NumberOfResults++;
+               }
+           }
+       };
+
+
+     template< class TPointType, class TPointerType, class TIteratorType, class TDistanceFunction, class TCoordinateType >
+       class SearchNearestInRange
+       {
+         public:
+           void operator()( const TIteratorType& RangeBegin, const TIteratorType& RangeEnd, const TPointType& ThisPoint, TPointerType& Result, TCoordinateType& Distance )
+           {
+             TCoordinateType NewDistance;
+             for(TIteratorType Point = RangeBegin ; Point != RangeEnd ; Point++){
+               NewDistance = TDistanceFunction()(**Point,ThisPoint);
+               if( NewDistance < Distance ){
+                 Result = *Point;
+                 Distance = NewDistance;
+               }
+             }
+           }
+       };
+
+
+     template< class TPointType, class TIteratorType, class TDistanceIteratorType, class TDistanceFunction, class TSizeType, class TCoordinateType >
+       class SearchRadiusInRange
+       {
+         public:
+
+           void operator()( TIteratorType const& RangeBegin, TIteratorType const& RangeEnd, TPointType const& ThisPoint, TCoordinateType const& Radius,
+               TIteratorType& Results, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
+           {
+             TCoordinateType distance;
+             for(TIteratorType Point = RangeBegin ; (Point != RangeEnd) && (NumberOfResults < MaxNumberOfResults) ; Point++){
+               distance = TDistanceFunction()(**Point,ThisPoint); // squared distance function
+               if( distance < Radius ){
+                 *Results++   = *Point;
+                 NumberOfResults++;
+               }
+             }
+           }
+
+           void operator()( TIteratorType const& RangeBegin, TIteratorType const& RangeEnd, TPointType const& ThisPoint, TCoordinateType const& Radius,
+               TIteratorType& Results, TDistanceIteratorType& Distances, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
+           {
+             TCoordinateType distance;
+             for(TIteratorType Point = RangeBegin ; (Point != RangeEnd) && (NumberOfResults < MaxNumberOfResults) ; Point++){
+               distance = TDistanceFunction()(**Point,ThisPoint); // squared distance function
+               if( distance < Radius ){
+                 *Results++   = *Point;
+                 *Distances++ = distance;
+                 NumberOfResults++;
+               }
+             }
+           }
+       };
+
+
+   };
+
+
+
+  /// TOOLS UTILS ///
+
   template< class IndexType, class SizeType>
   class SubBinAxis
   {
@@ -108,27 +236,30 @@ namespace Kratos
 
 
   template< 
-    std::size_t Dimension,
     class IndexType,
     class SizeType,
     class CoordinateType,
     class IteratorType,
-    class IteratorIteratorType = typename std::vector<IteratorType>::iterator >
-  class AuxiliarSearchStructure
+    class IteratorIteratorType,
+    std::size_t Dimension >
+  class SearchStructure
   {
     public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of AuxiliarSearchStructure
-      KRATOS_CLASS_POINTER_DEFINITION(AuxiliarSearchStructure);
+      /// Pointer definition of SearchStructure
+      KRATOS_CLASS_POINTER_DEFINITION(SearchStructure);
 
       typedef Tvector<IndexType,Dimension> IndexVector;
       typedef Tvector<SizeType,Dimension> SizeVector;
 
+      typedef SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,Dimension> ThisType;
+
     public:
       // Bin
-      SubBinAxis<IndexType,SizeType> Axis[Dimension];
+      //SubBinAxis<IndexType,SizeType> Axis[Dimension];
+      SubBinAxis<IndexType,SizeType> Axis[3];
       IteratorIteratorType RowBegin;
       IteratorIteratorType RowEnd;  
       // KDTree
@@ -139,13 +270,13 @@ namespace Kratos
 
     public:
 
-      AuxiliarSearchStructure(){}
+      SearchStructure(){}
 
-      AuxiliarSearchStructure( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_, IteratorIteratorType const& IteratorBegin ) {
+      SearchStructure( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_, IteratorIteratorType const& IteratorBegin ) {
         Set(Min_,Max_,MaxSize_,IteratorBegin);
       }
 
-      ~AuxiliarSearchStructure(){}
+      ~SearchStructure(){}
 
       void Set( IndexVector const& IndexCell, SizeVector const& _MaxSize, IteratorIteratorType const& IteratorBegin ){
         Set( IndexCell, IndexCell, _MaxSize, IteratorBegin );
@@ -162,19 +293,19 @@ namespace Kratos
         RowEnd   = IteratorBegin + Axis[0].Max + 1;
       }
 
-      AuxiliarSearchStructure const& operator++(){
+      SearchStructure const& operator++(){
         for(SizeType i = 0; i < Dimension; i++)
           ++(Axis[i]);
         return *this;
       }
-      AuxiliarSearchStructure const& operator--(){
+      SearchStructure const& operator--(){
         for(SizeType i = 0; i < Dimension; i++)
           (Axis[i])--;
         return *this;
       }
 
   };
-  
+
 }  // namespace Kratos.
 
 #endif
