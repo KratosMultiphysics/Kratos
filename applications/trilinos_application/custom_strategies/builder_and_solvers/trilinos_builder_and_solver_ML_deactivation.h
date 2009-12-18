@@ -473,7 +473,7 @@ namespace Kratos
 
 			if(norm_b != 0.00)
 			  {
-				KRATOS_WATCH("entering in the solver");
+// 				KRATOS_WATCH("entering in the solver");
 
 				int rank;
 				MPI_Comm_rank(MPI_COMM_WORLD,&rank);				
@@ -1192,7 +1192,7 @@ std::cout << "finished ResizeAndInitializeVectors" << std::endl;
 			this->mDofSet = DofsArrayType();
 			//this->mReactionsVector = TSystemVectorType();
 
-			if (this->GetEchoLevel()>0)
+			if (this->GetEchoLevel()>2)
 			{
 
 				KRATOS_WATCH("TrilinosBuilderAndSolverMLDeactivation Clear Function called");
