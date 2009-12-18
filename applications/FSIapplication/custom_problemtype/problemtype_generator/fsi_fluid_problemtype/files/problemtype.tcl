@@ -513,10 +513,13 @@ proc create_point_elems { Condition } {
 }
 
 # Assign an element from an option
+# Assign an element from an option
 proc assign_element_choice { Option entity args } {
 	set user_elements {}
 	foreach possible_element $args {
-		lappend user_elements [createlist $entity $possible_element]
+		foreach item [createlist $entity $possible_element] {
+			lappend user_elements $item
+		}
 	}
 	foreach entinfo [GiD_Info conditions ${entity}_${Option} geometry] {
 		set entnum [lindex $entinfo 1]
@@ -742,4 +745,10 @@ proc TkwidgetFilePath { event args } {
 
 proc getmatnum {matname} {
 	return [ expr {[lsearch [GiD_Info materials] $matname] + 1} ]
+}
+
+proc getWinPyScript {} {
+  set readDir [GiD_AccessValue get gendata Python_File]
+  regsub -all {/} $readDir "\\" readDir
+  return $readDir
 }

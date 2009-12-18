@@ -2,8 +2,12 @@ PROBLEM DATA
 BOOK: Default Elements
 # Options
 BOOK: Problem Parameters
-QUESTION: Write_a_new_Python_script_file_for_Kratos#CB#(1,0)
-VALUE: 1
+QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
+DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_file,#CURRENT#)(Copy_From,RESTORE,Python_file,#CURRENT#)(Use_Current,SET,Python_file,#CURRENT#)
+VALUE: Use_Default
+QUESTION: Python_file
+VALUE: script.py
+TKWIDGET: TkwidgetFilePath
 QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
 VALUE: 1
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
