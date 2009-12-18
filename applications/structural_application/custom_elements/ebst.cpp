@@ -469,10 +469,6 @@ namespace Kratos
                 CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
             }
             
-            if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
-           {
-                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-           }
 
         }
 
