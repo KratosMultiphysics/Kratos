@@ -401,8 +401,6 @@ std::cout << A.Comm().MyPID() << " node 2756 " << node_it->FastGetSolutionStepVa
 			)
 		{
 			KRATOS_TRY
-KRATOS_WATCH("in SYSTEM_SOLVE, builder_and_solver, line 375");
-
 			double norm_b;
 			if(TSparseSpace::Size(b) != 0)
 				norm_b = TSparseSpace::TwoNorm(b);
@@ -412,7 +410,6 @@ KRATOS_WATCH(TSparseSpace::Size(b));
 KRATOS_WATCH(norm_b);
 			if(norm_b != 0.00)
 			  {
-				KRATOS_WATCH("entering in the solver");
 //  				Epetra_LinearProblem AztecProblem(&A,&Dx,&b);
 // 
 //  				AztecOO aztec_solver(AztecProblem);
@@ -444,7 +441,6 @@ KRATOS_WATCH(norm_b);
 // // 				Solver->Solve();
 // // 
 // // 				delete Solver;
-				std::cout << "BEING IN SOLVER: builder_and_solver, line 417" << std::endl;
 				BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
 	
 
