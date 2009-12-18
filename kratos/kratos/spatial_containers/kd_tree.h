@@ -92,7 +92,8 @@ namespace Kratos
 
 	  typedef typename TreeNodeType::IndexType IndexType;
 
-      typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      //typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      typedef typename LeafType::SearchStructureType SearchStructureType;
 
       ///@}
       ///@name Life Cycle 
@@ -356,7 +357,8 @@ namespace Kratos
 
 	  typedef typename TreeNodeType::IndexType IndexType;
 
-      typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      //typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      typedef typename LeafType::SearchStructureType SearchStructureType;
 
       ///@}
       ///@name Life Cycle 
@@ -557,7 +559,8 @@ namespace Kratos
 
 	  typedef typename TreeNodeType::IndexType IndexType;
 
-      typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      //typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      typedef typename LeafType::SearchStructureType SearchStructureType;
 
       ///@}
       ///@name Life Cycle 
@@ -732,7 +735,8 @@ namespace Kratos
 
 	  typedef typename TreeNodeType::IndexType IndexType;
 
-      typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      //typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      typedef typename LeafType::SearchStructureType SearchStructureType;
 
       ///@}
       ///@name Life Cycle 

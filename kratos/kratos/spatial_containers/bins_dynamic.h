@@ -10,9 +10,6 @@
 #if !defined(KRATOS_BINS_DYNAMIC_CONTAINER_H_INCLUDE)
 #define KRATOS_BINS_DYNAMIC_CONTAINER_H_INCLUDE
 
-#include <vector>
-#include <cfloat>
-
 #include "tree.h"
 
 namespace Kratos {
@@ -26,7 +23,7 @@ namespace Kratos {
       class TDistanceIteratorType = typename std::vector<double>::iterator,
       class TDistanceFunction = Kratos::SearchUtils::SquaredDistanceFunction<TDimension,TPointType>
       >
-   class BinsDynamic : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType, TDistanceIteratorType>
+   class BinsDynamic : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType, TDistanceIteratorType, typename std::vector<TPointerType>::iterator >
 	  {
 		
 	  public:
@@ -48,22 +45,27 @@ namespace Kratos {
 		typedef typename TreeNodeType::IndexType       IndexType;       // std::size_t
 
 		typedef TreeNodeType LeafType;
-
+    
+        typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
         typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+
 
 		// Local Container ( PointPointer Container per Cell )
 		// can be different to ContainerType
         // not always PointVector == ContainerType ( if ContainerType = C array )
 		typedef std::vector<PointerType>       PointVector;
 		typedef typename PointVector::iterator PointIterator;
-        //typedef std::vector<IteratorType>          IteratorVector;
-        //typedef typename IteratorVector::iterator  IteratorIterator;
-        //typedef typename IteratorVector::const_iterator IteratorConstIterator;
-
-		// Global Container
-		typedef std::vector<PointVector>        CellsContainerType; 
+		
+        // Global Container
+		typedef std::vector<PointVector>        CellsContainerType;
+        //typedef typename CellsContainerType::iterator IteratorIteratorType;
 
 		typedef Tvector<IndexType,TDimension>   CellType;
+        
+        typedef Kratos::SearchUtils::SearchNearestInRange<PointType,PointerType,PointIterator,DistanceFunction,CoordinateType> SearchNearestInRange;
+        typedef Kratos::SearchUtils::SearchRadiusInRange<PointType,PointIterator,DistanceIteratorType,DistanceFunction,SizeType,CoordinateType,IteratorType> SearchRadiusInRange;
+        typedef Kratos::SearchUtils::SearchBoxInRange<PointType,PointIterator,SizeType,TDimension,IteratorType> SearchBoxInRange;
+
 
 	  public:
 
@@ -171,31 +173,39 @@ namespace Kratos {
         
         //************************************************************************
         
-        void CalculateCellSize() {
-            
-            CoordinateType delta[TDimension];
-            CoordinateType alpha[TDimension];
-            CoordinateType mult_delta = 1.00;
-            for(SizeType i = 0 ; i < TDimension ; i++) {
-                delta[i] = mMaxPoint[i] - mMinPoint[i];
-                delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+        void CalculateCellSize() 
+        {
+
+          CoordinateType delta[TDimension];
+          CoordinateType alpha[TDimension];
+          CoordinateType mult_delta = 1.00;
+          SizeType index = 0;
+          for(SizeType i = 0 ; i < TDimension ; i++) {
+            delta[i] = mMaxPoint[i] - mMinPoint[i];
+            if ( delta[i] > delta[index] )
+              index = i;
+            delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+          }
+
+          for(SizeType i = 0 ; i < TDimension ; i++){
+            alpha[i] = delta[i] / delta[index];
+            mult_delta *= alpha[i];
+          }
+
+          mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(SearchUtils::PointerDistance(mPointBegin,mPointEnd)/mult_delta), 1.00/TDimension)+1 );
+
+          for(SizeType i = 0 ; i < TDimension ; i++){
+            if(i!=index) {
+              mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
+              mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
             }
+          }
 
-            alpha[0] = 1.00;
-            for(SizeType i = 1 ; i < TDimension ; i++){
-                alpha[i] = delta[i] / delta[0];
-                mult_delta *= alpha[i];
-            }
+          for(SizeType i = 0 ; i < TDimension ; i++){
+            mCellSize[i] = delta[i] / mN[i];
+            mInvCellSize[i] = 1.00 / mCellSize[i];
+          }
 
-            mN[0] = static_cast<SizeType>( pow(static_cast<CoordinateType>(SearchUtils::PointerDistance(mPointBegin,mPointEnd)/mult_delta), 1.00/TDimension)+1 );
-
-            for(SizeType i = 1 ; i < TDimension ; i++)
-                mN[i] = static_cast<SizeType>(alpha[i] * mN[0]);
-
-            for(SizeType i = 0 ; i < TDimension ; i++){
-                mCellSize[i] = delta[i] / mN[i];
-                mInvCellSize[i] = 1.00 / mCellSize[i];
-            }
         }
          
         //************************************************************************
@@ -280,397 +290,343 @@ namespace Kratos {
         
         //************************************************************************
         
-         /*          void AddPoint( PointType const& ThisPoint ){ */
-         /*             mPoints[CalculateIndex(ThisPoint)].push_back(&ThisPoint); */
-         /*          } */
-        
-        //************************************************************************
-        
          void AddPoint( PointerType const& ThisPoint ){
             mPoints[CalculateIndex(*ThisPoint)].push_back(ThisPoint);
             mNumPoints++;
          }
         
-        //************************************************************************
-        
-        PointerType ExistPoint( PointType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
-        {
-         CoordinateType Tolerance2 = Tolerance*Tolerance;
-         PointerType nearest = SearchNearestPoint(ThisPoint);
-         if( nearest != this->NullPointer() )
-           if( TDistanceFunction()(*nearest,*ThisPoint) < Tolerance2 )
-             return nearest;
-         return this->NullPointer();
-        }
-        
-        //************************************************************************
-        
-        PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
-        {
-         CoordinateType Tolerance2 = Tolerance*Tolerance;
-         PointerType nearest;
-         SearchNearestPoint(*ThisPoint,nearest,Tolerance2);
-         if( nearest != this->NullPointer() )
-           if( TDistanceFunction()(*nearest,*ThisPoint) < Tolerance2 )
-             return nearest;
-         return this->NullPointer();
-        }
-        
-        //************************************************************************
-
-        class BinBox
-        {
-
-           public:
-                CellType Min;
-                CellType Max;
-                Tvector<SizeType,TDimension> Size;
-                Tvector<SizeType,TDimension> MaxSize;
-                Tvector<SizeType,TDimension> Block;
-
-           public:
-
-                BinBox() : Min(0), Max(0), Size(0), MaxSize(0) , Block(1) {}
-
-                BinBox( CellType const& MinCell, CellType const& MaxCell, Tvector<SizeType,TDimension> const& _MaxSize )
-                : Min(MinCell), Max(MaxCell), MaxSize(_MaxSize)
-                {
-                   ConstrainSize();
-                   SetSize();
-                   SetBlock();
-                }
-                
-                void Set( CellType const& MinCell, CellType const& MaxCell, Tvector<SizeType,TDimension> const& _MaxSize )
-                {
-                   for(SizeType i = 0; i < TDimension; i++){
-                      Min[i] = MinCell[i];
-                      Max[i] = MaxCell[i];
-                      MaxSize[i] = _MaxSize[i];
-                   }
-                   ConstrainSize();
-                   SetSize();
-                   SetBlock();
-                }
-
-                ~BinBox(){};
-
-                BinBox const& operator++()
-                {
-                   for(SizeType i = 0; i < TDimension; i++){
-                      if( Min[i] > static_cast<IndexType>(0) ) Min[i]--;
-                      if( Max[i] < MaxSize[i]-1 ) Max[i]++;
-                   }
-                   SetSize();
-                   return *this;
-                }
-                
-                BinBox const& operator--()
-                {
-                   for(SizeType i = 0; i < TDimension; i++){
-                      Min[i]++;
-                      Max[i]--;
-                   }
-                   SetSize();
-                   return *this;
-                }
-
-                void ConstrainSize()
-                {
-                   for( SizeType i = 0; i < TDimension; i++){
-                      Min[i] = std::max( Min[i], static_cast<IndexType>(0) );
-                      Max[i] = std::min( Max[i], MaxSize[i]-1 );
-                   }
-                }
-
-                void SetSize()
-                {
-                   for(SizeType i = 0 ; i < TDimension ; i++)
-                      Size[i] = static_cast<SizeType>(Max[i]-Min[i]);
-                }
-
-                void SetBlock()
-                {
-                   Block[0] = 1;
-                   for(SizeType i = 1; i < TDimension; i++)
-                      Block[i] = Block[i-1] * MaxSize[i-1];
-                }
-
-                IndexType RowBegin( SizeType const& iDim )
-                {
-                   return Min[iDim] * Block[iDim];
-                }
-                
-                IndexType RowEnd( SizeType const& iDim )
-                {
-                   return Max[iDim] * Block[iDim];
-                }
-
-        };
-
-        //************************************************************************
-
-        void SearchBoxCalculate( PointType const& Point ){
-           CellType Cell = CalculateCell(Point);
-           SearchBox.Set( Cell, Cell, mN );
-        }
-        void SearchBoxCalculate( PointType const& MinBoxPoint, PointType const& MaxBoxPoint ){
-           SearchBox.Set( CalculateCell(MinBoxPoint), CalculateCell(MaxBoxPoint), mN );
-        }
-        void SearchBoxCalculate( PointType const& ThisPoint, CoordinateType Radius ){
-           SearchBox.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-        }
-
-
-        //************************************************************************
-        
-        void SearchInRadiusRow( PointIterator const& StoreBegin, PointIterator const& StoreEnd, PointType const& ThisPoint,
-              CoordinateType const& Radius, IteratorType& Result, DistanceIteratorType& Distance, SizeType const& MaxResult, SizeType& nRes )
-        {
-           for(PointIterator Point = StoreBegin ; (Point != StoreEnd) && (nRes < MaxResult) ; Point++){
-              CoordinateType dist = TDistanceFunction()(**Point,ThisPoint);
-              if( dist < Radius ){
-                 *Result++   = *Point;
-                 *Distance++ = dist;
-                 nRes++;
-              }
-           }
-        }
-         
          //************************************************************************
-        
-        void SearchInRadiusRow( PointIterator const& StoreBegin, PointIterator const& StoreEnd, PointType const& ThisPoint,
-              CoordinateType const& Radius, IteratorType& Result, SizeType const& MaxResult, SizeType& nRes )
-        {
-           for(PointIterator Point = StoreBegin ; (Point != StoreEnd) && (nRes < MaxResult) ; Point++){
-              if( TDistanceFunction()(**Point,ThisPoint) < Radius ){
-                 *Result++   = *Point;
-                 nRes++;
-              }
-           }
-        }
-         
-         //************************************************************************
-         
-         void SearchNearestInRow( PointIterator const& mRowBegin, PointIterator const& mRowEnd, PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance ){
-                  
-            for(PointIterator Point = mRowBegin ; Point != mRowEnd ; Point++){
-               CoordinateType Distance = TDistanceFunction()(**Point,ThisPoint);
-               if( Distance < ResultDistance ){
-                  ResultPoint = *Point;
-                  ResultDistance = Distance;
-               }
-            }
 
-         }
-
-         //************************************************************************
-         
-         void CopyPointInRow( PointIterator const& mRowBegin, PointIterator const& mRowEnd, IteratorType& ResultsPoint, SizeType const& MaxResults, SizeType& NumResults )
+         PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
          {
-            PointIterator Point = mRowBegin;
-            while( Point != mRowEnd && NumResults < MaxResults )
-               *ResultsPoint++ = *Point++;
+           PointerType Nearest;
+           CoordinateType Distance = static_cast<CoordinateType>(DBL_MAX);
+           bool Found;
+           SearchStructureType Box( CalculateCell(*ThisPoint,-Tolerance), CalculateCell(*ThisPoint,Tolerance), mN );
+           SearchNearestInBox( *ThisPoint, Nearest, Distance, Box, Found );
+           if(Found)
+             return Nearest;
+           return this->NullPointer();
          }
-         
+
          //************************************************************************
          
          PointerType SearchNearestPoint( PointType const& ThisPoint )
          {
-            CoordinateType ResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON);
-            PointerType Result;
-            SearchNearestPoint( ThisPoint, Result, ResultDistance );
-            return Result;
+           if( mPointBegin == mPointEnd )
+             return this->NullPointer();
+
+           PointerType Result            = *mPointBegin;
+           CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+           SearchStructureType Box( CalculateCell(ThisPoint), mN );
+           SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box );
+           return Result;
          }
          
          //************************************************************************
          
          PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType ResultDistance )
          {
-            ResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON);
-            PointerType Result;
-            SearchNearestPoint( ThisPoint, Result, ResultDistance );
-            return Result;
-         }
-         
-         //************************************************************************
-/*
-         PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON) )
-         {
-            PointerType Result;
-            SearchNearestPoint( ThisPoint, Result, rResultDistance );
-            return Result;
-         }
-*/
-         //************************************************************************
+           if( mPointBegin == mPointEnd )
+             return this->NullPointer();
 
-         void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance = static_cast<CoordinateType>(1.0/DBL_EPSILON) )
-         {
-            // Verification in Tree constructor
-            rResult = this->NullPointer();
-            if( mNumPoints == 0 )
-              return;
-
-            SearchBoxCalculate(ThisPoint,ThisPoint);
-
-            ++SearchBox;
-            SearchNearestInBox( SearchBox, ThisPoint, rResult, rResultDistance );
-
-            while( rResult == this->NullPointer() ){
-               ++SearchBox;
-               SearchNearestInBox( SearchBox, ThisPoint, rResult, rResultDistance );
-            }
-
+           PointerType Result = *mPointBegin;
+           ResultDistance     = static_cast<CoordinateType>(DBL_MAX);
+           SearchStructureType Box( CalculateCell(ThisPoint), mN );
+           SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box);
+           return Result;
          }
 
          //************************************************************************
-         
-         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType Radius, IteratorType Result, DistanceIteratorType Distance, SizeType MaxResult )
+
+         // New Thread Safe!!!
+         PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance, SearchStructureType& Box )
          {
-            CoordinateType Radius2 = Radius * Radius;
-            return SearchInRadius( ThisPoint, Radius, Radius2, Result, Distance, MaxResult );
+           PointerType Result = *mPointBegin; //static_cast<PointerType>(NULL);
+           rResultDistance    = static_cast<CoordinateType>(DBL_MAX);
+           Box.Set( CalculateCell(ThisPoint), mN );
+           SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
+           return Result;
          }
          
          //************************************************************************
-         
-         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType Radius, CoordinateType Radius2, IteratorType Result, DistanceIteratorType Distance, SizeType MaxResult )
+
+         void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
          {
-            SizeType nRes = 0;
-            SearchBoxCalculate(ThisPoint,Radius);
-
-            // search in sub_box
-            if( TDimension == 3 )
-            {
-               for(IndexType III = SearchBox.RowBegin(2) ; III <= SearchBox.RowEnd(2) ; III += SearchBox.Block[2] )
-                  for(IndexType II = III + SearchBox.RowBegin(1) ; II <= III + SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                     for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                        SearchInRadiusRow(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Result,Distance,MaxResult,nRes);
-            }
-            else if( TDimension == 2 )
-            {
-               for(IndexType II = SearchBox.RowBegin(1) ; II <= SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                  for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                     SearchInRadiusRow(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Result,Distance,MaxResult,nRes);
-            }
-            else if( TDimension == 1 )
-            {
-               for(IndexType I = SearchBox.RowBegin(0) ; I <= SearchBox.RowEnd(0) ; I++ )
-                  SearchInRadiusRow(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Result,Distance,MaxResult,nRes);
-            }
-            else
-            {
-               std::cout << Info() << " Dimension " << TDimension << " Not Implemented" << std::endl;
-            }
-
-            return nRes;
+           SearchStructureType Box;
+           Box.Set( CalculateCell(ThisPoint), mN );
+           SearchNearestPointLocal(ThisPoint,rResult,rResultDistance,Box);
          }
-         
+
          //************************************************************************
-         
-         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType Radius, IteratorType Result, SizeType MaxResult )
+
+         void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box )
          {
-            CoordinateType Radius2 = Radius * Radius;
-            return SearchInRadius(ThisPoint,Radius,Radius2,Result,MaxResult);
+           // This case is when BinStatic is a LeafType in Other Spacial Structure
+           // Then, it is possible a better Result before this search
+           Box.Set( CalculateCell(ThisPoint), mN );
+           SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
          }
-         
+
          //************************************************************************
-         
-         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType Radius, CoordinateType Radius2, IteratorType Result, SizeType MaxResult )
+
+         void SearchNearestPointLocal( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box )
          {
-            SizeType nRes = 0;
-            SearchBoxCalculate(ThisPoint,Radius);
+           if( mPointBegin == mPointEnd )
+             return;
 
-            // search in sub_box
-            if( TDimension == 3 )
-            {
-               for(IndexType III = SearchBox.RowBegin(2) ; III <= SearchBox.RowEnd(2) ; III += SearchBox.Block[2] )
-                  for(IndexType II = III + SearchBox.RowBegin(1) ; II <= III + SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                     for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                        SearchInRadiusRow(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Result,MaxResult,nRes);
-            }
-            else if( TDimension == 2 )
-            {
-               for(IndexType II = SearchBox.RowBegin(1) ; II <= SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                  for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                     SearchInRadiusRow(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Result,MaxResult,nRes);
-            }
-            else if( TDimension == 1 )
-            {
-               for(IndexType I = SearchBox.RowBegin(0) ; I <= SearchBox.RowEnd(0) ; I++ )
-                  SearchInRadiusRow(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Result,MaxResult,nRes);
-            }
-            else
-            {
-               std::cout << Info() << " Dimension " << TDimension << " Not Implemented" << std::endl;
-            }
+           bool Found = false;
 
+           // set mBox
+           Box.Set( CalculateCell(ThisPoint), mN );
 
-            return nRes;
-         }
-         
-         //************************************************************************
-        
-         void SearchNearestInBox( BinBox const& Box, PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance )
-         {
-
-            // search in sub_box
-            if( TDimension == 3 )
-            {
-               for(IndexType III = SearchBox.RowBegin(2) ; III <= SearchBox.RowEnd(2) ; III += SearchBox.Block[2] )
-                  for(IndexType II = III + SearchBox.RowBegin(1) ; II <= III + SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                     for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                        SearchNearestInRow( mPoints[I].begin(), mPoints[I].end(), ThisPoint, ResultPoint, ResultDistance );
-            }
-            else if( TDimension == 2 )
-            {
-               for(IndexType II = SearchBox.RowBegin(1) ; II <= SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                  for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                     SearchNearestInRow( mPoints[I].begin(), mPoints[I].end(), ThisPoint, ResultPoint, ResultDistance );
-            }
-            else if( TDimension == 1 )
-            {
-               for(IndexType I = SearchBox.RowBegin(0) ; I <= SearchBox.RowEnd(0) ; I++ )
-                  SearchNearestInRow( mPoints[I].begin(), mPoints[I].end(), ThisPoint, ResultPoint, ResultDistance );
-            }
-            else
-            {
-               std::cout << Info() << " Dimension " << TDimension << " Not Implemented" << std::endl;
-            }
-
+           // initial search
+           ++Box;
+           SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
+           // increase mBox and try again
+           while(!Found){
+             ++Box;
+             SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
+           }
 
          }
 
          //************************************************************************
          
-         SizeType SearchInBox( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& ResultsPoint, SizeType MaxResults )
+         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
+             DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults )
          {
-            SizeType nRes = 0;
-            SearchBoxCalculate(SearchMinPoint,SearchMaxPoint);
+           CoordinateType Radius2 = Radius * Radius;
+           SizeType NumberOfResults = 0;
+           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+           return NumberOfResults;
+         }
 
-            // search in Box
-            if( TDimension == 3 )
-            {
-               for(IndexType III = SearchBox.RowBegin(2) ; III <= SearchBox.RowEnd(2) ; III += SearchBox.Block[2] )
-                  for(IndexType II = III + SearchBox.RowBegin(1) ; II <= III + SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                     for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                        CopyPointInRow( mPoints[I].begin(), mPoints[I].end(), ResultsPoint, MaxResults, nRes );
-            }
-            else if( TDimension == 2 )
-            {
-               for(IndexType II = SearchBox.RowBegin(1) ; II <= SearchBox.RowEnd(1) ; II += SearchBox.Block[1] )
-                  for(IndexType I = II + SearchBox.RowBegin(0) ; I <= II + SearchBox.RowEnd(0) ; I++ )
-                     CopyPointInRow( mPoints[I].begin(), mPoints[I].end(), ResultsPoint, MaxResults, nRes );
-            }
-            else if( TDimension == 1 )
-            {
-               for(IndexType I = SearchBox.RowBegin(0) ; I <= SearchBox.RowEnd(0) ; I++ )
-                  CopyPointInRow( mPoints[I].begin(), mPoints[I].end(), ResultsPoint, MaxResults, nRes );
-            }
-            else
-            {
-               std::cout << Info() << " Dimension " << TDimension << " Not Implemented" << std::endl;
-            }
+         //************************************************************************
 
-            return nRes;
+         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results,
+             DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+         {
+           CoordinateType Radius2 = Radius * Radius;
+           SizeType NumberOfResults = 0;
+           Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+           return NumberOfResults;
+         }
+
+         //************************************************************************
+
+         void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+         {
+           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+         }
+
+         //************************************************************************
+
+         void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+         {
+           Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+         }
+
+         //************************************************************************
+
+         // **** THREAD SAFE
+
+         // Dimension = 1
+         void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+         {
+           for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+             SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
+         }
+
+         // Dimension = 2
+         void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+         {
+           for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
+             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+               SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
+         }
+
+         // Dimension = 3
+         void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+         {
+           for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
+             for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block )
+               for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+                 SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
+         }
+
+         //************************************************************************
+         
+         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType Radius, IteratorType Results, SizeType MaxNumberOfResults )
+         {
+           CoordinateType Radius2 = Radius * Radius;
+           SizeType NumberOfResults = 0;
+           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
+           return NumberOfResults;
+         }
+
+         //************************************************************************
+
+         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType Radius, IteratorType Results,
+             SizeType MaxNumberOfResults, SearchStructureType& Box )
+         {
+           CoordinateType Radius2 = Radius * Radius;
+           SizeType NumberOfResults = 0;
+           Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
+           return NumberOfResults;
+         }
+
+         //************************************************************************
+
+         void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+         {
+           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
+         }
+
+         //************************************************************************
+
+         void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+         {
+           Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
+         }
+         
+         //************************************************************************
+         
+         // **** THREAD SAFE
+
+         // Dimension = 1
+         void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+         {
+           for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I++ )
+             SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,NumberOfResults,MaxNumberOfResults);
+         }
+
+         // Dimension = 2
+         void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+         {
+           for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
+             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I++ )
+               SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,NumberOfResults,MaxNumberOfResults);
+         }
+
+         // Dimension = 3
+         void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+         {
+           for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
+             for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block )
+               for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I++ )
+                 SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,NumberOfResults,MaxNumberOfResults);
+         }
+         
+         //************************************************************************
+         //************************************************************************
+
+         // Dimension = 1
+         void SearchNearestInBox( PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, bool& Found )
+         {
+           Found = false;
+           for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+             SearchNearestInRange()( mPoints[I].begin(), mPoints[I].end(), ThisPoint, ResultPoint, ResultDistance, Found );
+         }
+
+         // Dimension = 2
+         void SearchNearestInBox( PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, bool& Found )
+         {
+           Found = false;
+           for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
+             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+               SearchNearestInRange()( mPoints[I].begin(), mPoints[I].end(), ThisPoint, ResultPoint, ResultDistance, Found );
+         }
+
+         // Dimension = 3
+         void SearchNearestInBox( PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, bool& Found )
+         {
+           Found = false;
+           for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
+             for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block )
+               for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+                 SearchNearestInRange()( mPoints[I].begin(), mPoints[I].end(), ThisPoint, ResultPoint, ResultDistance, Found );
+         }
+
+         //************************************************************************
+         //************************************************************************
+
+         SizeType SearchInBox( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType Results,
+             SizeType MaxNumberOfResults )
+         {
+           SizeType NumberOfResults = 0;
+           SearchStructureType Box( CalculateCell(SearchMinPoint), CalculateCell(SearchMaxPoint), mN );
+           SearchInBoxLocal( SearchMinPoint, SearchMaxPoint, Results, NumberOfResults, MaxNumberOfResults, Box );
+           return NumberOfResults;
+         }
+
+         //************************************************************************
+
+         void SearchInBox(PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& Results, SizeType& NumberOfResults,
+             SizeType const& MaxNumberOfResults )
+         {
+           NumberOfResults = 0;
+           SearchStructureType Box( CalculateCell(SearchMinPoint), CalculateCell(SearchMaxPoint), mN );
+           SearchInBoxLocal( SearchMinPoint, SearchMaxPoint, Results, NumberOfResults, MaxNumberOfResults, Box );
+         }
+
+         //************************************************************************
+         
+         // Dimension = 1
+         void SearchInBoxLocal( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& ResultsPoint,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+         {
+           for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+             SearchBoxInRange()(SearchMinPoint,SearchMaxPoint,mPoints[I].begin(),mPoints[I].end(),ResultsPoint,NumberOfResults,MaxNumberOfResults);
+         }
+
+         // Dimension = 2
+         void SearchInBoxLocal( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& ResultsPoint,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+         {
+           for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
+             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+               SearchBoxInRange()(SearchMinPoint,SearchMaxPoint,mPoints[I].begin(),mPoints[I].end(),ResultsPoint,NumberOfResults,MaxNumberOfResults);
+         }
+
+         // Dimension = 3
+         void SearchInBoxLocal( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType& ResultsPoint,
+             SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+         {
+           for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
+             for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block )
+               for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+                 SearchBoxInRange()(SearchMinPoint,SearchMaxPoint,mPoints[I].begin(),mPoints[I].end(),ResultsPoint,NumberOfResults,MaxNumberOfResults);
          }
          
          //************************************************************************
@@ -739,7 +695,7 @@ namespace Kratos {
          CellsContainerType mPoints;
 
          // Work Variables ( For non-copy of Search Variables )
-         BinBox SearchBox;
+         //BinBox SearchBox;
 
 	public:
 	  static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType MaxPoint, PointType MinPoint, SizeType BucketSize)
