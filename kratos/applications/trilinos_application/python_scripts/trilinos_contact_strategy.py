@@ -107,7 +107,7 @@ class SolvingStrategyPython:
         self.cu.Update( self.model_part, originalPosition, self.Parameters[3], self.Parameters[6], self.Parameters[8], self.Parameters[11], self.Parameters[9], self.Parameters[12], self.Parameters[7], self.Parameters[10]  )
         ## CHECK FOR CONTACT CONVERGENCE AMONG ALL PROCESSES
         contact_converged = self.cu.IsConverged( self.model_part, 0, originalPosition, self.Parameters[3] )
-        print("rank "+str(mpi.rank)+": contact converged = "+str(contact_converged) )
+        #print("rank "+str(mpi.rank)+": contact converged = "+str(contact_converged) )
         all_contact_converged = mpi.all_gather( mpi.world, contact_converged )
         print("in rank "+str(mpi.rank)+": "+str(all_contact_converged) )
         for flag in all_contact_converged:
@@ -147,7 +147,7 @@ class SolvingStrategyPython:
             if( uzawaConverged ):
                 break
         if( uzawaConverged == False ):
-            print "uzawa algorithm failes to converge within maximum number of iterations"
+            print "uzawa algorithm fails to converge within maximum number of iterations"
         ## end of UZAWA loop
         ## cleaning up the conditions
         self.cu.Clean( self.model_part, originalPosition )
