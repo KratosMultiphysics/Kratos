@@ -369,8 +369,112 @@ namespace Kratos
             std::vector<Matrix>& Output,
             const ProcessInfo& rCurrentProcessInfo)
     {
+	KRATOS_TRY
+
+	//calculate a basis of the local system of coordinates
+	WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+
+        //fill the aux matrix of coordinates
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            ms_coord(i, 0) = GetGeometry()[i].X();
+            ms_coord(i, 1) = GetGeometry()[i].Y();
+            ms_coord(i, 2) = GetGeometry()[i].Z();
+        }
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            ms_coord(i + 3, 0) = neigb[i].X();
+            ms_coord(i + 3, 1) = neigb[i].Y();
+            ms_coord(i + 3, 2) = neigb[i].Z();
+        }
+
+        //compute phis on center and all gauss points
+        boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiM;
+        boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG1;
+        boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG2;
+        boost::numeric::ublas::bounded_matrix<double, 2, 3 > phiG3;
+        CalculatePhiM(phiM, mdcgM, ms_coord);
+        CalculatePhiG(phiG1, mdcg1, ms_coord);
+        CalculatePhiG(phiG2, mdcg2, ms_coord);
+        CalculatePhiG(phiG3, mdcg3, ms_coord);
+
+        //calculating the normal to the element
+        array_1d<double, 3 > phi1, phi2, t3e;
+        phi1[0] = phiM(0, 0);
+        phi1[1] = phiM(0, 1);
+        phi1[2] = phiM(0, 2);
+        phi2[0] = phiM(1, 0);
+        phi2[1] = phiM(1, 1);
+        phi2[2] = phiM(1, 2);
+        MathUtils<double>::CrossProduct(t3e, phi1, phi2);
+        double nze = norm_2(t3e);
+        t3e /= nze;
+
+	if(Output.size() != 1)
+			Output.resize(1);
+
+// KRATOS_WATCH(this->Id());
+	if(rVariable==PK2_STRESS_TENSOR)
+	{
+		array_1d<double,6> temp;
+
+
+		array_1d<double,6> global_stress;
+		array_1d<double,3>& v1 = phi1;
+		array_1d<double,3>& v2 = phi2;
+
+
+		//adding the component S11
+		noalias(temp)  = VoigtTensorComponents(v1,v1);
+		temp *= m_membrane_stress[0];
+		noalias(global_stress) += temp;
+
+		//adding the component S22
+		noalias(temp)  = VoigtTensorComponents(v2,v2);
+		temp *= m_membrane_stress[1];
+		noalias(global_stress) += temp;
+
+		//adding the component S12 (& S21)
+		noalias(temp)  = VoigtTensorComponents(v1,v2);
+		noalias(temp) += VoigtTensorComponents(v2,v1);
+		temp *= m_membrane_stress[2];
+		noalias(global_stress) += temp;
+		global_stress /=  GetGeometry().Area() * GetProperties()[THICKNESS];
+
+		if(Output[0].size2() != 6)
+		  Output[0].resize(1,6,false);
+		for(unsigned int ii = 0; ii<6; ii++)
+			Output[0](0,ii) = global_stress[ii];
+
+// KRATOS_WATCH(Output[0]);
+	}
+
+		KRATOS_CATCH("")
 
     }
+
+	//************************************************************************************
+        //************************************************************************************
+        void Ebst::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+        {
+            if(rVariable==GREEN_LAGRANGE_STRAIN_TENSOR)
+            {
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+            }
+
+             if(rVariable==PK2_STRESS_TENSOR)
+            {
+	       
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+            }
+            
+            if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+           {
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+           }
+
+        }
 
     //***********************************************************************************
     //***********************************************************************************
@@ -708,8 +812,8 @@ namespace Kratos
         //    noalias(membrane_stress) = prod(Dmat_m, membrane_strain);
         //    KRATOS_WATCH(membrane_stress);
 
-        array_1d<double, 3 > membrane_stress;
-        array_1d<double, 3 > bending_stress;
+        array_1d<double, 3 >& membrane_stress = m_membrane_stress;
+        array_1d<double, 3 >& bending_stress = m_bending_stress;
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > Dmat_m;
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > Dmat_f;
         double h_on_h0;
@@ -1516,5 +1620,26 @@ namespace Kratos
 //        KRATOS_WATCH(bending_stress);
 
     }
+
+//***********************************************************************************
+	//***********************************************************************************
+
+	//auxiliary function needed in the calculation of output stresses
+	inline array_1d<double,6> Ebst::VoigtTensorComponents(
+		array_1d<double,3>& a,
+		array_1d<double,3>& b)
+
+	{
+		array_1d<double,6> v;
+
+		v[0] = a[0]*b[0];
+		v[1] = a[1]*b[1];
+		v[2] = a[2]*b[2];
+		v[3] = a[0]*b[1];
+		v[4] = a[1]*b[2];
+		v[5] = a[0]*b[2];
+
+		return v;
+	}
 
 } // Namespace Kratos.

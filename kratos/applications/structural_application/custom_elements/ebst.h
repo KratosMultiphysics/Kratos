@@ -148,6 +148,9 @@ namespace Kratos {
                 Vector& values,
                 int Step = 0);
 
+	virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
         //		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
         //				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
@@ -250,6 +253,14 @@ namespace Kratos {
                 const boost::numeric::ublas::bounded_matrix<double, 2, 6 >& dcgG3,
 		const array_1d<double,3>& membrane_stress
 		);
+
+	//auxiliary function needed in the calculation of output stresses
+	inline array_1d<double,6> VoigtTensorComponents(
+		array_1d<double,3>& a,
+		array_1d<double,3>& b);
+
+	array_1d<double,3> m_membrane_stress;
+	array_1d<double,3> m_bending_stress;
 
     private:
         
