@@ -88,15 +88,22 @@ class SolverAdvanced:
 
         self.Comm = CreateCommunicator()
 
-	#self.buildertype="ML3D"
+        #self.buildertype="ML3D"
         #self.buildertype="superludist"
-        self.buildertype="MLdeactivation"
+        #self.buildertype="MLdeactivation"
         self.buildertype="superludist_deactivation"
 
         #definition of the solvers
         #self.structure_linear_solver =  TrilinosLinearSolver()
         self.solver_parameters = ParameterList()
-        self.structure_linear_solver =  AmesosSolver("Superludist",self.solver_parameters);
+        self.preconditioner_parameters = ParameterList()
+        #self.structure_linear_solver =  AmesosSolver("Superludist",self.solver_parameters);
+        self.solver_parameters.set("AZ_solver","AZ_gmres")
+        self.solver_parameters.set("AZ_kspace",100)
+        self.solver_parameters.set("AZ_output",32)
+        self.solver_parameters.set("AZ_precond","AZ_none")
+        self.structure_linear_solver = AztecSolver(self.solver_parameters,"Amesos",self.preconditioner_parameters,1.0e-9,300,1);
+
 
         
         #definition of the convergence criteria
