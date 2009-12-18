@@ -385,8 +385,6 @@ namespace Kratos
 
 			if(norm_b != 0.00)
 			  {
-				KRATOS_WATCH("entering in the solver");
-				
 				Epetra_LinearProblem AztecProblem(&A,&Dx,&b);
 
 				Teuchos::ParameterList MLList;
@@ -487,7 +485,7 @@ namespace Kratos
 				MLList.set("print unused",1);
 				MLList.set("output",10);
 				MLList.set("increasing or decreasing","increasing");				
-				MLList.set("max levels",3);
+				MLList.set("max levels",4);
 
 				MLList.set("aggregation: threshold",0.0);
 				MLList.set("aggregation: damping factor",1.33);
@@ -497,7 +495,8 @@ namespace Kratos
 				//MLList.set("smoother: type (level 0)","MLS");
 				//MLList.set("smoother: MLS polynomial order (level 0)",3);
 
-				//MLList.set("smoother: type (level 0)","Gauss-Seidel");
+				//MLList.set("smoother: type (level 0)","Aztec");
+                //MLList.set("smoother: type (level 0)","Gauss-Seidel");
 				MLList.set("smoother: type (level 0)","symmetric Gauss-Seidel");
 				MLList.set("smoother: sweeps (level 0)",2);
 				MLList.set("smoother: damping factor (level 0)",0.89);
@@ -534,10 +533,10 @@ namespace Kratos
 				// set preconditioner and solve
 				Solver.SetPrecOperator(MLPrec);
 				Solver.SetAztecOption(AZ_solver, AZ_gmres);
-				Solver.SetAztecOption(AZ_kspace, 200);
-				Solver.SetAztecOption(AZ_output,15); //SetAztecOption(AZ_output, AZ_none);
+				Solver.SetAztecOption(AZ_kspace, 5000);
+				Solver.SetAztecOption(AZ_output,50); //SetAztecOption(AZ_output, AZ_none);
 								
-				int mmax_iter=300;
+				int mmax_iter=5000;
 				Solver.Iterate(mmax_iter, 1e-9);
 				delete MLPrec;
 
