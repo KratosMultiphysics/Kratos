@@ -11,9 +11,14 @@
 #define  KRATOS_SEARCH_STRUCTURE_H_INCLUDED
 // System includes
 #include <vector>
+#include <cfloat>
 // External includes 
 
 // Project includes
+
+#ifndef DBL_MAX
+#define DBL_MAX (1.0/DBL_EPSILON)
+#endif
 
 namespace Kratos
 {
@@ -101,32 +106,34 @@ namespace Kratos
            }
        };
 
-     template< class TIteratorType, class TSizeType >
+     template< class TIteratorType, class TSizeType, class TResultIteratorType = TIteratorType >
        class CopyRange
        {
          public:
-           void operator()( TIteratorType const& RangeBegin, TIteratorType const& RangeEnd, TIteratorType& Results,
+           void operator()( TIteratorType const& RangeBegin, TIteratorType const& RangeEnd, TResultIteratorType& Results,
                TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
            {
              for( TIteratorType Point = RangeBegin; (Point != RangeEnd)&&(NumberOfResults < MaxNumberOfResults); Point++)
              {
-               *Results++ = *Point;
+               *Results = *Point;
+               Results++;
                NumberOfResults++;
              }
            }
        };
 
-     template< class TPointType, class TIteratorType, class TSizeType, std::size_t TDimension >
+     template< class TPointType, class TIteratorType, class TSizeType, std::size_t TDimension, class TResultIteratorType = TIteratorType >
        class SearchBoxInRange
        {
          public:
            void operator()( TPointType const& MinBoxPoint, TPointType const& MaxBoxPoint, TIteratorType const& RangeBegin, TIteratorType const& RangeEnd,
-                            TIteratorType& Results, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
+                            TResultIteratorType& Results, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
            {
              for( TIteratorType Point = RangeBegin; (Point != RangeEnd)&&(NumberOfResults < MaxNumberOfResults); Point++)
                if ( PointInBox<TDimension,TPointType>(MinBoxPoint,MaxBoxPoint,**Point) )
                {
-                 *Results++ = *Point;
+                 *Results = *Point;
+                 Results++;
                  NumberOfResults++;
                }
            }
@@ -148,36 +155,51 @@ namespace Kratos
                }
              }
            }
+           void operator()( const TIteratorType& RangeBegin, const TIteratorType& RangeEnd, const TPointType& ThisPoint, TPointerType& Result, TCoordinateType& Distance, bool& Found )
+           {
+             TCoordinateType NewDistance;
+             for(TIteratorType Point = RangeBegin ; Point != RangeEnd ; Point++){
+               NewDistance = TDistanceFunction()(**Point,ThisPoint);
+               if( NewDistance < Distance ){
+                 Result = *Point;
+                 Distance = NewDistance;
+                 Found = true;
+               }
+             }
+           }
        };
 
 
-     template< class TPointType, class TIteratorType, class TDistanceIteratorType, class TDistanceFunction, class TSizeType, class TCoordinateType >
+     template< class TPointType, class TIteratorType, class TDistanceIteratorType, class TDistanceFunction, class TSizeType, class TCoordinateType, class TResultIteratorType = TIteratorType >
        class SearchRadiusInRange
        {
          public:
 
            void operator()( TIteratorType const& RangeBegin, TIteratorType const& RangeEnd, TPointType const& ThisPoint, TCoordinateType const& Radius,
-               TIteratorType& Results, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
+               TResultIteratorType& Results, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
            {
              TCoordinateType distance;
              for(TIteratorType Point = RangeBegin ; (Point != RangeEnd) && (NumberOfResults < MaxNumberOfResults) ; Point++){
                distance = TDistanceFunction()(**Point,ThisPoint); // squared distance function
                if( distance < Radius ){
-                 *Results++   = *Point;
+                 *Results   = *Point;
+                 Results++;
                  NumberOfResults++;
                }
              }
            }
 
            void operator()( TIteratorType const& RangeBegin, TIteratorType const& RangeEnd, TPointType const& ThisPoint, TCoordinateType const& Radius,
-               TIteratorType& Results, TDistanceIteratorType& Distances, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
+               TResultIteratorType& Results, TDistanceIteratorType& Distances, TSizeType& NumberOfResults, TSizeType const& MaxNumberOfResults )
            {
              TCoordinateType distance;
              for(TIteratorType Point = RangeBegin ; (Point != RangeEnd) && (NumberOfResults < MaxNumberOfResults) ; Point++){
                distance = TDistanceFunction()(**Point,ThisPoint); // squared distance function
                if( distance < Radius ){
-                 *Results++   = *Point;
-                 *Distances++ = distance;
+                 *Results   = *Point;
+                 Results++;
+                 *Distances = distance;
+                 Distances++;
                  NumberOfResults++;
                }
              }
@@ -275,6 +297,18 @@ namespace Kratos
       SearchStructure( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_, IteratorIteratorType const& IteratorBegin ) {
         Set(Min_,Max_,MaxSize_,IteratorBegin);
       }
+      
+      SearchStructure( IndexVector const& IndexCell, SizeVector const& MaxSize_, IteratorIteratorType const& IteratorBegin ) {
+        Set(IndexCell,IndexCell,MaxSize_,IteratorBegin);
+      }
+      
+      SearchStructure( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_ ) {
+        Set(Min_,Max_,MaxSize_);
+      }
+      
+      SearchStructure( IndexVector const& IndexCell, SizeVector const& MaxSize_ ) {
+        Set(IndexCell,IndexCell,MaxSize_);
+      }
 
       ~SearchStructure(){}
 
@@ -292,6 +326,27 @@ namespace Kratos
         RowBegin = IteratorBegin + Axis[0].Min;
         RowEnd   = IteratorBegin + Axis[0].Max + 1;
       }
+      
+      void Set( IndexVector const& IndexCell, SizeVector const& MaxSize_ ){
+        Set(IndexCell,IndexCell,MaxSize_);
+      }
+
+      void Set( IndexVector const& Min_, IndexVector const& Max_, SizeVector const& MaxSize_ ){
+        IndexType Block = 1;
+        Axis[0].Set(Min_[0],Max_[0],MaxSize_[0],Block);
+        for(SizeType i = 1; i < Dimension; i++){
+          Block *= MaxSize_[i-1];
+          Axis[i].Set(Min_[i],Max_[i],MaxSize_[i],Block);
+        }
+      }
+
+      IndexType BeginRow(IndexType const& Idx){
+        return Idx + Axis[0].Min;
+      }
+      IndexType EndRow(IndexType const& Idx){
+        return Idx + Axis[0].Max+1;
+      }
+
 
       SearchStructure const& operator++(){
         for(SizeType i = 0; i < Dimension; i++)

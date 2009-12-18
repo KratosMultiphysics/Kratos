@@ -12,10 +12,7 @@
 
 
 // System includes
-#include <string>
-#include <iostream> 
 #include <cstddef>
-#include <vector>
 
 // External includes 
 
@@ -119,7 +116,7 @@ namespace Kratos
 	  typedef OcTreeAverageSplit<Dimension,PointType,IteratorType,CoordinateType>  AverageSplit;
 	  typedef OcTreeMidPointSplit<Dimension,PointType,IteratorType,CoordinateType> MidPointSplit;
 	 
-      typedef typename TreeNodeType::SearchStructureType SearchStructureType;
+      typedef typename LeafType::SearchStructureType SearchStructureType;
 
 	  static const SizeType number_of_childs = 1 << Dimension;
 

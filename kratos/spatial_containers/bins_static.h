@@ -10,14 +10,8 @@
 #if !defined(KRATOS_BINS_CONTAINER_H_INCLUDE)
 #define KRATOS_BINS_CONTAINER_H_INCLUDE
 
-#include <vector>
-#include <cfloat>
-
 #include "tree.h"
 
-#ifndef DBL_MAX
-#define DBL_MAX (1.0/DBL_EPSILON)
-#endif
 
 namespace Kratos {
 
@@ -325,13 +319,28 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
    public:
 
 	 //************************************************************************
-	 //************************************************************************
+     //************************************************************************
+
+     PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
+     {
+       PointerType Nearest;
+       CoordinateType Distance = static_cast<CoordinateType>(DBL_MAX);
+       bool Found;
+       SearchStructureType Box( CalculateCell(*ThisPoint,-Tolerance), CalculateCell(*ThisPoint,Tolerance), mN );
+       SearchNearestInBox( *ThisPoint, Nearest, Distance, Box, Found );
+       if(Found)
+         return Nearest;
+       return this->NullPointer();
+     }
+
+     //************************************************************************
+     //************************************************************************
 
 	 PointerType SearchNearestPoint( PointType const& ThisPoint )
 	 {
-	   PointerType Result            = static_cast<PointerType>(NULL);
+	   PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
 	   CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
-       SearchStructureType Box;
+       SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
 	   SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box );
 	   return Result;
 	 }
@@ -340,9 +349,9 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
 	 PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance )
 	 {
-       PointerType Result = static_cast<PointerType>(NULL);
-       rResultDistance    = static_cast<CoordinateType>(DBL_MAX);
-       SearchStructureType Box;
+	   PointerType Result = *mPointBegin;                           //static_cast<PointerType>(NULL);
+	   rResultDistance    = static_cast<CoordinateType>(DBL_MAX);
+       SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
 	   SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
 	   return Result;
 	 }
@@ -352,8 +361,9 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
      // New Thread Safe!!!
 	 PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance, SearchStructureType& Box )
 	 {
-       PointerType Result = static_cast<PointerType>(NULL);
-       rResultDistance    = static_cast<CoordinateType>(DBL_MAX);
+	   PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
+	   CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+       Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
 	   SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
 	   return Result;
 	 }
@@ -363,7 +373,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
      void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
      {
-       SearchStructureType Box;
+       SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
        SearchNearestPointLocal(ThisPoint,rResult,rResultDistance,Box);
      }
 
@@ -373,14 +383,8 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	 {
 	   // This case is when BinStatic is a LeafType in Other Spacial Structure
 	   // Then, it is possible a better Result before this search
-	   PointerType NewResult            = static_cast<PointerType>(NULL); // If empty Bin --> endless loop  /// -> Verification in Tree constructor ??
-	   CoordinateType NewResultDistance = static_cast<CoordinateType>(DBL_MAX);
-	   SearchNearestPointLocal( ThisPoint, NewResult, NewResultDistance, Box );
-	   if( NewResultDistance < rResultDistance )
-	   {
-		 rResult = NewResult;
-		 rResultDistance = NewResultDistance;
-	   }
+       Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
+	   SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
 	 }
 
 	 //************************************************************************
@@ -392,16 +396,15 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	   if( mPointBegin == mPointEnd )
 		 return;
 
-	   // set mBox
-       Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
+       bool Found;
 
 	   // initial search
 	   ++Box;
-	   SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box );
+	   SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
 	   // increase mBox and try again
-	   while(rResult == this->NullPointer() ){
+	   while(!Found){
 		 ++Box;
-		 SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box );
+		 SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
 	   }
 	 
      }
@@ -557,26 +560,29 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
      // Dimension = 1
 	 void SearchNearestInBox( PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
-         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, bool& Found )
      {
-       SearchNearestInRange()( *(Box.RowBegin), *(Box.RowEnd), ThisPoint, ResultPoint, ResultDistance );
+       Found = false;
+       SearchNearestInRange()( *(Box.RowBegin), *(Box.RowEnd), ThisPoint, ResultPoint, ResultDistance, Found );
      }
 
      // Dimension = 2
 	 void SearchNearestInBox( PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
-         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, bool& Found )
      {
+       Found = false;
        for(IndexType I = Box.Axis[1].Begin() ; I <= Box.Axis[1].End() ; I += Box.Axis[1].Block )
-         SearchNearestInRange()( Box.RowBegin[I], Box.RowEnd[I], ThisPoint, ResultPoint, ResultDistance );
+         SearchNearestInRange()( Box.RowBegin[I], Box.RowEnd[I], ThisPoint, ResultPoint, ResultDistance, Found );
      }
 	 
      // Dimension = 3
      void SearchNearestInBox( PointType const& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
-         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, bool& Found )
      {
+       Found = false;
        for(IndexType II = Box.Axis[2].Begin() ; II <= Box.Axis[2].End() ; II += Box.Axis[2].Block )
          for(IndexType I = II + Box.Axis[1].Begin() ; I <= II + Box.Axis[1].End() ; I += Box.Axis[1].Block )
-           SearchNearestInRange()( Box.RowBegin[I], Box.RowEnd[I], ThisPoint, ResultPoint, ResultDistance );
+           SearchNearestInRange()( Box.RowBegin[I], Box.RowEnd[I], ThisPoint, ResultPoint, ResultDistance, Found );
      }
 
 	 //************************************************************************
@@ -717,7 +723,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	 IteratorIterator         mIndexCellEnd;
 
 	 // Work Variables ( For non-copy of Search Variables )
-	 SearchStructureType mBox;
+	 //SearchStructureType mBox;
 
    public:
 

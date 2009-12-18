@@ -16,7 +16,6 @@
 #include <string>
 #include <iostream> 
 #include <cmath>
-#include <vector>
 
 
 // External includes 
@@ -56,7 +55,9 @@ namespace Kratos
 		class TPointType,
         class TPointerType,
 		class TIteratorType,
-		class TDistanceIteratorType >
+		class TDistanceIteratorType,
+        class TIteratorIteratorType = typename std::vector<TIteratorType>::iterator
+          >
 	class TreeNode
 	{
 	public:
@@ -146,18 +147,18 @@ namespace Kratos
 
 	};
 
-	template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType> 
-	   typename TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType>::IteratorType
-	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType>::msNull;
+	template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType, class TIteratorIteratorType> 
+	   typename TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::IteratorType
+	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNull;
 
-	template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType> 
-	   typename TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType>::PointerType
-	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType>::msNullPointer;
+	template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType, class TIteratorIteratorType> 
+	   typename TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::PointerType
+	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNullPointer;
 
 
-	template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType> 
-	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType>
-	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType>::msNullLeaf;
+	template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType, class TIteratorIteratorType> 
+	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>
+	   TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNullLeaf;
 
 
   /// Short class definition.
@@ -205,7 +206,8 @@ namespace Kratos
 
       typedef typename NodeType::IndexType      IndexType;
 
-      typedef typename NodeType::SearchStructureType SearchStructureType;
+      //typedef typename NodeType::SearchStructureType SearchStructureType;
+      typedef typename PartitionType::SearchStructureType SearchStructureType;
 
       ///@}
       ///@name Life Cycle 
@@ -273,10 +275,21 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+      PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
+      {
+        PointerType Result = *mPointsBegin;
+        CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+		// searching the tree
+		mRoot->SearchNearestPoint(ThisPoint,Result,ResultDistance);
+        if (ResultDistance<Tolerance*Tolerance)
+          return Result;
+        return this->NullPointer();
+      }
+
 	  PointerType SearchNearestPoint(PointType const& ThisPoint, CoordinateType& rResultDistance)
 	  {
 		PointerType Result = *mPointsBegin;
-		rResultDistance = DistanceFunction()(ThisPoint,**mPointsBegin);
+		rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
 		// searching the tree
 		mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
@@ -287,7 +300,7 @@ namespace Kratos
 	  PointerType SearchNearestPoint(PointType const& ThisPoint)
 	  {
 		PointerType Result = *mPointsBegin; // NULL ??
-		CoordinateType rResultDistance = DistanceFunction()(ThisPoint,**mPointsBegin);
+		CoordinateType rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
 		// searching the tree
 		mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
