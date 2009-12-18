@@ -53,12 +53,10 @@ class SolvingStrategyPython:
             self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,3,self.linear_solver)
         elif(builder_and_solver_type == "superludist"):
             self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
-            print("######################### SUPERLU SOLVER GENERATED ##########################")
         elif(builder_and_solver_type == "MLdeactivation"):
             self.builder_and_solver = TrilinosBuilderAndSolverMLDeactivation2D(Comm,guess_row_size,3,self.linear_solver)
         elif(builder_and_solver_type == "superludist_deactivation"):
             self.builder_and_solver = TrilinosResidualBasedBuilderAndSolverDeactivation(Comm,guess_row_size,self.linear_solver)
-            print("######################### SUPERLU SOLVER GENERATED ##########################")
 
 
         
@@ -116,9 +114,6 @@ class SolvingStrategyPython:
             if( flag == False ):
                 contact_converged = False
         mpi.world.barrier()
-        print("################")
-        print("BEING ON BARRIER")
-        print("################")
         if( contact_converged ):
             uzawaConverged = True
             (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
@@ -162,7 +157,7 @@ class SolvingStrategyPython:
         #clear if needed - deallocates memory 
         if(self.ReformDofSetAtEachStep == True):
             self.Clear();
-        print "Solve is Finished for rank : ", mpi.rank
+        #print "Solve is Finished for rank : ", mpi.rank
 
 
     #######################################################################
@@ -238,21 +233,14 @@ class SolvingStrategyPython:
 
     #######################################################################
     def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag):
-        print("in ExecuteIteration:")
         #reset system matrices and vectors prior to rebuild
         self.space_utils.SetToZeroMatrix(self.A)
         self.space_utils.SetToZeroVector(self.Dx)			
         self.space_utils.SetToZeroVector(self.b)
-        print("SET TO ZERO COMPLETED")
-
         self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
-        print("ITERATION INITIALIZED")
-        
         #build and solve the problem
         
         self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
-        print("BUILD_AND_SOLVE COMPLETED")
-       
         #full output if needed
         if(echo_level >= 3):
             print "SystemMatrix = ", self.A 
@@ -261,7 +249,6 @@ class SolvingStrategyPython:
             
         #perform update
         self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
-
         #move the mesh as needed
         if(MoveMeshFlag == True):
             self.scheme.MoveMesh(self.model_part.Nodes);
