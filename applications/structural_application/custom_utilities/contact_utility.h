@@ -212,7 +212,7 @@ namespace Kratos
                                                 }
                                                 else
                                                 {
-                                                    std::cout << "no contact partner found for condition: " << (*it)->Id() <<", integration point " << i << std::endl;
+//                                                     std::cout << "no contact partner found for condition: " << (*it)->Id() <<", integration point " << i << std::endl;
                                                 }
                                         }
                                 }
