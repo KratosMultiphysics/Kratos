@@ -74,11 +74,15 @@ namespace Kratos
  	namespace BossakAuxiliaries
 	{
 		extern Matrix mMass;
+                #pragma omp threadprivate(mMass)
 		extern Matrix mDamp;
-
+                #pragma omp threadprivate(mDamp) 
 		extern Vector mvel;
+                #pragma omp threadprivate(mvel)
 		extern Vector macc;
+                #pragma omp threadprivate(macc)
 		extern Vector maccold;
+                #pragma omp threadprivate(maccold)
 	}
  
 	
@@ -282,52 +286,52 @@ namespace Kratos
 			TSystemVectorType& b
 			) 
 		{
-	std::cout << "prediction" << std::endl;
-			array_1d<double,3> DeltaDisp;
-			double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+		std::cout << "Prediction" << std::endl;
+		array_1d<double,3> DeltaDisp;
+		double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
 
-			for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; 
-				i != r_model_part.NodesEnd() ; ++i)
-			{
-//KRATOS_WATCH(i->Id())
-//KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT))
-//KRATOS_WATCH(i->FastGetSolutionStepValue(VELOCITY))
-//KRATOS_WATCH(i->FastGetSolutionStepValue(ACCELERATION))
-				array_1d<double,3>& OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
-				array_1d<double,3>& OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
-				//predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
-				//ATTENTION::: the prediction is performed only on free nodes
-				array_1d<double,3>& CurrentDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-//KRATOS_WATCH("1")
+		for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; 
+		i != r_model_part.NodesEnd() ; ++i)
+		{
+		//KRATOS_WATCH(i->Id())
+		//KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT))
+		//KRATOS_WATCH(i->FastGetSolutionStepValue(VELOCITY))
+		//KRATOS_WATCH(i->FastGetSolutionStepValue(ACCELERATION))
+		array_1d<double,3>& OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
+		array_1d<double,3>& OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+		//predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
+		//ATTENTION::: the prediction is performed only on free nodes
+		array_1d<double,3>& CurrentDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+		//KRATOS_WATCH("1")
 
-				if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
-					(CurrentDisp[0]) = OldDisp[0] + DeltaTime * OldVelocity[0];
-				if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
-					(CurrentDisp[1]) = OldDisp[1] + DeltaTime * OldVelocity[1];
-				if( i->HasDofFor(DISPLACEMENT_Z))
-					if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
-						(CurrentDisp[2]) = OldDisp[2] + DeltaTime * OldVelocity[2];
-//KRATOS_WATCH("2")
+		if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
+		(CurrentDisp[0]) = OldDisp[0] + DeltaTime * OldVelocity[0];
+		if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
+		(CurrentDisp[1]) = OldDisp[1] + DeltaTime * OldVelocity[1];
+		if( i->HasDofFor(DISPLACEMENT_Z))
+		if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
+		(CurrentDisp[2]) = OldDisp[2] + DeltaTime * OldVelocity[2];
+		//KRATOS_WATCH("2")
 
-				//updating time derivatives ::: please note that displacements and its time derivatives
-				//can not be consistently fixed separately
-				noalias(DeltaDisp) = CurrentDisp - OldDisp;
-				array_1d<double,3>& OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
-//KRATOS_WATCH(DeltaDisp)
+		//updating time derivatives ::: please note that displacements and its time derivatives
+		//can not be consistently fixed separately
+		noalias(DeltaDisp) = CurrentDisp - OldDisp;
+		array_1d<double,3>& OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+		//KRATOS_WATCH(DeltaDisp)
 
-				array_1d<double,3>& CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
-				array_1d<double,3>& CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-//KRATOS_WATCH(CurrentVelocity)
-//KRATOS_WATCH(CurrentAcceleration)
+		array_1d<double,3>& CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
+		array_1d<double,3>& CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
+		//KRATOS_WATCH(CurrentVelocity)
+		//KRATOS_WATCH(CurrentAcceleration)
 
-			//KRATOS_WATCH(CurrentVelocity);
-			//KRATOS_WATCH(OldVelocity);
-	UpdateVelocity(CurrentVelocity,DeltaDisp,OldVelocity,OldAcceleration);
-			
-	UpdateAcceleration(CurrentAcceleration,DeltaDisp,OldVelocity,OldAcceleration);
-			}
-		
+		//KRATOS_WATCH(CurrentVelocity);
+		//KRATOS_WATCH(OldVelocity);
+		UpdateVelocity(CurrentVelocity,DeltaDisp,OldVelocity,OldAcceleration);
+
+		UpdateAcceleration(CurrentAcceleration,DeltaDisp,OldVelocity,OldAcceleration);
+		}
+
 		}
 		
 	
