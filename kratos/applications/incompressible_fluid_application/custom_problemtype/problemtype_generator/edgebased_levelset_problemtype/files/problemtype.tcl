@@ -746,3 +746,9 @@ proc TkwidgetFilePath { event args } {
 proc getmatnum {matname} {
 	return [ expr {[lsearch [GiD_Info materials] $matname] + 1} ]
 }
+
+proc getWinPyScript {} {
+  set readDir [GiD_AccessValue get gendata Python_File]
+  regsub -all {/} $readDir "\\" readDir
+  return $readDir
+}
