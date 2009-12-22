@@ -145,8 +145,8 @@ namespace Kratos {
             KRATOS_TRY
 
 
-                    //get number of nodes
-                    unsigned int n_nodes = mr_model_part.Nodes().size();
+           //get number of nodes
+            unsigned int n_nodes = mr_model_part.Nodes().size();
             unsigned int n_edges = mr_matrix_container.GetNumberEdges();
             //size data vectors
             mWork.resize(n_nodes);
@@ -175,6 +175,7 @@ namespace Kratos {
             mphi_n1.resize(n_nodes);
 
             mEps.resize(n_nodes);
+	   mD.resize(n_nodes);
             
             mdiv_error.resize(n_nodes);
             mr_matrix_container.SetToZero(mdiv_error);
@@ -291,6 +292,8 @@ namespace Kratos {
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
 //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
             mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
+            mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+
 
 //            double delta_t_i = delta_t;
 
@@ -303,10 +306,11 @@ namespace Kratos {
                 const double havg_i = mHavg[i_node];
                 const double hmin_i = mHmin[i_node];
                 const double eps_i = mEps[i_node];
+	       const double d_i = mD[i_node];
 
                 double vel_norm = norm_2(v_i);
                 
-                double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i);
+                double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
                 vel_norm /= eps_i;
 
                 //use CFL condition to compute time step size
@@ -409,11 +413,19 @@ namespace Kratos {
             mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, rNodes);
 
             mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
+            mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+            mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
 
             //read time step size from Kratos
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
             double delta_t = CurrentProcessInfo[DELTA_TIME];
-
+           //read the prescribed values of velocity
+//            int fixed_size = mD.size();
+// //            #pragma omp parallel for firstprivate(fixed_size)
+//            for (int i_d = 0; i_d < fixed_size; i_d++)
+//            {
+//                    KRATOS_WATCH(mD[i_d]);
+//            }
 
 
 //            //read the prescribed values of velocity
@@ -479,10 +491,11 @@ namespace Kratos {
                 array_1d<double, TDim>& a_i = mvel_n1[i_node];
                 const double nu_i = mViscosity;
                 const double eps_i = mEps[i_node];
+                const double d_i = mD[i_node];
 
                 double vel_norm = norm_2(a_i);
 
-                double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i);
+                double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
                 vel_norm /= eps_i;
 
 //                double tau = 1.0 / (2.0 * vel_norm / h_avg_i + time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
@@ -633,6 +646,9 @@ namespace Kratos {
                     const array_1d<double, TDim>& pi_i = mPi[i_node];
                     const double& p_i = pressure[i_node];
                     const double& eps_i = mEps[i_node];
+                    const double& d_i = mD[i_node];
+// KRATOS_WATCH("before");
+// KRATOS_WATCH(d_i);
                     const double& tau2_i = mTau2[i_node];
 
                     double edge_tau = mTauConvection[i_node];
@@ -646,7 +662,9 @@ namespace Kratos {
                         rhs_i[comp] = m_i * eps_i * f_i[comp] ;
 
                     //applying the effect of the porosity
-                    double porosity_coefficient = ComputePorosityCoefficient(mViscosity,norm_2(U_i),eps_i);
+                    double porosity_coefficient = ComputePorosityCoefficient(mViscosity,norm_2(U_i),eps_i, d_i);
+// KRATOS_WATCH("after");
+// KRATOS_WATCH(d_i);
                     for (unsigned int comp = 0; comp < TDim; comp++)
                         rhs_i[comp] -= m_i * porosity_coefficient * U_i[comp];
 
@@ -1626,6 +1644,7 @@ namespace Kratos {
             mphi_n1.clear();
 
             mEps.clear();
+	   mD.clear();
             mdiv_error.clear();
 
             KRATOS_CATCH("")
@@ -1945,6 +1964,7 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
         IndicesVectorType mcorner_nodes;
 
         ValuesVectorType mEps;
+        ValuesVectorType mD;
 
         double mdelta_t_avg;
         double max_dt;
@@ -2315,9 +2335,9 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
             KRATOS_CATCH("")
         }
 
-        double ComputePorosityCoefficient(const double& viscosity, const double& vel_norm, const double& eps)
+        double ComputePorosityCoefficient(const double& viscosity, const double& vel_norm, const double& eps, const double& d)
         {
-            const double d = 0.01; //to be changed
+//             const double d = 0.01; //to be changed
 
             double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
             double linear = viscosity * k_inv;
