@@ -40,7 +40,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ARRHENIUS)
     model_part.AddNodalSolutionStepVariable(IS_DIVIDED)
     model_part.AddNodalSolutionStepVariable(AUX_INDEX)
-    ##...aqui lista variables para utilizar
+    model_part.AddNodalSolutionStepVariable(DIAMETER)
+##...aqui lista variables para utilizar
+    
 
 #adding the variables of the Monolithic Solver
     monolithic_solver_eulerian.AddVariables(model_part)
@@ -132,13 +134,17 @@ class ElemBasedLevelSetSolver:
         print "entered in initialization"
 ##        #calculate the normals to the overall domain
 ##        self.normal_tools.CalculateBodyNormals(self.model_part.Elements,self.domain_size);
-        
+
+        print "to be removed SOOOOOOOOOOOOOOOOOOOOOOOOOONNNNNNNNNN!!!!!"
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(DIAMETER,0,0.01)
+
         #look for neighbours on the base mesh
         (self.mesh_neighbour_search).Execute()
 
         #constructing the fluid solver
         self.solver = monolithic_solver_eulerian.MonolithicSolver(self.model_part, self.domain_size)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,0)
         self.max_iter = 10
         self.solver.Initialize()
 
