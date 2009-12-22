@@ -220,7 +220,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 	double lump_mass_fac = density * area * 0.333333333333333333333333;
 
 	int nodes_number = 3;
@@ -268,7 +269,8 @@ namespace Kratos
 		        double density;
 		        double mu;
 		        double eps;
-		        CalculateDensity(GetGeometry(), density, mu, eps);
+		        double dp;
+		        CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
 		        boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
 		        array_1d<double,4> A_on_agp = ZeroVector(4);
@@ -455,7 +457,8 @@ namespace Kratos
 	double mu;
 	double density;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
 	//nu = mu/density;	
 
@@ -489,7 +492,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
 	ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
 	ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
@@ -534,8 +538,12 @@ namespace Kratos
 		double density;
 		double mu;
 		double eps;
-		CalculateDensity(GetGeometry(), density, mu, eps);
-		double dp = 0.01; //diameter of the particle	
+		double dp;
+		CalculateDensity(GetGeometry(), density, mu, eps, dp);
+// KRATOS_WATCH("line 535")
+// KRATOS_WATCH(eps)
+// KRATOS_WATCH(dp)
+// 		double dp = 0.01; //diameter of the particle	
 		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
@@ -599,9 +607,12 @@ namespace Kratos
 		double density;
 		double mu;
 		double eps;
-		CalculateDensity(GetGeometry(), density, mu, eps);
-		
-		double dp = 0.01; //diameter of the particle	
+		double dp;
+		CalculateDensity(GetGeometry(), density, mu, eps, dp);
+/*KRATOS_WATCH("line 604")
+KRATOS_WATCH(eps)
+KRATOS_WATCH(dp)	*/	
+// 		double dp = 0.01; //diameter of the particle	
 		double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
 		const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -656,7 +667,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
         //Pj mean point of the edge ik
         //N_on_meanp(i,j) = shape function od the node i calculated on the point Pj
@@ -715,7 +727,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
 
 	boost::numeric::ublas::bounded_matrix<double,6,6> temp_div = ZeroMatrix(matsize,matsize);
@@ -773,7 +786,11 @@ namespace Kratos
 		double density;
 		double mu;
 		double eps;
-		CalculateDensity(GetGeometry(), density, mu, eps);
+		double dp;
+		CalculateDensity(GetGeometry(), density, mu, eps, dp);
+// KRATOS_WATCH("line 779")
+// KRATOS_WATCH(eps)
+// KRATOS_WATCH(dp)
 		double fac = area * density;
 		for ( int ii = 0; ii < nodes_number; ii++)
 		    {
@@ -788,7 +805,7 @@ namespace Kratos
 		    }
 	
 	       //build Darcy Au+B|u|u * (a.grad v) stabilization term & assemble + build (rho a.grad u)* (Av+B|v|v)/rho   stabilization term & assemble
-	       double dp = 0.01; //diameter of the particle	
+// 	       double dp = 0.01; //diameter of the particle	
 	       double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
 		array_1d<double,3> norm_vel_2 = ZeroVector(nodes_number);
@@ -913,7 +930,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
 
 	for (int ii = 0; ii< nodes_number; ii++)
@@ -954,7 +972,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
 	//build 1*(grad q . grad p) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
@@ -971,7 +990,7 @@ namespace Kratos
 		   }
 	    }
 	//build Darcy Au+B|u|u * grad q stabilization term and assemble and assemble
-         double dp = 0.01; //diameter of the particle	
+//          double dp = 0.01; //diameter of the particle	
          double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
 	 const array_1d<double,3>& vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -1052,7 +1071,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
 	//build 1*tau1*ro Nacc grad q)
 	double fac = tauone * density * area;
@@ -1086,7 +1106,8 @@ namespace Kratos
 	double density;
 	double mu;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 	 
 	 double fac = area * density;
 	//body  & momentum term force
@@ -1114,7 +1135,8 @@ namespace Kratos
 		  double density;
 		  double mu;
 		  double eps;
-		  CalculateDensity(GetGeometry(), density, mu, eps);	     
+		  double dp;
+		  CalculateDensity(GetGeometry(), density, mu, eps, dp);   
 
 		  const array_1d<double,3> vel0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
 		  const array_1d<double,3> vel1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
@@ -1258,57 +1280,71 @@ namespace Kratos
         }
 	//*************************************************************************************
 	//*************************************************************************************
-	void Fluid2DSplit::CalculateDensity(Geometry< Node<3> > geom, double& elemental_density, double& elemental_viscosity, double& elemental_porosity)
+	void Fluid2DSplit::CalculateDensity(Geometry< Node<3> > geom, double& elemental_density, double& elemental_viscosity, double& elemental_porosity, double& elemental_diameter)
  	{//PAY ATTENTION: CALCULATION OF ELEMENTAL DENSITY WITHOUT THE EFFECT OF POROSITY : RHO === RHO_WATER
 
-	//Check if some of the elements don't have a porosity assigned
-	double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
-	if(eps0 == 0.0)
-	 {
-	     eps0 = 1.0;
-	 }
-	double eps1 = geom[1].FastGetSolutionStepValue(POROSITY);
-	if(eps1 == 0.0)
-	 {
-	     eps1 = 1.0;
-	 }
-	double eps2 = geom[2].FastGetSolutionStepValue(POROSITY);
-	if(eps2 == 0.0)
-	 {
-	     eps2 = 1.0;
-	 }
+	       //Check if some of the elements don't have a porosity assigned
+	       double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
+	       if(eps0 == 0.0)
+		{   eps0 = 1.0;}
+	       double eps1 = geom[1].FastGetSolutionStepValue(POROSITY);
+	       if(eps1 == 0.0)
+		{    eps1 = 1.0;}
+	       double eps2 = geom[2].FastGetSolutionStepValue(POROSITY);
+	       if(eps2 == 0.0)
+		{    eps2 = 1.0;}
+	       //Check if some of the elements don't have a DIAMETER assigned
+	       double d0 = geom[0].FastGetSolutionStepValue(DIAMETER);
+	       if(d0 == 0.0)
+		{    d0 = 1.0;}
+	       double d1 = geom[1].FastGetSolutionStepValue(DIAMETER);
+	       if(d1 == 0.0)
+		{    d1 = 1.0;}
+	       double d2 = geom[2].FastGetSolutionStepValue(DIAMETER);
+	       if(d2 == 0.0)
+		{    d2 = 1.0;}
 
-	elemental_density = 0.0;
-	elemental_porosity = 1.0;
+	       elemental_density = 0.0;
+	       elemental_porosity = 1.0;
+	       elemental_diameter = 0.01;
 
-	if(eps0 == eps1 && eps1 == eps2)
-	  {
-		//for inside the domain totally inside one fluid
-		elemental_porosity = eps0;
-		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); //* eps0;	
-		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
+	       if(eps0 == eps1 && eps1 == eps2)
+		{
+		        //for inside the domain totally inside one fluid
+		        elemental_porosity = eps0;
+		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); //* eps0;
+		        elemental_density = geom[0].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
 
-	  }
-	else if(eps0 == eps1)
-	 {
-	   	elemental_porosity = eps0;
-		elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); // * eps0;	
-		elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density 
-	 }
-	else if(eps1 == eps2)
-	 {
-		elemental_porosity = eps1;
-		elemental_density = geom[1].FastGetSolutionStepValue(DENSITY); // * eps1;	
-		elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY) * elemental_density;  //mu = nu * density 
-	 }
-	else if(eps2 == eps0)
-	 {
-		elemental_porosity = eps2;
-		elemental_density = geom[2].FastGetSolutionStepValue(DENSITY); // * eps2;	
-		elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY)* elemental_density;  //mu = nu * density 
-	 }
-	else { KRATOS_WATCH("ERROR!!! three different values of densities");}
+		}
+	       else if(eps0 == eps1)
+		{
+		        elemental_porosity = eps0;
+		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); // * eps0;	
+		        elemental_density = geom[0].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density 
+		}
+	       else if(eps1 == eps2)
+		{
+		        elemental_porosity = eps1;
+		        elemental_density = geom[1].FastGetSolutionStepValue(DENSITY); // * eps1;	
+		        elemental_density = geom[1].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY) * elemental_density;  //mu = nu * density 
+		}
+	       else if(eps2 == eps0)
+		{
+		        elemental_porosity = eps2;
+		        elemental_density = geom[2].FastGetSolutionStepValue(DENSITY); // * eps2;
+		        elemental_density = geom[2].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY)* elemental_density;  //mu = nu * density 
+		}
+	       else { KRATOS_WATCH("ERROR!!! three different values of densities");}
+
+
+
+
  	}
+
 	//*************************************************************************************
 	//*************************************************************************************
 
@@ -1335,9 +1371,10 @@ namespace Kratos
 
 	double density;
 	double eps;
-	CalculateDensity(GetGeometry(), density, mu, eps);
+	double dp;
+	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
-        	double dp = 0.01; //diameter of the particle	
+//         	double dp = 0.01; //diameter of the particle	
 	double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
 	double fac_linear = kinv * mu /density;	
