@@ -5,6 +5,7 @@ VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
 SCALAR CONDITION DISTANCE     		point line surface volume free  -1.0
 SCALAR CONDITION POROSITY     		point line surface volume free  1.0
+SCALAR CONDITION DIAMETER     		point line surface volume free  0.01
 
 FACE CONDITION Condition2D line
 FACE CONDITION Condition3D surface 
