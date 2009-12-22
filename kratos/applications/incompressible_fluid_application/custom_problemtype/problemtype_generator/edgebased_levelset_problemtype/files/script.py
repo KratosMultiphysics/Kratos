@@ -83,6 +83,8 @@ if(n_active == 0):
 for node in fluid_model_part.Nodes:
     if(node.GetSolutionStepValue(POROSITY) == 0.0):
         node.SetSolutionStepValue(POROSITY,0,1.0)
+    if(node.GetSolutionStepValue(DIAMETER) == 0.0):
+        node.SetSolutionStepValue(DIAMETER,0,1.0)
         
 #constructing the solver
 body_force = Vector(3)
