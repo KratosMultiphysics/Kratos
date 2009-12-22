@@ -10,7 +10,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
     model_part.AddNodalSolutionStepVariable(POROSITY)
-#    model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(DIAMETER)
 
     print "variables for the edgebased incompressible fluid solver added correctly"
 
@@ -95,6 +95,11 @@ class EdgeBasedLevelSetSolver:
         self.reorder = True
         self.distance_tools = BodyDistanceCalculationUtils()
 
+#TO BE DELETED SOON
+##        print "ASSIGNING DIAMETER FROM SOLVER: TO BE REMOVED SOOOOOON!!!!!!!!!!!!!!!!!!!!"
+        for node in self.model_part.Nodes:
+##            if(node.GetSolutionStepValue(POROSITY) != 1.0):
+            node.SetSolutionStepValue(DIAMETER,0, 0.01)
 
         self.fluid_solver.Initialize()
 
@@ -143,6 +148,7 @@ class EdgeBasedLevelSetSolver:
     ################################################################
     ################################################################
     def Solve(self):
+
         (self.fluid_solver).UpdateFixedVelocityValues()
 
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
@@ -150,8 +156,6 @@ class EdgeBasedLevelSetSolver:
         ##convect levelset function
        # self.convection_solver.Solve();
         (self.fluid_solver).ConvectDistance()
-
-
 
         ##solve fluid
         (self.fluid_solver).SolveStep1();
