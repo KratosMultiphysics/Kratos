@@ -143,7 +143,8 @@ namespace Kratos
 				mdistances.resize(n_nodes);
 				mEps.resize(n_nodes);
 				mEpsOld.resize(n_nodes);
-				
+				mD.resize(n_nodes);
+
 				mTauPressure.resize(n_nodes);
 				mTauConvection.resize(n_nodes);
 				
@@ -609,8 +610,8 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 
 						//porous contribution
 						double eps = mEps[i_node];
-						double dp = 0.01; //diameter of the particle	
-						double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
+						double d = mD[i_node]; //diameter of the particle	
+						double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*d*d);
 						double norm_u_2 = 0.0;
 						for (unsigned int comp = 0; comp < TDim; comp++)
 							norm_u_2 = a_i[comp]*a_i[comp];
@@ -1644,8 +1645,8 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 						const double& nu_i = viscosity[i_node];
 						//porous contribution
 						double eps = mEps[i_node];
-						double dp = 0.01; //diameter of the particle	
-						double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
+						double d = mD[i_node]; //diameter of the particle	
+						double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*d*d);
 						double norm_u_2 = 0.0;
 						for (unsigned int comp = 0; comp < TDim; comp++)
 							norm_u_2 = a_i[comp]*a_i[comp];
@@ -1835,6 +1836,7 @@ mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, mTauConvection, rNodes);*
 			ValuesVectorType mHavg;
 			ValuesVectorType mEps;
 			ValuesVectorType mEpsOld;
+			ValuesVectorType mD;
 			CalcVectorType mEdgeDimensions;
 			double mDissipationLength;
 			//area normal
