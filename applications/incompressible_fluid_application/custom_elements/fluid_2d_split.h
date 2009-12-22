@@ -191,7 +191,7 @@ namespace Kratos
       ///@} 
       ///@name Protected member Variables 
       ///@{ 
-       virtual void CalculateDensity(Geometry< Node<3> > geom, double& density, double& viscosity, double& porosity);
+       virtual void CalculateDensity(Geometry< Node<3> > geom, double& _density, double& viscosity, double& porosity, double& diameter);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
 //        virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time); 
        virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone,const double area);
