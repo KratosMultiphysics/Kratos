@@ -1,0 +1,13 @@
+file	problemtype.bas
+where	*# Conditional Variable blocks
+
+*if(CondNumEntities > 0)
+Begin ConditionalData <NAME>
+*loop elems *OnlyInCond
+*format "%i%f"
+*ElemsNum *cond(<NAME>)
+*end nodes
+End ConditionalData
+
+*endif
+
