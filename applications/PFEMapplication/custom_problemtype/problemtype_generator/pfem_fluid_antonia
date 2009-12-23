@@ -37,6 +37,7 @@ PROPERTY Gravity_X 0.0 Gravity_X
 PROPERTY Gravity_Y 0.0 Gravity_Y
 PROPERTY Gravity_Z -9.806 Gravity_Z
 PROPERTY Porosity 1.0 Porosity
+PROPERTY Diameter 0.01 Diameter
 PROPERTY fixed_dam 0.0 fixed_dam
 
 PROPERTY max_time 100.0 max_time
