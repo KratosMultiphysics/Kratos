@@ -5,7 +5,7 @@ import pfem_antonia_var
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size_pfem = pfem_antonia_var.domain_size
+domain_size = pfem_antonia_var.domain_size
 
 #read from pfem_antonia_var name and path of fluid_gid_problem
 fluid_path=pfem_antonia_var.fluid_file.rpartition('/')
@@ -46,6 +46,7 @@ from KratosStructuralApplication import *
 from KratosIncompressibleFluidApplication import *
 from KratosPFEMApplication import *
 from KratosMeshingApplication import *
+from KratosExternalSolversApplication import*
 
 
 ## from now on the order is not anymore crucial
@@ -63,7 +64,8 @@ fixed_model_part = ModelPart("FixedFluidPart");
 #importing the fluid_solver files and adding the variablesv
 edgebased_levelset_solver.AddVariables(fixed_model_part)
 fixed_model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
-##fixed_model_part.AddNodalSolutionStepVariable(DENSITY)
+fixed_model_part.AddNodalSolutionStepVariable(POROSITY)
+fixed_model_part.AddNodalSolutionStepVariable(DIAMETER)
 ##fixed_model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
 #importing the structural_solver files and adding the variables
@@ -75,6 +77,8 @@ if(SolverType == "pfem_solver_ale"):
     pfem_model_part.AddNodalSolutionStepVariable(IS_VISITED)
     pfem_model_part.AddNodalSolutionStepVariable(IS_EROSIONABLE)
     pfem_model_part.AddNodalSolutionStepVariable(FRICTION_COEFFICIENT)
+    pfem_model_part.AddNodalSolutionStepVariable(POROSITY)
+    pfem_model_part.AddNodalSolutionStepVariable(DIAMETER)
 
 elif(SolverType == "monolithic_solver_lagrangian"):
     import monolithic_solver_lagrangian
@@ -83,6 +87,9 @@ elif(SolverType == "monolithic_solver_lagrangian"):
     pfem_model_part.AddNodalSolutionStepVariable(IS_VISITED)
     pfem_model_part.AddNodalSolutionStepVariable(IS_EROSIONABLE)
     pfem_model_part.AddNodalSolutionStepVariable(FRICTION_COEFFICIENT)
+    pfem_model_part.AddNodalSolutionStepVariable(POROSITY)
+    pfem_model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+    pfem_model_part.AddNodalSolutionStepVariable(DIAMETER)
 else:
     raise "solver type not supported: options are FractionalStep - Monolithic"
 
@@ -90,7 +97,7 @@ else:
 #reading the models
 name_pfem = pfem_antonia_var.problem_name
 ##print name_pfem
-name_fixed = edgebased_levelset_var.problem_name
+name_fixed = pfem_antonia_var.fluid_file
 ##print name_fixed
 
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -107,14 +114,11 @@ write_conditions = WriteConditionsFlag.WriteElementsOnly
 ##print "pfem model read correctly"
 
 #reading the pfem model part
-gid_io = GidIO(name_pfem,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+gid_io = EdgebasedGidIO(name_pfem,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 model_part_io_structure = ModelPartIO(name_pfem)
 model_part_io_structure.ReadModelPart(pfem_model_part)
 print "pfem model read correctly"
 
-###reading the fixed model part with the old problem type format
-##data_io = DatafileIO(name_fixed)
-##data_io.ReadModelPart(fixed_model_part)
 #reading the fixed model part with the new porblem type format
 model_part_io_fluid = ModelPartIO(name_fixed)
 model_part_io_fluid.ReadModelPart(fixed_model_part)
@@ -123,12 +127,18 @@ print "fixed model read correctly"
 ##NODAL CONDITIONS of the PFEM model
 for node in pfem_model_part.Nodes:
     node.SetSolutionStepValue(DENSITY,0,pfem_antonia_var.Density)
-    node.SetSolutionStepValue(VISCOSITY,0,pfem_antonia_var.Viscosity) 
+    node.SetSolutionStepValue(VISCOSITY,0,pfem_antonia_var.Viscosity)
+    node.SetSolutionStepValue(POROSITY,0,pfem_antonia_var.Porosity)
+    node.SetSolutionStepValue(DIAMETER,0,pfem_antonia_var.Diameter)
     node.SetSolutionStepValue(BODY_FORCE_X,0,pfem_antonia_var.Gravity_X) 
     node.SetSolutionStepValue(BODY_FORCE_Y,0,pfem_antonia_var.Gravity_Y) 
     node.SetSolutionStepValue(BODY_FORCE_Z,0,pfem_antonia_var.Gravity_Z) 
     node.SetSolutionStepValue(FRICTION_COEFFICIENT,0,0.0) 
-
+if(pfem_antonia_var.fixed_dam == 1.0):
+    for node in pfem_model_part.Nodes:
+        node.Fix(VELOCITY_X)
+        node.Fix(VELOCITY_Y)
+        node.Fix(VELOCITY_Z)
 
 edgebased_levelset_solver.AddDofs(fixed_model_part)
 
@@ -225,16 +235,19 @@ elif(SolverType == "monolithic_solver_lagrangian"):
     dynamic_tau = pfem_antonia_var.dynamic_tau
     pfem_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
     pfem_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    structural_solver.linear_solver = SuperLUSolver()
     structural_solver.Initialize(output_Dt)
 
 
 ##############
+ProjectionModule = MeshTransfer2D();
 ErosionModule = ErosionUtils2D();
+PfemUtils = PfemUtils();
 critical_vel = Vector(3);
-critical_vel[0] = 0.3;
+critical_vel[0] = 0.06;
 critical_vel[1] = 0.0;
 critical_vel[2] = 0.0;
-critical_en = 0.1;
+critical_en = 0.000001;
 ##############
 
 #settings to be changed fluid FIXED
@@ -267,18 +280,44 @@ while(time < final_time):
     print "******** CURRENT TIME = ",time
 
     if(step > 3):
+        
+        ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, POROSITY, POROSITY);
+        ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, DIAMETER, DIAMETER);
+        for node in fixed_model_part.Nodes:
+            if(node.GetSolutionStepValue(POROSITY) == 0.0):
+                node.SetSolutionStepValue(POROSITY,0,1.0)
+            if(node.GetSolutionStepValue(DIAMETER) == 0.0):
+                node.SetSolutionStepValue(DIAMETER,0,1.0)
+        #solving the fluid problem
+        print "starting solving fluid~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         #solving the fluid problem
         fluid_solver.Solve()
+##        print "finished solving fluid"
 ##        print fixed_model_part
 ##        print pfem_model_part
-        ErosionModule.CheckErosionableNodes(fixed_model_part, pfem_model_part, critical_vel, critical_en);
-
+        PfemUtils.CalculateNodalMass(pfem_model_part,domain_size)
+##        print "starting EROSION"
+        ErosionModule.CheckErosionableNodes(fixed_model_part, pfem_model_part, critical_vel, critical_en, pfem_antonia_var.fixed_dam);
+##        print "finished EROSION"    
         #solving the structural problem
-        structural_solver.Solve(time,gid_io)
+        print "starting solving structure~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+##        structural_solver.Solve(time,gid_io);
+        structural_solver.Remesh();
+        (structural_solver.solver).Solve();
+        (structural_solver.solver).Clear();
+
+##        print "finished solving structure"
+        ErosionModule.SetErosionableNodes(pfem_model_part);
+##        if (time>0.25):
+##        ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, POROSITY);
+##        for nodes in fixed_model_part.Nodes:
+##            if( node.GetSolutionStepValue(POROSITY) == 0.5):
+##                print node.Id
 
 ##################################
     if(time >= next_output_time):        
         ##a change in the output name is needed!!!!
+        
         res_name1 = str(name_fixed)
         gid_io.ChangeOutputName(res_name1)
         gid_io.InitializeMesh( time );
@@ -286,10 +325,15 @@ while(time < final_time):
         gid_io.FinalizeMesh();
 
         gid_io.InitializeResults( time, fixed_model_part.GetMesh() )
+##        print "structure output ****************************************************"
         gid_io.WriteNodalResults(VELOCITY,fixed_model_part.Nodes,time,0)
+##        gid_io.WriteNodalResults(CONV_VELOCITY,fixed_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,fixed_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISTANCE,fixed_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESS_PROJ,fixed_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(POROSITY,fixed_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DIAMETER,fixed_model_part.Nodes,time,0)
+
         gid_io.Flush()
         gid_io.FinalizeResults()
 
@@ -302,6 +346,7 @@ while(time < final_time):
         gid_io.FinalizeMesh();
 
         gid_io.InitializeResults( time, pfem_model_part.GetMesh() )
+##        print "fluid output ****************************************************"
         gid_io.WriteNodalResults(VELOCITY,pfem_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,pfem_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(IS_FREE_SURFACE,pfem_model_part.Nodes,time,0)
@@ -309,8 +354,12 @@ while(time < final_time):
         gid_io.WriteNodalResults(IS_STRUCTURE,pfem_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VISCOSITY,pfem_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DENSITY,pfem_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(IS_FLUID,pfem_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(BODY_FORCE,pfem_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(FRICTION_COEFFICIENT,pfem_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(IS_EROSIONABLE,pfem_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(POROSITY,pfem_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DIAMETER,pfem_model_part.Nodes,time,0)
+
         gid_io.Flush()  
         gid_io.FinalizeResults()
 
