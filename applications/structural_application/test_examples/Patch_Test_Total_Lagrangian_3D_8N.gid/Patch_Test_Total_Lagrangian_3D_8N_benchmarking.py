@@ -3,7 +3,7 @@
 #setting the domain size for the problem to be solved
 domain_size = 3
 import math
-import matplotlib
+
 ##################################################################
 ##################################################################
 ## ATTENTION: here the order is important
