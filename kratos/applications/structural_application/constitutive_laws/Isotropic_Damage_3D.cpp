@@ -295,7 +295,6 @@ void Isotropic_Damage_3D::CalculateConstitutiveMatrix(const Vector& StrainVector
     double elev      = 0.00; 
     double norma     = 0.00; 
 		  	
-
     if (Aux_Vector.size() != 6)
 	{
 	      StressTensor.resize(3,3,false);
@@ -479,8 +478,8 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
   {
 			 // Using perturbation methods
                          long double delta_strain =  0.00;
-			 long double factor       =  1E-10;
-                         long double max          =  1E-14;
+			 long double factor       =  1E-5;
+                         long double max          =  1E-7;
                          double last_damage       =  md;
 			 double last_r            =  mr_new;
 
