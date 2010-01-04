@@ -67,6 +67,7 @@ namespace Kratos
                
 		   //Nota : Se require hablar con  Oller para verificar funcionalidad de funcion.q
 
+                   // For damage model
                    double  Lineal_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
 		   {
 		      double q_r  =  r_o/(A+1.00);
@@ -77,7 +78,23 @@ namespace Kratos
 		      }
                       return a;
 		      
-		   }   
+		   }
+
+                   // for geomaterials model
+                   void Lineal_Softening::FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result)
+
+                     {
+                         Result     = 0.00;
+                         der_Result = 0.00;
+			 if (capap<1.00)
+                               {
+                                  Result     = sigma*(1.00 - capap);
+                                  der_Result = -sigma;
+                               }
+                      //KRATOS_WATCH(Result)
+                      //KRATOS_WATCH(der_Result)     
+                      return;
+                     }
     
     /**
      * definition of CONSTITUTIVE_LAW variable

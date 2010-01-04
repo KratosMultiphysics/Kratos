@@ -77,6 +77,12 @@ namespace Kratos
 	      { 
 		    return 0.00;
 	      }
+         
+            // Calcula la funcion de abalandamiento o endurecimiento junto con su derivada respecto kp_punto (0 <= kp_punto <= 1.00) 
+            virtual void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result) 
+	      { 
+		    return;
+	      }
   
 	    protected:
 
