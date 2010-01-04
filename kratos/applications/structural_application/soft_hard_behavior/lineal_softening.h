@@ -73,6 +73,7 @@ namespace Kratos
 		  ~Lineal_Softening();
                    KRATOS_CLASS_POINTER_DEFINITION(Lineal_Softening);
                    double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
+                   void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result); 
            };    
     
 
