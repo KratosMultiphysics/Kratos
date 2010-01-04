@@ -20,6 +20,7 @@
 
 
 // Project includes
+#include "structural_application.h"
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
@@ -107,6 +108,8 @@ namespace Kratos
 
     void GetValuesVector(Vector& values, int Step);
 
+    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
 				void CalculateRHS(Vector& rRightHandSideVector);
 
 				void CalculateLHS(Matrix& rLeftHandSideMatrix);
@@ -115,6 +118,10 @@ namespace Kratos
                                          ProcessInfo& rCurrentProcessInfo,
                                          bool CalculateStiffnessMatrixFlag,
                                          bool CalculateResidualVectorFlag);
+
+ void  GetFirstDerivativesVector(Vector& values, int Step);
+ void  GetSecondDerivativesVector(Vector& values, int Step);
+
 
 		
 
