@@ -97,7 +97,7 @@ alias sources_KratosStructuralApplication
 	add_custom_parallel_strategies_to_python.cpp 
 	crisfield_truss_element.cpp
 	ebst.cpp
-ebst_vel.cpp
+#        ebst_vel.cpp
 #	orthotropic_3d.cpp
         add_fluency_criteria_to_python.cpp
 #       compose_material.cpp
