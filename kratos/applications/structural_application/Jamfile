@@ -103,15 +103,15 @@ alias sources_KratosStructuralApplication
 #       compose_material.cpp
 #       plane_stress_damage_orthotropic_2d.cpp
 #       tension_compression_damage_model.cpp
-#        tension_compression_damage_model_2d.cpp
-         energy_yield_function.cpp
-         rankine_yield_function.cpp
-         tresca_yield_function.cpp
-         von_misses_yield_function.cpp
-         modified_morh_coulomb_yield_function.cpp
-         drucker_prager_yield_function.cpp
-         exponencial_softening.cpp
-         lineal_softening.cpp
+        tension_compression_damage_model_2d.cpp
+        energy_yield_function.cpp
+        rankine_yield_function.cpp
+        tresca_yield_function.cpp
+        von_misses_yield_function.cpp
+        modified_morh_coulomb_yield_function.cpp
+        drucker_prager_yield_function.cpp
+        exponencial_softening.cpp
+        lineal_softening.cpp
          plasticity_2d.cpp
 #        plasticity_3d.cpp
 #        plastic_damage_3d.cpp
