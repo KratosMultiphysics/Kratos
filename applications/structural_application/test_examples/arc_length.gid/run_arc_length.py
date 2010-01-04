@@ -92,7 +92,7 @@ structural_solver_static_arc_length.AddDofs(model_part)
 #solver = structural_solver_relaxation.RelaxationStructuralSolver(model_part,domain_size)
 #solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
 #solver = structural_solver_dynamic_superlu.DynamicStructuralSolver(model_part,domain_size)
-solver = structural_solver_static_arc_length.StaticStructuralSolverArcLength(model_part,domain_size)
+solver = structural_solver_static_arc_length.StaticStructuralSolver(model_part,domain_size)
 
 #solver.structure_linear_solver =  SuperLUSolver()
 
