@@ -97,7 +97,7 @@ alias sources_KratosStructuralApplication
 	add_custom_parallel_strategies_to_python.cpp 
 	crisfield_truss_element.cpp
 	ebst.cpp
-#        ebst_vel.cpp
+        ebst_vel.cpp
 #	orthotropic_3d.cpp
         add_fluency_criteria_to_python.cpp
 #       compose_material.cpp
@@ -112,10 +112,10 @@ alias sources_KratosStructuralApplication
         drucker_prager_yield_function.cpp
         exponencial_softening.cpp
         lineal_softening.cpp
-        plasticity_2d.cpp
-        plasticity_3d.cpp
-        plastic_damage_3d.cpp
-        plastic_damage_2d.cpp
+#        plasticity_2d.cpp
+#        plasticity_3d.cpp
+#        plastic_damage_3d.cpp
+#        plastic_damage_2d.cpp
 
 
 	#####################kratos library as defined in the jamroot
