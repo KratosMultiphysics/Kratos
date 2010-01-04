@@ -66,7 +66,13 @@ namespace Kratos
 			  
             typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
 			  
-	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri    
+	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz
+
+            virtual boost::shared_ptr<FluencyCriteria> Clone() const
+	        {
+		      boost::shared_ptr<FluencyCriteria> p_clone(new Drucker_Prager_Yield_Function(mState));
+		      return p_clone;
+		}       
   
             Drucker_Prager_Yield_Function(myState State);
 	   
@@ -101,11 +107,12 @@ namespace Kratos
 
 
 
-		    void CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria);
+		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
 		    
 
-      
-	protected:
+      private:
+
+
 
     };
 }

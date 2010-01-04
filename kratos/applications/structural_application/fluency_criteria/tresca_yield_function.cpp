@@ -156,8 +156,57 @@ namespace Kratos
 
 	{}
 
-	  void Tresca_Yield_Function::CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria)
-	{}
+	  void Tresca_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
+	{
+	  		  Second_Order_Tensor a;  
+                          Vector C = ZeroVector(3);
+                          DerivateFluencyCriteria = ZeroVector(6);
+
+			  double tetha_Lode = 0.00;  
+			  Vector I          = ZeroVector(3);
+			  Vector J          = ZeroVector(3);
+			  Vector J_des      = ZeroVector(3);		      
+
+			  Matrix StressTensor     = ZeroMatrix(3,3);
+			  Vector PrincipalStress  = ZeroVector(3);
+				  
+			  
+			  this->State_Tensor(StressVector,StressTensor);
+			  this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
+			  Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
+		    
+			  if (J_des(1)==0.00 && J_des(2)==0.00) 
+			    {
+				tetha_Lode = PI/2.00;                           	   
+			    }
+			  else
+			    {  
+			    tetha_Lode = -(3.00*sqrt(3.00)*J_des(2))/(2.00*pow(J_des(1), 1.50));
+			    if(fabs(tetha_Lode) > 1.00){tetha_Lode = 1.00; }
+			    tetha_Lode = asin(tetha_Lode)/3.00; 
+			    }
+
+			    if(fabs((fabs(tetha_Lode) - 0.523599)) < 1E-5)  // Angulo de  +-30.00
+                            {
+                            C(0) = 0.00; 
+                            C(1) = sqrt(3.00);  
+                            C(2) = 0.00;
+                            }
+                            else
+                            { 
+                            C(0) = 0.00; 
+                            C(1) = 2.00*cos(tetha_Lode)*(1.00 + tan(tetha_Lode)*tan(3.00*tetha_Lode));  
+                            C(2) = sqrt(3.00)*sin(tetha_Lode)/(J_des(1)*cos(3.00*tetha_Lode));
+                            }
+			    this->CalculateVectorFlowDerivate(StressVector, a);
+			    for(unsigned  int i=0; i<3; i++)
+                               {
+                                 noalias(DerivateFluencyCriteria) = DerivateFluencyCriteria + a(i)*C(i); 
+                               }
+
+
+
+	}
 
 
     }

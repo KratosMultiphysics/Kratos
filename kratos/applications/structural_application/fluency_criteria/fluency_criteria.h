@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "includes/variables.h"
 //#include "utilities/math_utils.h"
 //#include "custom_utilities/sd_math_utils.h"
+#include "structural_application.h"
 #include "custom_utilities/tensor_utils.h"
 #include "includes/ublas_interface.h"
 #include "includes/properties.h"
@@ -70,10 +71,15 @@ namespace Kratos
 {
 
      enum myState{Plane_Stress, Plane_Strain, Tri_D };
+     enum myPotencialPlastic{Not_Associated, Associated}; 
     
       class FluencyCriteria
 	  {
         public:
+
+	            double mSigma_e;  // Esfuerzo efectivo
+	            double mSigma_y;  // Esfuerzo Resistencia de Comparacion
+                    double mElasticDomain;
 
 
 		    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
@@ -86,16 +92,18 @@ namespace Kratos
 		    typedef FluencyCriteria FluencyCriteriaType;
 
                     typedef Properties::Pointer PropertiesPointer;
-
-                  
-
-
-
+	            
 		    FluencyCriteria(){}
 
 		    virtual ~FluencyCriteria(){}
 
                     KRATOS_CLASS_POINTER_DEFINITION( FluencyCriteria );
+
+                     virtual boost::shared_ptr<FluencyCriteria> Clone() const
+                      {
+			    boost::shared_ptr<FluencyCriteria> p_clone(new FluencyCriteria ());
+			    return p_clone;
+		      }
 
 
 
@@ -138,12 +146,22 @@ namespace Kratos
 		    }
 
 
-		    virtual void CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria)
+		    virtual void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
 		    {
 	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
 		     }
 
-		    protected:
+		    virtual void CalculateDerivatePotencialFlowCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
+		    {
+	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivatePotencialFlowCriteria", "");
+		     }
+
+		    virtual void UpdateVariables( const Vector& Variables)
+		    {
+	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for UpdateVariables", "");
+		     }
+
+		    //protected:
 
 		    void  Comprobate_State_Tensor(Matrix& StressTensor, const Vector& StressVector)
 		    {
@@ -153,16 +171,16 @@ namespace Kratos
 		      if (fabs(StressTensor(2,2))<1E-10){StressTensor(2,2) = 1E-10; }       
 		     }
 
-                  void State_Tensor( const Vector& StressVector, Matrix& StressTensor)
+                   void State_Tensor( const Vector& StressVector, Matrix& StressTensor)
                            {
 
 				    
 				double sigma_z = 0.00;
+                                StressTensor.resize(3,3, false);
 				switch (mState)
 				  {
 				    case Plane_Stress:
                                           {
-					  
 					  StressTensor (0,0) = StressVector(0); StressTensor (0,1) = StressVector(2); StressTensor (0,2) = 0.00;
 					  StressTensor (1,0) = StressVector(2); StressTensor (1,1) = StressVector(1); StressTensor (1,2) = 0.00;
 					  StressTensor (2,0) = 0.00;            StressTensor (2,1) = 0.00;            StressTensor (2,2) = 1E-10;
@@ -187,15 +205,70 @@ namespace Kratos
                                       default:
 				      std::cout<<"Warning: State not valid"<<std::endl;
 				  }
-                                    
+			  }
 
-                           }
+                     void CalculateVectorFlowDerivate(const Vector& StressVector, Second_Order_Tensor& a)
+                          {
 
-		    private:
+			    matrix<double> StressTensor         = ZeroMatrix(3,3);
+			    matrix<double> Aux_Tensor           = ZeroMatrix(3,3);
+			    matrix<double> SphericComponent     = IdentityMatrix(3,3);
+			    matrix<double> DesviatoricComponent = ZeroMatrix(3,3);
 
-		    protected:
+                            Vector  I(3);
+                            Vector  J(3); 
+                            Vector  J_des(3); 
+
+			    a.resize(3, false);
+			    a[0].resize(6, false); a[0] = ZeroVector(6);
+			    a[1].resize(6, false); a[1] = ZeroVector(6);
+			    a[2].resize(6, false); a[2] = ZeroVector(6);
+                            
+                            // Calculando a1
+                            // Parcial(J1)/Parcial(sigma)
+			    a[0](0)= 1.00;
+			    a[0](1)= 1.00;
+			    a[0](2)= 1.00;
+			    a[0](3)= 0.00;
+			    a[0](4)= 0.00;
+			    a[0](5)= 0.00;
+              
+                            // calculando a2
+                            State_Tensor(StressVector, StressTensor);
+                            Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
+                            //KRATOS_WATCH(I)
+                            //KRATOS_WATCH(J_des)
+
+
+                            double factor_A  =  (1.00/(2.00*sqrt(J_des(1)))); 
+	                    noalias(SphericComponent)     =  (I(0)/3.00)*SphericComponent;
+	                    noalias(DesviatoricComponent) =  StressTensor - SphericComponent;
+			   
+
+			    a[1](0) = DesviatoricComponent(0,0);
+			    a[1](1) = DesviatoricComponent(1,1);
+			    a[1](2) = DesviatoricComponent(2,2);
+			    a[1](3) = 2.00*StressTensor(0,1);
+			    a[1](4) = 2.00*StressTensor(1,2);
+			    a[1](5) = 2.00*StressTensor(0,2);
+                            a[1]    =  factor_A*a[1];
+
+                            // calculando a3
+                            a[2](0) =  DesviatoricComponent(1,1)*DesviatoricComponent(2,2) - StressTensor(1,2)*StressTensor(1,2) + J_des(1)/3.00; 
+                            a[2](1) =  DesviatoricComponent(0,0)*DesviatoricComponent(2,2) - StressTensor(0,2)*StressTensor(0,2) + J_des(1)/3.00;
+                            a[2](2) =  DesviatoricComponent(0,0)*DesviatoricComponent(1,1) - StressTensor(0,1)*StressTensor(0,1) + J_des(1)/3.00;
+                            a[2](3) =  2.00*(StressTensor(1,2)*StressTensor(0,2) - DesviatoricComponent(2,2)*StressTensor(0,1)); 
+                            a[2](4) =  2.00*(StressTensor(0,2)*StressTensor(0,1) - DesviatoricComponent(0,0)*StressTensor(1,2)); 
+                            a[2](5) =  2.00*(StressTensor(0,1)*StressTensor(1,2) - DesviatoricComponent(1,1)*StressTensor(0,2));
+
+			  }  
+                        
+		    public:
+		    
 		    const Properties *mprops;
                     myState mState;
+                    myPotencialPlastic mPotencialPlastic;
+
                       
 
                  
