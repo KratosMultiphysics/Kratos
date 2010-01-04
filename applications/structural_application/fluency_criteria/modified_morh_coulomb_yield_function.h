@@ -47,6 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "custom_utilities/tensor_utils.h"
+#include "includes/ublas_interface.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include <cmath>
 
@@ -66,9 +67,15 @@ namespace Kratos
 			  
             typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
 			  
-	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri    
+	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz
+
+            virtual boost::shared_ptr<FluencyCriteria> Clone() const
+	        {
+		      boost::shared_ptr<FluencyCriteria> p_clone(new Modified_Morh_Coulomb_Yield_Function(mState,mPotencialPlastic));
+		      return p_clone;
+		}
   
-            Modified_Morh_Coulomb_Yield_Function(myState State);
+            Modified_Morh_Coulomb_Yield_Function(myState State, myPotencialPlastic PotencialPlastic);
 	   
             ~Modified_Morh_Coulomb_Yield_Function();
 
@@ -99,14 +106,20 @@ namespace Kratos
 		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
 		    const Vector& StressVector,double& Result);
 
+                    void UpdateVariables(const Vector& Variables);
 
 
-		    void CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria);
+		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
+
+                    void CalculateDerivatePotencialFlowCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
 		    
 
+      private:
       
-	protected:
-
+    double mcohesion;
+    double mfriction_angle;
+    double mdilatancy_angle;  
+    double mEta; // Valore N
 
     };
 }

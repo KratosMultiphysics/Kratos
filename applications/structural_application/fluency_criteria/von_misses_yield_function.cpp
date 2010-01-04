@@ -62,11 +62,11 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
            
-            Von_Misses_Yield_Function::Von_Misses_Yield_Function(myState State )
+            Von_Misses_Yield_Function::Von_Misses_Yield_Function(myState State, myPotencialPlastic PotencialPlastic )
 	    :FluencyCriteria()
-	    {
-              
+	    {           
               mState = State; 
+              mPotencialPlastic = PotencialPlastic;
 	    }
 
              Von_Misses_Yield_Function::~Von_Misses_Yield_Function() {}
@@ -75,44 +75,62 @@ namespace Kratos
 //***********************************************************************
 //***********************************************************************
 
-		    void Von_Misses_Yield_Function::InitializeMaterial(const Properties& props) { mprops = &props;}
+		    void Von_Misses_Yield_Function::InitializeMaterial(const Properties& props) { 
+		     mprops = &props;
+                     mSigma_y = (*mprops)[YIELD_STRESS];}
 		     
 
-		    void Von_Misses_Yield_Function:: CalculateEquivalentUniaxialStress(
-		    const Vector& StressVector,double& Result)  {}
+		    // Resistencia de comparacion Sigma_Y
+		    void Von_Misses_Yield_Function::CalculateEquivalentUniaxialStress(
+		    const Vector& StressVector,double& Result)  
+		      {
+		      Matrix StressTensor    = ZeroMatrix(3,3);
+                      this->State_Tensor(StressVector,StressTensor);
+	              Result = ((StressTensor(0,0)-StressTensor(1,1))*(StressTensor(0,0)-StressTensor(1,1)) + (StressTensor(1,1)-StressTensor(2,2))*(StressTensor(1,1)-StressTensor(2,2)) + (StressTensor(2,2)-StressTensor(0,0))*(StressTensor(2,2)-StressTensor(0,0)) + 6.00*((StressTensor(0,1)*StressTensor(0,1)) + (StressTensor(1,2)*StressTensor(1,2)) + (StressTensor(0,2)*StressTensor(0,2))));
+		      Result = sqrt(Result/2.00); 
+		      mSigma_e = Result;
+                      Result  -= mSigma_y;  
+                      mElasticDomain = Result; 
+            
+		      }
 
-
+                     // Resistencia de comparacion Sigma_Y
 		    void Von_Misses_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
 		    const Vector& StressVector,double& Result)
                        {
-		      double crit = 1E-15;
-                      double zero = 1E-15;  
+		      double crit  = 1E-10;
+                      double zero  = 1E-10;  
+                      double norma = 0.00;
                       unsigned int dim  = 3;
-
+		      
 
 		      Matrix StressTensor    = ZeroMatrix(dim,dim);
                       Vector PrincipalStress = ZeroVector(dim);
                       this->State_Tensor(StressVector,StressTensor);
 		      this->Comprobate_State_Tensor(StressTensor, StressVector);
-                      PrincipalStress = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
-                      Result =  (1.00/6.00)*((PrincipalStress(0)-PrincipalStress(1))*(PrincipalStress(0)-PrincipalStress(1)) +
-		      (PrincipalStress(1)-PrincipalStress(2))*(PrincipalStress(1)-PrincipalStress(2)) +
-                      (PrincipalStress(2)-PrincipalStress(0))*(PrincipalStress(2)-PrincipalStress(0)));		    
-		       Result = sqrt(Result);
+                      norma =SD_MathUtils<double>::normTensor(StressTensor);
+                      if(norma>1E-6)
+                         {PrincipalStress = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);}
 
-                      KRATOS_WATCH(Result) 
+                      Result =  (1.00/2.00)*((PrincipalStress(0)-PrincipalStress(1))*(PrincipalStress(0)-PrincipalStress(1)) +
+		      (PrincipalStress(1)-PrincipalStress(2))*(PrincipalStress(1)-PrincipalStress(2)) +
+                      (PrincipalStress(2)-PrincipalStress(0))*(PrincipalStress(2)-PrincipalStress(0))); 
+		      Result = sqrt(Result);
+		      mSigma_e = Result;
+                      Result  -= mSigma_y;  
+                      mElasticDomain = Result; 
                    	}
 
 
-
+                    // Resistencia de comparacion Sigma_Y
 		    void Von_Misses_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants( 
 		    const Vector& StressVector,double& Result)
 			   {
-				      
+   
 	              unsigned int dim  = 3;
                       Vector I          = ZeroVector(3);
 		      Vector J          = ZeroVector(3);
-                      Vector J_des      = ZeroVector(3);		      
+                      Vector J_des      = ZeroVector(3);  
 
 		      Matrix StressTensor     = ZeroMatrix(dim,dim);
 		      Vector PrincipalStress  = ZeroVector(dim);
@@ -120,22 +138,68 @@ namespace Kratos
 		      this->State_Tensor(StressVector,StressTensor);
 		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
 		      Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
-		
+		      Result =  sqrt(3.00*J_des(1)); 
 
-		      Result = sqrt(J_des(1)); // - msigma_max;
-		      KRATOS_WATCH("----------")
-                      KRATOS_WATCH(Result)
-				    
-
-			    }
+		      mSigma_e = Result;
+                      Result  -= mSigma_y;  
+                      
+                      mElasticDomain = Result;
+                      //std::cout<<"______________"<<std::endl;
+                      }
 
 
 		    void Von_Misses_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate( 
 		    const Vector& StressVector,double& Result){}
 
 
+		    void Von_Misses_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
+			 {
+			    Second_Order_Tensor a;  
+                            Vector C = ZeroVector(3);
+                            DerivateFluencyCriteria = ZeroVector(6);
+			    //double Result = 0.00;
+                            
+			    C(0) =  0.00; 
+                            C(1) =  1.7320508075689; //sqrt(3.00);
+                            C(2) =  0.00;
+                            
+			   this->CalculateVectorFlowDerivate(StressVector, a);
+			   for(unsigned  int i=0; i<3; i++)
+                             {
+                                noalias(DerivateFluencyCriteria) = DerivateFluencyCriteria + a[i]*C(i); 
+                              }  
 
-		    void Von_Misses_Yield_Function::CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria){}
+			   //  KRATOS_WATCH(DerivateFluencyCriteria); 
+  
+//                              CalculateEquivalentUniaxialStress(StressVector,Result);
+//                              Result = this->mSigma_e;
+//   
+//   			     Matrix StressTensor(3,3);
+//   			     this->State_Tensor(StressVector,StressTensor); 
+//   			     DerivateFluencyCriteria = ZeroVector(6);
+//   			     DerivateFluencyCriteria(0)  = 2.00*StressTensor(0,0)-StressTensor(1,1)-StressTensor(2,2); 
+//                              DerivateFluencyCriteria(1)  = 2.00*StressTensor(1,1)-StressTensor(0,0)-StressTensor(2,2);
+//                              DerivateFluencyCriteria(2)  = 2.00*StressTensor(2,2)-StressTensor(0,0)-StressTensor(1,1);
+//                              DerivateFluencyCriteria(3)  = 6.00*StressTensor(0,1);
+//                              DerivateFluencyCriteria(4)  = 6.00*StressTensor(1,2);
+//                              DerivateFluencyCriteria(5)  = 6.00*StressTensor(0,2);
+//   
+//                               
+//                             DerivateFluencyCriteria = DerivateFluencyCriteria/(2.00*Result);
+                            //KRATOS_WATCH(DerivateFluencyCriteria);
+//                            KRATOS_WATCH(StressVector); 
+//                              
+
+
+			 }
+
+
+void Von_Misses_Yield_Function::UpdateVariables(const Vector& Variables)
+                     { 
+                        //KRATOS_WATCH((*mprops)[PLASTIC_MODULUS])
+                        mSigma_y = (*mprops)[YIELD_STRESS] + (*mprops)[PLASTIC_MODULUS]*Variables[0];
+                        //KRATOS_WATCH(mSigma_y)
+                     }
 
 
     }

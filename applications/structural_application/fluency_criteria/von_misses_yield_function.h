@@ -68,7 +68,14 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri    
   
-            Von_Misses_Yield_Function(myState State);
+            Von_Misses_Yield_Function(myState State, myPotencialPlastic PotencialPlastic);
+
+            virtual boost::shared_ptr<FluencyCriteria> Clone() const
+	        {
+		      boost::shared_ptr<FluencyCriteria> p_clone(new Von_Misses_Yield_Function(mState,mPotencialPlastic));
+		      return p_clone;
+		}
+			
 	   
             ~Von_Misses_Yield_Function();
 
@@ -101,11 +108,13 @@ namespace Kratos
 
 
 
-		    void CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria);
+		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
+
+                    void UpdateVariables(const Vector& Variables);
 		    
 
-      
-	protected:
+      private:
+
 
 
     };

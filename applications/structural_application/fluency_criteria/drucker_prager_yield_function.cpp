@@ -95,7 +95,7 @@ namespace Kratos
 		
 		      // Nota: la resistencia de comparacion de esta superficie de fluencia es FC.
 
-                      unsigned int dim  = 3;
+                      
 		      double frictional_internal = 0.00;
                       double Alfa   = 0.00;
                       double Beta  = 0.00;
@@ -105,8 +105,8 @@ namespace Kratos
 		      Vector J          = ZeroVector(3);
                       Vector J_des      = ZeroVector(3);		      
 
-		      Matrix StressTensor     = ZeroMatrix(dim,dim);
-		      Vector PrincipalStress  = ZeroVector(dim);
+		      Matrix StressTensor     = ZeroMatrix(3,3);
+		      Vector PrincipalStress  = ZeroVector(3);
 
                       frictional_internal = (*mprops)[FRICTION_INTERNAL_ANGLE]*PI/180.00;
 			    
@@ -118,11 +118,13 @@ namespace Kratos
 		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
 		      Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
 
-		      Alfa = 2.00* sin_phi/(sqrt(3.00)*(3- sin_phi));
-                      Beta = 6.00*(*mprops)[COHESION]*cos_phi/(sqrt(3.00)*(3- sin_phi));
-		      
-                      Result = I(0)*Alfa + sqrt(J_des(1)) - Beta;  // Beta es la resitencia de comparacion
-                      KRATOS_WATCH(Result)   
+		      Alfa = 2.00* sin_phi/(sqrt(3.00)*(3.00 - sin_phi));
+                      Beta = 6.00*(*mprops)[COHESION]*cos_phi/(sqrt(3.00)*(3.00- sin_phi));
+                      Result   = I(0)*Alfa + sqrt(J_des(1));  // Beta es la resitencia de comparacion
+		      mSigma_e = Result; 
+                      mSigma_y = Beta;
+                      Result -= mSigma_y;  
+                      //KRATOS_WATCH(Beta) 
 
                            }
 
@@ -132,7 +134,34 @@ namespace Kratos
 
 
 
-		    void Drucker_Prager_Yield_Function::CalculateDerivateFluencyCriteria(Vector DerivateFluencyCriteria){}
+		    void Drucker_Prager_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
+			{
+			    Second_Order_Tensor a;  
+                            Vector C = ZeroVector(3);
+                            DerivateFluencyCriteria = ZeroVector(6);
+                            double frictional_internal = 0.00;
+                            double Alfa   = 0.00;
+        
+
+                            frictional_internal = (*mprops)[FRICTION_INTERNAL_ANGLE]*PI/180.00;
+
+			    
+		            double sin_phi = sin(frictional_internal);
+                            double cos_phi = cos(frictional_internal);
+
+                            Alfa = 2.00*sin_phi/(sqrt(3.00)*(3.00 - sin_phi));
+                            
+			    C(0) =  Alfa; 
+                            C(1) =  1.00;
+                            C(2) =  0.00;
+                            
+			    this->CalculateVectorFlowDerivate(StressVector, a);
+			    for(unsigned  int i=0; i<3; i++)
+                               {
+                                 noalias(DerivateFluencyCriteria) = DerivateFluencyCriteria + a(i)*C(i); 
+                               }  
+			      
+			}
 
 
     }
