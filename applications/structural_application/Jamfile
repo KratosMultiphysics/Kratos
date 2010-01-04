@@ -112,7 +112,7 @@ alias sources_KratosStructuralApplication
          drucker_prager_yield_function.cpp
          exponencial_softening.cpp
          lineal_softening.cpp
-#        plasticity_2d.cpp
+         plasticity_2d.cpp
 #        plasticity_3d.cpp
 #        plastic_damage_3d.cpp
 #        plastic_damage_2d.cpp
