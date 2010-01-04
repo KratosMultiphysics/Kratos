@@ -85,6 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
+
 namespace Kratos
 {
 	//Example
