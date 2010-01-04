@@ -113,6 +113,11 @@ namespace Kratos
 				 .value("Plane_Strain", Plane_Strain)
                                  .value("Tri_D", Tri_D)
 				  ;
+
+			      enum_<myPotencialPlastic>("myPotencialPlastic")
+				 .value("Not_Associated", Not_Associated)
+				 .value("Associated", Associated)
+                                  ;
  
            
 			       class_<Rankine_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
@@ -127,12 +132,12 @@ namespace Kratos
 
 			      class_<Von_Misses_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
 			      ("VonMissesYieldFunction",
-			      init<myState> () )
+			      init<myState, myPotencialPlastic > () )
 			      ;  
 
 			      class_<Modified_Morh_Coulomb_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
 			      ("ModifiedMorhCoulombYieldFunction",
-			      init<myState> () )
+			      init<myState, myPotencialPlastic> () )
 			      ;  
 
 			      class_<Drucker_Prager_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
