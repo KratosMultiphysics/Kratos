@@ -83,7 +83,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
-
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
 namespace Kratos
 {
 	//Example
@@ -136,6 +137,33 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, INSITU_STRESS_SCALE)
     KRATOS_CREATE_VARIABLE(double, OVERCONSOLIDATION_RATIO)
     KRATOS_CREATE_VARIABLE(double, CONTACT_PENETRATION)
+
+     KRATOS_CREATE_VARIABLE(double, BASE )
+     KRATOS_CREATE_VARIABLE(double, HEIGHT )
+     KRATOS_CREATE_VARIABLE(double, FC)
+     KRATOS_CREATE_VARIABLE(double, FT)
+     KRATOS_CREATE_VARIABLE(double, CONCRETE_YOUNG_MODULUS_C)
+     KRATOS_CREATE_VARIABLE(double, CONCRETE_YOUNG_MODULUS_T)
+     KRATOS_CREATE_VARIABLE(double, FRACTURE_ENERGY)
+     KRATOS_CREATE_VARIABLE(double, CRUSHING_ENERGY)
+     KRATOS_CREATE_VARIABLE(double, YIELD_STRESS)
+     KRATOS_CREATE_VARIABLE(double, PLASTIC_MODULUS)
+     KRATOS_CREATE_VARIABLE(double, LAMNDA) // Load factor
+     KRATOS_CREATE_VARIABLE(double, DAMAGE )
+     KRATOS_CREATE_VARIABLE(double, ORTHOTROPIC_ANGLE)
+     KRATOS_CREATE_VARIABLE(double, VOLUMEN_FRACTION)
+     KRATOS_CREATE_VARIABLE(double, FRICTION_INTERNAL_ANGLE)
+     KRATOS_CREATE_VARIABLE(double, MAX_FRICTION_INTERNAL_ANGLE)
+     KRATOS_CREATE_VARIABLE(double, DILATANCY_ANGLE)
+     KRATOS_CREATE_VARIABLE(double, MAX_DILATANCY_ANGLE)
+     KRATOS_CREATE_VARIABLE(double, COHESION)
+     KRATOS_CREATE_VARIABLE(double, ISOTROPIC_ELASTIC_LIMIT)
+     KRATOS_CREATE_VARIABLE(Vector, ORTHOTROPIC_ELASTIC_LIMIT)
+     KRATOS_CREATE_VARIABLE(Vector, VECTOR_DAMAGE)
+     KRATOS_CREATE_VARIABLE(Vector, ORTHOTROPIC_YOUNG_MODULUS_2D) // [E1 E2 G12]
+     KRATOS_CREATE_VARIABLE(Vector, ORTHOTROPIC_POISSON_RATIO_2D) // [v12 v21]
+     KRATOS_CREATE_VARIABLE(Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
+     KRATOS_CREATE_VARIABLE(double, DISIPATION)
 // 	KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
 // 	KRATOS_CREATE_VARIABLE(Vector, PENALTY )
 // // 	KRATOS_CREATE_VARIABLE(double, INITIAL_PENALTY )
@@ -208,6 +236,7 @@ namespace Kratos
         mCrisfieldTrussElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mLinearElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mLinearElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+        mLinearElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
         mHypoelasticElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mIsoShellElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -225,6 +254,8 @@ namespace Kratos
         mTotalLagrangian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mTotalLagrangian3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20 <Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>())))),
         mTotalLagrangian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27 <Node<3> >(Element::GeometryType::PointsArrayType(27, Node<3>())))),
+
+
 
         mMixedLagrangian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mMixedLagrangian2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -301,8 +332,11 @@ namespace Kratos
         mSlaveContactFace3D8Newmark(0, Element::GeometryType::Pointer(new Quadrilateral3D8 <Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mSlaveContactFace3D9Newmark(0, Element::GeometryType::Pointer(new Quadrilateral3D9 <Node<3> >(Element::GeometryType::PointsArrayType(9, Node<3>())))),
 // 	mUPCTestElement3D20N(0,Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>()))))
-        mPointForce3D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-        mPointForce2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+        //mPointForce3D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+        //mPointForce2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+
+        mPointForce3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+        mPointForce2D(0, Element::GeometryType::Pointer(new Point2D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
         mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
         mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
 	{}
@@ -355,6 +389,36 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(MASTER_CONTACT_GLOBAL_POINT )
 		KRATOS_REGISTER_VARIABLE(MASTER_CONTACT_CURRENT_GLOBAL_POINT )
 		KRATOS_REGISTER_VARIABLE(SLAVE_CONTACT_GLOBAL_POINT )
+
+
+		KRATOS_REGISTER_VARIABLE( BASE )
+		KRATOS_REGISTER_VARIABLE( HEIGHT )
+		KRATOS_REGISTER_VARIABLE( FC)
+		KRATOS_REGISTER_VARIABLE( FT)
+		KRATOS_REGISTER_VARIABLE( CONCRETE_YOUNG_MODULUS_C)
+		KRATOS_REGISTER_VARIABLE( CONCRETE_YOUNG_MODULUS_T)
+		KRATOS_REGISTER_VARIABLE( FRACTURE_ENERGY)
+		KRATOS_REGISTER_VARIABLE( CRUSHING_ENERGY)
+		KRATOS_REGISTER_VARIABLE( YIELD_STRESS)
+                KRATOS_REGISTER_VARIABLE( PLASTIC_MODULUS)
+		KRATOS_REGISTER_VARIABLE( LAMNDA) // Load factor
+		KRATOS_REGISTER_VARIABLE( DAMAGE )
+		KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_ANGLE)
+		KRATOS_REGISTER_VARIABLE( VOLUMEN_FRACTION)
+		KRATOS_REGISTER_VARIABLE( FRICTION_INTERNAL_ANGLE)
+		KRATOS_REGISTER_VARIABLE( MAX_FRICTION_INTERNAL_ANGLE)
+		KRATOS_REGISTER_VARIABLE( DILATANCY_ANGLE)
+		KRATOS_REGISTER_VARIABLE( MAX_DILATANCY_ANGLE)
+		KRATOS_REGISTER_VARIABLE( COHESION)
+		KRATOS_REGISTER_VARIABLE( ISOTROPIC_ELASTIC_LIMIT)
+		KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_ELASTIC_LIMIT)
+		KRATOS_REGISTER_VARIABLE( VECTOR_DAMAGE)
+		KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_YOUNG_MODULUS_2D) // [E1 E2 G12]
+		KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_POISSON_RATIO_2D) // [v12 v21]
+                KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+                KRATOS_REGISTER_VARIABLE(DISIPATION)
+
+
 		//KRATOS_REGISTER_VARIABLE(ERASE_FLAG )
 // 		KRATOS_REGISTER_VARIABLE(CONTACT_RAMP )
 // 		KRATOS_REGISTER_VARIABLE(PENALTY )
@@ -428,6 +492,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("HypoelasticElement2D3N", mHypoelasticElement2D3N)
         KRATOS_REGISTER_ELEMENT("LinearElement2D3N", mLinearElement2D3N)
         KRATOS_REGISTER_ELEMENT("LinearElement3D4N", mLinearElement3D4N)
+        KRATOS_REGISTER_ELEMENT("LinearElement3D8N",   mLinearElement3D8N)
         KRATOS_REGISTER_ELEMENT("TotalLagrangian2D3N", mTotalLagrangian2D3N)
         KRATOS_REGISTER_ELEMENT("TotalLagrangian2D4N", mTotalLagrangian2D4N)
         KRATOS_REGISTER_ELEMENT("TotalLagrangian2D6N", mTotalLagrangian2D6N)
