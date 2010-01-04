@@ -156,39 +156,39 @@ namespace Kratos
 			;
 
 
-			class_<Plasticity2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Plasticity2D",
-			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-			;
-
-			class_<Plasticity3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Plasticity3D",
-			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-			;
-
-			class_<PlasticDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("PlasticDamage3D",
-			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-			;
-
-			class_<PlasticDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("PlasticDamage2D",
-			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-			;
+// 			class_<Plasticity2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+// 			("Plasticity2D",
+// 			init<>() )
+//                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+// 			;
+// 
+// 			class_<Plasticity3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+// 			("Plasticity3D",
+// 			init<>() )
+//                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+// 			;
+// 
+// 			class_<PlasticDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+// 			("PlasticDamage3D",
+// 			init<>() )
+//                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+// 			;
+// 
+// 			class_<PlasticDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+// 			("PlasticDamage2D",
+// 			init<>() )
+//                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+// 			;
 
 // 			class_< Tension_Compression_Damage_Model, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 // 			("TensionCompressionDamageModel3D",
 // 			init<>() )
 //                         ;
 
-			class_< Tension_Compression_Damage_Model_2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("TensionCompressionDamageModel2D",
-			init<>() )
-                        ;
+// 			class_< Tension_Compression_Damage_Model_2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+// 			("TensionCompressionDamageModel2D",
+// 			init<>() )
+//                         ;
 
 			class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 			("Isotropic_Damage_3D",
