@@ -483,7 +483,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
                          double last_damage       =  md;
 			 double last_r            =  mr_new;
 
-			 
+			 /*
 			 StrainVectorPerturbation.resize(6, false);
 			 StressVectorPerturbation.resize(6, false);
 			 //StrainVectorPerturbation_aux.resize(6, false);
@@ -542,8 +542,8 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 				    noalias(StrainVectorPerturbation) = StrainVector;
 				    
 				  }
-
-				    
+*/
+				Isotropic_Damage_3D::CalculateNoDamageElasticMatrix(algorithmicTangent, mEc ,mNU);
 				 
 		      }
 

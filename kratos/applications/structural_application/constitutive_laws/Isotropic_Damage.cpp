@@ -364,7 +364,7 @@ void Isotropic_Damage::CalculateNoDamageStress(const Vector& StrainVector, Vecto
             
 	{
 
-	    double ElasticDomain;
+	    //double ElasticDomain;
             CalculateStressAndDamage(StressVector, StrainVector);
             noalias(StressVector) = (1.00 - md_new)*StressVector; 
 //             KRATOS_WATCH(md_new);
