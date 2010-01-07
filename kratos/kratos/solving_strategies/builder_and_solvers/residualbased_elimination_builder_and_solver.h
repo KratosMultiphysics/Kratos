@@ -51,6 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <set>
+#include <omp.h>
 
 
 /* External includes */
@@ -200,7 +201,7 @@ namespace Kratos
 			TSystemVectorType& b)
 		{
 			KRATOS_TRY
-				if(!pScheme)
+			if(!pScheme)
 					KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
 
 			//getting the elements from the model
@@ -219,34 +220,27 @@ namespace Kratos
 			//vector containing the localization in the system of the different
 			//terms
 			Element::EquationIdVectorType EquationId;
-//double aaa = 0.00;
-//double bbb = 0.00;
-//double ccc = 0.00;
-//double ddd = 0.00;
-//double StartTime = GetTickCount();
+
+                        //double StartTime = GetTickCount();
 
 			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 			// assemble all elements
+			#ifndef _OPENMP
 			for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
 			{
-	//aaa = GetTickCount();
 				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
-	//ddd += GetTickCount() - aaa;
-//KRATOS_WATCH(LHS_Contribution);
-//KRATOS_WATCH(RHS_Contribution);
-				//bbb = GetTickCount();
-				//assemble the elemental contribution
+	
+			//assemble the elemental contribution
 				AssembleLHS(A,LHS_Contribution,EquationId);
 				AssembleRHS(b,RHS_Contribution,EquationId);
-	//ccc += GetTickCount() - bbb;
 
 				// clean local elemental memory
 				pScheme->CleanMemory(*it);
 			}
-//double EndTime = GetTickCount();
-//
-//std::cout << "total time " << EndTime - StartTime << std::endl;
+                         //double EndTime = GetTickCount();
+
+ //std::cout << "total time " << EndTime - StartTime << std::endl;
 //std::cout << "writing in the system matrix " << ccc << std::endl;
 //std::cout << "calculating the elemental contrib " << ddd << std::endl;
 			LHS_Contribution.resize(0,0,false);
@@ -262,10 +256,87 @@ namespace Kratos
 				AssembleLHS(A,LHS_Contribution,EquationId);
 				AssembleRHS(b,RHS_Contribution,EquationId);
 			}
-//for(int i = 0; i<b.size(); i++)
-//std::cout << b[i] << std::endl;
 
-//std::cout << "stop" << std::endl;
+                        #else
+                        //create a partition of the element array
+			int number_of_threads = omp_get_max_threads();
+			vector<unsigned int> element_partition;
+			CreatePartition(number_of_threads, pElements.size(), element_partition);
+			KRATOS_WATCH( number_of_threads );
+			KRATOS_WATCH( element_partition );
+
+
+    			double start_prod = omp_get_wtime();
+
+			#pragma omp parallel for 
+			for(int k=0; k<number_of_threads; k++)
+			{
+				//contributions to the system
+				LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
+				LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+	
+				//vector containing the localization in the system of the different
+				//terms
+				Element::EquationIdVectorType EquationId;
+				ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+				typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
+				typename ElementsArrayType::ptr_iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+				// assemble all elements
+				for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+				{
+
+					//calculate elemental contribution
+					pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+
+					#pragma omp critical
+					{
+						//assemble the elemental contribution
+						AssembleLHS(A,LHS_Contribution,EquationId);
+						AssembleRHS(b,RHS_Contribution,EquationId);
+						
+						// clean local elemental memory
+						pScheme->CleanMemory(*it);
+					}
+				}
+			}
+
+			vector<unsigned int> condition_partition;
+			CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
+
+ 			#pragma omp parallel for
+			for(int k=0; k<number_of_threads; k++)
+			{
+				//contributions to the system
+				LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
+				LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+				Condition::EquationIdVectorType EquationId;
+
+				ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+				typename ConditionsArrayType::ptr_iterator it_begin=ConditionsArray.ptr_begin()+condition_partition[k];
+				typename ConditionsArrayType::ptr_iterator it_end=ConditionsArray.ptr_begin()+condition_partition[k+1];
+
+				// assemble all elements
+				for (typename ConditionsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+				{
+					//calculate elemental contribution
+					pScheme->Condition_CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+
+					#pragma omp critical
+					{
+						//assemble the elemental contribution
+						AssembleLHS(A,LHS_Contribution,EquationId);
+						AssembleRHS(b,RHS_Contribution,EquationId);
+					}
+				}
+			}
+			double stop_prod = omp_get_wtime();
+			std::cout << "time: " << stop_prod - start_prod << std::endl;
+			KRATOS_WATCH("finished parallel building");
+                        #endif
+
 
 			KRATOS_CATCH("")
 
@@ -1084,6 +1155,19 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
 			}
 
 		}
+
+		//******************************************************************************************
+		//******************************************************************************************
+		inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+		{
+			partitions.resize(number_of_threads+1);
+			int partition_size = number_of_rows / number_of_threads;
+			partitions[0] = 0;
+			partitions[number_of_threads] = number_of_rows;
+			for(int i = 1; i<number_of_threads; i++)
+			   partitions[i] = partitions[i-1] + partition_size ;
+		}
+
 
 		/*@} */
 		/**@name Private  Access */
