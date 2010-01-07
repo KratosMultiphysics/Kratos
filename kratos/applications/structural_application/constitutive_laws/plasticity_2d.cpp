@@ -506,6 +506,11 @@ void Plasticity2D::CalculateElasticStress(const Vector& StrainVector, array_1d<d
                                }
                        }
                       }
+                    case Tri_D:
+                      {
+                        std::cout<<"Warning: The cosntitutive law is apled only for 2D  "<<std::endl;
+                      }
+
                     }
 }
                         
