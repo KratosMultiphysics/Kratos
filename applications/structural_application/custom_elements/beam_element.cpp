@@ -348,7 +348,7 @@ Vector x_zero(6);        // Vector que contiene coordenadas de los nodos.
 Vector Vector_zero(3);   // Vector que contiene la direccion de la barra. 
 double minimo,maximo,B;
 double b,h;
-double const gravity = 9.80665;
+//double const gravity = 9.80665;
 b        = GetProperties()[BASE];                               
 h        = GetProperties()[HEIGHT];
 mPoisson = GetProperties()[POISSON_RATIO];                     
