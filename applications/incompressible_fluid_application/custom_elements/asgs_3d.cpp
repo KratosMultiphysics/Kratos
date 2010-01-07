@@ -1155,7 +1155,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void ASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
+   /* void ASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
@@ -1180,7 +1180,7 @@ namespace Kratos {
             }
         }
 
-    }
+    }*/
     //*************************************************************************************
     //*************************************************************************************
 
@@ -1240,6 +1240,8 @@ namespace Kratos {
         }
 
 
+	//Here we calculate Dynamic viscosity from Kinemeatic viscosity
+	viscosity *= density;
 
     }
     //*************************************************************************************
@@ -1337,6 +1339,45 @@ namespace Kratos {
     }
     //************************************************************************************
     //************************************************************************************
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
+
+        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+
+        //getting data for the given geometry
+        double Area;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+        double tauone;
+        double tautwo;
+        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        if (rVariable == THAWONE) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1;
+                    PointNumber++) {
+                rValues[PointNumber] = tauone;
+            }
+        }
+        if (rVariable == THAWTWO) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+
+                rValues[PointNumber] = tautwo;
+            }
+        }
+        if (rVariable == IS_WATER_ELEMENT) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+	//	KRATOS_WATCH(this->GetValue(IS_WATER));
+	//	KRATOS_WATCH(this->Info());
+                rValues[PointNumber] = this->GetValue(IS_WATER_ELEMENT);
+            }
+        }
+
+    }
+    //*************************************************************************************
+    //*************************************************************************************
 } // Namespace Kratos
 
 
