@@ -252,6 +252,8 @@ namespace Kratos
 	  }
 */
 
+	//Here we calculate Dynamic viscosity from Kinemeatic viscosity
+	viscosity *= density;
 
 	}
 	//************************************************************************************
