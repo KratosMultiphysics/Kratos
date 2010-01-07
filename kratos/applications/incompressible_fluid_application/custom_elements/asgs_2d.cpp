@@ -419,10 +419,10 @@ namespace Kratos {
                 int column = jj * (dof + 1);
                 int loc_column = jj*dof;
 
-                K(row, column) += 1 * area * density * temp_div(loc_row, loc_column);
-                K(row, column + 1) += 1 * area * density * temp_div(loc_row, loc_column + 1);
-                K(row + 1, column) += 1 * area * density * temp_div(loc_row + 1, loc_column);
-                K(row + 1, column + 1) += 1 * area * density * temp_div(loc_row + 1, loc_column + 1);
+                K(row, column) +=  area * density * temp_div(loc_row, loc_column);
+                K(row, column + 1) +=  area * density * temp_div(loc_row, loc_column + 1);
+                K(row + 1, column) +=  area * density * temp_div(loc_row + 1, loc_column);
+                K(row + 1, column + 1) +=  area * density * temp_div(loc_row + 1, loc_column + 1);
             }
         }
 
@@ -1180,7 +1180,8 @@ namespace Kratos {
 
         }
 
-
+	//Here we calculate Dynamic viscosity from Kinemeatic viscosity
+	viscosity *= density;
 
     }
     //*************************************************************************************
