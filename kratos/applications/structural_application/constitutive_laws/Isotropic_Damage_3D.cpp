@@ -59,6 +59,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
+/* External includes */
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // Project includes 
 #include "includes/define.h"
 #include "constitutive_laws/Isotropic_Damage_3D.h"
@@ -478,12 +483,12 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
   {
 			 // Using perturbation methods
                          long double delta_strain =  0.00;
-			 long double factor       =  1E-5;
-                         long double max          =  1E-7;
+			 long double factor       =  1E-6;
+                         long double max          =  1E-10;
                          double last_damage       =  md;
 			 double last_r            =  mr_new;
 
-			 /*
+			 
 			 StrainVectorPerturbation.resize(6, false);
 			 StressVectorPerturbation.resize(6, false);
 			 //StrainVectorPerturbation_aux.resize(6, false);
@@ -492,29 +497,15 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 			 noalias(StrainVectorPerturbation) = StrainVector;
 			 //KRATOS_WATCH(StrainVector)
 			 //StrainVectorPerturbation_aux = StrainVector;  			  
+                         delta_strain = (*std::min_element(StrainVectorPerturbation.begin(),StrainVectorPerturbation.end()))*factor;
+                        if (delta_strain==0.00){ delta_strain = factor;}    
+			if (delta_strain < max) {delta_strain=max;}
 
 			 for (unsigned int i=0;i<StrainVectorPerturbation.size();i++)
-			    {
-				  
-				 if  (fabs(StrainVectorPerturbation(i))<1E-15)
-				    {
-				     delta_strain = (*std::min_element(StrainVectorPerturbation.begin(),StrainVectorPerturbation.end()))*factor;
-				     if (delta_strain==0.00)
-					 {
-					    delta_strain = factor;
-					 }
-				    } 
-				 else
-				    {
-				      delta_strain = StrainVectorPerturbation(i)*factor;
-				    }
-					
-				   if (delta_strain < max) {delta_strain=max;}
-
-
-				    
-				     StrainVectorPerturbation(i) += delta_strain;
+			    {      
 				     
+			            StrainVectorPerturbation(i) += delta_strain;
+                           
                                      //StrainVectorPerturbation_aux(i) -= delta_strain;
 				    
 				     Isotropic_Damage_3D::CalculateStress(StrainVectorPerturbation, StressVectorPerturbation);
@@ -528,8 +519,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
                                      noalias(StressVectorPerturbation) = StressVectorPerturbation/delta_strain;
 				     //noalias(StressVectorPerturbation) = StressVectorPerturbation/(2.00*delta_strain);
 
-				      	  
-			
+				     
 				    for (unsigned int j = 0; j<StrainVectorPerturbation.size(); j++)
 					 {
 					    algorithmicTangent(j,i) = StressVectorPerturbation(j); 
@@ -542,8 +532,6 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 				    noalias(StrainVectorPerturbation) = StrainVector;
 				    
 				  }
-*/
-				Isotropic_Damage_3D::CalculateNoDamageElasticMatrix(algorithmicTangent, mEc ,mNU);
 				 
 		      }
 
