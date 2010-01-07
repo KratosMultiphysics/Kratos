@@ -147,7 +147,7 @@ namespace Kratos
 
 			    
 		            double sin_phi = sin(frictional_internal);
-                            double cos_phi = cos(frictional_internal);
+                            //double cos_phi = cos(frictional_internal);
 
                             Alfa = 2.00*sin_phi/(sqrt(3.00)*(3.00 - sin_phi));
                             
