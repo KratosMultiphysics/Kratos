@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  /*      namespace ASGSCompressible2Dauxiliaries
+        namespace ASGSCompressible2Dauxiliaries
     {
         boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
         #pragma omp threadprivate(DN_DX)
@@ -77,7 +77,7 @@ namespace Kratos
         #pragma omp threadprivate(ms_adv_vel)
 
     }
-    using  namespace ASGSCompressible2Dauxiliaries;*/
+    using  namespace ASGSCompressible2Dauxiliaries;
 
 
 	//************************************************************************************
@@ -143,6 +143,9 @@ namespace Kratos
 	double tautwo;
 	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
+        double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+
 	CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
 		
 	//calculate pressure term
@@ -152,8 +155,9 @@ namespace Kratos
 	
 	//stabilization terms
 	//KRATOS_WATCH("ñññññññññ calculate stabilizing terms ñññññññññ");
-	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
-	CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
+        double tau_div = tautwo*VC2;
+	CalculateDivStblTerm(rDampMatrix, DN_DX, tau_div, Area);
+	//CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
 	CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
 	//KRATOS_WATCH(rRightHandSideVector);
 
@@ -175,8 +179,8 @@ namespace Kratos
 	calculatedensity(GetGeometry(), density, mu);
 
 	//update density and calculate sound velocity
-	double VC2;
-	CalculateSoundVelocity(GetGeometry(), VC2);
+	//double VC2;
+	//CalculateSoundVelocity(GetGeometry(), VC2);
 
 	int nodes_number = 3;
 	int dof = 2;
@@ -184,10 +188,10 @@ namespace Kratos
 	    {
 		int row = nd*(dof + 1);
 		for( int jj=0; jj< dof; jj++)
-			K(row + jj, row + jj) += density/1.0*lump_mass_fac;
+			K(row + jj, row + jj) += density*lump_mass_fac;
 
 		//add pressure mass
-			K(row + dof , row + dof ) += lump_mass_fac/VC2;
+			K(row + dof , row + dof ) += lump_mass_fac;
 	    }
 	
 	
@@ -224,7 +228,7 @@ namespace Kratos
 
 	CalculateMassContribution(rMassMatrix,delta_t,Area); 
 		//add stablilization terms due to advective term (a)grad(V) * ro*Acce
-	CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
+	//CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
 		//add stablilization terms due to grad term grad(q) * ro*Acce
 	CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
 		//add compressible stabilization terms
@@ -232,10 +236,101 @@ namespace Kratos
 	
 		KRATOS_CATCH("")
 	}
+            //************************************************************************************
+    //************************************************************************************
+
+    void ASGSCompressible2D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double area) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
+
+     //   double density;
+       // double mu;
+       // calculatedensity(GetGeometry(), density, mu);
+
+        double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+
+        //build 1*tau1*ro Nacc grad q)
+        double fac = area*tauone*VC2;
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                //K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
+                M(column, row) +=  fac * N[ii] * DN_DX(jj, 0);
+
+                //K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
+                M(column, row + 1) +=  fac * N[ii] * DN_DX(jj, 1);
+            }
+        }
+
+        KRATOS_CATCH("")
+
+    }
 
 	//*************************************************************************************
 	//*************************************************************************************
+    void ASGSCompressible2D::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double time, const double area) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
 
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                K(row, column) -=  area * N(jj) * DN_DX(ii, 0);
+                K(column, row) += VC2 * area * density * N(jj) * DN_DX(ii, 0);
+
+                K(row + 1, column) -=  area * N(jj) * DN_DX(ii, 1);
+                K(column, row + 1) += VC2 * area * density * N(jj) * DN_DX(ii, 1);
+            }
+        }
+
+
+        KRATOS_CATCH("")
+    }
+
+        //************************************************************************************
+    //************************************************************************************
+
+    void ASGSCompressible2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double time, const double tauone, const double area) {
+        KRATOS_TRY
+                int nodes_number = 3;
+        int dof = 2;
+
+
+        double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+
+        //build 1*(grad q . grad p) stabilization term & assemble
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+        gard_opr =  prod(DN_DX, trans(DN_DX));
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1) + dof;
+
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                K(row, column) += area * tauone*VC2 * gard_opr(ii, jj);
+
+            }
+        }
+        KRATOS_CATCH("")
+    }
+    	//*************************************************************************************
+	//*************************************************************************************
 	  void ASGSCompressible2D::GetFirstDerivativesVector(Vector& values, int Step)
 	{
 		const unsigned int number_of_nodes = GetGeometry().size();
@@ -317,9 +412,9 @@ namespace Kratos
 	void ASGSCompressible2D::CalculateCompressibleStblTerms(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,array_1d<double,3> N,const double tautwo,const double area)
 	{
 
-	  double VC2;
-	  CalculateSoundVelocity(GetGeometry(), VC2);
-	  double stbl_fac = tautwo/VC2 * area;
+	  //double VC2;
+	  //CalculateSoundVelocity(GetGeometry(), VC2);
+	  double stbl_fac = tautwo * area;
 	int nodes_number = 3;
 	int dof = 2;
 	for ( int ii = 0; ii < nodes_number; ii++)
@@ -383,6 +478,22 @@ namespace Kratos
 		KRATOS_CATCH("");
 
 	}
+              //*************************************************************************************
+    //*************************************************************************************
+
+          void ASGSCompressible2D::CalculateTau(double& tauone, double& tautwo, const double time, const double area, const ProcessInfo& rCurrentProcessInfo)
+          {
+
+            KRATOS_TRY
+
+            tauone = time;
+            tautwo = time;
+
+
+            KRATOS_CATCH("")
+
+              }
+    
 	//*************************************************************************************
 	//*************************************************************************************
 	void ASGSCompressible2D::calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity)
@@ -453,6 +564,8 @@ namespace Kratos
 	  }
 */
 
+	//Here we calculate Dynamic viscosity from Kinemeatic viscosity
+	viscosity *= density;
 
 	}
 	//************************************************************************************
