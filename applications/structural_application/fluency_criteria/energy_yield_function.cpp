@@ -149,7 +149,7 @@ namespace Kratos
 			  
 		          double iter  = 50;
                           double zero  = 1E-10;  
-                          double norma = 0.00;
+                          //double norma = 0.00;
 		          double u_a   = 0.00;
                           double u_b   = 0.00;
                           double u_c   = 0.00;      
