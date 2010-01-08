@@ -175,7 +175,7 @@ namespace Kratos
 			{
 				//TDataType mFinalCorrectionNorm = sqrt(std::inner_product(Dx.begin(),Dx.end(),Dx.begin(),TDataType()));
 				//TDataType mFinalCorrectionNorm = sqrt(Dot(Dx,Dx));
-			  TDataType mFinalCorrectionNorm = TSparseSpace::TwoNorm(Dx);
+			        TDataType mFinalCorrectionNorm = TSparseSpace::TwoNorm(Dx);
 
 				TDataType ratio = 0.00;
 
@@ -191,9 +191,9 @@ namespace Kratos
 //KRATOS_WATCH(mRatioTolerance)
 				std::cout << "DISPLACEMENT CRITERIA :: Obtained tol = " << ratio << ";  Expected ratio = " << mRatioTolerance << "Absolute tol = " << AbsoluteNorm << std::endl;
 
-				if ( ratio <= mRatioTolerance ||  AbsoluteNorm<mAlwaysConvergedNorm )  //  || (mFinalCorrectionNorm/x.size())<=1e-7) 
+				if ( ratio <= mRatioTolerance  ||  AbsoluteNorm<mAlwaysConvergedNorm )  //  || (mFinalCorrectionNorm/x.size())<=1e-7) 
 				{
-KRATOS_WATCH("convergence is achieved")
+                                        KRATOS_WATCH("convergence is achieved")
 					return true;
 				}
 				else
