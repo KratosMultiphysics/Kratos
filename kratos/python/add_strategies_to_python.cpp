@@ -74,6 +74,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/convergencecriterias/and_criteria.h"
+#include "solving_strategies/convergencecriterias/or_criteria.h"
 //#include "solving_strategies/convergencecriterias/and_criteria.h"
 
 //Builder And Solver
@@ -199,6 +201,7 @@ namespace Kratos
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+                        typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ::Pointer TConvergenceCriteriaPointer;
 
 			//********************************************************************
 			//********************************************************************
@@ -292,6 +295,17 @@ namespace Kratos
 			         boost::noncopyable >
 			        ("AndCriteria", init<Model::Pointer, ConvergenceCriteria< SparseSpaceType >::Pointer, ConvergenceCriteria< SparseSpaceType >::Pointer >()*/
 			//);
+
+
+			class_<And_Criteria<SparseSpaceType, LocalSpaceType >,
+			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+			         boost::noncopyable >
+			       ("AndCriteria", init<TConvergenceCriteriaPointer,TConvergenceCriteriaPointer>());
+
+			class_<Or_Criteria<SparseSpaceType, LocalSpaceType >,
+			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+			         boost::noncopyable >
+			         ("OrCriteria", init<TConvergenceCriteriaPointer,TConvergenceCriteriaPointer>());
 
 			//********************************************************************
 			//********************************************************************
