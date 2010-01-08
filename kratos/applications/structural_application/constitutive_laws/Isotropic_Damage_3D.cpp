@@ -87,27 +87,7 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
 	#ifdef _OPENMP
 	#pragma omp threadprivate(msaux)
-	#endif
-        Matrix StressTensor(3,3);
-        #ifdef _OPENMP
-	#pragma omp threadprivate(StressTensor)
-	#endif
-	Matrix InvertedMatrix(6,6);
-        #ifdef _OPENMP
-	#pragma omp threadprivate(InvertedMatrix)
-        #endif
-        Vector PrincipalStress(3);
-	#ifdef _OPENMP
-	#pragma omp threadprivate(PrincipalStress)
-        #endif
-	Vector Aux_Vector(6);
-        #ifdef _OPENMP
-        #pragma omp threadprivate(Aux_Vector)
-        #endif
-	Matrix ConstitutiveMatrixAux(6,6);
-        #ifdef _OPENMP
-        #pragma omp threadprivate(ConstitutiveMatrixAux)
-        #endif
+	#endif	
         Vector StrainVectorPerturbation(6);
 	#ifdef _OPENMP
         #pragma omp threadprivate(StrainVectorPerturbation)
@@ -116,15 +96,6 @@ namespace Kratos
 	#ifdef _OPENMP
         #pragma omp threadprivate(StressVectorPerturbation)
         #endif
-        Vector StressVector_Aux(6);
-        #ifdef _OPENMP
-        #pragma omp threadprivate(StressVector_Aux)
-        #endif
-	Vector StrainVector_Aux(6);
-	#ifdef _OPENMP
-        #pragma omp threadprivate(StrainVector_Aux)
-        #endif
-
     } 
 
 
@@ -136,10 +107,20 @@ namespace Kratos
 	 Isotropic_Damage_3D::Isotropic_Damage_3D() 
 	: ConstitutiveLaw< Node<3> >()
 	{
+           KRATOS_ERROR(std::logic_error,"Calling the empty constructor for Isotropic Damage","");
 	}
 	/**
 	 *	TO BE TESTED!!!
 	 */
+	 Isotropic_Damage_3D::Isotropic_Damage_3D(FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property) 
+	: ConstitutiveLaw< Node<3> >()
+	{
+	      mpFluencyCriteria   = FluencyCriteria;
+              mpSofteningBehavior = SofteningBehavior;
+              mpProperties        = Property;
+	      //KRATOS_WATCH(*mProperties)
+	}
+
 	Isotropic_Damage_3D::~Isotropic_Damage_3D()
 	{
 	}
@@ -164,7 +145,7 @@ namespace Kratos
 	{
 		 if( rThisVariable == DAMAGE)			
 		{
-		    return md;
+		    return md_new;
 		}
 		else
 		{ 
@@ -214,8 +195,6 @@ void Isotropic_Damage_3D::InitializeMaterial( const Properties& props,
 {
 
 
-//  Nota: Estas Variables no seran necesarias almacenarlas por cada elemento.
-// Basta con llamarlas con sus propiedades.
   mFc    = props[FC];
   mFt    = props[FT];
   mEc    = props[CONCRETE_YOUNG_MODULUS_C];
@@ -224,8 +203,13 @@ void Isotropic_Damage_3D::InitializeMaterial( const Properties& props,
   mGE    = props[FRACTURE_ENERGY];
   ml     = pow(fabs(geom.Volume()),0.333333333333333333);   // longitud del elemento
   mr_old = mFt/sqrt(mEc);
-  ////KRATOS_WATCH(geom.Volume());
- // //KRATOS_WATCH(ml);
+  mpFluencyCriteria->InitializeMaterial(*mpProperties);
+  mr_old = mpFluencyCriteria->mSigma_y;   //mFt/sqrt(mEc);
+  mr_o   = mr_old; 
+  md_old = 0.00;
+  md_new = 0.00;
+
+ 
 
 }
 
@@ -239,7 +223,6 @@ void Isotropic_Damage_3D::InitializeSolutionStep( const Properties& props,
                     const Vector& ShapeFunctionsValues ,
                     const ProcessInfo& CurrentProcessInfo)
 {
-				  ////KRATOS_WATCH(ml);  
 }
 
 //***********************************************************************************************
@@ -286,100 +269,35 @@ void Isotropic_Damage_3D::CalculateConstitutiveMatrix(const Vector& StrainVector
 //***********************************************************************************************
 
 
- void Isotropic_Damage_3D::CalculateDamage(const Matrix& ConstitutiveMatrix, const Vector& StressVector, double& d)
+void Isotropic_Damage_3D::CalculateStressAndDamage(Vector& StressVector, const Vector& StrainVector )
  { 
 				
-    double Tau 	     = 0.00;
-    double A         = 0.00;
-    double crit      = 1.0e-9;
-    double zero      = 1.0e-9;
-    double teta_a    = 0.00;
-    double teta_b    = 0.00;
-    double teta      = 0.00;
-    double r         = 0.00;
-    double elev      = 0.00; 
-    double norma     = 0.00; 
-		  	
-    if (Aux_Vector.size() != 6)
-	{
-	      StressTensor.resize(3,3,false);
-	      InvertedMatrix.resize(6,6, false);
-	      PrincipalStress.resize(3, false);
-	      Aux_Vector.resize(6, false);
+	double Tau           = 0.00;
+        double ElasticDomain = 0.00;
+	double A   	     = 0.00;
+        //double delta_d       = 0.00;
+
+ 
+	A  = 1.00/((mGE*mEc)/(ml*mFt*mFt)-0.5);
+	if (A < 0.00)
+	{    
+	A  = 0.00;
+	std::cout<< "Warning: A is less than zero"<<std::endl;
 	}
-
-	
-     double ro	= mFt/sqrt(mEc);       //Suponiendo el Ec=Ect 
-     double n   = mFc/mFt;
-      A         = 1.00/((mGE*mEc)/(ml*mFt*mFt)-0.5);
-      ////KRATOS_WATCH(A);
-      
-      if (A < 0.00)
-       {    
-	  A  = 0.00;
-	  std::cout<< "Warning: A is less than zero"<<std::endl;
-       }
-
-   // evitando terminos nulos en diagonal principal y fuera de ellas			
-    StressTensor  = MathUtils<double>::StressVectorToTensor(StressVector);
-    SD_MathUtils<double>::InvertMatrix(ConstitutiveMatrix, InvertedMatrix);
-
-   if (fabs(StressTensor(0,0))<1E-10){StressTensor(0,0) = 1E-10; }
-   if (fabs(StressTensor(0,1))<1E-10){StressTensor(0,1) = 1E-10; }
-   if (fabs(StressTensor(0,2))<1E-10){StressTensor(0,2) = 1E-10; }    
-   if (fabs(StressTensor(1,0))<1E-10){StressTensor(1,0) = 1E-10; }
-   if (fabs(StressTensor(1,1))<1E-10){StressTensor(1,1) = 1E-10; }
-   if (fabs(StressTensor(1,2))<1E-10){StressTensor(1,2) = 1E-10; }
-   if (fabs(StressTensor(2,0))<1E-10){StressTensor(2,0) = 1E-10; }
-   if (fabs(StressTensor(2,1))<1E-10){StressTensor(2,1) = 1E-10; }
-   if (fabs(StressTensor(2,2))<1E-10){StressTensor(2,2) = 1E-10; }
-
-
-   // Calculando norma de una matriz
-   norma = SD_MathUtils<double>::normTensor(StressTensor);
-   
-   //KRATOS_WATCH(StressVector)
-   //KRATOS_WATCH(StressTensor)
-   ////KRATOS_WATCH(norma)
-    if(norma<1E-5)                            
-	{
-	  PrincipalStress(0)  = 0.00; 
-    	  PrincipalStress(1)  = 0.00;
-	  PrincipalStress(2)  = 0.00;
-    }
-
-    else
-    {
-      PrincipalStress  = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
-    }
-    //KRATOS_WATCH(PrincipalStress)
-    teta_a =  Tensor_Utils<double>::Mc_aully(PrincipalStress);
-    teta_b = norm_1(PrincipalStress);  
-			
-   // Condicion para no tener divison de 0/0 
-    if (teta_a==0.00 && teta_b==0.00)
-	{teta = 1.00;}
-   else
-	{teta = teta_a/teta_b;}
-   
-			
-   noalias(Aux_Vector)     = prod(trans(StressVector),InvertedMatrix);
-   Tau                     = inner_prod(StressVector,Aux_Vector);
-   Tau                     = sqrt(Tau);			
-   Tau                     = (teta + (1.00-teta)/n)*Tau;
-  	 								
-   r     = std::max(mr_old,Tau);  // rold por ro
-   elev  = A*(1.00-r/ro);
-   d     = 1.00 - (ro/r)*exp(elev);
-   if (d < 0.00) 
-   {
-   d = fabs(d);
-   //std::cout<<"Warning: Damage is less than zero"<<std::endl;
-   }
-
-   this-> md      = d;     
-   this-> mr_new  = r; 
-
+ 
+	CalculateNoDamageStress(StrainVector, StressVector);
+        mpFluencyCriteria->CalculateEquivalentUniaxialStressViaInvariants(StressVector,ElasticDomain);
+	if(ElasticDomain<0.00)
+          {
+	      Tau  =  mr_old;
+          }
+        else
+          {
+              Tau  =  mpFluencyCriteria->mSigma_e;
+          }
+        
+        mr_new  =  std::max(mr_old,Tau);
+        md_new  =  mpSofteningBehavior->FunctionSofteningHardeningBehavior(A,mr_o,mr_new);
  }
 
 
@@ -394,8 +312,9 @@ void  Isotropic_Damage_3D::FinalizeSolutionStep( const Properties& props,
                                              const ProcessInfo& CurrentProcessInfo)
 
 			{
-				 mr_old = mr_new;
-				 //KRATOS_WATCH(mr_old);
+                            md_old = md_new;
+                            mr_old = mr_new;
+                            mpFluencyCriteria->mSigma_y = mpFluencyCriteria->mSigma_e;
 			}
 
 
@@ -426,23 +345,8 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
  void Isotropic_Damage_3D::CalculateStress( const Vector& StrainVector, Vector& StressVector)
 	{
 
-		ConstitutiveMatrixAux.resize(6,6,false);
-                StrainVector_Aux.resize(6,false);
-		//mstressVector.resize(6,false);
-                noalias(StrainVector_Aux) = StrainVector; 
-		double d=0.00;
-		for (unsigned int i=0;i<StrainVector.size();i++)
-			    {   
-			      if  (fabs(StrainVector(i))<1E-10)
-				  {
-				      StrainVector_Aux(i) = 0.00;
-				  }
-			     }
-
-		Isotropic_Damage_3D::CalculateNoDamageStress(StrainVector_Aux, StressVector);
-		Isotropic_Damage_3D::CalculateNoDamageElasticMatrix(ConstitutiveMatrixAux,mEc,mNU);
-		Isotropic_Damage_3D::CalculateDamage(ConstitutiveMatrixAux, StressVector, d);
-		noalias(StressVector) = (1.00-d)*StressVector;
+            CalculateStressAndDamage(StressVector, StrainVector);
+            noalias(StressVector) = (1.00 - md_new)*StressVector;
 		//noalias(mstressVector) = StressVector;											
    }
 
@@ -485,7 +389,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
                          long double delta_strain =  0.00;
 			 long double factor       =  1E-6;
                          long double max          =  1E-8;
-                         double last_damage       =  md;
+                         double last_damage       =  md_new;
 			 double last_r            =  mr_new;
 
 			 
@@ -525,7 +429,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 					    algorithmicTangent(j,i) = StressVectorPerturbation(j); 
 					 } 
 				    //KRATOS_WATCH(algorithmicTangent)
-				    md     = last_damage;
+				    md_new     = last_damage;
 				    mr_new = last_r;
 				    StressVectorPerturbation.resize(6, false);
 				    StrainVectorPerturbation.resize(6, false);  
