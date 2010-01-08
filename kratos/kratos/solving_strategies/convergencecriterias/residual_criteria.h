@@ -172,39 +172,33 @@ namespace Kratos
 			const TSystemVectorType& b
 			)
 		{
-		if (b.size() != 0) //if we are solving for something
+                      if (b.size() != 0) //if we are solving for something
 			{
 
 				if (mInitialResidualIsSet == false)
 				{
-					mInitialResidualNorm = 1.00; //TSparseSpace::TwoNorm(b);
-					mCurrentResidualNorm = mInitialResidualNorm;
+					mInitialResidualNorm = TSparseSpace::TwoNorm(b); 
 					mInitialResidualIsSet = true;
-					//KRATOS_WATCH(mInitialResidualNorm)
-				}
-				else 
-				{
-					//std::cout << "B = " << b << std::endl;
-					mCurrentResidualNorm = TSparseSpace::TwoNorm(b);
-				}
-
+				}	
 
 				TDataType ratio;
-                                //KRATOS_WATCH(mCurrentResidualNorm)
+				mCurrentResidualNorm = TSparseSpace::TwoNorm(b); 
+                               
+                                double b_size = b.size();
 				
 
 				if(mInitialResidualNorm == 0.00) ratio = 0.00;
 
 				else ratio = mCurrentResidualNorm/mInitialResidualNorm;
 
-				double b_size = b.size();
-				std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio << ";   Norm Value = " << (mCurrentResidualNorm/sqrt(b_size)) << std::endl;
+				std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
 				if ( 
 					ratio <= mRatioTolerance 
 					|| 
-					(mCurrentResidualNorm/sqrt(b_size))<mAlwaysConvergedNorm
-					)  
-				{
+					(mCurrentResidualNorm/b_size) <mAlwaysConvergedNorm
+					)
+				{       
+                                        KRATOS_WATCH("convergence is achieved")
 					return true;
 				}
 				else
@@ -212,12 +206,14 @@ namespace Kratos
 					return false;
 				}
 			}
-			else //in this case all the displacements are imposed!
+			else 
 			{
 				return true;
 			}
 		}
 
+                
+  
 
 		void Initialize(
 			ModelPart& r_model_part
@@ -330,6 +326,8 @@ namespace Kratos
 		TDataType mAlwaysConvergedNorm;
 
 		TDataType mReferenceDispNorm;
+
+
 		/*@} */
 		/**@name Private Operators*/
 		/*@{ */
