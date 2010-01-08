@@ -62,6 +62,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+#include "fluency_criteria/fluency_criteria.h"
+#include "soft_hard_behavior/softening_hardening_criteria.h"
 
 
 
@@ -85,6 +87,13 @@ namespace Kratos
 			 * Counted pointer of Isotropic_Damage_3D
 			 */
 			typedef boost::shared_ptr<Isotropic_Damage_3D> Pointer;
+
+			typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
+
+                        typedef SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;   
+                        
+                        typedef Properties::Pointer PropertiesPointer;
+
 			
 			/**
 			 * Life Cycle 
@@ -93,10 +102,11 @@ namespace Kratos
 			 * Default constructor.
 			 */
 			Isotropic_Damage_3D();
+                        Isotropic_Damage_3D(FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property);
 			
 			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Isotropic_Damage_3D());
+				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Isotropic_Damage_3D(mpFluencyCriteria->Clone(),mpSofteningBehavior, mpProperties));
 				return p_clone;
 			}
 
@@ -170,29 +180,39 @@ namespace Kratos
  
 		
 		protected:
-			/**
-			 * there are no protected class members
-			 */
-		private:
-			
-				// Atributos  Privados
-		  double mEc;
-		  double mEt; 
-		  double mFc;
-		  double mFt;
-		  double mGE;
-		  double mNU;
-		  double ml;
-		  double md;
-		  double mr_old;
-		  double mr_new; 
-		  double mArea;
-                  //Vector mstressVector;
+		/**
+		* there are no protected class members
+		*/
 
-			// Miembros Privados
-   void CalculateNoDamageElasticMatrix(Matrix& C, const double E, const double NU);
-   void CalculateNoDamageStress(const Vector& StrainVector, Vector& rResult);
-   void CalculateDamage(const Matrix& ConstitutiveMatrix, const Vector& Stress, double& d);
+
+		// Atributos  Privados
+
+		double mEc;
+		double mEt; 
+		double mFc;
+		double mFt;
+		double mGE;
+		double mNU;
+		double mDE;
+		double ml;
+		double md_new;
+		double md_old;
+		double mr_old;
+		double mr_new; 
+		double mr_o;
+		double mArea;
+
+
+		//Vector mstressVector;
+
+		FluencyCriteriaPointer mpFluencyCriteria;
+		SofteningHardeningCriteriaPointer mpSofteningBehavior;
+		PropertiesPointer mpProperties;
+
+		// Miembros Privados
+		void CalculateNoDamageElasticMatrix(Matrix& C, const double E, const double NU);
+		void CalculateNoDamageStress(const Vector& StrainVector, Vector& rResult);
+		void CalculateStressAndDamage(Vector& StressVector, const Vector& StrainVector );
 
 
 	}; // Class Isotropic_Damage_3D 
