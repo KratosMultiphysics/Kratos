@@ -484,7 +484,7 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 			 // Using perturbation methods
                          long double delta_strain =  0.00;
 			 long double factor       =  1E-6;
-                         long double max          =  1E-10;
+                         long double max          =  1E-8;
                          double last_damage       =  md;
 			 double last_r            =  mr_new;
 
