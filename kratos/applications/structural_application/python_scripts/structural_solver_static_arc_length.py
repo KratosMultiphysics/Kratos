@@ -53,17 +53,17 @@ class StaticStructuralSolver:
         #self.time_scheme   = ParallelResidualBasedIncrementalUpdateStaticScheme()
 
 	## Varibles de Control de Arc Lenght Method
-	self.Ide                        = 20
+	self.Ide                        = 5
 	self.factor_delta_lmax          = 1.00
 	self.toler                      = 1.0E-9
         self.norm                       = 1.0E-5 
-	self.max_iter                   = 100
+	self.max_iter                   = 20
        
 	
          #self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(self.damp_factor)
         #definition of the solvers. Super_Lu Default
-        self.structure_linear_solver     =   SkylineLUFactorizationSolver()
-        #self.structure_linear_solver      =   SuperLUSolver()
+        #self.structure_linear_solver     =   SkylineLUFactorizationSolver()
+        self.structure_linear_solver      =   SuperLUSolver()
 
         #pDiagPrecond = ParallelDiagonalPreconditioner()
         #self.structure_linear_solver     =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
@@ -76,17 +76,17 @@ class StaticStructuralSolver:
         #self.structure_linear_solver  =  BICGSTABSolver(LST,LSMI,pDiagPrecond)
 
         #definition of the convergence criteria
-        #Displacement   =   DisplacementCriteria(1E-6,1E-9)
-        #Residual       =   ResidualCriteria(1E-6,1E-9)
+        Displacement   =   DisplacementCriteria(1E-6,1E-9)
+        Residual       =   ResidualCriteria(1E-3,1E-6)
 
-        #self.conv_criteria      = AndCriteria(Residual, Displacement)
+        self.conv_criteria      = AndCriteria(Residual, Displacement)
         #self.conv_Residual     = ResidualCriteria(0.000001,1E-9)
 	#self.conv_Displacement = DisplacementCriteria(self.norm,self.toler)
         #self.conv_criteria     = ResDisCriteria(self.conv_Residual, self.conv_Displacement)
 	#self.conv_criteria     = ResidualDisplacementCriteria(self.norm,self.toler)
 	#self.conv_criteria     = DisplacementCriteria(self.norm,self.toler)
 	#self.conv_criteria    = ParallelDisplacementCriteria(0.000001,1e-9)
-        self.conv_criteria     = DisplacementCriteria(self.norm,self.toler)
+        #self.conv_criteria     = DisplacementCriteria(self.norm,self.toler)
 
         #definition of the convergence criteria
        
