@@ -577,6 +577,7 @@ namespace Kratos
 					    miu          = mdelta_l/sqrt(aux + Ao*mdelta_lamda_old*mdelta_lamda_old);
 					    TSparseSpace::Assign(mDelta_p, miu, mDelta_pold);            //mDelta_p     = miu*mDelta_pold;
 				            mdelta_lamda = miu*mdelta_lamda_old;
+                                            TSparseSpace::Copy(mRHS_cond,h); 
 
 					    KRATOS_WATCH(mdelta_l)
 					    KRATOS_WATCH(Ao)
@@ -1161,7 +1162,7 @@ namespace Kratos
 
 			//initialisation of the convergence criteria
 			if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
-				mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
+				pConvergenceCriteria->Initialize(BaseType::GetModelPart());
 
 
 			mInitializeWasPerformed = true;
@@ -1178,7 +1179,9 @@ namespace Kratos
 			KRATOS_TRY
 
 			typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-			typename TSchemeType::Pointer pScheme = GetScheme();	
+			typename TSchemeType::Pointer pScheme = GetScheme();	 
+                        typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
+                        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
 
 			//setting up the Vectors involved to the correct size with value cero
 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
@@ -1206,6 +1209,8 @@ namespace Kratos
 			//pScheme->InitializeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
 		
 			pScheme->InitializeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
+                        pConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(),rDofSet, mA, mDx, mb);
+
 			
 			mSolutionStepIsInitialized = true;	
 
