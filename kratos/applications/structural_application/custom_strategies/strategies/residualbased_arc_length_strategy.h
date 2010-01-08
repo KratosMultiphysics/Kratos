@@ -562,6 +562,7 @@ namespace Kratos
 					    KRATOS_WATCH(mdelta_l)
                                             KRATOS_WATCH(mdelta_lamda)
 					    KRATOS_WATCH(Ao)
+                                            TSparseSpace::Copy(mRHS_cond,h); 
                              
 					}
 				    else
