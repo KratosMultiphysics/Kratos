@@ -182,6 +182,35 @@ namespace Kratos
 			
 		}
 		
+
+	  void Initialize(ModelPart& r_model_part)
+		    {
+                      mpfirst_criteria->Initialize(r_model_part);
+                      mpsecond_criteria->Initialize(r_model_part);
+		    }
+
+	  void InitializeSolutionStep(
+					ModelPart& r_model_part,
+					DofsArrayType& rDofSet,
+					const TSystemMatrixType& A,
+					const TSystemVectorType& Dx,
+					const TSystemVectorType& b
+					)
+	      {
+		      mpfirst_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+                      mpsecond_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+	      }
+
+	  void FinalizeSolutionStep(
+					ModelPart& r_model_part,
+					DofsArrayType& rDofSet,
+					const TSystemMatrixType& A,
+					const TSystemVectorType& Dx,
+					const TSystemVectorType& b
+					){
+		      mpfirst_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+                      mpsecond_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);}
+
 		
 		
 		
