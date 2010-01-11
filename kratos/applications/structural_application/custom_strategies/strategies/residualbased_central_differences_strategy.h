@@ -203,11 +203,11 @@ void InitializeElements()
       #pragma omp parallel for private(MassMatrix)
       for(int k=0; k<number_of_threads; k++)
       {
-	  #ifdef _OPENMP
-          int thread_id = omp_get_thread_num();
-          #else
-          int thread_id = 1.00;
-          #endif
+	  //#ifdef _OPENMP
+          //int thread_id = omp_get_thread_num();
+          //#else
+          //int thread_id = 1.00;
+          //#endif
 
 	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
 	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
@@ -257,9 +257,9 @@ void Compute_Critical_Time()
 
 	
 	  #ifdef _OPENMP
-          int number_of_threads = omp_get_max_threads();
+          unsigned int number_of_threads = omp_get_max_threads();
           #else
-          int number_of_threads = 1.00;
+          unsigned int number_of_threads = 1.00;
           #endif
 
 	vector<unsigned int> element_partition;
@@ -278,7 +278,7 @@ void Compute_Critical_Time()
 	  } 
 	  
         #pragma omp parallel for private(delta_time_a)
-        for(int k=0; k<number_of_threads; k++)
+        for(unsigned int k=0; k<number_of_threads; k++)
 	{
 	  typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
 	  typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
@@ -507,11 +507,11 @@ void Calculate_Conditions_RHS_and_Add()
      #pragma omp parallel for private (rhs_cond)
       for(int k=0; k<number_of_threads; k++)
       {    
-	  #ifdef _OPENMP
-          int thread_id = omp_get_thread_num();
-          #else
-          int thread_id = 1.00;
-          #endif
+	 // #ifdef _OPENMP
+         // int thread_id = omp_get_thread_num();
+         // #else
+         // int thread_id = 1.00;
+         // #endif
 	typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
 	typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
   
@@ -563,10 +563,10 @@ void Calculate_Elements_RHS_and_Add()
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
-      int thread_id = omp_get_thread_num();
+      //int thread_id = omp_get_thread_num();
       #else
       int number_of_threads = 1.00;
-      int thread_id = 1.00;
+      //int thread_id = 1.00;
       #endif
 
       vector<unsigned int> element_partition;
@@ -584,11 +584,11 @@ void Calculate_Elements_RHS_and_Add()
       for(int k=0; k<number_of_threads; k++)
       {
 
-	  #ifdef _OPENMP
-          int thread_id = omp_get_thread_num();
-          #else
-          int thread_id = 1.00;
-          #endif
+	  //#ifdef _OPENMP
+          //int thread_id = omp_get_thread_num();
+          //#else
+          //int thread_id = 1.00;
+          //#endif
 	
         typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
 	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
@@ -600,7 +600,7 @@ void Calculate_Elements_RHS_and_Add()
          {
 
 	  Element::GeometryType& geom = it->GetGeometry();
-	  int dim = (it)->GetGeometry().WorkingSpaceDimension();
+	  unsigned int dim = (it)->GetGeometry().WorkingSpaceDimension();
 	  (it)->CalculateRightHandSide(rhs_elem, CurrentProcessInfo);
     
 	// Accediendo a los nodos por cada elemento   
@@ -861,7 +861,7 @@ inline void CreatePartition(unsigned int number_of_threads,const int number_of_r
       int partition_size = number_of_rows / number_of_threads;
       partitions[0] = 0;
       partitions[number_of_threads] = number_of_rows;
-      for(int i = 1; i<number_of_threads; i++)
+      for(unsigned int i = 1; i<number_of_threads; i++)
       partitions[i] = partitions[i-1] + partition_size ;
   }
 
