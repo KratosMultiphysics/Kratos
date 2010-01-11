@@ -293,7 +293,6 @@ void Isotropic_Damage::CalculateStressAndDamage(Vector& StressVector, const Vect
 	double A   	     = 0.00;
         //double delta_d       = 0.00;
 
-        Vector No_Damage_Stress = ZeroVector(3); 
  
 	A  = 1.00/((mGE*mEc)/(ml*mFt*mFt)-0.5);
 	if (A < 0.00)
