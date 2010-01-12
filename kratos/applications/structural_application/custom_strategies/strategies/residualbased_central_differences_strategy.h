@@ -257,9 +257,9 @@ void Compute_Critical_Time()
 
 	
 	  #ifdef _OPENMP
-          unsigned int number_of_threads = omp_get_max_threads();
+          int number_of_threads = omp_get_max_threads();
           #else
-          unsigned int number_of_threads = 1.00;
+          int number_of_threads = 1.00;
           #endif
 
 	vector<unsigned int> element_partition;
@@ -272,7 +272,7 @@ void Compute_Critical_Time()
         #endif
 	
         Vector dts(number_of_threads);
-	for(unsigned int i = 0; i < number_of_threads; ++i)
+	for(int i = 0; i < number_of_threads; ++i)
 	  {
 	    dts(i) = 1.00;
 	  } 
