@@ -1313,7 +1313,7 @@ KRATOS_WATCH(dp)	*/
 		        //for inside the domain totally inside one fluid
 		        elemental_porosity = eps0;
 		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); //* eps0;
-		        elemental_density = geom[0].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_diameter = geom[0].FastGetSolutionStepValue(DIAMETER); 
 		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
 
 		}
@@ -1321,21 +1321,21 @@ KRATOS_WATCH(dp)	*/
 		{
 		        elemental_porosity = eps0;
 		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); // * eps0;	
-		        elemental_density = geom[0].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_diameter = geom[0].FastGetSolutionStepValue(DIAMETER); 
 		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density 
 		}
 	       else if(eps1 == eps2)
 		{
 		        elemental_porosity = eps1;
 		        elemental_density = geom[1].FastGetSolutionStepValue(DENSITY); // * eps1;	
-		        elemental_density = geom[1].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_diameter = geom[1].FastGetSolutionStepValue(DIAMETER); 
 		        elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY) * elemental_density;  //mu = nu * density 
 		}
 	       else if(eps2 == eps0)
 		{
 		        elemental_porosity = eps2;
 		        elemental_density = geom[2].FastGetSolutionStepValue(DENSITY); // * eps2;
-		        elemental_density = geom[2].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_diameter = geom[2].FastGetSolutionStepValue(DIAMETER); 
 		        elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY)* elemental_density;  //mu = nu * density 
 		}
 	       else { KRATOS_WATCH("ERROR!!! three different values of densities");}
