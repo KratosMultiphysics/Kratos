@@ -134,10 +134,10 @@ class ElemBasedLevelSetSolver:
         print "entered in initialization"
 ##        #calculate the normals to the overall domain
 ##        self.normal_tools.CalculateBodyNormals(self.model_part.Elements,self.domain_size);
-
-        print "to be removed SOOOOOOOOOOOOOOOOOOOOOOOOOONNNNNNNNNN!!!!!"
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(DIAMETER,0,0.01)
+##
+##        print "to be removed SOOOOOOOOOOOOOOOOOOOOOOOOOONNNNNNNNNN!!!!!"
+##        for node in self.model_part.Nodes:
+##            node.SetSolutionStepValue(DIAMETER,0,0.01)
 
         #look for neighbours on the base mesh
         (self.mesh_neighbour_search).Execute()
