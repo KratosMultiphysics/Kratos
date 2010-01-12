@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_mesh_to_python.h" 
 #include "add_kernel_to_python.h" 
 #include "add_kratos_application_to_python.h" 
-#include "add_equation_systems_to_python.h" 
+//#include "add_equation_systems_to_python.h"
 #include "add_linear_solvers_to_python.h" 
 #include "add_process_info_to_python.h"
 #include "add_constitutive_law_to_python.h"
@@ -128,7 +128,7 @@ namespace Python
 	AddMeshToPython();
 	AddKernelToPython();
 	AddKratosApplicationToPython();
-	AddEquationSystemsToPython();
+//	AddEquationSystemsToPython();
 	AddLinearSolversToPython();
 	AddStrategiesToPython();
 	AddUtilitiesToPython();

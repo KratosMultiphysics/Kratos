@@ -113,6 +113,8 @@ namespace Kratos
       typedef typename TSparseSpaceType::VectorType VectorType;
   
       typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+  
+      typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
       typedef std::size_t  SizeType;
   
@@ -181,6 +183,12 @@ namespace Kratos
 	{
 	  return false;
 	}
+
+      /** Eigenvalue and eigenvector solve method for derived eigensolvers */
+      virtual  void Solve(SparseMatrixType& K, 
+			  SparseMatrixType& M,
+			  DenseVectorType& Eigenvalues,
+			  DenseMatrixType& Eigenvectors){}
       
       ///@}
       ///@name Access

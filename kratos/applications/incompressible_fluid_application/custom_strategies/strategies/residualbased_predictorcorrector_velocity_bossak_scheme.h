@@ -72,11 +72,16 @@ namespace Kratos {
 
     namespace VelocityBossakAuxiliaries {
         Matrix mMass;
+        #pragma omp threadprivate(mMass)
         Matrix mDamp;
+        #pragma omp threadprivate(mDamp)
 
         Vector mvel;
+        #pragma omp threadprivate(mvel)
         Vector macc;
+        #pragma omp threadprivate(macc)
         Vector maccold;
+        #pragma omp threadprivate(maccold)
     }
 
 
@@ -397,6 +402,7 @@ namespace Kratos {
             //basic operations for the element considered
             (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
+//std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
             (rCurrentElement)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
             (rCurrentElement)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
 
@@ -670,9 +676,10 @@ namespace Kratos {
             }
 
             //adding  damping contribution
+
             if (D.size1() != 0) // if M matrix declared
             {
-                noalias(LHS_Contribution) += 1.0 * D;
+                noalias(LHS_Contribution) += D;
             }
         }
 

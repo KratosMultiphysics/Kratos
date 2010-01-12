@@ -50,7 +50,7 @@ alias static_Kratos
 	add_constitutive_law_to_python.cpp       
 	add_processes_to_python.cpp		
 	add_coordinate_matrix_to_python.cpp	
-	add_equation_systems_to_python.cpp	
+##	add_equation_systems_to_python.cpp
 	add_quadratures_to_python.cpp		
 	add_geometries_to_python.cpp		
 	add_scalar_matrix_to_python.cpp		

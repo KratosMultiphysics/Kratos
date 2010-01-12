@@ -527,6 +527,16 @@ namespace Kratos {
                 //						mTauPressure[i_node] = 100.0*delta_t;
             }
 
+////            //the tau is set to 1/dt on the corner nodes
+////            //apply conditions on corners
+////            int corner_size = mcorner_nodes.size();
+////            for (int i = 0; i < corner_size; i++)
+////            {
+////                int i_node = mcorner_nodes[i];
+////                mTauPressure[i_node] = mdelta_t_avg;
+////                mTauConvection[i_node] = mdelta_t_avg;
+////            }
+
             //laplacian smoothing on the taus
             //note here that we use TauConvection as a temporary vector
 //            LaplacianSmooth(mTauConvection, mTauPressure);
@@ -867,11 +877,21 @@ namespace Kratos {
 
 
             //respect pressure boundary conditions by penalization
-            double huge = max_diag * 1e6;
+//            double huge = max_diag * 1e6;
+//            for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
+//                unsigned int i_node = mPressureOutletList[i_pressure];
+//                mL(i_node, i_node) = huge;
+//                rhs[i_node] = 0.0;
+//            }
             for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
                 unsigned int i_node = mPressureOutletList[i_pressure];
-                mL(i_node, i_node) = huge;
+                mL(i_node, i_node) = max_diag;
                 rhs[i_node] = 0.0;
+                for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                {
+                    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+                    mL(i_node, j_neighbour) = 0.0;
+                }
             }
 
             //modification for level_set
@@ -889,7 +909,8 @@ namespace Kratos {
                 if (mdistances[i_node] >= 0) {
                     mL(i_node, i_node) = max_diag;
                     rhs[i_node] = 0.0;
-                    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+                    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                    {
                         unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
                         mL(i_node, j_neighbour) = 0.0;
                     }
@@ -1227,6 +1248,7 @@ namespace Kratos {
             }
 
 
+
             //fill the following layers by neighbour relationships
             //each layer fills the following
             for (unsigned int il = 0; il < extrapolation_layers - 1; il++) {
@@ -1244,7 +1266,38 @@ namespace Kratos {
                 }
             }
 
+
             array_1d<double, 3 > aux, aux_proj;
+
+            //TESTING!!!
+            //fill the pressure projection on the first layer inside the fluid
+            //by extrapolating from the pressure projection on the layer -1 (the first layer completely inside the domain)
+            for (PointIterator iii = (layers[0]).begin(); iii != (layers[0]).end(); iii++)
+            {
+                    noalias(aux_proj) = ZeroVector(3);
+                    double avg_number = 0.0;
+
+                    WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    {
+                        if (i->GetValue(IS_VISITED) == 0) //the node will be considered for extrapolation only if completely inside
+                        {
+                            const array_1d<double, 3 > & inside_press_grad = i->FastGetSolutionStepValue(PRESS_PROJ);
+                            noalias(aux_proj) += inside_press_grad;
+                            avg_number += 1.0;
+                        }
+                    }
+
+                    if (avg_number != 0.0) //this case means that it has some neighbours that are completely internal
+                    {
+                        aux_proj /= avg_number;
+                        noalias(iii->FastGetSolutionStepValue(PRESS_PROJ)) = aux_proj;
+                    }
+                    else //case in which there is not a layer of nodes completely internal
+                    {
+                        noalias(iii->FastGetSolutionStepValue(PRESS_PROJ)) = mRho*mBodyForce;
+                    }
+            }
 
             //perform extrapolation layer by layer by making an average
             //of the neighbours of lower order   
@@ -1335,10 +1388,10 @@ namespace Kratos {
 
                     double norm_grad = norm_2(grad_d);
 
-                    if(norm_grad > 1e-2)
-                    {
-                        if(norm_grad < 100.0)
-                        {
+//                    if(norm_grad > 1e-2)
+//                    {
+//                        if(norm_grad < 100.0)
+//                        {
                             grad_d /= norm_grad; //this is the direction of the gradient of the distances
 
                             grad_d *= dist_i; //this is the vector with the distance of node_i from the closest point on the free surface
@@ -1347,11 +1400,11 @@ namespace Kratos {
                             double pestimate = inner_prod(press_grad,grad_d);
 
                             iii->FastGetSolutionStepValue(PRESSURE) = pestimate;
-                        }
-                        else
-                        {
+//                        }
+//                        else
+//                        {
 //                            std::cout << "attention gradient of distance much greater than 1 on node:" << i_node  <<std::endl;
-                            iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
+//                            iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
 //                            double avg_number = 0.0;
 //
 //                            double pavg = 0.0;
@@ -1370,13 +1423,13 @@ namespace Kratos {
 //
 //                            iii->FastGetSolutionStepValue(PRESSURE) = pavg/avg_number;
 
-                        }
-                    }
-                    else
-                    {
-//                        std::cout << "attention very small gradient of distance found on node;" << i_node  <<std::endl;
-                        iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
-                    }
+//                        }
+//                    }
+//                    else
+//                    {
+////                        std::cout << "attention very small gradient of distance found on node;" << i_node  <<std::endl;
+//                        iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
+//                    }
             }
 
 
@@ -1650,9 +1703,6 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
-        //**********************************************************************************
-        //function to solve fluid equations - fractional step 1: compute fractional momentum
-
         void ConvectDistance()
         {
             KRATOS_TRY
@@ -1699,7 +1749,7 @@ namespace Kratos {
                 double& pi_i = mPiConvection[i_node];
                 const double& phi_i = mphi_n1[i_node];
                 //set to zero the projection
-                pi_i = 0;
+                pi_i = 0.0;
                 if (active_nodes[i_node] != 0.0)
                 {
                     a_i = mvel_n1[i_node];
@@ -1711,7 +1761,7 @@ namespace Kratos {
 
                         if (active_nodes[j_neighbour] != 0.0)
                         {
-                            a_j = mvel_n1[j_neighbour];
+                            noalias(a_j) = mvel_n1[j_neighbour];
                             a_j /= mEps[j_neighbour];
 
                             const double& phi_j = mphi_n1[j_neighbour];
@@ -2285,7 +2335,7 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
                 unsigned int current_id = cond_it->Id();
 
                 //slip condition
-                if (cond_it->GetValue(IS_STRUCTURE) == true) //this is a slip face --> now look for its neighbours
+                if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
                 {
                     const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
                     
@@ -2325,11 +2375,13 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
                     mcorner_nodes.push_back(i_node);
             }
 
-//            for (unsigned int i = 0; i < mcorner_nodes.size(); i++)
-//            {
-//                KRATOS_WATCH(mcorner_nodes[i]);
-//
-//            }
+
+
+            for (unsigned int i = 0; i < mcorner_nodes.size(); i++)
+            {
+                KRATOS_WATCH(mcorner_nodes[i]);
+
+            }
 
 
             KRATOS_CATCH("")
