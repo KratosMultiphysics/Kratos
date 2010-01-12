@@ -2,6 +2,7 @@
 from Kratos import *
 from KratosStructuralApplication import *
 from KratosExternalSolversApplication import *
+from KratosMKLSolversApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -63,8 +64,8 @@ class StaticStructuralSolver:
          #self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(self.damp_factor)
         #definition of the solvers. Super_Lu Default
         #self.structure_linear_solver     =   SkylineLUFactorizationSolver()
-        self.structure_linear_solver      =   SuperLUSolver()
-
+        #self.structure_linear_solver      =   SuperLUSolver()
+        self.structure_linear_solver =  MKLPardisoSolver()
         #pDiagPrecond = ParallelDiagonalPreconditioner()
         #self.structure_linear_solver     =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
 	#self.structure_linear_solver    =   Preconditioner()
