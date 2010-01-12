@@ -427,6 +427,20 @@ namespace Kratos
 		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1] + msDN_DX(2,2)*fv2[2];
 		Gaux += msDN_DX(3,0)*fv3[0] + msDN_DX(3,1)*fv3[1] + msDN_DX(3,2)*fv3[2];
 
+                //**************************** EXPERIMENTAL *****************************
+                //**************************** EXPERIMENTAL *****************************
+                //try ... should conserve the mass much better!
+		const array_1d<double,3>& v0old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& v1old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& v2old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& v3old = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY,1);
+		Gaux +=  msDN_DX(0,0)*v0old[0] + msDN_DX(0,1)*v0old[1] + msDN_DX(0,2)*v0old[2];
+		Gaux += msDN_DX(1,0)*v1old[0] + msDN_DX(1,1)*v1old[1] + msDN_DX(1,2)*v1old[2];
+		Gaux += msDN_DX(2,0)*v2old[0] + msDN_DX(2,1)*v2old[1] + msDN_DX(2,2)*v2old[2];
+		Gaux += msDN_DX(3,0)*v3old[0] + msDN_DX(3,1)*v3old[1] + msDN_DX(3,2)*v3old[2];
+                //**************************** EXPERIMENTAL *****************************
+                //**************************** EXPERIMENTAL *****************************
+
 		rRightHandSideVector[0] = - Gaux * msN[0]; 
 		rRightHandSideVector[1] = - Gaux * msN[1]; 
 		rRightHandSideVector[2] = - Gaux * msN[2]; 

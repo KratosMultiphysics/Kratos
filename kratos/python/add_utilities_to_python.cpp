@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
+#include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
 
@@ -100,12 +101,23 @@ namespace Python
 
 	  class_<SignedDistanceCalculationUtils<2> >("SignedDistanceCalculationUtils2D", init<>())
 			  .def("CalculateDistances",&SignedDistanceCalculationUtils<2>::CalculateDistances )
+                          .def("FindMaximumEdgeSize",&SignedDistanceCalculationUtils<2>::FindMaximumEdgeSize )
 			  ;
 
 	  class_<SignedDistanceCalculationUtils<3> >("SignedDistanceCalculationUtils3D", init<>())
 			  .def("CalculateDistances",&SignedDistanceCalculationUtils<3>::CalculateDistances )
+                          .def("FindMaximumEdgeSize",&SignedDistanceCalculationUtils<3>::FindMaximumEdgeSize )
 			  ;
 
+	  class_<SignedDistanceCalculationBinBased<2> >("SignedDistanceCalculationBinBased2D", init<>())
+			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
+                          .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
+			  ;
+
+	  class_<SignedDistanceCalculationBinBased<3> >("SignedDistanceCalculationBinBased3D", init<>())
+			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
+                          .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
+			  ;
 
 	  class_<DivideElemUtils>("DivideElemUtils", init<>())
 		.def("DivideElement_2D",&DivideElemUtils::DivideElement_2D)

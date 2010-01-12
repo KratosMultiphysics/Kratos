@@ -10,6 +10,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
     model_part.AddNodalSolutionStepVariable(POROSITY)
+
+#    model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(DIAMETER)
 
     print "variables for the edgebased incompressible fluid solver added correctly"
@@ -90,10 +92,16 @@ class EdgeBasedLevelSetSolver:
             self.fluid_solver = EdgeBasedLevelSet2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction)
         else:
             self.distance_utils = SignedDistanceCalculationUtils3D()
+#            self.distance_utils = SignedDistanceCalculationBinBased3D()
             self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction)
 
-        self.reorder = True
-        self.distance_tools = BodyDistanceCalculationUtils()
+#
+        self.max_edge_size = self.distance_utils.FindMaximumEdgeSize(self.model_part)
+        self.distance_size = self.max_edge_size * 3.0;
+        print "###################### max distance = ",self.distance_size;
+        
+#        self.reorder = True
+#        self.distance_tools = BodyDistanceCalculationUtils()
 
 #TO BE DELETED SOON
 ##        print "ASSIGNING DIAMETER FROM SOLVER: TO BE REMOVED SOOOOOON!!!!!!!!!!!!!!!!!!!!"
@@ -114,16 +122,19 @@ class EdgeBasedLevelSetSolver:
 
     ################################################################
     ################################################################
-    def CalculateDistances(self):
-        if(self.domain_size == 2):
-            self.distance_tools.CalculateDistances2D(self.model_part.Elements,DISTANCE, self.reorder);
-        else:
-            self.distance_tools.CalculateDistances3D(self.model_part.Elements,DISTANCE, self.reorder);
+#    def CalculateDistances(self):
+#        if(self.domain_size == 2):
+#            self.distance_tools.CalculateDistances2D(self.model_part.Elements,DISTANCE, self.reorder);
+#        else:
+#            self.distance_tools.CalculateDistances3D(self.model_part.Elements,DISTANCE, self.reorder);
 
     ################################################################
     ################################################################
     def Redistance(self):
-        self.distance_utils.CalculateDistances(self.model_part,DISTANCE)
+        self.distance_utils.CalculateDistances(self.model_part,DISTANCE,self.distance_size)
+#        self.distance_utils.CalculateDistances(self.model_part,DISTANCE,self.distance_size)
+
+
 #        self.fluid_solver.MarkInternalNodes()
 #        self.CalculateDistances()
 #        self.fluid_solver.MarkExternalAndMixedNodes()
