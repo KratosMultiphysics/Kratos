@@ -111,7 +111,9 @@ for node in model_part.Nodes:
 ##necessary setting of the distances values as IC
 for node in model_part.Nodes:
     node.SetSolutionStepValue(DISTANCE,0,node.Y-5.0)
-
+    node.SetSolutionStepValue(DIAMETER,0,1.0)
+    node.SetSolutionStepValue(POROSITY,0,1.0)
+    
 delta_t = 0.05
 
 time_old_print = 0.0
@@ -171,11 +173,11 @@ while time < max_time:
         gid_io.WriteMesh( model_part.GetMesh() )
         gid_io.FinalizeMesh()
         gid_io.InitializeResults(mesh_name , model_part.GetMesh())
-##        gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
-##        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
-##        gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
-##        gid_io.WriteNodalResults(DENSITY,model_part.Nodes,time,0)
-##        gid_io.WriteNodalResults(CONV_PROJ, model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DENSITY,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DIAMETER, model_part.Nodes,time,0)
 ##        gid_io.WriteNodalResults(NORMAL,model_part.Nodes,time,0)
 ##        gid_io.WriteNodalResults(POROSITY,model_part.Nodes,time,0)
 ####        gid_io.WriteNodalResults(IS_BOUNDARY,model_part.Nodes,time,0)
