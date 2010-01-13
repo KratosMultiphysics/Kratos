@@ -164,19 +164,19 @@ class ElemBasedLevelSetSolver:
     
         
     ################################################################
-    ################################################################
-    def CalculateDistances(self):
-        if(self.domain_size == 2):
-            self.distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE, self.reorder);
-        else:
-            self.distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE, self.reorder);
+##    ################################################################
+##    def CalculateDistances(self):
+##        if(self.domain_size == 2):
+##            self.distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE, self.reorder);
+##        else:
+##            self.distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE, self.reorder);
         
 
     ################################################################
     ################################################################
     #take care! needs neighbours on the overall domain
     def RecalculateDistanceFunction(self):
-        self.distance_utils.CalculateDistances(self.model_part,DISTANCE)
+        self.distance_utils.CalculateDistances(self.model_part,DISTANCE, 10000000.0)
 
 
     ################################################################
@@ -307,6 +307,10 @@ class ElemBasedLevelSetSolver:
             eps = node.GetSolutionStepValue(POROSITY,0)
             if (eps == 0.0):
                 eps = 1.0
+            diam = node.GetSolutionStepValue(DIAMETER,0)
+            if (diam == 0.0):
+                node.SetSolutionStepValue(DIAMETER,0,1.0)
+            
             vx = node.GetSolutionStepValue(VELOCITY_X,0)/eps
             vy = node.GetSolutionStepValue(VELOCITY_Y,0)/eps
             vz = node.GetSolutionStepValue(VELOCITY_Z,0)/eps
