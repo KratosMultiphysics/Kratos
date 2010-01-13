@@ -111,6 +111,8 @@ class EdgeBasedLevelSetSolver:
 
         self.fluid_solver.Initialize()
 
+        self.Redistance()
+
 #        for node in self.model_part.Nodes:
 #            dist = node.GetSolutionStepValue(DISTANCE)
 #            node.SetSolutionStepValue(DISTANCE,1,dist)
