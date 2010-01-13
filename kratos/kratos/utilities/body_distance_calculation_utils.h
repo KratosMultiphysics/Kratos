@@ -203,7 +203,6 @@ namespace Kratos
             array_1d<double, TDim + 1 > N;
 
             array_1d<double, TDim> d;
-            unsigned int current_position = 0;
 
             while (elements_to_solve.size() != 0)
             {
