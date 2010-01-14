@@ -157,6 +157,8 @@ namespace Kratos
             void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
             void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+            void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 	  
             void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
@@ -183,6 +185,9 @@ namespace Kratos
             void GetValuesVector(Vector& values, int Step = 0);
             void GetFirstDerivativesVector(Vector& values, int Step = 0);
             void GetSecondDerivativesVector(Vector& values, int Step = 0);
+
+
+	    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
             
             ///@}
             ///@name Access
@@ -318,6 +323,8 @@ namespace Kratos
                                           unsigned int StrainSize);
         
             void ResizeAndInitializeAuxiliaries();
+
+	    void  Comprobate_State_Vector(Vector& Result);
             
             ///@} 
             ///@name Private Operations

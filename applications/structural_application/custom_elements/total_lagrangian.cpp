@@ -62,10 +62,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/total_lagrangian.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-//#include "constitutive_laws/isotropic_2d.h"
-//#include "constitutive_laws/isotropic_3d.h"
-//#include "constitutive_laws/Ortotropo_TP.h"
-//#include "constitutive_laws/Isotropic_Damage.h"
 #include "structural_application.h"
 
 //#include <omp.h>
@@ -74,7 +70,7 @@ namespace Kratos
 {
 namespace TotalLagrangianAuxiliaries
 {
- Matrix msB(0,0);
+        Matrix msB(0,0);
 	#pragma omp threadprivate(msB)
 	Matrix msF(0,0);
 	#pragma omp threadprivate(msF)
@@ -88,6 +84,8 @@ namespace TotalLagrangianAuxiliaries
 	#pragma omp threadprivate(msStressVector)
 	Matrix msDN_DX(0,0);   
 	#pragma omp threadprivate(msDN_DX)
+	Matrix msPlasticStrainVector(0,0);   
+	#pragma omp threadprivate(msPlasticStrainVector)
 }
 
     using namespace TotalLagrangianAuxiliaries;
@@ -169,7 +167,8 @@ namespace TotalLagrangianAuxiliaries
    //InitializeMaterial();
 		}
 
-  InitializeMaterial();
+                 InitializeMaterial();
+                 
 		//calculating the inverse J0
 		for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
 		{
@@ -271,6 +270,9 @@ namespace TotalLagrangianAuxiliaries
 
 //std::cout << Id() << " " << msC << std::endl;
 			CalculateStrain(msC,msStrainVector);
+                        Comprobate_State_Vector(msStrainVector);
+
+
 			//KRATOS_WATCH( omp_get_thread_num() );
 /*			if( omp_get_thread_num() == 1 )
 			{
@@ -286,6 +288,8 @@ namespace TotalLagrangianAuxiliaries
 					row(Ncontainer,PointNumber),
 					rCurrentProcessInfo );
 			//Calculation of stress
+                        //KRATOS_WATCH( Id() )
+                        //KRATOS_WATCH(PointNumber)
 			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
 
 			//calculating operator B
@@ -297,10 +301,11 @@ namespace TotalLagrangianAuxiliaries
 
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 			{
-				mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
-
+				//mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
+                                mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);	
 				//contributions to stiffness matrix calculated on the reference config
 				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); //to be optimized to remove the temporary
+                                //KRATOS_WATCH(msD)
 
 				CalculateAndAddKg(rLeftHandSideMatrix,msDN_DX,msStressVector,IntToReferenceWeight);
 			}
@@ -342,6 +347,7 @@ namespace TotalLagrangianAuxiliaries
 		bool CalculateResidualVectorFlag = true;
 		
 		CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+                
 
 	}
 
@@ -358,6 +364,17 @@ namespace TotalLagrangianAuxiliaries
 		if (dimension == 2) weight *= GetProperties()[THICKNESS];
 		return weight;
 	}
+
+        ////************************************************************************************
+	////************************************************************************************
+	
+        void TotalLagrangian::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)	
+ 	    {
+   		for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
+ 			mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
+ 			GetGeometry(),row( GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i ),	
+                        CurrentProcessInfo);
+ 	    }
 
 	////************************************************************************************
 	////************************************************************************************
@@ -382,6 +399,8 @@ namespace TotalLagrangianAuxiliaries
 			{
 					mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 					mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) ); 
+
+                                        //KRATOS_WATCH(mConstitutiveLawVector[i])
 			}
 		}
 		else
@@ -428,7 +447,7 @@ namespace TotalLagrangianAuxiliaries
 			//Matrix<double>::MatMulAndAdd_B_D_Btrans(ReducedKg,weight,DN_Dx,StressTensor);
 			//MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
 
-			unsigned int dimension = GetGeometry().WorkingSpaceDimension(); 
+	        unsigned int dimension = GetGeometry().WorkingSpaceDimension(); 
 		Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
 		Matrix ReducedKg = prod(DN_DX, weight * Matrix(prod(StressTensor,trans(DN_DX)) ) ); //to be optimized
 		MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
@@ -565,7 +584,7 @@ namespace TotalLagrangianAuxiliaries
 
 		rMassMatrix = ZeroMatrix(MatSize,MatSize);
 
-		double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];;
+		double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
 		if(dimension == 2) TotalMass *= GetProperties()[THICKNESS];
 
 		Vector LumpFact;
@@ -660,6 +679,7 @@ namespace TotalLagrangianAuxiliaries
 			noalias(msC) = prod(trans(msF),msF);
 
 			CalculateStrain(msC,msStrainVector);
+                        Comprobate_State_Vector(msStrainVector);
 
 			if(rVariable==GREEN_LAGRANGE_STRAIN_TENSOR)
 			{
@@ -680,6 +700,7 @@ namespace TotalLagrangianAuxiliaries
 						rCurrentProcessInfo );
 				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //saving 
 
+
 				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++)
 					Output[PointNumber](0,ii) = msStressVector[ii];
 			}
@@ -688,11 +709,22 @@ namespace TotalLagrangianAuxiliaries
 				if(Output[PointNumber].size2() != msStrainVector.size())
 					Output[PointNumber].resize(1,msStrainVector.size(),false);
 				row(Output[PointNumber],0) = mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
-			}
-		}
-		KRATOS_CATCH("")
 
-	}
+                        }
+
+                       else if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+			{
+                                double size  = msStrainVector.size();
+                                msPlasticStrainVector.resize(1,size);
+				if(Output[PointNumber].size2() != msStrainVector.size())
+				    Output[PointNumber].resize(1, size,false);
+                                         
+				mConstitutiveLawVector[PointNumber]->Calculate(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, msPlasticStrainVector, rCurrentProcessInfo);
+			        Output[PointNumber] = msPlasticStrainVector;
+			}
+	           }
+      KRATOS_CATCH("")
+}
 	
 	//************************************************************************************
 	//************************************************************************************
@@ -782,8 +814,11 @@ namespace TotalLagrangianAuxiliaries
                 {
                     rValues[PointNumber] = 
                             mConstitutiveLawVector[PointNumber]->GetValue(INTERNAL_VARIABLES);
+                           
                 }
             }
+
+
         }
         
         //************************************************************************************
@@ -795,10 +830,18 @@ namespace TotalLagrangianAuxiliaries
             {
                 CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
             }
-            if(rVariable==PK2_STRESS_TENSOR)
+
+             if(rVariable==PK2_STRESS_TENSOR)
             {
+	       
                 CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
             }
+            
+            if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+           {
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+           }
+
         }
 
 	//************************************************************************************
@@ -856,6 +899,40 @@ namespace TotalLagrangianAuxiliaries
 	}
 	//************************************************************************************
 	//************************************************************************************
+
+	void TotalLagrangian::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+	{
+
+         double c =  0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]);       
+         Vector Values(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());  
+	 if(rVariable==DELTA_TIME)
+ 		{
+                 for( unsigned int PointNumber = 0; 
+                      PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); 
+                      PointNumber++ )
+                 {
+                    mConstitutiveLawVector[PointNumber]-> Calculate(DELTA_TIME, c, rCurrentProcessInfo);
+                    Values[PointNumber] = c; 
+                 }
+             }
+
+          c =  (*std::max_element(Values.begin(),Values.end()));
+	  const double le =  GetGeometry().Length(); 
+          //KRATOS_WATCH(le)
+	  Output          =  le/c; 
+	  
+	}
+
+//************************************************************************************
+//************************************************************************************
+
+void  TotalLagrangian::Comprobate_State_Vector(Vector& Result)
+		    {
+                          for (unsigned int i = 0.00; i<Result.size(); i++){ 
+                             if(fabs(Result(i))< 1E-9){
+				    Result(i) = 0.00;}
+		          } 
+                    }
 
 
 } // Namespace Kratos
