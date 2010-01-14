@@ -404,13 +404,20 @@ void GetForce()
       // Set to zro de RHS
       Set_to_Zero_RHS();
 
-      // Compute the stress and body force of the element.
-      Calculate_Elements_RHS_and_Add();
+      #pragma omp parallel
+      {
+         #pragma omp sections
+          {
+            // Compute the stress and body force of the element.
+             #pragma omp section
+             Calculate_Elements_RHS_and_Add();
   
-      // Compute the global external nodal force. 
-      Calculate_Conditions_RHS_and_Add();
-
-      //r_model_part.GetCommunicator().AssembleCurrentData(RHS);
+            // Compute the global external nodal force.
+             #pragma omp section 
+             Calculate_Conditions_RHS_and_Add();
+           }
+       }
+       //r_model_part.GetCommunicator().AssembleCurrentData(RHS);
 
       KRATOS_CATCH("")
 
@@ -659,7 +666,7 @@ void GetNextDisplacement()
       KRATOS_WATCH( node_partition );
 
       #ifdef _OPENMP
-      double start_prod = omp_get_wtime();  
+      double start_prod = omp_get_wtime();
       #endif
        #pragma omp parallel for  private(Final_Force) private(NewDisp) 
        for(int k=0; k<number_of_threads; k++)
