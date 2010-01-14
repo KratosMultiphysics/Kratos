@@ -404,19 +404,11 @@ void GetForce()
       // Set to zro de RHS
       Set_to_Zero_RHS();
 
-      #pragma omp parallel
-      {
-         #pragma omp sections
-          {
-            // Compute the stress and body force of the element.
-             #pragma omp section
-             Calculate_Elements_RHS_and_Add();
-  
-            // Compute the global external nodal force.
-             #pragma omp section 
-             Calculate_Conditions_RHS_and_Add();
-           }
-       }
+      // Compute the stress and body force of the element.
+      Calculate_Elements_RHS_and_Add();
+
+      // Compute the global external nodal force.
+      Calculate_Conditions_RHS_and_Add();
        //r_model_part.GetCommunicator().AssembleCurrentData(RHS);
 
       KRATOS_CATCH("")
@@ -730,7 +722,7 @@ void GetNextDisplacement()
 //***************************************************************************
 
 void Calculate_Final_Force_Contribution(
-ModelPart::NodeIterator i, array_1d<double,3> Final_Force)  
+ModelPart::NodeIterator& i, array_1d<double,3>& Final_Force)  
 
 {
 
@@ -862,7 +854,7 @@ double mmax_delta_time;
 
 //******************************************************************************************
 //******************************************************************************************
-inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
     {
       partitions.resize(number_of_threads+1);
       int partition_size = number_of_rows / number_of_threads;
