@@ -851,7 +851,6 @@ double mdelta_time;
 double mmax_delta_time;
 
 
-
 //******************************************************************************************
 //******************************************************************************************
 inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
