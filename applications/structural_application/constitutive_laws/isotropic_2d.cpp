@@ -158,8 +158,10 @@ namespace Kratos
 			const GeometryType& geom,
 			const Vector& ShapeFunctionsValues )
 	{
-		mE = props[YOUNG_MODULUS];
+		mE  = props[YOUNG_MODULUS];
 		mNU = props[POISSON_RATIO];
+                mDE = props[DENSITY];
+
 //	KRATOS_WATCH("INSIDE THE CONS LAW")
 //		KRATOS_WATCH(mE)
 //			KRATOS_WATCH(mNU)
@@ -251,4 +253,15 @@ namespace Kratos
 		rCauchy_StressVector[1] = msaux(1,1);
 		rCauchy_StressVector[2] = msaux(1,2);
     }
+
+//**********************************************************************
+//**********************************************************************
+void Isotropic2D::Calculate(const Variable<double>& rVariable, 
+                                    double& Output, 
+                                    const ProcessInfo& rCurrentProcessInfo)
+   {
+    Output = sqrt(mE/mDE);
+   }
+
+
 } // Namespace Kratos

@@ -183,6 +183,10 @@ namespace Kratos
 			 */
             void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, 
                            const ProcessInfo& rCurrentProcessInfo);
+            
+            void Calculate( const Variable<double>& rVariable, 
+                                    double& Output, 
+                                    const ProcessInfo& rCurrentProcessInfo);
 
 			void CalculateStressAndTangentMatrix(Vector& StressVector,
 			      const Vector& StrainVector,
@@ -223,7 +227,7 @@ namespace Kratos
 			  */
 			 void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
 
-		         double mE,mNU;
+		         double mE,mNU,mDE;
 
  	//		 void CalculatePlaneElasticMatrix(Matrix& C, const double E, const double NU);
 
