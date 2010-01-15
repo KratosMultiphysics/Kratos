@@ -716,11 +716,12 @@ namespace Kratos
 		void MarkExcessivelyCloseNodes(ModelPart::NodesContainerType& rNodes, const double admissible_distance_factor)
 		{			
 			KRATOS_TRY;
-
+KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 			double fact2 = admissible_distance_factor*admissible_distance_factor;
 
 			for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 			{
+
 				if(in->FastGetSolutionStepValue(IS_STRUCTURE) == 0) //if it is not a wall node i can erase
 				{
 					double hnode2 = in->FastGetSolutionStepValue(NODAL_H);
@@ -1303,7 +1304,7 @@ namespace Kratos
 					  {
 						 boost::numeric::ublas::bounded_matrix<double,4,3> sort_coord = ZeroMatrix(4,3);
 						 int cnt=1;
-						 int non_interface_id;
+						 int non_interface_id = -1;
 						for (int j=0; j<=domain_size;++j)
 						  {
 						    if(geom[j].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
