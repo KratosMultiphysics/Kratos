@@ -274,10 +274,10 @@ void Compute_Critical_Time()
         Vector dts(number_of_threads);
 	for(int i = 0; i < number_of_threads; ++i)
 	  {
-	    dts(i) = 1.00;
+	    dts[i] = 1.00;
 	  } 
 	  
-        #pragma omp parallel for private(delta_time_a)
+        #pragma omp parallel for private(delta_time_a) shared(dts) 
         for(int k=0; k<number_of_threads; k++)
 	{
 	  typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -293,15 +293,19 @@ void Compute_Critical_Time()
 	  for (ElementsArrayType::iterator it=it_begin; it!= it_end; ++it)
 	    {
 	      it->Calculate(DELTA_TIME, delta_time_a, CurrentProcessInfo);
-              //KRATOS_WATCH(thread_id)
-	      if(delta_time_a < dts[thread_id])
-		 {
-                  dts[thread_id] = delta_time_a;
-		  } 
+               //KRATOS_WATCH(thread_id)
+	      if(delta_time_a < dts[thread_id-1])
+	      {
+               dts[thread_id-1] = delta_time_a;
+              } 
 	    }
 	  }
 
+    //KRATOS_WATCH(delta_time_a)
+    //KRATOS_WATCH(dts)
     mdelta_time  =  (*std::min_element(dts.begin(),dts.end()));
+    KRATOS_WATCH(mdelta_time)
+    std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
     Truncar_Delta_Time(mdelta_time);
     if(mdelta_time>mmax_delta_time) {mdelta_time = mmax_delta_time;}
     delta_time_used = mfraction_delta_time*mdelta_time;
@@ -311,7 +315,7 @@ void Compute_Critical_Time()
 
     //lucielisv@hotmail.com
 
-    std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
+    
     std::cout<< "Factor Delta Critical Time   = "<< mfraction_delta_time << std::endl;
     std::cout<< "Delta Time Used              = "<< delta_time_used << std::endl;
     std::cout<< "Current Time                 = "<< time <<std::endl;
@@ -643,7 +647,7 @@ void GetNextDisplacement()
       double factor_a     = (1.00/(DeltaTime*DeltaTime) + malpha_damp/(2.00*DeltaTime));
 
       array_1d<double,3> Final_Force;
-      array_1d<double,3> NewDisp;
+      array_1d<double,3> NewDisp = ZeroVector(3);
 
       
 	  #ifdef _OPENMP
