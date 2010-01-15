@@ -110,9 +110,7 @@ solver.etmna                      = 0.1
 solver.CalculateReactionFlag      = True
 solver.ReformDofSetAtEachStep     = True
 solver.MoveMeshFlag               = True
-solver.ApplyLineSearches          = True
         
-
 
 solver.Initialize()
 (solver).SetEchoLevel(2);
