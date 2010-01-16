@@ -10,10 +10,9 @@ import math
 
 #including kratos path
 
-kratos_libs_path = '/home/nelson/kratos/libs' ##kratos_root/libs
-kratos_applications_path = '/home/nelson/kratos/applications' ##kratos_root/applications
-kratos_python_scripts_path = '/home/nelson/kratos/applications/structural_application/python_scripts'
-
+kratos_libs_path = '../../../../libs' ##kratos_root/libs
+kratos_applications_path = '../../../../applications' ##kratos_root/applications
+kratos_python_scripts_path = '../../../../applications/structural_application/python_scripts'
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
