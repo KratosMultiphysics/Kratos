@@ -1,7 +1,7 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosStructuralApplication import *
-from KratosExternalSolversApplication import *
+#from KratosExternalSolversApplication import *
 
 
 def AddVariables(model_part):
@@ -62,8 +62,8 @@ class DynamicStructuralSolver:
         
 
         #definition of the solvers
-        #self.structure_linear_solver =  SkylineLUFactorizationSolver()
-        self.structure_linear_solver      =   SuperLUSolver()
+        self.structure_linear_solver =  SkylineLUFactorizationSolver()
+        ##self.structure_linear_solver      =   SuperLUSolver()
 
         #definition of the convergence criteria
         self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
@@ -84,14 +84,12 @@ class DynamicStructuralSolver:
         CalculateReactionFlag = False
         ReformDofSetAtEachStep = False
         MoveMeshFlag = True
-        #import strategy_python
-        #self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
-
-        #self.solver = 	ResidualBasedArcLenghtStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.Ide,self.MaxIterations,self.factor_delta_lmax, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag,self.ApplyBodyForce)
+        import strategy_python
+        self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
        
          
            #creating the solution strategy
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,False,True)
+         #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,False,True)
 #        print "self.echo_level = " , self.echo_level
 ##        #(self.solver).SetBuilderAndSolver(builder_and_solver)
 ##        (self.solver).SetEchoLevel(self.echo_level)
