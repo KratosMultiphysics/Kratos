@@ -312,9 +312,9 @@ namespace Kratos
 		Matrix msA;
 		Vector msX;
 		Vector msU;
-		static double msStrain;
-		static double msStress;
-		static double msKappa; //history parameter for Scalar Damage Model
+		//double msStrain;
+		//double msStress;
+		//double msKappa; //history parameter for Scalar Damage Model
 		double mLength;
 		double mArea;
 		int dimension;

@@ -64,9 +64,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    double CrisfieldTrussElement::msStrain;
-    double CrisfieldTrussElement::msStress;
-    double CrisfieldTrussElement::msKappa;
+    //double CrisfieldTrussElement::msStrain;
+    //double CrisfieldTrussElement::msStress;
+    //double CrisfieldTrussElement::msKappa;
 
     /**
     * Constructor.
@@ -421,7 +421,7 @@ namespace Kratos
         
         //calculation of GREEN-LAGRANGE strain 
         double weight_strain = 1.0 / mLength / mLength;
-        msStrain = CalculateStrain(msA, msX, msU, weight_strain);
+        double msStrain = CalculateStrain(msA, msX, msU, weight_strain);
 //      KRATOS_WATCH( msStrain );
         
         
@@ -429,7 +429,7 @@ namespace Kratos
         
         //** Method 1: according to St. Venant Model
         double E = GetProperties()[YOUNG_MODULUS];
-        msStress = E * msStrain;
+        double msStress = E * msStrain;
 
         //** Method 2: according to Scalar Damage Model
 //      double E = GetProperties()[YOUNG_MODULUS];
