@@ -47,7 +47,7 @@ input_file_name = edgebased_levelset_var.problem_name
 gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-write_conditions = WriteConditionsFlag.WriteElementsOnly
+write_conditions = WriteConditionsFlag.WriteConditions
 
 ##selecting output format
 if(edgebased_levelset_var.print_layers == True):
@@ -75,7 +75,7 @@ for node in fluid_model_part.Nodes:
         node.SetSolutionStepValue(DISTANCE,0,-small_value)
     else:
         node.SetSolutionStepValue(DISTANCE,0,small_value)
-
+       
 if(n_active == 0):
     raise "ERROR. At least one node has to be initialized with a distance lesser than 0"
 
@@ -126,6 +126,7 @@ if(edgebased_levelset_var.print_layers == False):
 
     gid_io.InitializeResults(mesh_name, (fluid_model_part).GetMesh());
 
+max_safety_factor = safety_factor
     
 time = 0.0
 step = 0
@@ -135,6 +136,12 @@ while(time < final_time):
     if(step < number_of_inital_steps):
         Dt = initial_time_step
     else:
+        #progressively increment the safety factor
+        #in the steps that follow a reduction of it
+        safety_factor = safety_factor * 1.2
+        if(safety_factor > max_safety_factor):
+            safety_factor = max_safety_factor
+        
         Dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
         
     time = time + Dt
@@ -144,6 +151,33 @@ while(time < final_time):
 
     if(step >= 3):
         fluid_solver.Solve()
+
+        check_dt = fluid_solver.EstimateTimeStep(0.95,max_Dt)
+
+        if(check_dt < Dt):
+            print "***********************************************************"
+            print "***********************************************************"
+            print "***********************************************************"
+            print "            *** REDUCING THE TIME STEP ***"
+            print "***********************************************************"
+            print "***********************************************************"
+            print "***********************************************************"
+                       
+            #we found a velocity too large! we need to reduce the time step
+            fluid_solver.fluid_solver.ReduceTimeStep(fluid_model_part,time) ##this is to set the database to the value at the beginning of the step
+
+            safety_factor *= 0.3
+            reduced_dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
+            
+            print "time before reduction= ",time
+            time = time - Dt + reduced_dt
+            print "reduced time = ",time
+            print "Dt = ",Dt
+            print "reduced_dt = ",reduced_dt
+
+            fluid_solver.fluid_solver.ReduceTimeStep(fluid_model_part,time) ##this is to set the database to the value at the beginning of the step
+           
+            fluid_solver.Solve()
 
     if(time >= next_output_time):
         if(edgebased_levelset_var.print_layers == True):
@@ -156,7 +190,7 @@ while(time < final_time):
         gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISTANCE,fluid_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(PRESS_PROJ,fluid_model_part.Nodes,time,0)        
+        gid_io.WriteNodalResults(PRESS_PROJ,fluid_model_part.Nodes,time,0)
         gid_io.Flush()
 
         if(edgebased_levelset_var.print_layers == True):
