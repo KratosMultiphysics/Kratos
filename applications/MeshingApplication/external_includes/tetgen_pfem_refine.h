@@ -244,7 +244,6 @@ namespace Kratos
 			char tetgen_options[] = "SQJ";
 
 
-
 			tetrahedralize(tetgen_options, &in, &out); //with option to remove slivers
 
 			
@@ -442,11 +441,11 @@ namespace Kratos
 					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+2]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+3]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h *= 0.25;
-					//if h is the height of a perfect tetrahedra, the edge size is 3/2 h
-					//filling in the list of "IDEAL" tetrahedron volumes=1/12 * (1.5*h)^3 * sqrt(2)~0.11785* h^3=
-					//0.3977*h^3
+					//if h is the height of a perfect tetrahedra, the edge size is edge = sqrt(3/2) h
+					//filling in the list of "IDEAL" tetrahedron volumes=1/12 * (edge)^3 * sqrt(2)~0.11785* h^3=
+					//0.2165063509*h^3
 					
-					in2.tetrahedronvolumelist[counter] = 0.3977*prescribed_h*prescribed_h*prescribed_h;
+					in2.tetrahedronvolumelist[counter] = 0.217*prescribed_h*prescribed_h*prescribed_h;
 					//in2.tetrahedronvolumelist[counter] = 0.0004;
 					//KRATOS_WATCH(in2.tetrahedronvolumelist[counter])
 					counter += 1;
