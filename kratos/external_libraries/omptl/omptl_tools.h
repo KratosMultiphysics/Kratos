@@ -16,71 +16,87 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifndef OMPTL_TOOLS_H
-#define OMPTL_TOOLS_H
+#define OMPTL_TOOLS_H 1
 
 #include <utility>
 #include <vector>
 #include <cassert>
 #include <algorithm>
+#include <climits>
+#include <iterator>
 
 namespace omptl
 {
 
 // Log of the number of operations that is expected to run faster in a single
 // thread.
-const unsigned int C = 8;
+const unsigned C = 12;
+
+template <typename T>
+T log2N_(T n)
+{
+	assert(n > 0);
+	const std::size_t N = CHAR_BIT*sizeof(T);
+	
+	T result = 0;
+	for (std::size_t i = 1; i < N; ++i)
+	{
+		const std::size_t M = N-i;
+		if ( n >= (std::size_t(1) << M) )
+		{
+			n >>= M;
+			result |= M;
+		}
+	}
+
+	return result;
+}
 
 template<typename Iterator>
 bool _linear_serial_is_faster(Iterator first, Iterator last,
-			     const unsigned int P)
+			     const unsigned P)
 {
-	const unsigned int N = ::std::distance(first, last);
-	// Approximation: (log2(N) - 1) <= l < =  log2(N)
-	unsigned int l = 1 << (8*sizeof(unsigned int) - 1);
-	while(l & N)
-		l /= 2;
+	assert(P > 0u);
+	assert(::std::distance(first, last) >= 0);
+	const std::size_t N = ::std::distance(first, last);
 
-	return (N < P) && (l < C);
+	return (N < 2u*P) || (log2N_(N) < C);
 }
 
 template<typename Iterator>
 bool _logn_serial_is_faster(Iterator first, Iterator last,
-			    const unsigned int P)
+			    const unsigned P)
 {
-	const unsigned int N = ::std::distance(first, last);
-	// Approximation: (log2(N) - 1) <= l < =  log2(N)
-	unsigned int l = 1 << (8*sizeof(unsigned int) - 1);
-	while(l & N)
-		l /= 2;
+	assert(P > 0u);
+	assert(::std::distance(first, last) >= 0);
+	const std::size_t N = ::std::distance(first, last);
 
-	return (N < P) && (l < (1 << C));
+	return (N < 2u*P) || (log2N_(N) < (1 << C));
 }
 
 template<typename Iterator>
 bool _nlogn_serial_is_faster(Iterator first, Iterator last,
-			    const unsigned int P)
+			    const unsigned P)
 {
-	const unsigned int N = ::std::distance(first, last);
+	assert(P > 0u);
+	assert(::std::distance(first, last) >= 0);
+	const std::size_t N = ::std::distance(first, last);
 
-	// Approximation: (log2(N) - 1) <= l < =  log2(N)
-	unsigned int l = 1 << (8*sizeof(unsigned int) - 1);
-	while(l & N)
-		l /= 2;
-
-	return (l < P) && (l*N < (1 << C));
+	return (N < 2u*P) || (N*log2N_(N) < (1 << C));
 }
 
 template<typename Iterator1, typename Iterator2>
-void _copy_partitions(
-		const ::std::pair<Iterator1, Iterator1> *source_partitions,
-		Iterator2 first, Iterator2 *dest_partitions,
-		const unsigned int P)
+void _copy_partitions(const ::std::vector< ::std::pair<Iterator1, Iterator1> >
+			&source_partitions, Iterator2 first,
+		::std::vector<Iterator2> &dest_partitions, const unsigned P)
 {
-	for (unsigned int i = 0; i < P; ++i)
+	assert(source_partitions.size() == P);
+	assert(dest_partitions.size() == P);
+	for (unsigned i = 0; i < P; ++i)
 	{
 		dest_partitions[i] = first;
 
-		// The last "advance is very important, it may create space
+		// The last "advance" is very important, it may create space
 		// if it is an InsertIterator or something like that.
 		::std::advance(first, ::std::distance(
 						source_partitions[i].first,
@@ -91,44 +107,51 @@ void _copy_partitions(
 // Divide a given range into P partitions
 template<typename Iterator>
 void _partition_range(Iterator first, Iterator last,
-		::std::pair<Iterator, Iterator> *partitions,
-		const unsigned int P)
+		::std::vector< ::std::pair<Iterator, Iterator> > &partitions,
+		const unsigned P)
 {
+	assert(partitions.size() == P);
+
 	typedef ::std::pair<Iterator, Iterator> Partition;
 
-	const unsigned int N = ::std::distance(first, last);
-	const unsigned int range = N / P + ((N%P)? 1 : 0);
+	const std::size_t N = ::std::distance(first, last);
+	const std::size_t range = N / P + ((N%P)? 1 : 0);
+	assert(2u*P <= N);
+	assert(range <= N);
 
 	// All but last partition have same range
 	Iterator currentLast = first;
 	::std::advance(currentLast, range);
-	for (unsigned int i = 0; i < P - 1; ++i)
+	for (unsigned i = 0; i < P - 1; ++i)
 	{
 		partitions[i] = Partition(first, currentLast);
-		::std::advance(first, range);
+		first = currentLast;
 		::std::advance(currentLast, range);
 	}
 
 	// Last range may be shorter
+	assert(std::size_t(::std::distance(first, last)) <= range);
 	partitions[P - 1] = Partition(first, last);
 }
 
 // Given a range, re-arrange the items such that all elements smaller than
 // the pivot precede all other values. Returns an Iterator to the first
 // element not smaller than the pivot.
-template<typename Iterator>
+template<typename Iterator, class StrictWeakOrdering>
 Iterator _stable_pivot_range(Iterator first, Iterator last,
-			     const typename Iterator::value_type pivot)
+	const typename ::std::iterator_traits<Iterator>::value_type pivot,
+	StrictWeakOrdering comp = std::less<
+		typename ::std::iterator_traits<Iterator>::value_type>())
 {
 	Iterator pivotIt = last;
 	while (first < last)
 	{
-		if (*first < pivot)
+		if (comp(*first, pivot))
 			++first;
 		else
 		{
 			Iterator high = first;
-			while ( (++high < last) && !(*high < pivot) )
+			while ( (++high < last) && !comp(*high, pivot) )
 				/* nop */;
 			if (high < last)
 				::std::iter_swap(first, last);
@@ -139,17 +162,18 @@ Iterator _stable_pivot_range(Iterator first, Iterator last,
 	return pivotIt;
 }
 
-template<typename Iterator>
+template<typename Iterator, class StrictWeakOrdering>
 Iterator _pivot_range(Iterator first, Iterator last,
-	const typename Iterator::value_type pivot)
+	const typename ::std::iterator_traits<Iterator>::value_type pivot,
+	StrictWeakOrdering comp)
 {
 	while (first < last)
 	{
-		if (*first < pivot)
+		if (comp(*first, pivot))
 			++first;
 		else
 		{
-			while ( (first < --last) && !(*last < pivot) )
+			while ( (first < --last) && !comp(*last, pivot) )
 				/* nop */;
 			::std::iter_swap(first, last);
 		}
@@ -158,65 +182,70 @@ Iterator _pivot_range(Iterator first, Iterator last,
 	return last;
 }
 
-template<typename Iterator>
+template<typename Iterator, class StrictWeakOrdering>
 void _partition_range_by_pivots(Iterator first, Iterator last,
-	const ::std::vector<typename Iterator::value_type> &pivots,
-	::std::pair<Iterator, Iterator> *partitions,
-	const unsigned int P)
+	const ::std::vector<typename
+		    ::std::iterator_traits<Iterator>::value_type> &pivots,
+	::std::vector< ::std::pair<Iterator, Iterator> > &partitions,
+	StrictWeakOrdering comp, const unsigned P)
 {
+	assert(partitions.size() == P);
+
 	typedef ::std::pair<Iterator, Iterator> Partition;
-	Iterator ptable[P];
-	typename Iterator::value_type pvts[pivots.size()];
+
+	::std::vector<Iterator> ptable(P);
+	::std::vector<typename ::std::iterator_traits<Iterator>::value_type>
+		pvts(pivots.size());
 
 	::std::vector<Iterator> borders;
 
-	bool used[pivots.size()];
-	::std::fill(&used[0], used + pivots.size(), false);
+	::std::vector<bool> used(pivots.size());
+	::std::fill(used.begin(), used.end(), false);
 
+	// These end-points are certainly borders. Sorting will be done later.
 	borders.push_back(first);
 	borders.push_back(last);
-	partitions[0].first	= first;
-	partitions[0].second	= last;
-	unsigned int p = 1;
-	for (/* nop */; (1 << p) <= (int)P; ++p)
+
+
+	partitions[0].first  = first;
+	partitions[0].second = last;
+	for (unsigned p = 1; (1 << p) <= (int)P; ++p)
 	{
 		const int PROC = (1 << p);
-		const int PIVOTS = (1 << (p-1));
-		OMPTL_ASSERT(PIVOTS <= (int)pivots.size());
+		const int PIVOTS = (1 << (p-1)); // ??
+		assert(PIVOTS <= (int)pivots.size());
 
-		int t;
-		#pragma omp parallel for default(shared) private(t)
-		for (t = 0; t < PIVOTS; ++t)
+		//#pragma omp parallel for // probably unsafe due to vector<bool>
+		for (int t = 0; t < PIVOTS; ++t)
 		{
 			const int index = int(P / PROC) +
 						2 * t * int(P / PROC) - 1;
-			OMPTL_ASSERT(index < (int)pivots.size());
-			OMPTL_ASSERT(!used[index]);
+			assert(index < (int)pivots.size());
+			assert(!used[index]);
 			used[index] = true;
 			pvts[t] = pivots[index];
 /*::std::cout << "pvts T: " << t << " --> " << index <<
 	" " << pvts[t] << ::std::endl;*/
 		}
 
-		#pragma omp parallel for default(shared) private(t)
-		for (t = 0; t < PIVOTS; ++t)
+		#pragma omp parallel for
+		for (int t = 0; t < PIVOTS; ++t)
 			ptable[t] = _pivot_range(partitions[t].first,
 						 partitions[t].second,
-						 pvts[t]);
+						 pvts[t], comp);
 
-		for (t = 0; t < PIVOTS; ++t)
+		for (int i = 0; i < PIVOTS; ++i)
 		{
 // ::std::cout << "ADD: " << ::std::distance(first, ptable[t]) << ::std::endl;
-			borders.push_back(ptable[t]);
+			borders.push_back(ptable[i]);
 		}
 
 		::std::sort(borders.begin(), borders.end());
 
-		#pragma omp parallel for default(shared) private(t)
-		for (t = 0; t < (int)borders.size() - 1; ++t)
+		for (unsigned i = 0; i < borders.size() - 1; ++i)
 		{
-			partitions[t].first	= borders[t];
-			partitions[t].second	= borders[t + 1];
+			partitions[i].first	= borders[i];
+			partitions[i].second	= borders[i + 1];
 		}
 
 /*::std::cout << "PASS: " << p << ::std::endl;
@@ -226,36 +255,34 @@ void _partition_range_by_pivots(Iterator first, Iterator last,
 		<< ::std::endl;*/
 	}
 
-	for (unsigned int i = 0; i < pivots.size(); ++i)
+	for (unsigned i = 0; i < pivots.size(); ++i)
 		if(!used[i])
 			pvts[i] = pivots[i];
 
-	int t;
-	#pragma omp parallel for default(shared) private(t)
-	for (t = 0; t < (int)pivots.size(); ++t)
+	#pragma omp parallel for
+	for (int t = 0; t < int(pivots.size()); ++t)
 		if (!used[t])
 			ptable[t] = _pivot_range(partitions[t].first,
 						partitions[t].second,
-						pvts[t]);
+						pvts[t], comp);
 
 
-	for (unsigned int i = 0; i < pivots.size(); ++i)
+	for (unsigned i = 0; i < pivots.size(); ++i)
 	{
 		if (!used[i])
 		{
-// ::std::cout << "LAST ADD: " << ::std::distance(first, ptable[i]) << ::std::endl;
+// ::std::cout << "LAST ADD: " << ::std::distance(first, ptable[i])
+// 	<< ::std::endl;
 			borders.push_back(ptable[i]);
 		}
 	}
+	assert(borders.size()-1 == P);
 
 	::std::sort(borders.begin(), borders.end());
-
-	OMPTL_ASSERT(borders.size() - 1 == P);
- 	#pragma omp parallel for default(shared) private(t)
-	for (t = 0; t < (int)P; ++t)
+	for (unsigned i = 0; i < P; ++i)
 	{
-		partitions[t].first	= borders[t];
-		partitions[t].second	= borders[t + 1];
+		partitions[i].first	= borders[i];
+		partitions[i].second	= borders[i + 1];
 	}
 
 // ::std::cout << "LAST: " << p << ::std::endl;
@@ -268,14 +295,18 @@ void _partition_range_by_pivots(Iterator first, Iterator last,
 
 template<typename Iterator>
 void _partition_range_stable_by_pivots(Iterator first, Iterator last,
-	const ::std::vector<typename Iterator::value_type> &pivots,
-	::std::pair<Iterator, Iterator> *partitions,
-	const unsigned int P)
+	const ::std::vector<typename
+			::std::iterator_traits<Iterator>::value_type> &pivots,
+	::std::vector< ::std::pair<Iterator, Iterator> > &partitions,
+	std::less<typename ::std::iterator_traits<Iterator>::value_type> comp,
+	const unsigned P)
 {
+	assert(partitions.size() == P);
+	assert(pivots.size() == P);
 	typedef ::std::pair<Iterator, Iterator> Partition;
 
 	Iterator start = first;
-	for (unsigned int i = 0; i < P - 1; ++i)
+	for (unsigned i = 0; i < P - 1; ++i)
 	{
 		Iterator low = start;
 
@@ -299,7 +330,7 @@ void _partition_range_stable_by_pivots(Iterator first, Iterator last,
 			if (high == last) break;
 
 			// Swap values
-			OMPTL_ASSERT( !(*low < pivots[i]) && (*high < pivots[i]) );
+			assert( !(*low<pivots[i]) && (*high<pivots[i]) );
 			::std::iter_swap(low, high);
 		}
 
@@ -314,47 +345,53 @@ void _partition_range_stable_by_pivots(Iterator first, Iterator last,
  * chosen more wisely, which is our only guarantee we can generate partitions
  * of equal size.
  */
-template<typename RandomAccessIterator>
+template<typename RandomAccessIterator, class StrictWeakOrdering>
 void _find_pivots(RandomAccessIterator first, RandomAccessIterator last,
-	::std::vector<typename RandomAccessIterator::value_type> &pivots,
-	const unsigned int P,
-	unsigned int SAMPLE_RATIO = 10)
+	::std::vector<typename
+	::std::iterator_traits<RandomAccessIterator>::value_type> &pivots,
+	StrictWeakOrdering comp, const unsigned P, 
+	unsigned SAMPLE_RATIO = 8)
 {
-	OMPTL_ASSERT(SAMPLE_RATIO > 0);
-	const unsigned int N = ::std::distance(first, last);
-	OMPTL_ASSERT(N > P);
+	assert(SAMPLE_RATIO > 0);
+	const std::size_t N = ::std::distance(first, last);
+	assert(N >= 2u*P);
 
 	// Adjust the constant. Erm.
-	while (SAMPLE_RATIO * (P + 1) > N)
+	while (SAMPLE_RATIO * P > N)
 		SAMPLE_RATIO /= 2;
+	assert(SAMPLE_RATIO > 0);
 
 	pivots.clear();
 	pivots.reserve(P - 1);
 
-	::std::vector<typename RandomAccessIterator::value_type> samples;
-	const unsigned int NSAMPLES = SAMPLE_RATIO * P + SAMPLE_RATIO;
+	typedef typename
+	    ::std::iterator_traits<RandomAccessIterator>::value_type value_type;
+
+	::std::vector<value_type> samples;
+	const std::size_t NSAMPLES = SAMPLE_RATIO * P;
+	assert(NSAMPLES <= N);
 	samples.reserve(NSAMPLES);
 
-	for (unsigned int i = 0; i < NSAMPLES; ++i)
+	for (std::size_t i = 0; i < NSAMPLES; ++i)
 	{
-		const unsigned int offset = i * (N-1) / (NSAMPLES - 1);
-		OMPTL_ASSERT(offset < N);
-		samples.push_back(*(first + offset));
-// std::cout << "offset: " << offset << " sample: " << samples[i] << std::endl;
+		const std::size_t index = i * (N-1) / (NSAMPLES - 1);
+		assert(index < N);
+		samples.push_back(*(first + index));
+// std::cout << "index: " << index << " sample: " << samples[i] << std::endl;
 	}
-	OMPTL_ASSERT(samples.size() == NSAMPLES);
+	assert(samples.size() == NSAMPLES);
 
 	// Sort samples to create relative ordering in data
-	::std::sort(samples.begin(), samples.end());
+	::std::sort(samples.begin(), samples.end(), comp );
 
 	// Take pivots from sampled data
-	for (unsigned int i = 1; i < P; ++i)
+	for (std::size_t i = 1; i < P; ++i)
 	{
 		pivots.push_back(samples[i * samples.size() / P]);
 /*std::cout << "pivot: " << i << " idx: " << (i * samples.size() / P)
 	<< " " << pivots[i-1] << std::endl;*/
 	}
-	OMPTL_ASSERT(pivots.size() == P - 1);
+	assert(pivots.size() == P - 1);
 }
 
 }  // namespace omptl
