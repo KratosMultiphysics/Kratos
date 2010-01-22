@@ -1,4 +1,4 @@
-#path for applications s
+#path for applications 
 import sys
 
 Import_ALEApplication = False
@@ -15,6 +15,7 @@ Import_KratosTrilinosApplication = False
 Import_KratosMetisApplication = False
 Import_PoissonApplication = False
 Import_ElectrostaticApplication = False
+Import_DamApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -30,6 +31,7 @@ print "Import_KratosTrilinosApplication: False"
 print "Import_KratosMetisApplication: False"
 print "Import_PoissonApplication: False"  
 print "Import_ElectrostaticApplication: False"  
+print "Import_DamApplication: False"  
 
 
 def ImportApplications(kernel, applications_path):
@@ -48,7 +50,8 @@ def ImportApplications(kernel, applications_path):
     print "Import_KratosMetisApplication: "+str(Import_KratosMetisApplication)
     print "Import_ PoissonApplication: "+str(Import_PoissonApplication)
     print "Import_ ElectrostaticApplication: "+str(Import_ElectrostaticApplication)
-   
+    print "Import_DamApplication: "+str(Import_DamApplication)
+  
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
         sys.path.append(applications_path + '/ALEapplication/python_scripts' )
@@ -170,7 +173,15 @@ def ImportApplications(kernel, applications_path):
         kElectrostatic = KratosR1ElectrostaticApplication()
         kernel.AddApplication(kElectrostatic)
         print "Kratos ElectromagnecticApplication1 sucessfully imported"
-       
+         
+    if(Import_DamApplication == True):
+        print "importing KratosDamApplication ..."
+        sys.path.append(applications_path + '/DamApplication/python_scripts')
+        from KratosDamApplication import *
+        dam_application = KratosDamApplication()
+        kernel.AddApplication(dam_application)
+        print "Kratos DamApplication sucessfully imported"
+      
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -202,4 +213,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(kPoisson);
     if(Import_ElectrostaticApplication == True):
         kernel.InitializeApplication(kElectrostatic);
-
+    if(Import_DamApplication == True):
+        kernel.InitializeApplication(dam_application);
