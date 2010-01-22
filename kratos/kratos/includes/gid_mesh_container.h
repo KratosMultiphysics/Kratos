@@ -202,13 +202,11 @@ namespace Kratos
                         {
                             if( ! it->GetValue( IS_INACTIVE ) )
                             {
-                                KRATOS_WATCH( it->GetValue(IS_INACTIVE) );
                                 GiD_WriteElementMat((it)->Id(), nodes_id);
                             }
                         }
                         else
                         {
-                            KRATOS_WATCH( "IS_INACTIVE not defined" );
                             GiD_WriteElementMat((it)->Id(), nodes_id);
                         }
                     }
@@ -272,13 +270,11 @@ namespace Kratos
                         {
                             if( ! it->GetValue( IS_INACTIVE ) )
                             {
-                                KRATOS_WATCH( it->GetValue(IS_INACTIVE) );
                                 GiD_WriteElementMat((it)->Id(), nodes_id);
                             }
                         }
                         else
                         {
-                            KRATOS_WATCH( "IS_INACTIVE not defined" );
                             GiD_WriteElementMat((it)->Id(), nodes_id);
                         }
 
