@@ -1,4 +1,4 @@
-// Copyright (C) 2006 Fokko Beekhof
+// Copyright (C) 2007 Fokko Beekhof
 // Email contact: Fokko.Beekhof@unige.ch
 
 // The OMPTL library is free software; you can redistribute it and/or
@@ -15,40 +15,32 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-#ifndef OMPTL
-#define OMPTL 1
-
-#ifndef _OPENMP
-  #define par_generate generate
-#else
-/*
-#ifdef OMPTL_NO_DEBUG
-  #define OMPTL_ASSERT(X)
-#else
-*/  #include <cassert>
-/*  #define OMPTL_ASSERT(X) assert(X)
-#endif
-*/
-// For debugging
-#ifndef _OMPTL_DEBUG_NO_OMP
-  #include <omp.h>
-#else
-  #define omp_get_max_threads() (2)
-#endif
-
-#endif /* ifndef _OPENMP */
-
-struct _Pfunc
+namespace omptl
 {
-	static unsigned Pfunc()
-	{
-		#ifdef _OPENMP
-		assert(omp_get_max_threads() > 0);
-		return omp_get_max_threads();
-		#else
-		return 0;
-		#endif
-	}
-};
 
-#endif /* OMPTL */
+// transform_accumulate
+template <class Iterator,class T, class UnaryFunction,class BinaryFunction>
+T transform_accumulate(Iterator first, Iterator last, T init,
+		UnaryFunction unary_op, BinaryFunction binary_op,
+		const unsigned P)
+{
+	// serial version
+	while (first != last)
+	{
+		init = binary_op(unary_op(*first), init);
+		++first;
+	}
+
+	return init;
+}
+
+template <class Iterator, class T, class UnaryFunction>
+T transform_accumulate(Iterator first, Iterator last,
+		T init, UnaryFunction unary_op,
+		const unsigned P)
+{
+	return omptl::transform_accumulate(first, last, init, unary_op,
+					   std::plus<T>());
+}
+
+} /* namespace std */
