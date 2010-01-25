@@ -301,8 +301,8 @@ namespace TotalLagrangianAuxiliaries
 
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 			{
-				//mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
-                                mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);	
+				mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
+//                                mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);
 				//contributions to stiffness matrix calculated on the reference config
 				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); //to be optimized to remove the temporary
                                 //KRATOS_WATCH(msD)
