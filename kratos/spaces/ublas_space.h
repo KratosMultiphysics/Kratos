@@ -472,7 +472,7 @@ namespace Kratos {
         template<class TOtherMatrixType>
         inline static void ResizeData(TOtherMatrixType& rA, SizeType m) {
             rA.resize(m, false);
-            std::fill(rA.begin(), rA.end(), TDataType());
+//            std::fill(rA.begin(), rA.end(), TDataType());
 #ifndef _OPENMP
             std::fill(rA.begin(), rA.end(), TDataType());
 #else
