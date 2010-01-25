@@ -1044,22 +1044,16 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
                 #pragma omp parallel
                 if( omp_get_thread_num() == k )
                 {
-                    KRATOS_WATCH( k );
-                    KRATOS_WATCH( omp_get_thread_num() );
-                    std::cout << "Setting up "<<matrix_partition[k]<<" to "<<matrix_partition[k+1] << std::endl;
-                    #pragma omp critical
+                    for( std::size_t i = matrix_partition[k]; i < matrix_partition[k+1]; i++ )
                     {
-                        for( std::size_t i = matrix_partition[k]; i < matrix_partition[k+1]; i++ )
+                        std::vector<std::size_t>& row_indices = indices[i];
+                        std::sort(row_indices.begin(), row_indices.end());
+                        
+                        for(std::vector<std::size_t>::iterator it= row_indices.begin(); it != row_indices.end() ; it++)
                         {
-                            std::vector<std::size_t>& row_indices = indices[i];
-                            std::sort(row_indices.begin(), row_indices.end());
-                            
-                            for(std::vector<std::size_t>::iterator it= row_indices.begin(); it != row_indices.end() ; it++)
-                            {
-                                A.push_back(i,*it,0.00);
-                            }
-                            row_indices.clear(); 
+                            A.push_back(i,*it,0.00);
                         }
+                        row_indices.clear(); 
                     }
                 }
             }
