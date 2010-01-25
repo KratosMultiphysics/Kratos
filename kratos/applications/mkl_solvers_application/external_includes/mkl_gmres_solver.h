@@ -141,11 +141,11 @@ namespace Kratos
                 std::cout << "Size of the problem: " << n << std::endl;
 //                 std::cout << "Size of index1_vector: " << rA.index1_data().size() << std::endl;
                 std::cout << "number of nonzeros: " << rA.index2_data().size() << std::endl;
-                for( int i = 0; i < rA.index1_data().size(); i++ )
+                for(unsigned int i = 0; i < rA.index1_data().size(); i++ )
                 {
                     index1_vector[i] = (int)(rA.index1_data()[i])+1;
                 } 
-                for( int i = 0; i < rA.index2_data().size(); i++ )
+                for(unsigned int i = 0; i < rA.index2_data().size(); i++ )
                 {
                     index2_vector[i] = (int)(rA.index2_data()[i])+1;
                 }
@@ -153,15 +153,17 @@ namespace Kratos
                 /* RHS and solution vectors. */
                 double *b = mbtraits::storage(rB);
 //                 KRATOS_WATCH(rB);
-                double *x = mbtraits::storage(rX);
+
+                //commented by Riccardo as it is unusd
+//                double *x = mbtraits::storage(rX);
                 
                 
                 
 
-    /*---------------------------------------------------------------------------
-    /* Define arrays for the upper triangle of the coefficient matrix
-    /* Compressed sparse row storage is used for sparse representation
-                /*---------------------------------------------------------------------------*/
+    //---------------------------------------------------------------------------
+    // Define arrays for the upper triangle of the coefficient matrix
+    // Compressed sparse row storage is used for sparse representation
+    //---------------------------------------------------------------------------
 //                 MKL_INT ia[6]={1,3,6,9,12,14};
 //                 MKL_INT ja[13]={    1,        3,
 //                     1,   2,        4,
@@ -173,9 +175,9 @@ namespace Kratos
 //                         1.0,-2.0,      1.0,
 //                         -1.0, 2.0,-1.0,
 //                         -1.0,-3.0 };
-    /*---------------------------------------------------------------------------
-    /* Allocate storage for the ?par parameters and the solution/rhs/residual vectors
-                        /*---------------------------------------------------------------------------*/ 
+    //---------------------------------------------------------------------------
+    // Allocate storage for the ?par parameters and the solution/rhs/residual vectors
+    //---------------------------------------------------------------------------
                         MKL_INT ipar[128];
                         int size_tmp = fmin(n,150);
                         double tmp[((2*size_tmp+1)*n+size_tmp*size_tmp+9)/2 + 1];
@@ -187,9 +189,9 @@ namespace Kratos
                         double rhs[n];
                         double computed_solution[n];
                         double residual[n];
-                        /*---------------------------------------------------------------------------
-                        /* Some additional variables to use with the RCI (P)FGMRES solver
-                        /*---------------------------------------------------------------------------*/
+                        //---------------------------------------------------------------------------
+                        // Some additional variables to use with the RCI (P)FGMRES solver
+                        //---------------------------------------------------------------------------*/
                         MKL_INT itercount;
                         MKL_INT RCI_request, i, ivar;
                         double dvar;
@@ -200,9 +202,9 @@ namespace Kratos
 //                         std::cout << "   to solve a non-symmetric indefinite non-degenerate" << std::endl;
 //                         std::cout << "          algebraic system of linear equations" << std::endl;
 //                         std::cout << "--------------------------------------------------------" << std::endl;;
-                        /*---------------------------------------------------------------------------
-                        /* Initialize variables and the right hand side through matrix-vector product
-                        /*---------------------------------------------------------------------------*/
+                        //---------------------------------------------------------------------------
+                        // Initialize variables and the right hand side through matrix-vector product
+                        //---------------------------------------------------------------------------*/
                         ivar=n;
                         cvar='N';
 //                         std::cout << "before:" << std::endl;
@@ -217,43 +219,43 @@ namespace Kratos
 //                             std::cout << b[i] << "\t";
 //                         std::cout << std::endl;
 //                         std::cout << "===============================" << std::endl;
-                        /*---------------------------------------------------------------------------
-                        /* Save the right-hand side in vector rhs for future use 
-                        /*---------------------------------------------------------------------------*/
+                        //---------------------------------------------------------------------------
+                        // Save the right-hand side in vector rhs for future use
+                        //---------------------------------------------------------------------------*/
                         i=1;
                         dcopy(&ivar, b, &i, rhs, &i);
-                        /*---------------------------------------------------------------------------
-                        /* Initialize the initial guess
-                        /*---------------------------------------------------------------------------*/
+                        //---------------------------------------------------------------------------
+                        // Initialize the initial guess
+                        //---------------------------------------------------------------------------*/
                         for(i=0;i<n;i++)
                         {
                             computed_solution[i]=0.0;
                         }
-                        /*---------------------------------------------------------------------------
-                        /* Initialize the solver
-                        /*---------------------------------------------------------------------------*/
+                        //---------------------------------------------------------------------------
+                        // Initialize the solver
+                        //---------------------------------------------------------------------------*/
 //                         std::cout << "initializing the solver...";
                         dfgmres_init(&ivar, computed_solution, b, &RCI_request, ipar, dpar, tmp);
 //                         std::cout << " done. Exit with " << RCI_request << std::endl;
                         if (RCI_request!=0) Error( RCI_request );
-                        /*---------------------------------------------------------------------------
-                         * Set the desired parameters:
-                         * do the restart after 2 iterations
-                         * LOGICAL parameters:
-                         * do not do the stopping test for the maximal number of iterations
-                         * do the Preconditioned iterations of FGMRES method
-                         * DOUBLE PRECISION parameters
-                         * set the relative tolerance to 1.0D-3 instead of default value 1.0D-6 */
-                        /*---------------------------------------------------------------------------*/
+                        //---------------------------------------------------------------------------
+//                         / Set the desired parameters:
+//                         * do the restart after 2 iterations
+//                         * LOGICAL parameters:
+//                         * do not do the stopping test for the maximal number of iterations
+//                         * do the Preconditioned iterations of FGMRES method
+//                         * DOUBLE PRECISION parameters
+//                         * set the relative tolerance to 1.0D-3 instead of default value 1.0D-6 */
+//                        /*---------------------------------------------------------------------------*/
                         ipar[14]=2;
                         ipar[7]=1;
                         ipar[8]=1;
                         ipar[9] = 0;
                         ipar[10]=0;
                         dpar[0]=1.0E-3;
-                        /*---------------------------------------------------------------------------
-                         * Check the correctness and consistency of the newly set parameters
-                         *---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                         * Check the correctness and consistency of the newly set parameters
+//                         *---------------------------------------------------------------------------*/
 //                         std::cout << "checking consistency...";
                         dfgmres_check(&ivar, computed_solution, rhs, &RCI_request, ipar, dpar, tmp);
 //                         std::cout << " done. Exit with " << RCI_request << std::endl;
@@ -308,10 +310,10 @@ namespace Kratos
 //                             std::cout << "As ipar[11]=" << ipar[11] <<", the automatic test for the norm of the next generated vector is not equal to zero up to rounding and computational errors will be skipped, thus, the user-defined test will be requested via RCI_request=4" << std::endl;
 //                         }
 //                         std::cout << "+++" << std::endl;
-                        /*---------------------------------------------------------------------------
-                         * Compute the solution by RCI (P)FGMRES solver with preconditioning 
-                         * Reverse Communication starts here
-                         *---------------------------------------------------------------------------*/
+                        //---------------------------------------------------------------------------
+//                         * Compute the solution by RCI (P)FGMRES solver with preconditioning
+//                         * Reverse Communication starts here
+                        //---------------------------------------------------------------------------
 //                         std::cout << "computing solution...";
 //                         std::cout << "before: " << std::endl;
 //                         std::cout << "b: ";
@@ -365,26 +367,26 @@ namespace Kratos
                             goto ONE;
                         }
                         
-                        /*---------------------------------------------------------------------------
-                        /* If RCI_request=2, then do the user-defined stopping test
-                        /* The residual stopping test for the computed solution is performed here
-                        /*---------------------------------------------------------------------------
-                        /* NOTE: from this point vector b[N] is no longer containing the right-hand 
-                        /* side of the problem! It contains the current FGMRES approximation to the 
-                        /* solution. If you need to keep the right-hand side, save it in some other
-                        /* vector before the call to dfgmres routine. Here we saved it in vector 
-                        /* rhs[N]. The vector b is used instead of rhs to preserve the 
-                        /* original right-hand side of the problem and guarantee the proper 
-                        /* restart of FGMRES method. Vector b will be altered when computing the 
-                        /* residual stopping criterion!
-                        /*---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                        /* If RCI_request=2, then do the user-defined stopping test
+//                        /* The residual stopping test for the computed solution is performed here
+//                        /*---------------------------------------------------------------------------
+//                        /* NOTE: from this point vector b[N] is no longer containing the right-hand
+//                        /* side of the problem! It contains the current FGMRES approximation to the
+//                        /* solution. If you need to keep the right-hand side, save it in some other
+//                        /* vector before the call to dfgmres routine. Here we saved it in vector
+//                        /* rhs[N]. The vector b is used instead of rhs to preserve the
+//                        /* original right-hand side of the problem and guarantee the proper
+//                        /* restart of FGMRES method. Vector b will be altered when computing the
+//                        /* residual stopping criterion!
+//                        /*---------------------------------------------------------------------------*/
                         if (RCI_request==2)
                         {
-                            /* Request to the dfgmres_get routine to put the solution into b[N] via ipar[12]
-                            /*---------------------------------------------------------------------------
-                            /* WARNING: beware that the call to dfgmres_get routine with ipar[12]=0 at this stage may 
-                            /* destroy the convergence of the FGMRES method, therefore, only advanced users should
-                            /* exploit this option with care */
+//                            /* Request to the dfgmres_get routine to put the solution into b[N] via ipar[12]
+//                            /*---------------------------------------------------------------------------
+//                            /* WARNING: beware that the call to dfgmres_get routine with ipar[12]=0 at this stage may
+//                            /* destroy the convergence of the FGMRES method, therefore, only advanced users should
+//                            /* exploit this option with care */
                             ipar[12]=1;
                             /* Get the current FGMRES solution in the vector b[N] */
                             dfgmres_get(&ivar, computed_solution, b, &RCI_request, ipar, dpar, tmp, &itercount);
@@ -404,14 +406,14 @@ namespace Kratos
                             }
                         }
                         
-                        /*---------------------------------------------------------------------------
-                        /* If RCI_request=3, then apply the preconditioner on the vector 
-                        /* tmp[ipar[21]-1] and put the result in vector tmp[ipar[22]-1]
-                        /*---------------------------------------------------------------------------
-                        /* NOTE that ipar[21] and ipar[22] contain FORTRAN style addresses,
-                        /* therefore, in C code it is required to subtract 1 from them to get C style
-                        /* addresses
-                        /*---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                        /* If RCI_request=3, then apply the preconditioner on the vector
+//                        /* tmp[ipar[21]-1] and put the result in vector tmp[ipar[22]-1]
+//                        /*---------------------------------------------------------------------------
+//                        /* NOTE that ipar[21] and ipar[22] contain FORTRAN style addresses,
+//                        /* therefore, in C code it is required to subtract 1 from them to get C style
+//                        /* addresses
+//                        /*---------------------------------------------------------------------------*/
 //                         if (RCI_request==3)
 //                         {
 //                             std::cout << "applying preconditioner...";
@@ -444,11 +446,11 @@ namespace Kratos
 //                             std::cout << " done. recomputing...";
 //                             goto ONE;
 //                         }
-                        /*---------------------------------------------------------------------------
-                        /* If RCI_request=4, then check if the norm of the next generated vector is
-                        /* not zero up to rounding and computational errors. The norm is contained
-                        /* in dpar[6] parameter
-                        /*---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                        /* If RCI_request=4, then check if the norm of the next generated vector is
+//                        /* not zero up to rounding and computational errors. The norm is contained
+//                        /* in dpar[6] parameter
+//                        /*---------------------------------------------------------------------------*/
                         if (RCI_request==4)
                         {
 //                             std::cout << "checking norm of next vector: " << dpar[6];
@@ -463,28 +465,28 @@ namespace Kratos
                                 goto ONE;
                             }
                         }
-                        /*---------------------------------------------------------------------------
-                        /* If RCI_request=anything else, then dfgmres subroutine failed 
-                        /* to compute the solution vector: computed_solution[N]
-                        /*---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                        /* If RCI_request=anything else, then dfgmres subroutine failed
+//                        /* to compute the solution vector: computed_solution[N]
+//                        /*---------------------------------------------------------------------------*/
                         else
                         {
                             Error( RCI_request );
                         }
-                        /*---------------------------------------------------------------------------
-                        /* Reverse Communication ends here
-                        /* Get the current iteration number and the FGMRES solution (DO NOT FORGET to
-                        /* call dfgmres_get routine as computed_solution is still containing 
-                        /* the initial guess!). Request to dfgmres_get to put the solution
-                        /* into vector computed_solution[N] via ipar[12]
-                        /*---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                        /* Reverse Communication ends here
+//                        /* Get the current iteration number and the FGMRES solution (DO NOT FORGET to
+//                        /* call dfgmres_get routine as computed_solution is still containing
+//                        /* the initial guess!). Request to dfgmres_get to put the solution
+//                        /* into vector computed_solution[N] via ipar[12]
+//                        /*---------------------------------------------------------------------------*/
                         COMPLETE:   ipar[12]=0;
                         std::cout << "completing...";
                         dfgmres_get(&ivar, computed_solution, rhs, &RCI_request, ipar, dpar, tmp, &itercount);
                         std::cout << "done." << std::endl;
-                        /*---------------------------------------------------------------------------
-                        /* Print solution vector: computed_solution[N] and the number of iterations: itercount
-                        /*---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                        /* Print solution vector: computed_solution[N] and the number of iterations: itercount
+//                        /*---------------------------------------------------------------------------*/
 //                         std::cout << "The system has been SUCCESSFULLY solved" << std::endl;
 //                         std::cout << "The following solution has been obtained:" << std::endl;
 //                         std::cout << "[ ";
@@ -505,9 +507,9 @@ namespace Kratos
                         SUCCEDED: std::cout << "GMRES solver succeeded, number of iterations: " << itercount << std::endl;
                         double stop_solver = omp_get_wtime();
                         std::cout << "Solver time: " << stop_solver-start_solver << std::endl;
-                        /*---------------------------------------------------------------------------
-                        /* write back solution to X vector
-                        /*---------------------------------------------------------------------------*/
+//                        /*---------------------------------------------------------------------------
+//                        /* write back solution to X vector
+//                        /*---------------------------------------------------------------------------*/
                         for( int i=0; i<n; i++ )
                             rX[i] = computed_solution[i];
 //                         KRATOS_WATCH(rX);
@@ -577,6 +579,7 @@ namespace Kratos
     inline std::istream& operator >> (std::istream& rIStream, MKLGMRESSolver< TSparseSpaceType, 
                                       TDenseSpaceType, TReordererType>& rThis)
     {
+        return rIStream;
     }
     
     /**
