@@ -188,7 +188,11 @@ namespace Kratos
       static TDataType Dot(VectorType const& rX, VectorType const& rY)
         {
             vector<unsigned int> partition;
+#ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
+#else
+            int number_of_threads = 1;
+#endif
             CreatePartition(number_of_threads, rX.size(), partition);
 
 	    vector< TDataType > partial_results(number_of_threads);
