@@ -162,11 +162,11 @@ namespace Kratos
                 std::cout << "Size of the problem: " << n << std::endl;
                 std::cout << "Size of index1_vector: " << rA.index1_data().size() << std::endl;
                 std::cout << "Size of index2_vector: " << rA.index2_data().size() << std::endl;
-                for( int i = 0; i < rA.index1_data().size(); i++ )
+                for(unsigned int i = 0; i < rA.index1_data().size(); i++ )
                 {
                     index1_vector[i] = (int)(rA.index1_data()[i])+1;
                 } 
-                for( int i = 0; i < rA.index2_data().size(); i++ )
+                for(unsigned int i = 0; i < rA.index2_data().size(); i++ )
                 {
                     index2_vector[i] = (int)(rA.index2_data()[i])+1;
                 }
@@ -342,6 +342,7 @@ namespace Kratos
     inline std::istream& operator >> (std::istream& rIStream, MKLPardisoSolver< TSparseSpaceType, 
                                       TDenseSpaceType, TReordererType>& rThis)
     {
+        return rIStream;
     }
     
     /**
