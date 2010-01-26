@@ -998,9 +998,9 @@ KRATOS_WATCH("RIGHT BEFORE ADAPTIVE MESHER");
 			//***********************************************************************************
 			boost::timer adding_elems;
 			//add preserved elements to the kratos
-			//Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
+			Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
                         //KRATOS_WATCH("!!!!!!!!!!!!!!!  properties !!!!!!!!!");
-                                                KRATOS_WATCH(properties);
+                                               // KRATOS_WATCH(properties);
 			nodes_begin = ThisModelPart.NodesBegin();
 			(ThisModelPart.Elements()).reserve(outnew.numberoftetrahedra);
 			
