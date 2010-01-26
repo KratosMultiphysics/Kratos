@@ -101,7 +101,8 @@ namespace Kratos
 
 			//Element const& rEl1 = KratosComponents<Element>::Get("ASGSCOMPPRDC2D"); //water element
 			//Element const& rEl2 = KratosComponents<Element>::Get("ASGSCompressible2D"); // air element
-
+				int water_num = 0;
+				int air_num = 0;
 			for(ModelPart::ElementsContainerType::iterator Belem = mr_model_part.ElementsBegin(); Belem != mr_model_part.ElementsEnd(); ++Belem)
 			{
 				Geometry< Node<3> >& geom = Belem->GetGeometry();
@@ -149,7 +150,8 @@ namespace Kratos
 				  {
 					Element::Pointer p_elem = rElWater.Create(Belem->Id(),geom, Belem->pGetProperties());
 					ElemPart.push_back(p_elem);
-					p_elem->GetValue(IS_WATER_ELEMENT) = 1.0;						
+					p_elem->GetValue(IS_WATER_ELEMENT) = 1.0;
+					water_num++;						
 					//copy element of other type to consider two elements in divided element
 						/*if(Belem->GetValue(IS_DIVIDED) == 1.0)
 							{
@@ -164,7 +166,7 @@ namespace Kratos
 					Element::Pointer p_elem = rElAir.Create(Belem->Id(), geom, Belem->pGetProperties() );
 					ElemPart.push_back(p_elem);
 					p_elem->GetValue(IS_WATER_ELEMENT) = 0.0;
-
+					air_num++;
 					//copy element of other type to consider two elements in divided element
 						/*if(Belem->GetValue(IS_DIVIDED) == 1.0)
 							{
@@ -180,6 +182,8 @@ namespace Kratos
 			}
 			KRATOS_WATCH(ElemPart.size());
 			KRATOS_WATCH((mr_model_part.Elements()).size());
+			KRATOS_WATCH(water_num);
+			KRATOS_WATCH(air_num);
 
 			mr_model_part.Elements() = ElemPart;
 
