@@ -373,7 +373,12 @@ namespace Kratos
              * @param rCurrentProcessInfo: the current process info instance
              */            
 	    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
-							    VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo){}
+							    VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+            {
+                            if(rDampMatrix.size1()!=0)
+                                 rDampMatrix.resize(0,0);
+
+            }
 
             /**
              * determines the elemental list of DOFs
