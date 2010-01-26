@@ -75,20 +75,21 @@ class MonolithicSolver:
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
         #self.linear_solver =  SkylineLUFactorizationSolver()
-##        self.linear_solver =SuperLUSolver()
+        self.linear_solver =SuperLUSolver()
 
-        pPrecond = DiagonalPreconditioner()
+      #  pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+      #  self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         
         #definition of the convergence criteria
       # self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
         self.conv_criteria = UPCriteria(1e-5,1e-6,1e-5,1e-6)
 
-        self.max_iter = 20
+        self.max_iter = 30
 
         self.SetDivided = ElemBasedBCUtilities(model_part)
-        self.ChooseElement = ChooseElementProcess(model_part, 2)                    
+        self.ChooseElement = ChooseElementProcess(model_part, 2, "ASGSCOMPPRDC2D", "ASGSCompressible2D")       
+    #    self.ChooseElement = ChooseElementProcess(model_part, 2)                 
         #default settings
         self.echo_level = 1
         self.CalculateReactionFlag = False
@@ -100,7 +101,7 @@ class MonolithicSolver:
         ####MESH CHANGES
         self.PfemUtils = PfemUtils()
 	self.MeshMover= MoveMeshProcess(self.model_part);
-        self.node_erase_process = NodeEraseProcess(model_part);
+        self.node_erase_process = NodeEraseProcess(self.model_part);
         
 ##        self.Mesher = TriGenPFEMModeler()
 ##        self.Mesher = MSuitePFEMModeler()
@@ -123,7 +124,8 @@ class MonolithicSolver:
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
 
         #U NEED IT FOR ALPHA-shape
-        (self.neigh_finder).Execute();        
+        (self.neigh_finder).Execute(); 
+	print"After neighbor finder"       
         self.Hfinder  = FindNodalHProcess(model_part);
         (self.Hfinder).Execute();
 
@@ -170,20 +172,25 @@ class MonolithicSolver:
 ##        self.ImplosionDistToH()
 ##        (FindElementalNeighboursProcess(self.model_part, 2, 10)).Execute()
 
-        #(self.solver).Predict()
+        #(self.solver).Predict()2
         self.DistToH()
         self.Remesh()
-  
         (self.solver).Solve()
         print "@@@@@@@@@@@@@@@@@@@ end solve @@@@@@@@@@@@@@@@@@@@@"
+        
 	(self.solver).Clear()
         self.OutputStep(time,gid_io)
 
     #######################################################################  
     def EstimateDeltaTime(self,min_dt,max_dt):
         print "Estimating delta time"
-        calc_dt=(self.PfemUtils).EstimateDeltaTime(min_dt,max_dt,self.model_part)
-        print "calculated dt"
+       # calc_dt=(self.PfemUtils).EstimateDeltaTime(min_dt,max_dt,self.model_part)
+	cfl_dt=(self.PfemUtils).CFLdeltaT(1.0,max_dt,self.model_part)
+	max_dt = cfl_dt
+	print"CFL_CHOICE",cfl_dt
+	calc_dt=(self.PfemUtils).ExactDtEstimate(max_dt,self.model_part)
+
+       # print "calculated dt"
         return calc_dt
 
 #    def EstimateDeltaTime(self,min_dt,max_dt):
@@ -387,8 +394,8 @@ class MonolithicSolver:
          #min_H = .0007#0.001
          sec_min_H = 10 * min_H#.004
          max_H = .02
-         ref_dist = 4*min_H
-         sec_ref_dist = 20*min_H
+         ref_dist = 10*min_H
+         sec_ref_dist = 50*min_H
          third_ref_dist = 200*min_H
 
          slope = (sec_min_H - min_H)/(sec_ref_dist-ref_dist)
@@ -428,7 +435,7 @@ class MonolithicSolver:
              #node.SetSolutionStepValue(NODAL_H,0,node_H)   
 
 	  #NearboundaryH
-	 (self.PfemUtils).AssignNearBoundaryH(self.model_part,5.0)
+	# (self.PfemUtils).AssignNearBoundaryH(self.model_part,5.0)
 
 
 #############################################################################
