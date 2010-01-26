@@ -422,7 +422,7 @@ KRATOS_WATCH("FINISH FIRST MESH GENERATION");
 			array_1d<double,3> x1,x2,x3,x4, xc;
 			int point_base;
 			int number_of_preserved_elems = 0;
-			int num_of_input = in.numberofpoints;
+//			int num_of_input = in.numberofpoints;
 
 
 			for(int el = 0; el< el_number; el++)
@@ -1284,7 +1284,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			unsigned int buffer_size = pnode->GetBufferSize();
 
 			//here we want to keep the flag of aaded Faces node and not interpolate it
-			double aux_interface = pnode->FastGetSolutionStepValue(IS_INTERFACE);
+//			double aux_interface = pnode->FastGetSolutionStepValue(IS_INTERFACE);
 
 			for(unsigned int step = 0; step<buffer_size; step++)
 			{	
@@ -1569,7 +1569,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		void FaceDetecting(ModelPart& ThisModelPart,ModelPart::ElementsContainerType& rElements, std::vector <int>& face_list, int& face_num, double h_factor)
 		{
 		KRATOS_TRY;
-			int Tdim = 3;
+//			int Tdim = 3;
                         face_list.clear();
 			face_num = 0;
 
@@ -1608,8 +1608,8 @@ KRATOS_WATCH("INSIDE FACE");
 				{
 				Geometry< Node<3> >& geom = elem->GetGeometry();
                                 array_1d<int,3> str_pts = ZeroVector(3);
-                                int str_num = 0;
-                                int cnt = 0;
+//                                int str_num = 0;
+//                                int cnt = 0;
                 WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
 				for(int ii=0; ii<4; ++ii)
 				     {
