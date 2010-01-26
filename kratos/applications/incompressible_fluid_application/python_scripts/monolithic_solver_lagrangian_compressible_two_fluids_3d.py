@@ -158,7 +158,7 @@ class MonolithicSolver:
                  
     #######################################################################   
     def Solve(self,time,gid_io):
-##        (self.neigh_finder).Execute();
+        (self.neigh_finder).Execute();
 ##        (self.solver).Solve()
 ##	(self.solver).Clear()
 ##        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
@@ -213,7 +213,7 @@ class MonolithicSolver:
     def Remesh(self):
 
         if (self.remeshing_flag==True):
-            self.CalculateDistanceAndDiviedSet(3);
+        #    self.CalculateDistanceAndDiviedSet(3);
             (self.PfemUtils).MoveLonelyNodes(self.model_part)
             #(self.MeshMover).Execute();
             print self.box_corner1
@@ -249,7 +249,9 @@ class MonolithicSolver:
              #calculating fluid neighbours before applying boundary conditionsTrue
             (self.elem_neighbor_finder).ClearNeighbours()          
             (self.elem_neighbor_finder).Execute()
-          #  (self.neigh_finder).Execute();
+            (self.neigh_finder).ClearNeighbours();
+            (self.neigh_finder).Execute();
+	    print "neighbors are calculated"
           
             (self.PfemUtils).ColourAirWaterElement(self.model_part,3)
             (self.PfemUtils).InterfaceDetecting(self.model_part,3, .9)
@@ -257,8 +259,8 @@ class MonolithicSolver:
 
             
              #calculating fluid neighbours before applying boundary conditions
-            (self.neigh_finder).ClearNeighbours();
-            (self.neigh_finder).Execute();
+        #    (self.neigh_finder).ClearNeighbours();
+         #   (self.neigh_finder).Execute();
 
 
             
@@ -323,7 +325,8 @@ class MonolithicSolver:
     ######################################################################
     def CalculateDistanceAndDiviedSet(self,domain_size):
         
-        (self.neigh_finder).Execute();
+        (self.neigh_finder).ClearNeighbours();
+	(self.neigh_finder).Execute();
         distance_tools = ElemBasedDistanceUtilities(self.model_part)
         distance_calculator = BodyDistanceCalculationUtils()
 
