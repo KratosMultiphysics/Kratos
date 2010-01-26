@@ -524,7 +524,7 @@ namespace Kratos
 			//		CheckExtrapolate(ind);	
 
 			  }//end of loop over nodes
-KRATOS_WATCH("END OF INITIALIZE");
+KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
 			KRATOS_CATCH("")
 		}
 //************************************************************************************************
