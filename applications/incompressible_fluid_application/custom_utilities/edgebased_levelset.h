@@ -507,12 +507,13 @@ namespace Kratos {
 //                    tau = 1.0/denom;
 
 //                double tau = 1.0 / (2.0 * vel_norm / h_avg_i + max_dt_inv + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
-                double tau = 1.0 / (2.0 * vel_norm / h_avg_i + time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+                 double tau = 1.0 / (2.0 * vel_norm / h_avg_i + time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+//                 double tau = 1.0 / (2.0 * vel_norm / h_avg_i + 0.01*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
                 double tau_conv = 1.0 / (2.0 * vel_norm / h_avg_i + 0.01*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
                 mTauPressure[i_node] = tau;
                 mTauConvection[i_node] = tau_conv;
 
-                mTau2[i_node] = mViscosity + h_avg_i*vel_norm*0.5;
+                 mTau2[i_node] = mViscosity + h_avg_i*vel_norm*0.5;
 
 //                mTauPressure[i_node] = 1.0 / (2.0 * vel_norm / mHavg[i_node] + (4.0*nu_i) / (mHavg[i_node] * mHavg[i_node]));
 //                mTauConvection[i_node] = 1.0 / (2.0 * vel_norm / h_i + time_inv + (4.0*nu_i) / (h_i * h_i));
@@ -1388,10 +1389,8 @@ namespace Kratos {
 
                     double norm_grad = norm_2(grad_d);
 
-//                    if(norm_grad > 1e-2)
-//                    {
-//                        if(norm_grad < 100.0)
-//                        {
+                        if(norm_grad < 100.0)
+                        {
                             grad_d /= norm_grad; //this is the direction of the gradient of the distances
 
                             grad_d *= dist_i; //this is the vector with the distance of node_i from the closest point on the free surface
@@ -1400,36 +1399,30 @@ namespace Kratos {
                             double pestimate = inner_prod(press_grad,grad_d);
 
                             iii->FastGetSolutionStepValue(PRESSURE) = pestimate;
-//                        }
-//                        else
-//                        {
-//                            std::cout << "attention gradient of distance much greater than 1 on node:" << i_node  <<std::endl;
-//                            iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
-//                            double avg_number = 0.0;
-//
-//                            double pavg = 0.0;
-//
-//                            WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-//                            for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
-//                            {
-//                                if (i->GetValue(IS_VISITED) == 1) {
-//                                    pavg += i->FastGetSolutionStepValue(PRESSURE);
-//                                    avg_number += 1.0;
-//                                }
-//                            }
-//
-//                            if(avg_number == 0)
-//                                KRATOS_ERROR(std::logic_error,"can not happen that the extrapolation node has no neighbours","");
-//
-//                            iii->FastGetSolutionStepValue(PRESSURE) = pavg/avg_number;
+                        }
+                        else
+                        {
+                            std::cout << "attention gradient of distance much greater than 1 on node:" << i_node  <<std::endl;
+                            double avg_number = 0.0;
 
-//                        }
-//                    }
-//                    else
-//                    {
-////                        std::cout << "attention very small gradient of distance found on node;" << i_node  <<std::endl;
-//                        iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
-//                    }
+                            double pavg = 0.0;
+
+                            WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                            for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                            {
+                                if (i->GetValue(IS_VISITED) == 1) {
+                                    pavg += i->FastGetSolutionStepValue(PRESSURE);
+                                    avg_number += 1.0;
+                                }
+                            }
+
+                            if(avg_number == 0)
+                                KRATOS_ERROR(std::logic_error,"can not happen that the extrapolation node has no neighbours","");
+
+                            iii->FastGetSolutionStepValue(PRESSURE) = pavg/avg_number;
+
+                        }
+
             }
 
 
