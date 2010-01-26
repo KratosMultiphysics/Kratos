@@ -684,9 +684,9 @@ namespace Kratos {
                 int thread_id = omp_get_thread_num();
                 int number_of_rows = partition[thread_id+1] - partition[thread_id];
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator row_iter_begin = A.index1_data().begin()+partition[thread_id];
-                typename compressed_matrix<TDataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
-                typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
-                typename VectorType::iterator output_vec_begin = out.begin()+partition[thread_id];
+                 typename compressed_matrix<TDataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
+                 typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
+//                  typename VectorType::iterator output_vec_begin = out.begin()+partition[thread_id];
 
 
                 partial_product_no_add(    number_of_rows,
@@ -694,7 +694,8 @@ namespace Kratos {
                                     index_2_begin,
                                     value_begin,
                                     in,
-                                    output_vec_begin
+                                    partition[thread_id],
+				    out
                                 );
             }
         }
@@ -718,10 +719,13 @@ namespace Kratos {
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator index2_begin,
                 typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin,
                 const VectorType& input_vec,
-                typename VectorType::iterator output_vec_begin
+		unsigned int output_begin_index,
+		VectorType& output_vec
+//                 typename VectorType::iterator output_vec_begin
                  )
         {
             int row_size;
+	    int kkk = output_begin_index;
             typename MatrixType::index_array_type::const_iterator row_it = row_begin;
             for(int k = 0; k < number_of_rows; k++)
             {
@@ -732,7 +736,8 @@ namespace Kratos {
                 for(int i = 0; i<row_size; i++)
                     t += *value_begin++ *   ( input_vec[*index2_begin++]);
 
-                *output_vec_begin++ = t;
+		output_vec[kkk++] = t;
+//                 *output_vec_begin++ = t;
 
             }
         }
