@@ -61,6 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/save_structure_conditions_process.h" 
 #include "custom_processes/merge_model_parts_process.h" 
+#include "custom_processes/merge_in_one_model_parts_process.h"
+#include "custom_processes/save_structure_model_part_process.h"  
 
 #include "custom_processes/choose_element_process.h" 
 
@@ -71,6 +73,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/apply_proj_dirichlet_process.h" 
 #include "custom_processes/subdomain_disable_process.h" 
 #include "custom_processes/pseudo_lag_part_process.h" 
+
+#include "custom_processes/save_element_by_size_process.h" 
 
 #include "includes/node.h"
 
@@ -87,8 +91,14 @@ namespace Python
   	class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
 		   .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
 		 ;
+  	class_<SaveStructureModelPartProcess, bases<Process> >("SaveStructureModelPartProcess", init<>())
+		   .def("SaveStructureModelPart", &SaveStructureModelPartProcess::SaveStructure)
+		 ;
 	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
 		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
+		 ;
+	   class_<MergeInOneModelPartsProcess, bases<Process> >("MergeInOneModelPartsProcess", init<> ())
+		   .def("MergeParts", &MergeInOneModelPartsProcess::MergeParts)
 		 ;
 	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int,char*, char* >())
 		 ;
@@ -114,6 +124,9 @@ namespace Python
 		 ;
 	class_<PseudoLagPartProcess, bases<Process> >("PseudoLagPartProcess", init<>())
 		   .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
+		 ;
+
+	class_<SaveElementBySizeProcess, bases<Process> >("SaveElementBySizeProcess",init<ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&, unsigned int >())
 		 ;
 
 	
