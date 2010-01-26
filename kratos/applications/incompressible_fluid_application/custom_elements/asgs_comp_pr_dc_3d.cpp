@@ -211,6 +211,8 @@ namespace Kratos
 	const double visc3 = geom[3].FastGetSolutionStepValue(VISCOSITY_WATER);
 	 viscosity = 0.25*(visc0 + visc1 + visc2 + visc3);
 
+
+    
 /*
 	double first = geom[0].FastGetSolutionStepValue(IS_WATER);
 	double second = geom[1].FastGetSolutionStepValue(IS_WATER);
@@ -298,7 +300,8 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.25;
 
-
+    // KRATOS_WATCH("THIS IS A WATER ELEMENT");
+      //    KRATOS_WATCH(vc2);
 
 	}
 	//*************************************************************************************
