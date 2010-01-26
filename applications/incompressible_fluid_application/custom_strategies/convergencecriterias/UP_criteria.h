@@ -216,6 +216,9 @@ namespace Kratos
 			double difference_vel_norm = 0.0;
 			int pr_size = 0;
 			int vel_size = 0;
+                            double  dimension=(r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
+			
+
 
 		for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        	 {
@@ -235,9 +238,9 @@ namespace Kratos
 					reference_water_pr_norm += current_water_pr*current_water_pr;
 				
 										
-					const array_1d<double,2> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
-					reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1]);
-					vel_size +=2;
+					const array_1d<double,3> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
+					reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1] +  current_vel[2]*current_vel[2]);
+					vel_size += dimension;
 
 					double old_pr = 0.0;
 					old_pr = ind->GetValue(PRESSURE);
@@ -252,14 +255,19 @@ namespace Kratos
 					difference_water_pr_norm += (current_water_pr - old_water_pr)*(current_water_pr - old_water_pr);
 
 
-					const array_1d<double,2> old_vel = ind->GetValue(VELOCITY);
-					array_1d<double,2> dif_vel = current_vel - old_vel;
-					difference_vel_norm += (dif_vel[0]*dif_vel[0] + dif_vel[1]*dif_vel[1]);
+					const array_1d<double,3> old_vel = ind->GetValue(VELOCITY);
+					array_1d<double,3> dif_vel = current_vel - old_vel;
+					difference_vel_norm += (dif_vel[0]*dif_vel[0] + dif_vel[1]*dif_vel[1]+ dif_vel[2]*dif_vel[2]);
 				
 
 			 }
 			if(reference_pr_norm ==0.0)
 				reference_pr_norm = 1.0;
+			if(reference_water_pr_norm ==0.0)
+				reference_water_pr_norm = 1.0;
+			if(reference_air_pr_norm ==0.0)
+				reference_air_pr_norm = 1.0;
+
 
 			if(reference_vel_norm ==0.0)
 				reference_vel_norm = 1.0;
@@ -267,8 +275,8 @@ namespace Kratos
 
 			double pr_ratio = sqrt(difference_pr_norm/reference_pr_norm);
 			double vel_ratio = sqrt(difference_vel_norm/reference_vel_norm);
-			double air_pr_ratio = sqrt(difference_air_pr_norm/reference_pr_norm);
-			double water_pr_ratio = sqrt(difference_water_pr_norm/reference_pr_norm);
+			double air_pr_ratio = sqrt(difference_air_pr_norm/reference_air_pr_norm);
+			double water_pr_ratio = sqrt(difference_water_pr_norm/reference_water_pr_norm);
 			
 
 			double pr_abs = sqrt(difference_pr_norm)/pr_size;
@@ -288,12 +296,14 @@ namespace Kratos
 
 				if ( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) 
 							&& 
-				     ((air_pr_ratio <= mPrsRatioTolerance || air_pr_abs<mPrsAbsTolerance)
+				     (air_pr_ratio <= mPrsRatioTolerance || air_pr_abs<mPrsAbsTolerance)
+							&&
+				      (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)
 					/* 
 							||
 				     (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance)
 							|| 
-				     (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)*/))   
+				     (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)*/)   
 				{
 KRATOS_WATCH("convergence is achieved");
 					return true;
