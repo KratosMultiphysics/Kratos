@@ -127,7 +127,6 @@ namespace Kratos
 	double delta_t= rCurrentProcessInfo[DELTA_TIME];
 	
 	
-	
 	//getting data for the given geometry
 	double Volume;
         boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX = ZeroMatrix(4,3);
@@ -144,7 +143,8 @@ namespace Kratos
 	CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
 	CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Volume);
-		
+
+
 	//calculate pressure term
 	CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Volume);
 
@@ -153,8 +153,12 @@ namespace Kratos
 	//stabilization terms
 	//KRATOS_WATCH("ñññññññññ calculate stabilizing terms ñññññññññ");
 	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
+                       
 	CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Volume);
+          
+
 	CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Volume);
+          
 	//KRATOS_WATCH(rRightHandSideVector);
 
 
@@ -308,7 +312,8 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.25;
 
-
+   // KRATOS_WATCH("THIS IS An AIR ELEMENT");
+             // KRATOS_WATCH(vc2);
 
 	}
 	//*************************************************************************************
@@ -415,6 +420,8 @@ namespace Kratos
 	const double visc2 = geom[2].FastGetSolutionStepValue(VISCOSITY_AIR);
 	const double visc3 = geom[3].FastGetSolutionStepValue(VISCOSITY_AIR);
 	 viscosity = 0.25*(visc0 + visc1 + visc2 + visc3);
+
+     
 
 /*
 	double first = geom[0].FastGetSolutionStepValue(IS_WATER);
