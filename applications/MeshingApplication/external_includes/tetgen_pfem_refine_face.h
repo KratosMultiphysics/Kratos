@@ -99,7 +99,7 @@ namespace Kratos
 		//*******************************************************************************************
 		//*******************************************************************************************
 		void ReGenerateMesh(
-			ModelPart& ThisModelPart , 
+			ModelPart& ThisModelPart , ModelPart::ElementsContainerType& rElements,
 			Element const& rReferenceElement, 
 			Condition const& rReferenceBoundaryCondition,
 			NodeEraseProcess& node_erase, bool rem_nodes = true, bool add_nodes=true,
@@ -107,6 +107,9 @@ namespace Kratos
 		{
 
 			KRATOS_TRY
+//KRATOS_WATCH(ThisModelPart);
+//KRATOS_WATCH(ThisModelPart.NodesBegin()->Id());
+//KRATOS_WATCH(ThisModelPart.NodesBegin()->GetSolutionStepValue(IS_FREE_SURFACE));
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FREE_SURFACE)==false )
 				KRATOS_ERROR(std::logic_error,"Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR","");
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_STRUCTURE)==false )
@@ -128,9 +131,11 @@ namespace Kratos
 			//****************************************************
 			std::vector <int> mid_face_list;
 		        int face_num = 0;
-			FaceDetecting(ThisModelPart,  mid_face_list, face_num, h_factor);
+			FaceDetecting(ThisModelPart, rElements,  mid_face_list, face_num, h_factor);
 KRATOS_WATCH("AFTER FACEDETECTING");
 			KRATOS_WATCH(face_num);
+			KRATOS_WATCH(rElements.size());
+			int str_size = rElements.size();
 			/*for(int ii=0; ii<face_num; ++ii)
 				{
 					int cnt = 3*ii;
@@ -198,7 +203,7 @@ KRATOS_WATCH("AFTER FACEDETECTING");
 				for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
 					in != ThisModelPart.NodesEnd(); in++)
 					{
-					radius=0.5*in->FastGetSolutionStepValue(NODAL_H);
+					radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
 				
 					work_point[0]=in->X();
 					work_point[1]=in->Y();
@@ -209,7 +214,15 @@ KRATOS_WATCH("AFTER FACEDETECTING");
 						{
 					     if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0&& in->FastGetSolutionStepValue(IS_INTERFACE)==0.0)
 							{
-							in->GetValue(ERASE_FLAG)=1;
+
+                                                 		double erased_nodes = 0;
+								for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+									erased_nodes += (*i)->GetValue(ERASE_FLAG);
+
+
+                               					if( erased_nodes < 1.0) //we cancel the node if no other nodes are being erased
+									in->GetValue(ERASE_FLAG)=1;
+
 							}
 						}
 					/*				
@@ -227,17 +240,20 @@ KRATOS_WATCH("AFTER FACEDETECTING");
 						}
 					*/
 					}
-				//not erase INTERFACE node
+				//not erase INTERFACE node // flag_variable == 5.= arre sensors
 				for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
 					in != ThisModelPart.NodesEnd(); in++)
 					{
-					if((in)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
+			if((in)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 || (in)->FastGetSolutionStepValue(IS_STRUCTURE) == 1.0 || (in)->FastGetSolutionStepValue(FLAG_VARIABLE) == 5.0 )
 						in->GetValue(ERASE_FLAG) = 0;
 
 					}
 
 			
 				node_erase.Execute();
+
+                                KRATOS_WATCH("Number of nodes after erasing")
+				KRATOS_WATCH(ThisModelPart.Nodes().size())
 			}			
 			/////////////////////////////////////////////////////////////////
 			/////// 	ALPHA SHAPE		/////////////////////////
@@ -298,7 +314,7 @@ KRATOS_WATCH("AFTER FACEDETECTING");
 			//***********preserving the list of facets for
                         //surface mesh file .smesh
 
-		     /*  if(face_num != 0){
+		    /*  if(face_num != 0){
 				in.numberoftrifaces = face_num;
 				in.trifacelist = new int[in.numberoftrifaces * 3 ];
 				in.trifacemarkerlist = new int[in.numberoftrifaces ];
@@ -307,15 +323,15 @@ KRATOS_WATCH("AFTER FACEDETECTING");
 						in.trifacelist[ii] = reorder_mid_face_list[ii];
 
 					  for( int jj = 0; jj < face_num ; ++jj)
-						in.trifacemarkerlist[jj] = 5;
+						in.trifacemarkerlist[jj] = 1;
 
 					}*/
-			 /*   in.numberoffacets = 0;
+			/*   in.numberoffacets = 0;
 			    in.facetlist = NULL;
 			     in.numberofholes = 0;
 			     in.holelist = NULL;*/
 
-                        if(face_num != 0){
+                       if(face_num != 0){
                             int cnt = 0;
                             in.numberoffacets = face_num;
                             in.facetmarkerlist = new int[in.numberoffacets];
@@ -336,106 +352,32 @@ KRATOS_WATCH("AFTER FACEDETECTING");
                                 p->vertexlist[1] = reorder_mid_face_list[cnt + 1];
                                 p->vertexlist[2] = reorder_mid_face_list[cnt + 2];
                                 cnt +=3;
-
-                                in.facetmarkerlist[ii] = 5;
+			
+				if( ii < str_size)
+                                    in.facetmarkerlist[ii] = 5;
+				else
+				    in.facetmarkerlist[ii] = 10;
                             }
-                            //find faces
-                            /*
-                            int one, two, three, four, five, six, seven, eight;
-                              for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
-					in != ThisModelPart.NodesEnd(); in++)
-				{
-                                  if(in->X() == 0.5 && in->Y() == -0.5 && in->Z() == -0.5)
-                                      one = in->Id();
 
-                                  if(in->X() == 0.5 && in->Y() == 0.5 && in->Z() == -0.5)
-                                      two = in->Id();
-
-                                  if(in->X() == 0.5 && in->Y() == 0.5 && in->Z() == 0.5)
-                                      three = in->Id();
-
-                                  if(in->X() == 0.5 && in->Y() == -0.5 && in->Z() == 0.5)
-                                      four = in->Id();
-
-                                  if(in->X() == -0.5 && in->Y() == -0.5 && in->Z() == -0.5)
-                                      five = in->Id();
-
-                                  if(in->X() == -0.5 && in->Y() == 0.5 && in->Z() == -0.5)
-                                      six = in->Id();
-
-                                  if(in->X() == -0.5 && in->Y() == 0.5 && in->Z() == 0.5)
-                                      seven = in->Id();
-
-                                  if(in->X() == -0.5 && in->Y() == -0.5 && in->Z() == 0.5)
-                                      eight = in->Id();
-
-                                }
-                            //front face
-                          for(int jj=face_num; jj<(face_num + 6);++jj)
-                            {
-                                f = &in.facetlist[jj];
-                                f->numberofpolygons = 1;
-                                f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
-                                f->numberofholes = 0;
-                                f->holelist = NULL;
-
-                                p = &f->polygonlist[0];
-                                p->numberofvertices = 4;
-                                p->vertexlist = new int[p->numberofvertices];
-
-                                if(jj == face_num)
-                                {
-                                p->vertexlist[0] = one;
-                                p->vertexlist[1] = two;
-                                p->vertexlist[2] = three;
-                                p->vertexlist[3] = four;
-                                }
-
-                                if(jj == face_num + 1)
-                                {
-                                p->vertexlist[0] = five;
-                                p->vertexlist[1] = six;
-                                p->vertexlist[2] = seven;
-                                p->vertexlist[3] = eight;
-                                }
-
-                                if(jj == face_num + 2)
-                                {
-                                p->vertexlist[0] = one;
-                                p->vertexlist[1] = five;
-                                p->vertexlist[2] = eight;
-                                p->vertexlist[3] = four;
-                                }
-
-                                if(jj == face_num + 3)
-                                {
-                                p->vertexlist[0] = two;
-                                p->vertexlist[1] = six;
-                                p->vertexlist[2] = seven;
-                                p->vertexlist[3] = three;
-                                }
-
-                                if(jj == face_num + 4)
-                                {
-                                p->vertexlist[0] = one;
-                                p->vertexlist[1] = two;
-                                p->vertexlist[2] = six;
-                                p->vertexlist[3] = five;
-                                }
-
-                                if(jj == face_num + 5)
-                                {
-                                p->vertexlist[0] = four;
-                                p->vertexlist[1] = three;
-                                p->vertexlist[2] = seven;
-                                p->vertexlist[3] = eight;
-                                }
-                            }*/
 
 
                         //holes
                             in.numberofholes = 0;
 			     in.holelist = NULL;
+
+			//regions
+			   in.numberofregions = 1;
+			   in.regionlist = new REAL[in.numberofregions * 5];
+				
+			   in.regionlist[0] = 0.0;
+			   in.regionlist[1] = 0.137;
+			   in.regionlist[2] = 0.0;
+
+			   in.regionlist[3] = -20;
+			   in.regionlist[4] = -1;
+
+
+
                         }
 
 			//***********end of facets
@@ -452,13 +394,19 @@ KRATOS_WATCH("AFTER FACEDETECTING");
                                  KRATOS_WATCH("end");
                             cnt +=3;
                         }*/
-
-
-			char tetgen_options[] = "pCCYYJ";
+ // in.save_nodes("first_mesh_in");
+ // in.save_poly("first_mesh_in");
+			//char tetgen_options[] = "VMYYJ";pA
+			char tetgen_options[] = "CCVpAYYJ";
 
 KRATOS_WATCH(in.numberofpoints);
 
 			tetrahedralize(tetgen_options, &in, &out); //with option to remove slivers
+
+//  out.save_nodes("first_mesh_out");
+//  out.save_elements("first_mesh_out");
+//  out.save_faces("first_mesh_out");
+
 KRATOS_WATCH(out.numberofpoints);
 KRATOS_WATCH(out.numberoftetrahedra);
 KRATOS_WATCH("FINISH FIRST MESH GENERATION");			
@@ -474,6 +422,27 @@ KRATOS_WATCH("FINISH FIRST MESH GENERATION");
 			array_1d<double,3> x1,x2,x3,x4, xc;
 			int point_base;
 			int number_of_preserved_elems = 0;
+			int num_of_input = in.numberofpoints;
+
+
+			for(int el = 0; el< el_number; el++)
+			{
+			/*	int base = el * 4;
+			   if(out.tetrahedronlist[base] > num_of_input ||
+			      out.tetrahedronlist[base + 1] > num_of_input ||
+			      out.tetrahedronlist[base + 2] > num_of_input ||
+			      out.tetrahedronlist[base + 3] > num_of_input)
+                                              preserved_list[el] = false; //not preseve element with Steiner point!!
+			   else
+				{	  
+				  preserved_list[el] = true; //preserve!!
+				  number_of_preserved_elems += 1;
+				}*/
+				  preserved_list[el] = true; //preserve!!
+				  number_of_preserved_elems += 1;
+			}
+
+/*
 			for(int el = 0; el< el_number; el++)
 			{
 				int base = el * 4;
@@ -507,6 +476,14 @@ KRATOS_WATCH("FINISH FIRST MESH GENERATION");
 				CalculateElementData(x1,x2,x3,x4,vol,xc,radius,geometrical_hmin,geometrical_hmax);
 
 				//calculate the prescribed h
+KRATOS_WATCH("+++++++++++");
+KRATOS_WATCH("Inside preserved");
+KRATOS_WATCH(el);
+	KRATOS_WATCH((nodes_begin + out.tetrahedronlist[base]-1)->Id());
+	KRATOS_WATCH((nodes_begin + out.tetrahedronlist[base+ 1]-1)->Id());
+	KRATOS_WATCH((nodes_begin + out.tetrahedronlist[base+ 2]-1)->Id());
+	KRATOS_WATCH((nodes_begin + out.tetrahedronlist[base + 3]-1)->Id());
+KRATOS_WATCH("+++++++++++");
 				double prescribed_h = (nodes_begin + out.tetrahedronlist[base]-1)->FastGetSolutionStepValue(NODAL_H);
 				prescribed_h += (nodes_begin + out.tetrahedronlist[base+1]-1)->FastGetSolutionStepValue(NODAL_H);
 				prescribed_h += (nodes_begin + out.tetrahedronlist[base+2]-1)->FastGetSolutionStepValue(NODAL_H);
@@ -553,7 +530,7 @@ KRATOS_WATCH("FINISH FIRST MESH GENERATION");
 					number_of_preserved_elems += 1;
 				}
 				*/
-				if(nb == 4) // 4 nodes on the wall
+				/*if(nb == 4) // 4 nodes on the wall
 				{
 					preserved_list[el] = false;
 					
@@ -609,9 +586,11 @@ KRATOS_WATCH("FINISH FIRST MESH GENERATION");
 //						preserved_list[el] = true;
 //						number_of_preserved_elems += 1;
 					}
-				}
-
+				}*/
+				/*			preserved_list[el] = true; //preserve!!
+							number_of_preserved_elems += 1;
 			}
+*/
 			std::cout << "time for passing alpha shape" << alpha_shape_time.elapsed() << std::endl;
 			
 KRATOS_WATCH(number_of_preserved_elems);
@@ -631,11 +610,18 @@ KRATOS_WATCH(number_of_preserved_elems);
 			in2.tetrahedronlist = new int[in2.numberoftetrahedra * 4];
 			in2.tetrahedronvolumelist = new double[in2.numberoftetrahedra];
 
+			in2.numberoftetrahedronattributes = 1;
+			in2.tetrahedronattributelist = new REAL[in2.numberoftetrahedra * in2.numberoftetrahedronattributes ];
+
+
 			int counter = 0;
 			for(int el = 0; el< el_number; el++)
 			{
 				if( preserved_list[el] == true ) 
 				{
+//KRATOS_WATCH("******");
+//KRATOS_WATCH("inside filling in2_first");
+//KRATOS_WATCH(counter);
 					//saving the compact element list
 					int new_base = counter*4;
 					int old_base = el*4;
@@ -644,26 +630,38 @@ KRATOS_WATCH(number_of_preserved_elems);
 					in2.tetrahedronlist[new_base+2] = out.tetrahedronlist[old_base+2];
 					in2.tetrahedronlist[new_base+3] = out.tetrahedronlist[old_base+3];
 
+
+
 					//calculate the prescribed h
 					double prescribed_h = (nodes_begin + out.tetrahedronlist[old_base]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+1]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+2]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+3]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h *= 0.25;
-					//if h is the height of a perfect tetrahedra, the edge size is 3/2 h
-					//filling in the list of "IDEAL" tetrahedron volumes=1/12 * (1.5*h)^3 * sqrt(2)~0.11785* h^3=
-					//0.3977*h^3
-					
-					in2.tetrahedronvolumelist[counter] = 0.3977*prescribed_h*prescribed_h*prescribed_h;
+					//if h is the height of a perfect tetrahedra, the edge size is edge = sqrt(3/2) h
+					//filling in the list of "IDEAL" tetrahedron volumes=1/12 * (edge)^3 * sqrt(2)~0.11785* h^3=
+					//0.2165063509*h^3
+		
+					in2.tetrahedronvolumelist[counter] = 0.217*prescribed_h*prescribed_h*prescribed_h;
 					//in2.tetrahedronvolumelist[counter] = 0.0004;
 					//KRATOS_WATCH(in2.tetrahedronvolumelist[counter])
+
+					in2.tetrahedronattributelist[counter] = out.tetrahedronattributelist[el];
+
+
+
+
+
 					counter += 1;
+
+
+
 				}
 			
 			}
 			//***********preserving the list of interface facets
-
-		      /* if(face_num != 0){
+/*KRATOS_WATCH("RIGHT BEFORE TRIFACE AFTER VOLUME CONSTRAINT");
+		       if(face_num != 0){
 				in2.numberoftrifaces = face_num;
 				in2.trifacelist = new int[in2.numberoftrifaces * 3];
 				in2.trifacemarkerlist = new int[in2.numberoftrifaces ];
@@ -676,7 +674,7 @@ KRATOS_WATCH(number_of_preserved_elems);
 
 					}*/
 
-                        if(face_num != 0){
+                      /*  if(face_num != 0){
                             int cnt = 0;
 
                             in2.numberoffacets = face_num;
@@ -706,7 +704,7 @@ KRATOS_WATCH(number_of_preserved_elems);
                             in2.numberofholes = 0;
 			     in2.holelist = NULL;
 			KRATOS_WATCH("WE are AFTER SECOND FACET FILLING JUST BEFORE ADAPTIVE REMESHING");
-			KRATOS_WATCH(in2.numberoffacets);
+			KRATOS_WATCH(in2.numberoffacets);*/
 			//***********end of facets
 
 			//NOW WE SHALL IDENTIFY FLYING NODES
@@ -732,6 +730,7 @@ KRATOS_WATCH(number_of_preserved_elems);
 				}
 			}		
 			*/
+KRATOS_WATCH("RIGHT BEFORE DEINITIALIZE");
 			//freeing unnecessary memory
                          //clean_tetgenio(in);
 			in.deinitialize();
@@ -751,24 +750,30 @@ KRATOS_WATCH(number_of_preserved_elems);
 			out.deinitialize();
                         out.initialize();
 			
-
+ // in2.save_nodes("second_mesh_in2");
+  //in2.save_elements("second_mesh_in2");
+KRATOS_WATCH("RIGHT BEFORE ADAPTIVE MESHER");
 			//HERE WE ADD THE VOLUME CONSTRAINT  -the desired volume of the equidistant tertrahedra
 			//based upon average nodal_h (that is the  "a" switch
 			//char regeneration_options[] = "rQJYq1.8anS";
 			if (add_nodes==true)
 				{
-				char mesh_regen_opts[] = "pfJYYq1.5an";
+				char mesh_regen_opts[] = "VrMfJYYqn";
 				tetrahedralize(mesh_regen_opts, &in2, &outnew);
 				KRATOS_WATCH("Adaptive remeshing executed")
 				}
 			else 
 				{
-				char mesh_regen_opts[] = "pJYYnSCC";
+				char mesh_regen_opts[] = "rJYYnSCC";
 				tetrahedralize(mesh_regen_opts, &in2, &outnew);
 				KRATOS_WATCH("Non-Adaptive remeshing executed")
 				}
 
 			//q - creates quality mesh, with the default radius-edge ratio set to 2.0
+//  outnew.save_nodes("second_mesh_outnew");
+ // outnew.save_elements("second_mesh_outnew");
+ // outnew.save_faces("second_mesh_outnew");
+ // outnew.save_neighbors("second_mesh_outnew");
 
  			std::cout << "mesh recreation time" << mesh_recreation_time.elapsed() << std::endl;
 
@@ -923,6 +928,8 @@ KRATOS_WATCH(number_of_preserved_elems);
 					double geometrical_hmin, geometrical_hmax;
 					double radius;
 					double vol;
+                                        int in2_tet_attr;
+                                        in2_tet_attr = in2.tetrahedronattributelist[el];
 
 					array_1d<double,3> xc;
 
@@ -965,7 +972,7 @@ KRATOS_WATCH(number_of_preserved_elems);
 						if(is_inside == true)
 							{	
 								
-								Interpolate(  geom,  N, step_data_size, *(it) );
+								Interpolate(  geom,  N, step_data_size, *(it), in2_tet_attr  );
 
 							}
 											
@@ -991,7 +998,9 @@ KRATOS_WATCH(number_of_preserved_elems);
 			//***********************************************************************************
 			boost::timer adding_elems;
 			//add preserved elements to the kratos
-			Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
+			//Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
+                        //KRATOS_WATCH("!!!!!!!!!!!!!!!  properties !!!!!!!!!");
+                                                KRATOS_WATCH(properties);
 			nodes_begin = ThisModelPart.NodesBegin();
 			(ThisModelPart.Elements()).reserve(outnew.numberoftetrahedra);
 			
@@ -1021,6 +1030,11 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 				Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
 				(ThisModelPart.Elements()).push_back(p_element);
+
+                                if(outnew.tetrahedronattributelist[iii] == -20)
+                                        p_element->GetValue(IS_WATER_ELEMENT) = 0.0;
+                                else
+                                        p_element->GetValue(IS_WATER_ELEMENT) = 1.0;
 
 			}
 			std::cout << "time for adding elems" << adding_elems.elapsed() << std::endl;;
@@ -1072,8 +1086,8 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			//creating the faces
 			for(ModelPart::ElementsContainerType::const_iterator iii = ThisModelPart.ElementsBegin();
 				iii != ThisModelPart.ElementsEnd(); iii++)
-			{
-				
+			{			   
+
 				int base = ( iii->Id() - 1 )*4;
 				
 				//create boundary faces and mark the boundary nodes 
@@ -1107,14 +1121,14 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				}
 
 			}
-		    KRATOS_WATCH("deinitialize outnew");
+		    //KRATOS_WATCH("deinitialize outnew");
 			outnew.deinitialize();
 			outnew.initialize();
-		    KRATOS_WATCH("deinitialize first  in2");
+		   // KRATOS_WATCH("deinitialize first  in2");
 			in2.deinitialize();
-		    KRATOS_WATCH("deinitialize middle in2");
+		    //KRATOS_WATCH("deinitialize middle in2");
 			in2.initialize();
-		    KRATOS_WATCH("deinitialize last in2");
+		    //KRATOS_WATCH("deinitialize last in2");
 			std::cout << "time for adding faces" << adding_faces.elapsed() << std::endl;;
 
 
@@ -1265,7 +1279,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		//////////////////////////////////////////////////////////////////////////////////////
 		void Interpolate( Tetrahedra3D4<Node<3> >& geom, const array_1d<double,4>& N, 
 				  unsigned int step_data_size,
-      				Node<3>::Pointer pnode)
+      				Node<3>::Pointer pnode, int tet_attr)
 		{
 			unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -1302,11 +1316,12 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
+                        pnode->GetValue(ERASE_FLAG)=0.0;
 
 			//pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
-			pnode->FastGetSolutionStepValue(IS_INTERFACE) = aux_interface;
+			//pnode->FastGetSolutionStepValue(IS_INTERFACE) = aux_interface;
 
-			double same_colour = 0.0;
+/*                       double same_colour = 0.0;
 			for(int ii= 0; ii<= 3; ++ii)
 				if(geom[ii].FastGetSolutionStepValue(IS_WATER) == 0.0)
 							same_colour++;
@@ -1314,10 +1329,18 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;
 			else
 				pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
-
+*/
 			//interface nodes are always air
-			///if(aux_interface)
-			//		pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;
+			if(tet_attr == -20)
+                        {
+					pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;
+                                        //KRATOS_WATCH(">>>>>>>>>>>>>>>>>inside interpolate AIR added<<<<<<<<<<<<<<<<<");
+                        }
+                        else
+                        {
+                                        pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
+                                        //KRATOS_WATCH(">>>>>>>>>>>>>>>>>inside interpolate WATER added<<<<<<<<<<<<<<<<<");
+                        }
 		}
 		//////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////
@@ -1359,8 +1382,10 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			double vol = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3);
 
 			double inv_vol = 0.0;
-			if(vol < 0.0000000000001)
+			if(vol < 0.000000000000001)
 			  {
+                            KRATOS_WATCH(vol);
+                            
 				KRATOS_ERROR(std::logic_error,"element with zero vol found","");
 			  }
 			else
@@ -1541,7 +1566,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		///@{ 
 		//**********************************************************************************************
 		//**********************************************************************************************
-		void FaceDetecting(ModelPart& ThisModelPart, std::vector <int>& face_list, int& face_num, double h_factor)
+		void FaceDetecting(ModelPart& ThisModelPart,ModelPart::ElementsContainerType& rElements, std::vector <int>& face_list, int& face_num, double h_factor)
 		{
 		KRATOS_TRY;
 			int Tdim = 3;
@@ -1557,295 +1582,85 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		//if(h_factor > 0.1)
 		//	h_factor = 0.5;
 KRATOS_WATCH("INSIDE FACE");
-		//delete interface flag
-		   for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
-			ind->FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-
-
-
-			for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin(); 
-					elem!=ThisModelPart.ElementsEnd(); elem++)
+		//Fill structure interface
+// elenum = neighbor_els.begin(); elenum!=neighbor_els.end(); elenum++)
+			for(ModelPart::ElementsContainerType::iterator elem = rElements.begin(); 
+					elem!=rElements.end(); elem++)
 			  {
-	
-			    if(elem->GetValue(IS_WATER_ELEMENT) == 0)
-				{
-
-				 WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
 				Geometry< Node<3> >& geom = elem->GetGeometry();
 
-				double zero_str=geom[0].FastGetSolutionStepValue(IS_STRUCTURE);
-				double one_str=geom[1].FastGetSolutionStepValue(IS_STRUCTURE);
-				double two_str=geom[2].FastGetSolutionStepValue(IS_STRUCTURE);
-				double three_str=geom[3].FastGetSolutionStepValue(IS_STRUCTURE);
 
-				 for(int ii=0; ii<(Tdim+1); ++ii)
-					{
-
-					 if(neighbor_els[ii].GetValue(IS_WATER_ELEMENT) == 1 && neighbor_els[ii].Id() != elem->Id())
-					  {
-
-					   if(ii == 0) // 1,2,3
-						{
-				if(one_str == 0.0 && two_str == 0.0 && three_str== 0.0)
-						      {  
-
-
-							//check for bad segments
-							// double length = 0.0;
-					 //length = pow(geom[1].X()-geom[2].X(),2) + pow(geom[1].Y()-geom[2].Y(),2) +pow(geom[1].Z()-geom[2].Z(),2);
-					//		 length = sqrt(length);
-
-							// if(length < h_factor*geom[2].FastGetSolutionStepValue(NODAL_H))
-							  //  {
-								//detect bad segment and mark to earase first node
-							//	nodes_of_bad_segments.push_back(geom[2].Id());
-							//	nodes_of_bad_segments.push_back(geom[1].Id());
-
-								
-								//earse bad node
-							//	geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-							 //       geom[2].GetValue(ERASE_FLAG) = 1.0;
-							 //   }
-							 //else
-							    {
-								//one segment is detected
-								++face_num;
-								face_list.push_back(geom[1].Id());
-								face_list.push_back(geom[2].Id());
-								face_list.push_back(geom[3].Id());
-							        geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							        geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							        geom[3].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							    }
-						      }
-						}
-					   if(ii == 1) // 0,3,2
-						{
-				if(zero_str == 0.0 && three_str == 0.0 && two_str== 0.0)
-						      {  
-
-							//check for bad segments
-					//		 double length = 0.0;
-					 //length = pow(geom[0].X()-geom[2].X(),2) + pow(geom[0].Y()-geom[2].Y(),2) +pow(geom[0].Z()-geom[2].Z(),2);
-					//		 length = sqrt(length);
-
-					//		 if(length < h_factor*geom[0].FastGetSolutionStepValue(NODAL_H))
-						//	    {
-						//		//detect bad segment and mark to earase first node
-						//		nodes_of_bad_segments.push_back(geom[0].Id());
-						//		nodes_of_bad_segments.push_back(geom[2].Id());
-
-						//		//earse bad node
-						//		geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-						//	        geom[0].GetValue(ERASE_FLAG) = 1.0;
-						//	    }
-						//	 else
-							    {
-								//one segment is detected
-								++face_num;
-								face_list.push_back(geom[0].Id());
-								face_list.push_back(geom[3].Id());
-								face_list.push_back(geom[2].Id());
-							        geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							        geom[3].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							        geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							    }
-						      }
-						}
-					   if(ii == 2) // 0,1,3
-						{
-				if(zero_str == 0.0 && one_str == 0.0 && three_str== 0.0)
-						      {  
-
-							//check for bad segments
-						//	 double length = 0.0;
-					 //length = pow(geom[0].X()-geom[1].X(),2) + pow(geom[0].Y()-geom[1].Y(),2) +pow(geom[0].Z()-geom[1].Z(),2);
-					//		 length = sqrt(length);
-
-					//		 if(length < h_factor*geom[1].FastGetSolutionStepValue(NODAL_H))
-					//		    {
-								//detect bad segment and mark to earase first node
-					//			nodes_of_bad_segments.push_back(geom[1].Id());
-					//			nodes_of_bad_segments.push_back(geom[0].Id());
-
-								//earse bad node
-					//			geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-					//		        geom[1].GetValue(ERASE_FLAG) = 1.0;
-					//		    }
-					//		  else
-							    {
-								//one segment is detected
 								//one segment is detected
 								++face_num;
 								face_list.push_back(geom[0].Id());
 								face_list.push_back(geom[1].Id());
-								face_list.push_back(geom[3].Id());
-							        geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							        geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							        geom[3].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							    }
-						      }
-						}
-					   if(ii == 3) // 0,2,1
-						{
-				if(zero_str == 0.0 && two_str == 0.0 && one_str== 0.0)
-						      {  
-
-							//check for bad segments
-					//		 double length = 0.0;
-					 //length = pow(geom[0].X()-geom[2].X(),2) + pow(geom[0].Y()-geom[2].Y(),2) +pow(geom[0].Z()-geom[2].Z(),2);
-					//		 length = sqrt(length);
-
-					//		 if(length < h_factor*geom[0].FastGetSolutionStepValue(NODAL_H))
-					//		    {
-								//detect bad segment and mark to earase first node
-					//			nodes_of_bad_segments.push_back(geom[0].Id());
-					//			nodes_of_bad_segments.push_back(geom[2].Id());
-
-								//earse bad node
-					//			geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-					//		        geom[0].GetValue(ERASE_FLAG) = 1.0;
-					//		    }
-					//		 else
-							    {
-								//one segment is detected
-								++face_num;
-								face_list.push_back(geom[0].Id());
 								face_list.push_back(geom[2].Id());
-								face_list.push_back(geom[1].Id());
 							        geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							        geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
 							        geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-							    }
-						      }
-						}
-						//end of faces
+							        geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
+			  }
 
-					  }//end of neighbor
-					}//end of loop over element node
-
-			  	}//end of is_water element
-			  }//end of loop over elem
-
-		         //count interface nodes
-			// for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
-			//	if(ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
-			//		num_interface++;
-
-/*			for(unsigned int seg=0; seg < raw_seg_list.size(); seg+=2)
-			   {
-					seg_list.push_back(raw_seg_list[seg]);
-					seg_list.push_back(raw_seg_list[seg + 1]);
-
-			   }
-
-
-*/
-
-/*
-			//merge for mark to erase node (the node marked for erase is relpaced byanother node of deleted segment on remaining segment)
-			for(int ii=0; ii<nodes_of_bad_segments.size(); ii+=2)
-			   {
-				KRATOS_WATCH("!!!!!!!!!!!!!!!!!!! BAD NODES !!!!!!!!!!!!!!!!!!!!!!");
-
-			    int bad_node = nodes_of_bad_segments[ii];	
-
-//COORDINTAES of bad node
-KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].X());	
-KRATOS_WATCH(ThisModelPart.Nodes()[bad_node].Y());
-//ens of COORDINTAES
-	  
-			    for(int jj=0; jj<raw_seg_list.size(); jj++)
-			      {
-			//merge in segment list
-			       if(raw_seg_list[jj] == bad_node )
-					{
-					raw_seg_list[jj] = nodes_of_bad_segments[ii + 1];
-					KRATOS_WATCH("OOOOOOOOOOOOOOOOOO MERGE IS DONE OOOOOOOOOOOOOOOOOOOOOO");
-					}
-			      }
-			//possible replace in nodes_of_bad_segments for adjacent bad segments
-			    for(int kk=0; kk<nodes_of_bad_segments.size(); kk+=2)
-			      {					
-			       if(nodes_of_bad_segments[kk + 1] == bad_node )
-					{
-					nodes_of_bad_segments[kk + 1] = nodes_of_bad_segments[ii + 1];
-					KRATOS_WATCH("HHHHHHHHHHHHHHHHHH BAD_SEGMENT LIST UPDATED HHHHHHHHHHHHHHHHHHHHHHHH");
-					}
-			      }
-
-
-			    }
-
-
-			//fill de final list
-			face_num = 0 ;
-			for(int seg=0; seg < raw_seg_list.size(); seg+=2)
-			   {
-				if(raw_seg_list[seg] != raw_seg_list[seg + 1])
-				    {
-					seg_list.push_back(raw_seg_list[seg]);
-					seg_list.push_back(raw_seg_list[seg + 1]);
-					face_num++;
-				    }
-			   }*/
-                        //find outer facets
 			for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin();
 					elem!=ThisModelPart.ElementsEnd(); elem++)
 			  {
 
-			    if(elem->GetValue(IS_WATER_ELEMENT) == 1)
+			    if(elem->GetValue(IS_WATER_ELEMENT) == 1.0)
 				{
 				Geometry< Node<3> >& geom = elem->GetGeometry();
                                 array_1d<int,3> str_pts = ZeroVector(3);
                                 int str_num = 0;
                                 int cnt = 0;
+                WeakPointerVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
+				for(int ii=0; ii<4; ++ii)
+				     {
+					if(neighbor_els[ii].Id() == elem->Id())
+					  {
+					    if( ii == 0 )
+						{
+						  face_list.push_back(geom[1].Id());
+						  face_list.push_back(geom[2].Id());
+						  face_list.push_back(geom[3].Id());
+						  ++face_num;
+							        geom[1].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[2].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[3].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+						}
+					    if( ii == 1 )
+						{
+						  face_list.push_back(geom[0].Id());
+						  face_list.push_back(geom[2].Id());
+						  face_list.push_back(geom[3].Id());
+						     ++face_num;
+						  
+							        geom[0].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[2].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[3].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+						}
+					    if( ii == 2 )
+						{
+						  face_list.push_back(geom[0].Id());
+						  face_list.push_back(geom[1].Id());
+						  face_list.push_back(geom[3].Id());
+						       ++face_num;
+						 
+							        geom[0].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[1].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[3].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+						}
+					    if( ii == 3 )
+						{
+						  face_list.push_back(geom[0].Id());
+						  face_list.push_back(geom[1].Id());
+						  face_list.push_back(geom[2].Id());
+						     ++face_num;
+						 
+							        geom[0].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[1].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+							        geom[2].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
+						}
 
-                                for(int ii=0; ii<4; ++ii)
-                                    if(geom[ii].FastGetSolutionStepValue(IS_STRUCTURE) == 1.0)
-                                    {
-                                        str_num ++;
-                                        str_pts[cnt] = geom[ii].Id();
-                                        cnt++;
-                                    }
-                                
-                                if(str_num ==3 )
-                                {
-                                   // KRATOS_WATCH(str_pts);
-                                    face_list.push_back(str_pts[0]);
-                                    face_list.push_back(str_pts[1]);
-                                    face_list.push_back(str_pts[2]);
-                                    ++face_num;
-                                }
-                                if(str_num ==4 )
-                                {
-                                     face_list.push_back(geom[0].Id());
-                                     face_list.push_back(geom[1].Id());
-                                     face_list.push_back(geom[2].Id());
-                                     ++face_num;
-
-                                     face_list.push_back(geom[1].Id());
-                                     face_list.push_back(geom[2].Id());
-                                     face_list.push_back(geom[3].Id());
-                                     ++face_num;
-
-                                     face_list.push_back(geom[0].Id());
-                                     face_list.push_back(geom[1].Id());
-                                     face_list.push_back(geom[3].Id());
-                                     ++face_num;
-
-                                     face_list.push_back(geom[0].Id());
-                                     face_list.push_back(geom[2].Id());
-                                     face_list.push_back(geom[3].Id());
-                                     ++face_num;
-
-
-                                }
-
-
-
-
-
+					  }
+				     }
                                 }
                            }//end of structure boundary
 		KRATOS_CATCH("");
