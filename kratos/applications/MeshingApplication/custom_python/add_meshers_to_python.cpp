@@ -56,9 +56,9 @@ namespace Python
 	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	//tetgen pfem refine
-	void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
+	void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, ModelPart::ElementsContainerType& rElements, NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
 	{
-		Mesher.ReGenerateMesh(model_part, 
+		Mesher.ReGenerateMesh(model_part,rElements, 
 			KratosComponents<Element>::Get(ElementName),
 			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
 	}
