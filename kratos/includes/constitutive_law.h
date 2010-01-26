@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
 
+
 namespace Kratos
 {
 
@@ -262,6 +263,30 @@ namespace Kratos
                                          const ProcessInfo& CurrentProcessInfo)
             {
             }
+
+            /**
+             * performs and calculates the stressVector and tangnet Matrix
+             * This is to be called at each iteration right before the stresses
+             * are requested
+             * May be left out for linear calculations
+             * @param StressTensor the calculated stress tensor
+             * @param StrainTensor the given strain tensor
+             * @param algorithmicTangent the 4th order algorithmic tangent tensor
+             * @param the current ProcessInfo instance
+              */
+
+           virtual void CalculateMaterialResponse(
+                            const Vector& StrainVector,
+                            //const ProcessInfo& CurrentProcessInfo,
+                            Vector& StressVector,
+                            Matrix& algorithmicTangent,
+                            bool calculate_stress_flag,
+                            bool calculate_tangent_flag,
+                            bool  save_internal_variables
+                            )
+          {
+          }
+
             
             /**
              * to be called at the end of each solution step
@@ -418,6 +443,8 @@ namespace Kratos
             }
         
         protected:
+ 
+ 
         
         private:
     }; /* Class ConstitutiveLaw */
