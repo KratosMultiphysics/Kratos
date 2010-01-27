@@ -62,12 +62,13 @@ class MonolithicSolver:
         self.move_mesh_strategy = 0
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
-        self.linear_solver =  SkylineLUFactorizationSolver()
+     #   self.linear_solver =  SkylineLUFactorizationSolver()
 ##        self.linear_solver =SuperLUSolver()
 
-##        pPrecond = DiagonalPreconditioner()
+        pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-##        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+
         
         #definition of the convergence criteria
 ##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
