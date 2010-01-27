@@ -175,7 +175,7 @@ namespace Kratos {
         for (int nd = 0; nd < nodes_number; nd++) {
             int row = nd * (dof + 1);
             for (int jj = 0; jj < dof; jj++)
-                K(row + jj, row + jj) += density / 1.0 * lump_mass_fac;
+                K(row + jj, row + jj) += density  * lump_mass_fac;
         }
 
         KRATOS_CATCH("")
@@ -288,8 +288,8 @@ namespace Kratos {
             int row = ii * (dof + 1);
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1);
-                K(row, column) += mu * 1 * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
-                K(row + 1, column + 1) += mu * 1 * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
+                K(row, column) += mu * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
+                K(row + 1, column + 1) += mu * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
             }
         }
 
@@ -376,11 +376,11 @@ namespace Kratos {
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += -1 * area * N(jj) * DN_DX(ii, 0);
-                K(column, row) += 1 * area * density * N(jj) * DN_DX(ii, 0);
+                K(row, column) -=  area * N(jj) * DN_DX(ii, 0);
+                K(column, row) +=  area * density * N(jj) * DN_DX(ii, 0);
 
-                K(row + 1, column) += -1 * area * N(jj) * DN_DX(ii, 1);
-                K(column, row + 1) += 1 * area * density * N(jj) * DN_DX(ii, 1);
+                K(row + 1, column) -=  area * N(jj) * DN_DX(ii, 1);
+                K(column, row + 1) +=  area * density * N(jj) * DN_DX(ii, 1);
             }
         }
 
@@ -479,10 +479,10 @@ namespace Kratos {
                 int column = jj * (dof + 1);
                 int loc_column = jj*dof;
 
-                K(row, column) += 1.0 * area * density * adv_stblterm(loc_row, loc_column);
-                K(row, column + 1) += 1.0 * area * density * adv_stblterm(loc_row, loc_column + 1);
-                K(row + 1, column) += 1.0 * area * density * adv_stblterm(loc_row + 1, loc_column);
-                K(row + 1, column + 1) += 1.0 * area * density * adv_stblterm(loc_row + 1, loc_column + 1);
+                K(row, column) +=  area * density * adv_stblterm(loc_row, loc_column);
+                K(row, column + 1) +=  area * density * adv_stblterm(loc_row, loc_column + 1);
+                K(row + 1, column) +=  area * density * adv_stblterm(loc_row + 1, loc_column);
+                K(row + 1, column + 1) +=  area * density * adv_stblterm(loc_row + 1, loc_column + 1);
             }
         }
 
@@ -496,11 +496,11 @@ namespace Kratos {
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += 1.0 * area * 1.0 * grad_stblterm(loc_row, jj);
-                K(row + 1, column) += 1.0 * area * 1.0 * grad_stblterm(loc_row + 1, jj);
+                K(row, column) +=  area * 1.0 * grad_stblterm(loc_row, jj);
+                K(row + 1, column) +=  area * 1.0 * grad_stblterm(loc_row + 1, jj);
 
-                K(column, row) += 1.0 * area * density * grad_stblterm(loc_row, jj);
-                K(column, row + 1) += 1.0 * area * density * grad_stblterm(loc_row + 1, jj);
+                K(column, row) +=  area * density * grad_stblterm(loc_row, jj);
+                K(column, row + 1) +=  area * density * grad_stblterm(loc_row + 1, jj);
             }
         }
 
@@ -574,13 +574,13 @@ namespace Kratos {
 
 
         array_1d<double, 6 > fbd_stblterm = ZeroVector(matsize);
-        fbd_stblterm = tauone * 1.0 * prod(trans(conv_opr), bdf);
+        fbd_stblterm = tauone *  prod(trans(conv_opr), bdf);
 
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1);
             int loc_index = ii*dof;
-            F[index] += 1.0 * area * fbd_stblterm[loc_index];
-            F[index + 1] += 1.0 * area * fbd_stblterm[loc_index + 1];
+            F[index] +=  area * fbd_stblterm[loc_index];
+            F[index + 1] +=  area * fbd_stblterm[loc_index + 1];
         }
         KRATOS_CATCH("")
     }
@@ -668,7 +668,7 @@ namespace Kratos {
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += area * 1 * gard_opr(ii, jj);
+                K(row, column) += area *  gard_opr(ii, jj);
 
             }
         }
@@ -733,7 +733,7 @@ namespace Kratos {
 
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1) + dof;
-            F[index] += 1 * area * fbd_stblterm[ii];
+            F[index] +=  area * fbd_stblterm[ii];
         }
 
         KRATOS_CATCH("")
@@ -1128,15 +1128,19 @@ namespace Kratos {
 
     void ASGS2D::calculatedensity(Geometry< Node < 3 > > geom, double& density, double& viscosity) {
 
-        /*double kk = 0.0;
+        double kk = 0.0;
+	density = 0.0;
+	viscosity = 0.0;
         for(int ii=0;ii<3;++ii)
-                if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
                         {
                                 kk++;
                                 density +=geom[ii].FastGetSolutionStepValue(DENSITY);
+				viscosity +=geom[ii].FastGetSolutionStepValue(VISCOSITY);
                         }
 
-        density/=kk;*/
+        density/=kk;
+	viscosity/=kk	;
+
         /*
                 density = ZeroVector(3);
         for(int ii=0;ii<3;++ii)
@@ -1146,7 +1150,7 @@ namespace Kratos {
         const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY);
         const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY);
          density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
-
+/*
 
         double first = geom[0].FastGetSolutionStepValue(IS_POROUS);
         double second = geom[1].FastGetSolutionStepValue(IS_POROUS);
@@ -1178,7 +1182,7 @@ namespace Kratos {
                     }
                 }
 
-        }
+        }*/
 
 	//Here we calculate Dynamic viscosity from Kinemeatic viscosity
 	viscosity *= density;
