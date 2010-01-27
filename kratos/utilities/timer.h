@@ -57,7 +57,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <map>
 #include <ctime>
 
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // External includes 
 #include <boost/array.hpp>
@@ -166,13 +168,20 @@ namespace Kratos
 
       static void Start(std::string const& IntervalName)
       {
+#ifndef _OPENMP
 	msTimeTable[IntervalName].SetStartTime(std::clock()/static_cast<double>(CLOCKS_PER_SEC));
+#else
+       msTimeTable[IntervalName].SetStartTime(omp_get_wtime());
+#endif
       }
 
       static void Stop(std::string const& IntervalName)
       {
+#ifndef _OPENMP
 	double stop_time = std::clock()/static_cast<double>(CLOCKS_PER_SEC);
-
+#else
+       double stop_time =  omp_get_wtime();
+#endif
 	ContainerType::iterator i_time_data = msTimeTable.find(IntervalName);
 
 	if(i_time_data == msTimeTable.end())
