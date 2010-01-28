@@ -788,7 +788,11 @@ namespace Kratos
 	SizeType number_of_nodes_read = 0;
 
 	std::cout << "	Reading Nodes : ";
-	
+
+        std::vector< unsigned int > id_vector;
+        std::vector< array_1d<double,3> > coordinates_vector;
+
+
 	while(!mInput.eof())
 	{
 	  ReadWord(word);
@@ -803,10 +807,42 @@ namespace Kratos
 	  ReadWord(word);
 	  ExtractValue(word, z);
 
-	  rModelPart.CreateNewNode(id,x,y,z);
+          id_vector.push_back(id);
+          array_1d<double,3> coords;
+          coords[0]=x;
+          coords[1]=y;
+          coords[2]=z;
+          coordinates_vector.push_back(coords);
 	  number_of_nodes_read++;
 	}
-		std::cout << number_of_nodes_read << " nodes read" << std::endl;
+
+       #ifndef _OPENMP
+            for(std::size_t i = 0 ; i < id_vector.size() ; i++)
+            {
+                const array_1d<double,3>& temp = coordinates_vector[i];
+                rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
+            }
+       #else
+            int number_of_threads = omp_get_max_threads();
+            vector<unsigned int> partition;
+            CreatePartition(number_of_threads, id_vector.size(), partition);
+            for( int k=0; k<number_of_threads; k++ )
+            {
+                #pragma omp parallel
+                if( omp_get_thread_num() == k )
+                {
+                    for( std::size_t i = partition[k]; i < partition[k+1]; i++ )
+                    {
+                        const array_1d<double,3>& temp = coordinates_vector[i];
+                        rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
+                    }
+                }
+            }
+        #endif
+
+
+
+        std::cout << number_of_nodes_read << " nodes read" << std::endl;
 
 	KRATOS_CATCH("")
       }
@@ -1882,6 +1918,15 @@ KRATOS_WATCH(rVariable);
 	mNumberOfLines = 1;
       }
 
+      inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+		{
+			partitions.resize(number_of_threads+1);
+			int partition_size = number_of_rows / number_of_threads;
+			partitions[0] = 0;
+			partitions[number_of_threads] = number_of_rows;
+			for(unsigned int i = 1; i<number_of_threads; i++)
+			   partitions[i] = partitions[i-1] + partition_size ;
+		}
 
       
         
