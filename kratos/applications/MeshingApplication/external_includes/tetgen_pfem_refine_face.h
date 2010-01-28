@@ -460,7 +460,7 @@ KRATOS_WATCH(number_of_preserved_elems);
 			std::cout << "qui" << std::endl;
 			in2.numberoftetrahedra = number_of_preserved_elems;
 			in2.tetrahedronlist = new int[in2.numberoftetrahedra * 4];
-			in2.tetrahedronvolumelist = new double[in2.numberoftetrahedra];
+		//	in2.tetrahedronvolumelist = new double[in2.numberoftetrahedra];
 
 			in2.numberoftetrahedronattributes = 1;
 			in2.tetrahedronattributelist = new REAL[in2.numberoftetrahedra * in2.numberoftetrahedronattributes ];
@@ -471,10 +471,9 @@ KRATOS_WATCH(number_of_preserved_elems);
 			{
 				if( preserved_list[el] == true ) 
 				{
-//KRATOS_WATCH("******");
-//KRATOS_WATCH("inside filling in2_first");
-//KRATOS_WATCH(counter);
+
 					//saving the compact element list
+
 					int new_base = counter*4;
 					int old_base = el*4;
 					in2.tetrahedronlist[new_base] = out.tetrahedronlist[old_base];
@@ -483,7 +482,7 @@ KRATOS_WATCH(number_of_preserved_elems);
 					in2.tetrahedronlist[new_base+3] = out.tetrahedronlist[old_base+3];
 
 
-
+/*
 					//calculate the prescribed h
 					double prescribed_h = (nodes_begin + out.tetrahedronlist[old_base]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+1]-1)->FastGetSolutionStepValue(NODAL_H);
@@ -497,7 +496,7 @@ KRATOS_WATCH(number_of_preserved_elems);
 					in2.tetrahedronvolumelist[counter] = 0.217*prescribed_h*prescribed_h*prescribed_h;
 					//in2.tetrahedronvolumelist[counter] = 0.0004;
 					//KRATOS_WATCH(in2.tetrahedronvolumelist[counter])
-
+*/
 					in2.tetrahedronattributelist[counter] = out.tetrahedronattributelist[el];
 
 
