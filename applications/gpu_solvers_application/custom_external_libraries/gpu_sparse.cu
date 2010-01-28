@@ -1044,11 +1044,26 @@ void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRM
             {
                 //first iteration (does not require computation of residual
                 dim3 Grid = Build_Grid(A[lvl]->Size1, BLOCK_SIZE);
-                GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G[lvl]->Size1, G[lvl]->GPU_Columns,
-		    G[lvl]->GPU_RowIndices, G[lvl]->GPU_Values, b.GPU_Values, u.GPU_Values);
+                
+#ifdef USE_TEXTURE_CACHING
+
+				// Bind the texture memory to X
+				Bind_X(b.GPU_Values);
+
+#endif
+                
+                GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G[lvl]->Size1, G[lvl]->GPU_Columns, G[lvl]->GPU_RowIndices, G[lvl]->GPU_Values, b.GPU_Values, u.GPU_Values);
                 if(!CUDA_Success(cudaThreadSynchronize())){
                     printf("Error en linea 130\n");
                 }
+                
+#ifdef USE_TEXTURE_CACHING
+
+				// Unbind the texture memory
+				Unbind_X();
+	
+#endif
+
                 //from the second sweel on we need to recompute the residual
                 for(size_t i = 1; i < preSweeps[lvl]; i++){
 		    if(!vectorized)
@@ -1105,11 +1120,26 @@ void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRM
 	pv.GPU_Allocate();
         Grid = Build_Grid(pv.Size, BLOCK_SIZE);
         // here product matrix P with vector v
-        GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(P[lvl]->Size1,
-                P[lvl]->GPU_Columns, P[lvl]->GPU_RowIndices, P[lvl]->GPU_Values, v.GPU_Values, pv.GPU_Values);
+        
+#ifdef USE_TEXTURE_CACHING
+
+		// Bind the texture memory to X
+		Bind_X(v.GPU_Values);
+
+#endif
+        
+        GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(P[lvl]->Size1, P[lvl]->GPU_Columns, P[lvl]->GPU_RowIndices, P[lvl]->GPU_Values, v.GPU_Values, pv.GPU_Values);
         if(!CUDA_Success(cudaThreadSynchronize())){
             printf("Error en linea 173\n");
         }
+        
+#ifdef USE_TEXTURE_CACHING
+
+		// Unbind the texture memory
+		Unbind_X();
+	
+#endif
+
         // here the addition of pv to u
         Grid = Build_Grid(u.Size, BLOCK_SIZE);
         sumVectorVector <<< Grid, BLOCK_SIZE >>> (pv.GPU_Values, u.GPU_Values, u.Size);
@@ -1170,11 +1200,25 @@ void calculateInstantVector(GPUVector& u, const GPUVector& b, const GPUCSRMatrix
 	GPUVector auxAU(A.Size1);
 	auxAU.GPU_Allocate();
 	dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
-	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
-	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
+	
+#ifdef USE_TEXTURE_CACHING
+
+	// Bind the texture memory to X
+	Bind_X(u.GPU_Values);
+
+#endif
+	
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
 	printf("Error in the line 238");
 	}
+
+#ifdef USE_TEXTURE_CACHING
+
+	// Unbind the texture memory
+	Unbind_X();
+
+#endif
 
 		/** b - AU **/
 	GPUVector auxABU(A.Size1);
@@ -1186,14 +1230,29 @@ void calculateInstantVector(GPUVector& u, const GPUVector& b, const GPUCSRMatrix
 	}
 		/** u += G ( b - Au ) **/
 	Grid = Build_Grid(A.Size1, BLOCK_SIZE);
-	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G.Size1, G.GPU_Columns,
-	    G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
+	
+#ifdef USE_TEXTURE_CACHING
+
+	// Bind the texture memory to X
+	Bind_X(auxABU.GPU_Values);
+
+#endif
+	
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BLOCK_SIZE >>>(G.Size1, G.GPU_Columns, G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
 	printf("Error in the line 255");
 	}
-	//deleting structures
 
+#ifdef USE_TEXTURE_CACHING
+
+	// Unbind the texture memory
+	Unbind_X();
+
+#endif
+	
+	//deleting structures
 }
+
 void calculateInstantVectorGPUVectorized(GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const GPUCSRMatrix& G)
 {
 		/** Au **/
@@ -1215,13 +1274,27 @@ void calculateInstantVectorGPUVectorized(GPUVector& u, const GPUVector& b, const
 	}
 		/** u += G ( b - Au ) **/
 	Grid = Build_Grid(A.Size1, BS);
-	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BS >>>(G.Size1, G.GPU_Columns,
-	    G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
+
+#ifdef USE_TEXTURE_CACHING
+
+	// Bind the texture memory to X
+	Bind_X(auxABU.GPU_Values);
+
+#endif
+
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel_addingVersion <<< Grid, BS >>>(G.Size1, G.GPU_Columns, G.GPU_RowIndices, G.GPU_Values, auxABU.GPU_Values, u.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
 		printf("Error in the line 288");
 	}
-	//deleting structures
+	
+#ifdef USE_TEXTURE_CACHING
 
+	// Unbind the texture memory
+	Unbind_X();
+	
+#endif
+	
+	//deleting structures
 }
 
 void generateResidual(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMatrix& A, const GPUVector& u, GPUVector& r){
@@ -1229,11 +1302,26 @@ void generateResidual(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMat
 	GPUVector auxAU(A.Size1);
 	auxAU.GPU_Allocate();
 	dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
-	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
-	    A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
+	
+#ifdef USE_TEXTURE_CACHING
+
+	// Bind the texture memory to X
+	Bind_X(u.GPU_Values);
+
+#endif
+	
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
 		printf("Error in the line 305");
 	}
+
+#ifdef USE_TEXTURE_CACHING
+
+	// Unbind the texture memory
+	Unbind_X();
+
+#endif
+
 		/** b - AU **/
 	GPUVector auxABU(A.Size1);
 	auxABU.GPU_Allocate();
@@ -1245,14 +1333,29 @@ void generateResidual(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMat
 	}
 		/** r = R ( b - Au ) **/
 	Grid = Build_Grid(R.Size1, BLOCK_SIZE);
-	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(R.Size1, R.GPU_Columns,
-	    R.GPU_RowIndices, R.GPU_Values, auxABU.GPU_Values, r.GPU_Values);
+	
+#ifdef USE_TEXTURE_CACHING
+
+	// Bind the texture memory to X
+	Bind_X(auxABU.GPU_Values);
+
+#endif
+	
+	GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(R.Size1, R.GPU_Columns, R.GPU_RowIndices, R.GPU_Values, auxABU.GPU_Values, r.GPU_Values);
 	if(!CUDA_Success(cudaThreadSynchronize())){
 		printf("Error in the line 325");
 	}
-    //deleting structures
+	
+#ifdef USE_TEXTURE_CACHING
 
+	// Unbind the texture memory
+	Unbind_X();
+
+#endif	
+
+    //deleting structures
 }
+
 void generateResidualGPUVectorized(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMatrix& A, const GPUVector& u, GPUVector& r){
 		/** Au **/
 		GPUVector auxAU(A.Size1);
@@ -1797,11 +1900,25 @@ double checkResidual(const GPUVector &u, const GPUVector &b, const GPUCSRMatrix 
     GPUVector auxAU(A.Size1);
     auxAU.GPU_Allocate();
     dim3 Grid = Build_Grid(A.Size1, BLOCK_SIZE);
-    GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns,
-            A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
+    
+#ifdef USE_TEXTURE_CACHING
+
+	// Bind the texture memory to X
+	Bind_X(u.GPU_Values);
+
+#endif
+    
+    GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< Grid, BLOCK_SIZE >>>(A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, u.GPU_Values, auxAU.GPU_Values);
     if(!CUDA_Success(cudaThreadSynchronize())){
         printf("Error in the line 1208");
     }
+    
+#ifdef USE_TEXTURE_CACHING
+
+	// Unbind the texture memory
+	Unbind_X();
+
+#endif
 
     /** b - AU **/
     GPUVector auxABU(auxAU.Size);
@@ -1949,11 +2066,26 @@ double roh(const GPUCSRMatrix& A, size_t iter){
         malloc_(V[numCurrentV].GPU_Values, V[numCurrentV].Size);
         V[numCurrentV].CPU_Values = new double[V[numCurrentV].Size];
         dim3 grid = Build_Grid(V[numCurrentV].Size, BLOCK_SIZE);
-        GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< grid, BLOCK_SIZE >>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices,
-            A.GPU_Values, V[numCurrentV-1].GPU_Values, V[numCurrentV].GPU_Values);
+        
+#ifdef USE_TEXTURE_CACHING
+
+		// Bind the texture memory to X
+		Bind_X(V[numCurrentV-1].GPU_Values);
+
+#endif
+        
+        GPUGPUCSRMatrixVectorMultiply_CSR_Kernel <<< grid, BLOCK_SIZE >>> (A.Size1, A.GPU_Columns, A.GPU_RowIndices, A.GPU_Values, V[numCurrentV-1].GPU_Values, V[numCurrentV].GPU_Values);
         if(!CUDA_Success(cudaThreadSynchronize())){
             printf("Error in line 1379\n");
         }
+
+ #ifdef USE_TEXTURE_CACHING
+
+		// Unbind the texture memory
+		Unbind_X();
+
+#endif
+
         copyMem(V[numCurrentV].GPU_Values, V[numCurrentV].CPU_Values, V[numCurrentV].Size, 1);
 
         _Vector auxVec;
