@@ -39,8 +39,8 @@ int main(){
 	double mBNorm, mResidualNorm;
 	size_t mIterationsNumber;
 	//FillMatrix_CPU(ptr, indices, values, NNZ, numRows);
-//	char* name = "mat8.mm";
-//	char* name_vec = "vecb8.mm";
+	char* name = "mat8.mm";
+	char* name_vec = "vecb8.mm";
 
 //	char* name = "examples/aa.mm";
 //	char* name_vec = "examples/bb.mm";
@@ -48,8 +48,8 @@ int main(){
 //	char* name = "data/mat90.mm";
 //	char* name_vec = "data/vecb90.mm";
 
-	char* name = "examples/mat40.mm";
-	char* name_vec = "examples/vecb40.mm";
+//	char* name = "examples/mat40.mm";
+//	char* name_vec = "examples/vecb40.mm";
 	
 
 	double tolerance = 1e-9;
