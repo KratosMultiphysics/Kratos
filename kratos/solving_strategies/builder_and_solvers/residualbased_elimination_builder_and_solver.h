@@ -1051,8 +1051,8 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
                     }
                 }
             }
-            Timer::Stop("MatrixStructure");
 #endif
+            Timer::Stop("MatrixStructure");
         }
 
 		//**************************************************************************
