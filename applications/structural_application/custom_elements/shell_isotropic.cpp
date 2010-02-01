@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	namespace ShellIsotropicAuxiliaries
 	{
 		array_1d<int,9> local_indices;
+		#pragma omp threadprivate(local_indices)
 		boost::numeric::ublas::bounded_matrix<double,9,3> mBm = ZeroMatrix(9,3); //membrane displacement-strain matrix
 		#pragma omp threadprivate(mBm)
 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb = ZeroMatrix(9,3); //bending displacement-strain matrix
