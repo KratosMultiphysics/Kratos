@@ -65,32 +65,53 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	{
 		array_1d<int,9> local_indices;
 		boost::numeric::ublas::bounded_matrix<double,9,3> mBm = ZeroMatrix(9,3); //membrane displacement-strain matrix
+		#pragma omp threadprivate(mBm)
 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb = ZeroMatrix(9,3); //bending displacement-strain matrix
+		#pragma omp threadprivate(mBb)
 
 		boost::numeric::ublas::bounded_matrix<double,3,3> Q = ZeroMatrix(3,3); 
+		#pragma omp threadprivate(Q)
 		boost::numeric::ublas::bounded_matrix<double,3,3> Q1 = ZeroMatrix(3,3); 
+		#pragma omp threadprivate(Q1)
 		boost::numeric::ublas::bounded_matrix<double,3,3> Q2 = ZeroMatrix(3,3); 
+		#pragma omp threadprivate(Q2)
 		boost::numeric::ublas::bounded_matrix<double,3,3> Q3 = ZeroMatrix(3,3); 
+		#pragma omp threadprivate(Q3)
 		boost::numeric::ublas::bounded_matrix<double,3,3> aux33 = ZeroMatrix(3,3);
+		#pragma omp threadprivate(aux33)
 		boost::numeric::ublas::bounded_matrix<double,3,3> Te = ZeroMatrix(3,3);
+		#pragma omp threadprivate(Te)
 
 		boost::numeric::ublas::bounded_matrix<double,3,3> mEm = ZeroMatrix(3,3);
+		#pragma omp threadprivate(mEm)
 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb = ZeroMatrix(3,3);
+		#pragma omp threadprivate(mEb)
 
 		array_1d<double,9> H1 = ZeroVector(9); 
+		#pragma omp threadprivate(H1)
 		array_1d<double,9> H2 = ZeroVector(9); 
+		#pragma omp threadprivate(H2)
 		array_1d<double,9> H3 = ZeroVector(9);
+		#pragma omp threadprivate(H3)
 		array_1d<double,9> H4 = ZeroVector(9);
+		#pragma omp threadprivate(H4)
 
 		boost::numeric::ublas::bounded_matrix<double,9,3> TTu  = ZeroMatrix(9,3); //attention 9*3 and not 3*9
+		#pragma omp threadprivate(TTu)
 		boost::numeric::ublas::bounded_matrix<double,3,9> aux39  = ZeroMatrix(3,9);
+		#pragma omp threadprivate(aux39)
 		
 		boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system  = ZeroMatrix(18,18); //stiffness matrix in the local reference system
+		#pragma omp threadprivate(mKloc_system)
 		boost::numeric::ublas::bounded_matrix<double,18,18> rot18  = ZeroMatrix(18,18); //TAKE CARE!! this is VERY inefficient
+		#pragma omp threadprivate(rot18)
 
 		array_1d<double,3> temp = ZeroVector(3);
+		#pragma omp threadprivate(temp)
 		boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99 = ZeroMatrix(9,9);
+		#pragma omp threadprivate(mKloc99)
 		Vector values = ZeroVector(18); //help vector to get the current values of displacements (and rotations)
+		#pragma omp threadprivate(values)
 	}
 	
 	using namespace ShellIsotropicAuxiliaries;
