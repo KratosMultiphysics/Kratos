@@ -114,6 +114,10 @@ namespace Python
        class_<VariableData>("VariableData", no_init)
 	 .def(self_ns::str(self))
 	 ;
+       
+       class_<Variable<bool>, bases<VariableData>, boost::noncopyable >("BoolVariable", no_init)
+               .def(self_ns::str(self))
+               ;
 
        class_<Variable<int>, bases<VariableData>, boost::noncopyable >("IntegerVariable", no_init)
 	 .def(self_ns::str(self))
@@ -366,6 +370,8 @@ namespace Python
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSUREAUX)
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MAUX)
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_PAUX)
+            
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_INACTIVE)
 
 
    //scope().attr("TIME") = boost::ref(TIME);
