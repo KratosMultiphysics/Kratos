@@ -299,18 +299,6 @@ namespace Kratos
                 {
                     if( ! (*it)->GetValue( IS_INACTIVE ) )
                     {
-//                         //calculate elemental contribution
-//                         pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
-// 
-//                         #pragma omp critical
-//                         {
-//                             //assemble the elemental contribution
-//                             AssembleLHS(A,LHS_Contribution,EquationId);
-//                             AssembleRHS(b,RHS_Contribution,EquationId);
-//                             
-//                             // clean local elemental memory
-//                             pScheme->CleanMemory(*it);
-//                         }
                         //calculate elemental contribution
                         pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
                         
@@ -344,15 +332,6 @@ namespace Kratos
                 {
                     if( ! (*it)->GetValue( IS_INACTIVE ) )
                     {
-//                         //calculate elemental contribution
-//                         pScheme->Condition_CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
-// 
-//                         #pragma omp critical
-//                         {
-//                             //assemble the elemental contribution
-//                             AssembleLHS(A,LHS_Contribution,EquationId);
-//                             AssembleRHS(b,RHS_Contribution,EquationId);
-//                         }
                         //calculate elemental contribution
                         pScheme->Condition_CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
                         
@@ -362,6 +341,8 @@ namespace Kratos
                 }
             }
             double stop_prod = omp_get_wtime();
+            for(int i = 0; i<A_size; i++)
+                omp_destroy_lock(&lock_array[i]);
             std::cout << "time: " << stop_prod - start_prod << std::endl;
             KRATOS_WATCH("finished parallel building");
                         #endif
