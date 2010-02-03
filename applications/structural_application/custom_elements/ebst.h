@@ -132,6 +132,8 @@ namespace Kratos {
         virtual void DampMatrix(
                 MatrixType& rDampMatrix,
                 ProcessInfo& rCurrentProcessInfo);
+        
+        virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
         virtual void FinalizeSolutionStep(
                 ProcessInfo& rCurrentProcessInfo);
@@ -176,6 +178,8 @@ namespace Kratos {
         boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg1;
         boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg2;
         boost::numeric::ublas::bounded_matrix<double, 2,6 > mdcg3;
+
+        boost::numeric::ublas::bounded_matrix<double, 4,3 > mstrains; //save the strains
 
         //area in the reference configuration
         double Area0;
