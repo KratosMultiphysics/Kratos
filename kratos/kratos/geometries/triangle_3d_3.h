@@ -1160,7 +1160,7 @@ namespace Kratos
             }
             for( IndexType i=0; i<rResult.size(); i++ )
             {
-                vector<Matrix> temp(this->PointsNumber());
+                boost::numeric::ublas::vector<Matrix> temp(this->PointsNumber());
                 rResult[i].swap(temp);
             }
             
