@@ -344,6 +344,10 @@ namespace Kratos
         MatrixType temp = Matrix();
 
         CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+
+
+
+
     }
 
     //***********************************************************************************
@@ -359,6 +363,37 @@ namespace Kratos
         bool CalculateResidualVectorFlag = true;
 
         CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+
+//        KRATOS_WATCH(mstrains);
+//        KRATOS_WATCH(Id());
+//                            KRATOS_WATCH(mstrains);
+//        Vector prova1(3);
+//        prova1[0] = 10e-3;
+//        prova1[1] = 5e-3;
+//        prova1[2] = 5e-3;
+//
+//        Vector stress1(3);
+//        Matrix tangent1(3,3);
+//        mConstitutiveLawVector[0]->CalculateMaterialResponse(prova1,stress1,tangent1,true,true,false);
+//        KRATOS_WATCH(prova1);
+//        KRATOS_WATCH(stress1);
+//        Vector dp(3);
+//        dp[0] = 1e-4;
+//        dp[1] = 1e-4;
+//        dp[2] = 1e-4;
+//
+//        Vector prova2(3);
+//        Matrix tangent2(3,3);
+//        Vector stress2(3);
+//        prova2 = prova1 + dp;
+//        mConstitutiveLawVector[0]->CalculateMaterialResponse(prova2,stress2,tangent2,true,true,false);
+//        KRATOS_WATCH(prova2);
+//        KRATOS_WATCH(stress2);
+//
+//        Vector by_tangent = stress1;
+//        noalias(by_tangent) += prod(tangent1,dp);
+//        KRATOS_WATCH(by_tangent);
+
     }
 
     //***********************************************************************************
@@ -427,7 +462,7 @@ namespace Kratos
 		//adding the component S11
 		noalias(temp)  = VoigtTensorComponents(v1,v1);
 		temp *= m_membrane_stress[0];
-		noalias(global_stress) += temp;
+		noalias(global_stress) = temp;
 
 		//adding the component S22
 		noalias(temp)  = VoigtTensorComponents(v2,v2);
@@ -448,6 +483,39 @@ namespace Kratos
 
 // KRATOS_WATCH(Output[0]);
 	}
+        if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+	{
+		array_1d<double,6> temp;
+                Matrix plastic_strain = mConstitutiveLawVector[0]->GetValue(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR);
+//                KRATOS_WATCH(plastic_strain);
+		array_1d<double,6> global_strain;
+		array_1d<double,3>& v1 = phi1;
+		array_1d<double,3>& v2 = phi2;
+
+
+		//adding the component S11
+		noalias(temp)  = VoigtTensorComponents(v1,v1);
+		temp *= plastic_strain(0,0);
+		noalias(global_strain) = temp;
+
+		//adding the component S22
+		noalias(temp)  = VoigtTensorComponents(v2,v2);
+		temp *= plastic_strain(0,1);
+		noalias(global_strain) += temp;
+
+		//adding the component S12 (& S21)
+		noalias(temp)  = VoigtTensorComponents(v1,v2);
+		noalias(temp) += VoigtTensorComponents(v2,v1);
+		temp *= plastic_strain(0,2);
+		noalias(global_strain) += temp;
+
+		if(Output[0].size2() != 6)
+		  Output[0].resize(1,6,false);
+		for(unsigned int ii = 0; ii<6; ii++)
+			Output[0](0,ii) = global_strain[ii];
+
+// KRATOS_WATCH(Output[0]);
+	}
 
 		KRATOS_CATCH("")
 
@@ -458,18 +526,7 @@ namespace Kratos
         void Ebst::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                 std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
         {
-            if(rVariable==GREEN_LAGRANGE_STRAIN_TENSOR)
-            {
-                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-            }
-
-             if(rVariable==PK2_STRESS_TENSOR)
-            {
-	       
-                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-            }
-            
-
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );     
         }
 
     //***********************************************************************************
@@ -496,7 +553,7 @@ namespace Kratos
         Vector LumpFact;
         LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        for (unsigned int i = 0; i < 3; i++)
         {
             double temp = LumpFact[i] * TotalMass;
             for (unsigned int j = 0; j < 3; j++)
@@ -530,6 +587,16 @@ namespace Kratos
     void Ebst::FinalizeSolutionStep(
             ProcessInfo& rCurrentProcessInfo)
     {
+                Vector N(3);
+                N[0] = 0.33333333333333333333;
+                N[1] = 0.33333333333333333333;
+                N[2] = 0.33333333333333333333;
+
+                for(unsigned int i=0;i<mConstitutiveLawVector.size(); i++)
+                {
+                    //call the finalize solution step function
+                    mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),GetGeometry(),N, rCurrentProcessInfo);
+                }
     }
 
 
@@ -1548,14 +1615,17 @@ namespace Kratos
         //gauss point 1
         eta = -0.8611363116   ;
         membrane_weight =  0.3478548451*t_half*Area0;
-        stress_bending_weight = membrane_weight*(eta)*t_half*t_half;
+        stress_bending_weight = membrane_weight*(eta)*t_half;
         Df_weight = membrane_weight*(eta*eta)*t_half*t_half;
-        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda;
-        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda;
-        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda; //note that the 2 is already included in the membrane and bending strain;
+        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda*t_half;
+        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
+        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
         mConstitutiveLawVector[0]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
-	mConstitutiveLawVector[0]->CalculateStress(strain,stress);
-        mConstitutiveLawVector[0]->CalculateConstitutiveMatrix(strain,D);
+        mstrains(0,0) = strain[0]; mstrains(0,1) = strain[1]; mstrains(0,2) = strain[2];
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+
+//        mConstitutiveLawVector[0]->CalculateStress(strain,stress);
+//        mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             = membrane_weight * D;
         noalias(membrane_stress)    = membrane_weight * stress;
         noalias(Dmat_f)             = Df_weight * D;
@@ -1564,14 +1634,17 @@ namespace Kratos
         //gauss point 2
         eta = -0.3399810436   ;
         membrane_weight =  0.6521451549*t_half*Area0;
-        stress_bending_weight = membrane_weight*(eta)*t_half*t_half;
+        stress_bending_weight = membrane_weight*(eta)*t_half;
         Df_weight = membrane_weight*(eta*eta)*t_half*t_half;
-        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda;
-        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda;
-        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda; //note that the 2 is already included in the membrane and bending strain;
+        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda*t_half;
+        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
+        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
+//        KRATOS_WATCH(strain);
         mConstitutiveLawVector[1]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
-	mConstitutiveLawVector[1]->CalculateStress(strain,stress);
-        mConstitutiveLawVector[1]->CalculateConstitutiveMatrix(strain,D);
+        mstrains(1,0) = strain[0]; mstrains(1,1) = strain[1]; mstrains(1,2) = strain[2];
+        mConstitutiveLawVector[1]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+//	mConstitutiveLawVector[1]->CalculateStress(strain,stress);
+//        mConstitutiveLawVector[1]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;
         noalias(membrane_stress)    += membrane_weight * stress;
         noalias(Dmat_f)             += Df_weight * D;
@@ -1580,14 +1653,17 @@ namespace Kratos
         //gauss point 3
         eta =  0.3399810436   ;
         membrane_weight =  0.6521451549*t_half*Area0;
-        stress_bending_weight = membrane_weight*(eta)*t_half*t_half;
+        stress_bending_weight = membrane_weight*(eta)*t_half;
         Df_weight = membrane_weight*eta*eta*t_half*t_half;
-        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda;
-        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda;
-        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda; //note that the 2 is already included in the membrane and bending strain;
+        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda*t_half;
+        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
+        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
+//        KRATOS_WATCH(strain);
         mConstitutiveLawVector[2]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
-	mConstitutiveLawVector[2]->CalculateStress(strain,stress);
-        mConstitutiveLawVector[2]->CalculateConstitutiveMatrix(strain,D);
+        mstrains(2,0) = strain[0]; mstrains(2,1) = strain[1]; mstrains(2,2) = strain[2];
+        mConstitutiveLawVector[2]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+//	mConstitutiveLawVector[2]->CalculateStress(strain,stress);
+//        mConstitutiveLawVector[2]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;
         noalias(membrane_stress)    += membrane_weight * stress;
         noalias(Dmat_f)             += Df_weight * D;
@@ -1596,14 +1672,17 @@ namespace Kratos
         //gauss point 4
         eta = 0.8611363116   ;
         membrane_weight =  0.3478548451*t_half*Area0;
-        stress_bending_weight = membrane_weight*(eta)*t_half*t_half;
+        stress_bending_weight = membrane_weight*(eta)*t_half;
         Df_weight = membrane_weight*eta*eta*t_half*t_half;
-        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda;
-        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda;
-        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda; //note that the 2 is already included in the membrane and bending strain;
+        strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda*t_half;
+        strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
+        strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
+//        KRATOS_WATCH(strain);
         mConstitutiveLawVector[3]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
-	mConstitutiveLawVector[3]->CalculateStress(strain,stress);
-        mConstitutiveLawVector[3]->CalculateConstitutiveMatrix(strain,D);
+        mstrains(3,0) = strain[0]; mstrains(3,1) = strain[1]; mstrains(3,2) = strain[2];
+        mConstitutiveLawVector[3]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+//	mConstitutiveLawVector[3]->CalculateStress(strain,stress);
+//        mConstitutiveLawVector[3]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;
         noalias(membrane_stress)    += membrane_weight * stress;
         noalias(Dmat_f)             += Df_weight * D;
@@ -1637,5 +1716,20 @@ namespace Kratos
 
 		return v;
 	}
+
+        ////************************************************************************************
+	////************************************************************************************
+
+        void Ebst::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+ 	    {
+                Vector N(3);
+                N[0] = 0.33333333333333333333;
+                N[1] = 0.33333333333333333333;
+                N[2] = 0.33333333333333333333;
+                for(unsigned int i=0;i<mConstitutiveLawVector.size(); i++)
+                {
+                    mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),GetGeometry(),N, CurrentProcessInfo);
+                }
+ 	    }
 
 } // Namespace Kratos.
