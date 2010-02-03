@@ -248,8 +248,9 @@ void Plasticity2D::CalculateConstitutiveMatrix(const Vector& StrainVector, Matri
 		    }
 	    }
      */
-       Vector Aux(3);
-       CalculateStressAndTangentMatrix(Aux, StrainVector , ConstitutiveMatrix);
+        Vector StressVector(3);
+       //CalculateStress(StrainVector, StressVector);
+       CalculateStressAndTangentMatrix(StressVector, StrainVector, ConstitutiveMatrix);
       }
 
 
@@ -326,7 +327,8 @@ void Plasticity2D::CalculateElasticStress(const Vector& StrainVector, array_1d<d
         
         noalias(ElasticStrain) = StrainVector_aux - mcurrent_plastic_strain;
 
-        CalculateElasticStress(ElasticStrain, StressVector_aux); 
+        CalculateElasticStress(ElasticStrain, StressVector_aux);
+        //KRATOS_WATCH(StressVector_aux)
          
         // Tension elastica de prueba.
         StressVector[0] = StressVector_aux[0]; // Gxx
@@ -335,6 +337,7 @@ void Plasticity2D::CalculateElasticStress(const Vector& StrainVector, array_1d<d
 
        
         mpFluencyCriteria->CalculateEquivalentUniaxialStressViaInvariants(StressVector,ElasticDomain);
+        //KRATOS_WATCH(ElasticDomain)
        
        if(ElasticDomain < 0.00)
           {
@@ -405,6 +408,7 @@ void Plasticity2D::CalculateElasticStress(const Vector& StrainVector, array_1d<d
               //Updated_Internal_Variables(StressVector_aux, delta_lamda*mDerivate_Fluency);
               Variables[0] = mcurrent_efective_plastic_strain;
               mpFluencyCriteria->UpdateVariables(Variables);
+//              KRATOS_WATCH(ElasticDomain)
               break;      
               }
 
