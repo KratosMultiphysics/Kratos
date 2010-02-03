@@ -291,6 +291,12 @@ namespace Kratos
                     .def("SetValue", SetValueHelperFunction< Element, Variable< double > >)
                     .def("GetValue", GetValueHelperFunction< Element, Variable< double > >)
                     
+                    .def("__setitem__", SetValueHelperFunction< Element, Variable< bool > >)
+                    .def("__getitem__", GetValueHelperFunction< Element, Variable< bool > >)
+                    .def("SetValue", SetValueHelperFunction< Element, Variable< bool > >)
+                    .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
+                    
+                    
                     .def("GetNode", GetNodeFromElement )
                     .def("GetNodes", GetNodesFromElement )
                     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
@@ -354,6 +360,11 @@ namespace Kratos
                     .def("__getitem__", GetValueHelperFunction< Condition, Variable< double > >)
                     .def("SetValue", SetValueHelperFunction< Condition, Variable< double > >)
                     .def("GetValue", GetValueHelperFunction< Condition, Variable< double > >)
+                    
+                    .def("__setitem__", SetValueHelperFunction< Condition, Variable< bool > >)
+                    .def("__getitem__", GetValueHelperFunction< Condition, Variable< bool > >)
+                    .def("SetValue", SetValueHelperFunction< Condition, Variable< bool > >)
+                    .def("GetValue", GetValueHelperFunction< Condition, Variable< bool > >)
 
                     .def("GetNode", GetNodeFromCondition )
                     .def("GetNodes", GetNodesFromCondition )
