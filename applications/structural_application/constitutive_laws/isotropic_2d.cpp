@@ -190,7 +190,8 @@ namespace Kratos
 		double c2 = c1 * mNU;
 		double c3 = 0.5*mE / (1 + mNU);
 
-		StressVector[0] = c1*StrainVector[0] + c2 * (StrainVector[1])	;
+
+                StressVector[0] = c1*StrainVector[0] + c2 * (StrainVector[1])	;
 		StressVector[1] = c1*StrainVector[1] + c2 * (StrainVector[0])	;
 		StressVector[2] = c3*StrainVector[2];
 
