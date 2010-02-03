@@ -285,6 +285,8 @@ namespace Kratos
                             bool  save_internal_variables
                             )
           {
+               if(calculate_stress_flag == true) this->CalculateStress(StrainVector,StressVector);
+               if(calculate_tangent_flag == true) this->CalculateConstitutiveMatrix(StrainVector,algorithmicTangent);
           }
 
             
