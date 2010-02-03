@@ -117,6 +117,8 @@ alias sources_KratosStructuralApplication
 #        plastic_damage_3d.cpp
 #        plastic_damage_2d.cpp
 
+        plane_stress_J2.cpp
+
 
 	#####################kratos library as defined in the jamroot
  #   	/kratos-prj/kratos//libkratos/<link>static
