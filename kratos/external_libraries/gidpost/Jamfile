@@ -1,0 +1,28 @@
+project gidpost
+    : 
+    source-location
+       .
+       source
+       
+    :
+    requirements 	<include>. 
+			<define>NDEBUG
+		     	<link>static
+			<threading>multi
+			<warnings>off
+	: 
+			default-build release 
+    ;
+
+#################################################################################
+#################################################################################
+## list of files to be built, including dependencies to other libraries
+lib gidpost
+    :  
+      gidpost.cpp 
+      gidpostInt.cpp
+      zlibint1.c 
+      zlibint2.c 
+    ;
+
+install install : gidpost : <location>. ;
