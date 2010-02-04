@@ -17,7 +17,6 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_mappers_to_python.h"
-#include "custom_utilities/NMPointsMapper.h"
 #include "custom_utilities/AdvancedNMPointsMapper.h"
 #include "custom_utilities/InterfacePreprocess.h"
 
@@ -38,12 +37,6 @@ namespace Python
 		 init< const ModelPart::NodesContainerType&, const  ModelPart::NodesContainerType&, double>()) 
 	  .def("ScalarMap",&SharedPointsMapper::ScalarMap)
 	  .def("VectorMap",&SharedPointsMapper::VectorMap)
-		;
-
-	  class_<NMPointsMapper>("NMPointsMapper", init<ModelPart&, ModelPart&>())
-		.def("FindNeighbours",&NMPointsMapper::FindNeighbours)
-		.def("ScalarMap",&NMPointsMapper::ScalarMap< double >)
-		.def("VectorMap",&NMPointsMapper::VectorMap< array_1d<double,3> > )
 		;
 
 	  class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<const ModelPart&, ModelPart&>())
