@@ -1,5 +1,6 @@
 using gcc ;
 using intel : : : <cxxflags>"-fPIC -ansi -funroll-loops -cxxlib-gcc -openmp -wd654 -wd10010" <cflags>"-fPIC -funroll-loops -cxxlib-gcc -openmp -wd654 -wd10010" ;
+using sun : : : <cflags>" -w  -DBOOST_UBLAS_UNSUPPORTED_COMPILER=0"  <cxxflags>" -w  -DBOOST_UBLAS_UNSUPPORTED_COMPILER=0" <linkflags>" -w  -DBOOST_UBLAS_UNSUPPORTED_COMPILER=0" ;
 ##using msvc ;
 using python ; 
 
@@ -90,17 +91,6 @@ project KratosProject
 lib pythonlib : : <name>python2.5 ; 
 lib boost_python_lib : : <variant>debug <name>boost_python-mt-d <search>$(BOOST_LIB_DIR) ;    
 lib boost_python_lib : : <variant>release <name>boost_python-mt <search>$(BOOST_LIB_DIR) ;    
-##lib boost_python_lib : : <variant>debug <name>boost_python-gcc-mt-d-1_34_1 ;   
-##lib boost_python_lib : : <variant>release <name>boost_python-gcc-mt-1_34_1 ;   
-lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/unix/release ;
-#############################################################################
-
-#############################################################################
-############### TO BE CUSTOMIZED -- WINDOWS VERSION EXAMPLE!! ###############
-##lib pythonlib : : <name>python25 <search>"C:/Python25/libs"  ; 
-##lib boost_python_lib : : <variant>release <name>boost_python-vc80-mt-1_34_1 <search>"C:/Archivos de programa/boost/boost_1_34_1/lib" ;   
-##lib boost_python_lib : : <variant>debug <name>boost_python-vc80-mt-gd-1_34_1 <search>"C:/Archivos de programa/boost/boost_1_34_1/lib" ;   
-##lib gidpost : : <name>gidpost <search>$(TOP)/external_libraries/gidpost/win/Release/ ; 
 #############################################################################
 
 #blas and lapack libraries
@@ -114,6 +104,7 @@ lib intelomp  : : <name>guide  ;
 alias libomp : intelomp : <toolset>intel ;
 alias libomp : : <toolset>gcc ;
 alias libomp : : <toolset>msvc ;
+alias libomp : : <toolset>sun ;
 
 ## MPI LIBRARIES - comment out if using mpi is not required
 ##lib mpilibrary : : <name>mpi <search>$(MPI_LIB_DIR) ;
@@ -123,6 +114,9 @@ alias libomp : : <toolset>msvc ;
 # IN PRINCIPLE THIS SHOULD REQUIRE NO CUSTOMARIZATION .. apart for compiling new applications
 ## defining "ids" for the different projects
 use-project /kratos-prj : . ;
+
+##gid post library
+use-project /kratos-prj/gidpost : $(TOP)/external_libraries/gidpost ;
 
 ##kratos base library and python interfaces
 use-project /kratos-prj/kratos : kratos ; 
@@ -156,6 +150,7 @@ use-project /kratos-prj/gpu_solvers_application : $(TOP)/applications/gpu_solver
 ###################################################################################################
 
 alias libkratos_static : /kratos-prj/kratos//libkratos/<link>static ;
+alias gidpost : /kratos-prj/gidpost//gidpost/<link>static ;
 
 #################################################################################
 ## installation
