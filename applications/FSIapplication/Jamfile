@@ -12,8 +12,6 @@ project FSIApplication
        external_includes
     :
     requirements <include>. 
-		<include>custom_external_libraries/ann_1.1/lib 
-		<include>custom_external_libraries/ann_1.1/include 
 		<define>KRATOS_PYTHON
 		<link>shared
     ;
@@ -26,7 +24,7 @@ alias libkratos 	: /kratos-prj/kratos//libkratos/<link>static ;
 #################################################################################
 #################################################################################
 ## list of files to be build, including dependencies to other libraries
-lib libFSIApplication
+python-extension KratosFSIApplication
     :  
 	fsi_application.cpp 
 	fsi_python_application.cpp 
@@ -37,16 +35,15 @@ lib libFSIApplication
 #	coupling_face2D.cpp
 
     /KratosProject//libkratos_static
-
  
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
 
 	/KratosProject//libomp
-    : 
     ;
 
 #################################################################################
 #################################################################################
 ## rules to install ... and to remove the prefix "lib"
-install install : libFSIApplication : <location>$(TOP)/libs ;
+
+install install : KratosFSIApplication : <location>$(TOP)/libs ;
