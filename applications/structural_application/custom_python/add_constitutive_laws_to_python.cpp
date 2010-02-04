@@ -84,6 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/Isotropic_Damage.h"
 #include "constitutive_laws/Isotropic_Damage_3D.h"
 #include "constitutive_laws/plasticity_2d.h"
+#include "constitutive_laws/plane_stress_J2.h"
 //#include "constitutive_laws/plasticity_3d.h"
 //#include "constitutive_laws/plastic_damage_3d.h"
 //#include "constitutive_laws/plastic_damage_2d.h"
@@ -160,6 +161,11 @@ namespace Kratos
 			("Plasticity2D",
 			init<>() )
                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+			;
+
+                        class_<PlaneStressJ2, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("PlaneStressJ2",
+			init<>() )
 			;
 
 // 			class_<Plasticity3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
