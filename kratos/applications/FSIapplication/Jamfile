@@ -22,7 +22,6 @@ project FSIApplication
 #################################################################################
 ##definition of "dependencies for the project"
 alias libkratos 	: /kratos-prj/kratos//libkratos/<link>static ;
-lib libann 		: : <name>ANN <search>custom_external_libraries/ann_1.1/lib ;
 
 #################################################################################
 #################################################################################
@@ -39,31 +38,15 @@ lib libFSIApplication
 
     /KratosProject//libkratos_static
 
-	libann
  
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
 
 	/KratosProject//libomp
-    : <tag>@tag
+    : 
     ;
 
 #################################################################################
 #################################################################################
 ## rules to install ... and to remove the prefix "lib"
-
-rule tag ( name : type ? : property-set )
-{
-  if $(name) = "libFSIApplication"
-  {
-    if [ $(property-set).get <os> ] = NT
-    {  return KratosFSIApplication.dll ;  }
-    else
-    {  return KratosFSIApplication.so ;   }
-  }
-  else
-  {
-    return $(name) ;
-  }  
-}
 install install : libFSIApplication : <location>$(TOP)/libs ;

@@ -19,6 +19,7 @@
 #include "custom_python/add_mappers_to_python.h"
 #include "custom_utilities/NMPointsMapper.h"
 #include "custom_utilities/AdvancedNMPointsMapper.h"
+#include "custom_utilities/InterfacePreprocess.h"
 
 #include "custom_utilities/shared_points_mapper.h" 
 #include "includes/node.h"
@@ -45,11 +46,15 @@ namespace Python
 		.def("VectorMap",&NMPointsMapper::VectorMap< array_1d<double,3> > )
 		;
 
-	  class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<ModelPart&, ModelPart&>())
+	  class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<const ModelPart&, ModelPart&>())
 		.def("FindNeighbours",&AdvancedNMPointsMapper::FindNeighbours)
-		.def("ScalarMap",&AdvancedNMPointsMapper::ScalarMap< double >)
-		.def("VectorMap",&AdvancedNMPointsMapper::VectorMap< array_1d<double,3> > )
+		.def("ScalarMap",&AdvancedNMPointsMapper::ScalarMap)
+                .def("VectorMap",&AdvancedNMPointsMapper::VectorMap)
 		;
+
+          class_<InterfacePreprocess>("InterfacePreprocess", init<>())
+                .def("GenerateInterfacePart",&InterfacePreprocess::GenerateInterfacePart)
+                ;
   }
 	
 }  // namespace Python.

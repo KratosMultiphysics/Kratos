@@ -1,0 +1,28 @@
+PROBLEM DATA
+BOOK: Problem Parameters
+QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
+VALUE: Do_not_write
+DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_file,#CURRENT#)(Copy_From,RESTORE,Python_file,#CURRENT#)(Use_Current,SET,Python_file,#CURRENT#)
+QUESTION: Python_file
+VALUE: /home/jcotela/Desktop/meshtest.gid/meshtest.py
+TKWIDGET: TkwidgetFilePath
+QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
+VALUE: 1
+QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (1,HIDE,DOMAIN_SIZE,#CURRENT#)(0,RESTORE,DOMAIN_SIZE,#CURRENT#)
+QUESTION: DOMAIN_SIZE#CB#(2,3)
+VALUE: 3
+STATE: HIDDEN
+QUESTION: Time_step
+VALUE: 0.1
+QUESTION: max_time
+VALUE: 0.1
+QUESTION: nsteps
+VALUE: 10
+QUESTION: Destination_mesh
+VALUE: /home/jcotela/Desktop/destination2.gid/destination2.mdpa
+TKWIDGET: TkwidgetFilePath
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA
