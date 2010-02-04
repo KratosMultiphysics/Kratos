@@ -33,6 +33,11 @@ os.chdir(ApplicationsRoot + "convection_diffusion_application/test_examples")
 import convection_diffusion_benchmarks
 Text += convection_diffusion_benchmarks.Run()
 
+# FSI application
+os.chdir(ApplicationsRoot + "FSIapplication/test_examples")
+import FSI_benchmarks
+Text += FSI_benchmarks.Run()
+
 # Add other directories here
 
 

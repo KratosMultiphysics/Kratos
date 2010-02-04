@@ -3,7 +3,7 @@ from Kratos import *
 from KratosFSIApplication import *
 
 def AddVariables(fluid_model_part,structure_model_part):
-    fluid_model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+    fluid_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)# Stores Nodal Area
     fluid_model_part.AddNodalSolutionStepVariable(PRESSURE)
     fluid_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     fluid_model_part.AddNodalSolutionStepVariable(AUX)
@@ -11,7 +11,7 @@ def AddVariables(fluid_model_part,structure_model_part):
     fluid_model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     fluid_model_part.AddNodalSolutionStepVariable(NORMAL)
 
-    structure_model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+    structure_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)
     structure_model_part.AddNodalSolutionStepVariable(PRESSURE)
     structure_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     structure_model_part.AddNodalSolutionStepVariable(AUX)
@@ -26,16 +26,27 @@ def AddVariables(fluid_model_part,structure_model_part):
 
 class NonConformant_OneSideMap:
     
-    def __init__(self,fluid_model_part,structure_model_part):
-        self.FluidToStructureMapper = AdvancedNMPointsMapper(fluid_model_part,structure_model_part);
-        print "1111111111"
-        self.StructureToFluidMapper = AdvancedNMPointsMapper(structure_model_part,fluid_model_part);
+    def __init__(self,fluid_model_part,structure_model_part,it_max = 3,tol = 1e-3):
+
+        self.Preprocess = InterfacePreprocess()
+        self.fl_interface = ModelPart("fluid_interface")
+        self.str_interface = ModelPart("structure_interface")
+
+        self.Preprocess.GenerateInterfacePart(fluid_model_part,self.fl_interface)
+        self.Preprocess.GenerateInterfacePart(structure_model_part,self.str_interface)
+        print "Interface identified"
+        
+        self.FluidToStructureMapper = AdvancedNMPointsMapper\
+                                      (self.fl_interface,self.str_interface);
+        self.StructureToFluidMapper = AdvancedNMPointsMapper\
+                                      (self.str_interface,self.fl_interface);
+        print "Interface Mappers created"
 
         search_radius_factor = 2.0
         (self.FluidToStructureMapper).FindNeighbours(search_radius_factor)
         (self.StructureToFluidMapper).FindNeighbours(search_radius_factor)
-        self.it_max = 3
-        self.tol = 1e-3
+        self.it_max = it_max
+        self.tol = tol
 
         print (self.FluidToStructureMapper)
         print (self.StructureToFluidMapper)
@@ -43,8 +54,6 @@ class NonConformant_OneSideMap:
     def RecomputeTransferPairs(self,search_radius_factor):
         (self.FluidToStructureMapper).FindNeighbours(search_radius_factor)
         (self.StructureToFluidMapper).FindNeighbours(search_radius_factor)
-        self.it_max = 3
-        self.tol = 1e-3
 
     def StructureToFluid_VectorMap(self, VectorVar_Origin, VectorVar_Destination ):
         (self.StructureToFluidMapper).VectorMap(VectorVar_Origin, VectorVar_Destination,self.it_max,self.tol)
