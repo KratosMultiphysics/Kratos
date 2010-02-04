@@ -477,7 +477,7 @@ namespace Kratos {
 
             //compute intrinsic time
 //            double time_inv = 1.0 / delta_t;
-            const double time_inv_avg = 1.0/mdelta_t_avg;
+            double time_inv_avg = 1.0/mdelta_t_avg;
 
 //            const double max_dt_inv = 1.0 / max_dt;
 

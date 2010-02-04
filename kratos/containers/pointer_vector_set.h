@@ -207,7 +207,8 @@ namespace Kratos
         if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
         {
           mData.push_back(TPointerType(new TDataType(Key)));
-	  return **(--mData.end());
+	  return **(mData.end()-1);
+// 	  return **(--mData.end());
 	}
       
       return **i;
@@ -236,7 +237,8 @@ namespace Kratos
         if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
         {
           mData.push_back(TPointerType(new TDataType(Key)));
-	  return *(--mData.end());
+	  return *(mData.end()-1);
+// 	  return *(--mData.end());
 	}
       
       return *i;
@@ -336,7 +338,8 @@ namespace Kratos
         if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end())
         {
           mData.push_back(TPointerType(new TOtherDataType(rData)));
-	  return iterator(--mData.end());
+	  //return iterator(--mData.end());
+	  return iterator(mData.end()-1);
 	}
       **i = rData;
       return i;
@@ -367,7 +370,8 @@ namespace Kratos
         if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end())
         {
           mData.push_back(pData);
-	  return iterator(--mData.end());
+	  return iterator(mData.end()-1);
+// 	  return iterator(--mData.end());
 	}
       
       *i = pData;

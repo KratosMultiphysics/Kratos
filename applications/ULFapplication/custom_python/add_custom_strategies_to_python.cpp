@@ -81,7 +81,8 @@ namespace Kratos
 		{
 			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-			
+
+			
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 			
 		
@@ -102,8 +103,6 @@ namespace Kratos
 
 			class_< ResidualBasedIncompressibleBuilderType2D, bases< BuilderAndSolverType >, boost::noncopyable>
 ("ResidualBasedIncompressibleBuilder2D", init< LinearSolverType::Pointer>() )
-							
-			//class < ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver>,
 			.def("AssembleLHS", &ResidualBasedIncompressibleBuilderType2D::AssembleLHS )
 			.def("AssembleRHS", &ResidualBasedIncompressibleBuilderType2D::AssembleRHS )
 			.def("BuildAndSolve", &ResidualBasedIncompressibleBuilderType2D::BuildAndSolve)
@@ -120,19 +119,17 @@ namespace Kratos
 			.def("CalculatePreconditionerDiagonalMatrix",  &ResidualBasedIncompressibleBuilderType2D::CalculatePreconditionerDiagonalMatrix)
 			.def("calc_prod_precond_vec", &ResidualBasedIncompressibleBuilderType2D::calc_prod_precond_vec)   
 			.def("ModifyForDirichlet", &ResidualBasedIncompressibleBuilderType2D::ModifyForDirichlet)   
-			.def("UpdatePressures", &ResidualBasedIncompressibleBuilderType2D::UpdatePressures)   
+ 			.def("UpdatePressures", &ResidualBasedIncompressibleBuilderType2D::UpdatePressures)   
 			.def("ReturnDx", &ResidualBasedIncompressibleBuilderType2D::ReturnDx)   
-			.def("UpdatePressuresNew", &ResidualBasedIncompressibleBuilderType2D::UpdatePressuresNew)   
-			.def("CalculateNodalPressureForce", &ResidualBasedIncompressibleBuilderType2D::CalculateNodalPressureForce )	
-			.def("ConvergenceCheck", &ResidualBasedIncompressibleBuilderType2D::ConvergenceCheck)   
+ 			.def("UpdatePressuresNew", &ResidualBasedIncompressibleBuilderType2D::UpdatePressuresNew)   
+ 			.def("CalculateNodalPressureForce", &ResidualBasedIncompressibleBuilderType2D::CalculateNodalPressureForce )	
+ 			.def("ConvergenceCheck", &ResidualBasedIncompressibleBuilderType2D::ConvergenceCheck)   
 			;
 
 			typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 3> ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D;
 			
 						
 			class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, bases< BuilderAndSolverType >, boost::noncopyable> ("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D", init< LinearSolverType::Pointer>() )
-							
-			//class < ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver>,
 			.def("AssembleLHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleLHS )
 			.def("AssembleRHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleRHS )
 			.def("BuildAndSolve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAndSolve)

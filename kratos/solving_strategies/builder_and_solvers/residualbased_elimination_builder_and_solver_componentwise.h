@@ -451,7 +451,9 @@ namespace Kratos
 			ProcessInfo& CurrentProcessInfo
 			)
 		{
+#ifndef __SUNPRO_CC
 			KRATOS_TRY
+#endif
 
 				if(pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 				{
@@ -521,8 +523,9 @@ namespace Kratos
 // 				pA.swap(pNewA);
 // 				pDx.swap(pNewDx);
 // 				pb.swap(pNewb);
-
+#ifndef __SUNPRO_CC
 				KRATOS_CATCH("")
+#endif
 
 		}
 
@@ -651,8 +654,9 @@ namespace Kratos
 #ifdef _OPENMP
 		void ParallelConstructGraph(TSystemMatrixType& A)
 		{
+#ifndef __SUNPRO_CC
 			KRATOS_TRY
-
+#endif
 				std::vector< std::vector<int> > index_list(BaseType::mEquationSystemSize);
 
                         int number_of_threads = omp_get_max_threads();
@@ -725,8 +729,9 @@ namespace Kratos
 					A.push_back(i,indices[j] , 0.00);
 				}
 			}
-
+#ifndef __SUNPRO_CC
 			KRATOS_CATCH("")
+#endif
 		}
 #endif
 

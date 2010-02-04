@@ -37,7 +37,7 @@
 #elif defined(__sgi)
 
 #else
-#error bindings do not recognise compiler
+//#error bindings do not recognise compiler
 #endif
  
 

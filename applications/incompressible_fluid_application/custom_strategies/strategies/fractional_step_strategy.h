@@ -621,7 +621,7 @@ namespace Kratos
 		//calculation of projection 
 		void SolveStep3()
 		{
-			KRATOS_TRY;
+		  //			KRATOS_TRY;
 
 #ifdef _OPENMP
                         int number_of_threads = omp_get_max_threads();
@@ -694,7 +694,8 @@ namespace Kratos
                             }
                         }
 
-			KRATOS_CATCH("");
+		
+			//	KRATOS_CATCH("");
 		}
 
 		//******************************************************************************************************

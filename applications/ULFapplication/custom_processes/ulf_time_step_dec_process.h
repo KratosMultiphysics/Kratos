@@ -242,7 +242,7 @@ namespace Kratos
 
 							//JUST TO SEE WHICH ELEMENT IS CRITICAL
 							i->GetGeometry()[iii].FastGetSolutionStepValue(IS_INTERFACE) = 50;
-							}				
+							}			
 					if (detJ<=0)				
 						{
 						for(unsigned int iii = 0; iii < i->GetGeometry().size(); iii++)

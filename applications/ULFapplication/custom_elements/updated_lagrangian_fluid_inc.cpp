@@ -426,7 +426,7 @@ namespace Kratos
 	//************************************************************************************
 	  void  UpdatedLagrangianFluidInc::Calculate(const Variable<double >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
 	  {
-		/*
+		/*
 		const double& density = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
 							GetGeometry()[2].FastGetSolutionStepValue(DENSITY));
@@ -446,8 +446,7 @@ namespace Kratos
 		if(rVariable == PRESSURE)
 		{
 		KRATOS_WATCH("EMPTY FUNCTION FOR THIS ELEMENT - PRESSUREUES ARE UPDATED INSIDE BUILDER AND SOLVER");
-		
-		}
+		}
 		else if (rVariable == IS_FLUID)
 		{
 			

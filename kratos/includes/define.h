@@ -180,11 +180,16 @@ catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 #define KRATOS_CATCH_BLOCK_BEGIN class ExceptionBlock{public: void operator()(void){
 #define KRATOS_CATCH_BLOCK_END }} exception_block; exception_block(); 
   
-#define KRATOS_TRY try {
+#ifndef __SUNPRO_CC
+  #define KRATOS_TRY try {
 
-#define KRATOS_CATCH(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-  
+  #define KRATOS_CATCH(MoreInfo) \
+  KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
+#else
+  #define KRATOS_TRY { };
+
+  #define KRATOS_CATCH(MoreInfo) { };
+#endif
 //-----------------------------------------------------------------
 //
 // variables

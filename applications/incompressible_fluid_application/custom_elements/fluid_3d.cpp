@@ -332,7 +332,7 @@ namespace Kratos
 	void Fluid3D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
 										   ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_TRY;
+	  //KRATOS_TRY;
 
 		unsigned int number_of_points = 4;
 
@@ -513,7 +513,7 @@ namespace Kratos
                 m3 +=  nodal_contrib;
 
 
-		KRATOS_CATCH("");
+		//KRATOS_CATCH("");
 	}
 	  
 	//************************************************************************************
