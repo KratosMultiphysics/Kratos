@@ -326,12 +326,14 @@ namespace Kratos
     }; // Class Quadrature 
 
   ///@}
-
+#ifdef __SUNPRO_CC
   template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType>
    const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType 
-   Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector( 
-     Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::GenerateIntegrationPoints());
-  
+   Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector = 
+     Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::GenerateIntegrationPoints();
+#else
+  template<class TQuadraturePointsType, std::size_t TDimension, class TIntegrationPointType> const typename Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::IntegrationPointsArrayType 		Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::msIntegrationPointsVector( Quadrature<TQuadraturePointsType, TDimension, TIntegrationPointType>::GenerateIntegrationPoints());
+#endif
   ///@name Type Definitions       
   ///@{ 
   

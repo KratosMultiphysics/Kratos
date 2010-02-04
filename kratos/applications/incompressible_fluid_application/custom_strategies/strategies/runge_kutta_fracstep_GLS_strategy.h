@@ -197,7 +197,7 @@ namespace Kratos
 			
 			//identify nodes, weher slip shall be imposed .. store them in a list
 			mSlipBoundaryList.clear();
-			ModelPart& model_part=BaseType::GetModelPart();
+			//ModelPart& model_part=GetModelPart();
 			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
 			{
 			//FLAG_VAR = 1 is SLIP

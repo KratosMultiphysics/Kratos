@@ -164,7 +164,7 @@ namespace Kratos {
 		fclose(f);
 	
 		// Second stage
-		int nz[size1];
+		int *nz = new int[size1];
 	
 		for (int i = 0; i < size1; i++)
 			nz[i] = 0;
@@ -269,6 +269,7 @@ namespace Kratos {
 		delete[] indices;
 		delete[] columns;
 		delete[] values;
+		delete[] nz;
 
 		delete m;
 
