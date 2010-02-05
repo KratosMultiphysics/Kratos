@@ -7,7 +7,6 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ELECTRICAL_PERMITTIVITY);
     model_part.AddNodalSolutionStepVariable(ELECTRIC_FIELD);
     model_part.AddNodalSolutionStepVariable(ELECTRIC_DISPLACEMENT_FIELD);
-
     model_part.AddNodalSolutionStepVariable(ELECTROSTATIC_POTENTIAL);
     model_part.AddNodalSolutionStepVariable(ELECTROSTATIC_POINT_CHARGE);
     model_part.AddNodalSolutionStepVariable(INFINIT_COEFFICIENT);
