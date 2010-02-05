@@ -8,6 +8,8 @@
 #if !defined(KRATOS_INTERFACE_PREPROCESS_MAPPER_H_INCLUDED )
 #define  KRATOS_INTERFACE_PREPROCESS_MAPPER_H_INCLUDED
 
+#include <iostream>
+
 #include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"
 #include "includes/define.h"
@@ -24,6 +26,7 @@ namespace Kratos {
         {
 
             // Store pointers to all interface nodes
+            unsigned int Counter = 0;
             for (
                     ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin();
                     node_it != rOriginPart.NodesEnd();
@@ -31,11 +34,14 @@ namespace Kratos {
             {
                 if (node_it->FastGetSolutionStepValue(IS_INTERFACE) == 1.0) {
                     InterfacePart.Nodes().push_back( *(node_it.base()) );
+                    Counter ++;
                 }
             }
+            std::cout << "    " << Counter << " nodes ";
 
             // Generate triangular Conditions from original interface conditions
             ModelPart::ConditionsContainerType aux;
+            Counter = 0;
 
             for (
                     ModelPart::ConditionsContainerType::const_iterator cond_it = rOriginPart.ConditionsBegin();
@@ -48,9 +54,11 @@ namespace Kratos {
                         ((*cond_it).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
                 {
                     aux.push_back( *(cond_it.base()) );
+                    Counter ++;
                 }
             }
 
+            std::cout << "and " << Counter << " conditions found." << std::endl;
             GenerateTriangularConditions(aux,InterfacePart.Conditions());
 
         }

@@ -26,13 +26,20 @@ def AddVariables(fluid_model_part,structure_model_part):
 
 class NonConformant_OneSideMap:
     
-    def __init__(self,fluid_model_part,structure_model_part,it_max = 3,tol = 1e-3):
+    def __init__(self,fluid_model_part,structure_model_part,\
+                 search_radius_factor = 2.0, it_max = 3,tol = 1e-3):
+
+        search_radius_factor = search_radius_factor
+        self.it_max = it_max
+        self.tol = tol
 
         self.Preprocess = InterfacePreprocess()
         self.fl_interface = ModelPart("fluid_interface")
         self.str_interface = ModelPart("structure_interface")
 
+        print "Identifying fluid interface"
         self.Preprocess.GenerateInterfacePart(fluid_model_part,self.fl_interface)
+        print "Identifying structure interface"
         self.Preprocess.GenerateInterfacePart(structure_model_part,self.str_interface)
         print "Interface identified"
         
@@ -42,11 +49,8 @@ class NonConformant_OneSideMap:
                                       (self.str_interface,self.fl_interface);
         print "Interface Mappers created"
 
-        search_radius_factor = 2.0
         (self.FluidToStructureMapper).FindNeighbours(search_radius_factor)
         (self.StructureToFluidMapper).FindNeighbours(search_radius_factor)
-        self.it_max = it_max
-        self.tol = tol
 
         print (self.FluidToStructureMapper)
         print (self.StructureToFluidMapper)
