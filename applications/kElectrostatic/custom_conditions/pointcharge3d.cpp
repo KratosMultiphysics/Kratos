@@ -6,7 +6,7 @@ Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
-Copyright 2007
+Copyright 2010
 Pooyan Dadvand, Riccardo Rossi, Javier Mora 
 pooyan@cimne.upc.edu 
 rrossi@cimne.upc.edu
@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    $Author: jmora $
-//   Date:                $Date: 2009-09-24 16:46:55 $
+//   Date:                $Date: 2010-02-02 $
 //   Revision:            $Revision: 1.1 $
 //
 //
@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes 
 #include "includes/define.h"
 
-#include "custom_conditions/pointcharge2D.h"
+#include "custom_conditions/pointcharge3D.h"
 #include "kElectrostatic.h"
 
 #include "utilities/math_utils.h"
@@ -66,7 +66,7 @@ namespace Kratos
 {
 	//************************************************************************************
 	//************************************************************************************
-	PointCharge2D::PointCharge2D(IndexType NewId, GeometryType::Pointer 
+	PointCharge3D::PointCharge3D(IndexType NewId, GeometryType::Pointer 
 pGeometry)
 		: Condition(NewId, pGeometry)
 	{		
@@ -75,26 +75,26 @@ pGeometry)
 
 	//************************************************************************************
 	//************************************************************************************
-	PointCharge2D::PointCharge2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+	PointCharge3D::PointCharge3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 		: Condition(NewId, pGeometry, pProperties)
 	{
 	}
 
-	Condition::Pointer PointCharge2D::Create(IndexType NewId, NodesArrayType 
+	Condition::Pointer PointCharge3D::Create(IndexType NewId, NodesArrayType 
 const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
-		return Condition::Pointer(new PointCharge2D(NewId, 
+		return Condition::Pointer(new PointCharge3D(NewId, 
 GetGeometry().Create(ThisNodes), pProperties));
 	}
 
-	PointCharge2D::~PointCharge2D()
+	PointCharge3D::~PointCharge3D()
 	{
 	}
 
 
 	//************************************************************************************
 	//************************************************************************************
-	void PointCharge2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void PointCharge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 		if(rRightHandSideVector.size() != 1)
@@ -110,7 +110,7 @@ GetGeometry().Create(ThisNodes), pProperties));
 
 	//************************************************************************************
 	//************************************************************************************
-	void PointCharge2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void PointCharge3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -131,7 +131,7 @@ GetGeometry().Create(ThisNodes), pProperties));
 
 	//************************************************************************************
 	//************************************************************************************
-	void PointCharge2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+	void PointCharge3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 	{
 		int number_of_nodes = GetGeometry().PointsNumber();
 		unsigned int index;
@@ -147,7 +147,7 @@ GetGeometry().Create(ThisNodes), pProperties));
 
 	//************************************************************************************
 	//************************************************************************************
-	  void PointCharge2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+	  void PointCharge3D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
 	{
 		unsigned int dim = 1;
 		ConditionalDofList.resize(GetGeometry().size()*dim);
