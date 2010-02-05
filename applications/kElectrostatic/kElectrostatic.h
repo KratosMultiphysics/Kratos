@@ -25,8 +25,11 @@
 #include "includes/kratos_application.h"
 
 #include "custom_elements/electrostatic_2d.h"
+#include "custom_elements/electrostatic_3d.h"
 #include "custom_conditions/pointcharge2D.h"
+#include "custom_conditions/pointcharge3D.h"
 #include "custom_conditions/efield2D.h"
+#include "custom_conditions/efield3D.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -55,6 +58,16 @@ namespace Kratos
 	
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 			
+	// for electromagnetic applications
+	// for kElectrostatic application
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_PERMITTIVITY)
+	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_POTENTIAL)
+	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_POINT_CHARGE)
+	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_SURFACE_CHARGE)
+	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_VOLUME_CHARGE)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_DISPLACEMENT_FIELD)
+	KRATOS_DEFINE_VARIABLE(double, INFINIT_COEFFICIENT)
 
 	///@} 
 	///@name Type Definitions
@@ -212,11 +225,11 @@ namespace Kratos
 		///@name Member Variables 
 		///@{ 
 		const Electrostatic2D  mElectrostatic2D;
+		const Electrostatic3D  mElectrostatic3D;
 		const PointCharge2D  mPointCharge2D;
+		const PointCharge3D  mPointCharge3D;
 		const Efield2D  mEfield2D;
-
-
-		//const ConvDiff2D  mConvDiff2D; 
+		const Efield3D  mEfield3D;
 
 		///@} 
 		///@name Private Operators

@@ -38,11 +38,34 @@ namespace Kratos
 		
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
-	KratosR1ElectrostaticApplication::KratosR1ElectrostaticApplication():
+	// for electromagnetic applications
+	// for kElectrostatic application
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_PERMITTIVITY)
+	KRATOS_CREATE_VARIABLE(double, ELECTROSTATIC_POTENTIAL)
+	KRATOS_CREATE_VARIABLE(double, ELECTROSTATIC_POINT_CHARGE)
+	KRATOS_CREATE_VARIABLE(double, ELECTROSTATIC_SURFACE_CHARGE)
+	KRATOS_CREATE_VARIABLE(double, ELECTROSTATIC_VOLUME_CHARGE)
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_DISPLACEMENT_FIELD)
+	KRATOS_CREATE_VARIABLE(double, INFINIT_COEFFICIENT)
+
+
+/*	KratosR1ElectrostaticApplication::KratosR1ElectrostaticApplication():
 		mElectrostatic2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mPointCharge2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-		mEfield2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
+		mEfield2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 	{}
+*/
+	KratosR1ElectrostaticApplication::KratosR1ElectrostaticApplication():
+		mElectrostatic2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mElectrostatic3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+	    mPointCharge2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+	    mPointCharge3D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+		mEfield2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+		mEfield3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+	{}
+
+
 
 		
 	void KratosR1ElectrostaticApplication::Register()
@@ -66,11 +89,24 @@ namespace Kratos
 				
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
+		// for electromagnetic applications
+		// for kElectrostatic application
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_PERMITTIVITY)
+		KRATOS_REGISTER_VARIABLE(ELECTROSTATIC_POTENTIAL)
+		KRATOS_REGISTER_VARIABLE(ELECTROSTATIC_POINT_CHARGE)
+		KRATOS_REGISTER_VARIABLE(ELECTROSTATIC_SURFACE_CHARGE)
+		KRATOS_REGISTER_VARIABLE(ELECTROSTATIC_VOLUME_CHARGE)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_DISPLACEMENT_FIELD)
+		KRATOS_REGISTER_VARIABLE(INFINIT_COEFFICIENT)
+
 		// Registering elements and conditions here
 		KRATOS_REGISTER_ELEMENT("Electrostatic2D", mElectrostatic2D);
+		KRATOS_REGISTER_ELEMENT("Electrostatic3D", mElectrostatic3D);
 		KRATOS_REGISTER_CONDITION("PointCharge2D", mPointCharge2D);
+		KRATOS_REGISTER_CONDITION("PointCharge3D", mPointCharge3D);
 		KRATOS_REGISTER_CONDITION("Efield2D", mEfield2D);
-
+		KRATOS_REGISTER_CONDITION("Efield3D", mEfield3D);
 
 	}
 	
