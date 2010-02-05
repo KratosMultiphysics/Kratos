@@ -34,8 +34,11 @@ python-extension KratosR1ElectrostaticApplication
 	kElectrostatic.cpp
 	kElectrostatic_python_application.cpp
 	electrostatic_2d.cpp
+	electrostatic_3d.cpp
 	pointcharge2D.cpp
+	pointcharge3D.cpp
 	efield2D.cpp
+	efield3D.cpp
 	#add_custom_strategies_to_python.cpp 
 	#add_custom_utilities_to_python.cpp
 	#add_custom_io_to_python.cpp
