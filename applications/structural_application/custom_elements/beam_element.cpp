@@ -649,7 +649,7 @@ KRATOS_CATCH("")
 			{
 				unsigned int index = i*dimension + j;
                                 rMassMatrix(index,index) = temp;
-				if (index==3 or index==4 or index==5)
+				if (index==3 || index==4 || index==5)
 				      rMassMatrix(index,index) = 0.00;
 			        
 			}
