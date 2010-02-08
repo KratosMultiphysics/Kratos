@@ -775,12 +775,12 @@ namespace Kratos
 				
 				Geometry< Node<3> >& geom = i->GetGeometry();
 				//counting the n-r of structure nodes  
-				int str_nr=0;
+				unsigned int str_nr=0;
 				
 				//for (int k = 0;k<TDim+1;k++)
 				for (unsigned int k = 0;k<geom.size();k++)
 				{
-				str_nr+=int(i->GetGeometry()[k].FastGetSolutionStepValue(IS_STRUCTURE));
+				str_nr+=(unsigned int)(i->GetGeometry()[k].FastGetSolutionStepValue(IS_STRUCTURE));
 				}
 				///////////////////////////////////////////////////////////////////////////////////////////////
 				//if the element is not having all the nodes IS_STRUCTURE, assemble it, otherwise do nothing
@@ -899,7 +899,7 @@ namespace Kratos
 			{	
 				
 				Geometry< Node<3> >& geom = i->GetGeometry();
-				int str_nr=0;
+				unsigned int str_nr=0;
 				for (unsigned int k = 0;k<i->GetGeometry().size();k++)
 				{
 				  str_nr+=(unsigned int)(i->GetGeometry()[k].FastGetSolutionStepValue(IS_STRUCTURE));
@@ -1316,7 +1316,7 @@ void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMd
 		KRATOS_TRY
 			//getting the dof position
 			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
-			const double dt = r_model_part.GetProcessInfo()[DELTA_TIME];
+//			const double dt = r_model_part.GetProcessInfo()[DELTA_TIME];
 			
 			//!!!! LATER ON - CHANGE THE WAY TO COMPUTE BULK MODULUS INSTEAD OF PASSING IT AS A PARAMETER
 			//resetting  the pressures to zero
@@ -1390,7 +1390,7 @@ void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMd
 		{
 			KRATOS_TRY
 			//getting the dof position
-			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
+//			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
 			const double dt = r_model_part.GetProcessInfo()[DELTA_TIME];
 			
 			//!!!! LATER ON - CHANGE THE WAY TO COMPUTE BULK MODULUS INSTEAD OF PASSING IT AS A PARAMETER
