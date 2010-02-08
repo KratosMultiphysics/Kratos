@@ -180,7 +180,7 @@ namespace Kratos
 						array_1d<double,3>& normal = geom[i].FastGetSolutionStepValue(NORMAL);
 						for(unsigned int j=0; j<2; j++)
 						{	
-							normal[j] += Volume*0.3333333333333333333*DN_DX(i,j);
+							normal[j] += Volume*DN_DX(i,j);
 						}
 					}
 				}
@@ -200,7 +200,7 @@ namespace Kratos
 						array_1d<double,3>& normal = geom[i].FastGetSolutionStepValue(NORMAL);
 						for(unsigned int j=0; j<3; j++)
 						{	
-							normal[j] += Volume*0.25*DN_DX(i,j);
+							normal[j] += Volume*DN_DX(i,j);
 						}
 					}
 				}
