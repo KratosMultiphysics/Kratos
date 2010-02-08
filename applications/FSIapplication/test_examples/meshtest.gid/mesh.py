@@ -185,7 +185,8 @@ gid_io.FinalizeResults()
 print "Attempting transfer"
 # Transfer pressure to destination mesh
 mapper=NonConformant_OneSideMap.\
-        NonConformant_OneSideMap(destination_model_part,origin_model_part,15)
+        NonConformant_OneSideMap(destination_model_part,origin_model_part,\
+                                 1.0,15)
 print "***** mapper created *****"
 
 mapper.StructureToFluid_ScalarMap(PRESSURE,PRESSURE)
