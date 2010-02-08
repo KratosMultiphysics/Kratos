@@ -64,6 +64,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
+
+
 	//************************************************************************************
 	//************************************************************************************
 	PointCharge2D::PointCharge2D(IndexType NewId, GeometryType::Pointer 
