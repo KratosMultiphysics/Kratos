@@ -850,7 +850,7 @@ namespace Kratos
 			
 				Geometry< Node<3> >& geom = i->GetGeometry();
 				//counting number of structural nodes
-				int str_nr=0;
+				unsigned int str_nr=0;
 				//for (int k = 0;k<TDim+1;k++)
 				for (unsigned int k = 0;k<geom.size();k++)
 				{
@@ -1391,7 +1391,7 @@ void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMd
 			KRATOS_TRY
 			//getting the dof position
 //			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
-			const double dt = r_model_part.GetProcessInfo()[DELTA_TIME];
+// 			const double dt = r_model_part.GetProcessInfo()[DELTA_TIME];
 			
 			//!!!! LATER ON - CHANGE THE WAY TO COMPUTE BULK MODULUS INSTEAD OF PASSING IT AS A PARAMETER
 			
