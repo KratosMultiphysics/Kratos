@@ -33,7 +33,28 @@ def Run():
 
 	#os.chdir("..")
 
+        ################################################################
+	# mass conservation test for edge based level set solver
+
+	Text += "mass conservation test: "
+	os.chdir("mass_conservation.gid")
+	sys.path.append(os.getcwd())
+
+        print "running the benchmark for mass_conservation test..."
+        Msg = benchmarking.RunBenchmark("run_benchmark.py", "benchmark_reference_solution.txt")
 	
+	if (Msg == True):
+		Text += "OK\n"
+		print "mass_conservation test example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "mass_conservation test example FAILED"
+
+	os.chdir("..")
+	
+        # Add other examples here	
 
         ################################################################
 	# cavity2D
