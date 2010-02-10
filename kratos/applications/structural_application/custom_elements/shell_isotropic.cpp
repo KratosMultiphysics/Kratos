@@ -662,25 +662,25 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		//adding the body force (which is already given in global coordinates)		
 		AddBodyForce(h,A,rRightHandSideVector);
 
-		//adding pressure force
-		const double one_third = 1.00 / 3.00;
-		double element_pressure = (GetGeometry()[0].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)
-		    + GetGeometry()[1].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)
-		    + GetGeometry()[2].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)) * one_third;
-
-	        array_1d<double,3> pressure_force = element_pressure * A * one_third * v3;
-
-		rRightHandSideVector[0] += pressure_force[0];
-		rRightHandSideVector[1] += pressure_force[1];
-		rRightHandSideVector[2] += pressure_force[2];
-		
-		rRightHandSideVector[6] += pressure_force[0];
-		rRightHandSideVector[7] += pressure_force[1];
-		rRightHandSideVector[8] += pressure_force[2];
-		
-		rRightHandSideVector[12] += pressure_force[0];
-		rRightHandSideVector[13] += pressure_force[1];
-		rRightHandSideVector[14] += pressure_force[2];
+// 		//adding pressure force
+// 		const double one_third = 1.00 / 3.00;
+// 		double element_pressure = (GetGeometry()[0].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)
+// 		    + GetGeometry()[1].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)
+// 		    + GetGeometry()[2].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)) * one_third;
+// 
+// 	        array_1d<double,3> pressure_force = element_pressure * A * one_third * v3;
+// 
+// 		rRightHandSideVector[0] += pressure_force[0];
+// 		rRightHandSideVector[1] += pressure_force[1];
+// 		rRightHandSideVector[2] += pressure_force[2];
+// 		
+// 		rRightHandSideVector[6] += pressure_force[0];
+// 		rRightHandSideVector[7] += pressure_force[1];
+// 		rRightHandSideVector[8] += pressure_force[2];
+// 		
+// 		rRightHandSideVector[12] += pressure_force[0];
+// 		rRightHandSideVector[13] += pressure_force[1];
+// 		rRightHandSideVector[14] += pressure_force[2];
 		
 		
 	} 
