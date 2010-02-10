@@ -100,7 +100,6 @@ namespace Kratos
 		void MergeParts(ModelPart& fluid_model_part, ModelPart& structure_model_part)
 		{
 			KRATOS_TRY
-
 			//sorting and renumbering the fluid elements
 			unsigned int id=1;
 			for(ModelPart::ElementsContainerType::iterator im = fluid_model_part.ElementsBegin() ; 
@@ -110,6 +109,7 @@ namespace Kratos
 //				im->Id() = id;
 				id++;
 			}
+
 	/*		KRATOS_WATCH("Last FLUID ID is");
 			KRATOS_WATCH(id);
 
@@ -117,15 +117,19 @@ namespace Kratos
 			KRATOS_WATCH(fluid_model_part.Elements().size());
 	*/		
 			//adding the structure elements to the combined part
-			//combined_model_part.Elements().push_back(*( structure_model_part.ElementsBegin().base()));	
+			//combined_model_part.Elements().push_back(*( structure_model_part.ElementsBegin().base()));
+	
 			id += 1000;
 			for(ModelPart::ElementsContainerType::iterator im = structure_model_part.ElementsBegin() ; 
 				im != structure_model_part.ElementsEnd() ; ++im)
-			{		
+			{	
+
+//KRATOS_WATCH(im->GetGeometry());
                                 im->SetId(id);
-//				im->Id() = id;
+
 				fluid_model_part.Elements().push_back(*(im.base()));
 				id++;
+	
 			}
 			fluid_model_part.Elements().Sort();
 
@@ -144,6 +148,7 @@ namespace Kratos
 			for(ModelPart::ConditionsContainerType::iterator im = structure_model_part.ConditionsBegin() ; 
 				im != structure_model_part.ConditionsEnd() ; ++im)
 			{
+
                                 im->SetId(id);
 //				im->Id() = id;
 				fluid_model_part.Conditions().push_back(*(im.base()));
