@@ -21,6 +21,7 @@
 #include "external_includes/tetgen_pfem_refine_face.h"
 #include "external_includes/trigen_pfem_refine.h"
 #include "external_includes/trigen_pfem_refine_segment.h"
+#include "external_includes/tetgen_pfem_contact.h"
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
@@ -61,6 +62,19 @@ namespace Python
 		Mesher.ReGenerateMesh(model_part,rElements, 
 			KratosComponents<Element>::Get(ElementName),
 			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////
+	//											//
+	//				Contact Mesher			                        //
+	//											//
+	//////////////////////////////////////////////////////////////////////////////////////////
+	
+	//tetgen pfem refine
+	void TetRegenerateMeshContact(TetGenPfemContact& Mesher, char* ElementName, ModelPart& model_part )
+	{
+		Mesher.ReGenerateMesh(model_part, 
+			KratosComponents<Element>::Get(ElementName)
+				); 
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////
@@ -143,6 +157,7 @@ namespace Python
 			KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
 	}
 
+	
 
 
 
@@ -160,6 +175,12 @@ namespace Python
 		 init< >()) 
    	  .def("ReGenerateMesh",TetRegenerateMeshWithFace)
 		; 
+
+	class_<TetGenPfemContact >("TetGenPfemContact",
+		 init< >()) 
+   	  .def("ReGenerateMesh",TetRegenerateMeshContact)
+		;
+
 	//class that allows 2D adaptive remeshing (inserting and erasing nodes)
 	 class_<TriGenPFEMModeler >("TriGenPFEMModeler",
 		 init< >()) 
