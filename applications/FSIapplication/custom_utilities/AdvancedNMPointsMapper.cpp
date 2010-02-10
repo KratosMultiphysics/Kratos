@@ -428,13 +428,16 @@ namespace Kratos
                 ValNorm += pow(node_it->FastGetSolutionStepValue(rDestVar),2);
                 NodeNum++;
             }
-            std::cout << "ScalarMap iteration: " << k+1 << std::endl;
+            //std::cout << "ScalarMap iteration: " << k+1 << std::endl;
 
             // Check Convergence
             if(ValNorm > 10e-15) RelativeError = dValNorm / ValNorm;
             if( (ValNorm/NodeNum < 0.00001*TolIter*TolIter) ||
                     (RelativeError < TolIter*TolIter) )
+            {
+                std::cout << "ScalarMap converged in " << k+1 << " iterations." << std::endl;
                 break;
+            } else if ((k+1) == MaxIter) std::cout << "WARNING: ScalarMap did not converge in " << k+1 << " iterations." << std::endl;
         } // End of Iteration
     } // End of Map (scalar version)
 
@@ -562,13 +565,16 @@ namespace Kratos
                 }
                 NodeNum++;
             }
-            std::cout << "VectorMap iteration: " << k+1 << std::endl;
+            //std::cout << "VectorMap iteration: " << k+1 << std::endl;
 
             // Check Convergence
             if(ValNorm > 10e-15) RelativeError = dValNorm / ValNorm;
             if( (ValNorm/NodeNum < 0.00001*TolIter*TolIter) ||
                     RelativeError < TolIter*TolIter)
+            {
+                std::cout << "VectorMap converged in " << k+1 << " iterations." << std::endl;
                 break;
+            } else if ( (k+1) == MaxIter) std::cout << "WARNING: VectorMap did not converge in " << k+1 << " iterations." << std::endl;
         } // End of Iteration
     } // End of Map (vector version)
 
