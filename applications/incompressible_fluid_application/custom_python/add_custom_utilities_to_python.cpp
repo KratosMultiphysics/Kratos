@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/elembased_distance_utilities.h" 
 #include "custom_utilities/elembased_extrapolation_utilities.h" 
 #include "custom_utilities/elembased_BC_utilities.h" 
+#include "custom_utilities/assign_no_slip_condition.h" 
 
 //#include "custom_utilities/edgebased_levelset.h"
 
@@ -101,6 +102,13 @@ namespace Python
 		.def("CalculateForces2D",&CalculateForcesUtils::CalculateForces2D)
 		.def("CalculatePressureForces2D",&CalculateForcesUtils::CalculatePressureForces2D)
 		;
+
+
+	  class_<AssignNoSlipCondition>("AssignNoSlipCondition", init<>())
+		.def("AssignNoSlipCondition2D",&AssignNoSlipCondition::AssignNoSlipCondition2D)
+		;
+
+
 
 	  class_<SmagorinskyTurbulentModel>("SmagorinskyTurbulentModel", init<>())
 	    .def("CalculateTurbulentViscosity2D",&SmagorinskyTurbulentModel::CalculateTurbulentViscosity<2>)
