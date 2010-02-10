@@ -148,7 +148,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		CalculateAllMatrices(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 	}	
 	
-	
+	//************************************************************************************
+	//************************************************************************************
+	void ShellIsotropic::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	{
+		Matrix lhs(18,18);
+		CalculateAllMatrices(lhs,rRightHandSideVector,rCurrentProcessInfo);
+	}
 	
 
 	//************************************************************************************
