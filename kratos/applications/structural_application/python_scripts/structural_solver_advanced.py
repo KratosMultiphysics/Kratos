@@ -44,6 +44,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE_NULL_ACCELERATION);
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE_EINS_ACCELERATION);
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(VISCOSITY);
     #auxiliary variables misused for mesh rezoning ;-)
     model_part.AddNodalSolutionStepVariable(IS_VISITED);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -63,8 +64,8 @@ def AddDofs(model_part):
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
         node.AddDof(DISPLACEMENT_Z);
-        node.AddDof(WATER_PRESSURE);
-        node.AddDof(AIR_PRESSURE);
+        #node.AddDof(WATER_PRESSURE);
+        #node.AddDof(AIR_PRESSURE);
         node.AddDof(LAGRANGE_DISPLACEMENT_X);
         node.AddDof(LAGRANGE_DISPLACEMENT_Y);
         node.AddDof(LAGRANGE_DISPLACEMENT_Z);
@@ -102,6 +103,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
+        #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
         #creating the solution strategy
         self.ReformDofSetAtEachStep = True
         #KLUDGE: this has to be True!
