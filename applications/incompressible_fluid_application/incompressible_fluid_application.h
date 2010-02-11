@@ -29,6 +29,7 @@
 
 #include "custom_conditions/fluid3d_neumann.h"
 #include "custom_conditions/monolithic2d_neumann.h"
+#include "custom_conditions/no_slip_condition_2d.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -290,6 +291,7 @@ namespace Kratos
 		const ProjDirichletCond mProjDirichletCond;
 
 		const Fluid2DSplit mFluid2DSplit;
+		const NoSlipCondition2D mNoSlipCondition2D;
 
 		///@} 
 		///@name Private Operations
