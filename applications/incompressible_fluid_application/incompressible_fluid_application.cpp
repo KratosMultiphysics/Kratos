@@ -79,7 +79,11 @@ namespace Kratos
 		mFluid2DGLS_expl_comp(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 			
-		mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+		mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+
+		mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
+
+
 
 	{}
 
@@ -152,6 +156,7 @@ namespace Kratos
 
 
 		KRATOS_REGISTER_CONDITION("ProjDirichletCond", mProjDirichletCond);
+		KRATOS_REGISTER_CONDITION("NoSlipCondition2D", mNoSlipCondition2D);
 
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DSplit", mFluid2DSplit);		
