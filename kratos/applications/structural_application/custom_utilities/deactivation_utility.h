@@ -261,6 +261,19 @@ namespace Kratos
                         (*it)->SetValue(ACTIVATION_LEVEL, 0 );
                     }
                 }
+                for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
+                     it != model_part.Conditions().ptr_end(); ++it )
+                {
+                    if( ! ( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue(IS_CONTACT_SLAVE) ) )
+                    {
+                        if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
+                              && (*it)->GetValue(ACTIVATION_LEVEL) <= to_level)
+                        {
+                            (*it)->SetValue(ACTIVATION_LEVEL, 0);
+                        }
+                    }
+                }
+
                 KRATOS_CATCH("");
             }
             
