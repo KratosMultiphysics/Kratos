@@ -699,6 +699,7 @@ namespace Kratos
                 double absolute_friction=0;
                 double energy_friction = 0;
                 double wriggers_crit= 0.0;
+                double cumulative_penetration = 0.0;
 //                 double gap = 0.0;
                 double slip= 0.0;
                 int Index = 1;
@@ -723,6 +724,7 @@ namespace Kratos
                                 ratio += (*it)->GetValue( DELTA_LAMBDAS )[i];
 
                                 Index++;
+                                cumulative_penetration += (*it)->GetValue( GAPS )[i]*(*it)->GetValue( GAPS )[i];
 
                                 if(fabs(wriggers_crit) < fabs(((*it)->GetValue( GAPS )[i])))
                                         wriggers_crit= ((*it)->GetValue( GAPS )[i]);
@@ -738,53 +740,50 @@ namespace Kratos
                     for (ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin() + lastRealCondition; 
                          it!=ConditionsArray.ptr_end(); ++it)
                     {
- 
-                        	int i=(*it)->GetValue(CONTACT_SLAVE_INTEGRATION_POINT_INDEX);
-
-                        	if((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS )[i]  > 0)
-                        	{
-                            	        Matrix m = (*it)->GetValue(CONTACT_LINK_M);
-
-                      			absolute_friction +=
-                          		sqrt((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
-                          		*m(0,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
-                           		+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
-                          		*m(0,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1)
-                          		+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1)
-                           		*m(1,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
-                               		 +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1)
-                                	*m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1));
-
-                            		ratio_friction +=                                
-                                                sqrt((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
-                      				*m(0,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
-        					+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
- 						*m(0,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
-                 				+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
-                      				*m(1,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
-            					+(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
-               					*m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1));
-
-					if((*it)->GetValue(CONTACT_LINK_SLAVE)-> GetValue(STICK)(i) > 0.5)
-					{
-						Vector relVelo(2);
-						noalias(relVelo)=GetRelativTangentialVelocity((*it)->GetValue(CONTACT_LINK_MASTER), (*it)->GetValue(CONTACT_LINK_SLAVE), (*it)->GetValue( SLAVE_CONTACT_LOCAL_POINT), (*it)->GetValue( MASTER_CONTACT_LOCAL_POINT));
-		
-						energy_friction += 0.5*
-                                    		        ((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue(PENALTY_T)[i])*(relVelo(0)*m(0,0)*relVelo(0)
-							+relVelo(0)*m(0,1)*relVelo(1)
-							+relVelo(1)*m(1,0)*relVelo(0)
-							+relVelo(1)*m(1,1)*relVelo(1));
-
-						slip+= (relVelo(0)*m(0,0)*relVelo(0)
-							+relVelo(0)*m(0,1)*relVelo(1)
-							+relVelo(1)*m(1,0)*relVelo(0)
-							+relVelo(1)*m(1,1)*relVelo(1)); 
-
-						Index2++;
-                        		}
-				}
-                    	}
+                        int i=(*it)->GetValue(CONTACT_SLAVE_INTEGRATION_POINT_INDEX);
+                        
+                        if((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS )[i]  > 0)
+                        {
+                            Matrix m = (*it)->GetValue(CONTACT_LINK_M);
+                            absolute_friction +=
+                                    sqrt((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
+                                    *m(0,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
+                                    +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
+                                    *m(0,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1)
+                                    +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1)
+                                    *m(1,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,0)
+                                    +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1)
+                                    *m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( LAMBDAS_T )(i,1));
+                            
+                            ratio_friction +=  
+                                    sqrt((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
+                                    *m(0,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
+                                    +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
+                                    *m(0,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
+                                    +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
+                                    *m(1,0)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,0)
+                                    +(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1)
+                                    *m(1,1)*(*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue( DELTA_LAMBDAS_T )(i,1));
+                            
+                            if((*it)->GetValue(CONTACT_LINK_SLAVE)-> GetValue(STICK)(i) > 0.5)
+                            {
+                                Vector relVelo(2);
+                                noalias(relVelo)=GetRelativTangentialVelocity((*it)->GetValue(CONTACT_LINK_MASTER), (*it)->GetValue(CONTACT_LINK_SLAVE), (*it)->GetValue( SLAVE_CONTACT_LOCAL_POINT), (*it)->GetValue( MASTER_CONTACT_LOCAL_POINT));
+                                
+                                energy_friction += 0.5*
+                                        ((*it)->GetValue(CONTACT_LINK_SLAVE)->GetValue(PENALTY_T)[i])*(relVelo(0)*m(0,0)*relVelo(0)
+                                        +relVelo(0)*m(0,1)*relVelo(1)
+                                        +relVelo(1)*m(1,0)*relVelo(0)
+                                        +relVelo(1)*m(1,1)*relVelo(1));
+                                
+                                slip+= (relVelo(0)*m(0,0)*relVelo(0)
+                                        +relVelo(0)*m(0,1)*relVelo(1)
+                                        +relVelo(1)*m(1,0)*relVelo(0)
+                                        +relVelo(1)*m(1,1)*relVelo(1)); 
+                                Index2++;
+                            }
+                        }
+                    }
                 }
                 if( this->mEchoLevel > 1 )
                 {
@@ -792,32 +791,33 @@ namespace Kratos
                     std::cout << "relative Lambda: " << ratio/absolute << std::endl;
                     std::cout << "energy criterion: " << energy_contact/Index << std::endl;
                     std::cout << "normed gap: " << wriggers_crit<<std::endl;
+                    std::cout << "weighted mean penetration: " << sqrt(cumulative_penetration/Index) << std::endl;
                     if( friction )
-		    {
-			std::cout << "absolute Lambda friction: " << absolute_friction/Index << std::endl;
-			std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
-			std::cout << "energy criterion friction: " << energy_friction/Index2 << std::endl;
-			std::cout << "forbidden slip: " << sqrt(slip)/Index2  << std::endl;
-		   }
+                    {
+                        std::cout << "absolute Lambda friction: " << absolute_friction/Index << std::endl;
+                        std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
+                        std::cout << "energy criterion friction: " << energy_friction/Index2 << std::endl;
+                        std::cout << "forbidden slip: " << sqrt(slip)/Index2  << std::endl;
+                    }
                 }
-		else if( this->mEchoLevel > 0 )
-		{
-		        if( friction )
-			{
-				std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
-			}
-		}
-                
+                else if( this->mEchoLevel > 0 )
+                {
+                    if( friction )
+                    {
+                        std::cout << "relative Lambda friction: " << ratio_friction/absolute_friction << std::endl;
+                    }
+                }
                 if( friction_coefficient > 0.0 )
                 {
                     if( ((fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) 
-                                && sqrt(wriggers_crit)/Index < 1e-4)
-                                && ((fabs(absolute_friction/Index) < 1e-3 || fabs(ratio_friction/absolute_friction) < 1e-2)
-				&& sqrt(slip)/Index2< 1e-3))
+                          && sqrt(wriggers_crit)/Index < 1e-4)
+                          && ((fabs(absolute_friction/Index) < 1e-3 ||
+                          fabs(ratio_friction/absolute_friction) < 1e-2)
+                          && sqrt(slip)/Index2< 1e-3))
                     {
                         if( this->mEchoLevel > 0 )
                             std::cout << "Contact condition converged after " << step+1 << " steps" << std::endl;
-                            Converged = true;
+                        Converged = true;
                     }
                     else
                     {
@@ -827,12 +827,12 @@ namespace Kratos
                 }
                 else
                 {
-                    if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ sqrt(wriggers_crit)/Index < 3e-4)
+                    if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ /*fabs(wriggers_crit) < 1e-4)*/sqrt(cumulative_penetration/Index) < 1e-4 )
+//                         sqrt(wriggers_crit)/Index < 3e-4)
                     {
                         if( this->mEchoLevel > 0 )
                             std::cout << "Contact condition converged after " << step+1 << " steps" << std::endl;
-
-						 Converged = true;
+                        Converged = true;
                     }
                     else
                     {
@@ -840,7 +840,6 @@ namespace Kratos
                             std::cout << "Contact has been detected, next solution step required (UZAWA STEP: "<< step+1 << ")" << std::endl;
                     }
                 }
-
                 return( Converged );
             }
             
