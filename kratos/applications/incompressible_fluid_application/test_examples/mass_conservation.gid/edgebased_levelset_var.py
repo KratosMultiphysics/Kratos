@@ -18,5 +18,5 @@ initial_time_step = 0.0001
 # Declare Python Variables
 
 problem_name="mass_conservation"
-problem_path="/home/rrossi/kratos/applications/incompressible_fluid_application/test_examples/mass_conservation.gid"
-kratos_path="/home/rrossi/kratos"
+problem_path="."
+kratos_path="../../../../"
