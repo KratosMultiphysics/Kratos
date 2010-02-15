@@ -205,11 +205,13 @@ namespace Kratos
 			BDFcoeffs[0] =	1.5 / dt;	//coefficient for step n+1
 			BDFcoeffs[1] =	-2.0 / dt;//coefficient for step n
 			BDFcoeffs[2] =	0.5 / dt;//coefficient for step n-1
+			KRATOS_WATCH("CONVECTION: BDF_2.......................................................................................");
 		}
 		else
 		{
 			BDFcoeffs[0] =	1.0 / dt;	//coefficient for step n+1
 			BDFcoeffs[1] =	-1.0 / dt;//coefficient for step n
+			KRATOS_WATCH("CONVECTION: BDF_1.......................................................................................");
 		}
     
                 //**********************************
