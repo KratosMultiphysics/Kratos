@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/divide_elem_utils.h"
 #include "convection_diffusion_application.h"
 
 namespace Kratos
@@ -165,10 +166,7 @@ namespace Kratos
                     work_array.erase(work_array.begin(),work_array.end()); 
                     total_size += number_of_entries;   
                 }
-                            
-
-
-             
+ 
             }
             
             mDx.resize(mA.size1(),false);
@@ -196,15 +194,17 @@ namespace Kratos
                 double dt = CurrentProcessInfo[DELTA_TIME];
 						
 		Vector BDFcoeffs(2);
-		
+/*		
 		if(model_part.GetBufferSize() < 3)
-			KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
+			KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")*/
 			
 		BDFcoeffs[0] =	1.0 / dt;	//coefficient for step n+1
 		BDFcoeffs[1] =	-1.0 / dt;	//coefficient for step n
 			
+		//check if divided
+		
+		KRATOS_WATCH("CONVECTION: CrankNicholson.......................................................................................");
 
-    
                 //**********************************
                 //BUILD PHASE
                 //**********************************
@@ -242,7 +242,29 @@ namespace Kratos
 			double Volume; 
 			GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume); 
 			
-			
+//******************************************************************************************
+// 			//check if divided
+// 			bool is_divided = false;
+// 			double toll = 0.01;
+// 			boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+// 			array_1d<double,4> A_on_agp = ZeroVector(4);
+// 			boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+// 			array_1d<double,4> dist_on_agp = ZeroVector(4);
+// 
+// 			DivideElemUtils::DivideElement_2D(geom, toll, is_divided, aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+// 			 
+// // 			if(is_divided == true)
+// // 			{
+// // 				KRATOS_WATCH(i->Id());
+// // 				//KRATOS_WATCH(virt_nodes);
+// // // 				KRATOS_WATCH(aux_gp);
+// // // 				KRATOS_WATCH(Area);
+// // // 				KRATOS_WATCH(A_on_agp);
+// // // 				KRATOS_WATCH(N_on_agp);
+// // // 				KRATOS_WATCH(dist_on_agp);
+// // 			}
+
+//******************************************************************************************			
 			//finiding local indices 
 			for(int ii = 0; ii<TDim+1; ii++) 
 			{ 
@@ -281,7 +303,7 @@ namespace Kratos
 
 			
 
-			//**********************************
+		//**********************************
                 	//BUILD LHS
                 	//**********************************
 			//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
@@ -301,7 +323,7 @@ namespace Kratos
 				lhs_contribution(iii,iii) += BDFcoeffs[0] * MassFactors[iii];
 			}		
 			
-			//**********************************
+		//**********************************
                 	//BUILD RHS
                 	//**********************************
 			//adding projection contribution  
@@ -349,7 +371,7 @@ namespace Kratos
 			AssembleLHS(mA,lhs_contribution,local_indices);
 			AssembleRHS(mb,rhs_contribution,local_indices);
 
-
+			 
 
 		}
 
