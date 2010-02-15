@@ -37,6 +37,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
+    model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
+    model_part.AddNodalSolutionStepVariable(NORMAL);
 
 
     print "variables for the dynamic structural solution added correctly"
@@ -63,11 +65,11 @@ class MonolithicSolver:
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
      #   self.linear_solver =  SkylineLUFactorizationSolver()
-##        self.linear_solver =SuperLUSolver()
+        self.linear_solver =SuperLUSolver()
 
-        pPrecond = DiagonalPreconditioner()
+        #pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 
         
         #definition of the convergence criteria
@@ -79,7 +81,7 @@ class MonolithicSolver:
                             
         #default settings
         self.echo_level = 0
-        self.CalculateReactionFlag = False
+        self.CalculateReactionFlag = True
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
