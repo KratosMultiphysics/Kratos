@@ -181,11 +181,9 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			normal[1] = area_normal[1] / area;
 
 			//effective velocity:
-			vel[0] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X,0); 
-			vel[1] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y,0); 
+			vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); 
 			
-			mesh_vel[0] = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY_X,0);
-			mesh_vel[1] = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY_Y,0);
+			mesh_vel = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
 
 			vel -= mesh_vel;
 			double mod_vel = vel[0]*vel[0] + vel[1]*vel[1];
@@ -194,7 +192,7 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			//calcolo la K moltiplicativa:
 			double delta_t = rCurrentProcessInfo[DELTA_TIME];
 			double v = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-			double K = 10.0*(mod_vel/area + v/(area*area) + 1/delta_t);
+			double K = 10.0*(mod_vel/area + v/(area*area));
 			
     				
 // noalias(rDampMatrix) += (K*area)*outer_prod(normal,normal);
@@ -229,12 +227,11 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
       	void NoSlipCondition2D::CalculateForce(const double area, VectorType& rRightHandSideVector)
 	{ 
 		array_1d<double,2> vel;
-		vel[0] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X,0) - GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY_X,0);
-		vel[1] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y,0) - GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY_Y,0);			 
+		vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);		 
 
 		//determination of velocity's module and versor:
 		double mod_vel = vel[0]*vel[0] + vel[1]*vel[1];
-		mod_vel = pow(mod_vel,0.5);
+		mod_vel = sqrt(mod_vel);
 		array_1d<double,2> vers_vel;
   
 		vers_vel[0] = vel[0] / mod_vel;
@@ -247,13 +244,14 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
  		}
 
 		//parameters:
-		double k = 0.41;
-		double B = 5.1;
+		double k = 0.4;
+		double a = 1.0/k;
+		double B = 5.0;
 		double v =  GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		double density =  GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 		double mu = v * density;
 		double toll = 0.0000001;
-		double ym = 0.0825877;    //0.0093823
+		double ym = 0.0825877;    //0.0093823   //ym respectively for u=0,2920 and u=2.57
 		double y_mas_incercept = 10.9931899;
 		double y_mas, y=1;
 			
@@ -264,19 +262,30 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
  		if (y_mas>y_mas_incercept)
  		{
 			//begin cicle to calculate the real u_thaw's module:
- 			while(abs(y)>toll)           				 
+			int i=0;
+ 			while(fabs(y)>toll && i<100)           				 
  			{
- 				y = mod_uthaw*(1/k*log(ym*mod_uthaw/v)+B)-mod_vel;
- 				double y1 = 1/k*log(ym*mod_uthaw/v)+B+1/k;
+ 				y = mod_uthaw*(a*log(ym*mod_uthaw/v)+B)-mod_vel;
+ 				double y1 = a*log(ym*mod_uthaw/v)+B+a;
  				double mod_uthaw_new = mod_uthaw-y/y1;
  				mod_uthaw = mod_uthaw_new;
+				i++;
  			 }
-			KRATOS_WATCH("fine cicle"); 			//PROBLEM!!!!
-			KRATOS_WATCH(y)
-			KRATOS_WATCH(abs(y))
-			//creating the rRightHandSideVector vectors:
- 			rRightHandSideVector[0] += -vers_vel[0]*area*mod_uthaw*mod_uthaw;
- 			rRightHandSideVector[1] += -vers_vel[1]*area*mod_uthaw*mod_uthaw;
+
+			if (fabs(y)>toll)
+				KRATOS_WATCH("NOT CONVERGED IN NEWTON RAPSON LOOP!"); 
+// 			KRATOS_WATCH("finished loop"); 
+// 			KRATOS_WATCH(y)
+// 			KRATOS_WATCH(fabs(y))
+// 			KRATOS_WATCH(mod_uthaw)
+// 			KRATOS_WATCH(vers_vel[0])
+// 			KRATOS_WATCH(vers_vel[1])
+// 			KRATOS_WATCH(area)
+
+
+			//creating the rRightHandSideVector:
+ 			rRightHandSideVector[0] -= vers_vel[0]*area*mod_uthaw*mod_uthaw;
+ 			rRightHandSideVector[1] -= vers_vel[1]*area*mod_uthaw*mod_uthaw;
  		}	
  	        else
  			{
@@ -288,18 +297,13 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		array_1d<double,2> area_normal;
                 area_normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
 
-		double F_x, F_y;
-		F_x = area_normal[0]*GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-		F_y = area_normal[1]*GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+		double p, p_x, p_y;
+		p = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+		p_x = -area_normal[0]*p;
+		p_y = -area_normal[1]*p;
 
- 		KRATOS_WATCH(F_x);					//PROBLEM!!!!
-  		KRATOS_WATCH(F_y);
- 		KRATOS_WATCH(rRightHandSideVector[0]);
- 		KRATOS_WATCH(rRightHandSideVector[1]);
-
-
-		GetGeometry()[0].FastGetSolutionStepValue(REACTION_X) = rRightHandSideVector[0] - F_x;
-		GetGeometry()[0].FastGetSolutionStepValue(REACTION_Y) = rRightHandSideVector[1] - F_y;
+		GetGeometry()[0].FastGetSolutionStepValue(REACTION_X) = -rRightHandSideVector[0] + p_x;
+		GetGeometry()[0].FastGetSolutionStepValue(REACTION_Y) = -rRightHandSideVector[1] + p_y;
 }
 	//************************************************************************************
 	//************************************************************************************
