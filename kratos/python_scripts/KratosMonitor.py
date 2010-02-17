@@ -10,24 +10,23 @@ class KratosMonitor:
         self.Values = dict()
 
 
-    def SetVariable(self, VariableName, Value):
+    def Set(self, VariableName, Value):
         if(VariableName in self.Variables):
             self.Values[VariableName].config(text=Value)
         else:
             new_label = Tkinter.Label(self.frame, text=VariableName, anchor=Tkinter.W, justify=Tkinter.LEFT)
-            new_label.grid(row=len(self.Variables), column=0)
+            new_label.grid(row=len(self.Variables), column=0, padx=8, sticky=Tkinter.W)
+            new_label.config(anchor=Tkinter.W, justify=Tkinter.LEFT)
+
             self.Variables[VariableName] = new_label;
             
             new_label = Tkinter.Label(self.frame, text=Value, anchor=Tkinter.W, justify=Tkinter.LEFT)
-            new_label.grid(row=len(self.Values), column=1)
+            new_label.grid(row=len(self.Values), column=1, padx=8, sticky=Tkinter.W)
             self.Values[VariableName] = new_label;
 
  
 root = Tkinter.Tk()
-monitor = KratosMonitor(root)
-
-monitor.SetVariable("Time", 34)
-monitor.SetVariable("Delt Time", 0.1)
+kratos_monitor = KratosMonitor(root)
 
 
 #root.mainloop()
