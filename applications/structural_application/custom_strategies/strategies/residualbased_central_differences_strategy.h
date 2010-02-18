@@ -144,7 +144,7 @@ double Solve()
       // Orden es crucial
       Compute_Critical_Time();
 
-      if(mElementsAreInitialized==false)
+      if(mOldDisplacementComputed==false)
           {ComputeOldDisplacement();}
 
        GetForce();
@@ -153,17 +153,17 @@ double Solve()
 
        Finalize();
 
-       //Update();
+       Update();
      
        if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-  
+          
+       //std::cout<<"************************************************"<<std::endl;
        return 0;     
     }
 
 //***************************************************************************
 //***************************************************************************
 
-protected:
 
 void Initialize()
 {
@@ -289,14 +289,16 @@ void Compute_Critical_Time()
           int thread_id = 1.00;
           #endif
 
-		  
+	    
 	  for (ElementsArrayType::iterator it=it_begin; it!= it_end; ++it)
 	    {
 	      it->Calculate(DELTA_TIME, delta_time_a, CurrentProcessInfo);
-               //KRATOS_WATCH(thread_id)
-	      if(delta_time_a < dts[thread_id-1])
+
+              // WARNING = Los threads Id siempre empiezan por cero. 
+	      if(delta_time_a < dts[thread_id])
 	      {
-               dts[thread_id-1] = delta_time_a;
+               //KRATOS_WATCH(delta_time_a)
+               dts[thread_id] = delta_time_a;
               } 
 	    }
 	  }
@@ -307,13 +309,12 @@ void Compute_Critical_Time()
     KRATOS_WATCH(mdelta_time)
     std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
     Truncar_Delta_Time(mdelta_time);
+    KRATOS_WATCH(mdelta_time)    
     if(mdelta_time>mmax_delta_time) {mdelta_time = mmax_delta_time;}
     delta_time_used = mfraction_delta_time*mdelta_time;
     CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
     r_model_part.CloneTimeStep(delta_time_used*step);
     time = CurrentProcessInfo[TIME];
-
-    //lucielisv@hotmail.com
 
     
     std::cout<< "Factor Delta Critical Time   = "<< mfraction_delta_time << std::endl;
@@ -384,7 +385,11 @@ void ComputeOldDisplacement()
 		      const array_1d<double,3>& CurrentVelocity      =  (i->FastGetSolutionStepValue(VELOCITY,1));
 		      const array_1d<double,3>& CurrentAcceleration  =  (i->FastGetSolutionStepValue(ACCELERATION,1));
 
+                       if (i->Id()==134)
+		           KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT,1))  
+
 		    // D_1 7.145 Libro de ""Estructuras Sometiadas a Acciones Sismicas"   
+                     //KRATOS_WATCH(CurrentDisplacement)
 		     OldDisplacement =  0.5*DeltaTime*DeltaTime*CurrentAcceleration - DeltaTime*CurrentVelocity + CurrentDisplacement;
 		     i->FastGetSolutionStepValue(DISPLACEMENT,2) = OldDisplacement;
 		    }
@@ -683,10 +688,11 @@ void GetNextDisplacement()
 	     //KRATOS_WATCH(factor_a)
 	     //KRATOS_WATCH(DeltaTime)	    
 
-	     // se les uma la contribucion de los parametros de 7.152. Libro canet 
+	     // se le    suma la contribucion de los parametros de 7.152. Libro canet 
 	     Calculate_Final_Force_Contribution(i ,Final_Force);
              //KRATOS_WATCH(node_rhs)
-
+    
+             /*
 	     if(i->IsFixed(DISPLACEMENT_X) != true )
 		{(NewDisp[0]) = node_rhs[0]/Mass_Damping;}
 	     else NewDisp[0] = 0;
@@ -700,16 +706,36 @@ void GetNextDisplacement()
 		    {(NewDisp[2]) = node_rhs[2]/Mass_Damping;}
 		else NewDisp[2] = 0;
                      
-		} 
+		}
+                */ 
+
+                if (i->Id()==134)
+		   KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT_X,1))                  
+  
+                if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
+		{NewDisp[0] = node_rhs[0]/Mass_Damping; NewDisplacement[0] = NewDisp[0];}
+                else
+                 { NewDisp[0] = i->FastGetSolutionStepValue(DISPLACEMENT_X,1); NewDisplacement[0] = NewDisp[0];}
+		
+                 if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
+		{(NewDisp[1]) = node_rhs[1]/Mass_Damping; NewDisplacement[1] = NewDisp[1]; }
+                else
+                 { NewDisp[1] = i->FastGetSolutionStepValue(DISPLACEMENT_Y,1); NewDisplacement[1] = NewDisp[1];}
+		
+               if( i->HasDofFor(DISPLACEMENT_Z)){
+		if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
+		{(NewDisp[2]) = node_rhs[2]/Mass_Damping; NewDisplacement[2] = NewDisp[2]; }
+                else
+                 { NewDisp[2] = i->FastGetSolutionStepValue(DISPLACEMENT_Z,1); NewDisplacement[2] = NewDisp[2];}
+                }
 		//KRATOS_WATCH(i->Id())
                 //KRATOS_WATCH(i->FastGetSolutionStepValue(NODAL_MASS))
                 //KRATOS_WATCH(i->FastGetSolutionStepValue(RHS))
 	        //KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT,0))
 		//KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT,1))
                 //KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT,2))
-	        NewDisplacement = NewDisp; 
-	        if (i->Id()==1)
-		    KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT))    
+	        //noalias(NewDisplacement) = NewDisp; 
+
 	
 	  }
     }
@@ -769,8 +795,10 @@ array_1d<double, 3> OldVel;
 	    const array_1d<double,3>& currentdisp  = (i->FastGetSolutionStepValue(DISPLACEMENT)); 
             const array_1d<double,3>& oldDispl_1   = (i->FastGetSolutionStepValue(DISPLACEMENT,1));
             const array_1d<double,3>& oldDispl_2   = (i->FastGetSolutionStepValue(DISPLACEMENT,2));
-
-	    
+        
+	    //KRATOS_WATCH(currentdisp) 
+            //KRATOS_WATCH(oldDispl_1)      
+            //KRATOS_WATCH(oldDispl_2)    
             OldAcc = (1/(DeltaTime*DeltaTime))*(currentdisp- 2.00*oldDispl_1 + oldDispl_2);
             OldVel = (1/(2.00*DeltaTime))*(currentdisp - oldDispl_2); 
             Oldacceleration =  OldAcc;
@@ -794,7 +822,7 @@ void Finalize()
     ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
     ConditionsArrayType& pConditions = r_model_part.Conditions();
 
-
+    //mOldDisplacementComputed = false;  
           #ifdef _OPENMP
           int number_of_threads = omp_get_max_threads();
           #else
@@ -877,7 +905,7 @@ inline void Truncar_Delta_Time(double& num)
 	{
 	  num_trucado = num_trucado*i;
           a = a*i;
-          if(num_trucado > 1.00){
+          if(num_trucado >= 1.00){
               num_trucado = static_cast<int>(num_trucado);  
 	      num         = num_trucado/a;
               trunc       = true;}
