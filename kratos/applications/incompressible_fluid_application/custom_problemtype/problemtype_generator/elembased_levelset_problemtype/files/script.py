@@ -100,12 +100,13 @@ body_force = Vector(3)
 body_force[0] = elembased_levelset_var.body_force_x
 body_force[1] = elembased_levelset_var.body_force_y
 body_force[2] = elembased_levelset_var.body_force_z
+##print body_force
 viscosity   = elembased_levelset_var.viscosity
 density     = elembased_levelset_var.density
 fluid_solver = level_set_elembased_fluid_solver.ElemBasedLevelSetSolver(fluid_model_part,domain_size,body_force)
 
 fluid_solver.redistance_frequency = elembased_levelset_var.redistance_frequency
-fluid_solver.extrapolation_layers = elembased_levelset_var.extrapolation_layers
+fluid_solver.number_of_extrapolation_layers = elembased_levelset_var.extrapolation_layers
 
 fluid_solver.Initialize()
 ####
@@ -114,7 +115,7 @@ fluid_solver.Initialize()
 print "fluid solver created"
 
 #settings to be changed
-Dt = elembased_levelset_var.time_step  
+##Dt = elembased_levelset_var.time_step  
 final_time = elembased_levelset_var.max_time
 output_dt = elembased_levelset_var.output_dt
 coef = elembased_levelset_var.delta_time_coefficient
@@ -137,22 +138,33 @@ if(elembased_levelset_var.print_layers == False):
 time_old_print = 0.0    
 time = 0.0
 step = 0
-
+initial_time_step = 0.00001
 next_output_time = output_dt
+Dt_old = elembased_levelset_var.time_step
+
 while(time < final_time):
 
-        
+    if(step < 10):
+        Dt = initial_time_step
+    else:
+        ##Calculate Dt when a jump in velocity is reached
+        Dt_new = fluid_solver.CalculateDelta_t(Dt)
+        if(Dt_old >= coef * Dt_new):
+            Dt = coef * Dt_new
+        else:
+            Dt = Dt_old
+            
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
     print "******** CURRENT TIME = ",time
 
     if(step >= 3):
-        ##Calculate Dt when a jump in velocity is reached
-        Dt_old = elembased_levelset_var.time_step
-        Dt_new = fluid_solver.CalculateDelta_t(Dt)
-        if(Dt_old >= coef * Dt_new):
-            Dt = coef * Dt_new
+##        ##Calculate Dt when a jump in velocity is reached
+##        Dt_old = elembased_levelset_var.time_step
+##        Dt_new = fluid_solver.CalculateDelta_t(Dt)
+##        if(Dt_old >= coef * Dt_new):
+##            Dt = coef * Dt_new
 
         fluid_solver.Solve()
 
