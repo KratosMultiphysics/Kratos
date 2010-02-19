@@ -206,14 +206,6 @@ namespace Kratos
     private:
       ///@name Static Member Variables 
       ///@{ 
-// 		static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-// 		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-//   		static array_1d<double,3> msN; //dimension = number of nodes
-// 		//static Matrix msDN_DX;
-// 		//static Matrix msMassFactors;
-// 		static array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
-//   		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
-// 		static array_1d<double,3> ms_u_DN;
         
       ///@} 
       ///@name Member Variables 
