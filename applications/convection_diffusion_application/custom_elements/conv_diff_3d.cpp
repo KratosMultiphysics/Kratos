@@ -65,7 +65,7 @@ namespace Kratos
 	//space defined to allow parallelism
 	 namespace ConvDiff3DAuxiliaries
 	 {
-	     boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = ZeroMatrix(4,4);
+	     boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
 	     #pragma omp threadprivate(msMassFactors)
 
 	     boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
@@ -99,14 +99,6 @@ namespace Kratos
 	ConvDiff3D::ConvDiff3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
 	{
-		//filling the mass factors
-		const unsigned int number_of_points = GetGeometry().size();
-		const double lumping_factor = 1.00/double(number_of_points);
-
-		noalias(msMassFactors) = ZeroMatrix(4,4);
-		for(unsigned int i = 0; i<number_of_points; i++)
-			msMassFactors(i,i) = lumping_factor;
-		
 	}
 
 	Element::Pointer ConvDiff3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const

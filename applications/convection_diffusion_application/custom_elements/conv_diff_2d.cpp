@@ -64,7 +64,7 @@ namespace Kratos
 {
     namespace ConvDiff2Dauxiliaries
     {
-        boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = ZeroMatrix(3,3);
+        boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
         #pragma omp threadprivate(msMassFactors)
 
         boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
@@ -98,14 +98,6 @@ namespace Kratos
 	ConvDiff2D::ConvDiff2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
 	{
-		//filling the mass factors
-//	msMassFactors(0,0) = 1.00/6.00;  msMassFactors(0,1) = 1.00/12.00; msMassFactors(0,2) = 1.00/12.00;
-//		msMassFactors(1,0) = 1.00/12.00; msMassFactors(1,1) = 1.00/6.00;  msMassFactors(1,2) = 1.00/12.00;
-//		msMassFactors(2,0) = 1.00/12.00; msMassFactors(2,1) = 1.00/12.00; msMassFactors(2,2) = 1.00/6.00;
-//
-		msMassFactors(0,0) = 1.00/3.00; msMassFactors(0,1) = 0.00;		msMassFactors(0,2) = 0.00;
-		msMassFactors(1,0) = 0.00;		msMassFactors(1,1) = 1.00/3.00; msMassFactors(1,2) = 0.00;
-		msMassFactors(2,0) = 0.00;		msMassFactors(2,1) = 0.00;		msMassFactors(2,2) = 1.00/3.00;	
 		
 	}
 
@@ -193,6 +185,14 @@ namespace Kratos
 
 		//VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
 		noalias(rLeftHandSideMatrix) += (alpha ) * prod(msDN_DX,trans(msDN_DX));
+
+                		//filling the mass factors
+//	msMassFactors(0,0) = 1.00/6.00;  msMassFactors(0,1) = 1.00/12.00; msMassFactors(0,2) = 1.00/12.00;
+//		msMassFactors(1,0) = 1.00/12.00; msMassFactors(1,1) = 1.00/6.00;  msMassFactors(1,2) = 1.00/12.00;
+//		msMassFactors(2,0) = 1.00/12.00; msMassFactors(2,1) = 1.00/12.00; msMassFactors(2,2) = 1.00/6.00;
+		msMassFactors(0,0) = 1.00/3.00; msMassFactors(0,1) = 0.00;		msMassFactors(0,2) = 0.00;
+		msMassFactors(1,0) = 0.00;		msMassFactors(1,1) = 1.00/3.00; msMassFactors(1,2) = 0.00;
+		msMassFactors(2,0) = 0.00;		msMassFactors(2,1) = 0.00;		msMassFactors(2,2) = 1.00/3.00;
 
 		//INERTIA CONTRIBUTION
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMassFactors;
