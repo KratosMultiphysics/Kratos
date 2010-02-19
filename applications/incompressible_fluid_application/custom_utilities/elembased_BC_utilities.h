@@ -118,26 +118,55 @@ namespace Kratos
 					 else if( dist[0] < 0.0 && dist[1] < 0.0 && dist[2] < 0.0  ) 	
 // 					 else if( dist[0] < toll && dist[1] < toll && dist[2] < toll  ) 
 						{     iel->GetValue(IS_DIVIDED) = -1.0;
+// KRATOS_WATCH("is_divided assignment")
+// KRATOS_WATCH("isdivided -1 **********************************************************")	
+// KRATOS_WATCH(iel->Id())
+//comment
 						      for(unsigned int i=0; i< geom.size() ; i++)
 						      {
 							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 2.0;
 						      }
+
+//comment
 						}
 					 //half fluid half no fluid element
 					 else
 						{
+
 						      iel->GetValue(IS_DIVIDED) = 1.0;
+// KRATOS_WATCH("isdivided 1 //////////////////////////////////////////////////////////")	
+// KRATOS_WATCH(iel->Id())
+
 // // 						      KRATOS_WATCH("IS DIVIDED ELEMENTS*******************")
 // // 						      KRATOS_WATCH(iel->Id())
-						      for(unsigned int i=0; i< geom.size() ; i++)
-						      {
-							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1.0;
-						      }
+//comment
+// 						      for(unsigned int i=0; i< geom.size() ; i++)
+// 						      {
+// 							     geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1.0;
+// 						      }
+//comment
 //  						     // KRATOS_WATCH(iel->Id());
 
 						}
 				
 				 }
+				 
+				for( ModelPart::ElementsContainerType::iterator iel = mr_model_part.ElementsBegin();
+								iel != mr_model_part.ElementsEnd();
+								iel++)
+				{   //Up to now all the nodes have AUX INDEX =0,0
+				    //Mark first all the fluid nodes
+				    Geometry<Node<3> >& geom = iel->GetGeometry();
+				    if(iel->GetValue(IS_DIVIDED) == 1.0)
+				    {
+// KRATOS_WATCH("isdivided 1 //////////////////////////////////////////////////////////")	
+// KRATOS_WATCH(iel->Id())
+					 for(unsigned int i=0; i< geom.size() ; i++)
+					 {
+						geom[i].FastGetSolutionStepValue(AUX_INDEX) = 1.0;
+					 }
+				    }
+				}
 			 KRATOS_CATCH("")
 			 }
 
