@@ -73,9 +73,9 @@ n_active = 0
 for node in fluid_model_part.Nodes:
     node.SetSolutionStepValue(VISCOSITY,0,elembased_levelset_var.viscosity)
     node.SetSolutionStepValue(DENSITY,0,elembased_levelset_var.density)
-    node.SetSolutionStepValue(BODY_FORCE_X, elembased_levelset_var.body_force_x)
-    node.SetSolutionStepValue(BODY_FORCE_Y, elembased_levelset_var.body_force_y)
-    node.SetSolutionStepValue(BODY_FORCE_Z, elembased_levelset_var.body_force_z)
+    node.SetSolutionStepValue(BODY_FORCE_X, 0, elembased_levelset_var.body_force_x)
+    node.SetSolutionStepValue(BODY_FORCE_Y, 0, elembased_levelset_var.body_force_y)
+    node.SetSolutionStepValue(BODY_FORCE_Z, 0, elembased_levelset_var.body_force_z)
     node.Free(PRESSURE)
     node.SetSolutionStepValue(PRESSURE,0,0.0)
     dist = node.GetSolutionStepValue(DISTANCE)
