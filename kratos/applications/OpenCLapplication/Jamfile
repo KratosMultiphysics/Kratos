@@ -1,0 +1,51 @@
+project KratosOpenCLapplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_conditions
+       custom_elements
+       custom_processes
+       custom_python
+       custom_strategies
+       custom_utilities
+       external_includes
+    :
+    requirements <include>. 
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+import python ;
+python-extension KratosOpenCLapplication
+    :  
+	#list of sources
+#	element_2d.cpp 
+#	element_3d.cpp 
+	OpenCLapplication.cpp 
+	add_custom_strategies_to_python.cpp 
+	add_custom_utilities_to_python.cpp 
+	opencl_python_application.cpp 
+
+
+	#kratos library
+    #/kratos-prj/kratos//libkratos/<link>static
+    /KratosProject//libkratos_static
+
+    	 
+	#"system" includes	
+	/KratosProject//pythonlib
+	/KratosProject//boost_python_lib
+
+	/KratosProject//libomp
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+install install : KratosOpenCLapplication : <location>$(TOP)/libs ;
+
+
