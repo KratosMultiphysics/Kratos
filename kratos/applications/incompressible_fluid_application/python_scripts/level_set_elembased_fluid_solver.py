@@ -144,7 +144,7 @@ class ElemBasedLevelSetSolver:
 
         #constructing the fluid solver
         self.solver = monolithic_solver_eulerian.MonolithicSolver(self.model_part, self.domain_size)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,0)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,1)
         self.max_iter = 10
         self.solver.Initialize()
 
