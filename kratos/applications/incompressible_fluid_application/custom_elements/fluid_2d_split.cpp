@@ -1405,14 +1405,14 @@ ms_adv_vel[1] /=eps;
 		    }
 //*****end provisionary_comment to average porosity *************************
 //*****begin provisionary_comment to dominant porosity *************************
-		if(     geom[0].FastGetSolutionStepValue(POROSITY) <= 1.0 )
+		if(     geom[0].FastGetSolutionStepValue(POROSITY) == 1.0 )
 		{    elemental_porosity = geom[0].FastGetSolutionStepValue(POROSITY);}
-		else if(geom[1].FastGetSolutionStepValue(POROSITY) <= 1.0)
+		else if(geom[1].FastGetSolutionStepValue(POROSITY) == 1.0)
 		{    elemental_porosity = geom[1].FastGetSolutionStepValue(POROSITY);}
-		else if(geom[2].FastGetSolutionStepValue(POROSITY) <= 1.0)
+		else if(geom[2].FastGetSolutionStepValue(POROSITY) == 1.0)
 		{    elemental_porosity = geom[2].FastGetSolutionStepValue(POROSITY);}
 		else
-		{ elemental_porosity = 1.0;}
+		{ elemental_porosity = geom[0].FastGetSolutionStepValue(POROSITY);}
 
 //*****end provisionary_comment to dominant porosity *************************
  	}
