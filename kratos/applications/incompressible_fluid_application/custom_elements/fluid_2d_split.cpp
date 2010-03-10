@@ -129,10 +129,10 @@ namespace Kratos
 	unsigned int matsize = nodes_number*(dim+1);
 
 	if(rLeftHandSideMatrix.size1() != matsize)
-			rLeftHandSideMatrix.resize(matsize,matsize); //false says not to preserve existing storage!!
+			rLeftHandSideMatrix.resize(matsize,matsize, false); //false says not to preserve existing storage!!
 
 	if(rRightHandSideVector.size() != matsize)
-			rRightHandSideVector.resize(matsize); //false says not to preserve existing storage!!
+			rRightHandSideVector.resize(matsize, false); //false says not to preserve existing storage!!
 
 	
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize,matsize); 
@@ -497,7 +497,10 @@ namespace Kratos
 
 	ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
 	ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
-
+//*****Convective vel == real fluid velocity
+ms_adv_vel[0] /=eps;
+ms_adv_vel[1] /=eps;
+//****
 	//ms_adv_vel[0] = 0.0;
 	//ms_adv_vel[1] = 0.0;
 	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
@@ -669,7 +672,13 @@ KRATOS_WATCH(dp)	*/
 	double eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
-
+	
+	array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < nodes_number; i++)
+	 {
+	  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	 }
+// KRATOS_WATCH(nodal_eps)
         //Pj mean point of the edge ik
         //N_on_meanp(i,j) = shape function od the node i calculated on the point Pj
 	boost::numeric::ublas::bounded_matrix<double,3,3> N_on_meanp = ZeroMatrix(3,3);
@@ -692,8 +701,8 @@ KRATOS_WATCH(dp)	*/
 			int column = jj*(dof+1) + dof;
 			//**************************************************************
  			//Elemental gradient of pressure term (momentum equation)
-			K(row,column) -= area * N[jj] * DN_DX(ii,0);
-			K(row + 1,column) -= area * N[jj] * DN_DX(ii,1);
+			K(row,column) -= area * nodal_eps[ii] * N[jj] * DN_DX(ii,0);
+			K(row + 1,column) -= area * nodal_eps[ii] * N[jj] * DN_DX(ii,1);
 
 			//**************************************************************
 // 			//Elemental divergence terms (continuity equation)
@@ -767,11 +776,21 @@ KRATOS_WATCH(dp)	*/
 		ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
 		ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
 
-
 		//calculate convective term	
 		int nodes_number = 3;
 		int dof = 2;
 		int matsize = dof*nodes_number;
+		double density;
+		double mu;
+		double eps;
+		double dp;
+		CalculateDensity(GetGeometry(), density, mu, eps, dp);
+
+//*****Convective vel == real fluid velocity
+ms_adv_vel[0] /=eps;
+ms_adv_vel[1] /=eps;
+//****
+
 
 		for (int ii = 0; ii< nodes_number; ii++)
 		    {
@@ -783,11 +802,7 @@ KRATOS_WATCH(dp)	*/
 		boost::numeric::ublas::bounded_matrix<double,3,3> adv_stblterm = ZeroMatrix(dof+1,dof +1);		
 		adv_stblterm = tauone * outer_prod(conv_opr,conv_opr);
 
-		double density;
-		double mu;
-		double eps;
-		double dp;
-		CalculateDensity(GetGeometry(), density, mu, eps, dp);
+
 // KRATOS_WATCH("line 779")
 // KRATOS_WATCH(eps)
 // KRATOS_WATCH(dp)
@@ -852,7 +867,11 @@ KRATOS_WATCH(dp)	*/
 			   }
 		    }
 
-
+		array_1d<double,3> nodal_eps = ZeroVector(3);
+		for (int i = 0; i < nodes_number; i++)
+		  {
+		  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+		  }
 // 		//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
 		boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
 		for ( int ii = 0; ii < nodes_number; ii++)
@@ -860,8 +879,8 @@ KRATOS_WATCH(dp)	*/
 			int row = ii*dof;
 			for ( int jj = 0; jj < nodes_number; jj++)
 		        {
-				grad_stblterm(row,jj)   = DN_DX(jj,0) * conv_opr(ii);
-  				grad_stblterm(row+1,jj) = DN_DX(jj,1) * conv_opr(ii);
+				grad_stblterm(row,jj)   =  nodal_eps[ii] *DN_DX(jj,0) * conv_opr(ii);
+  				grad_stblterm(row+1,jj) =  nodal_eps[ii] *DN_DX(jj,1) * conv_opr(ii);
 			 }
 		}
 
@@ -896,12 +915,12 @@ KRATOS_WATCH(dp)	*/
 		bdf[0] =  (N[0]*bdf0[0] +  N[1]*bdf1[0] + N[2]*bdf2[0]);
 		bdf[1] =  (N[0]*bdf0[1] +  N[1]*bdf1[1] + N[2]*bdf2[1]);
 		
-		fac = tauone * area * density;
+		fac = tauone * area * density; 
 		for(int ii = 0; ii< nodes_number; ++ii)
 		  {
 			 int index = ii*(dof + 1);
-			 F[index]     += fac * conv_opr[ii] * bdf[0];
-			 F[index + 1] += fac * conv_opr[ii] * bdf[1];
+			 F[index]     += nodal_eps[ii] * fac * conv_opr[ii] * bdf[0];
+			 F[index + 1] += nodal_eps[ii] * fac * conv_opr[ii] * bdf[1];
 
 		  }
 
@@ -932,7 +951,10 @@ KRATOS_WATCH(dp)	*/
 	double eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
-
+//*****Convective vel == real fluid velocity
+ms_adv_vel[0] /=eps;
+ms_adv_vel[1] /=eps;
+//****
 
 	for (int ii = 0; ii< nodes_number; ii++)
 	    {
@@ -978,7 +1000,12 @@ KRATOS_WATCH(dp)	*/
 	//build 1*(grad q . grad p) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
 	gard_opr = tauone * area * prod(DN_DX,trans(DN_DX)); 
-
+	
+	 array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < nodes_number; i++)
+	   {
+	   nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	   }
 
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
@@ -986,7 +1013,7 @@ KRATOS_WATCH(dp)	*/
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1) + dof;
-			K(row,column) += gard_opr(ii,jj);
+			K(row,column) += nodal_eps[ii] * nodal_eps[ii] * gard_opr(ii,jj);
 		   }
 	    }
 	//build Darcy Au+B|u|u * grad q stabilization term and assemble and assemble
@@ -1025,11 +1052,11 @@ KRATOS_WATCH(dp)	*/
 			int column = jj*(dof+1) + dof;
 			//Au+B|u|u * grad q
 			//DARCY TERM linear part
-			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0);
-			K(column,row + 1) +=  fac_linear* N[ii] * DN_DX(jj,1);
+			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0) * nodal_eps[jj];
+			K(column,row + 1) +=fac_linear* N[ii] * DN_DX(jj,1) * nodal_eps[jj];
 			//DARCY TERM nonlinear part 
-			K(column,row) +=  fac_nonlinear* N[ii] * DN_DX(jj,0);
-			K(column,row + 1) +=  fac_nonlinear* N[ii] * DN_DX(jj,1);
+			K(column,row) +=fac_nonlinear* N[ii] * DN_DX(jj,0) * nodal_eps[jj];
+			K(column,row + 1) +=fac_nonlinear* N[ii] * DN_DX(jj,1) * nodal_eps[jj];
 
 
 		   }
@@ -1046,13 +1073,12 @@ KRATOS_WATCH(dp)	*/
 	bdf[1] =  N[0]*bdf0[1] +  N[1]*bdf1[1] + N[2]*bdf2[1];
 
 	array_1d<double,3> fbd_stblterm = ZeroVector(nodes_number);
-	fbd_stblterm = tauone * density * area * prod(DN_DX,bdf);
-	
+	fbd_stblterm =  tauone * density * area * prod(DN_DX,bdf);
 
 	for(int ii = 0; ii< nodes_number; ++ii)
 	  {
 		int index = ii*(dof + 1) + dof;
-		F[index] += fbd_stblterm[ii];
+		F[index] += fbd_stblterm[ii] * nodal_eps[ii] * nodal_eps[ii];
 	  }
 
 
@@ -1073,6 +1099,12 @@ KRATOS_WATCH(dp)	*/
 	double eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
+	
+	 array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < nodes_number; i++)
+	   {	  
+		 nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	   }
 
 	//build 1*tau1*ro Nacc grad q)
 	double fac = tauone * density * area;
@@ -1084,10 +1116,10 @@ KRATOS_WATCH(dp)	*/
 			int column = jj*(dof+1) + dof;
 
 			//K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
-			M(column,row) +=  fac* N[ii] * DN_DX(jj,0);
+			M(column,row) +=  fac* N[ii] * DN_DX(jj,0) * nodal_eps[jj];
 
 			//K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
-			M(column,row + 1) +=  fac* N[ii] * DN_DX(jj,1);
+			M(column,row + 1) +=  fac* N[ii] * DN_DX(jj,1) * nodal_eps[jj];
 		   }
 	    }
 
@@ -1109,6 +1141,12 @@ KRATOS_WATCH(dp)	*/
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 	 
+	array_1d<double,3> nodal_eps = ZeroVector(3);	  
+	for (int i = 0; i < nodes_number; i++)
+	 {
+	   nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	 }
+//  KRATOS_WATCH(nodal_eps)
 	 double fac = area * density;
 	//body  & momentum term force
 	for ( int ii = 0; ii < nodes_number; ii++)
@@ -1116,8 +1154,8 @@ KRATOS_WATCH(dp)	*/
 		int index = ii*(dof + 1) ;
 		const array_1d<double,2> bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 	
-		F[index] += fac * N[ii] * bdf[0] ;
-		F[index + 1] += fac * N[ii] * bdf[1];
+		F[index] += fac * nodal_eps[ii] * N[ii] * bdf[0] ;
+		F[index + 1] += fac * nodal_eps[ii] * N[ii] * bdf[1];
 
 	   }
 	
@@ -1197,7 +1235,7 @@ KRATOS_WATCH(dp)	*/
 			
 			if( this->GetValue(IS_DIVIDED) == 0.0 ) 
 			{
-				rResult.resize(0);
+				rResult.resize(0, false);
 			}
 			else
 			{ 
@@ -1283,66 +1321,99 @@ KRATOS_WATCH(dp)	*/
 	void Fluid2DSplit::CalculateDensity(Geometry< Node<3> > geom, double& elemental_density, double& elemental_viscosity, double& elemental_porosity, double& elemental_diameter)
  	{//PAY ATTENTION: CALCULATION OF ELEMENTAL DENSITY WITHOUT THE EFFECT OF POROSITY : RHO === RHO_WATER
 
-	       //Check if some of the elements don't have a porosity assigned
-	       double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
-	       if(eps0 == 0.0)
-		{   eps0 = 1.0;}
-	       double eps1 = geom[1].FastGetSolutionStepValue(POROSITY);
-	       if(eps1 == 0.0)
-		{    eps1 = 1.0;}
-	       double eps2 = geom[2].FastGetSolutionStepValue(POROSITY);
-	       if(eps2 == 0.0)
-		{    eps2 = 1.0;}
-	       //Check if some of the elements don't have a DIAMETER assigned
-	       double d0 = geom[0].FastGetSolutionStepValue(DIAMETER);
-	       if(d0 == 0.0)
-		{    d0 = 1.0;}
-	       double d1 = geom[1].FastGetSolutionStepValue(DIAMETER);
-	       if(d1 == 0.0)
-		{    d1 = 1.0;}
-	       double d2 = geom[2].FastGetSolutionStepValue(DIAMETER);
-	       if(d2 == 0.0)
-		{    d2 = 1.0;}
-
+//*****begin provisionary_comment to main porosity*************************
+// 	       //Check if some of the elements don't have a porosity assigned
+// 	       double eps0 = geom[0].FastGetSolutionStepValue(POROSITY);
+// 	       if(eps0 == 0.0)
+// 		{   eps0 = 1.0;}
+// 	       double eps1 = geom[1].FastGetSolutionStepValue(POROSITY);
+// 	       if(eps1 == 0.0)
+// 		{    eps1 = 1.0;}
+// 	       double eps2 = geom[2].FastGetSolutionStepValue(POROSITY);
+// 	       if(eps2 == 0.0)
+// 		{    eps2 = 1.0;}
+// 	       //Check if some of the elements don't have a DIAMETER assigned
+// 	       double d0 = geom[0].FastGetSolutionStepValue(DIAMETER);
+// 	       if(d0 == 0.0)
+// 		{    d0 = 1.0;}
+// 	       double d1 = geom[1].FastGetSolutionStepValue(DIAMETER);
+// 	       if(d1 == 0.0)
+// 		{    d1 = 1.0;}
+// 	       double d2 = geom[2].FastGetSolutionStepValue(DIAMETER);
+// 	       if(d2 == 0.0)
+// 		{    d2 = 1.0;}
+// 
+// 	       elemental_density = 0.0;
+// 	       elemental_porosity = 1.0;
+// 	       elemental_diameter = 0.01;
+// 
+// 	       if(eps0 == eps1 && eps1 == eps2)
+// 		{
+// 		        //for inside the domain totally inside one fluid
+// 		        elemental_porosity = eps0;
+// 		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); //* eps0;
+// 		        elemental_diameter = geom[0].FastGetSolutionStepValue(DIAMETER); 
+// 		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
+// 
+// 		}
+// 	       else if(eps0 == eps1)
+// 		{
+// 		        elemental_porosity = eps0;
+// 		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); // * eps0;	
+// 		        elemental_diameter = geom[0].FastGetSolutionStepValue(DIAMETER); 
+// 		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density 
+// 		}
+// 	       else if(eps1 == eps2)
+// 		{
+// 		        elemental_porosity = eps1;
+// 		        elemental_density = geom[1].FastGetSolutionStepValue(DENSITY); // * eps1;	
+// 		        elemental_diameter = geom[1].FastGetSolutionStepValue(DIAMETER); 
+// 		        elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY) * elemental_density;  //mu = nu * density 
+// 		}
+// 	       else if(eps2 == eps0)
+// 		{
+// 		        elemental_porosity = eps2;
+// 		        elemental_density = geom[2].FastGetSolutionStepValue(DENSITY); // * eps2;
+// 		        elemental_diameter = geom[2].FastGetSolutionStepValue(DIAMETER); 
+// 		        elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY)* elemental_density;  //mu = nu * density 
+// 		}
+// 	       else { KRATOS_WATCH("ERROR!!! three different values of densities");}
+//*****end provisionary_comment to main porosity *************************
+//*****begin provisionary_comment to average porosity *************************
+	       elemental_porosity = 0.0;
 	       elemental_density = 0.0;
-	       elemental_porosity = 1.0;
-	       elemental_diameter = 0.01;
+	       elemental_diameter = 0.0;
+	       elemental_viscosity = 0.0;
+	       unsigned int count = 0;
+	       for(unsigned int i=0; i< 3; i++)
+	       {
+		        count++;
+// 		        elemental_porosity += geom[i].FastGetSolutionStepValue(DENSITY);
+		        elemental_density += geom[i].FastGetSolutionStepValue(DENSITY); //* eps0;
+		        elemental_diameter += geom[i].FastGetSolutionStepValue(DIAMETER); 
+		        elemental_viscosity += geom[i].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
+	       }
+	       if (count == 0.0)
+		    { KRATOS_WATCH("*********************************************************ERROR-> Calculate Density Fluid_2d_split *******************")}
+	       else
+ 		    { 
+// 		      elemental_porosity /= count;
+		      elemental_density /= count;
+		      elemental_diameter /= count;
+		      elemental_viscosity /= count;
+		    }
+//*****end provisionary_comment to average porosity *************************
+//*****begin provisionary_comment to dominant porosity *************************
+		if(     geom[0].FastGetSolutionStepValue(POROSITY) <= 1.0 )
+		{    elemental_porosity = geom[0].FastGetSolutionStepValue(POROSITY);}
+		else if(geom[1].FastGetSolutionStepValue(POROSITY) <= 1.0)
+		{    elemental_porosity = geom[1].FastGetSolutionStepValue(POROSITY);}
+		else if(geom[2].FastGetSolutionStepValue(POROSITY) <= 1.0)
+		{    elemental_porosity = geom[2].FastGetSolutionStepValue(POROSITY);}
+		else
+		{ elemental_porosity = 1.0;}
 
-	       if(eps0 == eps1 && eps1 == eps2)
-		{
-		        //for inside the domain totally inside one fluid
-		        elemental_porosity = eps0;
-		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); //* eps0;
-		        elemental_diameter = geom[0].FastGetSolutionStepValue(DIAMETER); 
-		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
-
-		}
-	       else if(eps0 == eps1)
-		{
-		        elemental_porosity = eps0;
-		        elemental_density = geom[0].FastGetSolutionStepValue(DENSITY); // * eps0;	
-		        elemental_diameter = geom[0].FastGetSolutionStepValue(DIAMETER); 
-		        elemental_viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density 
-		}
-	       else if(eps1 == eps2)
-		{
-		        elemental_porosity = eps1;
-		        elemental_density = geom[1].FastGetSolutionStepValue(DENSITY); // * eps1;	
-		        elemental_diameter = geom[1].FastGetSolutionStepValue(DIAMETER); 
-		        elemental_viscosity = geom[1].FastGetSolutionStepValue(VISCOSITY) * elemental_density;  //mu = nu * density 
-		}
-	       else if(eps2 == eps0)
-		{
-		        elemental_porosity = eps2;
-		        elemental_density = geom[2].FastGetSolutionStepValue(DENSITY); // * eps2;
-		        elemental_diameter = geom[2].FastGetSolutionStepValue(DIAMETER); 
-		        elemental_viscosity = geom[2].FastGetSolutionStepValue(VISCOSITY)* elemental_density;  //mu = nu * density 
-		}
-	       else { KRATOS_WATCH("ERROR!!! three different values of densities");}
-
-
-
-
+//*****end provisionary_comment to dominant porosity *************************
  	}
 
 	//*************************************************************************************
@@ -1374,6 +1445,7 @@ KRATOS_WATCH(dp)	*/
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
+	double advvel_norm_fluid = advvel_norm/eps;
 //         	double dp = 0.01; //diameter of the particle	
 	double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
@@ -1385,15 +1457,15 @@ KRATOS_WATCH(dp)	*/
 	
 		if(dyn_st_switch)
 		  {
-			tauone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length + fac_linear +  fac_nonlinear);
+			tauone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm_fluid*1.0/ele_length + fac_linear +  fac_nonlinear);
 		  }
 		else
 		 {
 			
-			tauone = 1.0/(0.0+ 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm*1.0/ele_length + fac_linear +  fac_nonlinear);
+			tauone = 1.0/(0.0+ 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm_fluid*1.0/ele_length + fac_linear +  fac_nonlinear);
 		  }
 		
-	tautwo = mu/density + 1.0*ele_length*advvel_norm/2.0;
+	tautwo = mu/density + 1.0*ele_length*advvel_norm_fluid/2.0;
 
 
 	KRATOS_CATCH("")
