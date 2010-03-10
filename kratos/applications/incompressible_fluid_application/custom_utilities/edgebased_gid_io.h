@@ -414,10 +414,14 @@ namespace Kratos
 			for ( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
 			{
 				n_dist += it->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-				n_por += it->GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+				if(     it->GetGeometry()[i].FastGetSolutionStepValue(POROSITY) == 1.0)
+				  {    n_por = (it)->GetGeometry().size();}
+// 				n_por += it->GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
 			}
 //  			n_dist /= (it)->GetGeometry().size();
 // 			n_por /= (it)->GetGeometry().size();
+
+
 
 			if (n_dist> 0.0 && n_por== (it)->GetGeometry().size())//air
 				{
@@ -435,7 +439,8 @@ namespace Kratos
 				{
 				    color=20;		
 				}
-			
+
+		
 			
 			nodes_id[(it)->GetGeometry().size()]= color;
 			
