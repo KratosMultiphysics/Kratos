@@ -780,6 +780,7 @@ KRATOS_WATCH(dp)	*/
 		int nodes_number = 3;
 		int dof = 2;
 		int matsize = dof*nodes_number;
+
 		double density;
 		double mu;
 		double eps;
@@ -879,8 +880,8 @@ ms_adv_vel[1] /=eps;
 			int row = ii*dof;
 			for ( int jj = 0; jj < nodes_number; jj++)
 		        {
-				grad_stblterm(row,jj)   =  nodal_eps[ii] *DN_DX(jj,0) * conv_opr(ii);
-  				grad_stblterm(row+1,jj) =  nodal_eps[ii] *DN_DX(jj,1) * conv_opr(ii);
+				grad_stblterm(row,jj)   =  DN_DX(jj,0) * conv_opr(ii);
+  				grad_stblterm(row+1,jj) =  DN_DX(jj,1) * conv_opr(ii);
 			 }
 		}
 
@@ -894,8 +895,8 @@ ms_adv_vel[1] /=eps;
 			   {
 				int column = jj*(dof+1) + dof;
 				//1*tau1*(a.grad V)(grad P)
-				K(row,column) +=  grad_stblterm(loc_row,jj);
-				K(row + 1,column) +=  grad_stblterm(loc_row + 1, jj);
+				K(row,column) += nodal_eps[ii] * grad_stblterm(loc_row,jj);
+				K(row + 1,column) += nodal_eps[ii] * grad_stblterm(loc_row + 1, jj);
 
 				//1*tau1*(grad q)(ro*a.grad U) 
 				K(column, row) += density * grad_stblterm(loc_row, jj);
@@ -1001,11 +1002,11 @@ ms_adv_vel[1] /=eps;
 	boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
 	gard_opr = tauone * area * prod(DN_DX,trans(DN_DX)); 
 	
-	 array_1d<double,3> nodal_eps = ZeroVector(3);
-	for (int i = 0; i < nodes_number; i++)
-	   {
-	   nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
-	   }
+// 	 array_1d<double,3> nodal_eps = ZeroVector(3);
+// 	for (int i = 0; i < nodes_number; i++)
+// 	   {
+// 	   nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+// 	   }
 
 	for ( int ii = 0; ii < nodes_number; ii++)
 	    {
@@ -1013,7 +1014,7 @@ ms_adv_vel[1] /=eps;
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1) + dof;
-			K(row,column) += nodal_eps[ii] * nodal_eps[ii] * gard_opr(ii,jj);
+			K(row,column) +=   gard_opr(ii,jj);
 		   }
 	    }
 	//build Darcy Au+B|u|u * grad q stabilization term and assemble and assemble
@@ -1052,11 +1053,11 @@ ms_adv_vel[1] /=eps;
 			int column = jj*(dof+1) + dof;
 			//Au+B|u|u * grad q
 			//DARCY TERM linear part
-			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0) * nodal_eps[jj];
-			K(column,row + 1) +=fac_linear* N[ii] * DN_DX(jj,1) * nodal_eps[jj];
+			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0);
+			K(column,row + 1) +=fac_linear* N[ii] * DN_DX(jj,1);
 			//DARCY TERM nonlinear part 
-			K(column,row) +=fac_nonlinear* N[ii] * DN_DX(jj,0) * nodal_eps[jj];
-			K(column,row + 1) +=fac_nonlinear* N[ii] * DN_DX(jj,1) * nodal_eps[jj];
+			K(column,row) +=fac_nonlinear* N[ii] * DN_DX(jj,0);
+			K(column,row + 1) +=fac_nonlinear* N[ii] * DN_DX(jj,1);
 
 
 		   }
@@ -1078,7 +1079,7 @@ ms_adv_vel[1] /=eps;
 	for(int ii = 0; ii< nodes_number; ++ii)
 	  {
 		int index = ii*(dof + 1) + dof;
-		F[index] += fbd_stblterm[ii] * nodal_eps[ii] * nodal_eps[ii];
+		F[index] += fbd_stblterm[ii] ;
 	  }
 
 
@@ -1100,11 +1101,11 @@ ms_adv_vel[1] /=eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 	
-	 array_1d<double,3> nodal_eps = ZeroVector(3);
-	for (int i = 0; i < nodes_number; i++)
-	   {	  
-		 nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
-	   }
+// 	 array_1d<double,3> nodal_eps = ZeroVector(3);
+// 	for (int i = 0; i < nodes_number; i++)
+//     {
+// 	   nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+// 	   }
 
 	//build 1*tau1*ro Nacc grad q)
 	double fac = tauone * density * area;
@@ -1116,10 +1117,10 @@ ms_adv_vel[1] /=eps;
 			int column = jj*(dof+1) + dof;
 
 			//K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
-			M(column,row) +=  fac* N[ii] * DN_DX(jj,0) * nodal_eps[jj];
+			M(column,row) +=  fac* N[ii] * DN_DX(jj,0);
 
 			//K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
-			M(column,row + 1) +=  fac* N[ii] * DN_DX(jj,1) * nodal_eps[jj];
+			M(column,row + 1) +=  fac* N[ii] * DN_DX(jj,1);
 		   }
 	    }
 
@@ -1461,8 +1462,7 @@ ms_adv_vel[1] /=eps;
 		  }
 		else
 		 {
-			
-			tauone = 1.0/(0.0+ 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm_fluid*1.0/ele_length + fac_linear +  fac_nonlinear);
+			tauone = 1.0/(4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm_fluid*1.0/ele_length + fac_linear +  fac_nonlinear);
 		  }
 		
 	tautwo = mu/density + 1.0*ele_length*advvel_norm_fluid/2.0;
