@@ -228,22 +228,8 @@ namespace Kratos
 				}
 			}
 			
-			/*
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				if(i->IsFixed(VELOCITY_X))
-					(i)->Fix(FRACT_VEL_X);
-				if(i->IsFixed(VELOCITY_Y))
-					(i)->Fix(FRACT_VEL_Y);
-				if(i->IsFixed(VELOCITY_Z))
-					(i)->Fix(FRACT_VEL_Z);
-			}
-			*/
 			
-			//this->m_step = 1;
 
-			//this->mOldDt  =0.00;
 			Element & ref_el = model_part.Elements().front();
 			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
 
@@ -726,8 +712,8 @@ namespace Kratos
 				{
 				it->FastGetSolutionStepValue(VELOCITY_Z)+=dt_Minv*temp[2];						
 				}
-			//TODO: TILL NOW ITS A 2D STRATEGY!
-			//KRATOS_WATCH(it->FastGetSolutionStepValue(VELOCITY))
+			
+			
 		}
 		
 		KRATOS_CATCH("");
