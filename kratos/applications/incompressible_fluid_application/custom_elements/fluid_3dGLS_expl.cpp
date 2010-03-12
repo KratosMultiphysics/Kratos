@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes 
 #include "includes/define.h"
-#include "custom_elements/fluid_2dGLS_expl.h"
+#include "custom_elements/fluid_3dGLS_expl.h"
 #include "utilities/math_utils.h"
 #include "incompressible_fluid_application.h"
 #include "utilities/geometry_utilities.h" 
@@ -150,10 +150,10 @@ namespace Kratos
 	const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 	const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
 
-	//double Area;
-	//GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
-	double Area = GeometryUtils::CalculateVolume3D(GetGeometry());
-	double lumped_mass_fac = Area * 0.25;
+	//double Volume;
+	//GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Volume);
+	double Volume = GeometryUtils::CalculateVolume3D(GetGeometry());
+	double lumped_mass_fac = Volume * 0.25;
 	//filling in the diagonal of the lumped mass matrix,  (later I can change it to vector...)
 	GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS)+=lumped_mass_fac*rho0;
 	GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS)+=lumped_mass_fac*rho1;	
@@ -199,8 +199,8 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 				
 		//first we compute  the force term and pressure gradient terms:
 		//getting data for the given geometry
-		double Area;
-		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
+		double Volume;
+		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Volume);
 
 		//getting the velocity on the nodes and other necessary variabless
 		const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -231,7 +231,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//VISCOUS CONTRIBUTION 
 		// += Laplacian * nu; --> ONE GAUSS POINT
 		//msWorkMatrix is used now to store the element laplacian 4x4
-		noalias(msWorkMatrix) = Area*density*nu * prod(msDN_DX,trans(msDN_DX));
+		noalias(msWorkMatrix) = Volume*density*nu * prod(msDN_DX,trans(msDN_DX));
 				
 		//x comp
 		GalerkinRHS[0]=-1.0*(msWorkMatrix(0,0)*vel0[0]+msWorkMatrix(0,1)*vel1[0]+msWorkMatrix(0,2)*vel2[0] + msWorkMatrix(0,3)*vel3[0]);
@@ -310,7 +310,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		msAuxVec[10]=vel3[1];
 		msAuxVec[11]=vel3[2];
 
-		noalias(GalerkinRHS)-=(Area * density)*prod(msAuxMat, msAuxVec);//0.3333333333333*prod(AUX, u_n);
+		noalias(GalerkinRHS)-=(Volume * density)*prod(msAuxMat, msAuxVec);//0.3333333333333*prod(AUX, u_n);
 		//GalerkinRHS=prod(AUX, Mom_n)
 
 		//and now we add the pressure gradient and the force term
@@ -323,18 +323,18 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		for(unsigned int i = 0; i<number_of_nodes; i++)
 		{
 			//f=A*N_I*b, N_I=0.33333333 for 1 Gauss point
-			GalerkinRHS[i*3] += body_force[0]* density * Area * 0.25;
-			GalerkinRHS[i*3+1] += body_force[1] * density * Area * 0.25;
-			GalerkinRHS[i*3+2] += body_force[2] * density * Area * 0.25;
+			GalerkinRHS[i*3] += body_force[0]* density * Volume * 0.25;
+			GalerkinRHS[i*3+1] += body_force[1] * density * Volume * 0.25;
+			GalerkinRHS[i*3+2] += body_force[2] * density * Volume * 0.25;
 		}
 		
 		//pressure gradient (sign is positive), ITS NOT INTEGRATED BY PARTS!!!!0.33333 stands for N at the integration point
-		//double a = 0.33333333*Area*(msDN_DX(0,0)*p_n0 + msDN_DX(1,0)*p_n1 + msDN_DX(2,0)*p_n2);
-		//double b = 0.33333333*Area*(msDN_DX(0,1)*p_n0 + msDN_DX(1,1)*p_n1 + msDN_DX(2,1)*p_n2);
+		//double a = 0.33333333*Volume*(msDN_DX(0,0)*p_n0 + msDN_DX(1,0)*p_n1 + msDN_DX(2,0)*p_n2);
+		//double b = 0.33333333*Volume*(msDN_DX(0,1)*p_n0 + msDN_DX(1,1)*p_n1 + msDN_DX(2,1)*p_n2);
 		
 		//Now we shall add the Gp term
 
-		double p_avg=0.25*(p_n0+p_n1+p_n2+p_n3)*Area;
+		double p_avg=0.25*(p_n0+p_n1+p_n2+p_n3)*Volume;
 		GalerkinRHS[0]+=msDN_DX(0,0)*p_avg;
 		GalerkinRHS[1]+=msDN_DX(0,1)*p_avg;
 		GalerkinRHS[2]+=msDN_DX(0,2)*p_avg;  
@@ -355,7 +355,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//the below is Grad form (not integrated by parts)
 		//G=DN_DX*N
 		noalias(msGradOp)=prod(msShapeFunc, trans(msDN_DX));
-		msGradOp*=Area;
+		msGradOp*=Volume;
 
 		//we use now ms_aux0 for storing the 3 nodal pressure in a vector
 		ms_aux0[0]=p_n0;
@@ -393,8 +393,8 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		//first we compute  the force term and pressure gradient terms:
 		//getting data for the given geometry
-		double Area;
-		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
+		double Volume;
+		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Volume);
 
 		//getting the velocity vector on the nodes
 
@@ -477,7 +477,9 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//now compute all the stabilization terms: tau(a*nabla v) (-rho*du/dt + mLapl u - nabla p - a nabla u + f)
 		
 		//calculating parameter tau (saved internally to each element). to decrease the stabilization, you can itroduce 1/dt in the denominator
-		double h = pow(6.00*Area,0.3333333);
+		//double h = pow(6.00*Volume,0.3333333);
+		double h = pow(12.00*Volume,0.3333333);
+		h*=(2.0/sqrt(3.0));
 		//we are doing it explicitly, so adv vel is equal to the v_n
 		double norm_u = ms_adv_vel[0]*ms_adv_vel[0] + ms_adv_vel[1]*ms_adv_vel[1] + ms_adv_vel[2]*ms_adv_vel[2];
 		norm_u = sqrt(norm_u);
@@ -501,21 +503,21 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		//stabilization that comes from product of two convections - conv_conv_stab -> (a*nabla v, a*nabla u): 6x6
 		noalias(msAuxMat) = prod(trans(msConvOp), msConvOp);
-		msAuxMat*= (tau*density*Area);
+		msAuxMat*= (tau*density*Volume);
 
 		//add the convective term(msAuxMat), multiplied by the nodal velocity vector (stored in msAuxVec) to the RHS
 		noalias(msStabMomRes)-= prod(msAuxMat, msAuxVec);
 
 		//now the conv_grad_stab		
 		noalias(msAuxMat2) = prod(trans(msConvOp), trans(msDN_DX));
-		msAuxMat2*= (tau*Area);
+		msAuxMat2*= (tau*Volume);
 
 		//add the conv_grad term(msAuxMat2), multiplied by the nodal pressure (stored in ms_temp_vec_np) to the RHS
 		noalias(msStabMomRes) -= prod(msAuxMat2, ms_temp_vec_np);
 
 		//stabilization that comes from product of convection and body force
 		noalias(msAuxMat1) = prod(trans(msConvOp), trans(msShapeFunc));
-		msAuxMat1*= tau*density*Area;
+		msAuxMat1*= tau*density*Volume;
 		//we reuse msAuxVec
 		msAuxVec[0]=ff0[0];
 		msAuxVec[1]=ff0[1];
@@ -567,7 +569,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//we again reuse msAuMat to store cinv_inret_stab, and msAuxVec - to store the accelerations
 		//stabilization that comes from product of convection and inertia term
 		noalias(msAuxMat) = prod(trans(msConvOp), trans(msShapeFunc));
-		msAuxMat*= (tau*density*Area);
+		msAuxMat*= (tau*density*Volume);
 
 		noalias(msStabMomRes)-=prod(msAuxMat, msAuxVec);
 
@@ -673,8 +675,8 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		msAuxVec[11]=fv3[2];
 
 		//getting data for the given geometry
-		double Area;
-		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
+		double Volume;
+		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Volume);
 
 		//calculating average density and viscosity
 		double nu = 0.25*(nu0 + nu1 + nu2 + nu3);
@@ -688,11 +690,14 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		//calculating parameter tau (saved internally to each element)
 		//h in 3D is calculated like this!
-		double h = pow(6.00*Area,0.3333333);
+		//double h = pow(6.00*Volume,0.3333333);
+		double h = pow(12.00*Volume,0.3333333);
+		h*=(2.0/sqrt(3.0));
 		
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
 		norm_u = sqrt(norm_u);
 		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h+ 1.0/dt);
+		
 		
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
 		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
@@ -704,7 +709,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//	msWorkMatrix stores the element laplacian
 		//
 		noalias(msWorkMatrix)=prod(msDN_DX,trans(msDN_DX));
-		noalias(rLeftHandSideMatrix) = (dt + tau) * Area*msWorkMatrix;
+		noalias(rLeftHandSideMatrix) = (dt + tau) * Volume*msWorkMatrix;
 		//rhs consists of D*u_tilda (divergence of the Fractional velocity) and the term: Tau1*(nabla_q, residual_gausspoint)
 		//fv is u_tilda
 		
@@ -717,7 +722,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		ms_temp_vec_np[1] = p1; 
 		ms_temp_vec_np[2] = p2; 
 		ms_temp_vec_np[3] = p3; 
-		//LHS is already multiplied by AREA
+		//LHS is already multiplied by Volume
 		noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,ms_temp_vec_np);
 		
 		//NOW RHS-=dt L p_old		
@@ -727,7 +732,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		ms_temp_vec_np[2] = p2_old;
 		ms_temp_vec_np[3] = p3_old;  
 
-		noalias(rRightHandSideVector) += Area*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
+		noalias(rRightHandSideVector) += Volume*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
 		
 		//***************************************************************************
 		
@@ -737,10 +742,10 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1] + msDN_DX(1,2)*fv1[2];
 		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1] + msDN_DX(2,2)*fv2[2];
 		Gaux += msDN_DX(3,0)*fv3[0] + msDN_DX(3,1)*fv3[1] + msDN_DX(3,2)*fv3[2];
-		rRightHandSideVector[0] -= density*Area*Gaux * msN[0]; 
-		rRightHandSideVector[1] -= density*Area*Gaux * msN[1]; 
-		rRightHandSideVector[2] -= density*Area*Gaux * msN[2]; 
-		rRightHandSideVector[3] -= density*Area*Gaux * msN[3];
+		rRightHandSideVector[0] -= density*Volume*Gaux * msN[0]; 
+		rRightHandSideVector[1] -= density*Volume*Gaux * msN[1]; 
+		rRightHandSideVector[2] -= density*Volume*Gaux * msN[2]; 
+		rRightHandSideVector[3] -= density*Volume*Gaux * msN[3];
 		
 		
 		
@@ -756,7 +761,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		    }
 		noalias(D)=prod(msDN_DX, trans(shape_func));
 		temp = prod(D, u_n);
-		rRightHandSideVector -= tau*density*Area*temp;
+		rRightHandSideVector -= tau*density*Volume*temp;
 		*/
 
 		//RHS = +tau*nablaN*f, we reuse aux
@@ -772,7 +777,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		ms_aux1[3]=msDN_DX(3,0)*ms_aux2[0]+msDN_DX(3,1)*ms_aux2[1]+msDN_DX(3,2)*ms_aux2[2];
 		//KRATOS_WATCH(temp)
 
-		rRightHandSideVector += tau*density*Area*ms_aux1;
+		rRightHandSideVector += tau*density*Volume*ms_aux1;
 		
 		
 		//RHS += -tau*nablaN*du_gausspoint/dt
@@ -787,7 +792,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		ms_aux1=prod(msDN_DX,ms_vel_gauss);
 		
-		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux1;
+		noalias(rRightHandSideVector) -= tau*density*Volume*ms_aux1;
 		
  
 		//and now the stabilization term referring to the convective operator
@@ -834,7 +839,7 @@ void Fluid3DGLS_expl::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//we again reuse ms_aux0
 		noalias(ms_aux0) = prod(msDN_DX,a); 
 		
-		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
+		noalias(rRightHandSideVector) -= tau*density*Volume*ms_aux0;
 		
 		KRATOS_CATCH("")
 	}

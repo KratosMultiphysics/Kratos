@@ -389,9 +389,6 @@ void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& Galerki
 		ms_temp_vec_np[1]=p1;
 		ms_temp_vec_np[2]=p2;
 
-
-
-
 		//KRATOS_WATCH(pressure)
 		//KRATOS_WATCH(Visc_and_Conv)
 		//convective contribution
@@ -605,7 +602,7 @@ void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& Galerki
 		Mass(1,2)=1.0;
 		Mass(2,0)=1.0;
 		Mass(2,1)=1.0;
-		
+		Mass/=12.0;
 		/*		
 		boost::numeric::ublas::bounded_matrix<double,3,3> Mass_lumped = ZeroMatrix(3,3);
 		Mass_lumped(0,0)=0.3333333333;
