@@ -65,10 +65,13 @@ class RungeKuttaFracStepCompSolver:
         self.CalculateReactionFlag = False
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
-        self.domain_size = 2;
+        self.domain_size = domain_size;
         #self.MoveMeshFlag = True
-
-        self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        if (self.domain_size==2):
+            self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        if (self.domain_size==3):
+            self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+        
 
         ##calculate normals
         self.normal_tools = NormalCalculationUtils()
@@ -87,9 +90,16 @@ class RungeKuttaFracStepCompSolver:
         #for SLIP condition we need to save these Conditions in a list
         #by now SLIP conditions are identified by FLAG_VARIABLE=3.0. this is done in the constructir of the strategy
         
-        #creating the solution strategy
-        self.solver = RungeKuttaFracStepCompStrategy(self.model_part,self.linear_solver,self.CalculateReactionFlag,
-                                                  self.ReformDofSetAtEachStep, self.CalculateNormDxFlag, self.domain_size )   
+        #creating the solution strategy          
+        if (self.domain_size==2):
+            self.solver = RungeKuttaFracStepCompStrategy2D(self.model_part,self.linear_solver,self.CalculateReactionFlag,
+                                                  self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)
+        if (self.domain_size==3):
+            self.solver = RungeKuttaFracStepCompStrategy3D(self.model_part,self.linear_solver,self.CalculateReactionFlag,
+                                                  self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)   
+
+        #self.solver = RungeKuttaFracStepCompStrategy(self.model_part,self.linear_solver,self.CalculateReactionFlag,
+        #                                         self.ReformDofSetAtEachStep, self.CalculateNormDxFlag, self.domain_size )   
         (self.solver).SetEchoLevel(self.echo_level)
 
         (self.neigh_finder).Execute();
