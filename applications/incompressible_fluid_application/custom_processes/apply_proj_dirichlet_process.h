@@ -137,11 +137,6 @@ namespace Kratos
 				}
 
 		}
-
-		
-		
-				
-		
 		
 		//first we remove the Dirichlet conditions from the nodes that were defining the interface in the previous step:
 
@@ -193,7 +188,7 @@ namespace Kratos
 				n_int+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
 				n_int+=ic->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
 				//elements with n_int=3 lie inside the fictitious domain, and therefore are of no interest
-				if (n_int==1 || n_int==2)
+				if (n_int==1 || n_int==2 || n_int==3)
 			
 					{
 					//and now fix the velocity of the IS_INTERFACE nodes (those are lying inside of the fictitious domain)
