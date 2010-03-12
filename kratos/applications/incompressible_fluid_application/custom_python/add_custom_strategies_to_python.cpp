@@ -272,21 +272,31 @@ namespace Kratos
 				  .def("SolveStep3",&RungeKuttaFracStepStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
 				  
 				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
-
 			
-			class_< RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+			class_< RungeKuttaFracStepCompStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >,				
+			
 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("RungeKuttaFracStepCompStrategy", 
+				("RungeKuttaFracStepCompStrategy2D", 
 				init<ModelPart&, LinearSolverType::Pointer,
-				bool, bool, bool,
-				int 
+				bool, bool, bool
 				>() )
-				  .def("SolveStep1",&RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
-				  .def("SolveStep2",&RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
-				  .def("SolveStep3",&RungeKuttaFracStepCompStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+				  .def("SolveStep1",&RungeKuttaFracStepCompStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&RungeKuttaFracStepCompStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&RungeKuttaFracStepCompStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
 				  
 				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
+			class_< RungeKuttaFracStepCompStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("RungeKuttaFracStepCompStrategy3D", 
+				init<ModelPart&, LinearSolverType::Pointer,
+				bool, bool, bool
+				>() )
+				  .def("SolveStep1",&RungeKuttaFracStepCompStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+				  .def("SolveStep2",&RungeKuttaFracStepCompStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+				  .def("SolveStep3",&RungeKuttaFracStepCompStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+				  
+				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
 
                         //********************************************************************************************
