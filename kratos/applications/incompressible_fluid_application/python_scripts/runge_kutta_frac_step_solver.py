@@ -54,9 +54,9 @@ class RungeKuttaFracStepSolver:
         pDiagPrecond = DiagonalPreconditioner()
 
         #definition of the solvers
-        self.linear_solver =  SkylineLUFactorizationSolver()
-        #self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
-        #self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
+        #self.linear_solver =  SkylineLUFactorizationSolver()
+        self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
+        self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
 
         self.max_iter = 10
                             
@@ -68,7 +68,12 @@ class RungeKuttaFracStepSolver:
         self.domain_size = domain_size;
         #self.MoveMeshFlag = True
 
-        self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        if (self.domain_size==2):
+            self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        if (self.domain_size==3):
+            self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+        
+
 
         ##calculate normals
         self.normal_tools = NormalCalculationUtils()
@@ -104,7 +109,7 @@ class RungeKuttaFracStepSolver:
     #######################################################################   
     def Solve(self):
         (self.solver).Solve()
-        #(self.neigh_finder).Execute();
+        (self.neigh_finder).Execute();
         #self.Remesh()
 
            
