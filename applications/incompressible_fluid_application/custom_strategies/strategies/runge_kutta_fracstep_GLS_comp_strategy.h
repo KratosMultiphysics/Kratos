@@ -83,7 +83,7 @@ namespace Kratos
 
 
 	*/
-	template<class TSparseSpace,
+	template<unsigned int TDim, class TSparseSpace,
 	class TDenseSpace,
 	class TLinearSolver
 	>
@@ -97,7 +97,7 @@ namespace Kratos
 		/** Counted pointer of ClassName */
 		typedef std::vector<unsigned int> IndicesVectorType;
 		
-		typedef boost::shared_ptr< RungeKuttaFracStepCompStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+		typedef boost::shared_ptr< RungeKuttaFracStepCompStrategy<TDim, TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
 
 		typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
@@ -137,14 +137,14 @@ namespace Kratos
 			typename TLinearSolver::Pointer pNewPressureLinearSolver,
 			bool CalculateReactions = false,
 			bool ReformDofAtEachIteration = true,
-			bool CalculateNormDxFlag = true,
+			bool CalculateNormDxFlag = true
 			//double velocity_toll = 0.01,
 			//double pressure_toll = 0.01,
 			//int MaxVelocityIterations = 3,
 			//int MaxPressureIterations = 1,
 			//unsigned int time_order  = 2,
 			//unsigned int prediction_order  = 2,
-			unsigned int domain_size = 2
+			//unsigned int domain_size = 2
 			//unsigned int laplacian_form = 2, //1 = laplacian, 2 = discrete laplacian
 			//bool predictor_corrector = false
 			)
@@ -158,7 +158,7 @@ namespace Kratos
 			//this->mMaxPressIterations = MaxPressureIterations;
 			//this->mtime_order = time_order;
 			//this->mprediction_order = time_order;
-			this->mdomain_size = domain_size;
+			//this->mdomain_size = domain_size;
 			//this->mpredictor_corrector = predictor_corrector;
 			this->mReformDofAtEachIteration = ReformDofAtEachIteration;
 
@@ -248,11 +248,22 @@ namespace Kratos
 			Element & ref_el = model_part.Elements().front();
 			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
 
-			//int id=1;
+			//int id=1;		
+			if (TDim==2)
+			{
 			Fluid2DGLS_expl_comp el(1, p_null_geom);
 
 			if (typeid(ref_el) != typeid(el))
 				KRATOS_ERROR(std::logic_error,  "Compressible Runge Kutta Strategy requires utilization of Fluid2DGLS_expl_comp elements " , "");
+			}
+
+			if (TDim==3)
+			{
+			Fluid3DGLS_expl_comp el(1, p_null_geom);
+
+			if (typeid(ref_el) != typeid(el))
+				KRATOS_ERROR(std::logic_error,  "Compressible Runge Kutta Strategy requires utilization of Fluid3DGLS_expl_comp elements " , "");
+			}
 			
 			KRATOS_CATCH("")
 		}
@@ -582,65 +593,133 @@ namespace Kratos
 		{
 			it->FastGetSolutionStepValue(AUX_VECTOR)=ZeroVector(3);
 		}		
-
-		//allocation of work space
-		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-		array_1d<double,3> N;
-		array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!		
-		//double lumping_factor = 0.33333333333333;
-		
-		
-		//calculate the velocity correction and store it in AUX_VECTOR
-		for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
+		if (TDim==2)
 		{
-			//get the list of nodes of the element
-			Geometry< Node<3> >& geom = it->GetGeometry();
-
-			double volume;
-			GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
-						
-			array_1d<double,3> pres_inc;
-			pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
-			pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
-			pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
-			
-			//KRATOS_WATCH(pres_inc)
-
-			//Gradient operator G:
-			boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
-			boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
-			for (int ii = 0; ii< 3; ii++)
-			    {
-				int column = ii*2;				
-				shape_func(column,0) = N[ii];
-				shape_func(column + 1, 1) = shape_func(column,0);
-			    }
-			noalias(G)=prod(shape_func, trans(DN_DX));
-			G*=volume;
-
-			array_1d<double,6> aaa;
-			aaa = prod(G,pres_inc);
-
-			array_1d<double,3> aux;
-			aux[0]=aaa[0];
-			aux[1]=aaa[1];			
-			//z-component is zero
-			aux[2]=0.0;
-
-			geom[0].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-			//reusing aux for the second node 
-			aux[0]=aaa[2];
-			aux[1]=aaa[3];			
-			//z-component is zero
-			geom[1].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-			//reusing aux for the third node
-			aux[0]=aaa[4];
-			aux[1]=aaa[5];			
-			geom[2].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-			//for(unsigned int i=0;i<3;i++)
-			//  geom[i].FastGetSolutionStepValue(AUX_VECTOR) += aux0;
-		}
+			//allocation of work space
+			boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+			array_1d<double,3> N;
+			array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!		
+			//double lumping_factor = 0.33333333333333;
 		
+		
+			//calculate the velocity correction and store it in AUX_VECTOR
+			for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
+			{
+				//get the list of nodes of the element
+				Geometry< Node<3> >& geom = it->GetGeometry();
+
+				double volume;
+				GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
+						
+				array_1d<double,3> pres_inc;
+				pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
+				pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
+				pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
+			
+				//Riccardo's modification: multiply the G(p_n+1-p_n) by 1/2
+				pres_inc*=0.5;
+
+				//Gradient operator G:
+				boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+				boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
+				for (int ii = 0; ii< 3; ii++)
+				    {
+					int column = ii*2;				
+					shape_func(column,0) = N[ii];
+					shape_func(column + 1, 1) = shape_func(column,0);
+				    }
+				noalias(G)=prod(shape_func, trans(DN_DX));
+				G*=volume;
+
+				array_1d<double,6> aaa;
+				aaa = prod(G,pres_inc);
+
+				array_1d<double,3> aux;
+				aux[0]=aaa[0];
+				aux[1]=aaa[1];			
+				//z-component is zero
+				aux[2]=0.0;
+
+				geom[0].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+				//reusing aux for the second node 
+				aux[0]=aaa[2];
+				aux[1]=aaa[3];			
+				//z-component is zero
+				geom[1].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+				//reusing aux for the third node
+				aux[0]=aaa[4];
+				aux[1]=aaa[5];			
+				geom[2].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+				//for(unsigned int i=0;i<3;i++)
+				//  geom[i].FastGetSolutionStepValue(AUX_VECTOR) += aux0;
+			}
+		}
+		if (TDim==3)
+			{
+			KRATOS_WATCH("Last step in 3D")
+			
+			array_1d<double,4> pres_inc;
+			boost::numeric::ublas::bounded_matrix<double,12,3> shape_func = ZeroMatrix(12, 3);
+			boost::numeric::ublas::bounded_matrix<double,12,4> G = ZeroMatrix(12,4);
+			boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+			array_1d<double,4> N;
+			//array_1d<double,3> aux0, aux1, aux2, aux3; //this are sized to 3 even in 2D!!		
+			for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
+			{
+				Geometry< Node<3> >& geom = it->GetGeometry();
+
+				pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
+				pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
+				pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
+				pres_inc[3] = geom[3].FastGetSolutionStepValue(PRESSURE,1)-geom[3].FastGetSolutionStepValue(PRESSURE);
+				
+				
+	
+				double volume;
+				GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);		
+
+				//Gradient operator G:
+			
+				for (int ii = 0; ii< 4; ii++)
+				    {
+					int column = ii*3;				
+					shape_func(column,0) = N[ii];
+					shape_func(column + 1, 1) = shape_func(column,0);
+					shape_func(column + 2, 2) = shape_func(column,0);
+				    }
+				noalias(G)=prod(shape_func, trans(DN_DX));
+				G*=volume;
+
+				array_1d<double,12> aaa;
+				aaa = prod(G,pres_inc);
+
+				array_1d<double,3> aux;
+				aux[0]=aaa[0];
+				aux[1]=aaa[1];			
+				aux[2]=aaa[2];			
+
+				geom[0].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+				//reusing aux for the second node 
+				aux[0]=aaa[3];
+				aux[1]=aaa[4];
+				aux[2]=aaa[5];						
+				//z-component is zero
+				geom[1].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+				//reusing aux for the third node
+				aux[0]=aaa[6];
+				aux[1]=aaa[7];
+				aux[2]=aaa[8];						
+				geom[2].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+
+				aux[0]=aaa[9];
+				aux[1]=aaa[10];
+				aux[2]=aaa[11];						
+				geom[3].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+
+				//for(unsigned int i=0;i<3;i++)
+				//  geom[i].FastGetSolutionStepValue(AUX_VECTOR) += aux0;
+			}
+			}
 		
 		//correct the velocities
 		for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
