@@ -70,7 +70,7 @@ namespace Kratos
 		//first point contribution
 		CalculateN_at_Point(GetGeometry(), mPoint1[0], mPoint1[1], msN);
 		//CHECK IF THE POINT IS NOT TOOO CLOSE TO THE VERTEX of destination - and identify if so, to which vertex
-		double tol=0.2;
+		double tol=0.1;
 		if ( msN[0]<tol && msN[1]<tol)
 			{
 			bad_vertex_index1=2;			
@@ -133,7 +133,13 @@ namespace Kratos
 				GetGeometry()[i].Fix(AUX_VEL_X);
 				GetGeometry()[i].Fix(AUX_VEL_Y);
 
-				}			
+				}	
+			//in the rest of the nodes (the ones that are lying on the fictitious part of the domain) we set aux_vel to zero
+			else if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
+				{
+				GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.0;
+				GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
+				}	
 				
 			}	
 
@@ -155,9 +161,10 @@ namespace Kratos
 	void ProjDirichletCond::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 
+		/*
 		if(rRightHandSideVector.size() != 6)
            		 rRightHandSideVector.resize(6,false);
-
+		*/
 		
 		KRATOS_ERROR(std::logic_error,"Method not implemented!!!!","");
 		
@@ -176,6 +183,15 @@ namespace Kratos
 
 		if(rRightHandSideVector.size() != 6)
             rRightHandSideVector.resize(6,false);
+
+		//save the velocity vec in order to add the rhs contribution originating from Mv
+		array_1d<double,6> Vel_VEC;
+		for (int i=0;i<3;i++)
+		{
+		Vel_VEC[2*i]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X);
+		Vel_VEC[2*i+1]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y);
+		}
+		KRATOS_WATCH(Vel_VEC)
 		/*
 		const array_1d<double,3>& fp = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_FORCE);
 		
@@ -183,14 +199,16 @@ namespace Kratos
 		rRightHandSideVector[0] = -fp[0];
 		rRightHandSideVector[1] = -fp[1];
 		*/
+		/*
 		KRATOS_WATCH(this->mPoint1)
 		KRATOS_WATCH(this->mPoint2)
 		KRATOS_WATCH(this->mVel1)
 		KRATOS_WATCH(this->mVel2)
+		*/
 		//the length of the interface
 		double interf_length;
 		interf_length=sqrt((mPoint1[0]-mPoint2[0])*(mPoint1[0]-mPoint2[0])+(mPoint1[1]-mPoint2[1])*(mPoint1[1]-mPoint2[1]));
-		KRATOS_WATCH(interf_length)
+		//KRATOS_WATCH(interf_length)
 		if (interf_length<0.0000000001)	
 			KRATOS_ERROR(std::logic_error,"ZERO intersection length!!!!","");
 		//double Area=GeometryUtils::CalculateVolume2D(GetGeometry());
@@ -203,6 +221,7 @@ namespace Kratos
 		CalculateN_at_Point(GetGeometry(), mPoint1[0], mPoint1[1], msN);
 			
 		Mass1=outer_prod(msN, trans(msN));//MathUtils<double>::TensorProduct3(Aux,Aux);
+
 		KRATOS_WATCH(msN)
 		//KRATOS_WATCH(Mass1)
 		//second point contribution
@@ -216,9 +235,9 @@ namespace Kratos
 		//KRATOS_WATCH(Mass)
 
 		//checking with lumped mass
-		/*
+		
 		for (int i=0;i<3;i++)
-		{
+		{ 
 		for (int k=0;k<3;k++)
 			{
 			if (i==k)
@@ -227,7 +246,7 @@ namespace Kratos
 				Mass(i,k)=0.0;
 			}
 		}
-		*/
+		
 
 		for(unsigned int i=0;i<3;i++)
 		{
@@ -269,9 +288,13 @@ namespace Kratos
 
 		//completing integration using two Gauss points
 		rRightHandSideVector*=0.5*interf_length;
-		//KRATOS_WATCH(mVel1)
-		//KRATOS_WATCH(mVel2)
-		//KRATOS_WATCH(rRightHandSideVector)
+
+		//AND FINALLY SUBTRACT THE Mv term (the one corresponding to the contribution of the "real" nodes, where the vel is known)
+		rRightHandSideVector-=prod(rLeftHandSideMatrix,Vel_VEC);
+		KRATOS_WATCH(mVel1)
+		KRATOS_WATCH(mVel2) 
+		KRATOS_WATCH(interf_length)
+		KRATOS_WATCH(rRightHandSideVector)
 
 		//and finally imposing the Dirichlet on the nodes, that lie inside the fluid (IS_INTERFACE=0)
 		//and also onto the nodes that are too close to the interface (those are defined by bad_vertex_index)
