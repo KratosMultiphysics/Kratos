@@ -1076,8 +1076,21 @@ N);
 				reduced_model_part.AddNode(*(in.base()));
 				//reduced_model_part.AddNode(im->GetGeometry()[0]);				
 				}
-			if (n_disabled>3)
-				KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+			//and also add the fictitious nodes of the interface elements, i.e. the ones that have neighbor nodes, NOT DISABLED
+			else 
+				{
+				WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES); 
+					int count=0;
+					for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
+					{ 					
+							count+=	i->FastGetSolutionStepValue(DISABLE);						
+					}
+				if (count<neighb_nodes.size()) //i.e. if not all the neighbor nodes are disabled, add the node 
+					{
+					reduced_model_part.AddNode(*(in.base()));
+					KRATOS_WATCH("ADDING THE NODE FOR WEAK IMPOSITION OF INTERFACE BOUNDARY CONDITION");
+					}
+				}
 
 		}
 
