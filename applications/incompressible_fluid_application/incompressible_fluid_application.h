@@ -55,7 +55,7 @@
 #include "custom_elements/fluid_3dGLS_expl.h"
 
 #include "custom_elements/fluid_2dGLS_expl_comp.h"
-
+#include "custom_elements/fluid_3dGLS_expl_comp.h"
 
 #include "custom_conditions/proj_dirichlet_cond.h"
 
@@ -287,6 +287,7 @@ namespace Kratos
 		const Fluid3DGLS_expl  mFluid3DGLS_expl;
 
 		const Fluid2DGLS_expl_comp  mFluid2DGLS_expl_comp;  
+		const Fluid3DGLS_expl_comp  mFluid3DGLS_expl_comp;  
 
 		const ProjDirichletCond mProjDirichletCond;
 
