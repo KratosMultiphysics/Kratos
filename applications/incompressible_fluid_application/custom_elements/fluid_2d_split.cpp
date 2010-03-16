@@ -409,7 +409,7 @@ namespace Kratos
 			       //compute projections
 
 			       //stabilization terms
-			       CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area_se);
+		//	       CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area_se);
 			       CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area_se);
 			       CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area_se);
 
@@ -438,7 +438,7 @@ namespace Kratos
 			 //compute projections
 
 			 //stabilization terms
-			 CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
+		//	 CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
 			 CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
 			 CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
 	       
@@ -543,6 +543,11 @@ ms_adv_vel[1] /=eps;
 		double eps;
 		double dp;
 		CalculateDensity(GetGeometry(), density, mu, eps, dp);
+			array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < 3; i++)
+	 {
+	  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	 }
 // KRATOS_WATCH("line 535")
 // KRATOS_WATCH(eps)
 // KRATOS_WATCH(dp)
@@ -591,12 +596,12 @@ ms_adv_vel[1] /=eps;
 			 for( int jj=0; jj < nodes_number; jj++)
 			   {
 				//DARCY TERM linear part
-				K(row,row) += fac_linear * temp_sfprod(ii,jj);
-				K(row + 1,row + 1) += fac_linear * temp_sfprod(ii,jj);
+				K(row,row) += nodal_eps[ii] * fac_linear * temp_sfprod(ii,jj);
+				K(row + 1,row + 1) += nodal_eps[ii] * fac_linear * temp_sfprod(ii,jj);
 
 				//DARCY TERM nonlinear part
-				K(row    ,row    ) += fac_nonlinear * temp_sfprod(ii,jj);
-				K(row + 1,row + 1) += fac_nonlinear * temp_sfprod(ii,jj);
+				K(row    ,row    ) += nodal_eps[ii] * fac_nonlinear * temp_sfprod(ii,jj);
+				K(row + 1,row + 1) += nodal_eps[ii] * fac_nonlinear * temp_sfprod(ii,jj);
 			   }
 		    }
 
@@ -612,6 +617,11 @@ ms_adv_vel[1] /=eps;
 		double eps;
 		double dp;
 		CalculateDensity(GetGeometry(), density, mu, eps, dp);
+		array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < 3; i++)
+	 {
+	  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	 }
 /*KRATOS_WATCH("line 604")
 KRATOS_WATCH(eps)
 KRATOS_WATCH(dp)	*/	
@@ -650,9 +660,9 @@ KRATOS_WATCH(dp)	*/
 		      int row = nd*(dof + 1);
 		      for( int jj=0; jj< dof; jj++)
 		      {	   //DARCY TERM linear part:
-			   K(row + jj, row + jj) +=  fac_linear * lump_mass_fac;
+			   K(row + jj, row + jj) +=  nodal_eps[nd] * fac_linear * lump_mass_fac;
 			   //DARCY TERM nonlinear part:
-			   K(row + jj, row + jj) += fac_nonlinear * lump_mass_fac;
+			   K(row + jj, row + jj) += nodal_eps[nd] * fac_nonlinear * lump_mass_fac;
 		      }
 		}
 
@@ -738,7 +748,11 @@ KRATOS_WATCH(dp)	*/
 	double eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
-
+	array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < nodes_number; i++)
+	 {
+		  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	}
 
 	boost::numeric::ublas::bounded_matrix<double,6,6> temp_div = ZeroMatrix(matsize,matsize);
 	noalias(temp_div) = tautwo * outer_prod(div_opr,div_opr);
@@ -747,7 +761,9 @@ KRATOS_WATCH(dp)	*/
 	    {
 		int row = ii*(dof+1);
 		int loc_row = ii*dof;
-		double fac = area*density;
+/**/
+		double fac = area*density /nodal_eps[ii];
+/**/
 		for( int jj=0; jj < nodes_number; jj++)
 		   {
 			int column = jj*(dof+1);
@@ -802,7 +818,11 @@ ms_adv_vel[1] /=eps;
 		//build (a.grad V)(ro*a.grad U) stabilization term & assemble
 		boost::numeric::ublas::bounded_matrix<double,3,3> adv_stblterm = ZeroMatrix(dof+1,dof +1);		
 		adv_stblterm = tauone * outer_prod(conv_opr,conv_opr);
-
+		array_1d<double,3> nodal_eps = ZeroVector(3);
+		for (int i = 0; i < nodes_number; i++)
+		  {
+		  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+		  }
 
 // KRATOS_WATCH("line 779")
 // KRATOS_WATCH(eps)
@@ -845,9 +865,9 @@ ms_adv_vel[1] /=eps;
 		for (int ii = 0; ii< nodes_number; ii++)
 		    {
 			 //DARCY TERM linear part /rho
-			 darcy_opr[ii] = N[ii] * fac_linear;
+			 darcy_opr[ii] = N[ii] * fac_linear * nodal_eps[ii];
 			 //DARCY TERM nonlinear part /rho
-			 darcy_opr[ii] += N[ii] * fac_nonlinear;
+			 darcy_opr[ii] += N[ii] * fac_nonlinear * nodal_eps[ii];
 		    }
 
 		boost::numeric::ublas::bounded_matrix<double,3,3> darcy_stblterm = ZeroMatrix(dof +1,dof +1);
@@ -868,11 +888,11 @@ ms_adv_vel[1] /=eps;
 			   }
 		    }
 
-		array_1d<double,3> nodal_eps = ZeroVector(3);
-		for (int i = 0; i < nodes_number; i++)
-		  {
-		  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
-		  }
+// 		array_1d<double,3> nodal_eps = ZeroVector(3);
+// 		for (int i = 0; i < nodes_number; i++)
+// 		  {
+// 		  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+// 		  }
 // 		//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
 		boost::numeric::ublas::bounded_matrix<double,6,3> grad_stblterm = ZeroMatrix(matsize,nodes_number);
 		for ( int ii = 0; ii < nodes_number; ii++)
@@ -894,14 +914,24 @@ ms_adv_vel[1] /=eps;
 			 for( int jj=0; jj < nodes_number; jj++)
 			   {
 				int column = jj*(dof+1) + dof;
+/**/
 				//1*tau1*(a.grad V)(grad P)
 				K(row,column) += nodal_eps[ii] * grad_stblterm(loc_row,jj);
 				K(row + 1,column) += nodal_eps[ii] * grad_stblterm(loc_row + 1, jj);
+// 
+// 				//1*tau1*(grad q)(ro*a.grad U) 
+// 				K(column, row) += density * grad_stblterm(loc_row, jj);
+// 				K(column, row + 1) += density * grad_stblterm(loc_row + 1, jj);
+
+// 				//1*tau1*(a.grad V)(grad P)
+// 				K(row,column) +=  grad_stblterm(loc_row,jj);
+// 				K(row + 1,column) +=  grad_stblterm(loc_row + 1, jj);
 
 				//1*tau1*(grad q)(ro*a.grad U) 
-				K(column, row) += density * grad_stblterm(loc_row, jj);
-				K(column, row + 1) += density * grad_stblterm(loc_row + 1, jj);
-			   }
+				K(column, row) += density * grad_stblterm(loc_row, jj)  /nodal_eps[jj];
+				K(column, row + 1) += density * grad_stblterm(loc_row + 1, jj)  /nodal_eps[jj];
+/**/			  
+			  }
 		    }
 
 
@@ -952,6 +982,11 @@ ms_adv_vel[1] /=eps;
 	double eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
+	array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < nodes_number; i++)
+	  {
+	  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	  }
 //*****Convective vel == real fluid velocity
 ms_adv_vel[0] /=eps;
 ms_adv_vel[1] /=eps;
@@ -976,8 +1011,8 @@ ms_adv_vel[1] /=eps;
 		   {
 			int column = jj*(dof+1);
 
-			M(row,column) += fac*temp_convterm(ii,jj);
-			M(row + 1,column + 1) += fac*temp_convterm(ii,jj);
+			M(row,column) += fac*temp_convterm(ii,jj) /*/ nodal_eps[ii]*/;
+			M(row + 1,column + 1) += fac*temp_convterm(ii,jj) /*/ nodal_eps[ii]*/;
 		   }
 	    }
 
@@ -997,7 +1032,11 @@ ms_adv_vel[1] /=eps;
 	double eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
-
+	array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < nodes_number; i++)
+	  {
+	  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	  }
 	//build 1*(grad q . grad p) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double,3,3> gard_opr = ZeroMatrix(nodes_number,nodes_number);
 	gard_opr = tauone * area * prod(DN_DX,trans(DN_DX)); 
@@ -1053,11 +1092,11 @@ ms_adv_vel[1] /=eps;
 			int column = jj*(dof+1) + dof;
 			//Au+B|u|u * grad q
 			//DARCY TERM linear part
-			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0);
-			K(column,row + 1) +=fac_linear* N[ii] * DN_DX(jj,1);
+			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0)/*/nodal_eps[jj] *nodal_eps[jj]*/ ;
+			K(column,row + 1) +=fac_linear* N[ii] * DN_DX(jj,1)/*/nodal_eps[jj] *nodal_eps[jj]*/ ;
 			//DARCY TERM nonlinear part 
-			K(column,row) +=fac_nonlinear* N[ii] * DN_DX(jj,0);
-			K(column,row + 1) +=fac_nonlinear* N[ii] * DN_DX(jj,1);
+			K(column,row) +=fac_nonlinear* N[ii] * DN_DX(jj,0)/*/nodal_eps[jj] *nodal_eps[jj]*/ ;
+			K(column,row + 1) +=fac_nonlinear* N[ii] * DN_DX(jj,1)/*/nodal_eps[jj] *nodal_eps[jj] */;
 
 
 		   }
@@ -1100,7 +1139,11 @@ ms_adv_vel[1] /=eps;
 	double eps;
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
-	
+	array_1d<double,3> nodal_eps = ZeroVector(3);
+	for (int i = 0; i < nodes_number; i++)
+	  {
+	  nodal_eps[i] = GetGeometry()[i].FastGetSolutionStepValue(POROSITY);
+	  }	
 // 	 array_1d<double,3> nodal_eps = ZeroVector(3);
 // 	for (int i = 0; i < nodes_number; i++)
 //     {
@@ -1117,10 +1160,10 @@ ms_adv_vel[1] /=eps;
 			int column = jj*(dof+1) + dof;
 
 			//K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
-			M(column,row) +=  fac* N[ii] * DN_DX(jj,0);
+			M(column,row) +=  fac* N[ii] * DN_DX(jj,0)/*/nodal_eps[jj]*/;
 
 			//K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
-			M(column,row + 1) +=  fac* N[ii] * DN_DX(jj,1);
+			M(column,row + 1) +=  fac* N[ii] * DN_DX(jj,1)/*/nodal_eps[jj]*/;
 		   }
 	    }
 
@@ -1450,8 +1493,8 @@ ms_adv_vel[1] /=eps;
 //         	double dp = 0.01; //diameter of the particle	
 	double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
-	double fac_linear = kinv * mu /density;	
-	double fac_nonlinear = (1.75/eps * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;     
+	double fac_linear = eps * kinv * mu /density;	
+	double fac_nonlinear = (1.75 * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;     
 
 
 	int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
