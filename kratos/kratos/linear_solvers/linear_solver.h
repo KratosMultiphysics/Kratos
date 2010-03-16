@@ -203,6 +203,17 @@ namespace Kratos
 	{
 	  mpReorderer = pNewReorderer;
 	}
+
+      virtual void SetTolerance(double NewTolerance)
+	{
+          std::cout << "WARNING: Accessed base function Kratos::LinearSolver::SetTolerance(double). This does nothing !" << std::endl;
+	}
+
+      virtual double GetTolerance()
+	{
+          std::cout << "WARNING: Accessed base function Kratos::LinearSolver::GetTolerance(). No tolerance defined, returning 0 !" << std::endl ;
+	  return 0;
+	}
       
       
       ///@}

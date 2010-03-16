@@ -82,6 +82,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_comp_strategy.h"
 #include "custom_strategies/strategies/newton_raphson_strategy.h"
+
+//builder and solvers
+#include "custom_strategies/builder_and_solvers/pressure_splitting_builder_and_solver.h"
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -114,6 +118,10 @@ namespace Kratos
 			typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType;
 
 			typedef ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressible< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType;
+
+                        typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+                        typedef PressureSplittingBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > PressureSplittingBuilderAndSolverType;
+
 			//********************************************************************
 			//********************************************************************
 			//
@@ -298,6 +306,10 @@ namespace Kratos
 				  
 				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
+                        //********************************************************************************************
+
+			class_< PressureSplittingBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable>
+                                ("PressureSplittingBuilderAndSolver", init< LinearSolverType::Pointer,unsigned int, unsigned int, bool, double, double, double>() );
 
                         //********************************************************************************************
                        class_< SolverConfiguration<SparseSpaceType, LocalSpaceType, LinearSolverType >,
