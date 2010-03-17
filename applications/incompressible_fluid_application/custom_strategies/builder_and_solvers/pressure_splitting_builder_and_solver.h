@@ -301,7 +301,7 @@ namespace Kratos
                 CalculateSystemMatrix(A);
                 mInitializedMatrices = true;
             }
-            
+
             KRATOS_CATCH("");
         }
 
@@ -473,22 +473,24 @@ namespace Kratos
                 /* Solve current iteration in several steps */
 
                 // Initialize required variables and pointers
-                TSystemVectorPointerType pDVel(new TSystemVectorType(mVelFreeDofs, 0));
+                TSystemVectorPointerType pDVel(new TSystemVectorType(mVelFreeDofs));
                 TSystemVectorType& rDVel = *pDVel;
-                TSystemVectorPointerType pVelRHS(new TSystemVectorType(mVelFreeDofs, 0));
+                TSystemVectorPointerType pVelRHS(new TSystemVectorType(mVelFreeDofs));
                 TSystemVectorType& rVelRHS = *pVelRHS;
                 for (unsigned int i = 0; i < mVelFreeDofs; i++)
                 {
+                    rDVel[i] = 0.0;
                     rVelRHS[i] = b[i];
                 }
 
-                TSystemVectorPointerType pDPress(new TSystemVectorType(mPressFreeDofs, 0));
+                TSystemVectorPointerType pDPress(new TSystemVectorType(mPressFreeDofs));
                 TSystemVectorType& rDPress = *pDPress;
-                TSystemVectorPointerType pPressRHS(new TSystemVectorType(mPressFreeDofs, 0));
+                TSystemVectorPointerType pPressRHS(new TSystemVectorType(mPressFreeDofs));
                 TSystemVectorType& rPressRHS = *pPressRHS;
-                for (unsigned int i = mVelFreeDofs; i < BaseType::mEquationSystemSize; i++)
+                for (unsigned int i = 0, j=mVelFreeDofs; i < mPressFreeDofs; i++,j++)
                 {
-                    rPressRHS[i - mVelFreeDofs] = b[i];
+                    rDPress[i] = 0.0;
+                    rPressRHS[i] = b[j];
                 }
 
                 TSystemMatrixType& rS = *mpS; // Create a reference to the velocity system matrix
@@ -540,6 +542,7 @@ namespace Kratos
                     } else if ( mVelocityCorrection == 2 ) {
                         TSystemVectorPointerType pVelUpdate(new TSystemVectorType(mVelFreeDofs, 0));
                         TSystemVectorType& rVelUpdate = *pVelUpdate;
+                        for (unsigned int i = 0; i < mVelFreeDofs; i++) rVelUpdate[i] = 0.0;
 
                         BaseType::mpLinearSystemSolver->Solve(rS, rVelUpdate, rVelRHS);
                         noalias(rDVel) -= rVelUpdate;
@@ -1206,7 +1209,7 @@ namespace Kratos
                 Row.push_back(Candidate);
         }
 
-        
+
 
         /*
          * Assembly functions
@@ -1571,17 +1574,17 @@ namespace Kratos
                                 }
                             }
                         }
-                        
+
                         // Identify full terms for ordering
                         for( std::size_t i = 0; i < Length; i++) {
                             if( Next[head] != -1 ) {
                                 UsedCols.push_back(head);
                                 NumTerms++;
                             }
-                            
+
                             int temp = head;
                             head = Next[head];
-                            
+
                             // Clear 'Next' for next iteration
                             Next[temp] = -1;
                         }
@@ -1627,8 +1630,10 @@ namespace Kratos
                 #pragma omp parallel
                 if( ThisThread() == k) {
 
-                    TSystemVectorPointerType pCurrentRow( new TSystemVectorType(mPressFreeDofs,0) );
+                    TSystemVectorPointerType pCurrentRow( new TSystemVectorType(mPressFreeDofs) );
                     TSystemVectorType& CurrentRow = *pCurrentRow; // Values for current row
+                    for (unsigned int i = 0; i < mPressFreeDofs; i++) CurrentRow[i] = 0.0;
+
                     boost::shared_ptr< std::vector<int> > pNext( new std::vector<int>(mPressFreeDofs,-1) );
                     std::vector<int>& Next = *pNext; // Keeps track of which columns were filled
 
@@ -1868,10 +1873,10 @@ namespace Kratos
             std::cout << "Corrected iterative solver tolerance to " << Tolerance << std::endl;
         }
 
-        /* The following functions retrieve basic OpenMP information or a 
+        /* The following functions retrieve basic OpenMP information or a
          * suitable alternative when they are compilied without OpenMP
          */
-        
+
         inline unsigned int ThisThread()
         {
             #ifdef _OPENMP
