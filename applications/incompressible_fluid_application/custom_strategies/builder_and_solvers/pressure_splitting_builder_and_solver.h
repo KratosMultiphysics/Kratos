@@ -540,7 +540,7 @@ namespace Kratos
                         for (unsigned int m = 0; m < mVelFreeDofs; m++)
                             rDVel[m] -= (*mpIDiagS)[m]*rVelRHS[m];
                     } else if ( mVelocityCorrection == 2 ) {
-                        TSystemVectorPointerType pVelUpdate(new TSystemVectorType(mVelFreeDofs, 0));
+                        TSystemVectorPointerType pVelUpdate(new TSystemVectorType(mVelFreeDofs));
                         TSystemVectorType& rVelUpdate = *pVelUpdate;
                         for (unsigned int i = 0; i < mVelFreeDofs; i++) rVelUpdate[i] = 0.0;
 
