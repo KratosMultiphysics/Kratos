@@ -200,7 +200,7 @@ namespace Kratos
      					const array_1d<double,TDim>& a_j, const array_1d<double,TDim>& U_j)
 			{
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
-				double temp = a_i[0] * Ni_DNj[0];
+                    double temp = a_i[0] * Ni_DNj[0];
 				for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
 					temp += a_i[k_comp] * Ni_DNj[k_comp];
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
@@ -300,34 +300,43 @@ namespace Kratos
 					for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
 						conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp);
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp]);			
-			}
-			inline void CalculateConvectionStabilization_LOW( array_1d<double,TDim>& stab_low,
-					const array_1d<double,TDim>& a_i, const array_1d<double,TDim>& U_i, const double& p_i,
-     					const array_1d<double,TDim>& a_j, const array_1d<double,TDim>& U_j, const double& p_j
-					)
-			{
- 				double conv_stab = 0.0;
-				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-				{
-					for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
-					{
-						conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp);
-						
-					}
-				}
-				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp]) ;
-				
-//  				adding pressure 
-				double press_diff = p_j-p_i;
-				for (unsigned int j_comp = 0; j_comp < TDim; j_comp++)
-				{
-					for (unsigned int i_comp = 0; i_comp < TDim; i_comp++)
-						stab_low[j_comp] -= a_i[i_comp] * LaplacianIJ(i_comp,j_comp) * press_diff ;
-				}
-													
-			}
+					stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp]);
+
+//				double temp = 0.0;
+//                                double lij = 0.0;
+//				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
+//                                {
+//                                    lij += LaplacianIJ(k_comp,k_comp);
+//                                    temp = a_i[k_comp] * a_i[k_comp];
+//                                }
+//
+//				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+//					stab_low[l_comp] = temp * lij * (U_j[l_comp] - U_i[l_comp]);
+                        }
+
+//			inline void CalculateConvectionStabilization_LOW( array_1d<double,TDim>& stab_low,
+//					const array_1d<double,TDim>& a_i, const array_1d<double,TDim>& U_i, const double& p_i,
+//     					const array_1d<double,TDim>& a_j, const array_1d<double,TDim>& U_j, const double& p_j
+//					)
+//			{
+// 				double conv_stab = 0.0;
+//				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
+//					for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
+//						conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp);
+//				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+//					stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp]);
+//
+////  				adding pressure
+//				double press_diff = p_j-p_i;
+//				for (unsigned int j_comp = 0; j_comp < TDim; j_comp++)
+//				{
+//					for (unsigned int i_comp = 0; i_comp < TDim; i_comp++)
+//						stab_low[j_comp] -= a_i[i_comp] * LaplacianIJ(i_comp,j_comp) * press_diff ;
+//				}
+//
+//
+//			}
+
 			inline void CalculateConvectionStabilization_LOW( double& stab_low,
 					const array_1d<double,TDim>& a_i, const double& phi_i,
      					const array_1d<double,TDim>& a_j, const double& phi_j)
@@ -350,6 +359,26 @@ namespace Kratos
 					temp += a_i[k_comp] * Ni_DNj[k_comp];
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 					stab_high[l_comp] = -temp * (pi_j[l_comp] - pi_i[l_comp]); //check if the minus sign is correct
+
+//                                double temp_i = 0.0;
+//                                double temp_j = 0.0;
+//				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
+//                                {
+//                                        temp_j += a_i[k_comp] * Ni_DNj[k_comp];
+//					temp_i += a_i[k_comp] * DNi_Nj[k_comp];
+//                                }
+//                                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+//					stab_high[l_comp] = +(temp_j*pi_j[l_comp] - temp_i*pi_i[l_comp]); //check if the minus sign is correct
+
+//                                double temp_i = 0.0;
+//                                double temp_j = 0.0;
+//				for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
+//                                {
+//                                        temp_i += a_i[k_comp] * Ni_DNj[k_comp];
+//					temp_j += a_i[k_comp] * DNi_Nj[k_comp];
+//                                }
+//                                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+//					stab_high[l_comp] = (temp_j*pi_j[l_comp] + temp_i*pi_i[l_comp]); //check if the minus sign is correct
 #else
 				double aux_i = a_i[0] * Ni_DNj[0];
 				double aux_j = a_j[0] * Ni_DNj[0];

@@ -1,10 +1,10 @@
-/* 
+/*
  * File:   edgebased_levelset.h
  * Author: rrossi
  *
  * Created on July 31, 2009, 10:51 AM
  */
- 
+
 /*
 ==============================================================================
 KratosPFEMApplication
@@ -109,9 +109,22 @@ namespace Kratos {
                 const double viscosity,
                 const double density,
                 const Vector body_force,
-                bool use_mass_correction
+                bool use_mass_correction,
+                double edge_detection_angle,
+                double stabdt_pressure_factor,
+                double stabdt_convection_factor,
+                double tau2_factor,
+                bool assume_constant_dp
                 )
-        : mr_matrix_container(mr_matrix_container), mr_model_part(mr_model_part) {
+        : mr_matrix_container(mr_matrix_container),
+          mr_model_part(mr_model_part),
+            medge_detection_angle(edge_detection_angle),
+          mstabdt_pressure_factor(stabdt_pressure_factor),
+            mstabdt_convection_factor(stabdt_convection_factor),
+            mtau2_factor(tau2_factor),
+            massume_constant_dp(assume_constant_dp)
+
+        {
             //to be changed
             mViscosity = viscosity;
 
@@ -169,14 +182,14 @@ namespace Kratos {
             mEdgeDimensions.resize(n_edges);
 
             //convection variables
-            mBetaConvection.resize(n_nodes);
+            mBeta.resize(n_nodes);
             mPiConvection.resize(n_nodes);
             mphi_n.resize(n_nodes);
             mphi_n1.resize(n_nodes);
 
             mEps.resize(n_nodes);
 	   mD.resize(n_nodes);
-            
+
             mdiv_error.resize(n_nodes);
             mr_matrix_container.SetToZero(mdiv_error);
 
@@ -309,7 +322,7 @@ namespace Kratos {
 	       const double d_i = mD[i_node];
 
                 double vel_norm = norm_2(v_i);
-                
+
                 double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
                 vel_norm /= eps_i;
 
@@ -479,12 +492,16 @@ namespace Kratos {
 //            double time_inv = 1.0 / delta_t;
             double time_inv_avg = 1.0/mdelta_t_avg;
 
+            const double stabdt_pressure_factor  = mstabdt_pressure_factor;
+            const double stabdt_convection_factor  = mstabdt_convection_factor;
+	    const double tau2_factor = mtau2_factor;
+
 //            const double max_dt_inv = 1.0 / max_dt;
 
 //            double max_dt_inv_coeff = 0.1 / max_dt;
 //            const double max_dt_coeff = 10.0*max_dt;
 
-            #pragma omp parallel for firstprivate(time_inv_avg)
+            #pragma omp parallel for firstprivate(time_inv_avg,stabdt_pressure_factor,stabdt_convection_factor,tau2_factor)
             for (int i_node = 0; i_node < n_nodes; i_node++) {
                 // 					double& h_i = mHavg[i_node];
                 double& h_avg_i = mHavg[i_node];
@@ -507,13 +524,13 @@ namespace Kratos {
 //                    tau = 1.0/denom;
 
 //                double tau = 1.0 / (2.0 * vel_norm / h_avg_i + max_dt_inv + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
-                 double tau = 1.0 / (2.0 * vel_norm / h_avg_i + time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+                 double tau = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_pressure_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
 //                 double tau = 1.0 / (2.0 * vel_norm / h_avg_i + 0.01*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
-                double tau_conv = 1.0 / (2.0 * vel_norm / h_avg_i + 0.01*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+                double tau_conv = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_convection_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
                 mTauPressure[i_node] = tau;
                 mTauConvection[i_node] = tau_conv;
 
-                 mTau2[i_node] = mViscosity + h_avg_i*vel_norm*0.5;
+                 mTau2[i_node] = (mViscosity + h_avg_i*vel_norm*0.5)*mtau2_factor;
 
 //                mTauPressure[i_node] = 1.0 / (2.0 * vel_norm / mHavg[i_node] + (4.0*nu_i) / (mHavg[i_node] * mHavg[i_node]));
 //                mTauConvection[i_node] = 1.0 / (2.0 * vel_norm / h_i + time_inv + (4.0*nu_i) / (h_i * h_i));
@@ -557,6 +574,7 @@ namespace Kratos {
 
                 const array_1d<double, TDim>& a_i = mvel_n1[i_node];
                 const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+                const double& p_i = mPn1[i_node];
 
                 //const double& p_i = pressure[i_node];
 
@@ -564,16 +582,48 @@ namespace Kratos {
                     unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
                     const array_1d<double, TDim>& a_j = mvel_n1[j_neighbour];
                     const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
+                    const double& p_j = mPn1[j_neighbour];
 
                     CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
                     edge_ij.Add_ConvectiveContribution(pi_i, a_i, U_i, a_j, U_j);
+
+//                    edge_ij.Add_grad_p(pi_i, p_i, p_j);
                 }
 
                 const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
 
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                     pi_i[l_comp] *= m_inv;
+            }
+
+            //calculating limitor
+            #pragma omp parallel for
+            for (int i_node = 0; i_node < n_nodes; i_node++)
+            {
+
+                    const array_1d<double, TDim>& pi_i = mXi[i_node];
+                    const double& p_i = mPn[i_node];
+                    double& beta_i = mBeta[i_node];
+                    beta_i = 0.0;
+
+                        for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                        {
+                            unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+
+                                const double& p_j = mPn[j_neighbour];
+                                const array_1d<double, TDim>& l_k = mEdgeDimensions[csr_index];
+                                const array_1d<double, TDim>& pi_j = mXi[j_neighbour];
+
+                                double proj = 0.0;
+                                for (unsigned int comp = 0; comp < TDim; comp++)
+                                     proj += 0.5*l_k[comp]*(pi_i[comp]+pi_j[comp]);
+                                double beta = fabs((p_i - p_j - proj)/(fabs(p_i-p_j)+fabs(proj)+1e-4));
+
+                                if(beta_i < beta)
+                                    beta_i = beta;
+                        }
+
             }
 
 
@@ -652,7 +702,7 @@ namespace Kratos {
                     array_1d<double, TDim>& rhs_i = rhs[i_node];
                     const array_1d<double, TDim>& f_i = mBodyForce;
                     array_1d<double, TDim> a_i = convective_velocity[i_node];
-
+                    const double& beta_i = mBeta[i_node];
                     const array_1d<double, TDim>& U_i = vel[i_node];
                     const array_1d<double, TDim>& pi_i = mPi[i_node];
                     const double& p_i = pressure[i_node];
@@ -688,7 +738,7 @@ namespace Kratos {
                             const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
                             const double& p_j = pressure[j_neighbour];
                             const double& eps_j = mEps[j_neighbour];
-
+                            const double& beta_j = mBeta[j_neighbour];
                             a_j /= eps_j;
 
                             CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
@@ -707,10 +757,17 @@ namespace Kratos {
 
                             //add stabilization
                             edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
-                            edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
+//                            edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i,p_i, a_j, U_j,p_j);
+                             edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
 
-                            double beta = 1.0;
-                            edge_ij.Sub_StabContribution(rhs_i, edge_tau, beta, stab_low, stab_high);
+//                            double beta = 1.0;
+                            double beta = beta_i;
+                            if(beta_j > beta)
+                                beta = beta_j;
+//                            beta = 1.0; 
+
+//                            edge_ij.Sub_StabContribution(rhs_i, edge_tau*beta, 1.0, stab_low, stab_high);
+                            edge_ij.Sub_StabContribution(rhs_i, edge_tau, (1.0-beta), stab_low, stab_high);
                             //std::cout << i_node << "rhs =" << rhs_i << "after stab" << std::endl;
 
                             //add tau2 term
@@ -723,7 +780,7 @@ namespace Kratos {
                                 rhs_i[k_comp] -= tau2_i*aaa;
                             }
 
-                        
+
                     }
 
                     //                                                std::cout << i_node << "rhs =" << rhs_i << std::endl;
@@ -731,6 +788,9 @@ namespace Kratos {
 
             }
 
+            //apply wall resistance
+           if(mWallLawIsActive == true)
+                    ComputeWallResistance(vel,rhs);
 
             //boundary integrals --> finishing the calculation of the pressure gradient
             //				int loop_size1 = mPressureOutletList.size();
@@ -1004,15 +1064,19 @@ namespace Kratos {
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
             double delta_t = CurrentProcessInfo[DELTA_TIME];
 
+            double factor = 0.5;
+            if(massume_constant_dp == true)
+                factor = 1.0;
+
             //compute end of step momentum
             double rho_inv = 1.0 / mRho;
-#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
+#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv,factor)
             for (int i_node = 0; i_node < n_nodes; i_node++) {
                 double dist = mdistances[i_node];
                 if (dist < 0.0) //node is inside domain ---- if outside do nothing
                 {
                     array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-                    double delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv;
+                    double delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv*factor;
                     const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
 
                     //setting to zero
@@ -1022,7 +1086,7 @@ namespace Kratos {
                     //compute edge contributions dt*M^(-1)Gp
                     for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
                         unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-                        double delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv;
+                        double delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv*factor;
 
                         CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
@@ -1084,36 +1148,39 @@ namespace Kratos {
         void ApplyVelocityBC(CalcVectorType& VelArray) {
             KRATOS_TRY
 
-            //apply conditions on corner edges
-            int edge_size = medge_nodes_direction.size();
-            #pragma omp parallel for firstprivate(edge_size)
-            for (int i = 0; i < edge_size; i++)
+            if(mWallLawIsActive == false)
             {
-                int i_node = medge_nodes[i];
-                const array_1d<double, TDim>& direction = medge_nodes_direction[i];
-                double dist = mdistances[i_node];
-
-                if(dist <= 0.0)
+                //apply conditions on corner edges
+                int edge_size = medge_nodes_direction.size();
+                #pragma omp parallel for firstprivate(edge_size)
+                for (int i = 0; i < edge_size; i++)
                 {
-                     array_1d<double, TDim>& U_i = VelArray[i_node];
-                     double temp=0.0;
-                     for (unsigned int comp = 0; comp < TDim; comp++)
-                        temp += U_i[comp] * direction[comp];
+                    int i_node = medge_nodes[i];
+                    const array_1d<double, TDim>& direction = medge_nodes_direction[i];
+                    double dist = mdistances[i_node];
 
-                     for (unsigned int comp = 0; comp < TDim; comp++)
-                         U_i[comp] = direction[comp]*temp;
+                    if(dist <= 0.0)
+                    {
+                         array_1d<double, TDim>& U_i = VelArray[i_node];
+                         double temp=0.0;
+                         for (unsigned int comp = 0; comp < TDim; comp++)
+                            temp += U_i[comp] * direction[comp];
+
+                         for (unsigned int comp = 0; comp < TDim; comp++)
+                             U_i[comp] = direction[comp]*temp;
+                    }
                 }
-            }
 
-            //apply conditions on corners
-            int corner_size = mcorner_nodes.size();
-            for (int i = 0; i < corner_size; i++)
-            {
-                int i_node = mcorner_nodes[i];
-                
-                array_1d<double, TDim>& U_i = VelArray[i_node];
-                     for (unsigned int comp = 0; comp < TDim; comp++)
-                        U_i[comp] = 0.0;
+                //apply conditions on corners
+                int corner_size = mcorner_nodes.size();
+                for (int i = 0; i < corner_size; i++)
+                {
+                    int i_node = mcorner_nodes[i];
+
+                    array_1d<double, TDim>& U_i = VelArray[i_node];
+                         for (unsigned int comp = 0; comp < TDim; comp++)
+                            U_i[comp] = 0.0;
+                }
             }
 
 
@@ -1158,8 +1225,8 @@ namespace Kratos {
                 }
             }
 
-            
-            
+
+
             KRATOS_CATCH("")
         }
 
@@ -1301,7 +1368,7 @@ namespace Kratos {
             }
 
             //perform extrapolation layer by layer by making an average
-            //of the neighbours of lower order   
+            //of the neighbours of lower order
             for (unsigned int il = 1; il < extrapolation_layers; il++)
             {
                 //                                    std::cout << "layer " << il << std::endl;
@@ -1350,7 +1417,7 @@ namespace Kratos {
                     noalias(iii->FastGetSolutionStepValue(VELOCITY, 1)) = aux;
 
                     iii->FastGetSolutionStepValue(PRESSURE, 1) = pavg;
- 
+
                     noalias(iii->FastGetSolutionStepValue(PRESS_PROJ)) = aux_proj;
                     noalias(iii->FastGetSolutionStepValue(PRESS_PROJ, 1)) = aux_proj;
 
@@ -1684,7 +1751,7 @@ namespace Kratos {
             mTauConvection.clear();
             mTau2.clear();
 
-            mBetaConvection.clear();
+            mBeta.clear();
             mPiConvection.clear();
             mphi_n.clear();
             mphi_n1.clear();
@@ -1806,7 +1873,7 @@ namespace Kratos {
             mr_matrix_container.SetToZero(rhs);
             CalculateRHS_convection(mphi_n1, mvel_n1, rhs, active_nodes);
             mr_matrix_container.Add_Minv_value(WorkConvection, WorkConvection, delta_t / 6.0, mr_matrix_container.GetInvertedMass(), rhs);
-            
+
             //compute right-hand side
             mr_matrix_container.AssignVectorToVector(WorkConvection, mphi_n1);
 
@@ -1945,11 +2012,29 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
         }
 
 
+void ActivateWallResistance(double Ywall)
+        {
+            mWallLawIsActive = true;
+            mY_wall = Ywall;
+        }
+
+
     private:
         MatrixContainer& mr_matrix_container;
         ModelPart& mr_model_part;
 
         bool muse_mass_correction;
+
+         //parameters controlling the wall law
+        bool mWallLawIsActive;
+        bool mY_wall;
+
+        //parameters for controlling the usage of the delta time in the stabilization
+        double mstabdt_pressure_factor;
+        double mstabdt_convection_factor;
+        double medge_detection_angle;
+        double mtau2_factor;
+        bool massume_constant_dp;
 
         //nodal values
         //velocity vector U at time steps n and n+1
@@ -1999,7 +2084,7 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
         ValuesVectorType mphi_n;
         ValuesVectorType mphi_n1;
         ValuesVectorType mPiConvection;
-        ValuesVectorType mBetaConvection;
+        ValuesVectorType mBeta;
 
         //variables for edge BCs
         IndicesVectorType medge_nodes;
@@ -2122,7 +2207,6 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
 
 
 
-
         //*********************************************************************
         //function to calculate right-hand side of fractional momentum equation
 
@@ -2175,9 +2259,9 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
 //                // KRATOS_WATCH(pi_i);
 //                //                                num = fabs(num);
 //                //                                if(num > norm_vI*0.0001)
-//                //                                    mBetaConvection[i_node] = 1.0 - num/denom;
+//                //                                    mBeta[i_node] = 1.0 - num/denom;
 //                //                                else
-//                //                                    mBetaConvection[i_node] = 1.0;
+//                //                                    mBeta[i_node] = 1.0;
 //
 //            }
 
@@ -2200,7 +2284,7 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
 
 
                 const double& pi_i = mPiConvection[i_node];
-//                double beta = mBetaConvection[i_node];
+//                double beta = mBeta[i_node];
                 rhs_i = 0.0;
 
                 if (active_nodes[i_node] != 0.0)
@@ -2254,16 +2338,16 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
                                     const array_1d<double,3>& face_normal,
                                     const double An,
                                     const WeakPointerVector<Condition>& neighb,
-                                    const unsigned int i1, 
-                                    const unsigned int i2, 
+                                    const unsigned int i1,
+                                    const unsigned int i2,
                                     const unsigned int neighb_index,
                                     std::vector<unsigned int>& edge_nodes,
-                                    CalcVectorType& cornern_list                
+                                    CalcVectorType& cornern_list
                                     )
         {
             double acceptable_angle = 45.0/180.0*3.1; //angles of less than 45 deg will be accepted
             double acceptable_cos = cos(acceptable_angle);
-            
+
             if(face_geometry[i1].Id() < face_geometry[i2].Id()) //we do this to add the face ones
                         {
                             const array_1d<double, 3 > & neighb_normal = neighb[neighb_index].GetValue(NORMAL);
@@ -2280,23 +2364,23 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
 
                                 int index1 = face_geometry[i1].FastGetSolutionStepValue(AUX_INDEX);
                                 int index2 = face_geometry[i2].FastGetSolutionStepValue(AUX_INDEX);
-                                
+
                                 edge_nodes[index1] += 1;
                                 edge_nodes[index2] += 1;
-                                
+
                                 cornern_list[index1] += edge;
                                 cornern_list[index2] += edge;
-                                
-                                
+
+
                             }
-                                
+
 
 
                         }
-            
-            
+
+
         }
-        
+
         //function to calculate the area normals
         void DetectEdges3D(ModelPart::ConditionsContainerType& rConditions) {
             KRATOS_TRY
@@ -2312,7 +2396,7 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
             {
                 temp_edge_nodes[i_node] = 0.0;
                 noalias(temp_cornern_list[i_node]) = ZeroVector(TDim);
-            }            
+            }
 
             //loop over all faces
 //            const double node_factor = 1.0 / TDim;
@@ -2331,7 +2415,7 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
                 if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
                 {
                     const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
-                    
+
                     //check for neighbour zero
                     if(neighb[0].Id() != current_id) //check if the neighbour exists
                         CornerDectectionHelper(face_geometry,face_normal,An,neighb,1,2, 0,temp_edge_nodes,temp_cornern_list );
@@ -2423,7 +2507,92 @@ void ReduceTimeStep(ModelPart& rModelPart, double NewTime)
         }
 
 
+void ComputeWallResistance(
+                const CalcVectorType& vel,
+                CalcVectorType& rhs
+                )
+        {
+            //parameters:
+            const double k = 0.41;
+            const double B = 5.1;
+            const double density = mRho;
+            const double mu = mViscosity;
+            const double toll = 1e-6;
+            const double ym = mY_wall; //0.0825877; //0.0093823
+            const double y_plus_incercept = 10.9931899;
+            const unsigned int itmax = 100;
 
+            if (mu == 0)
+                KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+
+            //slip condition
+            int slip_size = mSlipBoundaryList.size();
+#pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
+            for (int i_slip = 0; i_slip < slip_size; i_slip++)
+            {
+                unsigned int i_node = mSlipBoundaryList[i_slip];
+                double dist = mdistances[i_node];
+                if (dist <= 0.0)
+                {
+                    array_1d<double, TDim>& rhs_i = rhs[i_node];
+                    const array_1d<double, TDim>& U_i = vel[i_node];
+                    const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+
+                    //compute the modulus of the velocity
+                    double mod_vel = 0.0;
+                    double area = 0.0;
+                    for (unsigned int comp = 0; comp < TDim; comp++)
+                    {
+                        mod_vel += U_i[comp] * U_i[comp];
+                        area += an_i[comp] * an_i[comp];
+                    }
+                    mod_vel = sqrt(mod_vel);
+                    area = sqrt(area);
+
+                    //now compute the skin friction
+                    double mod_uthaw = sqrt(mod_vel * mu / ym);
+                    const double y_plus = ym * mod_uthaw / mu;
+
+                    if (y_plus > y_plus_incercept)
+                    {
+                        //begin cicle to calculate the real u_thaw's module:
+                        unsigned int it = 0;
+                        double dx = 1e10;
+                        //                        KRATOS_WATCH(fabs(dx));
+                        while (fabs(dx) > toll * mod_uthaw && it < itmax)
+                        {
+                            double a = 1.0 / k;
+                            double temp = a * log(ym * mod_uthaw / mu) + B;
+                            double y = mod_uthaw * (temp) - mod_vel;
+                            double y1 = temp + a;
+                            dx = y / y1;
+                            mod_uthaw -= dx;
+                            it = it + 1;
+                        }
+
+                        //                         KRATOS_WATCH(toll*mod_uthaw);
+                        //                         KRATOS_WATCH(area);
+                        //                        KRATOS_WATCH(it);
+                        if (it == itmax)
+                            std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
+
+
+                    }
+                    //                    else
+                    //                    {
+                    //                        for (unsigned int comp = 0; comp < TDim; comp++)
+                    //                            rhs_i[comp] -= U_i[comp] * area * mu  / (density*ym) ;
+                    //                    }
+
+                    if (mod_vel > 1e-12)
+                        for (unsigned int comp = 0; comp < TDim; comp++)
+                            rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+
+
+
+                }
+            }
+        }
 
 
 
