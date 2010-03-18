@@ -124,7 +124,7 @@ namespace Kratos
                 unsigned int VelocityCorrection, // If > 0, explicitly solve the velocity to be divergence-free at each step
                 bool UseInexactNewton, // If true, dynamically set the linear iterative solver tolerance for the pressure system
                 double NonLinearTol = 1e-6, // Only used if InexactNewton == true, otherwise the solver will use it's own tolerance
-                double MaxTolFactor = 0.9,
+                double MaxTolFactor = 0.1,
                 double Gamma = 0.9):
             BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver),
             mRebuildLevel(RebuildLevel),
@@ -686,7 +686,7 @@ namespace Kratos
             }
 
 //#else
-//            // DO MP VERSION HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//            // DO MP VERSION HERE
 //#endif
 
             KRATOS_CATCH("");
@@ -1841,9 +1841,10 @@ namespace Kratos
                 double& TolFactor)
         {
             TolFactor = mMaxTolFactor;
-            double Tolerance = TolFactor*RHSNorm;
-            (BaseType::mpLinearSystemSolver)->SetTolerance(Tolerance);
-            std::cout << "Set iterative solver tolerance to " << Tolerance << std::endl;
+//            double Tolerance = TolFactor*RHSNorm;
+//            (BaseType::mpLinearSystemSolver)->SetTolerance(Tolerance);
+            (BaseType::mpLinearSystemSolver)->SetTolerance(TolFactor);
+            std::cout << "Set iterative solver tolerance to " << TolFactor << std::endl;
         }
 
         void UpdateTolerance(
@@ -1863,14 +1864,16 @@ namespace Kratos
                 TolFactor = (Temp < mMaxTolFactor) ? Temp : mMaxTolFactor;
             }
 
-            double Tolerance = TolFactor * NewRHSNorm;
-            if (Tolerance < mSmallTol)
-            {
-                Tolerance = mSmallTol;
-                TolFactor = mSmallTol / NewRHSNorm;
-            }
-            (BaseType::mpLinearSystemSolver)->SetTolerance(Tolerance);
-            std::cout << "Corrected iterative solver tolerance to " << Tolerance << std::endl;
+//            double Tolerance = TolFactor * NewRHSNorm;
+//            if (Tolerance < mSmallTol)
+//            {
+//                Tolerance = mSmallTol;
+//                TolFactor = mSmallTol / NewRHSNorm;
+//            }
+//            (BaseType::mpLinearSystemSolver)->SetTolerance(Tolerance);
+            if (TolFactor < mSmallTol) TolFactor = mSmallTol;
+            (BaseType::mpLinearSystemSolver)->SetTolerance(TolFactor);
+            std::cout << "Corrected iterative solver tolerance to " << TolFactor << std::endl;
         }
 
         /* The following functions retrieve basic OpenMP information or a
