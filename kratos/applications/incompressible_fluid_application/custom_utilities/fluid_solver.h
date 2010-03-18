@@ -565,8 +565,8 @@ for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 	
 	
 	
-// 						edge_ij.CalculateConvectionStabilization_LOW( stab_low,a_i,U_i,a_j,U_j);
-						edge_ij.CalculateConvectionStabilization_LOW( stab_low,a_i,U_i,p_i,a_j,U_j,p_j);
+ 						edge_ij.CalculateConvectionStabilization_LOW( stab_low,a_i,U_i,a_j,U_j);
+						//edge_ij.CalculateConvectionStabilization_LOW( stab_low,a_i,U_i,p_i,a_j,U_j,p_j);
 						
 /*						for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 							rhs_i[l_comp] +=  stab_low[l_comp]  ;			*/
