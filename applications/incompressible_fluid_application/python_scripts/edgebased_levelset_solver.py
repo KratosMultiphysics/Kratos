@@ -35,13 +35,16 @@ class EdgeBasedLevelSetSolver:
         self.body_force = body_force
         self.density = density
         self.viscosity = viscosity
-
+        self.stabdt_pressure_factor = 1.0;
+        self.stabdt_convection_factor = 0.01;
         self.use_mass_correction = True
-
         self.redistance_frequency = 5;
         self.step = 0;
-
         self.extrapolation_layers = 5
+        self.tau2_factor = 0.0
+        self.edge_detection_angle = 45.0
+        self.assume_constant_pressure = False
+
 
         #neighbour search
         number_of_avg_elems = 10
@@ -89,11 +92,11 @@ class EdgeBasedLevelSetSolver:
         ##constructing the solver
         if(self.domain_size == 2):
             self.distance_utils = SignedDistanceCalculationUtils2D()
-            self.fluid_solver = EdgeBasedLevelSet2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction)
+            self.fluid_solver = EdgeBasedLevelSet2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
         else:
             self.distance_utils = SignedDistanceCalculationUtils3D()
 #            self.distance_utils = SignedDistanceCalculationBinBased3D()
-            self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction)
+            self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
 
 #
         self.max_edge_size = self.distance_utils.FindMaximumEdgeSize(self.model_part)
