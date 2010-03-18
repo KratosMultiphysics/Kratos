@@ -230,7 +230,7 @@ namespace Python
 			  .def("MarkNodesByDistance",&LevelSetFluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
 			  .def("CalculateForces",&LevelSetFluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
 			  .def("CalculateVariablesDistribution",&LevelSetFluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateVariablesDistribution)
-			  ;
+        		  ;
 
 	  class_< LevelSetFluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("LevelSetFluidSolver3D", init<MatrixContainer< 3, SparseSpaceType>&, ModelPart&, bool, bool >() )
 			  .def("Initialize",&LevelSetFluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
@@ -247,7 +247,7 @@ namespace Python
 			  .def("MarkNodesByDistance",&LevelSetFluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
 			  .def("CalculateForces",&LevelSetFluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
 			  .def("CalculateVariablesDistribution",&LevelSetFluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateVariablesDistribution)
-			;
+        		;
 
 
 	 class_< PureConvectionEdgeBased< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("PureConvectionEdgeBased2D", init<MatrixContainer< 2, SparseSpaceType>&, ModelPart& >() )
