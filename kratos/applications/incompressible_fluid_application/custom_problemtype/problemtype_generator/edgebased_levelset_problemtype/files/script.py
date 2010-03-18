@@ -94,11 +94,19 @@ body_force[2] = edgebased_levelset_var.body_force_z
 viscosity   = edgebased_levelset_var.viscosity
 density     = edgebased_levelset_var.density
 fluid_solver = edgebased_levelset_solver.EdgeBasedLevelSetSolver(fluid_model_part,domain_size,body_force,viscosity,density)
-
 fluid_solver.redistance_frequency = edgebased_levelset_var.redistance_frequency
 fluid_solver.extrapolation_layers = edgebased_levelset_var.extrapolation_layers
+fluid_solver.stabdt_pressure_factor = edgebased_levelset_var.stabdt_pressure_factor
+fluid_solver.stabdt_convection_factor = edgebased_levelset_var.stabdt_convection_factor
+fluid_solver.tau2_factor = edgebased_levelset_var.tau2_factor
+fluid_solver.edge_detection_angle = edgebased_levelset_var.edge_detection_angle
+fluid_solver.assume_constant_pressure = edgebased_levelset_var.assume_constant_pressure
 
 fluid_solver.Initialize()
+
+if(edgebased_levelset_var.wall_law_y > 1e-10):
+    fluid_solver.fluid_solver.ActivateWallResistance(edgebased_levelset_var.wall_law_y);
+    
 ####
 
 
@@ -115,6 +123,7 @@ number_of_inital_steps = edgebased_levelset_var.number_of_inital_steps
 initial_time_step = edgebased_levelset_var.initial_time_step
 out = 0
 
+original_max_dt = max_Dt
 
 ###mesh to be printed
 if(edgebased_levelset_var.print_layers == False):
@@ -134,15 +143,17 @@ next_output_time = output_dt
 while(time < final_time):
 
     if(step < number_of_inital_steps):
-        Dt = initial_time_step
+        max_Dt = initial_time_step
     else:
+        max_Dt = original_max_dt
         #progressively increment the safety factor
         #in the steps that follow a reduction of it
         safety_factor = safety_factor * 1.2
         if(safety_factor > max_safety_factor):
             safety_factor = max_safety_factor
-        
-        Dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
+
+    Dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
+
         
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
@@ -166,7 +177,7 @@ while(time < final_time):
             #we found a velocity too large! we need to reduce the time step
             fluid_solver.fluid_solver.ReduceTimeStep(fluid_model_part,time) ##this is to set the database to the value at the beginning of the step
 
-            safety_factor *= 0.3
+            safety_factor *= edgebased_levelset_var.reduction_on_failure
             reduced_dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
             
             print "time before reduction= ",time
