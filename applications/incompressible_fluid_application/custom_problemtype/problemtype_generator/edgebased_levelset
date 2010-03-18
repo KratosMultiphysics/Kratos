@@ -30,12 +30,20 @@ PROPERTY viscosity 0.000001 viscosity
 PROPERTY body_force_x 0.0 body_force_x
 PROPERTY body_force_y -9.81 body_force_y
 PROPERTY body_force_z 0.0 body_force_z
+PROPERTY wall_law_y 0.0 wall_law_y
 PROPERTY print_layers True print_layers
 PROPERTY use_mass_correction True use_mass_correction
 PROPERTY redistance_frequency 5 redistance_frequency
 PROPERTY extrapolation_layers 5 extrapolation_layers
 PROPERTY number_of_inital_steps 10 number_of_inital_steps
 PROPERTY initial_time_step 0.00001 initial_time_step
+PROPERTY reduction_on_failure 0.3 reduction_on_failure
+PROPERTY stabdt_pressure_factor 1.0 stabdt_pressure_factor
+PROPERTY stabdt_convection_factor 0.01 stabdt_convection_factor
+PROPERTY tau2_factor 1.0 tau2_factor
+PROPERTY edge_detection_angle 45.0 edge_detection_angle
+PROPERTY assume_constant_pressure False assume_constant_pressure
+
 
 DEFINE MODEL PART FixedVelocity point line surface LOWER
 ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
