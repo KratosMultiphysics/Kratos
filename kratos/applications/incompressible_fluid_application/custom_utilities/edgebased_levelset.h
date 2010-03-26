@@ -572,17 +572,22 @@ namespace Kratos {
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                     pi_i[l_comp] = 0.0;
 
-                const array_1d<double, TDim>& a_i = mvel_n1[i_node];
+                array_1d<double, TDim> a_i = mvel_n1[i_node];
                 const array_1d<double, TDim>& U_i = mvel_n1[i_node];
-                const double& p_i = mPn1[i_node];
+//                 const double& p_i = mPn1[i_node];
+		const double& eps_i = mEps[i_node];
+
+		a_i /= eps_i;
 
                 //const double& p_i = pressure[i_node];
 
                 for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
                     unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-                    const array_1d<double, TDim>& a_j = mvel_n1[j_neighbour];
+                    array_1d<double, TDim> a_j = mvel_n1[j_neighbour];
                     const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
-                    const double& p_j = mPn1[j_neighbour];
+                    const double& eps_j = mEps[j_neighbour];
+
+		    a_j /= eps_j;
 
                     CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
