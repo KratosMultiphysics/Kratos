@@ -48,6 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <set>
+//#include <list>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -109,6 +110,8 @@ namespace Kratos
         typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
         typedef std::size_t KeyType; // For Dof->GetVariable().Key()
+
+        typedef boost::numeric::ublas::vector<int> IndexVector;
 
         // UBLAS matrix access types
         typedef typename TSystemMatrixType::iterator1 OuterIt;
@@ -220,7 +223,7 @@ namespace Kratos
                 omp_init_lock( &lock_array[i] );
 
             //create a partition of the element array
-            unsigned int NumThreads;
+            unsigned int NumThreads = GetNumThreads();
             std::vector<unsigned int> ElementPartition;
 
             DivideInPartitions(rElements.size(),ElementPartition,NumThreads);
@@ -258,7 +261,6 @@ namespace Kratos
             std::vector<unsigned int> ConditionPartition;
 
             DivideInPartitions(rConditions.size(),ConditionPartition,NumThreads);
-
 
             #pragma omp parallel for
             for(unsigned int k=0; k < NumThreads; k++)
@@ -703,43 +705,73 @@ namespace Kratos
             KRATOS_WATCH("setting up the dofs");
             //Gets the array of elements from the modeler
             ElementsArrayType& pElements = rModelPart.Elements();
+            ConditionsArrayType& pConditions = rModelPart.Conditions();
 
-            Element::DofsVectorType ElementalDofList;
+            BaseType::mDofSet = DofsArrayType();
 
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-            DofsArrayType Doftemp;
-            BaseType::mDofSet = DofsArrayType();
+            unsigned int NumThreads = GetNumThreads();
+            std::vector<unsigned int> ElemPartition;
+            std::vector<unsigned int> CondPartition;
 
-            for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin();
-                    it != pElements.ptr_end(); ++it) {
-                // gets list of Dof involved on every element
-                pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
+            DivideInPartitions(pElements.size(),ElemPartition,NumThreads);
+            DivideInPartitions(pConditions.size(),CondPartition,NumThreads);
 
-                for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
-                        i != ElementalDofList.end(); ++i) {
-                    Doftemp.push_back(*i);
+            std::vector< DofsArrayType > DofContainer(NumThreads);
+//            std::vector< std::list< Dof<double>::Pointer > > Doftemp(NumThreads);
+
+            #pragma omp parallel
+            {
+                unsigned int k = ThisThread();
+                Element::DofsVectorType ElementalDofList;
+
+                for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin() + ElemPartition[k];
+                        it != pElements.ptr_begin() + ElemPartition[k+1]; ++it) {
+                    // gets list of Dof involved on every element
+                    pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
+
+                    for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
+                            i != ElementalDofList.end(); ++i) {
+                        DofContainer[k].push_back(*i);
+                    }
                 }
 
-            }
+                //taking into account conditions
+                for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin() + CondPartition[k];
+                        it != pConditions.ptr_begin() + CondPartition[k+1]; ++it) {
+                    // gets list of Dof involved on every element
+                    pScheme->GetConditionDofList(*it, ElementalDofList, CurrentProcessInfo);
 
-            //taking in account conditions
-            ConditionsArrayType& pConditions = rModelPart.Conditions();
-            for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin();
-                    it != pConditions.ptr_end(); ++it) {
-                // gets list of Dof involved on every element
-                pScheme->GetConditionDofList(*it, ElementalDofList, CurrentProcessInfo);
-
-                //ccc = GetTickCount();
-                for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
-                        i != ElementalDofList.end(); ++i) {
-                    Doftemp.push_back(*i);
+                    for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
+                            i != ElementalDofList.end(); ++i) {
+                        DofContainer[k].push_back(*i);
+                    }
                 }
+
+                // Remove duplicates in the partial list
+                // (try to do as much work as possible in the parallel region)
+                DofContainer[k].Unique();
             }
 
-            Doftemp.Unique();
+            // Generate a single list
+            for (unsigned int k = 0; k < NumThreads ; k++)
+                for( typename DofsArrayType::ptr_iterator itDof = DofContainer[k].ptr_begin();
+                        itDof != DofContainer[k].ptr_end(); itDof++) {
+                    BaseType::mDofSet.push_back(*itDof);//insert(DofContainer[0].begin(),*itDof);
+                }
 
-            BaseType::mDofSet = Doftemp;
+            //Doftemp[0].merge(Doftemp[k]);
+//            Doftemp[0].sort();
+//            Doftemp[0].unique();
+            BaseType::mDofSet.Unique();
+
+//            unsigned int DofNum = Doftemp[0].size();
+//            KRATOS_WATCH(DofNum)
+//            for (std::list< boost::shared_ptr <Dof<double> > >::iterator itDof = Doftemp[0].begin();
+//                    itDof != Doftemp[0].end() ; itDof++)
+//                BaseType::mDofSet.push_back( *itDof );
+//            BaseType::mDofSet = DofContainer[0];
 
             //throws an execption if there are no Degrees of freedom involved in the analysis
             if (BaseType::mDofSet.size() == 0)
@@ -1526,7 +1558,7 @@ namespace Kratos
             TSystemMatrixType& rL = *mpL;
 
             std::vector<unsigned int> Partition;
-            unsigned int NumThreads;
+            unsigned int NumThreads = GetNumThreads();
 
             DivideInPartitions(A.size1(),Partition,NumThreads);
 
@@ -1534,12 +1566,13 @@ namespace Kratos
             {
                 #pragma omp parallel
                 if( ThisThread() == k) {
-                    boost::shared_ptr< std::vector<int> > pNext( new std::vector<int>(mPressFreeDofs,-1) );
-                    std::vector<int>& Next = *pNext; // Keeps track of which columns were filled
+                    boost::shared_ptr< IndexVector > pNext( new IndexVector(mPressFreeDofs) );
+                    IndexVector& Next = *pNext; // Keeps track of which columns were filled
+                    for(unsigned int m = 0; m < mPressFreeDofs; m++) Next[m] = -1;
 
                     std::size_t NumTerms = 0; // Full positions in a row
-                    boost::shared_ptr< std::vector<int> > pUsedCols( new std::vector<int>);
-                    std::vector<int>& UsedCols = *pUsedCols;
+                    boost::shared_ptr< std::vector<unsigned int> > pUsedCols( new std::vector<unsigned int>);
+                    std::vector<unsigned int>& UsedCols = *pUsedCols;
                     UsedCols.reserve(mPressFreeDofs);
 
                     for( std::size_t RowIndex = Partition[k] ;
@@ -1597,7 +1630,7 @@ namespace Kratos
                             A.push_back(RowIndex,UsedCols[i],0);
                         }
                         NumTerms = 0;
-                        UsedCols.resize(0,0);
+                        UsedCols.resize(0,false);
                     }
                 }
             }
@@ -1618,98 +1651,79 @@ namespace Kratos
 
             // Compute Inv(Diag(S))
             TSystemVectorType& rIDiagS = *mpIDiagS;
+            #pragma omp parallel for
             for( std::size_t i = 0; i < mVelFreeDofs; i++)
                 rIDiagS[i] = 1/rS(i,i);
 
             std::vector<unsigned int> Partition;
-            unsigned int NumThreads;
+            unsigned int NumThreads = GetNumThreads();
 
             DivideInPartitions(A.size1(),Partition,NumThreads);
 
-            for( unsigned int k = 0; k < NumThreads; k++) {
-                #pragma omp parallel
-                if( ThisThread() == k) {
+            #pragma omp parallel
+            {
+                unsigned int k = ThisThread();
+                TSystemVectorPointerType pCurrentRow( new TSystemVectorType(mPressFreeDofs) );
+                TSystemVectorType& CurrentRow = *pCurrentRow; // Values for current row
+                for (unsigned int i = 0; i < mPressFreeDofs; i++) CurrentRow[i] = 0.0;
 
-                    TSystemVectorPointerType pCurrentRow( new TSystemVectorType(mPressFreeDofs) );
-                    TSystemVectorType& CurrentRow = *pCurrentRow; // Values for current row
-                    for (unsigned int i = 0; i < mPressFreeDofs; i++) CurrentRow[i] = 0.0;
+                boost::shared_ptr< IndexVector > pNext( new IndexVector(mPressFreeDofs) );
+                IndexVector& Next = *pNext; // Keeps track of which columns were filled
+                for(unsigned int m=0; m < mPressFreeDofs; m++) Next[m] = -1;
 
-                    boost::shared_ptr< std::vector<int> > pNext( new std::vector<int>(mPressFreeDofs,-1) );
-                    std::vector<int>& Next = *pNext; // Keeps track of which columns were filled
+                for( std::size_t RowIndex = Partition[k] ;
+                        RowIndex != Partition[k+1] ; RowIndex++ ) {
+                    RowType RowD(rD,RowIndex);
+                    RowType RowL(rL,RowIndex);
 
-                    std::size_t NumTerms = 0; // Full positions in a row
-                    boost::shared_ptr< std::vector<int> > pUsedCols( new std::vector<int>);
-                    std::vector<int>& UsedCols = *pUsedCols;
-                    UsedCols.reserve(mPressFreeDofs);
+                    int head = -2;
+                    std::size_t Length = 0;
 
-                    for( std::size_t RowIndex = Partition[k] ;
-                            RowIndex != Partition[k+1] ; RowIndex++ ) {
-                        RowType RowD(rD,RowIndex);
-                        RowType RowL(rL,RowIndex);
+                    // Write L in A
+                    for( typename RowType::iterator ItL = RowL.begin();
+                            ItL != RowL.end(); ItL++ ) {
+                        CurrentRow(ItL.index()) = *ItL;
 
-                        int head = -2;
-                        std::size_t Length = 0;
+                        if( Next[ItL.index()] == -1)
+                        {
+                            Next[ItL.index()] = head;
+                            head = ItL.index();
+                            Length++;
+                        }
+                    }
 
-                        // Write L in A
-                        for( typename RowType::iterator ItL = RowL.begin();
-                                ItL != RowL.end(); ItL++ ) {
-                            CurrentRow(ItL.index()) = *ItL;
+                    // Substract D*Inv(Diag(S))*G
+                    for( typename RowType::iterator ItD = RowD.begin();
+                            ItD != RowD.end(); ItD++ ) {
+                        RowType RowG(rG,ItD.index());
 
-                            if( Next[ItL.index()] == -1)
+                        for( typename RowType::iterator ItG = RowG.begin();
+                                ItG != RowG.end(); ItG++ ) {
+                            CurrentRow[ItG.index()] -= (*ItD) * rIDiagS[ItD.index()] * (*ItG);
+
+                            if( Next[ItG.index()] == -1)
                             {
-                                Next[ItL.index()] = head;
-                                head = ItL.index();
+                                Next[ItG.index()] = head;
+                                head = ItG.index();
                                 Length++;
                             }
                         }
-
-                        // Substract D*Inv(Diag(S))*G
-                        for( typename RowType::iterator ItD = RowD.begin();
-                                ItD != RowD.end(); ItD++ ) {
-                            RowType RowG(rG,ItD.index());
-
-                            for( typename RowType::iterator ItG = RowG.begin();
-                                    ItG != RowG.end(); ItG++ ) {
-                                CurrentRow[ItG.index()] -= (*ItD) * rIDiagS[ItD.index()] * (*ItG);
-
-                                if( Next[ItG.index()] == -1)
-                                {
-                                    Next[ItG.index()] = head;
-                                    head = ItG.index();
-                                    Length++;
-                                }
-                            }
-                        }
-
-                        // Identify full terms for writing
-                        for( std::size_t i = 0; i < Length; i++) {
-                            if( CurrentRow[head] != 0 ) {
-                                UsedCols.push_back(head);
-                                NumTerms++;
-                            }
-
-                            int temp = head;
-                            head = Next[head];
-
-                            // Clear 'Next' for next iteration
-                            Next[temp] = -1;
-                        }
-
-                         /* Fill matrix row (Random access, as
-                          * ConstructSystemMatrix guarantees that required
-                          *  matrix terms already exist), then clean temporary
-                          *  variables.
-                          */
-                        for( unsigned int i = 0; i < NumTerms; i++) {
-                            unsigned int j = UsedCols[i];
-                            A(RowIndex,j) = CurrentRow[j];
-                            CurrentRow[j] = 0;
-                        }
-                        NumTerms = 0;
-                        UsedCols.resize(0,0);
-
                     }
 
+                    // Fill matrix row (Random access, as ConstructSystemMatrix
+                    // guarantees that required matrix terms already exist),
+                    // then clean temporary variables.
+                    for( std::size_t i = 0; i < Length; i++) {
+                        if( CurrentRow[head] != 0 ) {
+                            A(RowIndex,head) = CurrentRow[head];
+                            CurrentRow[head] = 0;
+                        }
+
+                        // Clear variables for next iteration
+                        int temp = head;
+                        head = Next[head];
+                        Next[temp] = -1;
+                    }
                 }
             }
         }
@@ -1717,7 +1731,7 @@ namespace Kratos
 
         /* Helper function for Sytem matrix functions */
         void SortCols(
-                std::vector<int>& ColList,
+                std::vector<unsigned int>& ColList,
                 std::size_t& NumCols)
         {
             bool swap = true;
@@ -1746,7 +1760,7 @@ namespace Kratos
                 TSystemMatrixType& A,
                 std::vector< std::vector<std::size_t> >& indices)
         {
-            unsigned int NumThreads;
+            unsigned int NumThreads = GetNumThreads();
             std::vector<unsigned int> MatrixPartition;
 
             DivideInPartitions(indices.size(),MatrixPartition,NumThreads);
@@ -1774,7 +1788,10 @@ namespace Kratos
 #ifdef _OPENMP
 
         /* y += A*x in parallel */
-        void Parallel_ProductAdd( const TSystemMatrixType& A, const TSystemVectorType& in, TSystemVectorType& out)
+        void Parallel_ProductAdd(
+                const TSystemMatrixType& A,
+                const TSystemVectorType& in,
+                TSystemVectorType& out)
         {
 
             typedef  unsigned int size_type;
@@ -1782,7 +1799,7 @@ namespace Kratos
 
             //create partition
             std::vector<size_type> partition;
-            unsigned int number_of_threads;
+            unsigned int number_of_threads = GetNumThreads();
             DivideInPartitions(A.size1(),partition,number_of_threads);
 
             #pragma omp parallel
@@ -1880,6 +1897,15 @@ namespace Kratos
          * suitable alternative when they are compilied without OpenMP
          */
 
+        inline unsigned int GetNumThreads()
+        {
+            #ifdef _OPENMP
+            return omp_get_max_threads();
+            #else
+            return 1;
+            #endif
+        }
+
         inline unsigned int ThisThread()
         {
             #ifdef _OPENMP
@@ -1899,7 +1925,6 @@ namespace Kratos
                 unsigned int& NumThreads)
         {
             #ifdef _OPENMP
-            NumThreads = omp_get_max_threads();
             Partitions.resize(NumThreads + 1);
             int PartitionSize = NumTerms / NumThreads;
             Partitions[0] = 0;
@@ -1907,7 +1932,6 @@ namespace Kratos
             for(int i = 1; i < NumThreads; i++)
                 Partitions[i] = Partitions[i-1] + PartitionSize ;
             #else
-            NumThreads = 1;
             Partitions.resize(2);
             Partitions[0] = 0;
             Partitions[1] = NumTerms;
