@@ -219,7 +219,7 @@ namespace Kratos
             int TotalSize = BaseType::mEquationSystemSize;
             std::vector< omp_lock_t > lock_array(TotalSize);
 
-            for(int i = 0; i<TotalSize; i++)
+            for(unsigned int i = 0; i<TotalSize; i++)
                 omp_init_lock( &lock_array[i] );
 
             //create a partition of the element array
@@ -262,9 +262,10 @@ namespace Kratos
 
             DivideInPartitions(rConditions.size(),ConditionPartition,NumThreads);
 
-            #pragma omp parallel for
-            for(unsigned int k=0; k < NumThreads; k++)
+            #pragma omp parallel
             {
+                unsigned int k = ThisThread();
+
                 //contributions to the system
                 LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
                 LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -1652,7 +1653,7 @@ namespace Kratos
             // Compute Inv(Diag(S))
             TSystemVectorType& rIDiagS = *mpIDiagS;
             #pragma omp parallel for
-            for( std::size_t i = 0; i < mVelFreeDofs; i++)
+            for( unsigned int i = 0; i < mVelFreeDofs; i++)
                 rIDiagS[i] = 1/rS(i,i);
 
             std::vector<unsigned int> Partition;
