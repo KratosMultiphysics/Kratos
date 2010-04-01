@@ -1,0 +1,48 @@
+project PoissonApplication
+    : 
+    source-location
+       .
+       custom_elements
+       custom_python
+       external_includes
+    :
+    requirements <include>. 
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+# no libs needed for this application ... have a look to PFEMapplication for examples
+# of use in a more general case
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+import python ;
+python-extension KratosR1PoissonApplication
+    :  
+	#list of sources
+	kPoisson.cpp
+	kPoisson_python_application.cpp
+	poisson_2d.cpp
+	#add_custom_strategies_to_python.cpp 
+	#add_custom_utilities_to_python.cpp
+
+	#kratos library
+        ##/kratos-prj/kratos//libkratos/<link>static
+    /KratosProject//libkratos_static
+    	 
+	#"system" includes	
+	/KratosProject//pythonlib
+	/KratosProject//boost_python_lib
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+
+install install : KratosR1PoissonApplication : <location>$(TOP)/libs ;
+
+
