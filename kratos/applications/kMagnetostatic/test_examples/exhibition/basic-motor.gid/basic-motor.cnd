@@ -1,0 +1,58 @@
+BOOK:Magnetic_Conditions
+NUMBER: 1 CONDITION: Point_Potential
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Potential
+VALUE: 0.0
+HELP: Value of the potential over points
+image: ../images/PointCond.gif
+END CONDITION
+NUMBER: 2 CONDITION: Line_Potential
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Potential
+VALUE: 0.0
+HELP: Value of the Potential over lines
+image: ../images/PointCond.gif
+END CONDITION
+NUMBER: 3 CONDITION: Surface_Potential
+CONDTYPE: over surfaces
+CONDMESHTYPE: over nodes
+QUESTION: Potential
+VALUE: 0.0
+HELP: Value of the Potential over surfaces
+image: ../images/BoundCond.gif
+END CONDITION
+BOOK:Magnetic_Contour_Conditions
+NUMBER: 4 CONDITION: Contour_Magnetic_Intensity
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: Hn
+VALUE: 0.0
+HELP: Value of the normal magnetic intensity over the line
+image: ../images/Flux.gif
+END CONDITION
+NUMBER: 5 CONDITION: Infinit_Condition
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: Exponent
+VALUE: 1.0
+HELP: Value of the infinit condition
+image: ../images/Flux.gif
+END CONDITION
+BOOK:Magnetic_Sources
+NUMBER: 6 CONDITION: Point_Current
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: I
+VALUE: 0.0
+HELP: Value of the current over a point
+image: ../images/Source.gif
+END CONDITION
+NUMBER: 7 CONDITION: Surface_Current
+CONDTYPE: over surfaces
+QUESTION: Js
+VALUE: 0.0
+HELP: Value of the current over a surface
+image: ../images/Source.gif
+END CONDITION
