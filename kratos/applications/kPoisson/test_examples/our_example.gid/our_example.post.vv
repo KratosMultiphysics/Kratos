@@ -1,0 +1,19 @@
+BeginZE D:\kratosR1\applications\kPoisson\test_examples\our_example.gid\our_example.post.vv
+   x -15.9015 28.0624
+   y 22.8596 -14.8866
+   z -53.3099 53.3099
+   e 17.77
+   v 0 0 0
+   r 1
+   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   c 6.08043 3.98651 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+EndZE D:\kratosR1\applications\kPoisson\test_examples\our_example.gid\our_example.post.vv
+

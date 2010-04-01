@@ -1,0 +1,20 @@
+BOOK:Dirichlet_Conditions
+NUMBER: 1 CONDITION: Point_Fix_Value
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Value
+VALUE: 0.0
+END CONDITION
+NUMBER: 2 CONDITION: Line_Fix_Value
+CONDTYPE: over lines
+CONDMESHTYPE: over nodes
+QUESTION: Value
+VALUE: 0.0
+END CONDITION
+BOOK:Dummy_Sources
+NUMBER: 3 CONDITION: Point_Dummy_Load
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Q
+VALUE: 0.0
+END CONDITION
