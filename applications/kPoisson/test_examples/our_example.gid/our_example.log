@@ -1,0 +1,102 @@
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosR1PoissonApplication... 
+"Application Registered" : Application Registered
+"Variables Registered Registered" : Variables Registered Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+our_example opened for io
+our_example.node opened for io
+our_example.prop opened for io
+our_example.elem opened for io
+our_example.cond opened for io
+our_example.init opened for io
+initializing result files
+reading nodes
+temp : Node #9 : (20.7379 , 12.7649 , 0)
+Nodes succesfully read
+reading Properties
+Properties succesfully read
+reading Elements
+Properties succesfully read
+reading Conditions
+Properties succesfully read
+reading Initial Values
+ reading initiali values 
+ finished reading initial values 
+Initial Values succesfully read
+Reading completed succesfully
+writing a 2D mesh
+"setting up the dofs" : setting up the dofs
+Building Time : 0
+LU factorization solver finished.
+
+System Solve Time : 0
+Building Time : 0
+LU factorization solver finished.
+
+System Solve Time : 0
+DISPLACEMENT CRITERIA :: obtained tol = 0.0206048;  expected ratio = 1e-006absolute tol = 0.194195
+Building Time : 0
+LU factorization solver finished.
+
+System Solve Time : 0
+DISPLACEMENT CRITERIA :: obtained tol = 0.00405189;  expected ratio = 1e-006absolute tol = 0.0380348
+Building Time : 0
+LU factorization solver finished.
+
+System Solve Time : 0
+DISPLACEMENT CRITERIA :: obtained tol = 0.000159258;  expected ratio = 1e-006absolute tol = 0.00149484
+Building Time : 0
+LU factorization solver finished.
+
+System Solve Time : 0
+DISPLACEMENT CRITERIA :: obtained tol = 2.82165e-005;  expected ratio = 1e-006absolute tol = 0.000264855
+Building Time : 0
+LU factorization solver finished.
+
+System Solve Time : 0
+DISPLACEMENT CRITERIA :: obtained tol = 1.42173e-006;  expected ratio = 1e-006absolute tol = 1.33451e-005
+Building Time : 0
+LU factorization solver finished.
+
+System Solve Time : 0
+DISPLACEMENT CRITERIA :: obtained tol = 2.80121e-007;  expected ratio = 1e-006absolute tol = 2.62936e-006
+"convergence is achieved" : convergence is achieved
+before importing kratos
+Kratos library imported
+kernel created
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_ElectrostaticApplication: False
+Import_PoissonApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_ULFApplication: False
+Import_ ElectrostaticApplication: False
+Import_ PoissonApplication: True
+importing KratosR1PoissonApplication ...
+Kratos PoissonApplication1 sucessfully imported
+PoissonPart model part
+    Buffer Size : 1
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 9
+    Number of Properties : 2
+    Number of Elements   : 8
+    Number of Conditions : 0
+
+variables for the Poisson solver added correctly

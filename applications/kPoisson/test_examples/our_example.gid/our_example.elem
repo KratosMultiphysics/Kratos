@@ -1,0 +1,12 @@
+// Reading Elements
+
+ElementsGroup = dummy_group;
+
+ELEMENTS[1] = Poisson2D([2,1,3],1);
+ELEMENTS[2] = Poisson2D([3,4,2],1);
+ELEMENTS[3] = Poisson2D([4,3,7],2);
+ELEMENTS[4] = Poisson2D([7,8,4],2);
+ELEMENTS[5] = Poisson2D([5,2,4],1);
+ELEMENTS[6] = Poisson2D([4,6,5],1);
+ELEMENTS[7] = Poisson2D([6,4,8],2);
+ELEMENTS[8] = Poisson2D([8,9,6],2);
