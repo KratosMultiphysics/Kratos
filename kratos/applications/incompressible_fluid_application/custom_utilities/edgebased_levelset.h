@@ -118,14 +118,17 @@ namespace Kratos {
                 )
         : mr_matrix_container(mr_matrix_container),
           mr_model_part(mr_model_part),
-            medge_detection_angle(edge_detection_angle),
           mstabdt_pressure_factor(stabdt_pressure_factor),
             mstabdt_convection_factor(stabdt_convection_factor),
+            medge_detection_angle(edge_detection_angle),
             mtau2_factor(tau2_factor),
             massume_constant_dp(assume_constant_dp)
 
         {
-            //to be changed
+        double mstabdt_pressure_factor;
+        double mstabdt_convection_factor;
+        double medge_detection_angle;
+        double mtau2_factor;            //to be changed
             mViscosity = viscosity;
 
             noalias(mBodyForce) = body_force;
@@ -530,7 +533,7 @@ namespace Kratos {
                 mTauPressure[i_node] = tau;
                 mTauConvection[i_node] = tau_conv;
 
-                 mTau2[i_node] = (mViscosity + h_avg_i*vel_norm*0.5)*mtau2_factor;
+                 mTau2[i_node] = (mViscosity + h_avg_i*vel_norm*0.5)*tau2_factor;
 
 //                mTauPressure[i_node] = 1.0 / (2.0 * vel_norm / mHavg[i_node] + (4.0*nu_i) / (mHavg[i_node] * mHavg[i_node]));
 //                mTauConvection[i_node] = 1.0 / (2.0 * vel_norm / h_i + time_inv + (4.0*nu_i) / (h_i * h_i));
