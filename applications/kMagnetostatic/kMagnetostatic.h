@@ -28,7 +28,7 @@
 #include "custom_elements/magnetostatic_3d.h"
 #include "custom_conditions/pointcurrent2D.h"
 #include "custom_conditions/mfield2D.h"
-#include "custom_conditions/mfield3D.h"
+//#include "custom_conditions/mfield3D.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -227,7 +227,7 @@ namespace Kratos
 		const Magnetostatic3D  mMagnetostatic3D;
 		const PointCurrent2D  mPointCurrent2D;
 		const Mfield2D  mMfield2D;
-		const Mfield3D  mMfield3D;
+		//const Mfield3D  mMfield3D;
 
 
 
