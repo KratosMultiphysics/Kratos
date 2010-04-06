@@ -1,5 +1,5 @@
-BeginZE D:\kratos2009\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.vv
-   x -0.100337 0.100337
+BeginZE D:\Kratos2010\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.vv
+   x -0.156426 0.156426
    y 0.087178 -0.087178
    z -0.261534 0.261534
    e 0.087178
@@ -15,5 +15,5 @@ BeginZE D:\kratos2009\kratos\applications\kMagnetostatic\test_examples\exhibitio
    NowUse 1
    DrawingType 0
    LightVector 74.53 48.0296 126.209 0
-EndZE D:\kratos2009\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.vv
+EndZE D:\Kratos2010\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.vv
 

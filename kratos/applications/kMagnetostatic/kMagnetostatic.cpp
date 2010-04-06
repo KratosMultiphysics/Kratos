@@ -56,8 +56,8 @@ namespace Kratos
 		mMagnetostatic2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mMagnetostatic3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
         mPointCurrent2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-		mMfield2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
-		mMfield3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+		mMfield2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))))//,
+		//mMfield3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
 	{}
 
 		
@@ -101,7 +101,7 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("Magnetostatic3D", mMagnetostatic3D);
 		KRATOS_REGISTER_CONDITION("PointCurrent2D", mPointCurrent2D);
 		KRATOS_REGISTER_CONDITION("Mfield2D", mMfield2D);
-		KRATOS_REGISTER_CONDITION("Mfield3D", mMfield3D);
+//		KRATOS_REGISTER_CONDITION("Mfield3D", mMfield3D);
 
 
 	}

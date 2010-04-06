@@ -37,7 +37,7 @@ python-extension KratosR1MagnetostaticApplication
 	magnetostatic_3d.cpp
 	pointcurrent2D.cpp
 	mfield2D.cpp
-	mfield3D.cpp
+	#mfield3D.cpp
 
 	#kratos library
         ##/kratos-prj/kratos//libkratos/<link>static
