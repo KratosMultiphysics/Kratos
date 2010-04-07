@@ -124,6 +124,7 @@ namespace Python
 		;
 
 	  class_<Timer>("Timer", init<>())
+		.add_property("PrintOnScreen", &Timer::GetPrintOnScreen,&Timer::SetPrintOnScreen)
 // 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
 	    .def(self_ns::str(self))
 		;
