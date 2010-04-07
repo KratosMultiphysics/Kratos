@@ -1022,6 +1022,18 @@ namespace Kratos
 				mpfracvel_z_strategy->Clear();
 			mppressurestep->Clear();
 		}
+
+		virtual double GetStageResidualNorm(unsigned int step)
+		{
+			if(step == 1)
+				return mpfracvel_x_strategy->GetResidualNorm();
+			if(step == 2)
+				return mpfracvel_y_strategy->GetResidualNorm();
+			if(step == 3)
+				return mpfracvel_z_strategy->GetResidualNorm();
+			if(step == 4)
+				return mppressurestep->GetResidualNorm();
+		}
 		/*@} */
 		/**@name Operators 
 		*/  
