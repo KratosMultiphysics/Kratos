@@ -109,7 +109,7 @@ def BenchmarkCheck(time, model_part):
     top_left_node = model_part.Nodes[646]            
         
     benchmarking.Output(time, "Time")
-    benchmarking.Output(bottom_right_node.GetSolutionStepValue(PRESSURE), "pressure on node 320 ", 0.001)
+    benchmarking.Output(bottom_right_node.GetSolutionStepValue(PRESSURE)-bottom_right_node.GetSolutionStepValue(PRESSURE,1), "pressure on node 320 ", 0.001)
     benchmarking.Output(bottom_right_node.GetSolutionStepValue(DISTANCE), "distance on node 320 ", 0.001)
     benchmarking.Output(top_left_node.GetSolutionStepValue(DISTANCE), "distance on node 646 ", 0.001)
 
