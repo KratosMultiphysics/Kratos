@@ -353,6 +353,7 @@ namespace Kratos
 				  .def("AssignInitialStepValues",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssignInitialStepValues)
 				  .def("IterativeSolve",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::IterativeSolve)
 				  .def("SavePressureIteration",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SavePressureIteration)
+				  .def("GetStageResidualNorm",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetStageResidualNorm)
 				  .def("ApplyFractionalVelocityFixity",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ApplyFractionalVelocityFixity)				;
 
 
