@@ -210,6 +210,17 @@ namespace Kratos
 
 	return msOutputFile.is_open();
       }
+
+ 
+	static bool GetPrintOnScreen()
+	{
+		return msPrintOnScreen;
+	}
+      
+	static void SetPrintOnScreen(bool const PrintOnScreen)
+	{
+		msPrintOnScreen = PrintOnScreen;
+	}
       
       
       ///@}
@@ -232,7 +243,7 @@ namespace Kratos
 	    
 	    msOutputFile << " " << StartTime << "s     \t" << StopTime << "s     \t" << StopTime - StartTime <<"s" << std::endl;
 	  }
-	else
+	else if(msPrintOnScreen)
 	  {
 	    std::cout << IntervalName << " ";
 	    
@@ -247,7 +258,7 @@ namespace Kratos
       {
 	if(msOutputFile.is_open())
 	  PrintTimingInformation(msOutputFile);
-	else
+	else if(msPrintOnScreen)
 	  PrintTimingInformation(std::cout);
       }
 
@@ -336,6 +347,8 @@ namespace Kratos
       static ContainerType msTimeTable;
 
       static std::ofstream msOutputFile;
+
+      static bool msPrintOnScreen;
 
         
         
