@@ -55,4 +55,6 @@ namespace Kratos
   Timer::ContainerType Timer::msTimeTable;
   std::ofstream Timer::msOutputFile;
 
+  bool Timer::msPrintOnScreen = false;
+
 }
