@@ -254,6 +254,9 @@ namespace Kratos
 		
 		//operations to get the pointer to the model
 		inline ModelPart& GetModelPart() {return mr_model_part;};
+
+		virtual double GetResidualNorm()
+		{return 0.0;}
 		
 		//set and get current process info
 //		void SetCurrentProcessInfo(ProcessInfo& NewProcessInfo)
