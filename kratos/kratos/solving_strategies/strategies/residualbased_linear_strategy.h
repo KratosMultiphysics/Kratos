@@ -461,7 +461,16 @@ namespace Kratos
 
 			return mA;
 		    }
-	
+	//*********************************************************************************
+	double GetResidualNorm()
+	{
+		if(TSparseSpace::Size(*mpb) !=0)
+			return TSparseSpace::TwoNorm(*mpb);
+		else
+			return 0.0;		
+		
+	}
+		
 	//*********************************************************************************
 	/** 
 	this operations should be called before printing the results when non trivial results (e.g. stresses)
