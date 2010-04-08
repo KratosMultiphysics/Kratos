@@ -1033,6 +1033,8 @@ namespace Kratos
 				return mpfracvel_z_strategy->GetResidualNorm();
 			if(step == 4)
 				return mppressurestep->GetResidualNorm();
+                        else
+                            return 0.0;
 		}
 		/*@} */
 		/**@name Operators 
