@@ -7,6 +7,7 @@ project gidpost
     :
     requirements 	<include>. 
 			<define>NDEBUG
+			<define>USE_CONST
 		     	<link>static
 			<threading>multi
 			<warnings>off
