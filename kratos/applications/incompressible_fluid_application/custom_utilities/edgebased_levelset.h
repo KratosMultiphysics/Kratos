@@ -125,10 +125,6 @@ namespace Kratos {
             massume_constant_dp(assume_constant_dp)
 
         {
-        double mstabdt_pressure_factor;
-        double mstabdt_convection_factor;
-        double medge_detection_angle;
-        double mtau2_factor;            //to be changed
             mViscosity = viscosity;
 
             noalias(mBodyForce) = body_force;
