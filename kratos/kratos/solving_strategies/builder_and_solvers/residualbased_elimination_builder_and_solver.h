@@ -226,7 +226,8 @@ namespace Kratos
 			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 			// assemble all elements
 #ifndef _OPENMP
-			for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
+
+                        for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
 			{
 				//calculate elemental contribution
 				pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
@@ -726,7 +727,7 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
 				KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
 
 			BaseType::mDofSetIsInitialized = true;
-
+KRATOS_WATCH("finished setting up the dofs");
 			KRATOS_CATCH("")
 		}
 
@@ -869,7 +870,7 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
 			int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
 
 			typename DofsArrayType::ptr_iterator it2;
-
+// KRATOS_WATCH(*BaseType::mpReactionsVector);
 			//updating variables
 			TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
 			for (it2=BaseType::mDofSet.ptr_begin();it2 != BaseType::mDofSet.ptr_end(); ++it2)
@@ -878,7 +879,8 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
 				{
 					i=(*it2)->EquationId();
 					i-=systemsize; 
-
+/*KRATOS_WATCH((*it2)->GetSolutionStepReactionValue());
+KRATOS_WATCH(ReactionsVector[i]);*/
 					(*it2)->GetSolutionStepReactionValue() = ReactionsVector[i];
 				}
 			}
@@ -1250,6 +1252,7 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
 
 
 				}
+				//note that computation of reactions is not performed here!
 			}
 		}
 #endif
