@@ -15,6 +15,7 @@ Import_KratosTrilinosApplication = False
 Import_KratosMetisApplication = False
 Import_PoissonApplication = False
 Import_ElectrostaticApplication = False
+Import_MagnetostaticApplication = False
 Import_DamApplication = False
 
 print "Applications Available:"
@@ -30,7 +31,8 @@ print "Import_KratosMKLSolversApplication: False"
 print "Import_KratosTrilinosApplication: False"
 print "Import_KratosMetisApplication: False"
 print "Import_PoissonApplication: False"  
-print "Import_ElectrostaticApplication: False"  
+print "Import_ElectrostaticApplication: False"
+print "Import_MagnetostaticApplication: False"
 print "Import_DamApplication: False"  
 
 
@@ -50,6 +52,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_KratosMetisApplication: "+str(Import_KratosMetisApplication)
     print "Import_ PoissonApplication: "+str(Import_PoissonApplication)
     print "Import_ ElectrostaticApplication: "+str(Import_ElectrostaticApplication)
+    print "Import_ MagnetostaticApplication: "+str(Import_ElectrostaticApplication)
     print "Import_DamApplication: "+str(Import_DamApplication)
   
     if(Import_ALEApplication == True):
@@ -173,6 +176,14 @@ def ImportApplications(kernel, applications_path):
         kElectrostatic = KratosR1ElectrostaticApplication()
         kernel.AddApplication(kElectrostatic)
         print "Kratos ElectromagnecticApplication1 sucessfully imported"
+
+    if(Import_MagnetostaticApplication == True):
+        print "importing KratosR1MagnetostaticApplication ..."
+        sys.path.append(applications_path + '/kMagnetostatic/python_scripts')
+        from KratosR1MagnetostaticApplication import *
+        kElectrostatic = KratosR1MagnetostaticApplication()
+        kernel.AddApplication(kMagnetostatic)
+        print "Kratos ElectromagneticApplication2 sucessfully imported"
          
     if(Import_DamApplication == True):
         print "importing KratosDamApplication ..."
@@ -213,5 +224,7 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(kPoisson);
     if(Import_ElectrostaticApplication == True):
         kernel.InitializeApplication(kElectrostatic);
+    if(Import_MagnetostaticApplication == True):
+        kernel.InitializeApplication(kMagnetostatic);
     if(Import_DamApplication == True):
         kernel.InitializeApplication(dam_application);
