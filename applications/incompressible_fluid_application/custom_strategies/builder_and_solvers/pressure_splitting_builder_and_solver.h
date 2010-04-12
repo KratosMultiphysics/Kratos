@@ -231,7 +231,7 @@ namespace Kratos
             double start_prod = omp_get_wtime();
 
             #pragma omp parallel for
-            for(unsigned int k=0; k < NumThreads; k++)
+            for( int k=0; k < NumThreads; k++)
             {
                 //contributions to the system
                 LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
@@ -1653,7 +1653,7 @@ namespace Kratos
             // Compute Inv(Diag(S))
             TSystemVectorType& rIDiagS = *mpIDiagS;
             #pragma omp parallel for
-            for( unsigned int i = 0; i < mVelFreeDofs; i++)
+            for(  int i = 0; i < mVelFreeDofs; i++)
                 rIDiagS[i] = 1/rS(i,i);
 
             std::vector<unsigned int> Partition;
