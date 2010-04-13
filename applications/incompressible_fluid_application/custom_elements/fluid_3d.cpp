@@ -430,14 +430,14 @@ namespace Kratos
                 //**************************** EXPERIMENTAL *****************************
                 //**************************** EXPERIMENTAL *****************************
                 //try ... should conserve the mass much better!
-		const array_1d<double,3>& v0old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& v1old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& v2old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& v3old = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY,1);
-		Gaux +=  msDN_DX(0,0)*v0old[0] + msDN_DX(0,1)*v0old[1] + msDN_DX(0,2)*v0old[2];
-		Gaux += msDN_DX(1,0)*v1old[0] + msDN_DX(1,1)*v1old[1] + msDN_DX(1,2)*v1old[2];
-		Gaux += msDN_DX(2,0)*v2old[0] + msDN_DX(2,1)*v2old[1] + msDN_DX(2,2)*v2old[2];
-		Gaux += msDN_DX(3,0)*v3old[0] + msDN_DX(3,1)*v3old[1] + msDN_DX(3,2)*v3old[2];
+// 		const array_1d<double,3>& v0old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+// 		const array_1d<double,3>& v1old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+// 		const array_1d<double,3>& v2old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+// 		const array_1d<double,3>& v3old = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY,1);
+// 		Gaux +=  msDN_DX(0,0)*v0old[0] + msDN_DX(0,1)*v0old[1] + msDN_DX(0,2)*v0old[2];
+// 		Gaux += msDN_DX(1,0)*v1old[0] + msDN_DX(1,1)*v1old[1] + msDN_DX(1,2)*v1old[2];
+// 		Gaux += msDN_DX(2,0)*v2old[0] + msDN_DX(2,1)*v2old[1] + msDN_DX(2,2)*v2old[2];
+// 		Gaux += msDN_DX(3,0)*v3old[0] + msDN_DX(3,1)*v3old[1] + msDN_DX(3,2)*v3old[2];
                 //**************************** EXPERIMENTAL *****************************
                 //**************************** EXPERIMENTAL *****************************
 
@@ -889,17 +889,17 @@ namespace Kratos
               const double c1 = 4.00;
               const double c2 = 2.00;
               double tau;
-//		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
-//                if (dyn_st_switch)
-//                {
-//                    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
-//                    tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
-////                    KRATOS_WATCH(tau);
-//                }
-//                else
-//                {
+		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
+               if (dyn_st_switch)
+               {
+                   const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+                   tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+//                    KRATOS_WATCH(tau);
+               }
+               else
+               {
                     tau = 1.00 / (c1*nu/(h*h) + c2*norm_u/h );
-//                }
+               }
 
                 return tau;
 
