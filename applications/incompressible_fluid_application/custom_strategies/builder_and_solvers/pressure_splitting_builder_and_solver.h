@@ -48,7 +48,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <set>
-//#include <list>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -57,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/timer.h"
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <fstream>
 
 /* Project includes */
 #include "includes/define.h"
@@ -112,6 +112,7 @@ namespace Kratos
         typedef std::size_t KeyType; // For Dof->GetVariable().Key()
 
         typedef boost::numeric::ublas::vector<int> IndexVector;
+        typedef std::vector<unsigned int> PartitionVector;
 
         // UBLAS matrix access types
         typedef typename TSystemMatrixType::iterator1 OuterIt;
@@ -157,6 +158,7 @@ namespace Kratos
                 TSystemMatrixType& A,
                 TSystemVectorType& b)
         {
+            Timer::Start("ElementAssembly");
             KRATOS_TRY
             if (!pScheme)
                 KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
@@ -224,7 +226,7 @@ namespace Kratos
 
             //create a partition of the element array
             unsigned int NumThreads = GetNumThreads();
-            std::vector<unsigned int> ElementPartition;
+            PartitionVector ElementPartition;
 
             DivideInPartitions(rElements.size(),ElementPartition,NumThreads);
 
@@ -258,7 +260,7 @@ namespace Kratos
                 }
             }
 
-            std::vector<unsigned int> ConditionPartition;
+            PartitionVector ConditionPartition;
 
             DivideInPartitions(rConditions.size(),ConditionPartition,NumThreads);
 
@@ -298,6 +300,7 @@ namespace Kratos
             KRATOS_WATCH("finished parallel building");
 #endif
 
+            Timer::Stop("ElementAssembly");
             /* Build the pressure system matrix */
             if (mRebuildLevel == 0 || mInitializedMatrices == false)
             {
@@ -474,7 +477,7 @@ namespace Kratos
             if (NormB != 0.0)
             {
                 /* Solve current iteration in several steps */
-
+                Timer::Start("Solve::Initialize");
                 // Initialize required variables and pointers
                 TSystemVectorPointerType pDVel(new TSystemVectorType(mVelFreeDofs));
                 TSystemVectorType& rDVel = *pDVel;
@@ -497,6 +500,7 @@ namespace Kratos
                 }
 
                 TSystemMatrixType& rS = *mpS; // Create a reference to the velocity system matrix
+                Timer::Stop("Solve::Initialize");
 
                 // 1. Compute intermediate velocity
 //                axpy_prod(*mpG, -rDPress, rVelRHS, false);
@@ -512,9 +516,12 @@ namespace Kratos
 //                    mLastVelRHSNorm = VelRHSNorm;
 //                }
 
+                Timer::Start("Solve::Step1");
                 BaseType::mpLinearSystemSolver->Solve(rS, rDVel, rVelRHS);
+                Timer::Stop("Solve::Step1");
 
                 // 2. Compute Pressure Variation
+                Timer::Start("Solve::Step2");
 #ifndef _OPENMP
                 axpy_prod(*mpD, -rDVel, rPressRHS, false);
 #else
@@ -533,8 +540,10 @@ namespace Kratos
                 }
 
                 BaseType::mpLinearSystemSolver->Solve(A, rDPress, rPressRHS);
+                Timer::Stop("Solve::Step2");
 
                 // 3. Determine End of Step velocity
+                Timer::Start("Solve::Step3");
                 if ( mVelocityCorrection > 0)
                 {
                     TSparseSpace::Mult(*mpG, rDPress,rVelRHS);
@@ -552,15 +561,18 @@ namespace Kratos
                     }
                 }
 
+                Timer::Stop("Solve::Step3");
                 // Preconditioner
 //                A = *mpL - A;
 //                noalias(rPressRHS) = prod(A,rPressRHS);
 
+                Timer::Start("Solve::Post");
                 // Copy the solution to output variable
                 for (unsigned int i = 0; i < mVelFreeDofs; i++) Dx[i] = rDVel[i];
                 for (unsigned int i = 0; i < mPressFreeDofs; i++) Dx[mVelFreeDofs + i] = rDPress[i];
 
                 if (mFirstIteration == true) mFirstIteration = false;
+                Timer::Stop("Solve::Post");
             }
             else
                 TSparseSpace::SetToZero(Dx);
@@ -584,11 +596,18 @@ namespace Kratos
         {
             KRATOS_TRY
 
+            std::ofstream results;
+            results.open("results.csv", std::ios::out | std::ios::app );
+
+            double t0 = omp_get_wtime();
+
             Timer::Start("Build");
 
             Build(pScheme, rModelPart, A, b);
 
             Timer::Stop("Build");
+
+            double t1 = omp_get_wtime();
 
 //        //does nothing...dirichlet conditions are naturally dealt with in defining the residual
 //        ApplyDirichletConditions(pScheme,rModelPart,A,Dx,b);
@@ -606,12 +625,17 @@ namespace Kratos
 
             Timer::Stop("Solve");
 
+            double t2 = omp_get_wtime();
+
             if (this->GetEchoLevel() == 3) {
                 std::cout << "after the solution of the system" << std::endl;
                 std::cout << "System Matrix = " << A << std::endl;
                 std::cout << "unknowns vector = " << Dx << std::endl;
                 std::cout << "RHS vector = " << b << std::endl;
             }
+
+            results << (t1-t0) << " " << (t2-t1) << "\n";
+            results.close();
 
             KRATOS_CATCH("");
         }
@@ -713,8 +737,8 @@ namespace Kratos
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
             unsigned int NumThreads = GetNumThreads();
-            std::vector<unsigned int> ElemPartition;
-            std::vector<unsigned int> CondPartition;
+            PartitionVector ElemPartition;
+            PartitionVector CondPartition;
 
             DivideInPartitions(pElements.size(),ElemPartition,NumThreads);
             DivideInPartitions(pConditions.size(),CondPartition,NumThreads);
@@ -847,6 +871,7 @@ namespace Kratos
                 ConditionsArrayType& rConditions,
                 ProcessInfo& CurrentProcessInfo)
         {
+            Timer::Start("Resize&Initialize");
             KRATOS_TRY;
 
             if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -983,6 +1008,7 @@ namespace Kratos
             }
 
             KRATOS_CATCH("");
+            Timer::Stop("Resize&Initialize");
         }
 
         void InitializeSolutionStep(
@@ -1102,6 +1128,7 @@ namespace Kratos
                 const ConditionsArrayType& rConditions,
                 ProcessInfo& CurrentProcessInfo)
         {
+            Timer::Start("ConstructMatrices");
             std::vector< std::vector<std::size_t> > indicesS(mVelFreeDofs);
             std::vector< std::vector<std::size_t> > indicesG(mVelFreeDofs);
             std::vector< std::vector<std::size_t> > indicesD(mPressFreeDofs);
@@ -1209,6 +1236,7 @@ namespace Kratos
 
                 D.reserve(NumTermsD, false);
             }
+            Timer::Stop("ConstructMatrices");
 
             // Fill with zeros the matrix (create the structure)
             Timer::Start("MatrixStructure");
@@ -1256,6 +1284,7 @@ namespace Kratos
                 LocalSystemVectorType& RHS_Contribution,
                 Element::EquationIdVectorType& EquationId)
         {
+            Timer::Start("Assemble");
             TSystemMatrixType& rS = *mpS;
             TSystemMatrixType& rD = *mpD;
             TSystemMatrixType& rG = *mpG;
@@ -1299,6 +1328,7 @@ namespace Kratos
                     b[Global_i] += RHS_Contribution[i];
                 }
             }
+            Timer::Stop("Assemble");
         }
 
 #ifdef _OPENMP
@@ -1553,12 +1583,13 @@ namespace Kratos
         void ConstructSystemMatrix(
                 TSystemMatrixType& A)
         {
+            Timer::Start("ConstructA");
             // Retrieve matrices
             TSystemMatrixType& rG = *mpG;
             TSystemMatrixType& rD = *mpD;
             TSystemMatrixType& rL = *mpL;
 
-            std::vector<unsigned int> Partition;
+            PartitionVector Partition;
             unsigned int NumThreads = GetNumThreads();
 
             DivideInPartitions(A.size1(),Partition,NumThreads);
@@ -1635,6 +1666,7 @@ namespace Kratos
                     }
                 }
             }
+            Timer::Stop("ConstructA");
         }
 
         /* Compute the System Matrix A = L - D*Inv(Diag(S))*G. The multiplication
@@ -1644,6 +1676,7 @@ namespace Kratos
         void CalculateSystemMatrix(
                 TSystemMatrixType& A)
         {
+            Timer::Start("CalculateA");
             // Retrieve matrices
             TSystemMatrixType& rS = *mpS;
             TSystemMatrixType& rG = *mpG;
@@ -1656,7 +1689,7 @@ namespace Kratos
             for(  int i = 0; i < mVelFreeDofs; i++)
                 rIDiagS[i] = 1/rS(i,i);
 
-            std::vector<unsigned int> Partition;
+            PartitionVector Partition;
             unsigned int NumThreads = GetNumThreads();
 
             DivideInPartitions(A.size1(),Partition,NumThreads);
@@ -1727,6 +1760,7 @@ namespace Kratos
                     }
                 }
             }
+            Timer::Stop("CalculateA");
         }
 
 
@@ -1761,8 +1795,9 @@ namespace Kratos
                 TSystemMatrixType& A,
                 std::vector< std::vector<std::size_t> >& indices)
         {
+            Timer::Start("AllocateOther");
             unsigned int NumThreads = GetNumThreads();
-            std::vector<unsigned int> MatrixPartition;
+            PartitionVector MatrixPartition;
 
             DivideInPartitions(indices.size(),MatrixPartition,NumThreads);
 
@@ -1784,6 +1819,7 @@ namespace Kratos
                     }
                 }
             }
+            Timer::Start("AllocateOther");
         }
 
 #ifdef _OPENMP
@@ -1794,12 +1830,12 @@ namespace Kratos
                 const TSystemVectorType& in,
                 TSystemVectorType& out)
         {
-
+            Timer::Start("CustomProduct");
             typedef  unsigned int size_type;
             typedef  double value_type;
 
             //create partition
-            std::vector<size_type> partition;
+            PartitionVector partition;
             unsigned int number_of_threads = GetNumThreads();
             DivideInPartitions(A.size1(),partition,number_of_threads);
 
@@ -1820,6 +1856,7 @@ namespace Kratos
                                     partition[thread_id],
 				    out);
             }
+            Timer::Stop("CustomProduct");
         }
 
 	/**
@@ -1861,7 +1898,8 @@ namespace Kratos
             TolFactor = mMaxTolFactor;
 //            double Tolerance = TolFactor*RHSNorm;
 //            (BaseType::mpLinearSystemSolver)->SetTolerance(Tolerance);
-            (BaseType::mpLinearSystemSolver)->SetTolerance(TolFactor);
+            (BaseType::mpLinearSystemSolver)->SetTolerance(mSmallTol);
+//            (BaseType::mpLinearSystemSolver)->SetTolerance(TolFactor);
             std::cout << "Set iterative solver tolerance to " << TolFactor << std::endl;
         }
 
@@ -1922,7 +1960,7 @@ namespace Kratos
 
         inline void DivideInPartitions(
                 const int NumTerms,
-                std::vector<unsigned int>& Partitions,
+                PartitionVector& Partitions,
                 unsigned int& NumThreads)
         {
             #ifdef _OPENMP
