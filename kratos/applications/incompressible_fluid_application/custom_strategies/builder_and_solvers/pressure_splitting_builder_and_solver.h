@@ -49,6 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 #include <set>
 #ifdef _OPENMP
+#include <fstream>
 #include <omp.h>
 #endif
 
@@ -56,7 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/timer.h"
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <fstream>
 
 /* Project includes */
 #include "includes/define.h"
@@ -127,7 +127,7 @@ namespace Kratos
                 unsigned int RebuildLevel, // If > 0 Do not re-check the shape of all matrices each step (see definition in private atribute variables)
                 unsigned int VelocityCorrection, // If > 0, explicitly solve the velocity to be divergence-free at each step
                 bool UseInexactNewton, // If true, dynamically set the linear iterative solver tolerance for the pressure system
-                double NonLinearTol = 1e-6, // Only used if InexactNewton == true, otherwise the solver will use it's own tolerance
+                double NonLinearTol = 1e-3, // Only used if InexactNewton == true, otherwise the solver will use it's own tolerance
                 double MaxTolFactor = 0.1,
                 double Gamma = 0.9):
             BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver),
@@ -596,18 +596,21 @@ namespace Kratos
         {
             KRATOS_TRY
 
+#ifdef _OPENMP
             std::ofstream results;
             results.open("results.csv", std::ios::out | std::ios::app );
 
             double t0 = omp_get_wtime();
+#endif
 
             Timer::Start("Build");
 
             Build(pScheme, rModelPart, A, b);
 
             Timer::Stop("Build");
-
+#ifdef _OPENMP
             double t1 = omp_get_wtime();
+#endif
 
 //        //does nothing...dirichlet conditions are naturally dealt with in defining the residual
 //        ApplyDirichletConditions(pScheme,rModelPart,A,Dx,b);
@@ -624,7 +627,7 @@ namespace Kratos
             SystemSolve(A, Dx, b);
 
             Timer::Stop("Solve");
-
+#ifdef _OPENMP
             double t2 = omp_get_wtime();
 
             if (this->GetEchoLevel() == 3) {
@@ -636,7 +639,7 @@ namespace Kratos
 
             results << (t1-t0) << " " << (t2-t1) << "\n";
             results.close();
-
+#endif
             KRATOS_CATCH("");
         }
 
@@ -1685,8 +1688,9 @@ namespace Kratos
 
             // Compute Inv(Diag(S))
             TSystemVectorType& rIDiagS = *mpIDiagS;
+            int DiagSize = int(mVelFreeDofs); // to avoid comparison between int & unsigned int
             #pragma omp parallel for
-            for(  int i = 0; i < mVelFreeDofs; i++)
+            for( int i = 0; i < DiagSize; i++)
                 rIDiagS[i] = 1/rS(i,i);
 
             PartitionVector Partition;
