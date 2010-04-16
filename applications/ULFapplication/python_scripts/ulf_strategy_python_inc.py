@@ -229,7 +229,7 @@ class ULFStrategyPythonInc:
         self.builder_and_solver.ModifyForDirichlet(self.A, self.b)
         
         #now we will use the CG algorith written here to solve the modified system: A+GMinvD=b
-        self.prec_CG_Solve(20000, 1e-8)
+        self.prec_CG_Solve(20000, 1e-4)
         
         #full output if needed
         if(echo_level >= 3):
@@ -341,8 +341,8 @@ class ULFStrategyPythonInc:
           
         #here ri is r0 - before we enter the loop. we basically say: initialize ri=r0=d0
         #same is valid for xi=x0, and di = d0 =r0 in the beginning
-        ri = self.b
-
+        ri = Vector(self.b)
+        
         #d0 = Prec_x_r0
         self.builder_and_solver.calc_prod_precond_vec(ri, preconditioner, di)
 
@@ -384,7 +384,7 @@ class ULFStrategyPythonInc:
             self.space_utils.ScaleAndAdd(1.0, prec_ri,( prod_ri1_Prec_ri1/prod_ri_Prec_ri) , di)
             counter+=1
 
-            if (self.builder_and_solver.ConvergenceCheck(ri, self.b, conv_criterion, counter, max_iterations)):
+            if (self.builder_and_solver.ConvergenceCheck(ri, self.b, conv_criterion, counter, max_iterations)):            
                 print "CONVERGENCE ACHIEVED TO THE REQUIRED PRECISION"
                 print "counter", counter
                 self.out_file.write(str(counter)+"\n")
