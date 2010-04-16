@@ -61,10 +61,10 @@ class ULF_FSISolver:
         #definition of the solvers
         #self.model_linear_solver =  SkylineLUFactorizationSolver()
         pDiagPrecond = DiagonalPreconditioner()
-        self.model_linear_solver =  BICGSTABSolver(1e-8, 5000,pDiagPrecond)
+        self.model_linear_solver =  BICGSTABSolver(1e-4, 5000,pDiagPrecond)
 
         #definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(1e-6,1e-8)
+        self.conv_criteria = DisplacementCriteria(1e-4,1e-4)
 
         #self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part,domain_size);
         self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
@@ -84,7 +84,7 @@ class ULF_FSISolver:
 
         #self.save_structural_elements
         self.alpha_shape = 1.5;
-        self.h_multiplier = 0.6
+        self.h_multiplier = 0.1
 
         ##saving the limits of the box (all the nodes external to this will be erased)
         self.box_corner1 = box_corner1
