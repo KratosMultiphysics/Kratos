@@ -1093,6 +1093,7 @@ ms_adv_vel[1] /=eps;
 			int column = jj*(dof+1) + dof;
 			//Au+B|u|u * grad q
 			//DARCY TERM linear part
+/*????????????????????????????????  control the absence of eps.....*/
 			K(column,row) +=  fac_linear* N[ii] * DN_DX(jj,0)/*/nodal_eps[jj] *nodal_eps[jj]*/ ;
 			K(column,row + 1) +=fac_linear* N[ii] * DN_DX(jj,1)/*/nodal_eps[jj] *nodal_eps[jj]*/ ;
 			//DARCY TERM nonlinear part 
@@ -1494,10 +1495,10 @@ ms_adv_vel[1] /=eps;
 //         	double dp = 0.01; //diameter of the particle	
 	double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
-	double fac_linear = eps * kinv * mu /density;	
-	double fac_nonlinear = (1.75 * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;     
-/*	double fac_linear = kinv * mu /density;	
-	double fac_nonlinear = (1.75 / eps * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;  */   
+/*	double fac_linear = eps * kinv * mu /density;	
+	double fac_nonlinear = (1.75 * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;     */
+	double fac_linear = kinv * mu /density;	
+	double fac_nonlinear = (1.75 / eps * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;    
 
 	int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
 	
