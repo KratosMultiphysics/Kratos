@@ -192,8 +192,9 @@ namespace Kratos
 
 		//add body force and momentum
 		AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone,tautwo);
-
-		AddVolumeCorrection(rRightHandSideVector, N, delta_t, Area) ;
+		       
+		//add volume correction - q * div vn
+// 		AddVolumeCorrection(rRightHandSideVector, N, delta_t, Area) ;
 
 	   }
 	 
@@ -1495,7 +1496,8 @@ ms_adv_vel[1] /=eps;
 
 	double fac_linear = eps * kinv * mu /density;	
 	double fac_nonlinear = (1.75 * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;     
-
+/*	double fac_linear = kinv * mu /density;	
+	double fac_nonlinear = (1.75 / eps * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;  */   
 
 	int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
 	
