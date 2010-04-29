@@ -207,22 +207,7 @@ namespace Kratos
 
 			if (detJ<=0)				
 			{
-				/*				
-				for(unsigned int iii = 0; iii < i->GetGeometry().size(); iii++)
-				{				
-				KRATOS_WATCH("INSIDE the ulf_time_step_dec_process.h - detJ<0")
-				KRATOS_WATCH("CRITICAL ELEMENT - BEING ERASED")
-				i->GetGeometry()[iii].GetValue(ERASE_FLAG) = true;
-				}
-				*/	
-				for(unsigned int iii = 0; iii < i->GetGeometry().size(); iii++)
-							{
-							//KRATOS_WATCH("CRITICAL ELEMENT - BEING ERASED")
-							//i->GetGeometry()[iii].GetValue(ERASE_FLAG) = true;
-
-							//JUST TO SEE WHICH ELEMENT IS CRITICAL
-							i->GetGeometry()[iii].FastGetSolutionStepValue(IS_INTERFACE) = 20;
-							}			
+		
 				deltatime_new=deltatime/(1-detJ); //x=-b/k
 				deltatime=deltatime_new; 
 				noalias(J) = I + deltatime*Dv_dx+0.5*deltatime*deltatime*Da_dx;
@@ -235,24 +220,11 @@ namespace Kratos
 					detJ = MathUtils<double>::Det(J);
 		
 
-					for(unsigned int iii = 0; iii < i->GetGeometry().size(); iii++)
-							{
-							//KRATOS_WATCH("CRITICAL ELEMENT - BEING ERASED")
-							//i->GetGeometry()[iii].GetValue(ERASE_FLAG) = true;
-
-							//JUST TO SEE WHICH ELEMENT IS CRITICAL
-							i->GetGeometry()[iii].FastGetSolutionStepValue(IS_INTERFACE) = 50;
-							}			
+						
 					if (detJ<=0)				
 						{
 						for(unsigned int iii = 0; iii < i->GetGeometry().size(); iii++)
-							{
-							//KRATOS_WATCH("CRITICAL ELEMENT - BEING ERASED")
-							//i->GetGeometry()[iii].GetValue(ERASE_FLAG) = true;
-
-							//JUST TO SEE WHICH ELEMENT IS CRITICAL
-							i->GetGeometry()[iii].FastGetSolutionStepValue(IS_INTERFACE) = 100;
-							}
+							
 							deltatime_new=deltatime/(1-detJ); //x=-b/k
 							deltatime=deltatime_new;	
 							
