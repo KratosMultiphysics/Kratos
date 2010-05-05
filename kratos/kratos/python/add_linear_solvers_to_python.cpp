@@ -147,6 +147,7 @@ typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverTy
 		  .def(init<double, unsigned int>())
 		  .def(self_ns::str(self))
 		  .def(init<double, unsigned int,  PreconditionerType::Pointer>())
+                  .def("SetTolerance",&BICGSTABSolverType::SetTolerance)
 		  ;
   
   class_<TFQMRSolverType, TFQMRSolverType::Pointer, bases<IterativeSolverType> >("TFQMRSolver")
