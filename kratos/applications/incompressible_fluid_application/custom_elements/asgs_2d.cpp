@@ -736,6 +736,76 @@ namespace Kratos {
             F[index] +=  area * fbd_stblterm[ii];
         }
 
+
+
+// 	if(this->Has(NEIGHBOUR_ELEMENTS))
+// 	{
+// 		WeakPointerVector< Element >& ne = this->GetValue(NEIGHBOUR_ELEMENTS);
+// 		//edges are
+// 		//0 1 - 1 2 - 2 0
+// 		boost::numeric::ublas::bounded_matrix<double, 3, 2 > temp;
+// 		noalias(temp) = ZeroMatrix(3,2);
+// 		array_1d<double,2> n;
+// 		array_1d<double,3> Nb;
+// 
+// // 		std::cout << this->Id() << " ";
+// // 		for (unsigned int k=0;k<3;k++)
+// // 			std::cout << ne[k].Id() << " ";
+// // 		std::cout << std::endl;
+// 
+// 		bool is_active = false;
+// 
+// // KRATOS_WATCH(tauone);
+// 	
+// 		//first edge - 0 1
+// 		if(ne[2].Id() == this->Id())
+// 		{
+// 			is_active = true;
+// 			noalias(n) = row(DN_DX,2);
+// 			n *= -2.0*area;
+// 			Nb[0]=0.5; Nb[1]=0.5; Nb[2]=0.0;
+// 			noalias(temp) += outer_prod(Nb,n);		
+// 	 	}
+// 		//first edge - 1 2
+// 		if(ne[0].Id() == this->Id())
+// 	 	{
+// 			is_active = true;
+// 			noalias(n) = row(DN_DX,0);
+// 			n *= -2.0*area;
+// 			Nb[0]=0.0; Nb[1]=0.5; Nb[2]=0.5;
+// 			noalias(temp) += outer_prod(Nb,n);		
+// 	 	}		
+// 		//first edge - 2 0
+// 		if(ne[1].Id() == this->Id())
+// 	 	{
+// 			is_active = true;
+// 			noalias(n) = row(DN_DX,1);
+// 			n *= -2.0*area;
+// 			Nb[0]=0.5; Nb[1]=0.0; Nb[2]=0.5;
+// 			noalias(temp) += outer_prod(Nb,n);		
+// 	 	}
+// 	
+// 		if(is_active == true)
+// 		{
+// 			boost::numeric::ublas::bounded_matrix<double, 3, 3 > BKT;
+// 			noalias(BKT) = prod(temp, trans(DN_DX));
+// 		
+// // /*		KRATOS_WATCH(BKT);
+// // 		KRATOS_WATCH(K);*/
+// 			for (int ii = 0; ii < nodes_number; ii++) 
+// 			{
+// 				int row = ii * (dof + 1) + dof;
+// 		
+// 				for (int jj = 0; jj < nodes_number; jj++) {
+// 					int column = jj * (dof + 1) + dof;
+// 			
+// 					K(row, column) -= tauone * BKT(ii, jj);
+// 			
+// 				}
+// 			}
+// 		}
+// 	}
+
         KRATOS_CATCH("")
 
     }
@@ -1224,15 +1294,8 @@ namespace Kratos {
         double density;
         calculatedensity(GetGeometry(), density, mu);
 
-        int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
-
-        if (dyn_st_switch) {
-
-            tauone = 1.0 / (1.0 / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-        } else {
-
-            tauone = 1.0 / (0.0 + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-        }
+        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+        tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
 
         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
 

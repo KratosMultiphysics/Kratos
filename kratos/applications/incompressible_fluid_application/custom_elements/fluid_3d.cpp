@@ -888,18 +888,12 @@ namespace Kratos
 	{
               const double c1 = 4.00;
               const double c2 = 2.00;
-              double tau;
-		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
-               if (dyn_st_switch)
-               {
-                   const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
-                   tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
-//                    KRATOS_WATCH(tau);
-               }
-               else
-               {
-                    tau = 1.00 / (c1*nu/(h*h) + c2*norm_u/h );
-               }
+              
+                const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
+              const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+              double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+
+
 
                 return tau;
 

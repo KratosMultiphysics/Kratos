@@ -120,14 +120,6 @@ namespace Kratos
 //			(GetGeometry()[i].pAddDof(PRESSURE));
 //		}
 
-		//filling the mass factors
-// 		msMassFactors(0,0) = 1.00/6.00;  msMassFactors(0,1) = 1.00/12.00; msMassFactors(0,2) = 1.00/12.00;
-// 		msMassFactors(1,0) = 1.00/12.00; msMassFactors(1,1) = 1.00/6.00;  msMassFactors(1,2) = 1.00/12.00;
-// 		msMassFactors(2,0) = 1.00/12.00; msMassFactors(2,1) = 1.00/12.00; msMassFactors(2,2) = 1.00/6.00;
-		
-		msMassFactors(0,0) = 1.00/3.00; msMassFactors(0,1) = 0.00;		msMassFactors(0,2) = 0.00;
-		msMassFactors(1,0) = 0.00;		msMassFactors(1,1) = 1.00/3.00; msMassFactors(1,2) = 0.00;
-		msMassFactors(2,0) = 0.00;		msMassFactors(2,1) = 0.00;		msMassFactors(2,2) = 1.00/3.00;		
 
 	}
 
@@ -232,6 +224,8 @@ namespace Kratos
 		noalias(rLeftHandSideMatrix) = nu * prod(msDN_DX,trans(msDN_DX));
 
 		//INERTIA CONTRIBUTION
+                		//filling the mass factors
+
 		//  rLeftHandSideMatrix += M/Dt
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMassFactors;
 		
@@ -797,18 +791,22 @@ namespace Kratos
 	{
               const double c1 = 4.00;
               const double c2 = 2.00;
-              double tau;
-		const int dyn_st_switch = CurrentProcessInfo[DYNAMIC_TAU];
-                if (dyn_st_switch)
-                {
-                    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
-                    tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
-//                    KRATOS_WATCH(tau);
-                }
-                else
-                {
-                    tau = 1.00 / (c1*nu/(h*h) + c2*norm_u/h );
-                }
+
+              const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
+
+              const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+              double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+
+//                if (dyn_st_switch)
+//                {
+//                    const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+//                    tau = 1.00 / (inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+////                    KRATOS_WATCH(tau);
+//                }
+//                else
+//                {
+//                    tau = 1.00 / (c1*nu/(h*h) + c2*norm_u/h );
+//                }
 
                 return tau;
 
