@@ -66,6 +66,8 @@ class MonolithicSolver:
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
 ##        self.linear_solver =SuperLUSolver()
 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+
 
         pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()

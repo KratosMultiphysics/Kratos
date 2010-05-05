@@ -85,6 +85,8 @@ class IncompressibleFluidSolver:
         self.step = 1
         self.projections_are_initialized = False;
 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+
 
 ##        ########################################################
         #defining the linear solver

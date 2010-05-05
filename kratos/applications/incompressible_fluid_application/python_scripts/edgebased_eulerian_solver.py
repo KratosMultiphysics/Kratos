@@ -45,7 +45,7 @@ class EdgeBasedLevelSetSolver:
         self.step = 0;
 
         self.extrapolation_layers = 5
-        self.tau2_factor = 0.0
+        self.tau2_factor = 1.0
         self.edge_detection_angle = 45.0
         self.assume_constant_pressure = False
 

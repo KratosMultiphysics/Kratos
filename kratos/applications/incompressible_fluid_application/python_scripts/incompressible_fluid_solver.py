@@ -103,6 +103,8 @@ class IncompressibleFluidSolver:
 ##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
         self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+
 
     def Initialize(self):
         (self.neighbour_search).Execute()
