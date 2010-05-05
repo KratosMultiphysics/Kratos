@@ -54,6 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 /* External includes */
+#include <boost/smart_ptr.hpp>
 #include "utilities/timer.h"
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -158,7 +159,6 @@ namespace Kratos
                 TSystemMatrixType& A,
                 TSystemVectorType& b)
         {
-            Timer::Start("ElementAssembly");
             KRATOS_TRY
             if (!pScheme)
                 KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
@@ -300,7 +300,6 @@ namespace Kratos
             KRATOS_WATCH("finished parallel building");
 #endif
 
-            Timer::Stop("ElementAssembly");
             /* Build the pressure system matrix */
             if (mRebuildLevel == 0 || mInitializedMatrices == false)
             {
@@ -477,7 +476,7 @@ namespace Kratos
             if (NormB != 0.0)
             {
                 /* Solve current iteration in several steps */
-                Timer::Start("Solve::Initialize");
+
                 // Initialize required variables and pointers
                 TSystemVectorPointerType pDVel(new TSystemVectorType(mVelFreeDofs));
                 TSystemVectorType& rDVel = *pDVel;
@@ -500,7 +499,6 @@ namespace Kratos
                 }
 
                 TSystemMatrixType& rS = *mpS; // Create a reference to the velocity system matrix
-                Timer::Stop("Solve::Initialize");
 
                 // 1. Compute intermediate velocity
 //                axpy_prod(*mpG, -rDPress, rVelRHS, false);
@@ -516,12 +514,9 @@ namespace Kratos
 //                    mLastVelRHSNorm = VelRHSNorm;
 //                }
 
-                Timer::Start("Solve::Step1");
                 BaseType::mpLinearSystemSolver->Solve(rS, rDVel, rVelRHS);
-                Timer::Stop("Solve::Step1");
 
                 // 2. Compute Pressure Variation
-                Timer::Start("Solve::Step2");
 #ifndef _OPENMP
                 axpy_prod(*mpD, -rDVel, rPressRHS, false);
 #else
@@ -540,10 +535,8 @@ namespace Kratos
                 }
 
                 BaseType::mpLinearSystemSolver->Solve(A, rDPress, rPressRHS);
-                Timer::Stop("Solve::Step2");
 
                 // 3. Determine End of Step velocity
-                Timer::Start("Solve::Step3");
                 if ( mVelocityCorrection > 0)
                 {
                     TSparseSpace::Mult(*mpG, rDPress,rVelRHS);
@@ -561,18 +554,15 @@ namespace Kratos
                     }
                 }
 
-                Timer::Stop("Solve::Step3");
                 // Preconditioner
 //                A = *mpL - A;
 //                noalias(rPressRHS) = prod(A,rPressRHS);
 
-                Timer::Start("Solve::Post");
                 // Copy the solution to output variable
                 for (unsigned int i = 0; i < mVelFreeDofs; i++) Dx[i] = rDVel[i];
                 for (unsigned int i = 0; i < mPressFreeDofs; i++) Dx[mVelFreeDofs + i] = rDPress[i];
 
                 if (mFirstIteration == true) mFirstIteration = false;
-                Timer::Stop("Solve::Post");
             }
             else
                 TSparseSpace::SetToZero(Dx);
@@ -747,7 +737,6 @@ namespace Kratos
             DivideInPartitions(pConditions.size(),CondPartition,NumThreads);
 
             std::vector< DofsArrayType > DofContainer(NumThreads);
-//            std::vector< std::list< Dof<double>::Pointer > > Doftemp(NumThreads);
 
             #pragma omp parallel
             {
@@ -786,20 +775,10 @@ namespace Kratos
             for (unsigned int k = 0; k < NumThreads ; k++)
                 for( typename DofsArrayType::ptr_iterator itDof = DofContainer[k].ptr_begin();
                         itDof != DofContainer[k].ptr_end(); itDof++) {
-                    BaseType::mDofSet.push_back(*itDof);//insert(DofContainer[0].begin(),*itDof);
+                    BaseType::mDofSet.push_back(*itDof);
                 }
 
-            //Doftemp[0].merge(Doftemp[k]);
-//            Doftemp[0].sort();
-//            Doftemp[0].unique();
             BaseType::mDofSet.Unique();
-
-//            unsigned int DofNum = Doftemp[0].size();
-//            KRATOS_WATCH(DofNum)
-//            for (std::list< boost::shared_ptr <Dof<double> > >::iterator itDof = Doftemp[0].begin();
-//                    itDof != Doftemp[0].end() ; itDof++)
-//                BaseType::mDofSet.push_back( *itDof );
-//            BaseType::mDofSet = DofContainer[0];
 
             //throws an execption if there are no Degrees of freedom involved in the analysis
             if (BaseType::mDofSet.size() == 0)
@@ -817,7 +796,6 @@ namespace Kratos
 
             unsigned int FreeId = 0;
             unsigned int FixedId = BaseType::mDofSet.size();
-            mTotalDofs = FixedId;
 
             for (typename DofsArrayType::iterator itDof = BaseType::mDofSet.begin();
                     itDof != BaseType::mDofSet.end(); itDof++)
@@ -836,7 +814,7 @@ namespace Kratos
                 }
             }
 
-            mVelFreeDofs = mVelDofsNum = FreeId;
+            mVelFreeDofs = FreeId;
             mVelFixedDofsEnd = FixedId;
 
             for (typename DofsArrayType::iterator itDof = BaseType::mDofSet.begin();
@@ -856,7 +834,7 @@ namespace Kratos
                 }
             }
 
-            mVelDofsNum += (mVelFixedDofsEnd - FreeId);
+//            mVelDofsNum += (mVelFixedDofsEnd - FreeId);
             mPressFreeDofs = FreeId - mVelFreeDofs;
             BaseType::mEquationSystemSize = mVelFreeDofs + mPressFreeDofs;
 
@@ -874,7 +852,6 @@ namespace Kratos
                 ConditionsArrayType& rConditions,
                 ProcessInfo& CurrentProcessInfo)
         {
-            Timer::Start("Resize&Initialize");
             KRATOS_TRY;
 
             if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
@@ -1011,7 +988,6 @@ namespace Kratos
             }
 
             KRATOS_CATCH("");
-            Timer::Stop("Resize&Initialize");
         }
 
         void InitializeSolutionStep(
@@ -1287,12 +1263,6 @@ namespace Kratos
                 LocalSystemVectorType& RHS_Contribution,
                 Element::EquationIdVectorType& EquationId)
         {
-            Timer::Start("Assemble");
-            TSystemMatrixType& rS = *mpS;
-            TSystemMatrixType& rD = *mpD;
-            TSystemMatrixType& rG = *mpG;
-            TSystemMatrixType& rL = *mpL;
-
             unsigned int ContributionSize = EquationId.size();
             for (unsigned int i = 0; i < ContributionSize; i++)
             {
@@ -1305,11 +1275,11 @@ namespace Kratos
                         unsigned int Global_j = EquationId[j];
                         if (Global_j < mVelFreeDofs)
                         {
-                            rS(Global_i, Global_j) += LHS_Contribution(i, j);
+                            mpS->operator()(Global_i, Global_j) += LHS_Contribution(i, j);
                         }
                         else if (Global_j < BaseType::mEquationSystemSize)
                         {
-                            rG(Global_i, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
+                            mpG->operator()(Global_i, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
                         }
                     }
                     b[Global_i] += RHS_Contribution[i];
@@ -1321,17 +1291,16 @@ namespace Kratos
                         unsigned int Global_j = EquationId[j];
                         if (Global_j < mVelFreeDofs)
                         {
-                            rD(Global_i - mVelFreeDofs, Global_j) += LHS_Contribution(i, j);
+                            mpD->operator()(Global_i - mVelFreeDofs, Global_j) += LHS_Contribution(i, j);
                         }
                         else if (Global_j < BaseType::mEquationSystemSize)
                         {
-                            rL(Global_i - mVelFreeDofs, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
+                            mpL->operator()(Global_i - mVelFreeDofs, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
                         }
                     }
                     b[Global_i] += RHS_Contribution[i];
                 }
             }
-            Timer::Stop("Assemble");
         }
 
 #ifdef _OPENMP
@@ -1344,10 +1313,6 @@ namespace Kratos
                 Element::EquationIdVectorType& EquationId,
                 std::vector< omp_lock_t >& lock_array)
         {
-            TSystemMatrixType& rS = *mpS;
-            TSystemMatrixType& rD = *mpD;
-            TSystemMatrixType& rG = *mpG;
-            TSystemMatrixType& rL = *mpL;
 
             unsigned int ContributionSize = EquationId.size();
 
@@ -1364,11 +1329,11 @@ namespace Kratos
                         unsigned int Global_j = EquationId[j];
                         if (Global_j < mVelFreeDofs)
                         {
-                            rS(Global_i, Global_j) += LHS_Contribution(i, j);
+                            mpS->operator()(Global_i, Global_j) += LHS_Contribution(i, j);
                         }
                         else if (Global_j < BaseType::mEquationSystemSize)
                         {
-                            rG(Global_i, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
+                            mpG->operator()(Global_i, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
                         }
                     }
 
@@ -1385,11 +1350,11 @@ namespace Kratos
                         unsigned int Global_j = EquationId[j];
                         if (Global_j < mVelFreeDofs)
                         {
-                            rD(Global_i - mVelFreeDofs, Global_j) += LHS_Contribution(i, j);
+                            mpD->operator()(Global_i - mVelFreeDofs, Global_j) += LHS_Contribution(i, j);
                         }
                         else if (Global_j < BaseType::mEquationSystemSize)
                         {
-                            rL(Global_i - mVelFreeDofs, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
+                            mpL->operator()(Global_i - mVelFreeDofs, Global_j - mVelFreeDofs) += LHS_Contribution(i, j);
                         }
                     }
 
@@ -1455,11 +1420,6 @@ namespace Kratos
                 LocalSystemMatrixType& LHS_Contribution,
                 Element::EquationIdVectorType& EquationId)
         {
-            TSystemMatrixType& rS = *mpS;
-            TSystemMatrixType& rD = *mpD;
-            TSystemMatrixType& rG = *mpG;
-            TSystemMatrixType& rL = *mpL;
-
             unsigned int ContributionSize =  EquationId.size();
 
             for( unsigned int i = 0; i < ContributionSize; i++)
@@ -1472,11 +1432,11 @@ namespace Kratos
                         unsigned int Global_j = EquationId[j];
                         if( Global_j < mVelFreeDofs)
                         {
-                            rS(Global_i,Global_j) += LHS_Contribution(i,j);
+                            mpS->operator()(Global_i,Global_j) += LHS_Contribution(i,j);
                         }
                         else
                         {
-                            rG(Global_i,Global_j - mVelFreeDofs) += LHS_Contribution(i,j);
+                            mpG->operator()(Global_i,Global_j - mVelFreeDofs) += LHS_Contribution(i,j);
                         }
                     }
                 }
@@ -1487,11 +1447,11 @@ namespace Kratos
                         unsigned int Global_j = EquationId[j];
                         if( Global_j < mVelFreeDofs)
                         {
-                            rD(Global_i - mVelFreeDofs, Global_j) += LHS_Contribution(i,j);
+                            mpD->operator()(Global_i - mVelFreeDofs, Global_j) += LHS_Contribution(i,j);
                         }
                         else
                         {
-                            rL(Global_i - mVelFreeDofs, Global_j - mVelFreeDofs) += LHS_Contribution(i,j);
+                            mpL->operator()(Global_i - mVelFreeDofs, Global_j - mVelFreeDofs) += LHS_Contribution(i,j);
                         }
                     }
                 }
@@ -1586,7 +1546,6 @@ namespace Kratos
         void ConstructSystemMatrix(
                 TSystemMatrixType& A)
         {
-            Timer::Start("ConstructA");
             // Retrieve matrices
             TSystemMatrixType& rG = *mpG;
             TSystemMatrixType& rD = *mpD;
@@ -1669,7 +1628,6 @@ namespace Kratos
                     }
                 }
             }
-            Timer::Stop("ConstructA");
         }
 
         /* Compute the System Matrix A = L - D*Inv(Diag(S))*G. The multiplication
@@ -1915,6 +1873,7 @@ namespace Kratos
             const double MaxDecreaseFactor = 0.1;
 
             double CandidateFactor = mGamma*(NewRHSNorm*NewRHSNorm)/(OldRHSNorm*OldRHSNorm);
+            std::cout << "Norm Ratio: " << NewRHSNorm/OldRHSNorm << std::endl;
             double CandidateFactor_LimitedDecrease = mGamma*TolFactor*TolFactor;
 
             if (CandidateFactor_LimitedDecrease < MaxDecreaseFactor) {
@@ -1982,9 +1941,8 @@ namespace Kratos
         }
 
 
-        unsigned int mVelDofsNum; // Number of Velocity Dofs
-        unsigned int mTotalDofs; // Total number of Dofs
-
+        // Total number of Dofs: BaseType::mEquationSystemSize;
+//        unsigned int mVelDofsNum; // Number of Velocity Dofs
         unsigned int mVelFreeDofs; // Position of 1st Free Pressure Dof
         unsigned int mVelFixedDofsEnd; // Position of 1st Fixed Pressure Dof
 
