@@ -59,7 +59,7 @@ class IncompressibleFluidSolver:
 
         self.echo_level = 0
 
- 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
         #definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()

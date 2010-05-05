@@ -76,6 +76,8 @@ class MonolithicSolver:
         self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+
         self.max_iter = 10
                             
         #default settings

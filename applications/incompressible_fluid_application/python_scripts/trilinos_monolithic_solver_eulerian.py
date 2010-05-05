@@ -75,6 +75,8 @@ class MonolithicSolver:
         #definition of the convergence criteria
         self.conv_criteria = TrilinosUPCriteria(1e-7,1e-9,1e-7,1e-9,self.Comm)
 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+
         self.max_iter = 20
                             
         #default settings

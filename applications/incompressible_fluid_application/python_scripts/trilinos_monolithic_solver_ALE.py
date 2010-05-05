@@ -54,6 +54,7 @@ class MonolithicSolver:
 ##        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
         self.conv_criteria = TrilinosUPCriteria(1e-3,1e-9,1e-3,1e-6,self.Comm)
 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
         self.max_iter = 10
                             
         #default settings
