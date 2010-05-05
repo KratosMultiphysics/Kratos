@@ -1284,15 +1284,9 @@ namespace Kratos {
         double density;
         calculatedensity(GetGeometry(), density, mu);
 
-        int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
+        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+        tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
 
-        if (dyn_st_switch) {
-
-            tauone = 1.0 / (1.0 / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-        } else {
-
-            tauone = 1.0 / (0.0 + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-        }
 
         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
 
