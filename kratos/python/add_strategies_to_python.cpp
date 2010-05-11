@@ -229,11 +229,13 @@ namespace Kratos
 				;
 
 			typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
+                        typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
 			class_< ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
 				("ResidualBasedNewtonRaphsonStrategy", 
 				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
 				>() )
+                                .def(init <ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
 				;
 
 			//********************************************************************
@@ -312,7 +314,6 @@ namespace Kratos
 			//
 			
 			//Builder and Solver
-			typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
 			class_< BuilderAndSolverType::DofsArrayType, boost::noncopyable >("DofsArrayType",	init<>() );
 			 
