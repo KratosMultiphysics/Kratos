@@ -942,24 +942,26 @@ namespace Kratos
                 //mInitializedMatrices = true; Set flag once the matrix is BUILT (not just resized)
 
             } else {
-                if (S.size1() != mVelFreeDofs || S.size2() != mVelFreeDofs ||
-                        D.size1() != mVelFreeDofs || D.size2() != mPressFreeDofs ||
-                        G.size1() != mPressFreeDofs || G.size2() != mVelFreeDofs ||
-                        L.size1() != mPressFreeDofs || L.size2() != mPressFreeDofs ||
-                        A.size1() != mPressFreeDofs || A.size2() != mPressFreeDofs)
+                // I do the check only for A, as the remaining matrices are private.
+                // They are managed by this class, so they shouldn't change size spontaneously
+                if (A.size1() != mPressFreeDofs || A.size2() != mPressFreeDofs ) //||
+//                        S.size1() != mVelFreeDofs || S.size2() != mVelFreeDofs ||
+//                        G.size1() != mVelFreeDofs || G.size2() != mPressFreeDofs ||
+//                        D.size1() != mPressFreeDofs || D.size2() != mVelFreeDofs ||
+//                        L.size1() != mPressFreeDofs || L.size2() != mPressFreeDofs )
                 {
                     KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
 
-                    S.resize(mVelFreeDofs, mVelFreeDofs, false);
-                    L.resize(mPressFreeDofs, mPressFreeDofs, false);
-
-                    if( mRebuildLevel < 2 || mInitializedMatrices == false)
-                    {
-                        G.resize(mVelFreeDofs, mPressFreeDofs, false);
-                        D.resize(mPressFreeDofs, mVelFreeDofs, false);
-                    }
-
-                    ConstructMatrixStructure(S, D, G, L, rElements, rConditions, CurrentProcessInfo);
+//                    S.resize(mVelFreeDofs, mVelFreeDofs, false);
+//                    L.resize(mPressFreeDofs, mPressFreeDofs, false);
+//
+//                    if( mRebuildLevel < 2 || mInitializedMatrices == false)
+//                    {
+//                        G.resize(mVelFreeDofs, mPressFreeDofs, false);
+//                        D.resize(mPressFreeDofs, mVelFreeDofs, false);
+//                    }
+//
+//                    ConstructMatrixStructure(S, D, G, L, rElements, rConditions, CurrentProcessInfo);
 
                     if( mRebuildLevel == 0 || mInitializedMatrices == false)
                     {
