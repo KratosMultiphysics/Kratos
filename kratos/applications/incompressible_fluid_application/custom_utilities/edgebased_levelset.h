@@ -794,7 +794,7 @@ namespace Kratos {
 
             //apply wall resistance
            if(mWallLawIsActive == true)
-                    ComputeWallResistance(vel,rhs);
+	           ComputeWallResistance(vel,rhs);
 
             //boundary integrals --> finishing the calculation of the pressure gradient
             //				int loop_size1 = mPressureOutletList.size();
@@ -2471,12 +2471,21 @@ void ActivateWallResistance(double Ywall)
         double ComputePorosityCoefficient(const double& viscosity, const double& vel_norm, const double& eps, const double& d)
         {
 //             const double d = 0.01; //to be changed
-
-            double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
-	    double linear = eps * viscosity * k_inv;
-            double non_linear = (1.75 * vel_norm ) * sqrt(k_inv / (150.0 * eps));
-//             double linear = viscosity * k_inv;
-//             double non_linear = (1.75 * vel_norm / eps) * sqrt(k_inv / (150.0 * eps));
+	    double linear;
+	    double non_linear;
+	    if(eps < 1.0)
+	    {
+		  double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
+		  linear = eps * viscosity * k_inv;
+		  non_linear = (1.75 * vel_norm ) * sqrt(k_inv / (150.0 * eps));
+      //             double linear = viscosity * k_inv;
+      //             double non_linear = (1.75 * vel_norm / eps) * sqrt(k_inv / (150.0 * eps));
+	    }
+	    else
+	    {
+		linear = 0.0;
+		non_linear = 0.0;
+	    }
             return linear + non_linear;
         }
 
