@@ -1,0 +1,7 @@
+                                         Start   	Stop     	Elapsed 
+Reading Input .......................... 0.21s     	0.22s     	0.01s
+Writing Mesh ........................... 0.22s     	0.22s     	0s
+Writing Mesh ........................... 0.22s     	0.22s     	0s
+                                 Repeat # 	Total     	Max     	Min     	Average
+Reading Input.......................... 1 	0.01s     	0.01s     	0.01s     	0.01
+Writing Mesh........................... 2 	0s     	0s     	0s     	0
