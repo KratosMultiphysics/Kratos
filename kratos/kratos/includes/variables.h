@@ -340,9 +340,15 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE( double, PRESSURE_OLD_IT )
       KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
 
+       
+
 
       //for level set application
+      KRATOS_DEFINE_VARIABLE(int, REFINEMENT_LEVEL)  
       KRATOS_DEFINE_VARIABLE(double,  IS_DIVIDED)
+      KRATOS_DEFINE_VARIABLE(bool, IS_DUPLICATED)  
+      KRATOS_DEFINE_VARIABLE(bool, SPLIT_NODAL)
+      KRATOS_DEFINE_VARIABLE(bool, SPLIT_ELEMENT)
 
 }  // namespace Kratos.
 
