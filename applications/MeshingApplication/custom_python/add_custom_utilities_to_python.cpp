@@ -20,6 +20,7 @@
 
 #include "custom_utilities/projection.h"
 #include "custom_utilities/GenerateModelPartUtilities.h"
+#include "custom_utilities/local_triangle_refine_mesh.h"
 
 
 namespace Kratos
@@ -62,6 +63,11 @@ namespace Python
 	 class_<GenerateModelPartUtilities >("GenerateModelPartUtilities",init< >()) 
 	   .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart );
 	
+
+         class_<Local_Refine_Triangle_Mesh, boost::noncopyable >
+                    ("LocalRefineTriangleMesh", init<ModelPart&>() )
+		    .def("LocalRefineMesh",              &Local_Refine_Triangle_Mesh::Local_Refine_Mesh)
+                    ;
 
 
 
