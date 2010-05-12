@@ -347,7 +347,11 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(double, CRACK_TRANSLATION)
 
 	//for level set application
+        KRATOS_CREATE_VARIABLE(int, REFINEMENT_LEVEL)
 	KRATOS_CREATE_VARIABLE(double, IS_DIVIDED)
+        KRATOS_CREATE_VARIABLE(bool, IS_DUPLICATED)
+        KRATOS_CREATE_VARIABLE(bool, SPLIT_ELEMENT)
+        KRATOS_CREATE_VARIABLE(bool, SPLIT_NODAL)
 
 	KratosApplication::KratosApplication() :
 	mCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -636,7 +640,12 @@ namespace Kratos
 
 
 	//for level set application
+        KRATOS_REGISTER_VARIABLE(REFINEMENT_LEVEL)
 	KRATOS_REGISTER_VARIABLE(IS_DIVIDED )
+	KRATOS_REGISTER_VARIABLE(IS_DUPLICATED )
+        KRATOS_REGISTER_VARIABLE(SPLIT_NODAL)
+        KRATOS_REGISTER_VARIABLE(SPLIT_ELEMENT)
+
 	}
 
 	// Specialize array of compenents for VariableData
