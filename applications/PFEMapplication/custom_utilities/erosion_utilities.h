@@ -163,6 +163,8 @@ namespace Kratos
 // 			Variable<double>& rDistanceVar,
 			const Vector& rCriticalVel, //TO BE INSERTED
 			const double rCriticalEnergy,
+			const double fluid_nu,
+			const double fluid_rho,
 			double rFixedDam
 			)
  		{
@@ -208,6 +210,7 @@ namespace Kratos
 			 //Build an auxiliary ModelPart with all the PFEM free surface nodes
 			 //********************************************************************
 			PointVector list_of_erosionable_nodes;
+			//all free surface nodes ar IS_EROSIONABLE
 // 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 // 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
 // 			{
@@ -217,8 +220,8 @@ namespace Kratos
 // 				if(pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
 // 				{//putting the surface nodes of the destination_model part in an auxiliary list
 // 					   list_of_erosionable_nodes.push_back( pnode );
-// KRATOS_WATCH("is_free_erosionable_node")
-// KRATOS_WATCH(pnode->Id());
+//  KRATOS_WATCH("started list_of_erosionable_nodes")
+// // KRATOS_WATCH(pnode->Id());
 // 				}
 // 			}
 // KRATOS_WATCH("is_free_erosionable_node");
@@ -238,21 +241,21 @@ namespace Kratos
 				if(pnode->FastGetSolutionStepValue(IS_EROSIONABLE)==1.0 && pnode->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0)
 				{//putting the surface nodes of the destination_model part in an auxiliary list
 					list_of_erosionable_nodes.push_back( pnode );
-					pnode->GetValue(IS_VISITED) = 3.0; //FREE SURFACE NODES
-// KRATOS_WATCH(pnode->Id());
+// 					pnode->GetValue(IS_VISITED) = 3.0; //FREE SURFACE erosionable NODES
+// 					KRATOS_WATCH(pnode->Id());
 					WeakPointerVector< Node<3> >& neighb_nodes = pnode->GetValue(NEIGHBOUR_NODES); 
 					for( WeakPointerVector< Node<3> >::iterator j = neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
 					{
 					   if(j->GetValue(IS_VISITED)==0.0 && j->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0 && j->FastGetSolutionStepValue(IS_FREE_SURFACE)!=1.0)
 						{
 						    list_of_erosionable_nodes.push_back( Node<3>::Pointer( *(j.base() ) ) );
-						    j->GetValue(IS_VISITED) = 2.0;    //FIRST LAYER OF INTERIOR NODES
-// KRATOS_WATCH(j->Id());
+// 						    j->GetValue(IS_VISITED) = 2.0;    //FIRST LAYER OF INTERIOR NODES
+// 						    KRATOS_WATCH(j->Id());
 						}
 					}
 				}
 			}
-
+KRATOS_WATCH("finished list_of_erosionable_nodes")
 // 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 // 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
 // 			{
@@ -281,14 +284,16 @@ namespace Kratos
 			DistanceVector ResultsDistances(MaximumNumberOfResults);
 // KRATOS_WATCH(	"Line 266")
 			
-			boost::numeric::ublas::bounded_matrix<double,TDim + 1,TDim> DN_DX; 
+// 			boost::numeric::ublas::bounded_matrix<double,TDim + 1,TDim> DN_DX; 
 			array_1d<double,TDim+1> N; //Shape functions vector//
-			boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Grad_v; 
+// 			boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Grad_v; 
 // 			int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
 // KRATOS_WATCH(	"Line 272")
-		        double norm2_vcr = 0.0;
+		        double critical_vel2 = 0.0;
 		        for (unsigned int i=0; i< TDim; i++)
-			     norm2_vcr +=  rCriticalVel[i]*rCriticalVel[i];
+			     critical_vel2 +=  rCriticalVel[i]*rCriticalVel[i];
+KRATOS_WATCH("calculated critical vel")
+KRATOS_WATCH(critical_vel2)			     
 
 			//loop over all of the elements in the "old" list to perform the interpolation
 			for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
@@ -296,7 +301,25 @@ namespace Kratos
 			{
 				Geometry<Node<3> >&geom = el_it->GetGeometry();
 // KRATOS_WATCH(	"Line 280")
-				
+				//check if the element is a fluid element or an element of the extrapolation domain
+				bool is_fluid = false;
+				double fluid_nodes_num = 0.0;
+// 				double fluid_nu = 0.0;
+// 				double fluid_rho = 0.0;
+// KRATOS_WATCH("line 307")
+				for (unsigned int i = 0; i<TDim+1 ; i++)
+				{
+				     if (geom[i].FastGetSolutionStepValue(DISTANCE) <= 0)
+				        {fluid_nodes_num ++;}
+				 }
+				if(fluid_nodes_num >= TDim ){	is_fluid = true;	}
+
+/*KRATOS_WATCH("recovered fluid properties")			     
+KRATOS_WATCH(fluid_nu)			     
+KRATOS_WATCH(fluid_rho)	*/		     
+// if(is_fluid == true)
+//   KRATOS_WATCH(el_it->Id())
+  
 				//find the center and "radius" of the element
 				double xc, yc, zc, radius;	
 				CalculateCenterAndSearchRadius( geom,xc,yc,zc, radius, N);
@@ -310,20 +333,12 @@ namespace Kratos
 				number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
  						ResultsDistances.begin(),  MaximumNumberOfResults);
 // KRATOS_WATCH(	"Line 288")
-				//check if the element is a fluid element or an element of the extrapolation domain
-				bool is_fluid = false;
-				double fluid_nodes_num = 0.0;
-				for (unsigned int i = 0; i<TDim+1 ; i++)
-				{
-				     if (geom[i].FastGetSolutionStepValue(DISTANCE) <= 0)
-				        {fluid_nodes_num ++;}
-				 }
-				if(fluid_nodes_num == TDim+1 ){ is_fluid = true;}
-			     
-				//check if inside 
+
+  //check if inside 
 				for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
 				{	
- 				
+//  KRATOS_WATCH("Analized node~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+// KRATOS_WATCH((*it_found)->Id())				
 					bool is_inside = false;
 					//once we are sure the node in inside the circle we have to see if it is inside the triangle i.e. if all the Origin element shape functions are >1
 					double is_visited = (*it_found)->GetValue(IS_VISITED);
@@ -332,7 +347,7 @@ namespace Kratos
 					//if the node falls inside the element interpolate
 					if(is_inside == true && is_visited != 1.0 && is_fluid == true)
 					{
-// KRATOS_WATCH("is_inside~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+// KRATOS_WATCH("is_inside, has not been visited yet, is fluid~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 // KRATOS_WATCH((*it_found)->Id())
 // KRATOS_WATCH((*it_found)->GetValue(IS_VISITED))
 // KRATOS_WATCH(	"Line 304")
@@ -344,59 +359,69 @@ namespace Kratos
 // 						Interpolate(  el_it,  N,  InterpolatedVelocity , VELOCITY );
 // KRATOS_WATCH(InterpolatedVelocity)
 						//Calculate the velocity gradient of the element of the original mesh that contain the free surface node
-						boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> vel;
-						CalculateNodalVelocityMatrix(geom, vel);
-						Calculate_DN_DX(geom, DN_DX);
-// KRATOS_WATCH(DN_DX)						
+						boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> fluid_vel;
+						CalculateNodalVelocityMatrix(geom, fluid_vel);
+//Let's try to insert the cuadratic value of fluid_velocity although it will be necessary do consider some sort of directionality.
+//If water is incoming then no erosion should appear. Only outcoming. But it is not easy because we need 2 layers of nodes with 
+//changed material properties to allow movement.
+						double fluid_vel2 = 0.0;
+// 						//Interpolated vel (not node real velocity)
+						for (unsigned int i=0; i< TDim; i++)
+						{   	  
+// 							   fluid_vel2 +=  (*it_found)->FastGetSolutionStepValue(VELOCITY_X)*(*it_found)->FastGetSolutionStepValue(VELOCITY_X) +                                                                    
+// 									   (*it_found)->FastGetSolutionStepValue(VELOCITY_Y)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Y) +             (*it_found)->FastGetSolutionStepValue(VELOCITY_Z)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Z); //a che serviva il loop?????
+						    fluid_vel2 +=  InterpolatedVelocity[i] * InterpolatedVelocity[i];
 
-						Grad_v = prod(trans(DN_DX),vel);
+						  }
+						  
+						
+// 						Calculate_DN_DX(geom, DN_DX);
+// KRATOS_WATCH(DN_DX)						
+// 
+// 						Grad_v = prod(trans(DN_DX),vel);
 // KRATOS_WATCH(Grad_v)
-						double Grad_vGrad_v = 0.0;
-						for (unsigned int i=0; i< Grad_v.size1(); i++)
-					         {  for (unsigned int j=0; j< Grad_v.size2(); j++)
-						    {
-						        Grad_vGrad_v += Grad_v(i,j)*Grad_v(i,j);
-						    }
-						}
+// 						double Grad_vGrad_v = 0.0;
+// 						for (unsigned int i=0; i< Grad_v.size1(); i++)
+// 					         {  for (unsigned int j=0; j< Grad_v.size2(); j++)
+// 						    {
+// 						        Grad_vGrad_v += Grad_v(i,j)*Grad_v(i,j);
+// 						    }
+// 						}
 // KRATOS_WATCH(Grad_vGrad_v)
 						 //********************************************************************
 						 //Check if the velocity of PFEM free surface node is >= v_critical (Shield)
 						 //********************************************************************
 
 /*						for( PointIterator it_found2 = list_of_erosionable_nodes.begin(); it_found2 != list_of_erosionable_nodes.begin(); it_found2++)
-						{*/		
-						double nu = (*it_found)->FastGetSolutionStepValue(VISCOSITY);
+						{*/
+//						// nu is the fluid viscosity: 
+// 						double nu = (*it_found)->FastGetSolutionStepValue(VISCOSITY);
 // 						      double density = (*it_found)->FastGetSolutionStepValue(DENSITY);
 						double dt = rDestination_ModelPart.GetProcessInfo()[DELTA_TIME];
-						double rhoVol = (TDim + 1 ) * (*it_found)->FastGetSolutionStepValue(NODAL_MASS);
-						double coeff = 0.25 * nu * dt * rhoVol;
-// KRATOS_WATCH(norm2_vcr)					    
+// 						double rhoVol = (TDim + 1 ) * (*it_found)->FastGetSolutionStepValue(NODAL_MASS);
+// 						double coeff = 0.25 * nu * dt * rhoVol *  Grad_vGrad_v;
+						double coeff = 0.25 * fluid_nu * dt * fluid_rho * fluid_vel2;
+
+// KRATOS_WATCH(critical_vel2)					    
 // KRATOS_WATCH(nu)
 // KRATOS_WATCH(dt)
 // KRATOS_WATCH(rhoVol)
 // KRATOS_WATCH(coeff)
-						double norm2_vcr_fsn = 0.0;
-// 						//Interpolated vel (not node real velocity)
-						for (unsigned int i=0; i< TDim; i++)
-						{   	  
-// 							   norm2_vcr_fsn +=  (*it_found)->FastGetSolutionStepValue(VELOCITY_X)*(*it_found)->FastGetSolutionStepValue(VELOCITY_X) +                                                                    
-// 									   (*it_found)->FastGetSolutionStepValue(VELOCITY_Y)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Y) +             (*it_found)->FastGetSolutionStepValue(VELOCITY_Z)*(*it_found)->FastGetSolutionStepValue(VELOCITY_Z); //a che serviva il loop?????
-						    norm2_vcr_fsn +=  InterpolatedVelocity[i] * InterpolatedVelocity[i];
 
-						  }
-// KRATOS_WATCH(norm2_vcr_fsn)
-// KRATOS_WATCH(norm2_vcr)					    
+// KRATOS_WATCH(fluid_vel2)
+// KRATOS_WATCH(critical_vel2)					    
 					    
 // KRATOS_WATCH((*it_found)->Id())
 				
-						if(norm2_vcr_fsn > norm2_vcr)
+						if(fluid_vel2 > critical_vel2 || (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) > 0.00001 )
 						{
 
 // KRATOS_WATCH(	"*************** 			STORING FRICTION COEFFICIENT			************")
 // KRATOS_WATCH("before")
 // KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
 
-						    (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff * Grad_vGrad_v;
+						    (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) += coeff;
+					
 // KRATOS_WATCH("after")
 // KRATOS_WATCH(	(*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT))
 // KRATOS_WATCH(coeff)
@@ -405,14 +430,16 @@ namespace Kratos
 						double volumetric_parameter = (*it_found)->FastGetSolutionStepValue(NODAL_H);
 						for(unsigned int i = 0; i<TDim-1; i++)
 						      volumetric_parameter *= (*it_found)->FastGetSolutionStepValue(NODAL_H);
+
+// KRATOS_WATCH((*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) )
+// KRATOS_WATCH(rCriticalEnergy )
+// KRATOS_WATCH(volumetric_parameter )
 						if( (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT)>=(rCriticalEnergy * volumetric_parameter))
 						{
-// KRATOS_WATCH(rCriticalEnergy )
 
 // KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
-
 // KRATOS_WATCH((*it_found)->Id())
-						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.001;
+						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
 						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;
 						    if(rFixedDam == true)
 						    {
@@ -420,6 +447,8 @@ namespace Kratos
 						     (*it_found)->Free(VELOCITY_Y);
 						     (*it_found)->Free(VELOCITY_Z);
 						    }
+						    //In order not to allow the friction coefficient to increase too much
+						    (*it_found)->FastGetSolutionStepValue(FRICTION_COEFFICIENT) = (rCriticalEnergy * volumetric_parameter);
 						}						 
 //}
 					}
@@ -442,7 +471,7 @@ namespace Kratos
 				 {
 				    for(unsigned int i =0; i<TDim+1; i++)
 				    {
-				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.001;
+				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.000001;
 				      geom[i].FastGetSolutionStepValue(DENSITY) = 1000.0;
 				      if(rFixedDam == true)
 				      {
@@ -468,7 +497,7 @@ namespace Kratos
 				}
 				if (count >= (TDim + 2))
 				{  
-				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.001;
+				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.0000001;
 				  (pnode)->FastGetSolutionStepValue(DENSITY) = 1000.0;
 				  if(rFixedDam == true)
 				  {
@@ -690,9 +719,7 @@ namespace Kratos
 	   		  N[3] = CalculateVol(x3,y3,z3,x0,y0,z0,x2,y2,z2,xc,yc,zc) * inv_vol;
 
 						
-			if(N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >=0.0 &&
-			   N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <=1.0)
-			//if the xc yc zc is inside the tetrahedron return true
+			if(N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >=0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <=1.0)			//if the xc yc zc is inside the tetrahedron return true
 				return true;
 			
 			return false;
