@@ -590,7 +590,9 @@ namespace Kratos
 				pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
 				pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
 				pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
-			
+				
+				//Riccardo's modification: multiply the G(p_n+1-p_n) by 1/2
+				pres_inc*=0.5;
 				//KRATOS_WATCH(pres_inc)
 
 				//Gradient operator G:
@@ -647,7 +649,8 @@ namespace Kratos
 				pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
 				pres_inc[3] = geom[3].FastGetSolutionStepValue(PRESSURE,1)-geom[3].FastGetSolutionStepValue(PRESSURE);
 				
-				
+				//Riccardo's modification: multiply the G(p_n+1-p_n) by 1/2
+				pres_inc*=0.5;
 	
 				double volume;
 				GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);		
