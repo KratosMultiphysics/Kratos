@@ -59,10 +59,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/save_structure_conditions_process.h" 
-#include "custom_processes/merge_model_parts_process.h" 
-#include "custom_processes/merge_in_one_model_parts_process.h"
-#include "custom_processes/save_structure_model_part_process.h"  
+//#include "custom_processes/save_structure_conditions_process.h" 
+//#include "custom_processes/merge_model_parts_process.h" 
+//#include "custom_processes/merge_in_one_model_parts_process.h"
+//#include "custom_processes/save_structure_model_part_process.h"  
 
 #include "custom_processes/choose_element_process.h" 
 
@@ -87,7 +87,7 @@ namespace Python
   {
 	using namespace boost::python;
 
-	 
+	/* 
   	class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
 		   .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
 		 ;
@@ -100,6 +100,7 @@ namespace Python
 	   class_<MergeInOneModelPartsProcess, bases<Process> >("MergeInOneModelPartsProcess", init<> ())
 		   .def("MergeParts", &MergeInOneModelPartsProcess::MergeParts)
 		 ;
+	*/
 	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int,char*, char* >())
 		 ;
 
