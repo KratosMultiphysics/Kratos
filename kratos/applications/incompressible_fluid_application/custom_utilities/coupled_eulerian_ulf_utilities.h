@@ -129,123 +129,8 @@ namespace Kratos
 		void ApplyProjDirichlet(ModelPart& full_model_part, ModelPart& aux_conditions_model_part)
 		{
 		KRATOS_TRY
-		int n_int;
-
-		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
-				im != full_model_part.ElementsEnd() ; ++im)
-		{	  
-			
-			n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE,1);
-			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE,1);
-			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE,1);
-			
-			if (n_int==3)
-				{
-				im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE)=false;
-				im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE)=false;
-				im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE)=false;
-				}
-
-		}
-		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
-				im != full_model_part.ElementsEnd() ; ++im)
-		{	  
-			
-			n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
-			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
-			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
-			
-			if (n_int==3)
-				{
-				im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE)=true;
-				im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE)=true;
-				im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE)=true;
-				}
-
-		}
-
 		
-		
-				
-		
-		
-		//first we remove the Dirichlet conditions from the nodes that were defining the interface in the previous step:
-
-		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
-				im != full_model_part.ElementsEnd() ; ++im)
-		{	  
-			
-			n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE,1);
-			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE,1);
-			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE,1);
-			
-			if (n_int>0.0)
-				{
-								
-				im->GetGeometry()[0].Free(VELOCITY_X);
-				im->GetGeometry()[0].Free(VELOCITY_Y);
-
-				im->GetGeometry()[1].Free(VELOCITY_X);
-				im->GetGeometry()[1].Free(VELOCITY_Y);
-
-				im->GetGeometry()[2].Free(VELOCITY_X);
-				im->GetGeometry()[2].Free(VELOCITY_Y);
-
-				im->GetGeometry()[0].Free(AUX_VEL_X);
-				im->GetGeometry()[0].Free(AUX_VEL_Y);
-
-				im->GetGeometry()[1].Free(AUX_VEL_X);
-				im->GetGeometry()[1].Free(AUX_VEL_Y);
-
-				im->GetGeometry()[2].Free(AUX_VEL_X);
-				im->GetGeometry()[2].Free(AUX_VEL_Y);
-
-				im->GetGeometry()[0].Free(PRESSURE);				
-				im->GetGeometry()[1].Free(PRESSURE);
-				im->GetGeometry()[2].Free(PRESSURE);
-				}		
-
-		}
-		
-
-		if (aux_conditions_model_part.Conditions().size()>0);
-		{
-			//and corerct the velocity of the elements that were "intersected" and stored and solved in aux_condition_model_part
-			for(ModelPart::ConditionsContainerType::iterator ic = aux_conditions_model_part.ConditionsBegin() ; 
-					ic != aux_conditions_model_part.ConditionsEnd() ; ++ic)
-			{	  
-			
-				n_int=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
-				n_int+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
-				n_int+=ic->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
-				//elements with n_int=3 lie inside the fictitious domain, and therefore are of no interest
-				if (n_int==1 || n_int==2)
-			
-					{
-					//and now fix the velocity of the IS_INTERFACE nodes (those are lying inside of the fictitious domain)
-					for (int i=0;i<2;i++)
-						{
-						if (ic->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
-							{
-							ic->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)=ic->GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL);
-							//KRATOS_WATCH(im->GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL))
-						
-							//im->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)=0.0;
-
-							ic->GetGeometry()[i].Fix(VELOCITY_X);
-							ic->GetGeometry()[i].Fix(VELOCITY_Y);
-							//im->GetGeometry()[i].Fix(PRESSURE);
-						
-							}
-						}
-					}
-								
-			
-			
-
-			}
-		}
-		
+		KRATOS_ERROR(std::logic_error,  "Use the ApplyProjDirichlet process instead .... " , "");
 		
 		KRATOS_CATCH("")
 		}
@@ -269,6 +154,7 @@ namespace Kratos
 				in->Free(AUX_VEL_Y);
 				in->FastGetSolutionStepValue(AUX_VEL_X)=0.0;				
 				in->FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
+				in->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
 
 			}
 
@@ -320,8 +206,8 @@ namespace Kratos
 			std::vector<array_1d<double,3> > IntersectionPoints;
 			std::vector<array_1d<double,3> > IntersectionVel;
 			//there should be just two intersection points per element
-			IntersectionPoints.reserve(2);
-			IntersectionVel.reserve(2);
+			IntersectionPoints.reserve(5);
+			IntersectionVel.reserve(5);
 			l=0.0;
 
 		
@@ -392,6 +278,7 @@ namespace Kratos
 
 			}
 			radius=l;
+			//radius*=2.0;
 			KRATOS_WATCH("The search radius is");
 			KRATOS_WATCH(radius);
 
@@ -621,6 +508,7 @@ namespace Kratos
 
 			}
 			radius=l;
+			//radius*=2.0;
 			KRATOS_WATCH("The search radius is");
 			KRATOS_WATCH(radius);
 
@@ -941,9 +829,44 @@ N);
 						}
 
 					}
-					
 			
-				
+			//if we have more than two intersections we just pick two of them, than belong to different edges
+			if (IntersectionPoints.size()>2 && IntersectionPoints.size()<=5)		
+				{
+				array_1d<double,3> AuxPoint;
+				array_1d<double,3> AuxPoint2;
+				array_1d<double,5> which_edge;
+				for (int i=0;i<5;i++)
+					{
+					which_edge[i]=100;					
+					}
+				for (int kk=0;kk<IntersectionPoints.size();kk++)
+					{
+					AuxPoint=IntersectionPoints[kk];
+					CalculateN_at_Point(im->GetGeometry(), AuxPoint[0], AuxPoint[1], N);
+						for (int i=0;i<3;i++)
+						{
+						if (N[i]<0.00000000000001)
+							which_edge[kk]=i;
+						}
+					}
+				int which_edge_first;
+				AuxPoint=IntersectionPoints[0];
+				which_edge_first=which_edge[0];
+
+				for (int kk=1;kk<IntersectionPoints.size();kk++)
+					{
+					if (which_edge[kk]!=which_edge_first)
+						{
+						AuxPoint2=IntersectionPoints[kk];
+						}
+					}
+				IntersectionPoints.resize(2);
+				IntersectionPoints[0]=AuxPoint;
+				IntersectionPoints[1]=AuxPoint2;
+
+				}
+
 			//KRATOS_WATCH(im->GetId())
 			//KRATOS_WATCH(IntersectionPoints[0])
 			//if (IntersectionPoints.size()!=0)
@@ -951,6 +874,7 @@ N);
 					//KRATOS_WATCH(IntersectionPoints.size())
 					//KRATOS_WATCH(IntersectionVel.size())
 			//		}
+			//KRATOS_WATCH(IntersectionPoints.size())
 			if (IntersectionPoints.size()==2)
 			//if there are two intersection points 
 			{
@@ -975,7 +899,7 @@ N);
 				if (N[i]<0.00000000000001)
 					which_edge1=i;
 				}
-				if ( (N[0]<0.2 && N[1]<0.2) || (N[0]<0.2 && N[2]<0.2) || (N[2]<0.2 && N[1]<0.2))
+				if ( (N[0]<0.1 && N[1]<0.1) || (N[0]<0.1 && N[2]<0.1) || (N[2]<0.1 && N[1]<0.1))
 					bad_intersection=true;
 
 				CalculateN_at_Point(im->GetGeometry(), Point2[0], Point2[1], N);
@@ -984,12 +908,12 @@ N);
 				if (N[i]<0.00000000000001)
 					which_edge2=i;
 				}
-				if ( (N[0]<0.2 && N[1]<0.2) || (N[0]<0.2 && N[2]<0.2) || (N[2]<0.2 && N[1]<0.2))
+				if ( (N[0]<0.1 && N[1]<0.1) || (N[0]<0.1 && N[2]<0.1) || (N[2]<0.1 && N[1]<0.1))
 					bad_intersection=true;
 
 				//add only if two intersections intersect two different edges, and no intersection is close to the vertex
 				
-				if (which_edge1!=which_edge2 && bad_intersection==false) 
+				if (which_edge1!=which_edge2 )//&& bad_intersection==false) 
 					{
 					Condition::Pointer p_condition(new ProjDirichletCond(id, geom,properties, IntersectionPoints[0], IntersectionPoints[1], IntersectionVel[0], IntersectionVel[1]));
 					AuxModelPart.Conditions().push_back(p_condition);
@@ -1010,11 +934,17 @@ N);
 				*/
 			}
 			
+			if (IntersectionPoints.size()>5)
+			{
+				KRATOS_WATCH(IntersectionPoints.size())
+				KRATOS_ERROR(std::logic_error,  "More than 5 intersection points with one interface element.. smtghng wrong " , "");
+			}
+			
 						
 			}
 		
 		
-		
+		KRATOS_WATCH(AuxModelPart.Conditions().size())
 			
 		KRATOS_CATCH("")
 		}
@@ -1030,6 +960,7 @@ N);
 		reduced_model_part.Conditions().clear();
 		reduced_model_part.Elements().clear();
 		reduced_model_part.Nodes().clear();
+
 
 		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
 				im != full_model_part.ElementsEnd() ; ++im)
@@ -1088,7 +1019,7 @@ N);
 				if (count<neighb_nodes.size()) //i.e. if not all the neighbor nodes are disabled, add the node 
 					{
 					reduced_model_part.AddNode(*(in.base()));
-					KRATOS_WATCH("ADDING THE NODE FOR WEAK IMPOSITION OF INTERFACE BOUNDARY CONDITION");
+					//KRATOS_WATCH("ADDING THE NODE FOR WEAK IMPOSITION OF INTERFACE BOUNDARY CONDITION");
 					}
 				}
 
