@@ -69,11 +69,13 @@ namespace Kratos
 		int which_edge2=100;
 		//first point contribution
 		CalculateN_at_Point(GetGeometry(), mPoint1[0], mPoint1[1], msN);
+		//KRATOS_WATCH(mPoint1)
+		//KRATOS_WATCH(msN)
 		//CHECK IF THE POINT IS NOT TOOO CLOSE TO THE VERTEX of destination - and identify if so, to which vertex
-		double tol=0.1;
+		double tol=0.2;
 		if ( msN[0]<tol && msN[1]<tol)
 			{
-			bad_vertex_index1=2;			
+			bad_vertex_index1=2;	
 			}
 		else if ( msN[0]<tol && msN[2]<tol)
 			{
@@ -91,8 +93,10 @@ namespace Kratos
 			which_edge1=i;
 		}
 
+
 		CalculateN_at_Point(GetGeometry(), mPoint2[0], mPoint2[1], msN);
-		
+		//KRATOS_WATCH(mPoint2)
+		//KRATOS_WATCH(msN)		
 		if ( msN[0]<tol && msN[1]<tol)
 			{
 			bad_vertex_index2=2;			
@@ -113,37 +117,113 @@ namespace Kratos
 			which_edge2=i;
 		}
 		//check that intersections dont belong to the same point
-		if (which_edge1==which_edge2 || bad_vertex_index1<=2 || bad_vertex_index2<=2)
+		if (which_edge1==which_edge2)// || bad_vertex_index1<=2 || bad_vertex_index2<=2)
 			{
-			KRATOS_ERROR(std::logic_error,  "Two INTERSECTIONs on one edge!!!!!!! Or the intersection is close to a vertex " , "")
+			KRATOS_ERROR(std::logic_error,  "Two INTERSECTIONs on one edge!!!!!!!", "")// Or the intersection is close to a vertex " , "")
 			}
+		
 
 		//here we fix the values of the nodes, that lie outside of origin fluid domain (i.e. IS_INTERFACE=0)
+		
 		for (unsigned int i=0;i<GetGeometry().size();i++)
-			{
+		{
+			
+			
 			if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
 				{
-				GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X);
-				GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X);
-				KRATOS_WATCH("Assigning vel to the nodes of is_int 0")
-				KRATOS_WATCH(GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X))
-				KRATOS_WATCH(GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y))
-				//GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.0;
-				//GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
-				GetGeometry()[i].Fix(AUX_VEL_X);
-				GetGeometry()[i].Fix(AUX_VEL_Y);
+				//if the intersection is far enough from the verreces of REAL part of fluid domain
+				if (i!=bad_vertex_index1 && i!=bad_vertex_index2)	
+					{
+					GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X);
+					GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y);
+				
+					GetGeometry()[i].Fix(AUX_VEL_X);
+					GetGeometry()[i].Fix(AUX_VEL_Y);
+					}
+				else if (i==bad_vertex_index1)
+					{
+					KRATOS_WATCH("Case1")
+					GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
+					GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel1[0];
+					GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel1[1];
+				
+					GetGeometry()[i].Fix(AUX_VEL_X);
+					GetGeometry()[i].Fix(AUX_VEL_Y);
 
+					}
+				else if (i==bad_vertex_index2)
+					{
+					KRATOS_WATCH("Case2")
+					GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
+					GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel2[0];
+					GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel2[1];
+				
+					GetGeometry()[i].Fix(AUX_VEL_X);
+					GetGeometry()[i].Fix(AUX_VEL_Y);
+					}
 				}	
 			//in the rest of the nodes (the ones that are lying on the fictitious part of the domain) we set aux_vel to zero
 			else if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
 				{
 				GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.0;
-				GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
+				GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;				
 				}	
 				
-			}	
-
+		}	
 		
+		//and apply special treatment to the cases where the intersection is too close to the node
+		//if (bad_vertex_index1<=2.0 || bad_vertex_index2<=2.0)
+		//	KRATOS_WATCH("You have intersections close to the nodes")		
+		
+
+		/*
+		if (bad_vertex_index1<=2.0)
+		{
+			
+
+			if (bad_vertex_index2<=2.0)
+			{
+				//check if they are close to the same vertex - if so, apply half of the sum
+				if (bad_vertex_index2=bad_vertex_index1)
+					{
+					KRATOS_WATCH("Case1")
+					GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=(mVel1+mVel2)/2.0;
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+					}
+				else
+					{
+					KRATOS_WATCH("Case2")
+					GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=mVel1;
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+					
+					GetGeometry()[bad_vertex_index2].FastGetSolutionStepValue(AUX_VEL)=mVel2;
+					GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_X);
+					GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_Y);
+					}
+
+			}
+			//if only one bad vertex
+			else
+			{
+				KRATOS_WATCH("Case3")
+				//directly apply the origin velocity
+				GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=mVel1;
+				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+			}
+			
+		}
+		else if (bad_vertex_index2<=2.0)
+			{
+			KRATOS_WATCH("Case4")
+			GetGeometry()[bad_vertex_index2].FastGetSolutionStepValue(AUX_VEL)=mVel2;
+			GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_X);
+			GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_Y);
+			}
+		
+		*/
 	}
 
 	Condition::Pointer ProjDirichletCond::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
@@ -191,7 +271,7 @@ namespace Kratos
 		Vel_VEC[2*i]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X);
 		Vel_VEC[2*i+1]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y);
 		}
-		KRATOS_WATCH(Vel_VEC)
+		//KRATOS_WATCH(Vel_VEC)
 		/*
 		const array_1d<double,3>& fp = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_FORCE);
 		
@@ -222,7 +302,7 @@ namespace Kratos
 			
 		Mass1=outer_prod(msN, trans(msN));//MathUtils<double>::TensorProduct3(Aux,Aux);
 
-		KRATOS_WATCH(msN)
+		//KRATOS_WATCH(msN)
 		//KRATOS_WATCH(Mass1)
 		//second point contribution
 		CalculateN_at_Point(GetGeometry(), mPoint2[0], mPoint2[1], msN);
@@ -231,7 +311,7 @@ namespace Kratos
 		Mass=Mass1+outer_prod(msN, trans(msN));//MathUtils<double>::TensorProduct3(Aux,Aux);
 	
 		Mass*=0.5*interf_length;
-		KRATOS_WATCH(msN)
+		//KRATOS_WATCH(msN)
 		//KRATOS_WATCH(Mass)
 
 		//checking with lumped mass
@@ -266,35 +346,35 @@ namespace Kratos
 		CalculateN_at_Point(GetGeometry(), mPoint1[0], mPoint1[1], msN);
 
 		//first all the x_components
-		rRightHandSideVector[0]=msN[0]*mVel1[0];
-		rRightHandSideVector[2]=msN[1]*mVel1[0];
-		rRightHandSideVector[4]=msN[2]*mVel1[0];
+		rRightHandSideVector[0]=msN[0]*(mVel1[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[2]+msN[2]*Vel_VEC[4]));
+		rRightHandSideVector[2]=msN[1]*(mVel1[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[2]+msN[2]*Vel_VEC[4]));
+		rRightHandSideVector[4]=msN[2]*(mVel1[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[2]+msN[2]*Vel_VEC[4]));
 		//and now y_component
-		rRightHandSideVector[1]=msN[0]*mVel1[1];
-		rRightHandSideVector[3]=msN[1]*mVel1[1];
-		rRightHandSideVector[5]=msN[2]*mVel1[1];
+		rRightHandSideVector[1]=msN[0]*(mVel1[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[5]));
+		rRightHandSideVector[3]=msN[1]*(mVel1[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[5]));
+		rRightHandSideVector[5]=msN[2]*(mVel1[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[5]));
 
 		//second point contribution
 		CalculateN_at_Point(GetGeometry(), mPoint2[0], mPoint2[1], msN);
 		//KRATOS_WATCH(msN)
 		//first all the x_components
-		rRightHandSideVector[0]+=msN[0]*mVel2[0];
-		rRightHandSideVector[2]+=msN[1]*mVel2[0];
-		rRightHandSideVector[4]+=msN[2]*mVel2[0];
+		rRightHandSideVector[0]+=msN[0]*(mVel2[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[2]+msN[2]*Vel_VEC[4]));
+		rRightHandSideVector[2]+=msN[1]*(mVel2[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[2]+msN[2]*Vel_VEC[4]));
+		rRightHandSideVector[4]+=msN[2]*(mVel2[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[2]+msN[2]*Vel_VEC[4]));
 		//and now y_component
-		rRightHandSideVector[1]+=msN[0]*mVel2[1];
-		rRightHandSideVector[3]+=msN[1]*mVel2[1];
-		rRightHandSideVector[5]+=msN[2]*mVel2[1];
+		rRightHandSideVector[1]+=msN[0]*(mVel2[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[5]));
+		rRightHandSideVector[3]+=msN[1]*(mVel2[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[5]));
+		rRightHandSideVector[5]+=msN[2]*(mVel2[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[5]));
 
 		//completing integration using two Gauss points
 		rRightHandSideVector*=0.5*interf_length;
 
-		//AND FINALLY SUBTRACT THE Mv term (the one corresponding to the contribution of the "real" nodes, where the vel is known)
-		rRightHandSideVector-=prod(rLeftHandSideMatrix,Vel_VEC);
-		KRATOS_WATCH(mVel1)
-		KRATOS_WATCH(mVel2) 
-		KRATOS_WATCH(interf_length)
-		KRATOS_WATCH(rRightHandSideVector)
+		
+		//KRATOS_WATCH(mVel1)
+		//KRATOS_WATCH(mVel2) 
+		//KRATOS_WATCH(interf_length)
+		//KRATOS_WATCH("RHS inside of condition")
+		//KRATOS_WATCH(rRightHandSideVector)
 
 		//and finally imposing the Dirichlet on the nodes, that lie inside the fluid (IS_INTERFACE=0)
 		//and also onto the nodes that are too close to the interface (those are defined by bad_vertex_index)
@@ -512,28 +592,38 @@ namespace Kratos
 		///////////////////////////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////
 		
-		//and also directly applying Dirichlet onto the nodes that are too close to the interface (those are defined by bad_vertex_index)
+		//and now we are directly applying Dirichlet onto the nodes that are too close to the intersection (those are defined by bad_vertex_index)
 		
-//		if (bad_vertex_index1<=2)
-//		{
-//			if (bad_vertex_index2<=2)
-//			{
-//				//check if they are close to the same vertex - if so, apply half of the sum
-//				if (bad_vertex_index2=bad_vertex_index1)
-//					{
-//					GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=(mVel1+mVel2)/2.0;
-//					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
-//					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
-//					}
-//
-//			}
-//			//if only one bad vertex
-//			else
-//			{
-//				//directly apply the origin velocity
-//				GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=mVel1;
-//				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
-//				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+		if (bad_vertex_index1<=2)
+		{
+			if (bad_vertex_index2<=2)
+			{
+				//check if they are close to the same vertex - if so, apply half of the sum
+				if (bad_vertex_index2=bad_vertex_index1)
+					{
+					GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=(mVel1+mVel2)/2.0;
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+					}
+				else
+					{
+					GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=mVel1;
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+					GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
+					
+					GetGeometry()[bad_vertex_index2].FastGetSolutionStepValue(AUX_VEL)=mVel2;
+					GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_X);
+					GetGeometry()[bad_vertex_index2].Fix(AUX_VEL_Y);
+					}
+
+			}
+			//if only one bad vertex
+			else
+			{
+				//directly apply the origin velocity
+				GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(AUX_VEL)=mVel1;
+				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_X);
+				GetGeometry()[bad_vertex_index1].Fix(AUX_VEL_Y);
 //			}
 //		}
 //		else if (bad_vertex_index2<=2)
