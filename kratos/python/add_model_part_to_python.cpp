@@ -231,6 +231,7 @@ namespace Python
 	  .def("GetConditions",ModelPartGetConditions2)
 	  .def("SetConditions",ModelPartSetConditions2)
 	  .def("ConditionsArray", &ModelPart::ConditionsArray, return_internal_reference<>())
+	  .def("AddNodalSolutionStepVariable",AddNodalSolutionStepVariable<bool>)
 	  .def("AddNodalSolutionStepVariable",AddNodalSolutionStepVariable<int>)
 	  .def("AddNodalSolutionStepVariable",AddNodalSolutionStepVariable<double>)
 	  .def("AddNodalSolutionStepVariable",AddNodalSolutionStepVariable<array_1d<double,3> >)
