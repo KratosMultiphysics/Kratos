@@ -634,13 +634,85 @@ namespace Kratos
 	  @see Info()
       */
       virtual void PrintData(std::ostream& rOStream) const
-	{
-	  BaseType::PrintData(rOStream);
-	  std::cout << std::endl;
-	  Matrix jacobian;
-	  Jacobian(jacobian, PointType());
-	  rOStream << "    Jacobian\t : " << jacobian;
-	}      
+      {
+          BaseType::PrintData(rOStream);
+          std::cout << std::endl;
+          Matrix jacobian;
+          Jacobian(jacobian, PointType());
+          rOStream << "    Jacobian\t : " << jacobian;
+      }
+      
+      /**
+       * Calculates the local gradients for all integration points for the
+       * default integration method
+       */
+      virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
+      {
+          IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
+          ShapeFunctionsGradientsType localGradients 
+                  = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+          const int integration_points_number 
+                  = msGeometryData.IntegrationPointsNumber(ThisMethod);
+          ShapeFunctionsGradientsType Result(integration_points_number);
+          for( int pnt=0; pnt<integration_points_number; pnt++ )
+          {
+              Result[pnt] = localGradients[pnt];
+          }
+          return Result;
+      }
+
+      
+      /**
+       * Calculates the gradients in terms of local coordinates 
+       * of all shape functions in a given point.
+       * 
+       * @param rPoint the current point at which the gradients are calculated
+       * @return the gradients of all shape functions 
+       * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
+       */
+      virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, 
+              const CoordinatesArrayType& rPoint ) const 
+      {
+          //setting up result matrix
+          rResult.resize(2,1);
+          noalias(rResult) = ZeroMatrix(2,1);
+          rResult(0,0) = -0.5;
+          rResult(1,0) =  0.5;
+          return( rResult );
+      }
+      
+      /**
+       * returns the local coordinates of all nodes of the current geometry
+       * @param rResult a Matrix object that will be overwritten by the result
+       * @return the local coordinates of all nodes
+       */
+      virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const 
+      {
+          rResult.resize(2,1);
+          noalias(rResult) = ZeroMatrix(2,1);
+          rResult(0,0) = -1.0;
+          rResult(1,0) =  1.0;
+          return rResult;
+      }
+      
+      /**
+       * returns the shape function gradients in an arbitrary point, 
+       * given in local coordinates
+       * @param rResult the matrix of gradients, will be overwritten 
+       * with the gradients for all
+       * shape functions in given point
+       * @param rPoint the given point the gradients are calculated in
+       */
+      virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
+      {
+          rResult.resize(2,1);
+          noalias(rResult) = ZeroMatrix(2,1);
+          
+          rResult(0,0) = -0.5;
+          rResult(1,0) = 0.5;
+          return rResult;
+      }
+
       
             
       ///@}      
