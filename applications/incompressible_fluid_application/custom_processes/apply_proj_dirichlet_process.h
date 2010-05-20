@@ -103,10 +103,8 @@ namespace Kratos
 		void ApplyProjDirichlet(ModelPart& full_model_part, ModelPart& aux_conditions_model_part)
 		{
 		KRATOS_TRY
-		int n_int;
-		bool applied_bc=false;
-
-			
+		unsigned int n_int;
+					
 		//first we remove the Dirichlet conditions from the nodes that were defining the interface in the previous step:
 		for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; 
 				in != full_model_part.NodesEnd() ; ++in)
@@ -156,7 +154,7 @@ namespace Kratos
 		{
 				n_int=0.0;
 				//iterate over the of nodes in the element (interface element)
-				for (int i=0;i<im->GetGeometry().size();i++)
+				for (unsigned int i=0;i<im->GetGeometry().size();i++)
 					{
 					n_int=im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
 					// if the node is lying on fictitious side - apply the project Dirichlet condition
@@ -171,31 +169,7 @@ namespace Kratos
 	
 		}
 			
-		/*
-		if (aux_conditions_model_part.Conditions().size()>0);
-		{
-			//and corerct the velocity of the elements that were "intersected" and stored and solved in aux_condition_model_part
-			for(ModelPart::ConditionsContainerType::iterator ic = aux_conditions_model_part.ConditionsBegin() ; 
-					ic != aux_conditions_model_part.ConditionsEnd() ; ++ic)
-			{	  
-				n_int=0.0;
-				//iterate over the of nodes in the element (interface element)
-				for (int i=0;i<ic->GetGeometry().size();i++)
-					{
-					n_int=ic->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
-					// if the node is lying on fictitious side - apply the project Dirichlet condition
-					if (n_int==1.0)
-					//if (((ic->GetGeometry()[i]).GetDof(AUX_VEL_X)).IsFixed())
-						{
-						ic->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)=ic->GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL);
-						ic->GetGeometry()[i].Fix(VELOCITY_X);
-						ic->GetGeometry()[i].Fix(VELOCITY_Y);
-						}
-					}
-			}
-		}		
-				
-		*/		
+		
 		
 		
 		KRATOS_CATCH("")
