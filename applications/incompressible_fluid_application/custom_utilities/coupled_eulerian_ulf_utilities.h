@@ -834,13 +834,13 @@ N);
 			if (IntersectionPoints.size()>2 && IntersectionPoints.size()<=5)		
 				{
 				array_1d<double,3> AuxPoint;
-				array_1d<double,3> AuxPoint2;
+				array_1d<double,3> AuxPoint2=ZeroVector(3);
 				array_1d<double,5> which_edge;
 				for (int i=0;i<5;i++)
 					{
 					which_edge[i]=100;					
 					}
-				for (int kk=0;kk<IntersectionPoints.size();kk++)
+				for (unsigned int kk=0;kk<IntersectionPoints.size();kk++)
 					{
 					AuxPoint=IntersectionPoints[kk];
 					CalculateN_at_Point(im->GetGeometry(), AuxPoint[0], AuxPoint[1], N);
@@ -854,7 +854,7 @@ N);
 				AuxPoint=IntersectionPoints[0];
 				which_edge_first=which_edge[0];
 
-				for (int kk=1;kk<IntersectionPoints.size();kk++)
+				for (unsigned int kk=1;kk<IntersectionPoints.size();kk++)
 					{
 					if (which_edge[kk]!=which_edge_first)
 						{
@@ -1011,7 +1011,7 @@ N);
 			else 
 				{
 				WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES); 
-					int count=0;
+					unsigned int count=0;
 					for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
 					{ 					
 							count+=	i->FastGetSolutionStepValue(DISABLE);						
