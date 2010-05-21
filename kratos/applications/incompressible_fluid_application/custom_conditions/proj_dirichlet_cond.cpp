@@ -62,8 +62,8 @@ namespace Kratos
 		
 
 		//and also fixing the velocity at the nodes, if the intersection is too close to them:
-		int bad_vertex_index1=100;
-		int bad_vertex_index2=100;
+		unsigned int bad_vertex_index1=100;
+		unsigned int bad_vertex_index2=100;
 		//to check if two points arent on the same edge
 		int which_edge1=100;
 		int which_edge2=100;
