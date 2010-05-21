@@ -1021,6 +1021,12 @@ N);
 					reduced_model_part.AddNode(*(in.base()));
 					//KRATOS_WATCH("ADDING THE NODE FOR WEAK IMPOSITION OF INTERFACE BOUNDARY CONDITION");
 					}
+				//set the velocity at the "interior" node (the one that is completely fictitious) to zero
+				else 
+					{
+					in->FastGetSolutionStepValue(VELOCITY_X)=0.0;
+					in->FastGetSolutionStepValue(VELOCITY_Y)=0.0;
+					}
 				}
 
 		}
@@ -1225,7 +1231,10 @@ inline double CalculateVol(	const double x0, const double y0,
 				return true;
 						
 			return false;
-		}	
+		}
+		
+		
+		
 
 	private:
 
