@@ -255,7 +255,7 @@ namespace Kratos
 					}
 				}
 			}
-KRATOS_WATCH("finished list_of_erosionable_nodes")
+// KRATOS_WATCH("finished list_of_erosionable_nodes")
 // 			for(ModelPart::NodesContainerType::iterator node_it = rDestination_ModelPart.NodesBegin();
 // 						node_it != rDestination_ModelPart.NodesEnd(); ++node_it)
 // 			{
@@ -292,8 +292,8 @@ KRATOS_WATCH("finished list_of_erosionable_nodes")
 		        double critical_vel2 = 0.0;
 		        for (unsigned int i=0; i< TDim; i++)
 			     critical_vel2 +=  rCriticalVel[i]*rCriticalVel[i];
-KRATOS_WATCH("calculated critical vel")
-KRATOS_WATCH(critical_vel2)			     
+/*KRATOS_WATCH("calculated critical vel")
+KRATOS_WATCH(critical_vel2)*/			     
 
 			//loop over all of the elements in the "old" list to perform the interpolation
 			for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
@@ -439,8 +439,8 @@ KRATOS_WATCH(fluid_rho)	*/
 
 // KRATOS_WATCH("FRICTION COEFF > CRITICAL ENERGY")
 // KRATOS_WATCH((*it_found)->Id())
-						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.000001;
-						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1000.0;
+						    (*it_found)->FastGetSolutionStepValue(VISCOSITY) = 0.001;
+						    (*it_found)->FastGetSolutionStepValue(DENSITY) = 1100.0;
 						    if(rFixedDam == true)
 						    {
 						     (*it_found)->Free(VELOCITY_X);
@@ -471,8 +471,8 @@ KRATOS_WATCH(fluid_rho)	*/
 				 {
 				    for(unsigned int i =0; i<TDim+1; i++)
 				    {
-				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.000001;
-				      geom[i].FastGetSolutionStepValue(DENSITY) = 1000.0;
+				      geom[i].FastGetSolutionStepValue(VISCOSITY) = 0.001;
+				      geom[i].FastGetSolutionStepValue(DENSITY) = 1100.0;
 				      if(rFixedDam == true)
 				      {
 					geom[i].Free(VELOCITY_X);
@@ -497,8 +497,8 @@ KRATOS_WATCH(fluid_rho)	*/
 				}
 				if (count >= (TDim + 2))
 				{  
-				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.0000001;
-				  (pnode)->FastGetSolutionStepValue(DENSITY) = 1000.0;
+				  (pnode)->FastGetSolutionStepValue(VISCOSITY) = 0.001;
+				  (pnode)->FastGetSolutionStepValue(DENSITY) = 1100.0;
 				  if(rFixedDam == true)
 				  {
 				    (pnode)->Free(VELOCITY_X);
@@ -714,9 +714,9 @@ KRATOS_WATCH(fluid_rho)	*/
 			  }
 			
 			  N[0] = CalculateVol(x1,y1,z1,x3,y3,z3,x2,y2,z2,xc,yc,zc) * inv_vol;
-			  N[1] = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) * inv_vol;
+			  N[1] = CalculateVol(x3,y3,z3,x0,y0,z0,x2,y2,z2,xc,yc,zc) * inv_vol;
 			  N[2] = CalculateVol(x3,y3,z3,x1,y1,z1,x0,y0,z0,xc,yc,zc) * inv_vol;
-	   		  N[3] = CalculateVol(x3,y3,z3,x0,y0,z0,x2,y2,z2,xc,yc,zc) * inv_vol;
+	   		  N[3] = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) * inv_vol;
 
 						
 			if(N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >=0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <=1.0)			//if the xc yc zc is inside the tetrahedron return true
