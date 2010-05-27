@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
@@ -67,7 +68,7 @@ class PFEMSolver:
             ##self.Mesher = TriGenModeler()
             self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
         elif (domain_size == 3):
-            self.Mesher = TetGenModeler()
+            self.Mesher = TetGenPfemModeler()
             self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
 
         self.Hfinder  = FindNodalHProcess(model_part);  
@@ -178,8 +179,9 @@ class PFEMSolver:
         if(self.domain_size==2):
             (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape,self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
-            
+
+            #(self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition3D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape, self.h_factor)
         print "remeshing in initalize performed succesfully"
 
         print "*************************************************************"
@@ -330,8 +332,8 @@ class PFEMSolver:
         if(self.domain_size==2):
             (self.Mesher).ReGenerateMesh("Fluid2DCoupled","Condition2D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape,self.h_factor)
         else:
-            (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
-
+#            (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition3D",self.model_part,self.EraseNodes, self.alpha_shape)
+            (self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition3D",self.model_part,self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape, self.h_factor)
         print self.model_part
 
         ##recalculating neighbours 
