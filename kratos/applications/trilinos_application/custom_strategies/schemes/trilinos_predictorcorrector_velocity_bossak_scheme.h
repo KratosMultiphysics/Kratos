@@ -214,7 +214,7 @@ namespace Kratos {
 		{
 			KRATOS_TRY
 
-			int system_size = TSparseSpace::Size1(A);
+			int system_size = TSparseSpace::Size(Dx);
 			int number_of_dofs = rDofSet.size();
                         std::vector< int > index_array(number_of_dofs);
 
