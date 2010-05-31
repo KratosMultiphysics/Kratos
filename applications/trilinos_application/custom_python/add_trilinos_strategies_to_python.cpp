@@ -61,6 +61,7 @@
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_mixed.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation_vec.h"
+#include "custom_strategies/builder_and_solvers/trilinos_pressure_splitting_builder_and_solver.h"
 
 //linear solvers
 // #include "linear_solvers/linear_solver.h"
@@ -317,6 +318,37 @@ namespace Kratos {
                     .def("Clear", &TrilinosBuilderAndSolverMLDeactivation2Dtype::Clear)
                     .def("SetEchoLevel", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetEchoLevel)
                     .def("GetEchoLevel", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetEchoLevel)
+                    ;
+
+            typedef TrilinosPressureSplittingBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >
+                    TrilinosPressureSplittingBuilderAndSolverType;
+
+            class_< TrilinosPressureSplittingBuilderAndSolverType, boost::noncopyable >
+                    ("TrilinosPressureSplittingBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, TrilinosLinearSolverType::Pointer, unsigned int, unsigned int, bool, double, double, double > ())
+                    .def("SetCalculateReactionsFlag", &TrilinosPressureSplittingBuilderAndSolverType::SetCalculateReactionsFlag)
+                    .def("GetCalculateReactionsFlag", &TrilinosPressureSplittingBuilderAndSolverType::GetCalculateReactionsFlag)
+                    .def("SetDofSetIsInitializedFlag", &TrilinosPressureSplittingBuilderAndSolverType::SetDofSetIsInitializedFlag)
+                    .def("GetDofSetIsInitializedFlag", &TrilinosPressureSplittingBuilderAndSolverType::GetDofSetIsInitializedFlag)
+                    .def("SetReshapeMatrixFlag", &TrilinosPressureSplittingBuilderAndSolverType::SetReshapeMatrixFlag)
+                    .def("GetReshapeMatrixFlag", &TrilinosPressureSplittingBuilderAndSolverType::GetReshapeMatrixFlag)
+                    .def("GetEquationSystemSize", &TrilinosPressureSplittingBuilderAndSolverType::GetEquationSystemSize)
+                    .def("BuildLHS", &TrilinosPressureSplittingBuilderAndSolverType::BuildLHS)
+                    .def("BuildRHS", &TrilinosPressureSplittingBuilderAndSolverType::BuildRHS)
+                    .def("Build", &TrilinosPressureSplittingBuilderAndSolverType::Build)
+                    .def("SystemSolve", &TrilinosPressureSplittingBuilderAndSolverType::SystemSolve)
+                    .def("BuildAndSolve", &TrilinosPressureSplittingBuilderAndSolverType::BuildAndSolve)
+                    .def("BuildRHSAndSolve", &TrilinosPressureSplittingBuilderAndSolverType::BuildRHSAndSolve)
+                    .def("ApplyDirichletConditions", &TrilinosPressureSplittingBuilderAndSolverType::ApplyDirichletConditions)
+                    .def("SetUpDofSet", &TrilinosPressureSplittingBuilderAndSolverType::SetUpDofSet)
+                    .def("GetDofSet", &TrilinosPressureSplittingBuilderAndSolverType::GetDofSet, return_internal_reference<>())
+                    .def("SetUpSystem", &TrilinosPressureSplittingBuilderAndSolverType::SetUpSystem)
+                    .def("ResizeAndInitializeVectors", &TrilinosPressureSplittingBuilderAndSolverType::ResizeAndInitializeVectors)
+                    .def("InitializeSolutionStep", &TrilinosPressureSplittingBuilderAndSolverType::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &TrilinosPressureSplittingBuilderAndSolverType::FinalizeSolutionStep)
+                    .def("CalculateReactions", &TrilinosPressureSplittingBuilderAndSolverType::CalculateReactions)
+                    .def("Clear", &TrilinosPressureSplittingBuilderAndSolverType::Clear)
+                    .def("SetEchoLevel", &TrilinosPressureSplittingBuilderAndSolverType::SetEchoLevel)
+                    .def("GetEchoLevel", &TrilinosPressureSplittingBuilderAndSolverType::GetEchoLevel)
                     ;
 
 

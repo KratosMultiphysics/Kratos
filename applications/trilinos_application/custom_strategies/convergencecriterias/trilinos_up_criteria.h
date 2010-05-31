@@ -212,6 +212,9 @@ namespace Kratos
 			double difference_vel_norm = 0.0;
 //			int pr_size = 0;
 //			int vel_size = 0;
+                        double  dimension=(r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
+                        TDataType pr_size = 0;
+                        TDataType vel_size = 0;
 
 		for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        	 {
@@ -220,16 +223,18 @@ namespace Kratos
 					current_pr = ind->FastGetSolutionStepValue(PRESSURE);
 					reference_pr_norm += current_pr*current_pr;
 										
-					const array_1d<double,2> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
-					reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1]);
+					const array_1d<double,3> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
+					reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1] + current_vel[2]*current_vel[2]);
 
 					double old_pr = 0.0;
 					old_pr = ind->GetValue(PRESSURE);
 					difference_pr_norm += (current_pr - old_pr)*(current_pr - old_pr);
+                                        pr_size ++;
 
-					const array_1d<double,2> old_vel = ind->GetValue(VELOCITY);
-					array_1d<double,2> dif_vel = current_vel - old_vel;
-					difference_vel_norm += (dif_vel[0]*dif_vel[0] + dif_vel[1]*dif_vel[1]);
+					const array_1d<double,3> old_vel = ind->GetValue(VELOCITY);
+					array_1d<double,3> dif_vel = current_vel - old_vel;
+					difference_vel_norm += (dif_vel[0]*dif_vel[0] + dif_vel[1]*dif_vel[1] + dif_vel[2]*dif_vel[2] );
+                                        vel_size += dimension;
 				
 
 			 }
@@ -248,8 +253,6 @@ namespace Kratos
 			mrComm.Barrier();
 		        
 
-			TDataType pr_size = static_cast<double>(SparseSpaceType::Size(Dx)) / 3.0;
-			TDataType vel_size = 2.0 * pr_size;
 			double pr_ratio = sqrt(global_difference_pr_norm)/sqrt(global_reference_pr_norm);
 			double vel_ratio = sqrt(global_difference_vel_norm)/sqrt(global_reference_vel_norm);
 
