@@ -295,15 +295,12 @@ namespace Kratos
 				std::cout << "WATER_PRESSURE CRITERIA :: obtained ratio = " << water_pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<water_pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
 
 				if ( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) 
-							&& 
-				     (air_pr_ratio <= mPrsRatioTolerance || air_pr_abs<mPrsAbsTolerance)
+							&&
+                                      (air_pr_ratio <= mPrsRatioTolerance || air_pr_abs<mPrsAbsTolerance)
 							&&
 				      (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)
-					/* 
-							||
-				     (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance)
-							|| 
-				     (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)*/)   
+							&&
+				      (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance) )
 				{
 KRATOS_WATCH("convergence is achieved");
 					return true;

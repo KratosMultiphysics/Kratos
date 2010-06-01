@@ -1,7 +1,7 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
-##from KratosExternalSolversApplication import *
+from KratosExternalSolversApplication import *
 #from KratosStructuralApplication import *
 
 
@@ -66,13 +66,14 @@ class DecoupledSolver:
                            ( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
-##        self.linear_solver =SuperLUSolver()
+        self.pressure_linear_solver =SuperLUSolver()
 
         self.linear_tol = 1e-3
 
         pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-        self.linear_solver =  BICGSTABSolver(self.linear_tol, 5000,pPrecond)
+        self.velocity_linear_solver = BICGSTABSolver(self.linear_tol,\
+                                                     5000,pPrecond)
         
         #definition of the convergence criteria
 ##	The argument order: VelRatioTolerance;	VelAbsTolerance;
@@ -111,18 +112,23 @@ class DecoupledSolver:
         #creating the solution strategy
 
         self.builder_and_solver = PressureSplittingBuilderAndSolver\
-                                  (self.linear_solver,\
+                                  (self.velocity_linear_solver,\
+                                   self.pressure_linear_solver,\
                                    self.rebuild_level,\
                                    self.velocity_correction,\
                                    self.use_inexact_newton,\
                                    self.IN_min_tol,\
                                    self.IN_max_tol,\
                                    self.IN_gamma)
-        
+
+        # Note that the strategy asks for a solver but doesn't use it (when
+        # called using this constructor). This is good, as this builder and
+        # solver uses 2 different solvers and one of them is given here
+        # arbitrarily
         self.solver = ResidualBasedNewtonRaphsonStrategy\
                       (self.model_part,\
                        self.time_scheme,\
-                       self.linear_solver,\
+                       self.pressure_linear_solver,\
                        self.conv_criteria,\
                        self.builder_and_solver,\
                        self.max_iter,\
@@ -153,6 +159,15 @@ class DecoupledSolver:
         self.IN_max_tol=max_tol
         self.IN_gamma=gamma
 
+    def SetRebuildLevel(self,level=1):
+        self.rebuild_level = level
+        if (level != 0) and (self.ReformDofSetAtEachStep == True):
+            self.ReformDofSetAtEachStep = False
+            print "WARNING: In DecoupledSolver.SetRebuildLevel():\n"+\
+                  "I am setting ReformDofSetAtEachStep = False to be able to"+\
+                  "reuse the system matrix structure. Use this option only if"+\
+                  "you don't intend to reform the Dof set (for example due to"+\
+                  "remeshing)"
 
     def UseVelocityCorrection(self,level=2):
         self.velocity_correction = level
