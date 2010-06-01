@@ -58,21 +58,23 @@ class MonolithicSolver:
     def __init__(self,model_part,domain_size,box_corner1,box_corner2):
 
         self.model_part = model_part
-
+        self.domain_size = domain_size
         self.alpha = -0.1
         self.move_mesh_strategy = 2
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
-##        self.linear_solver =SuperLUSolver()
+##       self.linear_solver =SuperLUSolver()
+
 
 
         pPrecond = DiagonalPreconditioner()
-##        pPrecond = ILU0Preconditioner()
+####        pPrecond = ILU0Preconditioner()
         self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-##        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
+####        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
         
         #definition of the convergence criteria
+##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
         self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
@@ -94,10 +96,14 @@ class MonolithicSolver:
 	self.MeshMover= MoveMeshProcess(self.model_part);
                                        
         self.node_erase_process = NodeEraseProcess(model_part);
-        
-        self.Mesher = TriGenPFEMModeler()
 
-        self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        if(domain_size == 2):
+            self.Mesher = TriGenPFEMModeler()
+            self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
+        elif(domain_size == 3):
+            self.Mesher = TetGenPfemModeler()
+            self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
+
 
         
         self.alpha_shape = 1.4
@@ -193,7 +199,7 @@ class MonolithicSolver:
             (self.MeshMover).Execute();
 
             (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-            (self.PfemUtils).MarkNodesTouchingWall(self.model_part,2, .05)   
+            (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.05)   
             (self.node_erase_process).Execute();
             
             (self.neigh_finder).ClearNeighbours();
@@ -201,8 +207,13 @@ class MonolithicSolver:
             ((self.model_part).Elements).clear();
             ((self.model_part).Conditions).clear();
             
-	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)						      
-##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)						      
+        ##remesh
+        if(self.domain_size == 2):
+            (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
+##    	      (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
+        elif(self.domain_size == 3):
+            (self.Mesher).ReGenerateMesh("ASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
+					      
 
              #calculating fluid neighbours before applying boundary conditions
             (self.neigh_finder).Execute();
@@ -243,6 +254,7 @@ class MonolithicSolver:
             gid_io.WriteNodalResults(VELOCITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(MESH_VELOCITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(DENSITY, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(VISCOSITY, (self.model_part).Nodes, time, 0);
 
             gid_io.WriteNodalResults(IS_FLUID, (self.model_part).Nodes, time, 0);
 
