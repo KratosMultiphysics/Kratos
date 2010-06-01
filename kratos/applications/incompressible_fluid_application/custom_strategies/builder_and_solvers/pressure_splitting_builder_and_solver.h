@@ -124,14 +124,16 @@ namespace Kratos
 
         /* Constructor */
         PressureSplittingBuilderAndSolver(
-                typename TLinearSolver::Pointer pNewLinearSystemSolver,
+                typename TLinearSolver::Pointer pNewVelLinearSystemSolver, // Velocity solver, stored internally
+                typename TLinearSolver::Pointer pNewPressLinearSystemSolver, // Pressure solver, stored by the base class
                 unsigned int RebuildLevel, // If > 0 Do not re-check the shape of all matrices each step (see definition in private atribute variables)
                 unsigned int VelocityCorrection, // If > 0, explicitly solve the velocity to be divergence-free at each step
                 bool UseInexactNewton, // If true, dynamically set the linear iterative solver tolerance for the pressure system
                 double NonLinearTol = 1e-3, // Only used if InexactNewton == true, otherwise the solver will use it's own tolerance
                 double MaxTolFactor = 0.1,
                 double Gamma = 0.9):
-            BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver),
+            BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewPressLinearSystemSolver),
+            mpVelLinearSystemSolver(pNewVelLinearSystemSolver),
             mRebuildLevel(RebuildLevel),
             mInitializedMatrices(false),
             mVelocityCorrection(VelocityCorrection),
@@ -514,7 +516,7 @@ namespace Kratos
 //                    mLastVelRHSNorm = VelRHSNorm;
 //                }
 
-                BaseType::mpLinearSystemSolver->Solve(rS, rDVel, rVelRHS);
+                mpVelLinearSystemSolver->Solve(rS, rDVel, rVelRHS);
 
                 // 2. Compute Pressure Variation
 #ifndef _OPENMP
@@ -549,7 +551,7 @@ namespace Kratos
                         TSystemVectorType& rVelUpdate = *pVelUpdate;
                         for (unsigned int i = 0; i < mVelFreeDofs; i++) rVelUpdate[i] = 0.0;
 
-                        BaseType::mpLinearSystemSolver->Solve(rS, rVelUpdate, rVelRHS);
+                        mpVelLinearSystemSolver->Solve(rS, rVelUpdate, rVelRHS);
                         noalias(rDVel) -= rVelUpdate;
                     }
                 }
@@ -1651,7 +1653,7 @@ namespace Kratos
             int DiagSize = int(mVelFreeDofs); // to avoid comparison between int & unsigned int
             #pragma omp parallel for
             for( int i = 0; i < DiagSize; i++)
-                rIDiagS[i] = 1/rS(i,i);
+                rIDiagS[i] = 1.0/rS(i,i);
 
             PartitionVector Partition;
             unsigned int NumThreads = GetNumThreads();
@@ -1956,6 +1958,8 @@ namespace Kratos
         TSystemMatrixPointerType mpL; // Stabilization term
 
         TSystemVectorPointerType mpIDiagS; // Inv(Diag(S)), stored as a vector
+
+        typename TLinearSolver::Pointer mpVelLinearSystemSolver; // Linear solver for velocity system
 
         // Flags for matrix reconstruction
         unsigned int mRebuildLevel;
