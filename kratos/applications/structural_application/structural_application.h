@@ -165,6 +165,8 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(double, CRUSHING_ENERGY)
       KRATOS_DEFINE_VARIABLE(double, YIELD_STRESS)
       KRATOS_DEFINE_VARIABLE(double, PLASTIC_MODULUS)
+      KRATOS_DEFINE_VARIABLE(double, ISOTROPIC_HARDENING_MODULUS)
+      KRATOS_DEFINE_VARIABLE(double, KINEMATIC_HARDENING_MODULUS)
       KRATOS_DEFINE_VARIABLE(double, LAMNDA) // Load factor
       KRATOS_DEFINE_VARIABLE(double, DAMAGE )
       KRATOS_DEFINE_VARIABLE(double, ORTHOTROPIC_ANGLE)
@@ -180,7 +182,11 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(Vector, ORTHOTROPIC_YOUNG_MODULUS_2D) // [E1 E2 G12]
       KRATOS_DEFINE_VARIABLE(Vector, ORTHOTROPIC_POISSON_RATIO_2D) // [v12 v21]
       KRATOS_DEFINE_VARIABLE(Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+      KRATOS_DEFINE_VARIABLE(Matrix, NODAL_STRESS)
+      KRATOS_DEFINE_VARIABLE(Matrix, NODAL_STRAIN)
       KRATOS_DEFINE_VARIABLE(double, DISIPATION)
+      KRATOS_DEFINE_VARIABLE(int,  NODAL_VALUES)
+      KRATOS_DEFINE_VARIABLE(double, NODAL_DAMAGE)
 
 
 
@@ -351,6 +357,7 @@ namespace Kratos
             const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
             const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
             const LinearElement mLinearElement2D3N;
+            const LinearElement mLinearElement2D4N;
             const LinearElement mLinearElement3D4N;
             const LinearElement mLinearElement3D8N;
             const BeamElement mBeamElement3D2N;
