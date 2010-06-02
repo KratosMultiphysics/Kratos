@@ -89,6 +89,7 @@ namespace Kratos
             dummy.WriteMesh( rThisMesh );
         }
         
+        
         void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
                                        ModelPart& r_model_part, double SolutionTag )
         {
@@ -113,6 +114,10 @@ namespace Kratos
             dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
         }
         
+
+         void (GidIO<>::*pointer_to_bool_write_nodal_results)( Variable<bool> const& rVariable,
+              GidIO<>::NodesContainerType& rNodes, double SolutionTag, 
+              std::size_t SolutionStepNumber ) = &GidIO<>::WriteNodalResults; 
         void (GidIO<>::*pointer_to_double_write_nodal_results)( Variable<double> const& rVariable,
               GidIO<>::NodesContainerType& rNodes, double SolutionTag, 
               std::size_t SolutionStepNumber ) = &GidIO<>::WriteNodalResults;
@@ -121,7 +126,7 @@ namespace Kratos
               double SolutionTag, std::size_t SolutionStepNumber) = &GidIO<>::WriteNodalResults;
         
 //         void (GidIO::*pointer_to_vector_write_nodal_results)(Variable<Vector > const& rVariable, GidIO::NodesContainerType& rNodes, double SolutionTag, std::size_t SolutionStepNumber) = &GidIO::WriteNodalResults;
-//         void (GidIO::*pointer_to_matrix_write_nodal_results)(Variable<Matrix > const& rVariable, GidIO::NodesContainerType& rNodes, double SolutionTag, std::size_t SolutionStepNumber) = &GidIO::WriteNodalResults;
+        void (GidIO<>::*pointer_to_matrix_write_nodal_results)(Variable<Matrix > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag, std::size_t SolutionStepNumber) = &GidIO<>::WriteNodalResults;
 
 //         void (GidIO::*pointer_to_double_cond_print_on_gauss_points)(const Variable<double>& rVariable,
 //               ModelPart& r_model_part, double SolutionTag) = &GidIO::CondPrintOnGaussPoints;
@@ -194,16 +199,20 @@ namespace Kratos
                     .def("InitializeResults",&GidIO<>::InitializeResults)
                     .def("FinalizeResults",&GidIO<>::FinalizeResults)
                     
+                     .def("WriteNodalResults",pointer_to_bool_write_nodal_results) 
                     .def("WriteNodalResults",pointer_to_double_write_nodal_results)
                     .def("WriteNodalResults",pointer_to_array1d_write_nodal_results)
-//                     .def("WriteNodalResults",pointer_to_vector_write_nodal_results)
-//                     .def("WriteNodalResults",pointer_to_matrix_write_nodal_results)
+
+//                    .def("WriteNodalResults",pointer_to_vector_write_nodal_results)
+                    .def("WriteNodalResults",pointer_to_matrix_write_nodal_results)
                     
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
                     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
                     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
                     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
                     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
+                    
+
 //                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_matrix_print_on_gauss_points)
 //                     .def("CondPrintOnGaussPoints", pointer_to_double_cond_print_on_gauss_points)
