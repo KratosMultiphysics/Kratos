@@ -51,7 +51,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(SPLIT_TRIANGLE)
 #define SPLIT_TRIANGLE
-#endif
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -211,4 +211,4 @@ namespace Kratos
            }    
     };
 }
-
+#endif 
