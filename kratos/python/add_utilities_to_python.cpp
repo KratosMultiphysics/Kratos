@@ -64,6 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
 
+//#include "utilities/split_elements_utility.h"
+
 
 
 namespace Kratos
@@ -128,6 +130,12 @@ namespace Python
 // 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
 	    .def(self_ns::str(self))
 		;
+
+//           class_<SplitElements, boost::noncopyable >
+//                     ("SplitElements", init<ModelPart&, int >() )
+//                     .def("Split", &SplitElements::Split)
+//                     ;
+
 
 // 	  def("PrintTimingInformation",Timer::PrintTimingInformation);
 
