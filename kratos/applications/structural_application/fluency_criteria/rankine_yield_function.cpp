@@ -253,7 +253,7 @@ namespace Kratos
                         
               while(iter++<=100 && norma>= toler) 
 		  {
-                      if(iter>=100){KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" )} 
+                      if(iter>=100){KRATOS_WATCH("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" )} 
 		      d.resize(2,2);
 		      d_inv.resize(2,2);
 		      d(0,0) = -( 4.00 * G / 3.00 + K ) + H;  d(0,1) = -(-2.00 * G / 3.00 + K );  
@@ -315,7 +315,7 @@ namespace Kratos
 	      residual[2] = mMultisurface_Platicity_Yield[2];  
               while(iter++<=100 && norma>= toler) 
 		  { 
-                    if(iter>=100){KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" )} 
+                    if(iter>=100){KRATOS_WATCH("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC" )} 
 		    d.resize(3,3);
 		    d_inv.resize(3,3);
 		    d(0,0) = -( 4.00 * G / 3.00 + K ) + H;    d(0,1) = -(-2.00 * G / 3.00 + K );         d(0,2) = -(-2.00 * G / 3.00 + K ); 
