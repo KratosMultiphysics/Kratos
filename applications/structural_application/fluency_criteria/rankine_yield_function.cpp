@@ -253,6 +253,7 @@ namespace Kratos
                         
               while(iter++<=100 && norma>= toler) 
 		  {
+                      KRATOS_WATCH(mMultisurface_Platicity_Yield )  
                       if(iter>=100){KRATOS_WATCH("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" )} 
 		      d.resize(2,2);
 		      d_inv.resize(2,2);
@@ -266,7 +267,7 @@ namespace Kratos
 
 		      delta_gamma_a = delta_gamma[0];
 		      delta_gamma_b = delta_gamma[1];
-                      KRATOS_WATCH(delta_gamma)                      
+                      //KRATOS_WATCH(delta_gamma)                      
 
                        ///* Updatinf mFt
                        mcurrent_Ft[0] = mFt[0] - H * delta_gamma[0];   
@@ -288,7 +289,7 @@ namespace Kratos
                        residual[0]=  residual[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - delta_gamma_b*( -2.00  * G / 3.00 + K );   
                        residual[1]=  residual[1] - delta_gamma_a*(-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K );   
                        norma = norm_2(residual);
-                       KRATOS_WATCH(norma)
+                       //KRATOS_WATCH(norma)
 
                        }
 
