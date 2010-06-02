@@ -266,10 +266,12 @@ namespace Kratos
 
 		      delta_gamma_a = delta_gamma[0];
 		      delta_gamma_b = delta_gamma[1];
-                     
+                      KRATOS_WATCH(delta_gamma)                      
+
                        ///* Updatinf mFt
                        mcurrent_Ft[0] = mFt[0] - H * delta_gamma[0];   
                        mcurrent_Ft[1] = mFt[1] - H * delta_gamma[1]; 
+                        
                        
                        ///* comprobando si mft se cumplio   
 		       if(mcurrent_Ft[0] <= 0.00) {mcurrent_Ft[0] = 0.00; }
