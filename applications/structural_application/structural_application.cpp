@@ -149,6 +149,8 @@ namespace Kratos
      KRATOS_CREATE_VARIABLE(double, CRUSHING_ENERGY)
      KRATOS_CREATE_VARIABLE(double, YIELD_STRESS)
      KRATOS_CREATE_VARIABLE(double, PLASTIC_MODULUS)
+     KRATOS_CREATE_VARIABLE(double, ISOTROPIC_HARDENING_MODULUS)
+     KRATOS_CREATE_VARIABLE(double, KINEMATIC_HARDENING_MODULUS)
      KRATOS_CREATE_VARIABLE(double, LAMNDA) // Load factor
      KRATOS_CREATE_VARIABLE(double, DAMAGE )
      KRATOS_CREATE_VARIABLE(double, ORTHOTROPIC_ANGLE)
@@ -158,13 +160,19 @@ namespace Kratos
      KRATOS_CREATE_VARIABLE(double, DILATANCY_ANGLE)
      KRATOS_CREATE_VARIABLE(double, MAX_DILATANCY_ANGLE)
      KRATOS_CREATE_VARIABLE(double, COHESION)
+     KRATOS_CREATE_VARIABLE(double, DISIPATION)
      KRATOS_CREATE_VARIABLE(double, ISOTROPIC_ELASTIC_LIMIT)
      KRATOS_CREATE_VARIABLE(Vector, ORTHOTROPIC_ELASTIC_LIMIT)
      KRATOS_CREATE_VARIABLE(Vector, VECTOR_DAMAGE)
      KRATOS_CREATE_VARIABLE(Vector, ORTHOTROPIC_YOUNG_MODULUS_2D) // [E1 E2 G12]
      KRATOS_CREATE_VARIABLE(Vector, ORTHOTROPIC_POISSON_RATIO_2D) // [v12 v21]
      KRATOS_CREATE_VARIABLE(Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
-     KRATOS_CREATE_VARIABLE(double, DISIPATION)
+     KRATOS_CREATE_VARIABLE(Matrix, NODAL_STRESS) 
+     KRATOS_CREATE_VARIABLE(Matrix, NODAL_STRAIN)
+     KRATOS_CREATE_VARIABLE(int,  NODAL_VALUES)
+     KRATOS_CREATE_VARIABLE(double, NODAL_DAMAGE)
+
+
 // 	KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
 // 	KRATOS_CREATE_VARIABLE(Vector, PENALTY )
 // // 	KRATOS_CREATE_VARIABLE(double, INITIAL_PENALTY )
@@ -236,6 +244,7 @@ namespace Kratos
         mCrisfieldTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
         mCrisfieldTrussElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mLinearElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+        mLinearElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
         mLinearElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
         mLinearElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>())))),
         mBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2 <Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
@@ -418,6 +427,12 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_POISSON_RATIO_2D) // [v12 v21]
                 KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
                 KRATOS_REGISTER_VARIABLE(DISIPATION)
+                KRATOS_REGISTER_VARIABLE(ISOTROPIC_HARDENING_MODULUS)
+                KRATOS_REGISTER_VARIABLE(KINEMATIC_HARDENING_MODULUS)
+                KRATOS_REGISTER_VARIABLE(NODAL_STRESS)
+                KRATOS_REGISTER_VARIABLE(NODAL_STRAIN)
+                KRATOS_REGISTER_VARIABLE(NODAL_VALUES)
+                KRATOS_REGISTER_VARIABLE(NODAL_DAMAGE)
 
 
 		//KRATOS_REGISTER_VARIABLE(ERASE_FLAG )
@@ -492,6 +507,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N)
         KRATOS_REGISTER_ELEMENT("HypoelasticElement2D3N", mHypoelasticElement2D3N)
         KRATOS_REGISTER_ELEMENT("LinearElement2D3N", mLinearElement2D3N)
+        KRATOS_REGISTER_ELEMENT("LinearElement2D4N", mLinearElement2D4N)
         KRATOS_REGISTER_ELEMENT("LinearElement3D4N", mLinearElement3D4N)
         KRATOS_REGISTER_ELEMENT("LinearElement3D8N",   mLinearElement3D8N)
         KRATOS_REGISTER_ELEMENT("TotalLagrangian2D3N", mTotalLagrangian2D3N)
