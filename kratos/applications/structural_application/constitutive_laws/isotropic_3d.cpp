@@ -117,7 +117,8 @@ namespace Kratos
 	
 	double Isotropic3D::GetValue( const Variable<double>& rThisVariable )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+	    return 0;
+	    //KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 	}
 	
 	Vector Isotropic3D::GetValue( const Variable<Vector>& rThisVariable )
@@ -162,6 +163,16 @@ namespace Kratos
 								 const ProcessInfo& rCurrentProcessInfo )
 	{
 	}
+
+
+         void Isotropic3D::Calculate( const Variable<double>& rVariable, 
+                                    double& Output, 
+                                    const ProcessInfo& rCurrentProcessInfo)
+        {
+           Output = sqrt(mE/mDE);
+        }
+
+
 	
 	/**
 	 *	TO BE TESTED!!!
@@ -176,6 +187,10 @@ namespace Kratos
 		mCtangent = ZeroMatrix(6,6);
 		mInSituStress = ZeroVector(6);
         CalculateElasticMatrix(mCtangent, props[YOUNG_MODULUS], props[POISSON_RATIO]);
+	mE  = props[YOUNG_MODULUS];
+	mNU = props[POISSON_RATIO];
+	mDE = props[DENSITY];
+
 //                 CalculateElasticMatrix(mCtangent, props[MATERIAL_PARAMETERS][0], props[MATERIAL_PARAMETERS][1]);
 	}
 	
@@ -239,6 +254,7 @@ namespace Kratos
 		noalias(StressVector) = prod(mCtangent,StrainVector);
 		mCurrentStress = StressVector;
 		noalias(StressVector) -= mInSituStress;
+                //KRATOS_WATCH(StrainVector)
 // 		double c1 = mE / ((1.00+mNU)*(1-2*mNU));
 // 		double c2 = c1 * (1-mNU);
 // 		double c3 = c1 * mNU;

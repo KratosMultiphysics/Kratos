@@ -192,6 +192,24 @@ namespace Kratos
 			      const Vector& StrainVector,
 			      Matrix& algorithmicTangent);
 
+
+                  void CalculateMaterialResponse(
+                            const Vector& StrainVector,
+                            Vector& StressVector,
+                            Matrix& algorithmicTangent,
+                            bool calculate_stress_flag,
+                            bool calculate_tangent_flag,
+                            bool  save_internal_variables
+                            );
+
+               std::string Info() const;
+               
+             
+//                  void Interpolate_Internal_Variables(double& weight, 
+//                                      ConstitutiveLaw< Node<3> >& Other_Constitutive_Law,   
+//                                     const ProcessInfo& rCurrentProcessInfo);
+            
+
 			/**
 			 * Input and output
 			 */
@@ -209,9 +227,7 @@ namespace Kratos
 			//virtual void PrintData(std::ostream& rOStream) const;
 		
 		protected:
-			/**
-			 * there are no protected class members
-			 */
+ 
 		private:
 			
 			/**
