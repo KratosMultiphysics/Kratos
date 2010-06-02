@@ -184,6 +184,11 @@ namespace Kratos
 			void CalculateStressAndTangentMatrix(Vector& StressVector,
 			      const Vector& StrainVector,
 			      Matrix& algorithmicTangent);
+
+                        void Calculate( const Variable<double>& rVariable, 
+                                    double& Output, 
+                                    const ProcessInfo& rCurrentProcessInfo);
+
 			
 			/**
 			 * converts a strain vector styled variable into its form, which the
@@ -226,7 +231,7 @@ namespace Kratos
 			  */
 			 void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
 
-		         double mE,mNU;
+		         double mE,mNU, mDE;
 				 Vector mInSituStress;
 				 Matrix mCtangent;
 				 Vector mCurrentStress;
