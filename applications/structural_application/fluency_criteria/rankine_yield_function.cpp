@@ -286,6 +286,7 @@ namespace Kratos
                        residual[0]=  residual[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - delta_gamma_b*( -2.00  * G / 3.00 + K );   
                        residual[1]=  residual[1] - delta_gamma_a*(-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K );   
                        norma = norm_2(residual);
+                       KRATOS_WATCH(norma)
 
                        }
 
