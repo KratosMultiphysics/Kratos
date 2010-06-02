@@ -436,6 +436,19 @@ namespace Kratos
             {
             }
             
+                /**
+             * Calculates the value of a given variable on the current integration point
+             * @param weight 
+             * @param Other_Constitutive_Law
+             * @param rCurrentProcessInfo input: the current ProcessInfo instance
+             */
+            virtual void Interpolate_Internal_Variables(double& weight, 
+                                    ConstitutiveLaw<Node<3> >& Other_Constitutive_Law,   
+                                    const ProcessInfo& rCurrentProcessInfo)
+            {
+            }
+
+
             /**
              * This can be used in order to reset all internal variables of the
              * constitutive law (e.g. if a model should be reset to its reference state)
@@ -443,6 +456,15 @@ namespace Kratos
             virtual void ResetMaterial()
             {
             }
+ 
+                       /// Turn back information as a string.
+            virtual std::string Info() const
+            {
+                std::stringstream buffer;
+                buffer << "No Constitutive Law" << std::endl; 
+                return buffer.str();
+            }
+            
         
         protected:
  
