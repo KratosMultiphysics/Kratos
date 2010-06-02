@@ -354,13 +354,13 @@ void Compute_Critical_Time()
     std::cout<<"------------------------------------------------------------------"<<std::endl; 
     mdelta_time  =  (*std::min_element(dts.begin(), dts.end()));
     std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
-    Truncar_Delta_Time(mdelta_time);
+    mdelta_time = Truncar_Delta_Time(mdelta_time);
     if(mdelta_time>mmax_delta_time) {mdelta_time = mmax_delta_time;}
     delta_time_used = mfraction_delta_time * mdelta_time;
     CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
     r_model_part.CloneTimeStep( delta_time_used * step );
     time = CurrentProcessInfo[TIME];
-    mCalculateCriticalTime = true; 
+    mCalculateCriticalTime = true;
     std::cout<< "Factor Delta Critical Time   = "<< mfraction_delta_time << std::endl;
     std::cout<< "Delta Time Used              = "<< delta_time_used << std::endl;
     std::cout<< "Current Time                 = "<< time <<std::endl;
@@ -996,22 +996,26 @@ inline void CreatePartition(unsigned int number_of_threads, const int number_of_
       partitions[i] = partitions[i-1] + partition_size ;
   }
 
-inline void Truncar_Delta_Time(double& num)
+inline double Truncar_Delta_Time(double& num)
     {
       bool trunc = false;
-      double num_trucado = num; 
-      unsigned int a     = 1.00;
-      unsigned int i     = 10;
+      long double num_trucado = num; 
+      unsigned long int a     = 1;
+      unsigned long int i     = 10;
       while(trunc==false)
 	{
 	  num_trucado = num_trucado*i;
           a = a*i;
-          if(num_trucado >= 1.00){
-              num_trucado = static_cast<int>(num_trucado);  
+          if(num_trucado >= 100){
+              num_trucado = static_cast<long unsigned int>(num_trucado);  
+             
 	      num         = num_trucado/a;
               trunc       = true;}
 	}
 
+        //KRATOS_WATCH(num)     
+        return num;
+ 
     }
 
 
