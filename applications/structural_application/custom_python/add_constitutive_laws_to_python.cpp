@@ -86,8 +86,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/plasticity_2d.h"
 #include "constitutive_laws/plane_stress_J2.h"
 //#include "constitutive_laws/plasticity_3d.h"
-//#include "constitutive_laws/plastic_damage_3d.h"
-//#include "constitutive_laws/plastic_damage_2d.h"
+#include "constitutive_laws/plastic_damage_3d.h"
+#include "constitutive_laws/plastic_damage_2d.h"
 //#include "constitutive_laws/plane_stress_damage_orthotropic_2d.h"
 //#include "constitutive_laws/tension_compression_damage_model.h"
 //#include "constitutive_laws/tension_compression_damage_model_2d.h"
@@ -174,17 +174,22 @@ namespace Kratos
 //                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
 // 			;
 
-// 			class_<PlasticDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-// 			("PlasticDamage3D",
-// 			init<>() )
-//                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-// 			;
+			class_<PlasticDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+ 			("PlasticDamage2D",
+ 			init<>() )
+                        //.def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                        .def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
+ 			;
 
-// 			class_<PlasticDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-//  			("PlasticDamage2D",
-//  			init<>() )
-//                          .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-//  			;
+			class_<PlasticDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+ 			("PlasticDamage3D",
+ 			init<>() )
+                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                        //.def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
+ 			;
+
+
+
 
 // 			class_< Tension_Compression_Damage_Model, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 // 			("TensionCompressionDamageModel3D",
