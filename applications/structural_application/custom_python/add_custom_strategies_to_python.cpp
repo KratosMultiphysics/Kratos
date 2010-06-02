@@ -186,12 +186,11 @@ namespace Kratos
 
            class_< ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
                    (
-                    "ResidualBasedCentralDiferencesStrategy", init< ModelPart&,  double, double, double, bool,  bool >())
-                   ;
-//           class_< ResidualBasedCentralDiferencesScheme< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-//                   (
-//                    "ResidualBasedCentralDiferencesScheme", init< ModelPart&,  double, bool,  bool >())
-//                   ;
+                    "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, double, double, double,  bool, bool  >())
+                 .def("Initialize", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)      
+                 .def("ComputeCriticalTime", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Compute_Critical_Time)         
+                  ;
+
 
 	   class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType,
  	   bases< BaseSchemeType >,  boost::noncopyable >
