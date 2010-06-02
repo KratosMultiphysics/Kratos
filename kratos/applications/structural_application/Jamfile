@@ -114,9 +114,8 @@ alias sources_KratosStructuralApplication
         lineal_softening.cpp
          plasticity_2d.cpp
 #        plasticity_3d.cpp
-#        plastic_damage_3d.cpp
-#        plastic_damage_2d.cpp
-
+        plastic_damage_3d.cpp
+        plastic_damage_2d.cpp
         plane_stress_J2.cpp
 
 
