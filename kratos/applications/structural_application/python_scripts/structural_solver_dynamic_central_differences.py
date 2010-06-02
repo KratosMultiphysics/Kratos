@@ -43,17 +43,28 @@ class DynamicStructuralSolver:
 
         self.model_part           = model_part  
         self.alpha_damp           = 0.00;
-        self.max_delta_time       = 0.01;
-        self.fraction_delta_time  = 1.0;
+        self.max_delta_time       = 0.0001;
+        self.fraction_delta_time  = 0.90;
+        #self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        #self.structure_linear_solver =  SkylineLUFactorizationSolver()
                
     #######################################################################
     def Initialize(self):
 
-        CalculateReactionFlag = True
-        MoveMeshFlag = True
+        CalculateReactionFlag  = True
+        MoveMeshFlag           = True
+        #ReformDofSetAtEachStep = False
+        
 
 ##      #creating the solution strategy
-        self.solver = ResidualBasedCentralDiferencesStrategy(self.model_part, self.alpha_damp, self.fraction_delta_time, self.max_delta_time, CalculateReactionFlag, MoveMeshFlag)
+        self.solver = ResidualBasedCentralDiferencesStrategy(self.model_part,                                                                                self.alpha_damp, self.fraction_delta_time, self.max_delta_time,   CalculateReactionFlag, MoveMeshFlag)
+
+        (self.solver).Initialize();
+        (self.solver).ComputeCriticalTime;  
+
+    def CriticalTime(self):
+         print "Calculating Time Step " 
+         (self.solver).ComputeCriticalTime()       
 
 
     #######################################################################   
