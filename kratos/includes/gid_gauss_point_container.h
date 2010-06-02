@@ -239,6 +239,7 @@ namespace Kratos
                         {
                             if( ! it->GetValue( IS_INACTIVE ) )
                             {
+                               //KRATOS_WATCH(it->Id())
                                 it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                         r_model_part.GetProcessInfo() );
                                 for(unsigned int i=0; i<mIndexContainer.size(); i++)
