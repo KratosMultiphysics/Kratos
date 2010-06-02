@@ -148,6 +148,7 @@ namespace Kratos
 
 			class_<NodeType, NodeType::Pointer, bases<NodeType::BaseType, IndexedObject > >("Node", init<int, double, double, double>())
 				.def(init<int, const Point<3>& >())
+                                .def(VariableIndexingPython<NodeType, Variable<bool> >())
 				.def(VariableIndexingPython<NodeType, Variable<bool> >())
 				.def(VariableIndexingPython<NodeType, Variable<int> >())
 				.def(VariableIndexingPython<NodeType, Variable<double> >())
@@ -155,7 +156,7 @@ namespace Kratos
 				.def(VariableIndexingPython<NodeType, Variable<vector<double> > >())
 				.def(VariableIndexingPython<NodeType, Variable<matrix<double> > >())
 				.def(VariableIndexingPython<NodeType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-				.def(SolutionStepVariableIndexingPython<NodeType, Variable<bool> >())
+                                .def(SolutionStepVariableIndexingPython<NodeType, Variable<bool> >()) 
 				.def(SolutionStepVariableIndexingPython<NodeType, Variable<int> >())
 				.def(SolutionStepVariableIndexingPython<NodeType, Variable<double> >())
 				.def(SolutionStepVariableIndexingPython<NodeType, Variable<array_1d<double, 3> > >())
