@@ -79,6 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "soft_hard_behavior/lineal_softening.h"
 
 
+
 #include "spaces/ublas_space.h"
 
 
@@ -118,7 +119,7 @@ namespace Kratos
 				 .value("Not_Associated", Not_Associated)
 				 .value("Associated", Associated)
                                   ;
- 
+
            
 			       class_<Rankine_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
 			      ("RankineYieldFunction",
