@@ -190,10 +190,8 @@ static inline void TensorialInvariants(const Matrix& Tensor, Vector& I, Vector& 
 
 {
 	KRATOS_TRY
-	//int iter                            = 50;
-	//double zero                         = 1.0E-15;
-        int dim                             = Tensor.size1();
-	matrix<double> Aux_Tensor           = ZeroMatrix(3,3);
+	int iter                            = 50;
+	double zero                         = 1.0E-15;
 	matrix<double> SphericComponent     = IdentityMatrix(3,3);
 	matrix<double> DesviatoricComponent = ZeroMatrix(3,3);
 	vector<double> PrincipalStress      = ZeroVector(3);
@@ -203,41 +201,43 @@ static inline void TensorialInvariants(const Matrix& Tensor, Vector& I, Vector& 
 	I     = zero_vector<double>(3);
 	J     = zero_vector<double>(3);
 	J_des = zero_vector<double>(3);
- 
-        if(dim==3)
-	    {
-              Aux_Tensor = Tensor;
-	    } 
-        else if(dim==2)
-            {
-             Aux_Tensor(0,0) = Tensor(0,0); Aux_Tensor(0,1) = Tensor(0,1);
-             Aux_Tensor(1,0) = Tensor(1,0); Aux_Tensor(1,1) = Tensor(1,1);
-             //Comprobate_State_Tensor(Aux_Tensor);
-             }
-    
-	//SD_MathUtils<double>::EigenVectors(Tensor, EigenVectors, PrincipalStress, zero, iter); 
-//      I[0] = PrincipalStress(0) + PrincipalStress(1) + PrincipalStress(2);
-// 	I[1] = (PrincipalStress(0)*PrincipalStress(1) + PrincipalStress(0)*PrincipalStress(2) + PrincipalStress(1)*PrincipalStress(2)); //Pag 39 javier Bonet
-// 	I[2] = MathUtils<double>::Det(Tensor);
 
-	I[0] = Aux_Tensor(0,0) + Aux_Tensor(1,1) + Aux_Tensor(2,2);
-	I[1] = 0.50*(double_product(Aux_Tensor,Aux_Tensor) - I[0]*I[0]); 
-	I[2] = MathUtils<double>::Det(Aux_Tensor);
-	
-  
-	
+   
+	SD_MathUtils<double>::EigenVectors(Tensor, EigenVectors, PrincipalStress, zero, iter); 
+        I[0] = PrincipalStress(0) + PrincipalStress(1) + PrincipalStress(2);
+ 	I[1] = -(PrincipalStress(0) * PrincipalStress(1) + PrincipalStress(0) * PrincipalStress(2) + PrincipalStress(1) * PrincipalStress(2));
+ 	I[2] = PrincipalStress(0) * PrincipalStress(1) * PrincipalStress(2);       //
+
+        //KRATOS_WATCH(Tensor)
+        //KRATOS_WATCH(I) 
+             
+	//I[0] = Tensor(0,0) + Tensor(1,1) + Tensor(2,2);
+	//I[1] = 0.50*(-double_product(Tensor,Tensor) + I[0]*I[0]); 
+	//I[2] = MathUtils<double>::Det(Tensor);
+        //KRATOS_WATCH(I)
+        //KRATOS_WATCH("------------------------------------------------------")
+       
 
 	// Invariantes J
 	J[0] =  I[0];
-	J[1] =  0.50*(I[0]*I[0]+2.00*I[1]);
-	J[2] =  (I[0]*I[0]*I[0] + 3.00*I[0]*I[1]+3.00*I[2])/3.00;
+	J[1] =  0.50*(I[0]*I[0] + 2.00*I[1]);
+	J[2] =  (I[0] * I[0] * I[0] + 3.00 * I[0] * I[1] + 3.00 * I[2])/3.00;
 
-	noalias(SphericComponent)     =  (I(0)/3.00)*SphericComponent;
-	noalias(DesviatoricComponent) =  Aux_Tensor - SphericComponent;
 
-	J_des[0] = 0.00;
-	J_des[1] = 0.50*double_product(DesviatoricComponent,DesviatoricComponent);
-	J_des[2] = MathUtils<double>::Det(DesviatoricComponent);
+	noalias(SphericComponent)     =  (I[0]/3.00)*SphericComponent;
+	noalias(DesviatoricComponent) =  Tensor - SphericComponent;
+
+        
+        noalias(PrincipalStress) =  ZeroVector(3);
+        SD_MathUtils<double>::EigenVectors(DesviatoricComponent, EigenVectors, PrincipalStress, zero, iter);
+        J_des[0] =  0.00;
+	J_des[1] =  -(PrincipalStress(0) * PrincipalStress(1) + PrincipalStress(0) * PrincipalStress(2) + PrincipalStress(1) * PrincipalStress(2));
+	J_des[2] =  PrincipalStress(0) * PrincipalStress(1) * PrincipalStress(2); 
+ 
+	//J_des[0] = 0.00;
+	//J_des[1] = 0.50*double_product(DesviatoricComponent,DesviatoricComponent);
+	//J_des[2] = (2.00 * I[0] * I[0] * I[0] - 9.00 * I[0] * I[1] + 27.00 * I[2])/27.00;     
+        //J_des[2] = MathUtils<double>::Det(DesviatoricComponent);
     
 	//KRATOS_WATCH(Tensor)
         //KRATOS_WATCH(DesviatoricComponent)
