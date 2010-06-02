@@ -183,7 +183,7 @@ namespace Kratos
                 bool is_converged=false;
             
                 while(!(is_converged))
-                {
+                { 
                     double shift= HelpA((dim-1),(dim-1));
                     //                 
                     for(int i=0; i<dim; i++)
@@ -376,7 +376,7 @@ namespace Kratos
              */ 
 
             
-            static inline void EigenVectors(const MatrixType& A, MatrixType& vectors, VectorType& lambda, double zero_tolerance =1e-9, int max_iterations = 10)
+          static inline void EigenVectors(const MatrixType& A, MatrixType& vectors, VectorType& lambda, double zero_tolerance =1e-9, int max_iterations = 10)
             {
                 Matrix Help= A;
 
@@ -547,7 +547,6 @@ namespace Kratos
 
                 for(unsigned int i=0; i<Help.size1(); i++)
                     lambda(i)= Help(i,i);
-
 
                 return;
             }
@@ -765,22 +764,25 @@ namespace Kratos
             static inline MatrixType StrainVectorToTensor( const VectorType& Strains )
             {
                 KRATOS_TRY
-                    Matrix StrainTensor;
-			
+
+                Matrix StrainTensor;
+                    //KRATOS_WATCH(Strains)		
                 if (Strains.size()==3)
                 {
-                    noalias(StrainTensor) = ZeroMatrix(2,2);
+                    StrainTensor.resize(2,2, false);
+                    //KRATOS_WATCH(StrainTensor)
                     StrainTensor(0,0) = Strains[0]; StrainTensor(0,1) = 0.5*Strains[2];
                     StrainTensor(1,0) = 0.5*Strains[2]; StrainTensor(1,1) = Strains[1];
                 }
                 else if (Strains.size()==6)
                 {
-                    noalias(StrainTensor) = ZeroMatrix(3,3);
+                    StrainTensor.resize(3,3, false);
                     StrainTensor(0,0) = Strains[0]; StrainTensor(0,1) = 0.5*Strains[3]; StrainTensor(0,2) = 0.5*Strains[5];
                     StrainTensor(1,0) = 0.5*Strains[3]; StrainTensor(1,1) = Strains[1]; StrainTensor(1,2) = 0.5*Strains[4];
                     StrainTensor(2,0) = 0.5*Strains[5]; StrainTensor(2,1) = 0.5*Strains[4]; StrainTensor(2,2) = Strains[2];
                 }
-			
+		 
+                //KRATOS_WATCH(StrainTensor)
                 return StrainTensor;
                 KRATOS_CATCH("")
             }
@@ -789,16 +791,19 @@ namespace Kratos
             {
                 KRATOS_TRY
                     Vector StrainVector;
+                     
 			
                 if (Tensor.size1()==2)
                 {
-                    noalias(StrainVector) = ZeroVector(3);
+                    StrainVector.resize(3);
+                    noalias(StrainVector) = ZeroVector(3); 
                     StrainVector(0) = Tensor(0,0); 
                     StrainVector(1) = Tensor(1,1); 
                     StrainVector(2) = 2.00*Tensor(0,1);
                 }
                 else if (Tensor.size1()==3)
                 {
+                    StrainVector.resize(6);   
                     noalias(StrainVector) = ZeroVector(6);
                     StrainVector(0) = Tensor(0,0); 
                     StrainVector(1) = Tensor(1,1); 
@@ -808,6 +813,7 @@ namespace Kratos
                     StrainVector(5) = 2.00*Tensor(0,2);
                 }
 
+                
                 return StrainVector;
                 KRATOS_CATCH("")
             }
@@ -853,16 +859,21 @@ namespace Kratos
        * @param Vector the given vector
        * @param Tensor the symmetric second order tensor
        */
-		static void VectorToTensor(Vector& Vector,Matrix& Tensor)
+static inline void VectorToTensor(const Vector& Stress,Matrix& Tensor)
 		{
-			if(Tensor.size1()!= 3 || Tensor.size2()!= 3)
-                        Tensor.resize(3,3,false);
-
-			Tensor(0,0)= Vector(0); Tensor(1,1)= Vector(1); Tensor(2,2)= Vector(2);
-			Tensor(0,1)= Vector(3); Tensor(0,2)= Vector(5);
-			Tensor(1,0)= Vector(3); Tensor(1,2)= Vector(4);
-			Tensor(2,0)= Vector(5); Tensor(2,1)= Vector(4);
-
+			if(Stress.size()==6)
+                         {
+			  Tensor.resize(3,3);  
+			  Tensor(0,0)= Stress(0); Tensor(0,1)= Stress(3); Tensor(0,2)= Stress(5);  
+			  Tensor(1,0)= Stress(3); Tensor(1,1)= Stress(1); Tensor(1,2)= Stress(4);
+			  Tensor(2,0)= Stress(5); Tensor(2,1)= Stress(4); Tensor(2,2)= Stress(2);
+                         }
+			if(Stress.size()==3)
+                        {
+			  Tensor.resize(2,2);
+ 			  Tensor(0,0)= Stress(0); Tensor(0,1)= Stress(2);  
+			  Tensor(1,0)= Stress(2); Tensor(1,1)= Stress(1);
+                        }   
 			return;
 		}	
 
@@ -891,9 +902,13 @@ namespace Kratos
 			return;
 		}
 
-static void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
+static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
 	{
 
+
+		 // Simetrias seguras
+                 //  Cijkl = Cjilk;
+                 //  Cijkl = Cklji; 
 		if (Tensor[0].size()== 3)
 		{
 		 // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 3x3 
