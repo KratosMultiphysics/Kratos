@@ -262,7 +262,44 @@ void Isotropic2D::Calculate(const Variable<double>& rVariable,
                                     const ProcessInfo& rCurrentProcessInfo)
    {
     Output = sqrt(mE/mDE);
+    //KRATOS_WATCH(Output)
+    //KRATOS_WATCH(mDE)
    }
+
+
+ void  Isotropic2D::CalculateMaterialResponse(
+                            const Vector& StrainVector,
+                            Vector& StressVector,
+                            Matrix& algorithmicTangent,
+                            bool calculate_stress_flag,
+                            bool calculate_tangent_flag,
+                            bool  save_internal_variables
+                            )
+
+
+{
+CalculateStress(StrainVector, StressVector);
+CalculateConstitutiveMatrix(StrainVector, algorithmicTangent);
+}
+
+/// Turn back information as a string.
+std::string Isotropic2D::Info() const
+{
+    std::stringstream buffer;
+    buffer << "Isotrop_2D" << std::endl;
+    return buffer.str();
+}
+
+
+/*
+void Isotropic2D::Interpolate_Internal_Variables(double& weight, 
+                                     ConstitutiveLaw< Node<3> >& Other_Constitutive_Law,   
+                                    const ProcessInfo& rCurrentProcessInfo)
+{
+
+}*/
+
+
 
 
 } // Namespace Kratos
