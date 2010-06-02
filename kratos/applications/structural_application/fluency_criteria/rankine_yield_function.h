@@ -106,15 +106,27 @@ namespace Kratos
 		    const Vector& StressVector,double& Result);
 
 
-
 		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
+
+                    void UpdateVariables(const Vector& Variables); 
+
+                    void ReturnMapping(const Vector& StressVector, 
+                    Vector& delta_lamda,
+                    array_1d<double,3>& Result);
+
+                    void GetValue(Vector& Result);
+
 		    
 
       
 	protected:
 
-	  unsigned int mdim;
-          double       msigma_max;
+	  array_1d<double,3> mFt;
+          array_1d<double,3> mcurrent_Ft;
+          double mH;
+          bool  minitialize;     
+           
+           
 
     };
 }
