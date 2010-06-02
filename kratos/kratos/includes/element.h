@@ -484,7 +484,8 @@ namespace Kratos
             virtual void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, 
                                            std::vector<Matrix>& rValues, 
                                            const ProcessInfo& rCurrentProcessInfo){}
-            
+          
+             
             /**
              * returns the used integration method. In the general case this is the 
              * default integration method of the used geometry. I an other integration
