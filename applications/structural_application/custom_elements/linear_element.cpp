@@ -1,39 +1,96 @@
-//
-//   Project Name:        Kratos       
-//   Last modified by:    $Author: kazem $
-//   Date:                $Date: 2009-01-15 18:49:33 $
-//   Revision:            $Revision: 1.6 $
+/*
+==============================================================================
+KratosStructuralApplication 
+A library based on:
+Kratos
+A General Purpose Software for Multi-Physics Finite Element Analysis
+Version 1.0 (Released on march 05, 2007).
 
+Copyright 2007
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
+pooyan@cimne.upc.edu 
+rrossi@cimne.upc.edu
+janosch.stascheit@rub.de
+nagel@sd.rub.de
+- CIMNE (International Center for Numerical Methods in Engineering),
+Gran Capita' s/n, 08034 Barcelona, Spain
+- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
+
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following condition:
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
+*/
+ 
+//   
+//   Project Name:        Kratos       
+//   Last modified by:    $Author: virginia $
+//   Date:                $Date: 2009-01-23 14:39:59 $
+//   Revision:            $Revision: 1.27 $
+//
+//
 
 
 // System includes 
-// External includes 
-// Project includes 
 
+
+// External includes 
+
+
+// Project includes 
 #include "includes/define.h"
-#include "custom_elements/linear_element.h"
+#include "custom_elements/total_lagrangian.h"
 #include "utilities/math_utils.h"
-//#include "constitutive_laws/isotropic_planestress_wrinkling_new.h"
-#include "constitutive_laws/plane_strain.h"
-#include "constitutive_laws/isotropic_3d.h"
+#include "includes/constitutive_law.h"
 #include "structural_application.h"
 
-
+//#include <omp.h>
 
 namespace Kratos
-
 {
+namespace LinearElementAuxiliaries
+{
+        Matrix msB(0,0);
+	#pragma omp threadprivate(msB)
+	Matrix msF(0,0);
+	#pragma omp threadprivate(msF)
+	Matrix msD(0,0);
+	#pragma omp threadprivate(msD)
+	Matrix msC(0,0);
+	#pragma omp threadprivate(msC)
+	Vector msStrainVector(0);
+	#pragma omp threadprivate(msStrainVector)
+	Vector msStressVector(0);
+	#pragma omp threadprivate(msStressVector)
+	Matrix msDN_DX(0,0);   
+	#pragma omp threadprivate(msDN_DX)
+	Matrix msPlasticStrainVector(0,0);   
+	#pragma omp threadprivate(msPlasticStrainVector)
+}
 
-    Matrix LinearElement::msB(0,0);
-	Matrix LinearElement::msD(0,0);
-	Matrix LinearElement::msDN_DX(0,0);
-	Vector LinearElement::msStrainVector(0);
-	Vector LinearElement::msStressVector(0);
-
+    using namespace LinearElementAuxiliaries;
 	//************************************************************************************
-
 	//************************************************************************************
-
 	LinearElement::LinearElement(IndexType NewId, GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
 	{		
@@ -42,21 +99,36 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-
 	LinearElement::LinearElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
 	{
+//         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        mThisIntegrationMethod= GetGeometry().GetDefaultIntegrationMethod();
 
-	  //const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-		//setting up the nodal degrees of freedom
-/*		for(unsigned int i = 0 ; i != GetGeometry().size() ; ++i)
-		{
-			(GetGeometry()[i].pAddDof(DISPLACEMENT_X,REACTION_X));
-			(GetGeometry()[i].pAddDof(DISPLACEMENT_Y,REACTION_Y));
-			if(dim == 3)
-				(GetGeometry()[i].pAddDof(DISPLACEMENT_Z,REACTION_Z));
-		}*/
+    }
+
+	Element::Pointer LinearElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+	{
+		return Element::Pointer(new LinearElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+	}
+
+	LinearElement::~LinearElement()
+	{
+	}
+
+         std::string LinearElement::Info() const
+           {
+                std::stringstream buffer;
+                buffer << "Linear Element" << std::endl;
+                return buffer.str();
+           }  
+
+
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::ResizeAndInitializeAuxiliaries()
+	{
 		//initializing static variables
 		unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 		unsigned int dim2 = GetGeometry().size()*dimension;
@@ -65,220 +137,208 @@ namespace Kratos
 			StrainSize = 3;
 		else 
 			StrainSize = 6;
-		msB.resize(StrainSize,dim2);
-		msD.resize(StrainSize,StrainSize);
-		msDN_DX.resize(GetGeometry().size(),dimension);
-		msStrainVector.resize(StrainSize);
-		msStressVector.resize(StrainSize);
-	}
-	Element::Pointer LinearElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
-	{
 
-		return Element::Pointer(new LinearElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-
-	}
-	LinearElement::~LinearElement()
-	{
+		if(msB.size2() != dim2)
+		{
+			msB.resize(StrainSize,dim2,false);
+			msF.resize(dimension,dimension,false);
+			msD.resize(StrainSize,StrainSize,false);
+			msC.resize(dimension,dimension,false);
+			msStrainVector.resize(StrainSize,false);
+			msStressVector.resize(StrainSize,false);
+			msDN_DX.resize(GetGeometry().size(),dimension,false);
+		}
+		
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-
 	void LinearElement::Initialize()
 	{
 		KRATOS_TRY
-			const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+
+		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
 		//resizing jacobian inverses containers
 		mInvJ0.resize(integration_points.size());
-		mDetJ0.resize(integration_points.size());
+		mDetJ0.resize(integration_points.size(),false);
+
 
 		GeometryType::JacobiansType J0;
-		J0 = GetGeometry().Jacobian(J0);  
+		J0 = GetGeometry().Jacobian(J0, mThisIntegrationMethod);   
 		mTotalDomainInitialSize = 0.00;
 
-		if(mConstitutiveLawVector.size() == 0)
+		//Constitutive Law initialisation
+		if(mConstitutiveLawVector.size() != integration_points.size() )
 		{
-			mConstitutiveLawVector.resize(integration_points.size());
-			InitializeMaterial();
+			mConstitutiveLawVector.resize(integration_points.size());	
+   //InitializeMaterial();
 		}
 
+                 InitializeMaterial();
+                 
 		//calculating the inverse J0
 		for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
 		{
 			//getting informations for integration
 			double IntegrationWeight = integration_points[PointNumber].Weight();
-			//calculating and storing inverse of the jacobian and the parameters needed
 
+			//calculating and storing inverse of the jacobian and the parameters needed
 			MathUtils<double>::InvertMatrix(J0[PointNumber],mInvJ0[PointNumber],mDetJ0[PointNumber]);				
 
-
-
 			//calculating the total area
-
 			mTotalDomainInitialSize += mDetJ0[PointNumber]*IntegrationWeight;
-
 		}
 
-
-
-
-
+               
 		KRATOS_CATCH("")
-
 	}
 
-
-
 	//************************************************************************************
-
 	//************************************************************************************
-
-	void LinearElement::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-										ProcessInfo& rCurrentProcessInfo,
-										bool CalculateStiffnessMatrixFlag,
-										bool CalculateResidualVectorFlag)
-	{
-
+	void LinearElement::CalculateAll(MatrixType& rLeftHandSideMatrix, 
+                                           VectorType& rRightHandSideVector, 
+                                           ProcessInfo& rCurrentProcessInfo,
+                                           bool CalculateStiffnessMatrixFlag,
+                                           bool CalculateResidualVectorFlag)
+        {
 		KRATOS_TRY
-
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-		
+		ResizeAndInitializeAuxiliaries();
 
 		//resizing as needed the LHS
-
 		unsigned int MatSize=number_of_nodes*dim;
+
 		if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 		{
 			if(rLeftHandSideMatrix.size1() != MatSize)
-				rLeftHandSideMatrix.resize(MatSize,MatSize);
+				rLeftHandSideMatrix.resize(MatSize,MatSize,false);
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize); //resetting LHS
 		}
-		
-          
+
 		//resizing as needed the RHS
-
 		if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-
 		{
-
 			if(rRightHandSideVector.size() != MatSize)
-				rRightHandSideVector.resize(MatSize);
+				rRightHandSideVector.resize(MatSize,false);
 			rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
 		}
-
-
-
+		
+		if( msDN_DX.size1() != GetGeometry().size() )
+		{
+			msDN_DX.resize( GetGeometry().size(), dim, false );
+		}
+		
 		//reading integration points and local gradients
+		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+		const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
-		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-		const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients();
-		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+		//calculating actual jacobian
+		GeometryType::JacobiansType J;
+		GetGeometry().Jacobian(J);  
+                //KRATOS_WATCH(J) 
 
 		//auxiliary terms
-
 		Vector BodyForce;		
 
 		for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
 		{
 			//Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-			msDN_DX = ZeroMatrix(msDN_DX.size1(),msDN_DX.size2());
+// 			msDN_DX = ZeroMatrix(msDN_DX.size1(),msDN_DX.size2());
 			noalias(msDN_DX) = prod(DN_De[PointNumber],mInvJ0[PointNumber]);
-			
-			
-			//material update (considering the level of strain achieved)
+			noalias(msF) = prod(J[PointNumber],mInvJ0[PointNumber]);   
+                        identity_matrix<double> unit (dim);
+  
+			//strain calculation
+			noalias(msC) =  msF - unit;
+			CalculateStrain(msC,msStrainVector); 
+                        Comprobate_State_Vector(msStrainVector);
+                        
 
+			//material update (considering the level of strain achieved)
+			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+					GetProperties(),
+					GetGeometry(),
+					row(Ncontainer,PointNumber),
+					rCurrentProcessInfo );
 			//Calculation of stress
-			
+                        //KRATOS_WATCH( Id() )
+                        //KRATOS_WATCH(PointNumber)
+			//mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
+                        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                            msStrainVector,
+                            //rCurrentProcessInfo,
+                            msStressVector,
+                            msD,
+                            true,
+                            CalculateStiffnessMatrixFlag,
+                            true
+                            );
 
 			//calculating operator B
-			CalculateB(msB,msDN_DX);
-			
-			//calculate strain using B
-			CalculateStrain(msB,msStrainVector);
+			CalculateB(msB,msDN_DX,msStrainVector.size());
 
-			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
-
-			//KRATOS_WATCH(msStrainVector);
 			//calculating weights for integration on the reference configuration
-
 			double IntToReferenceWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
+			if (dim == 2) IntToReferenceWeight *= GetProperties()[THICKNESS];
+
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
-
 			{
-				mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
-				//mConstitutiveLawVector[PointNumber]->PlaneStrainConstitutiveMatrix(msStrainVector,msD);
-				
-				//KRATOS_WATCH(msD);
+				//mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
+                                //mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);	
 				//contributions to stiffness matrix calculated on the reference config
+				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); //to be optimized to remove the temporary
+                                //KRATOS_WATCH(msD)
 
-				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); //to be optimized to remove the temporary			
-				//KRATOS_WATCH(msD);
-				//KRATOS_WATCH(rLeftHandSideMatrix)
-
+				CalculateAndAddKg(rLeftHandSideMatrix,msDN_DX,msStressVector,IntToReferenceWeight);
 			}
 
-
-
 			if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-
 			{
 				//contribution to external forces 
 				BodyForce = GetProperties()[BODY_FORCE];
+
 				// operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
 				CalculateAndAdd_ExtForceContribution(row(Ncontainer,PointNumber),rCurrentProcessInfo,BodyForce,rRightHandSideVector,IntToReferenceWeight);
-				// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-				msStressVector = prod(msD, msStrainVector);
-				noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(msB),msStressVector);
-				
-			}	
 
+				// operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+				noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(msB),msStressVector);
+			}	
 		}
-		
-	
-			
 
 		KRATOS_CATCH("")
-
 	}
 
 	//************************************************************************************
-
 	//************************************************************************************
-
 	void LinearElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-
 	{
-
 		//calculation flags
-
 		bool CalculateStiffnessMatrixFlag = false;
 		bool CalculateResidualVectorFlag = true;
 		MatrixType temp = Matrix();
+		
 		CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-
 	}
 
-
-
 	//************************************************************************************
-
 	//************************************************************************************
-
 	void LinearElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-
 	{
 		//calculation flags
 		bool CalculateStiffnessMatrixFlag = true;
 		bool CalculateResidualVectorFlag = true;
 		
 		CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+                
 
 	}
-	//**************************************************************************
-	//**************************************************************************
 
+	//************************************************************************************
+	//************************************************************************************
 	double LinearElement::CalculateIntegrationWeight(double GaussPointWeight, double DetJ0)
 	{
 		//to permorm the integration over the reference domain we need to include 
@@ -291,220 +351,307 @@ namespace Kratos
 		return weight;
 	}
 
+        ////************************************************************************************
+	////************************************************************************************
+	
+        void LinearElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)	
+ 	    {
+   		for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
+ 			mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
+ 			GetGeometry(),row( GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i ),	
+                        CurrentProcessInfo);
+ 	    }
 
+	////************************************************************************************
+	////************************************************************************************
+	void LinearElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+	{
+//         std::cout << "in TL: calling FinalizeSolutionStep" << std::endl;
+		for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
+			mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
+				GetGeometry(),
+                                            row( GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i ),
+				CurrentProcessInfo);	
+	}
 
-	////**********************************************************************************
 	//************************************************************************************
-
+	//************************************************************************************
 	void LinearElement::InitializeMaterial()
-
 	{
 		KRATOS_TRY
-			unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-		//temporary - should be set from outside
-
-		if(dimension == 2)
-
+		if(GetProperties()[CONSTITUTIVE_LAW] != NULL)
 		{
-			ConstitutiveLaw<Node<3> >::Pointer material = ConstitutiveLaw<Node<3> >::Pointer( new PlaneStrain() );GetProperties()[CONSTITUTIVE_LAW] = material;
-
+			for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+			{
+			  mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+			  mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) ); 
+ 		          // const std::string type = mConstitutiveLawVector[i]->Info();                         
+                          // KRATOS_WATCH(Id())
+                          // KRATOS_WATCH(Info())   
+                          // KRATOS_WATCH(type) 
+                                        //KRATOS_WATCH(mConstitutiveLawVector[i])
+			}
 		}
-
 		else
-
-		{
-
-			ConstitutiveLaw<Node<3> >::Pointer material = ConstitutiveLaw<Node<3> >::Pointer( new Isotropic3D() );GetProperties()[CONSTITUTIVE_LAW] = material;
-
-		}
-
-		for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
-
-		{
-			//temporary
-
-			mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW];
-
-			mConstitutiveLawVector[i]->InitializeMaterial( 	GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(), i) ); 
-
-		}
-
-		KRATOS_CATCH("")
-
+			KRATOS_ERROR(std::logic_error,"a constitutive law needs to be specified for the element with ID ",this->Id())
+        	KRATOS_CATCH("")
 	} 
 
-
-
 	//************************************************************************************
-
 	//************************************************************************************
-
 	inline void LinearElement::CalculateAndAdd_ExtForceContribution(
-
 		const Vector& N,
 		const ProcessInfo& CurrentProcessInfo,
 		Vector& BodyForce,
 		VectorType& rRightHandSideVector,
 		double weight
 		)
-
 	{
-
 		KRATOS_TRY
-
-			unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
+		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
 		for (unsigned int i=0;i<number_of_nodes;i++)
 		{
 			int index = dimension*i;
 			for (unsigned int j=0; j<dimension; j++)  rRightHandSideVector[index+j] += weight*N[i]*BodyForce[j];		  
 		}
-
 		KRATOS_CATCH("")
-
 	}
 
 
 
 	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::CalculateAndAddKg(
+		MatrixType& K,
+		Matrix& DN_DX,
+		Vector& StressVector,
+		double weight)
+	{
+		KRATOS_TRY
+			//	unsigned int dimension = mpReferenceGeometry->WorkingSpaceDimension(); 
+			//Matrix<double> StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
+			//Matrix<double> ReducedKg(DN_Dx.RowsNumber(),DN_Dx.RowsNumber());
+			//Matrix<double>::MatMulAndAdd_B_D_Btrans(ReducedKg,weight,DN_Dx,StressTensor);
+			//MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
+
+	        unsigned int dimension = GetGeometry().WorkingSpaceDimension(); 
+		Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector);
+		Matrix ReducedKg = prod(DN_DX, weight * Matrix(prod(StressTensor,trans(DN_DX)) ) ); //to be optimized
+		MathUtils<double>::ExpandAndAddReducedMatrix(K,ReducedKg,dimension);
+
+		KRATOS_CATCH("")
+	}  
 
 	//************************************************************************************
-
+	//************************************************************************************
 	void LinearElement::CalculateStrain(
-		const Matrix& B,
+		const Matrix& C,
 		Vector& StrainVector)
-
 	{
-
 		KRATOS_TRY
+		unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+                Matrix Aux(dimension, dimension);
+                noalias(Aux) = 0.50 * (C + trans(C));         
 
-			unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-			unsigned int number_of_nodes = GetGeometry().size();
-			Vector Displacement(dimension*number_of_nodes);
-	
-			for (unsigned int i=0; i<number_of_nodes; i++)
-				{
-					int index = dimension*i;
-					array_1d<double,3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-			//KRATOS_WATCH(disp);
-					Displacement[index+0] = disp[0];
-					Displacement[index+1] = disp[1];
-																
-				if (dimension==3)
-					Displacement[index+2] = disp[2];
-				}	
-				
-		noalias(StrainVector) = prod(B,Displacement);
-			
-		//KRATOS_WATCH(Displacement);
-		//KRATOS_WATCH(StrainVector);
+
+		if (dimension==2) 
+		{
+			if(StrainVector.size() != 3) StrainVector.resize(3,false);
+			StrainVector[0] = Aux(0,0);
+			StrainVector[1] = Aux(1,1);
+			StrainVector[2] = 2.00 * Aux(0,1);
+		}
+		if (dimension==3) 
+		{
+			if(StrainVector.size() != 6) StrainVector.resize(6,false);
+			StrainVector[0] = Aux(0,0);
+			StrainVector[1] = Aux(1,1);
+			StrainVector[2] = Aux(2,2);
+			StrainVector[3] = 2.00 * Aux(0,1);
+			StrainVector[4] = 2.00 * Aux(1,2);
+			StrainVector[5] = 2.00 * Aux(0,2);
+		}
 		KRATOS_CATCH("")
-		
-
 	}
-
 	//************************************************************************************
-
 	//************************************************************************************
-
 	void LinearElement::CalculateB(
-
 		Matrix& B,
-		Matrix& DN_DX)
-
+		//Matrix& F,
+		Matrix& DN_DX,
+		unsigned int StrainSize)
 	{
-
 		KRATOS_TRY
-
 			const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 		
+		//unsigned int dim2 = number_of_nodes*dimension;
+		//if(B.size1() != StrainSize || B.size2()!=dim2)
+		//	B.resize(StrainSize,dim2);
+		//Matrix Bi;
 		for (unsigned int i=0;i<number_of_nodes;i++)
 		{
 			unsigned int index = dimension*i;
+
 			if (dimension == 2)
 			{
-				B(0,index+0)=DN_DX(i,0);				B(0,index+1)=0;
-				B(1,index+0)=0;						B(1,index+1)=DN_DX(i,1);
-				B(2,index+0)=DN_DX(i,1);				B(2,index+1)=DN_DX(i,0); 
+                                identity_matrix<double> F (2);
+				B(0,index+0)=F(0,0)*DN_DX(i,0);						B(0,index+1)=F(1,0)*DN_DX(i,0);
+				B(1,index+0)=F(0,1)*DN_DX(i,1);						B(1,index+1)=F(1,1)*DN_DX(i,1);
+				B(2,index+0)=F(0,0)*DN_DX(i,1)+F(0,1)*DN_DX(i,0);	B(2,index+1)=F(1,0)*DN_DX(i,1)+F(1,1)*DN_DX(i,0); 
 			}
 			else
 			{
-		           B(0,index+0)=DN_DX(i,0);                B(0,index+1)=0;		B(0,index+2)=0;
-			   B(1,index+0)=0;			   B(1,index+1)=DN_DX(i,1);	B(1,index+2)=0;
-			   B(2,index+0)=0;			   B(2,index+1)=0;		B(2,index+2)=DN_DX(i,2);
-			B(3,index+0)=DN_DX(i,1);		B(3,index+1)=DN_DX(i,0);	B(3,index+2)=0;
-			B(4,index+0)=0;				B(4,index+1)=DN_DX(i,2);	B(4,index+2)=DN_DX(i,1);
-			B(5,index+0)=DN_DX(i,2);		B(5,index+1)=0;			B(5,index+2)=DN_DX(i,0);
-
+                                identity_matrix<double> F (3);
+				B(0,index+0)=F(0,0)*DN_DX(i,0);		B(0,index+1)=F(1,0)*DN_DX(i,0);		B(0,index+2)=F(2,0)*DN_DX(i,0);
+				B(1,index+0)=F(0,1)*DN_DX(i,1);		B(1,index+1)=F(1,1)*DN_DX(i,1);		B(1,index+2)=F(2,1)*DN_DX(i,1);
+				B(2,index+0)=F(0,2)*DN_DX(i,2);		B(2,index+1)=F(1,2)*DN_DX(i,2);		B(2,index+2)=F(2,2)*DN_DX(i,2);
+				B(3,index+0)=F(0,0)*DN_DX(i,1)+F(0,1)*DN_DX(i,0);	B(3,index+1)=F(1,0)*DN_DX(i,1)+F(1,1)*DN_DX(i,0);	B(3,index+2)=F(2,0)*DN_DX(i,1)+F(2,1)*DN_DX(i,0);
+				B(4,index+0)=F(0,1)*DN_DX(i,2)+F(0,2)*DN_DX(i,1);	B(4,index+1)=F(1,1)*DN_DX(i,2)+F(1,2)*DN_DX(i,1);	B(4,index+2)=F(2,1)*DN_DX(i,2)+F(2,2)*DN_DX(i,1);
+				B(5,index+0)=F(0,2)*DN_DX(i,0)+F(0,0)*DN_DX(i,2);	B(5,index+1)=F(1,2)*DN_DX(i,0)+F(1,0)*DN_DX(i,2);	B(5,index+2)=F(2,2)*DN_DX(i,0)+F(2,0)*DN_DX(i,2);
 			}
 
+			//CalculateBi(Bi,F,DN_DX,i);
+			//MathUtils<double>::WriteMatrix(B,Bi,0,index);
 		}
-
 		KRATOS_CATCH("")
-
 	}
 
-	//*********************************************************************************
-	//*********************************************************************************
+	
 
+	//************************************************************************************
+	//************************************************************************************
 	void LinearElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-
 	{
 		int number_of_nodes = GetGeometry().size();
 		int dim = GetGeometry().WorkingSpaceDimension();
 		unsigned int dim2 = number_of_nodes*dim;
 		if(rResult.size() != dim2)
-			rResult.resize(dim2);
+			rResult.resize(dim2,false);
+
 		for (int i=0;i<number_of_nodes;i++)
 		{
 			int index = i*dim;
 			rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
 			rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
 			if(dim == 3)
-			rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+				rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
 		}
-		
+
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-
 	void LinearElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
-
 	{
 		ElementalDofList.resize(0);
+
 		for (unsigned int i=0;i<GetGeometry().size();i++)
 		{
 			ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 			ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
 			if(GetGeometry().WorkingSpaceDimension() == 3)
+                        {
 				ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-
+                        }
 		}
-
 	}
 
-
-
 	//************************************************************************************
 	//************************************************************************************
-
-	void LinearElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)
-
+	void LinearElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
-
 		KRATOS_TRY
+
+			//lumped
+			unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+		unsigned int NumberOfNodes = GetGeometry().size();
+		unsigned int MatSize = dimension * NumberOfNodes;
+		if(rMassMatrix.size1() != MatSize)
+			rMassMatrix.resize(MatSize,MatSize,false);
+
+		rMassMatrix = ZeroMatrix(MatSize,MatSize);
+
+		double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
+		if(dimension == 2) TotalMass *= GetProperties()[THICKNESS];
+
+		Vector LumpFact;
+		LumpFact = GetGeometry().LumpingFactors(LumpFact);
+
+		for(unsigned int i=0; i<NumberOfNodes; i++)
+		{
+			double temp = LumpFact[i]*TotalMass;
+			for(unsigned int j=0; j<dimension; j++)
+			{
+				unsigned int index = i*dimension + j;
+				rMassMatrix(index,index) = temp;
+			}
+		}
+
+		KRATOS_CATCH("")
+	}
+
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+		unsigned int number_of_nodes = GetGeometry().size();
+		unsigned int dim = GetGeometry().WorkingSpaceDimension();
+		
+		//resizing as needed the LHS
+		unsigned int MatSize=number_of_nodes*dim;
+
+		if(rDampMatrix.size1() != MatSize)
+			rDampMatrix.resize(MatSize,MatSize,false);
+
+		noalias(rDampMatrix)= ZeroMatrix(MatSize,MatSize);
+
+		KRATOS_CATCH("")
+	}
+        
+        LinearElement::IntegrationMethod LinearElement::GetIntegrationMethod()
+        {
+            return mThisIntegrationMethod;
+        }
+
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+	{
+            if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+                Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
+		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+	}
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
+	{
+            if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+                Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());
+		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+	}
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY
+
+		ResizeAndInitializeAuxiliaries();
 			//const unsigned int number_of_nodes = GetGeometry().size();
-		//const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
 		//resizing as needed the LHS
 		//unsigned int MatSize=number_of_nodes*dim;
-		//reading integration points and local gradients
 
-		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
+		//reading integration points and local gradients
+                
+                const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+                const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
 		//calculating actual jacobian
 		GeometryType::JacobiansType J;
@@ -514,91 +661,282 @@ namespace Kratos
 			Output.resize(integration_points.size());
 
 		for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
-
 		{
-			CalculateStrain(msB,msStrainVector);
+
+			//deformation gradient
+			noalias(msF) = prod(J[PointNumber],mInvJ0[PointNumber]);
+                        //KRATOS_WATCH(Id());
+                        //KRATOS_WATCH(msF);
+                        //KRATOS_WATCH("*************************");
+
+                           
+
+			//strain calculation
+                        identity_matrix<double> unit (dim);
+			noalias(msC) =  msF - unit;
+			CalculateStrain(msC,msStrainVector); 
+                        Comprobate_State_Vector(msStrainVector);
+
 			if(rVariable==GREEN_LAGRANGE_STRAIN_TENSOR)
 			{
 				if(Output[PointNumber].size2() != msStrainVector.size())
-					Output[PointNumber].resize(1,msStrainVector.size());
+					Output[PointNumber].resize(1,msStrainVector.size(),false);
 				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++)
 					Output[PointNumber](0,ii) = msStrainVector[ii];
 			}
-
 			else if(rVariable==PK2_STRESS_TENSOR)
-
 			{
-
 				if(Output[PointNumber].size2() != msStrainVector.size())
-					Output[PointNumber].resize(1,msStrainVector.size());
-
-
+					Output[PointNumber].resize(1,msStrainVector.size(),false);
+				
 				mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
 						GetProperties(),
 						GetGeometry(),
 						row(Ncontainer,PointNumber),
 						rCurrentProcessInfo );
-
-				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //saving 
-
-				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++)
-					Output[PointNumber](0,ii) = msStressVector[ii];
+				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //
+				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++){
+					Output[PointNumber](0,ii) = msStressVector[ii];}
 			}
+			else if(rVariable==INSITU_STRESS)
+			{
+				if(Output[PointNumber].size2() != msStrainVector.size())
+					Output[PointNumber].resize(1,msStrainVector.size(),false);
+				row(Output[PointNumber],0) = mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
 
-		}
+                        }
 
-		KRATOS_CATCH("")
+                       else if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+			{
+                                double size  = msStrainVector.size();
+                                msPlasticStrainVector.resize(1,size);
+				if(Output[PointNumber].size2() != msStrainVector.size())
+				    Output[PointNumber].resize(1, size,false);
+                                         
+				mConstitutiveLawVector[PointNumber]->Calculate(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, msPlasticStrainVector, rCurrentProcessInfo);
+			        Output[PointNumber] = msPlasticStrainVector;
+			}
+	           }
 
+      KRATOS_CATCH("")
+}
+	
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+	{
+// 		std::cout << mConstitutiveLawVector[0] << std::endl;
+//		if (rVariable==INSITU_STRESS)
+//		{
+//                    for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+//			{
+//				mConstitutiveLawVector[PointNumber]->SetValue(INSITU_STRESS, rValues[PointNumber],
+//						rCurrentProcessInfo );
+//			}
+//		}
+//                if (rVariable==MATERIAL_PARAMETERS)
+//                {
+//                    for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+//                    {
+//                        mConstitutiveLawVector[PointNumber]->SetValue( MATERIAL_PARAMETERS,
+//                                rValues[PointNumber], rCurrentProcessInfo );
+//                    }
+//                }
 
-
+                  for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+                  {
+                        mConstitutiveLawVector[PointNumber]->SetValue(rVariable ,
+                                rValues[PointNumber], rCurrentProcessInfo );
+                  }
+	
+	}
+	
+	
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+	{
+                  for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+                  {
+                        mConstitutiveLawVector[PointNumber]->SetValue(rVariable ,
+                                rValues[PointNumber], rCurrentProcessInfo );
+                  }
+	
+	}
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
+                                           std::vector<double>& rValues, 
+                                           const ProcessInfo& rCurrentProcessInfo)
+	{
+     		if(rValues.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+                	rValues.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
+														
+		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+			rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
 	}
 
 
-
 	//************************************************************************************
-	void LinearElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
-		{
-		
-		bool CalculateStiffnessMatrixFlag = true;
-		bool CalculateResidualVectorFlag = false;
-		Vector temp = Vector();
-		CalculateAll(rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-		
-		}
 	//************************************************************************************
 
-	/*  void LinearElement::GetValuesVector(Vector& values, int Step)
-
-
-
+	void LinearElement::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
+            if(rVariable==INSITU_STRESS)
+            {
+                for( unsigned int PointNumber = 0; 
+                     PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); 
+                     PointNumber++ )
+                {
+                    rValues[PointNumber] = 
+                            mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
+                }
+            }
+            if(rVariable==MATERIAL_PARAMETERS)
+            {
+                for( unsigned int PointNumber = 0; 
+                     PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+                {
+                    rValues[PointNumber] =
+                            mConstitutiveLawVector[PointNumber]->GetValue(MATERIAL_PARAMETERS);
+                }
+            }
+            if (rVariable==INTERNAL_VARIABLES)
+            {
+                for( unsigned int PointNumber = 0;
+                     PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size();
+                     PointNumber++ )
+                {
+                    rValues[PointNumber] = 
+                            mConstitutiveLawVector[PointNumber]->GetValue(INTERNAL_VARIABLES);
+                           
+                }
+            }
 
+
+        }
+        
+        //************************************************************************************
+        //************************************************************************************
+         void LinearElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
+        {
+
+            if(rVariable==GREEN_LAGRANGE_STRAIN_TENSOR)
+            {
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+            }
+
+             if(rVariable==PK2_STRESS_TENSOR)
+            {
+	        
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+            }
+            
+            if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+           {
+                CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+           }
+
+        }
+
+	//************************************************************************************
+	//************************************************************************************
+	void LinearElement::GetValuesVector(Vector& values, int Step)
+	{
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 		unsigned int MatSize = number_of_nodes*dim;
-
-		if(values.size() != MatSize)	values.resize(MatSize);
+		if(values.size() != MatSize)	values.resize(MatSize,false);
 		for (unsigned int i=0;i<number_of_nodes;i++)
-
 		{
-
 			unsigned int index = i*dim;
 			values[index] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_X,Step);
 			values[index + 1] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Y,Step);
 			if(dim == 3)
 				values[index + 2] = GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT_Z,Step);
-
 		}
-
-	}*/
-
-	//************************************************************************************
-
-	//************************************************************************************
-		
+	}
 	
+	
+	//************************************************************************************
+	//************************************************************************************
+	  void LinearElement::GetFirstDerivativesVector(Vector& values, int Step)
+	{
+		const unsigned int number_of_nodes = GetGeometry().size();
+		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+		unsigned int MatSize = number_of_nodes*dim;
+		if(values.size() != MatSize)   values.resize(MatSize,false);
+		for (unsigned int i=0;i<number_of_nodes;i++)
+		{
+			unsigned int index = i*dim;
+			values[index] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_X,Step);
+			values[index + 1] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Y,Step);
+			if(dim == 3)
+				values[index + 2] = GetGeometry()[i].GetSolutionStepValue(VELOCITY_Z,Step);
+		}
+	}
+	//************************************************************************************
+	//************************************************************************************
+	  void LinearElement::GetSecondDerivativesVector(Vector& values, int Step)
+	{
+		const unsigned int number_of_nodes = GetGeometry().size();
+		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+		unsigned int MatSize = number_of_nodes*dim;
+		if(values.size() != MatSize) values.resize(MatSize,false);
+		for (unsigned int i=0;i<number_of_nodes;i++)
+		{
+			unsigned int index = i*dim;
+			values[index] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_X,Step);
+			values[index + 1] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Y,Step);
+			if(dim == 3)
+				values[index + 2] = GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Z,Step);
+		}
+	}
+	//************************************************************************************
+	//************************************************************************************
+
+	void LinearElement::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+	{
+
+         double c =  0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]);       
+         Vector Values(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());  
+         //KRATOS_WATCH(Values.size())
+         //KRATOS_WATCH(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+	 if(rVariable==DELTA_TIME)
+ 		{
+                 for( unsigned int PointNumber = 0; 
+                      PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); 
+                      PointNumber++ )
+                 {
+                    mConstitutiveLawVector[PointNumber]-> Calculate(DELTA_TIME, c, rCurrentProcessInfo);
+                    Values[PointNumber] = c; 
+                 }
+             }
+
+         c =  (*std::max_element(Values.begin(),Values.end()));
+         //KRATOS_WATCH(Id())
+         //KRATOS_WATCH(c)
+	 double le =  GetGeometry().Length(); 
+         //KRATOS_WATCH(le)
+        
+	 Output          =  le/c; 
+         //KRATOS_WATCH(Output)
+	  
+	}
+
+//************************************************************************************
+//************************************************************************************
+
+void  LinearElement::Comprobate_State_Vector(Vector& Result)
+		    {
+                          for (unsigned int i = 0.00; i<Result.size(); i++){ 
+                             if(fabs(Result(i))< 1E-9){
+				    Result(i) = 0.00;}
+		          } 
+                    }
+
+
 } // Namespace Kratos
-
-
 
 
