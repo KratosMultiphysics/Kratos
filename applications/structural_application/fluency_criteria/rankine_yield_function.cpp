@@ -74,130 +74,308 @@ namespace Kratos
 //***********************************************************************
 //***********************************************************************
 
-		    void Rankine_Yield_Function::InitializeMaterial(const Properties& props) { mprops = &props;}
-		     
+	  void Rankine_Yield_Function::InitializeMaterial(const Properties& props) 
+	  {   mprops = &props;
+	  mFt[0] = (*mprops)[FT];
+	  mFt[1] = (*mprops)[FT];
+	  mFt[2] = (*mprops)[FT]; 
+          minitialize = false; 
+	  }
 
-		    void Rankine_Yield_Function:: CalculateEquivalentUniaxialStress(
-		    const Vector& StressVector,double& Result){}
+          
+          void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
+	  const Vector& StressVector,double& Result){}
 
 
-		    void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
-		    const Vector& StressVector,double& Result)
-                       {
-		      unsigned int iter = 100;
-                      double zero = 1E-10;  
-                      double max  = 0.00;
+	  void Rankine_Yield_Function:: CalculateEquivalentUniaxialStress(
+	  const Vector& StressVector,double& Result)
+	  {
+// 	  int    iter      = 50;
+// 	  double zero      = 1.0E-9;
+// 	  Matrix EigenVectors    = ZeroMatrix(3,3);
+// 	  Matrix StressTensor    = ZeroMatrix(3,3);
+ 	  array_1d<double,3> Trial_Stress_Vector = ZeroVector(3);
+// 	  this->State_Tensor(StressVector,StressTensor);
+// 
+// 	  SD_MathUtils<double>::EigenVectors(StressTensor, EigenVectors,Trial_Stress_Vector, zero, iter);
+// 
+// 	  ///*sigma_1 >  sigma_2 > sigma_3 
+// 	  sort (Trial_Stress_Vector.begin(), Trial_Stress_Vector.end()); 
+// 	  reverse(Trial_Stress_Vector.begin(),Trial_Stress_Vector.end()); 
 
-		      Matrix StressTensor    = ZeroMatrix(3,3);
-                      Vector PrincipalStress = ZeroVector(3);
-                      Matrix EigenVectors    = ZeroMatrix(3,3);
-                      this->State_Tensor(StressVector,StressTensor);
-		      this->Comprobate_State_Tensor(StressTensor, StressVector);
-                      //PrincipalStress = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
-                      SD_MathUtils<double>::EigenVectors(StressTensor, EigenVectors,PrincipalStress, zero, iter);
-		      max = (*std::max_element(PrincipalStress.begin(),PrincipalStress.end()));
+          CalculatePrincipalStressVector(StressVector, Trial_Stress_Vector);  
+
+          mMultisurface_Platicity_Sigma       = ZeroVector(3);
+          mMultisurface_Platicity_Yield       = ZeroVector(3); 
+	  ///* Multisurface Representation 
+	  mMultisurface_Platicity_Sigma[0]    =   Trial_Stress_Vector[0]; 
+	  mMultisurface_Platicity_Yield[0]    =   mMultisurface_Platicity_Sigma[0] - mFt[0];
+
+	  mMultisurface_Platicity_Sigma[1]    =   Trial_Stress_Vector[1]; 
+	  mMultisurface_Platicity_Yield[1]    =   mMultisurface_Platicity_Sigma[1] - mFt[1];
+
+	  mMultisurface_Platicity_Sigma[2]    =   Trial_Stress_Vector[2]; 
+	  mMultisurface_Platicity_Yield[2]    =   mMultisurface_Platicity_Sigma[2] - mFt[2];
+  
+          //KRATOS_WATCH(mRankine_Yield) 
+          Result = (*max_element(mMultisurface_Platicity_Yield.begin(), mMultisurface_Platicity_Yield.end()));  
+           
+	  }
+
+	  void Rankine_Yield_Function::UpdateVariables(const Vector& Variables)
+	  {
+	   mFt[0] = Variables[0];
+           mFt[1] = Variables[1];
+           mFt[2] = Variables[2];
  
-                      mSigma_e = max;
-                      Result   = max; 
-                      mSigma_y = (*mprops)[FT];
-                      Result   -= mSigma_y;  
-                      //KRATOS_WATCH(Result) 
-                      //KRATOS_WATCH("----------")
-                   }
+           if(minitialize == false)
+               { 
+                 const double& ft     = (*mprops)[FT];
+                 const double& gt     =  (*mprops)[FRACTURE_ENERGY]; 
+                 const double& length = Variables[3];      
+	         mH            = length * ft * ft / ( 2.00 * gt); 
+                 minitialize = true;
+               }
+	  }
 
 
 
-		    void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
-		    const Vector& StressVector,double& Result)
-			   {
-				      
-	              unsigned int dim  = 3;
-                      long double tetha_Lode = 0.00;
-                      Vector I          = ZeroVector(3);
-		      Vector J          = ZeroVector(3);
-                      Vector J_des      = ZeroVector(3);		      
+	  void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
+	  const Vector& StressVector,double& Result)
+	  {
 
-		      Matrix StressTensor     = ZeroMatrix(dim,dim);
-		      Vector PrincipalStress  = ZeroVector(dim);
+	  }
 
-		      this->State_Tensor(StressVector,StressTensor);
-		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
-		      Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
-		
-		      if (J_des(1)==0.00 && J_des(2)==0.00) 
-                        {
-			    tetha_Lode = PI/2.00;                           	   
-			}
-                      else
-		        {  
-			tetha_Lode = (3.00*sqrt(3.00)*J_des(2))/(2.00*pow(J_des(1), 1.50));
-			if(tetha_Lode > 1.00){tetha_Lode = 1.00; }
-			tetha_Lode = asin(-tetha_Lode)/3.00;
-		        }
 
-		      Result = 2.00*sqrt(3.00*J_des(1))*cos(tetha_Lode + PI/6.00) + I(0); // - msigma_max;
-                      Result = Result/3.00;
+	  void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
+	  const Vector& StressVector,double& Result){}
 
-                      mSigma_e = Result; 
+
+
+	  void Rankine_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
+	  {
+	  }
+
+          void Rankine_Yield_Function::ReturnMapping(const Vector& StressVector, 
+            Vector& delta_lamda,
+            array_1d<double,3>& Result)
+            {              
+
+              array_1d<double ,3> Trial_Stress_Vector; 
+              CalculatePrincipalStressVector(StressVector, Trial_Stress_Vector);  
+              double toler = 1E-6;  
+              mcurrent_Ft = ZeroVector(3);            
+              std::vector<int> active_surface;     
+              active_surface.resize(0, false); 
+	      active_surface.reserve(5); 
+
+	      if(mMultisurface_Platicity_Yield[0] > toler ) {active_surface.push_back(0); }
+	      if(mMultisurface_Platicity_Yield[1] > toler ) {active_surface.push_back(1); }      
+	      if(mMultisurface_Platicity_Yield[2] > toler ) {active_surface.push_back(2); } 
+                                            
+              unsigned int iter    = 0;    
+              double norma         = 1.00;   
+	      double delta_gamma_a = 0.00; 
+	      double delta_gamma_b = 0.00; 
+	      double delta_gamma_c = 0.00;   
+              
+	      double E             = (*mprops)[YOUNG_MODULUS];
+	      double NU            = (*mprops)[POISSON_RATIO];             
+              double G             = 0.5*E / (1.00 + NU);
+              double K             =  E / (3.00 * (1.00-2.00*NU));
+              double H             =  mH;
+
+
+	      Matrix d;  
+	      Matrix d_inv;
+	      Vector delta_gamma;
+	      Vector residual;     
+              noalias(mcurrent_Ft) = mFt;
+
+
+	      ///* WARNING = Si el hablandamiento es no lineal usar newton Rapshon.  
+	      ///* Una superficie activa
+	      if(active_surface.size()==1)
+	      {
+                 iter  = 0;     
+                 norma = 1.00;                
+                 delta_gamma     = ZeroVector(1); 
+                 residual        = ZeroVector(1); 
+                                        
+                 while(iter++<=100 && norma>= toler) 
+	          {  
+                    if(iter>=100){KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" )}
+                    delta_gamma[0]  += (mMultisurface_Platicity_Yield[0]) / (4.00 * G /3.00 + K - H ); 
+                    if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }   
+                    ///* Updatinf mFt
+                    mcurrent_Ft[0] = mFt[0] - H * delta_gamma[0];   
+                    ///* comprobando si mft se cumplio   
+		    if(mcurrent_Ft[0] <= 0.00) {
+		    mcurrent_Ft[0] = 0.00; } 
+
+
+                    ///* update teh current values
+
+                    UpdateVariables(mcurrent_Ft);  
+
+
+                    delta_gamma_a   = delta_gamma[0];                        
+                    CalculateEquivalentUniaxialStress(StressVector, norma); 
+                    residual[0] =  norma - delta_gamma_a * (4.00  * G / 3.00 + K ) ;
+                    norma    = fabs(residual[0]);   
+
+                  }   
+                     ///* Updating Stress  
+		    if(mcurrent_Ft[0] == 0.0) 
+                    {
+		    Result[0] = 1E-14;
+		    Result[1] = Trial_Stress_Vector[1] - delta_gamma_a*(-2.00 * G / 3.00 + K ); 
+		    Result[2] = Trial_Stress_Vector[2] - delta_gamma_a*(-2.00 * G / 3.00 + K );  
+		    } 
+                    else
+                    { 
+	            Result[0] = Trial_Stress_Vector[0] - delta_gamma_a*(4.00  * G / 3.00 + K );    
+		    Result[1] = Trial_Stress_Vector[1] - delta_gamma_a*(-2.00 * G / 3.00 + K ); 
+		    Result[2] = Trial_Stress_Vector[2] - delta_gamma_a*(-2.00 * G / 3.00 + K );    
+                    }      
+              } 
+              
+	      ///*dos superficies activas    
+	      if(active_surface.size()==2)
+	      {
+              int singular         =  0;    
+	      delta_gamma = ZeroVector(2);
+	      residual    = ZeroVector(2);   
+              iter  = 0; 
+              norma = 1.00;        
+              residual[0] = mMultisurface_Platicity_Yield[0];
+              residual[1] = mMultisurface_Platicity_Yield[1]; 
+                        
+              while(iter++<=100 && norma>= toler) 
+		  {
+                      if(iter>=100){KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" )} 
+		      d.resize(2,2);
+		      d_inv.resize(2,2);
+		      d(0,0) = -( 4.00 * G / 3.00 + K ) + H;  d(0,1) = -(-2.00 * G / 3.00 + K );  
+		      d(1,0) = -(-2.00 * G / 3.00 + K );      d(1,1) = -( 4.00 * G / 3.00 + K ) + H;  
+
+		      singular             =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+		      noalias(delta_gamma) =  delta_gamma - Vector(prod(d_inv, residual)); 
+		      if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }  
+		      if(delta_gamma[1] < 0.00) {delta_gamma[1] = 0.00; }     
+
+		      delta_gamma_a = delta_gamma[0];
+		      delta_gamma_b = delta_gamma[1];
                      
-                      mSigma_y = (*mprops)[FT];
-                      Result   -= mSigma_y;
-                      //KRATOS_WATCH(Result)
-		     
-                     
-				    
+                       ///* Updatinf mFt
+                       mcurrent_Ft[0] = mFt[0] - H * delta_gamma[0];   
+                       mcurrent_Ft[1] = mFt[1] - H * delta_gamma[1]; 
+                       
+                       ///* comprobando si mft se cumplio   
+		       if(mcurrent_Ft[0] <= 0.00) {mcurrent_Ft[0] = 0.00; }
+                       if(mcurrent_Ft[1] <= 0.00) {mcurrent_Ft[1] = 0.00; } 
+                        
 
-			    }
+                       UpdateVariables(mcurrent_Ft);                      
+                       CalculateEquivalentUniaxialStress(StressVector, norma); 
+                               
+                  
+                       residual[0] = mMultisurface_Platicity_Yield[0];
+                       residual[1] = mMultisurface_Platicity_Yield[1];
+                       
+                       residual[0]=  residual[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - delta_gamma_b*( -2.00  * G / 3.00 + K );   
+                       residual[1]=  residual[1] - delta_gamma_a*(-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K );   
+                       norma = norm_2(residual);
 
+                       }
 
-		    void Rankine_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
-		    const Vector& StressVector,double& Result){}
+		      ///* Updating Stress
+                     ///* Updating Stress  
+                     Result[0] = Trial_Stress_Vector[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - delta_gamma_b*( -2.00  * G / 3.00 + K );  
+                     if(mcurrent_Ft[0] <= 0.00) {Result[0] = 1E-14;} 
+                     Result[1] = Trial_Stress_Vector[1] - delta_gamma_a*(-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K );   
+		     if( mcurrent_Ft[1]<= 0.0)  {Result[0] = 1E-14;}  
+		     Result[2] = Trial_Stress_Vector[2] - (delta_gamma_a + delta_gamma_b) * (-2.00 * G / 3.00 + K );    
 
+                    
+	      } 
 
+	      ///* Muy poco probable en 2D
+	      if(active_surface.size()==3)
+	      {
+              int singular         =  0;    
+	      delta_gamma = ZeroVector(2);
+	      residual    = ZeroVector(2);   
+              iter  = 0; 
+              norma = 1.00;  
+	      delta_gamma = ZeroVector(3);
+	      residual    = ZeroVector(3);   
+	      residual[0] = mMultisurface_Platicity_Yield[0];
+	      residual[1] = mMultisurface_Platicity_Yield[1];   
+	      residual[2] = mMultisurface_Platicity_Yield[2];  
+              while(iter++<=100 && norma>= toler) 
+		  { 
+                    if(iter>=100){KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" )} 
+		    d.resize(3,3);
+		    d_inv.resize(3,3);
+		    d(0,0) = -( 4.00 * G / 3.00 + K ) + H;    d(0,1) = -(-2.00 * G / 3.00 + K );         d(0,2) = -(-2.00 * G / 3.00 + K ); 
+		    d(1,0) = -(-2.00 * G / 3.00 + K );        d(1,1) = -( 4.00 * G / 3.00 + K ) + H;     d(1,2) = -(-2.00 * G / 3.00 + K );   
+		    d(2,0) = -(-2.00 * G / 3.00 + K );        d(2,1) = -(-2.00 * G / 3.00 + K );         d(2,2) = -( 4.00 * G / 3.00 + K ) + H;   
 
-		    void Rankine_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
-			{
-		      	  Second_Order_Tensor a;  
-                          Vector C = ZeroVector(3);
-                          DerivateFluencyCriteria = ZeroVector(6);
+		    singular             =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+		    noalias(delta_gamma) =  delta_gamma - Vector(prod(d_inv, residual)); 
 
-			  double tetha_Lode = 0.00;  
-			  Vector I          = ZeroVector(3);
-			  Vector J          = ZeroVector(3);
-			  Vector J_des      = ZeroVector(3);		      
+		    if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }  
+		    if(delta_gamma[1] < 0.00) {delta_gamma[1] = 0.00; }      
+		    if(delta_gamma[2] < 0.00) {delta_gamma[2] = 0.00; }  
+			
 
-			  Matrix StressTensor     = ZeroMatrix(3,3);
-			  Vector PrincipalStress  = ZeroVector(3);
-				  
-			  
-			  this->State_Tensor(StressVector,StressTensor);
-			  this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
-			  Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
+		    delta_gamma_a = delta_gamma[0];
+		    delta_gamma_b = delta_gamma[1];
+		    delta_gamma_c = delta_gamma[2];
+
+		    ///* Updatinf mFt
+		    mcurrent_Ft[0] = mFt[0] - H * delta_gamma[0];   
+		    mcurrent_Ft[1] = mFt[1] - H * delta_gamma[1]; 
+                    mcurrent_Ft[2] = mFt[2] - H * delta_gamma[2]; 
 		    
-			  if (J_des(1)==0.00 && J_des(2)==0.00) 
-			    {
-				tetha_Lode = PI/2.00;                           	   
-			    }
-			  else
-			    {  
-			    tetha_Lode = -(3.00*sqrt(3.00)*J_des(2))/(2.00*pow(J_des(1), 1.50));
-			    if(fabs(tetha_Lode) > 1.00){tetha_Lode = 1.00; }
-			    tetha_Lode = asin(tetha_Lode)/3.00; 
-			    }
+		    ///* comprobando si mft se cumplio   
+		    if(mcurrent_Ft[0] <= 0.00) {mcurrent_Ft[0] = 0.00; }
+		    if(mcurrent_Ft[1] <= 0.00) {mcurrent_Ft[1] = 0.00; } 
+		    if(mcurrent_Ft[2] <= 0.00) {mcurrent_Ft[2] = 0.00; } 
+		    
 
-			    
-                            C(0) = 1.00; 
-                            C(1) = 2.00*sqrt(3.00)*(cos(tetha_Lode +PI/6.00) + tan(3.00*tetha_Lode)*sin(tetha_Lode + PI/6.00));  
-                            C(2) = 3.00*sin(tetha_Lode + PI/6.00)/(J_des(1)*(cos(3.00*tetha_Lode))); 
-                            
-			    this->CalculateVectorFlowDerivate(StressVector, a);
-			    for(unsigned  int i=0; i<3; i++)
-                               {
-                                 noalias(DerivateFluencyCriteria) = DerivateFluencyCriteria + a(i)*C(i); 
-                               }
-		    }
+		    UpdateVariables(mcurrent_Ft);                      
+		    CalculateEquivalentUniaxialStress(StressVector, norma); 
+                    residual[0] = mMultisurface_Platicity_Yield[0];
+                    residual[1] = mMultisurface_Platicity_Yield[1];
+                    residual[2] = mMultisurface_Platicity_Yield[1];
+                       
+		    residual[0] = residual[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - (delta_gamma_b + delta_gamma_c) *( -2.00  * G / 3.00 + K );    
+		    residual[1] = residual[1] - (delta_gamma_a + delta_gamma_c) * (-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K ); 
+		    residual[2] = residual[2] - (delta_gamma_a + delta_gamma_b) * (-2.00 * G / 3.00 + K )  - delta_gamma_c*( 4.00  * G / 3.00 + K );                    
+                    norma = norm_2(residual);
+                    }
 
 
+		    ///* Updating Stress 
+		    Result[0] = Trial_Stress_Vector[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - (delta_gamma_b + delta_gamma_c) *( -2.00  * G / 3.00 + K );    
+		    Result[1] = Trial_Stress_Vector[1] - (delta_gamma_a + delta_gamma_c) * (-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K ); 
+		    Result[2] = Trial_Stress_Vector[2] - (delta_gamma_a + delta_gamma_b) * (-2.00 * G / 3.00 + K )  - delta_gamma_c*( 4.00  * G / 3.00 + K );
+                    if(mcurrent_Ft[0] <= 0.00) {Result[0] = 1E-14;} 
+                    if(mcurrent_Ft[1] <= 0.00) {Result[1] = 1E-14;} 
+                    if(mcurrent_Ft[2] <= 0.00) {Result[2] = 1E-14;} 
+                 }
+	        
+
+	      
+           }
+
+            void Rankine_Yield_Function::GetValue(Vector& Result)
+                 {
+                    Result = mcurrent_Ft; 
+                    //KRATOS_WATCH(mcurrent_Ft)   
+                 } 
 
 }
 

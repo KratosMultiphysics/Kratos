@@ -62,6 +62,8 @@ namespace Kratos
     
         public:
 
+            //array_1d<double,4> mMorh_Coulomb_Yield;   
+
 	    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
 	    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
 			  
@@ -108,18 +110,26 @@ namespace Kratos
 
                     void UpdateVariables(const Vector& Variables);
 
-
 		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
 
-                    void CalculateDerivatePotencialFlowCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
+                    void CalculateDerivatePotencialFlowCriteria(const Vector& StressVector, Vector& DerivatePotencialFlow);
+
+                    void CalculateDerivateFluencyCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivateFluencyCriteria);
+
+                    void CalculateDerivatePotencialFlowCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivatePotencialFlow);
 		    
 
       private:
-      
+ 
+    void CalculateDerivatePrincipalStress_Fluency(const Vector& StressVector, vector<Vector>& DerivateFluencyCriteria);  
+    void CalculateDerivatePrincipalStress_Flow(const Vector& StressVector, vector<Vector>& DerivatePotencialFlow);    
+ 
     double mcohesion;
     double mfriction_angle;
     double mdilatancy_angle;  
     double mEta; // Valore N
+
+  
 
     };
 }

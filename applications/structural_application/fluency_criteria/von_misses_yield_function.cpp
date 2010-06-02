@@ -91,7 +91,6 @@ namespace Kratos
 		      mSigma_e = Result;
                       Result  -= mSigma_y;  
                       mElasticDomain = Result; 
-            
 		      }
 
                      // Resistencia de comparacion Sigma_Y
@@ -127,6 +126,8 @@ namespace Kratos
 		    const Vector& StressVector,double& Result)
 			   {
    
+                      if (mState!=Plane_Stress)
+                      {
 	              unsigned int dim  = 3;
                       Vector I          = ZeroVector(3);
 		      Vector J          = ZeroVector(3);
@@ -138,13 +139,28 @@ namespace Kratos
 		      this->State_Tensor(StressVector,StressTensor);
 		      this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
 		      Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
-		      Result =  sqrt(3.00*J_des(1)); 
-
+		      Result =  sqrt(3.00*J_des(1));                        
 		      mSigma_e = Result;
                       Result  -= mSigma_y;  
-                      
                       mElasticDomain = Result;
-                      //std::cout<<"______________"<<std::endl;
+                      
+                      }
+                      
+                      //WARNING = Only for PlaneStress case
+                      else
+                      {
+                        //std::cout<<"______________"<<std::endl;
+                        boost::numeric::ublas::bounded_matrix<double,3,3> P;
+			P(0,0) = 0.6666666666666667;	P(0,1) = -0.3333333333333333;	P(0,2) = 0.0;
+			P(1,0) = -0.3333333333333333;	P(1,1) = 0.6666666666666667;	P(1,2) = 0.0;
+			P(2,0) = 0.0;                   P(2,1) = 0.0;                   P(2,2) = 2.0;
+                        //KRATOS_WATCH(StressVector)  
+                        Result = inner_prod(StressVector, Vector(prod(P, StressVector))) ;
+                        Result = sqrt(Result);
+                        mSigma_e = Result; 
+                        Result  -= 0.81649658092773*mSigma_y;
+                      }
+                      
                       }
 
 
@@ -196,8 +212,8 @@ namespace Kratos
 
 void Von_Misses_Yield_Function::UpdateVariables(const Vector& Variables)
                      { 
-                        //KRATOS_WATCH((*mprops)[PLASTIC_MODULUS])
-                        mSigma_y = (*mprops)[YIELD_STRESS] + (*mprops)[PLASTIC_MODULUS]*Variables[0];
+                        //KRATOS_WATCH((*mprops)[PLASTIC_MODULUS])  
+                        mSigma_y = (*mprops)[YIELD_STRESS] + (*mprops)[ISOTROPIC_HARDENING_MODULUS]*Variables[0];
                         //KRATOS_WATCH(mSigma_y)
                      }
 
