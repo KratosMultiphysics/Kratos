@@ -471,8 +471,34 @@ namespace Kratos
                 for( typename std::vector<TGaussPointContainer>::iterator it =
                      mGidGaussPointContainers.begin();
                      it != mGidGaussPointContainers.end(); it++ )
-                    it->Reset();
+                     {it->Reset();}
             }
+
+
+
+            ///functions for writing nodal results
+            /**
+             * writes nodal results for variables of type bool
+             */
+            void WriteNodalResults( Variable<bool> const& rVariable, 
+                                    NodesContainerType& rNodes, double SolutionTag, 
+                                    std::size_t SolutionStepNumber)
+            {
+
+		Timer::Stop("Writing Results");
+                GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
+                                  SolutionTag, GiD_Scalar, 
+                                  GiD_OnNodes, NULL, NULL, 0, NULL );
+                for( NodesContainerType::iterator i_node = rNodes.begin();
+                     i_node != rNodes.end() ; ++i_node)
+                    GiD_WriteScalar( i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+                                     SolutionStepNumber) );
+                GiD_EndResult();
+
+		Timer::Stop("Writing Results");
+
+            }
+
             
             ///functions for writing nodal results
             /**
@@ -484,7 +510,6 @@ namespace Kratos
             {
 
 		Timer::Stop("Writing Results");
-
                 GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
                                   SolutionTag, GiD_Scalar, 
                                   GiD_OnNodes, NULL, NULL, 0, NULL );
@@ -573,15 +598,31 @@ namespace Kratos
                 for (NodesContainerType::iterator i_node = rNodes.begin(); 
                      i_node != rNodes.end() ; ++i_node)
                 {
-                    Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
-                            SolutionStepNumber);
+                    //Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
+                    //        SolutionStepNumber);
+                    Matrix& tempMatrix = i_node->GetValue(rVariable);
                     if(tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
-                        GiD_Write3DMatrix(  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
+                    {   GiD_Write3DMatrix(  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
                                             tempMatrix(2,2), tempMatrix(0,1), tempMatrix(1,2),
                                                     tempMatrix(0,2) );
+                    }
+
+                    else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==3) 
+                    { 
+                             
+                        GiD_Write3DMatrix( i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), 0.00,
+                                  tempMatrix(0,2), 0.00, 0.00);
+                    }
+                    else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==6)
+                     {
+                       GiD_Write3DMatrix( i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), tempMatrix(0,2),
+                       tempMatrix(0,3), tempMatrix(0,4), tempMatrix(0,5) );
+                     } 
+                 //i_node->GetValue(rVariable) = tempMatrix;
+                
                 }
                 GiD_EndResult();
-
+                
 		Timer::Stop("Writing Results");
 
             }
@@ -755,7 +796,7 @@ namespace Kratos
                 KRATOS_CATCH("")
             }//WriteMesh
             
-            
+
             ///functions for printing results on gauss points
             /**
              * Prints variables of type double on gauss points of the complete mesh
@@ -786,7 +827,7 @@ namespace Kratos
              * @param rVariable the given variable name
              * @param r_model_part the current model part
              */
-            void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
+            virtual void PrintOnGaussPoints( const Variable<array_1d<double,3> >& rVariable, ModelPart& r_model_part, double SolutionTag, int value_index = 0 )
             {
                 KRATOS_TRY;
 
@@ -813,7 +854,6 @@ namespace Kratos
                                              double SolutionTag, int value_index = 0 )
             {
                 KRATOS_TRY;
-
 		Timer::Start("Writing Results");
 
                 for( typename std::vector<TGaussPointContainer>::iterator it =
@@ -821,7 +861,7 @@ namespace Kratos
                      it != mGidGaussPointContainers.end(); it++ )
                 {
                     it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
-		    //KRATOS_WATCH(rVariable)
+		    
                 }
 
 		Timer::Stop("Writing Results");
@@ -837,16 +877,13 @@ namespace Kratos
             virtual void PrintOnGaussPoints( const Variable<Matrix>& rVariable, ModelPart& r_model_part,
                                              double SolutionTag, int value_index = 0 )
             {
-                KRATOS_TRY;
-
+                KRATOS_TRY;  
 		Timer::Start("Writing Results");
-
                 for( typename std::vector<TGaussPointContainer>::iterator it =
                      mGidGaussPointContainers.begin();
                      it != mGidGaussPointContainers.end(); it++ )
                 {
                     it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
-		    //KRATOS_WATCH(r_model_part)
                 }
 
 		Timer::Stop("Writing Results");
