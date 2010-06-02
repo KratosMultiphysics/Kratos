@@ -1470,12 +1470,31 @@ namespace Kratos
         {
             unsigned int ContributionSize =  EquationId.size();
 
-            for( unsigned int i = 0; i < ContributionSize; i++)
+            if (BaseType::mCalculateReactionsFlag == false)
             {
-                unsigned int Global_i = EquationId[i];
-                if ( Global_i < BaseType::mEquationSystemSize )
+                for( unsigned int i = 0; i < ContributionSize; i++)
                 {
-                    b[Global_i] += RHS_Contribution[i];
+                    unsigned int Global_i = EquationId[i];
+                    if ( Global_i < BaseType::mEquationSystemSize )
+                    {
+                        b[Global_i] += RHS_Contribution[i];
+                    }
+                }
+            }
+            else //when the calculation of reactions is needed
+            {
+                TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
+                for (unsigned int i_local=0; i_local<ContributionSize; i_local++)
+                {
+                    unsigned int i_global=EquationId[i_local];
+                    if ( i_global < BaseType::mEquationSystemSize ) //on "free" DOFs
+                    {	// ASSEMBLING THE SYSTEM VECTOR
+                        b[i_global] += RHS_Contribution[i_local];
+                    }
+                    else //on "fixed" DOFs
+                    {	// Assembling the Vector of REACTIONS
+                        ReactionsVector[i_global-BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
+                    }
                 }
             }
         }
