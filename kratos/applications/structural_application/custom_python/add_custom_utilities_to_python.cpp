@@ -83,7 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/smoothing_utility.h"
 
 
-#include "custom_utilities/detect_elements_utility.h"
+//#include "custom_utilities/detect_elements_utility.h"
 #include "custom_utilities/intra_fracture_triangle_utility.h"
 #include "custom_utilities/inter_fracture_triangle_utility.h"
 #include "custom_utilities/inter_fracture_tetrahedra_utility.h"
