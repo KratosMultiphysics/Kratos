@@ -80,6 +80,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/node_snapping_utility.h"
 #include "custom_elements/rigid_body_3D.h"
 #include "custom_utilities/output_utility.h"
+#include "custom_utilities/smoothing_utility.h"
+
+
+#include "custom_utilities/detect_elements_utility.h"
+#include "custom_utilities/intra_fracture_triangle_utility.h"
+#include "custom_utilities/inter_fracture_triangle_utility.h"
+#include "custom_utilities/inter_fracture_tetrahedra_utility.h"
+
 
 namespace Kratos
 {
@@ -196,6 +204,7 @@ namespace Kratos
                     .def("TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
                     .def("TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
                     .def("InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
+                    .def("TransferVariablesToNodes", &VariableTransferUtility::DoubleTransferVariablesToNodes)
                     ;
 
 
@@ -256,7 +265,46 @@ namespace Kratos
 	    
 	    def("AddNewRigidBody3D", AddNewRigidBody3D);
 	    def("AddNewRigidBodyAndSpring3D", AddNewRigidBodyAndSpring3D);
-	    
+             ; 
+      
+/*
+            class_<Detect_Elements_And_Nodes, boost::noncopyable >
+                    ("DetectElementsAndNodes", init<ModelPart&, int >() )
+		    .def("DetectNode",              &Detect_Elements_And_Nodes::Detect_Node_To_Be_Splitted)
+                    .def("DetectElements",          &Detect_Elements_And_Nodes::Detect_Elements_To_Be_Splitted)
+                    .def("CalculateMapFailure",     &Detect_Elements_And_Nodes::Calculate_Map_Failure) 
+                    .def("Finalize",                &Detect_Elements_And_Nodes::Finalize)
+                    ;
+*/
+            class_<Smoothing_Utility, boost::noncopyable >
+                    ("SmoothingUtility", init<ModelPart&, int >() )
+                    .def("WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients) // for matrices
+                    .def("DoubleWeightedRecoveryGradients", &Smoothing_Utility::DoubleWeightedRecoveryGradients) // for doubles
+                    .def("InterpolatedRecoveryGradients", &Smoothing_Utility::InterpolatedRecoveryGradients)
+                    .def("SettingNodalValues", &Smoothing_Utility::SettingNodalValues) 
+                    .def("RecomputeValuesForNewMesh", &Smoothing_Utility::Recompute_Values_For_New_Mesh)
+                    .def("Finalize", &Smoothing_Utility::Finalize)
+                    .def("SettingNodalValues", &Smoothing_Utility::SettingNodalValues)   
+                    ;
+
+
+            class_<Intra_Fracture_Triangle, boost::noncopyable >
+                    ("IntraFractureTriangle", init<ModelPart&, int >() )
+		    .def("DetectAndSplitElements",              &Intra_Fracture_Triangle::Detect_And_Split_Elements)
+                    ;
+
+            class_<Inter_Fracture_Triangle, boost::noncopyable >
+                    ("InterFractureTriangle", init<ModelPart&, int >() )
+		    .def("DetectAndSplitElements",              &Inter_Fracture_Triangle::Detect_And_Split_Elements)
+                    ;
+
+             class_<Inter_Fracture_Tetrahedra, boost::noncopyable >
+                    ("InterFractureTetrahedra", init<ModelPart&, int >() )
+		    .def("DetectAndSplitElements",              &Inter_Fracture_Tetrahedra::Detect_And_Split_Elements)
+                    ;  
+
+
+    
         }
     }  // namespace Python.
 }  // namespace Kratos.
