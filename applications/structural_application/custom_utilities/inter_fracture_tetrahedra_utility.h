@@ -121,7 +121,7 @@ namespace Kratos
 
           Inter_Fracture_Tetrahedra(ModelPart& model_part, int domain_size) : mr_model_part(model_part)
           {
-             mdomain_size = domain_size;
+             mdomain_size = domain_size;   
              //mInitialize  = false;  
           }
           
@@ -140,6 +140,11 @@ void Detect_And_Split_Elements(ModelPart& this_model_part)
    Detect_Node_To_Be_Splitted(this_model_part);
    NodesArrayType::iterator i_begin=pNodes.ptr_begin();
    NodesArrayType::iterator i_end=pNodes.ptr_end();  
+   FindElementalNeighboursProcess ElementosVecinos(this_model_part, 2, 10);
+   FindNodalNeighboursProcess     NodosVecinos(this_model_part, 2, 10);
+
+   //ElementosVecinos.Execute(); 
+   //NodosVecinos.Execute(); 
 
    for(ModelPart::NodeIterator inode=i_begin; inode!= i_end; ++inode)     
     {      
@@ -147,12 +152,6 @@ void Detect_And_Split_Elements(ModelPart& this_model_part)
             if(split == true) 
              {
               
-
-             FindElementalNeighboursProcess ElementosVecinos(this_model_part, 2, 10);
-             FindNodalNeighboursProcess     NodosVecinos(this_model_part, 10, 10 );
-             ElementosVecinos.Execute(); 
-             NodosVecinos.Execute(); 
-
              Node<3>::Pointer pNode = *(inode.base());   
              array_1d<double,3> Failure_Maps;  
              Calculate_Map_Failure(pNode,  Failure_Maps); 
@@ -160,7 +159,9 @@ void Detect_And_Split_Elements(ModelPart& this_model_part)
              Split_Node(this_model_part, pNode, Failure_Maps);   
               
              ElementosVecinos.ClearNeighbours();
-             ElementosVecinos.ClearNeighbours();
+             NodosVecinos.ClearNeighbours();
+             ElementosVecinos.Execute(); 
+             NodosVecinos.Execute();  
 
             }                
     }
@@ -541,6 +542,7 @@ return fact + d;
 
 ModelPart& mr_model_part;
 unsigned int mdomain_size;
+
 
 
 };
