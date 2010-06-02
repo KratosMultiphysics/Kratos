@@ -157,7 +157,7 @@ namespace TotalLagrangianAuxiliaries
 
 
 		GeometryType::JacobiansType J0;
-		J0 = GetGeometry().Jacobian(J0, mThisIntegrationMethod);  
+		J0 = GetGeometry().Jacobian(J0, mThisIntegrationMethod);   
 		mTotalDomainInitialSize = 0.00;
 
 		//Constitutive Law initialisation
@@ -182,6 +182,7 @@ namespace TotalLagrangianAuxiliaries
 			mTotalDomainInitialSize += mDetJ0[PointNumber]*IntegrationWeight;
 		}
 
+               
 		KRATOS_CATCH("")
 	}
 
@@ -230,6 +231,7 @@ namespace TotalLagrangianAuxiliaries
 		//calculating actual jacobian
 		GeometryType::JacobiansType J;
 		GetGeometry().Jacobian(J);  
+                //KRATOS_WATCH(J) 
 
 		//auxiliary terms
 		Vector BodyForce;		
@@ -263,16 +265,17 @@ namespace TotalLagrangianAuxiliaries
 // 				msF(i,i)+= kronecker(i,i);
 			
 			//Does not work with Newmark scheme for some reason
-			noalias(msF) = prod(J[PointNumber],mInvJ0[PointNumber]);
+			noalias(msF) = prod(J[PointNumber],mInvJ0[PointNumber]);   
 
 			//strain calculation
 			noalias(msC) = prod(trans(msF),msF);
 
 //std::cout << Id() << " " << msC << std::endl;
-			CalculateStrain(msC,msStrainVector);
+			CalculateStrain(msC,msStrainVector); 
                         Comprobate_State_Vector(msStrainVector);
-
-
+                        //KRATOS_WATCH(Id())
+                        //KRATOS_WATCH(msStrainVector) 
+                        //std::cout<<"***********************************************"<<std::endl;
 			//KRATOS_WATCH( omp_get_thread_num() );
 /*			if( omp_get_thread_num() == 1 )
 			{
@@ -290,7 +293,16 @@ namespace TotalLagrangianAuxiliaries
 			//Calculation of stress
                         //KRATOS_WATCH( Id() )
                         //KRATOS_WATCH(PointNumber)
-			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
+			//mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
+                        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                            msStrainVector,
+                            //rCurrentProcessInfo,
+                            msStressVector,
+                            msD,
+                            true,
+                            CalculateStiffnessMatrixFlag,
+                            true
+                            );
 
 			//calculating operator B
 			CalculateB(msB,msF,msDN_DX,msStrainVector.size());
@@ -301,8 +313,8 @@ namespace TotalLagrangianAuxiliaries
 
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 			{
-				mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
-//                                mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);
+				//mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
+                                //mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);	
 				//contributions to stiffness matrix calculated on the reference config
 				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); //to be optimized to remove the temporary
                                 //KRATOS_WATCH(msD)
@@ -481,9 +493,9 @@ namespace TotalLagrangianAuxiliaries
 			StrainVector[0] = 0.5*(C(0,0) - 1.00);
 			StrainVector[1] = 0.5*(C(1,1) - 1.00);
 			StrainVector[2] = 0.5*(C(2,2) - 1.00);
-			StrainVector[3] = C(0,1);
-			StrainVector[4] = C(1,2);
-			StrainVector[5] = C(0,2);
+			StrainVector[3] = C(0,1); // xy
+			StrainVector[4] = C(1,2); // yz
+			StrainVector[5] = C(0,2); // xz
 		}
 		KRATOS_CATCH("")
 	}
@@ -659,6 +671,7 @@ namespace TotalLagrangianAuxiliaries
 		//unsigned int MatSize=number_of_nodes*dim;
 
 		//reading integration points and local gradients
+                
                 const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
                 const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
@@ -698,11 +711,9 @@ namespace TotalLagrangianAuxiliaries
 						GetGeometry(),
 						row(Ncontainer,PointNumber),
 						rCurrentProcessInfo );
-				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //saving 
-
-
-				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++)
-					Output[PointNumber](0,ii) = msStressVector[ii];
+				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //
+				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++){
+					Output[PointNumber](0,ii) = msStressVector[ii];}
 			}
 			else if(rVariable==INSITU_STRESS)
 			{
@@ -723,6 +734,7 @@ namespace TotalLagrangianAuxiliaries
 			        Output[PointNumber] = msPlasticStrainVector;
 			}
 	           }
+
       KRATOS_CATCH("")
 }
 	
@@ -905,6 +917,8 @@ namespace TotalLagrangianAuxiliaries
 
          double c =  0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]);       
          Vector Values(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());  
+         //KRATOS_WATCH(Values.size())
+         //KRATOS_WATCH(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
 	 if(rVariable==DELTA_TIME)
  		{
                  for( unsigned int PointNumber = 0; 
@@ -916,10 +930,14 @@ namespace TotalLagrangianAuxiliaries
                  }
              }
 
-          c =  (*std::max_element(Values.begin(),Values.end()));
-	  const double le =  GetGeometry().Length(); 
-          //KRATOS_WATCH(le)
-	  Output          =  le/c; 
+         c =  (*std::max_element(Values.begin(),Values.end()));
+         //KRATOS_WATCH(Id())
+         //KRATOS_WATCH(c)
+	 double le =  GetGeometry().Length(); 
+         //KRATOS_WATCH(le)
+        
+	 Output          =  le/c; 
+         //KRATOS_WATCH(Output)
 	  
 	}
 
