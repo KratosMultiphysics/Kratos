@@ -155,6 +155,13 @@ namespace Kratos
                 }
             }
             
+
+               void PrintResults( Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, 
+                               double SolutionTag, int value_index = 0 )
+             {
+             }
+
+
             void PrintResults( Variable<Vector> rVariable, ModelPart& r_model_part, 
                                double SolutionTag, int value_index = 0 )
             {
