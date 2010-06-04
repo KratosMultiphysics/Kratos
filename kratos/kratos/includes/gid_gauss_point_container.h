@@ -166,12 +166,14 @@ namespace Kratos
                     GiD_EndResult();
                 }
             }
+
             
-            void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
-                                       double SolutionTag, unsigned int value_index )
-            {
-            }
+             virtual void PrintResults( Variable<array_1d<double,3> > rVariable, ModelPart& r_model_part,
+                                        double SolutionTag, unsigned int value_index )
+             {
+             }
             
+
             virtual void PrintResults( Variable<Vector> rVariable, ModelPart& r_model_part, 
                                        double SolutionTag, unsigned int value_index )
             {
