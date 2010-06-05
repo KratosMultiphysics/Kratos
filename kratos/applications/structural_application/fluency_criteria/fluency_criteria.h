@@ -218,8 +218,8 @@ namespace Kratos
                    //
                     void CalculatePrincipalStressVector(const Vector& StressVector, array_1d<double,3>& Principal_Stress_Vector) 
                    {
-		      int    iter      = 50;
-		      double zero      = 1.0E-9;
+		      int    iter      = 1000;
+		      double zero      = 1.0E-12;
 		      Matrix EigenVectors            = ZeroMatrix(3,3);
 		      Matrix StressTensor            = ZeroMatrix(3,3);
 		      Principal_Stress_Vector        = ZeroVector(3);
