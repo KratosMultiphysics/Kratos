@@ -260,6 +260,7 @@ void PlasticDamage3D::FinalizeSolutionStep( const Properties& props,
         Variables[3] =  mlength;
    
 	mpFluencyCriteria_1->UpdateVariables(Variables); 
+             
         
         
         Matrix Aux_V         = ZeroMatrix(3,3);  
@@ -384,16 +385,15 @@ void PlasticDamage3D::CalculateStress(const Vector& StrainVector,
 
 	///*calculating elastic stress trial
 	CalculateElasticStress(ElasticStrain, ElasticStress);
-     
+         
 
         ///* Comprobado criterio de fluencia   
-        mpFluencyCriteria_1->CalculateEquivalentUniaxialStress(ElasticStress, ElasticDomain_1);        
-
+        mpFluencyCriteria_1->CalculateEquivalentUniaxialStress(ElasticStress, ElasticDomain_1);     
+        
         ///* dominio elastico    
 	if( ElasticDomain_1 <= toler ) 
 	{
-              
-	      noalias(mcurrent_Ft)             = mFt;
+              noalias(mcurrent_Ft)             = mFt;
 	      mcurrent_efective_plastic_strain = mefective_plastic_strain;
 	      noalias(mcurrent_plastic_strain) = mplastic_strain;
 	      mcurrent_plastic_damage          = mplastic_damage;
@@ -402,7 +402,7 @@ void PlasticDamage3D::CalculateStress(const Vector& StrainVector,
 
         else
          {
-             mComputeTangentMatrix = false;
+            mComputeTangentMatrix = false;
 	    ///* Spectral Descomposition 
 	    Compute_Principal_Stress(ElasticStress);
 	    array_1d<double, 3 > PrincipalStress;
