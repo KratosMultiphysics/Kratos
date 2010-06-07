@@ -159,11 +159,16 @@ namespace Kratos
 	  const DataType zero = DataType();
 	  const DataType one = DataType(1.00);
 
+	  #pragma omp parallel for private(i)
 	  for(i = 0 ; i < rA.size1() ; ++i)
-	    if(rA(i,i) != zero)
-	      mDiagonal[i] = 1.00 / /*sqrt(fabs(*/rA(i,i)/*))*/;
+	  {
+		double diag_Aii = rA(i,i);
+	    if(diag_Aii != zero)
+	      mDiagonal[i] = 1.00 / sqrt(fabs(diag_Aii));
 	    else
-	      mDiagonal[i] = one; 
+	      KRATOS_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
+	  }
+// 	      mDiagonal[i] = one; 
 
 /* 	  std::cout << "mDiagonal : " << mDiagonal << std::endl; */
 	  
@@ -180,20 +185,19 @@ namespace Kratos
 
       void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
       {
-/*KRATOS_WATCH(mTemp.size());
-KRATOS_WATCH(rX.size());
-KRATOS_WATCH(mDiagonal.size());
-KRATOS_WATCH(rY.size());*/
-	for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	unsigned int i;
+	#pragma omp parallel for private(i)
+	for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
-// KRATOS_WATCH("diag precond 188");
 	TSparseSpaceType::Mult(rA,mTemp, rY);
-	//ApplyLeft(rY);
+	ApplyLeft(rY);
       }
       
       void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
       {
-	for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	unsigned int i;
+	#pragma omp parallel for private(i)
+	for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
 	TSparseSpaceType::TransposeMult(rA,mTemp, rY);
 	ApplyRight(rY);
@@ -201,15 +205,19 @@ KRATOS_WATCH(rY.size());*/
       
       VectorType& ApplyLeft(VectorType& rX)
 	{
-//	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
-//	    rX[i] *= mDiagonal[i];
+		unsigned int i;
+		#pragma omp parallel for private(i)
+	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
 	}
       
       VectorType& ApplyRight(VectorType& rX)
 	{
-	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+unsigned int i;
+	#pragma omp parallel for private(i)
+	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
@@ -223,15 +231,19 @@ KRATOS_WATCH(rY.size());*/
       */    
       VectorType& ApplyTransposeLeft(VectorType& rX)
 	{
-//	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
-//	    rX[i] *= mDiagonal[i];
+unsigned int i;
+	#pragma omp parallel for private(i)
+	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
 	}
       
       VectorType& ApplyTransposeRight(VectorType& rX)
 	{
-	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+unsigned int i;
+	#pragma omp parallel for private(i)
+	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
@@ -241,8 +253,10 @@ KRATOS_WATCH(rY.size());*/
 	{
 	  const DataType zero = DataType();
 
-	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
-	    if(mDiagonal[i] != zero)
+unsigned int i;
+	#pragma omp parallel for private(i)
+	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+/*	    if(mDiagonal[i] != zero)*/
 	      rX[i] /= mDiagonal[i];
 	  
 	  return rX;
@@ -250,7 +264,9 @@ KRATOS_WATCH(rY.size());*/
       
       VectorType& Finalize(VectorType& rX)
 	{
-	  for(unsigned int i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	unsigned int i;
+	#pragma omp parallel for private(i)
+	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
