@@ -235,7 +235,7 @@ namespace Kratos
                     }
                   }   
                      ///* Updating Stress  
-                    KRATOS_WATCH(Trial_Stress_Vector) 
+                    //KRATOS_WATCH(Trial_Stress_Vector) 
 		    if(mcurrent_Ft[pos] <=toler) 
                     {
 		    Result[0] = 0.00;
