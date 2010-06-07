@@ -106,6 +106,7 @@ alias sources_KratosStructuralApplication
 #        tension_compression_damage_model_2d.cpp
         energy_yield_function.cpp
         rankine_yield_function.cpp
+        isotropic_rankine_yield_function.cpp
         tresca_yield_function.cpp
         von_misses_yield_function.cpp
         modified_morh_coulomb_yield_function.cpp
