@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fluency_criteria/fluency_criteria.h"
 #include "python/vector_python_interface.h"
 #include "fluency_criteria/energy_yield_function.h"
+#include "fluency_criteria/isotropic_rankine_yield_function.h"
 #include "fluency_criteria/rankine_yield_function.h"
 #include "fluency_criteria/tresca_yield_function.h"
 #include "fluency_criteria/von_misses_yield_function.h"     
@@ -125,6 +126,12 @@ namespace Kratos
 			      ("RankineYieldFunction",
 			      init<myState> () )
 			      ;  
+                              class_<Isotropic_Rankine_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
+			      ("IsotropicRankineYieldFunction",
+			      init<myState> () )
+			      ;  
+ 
+
 
 			      class_<Tresca_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
 			      ("TrescaYieldFunction",
