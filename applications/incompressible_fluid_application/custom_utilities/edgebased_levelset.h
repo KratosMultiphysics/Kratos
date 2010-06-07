@@ -275,12 +275,12 @@ namespace Kratos {
             CalculateEdgeLengths(mr_model_part.Nodes());
 
 
-            //            //set the pressure projection to the body force value
-            //            array_1d<double,3> temp = mRho * mBodyForce;
-            //            for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-            //                    inode != mr_model_part.NodesEnd();
-            //                    inode++)
-            //                inode->FastGetSolutionStepValue(PRESS_PROJ) = temp;
+                       //set the pressure projection to the body force value
+                       array_1d<double,3> temp = mRho * mBodyForce;
+                       for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                               inode != mr_model_part.NodesEnd();
+                               inode++)
+                           inode->FastGetSolutionStepValue(PRESS_PROJ) = temp;
 
             KRATOS_CATCH("")
         }
