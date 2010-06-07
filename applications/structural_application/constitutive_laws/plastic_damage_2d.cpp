@@ -52,10 +52,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes 
 #include <iostream>
-#include <algorithm>
-
-// External includes 
-#include<cmath>
+#include <iomanip>
+#include <cmath>
 
 // Project includes 
 #include "constitutive_laws/plastic_damage_2d.h"
@@ -75,9 +73,10 @@ namespace Kratos
 	#pragma omp threadprivate(msaux)
 	#endif
     } 
-
-
+    
+    
     using namespace Plastic_Damage_2D_Auxiliaries;
+  
 
 	/**
 	 *	TO BE TESTED!!!
@@ -131,13 +130,13 @@ namespace Kratos
 	double PlasticDamage2D::GetValue( const Variable<double>& rThisVariable )
 	{
 	  if( rThisVariable == DAMAGE)
-	      {return mlocal_fail_factor; } //mplastic_damage ;}
+	      {return mFt[0];}   //mlocal_fail_factor; } //mplastic_damage ;}
 	  else if(rThisVariable == COHESION)
-              {return mcohesion;}
+              {return mFt[1];} // mcohesion;}
           else if(rThisVariable == DILATANCY_ANGLE)
               {return mdilatancy_angle*180.00/PI;}
           else if(rThisVariable == FRICTION_INTERNAL_ANGLE)
-              {return mfriction_angle*180.00/PI;}
+              {return mFt[2];} // mfriction_angle*180.00/PI;}
           else
                {return 0; }
 	}   
@@ -493,30 +492,43 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
                  norma = 1.00;                
                  delta_gamma     = ZeroVector(1); 
                  residual        = ZeroVector(1); 
-                                        
+                 unsigned int& pos       = mactive_surface[0];                                            
+
                  while(iter++<=100 && norma>= toler) 
 	          {  
-                    delta_gamma[0]  += (mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[0]) / (4.00 * G /3.00 + K - H ); 
-                    if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }   
-                    ///* Updatinf mFt
-                    mcurrent_Ft[0] = mFt[0] - H * delta_gamma[0];   
-                    ///* comprobando si mft se cumplio   
-		    if(mcurrent_Ft[0] <= 0.00) {
-		    mcurrent_Ft[0] = 0.00;
-		    break; } 
+                    if(iter>=100){KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")}   
+                    delta_gamma[0]  += (mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[pos]) / (4.00 * G /3.00 + K - H ); 
+                    //if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }   
+ 
+                     ///* Updatinf mFt
+                    if(mcurrent_Ft[pos] <= 0.00) { mcurrent_Ft[pos] = mFt[pos];}
+                    else {mcurrent_Ft[pos] = mFt[pos] - H * delta_gamma[0];}                          
 
+ 
+                    ///* comprobando si mft se cumplio   
+                                   ///* comprobando si mft se cumplio   
+		    if(mcurrent_Ft[pos] <= 0.00) 
+                       {
+		           mcurrent_Ft[pos] = 0.00;
+                           delta_gamma_a  = delta_gamma[0];  
+                           mpFluencyCriteria_Traction->UpdateVariables(mcurrent_Ft);   
+                           break;         
+                       } 
+
+                    else
+                    {
                     mpFluencyCriteria_Traction->UpdateVariables(mcurrent_Ft);  
                     delta_gamma_a   = delta_gamma[0];                        
                     mpFluencyCriteria_Traction->CalculateEquivalentUniaxialStress(ElasticStress, norma); 
                     residual[0] =  norma - delta_gamma_a * (4.00  * G / 3.00 + K ) ;
                     norma    = fabs(residual[0]);   
-     
+                    }
  
                   }   
                      ///* Updating Stress  
 		    if(mcurrent_Ft[0] == 0.0) 
                     {
-		    Sigma[0] = 1E-14;
+		    Sigma[0] = 0.00;
 		    Sigma[1] = PrincipalStress[1] - delta_gamma_a*(-2.00 * G / 3.00 + K ); 
 		    Sigma[2] = PrincipalStress[2] - delta_gamma_a*(-2.00 * G / 3.00 + K );  
 		    } 
@@ -538,9 +550,14 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
               norma = 1.00;        
               residual[0] = mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[0];
               residual[1] = mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[1]; 
-                        
+              std::cout << std::fixed << std::setprecision(10); 
+              KRATOS_WATCH( residual ) 
+              KRATOS_WATCH( mcurrent_Ft )
+              KRATOS_WATCH(ElasticStress)
+
               while(iter++<=100 && norma>= toler) 
 		  {
+   
 		      d.resize(2,2);
 		      d_inv.resize(2,2);
 		      d(0,0) = -( 4.00 * G / 3.00 + K ) + H;  d(0,1) = -(-2.00 * G / 3.00 + K );  
@@ -548,8 +565,15 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 
 		      singular             =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
 		      noalias(delta_gamma) =  delta_gamma - Vector(prod(d_inv, residual)); 
-		      if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }  
-		      if(delta_gamma[1] < 0.00) {delta_gamma[1] = 0.00; }     
+                      if(iter>=100){
+                        KRATOS_WATCH("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                        KRATOS_WATCH(residual) 
+                        }    
+
+
+
+		      //if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }  
+		      //if(delta_gamma[1] < 0.00) {delta_gamma[1] = 0.00; }     
 
 		      delta_gamma_a = delta_gamma[0];
 		      delta_gamma_b = delta_gamma[1];
@@ -590,9 +614,10 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
                     
 	      } 
 
-	      ///* Muy poco probable en 2D
+	      /// Muy poco probable en 2D
 	      if(mactive_surface.size()==3)
 	      {
+
 	      delta_gamma = ZeroVector(3);
 	      residual    = ZeroVector(3);   
 	      residual[0] = mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[0];
@@ -1840,8 +1865,8 @@ inelastic_strain[2] = sin(mcurrent_dilatancy_angle) - 1.00;
 void PlasticDamage2D::Compute_Principal_Stress(const Vector& StressVector)
 {
 
-int    iter = 50;
-double zero = 1.0E-9;
+int    iter = 1000;
+double zero = 1.0E-12;
 Matrix StressTensor    = ZeroMatrix(3,3);
 Matrix EigenVectors    = ZeroMatrix(3,3);
 mPrincipalStress       = ZeroVector(3);
