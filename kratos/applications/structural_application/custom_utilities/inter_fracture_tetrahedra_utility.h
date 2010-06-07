@@ -274,11 +274,11 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer pNode, const array
     Positive_Elements.reserve(10); 
     Negative_Elements.reserve(10); 
 
-    WeakPointerVector< Node<3> >& neighb_nodes  = pNode->GetValue(NEIGHBOUR_NODES);
+    //WeakPointerVector< Node<3> >& neighb_nodes  = pNode->GetValue(NEIGHBOUR_NODES);
     WeakPointerVector< Element >& neighb_elems  = pNode->GetValue(NEIGHBOUR_ELEMENTS);
 
-    unsigned int Node_old = 0;
-    unsigned int Node_new = 0;
+    //unsigned int Node_old = 0;
+    //unsigned int Node_new = 0;
     array_1d<double, 3> Coord_Point_1; 
     array_1d<double, 3> Coord_Point_2; 
  
@@ -287,7 +287,7 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer pNode, const array
     Coord_Point_1[2]  = pNode->Z();
 
     array_1d<double, 3> Unit;   
-    unsigned int i = 0; 
+    //unsigned int i = 0; 
     double prod  = 0.00;
     for(WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
     neighb_elem != neighb_elems.end(); neighb_elem++)
@@ -313,7 +313,7 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer pNode, const array
     }
 
     /*  
-    ///* Esquinas o superficie extrena donde no hay elementos negativos o positivos
+    ///Esquinas o superficie extrena donde no hay elementos negativos o positivos
     if (Positive_Elements.size()==0 or Negative_Elements.size()==0)
     {
 	    KRATOS_WATCH("NOT_VALIOD") 
@@ -353,7 +353,7 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer pNode, const array
       }
 
     // creating new nodes
-    duplicated_pNode==true;
+    duplicated_pNode=true;
     pNode->FastGetSolutionStepValue(IS_DUPLICATED)=true;
     unsigned int New_Id = this_model_part.Nodes().size() + 1; 
     Node<3>::Pointer pnode; // the new node   
@@ -419,7 +419,7 @@ for(unsigned int step = 0; step<buffer_size; step++)
 double* step_data     = pnode->SolutionStepData().Data(step);			
 double* old_node_data = pNode->SolutionStepData().Data(step);
 //copying this data in the position of the vector we are interested in
-for(unsigned int j= 0; j<step_data_size; j++)
+for(signed int j= 0; j<step_data_size; j++)
 {  
   step_data[j] = old_node_data[j];
 }						
