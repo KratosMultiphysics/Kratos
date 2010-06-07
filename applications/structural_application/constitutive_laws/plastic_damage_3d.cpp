@@ -251,8 +251,9 @@ void PlasticDamage3D::FinalizeSolutionStep( const Properties& props,
         mplastic_damage          =  mcurrent_plastic_damage;
         mdisipation              =  mcurrent_disipation;   
         noalias(mFt)             =  mcurrent_Ft;
+        //KRATOS_WATCH(mFt )   
         
-
+        
         array_1d<double,4> Variables;
         Variables[0] = mFt[0];
         Variables[1] = mFt[1];
@@ -260,7 +261,7 @@ void PlasticDamage3D::FinalizeSolutionStep( const Properties& props,
         Variables[3] =  mlength;
    
 	mpFluencyCriteria_1->UpdateVariables(Variables); 
-             
+        mpFluencyCriteria_1->Finalize();      
         
         
         Matrix Aux_V         = ZeroMatrix(3,3);  
@@ -422,6 +423,7 @@ void PlasticDamage3D::CalculateStress(const Vector& StrainVector,
               
             ///* Calculando las tensiones elsaticas
 	    AssembleUpdateStressAndStrainTensor(Sigma, StrainVector, Order, ElasticStrain, ElasticStress); 
+            //KRATOS_WATCH(Sigma)  
 	      
 	    ///* General evoluation of accumulated hardening  
 	    mcurrent_efective_plastic_strain = mefective_plastic_strain + norm_1(delta_gamma); 
@@ -431,8 +433,8 @@ void PlasticDamage3D::CalculateStress(const Vector& StrainVector,
 	      //mcurrent_efective_plastic_strain = mefective_plastic_strain + (2.00 / sqrt(3.00) ) * aux_var;
  
            ///* updating current variables
-            //Vector Result(3);
-            //mpFluencyCriteria_1->GetValue(Result); noalias(mcurrent_Ft) = Result; 
+            Vector Result(3);
+            mpFluencyCriteria_1->GetValue(Result); noalias(mcurrent_Ft) = Result; 
              
 
 	  }
@@ -488,8 +490,7 @@ void PlasticDamage3D::UpdateMaterial( const Vector& StrainVector,
         Variables[3] =  mlength;
    
         mpFluencyCriteria_1->UpdateVariables(Variables);    
-        
-        //mpFluencyCriteria_1->UpdateVariables(mcurrent_Ft);    
+          
         
 }
 
@@ -603,7 +604,7 @@ ElasticStrain[5] =  ElasticStress[5]/G;
 noalias(mcurrent_plastic_strain) = Total_Strain - ElasticStrain; 
 
 //Updated_Internal_Variables(ElasticStress, mcurrent_plastic_strain);////
-Tensile_Fracture_Model(ElasticStress,  mcurrent_plastic_strain);
+//Tensile_Fracture_Model(ElasticStress,  mcurrent_plastic_strain);
 
 
 }
