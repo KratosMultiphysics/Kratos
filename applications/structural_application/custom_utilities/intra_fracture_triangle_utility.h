@@ -811,7 +811,7 @@ void Renumering_Elements_And_Nodes( ModelPart& this_model_part)
    NodesArrayType& pNodes =  this_model_part.Nodes();  
    NodesArrayType::iterator i_begin=pNodes.ptr_begin();
    NodesArrayType::iterator i_end=pNodes.ptr_end();
-   ProcessInfo& rCurrentProcessInfo  = this_model_part.GetProcessInfo();  
+   //ProcessInfo& rCurrentProcessInfo  = this_model_part.GetProcessInfo();  
 
 
    for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)     
