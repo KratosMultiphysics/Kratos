@@ -81,7 +81,7 @@ class DecoupledSolver:
         self.conv_criteria = UPCriteria(1e-7,1e-7,1e-3,1e-7)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
-        self.max_iter = 100
+        self.max_iter = 10
                             
         #default settings
         self.echo_level = 0
@@ -95,7 +95,8 @@ class DecoupledSolver:
         else:
             self.rebuild_level = 1
             # If the mesh doesen't change, preserve the system matrix structure
-
+        self.rebuild_level = 0
+        
         self.velocity_correction = 2
         # 0: divergence-free condition is not explicitly imposed
         # 1: divergence-free condition imposed by a diagonal divergence matrix
