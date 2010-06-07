@@ -208,7 +208,11 @@ namespace Kratos
 	              KRATOS_ERROR(std::logic_error,  "GetValue", "");
 		    }
 
-
+                    virtual void Finalize()
+		     {
+	              KRATOS_ERROR(std::logic_error,  "Finalize", "");
+		     }  
+ 
                         
                         
 
@@ -442,10 +446,12 @@ namespace Kratos
 		    const Properties *mprops;
                     myState mState;
                     myPotencialPlastic mPotencialPlastic;
+                    double maccumulated_plastic_strain_current;   
+                    double maccumulated_plastic_strain_old;
 
                     private:
                     double mtetha_Lode;
-                   
+                    
                       
 
                  
