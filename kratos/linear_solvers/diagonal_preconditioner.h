@@ -154,7 +154,7 @@ namespace Kratos
 	  mDiagonal.resize(TSparseSpaceType::Size(rX));
 	  mTemp.resize(TSparseSpaceType::Size(rX));
 
-	  unsigned int i;
+	  int i;
 
  	  const DataType zero = DataType();
 // 	  const DataType one = DataType(1.00);
@@ -185,7 +185,7 @@ namespace Kratos
 
       void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
       {
-	unsigned int i;
+	int i;
 	#pragma omp parallel for private(i)
 	for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
@@ -195,7 +195,7 @@ namespace Kratos
       
       void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
       {
-	unsigned int i;
+	int i;
 	#pragma omp parallel for private(i)
 	for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
@@ -205,7 +205,7 @@ namespace Kratos
       
       VectorType& ApplyLeft(VectorType& rX)
 	{
-		unsigned int i;
+		int i;
 		#pragma omp parallel for private(i)
 	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
@@ -215,7 +215,7 @@ namespace Kratos
       
       VectorType& ApplyRight(VectorType& rX)
 	{
-unsigned int i;
+int i;
 	#pragma omp parallel for private(i)
 	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
@@ -231,7 +231,7 @@ unsigned int i;
       */    
       VectorType& ApplyTransposeLeft(VectorType& rX)
 	{
-unsigned int i;
+int i;
 	#pragma omp parallel for private(i)
 	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
@@ -241,7 +241,7 @@ unsigned int i;
       
       VectorType& ApplyTransposeRight(VectorType& rX)
 	{
-unsigned int i;
+int i;
 	#pragma omp parallel for private(i)
 	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
@@ -253,7 +253,7 @@ unsigned int i;
 	{
 // 	  const DataType zero = DataType();
 
-unsigned int i;
+int i;
 	#pragma omp parallel for private(i)
 	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 /*	    if(mDiagonal[i] != zero)*/
@@ -264,7 +264,7 @@ unsigned int i;
       
       VectorType& Finalize(VectorType& rX)
 	{
-	unsigned int i;
+	int i;
 	#pragma omp parallel for private(i)
 	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
 	    rX[i] *= mDiagonal[i];
