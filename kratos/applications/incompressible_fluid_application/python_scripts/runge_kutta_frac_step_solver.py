@@ -54,16 +54,17 @@ class RungeKuttaFracStepSolver:
         pDiagPrecond = DiagonalPreconditioner()
 
         #definition of the solvers
-        #self.linear_solver =  SkylineLUFactorizationSolver()
-        self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
-        self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
+        self.linear_solver =  SkylineLUFactorizationSolver()
+        print "LIN SOLVER", self.linear_solver
+        #self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
+        #self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
 
         self.max_iter = 10
                             
         #default settings
         self.echo_level = 1
         self.CalculateReactionFlag = False
-        self.ReformDofSetAtEachStep = True
+        self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.domain_size = domain_size;
         #self.MoveMeshFlag = True
@@ -72,19 +73,10 @@ class RungeKuttaFracStepSolver:
             self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
         if (self.domain_size==3):
             self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
-        
-
-
         ##calculate normals
         self.normal_tools = NormalCalculationUtils()
-
         #self.Hfinder  = FindNodalHProcess(model_part);
-        
-    
-
-        
-
-        
+                
     #######################################################################
     def Initialize(self):
         #calculate the normals to the overall domain
