@@ -22,7 +22,7 @@ kernel = Kernel()   #defining kernel
 #importing applications
 import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
-#applications_interface.Import_ULFApplication = True
+applications_interface.Import_ULFApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 ## from now on the order is not anymore crucial
@@ -30,6 +30,7 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 ##################################################################
 
 from KratosIncompressibleFluidApplication import *
+from KratosULFApplication import *
 import benchmarking
 
 
@@ -210,7 +211,8 @@ for step in range(0,nsteps):
         gid_io.WriteNodalResults(ACCELERATION,model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
         gid_io.WriteNodalResults(BODY_FORCE,model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(DISPLACEMENT,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(IS_STRUCTURE,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(DISPLACEMENT,model_part.Nodes,time,0)
 
         out = 0
     out = out + 1
