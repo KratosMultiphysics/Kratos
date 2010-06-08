@@ -156,8 +156,8 @@ namespace Kratos
 
 	  unsigned int i;
 
-	  const DataType zero = DataType();
-	  const DataType one = DataType(1.00);
+ 	  const DataType zero = DataType();
+// 	  const DataType one = DataType(1.00);
 
 	  #pragma omp parallel for private(i)
 	  for(i = 0 ; i < rA.size1() ; ++i)
@@ -251,7 +251,7 @@ unsigned int i;
       
       VectorType& ApplyInverseRight(VectorType& rX)
 	{
-	  const DataType zero = DataType();
+// 	  const DataType zero = DataType();
 
 unsigned int i;
 	#pragma omp parallel for private(i)
