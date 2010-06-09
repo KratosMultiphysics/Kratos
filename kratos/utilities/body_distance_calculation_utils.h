@@ -249,7 +249,7 @@ namespace Kratos
 
                     if (discriminant < 0.0) //element distance computation fails - we may have to tread specially this node
                     {
-                        failed_nodes.push_back(Node < 3 > ::Pointer(geom(unknown_node_index)));
+                        failed_nodes.push_back(geom(unknown_node_index));
                     } else
                     {
                         //(accurate) computation of the distance
@@ -269,7 +269,7 @@ namespace Kratos
                         }
 
                         //saving the distance
-                        active_nodes.push_back(Node < 3 > ::Pointer(geom(unknown_node_index))); //save the pointer to the node to update
+                        active_nodes.push_back(geom(unknown_node_index)); //save the pointer to the node to update
                         node_distance_values.push_back(distance); //save a value
                         //                                                    geom[unknown_node_index].FastGetSolutionStepValue(rDistanceVar) = distance;
                         //                                                    geom[unknown_node_index].GetValue(IS_VISITED) = 1.0;
@@ -339,7 +339,7 @@ namespace Kratos
                                 if( ie->GetValue(IS_VISITED) != 1 ) //it is to be used for the next step (an was not added before by another element)
                                 {
                                     ie->GetValue(IS_VISITED) = 1;
-                                    elements_to_solve.push_back(Element::Pointer(*(ie.base())));
+                                    elements_to_solve.push_back( (*(ie.base())).lock());
                                 }
 
     //                        if(visited_nodes == TDim+1)
