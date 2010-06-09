@@ -254,8 +254,8 @@ namespace Kratos
       
 	  if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.Key())))  != mData.end())
 	    *static_cast<TDataType*>(i->second) = rValue;
-      
-	  mData.push_back(ValueType(&rThisVariable,new TDataType(rValue)));
+	  else
+	    mData.push_back(ValueType(&rThisVariable,new TDataType(rValue)));
 	}
 
       template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
