@@ -111,6 +111,7 @@ namespace Kratos
                     void UpdateVariables(const Vector& Variables); 
 
                     void ReturnMapping(const Vector& StressVector, 
+                    const Vector& StrainVector, 
                     Vector& delta_lamda,
                     array_1d<double,3>& Result);
 
