@@ -32,8 +32,8 @@ python-extension KratosULFApplication
 	updated_lagrangian_fluid_inc.cpp 
 	updated_lagrangian_fluid3D_inc.cpp 
 
-    /KratosProject//libkratos_static
-
+    	/KratosProject//libkratos_static
+	/KratosProject//libomp
 	
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
