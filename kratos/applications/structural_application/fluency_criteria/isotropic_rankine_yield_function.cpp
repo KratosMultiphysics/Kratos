@@ -75,13 +75,15 @@ namespace Kratos
 //***********************************************************************
 
 	  void Isotropic_Rankine_Yield_Function::InitializeMaterial(const Properties& props) 
-	  {   mprops = &props;
-	  mFt[0] =  (*mprops)[FT];
-	  mFt[1] =   mFt[0];  
-	  mFt[2] =   mFt[0]; 
-          minitialize = false; 
-          maccumulated_plastic_strain_current = 0.00;  
-          maccumulated_plastic_strain_old     = 0.00;  
+	  {   
+           
+           mprops      = &props;
+	   mFt         =  (*mprops)[FT];
+	   mcurrent_Ft = mFt;
+
+           minitialize = false; 
+           maccumulated_plastic_strain_current = 0.00;  
+           maccumulated_plastic_strain_old     = 0.00;  
 	  }
 
           
@@ -101,24 +103,23 @@ namespace Kratos
           mMultisurface_Platicity_Yield       = ZeroVector(3); 
 	  ///* Multisurface Representation 
 	  mMultisurface_Platicity_Sigma[0]    =   Trial_Stress_Vector[0]; 
-	  mMultisurface_Platicity_Yield[0]    =   mMultisurface_Platicity_Sigma[0] - mFt[0];
+	  mMultisurface_Platicity_Yield[0]    =   mMultisurface_Platicity_Sigma[0] - mcurrent_Ft;
 
 	  mMultisurface_Platicity_Sigma[1]    =   Trial_Stress_Vector[1]; 
-	  mMultisurface_Platicity_Yield[1]    =   mMultisurface_Platicity_Sigma[1] - mFt[1];
+	  mMultisurface_Platicity_Yield[1]    =   mMultisurface_Platicity_Sigma[1] - mcurrent_Ft;
 
 	  mMultisurface_Platicity_Sigma[2]    =   Trial_Stress_Vector[2]; 
-	  mMultisurface_Platicity_Yield[2]    =   mMultisurface_Platicity_Sigma[2] - mFt[2];
-  
-          //KRATOS_WATCH(Trial_Stress_Vector) 
+	  mMultisurface_Platicity_Yield[2]    =   mMultisurface_Platicity_Sigma[2] - mcurrent_Ft;
+ 
           Result = (*max_element(mMultisurface_Platicity_Yield.begin(), mMultisurface_Platicity_Yield.end()));  
            
 	  }
 
 	  void Isotropic_Rankine_Yield_Function::UpdateVariables(const Vector& Variables)
 	  {
-	   mFt[0] = Variables[0];
-           mFt[1] = mFt[0];  
-           mFt[2] = mFt[0]; 
+	   mFt = Variables[0];
+           mcurrent_Ft = mFt;  
+           maccumulated_plastic_strain_current = maccumulated_plastic_strain_old; 
  
            if(minitialize == false)
                { 
@@ -149,293 +150,343 @@ namespace Kratos
 	  }
 
           void Isotropic_Rankine_Yield_Function::ReturnMapping(const Vector& StressVector, 
+            const Vector& StrainVector,   
             Vector& delta_lamda,
             array_1d<double,3>& Result)
-            {              
+            {               
 
-              array_1d<double ,3> Trial_Stress_Vector; 
-              CalculatePrincipalStressVector(StressVector, Trial_Stress_Vector);  
-              double toler = 1E-6;  
-              mcurrent_Ft = ZeroVector(3);            
-              std::vector<int> active_surface;     
-              active_surface.resize(0, false); 
-	      active_surface.reserve(5); 
+               
+                array_1d<double,3> Trial_Stress_Vector     = ZeroVector(3); 
+                array_1d<double,3> Aux_Trial_Stress_Vector = ZeroVector(3); 
+                CalculatePrincipalStressVector(StressVector, Trial_Stress_Vector);   
+                noalias(Aux_Trial_Stress_Vector) = Trial_Stress_Vector;
 
-	      if(mMultisurface_Platicity_Yield[0] > toler ) {active_surface.push_back(0); }
-	      if(mMultisurface_Platicity_Yield[1] > toler ) {active_surface.push_back(1); }      
-	      if(mMultisurface_Platicity_Yield[2] > toler ) {active_surface.push_back(2); } 
-                                   
-                                             
+                ///* return to main plane
+                One_Vector_Return_Mapping_To_Main_Plane(StressVector, delta_lamda,  Trial_Stress_Vector);
+                  
+                ///*check validty
+                bool check = false;   
+                check = CheckValidity(Trial_Stress_Vector);
+                if( check==false)
+                 {
+                     ///*return to corner
+                     noalias(Trial_Stress_Vector) =  Aux_Trial_Stress_Vector;
+                     Two_Vector_Return_Mapping_To_Corner(StressVector,delta_lamda,  Trial_Stress_Vector);  
+                     check = CheckValidity(Trial_Stress_Vector);
+                     if (check==false)
+                          {
+                             ///return to apex
+                              noalias(Trial_Stress_Vector) =  Aux_Trial_Stress_Vector;
+                              Three_Vector_Return_Mapping_To_Apex (StressVector, delta_lamda, Trial_Stress_Vector);   
+                          }    
+
+                      
+                  }
+
+                   Result[0] =  Trial_Stress_Vector[0];
+                   Result[1] =  Trial_Stress_Vector[1];
+                   Result[2] =  Trial_Stress_Vector[2];
+            }
+
+         void Isotropic_Rankine_Yield_Function::GetValue(double Result)
+                 {
+                    Result = mcurrent_Ft; 
+                 } 
+
+        void Isotropic_Rankine_Yield_Function::GetValue(Vector& Result)
+                 {
+                    Result.resize(3, false);   
+                    Result[0] = mcurrent_Ft;
+                    Result[1] = mcurrent_Ft;
+                    Result[2] = mcurrent_Ft;  
+                 }  
+
+         void Isotropic_Rankine_Yield_Function::Finalize()
+              {
+                   mFt = mcurrent_Ft;  
+                   maccumulated_plastic_strain_old     =  maccumulated_plastic_strain_current;     
+                   maccumulated_plastic_strain_current = 0.00;    
+              }
+
+void Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(const Vector& StressVector, Vector& delta_lamda,  array_1d<double,3>& Result)
+              {
+
               unsigned int iter    = 0;    
               double norma         = 1.00;   
-	      double delta_gamma_a = 0.00; 
-	      double delta_gamma_b = 0.00; 
-	      double delta_gamma_c = 0.00;   
-              
+	      double delta_lamda_a = 0.00; 
 	      double E             = (*mprops)[YOUNG_MODULUS];
 	      double NU            = (*mprops)[POISSON_RATIO];             
               double G             = 0.5*E / (1.00 + NU);
               double K             =  E / (3.00 * (1.00-2.00*NU));
               double H             =  mH;
+	      double d             = 0.00;  
+	      double residual      = 0.00;
+              const double toler   = 1E-6; 
+     
 
-
-	      Matrix d;  
-	      Matrix d_inv;
-	      Vector delta_gamma;
-	      Vector residual;     
-              noalias(mcurrent_Ft) = mFt;
-
-
-	      ///* WARNING = Si el hablandamiento es no lineal usar newton Rapshon.  
-	      ///* Una superficie activa
-	      if(active_surface.size()==1)
-	      {
-                 iter  = 0;     
-                 norma = 1.00;                
-                 delta_gamma     = ZeroVector(1); 
-                 residual        = ZeroVector(1); 
-                 int& pos = active_surface[0];          
-                 while(iter++<=100 && norma>= toler) 
+              mcurrent_Ft = mFt;
+              delta_lamda = ZeroVector(1); 
+              CalculateEquivalentUniaxialStress(StressVector, norma);   
+ 
+              while(iter++<=100 && norma>= toler) 
 	          {  
                     if(iter>=100){KRATOS_WATCH("WARNING = DO NOT CONVERGENCE FOR ONE ACTIVE SURFACE RANKINE" )}
-                    delta_gamma[0]  += (mMultisurface_Platicity_Yield[pos]) / (4.00 * G /3.00 + K - H ); 
-                    //if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; std::cout<<"WARNING = GAMMA NEGATIVE FOR ONE ACTIVE SURFACE "<<std::endl;  }   
-                        
-                       
+                    d = 4.00 * G /3.00 + K - H;
+                    delta_lamda[0]  += (mMultisurface_Platicity_Yield[0]) / d;; 
+                           
                     ///* Updatinf mFt
-                    maccumulated_plastic_strain_current = delta_gamma[0];
-                    if(mcurrent_Ft[pos] <= toler) { mcurrent_Ft[pos] = mFt[pos];}
-                    else {mcurrent_Ft[pos] = mFt[pos] - H * maccumulated_plastic_strain_current;}  
-                    mcurrent_Ft[0] = mcurrent_Ft[pos];   
-                    mcurrent_Ft[1] = mcurrent_Ft[0]; 
-                    mcurrent_Ft[2] = mcurrent_Ft[0];  
+                    maccumulated_plastic_strain_current +=  delta_lamda[0];
+                    mcurrent_Ft = mFt - H * delta_lamda[0]; 
+                    delta_lamda_a    = delta_lamda[0];   
 
                     ///* comprobando si mft se cumplio   
-		    if(mcurrent_Ft[pos] <= toler) 
+		    if(mcurrent_Ft <= toler) 
                        {
-		           mcurrent_Ft[pos] = 0.00;
-                           delta_gamma_a  = delta_gamma[0];  
-                           UpdateVariables(mcurrent_Ft);   
+		           mcurrent_Ft = 0.00;
                            break;         
                        } 
                     else
                     { 
-                    ///* update teh current values
-                    UpdateVariables(mcurrent_Ft);  
-                    delta_gamma_a   = delta_gamma[0];                        
+                    ///* update teh current value                       
                     CalculateEquivalentUniaxialStress(StressVector, norma); 
-                    residual[0] =  norma - delta_gamma_a * (4.00  * G / 3.00 + K ) ;
-                    norma    = fabs(residual[0]);   
+                    residual    =  norma - delta_lamda_a * (4.00  * G / 3.00 + K ) ;
+                    norma       =  fabs(residual);   
                     
                     }
                   }   
                      ///* Updating Stress  
                     //KRATOS_WATCH(Trial_Stress_Vector) 
-		    if(mcurrent_Ft[pos] <=toler) 
+		    if(mcurrent_Ft <=toler) 
                     {
 		    Result[0] = 0.00;
-		    Result[1] = Trial_Stress_Vector[1] - delta_gamma_a*(-2.00 * G / 3.00 + K ); 
-		    Result[2] = Trial_Stress_Vector[2] - delta_gamma_a*(-2.00 * G / 3.00 + K );  
+		    Result[1] = 0.00; 
+		    Result[2] = 0.00;  
 		    } 
                     else
                     { 
-	            Result[0] = Trial_Stress_Vector[0] - delta_gamma_a*(4.00  * G / 3.00 + K );    
-		    Result[1] = Trial_Stress_Vector[1] - delta_gamma_a*(-2.00 * G / 3.00 + K ); 
-		    Result[2] = Trial_Stress_Vector[2] - delta_gamma_a*(-2.00 * G / 3.00 + K );    
-                    }       
-              } 
+	            Result[0] = Result[0] - delta_lamda_a*(4.00  * G / 3.00 + K );    
+		    Result[1] = Result[1] - delta_lamda_a*(-2.00 * G / 3.00 + K ); 
+		    Result[2] = Result[2] - delta_lamda_a*(-2.00 * G / 3.00 + K );    
+                    }      
+                                   
+ 
+              }
+
+
+    void Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (const Vector& StressVector, Vector& delta_lamda ,array_1d<double,3>& Result)
+       {
+              unsigned int iter    = 0;    
+              int singular         = 0;  
+              double norma         = 1.00;   
+	      double delta_lamda_a = 0.00; 
+              double delta_lamda_b = 0.00; 
+              const  double toler  = 1E-6;
+	      double E             = (*mprops)[YOUNG_MODULUS];
+	      double NU            = (*mprops)[POISSON_RATIO];             
+              double G             = 0.5*E / (1.00 + NU);
+              double K             =  E / (3.00 * (1.00-2.00*NU));
+              double H             =  mH;
+	      Matrix d             = ZeroMatrix(2,2);  
+              Matrix d_inv         = ZeroMatrix(2,2); 
+	      Vector residual      = ZeroVector(2);
+              delta_lamda          = ZeroVector(2); 
+            
+              mcurrent_Ft = mFt;
+              CalculateEquivalentUniaxialStress(StressVector, norma);  
               
-	      ///*dos superficies activas    
-	      if(active_surface.size()==2)
-	      {
-              int singular         =  0;    
-	      delta_gamma = ZeroVector(2);
-	      residual    = ZeroVector(2);   
-              iter  = 0; 
-              norma = 1.00;
-              int& pos_1  = active_surface[0];          
-              int& pos_2  = active_surface[1];              
-              residual[0] = mMultisurface_Platicity_Yield[pos_1];
-              residual[1] = mMultisurface_Platicity_Yield[pos_2];
+                
+	      residual[0] = mMultisurface_Platicity_Yield[0];
+              residual[1] = mMultisurface_Platicity_Yield[1];
+              //KRATOS_WATCH(residual)  
  
               d.resize(2,2);
 	      d_inv.resize(2,2);
-	      d(0,0) = -( 4.00 * G / 3.00 + K ) + H;  d(0,1) = -(-2.00 * G / 3.00 + K ) + H ;  
-	      d(1,0) = -(-2.00 * G / 3.00 + K ) + H;      d(1,1) = -( 4.00 * G / 3.00 + K ) + H; 
-              singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv); 
+	      d(0,0) = -4.00 * G / 3.00 - K + H;  d(0,1)   =  2.00 * G / 3.00 - K  + H;  
+	      d(1,0) = 2.00 * G / 3.00 - K  + H;  d(1,1)   = -4.00 * G / 3.00 - K  + H; 
+              singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);    
+               
 
-                
-              //unsigned int cases = 0;          
-              //bool enter         = false;  
-              //double aux_delta_gamma = 0.00;
               while(iter++<=100 && norma>= toler) 
 		  {
                       if(iter>=100){KRATOS_WATCH("WARNING = DO NOT CONVERGENCE FOR TWO ACTIVE SURFACE RANKINE" )}
-		      noalias(delta_gamma) =  delta_gamma - Vector(prod(d_inv, residual)); 
+		      noalias(delta_lamda) =  delta_lamda - Vector(prod(d_inv, residual)); 
 		
-                      //if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; } //std::cout<<"WARNING = GAMMA NEGATIVE FOR TWO ACTIVE SURFACE "<<std::endl; }  
-		      //if(delta_gamma[1] < 0.00) {delta_gamma[1] = 0.00; } // std::cout<<"WARNING = GAMMA NEGATIVE FOR TWO ACTIVE SURFACE "<<std::endl; }     
+                      //if(delta_lamda[0] < 0.00) {delta_lamda[0] = 0.00; } //std::cout<<"WARNING = GAMMA NEGATIVE FOR TWO ACTIVE SURFACE "<<std::endl; }  
+		      //if(delta_lamda[1] < 0.00) {delta_lamda[1] = 0.00; } // std::cout<<"WARNING = GAMMA NEGATIVE FOR TWO ACTIVE SURFACE "<<std::endl; }     
                       //KRATOS_WATCH(residual)
-                      //KRATOS_WATCH(delta_gamma) 
+                      //KRATOS_WATCH(delta_lamda) Catholic
                         
-		      delta_gamma_a = delta_gamma[0];
-		      delta_gamma_b = delta_gamma[1];
+		      delta_lamda_a = delta_lamda[0];
+		      delta_lamda_b = delta_lamda[1];
                       
-                      ///* Updatinf mFt
-                      maccumulated_plastic_strain_current = delta_gamma_a + delta_gamma_b;     
-                      //double delta = maccumulated_plastic_strain_current  - maccumulated_plastic_strain_old;
-                      mcurrent_Ft[pos_1] = mFt[pos_1] - H * maccumulated_plastic_strain_current;
-                      mcurrent_Ft[0] = mcurrent_Ft[pos_1];   
-                      mcurrent_Ft[1] = mcurrent_Ft[0];
-                      mcurrent_Ft[2] = mcurrent_Ft[0];     
-
-                      //KRATOS_WATCH(maccumulated_plastic_strain_old)                     
-                      //KRATOS_WATCH(maccumulated_plastic_strain_current)   
-                       ///* ambos ft se anulan
-                      if(mcurrent_Ft[pos_1]<=toler && mcurrent_Ft[pos_2]<=toler )
+                       /// Updatinf mFt
+                      mcurrent_Ft =  mFt - H * (delta_lamda_a + delta_lamda_b);  
+                      
+                       /// ft se anulan
+                      if(mcurrent_Ft<=toler)
                         {
-
-                           mcurrent_Ft[0] = mcurrent_Ft[pos_1];   
-                           mcurrent_Ft[1] = mcurrent_Ft[0];
-                           mcurrent_Ft[2] = mcurrent_Ft[0];                          
- 
-                            delta_gamma_a  = delta_gamma[0];  
-                            delta_gamma_b  = delta_gamma[1];    
-                            UpdateVariables(mcurrent_Ft);  
-                            //cases = 1;  
+                            mcurrent_Ft = 0.00;
+                            delta_lamda_a  = delta_lamda[0];  
+                            delta_lamda_b  = delta_lamda[1];    
                             break;
                         }
-                       ///* solo un ft se anulan 
-//                        else if(mcurrent_Ft[0]<=0 && mcurrent_Ft[1]>=0)
-//                         {
-//                             mcurrent_Ft[0] = 0.00;
-//                             delta_gamma_a  = delta_gamma[0];  
-//                             UpdateVariables(mcurrent_Ft);    
-//                             cases = 2;   
-//                         }
-                       ///* ambos postivos 
                        else 
                        {
-                        
-                          //cases = 3;  
-                          UpdateVariables(mcurrent_Ft);                      
-                          CalculateEquivalentUniaxialStress(StressVector, norma); 
-                            
+                                            
+                          CalculateEquivalentUniaxialStress(StressVector, norma);        
                   
-                          residual[0] = mMultisurface_Platicity_Yield[pos_1];
-                          residual[1] = mMultisurface_Platicity_Yield[pos_2];
+                          residual[0] = mMultisurface_Platicity_Yield[0];
+                          residual[1] = mMultisurface_Platicity_Yield[1];
+                          //KRATOS_WATCH(mMultisurface_Platicity_Yield) 
                        
-                          residual[0]=  residual[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - delta_gamma_b*( -2.00  * G / 3.00 + K );   
-                          residual[1]=  residual[1] - delta_gamma_a*(-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K );   
-                          norma = norm_2(residual);
-                          //KRATOS_WATCH(norma)
+                          residual[0]=  residual[0] - delta_lamda_a*( 4.00 * G / 3.00 + K ) - delta_lamda_b*( -2.00  * G / 3.00 + K );   
+                          residual[1]=  residual[1] - delta_lamda_a*(-2.00 * G / 3.00 + K ) - delta_lamda_b*(  4.00  * G / 3.00 + K );   
+                          norma      =  norm_2(residual); 
+                          //KRATOS_WATCH(residual)  
+                           //KRATOS_WATCH(norma)
                         }
                       }
 
 		     ///* Updating Stress  
+                     //if( delta_lamda[0]< 0.00 ) { delta_lamda[0]=0.00; }
+                     //if( delta_lamda[1]< 0.00 ) { delta_lamda[1]=0.00; }  
 
-                     if( delta_gamma[0]< 0.00 ) { delta_gamma[0]=0.00; }
-                     if( delta_gamma[1]< 0.00 ) { delta_gamma[1]=0.00; }  
+                     if(mcurrent_Ft <= 0.00) 
+                        {
+                           Result[0] = 0.00;
+                           Result[1] = 0.00;
+                           Result[2] = 0.00;
+                        }
+                     else 
+                      {
+                             Result[0] = Result[0] - delta_lamda_a*( 4.00  * G / 3.00 + K ) - delta_lamda_b*( -2.00  * G / 3.00 + K );
+                             Result[1] = Result[1] - delta_lamda_a*(-2.00 * G  / 3.00 + K ) - delta_lamda_b*( 4.00  * G / 3.00 + K ); 
+                             Result[2] = Result[2] - (delta_lamda_a + delta_lamda_b) * (-2.00 * G / 3.00 + K );  
+                       }
 
-                     if(mcurrent_Ft[0] <= 0.00) {Result[0] = 0.00;}
-                     else { Result[0] = Trial_Stress_Vector[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - delta_gamma_b*( -2.00  * G / 3.00 + K ); }
-
-                     if(mcurrent_Ft[1] <= 0.00) {Result[1] = 0.00;} 
-                     else { Result[1] = Trial_Stress_Vector[1] - delta_gamma_a*(-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K ); }   
-
-		     if(mcurrent_Ft[2]<= 0.0)  {Result[2] = 0.00;}  
-		     else{ Result[2] = Trial_Stress_Vector[2] - (delta_gamma_a + delta_gamma_b) * (-2.00 * G / 3.00 + K ); }    
-              
-                      
-	      } 
-
-	      ///* Muy poco probable en 2D
-	      if(active_surface.size()==3)
-	      {
-    
-             
-
-              int singular         =  0;    
-	      delta_gamma = ZeroVector(2);
-	      residual    = ZeroVector(2);   
-              iter  = 0; 
-              norma = 1.00;  
-	      delta_gamma = ZeroVector(3);
-	      residual    = ZeroVector(3);   
-	      residual[0] = mMultisurface_Platicity_Yield[0];
-	      residual[1] = mMultisurface_Platicity_Yield[1];   
-	      residual[2] = mMultisurface_Platicity_Yield[2];  
-              while(iter++<=100 && norma>= toler) 
-		  { 
-                    
-                    if(iter>=100){KRATOS_WATCH("WARNING = DO NOT CONVERGENCE FOR THREE ACTIVE SURFACE RANKINE" )}
-		    d.resize(3,3);
-		    d_inv.resize(3,3);
-		    d(0,0) = -( 4.00 * G / 3.00 + K ) + H;   d(0,1) = -(-2.00 * G / 3.00 + K ) + H;   d(0,2) = -(-2.00 * G / 3.00 + K ) + H; 
-		    d(1,0) = -(-2.00 * G / 3.00 + K ) + H;   d(1,1) = -( 4.00 * G / 3.00 + K ) + H;   d(1,2) = -(-2.00 * G / 3.00 + K ) + H;   
-		    d(2,0) = -(-2.00 * G / 3.00 + K ) + H;   d(2,1) = -(-2.00 * G / 3.00 + K ) + H;   d(2,2) = -( 4.00 * G / 3.00 + K ) + H;   
-
-		    singular             =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
-		    noalias(delta_gamma) =  delta_gamma - Vector(prod(d_inv, residual)); 
-
-		    if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }  
-		    if(delta_gamma[1] < 0.00) {delta_gamma[1] = 0.00; }      
-		    if(delta_gamma[2] < 0.00) {delta_gamma[2] = 0.00; }  
-			
-
-		    delta_gamma_a = delta_gamma[0];
-		    delta_gamma_b = delta_gamma[1];
-		    delta_gamma_c = delta_gamma[2];
-
-		    ///* Updatinf mFt
-                    maccumulated_plastic_strain_current = delta_gamma_a + delta_gamma_b + delta_gamma_c;   
-		    mcurrent_Ft[0] = mFt[0] - H * maccumulated_plastic_strain_current;     
-                    mcurrent_Ft[1] = mcurrent_Ft[0];
-                    mcurrent_Ft[2] = mcurrent_Ft[0];   
-
-		    ///* comprobando si mft se cumplio   
-		    if(mcurrent_Ft[0] <= toler) {mcurrent_Ft[0] = 0.00; }
-
-                     		  
-		    UpdateVariables(mcurrent_Ft);          
-                    if(mFt[0]<=toler) {break;}     
-       
-		    CalculateEquivalentUniaxialStress(StressVector, norma); 
-                    residual[0] = mMultisurface_Platicity_Yield[0];
-                    residual[1] = mMultisurface_Platicity_Yield[1];
-                    residual[2] = mMultisurface_Platicity_Yield[1];
-                       
-		    residual[0] = residual[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - (delta_gamma_b + delta_gamma_c) *( -2.00  * G / 3.00 + K );    
-		    residual[1] = residual[1] - (delta_gamma_a + delta_gamma_c) * (-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K ); 
-		    residual[2] = residual[2] - (delta_gamma_a + delta_gamma_b) * (-2.00 * G / 3.00 + K )  - delta_gamma_c*( 4.00  * G / 3.00 + K );                    
-                    norma = norm_2(residual);
-                    }
-
-
-		    ///* Updating Stress 
-		    Result[0] = Trial_Stress_Vector[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - (delta_gamma_b + delta_gamma_c) *( -2.00  * G / 3.00 + K );    
-		    Result[1] = Trial_Stress_Vector[1] - (delta_gamma_a + delta_gamma_c) * (-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K ); 
-		    Result[2] = Trial_Stress_Vector[2] - (delta_gamma_a + delta_gamma_b) * (-2.00 * G / 3.00 + K )  - delta_gamma_c*( 4.00  * G / 3.00 + K );
-                    
-                    //KRATOS_WATCH(mcurrent_Ft)
-                    if(mcurrent_Ft[0] <= toler) {Result[0] = 0.00;} 
-                    if(mcurrent_Ft[1] <= toler) {Result[1] = 0.00;} 
-                    if(mcurrent_Ft[2] <= toler) {Result[2] = 0.00;} 
-                 }
-	        
-
-	      
-           }
-
-            void Isotropic_Rankine_Yield_Function::GetValue(Vector& Result)
-                 {
-                    Result = mFt; 
-                 } 
-           void Isotropic_Rankine_Yield_Function::Finalize()
-              {
-                   maccumulated_plastic_strain_old     =  maccumulated_plastic_strain_current;     
-                   maccumulated_plastic_strain_current = 0.00;    
               }
+
+
+      
+
+     void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex (const Vector& StressVector, Vector& delta_lamda ,array_1d<double,3>& Result)
+      {
+          
+              unsigned int iter    = 0;    
+              int singular         = 0;  
+              double norma         = 1.00;   
+	      double delta_lamda_a = 0.00; 
+              double delta_lamda_b = 0.00; 
+              double delta_lamda_c = 0.00; 
+              const  double toler  = 1E-6;
+	      double E             = (*mprops)[YOUNG_MODULUS];
+	      double NU            = (*mprops)[POISSON_RATIO];             
+              double G             = 0.5*E / (1.00 + NU);
+              double K             =  E / (3.00 * (1.00-2.00*NU));
+              double H             =  mH;
+	      Matrix d             = ZeroMatrix(3,3);  
+              Matrix d_inv         = ZeroMatrix(3,3); 
+	      Vector residual      = ZeroVector(3);
+              delta_lamda          = ZeroVector(3); 
+            
+              mcurrent_Ft = mFt;
+              CalculateEquivalentUniaxialStress(StressVector, norma); 
+              
+                
+	      residual[0] = mMultisurface_Platicity_Yield[0];
+              residual[1] = mMultisurface_Platicity_Yield[1];
+              residual[2] = mMultisurface_Platicity_Yield[2]; 
+              //KRATOS_WATCH(residual) 
+ 
+              d.resize(3,3);
+	      d_inv.resize(3,3);
+	      d(0,0) = -4.00 * G / 3.00 - K + H;  d(0,1)  =  2.00 * G / 3.00 - K + H;  d(0,2)   =   2.00 * G / 3.00 - K  + H; 
+	      d(1,0) =  2.00 * G / 3.00 - K + H;  d(1,1)  = -4.00 * G / 3.00 - K + H;  d(1,2)   =   2.00 * G / 3.00 - K  + H; 
+              d(2,0) =  2.00 * G / 3.00 - K + H;  d(2,1)  =  2.00 * G / 3.00 - K + H;  d(2,2)   =  -4.00 * G / 3.00 - K  + H ;  
+              //KRATOS_WATCH(d)     
+              singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);    
+              //KRATOS_WATCH(d_inv)   
+
+              while(iter++<=100 && norma>= toler) 
+		  {
+                      if(iter>=100){KRATOS_WATCH("WARNING = DO NOT CONVERGENCE FOR TWO ACTIVE SURFACE RANKINE" )}
+		      noalias(delta_lamda) =  delta_lamda - Vector(prod(d_inv, residual)); 
+		
+                      //if(delta_lamda[0] < 0.00) {delta_lamda[0] = 0.00; } //std::cout<<"WARNING = GAMMA NEGATIVE FOR TWO ACTIVE SURFACE "<<std::endl; }  
+		      //if(delta_lamda[1] < 0.00) {delta_lamda[1] = 0.00; } // std::cout<<"WARNING = GAMMA NEGATIVE FOR TWO ACTIVE SURFACE "<<std::endl; }     
+                      //KRATOS_WATCH(residual)
+                      //KRATOS_WATCH(delta_lamda) Catholic
+                        
+		      delta_lamda_a = delta_lamda[0];
+		      delta_lamda_b = delta_lamda[1];
+                      delta_lamda_c = delta_lamda[2];
+                      
+                       /// Updatinf mFt
+                      mcurrent_Ft =  mFt - H * (delta_lamda_a + delta_lamda_b + delta_lamda_c);  
+                      
+                       /// ft se anulan
+                      if(mcurrent_Ft<=toler)
+                        {
+                            mcurrent_Ft = 0.00;
+                            delta_lamda_a  = delta_lamda[0];  
+                            delta_lamda_b  = delta_lamda[1];    
+                            delta_lamda_c  = delta_lamda[2];                             
+                            break;
+                        }
+                       else 
+                       {
+                                            
+                          CalculateEquivalentUniaxialStress(StressVector, norma);        
+                  
+                          residual[0] = mMultisurface_Platicity_Yield[0];
+                          residual[1] = mMultisurface_Platicity_Yield[1];
+                          residual[2] = mMultisurface_Platicity_Yield[2];
+                          //KRATOS_WATCH(mMultisurface_Platicity_Yield) 
+                       
+         residual[0] =  residual[0] - delta_lamda_a*( 4.00 * G / 3.00 + K ) - delta_lamda_b*( -2.00 * G / 3.00 + K ) - delta_lamda_c*( -2.00 * G / 3.00 + K );   
+         residual[1] =  residual[1] - delta_lamda_a*(-2.00 * G / 3.00 + K ) - delta_lamda_b*( 4.00  * G / 3.00 + K ) - delta_lamda_c*( -2.00 * G / 3.00 + K );   
+         residual[2] =  residual[2] - delta_lamda_a*(-2.00 * G / 3.00 + K ) - delta_lamda_b*( -2.00 * G / 3.00 + K ) - delta_lamda_c*( 4.00  * G / 3.00 + K );         
+         norma      =  norm_2(residual); 
+         //KRATOS_WATCH(residual)  
+                           //KRATOS_WATCH(norma)
+                        }
+                      }
+
+		     ///* Updating Stress  
+                     //if( delta_lamda[0]< 0.00 ) { delta_lamda[0]=0.00; }
+                     //if( delta_lamda[1]< 0.00 ) { delta_lamda[1]=0.00; }  
+
+                     if(mcurrent_Ft <= 0.00) 
+                        {
+                           Result[0] = 0.00;
+                           Result[1] = 0.00;
+                           Result[2] = 0.00;
+                        }
+                     else 
+                      {
+          Result[0] = Result[0] - delta_lamda_a*( 4.00  * G / 3.00 + K ) - delta_lamda_b*( -2.00  * G / 3.00 + K ) - delta_lamda_c*( -2.00  * G / 3.00 + K );
+          Result[1] = Result[1] - delta_lamda_a*(-2.00 * G  / 3.00 + K ) - delta_lamda_b*( 4.00  * G / 3.00 + K )  - delta_lamda_c*( -2.00  * G / 3.00 + K );
+          Result[2] = Result[2] - delta_lamda_a*(-2.00 * G  / 3.00 + K ) - delta_lamda_b*( -2.00  * G / 3.00 + K )  - delta_lamda_c*( 4.00  * G / 3.00 + K ); 
+                       }
+
+
+      }
+
+
+     bool Isotropic_Rankine_Yield_Function::CheckValidity( array_1d<double,3>& Sigma)
+           {
+                 bool check   = false;
+                 array_1d<double,3> Aux_Sigma;
+                 Aux_Sigma[0] = fabs(Sigma[0]);
+                 Aux_Sigma[1] = fabs(Sigma[1]);
+                 Aux_Sigma[2] = fabs(Sigma[2]);
+                 double delta = (*max_element(Aux_Sigma.begin(), Aux_Sigma.end())) * 1.00E-6; 
+                 if( (Sigma[0] + delta) >= Sigma[1] && (Sigma[1] + delta ) >= Sigma[2]){ check = true;}
+                 return check;
+           }  
+
+
+
 
 }
 
