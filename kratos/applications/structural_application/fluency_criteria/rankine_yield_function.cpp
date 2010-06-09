@@ -157,7 +157,8 @@ namespace Kratos
 	  {
 	  }
 
-          void Rankine_Yield_Function::ReturnMapping(const Vector& StressVector, 
+          void Rankine_Yield_Function::ReturnMapping(const Vector& StressVector,
+            const Vector& StrainVector, 
             Vector& delta_lamda,
             array_1d<double,3>& Result)
             {              
