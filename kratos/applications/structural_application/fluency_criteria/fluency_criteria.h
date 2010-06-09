@@ -197,16 +197,24 @@ namespace Kratos
 		    */
                     
                     virtual void ReturnMapping(const Vector& StressVector, 
+                    const Vector& StrainVector, 
                     Vector& delta_lamda,
                     array_1d<double,3>& Result)
 		    {
 	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
 		    }
 
+  
+                    virtual void GetValue(double Result)
+		    {
+	              KRATOS_ERROR(std::logic_error,  "GetValue", "");
+		    }
+
                     virtual void GetValue(Vector& Result)
 		    {
 	              KRATOS_ERROR(std::logic_error,  "GetValue", "");
 		    }
+                  
 
                     virtual void Finalize()
 		     {
