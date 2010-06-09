@@ -73,16 +73,233 @@ namespace Kratos
     
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
+
+
+      	void Tresca_Yield_Function::InitializeMaterial(const Properties& props)
+	{
+               mprops                 =  &props;
+               msigma_y               = (*mprops)[YIELD_STRESS];
+               miso_hardening_modulus = (*mprops)[ISOTROPIC_HARDENING_MODULUS];
+               maccumulated_plastic_strain_current = 0.00;  
+               maccumulated_plastic_strain_old     = 0.00;  
+	}
+  
+ 
+
+      void Tresca_Yield_Function::UpdateVariables( const Vector& Variables)
+         {
+               mcurrent_sigma_y = msigma_y;   
+         }
+
+      void Tresca_Yield_Function::GetValue(Vector& Result)
+	{}	    
+	             
+      void Tresca_Yield_Function::Finalize() 
+          {
+               
+                msigma_y  = mcurrent_sigma_y;  
+          }
+		     
+
       void Tresca_Yield_Function::CalculateEquivalentUniaxialStress(
             const Vector& StressVector,double& Result)
-            {}  
+            {
+
+ 	  array_1d<double,3> Trial_Stress_Vector = ZeroVector(3);
+          CalculatePrincipalStressVector(StressVector, Trial_Stress_Vector);  
+          //double p = (Trial_Stress_Vector[0] + Trial_Stress_Vector[1] + Trial_Stress_Vector[2])/3.00;
+          //Trial_Stress_Vector[0]-= p;  
+          //Trial_Stress_Vector[1]-= p;
+          //Trial_Stress_Vector[2]-= p;         
+  
+          mMultisurface_Platicity_Sigma       = ZeroVector(3);
+          mMultisurface_Platicity_Yield       = ZeroVector(3);
+ 
+	  ///* Multisurface Representation 
+	  mMultisurface_Platicity_Sigma[0]    =   Trial_Stress_Vector[0] - Trial_Stress_Vector[2]; 
+	  mMultisurface_Platicity_Yield[0]    =   mMultisurface_Platicity_Sigma[0] - mcurrent_sigma_y;
+
+          mMultisurface_Platicity_Sigma[1]    =   Trial_Stress_Vector[1] - Trial_Stress_Vector[2]; 
+	  mMultisurface_Platicity_Yield[1]    =   mMultisurface_Platicity_Sigma[1] - mcurrent_sigma_y; 
+
+
+          mMultisurface_Platicity_Sigma[2]    =   Trial_Stress_Vector[0] - Trial_Stress_Vector[1]; 
+	  mMultisurface_Platicity_Yield[2]    =   mMultisurface_Platicity_Sigma[2] - mcurrent_sigma_y; 
+ 
+
+           Result = (*max_element(mMultisurface_Platicity_Yield.begin(), mMultisurface_Platicity_Yield.end()));                       
+
+           }  
+
+          void Tresca_Yield_Function::ReturnMapping(const Vector& StressVector,
+                         const Vector& StrainVector,
+                         Vector& delta_lamda,
+                         array_1d<double,3>& Result)
+
+
+           {
+
+
+                double p_trial = 0.00;  
+                Matrix Sigma_Tensor        = ZeroMatrix(3,3);
+                State_Tensor(StressVector, Sigma_Tensor);
+                p_trial = (Sigma_Tensor(0,0) + Sigma_Tensor(1,1) + Sigma_Tensor(2,2))/3.00 ;    
+                array_1d<double,3> Trial_Stress_Vector     = ZeroVector(3); 
+                array_1d<double,3> Aux_Trial_Stress_Vector = ZeroVector(3);   
+                CalculatePrincipalStressVector(StressVector, Trial_Stress_Vector);  
+                Trial_Stress_Vector[0] = Trial_Stress_Vector[0] - p_trial;
+                Trial_Stress_Vector[1] = Trial_Stress_Vector[1] - p_trial;
+                Trial_Stress_Vector[2] = Trial_Stress_Vector[2] - p_trial; 
+                noalias(Aux_Trial_Stress_Vector) = Trial_Stress_Vector;               
+
+                ///* return to main plane
+                One_Vector_Return_Mapping_To_Main_Plane(StressVector, delta_lamda,  Trial_Stress_Vector);
+                  
+                ///*check validty
+                bool check = false;   
+                check = CheckValidity(Trial_Stress_Vector);
+                if( check==false)
+                 {
+                     ///*return to corner
+                     noalias(Trial_Stress_Vector) =  Aux_Trial_Stress_Vector;
+                     double proof = Trial_Stress_Vector[0] + Trial_Stress_Vector[2] - 2.00 * Trial_Stress_Vector[1];
+                     if(proof > 0.00 ) {mCases = right;} else {mCases = left;}
+                     Two_Vector_Return_Mapping_To_Corner(StressVector,delta_lamda,  Trial_Stress_Vector);                        
+                  }
+
+                   Result[0] =  Trial_Stress_Vector[0] +  p_trial;    
+                   Result[1] =  Trial_Stress_Vector[1] +  p_trial;
+                   Result[2] =  Trial_Stress_Vector[2] +  p_trial;
+ 
+           }   
+
       
-	void Tresca_Yield_Function::InitializeMaterial(const Properties& props)
-	{
-               mprops = &props;
-	}
+        void Tresca_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane
+           (const Vector& StressVector, 
+            Vector& delta_lamda ,array_1d<double,3>& Result) 
+           {
+                double E             = (*mprops)[YOUNG_MODULUS];
+	        double NU            = (*mprops)[POISSON_RATIO];             
+                double G             = 0.5*E / (1.00 + NU);
+                double H             =  miso_hardening_modulus;           
+		unsigned int iter = 0;     
+                double  toler    = 1E-6; 
+		double norma      = 1.00;  
+                double d          = 0.00;   
+                double residual   = 0.00;            
+		delta_lamda       = ZeroVector(1);
+		mcurrent_sigma_y  = msigma_y;
+                
+
+                while(iter++<=100 && norma>= toler) 
+		  {
+
+                      maccumulated_plastic_strain_current = maccumulated_plastic_strain_old; 
+                      residual = this->mMultisurface_Platicity_Yield[0];
+                      d = -4.00 * G - H;
+                      delta_lamda[0] = delta_lamda[0] - residual/d;
+                      maccumulated_plastic_strain_current+= delta_lamda[0]; 
+
+                      ///* update teh current values
+                      mcurrent_sigma_y+= H*delta_lamda[0]; //KRATOS_WATCH(mcurrent_sigma_y); 
+                      //mcurrent_sigma_y= (*mprops)[YIELD_STRESS] + H * maccumulated_plastic_strain_current; //KRATOS_WATCH(mcurrent_sigma_y);
+  
+                     CalculateEquivalentUniaxialStress(StressVector, norma); 
+                     residual =  norma - 4.00  * G * delta_lamda[0];
+                     norma    = fabs(residual);                          
+                  }
+
+                 Result[0] = Result[0] - 2.00  * G * delta_lamda[0];
+                 Result[2] = Result[2] + 2.00  * G * delta_lamda[0];
+                    
+         }
+ 
+
+        void Tresca_Yield_Function::Two_Vector_Return_Mapping_To_Corner
+           (const Vector& StressVector, 
+            Vector& delta_lamda ,array_1d<double,3>& Result) 
+           {
+                double E          = (*mprops)[YOUNG_MODULUS];
+	        double NU         = (*mprops)[POISSON_RATIO];             
+                double G          = 0.5*E / (1.00 + NU);
+                double H          =  miso_hardening_modulus;          
+                int singular      = 0; 
+		unsigned int iter = 0;     
+                double  toler     = 1E-6; 
+		double norma      = 1.00;   
+                delta_lamda       = ZeroVector(2);
+                mcurrent_sigma_y  = msigma_y; 
+		Vector residual   = ZeroVector(2);
+                Matrix d          = ZeroMatrix(2,2);  
+                Matrix d_inv      = ZeroMatrix(2,2);   
+               
+                switch (mCases)
+                      {
+                         case right:
+                            { 
+                                residual[0] = this->mMultisurface_Platicity_Yield[0];   
+                                residual[1] = this->mMultisurface_Platicity_Yield[2];   
+                                d(0,0) = -4.00 * G - H; d(0,1) = -2.00 * G - H;  
+                                d(1,0) = -2.00 * G - H; d(1,1) = -4.00 * G - H; 
+                                singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv); 
+                                while(iter++<=100 && norma>= toler) 
+		                 {
+                                    maccumulated_plastic_strain_current = maccumulated_plastic_strain_old;
+                                    noalias(delta_lamda) =  delta_lamda - Vector(prod(d_inv, residual));
+                                    maccumulated_plastic_strain_current+= delta_lamda[0] + delta_lamda[1];
+                                    mcurrent_sigma_y += H * (delta_lamda[0] + delta_lamda[1]);  
+                                    CalculateEquivalentUniaxialStress(StressVector, norma); 
+                                    residual[0] = (this->mMultisurface_Platicity_Yield[0]) - 2.00 * G * (2.00 * delta_lamda[0] +  delta_lamda[1] );     
+                                    residual[1] = (this->mMultisurface_Platicity_Yield[2]) - 2.00 * G * (delta_lamda[0]  + 2.00 * delta_lamda[1] );
+                                    norma    = norm_2(residual);    
+                                  }
+ 
+                              Result[0] = Result[0] - 2.00  * G * ( delta_lamda[0] + delta_lamda[1]) ;
+                              Result[1] = Result[1] + 2.00  * G * delta_lamda[1]; 
+                              Result[2] = Result[2] + 2.00  * G * delta_lamda[0];  
+                              break;  
+                          }
+
+                         case left:
+                            { 
+                                residual[0] = this->mMultisurface_Platicity_Yield[0];   
+                                residual[1] = this->mMultisurface_Platicity_Yield[1];   
+                                d(0,0) = -4.00 * G - H; d(0,1) = -2.00 * G - H;  
+                                d(1,0) = -2.00 * G - H; d(1,1) = -4.00 * G - H; 
+                                singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv); 
+                                while(iter++<=100 && norma>= toler) 
+		                 {
+                                    maccumulated_plastic_strain_current = maccumulated_plastic_strain_old;
+                                    noalias(delta_lamda) =  delta_lamda - Vector(prod(d_inv, residual));
+                                    maccumulated_plastic_strain_current+= delta_lamda[0] + delta_lamda[1];
+                                    mcurrent_sigma_y += H * (delta_lamda[0] + delta_lamda[1]);  
+                                    CalculateEquivalentUniaxialStress(StressVector, norma); 
+                                    residual[0] = (this->mMultisurface_Platicity_Yield[0]) - 2.00 * G * (2.00 * delta_lamda[0] +  delta_lamda[1] );     
+                                    residual[1] = (this->mMultisurface_Platicity_Yield[1]) - 2.00 * G * (delta_lamda[0]  + 2.00 * delta_lamda[1] );
+                                    norma    = norm_2(residual);    
+                                  }
+ 
+                              Result[0] = Result[0] - 2.00  * G * delta_lamda[0];
+                              Result[1] = Result[1] - 2.00  * G * delta_lamda[1]; 
+                              Result[2] = Result[2] + 2.00  * G * (delta_lamda[0] + delta_lamda[1]);  
+                              break;  
+                          } 
+                }
+           }
+
+
+     bool Tresca_Yield_Function::CheckValidity( array_1d<double,3>& Sigma)
+           {
+                 bool check   = false;
+                 array_1d<double,3> Aux_Sigma;
+                 Aux_Sigma[0] = fabs(Sigma[0]);
+                 Aux_Sigma[1] = fabs(Sigma[1]);
+                 Aux_Sigma[2] = fabs(Sigma[2]);
+                 double delta = (*max_element(Aux_Sigma.begin(), Aux_Sigma.end())) * 1.00E-6; 
+                 if( (Sigma[0] + delta) >= Sigma[1] && (Sigma[1] + delta ) >= Sigma[2]){ check = true;}
+                 return check;
+           }  
+
 
 
 	void Tresca_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
@@ -111,7 +328,6 @@ namespace Kratos
                       Result = 0.50*max; // - msigma_max; 
                       //KRATOS_WATCH(Result)  
            }
-	
 
 
 	void Tresca_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants(
@@ -148,6 +364,8 @@ namespace Kratos
                       //KRATOS_WATCH(Result)
 
 	 }
+
+
 
 
 	void Tresca_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
@@ -203,8 +421,6 @@ namespace Kratos
                                {
                                  noalias(DerivateFluencyCriteria) = DerivateFluencyCriteria + a(i)*C(i); 
                                }
-
-
 
 	}
 
