@@ -109,12 +109,15 @@ namespace Kratos
 		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
 
                     void UpdateVariables(const Vector& Variables); 
+                    //void UpdateVariables(const double Variables);
 
-                    void ReturnMapping(const Vector& StressVector, 
+                    void ReturnMapping(const Vector& StressVector,
+                    const Vector& StrainVector,  
                     Vector& delta_lamda,
                     array_1d<double,3>& Result);
 
-                    void GetValue(Vector& Result);
+                    void GetValue(double Result);
+                    void GetValue(Vector& Result); 
                      
                     void Finalize();  
 		    
@@ -122,11 +125,20 @@ namespace Kratos
       
 	protected:
 
-	  array_1d<double, 3> mFt;
-          array_1d<double, 3> mcurrent_Ft;
+	  double mFt;
+          double mcurrent_Ft;
           double mH; 
           bool   minitialize;     
-           
+          enum   Cases {right, left};
+          Cases  mCases; 
+        
+       private:
+        
+        void One_Vector_Return_Mapping_To_Main_Plane(const Vector& StressVector, Vector& delta_lamda,  array_1d<double,3>& Result); 
+        void Two_Vector_Return_Mapping_To_Corner (const Vector& StressVector, Vector& delta_lamda ,array_1d<double,3>& Result);        
+        void Three_Vector_Return_Mapping_To_Apex (const Vector& StressVector, Vector& delta_lamda ,array_1d<double,3>& Result);  
+        bool CheckValidity( array_1d<double,3>&  Sigma); 
+   
            
 
     };
