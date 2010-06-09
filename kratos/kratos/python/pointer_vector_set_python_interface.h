@@ -231,8 +231,8 @@ namespace Kratos
         static void 
         set_item(TContainerType& container, index_type i, data_type /*const&*/ v)
         { 
-//            container[i] = v;
-			 container(i) = v;
+//			 container(i) = v;
+		container.insert(container.begin(), v);
         }
 
         static void 
