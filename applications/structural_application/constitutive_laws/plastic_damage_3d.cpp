@@ -260,8 +260,9 @@ void PlasticDamage3D::FinalizeSolutionStep( const Properties& props,
         Variables[2] = mFt[2];
         Variables[3] =  mlength;
    
+        mpFluencyCriteria_1->Finalize();   
 	mpFluencyCriteria_1->UpdateVariables(Variables); 
-        mpFluencyCriteria_1->Finalize();      
+   
         
         
         Matrix Aux_V         = ZeroMatrix(3,3);  
@@ -419,7 +420,7 @@ void PlasticDamage3D::CalculateStress(const Vector& StrainVector,
 	    IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(PrincipalStress , Order);
 
             ///* Regresando ala superficie de fluencia 
-            mpFluencyCriteria_1->ReturnMapping(ElasticStress, delta_gamma, Sigma);
+            mpFluencyCriteria_1->ReturnMapping(ElasticStress, ElasticStrain, delta_gamma, Sigma);
               
             ///* Calculando las tensiones elsaticas
 	    AssembleUpdateStressAndStrainTensor(Sigma, StrainVector, Order, ElasticStrain, ElasticStress); 
