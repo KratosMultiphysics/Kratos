@@ -108,13 +108,34 @@ namespace Kratos
 
 		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
 
+                    void ReturnMapping(const Vector& StressVector,
+                         const Vector& StrainVector,   
+                         Vector& delta_lamda,
+                         array_1d<double,3>& Result);
+		    
+ 		   void UpdateVariables( const Vector& Variables);
+                   void GetValue(Vector& Result);
+		   void Finalize();
+		   
 
 		    
 
 	protected:
 
-	  unsigned int mdim;
-          double       msigma_max;   
+	  //unsigned int mdim;
+          double  msigma_y;   
+          double  mcurrent_sigma_y;     
+          double  miso_hardening_modulus;    
+          enum    Cases {right, left};
+          Cases   mCases;
+
+        private:
+
+        void One_Vector_Return_Mapping_To_Main_Plane(const Vector& StressVector, Vector& delta_lamda,  array_1d<double,3>& Result); 
+        void Two_Vector_Return_Mapping_To_Corner (const Vector& StressVector, Vector& delta_lamda ,array_1d<double,3>& Result);           
+        bool CheckValidity(array_1d<double,3>&  Sigma); 
+         
+
 
           
 
