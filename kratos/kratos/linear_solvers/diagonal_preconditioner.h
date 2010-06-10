@@ -151,8 +151,8 @@ namespace Kratos
       */
       void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) 
 	{
-	  mDiagonal.resize(TSparseSpaceType::Size(rX));
-	  mTemp.resize(TSparseSpaceType::Size(rX));
+	  mDiagonal.resize(int(TSparseSpaceType::Size(rX)));
+	  mTemp.resize(int(TSparseSpaceType::Size(rX)));
 
 	  int i;
 
@@ -160,7 +160,7 @@ namespace Kratos
 // 	  const DataType one = DataType(1.00);
 
 	  #pragma omp parallel for private(i)
-	  for(i = 0 ; i < rA.size1() ; ++i)
+	  for(i = 0 ; i < int(rA.size1()) ; ++i)
 	  {
 		double diag_Aii = rA(i,i);
 	    if(diag_Aii != zero)
@@ -187,7 +187,7 @@ namespace Kratos
       {
 	int i;
 	#pragma omp parallel for private(i)
-	for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
 	TSparseSpaceType::Mult(rA,mTemp, rY);
 	ApplyLeft(rY);
@@ -197,7 +197,7 @@ namespace Kratos
       {
 	int i;
 	#pragma omp parallel for private(i)
-	for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 	    mTemp[i] = rX[i] * mDiagonal[i];
 	TSparseSpaceType::TransposeMult(rA,mTemp, rY);
 	ApplyRight(rY);
@@ -207,7 +207,7 @@ namespace Kratos
 	{
 		int i;
 		#pragma omp parallel for private(i)
-	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	  for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
@@ -217,7 +217,7 @@ namespace Kratos
 	{
 int i;
 	#pragma omp parallel for private(i)
-	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	  for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
@@ -233,7 +233,7 @@ int i;
 	{
 int i;
 	#pragma omp parallel for private(i)
-	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	  for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
@@ -243,7 +243,7 @@ int i;
 	{
 int i;
 	#pragma omp parallel for private(i)
-	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	  for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
@@ -255,7 +255,7 @@ int i;
 
 int i;
 	#pragma omp parallel for private(i)
-	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	  for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 /*	    if(mDiagonal[i] != zero)*/
 	      rX[i] /= mDiagonal[i];
 	  
@@ -266,7 +266,7 @@ int i;
 	{
 	int i;
 	#pragma omp parallel for private(i)
-	  for(i = 0 ; i < TSparseSpaceType::Size(rX) ; ++i)
+	  for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
 	    rX[i] *= mDiagonal[i];
 	  
 	  return rX;
