@@ -79,6 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_compressible.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_crni_scheme_compressible.h"
 #include "custom_strategies/convergencecriterias/UP_criteria.h"
+#include "custom_strategies/convergencecriterias/vel_pr_criteria.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_comp_strategy.h"
 #include "custom_strategies/strategies/newton_raphson_strategy.h"
@@ -223,6 +224,10 @@ namespace Kratos
 			         boost::noncopyable >
 			        ("UPCriteria", init< double, double, double, double>() );
 
+                        class_< VelPrCriteria< SparseSpaceType, LocalSpaceType >,
+                                bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
+			         boost::noncopyable >
+			        ("VelPrCriteria", init< double, double, double, double>() );
 
         		   class_< ResidualBasedLagrangianMonolithicScheme<SparseSpaceType,LocalSpaceType>,
         			   bases< ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType,LocalSpaceType> >,  boost::noncopyable >
