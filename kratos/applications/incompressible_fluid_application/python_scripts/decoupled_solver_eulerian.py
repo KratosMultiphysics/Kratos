@@ -76,12 +76,12 @@ class DecoupledSolver:
                                                      5000,pPrecond)
         
         #definition of the convergence criteria
-##	The argument order: VelRatioTolerance;	VelAbsTolerance;
-##        PrsRatioTolerance; PrsAbsTolerance;
-        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-3,1e-7)
-       # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
+        self.rel_vel_tol = 1e-5
+        self.abs_vel_tol = 1e-7
+        self.rel_pres_tol = 1e-5
+        self.abs_pres_tol = 1e-7
 
-        self.max_iter = 10
+        self.max_iter = 20
                             
         #default settings
         self.echo_level = 0
@@ -103,7 +103,7 @@ class DecoupledSolver:
         # 2: divergence-free condition imposed by the full divergence operator
 
         # inexact Newton iterations (to use, call self.UseInexactNewtonScheme())
-        self.use_inexact_newton=False
+        self.use_inexact_newton=True
         self.IN_min_tol = self.linear_tol
         self.IN_max_tol=0.1
         self.IN_gamma=0.9
@@ -111,6 +111,9 @@ class DecoupledSolver:
     #######################################################################
     def Initialize(self):
         #creating the solution strategy
+
+        self.conv_criteria = VelPrCriteria(self.rel_vel_tol,self.abs_vel_tol,\
+                                        self.rel_pres_tol,self.abs_pres_tol)
 
         self.builder_and_solver = PressureSplittingBuilderAndSolver\
                                   (self.velocity_linear_solver,\
