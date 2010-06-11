@@ -200,7 +200,7 @@ namespace Kratos
         mmaxfriction_angle       = (*mpProperties)[MAX_FRICTION_INTERNAL_ANGLE]*PI/180.00;
         mmaxdilatancy_angle      = (*mpProperties)[MAX_DILATANCY_ANGLE]*PI/180.00;
         mcohesion                = (*mpProperties)[FC]/(2.00*tan(mmaxfriction_angle/2.00 + PI/4.00));
-        mlength                  = 1.1283791670955 * sqrt(fabs(geom.Area())); ///*  ( 4 * A / Pi ) ^( 1/ 2 )  
+        mlength                  = 1.1283791670955 * sqrt(fabs(geom.Area())); ///  ( 4 * A / Pi ) ^( 1/ 2 )  
 
         mFt[0]                   = (*mpProperties)[FT]; 
         mFt[1]                   = (*mpProperties)[FT];         
@@ -297,7 +297,7 @@ void PlasticDamage2D::FinalizeSolutionStep( const Properties& props,
 void PlasticDamage2D::CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& C)
 { 
 
-    ///* plane strain and axial symmetric
+    /// plane strain and axial symmetric
     double c  =  mE / ((1.00 + mNU)*(1.00-2.00*mNU));
     double c1 =  (1.00 - mNU) * c;
     double c2 =  mNU * c ;    
@@ -315,13 +315,13 @@ void PlasticDamage2D::CalculateElasticMatrix(boost::numeric::ublas::bounded_matr
 
 void PlasticDamage2D::CalculateElasticStress(array_1d<double,4>& Strain, array_1d<double,4>& Stress)
 {
-///* plane strain and axial symmetric 
+/// plane strain and axial symmetric 
 /*boost::numeric::ublas::bounded_matrix<double,4,4> C;
 CalculateElasticMatrix(C); 
 noalias(Stress) = prod(C, Strain);
 KRATOS_WATCH(Stress)
 */
-///* Owen
+/// Owen
 double G          = 0.5*mE / (1.00 + mNU);
 double K          = mE / (3.00 * (1.00-2.00*mNU) );
 double vol_strain = Strain[0] + Strain[1] + Strain[3];
@@ -355,7 +355,7 @@ if (calculate_tangent_flag==true){CalculateStressAndTangentMatrix(StressVector,S
 void PlasticDamage2D::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& ConstitutiveMatrix)
 {
 
-  ///* plane strain and axial symmetric  
+  /// plane strain and axial symmetric  
   ConstitutiveMatrix.resize(3,3, false);
   double  c1 = mE*(1.00-mNU)/((1.00 + mNU)*(1.00-2.00*mNU));
   double  c2 = c1*mNU/(1.00 - mNU);
@@ -384,46 +384,46 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
         StressVector                         = ZeroVector(3); 
  
         
-	///* calculating elastic strain
-        ///* plane strain and axial symmetric 
+	/// calculating elastic strain
+        /// plane strain and axial symmetric 
 	StrainVector_aux[0] =  StrainVector[0];
 	StrainVector_aux[1] =  StrainVector[1];
 	StrainVector_aux[2] =  StrainVector[2];
 	StrainVector_aux[3] =  mcurrent_plastic_strain[3];   // et = ep; ez elastico siempre tiene que ser igual a cero 
 
-        ///* The elastic strain
+        /// The elastic strain
 	noalias(ElasticStrain) = StrainVector_aux - mcurrent_plastic_strain;
 
-	///*calculating elastic stress
+	/// calculating elastic stress
 	CalculateElasticStress(ElasticStrain, ElasticStress);
 
 
-        ///* Comprobado criterio de fluencia   
+        /// Comprobado criterio de fluencia   
         mpFluencyCriteria->CalculateEquivalentUniaxialStress(ElasticStress, ElasticDomain_1); 
         mpFluencyCriteria_Traction->CalculateEquivalentUniaxialStress(ElasticStress, ElasticDomain_2);        
 
 
-        ///* Spectral Descomposition 
+        /// Spectral Descomposition 
         Compute_Principal_Stress(ElasticStress);
         array_1d<double, 3 > PrincipalStress;  
         array_1d<unsigned int, 3 > Order;
 
-	///* Guardando el orden de los cambios
+	/// Guardando el orden de los cambios
 	IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(PrincipalStress , Order);
 	  
-        ///* Casos 
-        ///* Traccion Pura             
+        /// Casos 
+        /// Traccion Pura             
         if( (PrincipalStress[0]>=0)  &&  (PrincipalStress[1]>=0) && (PrincipalStress[2]>=0) )
 	{
 	  mCase = Tracc_Pura;
 	}  
-        ///* Compresion Pura 
+        /// Compresion Pura 
         else if( (PrincipalStress[0]<=0)  &&  (PrincipalStress[1]<=0) && (PrincipalStress[2]<=0) )
 	{
 	  mCase =  Tracc_Pura; //Comp_Pura;
 	}   
-	///* Mixto 
-        ///* El hecho de que el estado sea mixto no indica que las funciones de ambas suerficies sean activas  
+	/// Mixto 
+        /// El hecho de que el estado sea mixto no indica que las funciones de ambas suerficies sean activas  
        else { 
              mCase = Tracc_Pura;
             }
@@ -432,7 +432,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
         switch(mCase)
 	      {
 
-              ///* None Todo es Elastico 
+              /// None Todo es Elastico 
 	      case None:
                {       
                  break;
@@ -441,7 +441,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 	      case Tracc_Pura:
 	      {
 
-              ///* Caso elastico 
+              /// Caso elastico 
 	      if( (ElasticDomain_2 <= toler ) )
 		{
 		  noalias(mcurrent_Ft)             = mFt;
@@ -484,8 +484,8 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 	      Vector delta_gamma;
 	      Vector residual;     
 
-	      ///* WARNING = Si el hablandamiento es no lineal usar newton Rapshon.  
-	      ///* Una superficie activa
+	      /// WARNING = Si el hablandamiento es no lineal usar newton Rapshon.  
+	      /// Una superficie activa
 	      if(mactive_surface.size()==1)
 	      {
                  iter  = 0;     
@@ -500,13 +500,13 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
                     delta_gamma[0]  += (mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[pos]) / (4.00 * G /3.00 + K - H ); 
                     //if(delta_gamma[0] < 0.00) {delta_gamma[0] = 0.00; }   
  
-                     ///* Updatinf mFt
+                     /// Updatinf mFt
                     if(mcurrent_Ft[pos] <= 0.00) { mcurrent_Ft[pos] = mFt[pos];}
                     else {mcurrent_Ft[pos] = mFt[pos] - H * delta_gamma[0];}                          
 
  
-                    ///* comprobando si mft se cumplio   
-                                   ///* comprobando si mft se cumplio   
+                    /// comprobando si mft se cumplio   
+                                   /// comprobando si mft se cumplio   
 		    if(mcurrent_Ft[pos] <= 0.00) 
                        {
 		           mcurrent_Ft[pos] = 0.00;
@@ -525,7 +525,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
                     }
  
                   }   
-                     ///* Updating Stress  
+                     /// Updating Stress  
 		    if(mcurrent_Ft[0] == 0.0) 
                     {
 		    Sigma[0] = 0.00;
@@ -540,7 +540,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
                     }      
               } 
 
-	      ///*dos superficies activas    
+	      /// dos superficies activas    
 	      if(mactive_surface.size()==2)
 	      {
               int singular         =  0;    
@@ -578,11 +578,11 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 		      delta_gamma_a = delta_gamma[0];
 		      delta_gamma_b = delta_gamma[1];
                      
-                       ///* Updatinf mFt
+                       /// Updatinf mFt
                        mcurrent_Ft[0] = mFt[0] - H * delta_gamma[0];   
                        mcurrent_Ft[1] = mFt[1] - H * delta_gamma[1]; 
                        
-                       ///* comprobando si mft se cumplio   
+                       /// comprobando si mft se cumplio   
 		       if(mcurrent_Ft[0] <= 0.00) {mcurrent_Ft[0] = 0.00; }
                        if(mcurrent_Ft[1] <= 0.00) {mcurrent_Ft[1] = 0.00; } 
                         
@@ -603,8 +603,8 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 
                        }
 
-		      ///* Updating Stress
-                     ///* Updating Stress  
+		      /// Updating Stress
+                     /// Updating Stress  
                      Sigma[0] = PrincipalStress[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - delta_gamma_b*( -2.00  * G / 3.00 + K );  
                      if(mcurrent_Ft[0] <= 0.00) {Sigma[0] = 1E-14;} 
                      Sigma[1] = PrincipalStress[1] - delta_gamma_a*(-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K );   
@@ -643,7 +643,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 	      delta_gamma_b = delta_gamma[1];
 	      delta_gamma_c = delta_gamma[2];
 
-              ///* Updating Stress 
+              /// Updating Stress 
               Sigma[0] = PrincipalStress[0] - delta_gamma_a*( 4.00  * G / 3.00 + K ) - (delta_gamma_b + delta_gamma_c) *( -2.00  * G / 3.00 + K );    
               Sigma[1] = PrincipalStress[1] - (delta_gamma_a + delta_gamma_c) * (-2.00 * G  / 3.00 + K ) - delta_gamma_b*( 4.00  * G / 3.00 + K ); 
 	      Sigma[2] = PrincipalStress[2] - (delta_gamma_a + delta_gamma_b) * (-2.00 * G / 3.00 + K )  - delta_gamma_c*( 4.00  * G / 3.00 + K );  
@@ -651,11 +651,11 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 	      } 
 
                /*
-	      ///* Spectral Descomposition 
+	      /// Spectral Descomposition 
 	      Compute_Principal_Stress(ElasticStress);
 	      //array_1d<double, 3 > PrincipalStress;  
 
-	      ///* Guardando el orden de los cambios
+	      /// Guardando el orden de los cambios
 	      IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(PrincipalStress , Order);
                */
               
@@ -663,17 +663,17 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 	      noalias(ElasticStress) = Aux_Elastic_Stress;
               
 
-	      ///* La cohesion disminuiria en teoria
-	      ///* General evoluation of accumulated hardening  
+	      /// La cohesion disminuiria en teoria
+	      /// General evoluation of accumulated hardening  
 	      mcurrent_efective_plastic_strain = mefective_plastic_strain + norm_1(delta_gamma); 
 
-	      ///* aculated Von misses plastic
+	      /// aculated Von misses plastic
               //double aux_var = sqrt(delta_gamma_a*delta_gamma_a + delta_gamma_b * delta_gamma_b + delta_gamma_c * delta_gamma_c);
 	      //mcurrent_efective_plastic_strain = mefective_plastic_strain + (2.00 / sqrt(3.00) ) * aux_var;
  
 
-	      ///* Update Cohesion and H
-	      ///*WARNING = Using linear softening for Cohesion
+	      /// Update Cohesion and H
+	      ///WARNING = Using linear softening for Cohesion
               /*
 	      double cohesion0  = (*mpProperties)[FC]/(2.00*tan(mmaxfriction_angle/2.00 + PI/4.00));
 	      double Euc        =  2.00 * (*mpProperties)[FRACTURE_ENERGY]/ ( (*mpProperties)[FT] * mlength) ;
@@ -691,7 +691,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
            }
               case Comp_Pura:
 		      {
-                       ///* Caso elastico 
+                       /// Caso elastico 
 	               if( (ElasticDomain_1 <= toler ) )
 		        {
 			  noalias(mcurrent_Ft)             = mFt;
@@ -711,20 +711,20 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
                        array_1d<double,3> Sigma = ZeroVector(3);           
                        array_1d<double,4> Aux_Elastic_Stress = ElasticStress; 
                      
-		      ///* identufy possible edge return:either right or left of the main plain             
+		      /// identufy possible edge return:either right or left of the main plain             
 		      const bool edges = ReturnToEdges(Aux_Elastic_Stress);
 
-		      ///* One Vector retutn mapping to main plane 
+		      /// One Vector retutn mapping to main plane 
 		      ReturnMappingToMainPlane(ElasticStress, PrincipalStress, Order,  Sigma);
 
-		      ///*check the validity of main plane return
+		      ///check the validity of main plane return
 		      bool check = CheckValidity(Sigma); 
 		      if(check==true)
 		      {
 		      AssembleUpdateStressAndStrainTensor(Sigma, StrainVector_aux, Order, ElasticStrain, Aux_Elastic_Stress); 
 		      noalias(ElasticStress) = Aux_Elastic_Stress; 
 		      }               
-		      ///* Return to the edges
+		      /// Return to the edges
 		      else
 		      {
 
@@ -733,7 +733,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 		      //KRATOS_WATCH(Sigma)  
 		      TwoVectorReturnToEdges(Aux_Elastic_Stress, PrincipalStress, Sigma,  Order, edges);
 		      check = CheckValidity(Sigma);
-		      ///* Solo ira al apex si todas las tensiones son positivas
+		      /// Solo ira al apex si todas las tensiones son positivas
 		      //if(Sigma[0] <=  0.00 or Sigma[1] <= 0.00 or Sigma[2] <=  0.00) { check = true;}                                    
 		      //if(check==true) 
 		      {
@@ -749,7 +749,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 
               case Mixto:
                          {
-                           ///* Caso elastico 
+                           /// Caso elastico 
 	             if( (ElasticDomain_1 <= toler && ElasticDomain_2<= toler ) )
 		            {
 			      noalias(mcurrent_Ft)             = mFt;
@@ -813,20 +813,20 @@ const identity_matrix<double> I (3);
 
 //KRATOS_WATCH(order) 
 
-///* Updating the  elastic stress tensor
+/// Updating the  elastic stress tensor
 for(unsigned int i=0; i<3; i++)
 {                     
 noalias(StressTensor) = StressTensor + Sigma[i] * Matrix(outer_prod(mEigenVectors[order[i]],  mEigenVectors[order[i]]));
 } 
                           
-///* Warning Solo 2D
+/// Warning Solo 2D
 ElasticStress[0] = StressTensor(0,0);  //xx
 ElasticStress[1] = StressTensor(1,1);  //yy
 ElasticStress[2] = StressTensor(0,1);  //xy
 ElasticStress[3] = StressTensor(2,2);  //zz
 
 
-///* Updating the elastic tensor   
+/// Updating the elastic tensor   
 double p  = (ElasticStress[0] + ElasticStress[1] + ElasticStress[3])/3.00;  
 double G  = 0.5*mE / (1.00 + mNU);
 double K  = mE / (3.00 * (1.00-2.00*mNU) );
@@ -860,14 +860,14 @@ Tensile_Fracture_Model(ElasticStress,  mcurrent_plastic_strain);
   
   double delta = (*max_element(Aux_Sigma.begin(), Aux_Sigma.end())) * 1.00E-6; 
   /* 
-  ///* WARNING= Tolerancias pueden llevarte al apex
-  double toler = fabs(Sigma[1]-Sigma[0]); ///* Dos tensiones se igualan 
+  /// WARNING= Tolerancias pueden llevarte al apex
+  double toler = fabs(Sigma[1]-Sigma[0]); ///  Dos tensiones se igualan 
   if(toler<0.001) {Aux_Sigma[1] = Aux_Sigma[0];}
 
-  toler = fabs(Sigma[0]-Sigma[2]); ///* Dos tensiones se igualan 
+  toler = fabs(Sigma[0]-Sigma[2]); /// Dos tensiones se igualan 
   if(toler<0.001) {Aux_Sigma[0] = Aux_Sigma[2];}
 
-  toler = fabs(Sigma[2]-Sigma[1]); ///* Dos tensiones se igualan 
+  toler = fabs(Sigma[2]-Sigma[1]); /// Dos tensiones se igualan 
   if(toler<0.001) {Aux_Sigma[1] = Aux_Sigma[2];}
   */
      if( (Sigma[0] + delta) >= Sigma[1] && (Sigma[1] + delta ) >= Sigma[2]){ check = true;}
@@ -908,7 +908,7 @@ mactive_surface[0] = 0;
 
 residual = mpFluencyCriteria->mMultisurface_Platicity_Yield[0]; 
 
-///* WARNING  Aculutated von Misses or Normal
+/// WARNING  Aculutated von Misses or Normal
 double fact = 2.00 * costetha; 
 //double fact   = 1.1547005389792 * sqrt(sinphi * sinphi  + 1.00 );   
 
@@ -918,16 +918,16 @@ while(fabs(residual)>toler && iter++ < max )
     d        = -4.00 * G * ( 1.00 + (sinphi * sintetha)/3.00 ) - 4.00 * K * sinphi * sintetha - 2.00 *costetha * H * fact ;
     deltagamma     += -residual/d;
 
-    ///* check for convergence
-    ///* General evoluation of accumulated hardening  
+    /// check for convergence
+    /// General evoluation of accumulated hardening  
     mcurrent_efective_plastic_strain = mefective_plastic_strain + 2.00 * costetha * deltagamma;      
      
-    ///* aculated Von misses plastic
+    /// aculated Von misses plastic
    // mcurrent_efective_plastic_strain = mefective_plastic_strain + (2.00 * sqrt( (sinphi * sinphi + 1.00)/3.00 ) * deltagamma);
 
 
-    ///* Update Cohesion and H
-    ///*WARNING = Using linear softening for Cohesion
+    /// Update Cohesion and H
+    ///WARNING = Using linear softening for Cohesion
     
     double cohesion0  = (*mpProperties)[FC]/(2.00*tan(mmaxfriction_angle/2.00 + PI/4.00));
     double Euc        =  2.00 * (*mpProperties)[FRACTURE_ENERGY]/ ( (*mpProperties)[FT] * mlength);    
@@ -943,23 +943,23 @@ while(fabs(residual)>toler && iter++ < max )
     break; }
     
 
-    ///* Check for convergence
+    /// Check for convergence
     mpFluencyCriteria->CalculateEquivalentUniaxialStress( ElasticStress, residual);       
     //residual =mpFluencyCriteria->mMultisurface_Platicity_Yield[0];
     residual   -= (4.00 * G * ( 1.00 + (sinphi * sintetha)/3.00 ) + 4.00 * K * sinphi * sintetha) * deltagamma;
     
 
-    ///* No puede ser nunca negativo  
+    /// No puede ser nunca negativo  
     if(deltagamma < 0){ 
     KRATOS_WATCH(deltagamma)
     KRATOS_WATCH("GAMMA_GAMMA_GAMMA_GAMMA_GAMMA_GAMMA_GAMMA_GAMMA_GAMMA_GAMMA" ) }  
    }
    
    /*
-    ///* Spectral Descomposition 
+    /// Spectral Descomposition 
    Compute_Principal_Stress(ElasticStress);
    array_1d<double, 3 > PrincipalStress;  
-   ///* Guardando el orden de los cambios
+   /// Guardando el orden de los cambios
    
    IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(PrincipalStress , order);
    */
@@ -979,7 +979,7 @@ void PlasticDamage2D::IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(arr
  
 
    //noalias(PrincipalStress) = mPrincipalStress; 
-   ///* sorting
+   /// sorting
    /*sort (PrincipalStress.begin(), PrincipalStress.end()); 
    reverse(PrincipalStress.begin(),PrincipalStress.end());
    fill(order.begin(),order.end(),2);
@@ -1016,7 +1016,7 @@ void PlasticDamage2D::IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(arr
     if(PrincipalStress[0] == PrincipalStress[1]) {order[0]= 0; order[1]= 1; order[2]= 2;} 
 
 
-   ///* Evitando redondeos matematicos absurdos
+   /// Evitando redondeos matematicos absurdos
    if ( fabs(PrincipalStress[0]) < 1E-3 ) {PrincipalStress[0] = 0.00; } 
    if ( fabs(PrincipalStress[1]) < 1E-3 ) {PrincipalStress[1] = 0.00; } 
    if ( fabs(PrincipalStress[2]) < 1E-3 ) {PrincipalStress[2] = 0.00; } 
@@ -1032,18 +1032,18 @@ bool PlasticDamage2D::ReturnToEdges(const array_1d<double,4>& ElasticStress)
 {
 
     double sinphi       = sin(mmaxdilatancy_angle); 
-    bool   return_rigth = false; ///* left edges
+    bool   return_rigth = false; /// left edges
 
-    ///* Spectral Descomposition 
+    /// Spectral Descomposition 
     Compute_Principal_Stress(ElasticStress);
     array_1d<double, 3 > PrincipalStress = mPrincipalStress; 
 
-    ///* sorting
+    /// sorting
     sort (PrincipalStress.begin(), PrincipalStress.end()); 
     reverse(PrincipalStress.begin(),PrincipalStress.end());
     
     double cond = (1.00 - sinphi) * PrincipalStress[0] - 2.00 * PrincipalStress[1] + (1.00 + sinphi) * PrincipalStress[2];  
-    if(cond > 0.00) {return_rigth = true;} ///* rigth edges
+    if(cond > 0.00) {return_rigth = true;} /// rigth edges
 
     return return_rigth;  
    
@@ -1077,7 +1077,7 @@ array_1d<double,3>& Sigma, array_1d<unsigned int,3>& order, const bool& edges )
   residual[0] = mpFluencyCriteria->mMultisurface_Platicity_Yield[0]; 
   residual[1] = mpFluencyCriteria->mMultisurface_Platicity_Yield[5];
 
-  ///*left edges
+  ///left edges
   if(edges==false) 
    { residual[1] = mpFluencyCriteria->mMultisurface_Platicity_Yield[1]; 
      mactive_surface[1] = 1; 
@@ -1106,7 +1106,7 @@ double denom = 4.00 * tan2 * (*mpProperties)[FRACTURE_ENERGY] ;
 
  double H     =  -num / denom;  
 
-///* WARNING  Aculutated von Misses or Normal
+/// WARNING  Aculutated von Misses or Normal
   double fact_1 = 2.00 * costetha; 
   fact = 2.00 * H * costetha * fact_1;
   
@@ -1115,7 +1115,7 @@ double denom = 4.00 * tan2 * (*mpProperties)[FRACTURE_ENERGY] ;
   double a = 4.00 * G * ( 1.00 + (sinphi * sintetha)/3.00 ) + 4.00 * K * sinphi * sintetha;
   double b = 2.00 * G * ( 1.00 + sinphi + sintetha -(sinphi *sintetha)/3.00) + 4.00 * K * sinphi * sintetha; 
   
-  ///*left edges
+  /// left edges
   if(edges==false) {b = 2.00 * G * ( 1.00 - sinphi - sintetha -(sinphi *sintetha)/3.00) + 4.00 * K * sinphi * sintetha;}
   
   d(0,0) = -a - fact;   d(0,1) = -b - fact;
@@ -1125,17 +1125,17 @@ double denom = 4.00 * tan2 * (*mpProperties)[FRACTURE_ENERGY] ;
   singular             =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
   noalias(delta_gamma) =  delta_gamma - Vector(prod(d_inv, residual)); 
  
- ///* computing acumulated strain
+ /// computing acumulated strain
  mcurrent_efective_plastic_strain = mefective_plastic_strain + 2.00 * costetha *(delta_gamma[0] + delta_gamma[1]); 
 
- ///* aculated Von misses plastic
+ /// aculated Von misses plastic
  /*double aux_1 = 2.00 * (sinphi * sinphi + 1.00 ) * (delta_gamma[0]*delta_gamma[0] + delta_gamma[0] * delta_gamma[1] + delta_gamma[1]*delta_gamma[1]);
  double aux_2 = aux_1 + 4.00 * sinphi * delta_gamma[0] * delta_gamma[1];
  if(edges==false) {aux_2 = aux_1 - 4.00 * sinphi * delta_gamma[0] * delta_gamma[1]; }          
  mcurrent_efective_plastic_strain = mefective_plastic_strain +  sqrt( 2.00 * aux_2 / 3.00);
  */
- ///* Update Cohesion and H
- ///*WARNING
+ /// Update Cohesion and H
+ ///WARNING
   
   double cohesion0  = (*mpProperties)[FC]/(2.00*tan(mmaxfriction_angle/2.00 + PI/4.00));
   double Euc        =  2.00 * (*mpProperties)[FRACTURE_ENERGY]/ ( (*mpProperties)[FT] * mlength);        
@@ -1149,14 +1149,14 @@ double denom = 4.00 * tan2 * (*mpProperties)[FRACTURE_ENERGY] ;
   break; }
   
 
- ///* computing new residual and check for convergence
+ /// computing new residual and check for convergence
 mpFluencyCriteria->CalculateEquivalentUniaxialStress( ElasticStress, result); 
 residual[0] = (mpFluencyCriteria->mMultisurface_Platicity_Yield[mactive_surface[0]]) - a * delta_gamma[0] - b * delta_gamma[1];
 residual[1] = (mpFluencyCriteria->mMultisurface_Platicity_Yield[mactive_surface[1]]) - b * delta_gamma[0] - a * delta_gamma[1]; 
 
 norma = norm_2(residual);
 
-///* No puede ser nunca negativo  
+/// No puede ser nunca negativo  
 if(delta_gamma[0] < 0 or delta_gamma[1] < 0 or iter>=max){ 
 KRATOS_WATCH(delta_gamma)
 KRATOS_WATCH( (mpFluencyCriteria->mMultisurface_Platicity_Yield[mactive_surface[1]]))
@@ -1167,7 +1167,7 @@ KRATOS_WATCH("RESIDUAL_RESIDUAL_RESIDUAL_RESIDUAL_RESIDUAL_RESIDUAL_RESIDUAL_" )
 }
 
 /*
-///* Spectral Descomposition 
+/// Spectral Descomposition 
 Compute_Principal_Stress(ElasticStress);
 array_1d<double, 3 > PrincipalStress;  
 
@@ -1186,7 +1186,7 @@ if(edges==true)
   Sigma[1] = PrincipalStress[1] +  aux2 * delta_gamma[0]   + aux3 * delta_gamma[1]; 
   Sigma[2] = PrincipalStress[2] +  aux3 * delta_gamma[0]   + aux2 * delta_gamma[1]; 
  }
-///* for left edges 
+/// for left edges 
 else
  {
   //KRATOS_WATCH("LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT")
@@ -1213,7 +1213,7 @@ double costetha   = cos(mmaxfriction_angle);
 double K          = mE / (3.00 * (1.00-2.00*mNU) );
 
 double p  = (ElasticStress[0] + ElasticStress[1] + ElasticStress[3])/3.00; 
-  ///* WARNING
+  /// WARNING
 double H  = 0.00;
 
 double d  = 0.00;
@@ -1230,10 +1230,10 @@ while(r > toler && iter<max )
   vol_strain = vol_strain -r / d;
 
 
-///*WARNING = Aculutaded von Misses nod efioned for apex
+/// WARNING = Aculutaded von Misses nod efioned for apex
 mcurrent_efective_plastic_strain = mefective_plastic_strain + (costetha/sinphi) * vol_strain;
   
- ///*WARNING
+ /// WARNING
 double cohesion0  = (*mpProperties)[FC]/(2.00*tan(mmaxfriction_angle/2.00 + PI/4.00));
 double Euc        =  2.00 * (*mpProperties)[FRACTURE_ENERGY]/ ( (*mpProperties)[FT] * mlength);        
 mcurrent_cohesion = cohesion0 * ( 1.00 - mcurrent_efective_plastic_strain / Euc);   
@@ -1278,7 +1278,7 @@ double& ElasticDomain_2, const array_1d<double, 3>& PrincipalStress, array_1d<do
     mactive_surface.reserve(6);
     mactive_surface_T.reserve(5);
  
-    ///* Calculando las superficies activas
+    /// Calculando las superficies activas
     if((mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[0]) > toler ) {mactive_surface_T.push_back(0); }
     if((mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[1]) > toler ) {mactive_surface_T.push_back(1); }      
     if((mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[2]) > toler ) {mactive_surface_T.push_back(2); } 
@@ -1304,12 +1304,12 @@ double& ElasticDomain_2, const array_1d<double, 3>& PrincipalStress, array_1d<do
     double delta_gamma_a = 0.00; 
     double delta_gamma_b = 0.00; 
     double delta_gamma_c = 0.00; 
-    double delta_gamma_d = 0.00; 
+    //double delta_gamma_d = 0.00; 
     Matrix d;  
     Matrix d_inv;
 
     
-    ///* WARNING = podria cambiar debido a la tension aculada
+    /// WARNING = podria cambiar debido a la tension aculada
     double n            = (*mpProperties)[FC] / (*mpProperties)[FT];
     double num          = n *  (*mpProperties)[FT] * (*mpProperties)[FT] * mlength ;
     double tan2         = tan(mmaxfriction_angle/2.00 + PI/4.00 ); tan2 = tan2 * tan2; 
@@ -1326,7 +1326,7 @@ double& ElasticDomain_2, const array_1d<double, 3>& PrincipalStress, array_1d<do
     
     double fact_1 = 0.00;
     double fact_2 = 0.00; 
-    double fact_3 = 0.00;
+    //double fact_3 = 0.00;
     double fact   = 2.00 * costetha; 
       
     int singular   =  0; 
@@ -1344,7 +1344,7 @@ double& ElasticDomain_2, const array_1d<double, 3>& PrincipalStress, array_1d<do
                 residual[0] = mpFluencyCriteria->mMultisurface_Platicity_Yield[0];    
                 residual[1] = mpFluencyCriteria_Traction->mMultisurface_Platicity_Yield[0]; 
    
-                ///*WARNING acumulated von misses o ambos
+                /// WARNING acumulated von misses o ambos
                 /// ambos
                 fact_1  = 2.00 * costetha; 
                 fact_2  = 1.00;  
@@ -1366,22 +1366,22 @@ double& ElasticDomain_2, const array_1d<double, 3>& PrincipalStress, array_1d<do
 		    delta_gamma_a = delta_gamma[0];
 		    delta_gamma_b = delta_gamma[1];
 
-		    ///* Updating Stress
+		    /// Updating Stress
 Sigma[0] = PrincipalStress[0] - ( 2.00 * G * (1.00 + sinphi/3.00) + 2.00 * K * sinphi) * delta_gamma_a - delta_gamma_b * (4.00 * G /3.00 + K ); 
 Sigma[1] = PrincipalStress[1] + (4.00 * G /3.00 - 2.00 * K) * sinphi  * delta_gamma_a +  delta_gamma_b * (2.00 * G /3.00 - K ); 
 Sigma[2] = PrincipalStress[2] + ( 2.00 * G * (1.00 - sinphi/3.00) - 2.00 * K * sinphi) * delta_gamma_a + delta_gamma_b * (2.00 * G /3.00 - K );   
 
 
-		    ///* acumulated ambos                
+		    /// acumulated ambos                
 		    mcurrent_efective_plastic_strain = mefective_plastic_strain + 2.00 * costetha *  delta_gamma_a +  delta_gamma_b; 
 		    /* 
-		    ///* aculated Von misses plastic
+		    /// aculated Von misses plastic
 		    double aux_1 = 2.00 * (sinphi * sinphi + 1.00 ) * (delta_gamma[0]*delta_gamma[0] ) + 2.00 * delta_gamma[0] * delta_gamma[1] * (sinphi + 1.00) + delta_gamma[1]*delta_gamma[1] ;
 		    mcurrent_efective_plastic_strain = mefective_plastic_strain +  sqrt( 2.00 * aux_1 / 3.00);
 		    */ 
 
-		    ///* Update Cohesion and H
-		    ///*WARNING = Using linear softening for Cohesion
+		    /// Update Cohesion and H
+		    ///WARNING = Using linear softening for Cohesion
 		    double cohesion0  = (*mpProperties)[FC]/(2.00*tan(mmaxfriction_angle/2.00 + PI/4.00));
 		    double Euc        =  2.00 * (*mpProperties)[FRACTURE_ENERGY]/ ( (*mpProperties)[FT] * mlength);    
 		    mcurrent_cohesion = cohesion0 * ( 1.00 - mcurrent_efective_plastic_strain / Euc);  
@@ -1415,11 +1415,11 @@ Sigma[2] = PrincipalStress[2] + ( 2.00 * G * (1.00 - sinphi/3.00) - 2.00 * K * s
                 
                  double bb = 2.00 * G * ( 1.00 + sinphi + sintetha -(sinphi *sintetha)/3.00) + 4.00 * K * sinphi * sintetha; 
   
-                 ///*left edges 
+                 /// left edges 
                  if(mactive_surface[1]==1) {bb = 2.00 * G * ( 1.00 - sinphi - sintetha -(sinphi *sintetha)/3.00) + 4.00 * K * sinphi * sintetha;}
 
 
-                ///*WARNING acumulated von misses o ambos
+                /// WARNING acumulated von misses o ambos
                 /// ambos
                 fact_1  = 2.00 * costetha; 
                 fact_2  = 1.00;  
@@ -1446,7 +1446,7 @@ Sigma[2] = PrincipalStress[2] + ( 2.00 * G * (1.00 - sinphi/3.00) - 2.00 * K * s
 		    delta_gamma_b = delta_gamma[1];
                     delta_gamma_c = delta_gamma[2];
 
-		    ///* Updating Stress
+		    /// Updating Stress
 
 
 		   aux1 = ( 2.00 * G * (1.00 + sinphi/3.00) + 2.00 * K * sinphi);
@@ -1461,7 +1461,7 @@ Sigma[2] = PrincipalStress[2] + ( 2.00 * G * (1.00 - sinphi/3.00) - 2.00 * K * s
 		      Sigma[1] = PrincipalStress[1] +  aux2 * delta_gamma[0]   + aux3 * delta_gamma[1] + delta_gamma[2] * (2.00 * G /3.00 - K ); 
 		      Sigma[2] = PrincipalStress[2] +  aux3 * delta_gamma[0]   + aux2 * delta_gamma[1] + delta_gamma[2] * (2.00 * G /3.00 - K ); 
 		    }
-		    ///* for left edges 
+		    /// for left edges 
 		    else
 		    {
 		      //KRATOS_WATCH("LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT_LEFT")
@@ -1473,16 +1473,16 @@ Sigma[2] = PrincipalStress[2] + ( 2.00 * G * (1.00 - sinphi/3.00) - 2.00 * K * s
 
 
 
-		    ///* acumulated ambos                
+		    /// acumulated ambos                
 		    mcurrent_efective_plastic_strain = mefective_plastic_strain + 2.00 * costetha *  ( delta_gamma_a + delta_gamma_b) +  delta_gamma_b; 
 		    /* 
-		    ///* aculated Von misses plastic
+		    /// aculated Von misses plastic
 		    double aux_1 = 2.00 * (sinphi * sinphi + 1.00 ) * (delta_gamma[0]*delta_gamma[0] ) + 2.00 * delta_gamma[0] * delta_gamma[1] * (sinphi + 1.00) + delta_gamma[1]*delta_gamma[1] ;
 		    mcurrent_efective_plastic_strain = mefective_plastic_strain +  sqrt( 2.00 * aux_1 / 3.00);
 		    */ 
 
-		    ///* Update Cohesion and H
-		    ///*WARNING = Using linear softening for Cohesion
+		    /// Update Cohesion and H
+		    ///WARNING = Using linear softening for Cohesion
 		    cohesion0  = (*mpProperties)[FC]/(2.00*tan(mmaxfriction_angle/2.00 + PI/4.00));
 		    Euc        =  2.00 * (*mpProperties)[FRACTURE_ENERGY]/ ( (*mpProperties)[FT] * mlength);    
 		    mcurrent_cohesion = cohesion0 * ( 1.00 - mcurrent_efective_plastic_strain / Euc);  
@@ -1591,7 +1591,7 @@ Compute_Derivate(Derivate_Fluency, mDerivate_Fluency);
 Compute_Derivate(Derivate_Potencial, mDerivate_Potencial);
 
 
-///*WARNING = Cohesaion
+/// WARNING = Cohesaion
 //Compute_A(Stress, mDerivate_Potencial, A);
 
 noalias(vect_one) = prod(C, mDerivate_Fluency[0]);
@@ -1656,8 +1656,8 @@ void PlasticDamage2D::UpdateMaterial( const Vector& StrainVector,
 //***********************************************************************************************
 //***********************************************************************************************
 
-///* Stress = Elatsic Stress
-///* Strain The plastic Strain
+/// Stress = Elatsic Stress
+/// Strain The plastic Strain
 void PlasticDamage2D::Updated_Internal_Variables(const Vector& Stress,  const Vector& Strain)
 {
 const int    iter  = 50;
@@ -1695,7 +1695,7 @@ else
 double kp_punto = 0.00; 
 double gc_p   = (*mpProperties)[CRUSHING_ENERGY]/mlength;
 double gf_p   = (*mpProperties)[FRACTURE_ENERGY]/mlength;
-double R_op   = (*mpProperties)[FC]/(*mpProperties)[FT];
+//double R_op   = (*mpProperties)[FC]/(*mpProperties)[FT];
 double f      = mpFluencyCriteria->mMultisurface_Platicity_Yield[0];
 
 
@@ -1897,10 +1897,10 @@ mEigenVectors[2][2] = EigenVectors(2,2);
 void PlasticDamage2D::Compute_Derivate(vector<Vector>& Derivate, vector<array_1d<double,4> >& mD)
 {
 mD.resize(4);
-mD[0](0) =   Derivate[0](0);   ///*xx
-mD[0](1)  =  Derivate[0](1);   ///*yy
-mD[0](2)  =  Derivate[0](3);   ///*xy    
-mD[0](3)  =  Derivate[0](2);   ///*zz
+mD[0](0) =   Derivate[0](0);   /// xx
+mD[0](1)  =  Derivate[0](1);   /// yy
+mD[0](2)  =  Derivate[0](3);   /// xy    
+mD[0](3)  =  Derivate[0](2);   /// zz
 
 mD[1](0) =   Derivate[1](0);   
 mD[1](1)  =  Derivate[1](1);  
