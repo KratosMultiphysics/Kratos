@@ -4,9 +4,9 @@ import re
 
 # Compile regular expresions
 book=re.compile(r'(^BOOK:[\s]*(.*?)[\s]*$)',re.MULTILINE)
-cnd_book=re.compile(r'^BOOK:[\s]*(.*?)[\s\n]*CONDITION:',re.MULTILINE)
-mat_book=re.compile(r'^BOOK:[\s]*(.*?)[\s\n]*MATERIAL:',re.MULTILINE)
-prb_book=re.compile(r'^BOOK:[\s]*(.*?)[\s\n]*QUESTION:',re.MULTILINE)
+cnd_book=re.compile(r'^BOOK:[\s]*(.*?)[\s\n]*(?:CONDITION:|TITLE:)',re.MULTILINE)
+mat_book=re.compile(r'^BOOK:[\s]*(.*?)[\s\n]*(?:MATERIAL:|TITLE:)',re.MULTILINE)
+prb_book=re.compile(r'^BOOK:[\s]*(.*?)[\s\n]*(?:QUESTION:|TITLE:)',re.MULTILINE)
 gendata_block=re.compile(r'^PROBLEM DATA[\s\n]*(.*?)[\s\n]*END GENERAL DATA',re.MULTILINE | re.DOTALL)
 intdata_block=re.compile(r'^INTERVAL DATA[\s\n]*(.*)\Z',re.MULTILINE | re.DOTALL)
 
