@@ -43,7 +43,7 @@ OPTION 3D_Body_Element volume Fluid3D Fluid3DCoupled ASGS3D
 
 PROPERTY Time_step 0.1 Dt
 PROPERTY max_time 0.1 max_time
-TEXT FLAG PROPERTY SolverType FractionalStep monolithic_solver_eulerian SolverType # remember to put the text between " " !
+TEXT FLAG PROPERTY SolverType fractional_step pressure_splitting monolithic_solver_eulerian SolverType
 PROPERTY laplacian_form 3 laplacian_form
 PROPERTY output_step 1 output_step
 PROPERTY predictor_corrector True predictor_corrector
@@ -81,7 +81,7 @@ GROUP NoSlipCondition SlipCondition IN point line surface
 NoSlipCondition SlipCondition  ASSIGN VELOCITY fixed 0.0 0.0 0.0
 
 GROUP VelocityInlet NoSlipCondition IN point line surface
-VelocityInlet NoSlipCondition ASSIGN VELOCITY FROM NoSlipCondition 
+VelocityInlet NoSlipCondition ASSIGN VELOCITY FROM VelocityInlet 
 
 GROUP VelocityInlet SlipCondition IN point line surface
 VelocityInlet SlipCondition ASSIGN VELOCITY FROM VelocityInlet 
