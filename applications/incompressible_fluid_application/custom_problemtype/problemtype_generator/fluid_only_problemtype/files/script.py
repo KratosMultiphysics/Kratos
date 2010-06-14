@@ -23,14 +23,14 @@ kernel = Kernel()   #defining kernel
 #importing applications
 import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
-##applications_interface.Import_ExternalSolversApplication = True
+applications_interface.Import_ExternalSolversApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
 from KratosIncompressibleFluidApplication import *
-##from KratosExternalSolversApplication import *
+from KratosExternalSolversApplication import *
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
@@ -38,9 +38,12 @@ fluid_model_part = ModelPart("FluidPart");
 #############################################
 ##importing the solvers needed
 SolverType = fluid_only_var.SolverType
-if(SolverType == "FractionalStep"):
+if(SolverType == "fractional_step"):
     import incompressible_fluid_solver
     incompressible_fluid_solver.AddVariables(fluid_model_part)
+elif(SolverType == "pressure_splitting"):
+    import decoupled_solver_eulerian
+    decoupled_solver_eulerian.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     import monolithic_solver_eulerian
     monolithic_solver_eulerian.AddVariables(fluid_model_part)
@@ -48,7 +51,9 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible
     monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
 else:
-    raise "solver type not supported: options are FractionalStep - Monolithic"
+    raise "solver type not supported: options are fractional_step - \
+	pressure_splitting - monolithic_solver_eulerian - \
+	monolithic_solver_eulerian_compressible"
 
 #introducing input file name
 input_file_name = fluid_only_var.problem_name
@@ -66,8 +71,10 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 fluid_model_part.SetBufferSize(3)
 
 ##adding dofs
-if(SolverType == "FractionalStep"):
+if(SolverType == "fractional_step"):
     incompressible_fluid_solver.AddDofs(fluid_model_part)
+elif(SolverType == "pressure_splitting"):
+    decoupled_solver_eulerian.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     monolithic_solver_eulerian.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
@@ -90,17 +97,34 @@ for node in fluid_model_part.Nodes:
 
 #creating the solvers
 #fluid solver
-if(SolverType == "FractionalStep"):
+if(SolverType == "fractional_ftep"):
     fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
     fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
     fluid_solver.predictor_corrector = fluid_only_var.predictor_corrector
     fluid_solver.max_press_its = fluid_only_var.max_press_its
     fluid_solver.Initialize()
+elif(SolverType == "pressure_splitting"):
+    fluid_solver = decoupled_solver_eulerian.\
+		  DecoupledSolver(fluid_model_part,domain_size)
+    oss_switch = fluid_only_var.use_oss
+    dynamic_tau = fluid_only_var.dynamic_tau
+##    pPrecond = ILU0Preconditioner()
+    pPrecond = DiagonalPreconditioner()
+    fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pPrecond)
+##    fluid_solver.linear_solver =  SuperLUSolver()
+    fluid_solver.rel_vel_tol = 1e-4
+    fluid_solver.abs_vel_tol = 1e-6
+    fluid_solver.rel_pres_tol = 1e-4
+    fluid_solver.abs_pres_tol = 1e-6
+    fluid_solver.use_inexact_newton = False
+    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch)
+    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau)
+    fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
-    oss_swith = fluid_only_var.use_oss
+    oss_switch = fluid_only_var.use_oss
     dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
+    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);				
     fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
@@ -149,7 +173,7 @@ while(time < final_time):
         fluid_solver.Solve()
 
     if(out == output_step):
-        if(SolverType == "FractionalStep"):
+        if(SolverType == "fractional_step" or SolverType == "pressure_splitting"):
             gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
         else:
