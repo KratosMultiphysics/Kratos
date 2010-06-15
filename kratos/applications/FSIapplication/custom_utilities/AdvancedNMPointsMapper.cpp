@@ -181,9 +181,9 @@ namespace Kratos
                 gauss_it++)
         {
             int Status = 0;
-            (*gauss_it.base())->GetProjStatus(Status);
+            (*gauss_it)->GetProjStatus(Status);
 
-            if( Status != 1) ProjectionlessGP.push_back( *gauss_it.base() );
+            if( Status != 1) ProjectionlessGP.push_back( *gauss_it );
         }
 
         // Try to use a nearby node as reference for points that couldn't be projected to a condition
@@ -220,7 +220,7 @@ namespace Kratos
                     gauss_it++)
             {
                 int Status = 0;
-                (*gauss_it.base())->GetProjStatus(Status);
+                (*gauss_it)->GetProjStatus(Status);
 
                 if( Status == 0) counter++;
             }
