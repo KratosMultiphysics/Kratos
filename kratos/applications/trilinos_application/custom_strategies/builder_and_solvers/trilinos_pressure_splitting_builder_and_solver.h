@@ -87,7 +87,7 @@ namespace Kratos
     {
         /* Please note that this builder and solver splits the system matrix
          * in 4 blocks and stores them separately. The system matrix A used as
-         * input (to preserve the same function signstures as other builder and
+         * input (to preserve the same function signatures as other builder and
          * solvers) is used here to store the matrix of the pressure system.
          */
     public:
@@ -221,7 +221,7 @@ namespace Kratos
             }
 
 
-            // Finalize Assembly
+            // Finalise Assembly
             b.GlobalAssemble();
             mpS->GlobalAssemble();
             mpL->GlobalAssemble();

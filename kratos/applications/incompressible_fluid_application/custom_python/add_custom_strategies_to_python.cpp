@@ -314,7 +314,7 @@ namespace Kratos
                         //********************************************************************************************
 
 			class_< PressureSplittingBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable>
-                                ("PressureSplittingBuilderAndSolver", init< LinearSolverType::Pointer, LinearSolverType::Pointer, unsigned int, unsigned int, bool, double, double, double>() );
+                                ("PressureSplittingBuilderAndSolver", init< LinearSolverType::Pointer, LinearSolverType::Pointer, unsigned int, bool, double, double, double>() );
 
                         //********************************************************************************************
                        class_< SolverConfiguration<SparseSpaceType, LocalSpaceType, LinearSolverType >,

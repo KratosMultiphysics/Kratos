@@ -47,11 +47,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define	KRATOS_PRESSURE_SPLITTING_BUILDER_AND_SOLVER_H
 
 /* System includes */
-#include <set>
+//#include <set>
 #ifdef _OPENMP
 #include <fstream>
 #include <omp.h>
 #endif
+#include "utilities/openmp_utils.h"
 
 /* External includes */
 #include <boost/smart_ptr.hpp>
@@ -113,7 +114,8 @@ namespace Kratos
         typedef std::size_t KeyType; // For Dof->GetVariable().Key()
 
         typedef boost::numeric::ublas::vector<int> IndexVector;
-        typedef std::vector<unsigned int> PartitionVector;
+        
+        typedef OpenMPUtils::PartitionVector PartitionVector;
 
         // UBLAS matrix access types
         typedef typename TSystemMatrixType::iterator1 OuterIt;
@@ -126,7 +128,6 @@ namespace Kratos
         PressureSplittingBuilderAndSolver(
                 typename TLinearSolver::Pointer pNewVelLinearSystemSolver, // Velocity solver, stored internally
                 typename TLinearSolver::Pointer pNewPressLinearSystemSolver, // Pressure solver, stored by the base class
-                unsigned int RebuildLevel, // If > 0 Do not re-check the shape of all matrices each step (see definition in private atribute variables)
                 unsigned int VelocityCorrection, // If > 0, explicitly solve the velocity to be divergence-free at each step
                 bool UseInexactNewton, // If true, dynamically set the linear iterative solver tolerance for the pressure system
                 double NonLinearTol = 1e-3, // Only used if InexactNewton == true, otherwise the solver will use it's own tolerance
@@ -134,8 +135,6 @@ namespace Kratos
                 double Gamma = 0.9):
             BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewPressLinearSystemSolver),
             mpVelLinearSystemSolver(pNewVelLinearSystemSolver),
-            mRebuildLevel(RebuildLevel),
-            mInitializedMatrices(false),
             mVelocityCorrection(VelocityCorrection),
             mInexactNewton(UseInexactNewton),
             mMaxTolFactor(MaxTolFactor),
@@ -144,7 +143,8 @@ namespace Kratos
 //            mVelTolFactor(0),
             mPressTolFactor(0),
 //            mLastVelRHSNorm(0),
-            mLastPressRHSNorm(0)
+            mLastPressRHSNorm(0),
+            mDofSetChanged(true)
         {
             mSmallTol = 0.5*NonLinearTol;
         }
@@ -197,7 +197,7 @@ namespace Kratos
                         RHS_Contribution,EquationIds,CurrentProcessInfo);
 
                 //assemble the elemental contribution
-                Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationIds);
+                Assemble(b,LHS_Contribution,RHS_Contribution,EquationIds);
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*pElem);
@@ -215,7 +215,7 @@ namespace Kratos
                         RHS_Contribution,EquationIds,CurrentProcessInfo);
 
                 // Assemble condition contribution
-                Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationIds);
+                Assemble(b,LHS_Contribution,RHS_Contribution,EquationIds);
             }
 
 #else
@@ -227,10 +227,10 @@ namespace Kratos
                 omp_init_lock( &lock_array[i] );
 
             //create a partition of the element array
-            unsigned int NumThreads = GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             PartitionVector ElementPartition;
 
-            DivideInPartitions(rElements.size(),ElementPartition,NumThreads);
+            OpenMPUtils::DivideInPartitions(rElements.size(),NumThreads,ElementPartition);
 
             double start_prod = omp_get_wtime();
 
@@ -255,7 +255,7 @@ namespace Kratos
                     pScheme->CalculateSystemContributions(*pElem,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
                     //assemble the elemental contribution
-                    Parallel_Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+                    Parallel_Assemble(b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*pElem);
@@ -264,11 +264,11 @@ namespace Kratos
 
             PartitionVector ConditionPartition;
 
-            DivideInPartitions(rConditions.size(),ConditionPartition,NumThreads);
+            OpenMPUtils::DivideInPartitions(rConditions.size(),NumThreads,ConditionPartition);
 
             #pragma omp parallel
             {
-                unsigned int k = ThisThread();
+                int k = OpenMPUtils::ThisThread();
 
                 //contributions to the system
                 LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
@@ -288,7 +288,7 @@ namespace Kratos
                     pScheme->Condition_CalculateSystemContributions(*pCond,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
                     //assemble condition contribution
-                    Parallel_Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+                    Parallel_Assemble(b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
                 }
             }
 
@@ -303,11 +303,7 @@ namespace Kratos
 #endif
 
             /* Build the pressure system matrix */
-            if (mRebuildLevel == 0 || mInitializedMatrices == false)
-            {
-                CalculateSystemMatrix(A);
-                mInitializedMatrices = true;
-            }
+            CalculateSystemMatrix(A);
 
             KRATOS_CATCH("");
         }
@@ -353,7 +349,7 @@ namespace Kratos
                         EquationIds, CurrentProcessInfo);
 
                 //assemble the elemental contribution
-                AssembleLHS(A, LHS_Contribution, EquationIds);
+                AssembleLHS(LHS_Contribution, EquationIds);
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*pElem);
@@ -370,18 +366,14 @@ namespace Kratos
                         EquationIds, CurrentProcessInfo);
 
                 //assemble the elemental contribution
-                AssembleLHS(A, LHS_Contribution, EquationIds);
-            }
-
-            /* Build the pressure system matrix */
-            if (mRebuildLevel == 0 || mInitializedMatrices == false)
-            {
-                CalculateSystemMatrix(A);
-                mInitializedMatrices = true;
+                AssembleLHS(LHS_Contribution, EquationIds);
             }
 //#else
 //            // DO MP VERSION HERE
 //#endif
+
+            /* Build the pressure system matrix */
+            CalculateSystemMatrix(A);
 
             KRATOS_CATCH("");
         }
@@ -427,7 +419,7 @@ namespace Kratos
                         EquationIds, CurrentProcessInfo);
 
                 //assemble the elemental contribution
-                AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationIds);
+                AssembleLHS_CompleteOnFreeRows(LHS_Contribution, EquationIds);
 
                 // clean local elemental memory
                 pScheme->CleanMemory(*pElem);
@@ -444,18 +436,14 @@ namespace Kratos
                         EquationIds, CurrentProcessInfo);
 
                 //assemble the elemental contribution
-                AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationIds);
-            }
-
-            /* Build the pressure system matrix */
-            if (mRebuildLevel == 0 || mInitializedMatrices == false)
-            {
-                CalculateSystemMatrix(A);
-                mInitializedMatrices = true;
+                AssembleLHS_CompleteOnFreeRows(LHS_Contribution, EquationIds);
             }
 //#else
 //            // DO MP VERSION HERE
 //#endif
+
+            /* Build the pressure system matrix */
+            CalculateSystemMatrix(A);
 
             KRATOS_CATCH("");
         }
@@ -731,18 +719,18 @@ namespace Kratos
 
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-            unsigned int NumThreads = GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             PartitionVector ElemPartition;
             PartitionVector CondPartition;
 
-            DivideInPartitions(pElements.size(),ElemPartition,NumThreads);
-            DivideInPartitions(pConditions.size(),CondPartition,NumThreads);
+            OpenMPUtils::DivideInPartitions(pElements.size(),NumThreads,ElemPartition);
+            OpenMPUtils::DivideInPartitions(pConditions.size(),NumThreads,CondPartition);
 
             std::vector< DofsArrayType > DofContainer(NumThreads);
 
             #pragma omp parallel
             {
-                unsigned int k = ThisThread();
+                int k = OpenMPUtils::ThisThread();
                 Element::DofsVectorType ElementalDofList;
 
                 for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin() + ElemPartition[k];
@@ -787,6 +775,7 @@ namespace Kratos
                 KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
 
             BaseType::mDofSetIsInitialized = true;
+            mDofSetChanged = true;
 
             KRATOS_CATCH("");
         }
@@ -918,63 +907,37 @@ namespace Kratos
 
             //resizing the system vectors and matrix
             if (BaseType::GetReshapeMatrixFlag() == true || // if we must remesh
+                    mDofSetChanged == true || // if the dof set has changed
                     S.size1() == 0 || D.size1() == 0 || G.size1() == 0 ||
                      L.size1() == 0 || A.size1() == 0 ) //if the matrices are not initialized
             {
                 S.resize(mVelFreeDofs, mVelFreeDofs, false);
+                G.resize(mVelFreeDofs, mPressFreeDofs, false);
+                D.resize(mPressFreeDofs, mVelFreeDofs, false);
                 L.resize(mPressFreeDofs, mPressFreeDofs, false);
-
-                if( mRebuildLevel < 2 || mInitializedMatrices == false)
-                {
-                    G.resize(mVelFreeDofs, mPressFreeDofs, false);
-                    D.resize(mPressFreeDofs, mVelFreeDofs, false);
-                }
 
                 ConstructMatrixStructure(S, D, G, L, rElements, rConditions, CurrentProcessInfo);
 
-                if( mRebuildLevel == 0 || mInitializedMatrices == false)
+                A.resize(mPressFreeDofs, mPressFreeDofs, false);
+                IDiagS.resize(mVelFreeDofs);
+
+                AllocateSystemMatrix(A);
+                ConstructSystemMatrix(A);
+                mDofSetChanged = false;
+            }
+            else
+            {
+                // I do the check only for A, as the remaining matrices are private.
+                // They are managed by this class, so they shouldn't change size spontaneously
+                if (A.size1() != mPressFreeDofs || A.size2() != mPressFreeDofs )
                 {
+                    KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+
                     A.resize(mPressFreeDofs, mPressFreeDofs, false);
                     IDiagS.resize(mVelFreeDofs);
 
                     AllocateSystemMatrix(A);
                     ConstructSystemMatrix(A);
-                }
-
-                //mInitializedMatrices = true; Set flag once the matrix is BUILT (not just resized)
-
-            } else {
-                // I do the check only for A, as the remaining matrices are private.
-                // They are managed by this class, so they shouldn't change size spontaneously
-                if (A.size1() != mPressFreeDofs || A.size2() != mPressFreeDofs ) //||
-//                        S.size1() != mVelFreeDofs || S.size2() != mVelFreeDofs ||
-//                        G.size1() != mVelFreeDofs || G.size2() != mPressFreeDofs ||
-//                        D.size1() != mPressFreeDofs || D.size2() != mVelFreeDofs ||
-//                        L.size1() != mPressFreeDofs || L.size2() != mPressFreeDofs )
-                {
-                    KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
-
-//                    S.resize(mVelFreeDofs, mVelFreeDofs, false);
-//                    L.resize(mPressFreeDofs, mPressFreeDofs, false);
-//
-//                    if( mRebuildLevel < 2 || mInitializedMatrices == false)
-//                    {
-//                        G.resize(mVelFreeDofs, mPressFreeDofs, false);
-//                        D.resize(mPressFreeDofs, mVelFreeDofs, false);
-//                    }
-//
-//                    ConstructMatrixStructure(S, D, G, L, rElements, rConditions, CurrentProcessInfo);
-
-                    if( mRebuildLevel == 0 || mInitializedMatrices == false)
-                    {
-                        A.resize(mPressFreeDofs, mPressFreeDofs, false);
-                        IDiagS.resize(mVelFreeDofs);
-
-                        AllocateSystemMatrix(A);
-                        ConstructSystemMatrix(A);
-                    }
-
-                    //mInitializedMatrices = true;
                 }
             }
 
@@ -1002,7 +965,6 @@ namespace Kratos
         {
             KRATOS_TRY;
             mFirstIteration = true;
-            mInitializedMatrices = false;
             KRATOS_CATCH("");
         }
 
@@ -1072,32 +1034,32 @@ namespace Kratos
             if (this->mpS != NULL)
                 TSparseSpace::Clear((this->mpS));
 
+            if (this->mpG != NULL)
+                    TSparseSpace::Clear((this->mpG));
+
+            if (this->mpD != NULL)
+                    TSparseSpace::Clear((this->mpD));
+
             if (this->mpL != NULL)
                 TSparseSpace::Clear((this->mpL));
 
-            if (mRebuildLevel < 2)
-            {
-                if (this->mpG != NULL)
-                    TSparseSpace::Clear((this->mpG));
-
-                if (this->mpD != NULL)
-                    TSparseSpace::Clear((this->mpD));
-
-                if (mRebuildLevel == 0)
-                {
-                    if (this->mpIDiagS != NULL)
+            if (this->mpIDiagS != NULL)
                         TSparseSpace::Clear((this->mpIDiagS));
-                }
-            }
 
             if (this->GetEchoLevel() > 0) {
                 KRATOS_WATCH("ResidualBasedEliminationBuilderAndSolver Clear Function called");
             }
         }
 
-        void SetRebuildSystemMatricesFlag(bool MustRebuild = true)
+        /* Provides a way to modify the system matrix from outside the buider and solver.
+         * Use carefully. Remember that this should be called before Build(), where
+         * the matrix will be filled. If the DofSet changes between time steps, the
+         * system matrix will be reformed internally, so this function should only be used
+         * if the system matrix structure changes inside the time step. */
+        inline void ReshapeSystemMatrix(TSystemMatrixType& A)
         {
-            mInitializedMatrices = MustRebuild;
+            AllocateSystemMatrix(A);
+            ConstructSystemMatrix(A);
         }
 
     protected:
@@ -1111,7 +1073,6 @@ namespace Kratos
                 const ConditionsArrayType& rConditions,
                 ProcessInfo& CurrentProcessInfo)
         {
-            Timer::Start("ConstructMatrices");
             std::vector< std::vector<std::size_t> > indicesS(mVelFreeDofs);
             std::vector< std::vector<std::size_t> > indicesG(mVelFreeDofs);
             std::vector< std::vector<std::size_t> > indicesD(mPressFreeDofs);
@@ -1192,6 +1153,8 @@ namespace Kratos
 
             // Allocate memory and initialize matrices with zeros
             int NumTermsS = 0; // Counters for non-zero terms
+            int NumTermsG = 0;
+            int NumTermsD = 0;
             int NumTermsL = 0;
 
             for (std::size_t i = 0; i < indicesS.size(); i++)
@@ -1199,42 +1162,28 @@ namespace Kratos
 
             S.reserve(NumTermsS, false);
 
+            for (std::size_t i = 0; i < indicesG.size(); i++)
+                NumTermsG += indicesG[i].size();
+
+            G.reserve(NumTermsG, false);
+
+            for (std::size_t i = 0; i < indicesD.size(); i++)
+                NumTermsD += indicesD[i].size();
+
+            D.reserve(NumTermsD, false);
+
             for (std::size_t i = 0; i < indicesL.size(); i++)
                 NumTermsL += indicesL[i].size();
 
             L.reserve(NumTermsL, false);
 
-            if (mRebuildLevel < 2 || mInitializedMatrices == false)
-            {
-                int NumTermsG = 0;
-                int NumTermsD = 0;
-
-                for (std::size_t i = 0; i < indicesG.size(); i++)
-                    NumTermsG += indicesG[i].size();
-
-                G.reserve(NumTermsG, false);
-
-                for (std::size_t i = 0; i < indicesD.size(); i++)
-                    NumTermsD += indicesD[i].size();
-
-                D.reserve(NumTermsD, false);
-            }
-            Timer::Stop("ConstructMatrices");
-
             // Fill with zeros the matrix (create the structure)
-            Timer::Start("MatrixStructure");
 
             // Note that AllocateSpace has different definitions depending on _OPENMP
             AllocateSpace(S, indicesS);
+            AllocateSpace(G, indicesG);
+            AllocateSpace(D, indicesD);
             AllocateSpace(L, indicesL);
-
-            if (mRebuildLevel < 2 || mInitializedMatrices == false)
-            {
-                AllocateSpace(G, indicesG);
-                AllocateSpace(D, indicesD);
-            }
-
-            Timer::Stop("MatrixStructure");
         }
 
     private:
@@ -1261,7 +1210,6 @@ namespace Kratos
 
         // ALL ASSEMBLY FUNCTIONS NEED OPENMP. CONSIDER ADDING Assemble_OnFreeRows
         void Assemble(
-                TSystemMatrixType& A,
                 TSystemVectorType& b,
                 LocalSystemMatrixType& LHS_Contribution,
                 LocalSystemVectorType& RHS_Contribution,
@@ -1310,7 +1258,6 @@ namespace Kratos
 #ifdef _OPENMP
 
         void Parallel_Assemble(
-                TSystemMatrixType& A,
                 TSystemVectorType& b,
                 const LocalSystemMatrixType& LHS_Contribution,
                 const LocalSystemVectorType& RHS_Contribution,
@@ -1372,7 +1319,6 @@ namespace Kratos
 #endif
 
         void AssembleLHS(
-                TSystemMatrixType& A,
                 LocalSystemMatrixType& LHS_Contribution,
                 Element::EquationIdVectorType& EquationId)
         {
@@ -1420,7 +1366,6 @@ namespace Kratos
         }
 
         void AssembleLHS_CompleteOnFreeRows(
-                TSystemMatrixType& A,
                 LocalSystemMatrixType& LHS_Contribution,
                 Element::EquationIdVectorType& EquationId)
         {
@@ -1575,14 +1520,16 @@ namespace Kratos
             TSystemMatrixType& rL = *mpL;
 
             PartitionVector Partition;
-            unsigned int NumThreads = GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
 
-            DivideInPartitions(A.size1(),Partition,NumThreads);
+            OpenMPUtils::DivideInPartitions(A.size1(),NumThreads,Partition);
 
-            for( unsigned int k = 0 ; k < NumThreads ; k++)
+            for( int k = 0 ; k < NumThreads ; k++)
             {
+                // This code is serial, the pragma is here to ensure that each
+                // row block is assigned to the processor that will fill it
                 #pragma omp parallel
-                if( ThisThread() == k) {
+                if( OpenMPUtils::ThisThread() == k) {
                     boost::shared_ptr< IndexVector > pNext( new IndexVector(mPressFreeDofs) );
                     IndexVector& Next = *pNext; // Keeps track of which columns were filled
                     for(unsigned int m = 0; m < mPressFreeDofs; m++) Next[m] = -1;
@@ -1660,7 +1607,6 @@ namespace Kratos
         void CalculateSystemMatrix(
                 TSystemMatrixType& A)
         {
-            Timer::Start("CalculateA");
             // Retrieve matrices
             TSystemMatrixType& rS = *mpS;
             TSystemMatrixType& rG = *mpG;
@@ -1675,13 +1621,13 @@ namespace Kratos
                 rIDiagS[i] = 1.0/rS(i,i);
 
             PartitionVector Partition;
-            unsigned int NumThreads = GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
 
-            DivideInPartitions(A.size1(),Partition,NumThreads);
+            OpenMPUtils::DivideInPartitions(A.size1(),NumThreads,Partition);
 
             #pragma omp parallel
             {
-                unsigned int k = ThisThread();
+                int k = OpenMPUtils::ThisThread();
                 TSystemVectorPointerType pCurrentRow( new TSystemVectorType(mPressFreeDofs) );
                 TSystemVectorType& CurrentRow = *pCurrentRow; // Values for current row
                 for (unsigned int i = 0; i < mPressFreeDofs; i++) CurrentRow[i] = 0.0;
@@ -1690,8 +1636,14 @@ namespace Kratos
                 IndexVector& Next = *pNext; // Keeps track of which columns were filled
                 for(unsigned int m=0; m < mPressFreeDofs; m++) Next[m] = -1;
 
+                std::size_t NumTerms = 0; // Full positions in a row
+                boost::shared_ptr< std::vector<unsigned int> > pUsedCols( new std::vector<unsigned int>);
+                std::vector<unsigned int>& UsedCols = *pUsedCols;
+                UsedCols.reserve(mPressFreeDofs);
+
                 for( std::size_t RowIndex = Partition[k] ;
-                        RowIndex != Partition[k+1] ; RowIndex++ ) {
+                        RowIndex != Partition[k+1] ; RowIndex++ )
+                {
                     RowType RowD(rD,RowIndex);
                     RowType RowL(rL,RowIndex);
 
@@ -1729,23 +1681,40 @@ namespace Kratos
                         }
                     }
 
-                    // Fill matrix row (Random access, as ConstructSystemMatrix
-                    // guarantees that required matrix terms already exist),
-                    // then clean temporary variables.
-                    for( std::size_t i = 0; i < Length; i++) {
-                        if( CurrentRow[head] != 0 ) {
-                            A(RowIndex,head) = CurrentRow[head];
-                            CurrentRow[head] = 0;
+                    // Identify full terms for ordering
+                    for( std::size_t i = 0; i < Length; i++)
+                    {
+                        if( Next[head] != -1 )
+                        {
+                            UsedCols.push_back(head);
+                            NumTerms++;
                         }
 
-                        // Clear variables for next iteration
                         int temp = head;
                         head = Next[head];
+
+                        // Clear 'Next' for next iteration
                         Next[temp] = -1;
                     }
+
+                    // Sort Column indices
+                    SortCols(UsedCols,NumTerms);
+
+                    // Fill matrix row, then clean temporary variables.
+                    RowType RowA(A,RowIndex);
+                    std::size_t n = 0;
+                    unsigned int Col;
+
+                    for( typename RowType::iterator ItA = RowA.begin(); ItA != RowA.end(); ItA++)
+                    {
+                        Col = UsedCols[n++];
+                        *ItA = CurrentRow[Col];
+                        CurrentRow[Col] = 0;
+                    }
+                    NumTerms = 0;
+                    UsedCols.resize(0,false);
                 }
             }
-            Timer::Stop("CalculateA");
         }
 
 
@@ -1780,16 +1749,18 @@ namespace Kratos
                 TSystemMatrixType& A,
                 std::vector< std::vector<std::size_t> >& indices)
         {
-            Timer::Start("AllocateOther");
-            unsigned int NumThreads = GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             PartitionVector MatrixPartition;
 
-            DivideInPartitions(indices.size(),MatrixPartition,NumThreads);
+            OpenMPUtils::DivideInPartitions(indices.size(),NumThreads,MatrixPartition);
 
-            for( unsigned int k=0; k < NumThreads; k++ )
+            for( int k=0; k < NumThreads; k++ )
             {
+                // First touch: Make the thread that will manipulate each partition
+                // be the one that initializes it, so the relevant variables will
+                // belong to it.
                 #pragma omp parallel
-                if( ThisThread() == k )
+                if( OpenMPUtils::ThisThread() == k )
                 {
                     for( std::size_t i = MatrixPartition[k]; i < MatrixPartition[k+1]; i++ )
                     {
@@ -1804,7 +1775,6 @@ namespace Kratos
                     }
                 }
             }
-            Timer::Start("AllocateOther");
         }
 
 #ifdef _OPENMP
@@ -1815,14 +1785,13 @@ namespace Kratos
                 const TSystemVectorType& in,
                 TSystemVectorType& out)
         {
-            Timer::Start("CustomProduct");
             typedef  unsigned int size_type;
             typedef  double value_type;
 
             //create partition
             PartitionVector partition;
-            unsigned int number_of_threads = GetNumThreads();
-            DivideInPartitions(A.size1(),partition,number_of_threads);
+            int number_of_threads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,partition);
 
             #pragma omp parallel
             {
@@ -1841,7 +1810,6 @@ namespace Kratos
                                     partition[thread_id],
 				    out);
             }
-            Timer::Stop("CustomProduct");
         }
 
 	/**
@@ -1881,10 +1849,7 @@ namespace Kratos
                 double& TolFactor)
         {
             TolFactor = mMaxTolFactor;
-//            double Tolerance = TolFactor*RHSNorm;
-//            (BaseType::mpLinearSystemSolver)->SetTolerance(Tolerance);
-            (BaseType::mpLinearSystemSolver)->SetTolerance(mSmallTol);
-//            (BaseType::mpLinearSystemSolver)->SetTolerance(TolFactor);
+            (BaseType::mpLinearSystemSolver)->SetTolerance(mMaxTolFactor);
             std::cout << "Set iterative solver tolerance to " << TolFactor << std::endl;
         }
 
@@ -1906,66 +1871,12 @@ namespace Kratos
                 TolFactor = (Temp < mMaxTolFactor) ? Temp : mMaxTolFactor;
             }
 
-//            double Tolerance = TolFactor * NewRHSNorm;
-//            if (Tolerance < mSmallTol)
-//            {
-//                Tolerance = mSmallTol;
-//                TolFactor = mSmallTol / NewRHSNorm;
-//            }
-//            (BaseType::mpLinearSystemSolver)->SetTolerance(Tolerance);
             if (TolFactor < mSmallTol) TolFactor = mSmallTol;
             (BaseType::mpLinearSystemSolver)->SetTolerance(TolFactor);
             std::cout << "Corrected iterative solver tolerance to " << TolFactor << std::endl;
         }
 
-        /* The following functions retrieve basic OpenMP information or a
-         * suitable alternative when they are compilied without OpenMP
-         */
-
-        inline unsigned int GetNumThreads()
-        {
-            #ifdef _OPENMP
-            return omp_get_max_threads();
-            #else
-            return 1;
-            #endif
-        }
-
-        inline unsigned int ThisThread()
-        {
-            #ifdef _OPENMP
-            return omp_get_thread_num();
-            #else
-            return 0;
-            #endif
-        }
-
-        /* Divide the matrix in groups of contiguous rows.
-         * Each group will be assigned to a different OMP thread.
-         */
-
-        inline void DivideInPartitions(
-                const int NumTerms,
-                PartitionVector& Partitions,
-                unsigned int& NumThreads)
-        {
-            #ifdef _OPENMP
-            Partitions.resize(NumThreads + 1);
-            int PartitionSize = NumTerms / NumThreads;
-            Partitions[0] = 0;
-            Partitions[NumThreads] = NumTerms;
-            for(int i = 1; i < NumThreads; i++)
-                Partitions[i] = Partitions[i-1] + PartitionSize ;
-            #else
-            Partitions.resize(2);
-            Partitions[0] = 0;
-            Partitions[1] = NumTerms;
-            #endif
-        }
-
-
         // Total number of Dofs: BaseType::mEquationSystemSize;
-//        unsigned int mVelDofsNum; // Number of Velocity Dofs
         unsigned int mVelFreeDofs; // Position of 1st Free Pressure Dof
         unsigned int mVelFixedDofsEnd; // Position of 1st Fixed Pressure Dof
 
@@ -1980,14 +1891,8 @@ namespace Kratos
 
         typename TLinearSolver::Pointer mpVelLinearSystemSolver; // Linear solver for velocity system
 
-        // Flags for matrix reconstruction
-        unsigned int mRebuildLevel;
-        /* Decide what to rebuil each time new matrices are written
-         * 0: Rebuild all matrices
-         * 1: Keep A (pressure system matrix) constant
-         * 2: Keep D, G and A constant
-         */
-        bool mInitializedMatrices;
+        // Flag for matrix reconstruction
+        bool mDofSetChanged;
 
         unsigned int mVelocityCorrection;
         /* Ensure that velocity is divergence free after each iteration

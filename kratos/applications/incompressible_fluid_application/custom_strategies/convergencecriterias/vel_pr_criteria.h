@@ -46,6 +46,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef KRATOS_VEL_PR_CRITERIA_H
 
 /* Project includes */
+#include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -74,7 +75,7 @@ namespace Kratos
 
         typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-        typedef std::vector<int> PartitionVector;
+        typedef OpenMPUtils::PartitionVector PartitionVector;
 
         /*@} */
         /**@name Life Cycle */
@@ -112,12 +113,12 @@ namespace Kratos
             {
                 int NodeNum = rModelPart.Nodes().size();
                 PartitionVector NodeDivision;
-                int NumThreads = GetNumThreads();
-                DivideInPartitions(NodeNum,NodeDivision,NumThreads);
+                int NumThreads = OpenMPUtils::GetNumThreads();
+                OpenMPUtils::DivideInPartitions(NodeNum,NumThreads,NodeDivision);
                 
-                #pragma omp parallel for
-                for(int k = 0; k < NumThreads; k++)
+                #pragma omp parallel
                 {
+                    int k = OpenMPUtils::ThisThread();
                     typename ModelPart::NodesContainerType::iterator NodeBegin = rModelPart.NodesBegin() + NodeDivision[k];
                     typename ModelPart::NodesContainerType::iterator NodeEnd = rModelPart.NodesBegin() + NodeDivision[k+1];
                     
@@ -157,13 +158,13 @@ namespace Kratos
                 // Set a partition for OpenMP
                 int NodeNum = rModelPart.Nodes().size();
                 PartitionVector NodeDivision;
-                int NumThreads = GetNumThreads();
-                DivideInPartitions(NodeNum,NodeDivision,NumThreads);
+                int NumThreads = OpenMPUtils::GetNumThreads();
+                OpenMPUtils::DivideInPartitions(NodeNum,NumThreads,NodeDivision);
                 
                 // Loop over nodes
-                #pragma omp parallel for reduction(+:VelSolutionNorm,PrSolutionNorm,VelIncreaseNorm,PrIncreaseNorm)
-                for(int k = 0; k < NumThreads; k++)
+                #pragma omp parallel reduction(+:VelSolutionNorm,PrSolutionNorm,VelIncreaseNorm,PrIncreaseNorm)
                 {
+                    int k = OpenMPUtils::ThisThread();
                     typename ModelPart::NodesContainerType::iterator NodeBegin = rModelPart.NodesBegin() + NodeDivision[k];
                     typename ModelPart::NodesContainerType::iterator NodeEnd = rModelPart.NodesBegin() + NodeDivision[k+1];
                     
@@ -247,52 +248,6 @@ namespace Kratos
         {}
 
     private:
-
-        /* The following functions retrieve basic OpenMP information or a
-         * suitable alternative when they are compilied without OpenMP
-         */
-
-        inline int GetNumThreads()
-        {
-            #ifdef _OPENMP
-            return omp_get_max_threads();
-            #else
-            return 1;
-            #endif
-        }
-
-        inline int ThisThread()
-        {
-            #ifdef _OPENMP
-            return omp_get_thread_num();
-            #else
-            return 0;
-            #endif
-        }
-
-        /* Divide the matrix in groups of contiguous rows.
-         * Each group will be assigned to a different OpenMP thread.
-         */
-
-        inline void DivideInPartitions(
-                const int NumTerms,
-                PartitionVector& Partitions,
-                int& NumThreads)
-        {
-            #ifdef _OPENMP
-            Partitions.resize(NumThreads + 1);
-            int PartitionSize = NumTerms / NumThreads;
-            Partitions[0] = 0;
-            Partitions[NumThreads] = NumTerms;
-            for(int i = 1; i < NumThreads; i++)
-                Partitions[i] = Partitions[i-1] + PartitionSize ;
-            #else
-            Partitions.resize(2);
-            Partitions[0] = 0;
-            Partitions[1] = NumTerms;
-            #endif
-        }
-
 
         double mVelRatioTolerance;
         double mVelAbsTolerance;
