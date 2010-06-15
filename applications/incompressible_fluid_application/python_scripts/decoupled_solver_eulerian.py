@@ -89,13 +89,6 @@ class DecoupledSolver:
         self.ReformDofSetAtEachStep = False
 ##        self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
-
-        if (self.ReformDofSetAtEachStep == True):
-            self.rebuild_level = 0
-        else:
-            self.rebuild_level = 1
-            # If the mesh doesen't change, preserve the system matrix structure
-        self.rebuild_level = 0
         
         self.velocity_correction = 2
         # 0: divergence-free condition is not explicitly imposed
@@ -118,7 +111,6 @@ class DecoupledSolver:
         self.builder_and_solver = PressureSplittingBuilderAndSolver\
                                   (self.velocity_linear_solver,\
                                    self.pressure_linear_solver,\
-                                   self.rebuild_level,\
                                    self.velocity_correction,\
                                    self.use_inexact_newton,\
                                    self.IN_min_tol,\
