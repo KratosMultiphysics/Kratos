@@ -410,7 +410,7 @@ int GiD_EndCoordinates()
  * multiples meshes withing the group.
  */
 
-int GiD_BeginMeshGroup(char* Name)
+int GiD_BeginMeshGroup(GP_CONST char* Name)
 {
     /* original
   char line[LINE_SIZE];

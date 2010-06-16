@@ -505,6 +505,7 @@ namespace Kratos
 //                }
 
                 mpVelLinearSystemSolver->Solve(rS, rDVel, rVelRHS);
+// std::cout << "velocity solution" << *(BaseType::mpLinearSystemSolver) << std::endl;
 
                 // 2. Compute Pressure Variation
 #ifndef _OPENMP
@@ -523,8 +524,10 @@ namespace Kratos
                     }
                     mLastPressRHSNorm = PressRHSNorm;
                 }
-
+/*for(unsigned int i=0; i<A.size1(); i++)
+	std::cout << i << " " << A(i,i) << std::endl;*/
                 BaseType::mpLinearSystemSolver->Solve(A, rDPress, rPressRHS);
+// std::cout << "pressure solution" << *(BaseType::mpLinearSystemSolver) << std::endl;
 
                 // 3. Determine End of Step velocity
                 if ( mVelocityCorrection > 0)
@@ -540,6 +543,7 @@ namespace Kratos
                         for (unsigned int i = 0; i < mVelFreeDofs; i++) rVelUpdate[i] = 0.0;
 
                         mpVelLinearSystemSolver->Solve(rS, rVelUpdate, rVelRHS);
+// std::cout << "second velocity solution" << *(BaseType::mpLinearSystemSolver) << std::endl;
                         noalias(rDVel) -= rVelUpdate;
                     }
                 }
@@ -1715,6 +1719,7 @@ namespace Kratos
                     UsedCols.resize(0,false);
                 }
             }
+
         }
 
 

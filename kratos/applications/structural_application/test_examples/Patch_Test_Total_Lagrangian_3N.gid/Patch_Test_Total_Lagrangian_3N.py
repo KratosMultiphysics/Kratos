@@ -63,7 +63,7 @@ model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 #reading a model
 gid_mode = GiDPostMode.GiD_PostBinary
 #gid_mode = GiDPostMode.GiD_PostAscii
-multifile = MultiFileFlag.MultipleFiles
+multifile = MultiFileFlag.SingleFile
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
 
