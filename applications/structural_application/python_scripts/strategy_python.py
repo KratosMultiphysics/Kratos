@@ -184,7 +184,9 @@ class SolvingStrategyPython:
         
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
+        print "i am here"
         if(CalculateReactionsFlag == True):
+            print "********************************************************************"
             self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
         #Finalisation of the solution step, 
         self.scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)

@@ -152,7 +152,7 @@ int GiD_EndCoordinates();
  */
 
 GIDPOST_API
-int GiD_BeginMeshGroup(char* Name);
+int GiD_BeginMeshGroup(GP_CONST char* Name);
 
 /*
  * This function close the previously opened group of mesh. See

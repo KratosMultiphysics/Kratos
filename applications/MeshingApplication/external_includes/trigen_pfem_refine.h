@@ -382,7 +382,7 @@ KRATOS_WATCH("ln449");
 			int point_base;
 			//WHAT ARE THOSE????
 // 			Node<3> work_point(0,0.0,0.0,0.0);
- 			unsigned int MaximumNumberOfResults = 500;
+ 			unsigned int MaximumNumberOfResults = list_of_new_nodes.size();
 			PointVector Results(MaximumNumberOfResults);
 			DistanceVector ResultsDistances(MaximumNumberOfResults);
 
@@ -422,7 +422,7 @@ KRATOS_WATCH("ln449");
 					int number_of_points_in_radius;
 					work_point.X() = xc; work_point.Y() = yc; work_point.Z() = 0.0;
 					
-					number_of_points_in_radius = nodes_tree2.SearchInRadius(work_point, radius, Results.begin(),
+					number_of_points_in_radius = nodes_tree2.SearchInRadius(work_point, radius*1.01, Results.begin(),
 							ResultsDistances.begin(),  MaximumNumberOfResults);
 
 					Triangle2D3<Node<3> > geom(
@@ -1003,26 +1003,26 @@ KRATOS_WATCH("ln754");
 					  )
 		{
 			double area = CalculateVol(x0,y0,x1,y1,x2,y2);
-			double inv_area = 0.0;
+			
 			if(area < 0.000000000001)
 			  {
 				KRATOS_ERROR(std::logic_error,"element with zero area found","");
 			  }
-			else
-			  {
-				inv_area = 1.0 / area;
-			  }
 			
-			  
-			  N[0] = CalculateVol(x1,y1,x2,y2,xc,yc) * inv_area;
-			  N[1] = CalculateVol(x2,y2,x0,y0,xc,yc) * inv_area;
-			  N[2] = CalculateVol(x0,y0,x1,y1,xc,yc) * inv_area;
+			
+			   
+			  N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;
+			  N[1] = CalculateVol(x2,y2,x0,y0,xc,yc)  / area;
+			  N[2] = CalculateVol(x0,y0,x1,y1,xc,yc)  / area;
 			  
 /*			  N[0] = CalculateVol(x0,y0,x1,y1,xc,yc) * inv_area;
 			N[1] = CalculateVol(x1,y1,x2,y2,xc,yc) * inv_area;
 			N[2] = CalculateVol(x2,y2,x0,y0,xc,yc) * inv_area;*/
+                          double tol = 1e-4;
+                          double upper_limit = 1.0+tol;
+                          double lower_limit = -tol;
 			
-			if(N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle
+			if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit) //if the xc yc is inside the triangle
 			//if(N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
 				return true;
 			

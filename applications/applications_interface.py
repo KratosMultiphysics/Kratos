@@ -17,6 +17,7 @@ Import_PoissonApplication = False
 Import_ElectrostaticApplication = False
 Import_MagnetostaticApplication = False
 Import_DamApplication = False
+Import_TestApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -33,7 +34,8 @@ print "Import_KratosMetisApplication: False"
 print "Import_PoissonApplication: False"  
 print "Import_ElectrostaticApplication: False"
 print "Import_MagnetostaticApplication: False"
-print "Import_DamApplication: False"  
+print "Import_DamApplication: False"
+print "Import_TestApplication: False"
 
 
 def ImportApplications(kernel, applications_path):
@@ -54,7 +56,8 @@ def ImportApplications(kernel, applications_path):
     print "Import_ ElectrostaticApplication: "+str(Import_ElectrostaticApplication)
     print "Import_ MagnetostaticApplication: "+str(Import_ElectrostaticApplication)
     print "Import_DamApplication: "+str(Import_DamApplication)
-  
+    print "Import_TestApplication: "+str(Import_TestApplication)
+
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
         sys.path.append(applications_path + '/ALEapplication/python_scripts' )
@@ -192,7 +195,15 @@ def ImportApplications(kernel, applications_path):
         dam_application = KratosDamApplication()
         kernel.AddApplication(dam_application)
         print "Kratos DamApplication sucessfully imported"
-      
+
+    if(Import_TestApplication == True):
+        print "importing KratosTestApplication ..."
+        sys.path.append(applications_path + '/TestApplication/python_scripts')
+        from KratosTestApplication import *
+        test_application = KratosTestApplication()
+        kernel.AddApplication(test_application)
+        print "Kratos DamApplication sucessfully imported"
+        
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -228,3 +239,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(kMagnetostatic);
     if(Import_DamApplication == True):
         kernel.InitializeApplication(dam_application);
+    if(Import_TestApplication == True):
+        kernel.InitializeApplication(test_application);
