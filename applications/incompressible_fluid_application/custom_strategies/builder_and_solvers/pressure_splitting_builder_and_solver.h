@@ -136,6 +136,7 @@ namespace Kratos
             BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewPressLinearSystemSolver),
             mpVelLinearSystemSolver(pNewVelLinearSystemSolver),
             mVelocityCorrection(VelocityCorrection),
+            mDofSetChanged(true),
             mInexactNewton(UseInexactNewton),
             mMaxTolFactor(MaxTolFactor),
             mGamma(Gamma),
@@ -143,8 +144,7 @@ namespace Kratos
 //            mVelTolFactor(0),
             mPressTolFactor(0),
 //            mLastVelRHSNorm(0),
-            mLastPressRHSNorm(0),
-            mDofSetChanged(true)
+            mLastPressRHSNorm(0)
         {
             mSmallTol = 0.5*NonLinearTol;
         }
@@ -766,7 +766,7 @@ namespace Kratos
             }
 
             // Generate a single list
-            for (unsigned int k = 0; k < NumThreads ; k++)
+            for (int k = 0; k < NumThreads ; k++)
                 for( typename DofsArrayType::ptr_iterator itDof = DofContainer[k].ptr_begin();
                         itDof != DofContainer[k].ptr_end(); itDof++) {
                     BaseType::mDofSet.push_back(*itDof);
@@ -1543,7 +1543,7 @@ namespace Kratos
                     std::vector<unsigned int>& UsedCols = *pUsedCols;
                     UsedCols.reserve(mPressFreeDofs);
 
-                    for( std::size_t RowIndex = Partition[k] ;
+                    for( int RowIndex = Partition[k] ;
                             RowIndex != Partition[k+1] ; RowIndex++ ) {
                         RowType RowD(rD,RowIndex);
                         RowType RowL(rL,RowIndex);
@@ -1645,7 +1645,7 @@ namespace Kratos
                 std::vector<unsigned int>& UsedCols = *pUsedCols;
                 UsedCols.reserve(mPressFreeDofs);
 
-                for( std::size_t RowIndex = Partition[k] ;
+                for( int RowIndex = Partition[k] ;
                         RowIndex != Partition[k+1] ; RowIndex++ )
                 {
                     RowType RowD(rD,RowIndex);
@@ -1767,7 +1767,7 @@ namespace Kratos
                 #pragma omp parallel
                 if( OpenMPUtils::ThisThread() == k )
                 {
-                    for( std::size_t i = MatrixPartition[k]; i < MatrixPartition[k+1]; i++ )
+                    for( int i = MatrixPartition[k]; i < MatrixPartition[k+1]; i++ )
                     {
                         std::vector<std::size_t>& Row = indices[i];
                         std::sort(Row.begin(), Row.end());
