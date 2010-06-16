@@ -23,14 +23,14 @@ kernel = Kernel()   #defining kernel
 #importing applications
 import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_ExternalSolversApplication = True
+##applications_interface.Import_ExternalSolversApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
 from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
+##from KratosExternalSolversApplication import *
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
