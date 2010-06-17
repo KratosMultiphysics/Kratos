@@ -135,8 +135,8 @@ namespace Kratos
                 double Gamma = 0.9):
             BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewPressLinearSystemSolver),
             mpVelLinearSystemSolver(pNewVelLinearSystemSolver),
-            mVelocityCorrection(VelocityCorrection),
             mDofSetChanged(true),
+            mVelocityCorrection(VelocityCorrection),
             mInexactNewton(UseInexactNewton),
             mMaxTolFactor(MaxTolFactor),
             mGamma(Gamma),
