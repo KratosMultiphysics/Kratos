@@ -18,6 +18,7 @@ Import_ElectrostaticApplication = False
 Import_MagnetostaticApplication = False
 Import_DamApplication = False
 Import_TestApplication = False
+Import_OpenCLApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -36,7 +37,7 @@ print "Import_ElectrostaticApplication: False"
 print "Import_MagnetostaticApplication: False"
 print "Import_DamApplication: False"
 print "Import_TestApplication: False"
-
+print "Import_OpenCLApplication: False"
 
 def ImportApplications(kernel, applications_path):
     ##########################################################################
@@ -57,6 +58,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_ MagnetostaticApplication: "+str(Import_ElectrostaticApplication)
     print "Import_DamApplication: "+str(Import_DamApplication)
     print "Import_TestApplication: "+str(Import_TestApplication)
+    print "Import_OpenCLApplication: "+str(Import_OpenCLApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -203,7 +205,15 @@ def ImportApplications(kernel, applications_path):
         test_application = KratosTestApplication()
         kernel.AddApplication(test_application)
         print "Kratos DamApplication sucessfully imported"
-        
+
+    if(Import_OpenCLApplication == True):
+        print "importing KratosOpenCLApplication ..."
+        sys.path.append(applications_path + '/OpenCLApplication/python_scripts')
+        from KratosOpenCLApplication import *
+        opencl_application = KratosOpenCLApplication()
+        kernel.AddApplication(opencl_application)
+        print "KratosOpenCLApplication sucessfully imported"
+
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -241,3 +251,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(dam_application);
     if(Import_TestApplication == True):
         kernel.InitializeApplication(test_application);
+    if(Import_OpenCLApplication == True):
+        kernel.InitializeApplication(opencl_application);
