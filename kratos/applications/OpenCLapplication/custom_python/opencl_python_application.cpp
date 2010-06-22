@@ -60,8 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes 
 #include "includes/define.h"
 #include "OpenCLapplication.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_linear_solvers_to_python.h"
 
  
 namespace Kratos
@@ -82,8 +81,7 @@ namespace Python
 			  bases<KratosApplication>, boost::noncopyable >("KratosOpenCLApplication")
 			;
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
+	AddLinearSolversToPython();
 
 	//registering variables in python
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
