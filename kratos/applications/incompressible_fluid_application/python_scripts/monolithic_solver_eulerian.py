@@ -71,10 +71,12 @@ class MonolithicSolver:
 ##        pPrecond = ILU0Preconditioner()
         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 
-        
         #definition of the convergence criteria
-##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
-        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-3,1e-7)
+        self.rel_vel_tol = 1e-5
+        self.abs_vel_tol = 1e-7
+        self.rel_pres_tol = 1e-5
+        self.abs_pres_tol = 1e-7
+
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
@@ -92,6 +94,9 @@ class MonolithicSolver:
     #######################################################################
     def Initialize(self):
         #creating the solution strategy
+
+        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
+                                        self.rel_pres_tol,self.abs_pres_tol)
         
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
