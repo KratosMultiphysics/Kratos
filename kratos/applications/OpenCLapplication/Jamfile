@@ -1,8 +1,10 @@
-project KratosOpenCLapplication
+project KratosOpenCLApplication
     : 
     source-location
        .
        constitutive_laws
+       custom_external_libraries
+       custom_linear_solvers
        custom_conditions
        custom_elements
        custom_processes
@@ -11,28 +13,38 @@ project KratosOpenCLapplication
        custom_utilities
        external_includes
     :
-    requirements <include>. 
+    requirements <include>.
+                <include>custom_external_libraries
 		<define>KRATOS_PYTHON
+                <define>VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK
 		<link>shared
     ;
+
+lib libOCL 		: : <name>OpenCL <search>/usr/lib ;
+
+##lib libviennaCL_win 		: : <name>libviennaCL <search>custom_external_libraries/viennaCL/ <link>static ;
+####lib libviennaCL_linux		: : <name>viennaCL <search>custom_external_libraries/viennaCL/ <link>static ;
+##alias libtetgen : libviennaCL_win : <toolset>msvc ;
+##alias libtetgen : libviennaCL_linux : <toolset>gcc ;
+##alias libtetgen : libviennaCL_linux : <toolset>intel ;
+
 
 #################################################################################
 #################################################################################
 ## list of files to be build, including dependencies to other libraries
 import python ;
-python-extension KratosOpenCLapplication
+python-extension KratosOpenCLApplication
     :  
 	#list of sources
 #	element_2d.cpp 
 #	element_3d.cpp 
 	OpenCLapplication.cpp 
-	add_custom_strategies_to_python.cpp 
-	add_custom_utilities_to_python.cpp 
-	opencl_python_application.cpp 
+	opencl_python_application.cpp
+        add_linear_solvers_to_python.cpp
 
+        libOCL
 
 	#kratos library
-    #/kratos-prj/kratos//libkratos/<link>static
     /KratosProject//libkratos_static
 
     	 
@@ -46,6 +58,6 @@ python-extension KratosOpenCLapplication
 #################################################################################
 #################################################################################
 ## rules to install ... and to remove the prefix "lib"
-install install : KratosOpenCLapplication : <location>$(TOP)/libs ;
+install install : KratosOpenCLApplication : <location>$(TOP)/libs ;
 
 
