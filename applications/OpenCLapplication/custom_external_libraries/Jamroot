@@ -1,0 +1,62 @@
+##using gcc ;
+using intel : : : <cxxflags>"-fPIC -ansi -funroll-loops -openmp" ;
+
+path-constant TOP : . ;
+project prova 
+	: 
+	source-location
+	.
+        ./examples/tutorial
+	:
+	requirements 
+	<include>.         #to be customarized
+	<include>/home/rrossi/compiled_libraries/boost_1_43/include/         #to be customarized
+	<include>./viennacl/         #to be customarized
+	<include>/usr/include/	
+##	<include>/usr/local/include/boost-1_39/         #to be customarized
+##	<include>./viennacl/         #to be customarized
+##	<include>/home/riccardo/gpu/ati-stream-sdk-v2.0-lnx32/include/			
+			#basic configurations
+		     <threading>multi
+		     <define>NDEBUG
+
+			 #compiler settings - can be customarized by the user
+			 #WARNING -fPIC is NEEDED to compile on 64bit systems - it has to be specified here in order to include it in the 
+			 #kratos "static" library
+			 <warnings>on
+
+			 #gcc settings
+			<toolset>gcc:<cxxflags>"-fPIC -ansi -funroll-loops -ffast-math -fopenmp" 
+
+	: 
+		     default-build release
+	;
+
+##lib libOCL 		: : <name>OpenCL <search>/usr/lib ;
+lib libOCL 		: : <name>OpenCL <search>/usr/lib ;
+
+exe test1 : 
+		  tut1.cpp
+		  libOCL
+		;
+exe test2 : 
+		  tut2.cpp
+		  libOCL
+		;
+exe test3 : 
+		  tut3.cpp
+		  libOCL
+		;
+exe test4 : 
+		  tut4.cpp
+		  libOCL
+		;
+
+exe test5 : 
+		  tut5.cpp
+		  libOCL
+		;	
+	
+install install : test1 test2 test3 test4 test5 : <location>$(TOP) ;
+
+

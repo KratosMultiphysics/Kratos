@@ -1,21 +1,16 @@
 /*
 ==============================================================================
-KratosTestApplication 
-A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Farshid Mossaiby
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
+mossaiby@yahoo.com
+CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
 
 Permission is hereby granted, free  of charge, to any person obtaining
 a  copy  of this  software  and  associated  documentation files  (the
@@ -26,7 +21,7 @@ permit persons to whom the Software  is furnished to do so, subject to
 the following condition:
 
 Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
 
 The  above  copyright  notice  and  this permission  notice  shall  be
 included in all copies or substantial portions of the Software.
@@ -41,18 +36,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
-//
-//
 
 
-#if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
-#define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_GPU_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_GPU_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED
 
 
 
@@ -60,7 +47,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes 
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -70,13 +56,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-      void  AddCustomStrategiesToPython();
+  void  AddLinearSolversToPython();
 
-      }  // namespace Python.
+}  // namespace Python.
   
 }  // namespace Kratos.
 
-#endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_GPU_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED  defined 
