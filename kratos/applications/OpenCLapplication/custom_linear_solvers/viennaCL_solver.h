@@ -230,18 +230,21 @@ namespace Kratos
 	      typedef double scalar_type;
 	    viennacl::compressed_matrix<scalar_type> gpu_A;
 	    viennacl::vector<scalar_type> gpu_B(rX.size());
-	    viennacl::vector<scalar_type> gpu_X(rX.size());
-
-	    //solve the linear system of equations using ViennaCL's OpenCL implementation
-	    if(mpreconditioner_type == NoPreconditioner)
-	    {
-	      if(msolver_type == CG)
-		gpu_X = solve(gpu_A, gpu_B, viennacl::linalg::cg_tag(tol,maxIter));
+ 	    viennacl::vector<scalar_type> gpu_X(rX.size());
+	    
+	    copy(rB.begin(), rB.end(), gpu_B.begin());
+	    copy(rA, gpu_A);
+// 
+ 	    //solve the linear system of equations using ViennaCL's OpenCL implementation
+ 	    if(mpreconditioner_type == NoPreconditioner)
+ 	    {
+ 	      if(msolver_type == CG)
+ 		gpu_X = solve(gpu_A, gpu_B, viennacl::linalg::cg_tag(tol,maxIter));
 	      if(msolver_type == BiCGStab)
 		gpu_X = solve(gpu_A, gpu_B, viennacl::linalg::bicgstab_tag(tol,maxIter));
 	      if(msolver_type == GMRES)
 		gpu_X = solve(gpu_A, gpu_B, viennacl::linalg::gmres_tag(tol));	    
-	    }
+ 	    }
 	    else if(mpreconditioner_type == ILU)
 	    {
 	      viennacl::linalg::ilut_precond< viennacl::compressed_matrix<scalar_type> > vcl_ilut(gpu_A, viennacl::linalg::ilut_tag());
@@ -253,9 +256,9 @@ namespace Kratos
 	      if(msolver_type == GMRES)
 		gpu_X = solve(gpu_A, gpu_B, viennacl::linalg::gmres_tag(tol),vcl_ilut);	    
 	    }
-    
-	    //copy back to CPU
-	    copy(gpu_X.begin(), gpu_X.end(), rX.begin());
+//     
+// 	    //copy back to CPU
+ 	    copy(gpu_X.begin(), gpu_X.end(), rX.begin());
 	}	  
 
 
