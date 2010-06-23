@@ -126,7 +126,10 @@ class PressureSplittingSolver:
         
 
         #definition of the convergence criteria
-        self.conv_criteria = TrilinosUPCriteria(1e-7,1e-9,1e-7,1e-9,self.Comm)
+        self.rel_vel_tol = 1e-5
+        self.abs_vel_tol = 1e-7
+        self.rel_pres_tol = 1e-5
+        self.abs_pres_tol = 1e-7
 
         self.max_iter = 20
                             
@@ -153,6 +156,13 @@ class PressureSplittingSolver:
     def Initialize(self):
         #creating the solution strategy
         from trilinos_decoupled_up_strategy_python import DecoupledUPStrategyPython
+
+        self.conv_criteria = TrilinosUPCriteria(self.rel_vel_tol,\
+                                                self.abs_vel_tol,\
+                                                self.rel_pres_tol,\
+                                                self.abs_pres_tol,\
+                                                self.Comm)
+        
         self.solver = DecoupledUPStrategyPython(\
             self.buildertype,self.model_part,self.time_scheme,\
             self.vel_linear_solver,self.press_linear_solver,self.conv_criteria,\

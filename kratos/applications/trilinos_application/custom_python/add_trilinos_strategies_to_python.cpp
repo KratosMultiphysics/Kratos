@@ -324,7 +324,7 @@ namespace Kratos {
                     TrilinosPressureSplittingBuilderAndSolverType;
 
             class_< TrilinosPressureSplittingBuilderAndSolverType, boost::noncopyable >
-                    ("TrilinosPressureSplittingBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, TrilinosLinearSolverType::Pointer, unsigned int, unsigned int, bool, double, double, double > ())
+                    ("TrilinosPressureSplittingBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, TrilinosLinearSolverType::Pointer, unsigned int, bool, double, double, double > ())
                     .def("SetCalculateReactionsFlag", &TrilinosPressureSplittingBuilderAndSolverType::SetCalculateReactionsFlag)
                     .def("GetCalculateReactionsFlag", &TrilinosPressureSplittingBuilderAndSolverType::GetCalculateReactionsFlag)
                     .def("SetDofSetIsInitializedFlag", &TrilinosPressureSplittingBuilderAndSolverType::SetDofSetIsInitializedFlag)

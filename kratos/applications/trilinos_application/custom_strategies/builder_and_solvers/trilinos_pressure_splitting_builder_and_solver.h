@@ -131,7 +131,6 @@ namespace Kratos
                 int guess_row_size,
                 typename TLinearSolver::Pointer pVelocityLinearSystemSolver,
                 typename TLinearSolver::Pointer pPressureLinearSystemSolver,
-                unsigned int RebuildLevel, // If > 0 Do not re-check the shape of all matrices each step (see definition in private atribute variables)
                 unsigned int VelocityCorrection, // If > 0, explicitly solve the velocity to be divergence-free at each step
                 bool UseInexactNewton, // If true, dynamically set the linear iterative solver tolerance for the pressure system
                 double NonLinearTol = 1e-3, // Only used if InexactNewton == true, otherwise the solver will use it's own tolerance
@@ -141,8 +140,7 @@ namespace Kratos
             mpVelocityLinearSystemSolver(pVelocityLinearSystemSolver),
             mrComm(Comm),
             mRowSizeGuess(guess_row_size),
-            mRebuildLevel(RebuildLevel),
-            mInitializedMatrices(false),
+            mDofSetChanged(true),
             mVelocityCorrection(VelocityCorrection),
             mInexactNewton(UseInexactNewton),
             mMaxTolFactor(MaxTolFactor),
@@ -229,7 +227,9 @@ namespace Kratos
             mpG->GlobalAssemble(mpL->RowMap(),mpS->RowMap());
             mpD->GlobalAssemble(mpS->RowMap(),mpL->RowMap());
 
-            // Compute system matrix
+            // Assemble the pressure system matrix. Assumptions:
+            // 1- A was created with the proper graph and has Filled() == true (true if created using ResizeAndInitializeVectors())
+            // 2- A is filled with zeros (we rely on the strategy to do that)
             Epetra_CrsMatrix* pScaledG = new Epetra_CrsMatrix(*mpG);
             Epetra_Vector* pDiagS = new Epetra_Vector(mpS->RowMap(),false);
             mpS->ExtractDiagonalCopy(*pDiagS);
@@ -240,45 +240,12 @@ namespace Kratos
 
             // Store Inv{Diag(S)} * G
             pScaledG->LeftScale(*pDiagS);
-
-            if ( (mRebuildLevel == 0) || (mInitializedMatrices == false) )
-            {
-                KRATOS_TRY
-                Epetra_FECrsMatrix* Temp = new Epetra_FECrsMatrix(Copy,mpL->RowMap(),0);
-
-                // Temp <- D*ScaledG
-                EpetraExt::MatrixMatrix::Multiply(*mpD,false,*pScaledG,false,*Temp,false);
-
-                // A <- L -Temp
-                EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,*Temp,-1.0); // Temp <- 1*L + (-1)*Temp; bool is for transpose of L
-
-                // Finalize the system matrix
-                Temp->GlobalAssemble(mpL->DomainMap(),mpL->RangeMap(),true);
-
-                A = *Temp;
-
-                // Store the structure of A to avoid having to compute it in successive steps
-                boost::shared_ptr<Epetra_CrsGraph> pNewGraphA( new Epetra_CrsGraph(Temp->Graph()) );
-                mpGraphA.swap(pNewGraphA); // Store the graph for future iterations
-
-                delete Temp; Temp = 0;
-
-                mInitializedMatrices = true;
-
-                KRATOS_CATCH("")
-            }
-            else // We take advantage that we already know the graph of A
-            {
-                Epetra_FECrsMatrix* Temp = new Epetra_FECrsMatrix(Copy,*mpGraphA);
-
-                EpetraExt::MatrixMatrix::Multiply(*mpD,false,*pScaledG,false,*Temp,false);
-                Temp->GlobalAssemble();
-
-                EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,*Temp,-1.0); // Temp = 1*L + (-1)*Temp; bool is for transpose of L
-                A = *Temp;
-
-                delete Temp; Temp = 0;
-            }
+            
+            // A <- D*ScaledG
+            EpetraExt::MatrixMatrix::Multiply(*mpD,false,*pScaledG,false,A,false);
+            
+            // A <- L - A
+            EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,A,-1.0); // bool is for transpose of L
 
             // If we intend to use Inv{Diag(S)} again in the solve phase, store it
             if (mVelocityCorrection == 1)
@@ -360,7 +327,9 @@ namespace Kratos
             mpG->GlobalAssemble(mpL->RowMap(),mpS->RowMap());
             mpD->GlobalAssemble(mpS->RowMap(),mpL->RowMap());
 
-            // Compute system matrix
+            // Assemble the pressure system matrix. Assumptions:
+            // 1- A was created with the proper graph and has Filled() == true (true if created using ResizeAndInitializeVectors())
+            // 2- A is filled with zeros (we rely on the strategy to do that)
             Epetra_CrsMatrix* pScaledG = new Epetra_CrsMatrix(*mpG);
             Epetra_Vector* pDiagS = new Epetra_Vector(mpS->RowMap(),false);
             mpS->ExtractDiagonalCopy(*pDiagS);
@@ -372,44 +341,11 @@ namespace Kratos
             // Store Inv{Diag(S)} * G
             pScaledG->LeftScale(*pDiagS);
 
-            if ( (mRebuildLevel == 0) || (mInitializedMatrices == false) )
-            {
-                KRATOS_TRY
-                Epetra_FECrsMatrix* Temp = new Epetra_FECrsMatrix(Copy,mpL->RowMap(),0);
+            // A <- D*ScaledG
+            EpetraExt::MatrixMatrix::Multiply(*mpD,false,*pScaledG,false,A,false);
 
-                // Temp <- D*ScaledG
-                EpetraExt::MatrixMatrix::Multiply(*mpD,false,*pScaledG,false,*Temp,false);
-
-                // A <- L -Temp
-                EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,*Temp,-1.0); // Temp <- 1*L + (-1)*Temp; bool is for transpose of L
-
-                // Finalize the system matrix
-                Temp->GlobalAssemble(mpL->DomainMap(),mpL->RangeMap(),true);
-
-                A = *Temp;
-
-                // Store the structure of A to avoid having to compute it in successive steps
-                boost::shared_ptr<Epetra_CrsGraph> pNewGraphA( new Epetra_CrsGraph(Temp->Graph()) );
-                mpGraphA.swap(pNewGraphA); // Store the graph for future iterations
-
-                delete Temp; Temp = 0;
-
-                mInitializedMatrices = true;
-
-                KRATOS_CATCH("")
-            }
-            else // We take advantage that we already know the graph of A
-            {
-                Epetra_FECrsMatrix* Temp = new Epetra_FECrsMatrix(Copy,*mpGraphA);
-
-                EpetraExt::MatrixMatrix::Multiply(*mpD,false,*pScaledG,false,*Temp,false);
-                Temp->GlobalAssemble();
-
-                EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,*Temp,-1.0); // Temp = 1*L + (-1)*Temp; bool is for transpose of L
-                A = *Temp;
-
-                delete Temp; Temp = 0;
-            }
+            // A <- L - A
+            EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,A,-1.0); // bool is for transpose of L
 
             // If we intend to use Inv{Diag(S)} again in the solve phase, store it
             if (mVelocityCorrection == 1)
@@ -554,6 +490,10 @@ namespace Kratos
                 Dx.ReplaceGlobalValues(LocalDofNum,GlobalIndices,RHSValues,0);
 
                 if (mFirstIteration == true) mFirstIteration = false;
+                
+                // Clean allocated space
+                delete [] VelIndices; delete [] PressIndices; delete [] RHSValues;
+                delete [] pPressBuffer; delete [] pVelBuffer; delete [] GlobalIndices;
             }
             else
                 TSparseSpace::SetToZero(Dx);
@@ -751,6 +691,7 @@ namespace Kratos
                 KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
 
             BaseType::mDofSetIsInitialized = true;
+            mDofSetChanged = true;
 
             KRATOS_CATCH("")
         }
@@ -872,6 +813,7 @@ namespace Kratos
 
             // Resizing system matrices
             if ( BaseType::GetReshapeMatrixFlag() == true ||
+                    mDofSetChanged == true ||
                     pA == NULL || TSparseSpace::Size1(*pA) == 0 ||
                     mpS == NULL || TSparseSpace::Size1(*mpS) == 0 ||
                     mpG == NULL || TSparseSpace::Size1(*mpG) == 0 ||
@@ -912,7 +854,6 @@ namespace Kratos
                 Epetra_FECrsGraph GGraph(Copy, UMap, ColPMap, mRowSizeGuess);
                 Epetra_FECrsGraph DGraph(Copy, PMap, ColUMap, mRowSizeGuess);
                 Epetra_FECrsGraph LGraph(Copy, PMap, mRowSizeGuess);
-                Epetra_FECrsGraph AGraph(Copy, PMap, mRowSizeGuess);
 
                 delete [] LocalVelIndices; LocalVelIndices = 0;
                 delete [] LocalPressIndices; LocalPressIndices = 0;
@@ -1011,10 +952,6 @@ namespace Kratos
                 GraphError += DGraph.GlobalAssemble(UMap,PMap,true);
                 GraphError += LGraph.GlobalAssemble(true);
 
-                // Define A based on L - D*(1/DiagS)*G
-                TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,AGraph));
-                pA.swap(pNewA);
-
                 if( GraphError!=0 ) KRATOS_ERROR(std::logic_error,"Epetra failure during matrix inicialization","");
 
                 // Create & store matrices
@@ -1027,6 +964,16 @@ namespace Kratos
                 mpG.swap(pNewG);
                 mpD.swap(pNewD);
                 mpL.swap(pNewL);
+
+                // Finally, define the pressure system matrix's graph from the shapes of the different matrices
+                boost::shared_ptr<Epetra_CrsGraph> pGraphA;
+
+                ConstructSystemMatrixGraph(pGraphA);
+                mDofSetChanged = false;
+                
+                // Create an empty pressure system matrix at the location pointed by pA
+                TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,*pGraphA));
+                pA.swap(pNewA);
 
                 delete [] VelIds; VelIds = 0;
                 delete [] PressIds; PressIds = 0;
@@ -1084,7 +1031,6 @@ namespace Kratos
         {
             KRATOS_TRY
             mFirstIteration = true;
-            mInitializedMatrices = false;
             KRATOS_CATCH("")
         }
 
@@ -1136,31 +1082,25 @@ namespace Kratos
 
             if (this->mpS != NULL)
                 TSparseSpace::Clear((this->mpS));
+            
+            if (this->mpG != NULL)
+                    TSparseSpace::Clear((this->mpG));
+
+            if (this->mpD != NULL)
+                TSparseSpace::Clear((this->mpD));
 
             if (this->mpL != NULL)
                 TSparseSpace::Clear((this->mpL));
 
-            if (mRebuildLevel < 2)
+            if (mVelocityCorrection == 1 && this->mpIDiagS != NULL)
             {
-                if (this->mpG != NULL)
-                    TSparseSpace::Clear((this->mpG));
-
-                if (this->mpD != NULL)
-                    TSparseSpace::Clear((this->mpD));
-
-                if (mRebuildLevel == 0)
-                {
-                    if (mVelocityCorrection == 1 && this->mpIDiagS != NULL)
-                    {
-                        // Note that this vector is not cleaned via TSparseSpace because
-                        // TSystemVectorType can be an Epetra_FEVector, but this has to
-                        // be a regular Epetra_Vector
-                        int global_elems = 0;
-			Epetra_Map Map(global_elems, 0, mrComm);
-			boost::shared_ptr<Epetra_Vector> pNewEmptyX(new Epetra_Vector(Map));
-			mpIDiagS.swap(pNewEmptyX);
-                    }
-                }
+                // Note that this vector is not cleaned via TSparseSpace because
+                // TSystemVectorType can be an Epetra_FEVector, but this has to
+                // be a regular Epetra_Vector
+                int global_elems = 0;
+                Epetra_Map Map(global_elems, 0, mrComm);
+                boost::shared_ptr<Epetra_Vector> pNewEmptyX(new Epetra_Vector(Map));
+                mpIDiagS.swap(pNewEmptyX);
             }
 
             if (this->GetEchoLevel() > 0) {
@@ -1226,15 +1166,15 @@ namespace Kratos
                 const int* pElementalColIndices, // Column indices in this element's contribution
                 const LocalSystemMatrixType& Contribution) // 'Monolithic' elemental matrix
         {
-            double* pValues(new double[RowNum*ColNum]);
+            double pValues[RowNum*ColNum];
 
             for( int i = 0; i < RowNum; i++)
                 for( int j=0; j < ColNum; j++)
                     pValues[ColNum*i + j] = Contribution(pElementalRowIndices[i],pElementalColIndices[j]);
 
-            pB->SumIntoGlobalValues(RowNum,pGlobalRowIndices,ColNum,pGlobalColIndices,pValues,Epetra_FECrsMatrix::ROW_MAJOR);
+            pB->SumIntoGlobalValues(RowNum,pGlobalRowIndices,ColNum,pGlobalColIndices,&pValues[0],Epetra_FECrsMatrix::ROW_MAJOR);
 
-            delete [] pValues;
+            //delete [] pValues;
         }
 
         inline void AssembleLHS(
@@ -1301,6 +1241,32 @@ namespace Kratos
             KRATOS_ERROR(std::logic_error, "AssembleLHS_CompleteOnFreeRows() method is not implemented for Trilinos", "");
         }
 
+
+        /* Compute the Graph of A from the shapes of D, G and L*/
+        void ConstructSystemMatrixGraph( boost::shared_ptr<Epetra_CrsGraph>& pGraphA)
+        {
+            KRATOS_TRY// Fill the matrices with ones to compute the result. I'm counting on the next build() to clean them
+            mpD->PutScalar(1.0);
+            mpG->PutScalar(1.0);
+            mpL->PutScalar(1.0);
+
+            TSystemMatrixPointerType pA( new TSystemMatrixType(Copy,mpL->RowMap(),0) );
+
+            // Get the shape of D*Inv(Diag(S))*G
+            EpetraExt::MatrixMatrix::Multiply(*mpD,false,*mpG,false,*pA,false);
+            // Get the shape of L - D*Inv(Diag(S))*G
+            EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,*pA,1.0);
+            // Finalize the result, providing a DomainMap and a RangeMap. We provide the map because
+            // the matrix was obtained from a product of rectangular matices, and it is not clear that
+            // it has the proper ones. Fortunately, we know which maps we want for the result.
+            pA->GlobalAssemble(mpL->DomainMap(),mpL->RangeMap(),true);
+
+            // Store the graph using given variable
+            boost::shared_ptr<Epetra_CrsGraph> pNewGraphA( new Epetra_CrsGraph(pA->Graph()) );
+            pGraphA.swap(pNewGraphA);
+            KRATOS_CATCH("")
+        }
+
         /* Set iterative solver tolerance using inexact Newton criteria */
         void SetInitialTolerance(
                 double RHSNorm,
@@ -1334,27 +1300,6 @@ namespace Kratos
             std::cout << "Corrected iterative solver tolerance to " << TolFactor << std::endl;
         }
 
-        void TestSystemSolve(
-                TSystemMatrixType& A,
-                TSystemVectorType& Dx,
-                TSystemVectorType& b)
-        {
-
-            Epetra_LinearProblem problem(&A,&Dx,&b);
-            AztecOO solver(problem);
-
-//            solver.SetAztecOption(AZ_solver,AZ_gmres);
-            solver.SetAztecOption(AZ_solver,AZ_cg);
-            solver.SetAztecOption(AZ_precond,AZ_dom_decomp);
-//            solver.SetAztecOption(AZ_subdomain_solve,AZ_ilu);
-            solver.SetAztecOption(AZ_subdomain_solve,AZ_icc);//IC
-            solver.SetAztecOption(AZ_kspace,100);
-            solver.SetAztecOption(AZ_output,32);
-
-            solver.Iterate(1000,1e-3);
-
-        }
-
         unsigned int mVelFreeDofs; // Position of 1st Free Pressure Dof
         unsigned int mVelFixedDofsEnd; // Position of 1st Fixed Pressure Dof
 
@@ -1364,10 +1309,6 @@ namespace Kratos
         TSystemMatrixPointerType mpD; // Discrete Divergence operator
         TSystemMatrixPointerType mpG; // Discrete Gradient operator
         TSystemMatrixPointerType mpL; // Stabilization term
-
-        boost::shared_ptr<Epetra_CrsGraph> mpGraphA; // Graph for the pressure system matrix
-        // If the mesh remains constant, we can do the computation of the shape
-        // of A once and store the result, this code will do it if mRebuildLevel != 0
 
         boost::shared_ptr<Epetra_Vector> mpIDiagS; // Inv(Diag(S)), stored as a vector
 
@@ -1385,13 +1326,7 @@ namespace Kratos
         int mLocalPressDofNum;
 
         // Flags for matrix reconstruction
-        unsigned int mRebuildLevel;
-        /* Decide what to rebuil each time new matrices are written
-         * 0: Rebuild all matrices
-         * 1: Keep A (pressure system matrix) constant
-         * 2: Keep D, G and A constant
-         */
-        bool mInitializedMatrices;
+        bool mDofSetChanged;
 
         unsigned int mVelocityCorrection;
         /* Ensure that velocity is divergence free after each iteration

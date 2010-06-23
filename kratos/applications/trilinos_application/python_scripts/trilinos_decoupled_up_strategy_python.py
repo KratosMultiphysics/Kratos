@@ -28,7 +28,6 @@ class DecoupledUPStrategyPython(SolvingStrategyPython):
         self.echo_level = 1
 ##        self.builder_and_solver_type = builder_and_solver_type
 	if(builder_and_solver_type == "PressureSplitting"):
-		RebuildLevel = 1
 		VelocityCorrection = 2
 		UseInexactNewton = False
 		IN_MinTol = 0.001
@@ -37,7 +36,7 @@ class DecoupledUPStrategyPython(SolvingStrategyPython):
         	self.builder_and_solver = \
                     TrilinosPressureSplittingBuilderAndSolver(\
                         Comm,guess_row_size,self.vel_linear_solver,\
-                        self.press_linear_solver,RebuildLevel,\
+                        self.press_linear_solver,\
                         VelocityCorrection,UseInexactNewton,\
                         IN_MinTol,IN_MaxTol,IN_Gamma)
         else:
