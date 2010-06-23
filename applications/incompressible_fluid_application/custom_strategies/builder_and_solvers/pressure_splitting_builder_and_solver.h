@@ -234,9 +234,10 @@ namespace Kratos
 
             double start_prod = omp_get_wtime();
 
-            #pragma omp parallel for
-            for( int k=0; k < NumThreads; k++)
+            #pragma omp parallel
             {
+                int k = OpenMPUtils::ThisThread();
+
                 //contributions to the system
                 LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
                 LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -942,6 +943,7 @@ namespace Kratos
 
                     AllocateSystemMatrix(A);
                     ConstructSystemMatrix(A);
+                    mDofSetChanged = false;
                 }
             }
 
