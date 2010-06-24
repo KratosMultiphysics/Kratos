@@ -9,6 +9,6 @@ SolverType = "static_poisson_solver"
 	
 problem_name="*tcl(file tail [GiD_Info project modelname])"
 problem_path="."
-kratos_path="../../../../"
+kratos_path="../../../../../"
 
 
