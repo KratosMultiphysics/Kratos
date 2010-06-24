@@ -55,7 +55,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_KratosMetisApplication: "+str(Import_KratosMetisApplication)
     print "Import_ PoissonApplication: "+str(Import_PoissonApplication)
     print "Import_ ElectrostaticApplication: "+str(Import_ElectrostaticApplication)
-    print "Import_ MagnetostaticApplication: "+str(Import_ElectrostaticApplication)
+    print "Import_MagnetostaticApplication: "+str(Import_MagnetostaticApplication)
     print "Import_DamApplication: "+str(Import_DamApplication)
     print "Import_TestApplication: "+str(Import_TestApplication)
     print "Import_OpenCLApplication: "+str(Import_OpenCLApplication)
@@ -189,6 +189,14 @@ def ImportApplications(kernel, applications_path):
         kElectrostatic = KratosR1MagnetostaticApplication()
         kernel.AddApplication(kMagnetostatic)
         print "Kratos ElectromagneticApplication2 sucessfully imported"
+         
+    if(Import_MagnetostaticApplication == True):
+        print "importing KratosR1magnetostaticApplication ..."
+        sys.path.append(applications_path + '/kMagnetostatic/python_scripts')
+        from KratosR1MagnetostaticApplication import *
+        kMagnetostatic = KratosR1MagnetostaticApplication()
+        kernel.AddApplication(kMagnetostatic)
+        print "Kratos ElectromagnecticApplication2 sucessfully imported"
          
     if(Import_DamApplication == True):
         print "importing KratosDamApplication ..."
