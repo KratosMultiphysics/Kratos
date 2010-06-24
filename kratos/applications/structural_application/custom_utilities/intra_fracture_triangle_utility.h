@@ -611,7 +611,7 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
                     ///* usamos el mismo criterio de elementos positivos(old node ) y negativos(new node) 
 		    ///* Normal al plano de fractura
                     ///-------------------------------------------------------------------
-                      if( Splitted_Elements[0].Id()==it->Id() or Splitted_Elements[1].Id()==it->Id()) 
+                      if( Splitted_Elements[0].Id()==it->Id() || Splitted_Elements[1].Id()==it->Id()) 
 		       {
                           array_1d<double,3>  normal;
 		          Calculate_Normal_Faliure_Maps(normal, Failure_Maps);
