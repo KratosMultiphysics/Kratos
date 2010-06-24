@@ -337,7 +337,7 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer pNode, const array
     */
     ///* Si el nodo no mas tiene un solo elemtno vecino
     bool& duplicated_pNode = pNode->FastGetSolutionStepValue(IS_DUPLICATED);
-    if( (Positive_Elements.size()==0 and Negative_Elements.size()==0)  or  (Positive_Elements.size()==1 and Negative_Elements.size()==0) or (Positive_Elements.size()==0 and Negative_Elements.size()==1) or duplicated_pNode==true)
+    if( (Positive_Elements.size()==0 && Negative_Elements.size()==0)  ||  (Positive_Elements.size()==1 && Negative_Elements.size()==0) || (Positive_Elements.size()==0 && Negative_Elements.size()==1) || duplicated_pNode==true)
     {
       std::cout<<"NO INSERTED NODE NO INSERTED NODE NO INSERTED NODE "<<std::endl;
     }
