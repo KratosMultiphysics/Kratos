@@ -1157,7 +1157,7 @@ residual[1] = (mpFluencyCriteria->mMultisurface_Platicity_Yield[mactive_surface[
 norma = norm_2(residual);
 
 /// No puede ser nunca negativo  
-if(delta_gamma[0] < 0 or delta_gamma[1] < 0 or iter>=max){ 
+if(delta_gamma[0] < 0 || delta_gamma[1] < 0 || iter>=max){ 
 KRATOS_WATCH(delta_gamma)
 KRATOS_WATCH( (mpFluencyCriteria->mMultisurface_Platicity_Yield[mactive_surface[1]]))
 KRATOS_WATCH((mpFluencyCriteria->mMultisurface_Platicity_Yield[1]))
