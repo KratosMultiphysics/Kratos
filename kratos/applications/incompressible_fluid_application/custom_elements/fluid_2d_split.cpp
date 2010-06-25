@@ -377,75 +377,81 @@ namespace Kratos
 	
 
 	if(GetValue(IS_DIVIDED) == 1.0)
+	{
+		boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
+		array_1d<double,4> A_on_agp = ZeroVector(4);
+		boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
+		array_1d<double,4> dist_on_agp = ZeroVector(4);
+
+		DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+
+		for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
 		{
-		        boost::numeric::ublas::bounded_matrix<double,4,2> aux_gp = ZeroMatrix(4,2);
-		        array_1d<double,4> A_on_agp = ZeroVector(4);
-		        boost::numeric::ublas::bounded_matrix<double,4,3> N_on_agp = ZeroMatrix(4,3);
-		        array_1d<double,4> dist_on_agp = ZeroVector(4);
+		  if (dist_on_agp[i] < 0.0)
+		  {
+			double Area_se = A_on_agp[i];
+		      
+			for (unsigned int j = 0; j < N.size(); j++)
+			    N[j] = N_on_agp(i,j);
 
-		        DivideElemUtils::DivideElement_2D(GetGeometry(), aux_gp, A_on_agp, N_on_agp, dist_on_agp);
+			//viscous term	
+			CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+			//Advective term
+// 		        double tauone = 0.0;//delta_t;
+// 		        double tautwo = 0.0;//delta_t;
+			double tauone, tautwo;
+			CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+			CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area_se);
+// 		        //calculate pressure term
+			CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area_se);
+			//calculate Darcy term
+			CalculateDarcyTerm_SubElem(rDampMatrix, N, Area_se);
 
-		        for(unsigned int i = 0 ; i< aux_gp.size1() ; i++)
-		        {
-			 if (dist_on_agp[i] < 0.0)
-			 {
-			       double Area_se = A_on_agp[i];
-			     
-			       for (unsigned int j = 0; j < N.size(); j++)
-				    N[j] = N_on_agp(i,j);
+			//compute projections
 
-			       //viscous term	
-			       CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-			       //Advective term
-        // 		        double tauone = 0.0;//delta_t;
-        // 		        double tautwo = 0.0;//delta_t;
-			       double tauone, tautwo;
-			       CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
-			       CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area_se);
-        // 		        //calculate pressure term
-			       CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area_se);
-			       //calculate Darcy term
-			       CalculateDarcyTerm_SubElem(rDampMatrix, N, Area_se);
+			//stabilization terms
+			CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area_se);
+			CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area_se);
+			CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area_se);
 
-			       //compute projections
-
-			       //stabilization terms
-		//	       CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area_se);
-			       CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area_se);
-			       CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area_se);
-
-			 }
-
-		        }
-		}
-		else if(GetValue(IS_DIVIDED) == -1.0)
-		{
-
-			 CalculateViscousTerm(rDampMatrix, DN_DX, Area);
 		
-			 //Advective term
-			 //		  double tauone =0.0; //delta_t;
-			 //		  double tautwo =0.0;// delta_t;
-			 double tauone, tautwo;
-			 CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
-			 CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);		   
+		  }
 
-			 //calculate pressure term
-			 CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
-
-			 //calculate Darcy term
-			 CalculateDarcyTerm(rDampMatrix, Area);
-
-			 //compute projections
-
-			 //stabilization terms
-		//	 CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
-			 CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
-			 CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
-	       
 		}
+	}
+	else if(GetValue(IS_DIVIDED) == -1.0)
+	{
 
-		KRATOS_CATCH("")
+		  CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+	
+		  //Advective term
+		  //		  double tauone =0.0; //delta_t;
+		  //		  double tautwo =0.0;// delta_t;
+		  double tauone, tautwo;
+		  CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+		  CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);		   
+
+		  //calculate pressure term
+		  CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
+
+		  //calculate Darcy term
+		  CalculateDarcyTerm(rDampMatrix, Area);
+
+		  //compute projections
+
+		  //stabilization terms
+		  CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
+		  CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
+		  CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
+		  
+	
+	}
+		
+		
+	CalculateResidual(rDampMatrix, rRightHandSideVector);
+		 
+		 
+	KRATOS_CATCH("")
 	}
         
 
@@ -1496,7 +1502,7 @@ ms_adv_vel[1] /=eps;
 	double kinv = 150.0*(1.0-eps)*(1.0-eps)/(eps*eps*eps*dp*dp);
 
 /*	double fac_linear = eps * kinv * mu /density;	
-	double fac_nonlinear = (1.75 * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;     */
+	double fac_nonlinear = (1.75 * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;    */ 
 	double fac_linear = kinv * mu /density;	
 	double fac_nonlinear = (1.75 / eps * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;    
 
