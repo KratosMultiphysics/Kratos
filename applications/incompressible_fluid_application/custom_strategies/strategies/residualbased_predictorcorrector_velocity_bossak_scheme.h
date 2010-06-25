@@ -275,17 +275,16 @@ namespace Kratos {
                 array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
                 UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
-              //  UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
 
  
- //               if (mMeshVelocity == 0)//EUlerian
- //               {
- //		  	noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = ZeroVector(3);
- //               }
+                if (mMeshVelocity == 0)//EUlerian
+                {
+ 		  	noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = ZeroVector(3);
+                }
                 if (mMeshVelocity == 2)//Lagrangian
                 {
-			noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = i->FastGetSolutionStepValue(VELOCITY);
-			UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+			noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = i->FastGetSolutionStepValue(VELOCITY);;
                 }
 
 
@@ -357,17 +356,18 @@ namespace Kratos {
 
 
                 UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
-             //   UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
 
- //               if (mMeshVelocity == 0) {
- //                   i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
- //                   i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
- //                   i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
- //               }
+                if (mMeshVelocity == 0) {
+                    i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
+                    i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
+                    i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
+                }
 
                 if (mMeshVelocity == 2) {
-			noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = i->FastGetSolutionStepValue(VELOCITY);
-			UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                    i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X);
+                    i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y);
+                    i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = i->FastGetSolutionStepValue(VELOCITY_Z);
                 }
             }
             std::cout << "end of prediction" << std::endl;
@@ -396,17 +396,14 @@ namespace Kratos {
                 ProcessInfo& CurrentProcessInfo
                 ) {
             KRATOS_TRY
-
-                    //Initializing the non linear iteration for the current element
-                    (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
+            //Initializing the non linear iteration for the current element
+            (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
             //KRATOS_WATCH(LHS_Contribution);
             //basic operations for the element considered
-                                    
             (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
 //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
             (rCurrentElement)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
-
             (rCurrentElement)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -414,7 +411,6 @@ namespace Kratos {
             //adding the dynamic contributions (statics is already included)
 
             AddDynamicsToLHS(LHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
-
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
 
 
@@ -455,13 +451,13 @@ namespace Kratos {
                 Element::EquationIdVectorType& EquationId,
                 ProcessInfo& CurrentProcessInfo) {
             KRATOS_TRY
-                    //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
-                    (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
+            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
+            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
-           (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
 
             AddDynamicsToLHS(LHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
@@ -508,9 +504,6 @@ namespace Kratos {
             Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
             double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-
-KRATOS_WATCH(">>>>>>>>>>>> inside scheme ><<<<<<<<<<<<<<<<<<<<<<<<<");
-KRATOS_WATCH(DeltaTime);
 
             if (DeltaTime == 0)
                 KRATOS_ERROR(std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "");
@@ -680,13 +673,12 @@ KRATOS_WATCH(DeltaTime);
             {
                 noalias(LHS_Contribution) += mam*M;
             }
+
             //adding  damping contribution
 
             if (D.size1() != 0) // if M matrix declared
             {
-
                 noalias(LHS_Contribution) += D;
-
             }
         }
 
@@ -716,13 +708,6 @@ KRATOS_WATCH(DeltaTime);
                 noalias(RHS_Contribution) -= prod(M, VelocityBossakAuxiliaries::macc);
             }
 
-            //adding damping contribution
-            //damping contribution
-
-            if (D.size1() != 0) {
-                rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
-                noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
-            }
 
         }
 
@@ -742,12 +727,6 @@ KRATOS_WATCH(DeltaTime);
                 noalias(RHS_Contribution) -= prod(M, VelocityBossakAuxiliaries::macc);
             }
 
-            //adding damping contribution
-            //damping contribution
-            if (D.size1() != 0) {
-                rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
-                noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
-            }
 
         }
 
