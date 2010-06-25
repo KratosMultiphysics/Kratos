@@ -134,14 +134,14 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 
 			for(unsigned int i = 0; i<2 ; i++)
 				mean_ex_p += 0.5*GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE); 
-			
+
 			double p0 = GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_PRESSURE); 
-			rRightHandSideVector[0] = 0.5*An[0]*p0;
-			rRightHandSideVector[1] = 0.5*An[1]*p0;
+			rRightHandSideVector[0] = -0.5*An[0]*p0;
+			rRightHandSideVector[1] = -0.5*An[1]*p0;
 
 			double p1 = GetGeometry()[1].FastGetSolutionStepValue(EXTERNAL_PRESSURE); 
-			rRightHandSideVector[2] = 0.5*An[0]*p1;
-			rRightHandSideVector[3] = 0.5*An[1]*p1;
+			rRightHandSideVector[2] = -0.5*An[0]*p1;
+			rRightHandSideVector[3] = -0.5*An[1]*p1;
 
 			//	if(mean_ex_p !=GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_PRESSURE))
 			//		mean_ex_p = 0.0;
