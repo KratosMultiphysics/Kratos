@@ -260,6 +260,7 @@ namespace Kratos {
         CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, delta_t, tauone, Area);
         //KRATOS_WATCH(rRightHandSideVector);
 
+	CalculateResidual(rDampMatrix, rRightHandSideVector);
 
         KRATOS_CATCH("")
     }
