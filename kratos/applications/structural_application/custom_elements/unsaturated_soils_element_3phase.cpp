@@ -3556,6 +3556,15 @@ namespace Kratos
 
                 KRATOS_CATCH("")
         } 
+        
+        void UnsaturatedSoilsElement_3phase::ResetConstitutiveLaw()
+        {
+            KRATOS_TRY
+            for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                    mConstitutiveLawVector[i]->ResetMaterial(GetProperties());
+            KRATOS_CATCH("")
+        }
+
 
         void UnsaturatedSoilsElement_3phase::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
         {

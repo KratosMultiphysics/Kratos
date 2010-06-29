@@ -760,7 +760,17 @@ namespace Kratos
                 {
                         mConstitutiveLawVector[Point]->FinalizeSolutionStep(GetProperties(), GetGeometry(), ZeroVector(0), CurrentProcessInfo);
                 }
-
+                Vector Dummy_Vector(9);
+                noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
+                for(unsigned int i=0; i< GetGeometry().size(); i++)
+                {
+                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_X)= Dummy_Vector(0);
+                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Y)= Dummy_Vector(1);
+                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Z)= Dummy_Vector(2);
+                        GetGeometry()[i].GetSolutionStepValue(PRESSURE)= Dummy_Vector(3);
+                        GetGeometry()[i].GetSolutionStepValue(ERROR_RATIO)= Dummy_Vector(4);
+                        GetGeometry()[i].GetSolutionStepValue(EXCESS_PORE_WATER_PRESSURE)= GetGeometry()[i].GetSolutionStepValue(WATER_PRESSURE)-9.81*1000.0*(20.0-GetGeometry()[i].Z());
+                }
 //                 Vector Dummy_Vector(8);
 //                 noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
 //                 for(unsigned int i=0; i< GetGeometry().size(); i++)
@@ -826,7 +836,17 @@ namespace Kratos
 
             KRATOS_CATCH("")            
         }
-
+    /**
+    * Calculate Vector Variables at each integration point, used for postprocessing etc.
+    * @param rVariable Global name of the variable to be calculated
+    * @param output Vector to store the values on the qudrature points, output of the method 
+    * @param rCurrentProcessInfo
+    */
+    void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, 
+            std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
+    {
+                GetValueOnIntegrationPoints(rVariable, Output, rCurrentProcessInfo);
+    }
         //************************************************************************************
         //************************************************************************************
 
@@ -3063,6 +3083,8 @@ namespace Kratos
          void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
         {
 // std::cout<<"GetValue On Integration Points"<<std::endl;
+                               const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
                 if(rValues.size() != mConstitutiveLawVector.size())
                         rValues.resize(mConstitutiveLawVector.size());
 
@@ -3075,14 +3097,97 @@ namespace Kratos
                                 noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS);
                         }
                 }
-
+                //To Plot Internal variables
                 if(rVariable==INTERNAL_VARIABLES)
                 {
                         for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
                         {
-                                if(rValues[i].size() != 8 )
-                                        rValues[i].resize(8);
+                                if(rValues[i].size() != 9 )
+                                        rValues[i].resize(9);
                                 noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES);
+                        }
+                }
+                //To Plot Stresses
+                if(rVariable==STRESSES)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                if(rValues[i].size() != 6 )
+                                        rValues[i].resize(6);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(STRESSES);
+                        }
+                }
+                //To Plot Fluid Flows
+                if(rVariable==FLUID_FLOWS)
+                {
+                        unsigned int number_of_nodes_press = (mNodesPressMax-mNodesPressMin+1);
+
+                     Vector N_PRESS(number_of_nodes_press);
+
+                     Matrix DN_DX_PRESS(number_of_nodes_press,3);
+
+                     double capillaryPressure;
+                        
+                     double waterPressure;
+
+                     double airPressure;
+
+                     double saturation;
+
+                     Vector airFlow(3);
+
+                     Vector waterFlow(3);
+
+                        const GeometryType::ShapeFunctionsGradientsType& DN_De_Displacement =   
+                                GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+                        const GeometryType::ShapeFunctionsGradientsType& DN_De_Pressure =   
+                                mpPressureGeometry->ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+                        const Matrix& Ncontainer_Pressure = mpPressureGeometry->ShapeFunctionsValues(mThisIntegrationMethod);
+
+                     for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
+                     {  
+                        if(rValues[PointNumber].size() != 9 )
+                                rValues[PointNumber].resize(9);
+                        // Shape Functions on current spatial quadrature point
+                        if(N_PRESS.size()!=number_of_nodes_press)
+                                N_PRESS.resize(number_of_nodes_press);
+                        noalias(N_PRESS)= row(Ncontainer_Pressure,PointNumber);
+
+                        GetPressures(N_PRESS, capillaryPressure, waterPressure, airPressure);
+
+                        saturation= GetSaturation(capillaryPressure);
+
+                        rValues[PointNumber][0]= waterPressure;
+                        rValues[PointNumber][1]= airPressure;
+                        rValues[PointNumber][2]= saturation;
+
+                        noalias(DN_DX_PRESS)= prod(DN_De_Pressure[PointNumber],mInvJ0[PointNumber]);
+
+                        noalias(msDN_DX_DISP)= prod(DN_De_Displacement[PointNumber],mInvJ0[PointNumber]);
+
+                        noalias(waterFlow)= GetFlowWater(DN_DX_PRESS,msDN_DX_DISP, capillaryPressure);
+
+                        noalias(airFlow)= GetFlowAir(DN_DX_PRESS, msDN_DX_DISP, airPressure, capillaryPressure);
+
+                        rValues[PointNumber][3]= waterFlow(0);
+                        rValues[PointNumber][4]= waterFlow(1);
+                        rValues[PointNumber][5]= waterFlow(2);
+                        rValues[PointNumber][6]= airFlow(0);
+                        rValues[PointNumber][7]= airFlow(1);
+                        rValues[PointNumber][8]= airFlow(2);
+                      }
+                }
+                //To Plot Coordinates of Integration Points
+                if(rVariable==COORDINATES)
+                {
+                        for(unsigned int i=0; i< integration_points.size(); i++)
+                        {
+                                if(rValues[i].size() != 3 )
+                                        rValues[i].resize(3);
+                                Geometry<Node<3> >::CoordinatesArrayType dummy;
+                                GetGeometry().GlobalCoordinates(dummy, integration_points[i]);
+                                noalias(rValues[i])= dummy;
                         }
                 }
 // std::cout<<"END::GetValue On Integration Points"<<std::endl;

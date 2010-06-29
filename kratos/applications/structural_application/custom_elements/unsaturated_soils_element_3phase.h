@@ -133,6 +133,8 @@ namespace Kratos
                Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
                void Initialize();
+               
+               void ResetConstitutiveLaw();
 
                void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       

@@ -240,6 +240,12 @@ namespace Kratos
 	    //calculating and storing inverse of the jacobian and the parameters needed
             MathUtils<double>::InvertMatrix(J0[PointNumber],mInvJ0[PointNumber],mDetJ0[PointNumber]);
         }
+        
+        //Set Up Initial displacement for StressFreeActivation of Elements
+        mInitialDisp.resize(GetGeometry().size(),dim,false);
+        for(unsigned int node = 0; node< GetGeometry().size(); node++)  
+                for(unsigned int i = 0; i< 3; i++)  
+                        mInitialDisp(node, i)= GetGeometry()[node].GetSolutionStepValue(DISPLACEMENT)[i];
 
 	//Constitutive Law initialisation
         if(mConstitutiveLawVector.size() != integration_points.size())
@@ -282,6 +288,18 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+    
+    void UnsaturatedSoilsElement_2phase_SmallStrain::ResetConstitutiveLaw()
+    {
+        KRATOS_TRY
+        if(GetProperties()[CONSTITUTIVE_LAW] != NULL)
+        {
+            for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+                mConstitutiveLawVector[i]->ResetMaterial(GetProperties());
+        }
+        KRATOS_CATCH("")
+    }
+
 
         /**
     * THIS method is called from the scheme at the start of each solution step
@@ -611,6 +629,18 @@ namespace Kratos
                 {
                 mConstitutiveLawVector[Point]->FinalizeSolutionStep(GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),Point), CurrentProcessInfo);
                 }
+
+                Vector Dummy_Vector(9);
+                noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
+                for(unsigned int i=0; i< GetGeometry().size(); i++)
+                {
+                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_X)= Dummy_Vector(0);
+                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Y)= Dummy_Vector(1);
+                        GetGeometry()[i].GetSolutionStepValue(MOMENTUM_Z)= Dummy_Vector(2);
+                        GetGeometry()[i].GetSolutionStepValue(PRESSURE)= Dummy_Vector(3);
+                        GetGeometry()[i].GetSolutionStepValue(ERROR_RATIO)= Dummy_Vector(4);
+                        GetGeometry()[i].GetSolutionStepValue(EXCESS_PORE_WATER_PRESSURE)= GetGeometry()[i].GetSolutionStepValue(WATER_PRESSURE)-9.81*1000.0*(20.0-GetGeometry()[i].Z());
+                }
         }
 	//************************************************************************************
 	//************************************************************************************
@@ -666,6 +696,19 @@ namespace Kratos
 
             KRATOS_CATCH("")            
         }
+
+    /**
+    * Calculate Vector Variables at each integration point, used for postprocessing etc.
+    * @param rVariable Global name of the variable to be calculated
+    * @param output Vector to store the values on the qudrature points, output of the method 
+    * @param rCurrentProcessInfo
+    */
+    void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, 
+            std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
+    {
+        GetValueOnIntegrationPoints(rVariable, Output, rCurrentProcessInfo);
+    }
+    
 
         //************************************************************************************
 	//************************************************************************************
@@ -1870,7 +1913,8 @@ namespace Kratos
         {
             for( unsigned int item = 0; item < 6; item++ )
                 for( unsigned int dim=0; dim<3; dim++ )
-                    StrainVector[item]+=B(item,3*node+dim)*Displacements(node,dim);
+                    StrainVector[item]+=B(item,3*node+dim)*(Displacements(node,dim)-mInitialDisp(node,dim));
+//                     StrainVector[item]+=B(item,3*node+dim)*Displacements(node,dim);
         }
         KRATOS_CATCH("")
     }
@@ -1943,9 +1987,18 @@ namespace Kratos
 
          void UnsaturatedSoilsElement_2phase_SmallStrain::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
         {
-// std::cout<<"GetValue On Integration Points"<<std::endl;
+                const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
                 if(rValues.size() != mConstitutiveLawVector.size())
                         rValues.resize(mConstitutiveLawVector.size());
+                
+                if(rVariable==MATERIAL_PARAMETERS)
+                {
+                    if(rValues.size() !=GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+                        rValues.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());
+                    for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+                        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+                }
 
                 if(rVariable==INSITU_STRESS)
                 {
@@ -1956,17 +2009,93 @@ namespace Kratos
                                 noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS);
                         }
                 }
-
+                //To Plot Internal variables
                 if(rVariable==INTERNAL_VARIABLES)
                 {
                         for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
                         {
-                                if(rValues[i].size() != 8 )
-                                        rValues[i].resize(8);
+                                if(rValues[i].size() != 9 )
+                                        rValues[i].resize(9);
                                 noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES);
                         }
                 }
-// std::cout<<"END::GetValue On Integration Points"<<std::endl;
+                //To Plot Stresses
+                if(rVariable==STRESSES)
+                {
+                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                        {
+                                if(rValues[i].size() != 6 )
+                                        rValues[i].resize(6);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(STRESSES);
+                        }
+                }
+                //To Plot Fluid Flows
+                if(rVariable==FLUID_FLOWS)
+                {
+                        unsigned int number_of_nodes_press = (mNodesPressMax-mNodesPressMin+1);
+
+                     Vector N_PRESS(number_of_nodes_press);
+
+                     Matrix DN_DX_PRESS(number_of_nodes_press,3);
+
+                     double capillaryPressure;
+                        
+                     double waterPressure;
+
+                     double saturation;
+
+                     Vector waterFlow(3);
+
+                        const GeometryType::ShapeFunctionsGradientsType& DN_De_Displacement =   
+                                GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+                        const GeometryType::ShapeFunctionsGradientsType& DN_De_Pressure =   
+                                mpPressureGeometry->ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+                        const Matrix& Ncontainer_Pressure = mpPressureGeometry->ShapeFunctionsValues(mThisIntegrationMethod);
+
+                     for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
+                     {  
+                        if(rValues[PointNumber].size() != 9 )
+                                rValues[PointNumber].resize(9);
+                        // Shape Functions on current spatial quadrature point
+                        if(N_PRESS.size()!=number_of_nodes_press)
+                                N_PRESS.resize(number_of_nodes_press);
+                        noalias(N_PRESS)= row(Ncontainer_Pressure,PointNumber);
+
+                        GetPressures(N_PRESS, capillaryPressure, waterPressure);
+
+                        saturation= GetSaturation(capillaryPressure);
+
+                        rValues[PointNumber][0]= waterPressure;
+                        rValues[PointNumber][1]= 0.0;
+                        rValues[PointNumber][2]= saturation;
+
+                        noalias(DN_DX_PRESS)= prod(DN_De_Pressure[PointNumber],mInvJ0[PointNumber]);
+
+                        noalias(msDN_DX_DISP)= prod(DN_De_Displacement[PointNumber],mInvJ0[PointNumber]);
+
+                        noalias(waterFlow)= GetFlowWater(DN_DX_PRESS,msDN_DX_DISP, capillaryPressure);
+
+                        rValues[PointNumber][3]= waterFlow(0);
+                        rValues[PointNumber][4]= waterFlow(1);
+                        rValues[PointNumber][5]= waterFlow(2);
+                        rValues[PointNumber][6]= 0.0;
+                        rValues[PointNumber][7]= 0.0;
+                        rValues[PointNumber][8]= 0.0;
+                      }
+                }
+                //To Plot Coordinates of Integration Points
+                if(rVariable==COORDINATES)
+                {
+                        for(unsigned int i=0; i< integration_points.size(); i++)
+                        {
+                                if(rValues[i].size() != 3 )
+                                        rValues[i].resize(3);
+                                Geometry<Node<3> >::CoordinatesArrayType dummy;
+                                GetGeometry().GlobalCoordinates(dummy, integration_points[i]);
+                                noalias(rValues[i])= dummy;
+                        }
+                }
         }
 
         void UnsaturatedSoilsElement_2phase_SmallStrain::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
@@ -2037,29 +2166,20 @@ namespace Kratos
 
         void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
         {
-// std::cout<<"SetValueOnIntegrationPoints"<<std::endl;
-                if(rValues.size() != mConstitutiveLawVector.size())
-                {
-                        std::cout<<"falscheGröße: "<< rValues.size()<<"!="<<mConstitutiveLawVector.size()<<std::endl;
-                        return;
-                }
-
-                if(rVariable==INSITU_STRESS)
-                {
-
-                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
-                        {
-                                                mConstitutiveLawVector[i]->SetValue(INSITU_STRESS, rValues[i], rCurrentProcessInfo);
-                        }               
-                }
-                if(rVariable==INTERNAL_VARIABLES)
-                {
-
-                        for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
-                        {
-                                                mConstitutiveLawVector[i]->SetValue(INTERNAL_VARIABLES, rValues[i], rCurrentProcessInfo);
-                        }               
-                }
+            if(rValues.size() != mConstitutiveLawVector.size())
+                return;
+            
+            if(rVariable==INSITU_STRESS)
+                for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                    mConstitutiveLawVector[i]->SetValue(INSITU_STRESS, rValues[i], rCurrentProcessInfo);
+            
+            if(rVariable==INTERNAL_VARIABLES)
+                for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                    mConstitutiveLawVector[i]->SetValue(INTERNAL_VARIABLES, rValues[i], rCurrentProcessInfo);
+            
+            if(rVariable==MATERIAL_PARAMETERS)
+                for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                    mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
 // std::cout<<"END::SetValueOnIntegrationPoints"<<std::endl;
         }
 

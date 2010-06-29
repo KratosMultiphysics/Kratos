@@ -135,6 +135,8 @@ namespace Kratos
                Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
                void Initialize();
+               
+               void ResetConstitutiveLaw();
 
                void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       
@@ -150,6 +152,9 @@ namespace Kratos
                
                	//************************************************************************************
                void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+               
+               void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, 
+                       std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo);
 
                void GetValuesVector(Vector& values, int Step);
 
