@@ -382,6 +382,8 @@ namespace Kratos
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
             {
+                if( ! (*it)->GetValue( IS_INACTIVE ) )
+                {
                 //calculate elemental contribution
                 pScheme->Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
@@ -391,17 +393,21 @@ namespace Kratos
                 // clean local elemental memory
                 pScheme->CleanMemory(*it);
             }
+            }
 
             LHS_Contribution.resize(0,0,false);
 
             // assemble all conditions
             for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
             {
+                if( ! (*it)->GetValue( IS_INACTIVE ) )
+                {
                 //calculate elemental contribution
                 pScheme->Condition_Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
 
                 //assemble the elemental contribution
                 AssembleLHS(A,LHS_Contribution,EquationId);
+            }
             }
 
             KRATOS_CATCH("")
@@ -438,25 +444,31 @@ namespace Kratos
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
             {
-                //calculate elemental contribution
-                pScheme->Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
-
-                //assemble the elemental contribution
-                AssembleLHS_CompleteOnFreeRows(A,LHS_Contribution,EquationId);
-
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
+                if( ! (*it)->GetValue( IS_INACTIVE ) )
+                {
+                    //calculate elemental contribution
+                    pScheme->Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
+                    
+                    //assemble the elemental contribution
+                    AssembleLHS_CompleteOnFreeRows(A,LHS_Contribution,EquationId);
+                    
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*it);
+                }
             }
 
             LHS_Contribution.resize(0,0,false);
             // assemble all conditions
             for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
             {
-                //calculate elemental contribution
-                pScheme->Condition_Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
-
-                //assemble the elemental contribution
-                AssembleLHS_CompleteOnFreeRows(A,LHS_Contribution,EquationId);
+                if( ! (*it)->GetValue( IS_INACTIVE ) )
+                {
+                    //calculate elemental contribution
+                    pScheme->Condition_Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
+                    
+                    //assemble the elemental contribution
+                    AssembleLHS_CompleteOnFreeRows(A,LHS_Contribution,EquationId);
+                }
             }
 
 
