@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
+// #include "includes/constitutive_law_new.h"
 
 
 namespace Kratos
@@ -135,6 +136,8 @@ namespace Kratos
                Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
                void Initialize();
+               
+               void ResetConstitutiveLaw();
 
                void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       
@@ -143,15 +146,17 @@ namespace Kratos
                void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
                void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+               
+               void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+               
+               void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
 	  
                void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
                
                 void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
                	//************************************************************************************
 
-                void GetValuesVector(Vector& values, int Step);
-
- 				void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+                void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
  				void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
@@ -169,6 +174,11 @@ namespace Kratos
 				void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo);
 
 				void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& Output, const ProcessInfo& rCurrentProcessInfo);
+                
+                void GetValuesVector(Vector& values, int Step = 0);
+                void GetFirstDerivativesVector(Vector& values, int Step = 0);
+                void GetSecondDerivativesVector(Vector& values, int Step = 0);
+
 
       ///@}
       ///@name Access
