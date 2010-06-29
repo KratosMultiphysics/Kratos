@@ -36,7 +36,7 @@ class SolvingStrategyPython:
         #contact utility
         self.cu = ContactUtility( 3 )
         #default values for some variables
-        self.max_iter = 30
+        self.max_iter = 10
         self.echo_level = 1
         self.builder_and_solver = builder_and_solver
         
