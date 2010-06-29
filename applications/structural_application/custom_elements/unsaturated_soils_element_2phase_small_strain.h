@@ -134,6 +134,8 @@ namespace Kratos
                Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
                void Initialize();
+               
+               void ResetConstitutiveLaw();
 
                 void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
@@ -151,6 +153,10 @@ namespace Kratos
                
                	//************************************************************************************
                void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+
+                void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, 
+            std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo);
+
 
                void GetValuesVector(Vector& values, int Step);
 
@@ -257,6 +263,7 @@ namespace Kratos
                unsigned int mNodesPressMax;
                unsigned int mNodesDispMin;
                unsigned int mNodesDispMax;
+               Matrix mInitialDisp;
 
 
 	  			std::vector< Matrix > mInvJ0;

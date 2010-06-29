@@ -739,6 +739,16 @@ namespace Kratos
 
             KRATOS_CATCH("")            
         }
+        
+        //************************************************************************************
+        //************************************************************************************
+        void UnsaturatedSoilsElement_2phase::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
+        {
+            if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+                Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());
+            for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+                Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+        }
 
         //************************************************************************************
 	//************************************************************************************
@@ -2352,6 +2362,15 @@ namespace Kratos
 
                  KRATOS_CATCH("")
          } 
+         
+         void UnsaturatedSoilsElement_2phase::ResetConstitutiveLaw()
+        {
+            KRATOS_TRY
+            for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
+                    mConstitutiveLawVector[i]->ResetMaterial(GetProperties());
+            KRATOS_CATCH("")
+        }
+
 
  		void UnsaturatedSoilsElement_2phase::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
 		{

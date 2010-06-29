@@ -150,6 +150,10 @@ namespace Kratos
                
                	//************************************************************************************
                void CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+
+
+                void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, 
+            std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo);
                
                void GetValuesVector(Vector& values, int Step);
 
