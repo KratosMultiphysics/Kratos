@@ -132,6 +132,8 @@ namespace Kratos
 			void InitializeMaterial( const Properties& props,
 					const GeometryType& geom,
 					const Vector& ShapeFunctionsValues );
+            
+            void ResetMaterial( const Properties& props );
 						
 			/**
 			 * Calculates the constitutive matrix for a given strain vector
@@ -235,6 +237,7 @@ namespace Kratos
 				 Vector mInSituStress;
 				 Matrix mCtangent;
 				 Vector mCurrentStress;
+                 Vector mMaterialParameters;
 
 			 /**
 			  * Un accessible methods 
