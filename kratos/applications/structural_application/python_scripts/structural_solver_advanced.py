@@ -44,6 +44,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE_NULL_ACCELERATION);
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE_EINS_ACCELERATION);
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(EXCESS_PORE_WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
     #auxiliary variables misused for mesh rezoning ;-)
     model_part.AddNodalSolutionStepVariable(IS_VISITED);
@@ -64,8 +65,8 @@ def AddDofs(model_part):
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
         node.AddDof(DISPLACEMENT_Z);
-        #node.AddDof(WATER_PRESSURE);
-        #node.AddDof(AIR_PRESSURE);
+        node.AddDof(WATER_PRESSURE);
+        node.AddDof(AIR_PRESSURE);
         node.AddDof(LAGRANGE_DISPLACEMENT_X);
         node.AddDof(LAGRANGE_DISPLACEMENT_Y);
         node.AddDof(LAGRANGE_DISPLACEMENT_Z);
@@ -86,29 +87,36 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         self.absolute_tol = abs_tol
         #definition of the solvers
         self.structure_linear_solver =  SkylineLUFactorizationSolver()
+        #pDiagPrecond = ParallelDiagonalPreconditioner()
+        #self.structure_linear_solver =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
         #definition of the convergence criteria
         self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
+        #self.conv_criteria = ParallelDisplacementCriteria(0.000001,1e-9)
         self.CalculateReactionFlag = False
         #######################################################################
     def Initialize(self):
         #definition of time integration scheme
         if( self.time_steps == 1 ):
             self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+            #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
             self.MoveMeshFlag = False
         else:
             print "using newmark scheme"
             self.time_scheme = ResidualBasedNewmarkScheme(self.damp_factor)
+            #self.time_scheme = ParallelResidualBasedNewmarkScheme(self.damp_factor)
             self.MoveMeshFlag = True
         #definition of the convergence criteria
         self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
+        #builder_and_solver = ParallelResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
         #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
         #creating the solution strategy
         self.ReformDofSetAtEachStep = True
         #KLUDGE: this has to be True!
         self.MoveMeshFlag = True
         self.space_utils = UblasSparseSpace()
+        #self.space_utils = ParallelUblasSparseSpace()
         #importing strategy
         #import ekate_strategy
         import uzawa_contact_strategy
