@@ -386,7 +386,7 @@ namespace Kratos
         if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
         {
             if(rLeftHandSideMatrix.size1() != MatSize)
-                rLeftHandSideMatrix.resize(MatSize,MatSize);
+                rLeftHandSideMatrix.resize(MatSize,MatSize,false);
             noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize); //resetting LHS
         }
         
@@ -394,7 +394,7 @@ namespace Kratos
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
             if(rRightHandSideVector.size() != MatSize)
-                rRightHandSideVector.resize(MatSize);
+                rRightHandSideVector.resize(MatSize,false);
             rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
         }
         
