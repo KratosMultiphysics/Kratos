@@ -409,7 +409,7 @@ namespace TotalLagrangianAuxiliaries
 		{
 			for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
 			{
-					mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                	mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
 					mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) ); 
 
                                         //KRATOS_WATCH(mConstitutiveLawVector[i])
@@ -419,6 +419,17 @@ namespace TotalLagrangianAuxiliaries
 			KRATOS_ERROR(std::logic_error,"a constitutive law needs to be specified for the element with ID ",this->Id())
         	KRATOS_CATCH("")
 	} 
+    
+    void TotalLagrangian::ResetConstitutiveLaw()
+    {
+        KRATOS_TRY
+        if(GetProperties()[CONSTITUTIVE_LAW] != NULL)
+        {
+            for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+                mConstitutiveLawVector[i]->ResetMaterial(GetProperties());
+        }
+        KRATOS_CATCH("")
+    }
 
 	//************************************************************************************
 	//************************************************************************************
