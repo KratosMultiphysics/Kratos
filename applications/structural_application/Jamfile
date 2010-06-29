@@ -25,8 +25,8 @@ project StructuralApplication
 #################################################################################
 ##definition of "dependencies for the project"
 ##lib intelomp  : : <name>guide <search>/opt/intel/cce/10.0.025/lib ;
-lib libgfortran 		: : <name>gfortran <search>/usr/lib ;
-lib libupcsoils : : <name>upcsoils <search>custom_external_libraries/upc_soil_model ;
+#lib libgfortran 		: : <name>gfortran <search>/usr/lib ;
+#lib libupcsoils : : <name>upcsoils <search>custom_external_libraries/upc_soil_model ;
 #lib libupcrocks : : <name>upcrocks <search>custom_external_libraries/upc_rock_model ;
 #################################################################################
 #################################################################################
@@ -50,6 +50,7 @@ alias sources_KratosStructuralApplication
         mixed_lagrangian.cpp
 	kinematic_linear.cpp
 	unsaturated_soils_element_2phase.cpp
+    unsaturated_soils_element_1phase_small_strain.cpp   
 	unsaturated_soils_element_2phase_small_strain.cpp
 	unsaturated_soils_element_3phase.cpp
 	unsaturated_soils_element_3phase_small_strain.cpp	
@@ -75,6 +76,7 @@ alias sources_KratosStructuralApplication
 	hyperelastic_3d.cpp 
 	hyperelastic_2d.cpp 
 	von_mises_3d.cpp
+#von_mises_3d_new.cpp
 	membrane_element.cpp 
 	isotropic_2d.cpp 
 	plane_strain.cpp
@@ -108,8 +110,8 @@ alias sources_KratosStructuralApplication
         rankine_yield_function.cpp
         isotropic_rankine_yield_function.cpp
         tresca_yield_function.cpp
-        von_misses_yield_function.cpp
-        modified_morh_coulomb_yield_function.cpp
+        von_mises_yield_function.cpp
+        modified_mohr_coulomb_yield_function.cpp
         drucker_prager_yield_function.cpp
         exponencial_softening.cpp
         lineal_softening.cpp
@@ -117,6 +119,7 @@ alias sources_KratosStructuralApplication
 #        plasticity_3d.cpp
         plastic_damage_3d.cpp
         plastic_damage_2d.cpp
+        mohr_coulomb_plane_strain.cpp
         plane_stress_J2.cpp
 
 
