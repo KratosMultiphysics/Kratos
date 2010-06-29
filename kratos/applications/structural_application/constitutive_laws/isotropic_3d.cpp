@@ -187,12 +187,16 @@ namespace Kratos
 		mCtangent = ZeroMatrix(6,6);
 		mInSituStress = ZeroVector(6);
         CalculateElasticMatrix(mCtangent, props[YOUNG_MODULUS], props[POISSON_RATIO]);
+        mMaterialParameters = props[MATERIAL_PARAMETERS];
 	mE  = props[YOUNG_MODULUS];
 	mNU = props[POISSON_RATIO];
 	mDE = props[DENSITY];
-
-//                 CalculateElasticMatrix(mCtangent, props[MATERIAL_PARAMETERS][0], props[MATERIAL_PARAMETERS][1]);
 	}
+    
+    void Isotropic3D::ResetMaterial( const Properties& props )
+    {
+        CalculateElasticMatrix(mCtangent, mMaterialParameters[0], mMaterialParameters[1]);
+    }
 	
 	void Isotropic3D::InitializeSolutionStep( const Properties& props,
 				     const GeometryType& geom, //this is just to give the array of nodes
