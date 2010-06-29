@@ -1096,6 +1096,22 @@ namespace Kratos
                 return rResult;
             }
             
+            /** This method gives gradient of all shape functions evaluated
+             * in given point.
+             * There is no calculation and it just give it from
+             * shape functions values container if they are
+             * existing. Otherwise it gives you error which this value is
+             * not exist.
+             * @param rResult the given Container that will be overwritten by the solution
+             * @param rPoint the given local coordinates the gradients will be evaluated for 
+             * @return a matrix of gradients for each shape function 
+             */
+            virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const 
+            {
+                return CalculateShapeFunctionsLocalGradients( rResult, rPoint );
+            }
+
+            
             
             /**
              * Input and output
