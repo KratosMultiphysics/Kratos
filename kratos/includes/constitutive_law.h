@@ -453,7 +453,7 @@ namespace Kratos
              * This can be used in order to reset all internal variables of the
              * constitutive law (e.g. if a model should be reset to its reference state)
              */
-            virtual void ResetMaterial()
+            virtual void ResetMaterial( const Properties& props )
             {
             }
  
