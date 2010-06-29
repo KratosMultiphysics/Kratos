@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/beam_element.h"
 #include "custom_elements/kinematic_linear.h"
 #include "custom_elements/membrane_element.h"
+#include "custom_elements/unsaturated_soils_element_1phase_small_strain.h"
 #include "custom_elements/unsaturated_soils_element_2phase.h"
 #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
 #include "custom_elements/unsaturated_soils_element_3phase.h"
@@ -152,6 +153,10 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Point<3>, SLAVE_CONTACT_GLOBAL_POINT );
     KRATOS_DEFINE_VARIABLE( double , INSITU_STRESS_SCALE );
     KRATOS_DEFINE_VARIABLE( double , OVERCONSOLIDATION_RATIO );
+    KRATOS_DEFINE_VARIABLE(double, EXCESS_PORE_WATER_PRESSURE);
+    KRATOS_DEFINE_VARIABLE(Vector, COORDINATES);
+    KRATOS_DEFINE_VARIABLE(Vector, STRESSES);
+    KRATOS_DEFINE_VARIABLE(Vector, FLUID_FLOWS);
     
     KRATOS_DEFINE_VARIABLE( double , CONTACT_PENETRATION );
 
@@ -165,6 +170,7 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(double, CRUSHING_ENERGY)
       KRATOS_DEFINE_VARIABLE(double, YIELD_STRESS)
       KRATOS_DEFINE_VARIABLE(double, PLASTIC_MODULUS)
+      KRATOS_DEFINE_VARIABLE(double, PLASTICITY_INDICATOR)
       KRATOS_DEFINE_VARIABLE(double, ISOTROPIC_HARDENING_MODULUS)
       KRATOS_DEFINE_VARIABLE(double, KINEMATIC_HARDENING_MODULUS)
       KRATOS_DEFINE_VARIABLE(double, LAMNDA) // Load factor
@@ -358,6 +364,8 @@ namespace Kratos
             const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
             const LinearElement mLinearElement2D3N;
             const LinearElement mLinearElement2D4N;
+            const LinearElement mLinearElement2D8N;
+            const LinearElement mLinearElement2D9N;
             const LinearElement mLinearElement3D4N;
             const LinearElement mLinearElement3D8N;
             const BeamElement mBeamElement3D2N;
@@ -395,6 +403,8 @@ namespace Kratos
             const KinematicLinear mKinematicLinear3D8N;
             const KinematicLinear mKinematicLinear3D20N;
             const KinematicLinear mKinematicLinear3D27N;
+            const KinematicLinear mKinematicLinear3D6N;
+            const KinematicLinear mKinematicLinear3D15N;
             const UnsaturatedSoilsElement_2phase
                     mUnsaturatedSoilsElement2Phase3D10N;
             const UnsaturatedSoilsElement_2phase
@@ -403,6 +413,16 @@ namespace Kratos
                     mUnsaturatedSoilsElement2Phase3D27N;
             const UnsaturatedSoilsElement_2phase
                     mUnsaturatedSoilsElement2Phase3D15N;
+            const UnsaturatedSoilsElement_1phase_SmallStrain
+                    mUnsaturatedSoilsElement1PhaseSmallStrain3D10N;
+            const UnsaturatedSoilsElement_1phase_SmallStrain
+                    mUnsaturatedSoilsElement1PhaseSmallStrain3D20N;
+            const UnsaturatedSoilsElement_1phase_SmallStrain
+                    mUnsaturatedSoilsElement1PhaseSmallStrain3D27N;
+            const UnsaturatedSoilsElement_1phase_SmallStrain
+                    mUnsaturatedSoilsElement1PhaseSmallStrain3D15N;
+            const UnsaturatedSoilsElement_1phase_SmallStrain
+                    mUnsaturatedSoilsElement1PhaseSmallStrain3D8N;
             const UnsaturatedSoilsElement_2phase_SmallStrain
                     mUnsaturatedSoilsElement2PhaseSmallStrain3D10N;
             const UnsaturatedSoilsElement_2phase_SmallStrain
