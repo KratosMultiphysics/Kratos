@@ -1163,7 +1163,7 @@ namespace Kratos
 
                 noalias(Gravity)= GetProperties()[GRAVITY];
 
-                double porosity= GetPorosity(DN_DX_DISP);
+//                 double porosity= GetPorosity(DN_DX_DISP);
 
                 for(unsigned int prim=0; prim< displacement_size; prim++)
                 {
@@ -1190,7 +1190,7 @@ namespace Kratos
 
                 unsigned int dim= GetGeometry().WorkingSpaceDimension();
 
-                double porosity= GetPorosity(DN_DX_DISP);
+//                 double porosity= GetPorosity(DN_DX_DISP);
 
                 double div_Dt= GetDerivativeDDivUDt(DN_DX_DISP);
 
@@ -1227,7 +1227,7 @@ namespace Kratos
 
                 unsigned int pressure_size=mNodesPressMax-mNodesPressMin+1;
 
-                double porosity= GetPorosity(DN_DX_DISP);
+//                 double porosity= GetPorosity(DN_DX_DISP);
 
                 Vector Dflow_waterDpw(dim);
 
@@ -1235,7 +1235,7 @@ namespace Kratos
 
                 double Dflow_waterDgradpw= GetDerivativeDWaterFlowDGradpw(DN_DX_DISP,capillaryPressure);
 
-                double Ddiv_Dt= GetDerivativeDDivUDt(DN_DX_DISP);
+//                 double Ddiv_Dt= GetDerivativeDDivUDt(DN_DX_DISP);
 
                 for(unsigned int prim=0; prim< pressure_size; prim++)
                 {
@@ -1669,7 +1669,7 @@ namespace Kratos
                  StressVector, Matrix& tanC_W, const 
                  double waterPressure)
          {
-             double capillaryPressure= -waterPressure;
+//              double capillaryPressure= -waterPressure;
 
              noalias(tanC_W)= ZeroMatrix(3,3);
 
