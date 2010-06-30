@@ -19,6 +19,7 @@ Import_MagnetostaticApplication = False
 Import_DamApplication = False
 Import_TestApplication = False
 Import_OpenCLApplication = False
+Import_PodApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -38,6 +39,7 @@ print "Import_MagnetostaticApplication: False"
 print "Import_DamApplication: False"
 print "Import_TestApplication: False"
 print "Import_OpenCLApplication: False"
+print "Import_PodApplication: False"
 
 def ImportApplications(kernel, applications_path):
     ##########################################################################
@@ -59,6 +61,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_DamApplication: "+str(Import_DamApplication)
     print "Import_TestApplication: "+str(Import_TestApplication)
     print "Import_OpenCLApplication: "+str(Import_OpenCLApplication)
+    print "Import_PodApplication: "+str(Import_OpenCLApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -222,6 +225,14 @@ def ImportApplications(kernel, applications_path):
         kernel.AddApplication(opencl_application)
         print "KratosOpenCLApplication sucessfully imported"
 
+    if(Import_PodApplication == True):
+        print "importing KratosPodApplication ..."
+        sys.path.append(applications_path + '/PODApplication/python_scripts')
+        from KratosPodApplication import *
+        pod_application = KratosPodApplication()
+        kernel.AddApplication(pod_application)
+        print "KratosPodApplication sucessfully imported"
+        
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -261,3 +272,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(test_application);
     if(Import_OpenCLApplication == True):
         kernel.InitializeApplication(opencl_application);
+    if(Import_OpenCLApplication == True):
+        kernel.InitializeApplication(pod_application);
