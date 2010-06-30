@@ -70,8 +70,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fluency_criteria/isotropic_rankine_yield_function.h"
 #include "fluency_criteria/rankine_yield_function.h"
 #include "fluency_criteria/tresca_yield_function.h"
-#include "fluency_criteria/von_misses_yield_function.h"     
-#include "fluency_criteria/modified_morh_coulomb_yield_function.h"
+#include "fluency_criteria/von_mises_yield_function.h"     
+#include "fluency_criteria/modified_mohr_coulomb_yield_function.h"
 #include "fluency_criteria/drucker_prager_yield_function.h"
 
 
@@ -138,13 +138,13 @@ namespace Kratos
 			      init<myState> () )
 			      ;  
 
-			      class_<Von_Misses_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
-			      ("VonMissesYieldFunction",
+			      class_<Von_Mises_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
+			      ("VonMisesYieldFunction",
 			      init<myState, myPotencialPlastic > () )
 			      ;  
 
-			      class_<Modified_Morh_Coulomb_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
-			      ("ModifiedMorhCoulombYieldFunction",
+			      class_<Modified_Mohr_Coulomb_Yield_Function, bases< FluencyCriteriaBaseType >, boost::noncopyable >
+			      ("ModifiedMohrCoulombYieldFunction",
 			      init<myState, myPotencialPlastic> () )
 			      ;  
 
