@@ -66,14 +66,20 @@ class DecoupledSolver:
                            ( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
-        self.pressure_linear_solver =SuperLUSolver()
+        
 
         self.linear_tol = 1e-3
 
-        pPrecond = DiagonalPreconditioner()
-##        pPrecond = ILU0Preconditioner()
+        vel_Precond = DiagonalPreconditioner()
+##        vel_Precond = ILU0Preconditioner()
         self.velocity_linear_solver = BICGSTABSolver(self.linear_tol,\
-                                                     5000,pPrecond)
+                                                     5000,vel_Precond)
+
+        pr_Precond = DiagonalPreconditioner()
+##        pr_Precond = ILU0Preconditioner()
+        self.pressure_linear_solver = BICGSTABSolver(self.linear_tol,\
+                                                     5000,pr_Precond)
+##        self.pressure_linear_solver =SuperLUSolver()
         
         #definition of the convergence criteria
         self.rel_vel_tol = 1e-5

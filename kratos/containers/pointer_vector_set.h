@@ -61,7 +61,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes 
 #include "boost/smart_ptr.hpp"
 #include <boost/iterator/indirect_iterator.hpp>
-
+#ifdef _OPENMP
+#include "omptl_algorithm"
+#endif
 
 // Project includes
 #include "includes/define.h"
@@ -459,11 +461,15 @@ namespace Kratos
 
     void Unique()
     {
-	  typename TContainerType::iterator end_it = mData.end();
-	  std::sort(mData.begin(), mData.end(), CompareKey());
-      typename TContainerType::iterator new_end_it = std::unique(mData.begin(), mData.end(), EqualKeyTo());
-	  mData.erase(new_end_it, end_it);
-      mSortedPartSize = mData.size();
+        typename TContainerType::iterator end_it = mData.end();
+#ifndef _OPENMP
+        std::sort(mData.begin(), mData.end(), CompareKey());
+#else
+        omptl::sort(mData.begin(), mData.end(), CompareKey());
+#endif
+        typename TContainerType::iterator new_end_it = std::unique(mData.begin(), mData.end(), EqualKeyTo());
+        mData.erase(new_end_it, end_it);
+        mSortedPartSize = mData.size();
     }
 
     ///@}

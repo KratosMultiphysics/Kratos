@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos {
 
@@ -230,26 +231,41 @@ namespace Kratos {
 
         //***************************************************************************
         virtual void BasicUpdateOperations(
-                ModelPart& r_model_part,
+                ModelPart& rModelPart,
                 DofsArrayType& rDofSet,
                 TSystemMatrixType& A,
                 TSystemVectorType& Dv,
                 TSystemVectorType& b
                 ) {
             KRATOS_TRY
-                    
+            
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector DofSetPartition;
+            OpenMPUtils::DivideInPartitions(rDofSet.size(),NumThreads,DofSetPartition);
+
             //update of velocity (by DOF)
-            for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof) {
-                if (i_dof->IsFree()) {
-                    i_dof->GetSolutionStepValue() += TSparseSpace::GetValue(Dv,i_dof->EquationId());
+            #pragma omp parallel
+            {
+                int k = OpenMPUtils::ThisThread();
+
+                typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
+                typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k+1];
+
+                for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++)
+                {
+                    if (itDof->IsFree())
+                    {
+                        itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dv,itDof->EquationId());
+                    }
                 }
+
             }
                     
             KRATOS_CATCH("")
         }
 
         void AdditionalUpdateOperations(
-                ModelPart& r_model_part,
+                ModelPart& rModelPart,
                 DofsArrayType& rDofSet,
                 TSystemMatrixType& A,
                 TSystemVectorType& Dv,
@@ -257,38 +273,40 @@ namespace Kratos {
                 ) {
             KRATOS_TRY
 
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector NodePartition;
+            OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
+
             //updating time derivatives (nodally for efficiency)
-            array_1d<double, 3 > DeltaVel;
+            #pragma omp parallel
+            {
+                array_1d<double, 3 > DeltaVel;
 
-            for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                    i != r_model_part.NodesEnd(); ++i) {
+                int k = OpenMPUtils::ThisThread();
 
-                noalias(DeltaVel) = (i)->FastGetSolutionStepValue(VELOCITY) - (i)->FastGetSolutionStepValue(VELOCITY, 1);
+                ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
+                ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
 
-                array_1d<double, 3 > & CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-                array_1d<double, 3 > & OldDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-                array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
-                array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-
-
-                array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-
-                UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
-                UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-
- 
-                if (mMeshVelocity == 0)//EUlerian
+                for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++)
                 {
- 		  	noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = ZeroVector(3);
+                    noalias(DeltaVel) = (itNode)->FastGetSolutionStepValue(VELOCITY) - (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
+
+                    array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
+                    array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+
+                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
+
+                    if (mMeshVelocity == 2)//Lagrangian
+                    {
+                        array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
+                        array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+                        array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
+
+                        noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY) ) = itNode->FastGetSolutionStepValue(VELOCITY);
+			UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                    }
                 }
-                if (mMeshVelocity == 2)//Lagrangian
-                {
-			noalias(i->FastGetSolutionStepValue(MESH_VELOCITY) ) = i->FastGetSolutionStepValue(VELOCITY);;
-                }
-
-
-
             }
 
             KRATOS_CATCH("")
@@ -301,75 +319,74 @@ namespace Kratos {
         // v = vold
 
         virtual void Predict(
-                ModelPart& r_model_part,
+                ModelPart& rModelPart,
                 DofsArrayType& rDofSet,
                 TSystemMatrixType& A,
                 TSystemVectorType& Dv,
                 TSystemVectorType& b
-                ) {
+                )
+        {
             std::cout << "prediction" << std::endl;
-            array_1d<double, 3 > DeltaDisp;
 
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector NodePartition;
+            OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(),NumThreads,NodePartition);
 
+            #pragma omp parallel
+            {
+                //array_1d<double, 3 > DeltaDisp;
 
+                int k = OpenMPUtils::ThisThread();
 
-            for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                    i != r_model_part.NodesEnd(); ++i) {
+                ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
+                ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k+1];
 
-                array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
-                double& OldPressure = (i)->FastGetSolutionStepValue(PRESSURE, 1);
-                double& OldAirPressure = (i)->FastGetSolutionStepValue(AIR_PRESSURE, 1);
-                //predicting velocity
-                //ATTENTION::: the prediction is performed only on free nodes
-                array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
-                double& CurrentPressure = (i)->FastGetSolutionStepValue(PRESSURE);
-                double& CurrentAirPressure = (i)->FastGetSolutionStepValue(AIR_PRESSURE);
-                //KRATOS_WATCH("1")
+                for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++)
+                {
+                    array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
+                    double& OldPressure = (itNode)->FastGetSolutionStepValue(PRESSURE, 1);
+                    double& OldAirPressure = (itNode)->FastGetSolutionStepValue(AIR_PRESSURE, 1);
 
-                if ((i->pGetDof(VELOCITY_X))->IsFixed() == false)
-                    (CurrentVelocity[0]) = OldVelocity[0];
-                if (i->pGetDof(VELOCITY_Y)->IsFixed() == false)
-                    (CurrentVelocity[1]) = OldVelocity[1];
-                if (i->HasDofFor(VELOCITY_Z))
-                    if (i->pGetDof(VELOCITY_Z)->IsFixed() == false)
-                        (CurrentVelocity[2]) = OldVelocity[2];
+                    //predicting velocity
+                    //ATTENTION::: the prediction is performed only on free nodes
+                    array_1d<double, 3 > & CurrentVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY);
+                    double& CurrentPressure = (itNode)->FastGetSolutionStepValue(PRESSURE);
+                    double& CurrentAirPressure = (itNode)->FastGetSolutionStepValue(AIR_PRESSURE);
 
-                if (i->pGetDof(PRESSURE)->IsFixed() == false)
-                    CurrentPressure = OldPressure;
-                if (i->HasDofFor(AIR_PRESSURE))
-                    if (i->pGetDof(AIR_PRESSURE)->IsFixed() == false)
-                        CurrentAirPressure = OldAirPressure;
-                //KRATOS_WATCH("2")
+                    if ((itNode->pGetDof(VELOCITY_X))->IsFree())
+                        (CurrentVelocity[0]) = OldVelocity[0];
+                    if (itNode->pGetDof(VELOCITY_Y)->IsFree())
+                        (CurrentVelocity[1]) = OldVelocity[1];
+                    if (itNode->HasDofFor(VELOCITY_Z))
+                        if (itNode->pGetDof(VELOCITY_Z)->IsFree())
+                            (CurrentVelocity[2]) = OldVelocity[2];
 
-                //updating time derivatives ::: please note that displacements and its time derivatives
-                //can not be consistently fixed separately
-                array_1d<double, 3 > DeltaVel;
-                noalias(DeltaVel) = CurrentVelocity - OldVelocity;
-                array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-                array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-                //KRATOS_WATCH(DeltaDisp)
+                    if (itNode->pGetDof(PRESSURE)->IsFree())
+                        CurrentPressure = OldPressure;
+                    if (itNode->HasDofFor(AIR_PRESSURE))
+                        if (itNode->pGetDof(AIR_PRESSURE)->IsFree())
+                            CurrentAirPressure = OldAirPressure;
 
-                array_1d<double, 3 > & OldDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                array_1d<double, 3 > & CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-                //KRATOS_WATCH(CurrentVelocity)
-                //KRATOS_WATCH(CurrentAcceleration)
+                    // updating time derivatives ::: please note that displacements and
+                    // their time derivatives can not be consistently fixed separately
+                    array_1d<double, 3 > DeltaVel;
+                    noalias(DeltaVel) = CurrentVelocity - OldVelocity;
+                    array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+                    array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION);
 
+                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
+                    
+                    if (mMeshVelocity == 2) //Lagrangian
+                    {
+                        array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+                        array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 
-                UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
-                UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-
-                if (mMeshVelocity == 0) {
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
-                }
-
-                if (mMeshVelocity == 2) {
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X);
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y);
-                    i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = i->FastGetSolutionStepValue(VELOCITY_Z);
+                        noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY) ) = itNode->FastGetSolutionStepValue(VELOCITY);
+                        UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                    }
                 }
             }
+
             std::cout << "end of prediction" << std::endl;
 
         }
