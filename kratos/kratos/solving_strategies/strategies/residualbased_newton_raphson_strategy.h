@@ -48,6 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY )
 #define  KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
 
+#define CHECK(x){ Timer::Start( #x ); x; Timer::Stop( #x ); }
 
 /* System includes */
 
@@ -62,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/matrix_market_interface.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "utilities/timer.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -366,7 +368,7 @@ namespace Kratos
 			//OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
 			//if the operations needed were already performed this does nothing
 			if(mInitializeWasPerformed == false)
-				Initialize();
+				CHECK(Initialize();)
 
 			//set up the system, operation performed just once unless it is required 
 			//to reform the dof set at each iteration
@@ -374,10 +376,10 @@ namespace Kratos
 				mReformDofSetAtEachStep == true )
 			{
 				//setting up the list of the DOFs to be solved
-				pBuilderAndSolver->SetUpDofSet(pScheme,BaseType::GetModelPart());
+				CHECK(pBuilderAndSolver->SetUpDofSet(pScheme,BaseType::GetModelPart());)
 
 				//shaping correctly the system 
-				pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());			
+				CHECK(pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());)
 			}
 
 			//prints informations about the current time
@@ -392,7 +394,7 @@ namespace Kratos
 
 			//initialize solution step
 			if (mSolutionStepIsInitialized == false)
-				InitializeSolutionStep();
+				CHECK(InitializeSolutionStep();)
 
 			TSystemMatrixType& mA = *mpA;
 			TSystemVectorType& mDx = *mpDx;
@@ -406,24 +408,24 @@ namespace Kratos
 //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
 			bool is_converged = false;
 			bool ResidualIsUpdated = false;
-			pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
-			is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+			CHECK(pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);)
+			CHECK(is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);)
 
 			//function to perform the building and the solving phase.
 			if(BaseType::mRebuildLevel >1 || BaseType::mStiffnessMatrixIsBuilt == false)
 			{
-				TSparseSpace::SetToZero(mA);
-				TSparseSpace::SetToZero(mDx);
-				TSparseSpace::SetToZero(mb);
+				CHECK(TSparseSpace::SetToZero(mA);)
+				CHECK(TSparseSpace::SetToZero(mDx);)
+				CHECK(TSparseSpace::SetToZero(mb);)
 
-				pBuilderAndSolver->BuildAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
+				CHECK(pBuilderAndSolver->BuildAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);)
 			}
 			else
 			{
-				TSparseSpace::SetToZero(mDx); //mDx=0.00;
-				TSparseSpace::SetToZero(mb);
+				CHECK(TSparseSpace::SetToZero(mDx);) //mDx=0.00;
+				CHECK(TSparseSpace::SetToZero(mb);)
 
-				pBuilderAndSolver->BuildRHSAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
+				CHECK(pBuilderAndSolver->BuildRHSAndSolve(pScheme,BaseType::GetModelPart(),mA,mDx,mb);)
 			}
 
 			if (this->GetEchoLevel()==3) //if it is needed to print the debug info
@@ -442,27 +444,27 @@ namespace Kratos
 
 			//update results
 			rDofSet = pBuilderAndSolver->GetDofSet();
-			pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+			CHECK(pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);)
 
 			//move the mesh if needed
 			if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-			pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+			CHECK(pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);)
 
 			if (is_converged==true) 
 			{
 				//initialisation of the convergence criteria
-				rDofSet = pBuilderAndSolver->GetDofSet();
-				mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+				CHECK(rDofSet = pBuilderAndSolver->GetDofSet();)
+				CHECK(mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);)
 
 				if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
 				{
-					TSparseSpace::SetToZero(mb);
+					CHECK(TSparseSpace::SetToZero(mb);)
 
-					pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);
+					CHECK(pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);)
 				}
 
-				is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+				CHECK(is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);)
 			}
 
 
@@ -540,9 +542,9 @@ namespace Kratos
 			// (note that some convergence criteria need it to be recalculated)
 			if (ResidualIsUpdated==false)
 			{
-				TSparseSpace::SetToZero(mb);
+				CHECK(TSparseSpace::SetToZero(mb);)
 
-				pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);
+				CHECK(pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);)
 
 				//std::cout << "mb is calculated" << std::endl;
 			}
@@ -550,29 +552,29 @@ namespace Kratos
 			//calculate reactions if required
 			if (mCalculateReactionsFlag ==true)
 			{
-				pBuilderAndSolver->CalculateReactions(pScheme,BaseType::GetModelPart(),mA,mDx,mb);
+				CHECK(pBuilderAndSolver->CalculateReactions(pScheme,BaseType::GetModelPart(),mA,mDx,mb);)
 			}
 
 			//Finalisation of the solution step, 
 			//operations to be done after achieving convergence, for example the 
 			//Final Residual Vector (mb) has to be saved in there 
 			//to avoid error accumulation
-			pScheme->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
-			pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
+			CHECK(pScheme->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);)
+			CHECK(pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);)
 
 			//Cleaning memory after the solution
-			pScheme->Clean();
+			CHECK(pScheme->Clean();)
 
 			//reset flags for next step
 			mSolutionStepIsInitialized = false;
 
 			if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
 			{
-			        SparseSpaceType::Clear(mpA);
-				SparseSpaceType::Clear(mpDx);
-				SparseSpaceType::Clear(mpb);
+			        CHECK(SparseSpaceType::Clear(mpA);)
+				CHECK(SparseSpaceType::Clear(mpDx);)
+				CHECK(SparseSpaceType::Clear(mpb);)
 
-                                this->Clear();
+                                CHECK(this->Clear();)
 			}
 
 			return 0.00;

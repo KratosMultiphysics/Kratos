@@ -114,7 +114,7 @@ namespace Kratos
         typedef std::size_t KeyType; // For Dof->GetVariable().Key()
 
         typedef boost::numeric::ublas::vector<int> IndexVector;
-        
+
         typedef OpenMPUtils::PartitionVector PartitionVector;
 
         // UBLAS matrix access types
@@ -178,6 +178,7 @@ namespace Kratos
             TSparseSpace::SetToZero( *mpD );
             TSparseSpace::SetToZero( *mpL );
 
+#ifndef _OPENMP
             // Define contributions to the system
             LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
             LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -187,7 +188,6 @@ namespace Kratos
 
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-#ifndef _OPENMP
             // Assemble contributions from elements
             for( typename ElementsArrayType::ptr_iterator pElem = rElements.ptr_begin();
                     pElem != rElements.ptr_end(); pElem++)
@@ -242,8 +242,7 @@ namespace Kratos
                 LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
                 LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-                //vector containing the localization in the system of the different
-                //terms
+                //vector containing the localization in the system of the different terms
                 Element::EquationIdVectorType EquationId;
                 ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
                 typename ElementsArrayType::ptr_iterator ElemBegin = rElements.ptr_begin()+ElementPartition[k];
@@ -256,7 +255,7 @@ namespace Kratos
                     pScheme->CalculateSystemContributions(*pElem,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
                     //assemble the elemental contribution
-                    Parallel_Assemble(b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+                    Assemble(b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*pElem);
@@ -289,7 +288,7 @@ namespace Kratos
                     pScheme->Condition_CalculateSystemContributions(*pCond,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
                     //assemble condition contribution
-                    Parallel_Assemble(b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
+                    Assemble(b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
                 }
             }
 
@@ -661,48 +660,70 @@ namespace Kratos
             // resetting to zero the vector of reactions
             TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-            // Define contributions to the system
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+            //create a partition of the element array
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            PartitionVector ElementPartition;
 
-            // Will store the position of each Dof in the system
-            Element::EquationIdVectorType EquationIds;
+            OpenMPUtils::DivideInPartitions(rElements.size(),NumThreads,ElementPartition);
 
-            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
-//#ifndef _OPENMP
-
-            // Assemble contributions from elements
-            for (typename ElementsArrayType::ptr_iterator pElem = rElements.ptr_begin();
-                    pElem != rElements.ptr_end(); pElem++)
+            // Note that to assemble the LHS we use locks to avoid data races in OpenMP
+            // Here we use #pragma omp atomic, as we need to write a double as oposed to
+            // a row in a matrix
+            #pragma omp parallel
             {
-                // Get Elemental Contributions
-                pScheme->Calculate_RHS_Contribution(*pElem, RHS_Contribution,
-                        EquationIds, CurrentProcessInfo);
+                int k = OpenMPUtils::ThisThread();
 
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationIds);
+                //contributions to the system
+                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-                // clean local elemental memory
-                pScheme->CleanMemory(*pElem);
+                //vector containing the localization in the system of the different terms
+                Element::EquationIdVectorType EquationId;
+                ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+                typename ElementsArrayType::ptr_iterator ElemBegin = rElements.ptr_begin()+ElementPartition[k];
+                typename ElementsArrayType::ptr_iterator ElemEnd = rElements.ptr_begin()+ElementPartition[k+1];
+
+                // assemble all elements
+                for (typename ElementsArrayType::ptr_iterator pElem = ElemBegin; pElem != ElemEnd; pElem++)
+                {
+                    //calculate elemental contribution
+                    pScheme->Calculate_RHS_Contribution(*pElem,RHS_Contribution,EquationId,CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS(b,RHS_Contribution,EquationId/*,lock_array*/);
+
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*pElem);
+                }
             }
 
-            RHS_Contribution.resize(0, false);
+            PartitionVector ConditionPartition;
 
-            // assemble all conditions
-            for (typename ConditionsArrayType::ptr_iterator pCond = rConditions.ptr_begin();
-                    pCond != rConditions.ptr_end(); pCond++)
+            OpenMPUtils::DivideInPartitions(rConditions.size(),NumThreads,ConditionPartition);
+
+            #pragma omp parallel
             {
-                // Get Elemental Contributions
-                pScheme->Condition_Calculate_RHS_Contribution(*pCond,
-                        RHS_Contribution, EquationIds, CurrentProcessInfo);
+                int k = OpenMPUtils::ThisThread();
 
-                //assemble the elemental contribution
-                AssembleRHS(b, RHS_Contribution, EquationIds);
+                //contributions to the system
+                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+                Condition::EquationIdVectorType EquationId;
+
+                ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+                typename ConditionsArrayType::ptr_iterator CondBegin = rConditions.ptr_begin()+ConditionPartition[k];
+                typename ConditionsArrayType::ptr_iterator CondEnd = rConditions.ptr_begin()+ConditionPartition[k+1];
+
+                // assemble all conditions
+                for (typename ConditionsArrayType::ptr_iterator pCond = CondBegin; pCond != CondEnd; pCond++)
+                {
+                    //calculate condition contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*pCond,RHS_Contribution,EquationId,CurrentProcessInfo);
+
+                    //assemble condition contribution
+                    AssembleRHS(b,RHS_Contribution,EquationId/*,lock_array*/);
+                }
             }
-
-//#else
-//            // DO MP VERSION HERE
-//#endif
 
             KRATOS_CATCH("");
         }
@@ -992,21 +1013,28 @@ namespace Kratos
             //refresh RHS to have the correct reactions
             BuildRHS(pScheme, rModelPart, b);
 
-            int i;
             int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
+            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
 
-            typename DofsArrayType::ptr_iterator it2;
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector DofPartition;
+            OpenMPUtils::DivideInPartitions(BaseType::mDofSet.size(),NumThreads,DofPartition);
 
             //updating variables
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-            for (it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2)
+            #pragma omp parallel
             {
-                if ((*it2)->IsFixed())
-                {
-                    i = (*it2)->EquationId();
-                    i -= systemsize;
+                int i; // Position of the Dof in the Reaction vector
+                int k = OpenMPUtils::ThisThread();
+                typename DofsArrayType::ptr_iterator DofsBegin = BaseType::mDofSet.ptr_begin() + DofPartition[k];
+                typename DofsArrayType::ptr_iterator DofsEnd = BaseType::mDofSet.ptr_begin() + DofPartition[k+1];
 
-                    (*it2)->GetSolutionStepReactionValue() = ReactionsVector[i];
+                for (typename DofsArrayType::ptr_iterator itDof = DofsBegin; itDof != DofsEnd; itDof++)
+                {
+                    if ( (*itDof)->IsFixed() )
+                    {
+                        i = (*itDof)->EquationId() - systemsize;
+                        (*itDof)->GetSolutionStepReactionValue() = ReactionsVector[i];
+                    }
                 }
             }
         }
@@ -1194,7 +1222,9 @@ namespace Kratos
 
     private:
 
-        /* Add a matrix position to the list (check that it hasn't been used before) */
+        /**
+         *  Add a matrix position to the list (check that it hasn't been used before)
+         */
         void AddUnique(
                 std::vector<std::size_t>& Row,
                 const std::size_t& Candidate)
@@ -1215,6 +1245,8 @@ namespace Kratos
          */
 
         // ALL ASSEMBLY FUNCTIONS NEED OPENMP. CONSIDER ADDING Assemble_OnFreeRows
+
+#ifndef _OPENMP
         void Assemble(
                 TSystemVectorType& b,
                 LocalSystemMatrixType& LHS_Contribution,
@@ -1261,9 +1293,8 @@ namespace Kratos
             }
         }
 
-#ifdef _OPENMP
-
-        void Parallel_Assemble(
+#else
+        void Assemble(
                 TSystemVectorType& b,
                 const LocalSystemMatrixType& LHS_Contribution,
                 const LocalSystemVectorType& RHS_Contribution,
@@ -1413,7 +1444,14 @@ namespace Kratos
             }
         }
 
-
+        /**
+         * Asseble local contribution to the right hand side vector
+         *
+         * @param b Reference to RHS vector
+         * @param RHS_Contribution local RHS contibution
+         * @param EquationId Global ids of the local contribution
+         * @param lock_array (only for OpenMP compilations) Vector containing a lock for each row of b
+         */
         void AssembleRHS(
                 TSystemVectorType& b,
                 LocalSystemVectorType& RHS_Contribution,
@@ -1421,35 +1459,21 @@ namespace Kratos
         {
             unsigned int ContributionSize =  EquationId.size();
 
-            if (BaseType::mCalculateReactionsFlag == false)
+            for (unsigned int i = 0; i < ContributionSize; i++)
             {
-                for( unsigned int i = 0; i < ContributionSize; i++)
+                unsigned int Global_i = EquationId[i];
+                if ( Global_i < BaseType::mEquationSystemSize )
                 {
-                    unsigned int Global_i = EquationId[i];
-                    if ( Global_i < BaseType::mEquationSystemSize )
-                    {
-                        b[Global_i] += RHS_Contribution[i];
-                    }
+                    #pragma omp atomic
+                    b[Global_i] += RHS_Contribution[i];
                 }
-            }
-            else //when the calculation of reactions is needed
-            {
-                TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-                for (unsigned int i_local=0; i_local<ContributionSize; i_local++)
+                else if (BaseType::mCalculateReactionsFlag) // == true
                 {
-                    unsigned int i_global=EquationId[i_local];
-                    if ( i_global < BaseType::mEquationSystemSize ) //on "free" DOFs
-                    {	// ASSEMBLING THE SYSTEM VECTOR
-                        b[i_global] += RHS_Contribution[i_local];
-                    }
-                    else //on "fixed" DOFs
-                    {	// Assembling the Vector of REACTIONS
-                        ReactionsVector[i_global-BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
-                    }
+                    #pragma omp atomic
+                    BaseType::mpReactionsVector->operator[](Global_i - BaseType::mEquationSystemSize) -= RHS_Contribution[i];
                 }
             }
         }
-
 
         /*
          * Pressure System matrix functions
@@ -1606,7 +1630,8 @@ namespace Kratos
             }
         }
 
-        /* Compute the System Matrix A = L - D*Inv(Diag(S))*G. The multiplication
+        /**
+         *  Compute the System Matrix A = L - D*Inv(Diag(S))*G. The multiplication
          * is performed in random order, so each row will be stored in a temporary
          * variable, ordered and copied in input matrix A.
          */

@@ -52,11 +52,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    /* This class defines utility functions that implement some basic OpenMP
-     * capabilities and an equivalent scalar alternative to use in compilations
-     * where OpenMP is not enabled. The idea is to allow Kratos developers to
-     * design their code in parallel, knowing that it will work in scalar runs
-     * as well.
+    /**
+     This class defines utility functions that implement some basic OpenMP
+     capabilities and an equivalent scalar alternative to use in compilations
+     where OpenMP is not enabled. The idea is to allow Kratos developers to
+     design their code in parallel, knowing that it will work in scalar runs
+     as well.
      */
     class OpenMPUtils
     {
@@ -64,7 +65,9 @@ namespace Kratos
 
         typedef std::vector<int> PartitionVector;
 
-        /* Wrapper for omp_get_max_threads() */
+        /**
+         Wrapper for omp_get_max_threads()
+         */
         static inline int GetNumThreads()
         {
             #ifdef _OPENMP
@@ -74,7 +77,9 @@ namespace Kratos
             #endif
         }
 
-        /* Wrapper for omp_get_thread_num() */
+        /**
+         Wrapper for omp_get_thread_num()
+         */
         static inline int ThisThread()
         {
             #ifdef _OPENMP
@@ -84,11 +89,12 @@ namespace Kratos
             #endif
         }
 
-        /* Divide an array of length NumTerms between NumThreads threads.
-         * Creates a std::vector containing NumThreads + 1 terms, where term k
-         * is the first and position of the array that corresponds to thread k.
-         * The k+1 term is the end of the array, so that the vector can be used
-         * to iterate the array between 'k' and 'k+1' in each thread.
+        /**
+         Divide an array of length NumTerms between NumThreads threads.
+         Creates a std::vector containing NumThreads + 1 terms, where term k
+         is the first and position of the array that corresponds to thread k.
+         The k+1 term is the end of the array, so that the vector can be used
+         to iterate the array between 'k' and 'k+1' in each thread.
          */
         static inline void DivideInPartitions(
                 const int NumTerms,

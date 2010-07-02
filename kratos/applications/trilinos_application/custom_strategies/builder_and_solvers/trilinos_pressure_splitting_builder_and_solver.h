@@ -240,10 +240,10 @@ namespace Kratos
 
             // Store Inv{Diag(S)} * G
             pScaledG->LeftScale(*pDiagS);
-            
+
             // A <- D*ScaledG
             EpetraExt::MatrixMatrix::Multiply(*mpD,false,*pScaledG,false,A,false);
-            
+
             // A <- L - A
             EpetraExt::MatrixMatrix::Add(*mpL,false,1.0,A,-1.0); // bool is for transpose of L
 
@@ -490,7 +490,7 @@ namespace Kratos
                 Dx.ReplaceGlobalValues(LocalDofNum,GlobalIndices,RHSValues,0);
 
                 if (mFirstIteration == true) mFirstIteration = false;
-                
+
                 // Clean allocated space
                 delete [] VelIndices; delete [] PressIndices; delete [] RHSValues;
                 delete [] pPressBuffer; delete [] pVelBuffer; delete [] GlobalIndices;
@@ -970,7 +970,7 @@ namespace Kratos
 
                 ConstructSystemMatrixGraph(pGraphA);
                 mDofSetChanged = false;
-                
+
                 // Create an empty pressure system matrix at the location pointed by pA
                 TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,*pGraphA));
                 pA.swap(pNewA);
@@ -1082,7 +1082,7 @@ namespace Kratos
 
             if (this->mpS != NULL)
                 TSparseSpace::Clear((this->mpS));
-            
+
             if (this->mpG != NULL)
                     TSparseSpace::Clear((this->mpG));
 
