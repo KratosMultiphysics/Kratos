@@ -49,7 +49,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 //#include <set>
 #ifdef _OPENMP
-#include <fstream>
 #include <omp.h>
 #endif
 #include "utilities/openmp_utils.h"
@@ -580,21 +579,11 @@ namespace Kratos
         {
             KRATOS_TRY
 
-#ifdef _OPENMP
-            std::ofstream results;
-            results.open("results.csv", std::ios::out | std::ios::app );
-
-            double t0 = omp_get_wtime();
-#endif
-
             Timer::Start("Build");
 
             Build(pScheme, rModelPart, A, b);
 
             Timer::Stop("Build");
-#ifdef _OPENMP
-            double t1 = omp_get_wtime();
-#endif
 
 //        //does nothing...dirichlet conditions are naturally dealt with in defining the residual
 //        ApplyDirichletConditions(pScheme,rModelPart,A,Dx,b);
@@ -611,8 +600,6 @@ namespace Kratos
             SystemSolve(A, Dx, b);
 
             Timer::Stop("Solve");
-#ifdef _OPENMP
-            double t2 = omp_get_wtime();
 
             if (this->GetEchoLevel() == 3) {
                 std::cout << "after the solution of the system" << std::endl;
@@ -621,9 +608,6 @@ namespace Kratos
                 std::cout << "RHS vector = " << b << std::endl;
             }
 
-            results << (t1-t0) << " " << (t2-t1) << "\n";
-            results.close();
-#endif
             KRATOS_CATCH("");
         }
 
