@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/lagrangian_utilities.h" 
 #include "custom_utilities/nist_utilities.h" 
 #include "custom_utilities/erosion_utilities.h" 
+#include "custom_utilities/drag_utilities.h" 
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -166,7 +167,10 @@ namespace Python
                .def("ClearLaplacianSystem",&LagrangianEulerSolver< 2, SparseSpaceType, LinearSolverType >::ClearLaplacianSystem)
         ;
 
-
+	  class_<DragUtils>("DragUtils", init<>())
+		.def("CalculateFluidDrag",&DragUtils::CalculateFluidDrag)
+		.def("AddDrag",&DragUtils::AddDrag)
+		;
 
 
   }
