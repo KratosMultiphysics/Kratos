@@ -75,13 +75,14 @@ class MonolithicSolver:
         
         #definition of the convergence criteria
 ##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
+##        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-4,1e-7)
         self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
         self.max_iter = 10
-                            
+                          
         #default settings
         self.echo_level = 1
         self.CalculateReactionFlag = False
@@ -207,12 +208,12 @@ class MonolithicSolver:
             ((self.model_part).Elements).clear();
             ((self.model_part).Conditions).clear();
             
-        ##remesh
-        if(self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
-##    	      (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
-        elif(self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("ASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
+            ##remesh
+            if(self.domain_size == 2):
+                (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
+##    	        (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
+            elif(self.domain_size == 3):
+                (self.Mesher).ReGenerateMesh("ASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
 					      
 
              #calculating fluid neighbours before applying boundary conditions
@@ -255,6 +256,8 @@ class MonolithicSolver:
             gid_io.WriteNodalResults(MESH_VELOCITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(DENSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(VISCOSITY, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(BODY_FORCE, (self.model_part).Nodes, time, 0);
+
 
             gid_io.WriteNodalResults(IS_FLUID, (self.model_part).Nodes, time, 0);
 
