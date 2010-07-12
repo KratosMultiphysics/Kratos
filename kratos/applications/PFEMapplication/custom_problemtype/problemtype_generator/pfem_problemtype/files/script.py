@@ -64,6 +64,9 @@ model_part_io.ReadModelPart(model_part)
 
 ##check to ensure that no node has zero density or pressure
 for node in model_part.Nodes:
+    node.SetSolutionStepValue(BODY_FORCE_X,0,pfem_var.Gravity_X) 
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,pfem_var.Gravity_Y) 
+    node.SetSolutionStepValue(BODY_FORCE_Z,0,pfem_var.Gravity_Z) 
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
         print "node ",node.Id," has zero density!"
         raise 'node with zero density found'
