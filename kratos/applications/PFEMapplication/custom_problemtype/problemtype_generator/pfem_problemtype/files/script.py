@@ -17,6 +17,8 @@ import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 
+
+
 #importing Kratos main library
 from Kratos import *
 kernel = Kernel()   #defining kernel
@@ -62,11 +64,6 @@ model_part_io.ReadModelPart(model_part)
 
 ##check to ensure that no node has zero density or pressure
 for node in model_part.Nodes:
-##    node.SetSolutionStepValue(DENSITY,0,pfem_var.Density)
-##    node.SetSolutionStepValue(VISCOSITY,0,pfem_var.Viscosity) 
-    node.SetSolutionStepValue(BODY_FORCE_X,0,pfem_var.Gravity_X) 
-    node.SetSolutionStepValue(BODY_FORCE_Y,0,pfem_var.Gravity_Y) 
-    node.SetSolutionStepValue(BODY_FORCE_Z,0,pfem_var.Gravity_Z) 
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
         print "node ",node.Id," has zero density!"
         raise 'node with zero density found'
@@ -121,15 +118,20 @@ if(SolverType == "pfem_solver_ale"):
     solver.Initialize(initial_dt,output_Dt)
 elif(SolverType == "monolithic_solver_lagrangian"):
     #adding dofs
+
     monolithic_solver_lagrangian.AddDofs(model_part)
     solver = monolithic_solver_lagrangian.MonolithicSolver(model_part,domain_size,box_corner1,box_corner2)
     oss_swith = pfem_var.use_oss
     dynamic_tau = pfem_var.dynamic_tau
+    solver.echo_level = 2
     model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
     model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
     solver.Initialize(output_Dt)
 
 
+
+
+###############################################################
 time = 0.0
 for step in range(0,nsteps):
     print "line49"
