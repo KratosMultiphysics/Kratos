@@ -265,7 +265,7 @@ namespace Kratos
 				Geometry<Node<3> >&geom = el_it->GetGeometry();
 				//check if the element is a fluid element or an element of the extrapolation domain
 				bool is_fluid = false;
-				int fluid_nodes_num = 0;
+				unsigned int fluid_nodes_num = 0;
 // 				double fluid_nu = 0.0;
 // 				double fluid_rho = 0.0;
 
