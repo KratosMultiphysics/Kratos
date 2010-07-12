@@ -50,7 +50,7 @@ def AddDofs(model_part):
 class PFEMSolver:
     
     def __init__(self,model_part,OuputName,box_corner1,box_corner2,domain_size):
-
+        model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
         self.domain_size = domain_size
         self.model_part = model_part
