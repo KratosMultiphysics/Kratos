@@ -249,7 +249,9 @@ namespace Kratos
         virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 //         virtual void CalculateInternalForces(VectorType& rRightHandSideVector, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double area); 
 	virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX);
-
+	virtual void CalculateGradSymVel(array_1d<double,3> & grad_sym_vel, double & grad_sym_vel_norm,const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B);
+// 	virtual void CalculateApparentViscosity(double & ApparentViscosity, const double & grad_sym_vel_norm, const double & mu, const double & YeldStress, const double mcoef);
+	virtual void CalculateApparentViscosity(double & ApparentViscosity, array_1d<double,3> & grad_sym_vel, const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B, const double & mu);
     private:
       ///@} 
       ///@name Private Operations
