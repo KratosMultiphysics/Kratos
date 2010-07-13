@@ -61,7 +61,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_DamApplication: "+str(Import_DamApplication)
     print "Import_TestApplication: "+str(Import_TestApplication)
     print "Import_OpenCLApplication: "+str(Import_OpenCLApplication)
-    print "Import_PodApplication: "+str(Import_OpenCLApplication)
+    print "Import_PodApplication: "+str(Import_PodApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -272,5 +272,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(test_application);
     if(Import_OpenCLApplication == True):
         kernel.InitializeApplication(opencl_application);
-    if(Import_OpenCLApplication == True):
+    if(Import_PodApplication == True):
         kernel.InitializeApplication(pod_application);
