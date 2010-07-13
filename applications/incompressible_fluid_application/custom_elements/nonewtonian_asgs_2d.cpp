@@ -109,7 +109,7 @@ namespace Kratos {
 
     void NoNewtonianASGS2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
-KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+                // KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 int nodes_number = 3;
         int dim = 2;
         unsigned int matsize = nodes_number * (dim + 1);
@@ -142,9 +142,9 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
 
 
 
- //       //add projections
- //       if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
- //           AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
+        //       //add projections
+        //       if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+        //           AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
 
 
         KRATOS_CATCH("")
@@ -176,7 +176,7 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
         for (int nd = 0; nd < nodes_number; nd++) {
             int row = nd * (dof + 1);
             for (int jj = 0; jj < dof; jj++)
-                K(row + jj, row + jj) += density  * lump_mass_fac;
+                K(row + jj, row + jj) += density * lump_mass_fac;
         }
 
         KRATOS_CATCH("")
@@ -234,43 +234,22 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-//         array_1d<double, 9 >  aux_res = ZeroVector(9);
-// 
-//        aux_res[0] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
-//        aux_res[1] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
-//        aux_res[2] = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-//        aux_res[3] = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_X);
-//        aux_res[4] = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Y);
-//        aux_res[5] = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-//        aux_res[6] = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_X);
-//        aux_res[7] = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_Y);
-//        aux_res[8] = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-
-
-        
-
         //getting data for the given geometry
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
 
         /**         LHS           */
-        /**Viscous term*/
-        CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-// KRATOS_WATCH("AfterVISCOSITY")
-// KRATOS_WATCH(prod(rDampMatrix,aux_res))
         /**Advective term*/
         double tauone;
         double tautwo;
         CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
         CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
-// KRATOS_WATCH("AfterCONVECTION")
-// KRATOS_WATCH(prod(rDampMatrix,aux_res))
+
         /**Calculate Pressure term + divergence term of pressure equation*/
         CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area);
-// KRATOS_WATCH("AfterPRESSURE")
-// KRATOS_WATCH(prod(rDampMatrix,aux_res))
+
         //compute projections
         /**Stablization*/
         //stabilization terms
@@ -283,42 +262,13 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
         /**Internal Forces*/
         CalculateResidual(rDampMatrix, rRightHandSideVector, Area);
 
+        /**         LHS           */
+        /**Viscous term*/
+        CalculateViscousTerm(rDampMatrix, DN_DX, Area);
 
         KRATOS_CATCH("")
     }
 
-//     //************************************************************************************
-//     //************************************************************************************
-// 
-//     void NoNewtonianASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area) {
-//         KRATOS_TRY
-//                 double mu;
-//         /*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-//         const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-//         const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-//         mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);*/
-// 
-//         double density;
-//         calculatedensity(GetGeometry(), density, mu);
-// 
-// 
-//         //nu = nu/density;
-// 
-//         int nodes_number = 3;
-//         int dof = 2;
-// 
-//         for (int ii = 0; ii < nodes_number; ii++) {
-//             int row = ii * (dof + 1);
-//             for (int jj = 0; jj < nodes_number; jj++) {
-//                 int column = jj * (dof + 1);
-//                 K(row, column) += mu * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
-//                 K(row + 1, column + 1) += mu * area * (DN_DX(ii, 0) * DN_DX(jj, 0) + DN_DX(ii, 1) * DN_DX(jj, 1));
-//             }
-//         }
-// 
-// 
-//         KRATOS_CATCH("")
-//     }
 
     //************************************************************************************
     //************************************************************************************
@@ -330,32 +280,48 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
         int dof = 2;
         double density;
         calculatedensity(GetGeometry(), density, mu);
-        boost::numeric::ublas::bounded_matrix<double, 3, 6 >  B = ZeroMatrix(3,6);
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 >  C = ZeroMatrix(3,3);
-        boost::numeric::ublas::bounded_matrix<double, 6, 6 >  temp = ZeroMatrix(6,6); 
-       
-        C(0,0) = 2.0; C(0,1) = 0.0; C(0,2) = 0.0;
-        C(1,0) = 0.0; C(1,1) = 2.0; C(1,2) = 0.0;
-        C(2,0) = 0.0; C(2,1) = 0.0; C(2,2) = 1.0;
-        C*=mu;
+        boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > C = ZeroMatrix(3, 3);
+        boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp = ZeroMatrix(6, 6);
 	
+        double app_mu;
+	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+		
         //calculating operator B
-        CalculateB(B,DN_DX);
-// KRATOS_WATCH(B)
-// KRATOS_WATCH(C)
+        CalculateB(B, DN_DX);
+        // KRATOS_WATCH(B)
+	
+	//Bingham Fluid
+       CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
+	//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
+	// Remember to modify CalculateResidualand CalculateTau.
+// 	app_mu = mu;
+	
+        C(0, 0) = 2.0;
+        C(0, 1) = 0.0;
+        C(0, 2) = 0.0;
+        C(1, 0) = 0.0;
+        C(1, 1) = 2.0;
+        C(1, 2) = 0.0;
+        C(2, 0) = 0.0;
+        C(2, 1) = 0.0;
+        C(2, 2) = 1.0;
+        
+        C *= app_mu;
+
+        // KRATOS_WATCH(C)
         //Calculating the viscous contribution to the LHS int(Btrans C B)dA
-//         temp = prod(trans(B),prod(C,B));
-	 for(unsigned int i=0; i<B.size2();i++)
-	 {  for(unsigned int j=0; j<B.size2(); j++)
-	     {  for(unsigned int l=0; l<C.size1(); l++)
-		{   for(unsigned int k=0; k<C.size1(); k++)
-		    {
-		      temp(i,j) += B(l,i)*C(l,k)*B(k,j);
-		    }
-		}
-	     }
-	 }
-// KRATOS_WATCH(temp)
+        //         temp = prod(trans(B),prod(C,B));
+        for (unsigned int i = 0; i < B.size2(); i++) {
+            for (unsigned int j = 0; j < B.size2(); j++) {
+                for (unsigned int l = 0; l < C.size1(); l++) {
+                    for (unsigned int k = 0; k < C.size1(); k++) {
+                        temp(i, j) += B(l, i) * C(l, k) * B(k, j);
+                    }
+                }
+            }
+        }
+        // KRATOS_WATCH(temp)
         temp *= area;
         for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1);
@@ -364,10 +330,10 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
                 int column = jj * (dof + 1);
                 int loc_column = jj*dof;
 
-                K(row,     column) 	   += temp(loc_row,     loc_column);
-	       K(row,     column + 1) += temp(loc_row,     loc_column + 1);
+                K(row, column) += temp(loc_row, loc_column);
+                K(row, column + 1) += temp(loc_row, loc_column + 1);
                 K(row + 1, column + 1) += temp(loc_row + 1, loc_column + 1);
-	       K(row + 1, column)     += temp(loc_row + 1, loc_column);
+                K(row + 1, column) += temp(loc_row + 1, loc_column);
             }
         }
 
@@ -394,10 +360,6 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
 
-        //ms_adv_vel[0] = 0.0;
-        //ms_adv_vel[1] = 0.0;
-
-
         //calculate convective term
         int nodes_number = 3;
         int dof = 2;
@@ -416,10 +378,6 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
         }
         boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
         temp_convterm = prod(shape_func, conv_opr);
-
-        //double fac = tauone/time;
-        //fac = 0.0;
-        //temp_convterm *= ((1 + fac*density)*density); // For the simplicity of implementation the stabilization term tau1*ro/deltat*(a.gradV U(n+1,t)) is added
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1);
@@ -453,15 +411,15 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
             int row = ii * (dof + 1);
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
-	       //**************************************************************
- 	       //Elemental gradient of pressure term (momentum equation)
-           K(row, column) -=  area * N(jj) * DN_DX(ii, 0);
-	       K(row + 1, column) -=  area * N(jj) * DN_DX(ii, 1);
-	       //**************************************************************
-// 	       //Elemental divergence terms (continuity equation)
-// 	       // Fomulation n1  int( q * rho * Div( u ))
-	       K(column, row) +=  area * density * N(jj) * DN_DX(ii, 0);
-	       K(column, row + 1) +=  area * density * N(jj) * DN_DX(ii, 1);
+                //**************************************************************
+                //Elemental gradient of pressure term (momentum equation)
+                K(row, column) -= area * N(jj) * DN_DX(ii, 0);
+                K(row + 1, column) -= area * N(jj) * DN_DX(ii, 1);
+                //**************************************************************
+                // 	       //Elemental divergence terms (continuity equation)
+                // 	       // Fomulation n1  int( q * rho * Div( u ))
+                K(column, row) += area * density * N(jj) * DN_DX(ii, 0);
+                K(column, row + 1) += area * density * N(jj) * DN_DX(ii, 1);
 
             }
         }
@@ -501,10 +459,10 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
                 int column = jj * (dof + 1);
                 int loc_column = jj*dof;
 
-                K(row, column) +=  area * density * temp_div(loc_row, loc_column);
-                K(row, column + 1) +=  area * density * temp_div(loc_row, loc_column + 1);
-                K(row + 1, column) +=  area * density * temp_div(loc_row + 1, loc_column);
-                K(row + 1, column + 1) +=  area * density * temp_div(loc_row + 1, loc_column + 1);
+                K(row, column) += area * density * temp_div(loc_row, loc_column);
+                K(row, column + 1) += area * density * temp_div(loc_row, loc_column + 1);
+                K(row + 1, column) += area * density * temp_div(loc_row + 1, loc_column);
+                K(row + 1, column + 1) += area * density * temp_div(loc_row + 1, loc_column + 1);
             }
         }
 
@@ -561,10 +519,10 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
                 int column = jj * (dof + 1);
                 int loc_column = jj*dof;
 
-                K(row, column) +=  area * density * adv_stblterm(loc_row, loc_column);
-                K(row, column + 1) +=  area * density * adv_stblterm(loc_row, loc_column + 1);
-                K(row + 1, column) +=  area * density * adv_stblterm(loc_row + 1, loc_column);
-                K(row + 1, column + 1) +=  area * density * adv_stblterm(loc_row + 1, loc_column + 1);
+                K(row, column) += area * density * adv_stblterm(loc_row, loc_column);
+                K(row, column + 1) += area * density * adv_stblterm(loc_row, loc_column + 1);
+                K(row + 1, column) += area * density * adv_stblterm(loc_row + 1, loc_column);
+                K(row + 1, column + 1) += area * density * adv_stblterm(loc_row + 1, loc_column + 1);
             }
         }
 
@@ -578,20 +536,20 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) +=  area  * grad_stblterm(loc_row, jj);
-                K(row + 1, column) +=  area  * grad_stblterm(loc_row + 1, jj);
+                K(row, column) += area * grad_stblterm(loc_row, jj);
+                K(row + 1, column) += area * grad_stblterm(loc_row + 1, jj);
 
-                K(column, row) +=  area * density * grad_stblterm(loc_row, jj);
-                K(column, row + 1) +=  area * density * grad_stblterm(loc_row + 1, jj);
+                K(column, row) += area * density * grad_stblterm(loc_row, jj);
+                K(column, row + 1) += area * density * grad_stblterm(loc_row + 1, jj);
             }
         }
 
 
         //build (1.0*a.grad V) (Fbody) stabilization term & assemble
         array_1d<double, 2 > bdf = ZeroVector(2);
-        const array_1d<double, 2 > bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double, 2 > bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double, 2 > bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 3 > & bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 3 > & bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 3 > & bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
 
 
         bdf[0] = N[0]*(density * bdf0[0]) + N[1]*(density * bdf1[0]) + N[2]*(density * bdf2[0]);
@@ -599,13 +557,13 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
 
 
         array_1d<double, 6 > fbd_stblterm = ZeroVector(matsize);
-        fbd_stblterm = tauone *  prod(trans(conv_opr), bdf);
+        fbd_stblterm = tauone * prod(trans(conv_opr), bdf);
 
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1);
             int loc_index = ii*dof;
-            F[index] +=  area * fbd_stblterm[loc_index];
-            F[index + 1] +=  area * fbd_stblterm[loc_index + 1];
+            F[index] += area * fbd_stblterm[loc_index];
+            F[index + 1] += area * fbd_stblterm[loc_index + 1];
         }
         KRATOS_CATCH("")
     }
@@ -693,60 +651,16 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += area *  gard_opr(ii, jj);
+                K(row, column) += area * gard_opr(ii, jj);
 
             }
         }
-        /*
-        //build 1*tau1*ro/deltat U grad q)
-        double fac = tauone*density/time;
-        for ( int ii = 0; ii < nodes_number; ii++)
-            {
-                int row = ii*(dof+1);
-                for( int jj=0; jj < nodes_number; jj++)
-                   {
-                        int column = jj*(dof+1) + dof;
-
-                        //K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
-                        K(column,row) += 1*area * fac* N(ii) * DN_DX(jj,0);
-
-                        //K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
-                        K(column,row + 1) += 1*area * fac* N(ii) * DN_DX(jj,1);
-                   }
-            }
-
-	
-        //build 1*(grad q) (Fbody + ro/dt * U(n+1,i)) stabilization term & assemble
-        array_1d<double,2> bdf = ZeroVector(2);
-        const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
-
-
-        const array_1d<double,3>& vel0_n = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-        const array_1d<double,3>& vel1_n = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-        const array_1d<double,3>& vel2_n = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-
-
-        bdf[0] = N[0]*(density*bdf0[0] + density/time * vel0_n[0] ) +  N[1]*(density*bdf1[0] + density/time * vel1_n[0]) + N[2]*(density*bdf2[0] + density/time * vel2_n[0]);
-        bdf[1] =  N[0]*(density*bdf0[1] + density/time * vel0_n[1] ) +  N[1]*(density*bdf1[1] + density/time * vel1_n[1]) + N[2]*(density*bdf2[1] + density/time * vel2_n[1]);
-
-        array_1d<double,3> fbd_stblterm = ZeroVector(nodes_number);
-        fbd_stblterm = tauone * prod(DN_DX,bdf);
-	
-
-        for(int ii = 0; ii< nodes_number; ++ii)
-          {
-                int index = ii*(dof + 1) + dof;
-                F[index] += 1*area*fbd_stblterm[ii];
-          }*/
-
 
         //build 1*(grad q) (Fbody ) stabilization term & assemble
         array_1d<double, 2 > bdf = ZeroVector(2);
-        const array_1d<double, 2 > bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double, 2 > bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double, 2 > bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 3 > bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 3 > bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+        const array_1d<double, 3 > bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
 
 
         bdf[0] = N[0]*(density * bdf0[0]) + N[1]*(density * bdf1[0]) + N[2]*(density * bdf2[0]);
@@ -758,7 +672,7 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
 
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1) + dof;
-            F[index] +=  area * fbd_stblterm[ii];
+            F[index] += area * fbd_stblterm[ii];
         }
 
         KRATOS_CATCH("")
@@ -799,7 +713,7 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
 
     void NoNewtonianASGS2D::AddBodyForceAndMomentum(VectorType& F, const array_1d<double, 3 > & N, const double time, const double area, const double tauone, const double tautwo) {
         KRATOS_TRY
-                int nodes_number = 3;
+        int nodes_number = 3;
         int dof = 2;
 
 
@@ -852,8 +766,6 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
 
         int nodes_number = 3;
         int dof = 2;
-        
-
 
         array_1d<double, 9 > UP = ZeroVector(9);
         for (int ii = 0; ii < nodes_number; ++ii) {
@@ -862,87 +774,50 @@ KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~
             UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY)[1];
             UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
         }
-        
-        /**Rest Viscous Forces from dampmatrix*/
+
+        /*Rest Viscous Forces from dampmatrix*/
         double mu;
         double density;
         calculatedensity(GetGeometry(), density, mu);
-        boost::numeric::ublas::bounded_matrix<double, 9, 9 >  Klocal = ZeroMatrix(9,9); 
-KRATOS_WATCH(K);
-        noalias(Klocal) = K;
-KRATOS_WATCH(Klocal);
-        boost::numeric::ublas::bounded_matrix<double, 3, 6 >  B = ZeroMatrix(3,6);
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 >  C = ZeroMatrix(3,3);
-        boost::numeric::ublas::bounded_matrix<double, 6, 6 >  temp = ZeroMatrix(6,6); 
-        array_1d<double, 6 >  auxDevStressVector = ZeroVector(6);
-        array_1d<double, 6 >  aux_vel = ZeroVector(6);
-        array_1d<double, 3 >  aux_1 = ZeroVector(3);
-        array_1d<double, 3 >  aux_2 = ZeroVector(3);  
 
-        aux_vel[0] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0];	aux_vel[1] = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1];
-        aux_vel[2] = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY)[0];	aux_vel[3] = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY)[1];
-        aux_vel[4] = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY)[0];	aux_vel[5] = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY)[1];
-    
-        C(0,0) = 2.0; C(0,1) = 0.0; C(0,2) = 0.0;
-        C(1,0) = 0.0; C(1,1) = 2.0; C(1,2) = 0.0;
-        C(2,0) = 0.0; C(2,1) = 0.0; C(2,2) = 1.0;
-        C*=mu;
-	
+        boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > C = ZeroMatrix(3, 3);
+        array_1d<double, 6 > auxDevStressVector = ZeroVector(6);
+        array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+	double app_mu;
+
+        array_1d<double, 3 > aux_1 = ZeroVector(3);
+
         //calculating operator B
-        CalculateB(B,DN_DX);
-// KRATOS_WATCH(B)
-// KRATOS_WATCH(C)
-        //Calculating the viscous contribution to the LHS int(Btrans C B)dA
-//         temp = prod(trans(B),prod(C,B));
-	 for(unsigned int i=0; i<B.size2();i++)
-	 {  for(unsigned int j=0; j<B.size2(); j++)
-	     {  for(unsigned int l=0; l<C.size1(); l++)
-		{   for(unsigned int k=0; k<C.size1(); k++)
-		    {
-		      temp(i,j) += B(l,i)*C(l,k)*B(k,j);
-		    }
-		}
-	     }
-	 }
-// KRATOS_WATCH(temp)
-        temp *= area;
-        for (int ii = 0; ii < nodes_number; ii++) {
-            int row = ii * (dof + 1);
-            int loc_row = ii*dof;
-            for (int jj = 0; jj < nodes_number; jj++) {
-                int column = jj * (dof + 1);
-                int loc_column = jj*dof;
-
-                Klocal(row,     column)     -= temp(loc_row,     loc_column);
-	       Klocal(row,     column + 1) -= temp(loc_row,     loc_column + 1);
-                Klocal(row + 1, column + 1) -= temp(loc_row + 1, loc_column + 1);
-	       Klocal(row + 1, column)     -= temp(loc_row + 1, loc_column);
-            }
-        }       
-
+        CalculateB(B, DN_DX);
+        // KRATOS_WATCH(B)
         /**Calculating residual vector */
         F -= prod(K, UP);
 
-        /**Add Lirearized Viscous Forces*/
-//sigma dev intern
-        aux_1 = prod(B, aux_vel);
-// KRATOS_WATCH(aux_1)
-        aux_2 = prod(C, aux_1);
-// KRATOS_WATCH(aux_2)
-        auxDevStressVector = prod(trans(B),aux_2);
-//         auxDevStressVector = prod(trans(B),prod(C,prod(B,aux_vel)));
-// KRATOS_WATCH(auxDevStressVector)
-// KRATOS_WATCH(aux_vel)
+        /**Add Bt*sigma_dev (Viscous Forces)*/
+        //sigma dev intern
 
-        for (int ii = 0; ii < nodes_number; ii++) 
-        {
+// 	Bingham Fluid:
+        CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
+// 	Newtonian Fluid: Leave Decommented the CalculateApparentviscosity (we need grad_sym_vel) and decomment the following line
+//	Remember to modify CalculateViscousTerm and CalculateTau
+// 	app_mu = mu;
+	
+        aux_1 = 2 * app_mu * grad_sym_vel;
+	aux_1[2] *= 0.5; //considering Voigt notation for the gradient of velocity (alternative to the C matrix of the viscous term.
+
+        auxDevStressVector = prod(trans(B), aux_1);
+        /*TO DECOMMENT*/
+
+        for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1);
             int loc_row = ii * dof;
 
             F[row] -= auxDevStressVector[loc_row] * area;
-	   F[row + 1] -= auxDevStressVector[loc_row + 1] * area;
+            F[row + 1] -= auxDevStressVector[loc_row + 1] * area;
 
         }
+
 
         KRATOS_CATCH("")
     }
@@ -1028,37 +903,7 @@ KRATOS_WATCH(Klocal);
 
         }
 
-        /*for (unsigned int i=0;i<number_of_nodes;i++)
-         {
-                int index = i*dim;
-                const double pr = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-                const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-
-                const array_1d<double,3>& mesh_vel = GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
-                array_1d<double,2> adv_vel = ZeroVector(2);
-                adv_vel[0] = vel[0]-mesh_vel[0];
-                adv_vel[1] = vel[1]-mesh_vel[1];
-
-                //adv_proj = PI(ro*a.gradU + gradP) considering lumped mass PI() = ()
-                adv_proj[index] = area*N[i]*(pr * DN_DX(i,0) +density*(adv_vel[0]*DN_DX(i,0) + adv_vel[1]*DN_DX(i,1))*vel[0]);
-                adv_proj[index +1] =  area*N[i]*(pr * DN_DX(i,1) + density*(adv_vel[0]*DN_DX(i,0) + adv_vel[1]*DN_DX(i,1))*vel[1]);
-
-                //div_proj = PI(ro*divU)
-                div_proj[i] = area*N[i]*density*(DN_DX(i,0)*vel[0] + DN_DX(i,1)*vel[1]);
-
-                //update projections
-                array_1d<double,3>& advtermproj = GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-                advtermproj[0]+= tauone*adv_proj[index];
-                advtermproj[1]+= tauone*adv_proj[index +1];
-
-                double& divtermproj = GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
-                divtermproj += tautwo*div_proj[i] ;
-		
-                //calculate nodal area
-                GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += 0.333333333333333333*area;
-         }*/
-
-
+   
     }
 
     //************************************************************************************
@@ -1166,30 +1011,124 @@ KRATOS_WATCH(Klocal);
         KRATOS_CATCH("");
     }
 
-	//************************************************************************************
-	//************************************************************************************
-	void NoNewtonianASGS2D::CalculateB(
-		boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
-		const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX)
-	{
-		KRATOS_TRY
-	         unsigned int dim = 2;
-		unsigned int node_size = dim + 1;
+    //************************************************************************************
+    //************************************************************************************
 
-		for (unsigned int i=0;i<node_size;i++)
-		{
-			unsigned int index = dim*i;
+    void NoNewtonianASGS2D::CalculateB(
+            boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+            const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX) {
+        KRATOS_TRY
+                unsigned int dim = 2;
+        unsigned int node_size = dim + 1;
 
-			B(0,index)=DN_DX(i,0);	B(0,index+1)=0.0;
-			B(1,index)=0.0;		B(1,index+1)=DN_DX(i,1);
-			B(2,index)=DN_DX(i,1);	B(2,index+1)=DN_DX(i,0); 
+        for (unsigned int i = 0; i < node_size; i++) {
+            unsigned int index = dim*i;
+
+            B(0, index) = DN_DX(i, 0);
+            B(0, index + 1) = 0.0;
+            B(1, index) = 0.0;
+            B(1, index + 1) = DN_DX(i, 1);
+            B(2, index) = DN_DX(i, 1);
+            B(2, index + 1) = DN_DX(i, 0);
 
 
-			//CalculateBi(Bi,F,DN_DX,i);
-			//MathUtils<double>::WriteMatrix(B,Bi,0,index);
-		}
-		KRATOS_CATCH("")
-	}
+            //CalculateBi(Bi,F,DN_DX,i);
+            //MathUtils<double>::WriteMatrix(B,Bi,0,index);
+        }
+        KRATOS_CATCH("")
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void NoNewtonianASGS2D::CalculateGradSymVel(array_1d<double, 3 > & grad_sym_vel, double & grad_sym_vel_norm,
+            const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B) {
+        KRATOS_TRY
+                unsigned int dim = 2;
+        unsigned int nodes_number = dim + 1;
+
+        array_1d<double, 6 > U = ZeroVector(6);
+        //		array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dim);
+	    const array_1d<double,3>& vel =  GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+            U[index] = vel[0];
+            U[index + 1] = vel[1];
+        }
+// KRATOS_WATCH(B)
+// KRATOS_WATCH(U)
+        grad_sym_vel = prod(B, U);
+// 	for( int i = 0; i< nodes_number;i++)
+// 	{
+// 	  if (grad_sym_vel[i] < 0.00005)
+// 	    grad_sym_vel[i] = 0.0;
+// 	}
+// Norm of the gradient of velocity:
+//         grad_sym_vel_norm = grad_sym_vel[0] * grad_sym_vel[0] + grad_sym_vel[1] * grad_sym_vel[1] + 0.5 * grad_sym_vel[2] * grad_sym_vel[2];
+// Gamma dot found in literature!!!:
+        grad_sym_vel_norm = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
+
+        if (grad_sym_vel_norm > 0.00001) {
+            grad_sym_vel_norm = sqrt(grad_sym_vel_norm);
+        } else
+            grad_sym_vel_norm = 0.0;
+	
+	//print on gauss point the gamma dot as TEMPERATURE
+/*KRATOS_WATCH(grad_sym_vel_norm)
+KRATOS_WATCH(grad_sym_vel)*/	
+	
+        KRATOS_CATCH("")
+    }
+
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    void NoNewtonianASGS2D::CalculateApparentViscosity(double & app_mu,
+	    array_1d<double, 3 >&  grad_sym_vel,
+            const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+            const double & mu) {
+        KRATOS_TRY
+        // 	        unsigned int dim = 2;
+        // 		unsigned int nodes_number = dim + 1;
+        app_mu = 0.0;
+	double yield;
+
+	double grad_sym_vel_norm = 0.0;
+        double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
+        double mcoef = 300;
+	
+	double aux_1;
+	CalculateGradSymVel(grad_sym_vel, grad_sym_vel_norm, B);
+	
+	
+// 	const double & pres_0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+// 	const double & pres_1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+// 	const double & pres_2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+//         // KRATOS_WATCH("yield_1")
+//         // KRATOS_WATCH(yield)
+// 	yield = (pres_0 + pres_1 + pres_2);
+// 	if(yield > 0.001){
+// 	  yield *= (0.333333333333333333333333  *friction_angle_tangent);
+// 	}
+// 	else
+	  yield = 1000000.0;
+
+        if (grad_sym_vel_norm > 0.00001) {
+            aux_1 = 1.0 - exp(-(mcoef * grad_sym_vel_norm));
+            app_mu = mu + yield / grad_sym_vel_norm * aux_1;
+            if (app_mu < mu) {
+                KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+            }
+        } else {
+            app_mu = mu + yield*mcoef ;
+        }
+        KRATOS_CATCH("")
+    }
+
+
+
     //************************************************************************************
     //************************************************************************************
 
@@ -1245,12 +1184,49 @@ KRATOS_WATCH(Klocal);
         if (rVariable == IS_WATER_ELEMENT) {
             for (unsigned int PointNumber = 0;
                     PointNumber < 1; PointNumber++) {
-	//	KRATOS_WATCH(this->GetValue(IS_WATER));
-	//	KRATOS_WATCH(this->Info());
+                //	KRATOS_WATCH(this->GetValue(IS_WATER));
+                //	KRATOS_WATCH(this->Info());
                 rValues[PointNumber] = this->GetValue(IS_WATER_ELEMENT);
             }
         }
+//PROVISIONALbegin---only for debugging
+	if (rVariable == TEMPERATURE) {
+	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+	  double grad_sym_vel_norm = 0.0;
+	  double Area;
+	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
+	  CalculateB(B, DN_DX);      
+
+	  CalculateGradSymVel(grad_sym_vel, grad_sym_vel_norm, B);
+	     
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+                rValues[PointNumber] = grad_sym_vel_norm;
+
+            }
+        }
+	if (rVariable == AUX_INDEX) {
+	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+	  double grad_sym_vel_norm = 0.0;
+	  double mu;
+	  double density;
+          double app_mu;
+	  double Area;
+	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+	  calculatedensity(GetGeometry(), density, mu);
+	  CalculateB(B, DN_DX);    
+	  CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
+	     
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+                rValues[PointNumber] = app_mu;
+
+            }
+        }
+//PROVISIONALend---only for debugging
     }
     //*************************************************************************************
     //*************************************************************************************
@@ -1258,22 +1234,21 @@ KRATOS_WATCH(Klocal);
     void NoNewtonianASGS2D::calculatedensity(Geometry< Node < 3 > > geom, double& density, double& viscosity) {
 
         double kk = 0.0;
-	density = 0.0;
-	viscosity = 0.0;
-        for(int ii=0;ii<3;++ii)
-                        {
-                                kk++;
-                                density +=geom[ii].FastGetSolutionStepValue(DENSITY);
-								viscosity +=geom[ii].FastGetSolutionStepValue(VISCOSITY);
-                        }
+        density = 0.0;
+        viscosity = 0.0;
+        for (int ii = 0; ii < 3; ++ii) {
+            kk++;
+            density += geom[ii].FastGetSolutionStepValue(DENSITY);
+            viscosity += geom[ii].FastGetSolutionStepValue(VISCOSITY);
+        }
 
-        density/=kk;
-		viscosity/=kk;
-
+        density /= kk;
+        viscosity /= kk;
 
 
-		//Here we calculate Dynamic viscosity from Kinemeatic viscosity
-		viscosity *= density;
+
+        //Here we calculate Dynamic viscosity from Kinemeatic viscosity
+        viscosity *= density;
 
     }
     //*************************************************************************************
@@ -1304,7 +1279,7 @@ KRATOS_WATCH(Klocal);
         double ele_length = 2.0 * sqrt(area / 3.00);
 
         double mu;
-        ///*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
         //const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
         //const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
         //mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
@@ -1312,15 +1287,36 @@ KRATOS_WATCH(Klocal);
         double density;
         calculatedensity(GetGeometry(), density, mu);
 
-        int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
+/*provisional*/
+	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 
-        if (dyn_st_switch) {
 
-            tauone = 1.0 / (1.0 / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-        } else {
+	CalculateB(B, DN_DX);
+//         for (int ii = 0; ii < nodes_number; ++ii) {
+//             yield += GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+//         }
 
-            tauone = 1.0 / (0.0 + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-        }
+  
+	//Bingham
+        CalculateApparentViscosity(mu, grad_sym_vel, B, mu);	
+	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
+	//do nothing --> we don't need the calculation of gred_sym_vel in this case!!!
+	
+	
+/*provisional*/	
+        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+        tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
+	
+//         int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
+// 
+//         if (dyn_st_switch) {
+// 
+//             tauone = 1.0 / (1.0 / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
+//         } else {
+// 
+//             tauone = 1.0 / (0.0 + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
+//         }
 
         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
 
@@ -1363,8 +1359,13 @@ KRATOS_WATCH(Klocal);
             values[index + 2] = 0.0;
         }
     }
+  
+
+    
     //************************************************************************************
     //************************************************************************************
+      
+    
 } // Namespace Kratos
 
 
