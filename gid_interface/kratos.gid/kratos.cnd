@@ -1,0 +1,58 @@
+NUMBER: 1 CONDITION: point_groups
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+CANREPEAT: yes
+QUESTION: groupid
+VALUE: -
+END CONDITION
+NUMBER: 2 CONDITION: line_groups
+CONDTYPE: over lines
+CONDMESHTYPE: over elements
+CANREPEAT: yes
+QUESTION: groupid
+VALUE: -
+END CONDITION
+NUMBER: 3 CONDITION: surface_groups
+CONDTYPE: over surfaces
+CONDMESHTYPE: over elements
+CANREPEAT: yes
+QUESTION: groupid
+VALUE: -
+END CONDITION
+NUMBER: 4 CONDITION: volume_groups
+CONDTYPE: over volumes
+CONDMESHTYPE: over elements
+CANREPEAT: yes
+QUESTION: groupid
+VALUE: -
+END CONDITION
+NUMBER: 5 CONDITION: layer_groups
+CONDTYPE: over layer
+CANREPEAT: yes
+QUESTION: groupid
+VALUE: -
+END CONDITION
+NUMBER: 6 CONDITION: point_LA
+CONDTYPE: over points
+CONDMESHTYPE: over nodes
+QUESTION: Local_axes#LA#(-Global-)
+VALUE: -Global-
+END CONDITION
+NUMBER: 7 CONDITION: line_LA
+CONDTYPE: over lines
+CONDMESHTYPE: over elements
+QUESTION: Local_axes#LA#(-Global-,-Automatic-,-Automatic_alt-)
+VALUE: -Global-
+END CONDITION
+NUMBER: 8 CONDITION: surface_LA
+CONDTYPE: over surfaces
+CONDMESHTYPE: over elements
+QUESTION: Local_Axes#LA#(-Global-,-Automatic-,-Automatic_alt-)
+VALUE: -Global-
+END CONDITION
+NUMBER: 9 CONDITION: volume_LA
+CONDTYPE: over volumes
+CONDMESHTYPE: over elements
+QUESTION: Local_axes#LA#(-Global-)
+VALUE: -Global-
+END CONDITION

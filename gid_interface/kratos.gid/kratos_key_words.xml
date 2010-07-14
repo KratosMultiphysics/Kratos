@@ -1,0 +1,203 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Kratos_KWords version="1.0">
+    <Applications>
+    <StructuralAnalysis>
+        <Item id="TotalLagrangian" kkword="TotalLagrangian" />
+        <Item id="TotalLagrangian3D" kkword="TotalLagrangian" />
+        <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement" />
+        <Item id="ShellIsotropic" kkword="IsoShellElement" />
+        <Item id="ShellAnisotropic" kkword="ShellAnisotropic" />
+        <Item id="LinearElement" kkword="LinearElement" />
+        <Item id="LinearElement3D" kkword="LinearElement" />
+        <Item id="EBST" kkword="EBST" />
+        <Item id="Thickness" kkword="THICKNESS" />
+        <Item id="Dx" kkword="DISPLACEMENT_X" />
+        <Item id="Dy" kkword="DISPLACEMENT_Y" />
+        <Item id="Dz" kkword="DISPLACEMENT_Z" />
+        <Item id="Rx" kkword="ROTATION_X" />
+        <Item id="Ry" kkword="ROTATION_Y" />
+        <Item id="Rz" kkword="ROTATION_Z" />
+        <Item id="Fx" kkword="FORCE_X" />
+        <Item id="Fy" kkword="FORCE_Y" />
+        <Item id="Fz" kkword="FORCE_Z" />
+	<Item id="PositivePressure" kkword="POSITIVE_FACE_PRESSURE" />
+	<Item id="NegativePressure" kkword="NEGATIVE_FACE_PRESSURE" />
+        <Item id="Displacements" kkword="DISPLACEMENT" />
+        <Item id="Forces" kkword="FORCE" />
+        <Item id="Reactions" kkword="REACTION" />
+        <Item id="GreenLagrangeStrainTensor" kkword="GREEN_LAGRANGE_STRAIN_TENSOR" />
+        <Item id="Rotations" kkword="ROTATION" /> 
+        <Item id="PK2StressTensor" kkword="PK2_STRESS_TENSOR" />
+        <Item id="SkylineLUFactorization" kkword="SkylineLUFactorization" />
+        <Item id="SuperLU" kkword="SuperLUSolver" />
+        <Item id="ParallelMKLPardiso" kkword="MKLPardisoSolver" />
+        <Item id="Displacement" kkword="Displacement_Criteria" />
+        <Item id="Residual" kkword="Residual_Criteria" />
+        <Item id="DisplacementAndResidual" kkword="And_Criteria" />
+        <Item id="DisplacementOrResidual" kkword="Or_Criteria" />
+        <Item id="BiConjugateGradientStabilized" kkword="BiCGStab" />
+        <Item id="ConjugateGradient" kkword="CG" />
+        <Item id="Diagonal" kkword="DIAG" />
+        <Item id="ILU0" kkword="ILU0" />
+	<Item id="GiDPostMode" kkword="GiDPostMode" />
+	<Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
+	<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+	<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+    </StructuralAnalysis>
+    <Fluid>
+        <Item id="ASGS2D" kkword="ASGS2D" />
+        <Item id="ASGS3D" kkword="ASGS3D" />
+        <Item id="Fluid2D" kkword="Fluid2D" />
+        <Item id="Fluid3D" kkword="Fluid3D" />
+        <Item id="Vx" kkword="VELOCITY_X" />
+        <Item id="Vy" kkword="VELOCITY_Y" />
+        <Item id="Vz" kkword="VELOCITY_Z" />
+        <Item id="Velocity" kkword="VELOCITY" />
+        <Item id="Pressure" kkword="PRESSURE" />
+	<Item id="Reactions" kkword="REACTION" />
+        <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
+        <Item id="SuperLU" kkword="Super LU" />
+        <Item id="ParallelMKLPardiso" kkword="Parallel MKL Pardiso" />
+	<Item id="GiDPostMode" kkword="GiDPostMode" />
+	<Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
+	<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+	<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+	<Item id="Monolithic" kkword="monolithic_solver_eulerian" />
+	<Item id="PressureSplitting" kkword="pressure_splitting" />
+	<Item id="ElementBased" kkword="FractionalStep" />
+	<Item id="EdgeBased" kkword="FractionalStep" />
+	<Item id="Continuous" kkword="1" />
+	<Item id="Discrete" kkword="2" />
+	<Item id="DiscreteWithDt" kkword="3" />
+	<Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
+        <Item id="ConjugateGradient" kkword="Conjugate gradient" />
+        <Item id="Diagonal" kkword="Diagonal" />
+        <Item id="ILU0" kkword="ILU0" />
+	<Item id="GMRES" kkword="GMRES" />
+	<Item id="None" kkword="None" />
+	<Item id="RelativeVelocityTolerance" kkword="velocity_relative_tolerance" />
+	<Item id="AbsoluteVelocityTolerance" kkword="velocity_absolute_tolerance" />
+	<Item id="RelativePressureTolerance" kkword="pressure_relative_tolerance" />
+	<Item id="AbsolutePressureTolerance" kkword="pressure_absolute_tolerance" />
+    </Fluid>
+    <ConvectionDiffusion>
+    </ConvectionDiffusion>
+    <FluidStructureInteraction>
+    </FluidStructureInteraction>
+    </Applications>
+	<Materials>
+		<Item id="Description" kkword="" />
+		<Item id="Density" kkword="DENSITY" />
+		<Item id="YoungModulus" kkword="YOUNG_MODULUS" />
+		<Item id="ShearModulus" kkword="" />
+		<Item id="PoissonRatio" kkword="POISSON_RATIO" />
+		<Item id="YoungModulusE11" kkword="" />
+		<Item id="YoungModulusE22" kkword="" />
+		<Item id="YoungModulusE33" kkword="" />
+		<Item id="ShearModulusG12" kkword="" />
+		<Item id="ShearModulusG13" kkword="" />
+		<Item id="ShearModulusG23" kkword="" />
+		<Item id="PoissonRatiov12" kkword="" />
+		<Item id="PoissonRatiov13" kkword="" />
+		<Item id="PoissonRatiov23" kkword="" />
+		<Item id="A11" kkword="" />
+		<Item id="A12" kkword="" />
+		<Item id="A13" kkword="" />
+		<Item id="A21" kkword="" />
+		<Item id="A22" kkword="" />
+		<Item id="A23" kkword="" />
+		<Item id="A31" kkword="" />
+		<Item id="A32" kkword="" />
+		<Item id="A33" kkword="" />
+		<Item id="B11" kkword="" />
+		<Item id="B12" kkword="" />
+		<Item id="B13" kkword="" />
+		<Item id="B21" kkword="" />
+		<Item id="B22" kkword="" />
+		<Item id="B23" kkword="" />
+		<Item id="B31" kkword="" />
+		<Item id="B32" kkword="" />
+		<Item id="B33" kkword="" />
+		<Item id="D11" kkword="" />
+		<Item id="D12" kkword="" />
+		<Item id="D13" kkword="" />
+		<Item id="D21" kkword="" />
+		<Item id="D22" kkword="" />
+		<Item id="D23" kkword="" />
+		<Item id="D31" kkword="" />
+		<Item id="D32" kkword="" />
+		<Item id="D33" kkword="" />
+		<Item id="YieldStress" kkword="YIELD_STRESS" />
+		<Item id="IsotropicHardeningModulus" kkword="ISOTROPIC_HARDENING_MODULUS" />
+		<Item id="KinematicHardeningModulus" kkword="KINEMATIC_HARDENING_MODULUS" />
+		<Item id="InternalFrictionAngle" kkword="MAX_FRICTION_INTERNAL_ANGLE" />
+		<Item id="DilatancyAngle" kkword="MAX_DILATANCY_ANGLE" /> 
+		<Item id="TensileStrength" kkword="FT" />
+		<Item id="CompressiveStrength" kkword="FC" />
+		<Item id="TensileFractureEnergy" kkword="FRACTURE_ENERGY" />
+		<Item id="CompressiveFractureEnergy" kkword="CRUSHING_ENERGY" />
+		<Item id="DTensileStrength" kkword="FT" />
+		<Item id="DCompressiveStrength" kkword="FC" />
+		<Item id="DTensileFractureEnergy" kkword="FRACTURE_ENERGY" />
+		<Item id="DCompressiveFractureEnergy" kkword="CRUSHING_ENERGY" />
+		<Item id="ExpansionCoeff" kkword="" />
+		<Item id="Conductivity" kkword="" />
+		<Item id="SpecificHeat" kkword="" />
+		<Item id="K11" kkword="" />
+		<Item id="K22" kkword="" />
+		<Item id="K33" kkword="" />
+		<Item id="alfa11" kkword="" />
+		<Item id="alfa22" kkword="" />
+		<Item id="alfa33" kkword="" />
+		<Item id="Viscosity" kkword="VISCOSITY" />
+		<Item id="MagneticPermeability" kkword="" />
+		<Item id="ElectricalPermitivity" kkword="" />
+    </Materials>
+    <ElementCLaws>
+        <Item id="ElementTypes" dv="Beam" ivalues="Beam,Truss,Shell,EBST,PlaneStress,PlaneStrain,Solid" values="Beam,Truss,Shell,EBST,PlaneStress,PlaneStrain,Solid"/>
+        <!-- Item id="MaterialModel" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"/-->
+        <Item id="Beam" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
+        <Item id="Truss" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
+        <Item id="Shell" ivalues="Elastic-Isotropic,Elastic-Anisotropic" values="Elastic-Isotropic,Elastic-Anisotropic"/>
+        <Item id="EBST" ivalues="Elastic-Isotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elasto-Plastic,Damage"/>
+        <Item id="Solid" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+        <Item id="PlaneStress" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+        <Item id="PlaneStrain" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+        <Item id="Tickness2D" elementType="PlaneStress"/>
+        <Item id="Tickness3D" elementType="Shell,EBST"/>
+    </ElementCLaws>
+    <ElementValidCLaws>
+        <Item id="TotalLagrangian" claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" active="1"/>
+        <Item id="TotalLagrangian3D" claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" active="1"/>
+        <Item id="CrisfieldTrussElement" claws="Elastic-Isotropic" active="1"/>
+        <Item id="ShellIsotropic" claws="Elastic-Isotropic" active="1"/>
+        <Item id="ShellAnisotropic" claws="Elastic-Anisotropic" active="1"/>
+        <Item id="LinearElement" claws="Elastic-Isotropic" active="1"/>
+        <Item id="LinearElement3D" claws="Elastic-Isotropic" active="1"/>
+        <Item id="EBST" claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" active="1"/>
+        <Item id="ASGS2D" claws="ASGS2D" active="0"/>
+        <Item id="ASGS3D" claws="ASGS3D" active="0"/>
+        <Item id="Fluid2D" claws="Fluid2D" active="0"/>
+        <Item id="Fluid3D" claws="Fluid3D" active="0"/>
+    </ElementValidCLaws>
+  <CLawProperties>
+    	<Item id="Isotropic2D" matm="Isotropic2D()" mprops="Density,YoungModulus,PoissonRatio" mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic" cprops="Thickness"/>
+	<Item id="Isotropic3D"  matm="Isotropic3D()" mprops="Density,YoungModulus,PoissonRatio" mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic" cprops="Thickness"/>
+	<Item id="PlaneStrain" matm="PlaneStrain()" mprops="Density,YoungModulus,PoissonRatio" mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic" cprops="Thickness"/>
+	<Item id="IsotropicDamage" matm="Isotropic_Damage(fluency,behavior,prop)" mprops="Density,YoungModulus,PoissonRatio,DTensileFractureEnergy,DCompressiveFractureEnergy,DTensileStrength,DCompressiveStrength" mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic,c.Structural//Damage,c.Structural//c.Damage,c.Structural//c.Damage,c.Structural//c.Damage" mbehavior="DSofteningLaw" mbxpath="c.Structural//c.Damage" mbivalues="Linear,Exponential" mbwritev="LinearSoftening(),ExponentialSoftening()" cprops="Thickness"/>
+	<Item id="IsotropicDamage3D" matm="Isotropic_Damage_3D(fluency,behavior,prop)" mprops="Density,YoungModulus,PoissonRatio,DTensileFractureEnergy,DCompressiveFractureEnergy,DTensileStrength,DCompressiveStrength" mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Damage,c.Structural//c.Damage,c.Structural//c.Damage,c.Structural//c.Damage" mbehavior="DSofteningLaw" mbxpath="c.Structural//c.Damage" mbivalues="Linear,Exponential" mbwritev="LinearSoftening(),ExponentialSoftening()" cprops="Thickness"/>
+	
+	<Item id="Plasticity2D" matm="Plasticity2D(fluency,behavior,prop)" mprops="Density,YoungModulus,PoissonRatio" mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic" mbehavior="SofteningLaw" mbxpath="c.Structural//c.ElastoPlastic" mbivalues="Linear,Exponential" mbwritev="LinearSoftening(),ExponentialSoftening()" myieldcriteria="YieldCriteria" mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness"/>
+	<Item id="Plasticity3D" matm="Plasticity2D(fluency,behavior,prop)" mprops="Density,YoungModulus,PoissonRatio" mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic" mbehavior="SofteningLaw" mbxpath="c.Structural//c.ElastoPlastic" mbivalues="Linear,Exponential" mbwritev="LinearSoftening(),ExponentialSoftening()" myieldcriteria="YieldCriteria" mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness"/>
+	<YieldFunctions>	
+	  <Item id="AvailableYieldFunction" yfivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" yfwritev="VonMissesYieldFunction,EnergyYieldFunction,ModifiedMorhCoulombYieldFunction,RankineYieldFunction,DruckerPragerYieldFunction,TrescaYieldFunction"/>
+	  <Item id="VonMisses" privalues="YieldStress,IsotropicHardeningModulus,KinematicHardeningModulus" prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic"/>
+	  <Item id="Energy" privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength" prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic"/>
+	  <Item id="Mohr-Coulomb" privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength,DilatancyAngle,InternalFrictionAngle" prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic"/>
+	  <Item id="Rankine" privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength" prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic"/>
+	  <Item id="DruckerPrager" privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength,DilatancyAngle,InternalFrictionAngle" prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic"/>
+	  <Item id="Tresca" privalues="YieldStress,IsotropicHardeningModulus,KinematicHardeningModulus" prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic"/>
+	</YieldFunctions>
+	<Item id="MState" msivalues="Solid,PlaneStrain,PlaneStress" mswritev="Tri_D,Plane_Strain,Plane_Stress"/>
+  </CLawProperties>
+</Kratos_KWords>
