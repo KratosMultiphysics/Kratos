@@ -97,7 +97,7 @@ for node in fluid_model_part.Nodes:
 
 #creating the solvers
 #fluid solver
-if(SolverType == "fractional_ftep"):
+if(SolverType == "fractional_step"):
     fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
     fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
     fluid_solver.predictor_corrector = fluid_only_var.predictor_corrector
