@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Kratos_Functions version="1.0">
+    <KratosVariables pid="Kratos variables:">Velocity_X,Velocity_Y,Velocity_Z,</KratosVariables>
+    <KPythonFunctions pid="Python functions">
+        <Item id="Random" args="int, i,12,array, vector, {1,2,3,4}"/>
+        <Item id="Max" args="int, a, int, b"/>
+    </KPythonFunctions>
+    <Templates>
+        <Function id="Function" pid="" icon="" help="">
+            <Item id="AppliedTo" pid="AppliedTo" dv="onNodes" values="aNodos,aElementos,aCaras,aCondiciones" ivalues="onNodes,onElements,onFaces,onConditions"/>
+            <Item id="FunctionType" pid="Function type" dv="Initial" values="Inicial,Actualizar,Postproceso" ivalues="Initial,Update,Postprocess"/>
+            <Item id="Definition" pid="Definition" sourceCode=""/>
+        </Function>
+    </Templates>
+    <Functions>
+        <Function id="funcion_de_prueba_" pid="funcion de prueba " icon="" help="">
+            <Item id="FunctionType" pid="Function type" dv="Initial" values="Inicial,Actualizar,Postproceso" ivalues="Initial,Update,Postprocess"/>
+            <Item id="Definition" pid="Definition" sourceCode="funciton prueba { int a; void b } &#xA;{ &#xA;&#xA; for each i $a {&#xA;  proc ChangeMenuForegroundColor { menuname pos color } { }&#xA;  read file;&#xA; }&#xA;}">funciton prueba { int a; void b } { 
+
+	for each i $a {
+		proc ChangeMenuForegroundColor { menuname pos color } { }
+		read file;
+	}
+}</Item>
+            <Item id="AppliedTo" pid="AppliedTo" dv="onNodes" values="onNodes,onElements,onFaces,onConditions" ivalues="onNodes,onElements,onFaces,onConditions"/>
+        </Function>
+        <Function id="asdfas_____asd_fas" pid="asdfas     asd fas" icon="" help="">
+            <Item id="AppliedTo" pid="AppliedTo" dv="onElements" values="aNodos,aElementos,aCaras,aCondiciones" ivalues="onNodes,onElements,onFaces,onConditions"/>
+            <Item id="FunctionType" pid="Function type" dv="Update" values="Inicial,Actualizar,Postproceso" ivalues="Initial,Update,Postprocess"/>
+            <Item id="Definition" pid="Definition" sourceCode=""/>
+        </Function>
+        <Function id="funcion_de_prueba" pid="funcion de prueba" icon="" help="">
+            <Item id="AppliedTo" pid="AppliedTo" dv="onElements" values="aNodos,aElementos,aCaras,aCondiciones" ivalues="onNodes,onElements,onFaces,onConditions"/>
+            <Item id="FunctionType" pid="Function type" dv="Initial" values="Inicial,Actualizar,Postproceso" ivalues="Initial,Update,Postprocess"/>
+            <Item id="Definition" pid="Definition" sourceCode="funciton prueba { int a; void b } &#xA;{ &#xA;&#xA; for each i $a {&#xA;  proc ChangeMenuForegroundColor { menuname pos color } { }&#xA;  read file;&#xA; }&#xA;}Velocity_Y"/>
+        </Function>
+    </Functions>
+</Kratos_Functions>
+
