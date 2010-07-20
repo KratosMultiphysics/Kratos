@@ -425,7 +425,7 @@ void Erase_Old_Element_And_Create_New_Tetra_Element(
              int index_3 = geom[3].Id()-1;  
 
 	    //put the global ids in aux
-             array_1d<int,10> aux;
+             array_1d<int,11> aux;
 	     aux[0] = geom[0].Id();
 	     aux[1] = geom[1].Id();
 	     aux[2] = geom[2].Id();
@@ -525,7 +525,13 @@ void Erase_Old_Element_And_Create_New_Tetra_Element(
 	  create_element =  Split(edge_ids, t, &nel, &splitted_edges, &internal_node);    
 
 	  if(internal_node == 1)
-		KRATOS_ERROR(std::logic_error,"case not handled","");   
+	  {
+	    std::cout << "creating internal node" << std::endl;
+	    //generate new internal node
+	    aux[10] = CreateCenterNode(geom,this_model_part);
+	  }
+	    
+/*		KRATOS_ERROR(std::logic_error,"case not handled","");   */
 /*KRATOS_WATCH(splitted_edges);
 KRATOS_WATCH(internal_node);*/
 //           KRATOS_WATCH(aux)        
@@ -593,6 +599,83 @@ KRATOS_WATCH(internal_node);*/
              
 }
 
+
+ unsigned int CreateCenterNode(Geometry<Node<3> >& geom, ModelPart& model_part)
+ {
+    //determine a new unique id
+    unsigned int new_id = (model_part.NodesEnd()-1)->Id()+1;
+    
+    //determine the coordinates of the new node
+    double X = (geom[0].X()+geom[1].X()+geom[2].X()+geom[3].X())/4.0;
+    double Y = (geom[0].Y()+geom[1].Y()+geom[2].Y()+geom[3].Y())/4.0;
+    double Z = (geom[0].Z()+geom[1].Z()+geom[2].Z()+geom[3].Z())/4.0;
+    
+    double X0 = (geom[0].X0()+geom[1].X0()+geom[2].X0()+geom[3].X0())/4.0;
+    double Y0 = (geom[0].Y0()+geom[1].Y0()+geom[2].Y0()+geom[3].Y0())/4.0;
+    double Z0 = (geom[0].Z0()+geom[1].Z0()+geom[2].Z0()+geom[3].Z0())/4.0;
+    
+    //generate the new node
+     Node<3>::Pointer  pnode = model_part.CreateNewNode(new_id,X,Y,Z );
+     
+     unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
+     pnode->SetBufferSize(buffer_size);
+     
+     pnode->X0() = X0;
+     pnode->Y0() = Y0;
+     pnode->Z0() = Z0;
+     
+     //add the dofs
+     Node<3>::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs(); 
+     unsigned int step_data_size = model_part.GetNodalSolutionStepDataSize();
+
+     for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)  
+      {
+       Node<3>::DofType& rDof = *iii;
+       Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof ); 
+       
+       //the variables are left as free for the internal node
+       (p_new_dof)->FreeDof();
+       
+/*       if(it_node1->IsFixed(iii->GetVariable()) == true && it_node2->IsFixed(iii->GetVariable()) == true)
+         (p_new_dof)->FixDof();
+       else
+          { (p_new_dof)->FreeDof();}       */
+       
+      }
+
+     ///* intepolating the data
+     
+     for(unsigned int step = 0; step<buffer_size; step++)
+      {
+	double* new_step_data    = pnode->SolutionStepData().Data(step);
+        double* step_data1       = geom[0].SolutionStepData().Data(step);
+        double* step_data2       = geom[1].SolutionStepData().Data(step); 
+        double* step_data3       = geom[2].SolutionStepData().Data(step);
+        double* step_data4       = geom[3].SolutionStepData().Data(step); 
+        ///*copying this data in the position of the vector we are interested in
+        for(unsigned int j= 0; j<step_data_size; j++)
+        {  
+          new_step_data[j] = 0.25*(step_data1[j] + step_data2[j] + step_data3[j] + step_data4[j]);
+        }						
+     }
+    
+      /// WARNING =  only for reactions; (commented as the new node is free on all dofs)
+/*      const double zero = 0.00;
+      for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)  
+       {          
+          if(pnode->IsFixed(iii->GetVariable())==false) 
+                 { 
+                    iii->GetSolutionStepReactionValue() = zero;
+                   }       
+       } */    
+
+/*KRATOS_WATCH(*(model_part.NodesEnd()-1));
+     model_part.Nodes().push_back(pnode);*/
+     
+     KRATOS_WATCH(*(model_part.NodesEnd()-1));
+     
+     return new_id;    
+ }
 
 
 
