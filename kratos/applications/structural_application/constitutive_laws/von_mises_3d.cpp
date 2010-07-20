@@ -88,7 +88,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	VonMises3D::VonMises3D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -115,34 +115,36 @@ namespace Kratos
 		return false;
 	}
 	
-	double VonMises3D::GetValue( const Variable<double>& rThisVariable )
+	double& VonMises3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+	    if( rThisVariable == PLASTICITY_INDICATOR )
+            return( mPlasticityIndicator );
+        return rValue;
 	}
 	
-	Vector VonMises3D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& VonMises3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
 		if( rThisVariable == INSITU_STRESS )
 			return mInSituStress;
-                if( rThisVariable == INTERNAL_VARIABLES )
-                {
-                    Vector dummy(13);
-                    for( int i=0; i<6; i++ )
-                        dummy[i] = mPlasticStrains[i];
-                    for( int i=0; i<6; i++ )
-                        dummy[i+6] = mRho[i];
-                    dummy[12] = mAlpha;
-                    return( dummy );
-                }
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+        if( rThisVariable == INTERNAL_VARIABLES )
+        {
+            rValue.resize( 13, false );
+            for( int i=0; i<6; i++ )
+                rValue[i] = mPlasticStrains[i];
+            for( int i=0; i<6; i++ )
+                rValue[i+6] = mRho[i];
+            rValue[12] = mAlpha;
+            return( rValue );
+        }
+	    return rValue;
 	}
 	
-	Matrix VonMises3D::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& VonMises3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+	    return rValue;
 	}
 
-	void VonMises3D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void VonMises3D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 								   const ProcessInfo& rCurrentProcessInfo )
 	{
 	}
@@ -174,6 +176,12 @@ namespace Kratos
                                          const GeometryType& geom,
                                          const Vector& ShapeFunctionsValues )
 	{
+        ResetMaterial( props, geom, ShapeFunctionsValues );
+    }
+    
+    void VonMises3D::ResetMaterial( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues )
+    {
+        mPlasticityIndicator = 0.0;
         mCurrentStress = ZeroVector(6);
         mPlasticStrains = ZeroVector(6);
         mCurrentPlasticStrains = ZeroVector(6);
@@ -270,6 +278,7 @@ namespace Kratos
         //check for plasticity
         if( f > 0.0 )
         {
+            mPlasticityIndicator = 1.0;
             //calculate projection vector
             Vector N = eta/EtaNorm;
             

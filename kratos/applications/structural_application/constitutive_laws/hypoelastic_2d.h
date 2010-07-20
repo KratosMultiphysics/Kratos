@@ -72,13 +72,13 @@ namespace Kratos
 	 * As there are no further parameters the functionality is limited 
 	 * to linear elasticity.
 	 */
-	class Hypoelastic2D : public ConstitutiveLaw<Node<3> >
+	class Hypoelastic2D : public ConstitutiveLaw
 	{
 		public:
 			/**
 			 * Type Definitions
 			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;
+			typedef ConstitutiveLaw BaseType;
 			/**
 			 * Counted pointer of Hypoelastic2D
 			 */
@@ -92,9 +92,9 @@ namespace Kratos
 			 */
 			Hypoelastic2D();
 			
-			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Hypoelastic2D());
+				boost::shared_ptr<ConstitutiveLaw> p_clone(new Hypoelastic2D());
 				return p_clone;
 			}
 
@@ -113,9 +113,9 @@ namespace Kratos
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
 			
-			double GetValue( const Variable<double>& rThisVariable );
-			Vector GetValue( const Variable<Vector>& rThisVariable );
-			Matrix GetValue( const Variable<Matrix>& rThisVariable );
+			double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+            Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 			
 			void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
 			void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
@@ -184,6 +184,7 @@ namespace Kratos
 			void Calculate( const Variable<Matrix >& rVariable, 
                                     Matrix& Output, 
                                     const ProcessInfo& rCurrentProcessInfo){};
+            
 
 			/**
 			 * Input and output

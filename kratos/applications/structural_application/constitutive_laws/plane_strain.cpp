@@ -85,7 +85,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	PlaneStrain::PlaneStrain() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -111,19 +111,19 @@ namespace Kratos
 		return false;
 	}
 	
-	double PlaneStrain::GetValue( const Variable<double>& rThisVariable )
+	double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "double Variable case not considered", "");
+	    return( rValue );
 	}
 	
-	Vector PlaneStrain::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return( rValue );
 	}
 	
-	Matrix PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Matrix Variable case not considered", "");
+	    return( rValue );
 	}
 
     void PlaneStrain::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
@@ -145,6 +145,22 @@ namespace Kratos
                    const ProcessInfo& rCurrentProcessInfo)
     {
     }
+    
+    void  PlaneStrain::CalculateMaterialResponse( const Vector& StrainVector,
+            const Matrix& DeformationGradient,
+            Vector& StressVector,
+            Matrix& AlgorithmicTangent,
+            const ProcessInfo& CurrentProcessInfo,
+            const Properties& props, 
+            const GeometryType& geom,
+            const Vector& ShapeFunctionsValues,
+            bool CalculateStresses,
+            int CalculateTangent,
+            bool SaveInternalVariables )
+     {
+         CalculateStress(StrainVector, StressVector);
+         CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+     }
 	
 	/**
 	 *	TO BE TESTED!!!

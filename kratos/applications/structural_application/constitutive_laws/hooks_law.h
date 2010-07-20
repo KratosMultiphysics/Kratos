@@ -70,14 +70,14 @@ namespace Kratos
      * As there are no further parameters the functionality is limited 
      * to linear elasticity.
      */
-    class HooksLaw : public ConstitutiveLaw<Node<3> >
+    class HooksLaw : public ConstitutiveLaw
     {
         public:
             /**
              * Type Definitions
              */
-            typedef ConstitutiveLaw<Node<3> > BaseType;
-            typedef BaseType::MaterialTensorType MaterialTensorType;
+            typedef ConstitutiveLaw BaseType;
+//             typedef BaseType::MaterialTensorType MaterialTensorType;
             
             /**
              * Counted pointer of HooksLaw
@@ -106,14 +106,25 @@ namespace Kratos
              */
             virtual ~HooksLaw();
             
-            boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const;
+            bool Has( const Variable<double>& rThisVariable );
+            bool Has( const Variable<Vector>& rThisVariable );
+            bool Has( const Variable<Matrix>& rThisVariable );
+            
+            double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+            
+            void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+                              const ProcessInfo& rCurrentProcessInfo );
+            void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+                              const ProcessInfo& rCurrentProcessInfo );
+            
+            boost::shared_ptr<ConstitutiveLaw> Clone() const;
             
             void InitializeMaterial( const Properties& props,
                                         const GeometryType& geom,
                                         const Vector& ShapeFunctionsValues);
             
-
-                        void InitializeSolutionStep( const Properties& props,
+            void InitializeSolutionStep( const Properties& props,
                                 const GeometryType& geom, //this is just to give the array of nodes
                                 const Vector& ShapeFunctionsValues ,
                                 const ProcessInfo& CurrentProcessInfo);
@@ -121,18 +132,20 @@ namespace Kratos
             void FinalizeSolutionStep( const Properties& props,
                                         const GeometryType& geom, const Vector& ShapeFunctionsValues ,const ProcessInfo& CurrentProcessInfo);
             
-                        void SetValue( const Variable<Matrix >& rVariable, 
-                                const Matrix& Value, const ProcessInfo& rCurrentProcessInfo);
-
-                        void SetValue( const Variable<Vector >& rVariable, 
-                                const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
-
-                        Matrix GetValue(const Variable<Matrix>& rVariable);
-
-                Vector GetValue(const Variable<Vector>& rVariable);
+            void CalculateMaterialResponse( const Vector& StrainVector,
+                                            const Matrix& DeformationGradient,
+                                            Vector& StressVector,
+                                            Matrix& AlgorithmicTangent,
+                                            const ProcessInfo& CurrentProcessInfo,
+                                            const Properties& props, 
+                                            const GeometryType& geom,
+                                            const Vector& ShapeFunctionsValues,
+                                            bool CalculateStresses = true,
+                                            int CalculateTangent = true,
+                                            bool SaveInternalVariables = true
+                                          );
             
-                        double GetValue(const Variable<double>& rVariable);
-//             template<class TVariableType> bool Has( const TVariableType& rThisVariable);
+
             /**
              * Operators 
              */
@@ -235,8 +248,7 @@ namespace Kratos
              * @param  UpdatedLeftCauchyGreenTensor elastic Left Cauchy Green Tensor
              */
 
-            void InitializeMaterialDummy
-                    (MaterialTensorType& C);
+
             //HooksLaw(const IsotropicPlaneStressWrinklingNew& rOther);
     }; // Class HooksLaw 
     

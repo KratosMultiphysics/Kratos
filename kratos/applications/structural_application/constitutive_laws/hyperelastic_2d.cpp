@@ -89,7 +89,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	Hyperelastic2D::Hyperelastic2D() 
-	: ConstitutiveLaw< Node<3> >() 
+	: ConstitutiveLaw() 
 	{
 	}
 	/**
@@ -116,24 +116,24 @@ namespace Kratos
 		return false;
 	}
 	
-	double Hyperelastic2D::GetValue( const Variable<double>& rThisVariable )
+	double& Hyperelastic2D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+	    return( rValue );
 	}
 	
-	Vector Hyperelastic2D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& Hyperelastic2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
 		if( rThisVariable == INSITU_STRESS )
 			return mInSituStress;
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return( rValue );
 	}
 	
-	Matrix Hyperelastic2D::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& Hyperelastic2D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+	    return( rValue );
 	}
 
-	void Hyperelastic2D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void Hyperelastic2D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 								   const ProcessInfo& rCurrentProcessInfo )
 	{
 	}

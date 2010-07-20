@@ -88,7 +88,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	Isotropic3D::Isotropic3D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -115,22 +115,15 @@ namespace Kratos
 		return false;
 	}
 	
-	double Isotropic3D::GetValue( const Variable<double>& rThisVariable )
-	{
-	    return 0;
-	    //KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
-	}
-	
-	Vector Isotropic3D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
 		if( rThisVariable == INSITU_STRESS )
 			return mInSituStress;
-                if( rThisVariable == INTERNAL_VARIABLES )
-                {
-                    Vector dummy(1);
-                    dummy[0] = 0.0;
-                    return( dummy );
-                }
+        if( rThisVariable == INTERNAL_VARIABLES )
+        {
+            rValue = ZeroVector(1);            
+            return( rValue );
+        }
 	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
 	}
 	
@@ -139,7 +132,7 @@ namespace Kratos
 	    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
 	}
 
-	void Isotropic3D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void Isotropic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 								   const ProcessInfo& rCurrentProcessInfo )
 	{
 	}
@@ -193,7 +186,9 @@ namespace Kratos
 	mDE = props[DENSITY];
 	}
     
-    void Isotropic3D::ResetMaterial( const Properties& props )
+    void Isotropic3D::ResetMaterial( const Properties& props,
+                                     const GeometryType& geom,
+                                     const Vector& ShapeFunctionsValues )
     {
         CalculateElasticMatrix(mCtangent, mMaterialParameters[0], mMaterialParameters[1]);
     }
@@ -216,16 +211,24 @@ namespace Kratos
 			//SetValue( INSITU_STRESS, mInSituStress, CurrentProcessInfo );
 		}
 	}
-    
-    void Isotropic3D::UpdateMaterial( const Vector& StrainVector,
-                                      const Properties& props,
-                                      const GeometryType& geom,
-                                      const Vector& ShapeFunctionsValues,
-                                      const ProcessInfo& CurrentProcessInfo )
-    {
-        CalculateElasticMatrix(mCtangent, props[YOUNG_MODULUS], props[POISSON_RATIO]);    
-    }
 		
+    
+    void  Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
+                                               const Matrix& DeformationGradient,
+                                               Vector& StressVector,
+                                               Matrix& AlgorithmicTangent,
+                                               const ProcessInfo& CurrentProcessInfo,
+                                               const Properties& props, 
+                                               const GeometryType& geom,
+                                               const Vector& ShapeFunctionsValues,
+                                               bool CalculateStresses,
+                                               int CalculateTangent,
+                                               bool SaveInternalVariables )
+    {
+        CalculateStress(StrainVector, StressVector);
+        CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+    }
+    
 	/**
 	 *	TO BE TESTED!!!
 	 */

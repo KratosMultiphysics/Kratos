@@ -76,7 +76,7 @@ namespace Kratos
     //*********************************************************************
     //*********************************************************************  
     HooksLaw::HooksLaw() 
-    : ConstitutiveLaw<Node<3> >()
+    : ConstitutiveLaw()
     {
     }
     //*********************************************************************
@@ -88,9 +88,9 @@ namespace Kratos
     {
     }
 
-    boost::shared_ptr<ConstitutiveLaw<Node<3> > > HooksLaw::Clone() const
+    boost::shared_ptr<ConstitutiveLaw> HooksLaw::Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new HooksLaw());
+        boost::shared_ptr<ConstitutiveLaw> p_clone(new HooksLaw());
         return p_clone;
     }
     
@@ -127,6 +127,23 @@ namespace Kratos
         mC(5,0)=0.0; mC(5,1)=0.0; mC(5,2)=0.0; mC(5,3)=0.0; mC(5,4)=0.0; mC(5,5)=mu;
                                     
     }
+    
+    bool HooksLaw::Has( const Variable<double>& rThisVariable )
+    {
+        return false;
+    }
+    
+    bool HooksLaw::Has( const Variable<Vector>& rThisVariable )
+    {
+        if( rThisVariable == INTERNAL_VARIABLES )
+            return true;
+        return false;
+    }
+    
+    bool HooksLaw::Has( const Variable<Matrix>& rThisVariable )
+    {
+        return false;
+    }
 
     //**********************************************************************
     //**********************************************************************
@@ -151,35 +168,29 @@ namespace Kratos
         // not used in the exercises
     //**********************************************************************
     //**********************************************************************
-    Matrix HooksLaw::GetValue(const Variable<Matrix>& rVariable)
-    { 
-        return ZeroMatrix(0,0);
-    }
-
     //**********************************************************************
     //**********************************************************************
         // not used in the exercises
     //**********************************************************************
     //**********************************************************************
-    Vector HooksLaw::GetValue(const Variable<Vector>& rVariable)
+    Vector& HooksLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
     { 
                 if( rVariable == INTERNAL_VARIABLES )
                 {
-                    Vector dummy = ZeroVector(6);                
-                    noalias(dummy)= mCurrentStress;
+                    rValue = mCurrentStress;
                     
-                    return( dummy );                               
+                    return( rValue );                               
                 }       
-               return ZeroVector(0);
+               return rValue;
     }
     //**********************************************************************
     //**********************************************************************
         // not used in the exercises
     //**********************************************************************
     //**********************************************************************
-    double HooksLaw::GetValue(const Variable<double>& rVariable)
+    double& HooksLaw::GetValue(const Variable<double>& rVariable, double& rValue)
     { 
-        return 0.0;
+        return rValue;
     }
     //**********************************************************************
     //**********************************************************************
@@ -238,6 +249,22 @@ namespace Kratos
     {
         //noalias(rResult) = mCtangent;
         noalias(rResult) = mC;
+    }
+    
+    void  HooksLaw::CalculateMaterialResponse( const Vector& StrainVector,
+                                               const Matrix& DeformationGradient,
+                                               Vector& StressVector,
+                                               Matrix& AlgorithmicTangent,
+                                               const ProcessInfo& CurrentProcessInfo,
+                                               const Properties& props, 
+                                               const GeometryType& geom,
+                                               const Vector& ShapeFunctionsValues,
+                                               bool CalculateStresses,
+                                               int CalculateTangent,
+                                               bool SaveInternalVariables )
+    {
+        CalculateStress(StrainVector, StressVector);
+        CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
     }
     //**********************************************************************
     //**********************************************************************

@@ -94,7 +94,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-	class IsotropicPlaneStressWrinkling : public ConstitutiveLaw<Node<3> >
+	class IsotropicPlaneStressWrinkling : public ConstitutiveLaw
     {
     public:
       ///@name Type Definitions
@@ -119,9 +119,9 @@ namespace Kratos
       ///@}
       ///@name Operators 
       ///@{
-	boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+	boost::shared_ptr<ConstitutiveLaw> Clone() const
 	{
-		boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new IsotropicPlaneStressWrinkling());
+		boost::shared_ptr<ConstitutiveLaw> p_clone(new IsotropicPlaneStressWrinkling());
 		return p_clone;
 	}
       
@@ -152,6 +152,17 @@ namespace Kratos
 			const Vector& PK2_StressVector,
 			const Vector& GreenLagrangeStrainVector);
 	  
+      void CalculateMaterialResponse( const Vector& StrainVector,
+                                      const Matrix& DeformationGradient,
+                                      Vector& StressVector,
+                                      Matrix& AlgorithmicTangent,
+                                      const ProcessInfo& CurrentProcessInfo,
+                                      const Properties& props, 
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      bool CalculateStresses = true,
+                                      int CalculateTangent = true,
+                                      bool SaveInternalVariables = true );
 
 	  double CalculateThicknessRatio(const Vector& GreenLagrangeStrainVector);
 

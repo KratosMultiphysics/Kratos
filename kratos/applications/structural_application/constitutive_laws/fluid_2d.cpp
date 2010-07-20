@@ -85,7 +85,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	Fluid2D::Fluid2D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -111,19 +111,19 @@ namespace Kratos
 		return false;
 	}
 	
-	double Fluid2D::GetValue( const Variable<double>& rThisVariable )
+	double& Fluid2D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return( rValue );
 	}
 	
-	Vector Fluid2D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& Fluid2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return( rValue );
 	}
 	
-	Matrix Fluid2D::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& Fluid2D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return( rValue );
 	}
 
 	void Fluid2D::SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo )

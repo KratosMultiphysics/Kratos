@@ -115,7 +115,7 @@ namespace Kratos
 			Vector GetValue( const Variable<Vector>& rThisVariable );
 			Matrix GetValue( const Variable<Matrix>& rThisVariable );
 			
-			void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+			void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 							  const ProcessInfo& rCurrentProcessInfo );
 			void SetValue( const Variable<array_1d<double, 3> >& rThisVariable, 
 							  const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );

@@ -71,13 +71,13 @@ namespace Kratos
 { 
  
 	IsotropicPlaneStressWrinkling::IsotropicPlaneStressWrinkling() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{ 
 		mEw.resize(3); 
 	} 
  
 	IsotropicPlaneStressWrinkling::IsotropicPlaneStressWrinkling(const double E, const double NU) 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{  
 		mEw.resize(3); 
 		mE = E; 
@@ -249,6 +249,22 @@ namespace Kratos
  
 		return state; 
 	} 
+    
+    void IsotropicPlaneStressWrinkling::CalculateMaterialResponse( const Vector& StrainVector,
+                                      const Matrix& DeformationGradient,
+                                      Vector& StressVector,
+                                      Matrix& AlgorithmicTangent,
+                                      const ProcessInfo& CurrentProcessInfo,
+                                      const Properties& props, 
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      bool CalculateStresses,
+                                      int CalculateTangent,
+                                      bool SaveInternalVariables )
+    {
+        CalculateStress(StrainVector, StressVector);
+        CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+    }
  
 	//********************************************************************** 
 	void IsotropicPlaneStressWrinkling::CalculateTangentMatrix(const Vector& StrainVector) 

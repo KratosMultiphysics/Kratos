@@ -166,7 +166,7 @@ namespace Kratos
     }
 
         void GroutingMortar::SetValue( const Variable<double>& rThisVariable, 
-                            const double rValue,
+                            const double& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
         {
         }

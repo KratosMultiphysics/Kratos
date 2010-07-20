@@ -89,7 +89,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	Isotropic2D::Isotropic2D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -115,22 +115,6 @@ namespace Kratos
 		return false;
 	}
 	
-	double Isotropic2D::GetValue( const Variable<double>& rThisVariable )
-	{
-	     return 0;		
-	    //KRATOS_ERROR(std::logic_error, "double Variable case not considered", "");
-	}
-	
-	Vector Isotropic2D::GetValue( const Variable<Vector>& rThisVariable )
-	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
-	}
-	
-	Matrix Isotropic2D::GetValue( const Variable<Matrix>& rThisVariable )
-	{
-	    KRATOS_ERROR(std::logic_error, "Matrix Variable case not considered", "");
-	}
-
     void Isotropic2D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
                                 const ProcessInfo& rCurrentProcessInfo )
 	{
@@ -267,20 +251,21 @@ void Isotropic2D::Calculate(const Variable<double>& rVariable,
    }
 
 
- void  Isotropic2D::CalculateMaterialResponse(
-                            const Vector& StrainVector,
-                            Vector& StressVector,
-                            Matrix& algorithmicTangent,
-                            bool calculate_stress_flag,
-                            bool calculate_tangent_flag,
-                            bool  save_internal_variables
-                            )
-
-
-{
-CalculateStress(StrainVector, StressVector);
-CalculateConstitutiveMatrix(StrainVector, algorithmicTangent);
-}
+ void  Isotropic2D::CalculateMaterialResponse( const Vector& StrainVector,
+                                               const Matrix& DeformationGradient,
+                                               Vector& StressVector,
+                                               Matrix& AlgorithmicTangent,
+                                               const ProcessInfo& CurrentProcessInfo,
+                                               const Properties& props, 
+                                               const GeometryType& geom,
+                                               const Vector& ShapeFunctionsValues,
+                                               bool CalculateStresses,
+                                               int CalculateTangent,
+                                               bool SaveInternalVariables )
+ {
+     CalculateStress(StrainVector, StressVector);
+     CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+ }
 
 /// Turn back information as a string.
 std::string Isotropic2D::Info() const

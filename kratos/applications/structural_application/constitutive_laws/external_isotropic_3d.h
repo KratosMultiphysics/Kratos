@@ -72,13 +72,13 @@ namespace Kratos
      * As there are no further parameters the functionality is limited 
      * to linear elasticity.
      */
-    class ExternalIsotropic3D : public ConstitutiveLaw<Node<3> >
+    class ExternalIsotropic3D : public ConstitutiveLaw
     {
         public:
             /**
              * Type Definitions
              */
-            typedef ConstitutiveLaw<Node<3> > BaseType;
+            typedef ConstitutiveLaw BaseType;
             
             /**
              * Counted pointer of ExternalIsotropic3D
@@ -92,9 +92,9 @@ namespace Kratos
              */
             ExternalIsotropic3D();
 			
-            virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+            virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
             {
-                boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new ExternalIsotropic3D());
+                boost::shared_ptr<ConstitutiveLaw> p_clone(new ExternalIsotropic3D());
                 return p_clone;
             }
             
@@ -114,11 +114,11 @@ namespace Kratos
             bool Has( const Variable<Vector>& rThisVariable );
             bool Has( const Variable<Matrix>& rThisVariable );
 			
-            double GetValue( const Variable<double>& rThisVariable );
-            Vector GetValue( const Variable<Vector>& rThisVariable );
-            Matrix GetValue( const Variable<Matrix>& rThisVariable );
+            double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+            Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 			
-            void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+            void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
                            const ProcessInfo& rCurrentProcessInfo );
             void SetValue( const Variable<array_1d<double, 3> >& rThisVariable, 
                            const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );

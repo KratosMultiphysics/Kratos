@@ -89,7 +89,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	MohrCoulombPlaneStrain::MohrCoulombPlaneStrain() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -115,20 +115,19 @@ namespace Kratos
 		return false;
 	}
 	
-	double MohrCoulombPlaneStrain::GetValue( const Variable<double>& rThisVariable )
+	double& MohrCoulombPlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
-	     return 0;		
-	    //KRATOS_ERROR(std::logic_error, "double Variable case not considered", "");
+	     return( rValue );
 	}
 	
-	Vector MohrCoulombPlaneStrain::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& MohrCoulombPlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return( rValue );
 	}
 	
-	Matrix MohrCoulombPlaneStrain::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& MohrCoulombPlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Matrix Variable case not considered", "");
+	    return( rValue );
 	}
 
     void MohrCoulombPlaneStrain::SetValue( const Variable<double>& rThisVariable, const double& rValue, 

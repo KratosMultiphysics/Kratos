@@ -72,13 +72,13 @@ namespace Kratos
 	 * As there are no further parameters the functionality is limited 
 	 * to linear elasticity.
 	 */
-	class DruckerPrager : public ConstitutiveLaw<Node<3> >
+	class DruckerPrager : public ConstitutiveLaw
 	{
 		public:
 			/**
 		 * Type Definitions
 			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;
+			typedef ConstitutiveLaw BaseType;
 			/**
 			 * Counted pointer of DruckerPrager
 			 */
@@ -131,10 +131,12 @@ namespace Kratos
 			bool Has( const Variable<double>& rThisVariable );
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
-			double GetValue( const Variable<double>& rThisVariable );
-			Vector GetValue( const Variable<Vector>& rThisVariable );
-			Matrix GetValue( const Variable<Matrix>& rThisVariable );
-			void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+			
+            double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+            Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+            
+            void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 							  const ProcessInfo& rCurrentProcessInfo );
 			void SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
 							  const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
@@ -152,6 +154,8 @@ namespace Kratos
 			void InitializeMaterial( const Properties& props,
 					const GeometryType& geom,
 					const Vector& ShapeFunctionsValues );
+            
+            void ResetMaterial( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues );
 			
 			/**
 			 * Calculates the constitutive matrix for a given strain vector

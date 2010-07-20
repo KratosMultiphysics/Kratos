@@ -84,7 +84,7 @@ namespace Kratos
 	 */
 
          PlasticDamage3D::PlasticDamage3D () 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	
 	{
 	  KRATOS_ERROR(std::logic_error,"Calling the empty constructor.","");
@@ -94,7 +94,7 @@ namespace Kratos
          FluencyCriteriaPointer FluencyCriteria,
          SofteningHardeningCriteriaPointer SofteningBehavior, 
          PropertiesPointer Property) 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	      mpFluencyCriteria_1      = FluencyCriteria;
               mpSofteningBehavior      = SofteningBehavior;
@@ -126,7 +126,7 @@ namespace Kratos
 		return false;
 	}
 	
-	double PlasticDamage3D::GetValue( const Variable<double>& rThisVariable )
+	double& PlasticDamage3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
  	  if( rThisVariable == DAMAGE)
  	      {return mlocal_fail_factor; } //mplastic_damage ;}
@@ -137,18 +137,18 @@ namespace Kratos
 //           else if(rThisVariable == FRICTION_INTERNAL_ANGLE)
 //               {return mfriction_angle*180.00/PI;}
 //           else
-                {return 0; }
+      return rValue;
 	}   
 	
 
-	Vector PlasticDamage3D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& PlasticDamage3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");     
-        }
+	    return( rValue );
+    }
 	
-	Matrix PlasticDamage3D::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& PlasticDamage3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-             KRATOS_ERROR(std::logic_error, "Matrix Variable case not considered", "");
+        return( rValue );
 	}
 
     void PlasticDamage3D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
@@ -332,18 +332,23 @@ Stress[5] = G *(Strain[5]);
 
 //***********************************************************************************************
 //***********************************************************************************************
-
-void PlasticDamage3D::CalculateMaterialResponse(
-            const Vector& StrainVector,
-            Vector& StressVector,
-            Matrix& algorithmicTangent,
-            bool calculate_stress_flag,
-            bool calculate_tangent_flag,
-            bool save_internal_variables
-            )
+          void PlasticDamage3D::CalculateMaterialResponse( const Vector& StrainVector,
+                                          const Matrix& DeformationGradient,
+                                          Vector& StressVector,
+                                          Matrix& AlgorithmicTangent,
+                                          const ProcessInfo& CurrentProcessInfo,
+                                          const Properties& props, 
+                                          const GeometryType& geom,
+                                          const Vector& ShapeFunctionsValues,
+                                          bool CalculateStresses,
+                                          int CalculateTangent,
+                                          bool SaveInternalVariables )
 {
-if (calculate_stress_flag==true) { CalculateStress(StrainVector, StressVector);}
-if (calculate_tangent_flag==true){CalculateStressAndTangentMatrix(StressVector,StrainVector, algorithmicTangent);}
+    if (CalculateStresses) 
+        CalculateStress(StrainVector, StressVector);
+    
+    if (CalculateTangent!=0)
+        CalculateStressAndTangentMatrix(StressVector,StrainVector, AlgorithmicTangent);
 }
 
 
@@ -429,7 +434,7 @@ void PlasticDamage3D::CalculateStress(const Vector& StrainVector,
 	    ///* General evoluation of accumulated hardening  
 	    mcurrent_efective_plastic_strain = mefective_plastic_strain + norm_1(delta_gamma); 
 
-	    ///* aculated Von misses plastic
+	    ///* aculated Von mises plastic
               //double aux_var = sqrt(delta_gamma_a*delta_gamma_a + delta_gamma_b * delta_gamma_b + delta_gamma_c * delta_gamma_c);
 	      //mcurrent_efective_plastic_strain = mefective_plastic_strain + (2.00 / sqrt(3.00) ) * aux_var;
  

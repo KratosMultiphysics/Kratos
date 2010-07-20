@@ -72,13 +72,13 @@ namespace Kratos
 	 * As there are no further parameters the functionality is limited 
 	 * to linear elasticity.
 	 */
-	class Isotropic3D : public ConstitutiveLaw<Node<3> >
+	class Isotropic3D : public ConstitutiveLaw
 	{
 		public:
 			/**
 			 * Type Definitions
 			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;
+			typedef ConstitutiveLaw BaseType;
 			/**
 			 * Counted pointer of Isotropic3D
 			 */
@@ -92,9 +92,9 @@ namespace Kratos
 			 */
 			Isotropic3D();
 			
-			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Isotropic3D());
+				boost::shared_ptr<ConstitutiveLaw> p_clone(new Isotropic3D());
 				return p_clone;
 			}
 
@@ -113,11 +113,10 @@ namespace Kratos
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
 			
-			double GetValue( const Variable<double>& rThisVariable );
-			Vector GetValue( const Variable<Vector>& rThisVariable );
+            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
 			Matrix GetValue( const Variable<Matrix>& rThisVariable );
 			
-			void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+			void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 							  const ProcessInfo& rCurrentProcessInfo );
 			void SetValue( const Variable<array_1d<double, 3> >& rThisVariable, 
 							  const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
@@ -133,8 +132,6 @@ namespace Kratos
 					const GeometryType& geom,
 					const Vector& ShapeFunctionsValues );
             
-            void ResetMaterial( const Properties& props );
-						
 			/**
 			 * Calculates the constitutive matrix for a given strain vector
 			 * @param StrainVector the current vector of strains the constitutive 
@@ -159,11 +156,9 @@ namespace Kratos
 					const Vector& ShapeFunctionsValues ,
 					const ProcessInfo& CurrentProcessInfo);
 			
-            void UpdateMaterial( const Vector& StrainVector,
-                                 const Properties& props,
-                                 const GeometryType& geom, //this is just to give the array of nodes
-                                 const Vector& ShapeFunctionsValues ,
-                                 const ProcessInfo& CurrentProcessInfo);
+            void ResetMaterial( const Properties& props,
+                                const GeometryType& geom,
+                                const Vector& ShapeFunctionsValues );
             
             void FinalizeSolutionStep( const Properties& props,
 					const GeometryType& geom, //this is just to give the array of nodes
@@ -187,11 +182,23 @@ namespace Kratos
 			      const Vector& StrainVector,
 			      Matrix& algorithmicTangent);
 
-                        void Calculate( const Variable<double>& rVariable, 
-                                    double& Output, 
-                                    const ProcessInfo& rCurrentProcessInfo);
-
-			
+            void Calculate( const Variable<double>& rVariable, 
+                            double& Output, 
+                            const ProcessInfo& rCurrentProcessInfo);
+                        
+            void CalculateMaterialResponse( const Vector& StrainVector,
+                                            const Matrix& DeformationGradient,
+                                            Vector& StressVector,
+                                            Matrix& AlgorithmicTangent,
+                                            const ProcessInfo& CurrentProcessInfo,
+                                            const Properties& props, 
+                                            const GeometryType& geom,
+                                            const Vector& ShapeFunctionsValues,
+                                            bool CalculateStresses = true,
+                                            int CalculateTangent = true,
+                                            bool SaveInternalVariables = true
+                                          );
+                        
 			/**
 			 * converts a strain vector styled variable into its form, which the
 			 * deviatoric parts are no longer multiplied by 2

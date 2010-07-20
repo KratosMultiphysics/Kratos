@@ -71,15 +71,15 @@ namespace Kratos
      * As there are no further parameters the functionality is limited 
      * to linear elasticity.
      */
-    class DruckerPragerLaw : public ConstitutiveLaw<Node<3> >
+    class DruckerPragerLaw : public ConstitutiveLaw
     {
         public:
             /**
              * Type Definitions
              */
             typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-            typedef ConstitutiveLaw<Node<3> > BaseType;
-            typedef BaseType::MaterialTensorType MaterialTensorType;
+            typedef ConstitutiveLaw BaseType;
+            typedef array_1d<double, 81> MaterialTensorType;
             /**
              * Counted pointer of DruckerPragerLaw
              */
@@ -107,7 +107,7 @@ namespace Kratos
              */
             virtual ~DruckerPragerLaw();
             
-            boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const;
+            boost::shared_ptr<ConstitutiveLaw> Clone() const;
             
             void InitializeMaterial( const Properties& props,
 					const GeometryType& geom,
@@ -127,11 +127,11 @@ namespace Kratos
  			void SetValue( const Variable<Vector >& rVariable, 
 				const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
 
- 			Matrix GetValue(const Variable<Matrix>& rVariable);
+ 			Matrix& GetValue(const Variable<Matrix>& rVariable, Matrix& rValue);
 
-    		Vector GetValue(const Variable<Vector>& rVariable);
+    		Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue);
 
-    		double GetValue(const Variable<double>& rVariable);
+    		double& GetValue(const Variable<double>& rVariable, double& rValue);
             
 //             template<class TVariableType> bool Has( const TVariableType& rThisVariable);
             /**
@@ -176,6 +176,18 @@ namespace Kratos
             virtual void CalculateStressAndTangentMatrix( Vector& StressVector,
                     const Vector& StrainVector,
                     Matrix& algorithmicTangent);
+            
+            void CalculateMaterialResponse( const Vector& StrainVector,
+                                      const Matrix& DeformationGradient,
+                                      Vector& StressVector,
+                                      Matrix& AlgorithmicTangent,
+                                      const ProcessInfo& CurrentProcessInfo,
+                                      const Properties& props, 
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      bool CalculateStresses = true,
+                                      int CalculateTangent = true,
+                                      bool SaveInternalVariables = true );
             
             /**
              * Input and output

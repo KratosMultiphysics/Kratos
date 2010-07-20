@@ -83,13 +83,13 @@ namespace Kratos
 	 * As there are no further parameters the functionality is limited 
 	 * to linear elasticity.
 	 */
-	class PlasticDamage3D : public ConstitutiveLaw<Node<3> >
+	class PlasticDamage3D : public ConstitutiveLaw
 	{
 		public:
 
 		      
 		        ///@name Type Definitions
-		        typedef ConstitutiveLaw<Node<3> > BaseType;
+		        typedef ConstitutiveLaw BaseType;
 			/**
 			 * Counted pointer of PlasticDamage3D
 			 */
@@ -116,9 +116,9 @@ namespace Kratos
 			PlasticDamage3D();
 			                      
 
-                        virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+                        virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > 
+				boost::shared_ptr<ConstitutiveLaw> 
                                 p_clone(new PlasticDamage3D(
                                 mpFluencyCriteria_1->Clone(),
                                 mpSofteningBehavior, 
@@ -152,9 +152,9 @@ namespace Kratos
 		  bool Has( const Variable<Vector>& rThisVariable );
 		  bool Has( const Variable<Matrix>& rThisVariable );
 
-		  double GetValue( const Variable<double>& rThisVariable );
-		  Vector GetValue( const Variable<Vector>& rThisVariable );
-		  Matrix GetValue( const Variable<Matrix>& rThisVariable );
+		  double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+          Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+          Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
 		  void SetValue( const Variable<double>& rVariable, 
 		  const double& Value, 
@@ -203,22 +203,25 @@ namespace Kratos
 		  void Calculate( const Variable<double>& rVariable, 
 		  double& Output, 
 		  const ProcessInfo& rCurrentProcessInfo);
-
-                  void UpdateMaterial( const Vector& StrainVector,
-                                     const Properties& props,
-                                     const GeometryType& geom,
-                                     const Vector& ShapeFunctionsValues,
-                                     const ProcessInfo& CurrentProcessInfo);
-                
-                void CalculateMaterialResponse(
-		const Vector& StrainVector,
-		Vector& StressVector,
-		Matrix& algorithmicTangent,
-		bool calculate_stress_flag,
-		bool calculate_tangent_flag,
-		bool save_internal_variables
-		);
-
+          
+          void UpdateMaterial( const Vector& StrainVector,
+                               const Properties& props,
+                               const GeometryType& geom,
+                               const Vector& ShapeFunctionsValues,
+                               const ProcessInfo& CurrentProcessInfo);
+          
+          void CalculateMaterialResponse( const Vector& StrainVector,
+                                          const Matrix& DeformationGradient,
+                                          Vector& StressVector,
+                                          Matrix& AlgorithmicTangent,
+                                          const ProcessInfo& CurrentProcessInfo,
+                                          const Properties& props, 
+                                          const GeometryType& geom,
+                                          const Vector& ShapeFunctionsValues,
+                                          bool CalculateStresses = true,
+                                          int CalculateTangent = true,
+                                          bool SaveInternalVariables = true
+                                        );
 
  
     private:

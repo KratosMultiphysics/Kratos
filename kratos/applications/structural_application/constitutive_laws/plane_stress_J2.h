@@ -66,13 +66,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    class PlaneStressJ2 : public ConstitutiveLaw<Node < 3 > >
+    class PlaneStressJ2 : public ConstitutiveLaw
     {
     public:
         /**
          * Type Definitions
          */
-        typedef ConstitutiveLaw<Node < 3 > > BaseType;
+        typedef ConstitutiveLaw BaseType;
         /**
          * Counted pointer of PlaneStressJ2
          */
@@ -86,9 +86,9 @@ namespace Kratos
          */
         PlaneStressJ2();
 
-        virtual boost::shared_ptr<ConstitutiveLaw<Node < 3 > > > Clone() const
+        virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
         {
-            boost::shared_ptr<ConstitutiveLaw<Node < 3 > > > p_clone(new PlaneStressJ2());
+            boost::shared_ptr<ConstitutiveLaw> p_clone(new PlaneStressJ2());
             return p_clone;
         }
 
@@ -107,9 +107,9 @@ namespace Kratos
         bool Has(const Variable<Vector>& rThisVariable);
         bool Has(const Variable<Matrix>& rThisVariable);
 
-        double GetValue(const Variable<double>& rThisVariable);
-        Vector GetValue(const Variable<Vector>& rThisVariable);
-        Matrix GetValue(const Variable<Matrix>& rThisVariable);
+        double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+        Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+        Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
         void SetValue(const Variable<double>& rVariable,
                 const double& Value,
@@ -127,24 +127,28 @@ namespace Kratos
                 const GeometryType& geom,
                 const Vector& ShapeFunctionsValues);
 
-        void CalculateMaterialResponse(
-                            const Vector& StrainVector,
-                            Vector& StressVector,
-                            Matrix& algorithmicTangent,
-                            bool calculate_stress_flag,
-                            bool calculate_tangent_flag,
-                            bool  save_internal_variables
-                            );
+        void CalculateMaterialResponse( const Vector& StrainVector,
+                                        const Matrix& DeformationGradient,
+                                        Vector& StressVector,
+                                        Matrix& AlgorithmicTangent,
+                                        const ProcessInfo& CurrentProcessInfo,
+                                        const Properties& props, 
+                                        const GeometryType& geom,
+                                        const Vector& ShapeFunctionsValues,
+                                        bool CalculateStresses = true,
+                                        int CalculateTangent = true,
+                                        bool SaveInternalVariables = true
+                                      );
 
-        void CalculateStress( const Vector& StrainVector,
-                                          Vector& StressVector);
+//         void CalculateStress( const Vector& StrainVector,
+//                                           Vector& StressVector);
 
-        void CalculateConstitutiveMatrix( const Vector& StrainVector,
-                    Matrix& ElasticityTensor );
+//         void CalculateConstitutiveMatrix( const Vector& StrainVector,
+//                     Matrix& ElasticityTensor );
 
-        void CalculateStressAndTangentMatrix(Vector& StressVector,
-                    const Vector& StrainVector,
-                    Matrix& algorithmicTangent);
+//         void CalculateStressAndTangentMatrix(Vector& StressVector,
+//                     const Vector& StrainVector,
+//                     Matrix& algorithmicTangent);
 
         void UpdateMaterial( const Vector& StrainVector,
                                          const Properties& props,
