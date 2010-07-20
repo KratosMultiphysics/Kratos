@@ -102,95 +102,97 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/pointer_vector_set_python_interface.h"
 #include "python/variable_indexing_python.h"
 #include "fluency_criteria/fluency_criteria.h"
+#include "constitutive_laws/mohr_coulomb_plane_strain.h"
 
+#include "constitutive_laws/von_mises_3d.h"
 
 
 namespace Kratos
 {
-
     namespace Python
     {
-	    using namespace boost::python;
-	    
-	    typedef ConstitutiveLaw<Node<3> > ConstitutiveLawBaseType;
-            typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-            //typedef FluencyCriteria FluencyCriteriaType;  
-            typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
-            typedef SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;  
-            typedef Properties::Pointer PropertiesPointer;
-	    
-
-            typedef std::vector<ConstitutiveLaw<Node<3> >::Pointer> MaterialsContainer;
-            typedef ConstitutiveLaw<Node<3> >::Pointer  ConstitutiveLawPointer;
+        using namespace boost::python;
+        
+        typedef ConstitutiveLaw ConstitutiveLawBaseType;
+        typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+        //typedef FluencyCriteria FluencyCriteriaType;  
+        typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
+        typedef SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;  
+        typedef Properties::Pointer PropertiesPointer;
+        
+        typedef std::vector<ConstitutiveLaw::Pointer> MaterialsContainer;
+        typedef ConstitutiveLaw::Pointer  ConstitutiveLawPointer;
+        
+        void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer, 
+                                          ConstitutiveLawPointer ThisConstitutiveLaw )
+        {
+            ThisMaterialsContainer.push_back(ThisConstitutiveLaw);
+        }
+        
+        void  AddConstitutiveLawsToPython()
+        {
+            class_< MaterialsContainer >("MaterialsContainer", init<>() )
+                    .def("PushBack", Push_Back_Constitutive_Laws)
+                    ;
             
+            class_< Isotropic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Isotropic2D",
+                     init<>() )
+                    ;
+            
+            class_< PlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("PlaneStrain",
+                     init<>() )
+                    ;
+            
+            class_< MohrCoulombPlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("MohrCoulombPlaneStrain",
+                     init<>() )
+                    ;
+            
+            class_< Isotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+                    ("Isotropic3D", 
+                     init<>() ) 
+                    ;
+            
+            class_< Isotropic_Damage, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Isotropic_Damage",
+                     init<>() )
+                    .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                    ;
+            
+            class_<Plasticity2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Plasticity2D",
+                     init<>() )
+                    .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                    ;
+            
+            class_<PlaneStressJ2, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("PlaneStressJ2",
+                     init<>() )
+                    ;
+            
+//             class_<Plasticity3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+//             ("Plasticity3D",
+//             init<>() )
+//                 .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+//                  ;
 
-
-	    void Push_Back_Constitutive_Laws(MaterialsContainer&  ThisMaterialsContainer, ConstitutiveLawPointer ThisConstitutiveLaw)
-		      {
-			  ThisMaterialsContainer.push_back(ThisConstitutiveLaw);
-		      }  
-	    
-	    void  AddConstitutiveLawsToPython()
-	    {
-
-		        class_< MaterialsContainer >("MaterialsContainer", init<>() )
-                        .def("PushBack", Push_Back_Constitutive_Laws)
-			;
-
-			class_< Isotropic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Isotropic2D",
-			init<>() )
-			;
-			class_< PlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("PlaneStrain",
-			init<>() )
-			;
-			class_< Isotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
-			("Isotropic3D", 
-			init<>() ) 
-			;
-
-			class_< Isotropic_Damage, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Isotropic_Damage",
-			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-			;
-
-
-			class_<Plasticity2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Plasticity2D",
-			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-			;
-
-                        class_<PlaneStressJ2, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("PlaneStressJ2",
-			init<>() )
-			;
-
-// 			class_<Plasticity3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-// 			("Plasticity3D",
-// 			init<>() )
-//                         .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-// 			;
-
-			class_<PlasticDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
- 			("PlasticDamage2D",
- 			init<>() )
-                        //.def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-                        .def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
- 			;
-
-			class_<PlasticDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
- 			("PlasticDamage3D",
- 			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-                        //.def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
- 			;
-
-
-
-
+            
+            class_<PlasticDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("PlasticDamage2D",
+                     init<>() )
+                    //.def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                    .def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                    ;
+            
+            class_<PlasticDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("PlasticDamage3D",
+                     init<>() )
+                    .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                    //.def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                    ;
+            
 // 			class_< Tension_Compression_Damage_Model, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 // 			("TensionCompressionDamageModel3D",
 // 			init<>() )
@@ -201,67 +203,69 @@ namespace Kratos
 // 			init<>() )
 //                         ;
 
-			class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Isotropic_Damage_3D",
-			init<>() )
-                        .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-                        ;
-
-			class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
-			("VonMises3D", 
-			init<>() ) 
-			;
-
-			class_< Hypoelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Hypoelastic2D",
-			init<>() )
-			;
-
-			class_< Fluid2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Fluid2D",
-			init<>() )
-			;
-			class_< ExternalIsotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
-			("ExternalIsotropic3D", 
-			init<>() ) 
-			;
-
-			class_< DruckerPrager, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("DruckerPrager",
-			init<>() )
-			;
-
-			/*	
+            class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Isotropic_Damage_3D",
+                     init<>() )
+                    .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
+                    ;
+            
+            class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+                    ("VonMises3D", 
+                     init<>() ) 
+                    ;
+            
+            class_< Hypoelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Hypoelastic2D",
+                     init<>() )
+                    ;
+            
+            class_< Fluid2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Fluid2D",
+                     init<>() )
+                    ;
+            
+            class_< ExternalIsotropic3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
+                    ("ExternalIsotropic3D", 
+                     init<>() ) 
+                    ;
+            
+            class_< DruckerPrager, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("DruckerPrager",
+                     init<>() )
+                    ;
+            
+            /*	
 
 			class_< IsotropicElasticLargeStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 			("IsotropicElasticLargeStrain",
 			init<>() )
 			;
 			*/
-
-			class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("HooksLaw",
-			init<>() )
-			;
-
-			class_< DruckerPragerLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("DruckerPragerLaw",
-			init<>() )
-			;
-
-			class_< IsotropicPlaneStressWrinkling, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("IsotropicPlaneStressWrinkling",
-			init<>() )
-			;
-
-			// 			class_< Hyperelastic3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+            
+            class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("HooksLaw",
+                     init<>() )
+                    ;
+            
+            class_< DruckerPragerLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("DruckerPragerLaw",
+                     init<>() )
+                    ;
+            
+            class_< IsotropicPlaneStressWrinkling, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("IsotropicPlaneStressWrinkling",
+                     init<>() )
+                    ;
+            
+            // 			class_< Hyperelastic3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 			// 				    ("Hyperelastic3D",
 			// 				     init<>() )
 			// 				    ;
-			class_< Hyperelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("Hyperelastic2D",
-			init<>() )
-			;
+            
+            class_< Hyperelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Hyperelastic2D",
+                     init<>() )
+                    ;
     
 // 			class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >, boost::noncopyable >
 // 			("PlaneStressDamageOrthotropic2D",
@@ -276,11 +280,8 @@ namespace Kratos
                         .def(init<MaterialsContainer>())
 			;*/
 
-
-	    }
-
-	}  // namespace Python.
-  
+        
+        }
+    }  // namespace Python.
 }  // namespace Kratos.
-
-#endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED  defined >>>>>>> 1.10
+#endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED defined
