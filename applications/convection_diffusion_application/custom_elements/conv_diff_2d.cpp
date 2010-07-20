@@ -170,21 +170,21 @@ namespace Kratos
 		double c2 = 2.00;
 		double h = sqrt(2.00*Area);
 		double norm_u =norm_2(ms_vel_gauss);
-		double tau = 1.00 / ( c1*alpha/(h*h) + c2*norm_u/h );
-
+		//double tau = 1.00 / ( c1*alpha/(h*h) + c2*norm_u/h );
+		double tau1=( h*h )/(c1 * conductivity + c2 * density * specific_heat * norm_u * h);
 		//getting the BDF2 coefficients (not fixed to allow variable time step)
 		//the coefficients INCLUDE the time step
 		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 		
 		//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
 		noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
-		noalias(rLeftHandSideMatrix) = outer_prod(msN,ms_u_DN);
+		noalias(rLeftHandSideMatrix) = (density*specific_heat) * outer_prod(msN,ms_u_DN);
 
 		//CONVECTION STABILIZING CONTRIBUTION (Suu)
-		noalias(rLeftHandSideMatrix) += (tau) * outer_prod(ms_u_DN,ms_u_DN);
+		noalias(rLeftHandSideMatrix) += density * specific_heat * density * specific_heat * tau1 * outer_prod(ms_u_DN,ms_u_DN);
 
 		//VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
-		noalias(rLeftHandSideMatrix) += (alpha ) * prod(msDN_DX,trans(msDN_DX));
+		noalias(rLeftHandSideMatrix) += (conductivity )* prod(msDN_DX,trans(msDN_DX));
 
                 		//filling the mass factors
 //	msMassFactors(0,0) = 1.00/6.00;  msMassFactors(0,1) = 1.00/12.00; msMassFactors(0,2) = 1.00/12.00;
@@ -195,13 +195,13 @@ namespace Kratos
 		msMassFactors(2,0) = 0.00;		msMassFactors(2,1) = 0.00;		msMassFactors(2,2) = 1.00/3.00;
 
 		//INERTIA CONTRIBUTION
-		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMassFactors;
+		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * (density*specific_heat) * msMassFactors;
 
 		// RHS = Fext (heat per unit mass)
-		noalias(rRightHandSideVector) = (heat_flux/specific_heat)*msN;
+		noalias(rRightHandSideVector) = (heat_flux * density )*msN;
 
 		//RHS += Suy * proj[component] 
-		noalias(rRightHandSideVector) += (tau*proj)*ms_u_DN;  
+		noalias(rRightHandSideVector) += density*specific_heat * density*specific_heat * (tau1*proj)*ms_u_DN;  
 
 		//adding the inertia terms
 		// RHS += M*vhistory 
@@ -213,7 +213,7 @@ namespace Kratos
 			for(unsigned int iii = 0; iii<number_of_points; iii++)
 				ms_temp_vec_np[iii] += BDFcoeffs[step]*GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE,step);
 		}	
-		noalias(rRightHandSideVector) -= prod(msMassFactors,ms_temp_vec_np) ;
+		noalias(rRightHandSideVector) -= prod(msMassFactors,ms_temp_vec_np*density*specific_heat) ;
 
 		//subtracting the dirichlet term
 		// RHS -= LHS*temperatures
@@ -222,8 +222,8 @@ namespace Kratos
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
 		
 		//multiplying by area, rho and density
-		rRightHandSideVector *= (Area * density*specific_heat);
-		rLeftHandSideMatrix *= (Area * density*specific_heat);
+		rRightHandSideVector *= Area;
+		rLeftHandSideMatrix *= Area;
 		//multiplying by area
 		//rRightHandSideVector *= Area;
 		//rLeftHandSideMatrix *= Area;
