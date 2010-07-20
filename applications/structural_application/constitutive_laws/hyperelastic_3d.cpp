@@ -89,7 +89,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	Hyperelastic3D::Hyperelastic3D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -116,24 +116,24 @@ namespace Kratos
 		return false;
 	}
 	
-	double Hyperelastic3D::GetValue( const Variable<double>& rThisVariable )
+	double& Hyperelastic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+	    return( rValue );
 	}
 	
-	Vector Hyperelastic3D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& Hyperelastic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
 		if( rThisVariable == INSITU_STRESS )
 			return mInSituStress;
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return rValue;
 	}
 	
-	Matrix Hyperelastic3D::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& Hyperelastic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+	    return( rValue );
 	}
 
-	void Hyperelastic3D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void Hyperelastic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 								   const ProcessInfo& rCurrentProcessInfo )
 	{
 	}
@@ -197,6 +197,22 @@ namespace Kratos
 			//SetValue( INSITU_STRESS, mInSituStress, CurrentProcessInfo );
 		}
 	}
+    
+    void Hyperelastic3D::CalculateMaterialResponse( const Vector& StrainVector,
+                                      const Matrix& DeformationGradient,
+                                      Vector& StressVector,
+                                      Matrix& AlgorithmicTangent,
+                                      const ProcessInfo& CurrentProcessInfo,
+                                      const Properties& props, 
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      bool CalculateStresses,
+                                      int CalculateTangent,
+                                      bool SaveInternalVariables )
+    {
+        CalculateStress(StrainVector, StressVector);
+        CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+    }
     
     void Hyperelastic3D::UpdateMaterial( const Vector& StrainVector,
                                       const Properties& props,

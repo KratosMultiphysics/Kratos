@@ -75,7 +75,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	DruckerPrager::DruckerPrager() 
-	: ConstitutiveLaw<Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -126,34 +126,33 @@ namespace Kratos
 // 		}
 // 	}
 	
-	double DruckerPrager::GetValue( const Variable<double>& rThisVariable )
+	double& DruckerPrager::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
 		if( rThisVariable == DP_EPSILON )
-			return mEpsilon;
-        else return 0.0;
+			rValue = mEpsilon;
+        return rValue;
 	}
 	
-	Vector DruckerPrager::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& DruckerPrager::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
 		if( rThisVariable == INSITU_STRESS )
 		{
-			return mInSituStress;
+			rValue = mInSituStress;
 		}
-                else if( rThisVariable == INTERNAL_VARIABLES )
-                {
-                        Vector result = ZeroVector(1);
-                        result[0] = mEpsilon;
-                        return result;
-                }
-                else return Vector(0);
+        else if( rThisVariable == INTERNAL_VARIABLES )
+        {
+            rValue = ZeroVector(1);
+            rValue[0] = mEpsilon;
+        }
+        return( rValue );
 	}
 	
-	Matrix DruckerPrager::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& DruckerPrager::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-        return Matrix(0,0);
+        return( rValue );
 	}
 		
-	void DruckerPrager::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void DruckerPrager::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 									 const ProcessInfo& rCurrentProcessInfo )
 	{
 		if( rThisVariable == DP_EPSILON )
@@ -189,6 +188,11 @@ namespace Kratos
 	void DruckerPrager::InitializeMaterial( const Properties& props,
 			const GeometryType& geom,
 			const Vector& ShapeFunctionsValues )
+    {
+        ResetMaterial( props, geom, ShapeFunctionsValues );
+    }
+            
+    void DruckerPrager::ResetMaterial( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues )
 	{
 // 		std::cout << "Initialising DruckerPrager" << std::endl;
 		mCurrentStress = ZeroVector(6);

@@ -72,13 +72,13 @@ namespace Kratos
 	 * As there are no further parameters the functionality is limited 
 	 * to linear elasticity.
 	 */
-	class Isotropic2D : public ConstitutiveLaw<Node<3> >
+	class Isotropic2D : public ConstitutiveLaw
 	{
 		public:
 			/**
 			 * Type Definitions
 			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;
+			typedef ConstitutiveLaw BaseType;
 			/**
 			 * Counted pointer of Isotropic2D
 			 */
@@ -92,9 +92,9 @@ namespace Kratos
 			 */
 			Isotropic2D();
 			
-			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Isotropic2D());
+				boost::shared_ptr<ConstitutiveLaw > p_clone(new Isotropic2D());
 				return p_clone;
 			}
 
@@ -113,10 +113,6 @@ namespace Kratos
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
 			
-			double GetValue( const Variable<double>& rThisVariable );
-			Vector GetValue( const Variable<Vector>& rThisVariable );
-			Matrix GetValue( const Variable<Matrix>& rThisVariable );
-			
             void SetValue( const Variable<double>& rVariable, 
                            const double& Value, 
                            const ProcessInfo& rCurrentProcessInfo );
@@ -132,7 +128,7 @@ namespace Kratos
 			void InitializeMaterial( const Properties& props,
 					const GeometryType& geom,
 					const Vector& ShapeFunctionsValues );
-			
+            			
 			/**
 			 * Calculates the constitutive matrix for a given strain vector
 			 * @param StrainVector the current vector of strains the constitutive 
@@ -193,14 +189,18 @@ namespace Kratos
 			      Matrix& algorithmicTangent);
 
 
-                  void CalculateMaterialResponse(
-                            const Vector& StrainVector,
-                            Vector& StressVector,
-                            Matrix& algorithmicTangent,
-                            bool calculate_stress_flag,
-                            bool calculate_tangent_flag,
-                            bool  save_internal_variables
-                            );
+            void CalculateMaterialResponse( const Vector& StrainVector,
+                                            const Matrix& DeformationGradient,
+                                            Vector& StressVector,
+                                            Matrix& AlgorithmicTangent,
+                                            const ProcessInfo& CurrentProcessInfo,
+                                            const Properties& props, 
+                                            const GeometryType& geom,
+                                            const Vector& ShapeFunctionsValues,
+                                            bool CalculateStresses = true,
+                                            int CalculateTangent = true,
+                                            bool SaveInternalVariables = true
+                                          );
 
                std::string Info() const;
                

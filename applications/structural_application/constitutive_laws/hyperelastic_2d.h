@@ -81,14 +81,14 @@ namespace Kratos
 
 	// First attempt: ISOTROPIC Hyperelastic Material
 
-	class Hyperelastic2D : public ConstitutiveLaw<Node<3> >  // OLD: 3D and 
+	class Hyperelastic2D : public ConstitutiveLaw // OLD: 3D and 
 	{
 		public:
 
 				/**
 			 * Type Definitions
 			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;  // OLD: 3
+			typedef ConstitutiveLaw BaseType;  // OLD: 3
 			/**
 			 * Counted pointer of Hyperelastic3D
 			 */
@@ -103,9 +103,9 @@ namespace Kratos
 			Hyperelastic2D();  // OLD: 3D
 			
 
-			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const  // OLD: 3D
+			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const  // OLD: 3D
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Hyperelastic2D()); // OLD: 3 and 3D
+				boost::shared_ptr<ConstitutiveLaw> p_clone(new Hyperelastic2D()); // OLD: 3 and 3D
 				return p_clone;
 			}
 
@@ -127,11 +127,11 @@ namespace Kratos
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
 			
-			double GetValue( const Variable<double>& rThisVariable );
-			Vector GetValue( const Variable<Vector>& rThisVariable );
-			Matrix GetValue( const Variable<Matrix>& rThisVariable );
+			double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+			Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+			Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rMatrix );
 			
-			void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+			void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 							  const ProcessInfo& rCurrentProcessInfo );
 			void SetValue( const Variable<array_1d<double, 3> >& rThisVariable, // OLD: 3
 							  const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );// OLD: 3

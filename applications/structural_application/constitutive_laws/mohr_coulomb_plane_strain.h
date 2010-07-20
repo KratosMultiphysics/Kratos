@@ -72,13 +72,13 @@ namespace Kratos
 	 * As there are no further parameters the functionality is limited 
 	 * to linear elasticity.
 	 */
-	class MohrCoulombPlaneStrain : public ConstitutiveLaw<Node<3> >
+	class MohrCoulombPlaneStrain : public ConstitutiveLaw
 	{
 		public:
 			/**
 			 * Type Definitions
 			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;
+			typedef ConstitutiveLaw BaseType;
 			/**
 			 * Counted pointer of MohrCoulombPlaneStrain
 			 */
@@ -92,9 +92,9 @@ namespace Kratos
 			 */
 			MohrCoulombPlaneStrain();
 			
-			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new MohrCoulombPlaneStrain());
+				boost::shared_ptr<ConstitutiveLaw> p_clone(new MohrCoulombPlaneStrain());
 				return p_clone;
 			}
 
@@ -113,9 +113,9 @@ namespace Kratos
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
 			
-			double GetValue( const Variable<double>& rThisVariable );
-			Vector GetValue( const Variable<Vector>& rThisVariable );
-			Matrix GetValue( const Variable<Matrix>& rThisVariable );
+			double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+            Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+            Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 			
             void SetValue( const Variable<double>& rVariable, 
                            const double& Value, 

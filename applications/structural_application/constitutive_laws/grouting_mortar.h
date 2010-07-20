@@ -125,7 +125,7 @@ namespace Kratos
                                 const Matrix& Value, const ProcessInfo& rCurrentProcessInfo);
                         void SetValue( const Variable<Vector >& rVariable, 
                                 const Vector& rValue, const ProcessInfo& rCurrentProcessInfo);
-            void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+            void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
                            const ProcessInfo& rCurrentProcessInfo );
             void SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
                            const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );

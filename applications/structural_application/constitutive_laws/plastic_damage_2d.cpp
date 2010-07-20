@@ -83,7 +83,7 @@ namespace Kratos
 	 */
 
          PlasticDamage2D::PlasticDamage2D () 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	
 	{
 	  KRATOS_ERROR(std::logic_error,"Calling the empty constructor.","");
@@ -94,7 +94,7 @@ namespace Kratos
          FluencyCriteriaPointer FluencyCriteriaTraction,
          SofteningHardeningCriteriaPointer SofteningBehavior, 
          PropertiesPointer Property) 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	      mpFluencyCriteria              = FluencyCriteria;
               mpFluencyCriteria_Traction     = FluencyCriteriaTraction;
@@ -127,29 +127,28 @@ namespace Kratos
 		return false;
 	}
 	
-	double PlasticDamage2D::GetValue( const Variable<double>& rThisVariable )
+	double& PlasticDamage2D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
 	  if( rThisVariable == DAMAGE)
-	      {return mFt[0];}   //mlocal_fail_factor; } //mplastic_damage ;}
-	  else if(rThisVariable == COHESION)
-              {return mFt[1];} // mcohesion;}
-          else if(rThisVariable == DILATANCY_ANGLE)
-              {return mdilatancy_angle*180.00/PI;}
-          else if(rThisVariable == FRICTION_INTERNAL_ANGLE)
-              {return mFt[2];} // mfriction_angle*180.00/PI;}
-          else
-               {return 0; }
+          rValue = mFt[0]; //mlocal_fail_factor; } //mplastic_damage ;}
+      else if(rThisVariable == COHESION)
+          rValue = mFt[1]; // mcohesion;}
+      else if(rThisVariable == DILATANCY_ANGLE)
+          rValue = mdilatancy_angle*180.00/PI;
+      else if(rThisVariable == FRICTION_INTERNAL_ANGLE)
+          rValue = mFt[2]; // mfriction_angle*180.00/PI;}
+      return( rValue );
 	}   
 	
 
-	Vector PlasticDamage2D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& PlasticDamage2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");     
-        }
-	
-	Matrix PlasticDamage2D::GetValue( const Variable<Matrix>& rThisVariable )
-	{
-             KRATOS_ERROR(std::logic_error, "Matrix Variable case not considered", "");
+        return( rValue );
+    }
+    
+    Matrix& PlasticDamage2D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
+    {
+        return( rValue );
 	}
 
     void PlasticDamage2D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
@@ -337,18 +336,21 @@ Stress[3] = 2.00 * G *(Strain[3] - vol_strain/3.00 ) + pt;
 
 //***********************************************************************************************
 //***********************************************************************************************
-
-void PlasticDamage2D::CalculateMaterialResponse(
-            const Vector& StrainVector,
-            Vector& StressVector,
-            Matrix& algorithmicTangent,
-            bool calculate_stress_flag,
-            bool calculate_tangent_flag,
-            bool save_internal_variables
-            )
+void PlasticDamage2D::CalculateMaterialResponse( const Vector& StrainVector,
+        const Matrix& DeformationGradient,
+        Vector& StressVector,
+        Matrix& AlgorithmicTangent,
+        const ProcessInfo& CurrentProcessInfo,
+        const Properties& props, 
+        const GeometryType& geom,
+        const Vector& ShapeFunctionsValues,
+        bool CalculateStresses,
+        int CalculateTangent,
+        bool SaveInternalVariables
+                                               )
 {
-if (calculate_stress_flag==true) { CalculateStress(StrainVector, StressVector);}
-if (calculate_tangent_flag==true){CalculateStressAndTangentMatrix(StressVector,StrainVector, algorithmicTangent);}
+    if (CalculateStresses==true) { CalculateStress(StrainVector, StressVector);}
+    if (CalculateTangent==true){CalculateStressAndTangentMatrix(StressVector,StrainVector, AlgorithmicTangent);}
 }
 
 

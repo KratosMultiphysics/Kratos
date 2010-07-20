@@ -152,7 +152,7 @@ namespace Kratos
 	    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
 	}
 
-	void ContinuousDamage3D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void ContinuousDamage3D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 								   const ProcessInfo& rCurrentProcessInfo )
 	{
 	}

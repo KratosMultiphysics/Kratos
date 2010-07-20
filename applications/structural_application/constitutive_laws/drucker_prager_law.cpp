@@ -73,7 +73,7 @@ namespace Kratos
 {
 	//default constructor
     DruckerPragerLaw::DruckerPragerLaw() 
-    : ConstitutiveLaw<Node<3> >()
+    : ConstitutiveLaw()
     {
         mOldPlasticStrains.resize(3,3,false);
         mCurrentPlasticStrains.resize(3,3,false);
@@ -89,10 +89,25 @@ namespace Kratos
     {
     }
 
-    boost::shared_ptr<ConstitutiveLaw<Node<3> > > DruckerPragerLaw::Clone() const
+    boost::shared_ptr<ConstitutiveLaw> DruckerPragerLaw::Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new DruckerPragerLaw());
+        boost::shared_ptr<ConstitutiveLaw> p_clone(new DruckerPragerLaw());
         return p_clone;
+    }
+    
+    void DruckerPragerLaw::CalculateMaterialResponse( const Vector& StrainVector,
+                                      const Matrix& DeformationGradient,
+                                      Vector& StressVector,
+                                      Matrix& AlgorithmicTangent,
+                                      const ProcessInfo& CurrentProcessInfo,
+                                      const Properties& props, 
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      bool CalculateStresses,
+                                      int CalculateTangent,
+                                      bool SaveInternalVariables )
+    {
+        CalculateStressAndTangentMatrix(StressVector, StrainVector, AlgorithmicTangent );
     }
     
     //*********************************************************************
@@ -174,11 +189,12 @@ namespace Kratos
     }
     //**********************************************************************
     //**********************************************************************
-    double DruckerPragerLaw::GetValue(const Variable<double>& rVariable)
+    double& DruckerPragerLaw::GetValue(const Variable<double>& rVariable, double& rValue)
 	{
 			if(!(rVariable== DP_EPSILON))
-				return 0.0;
-			return SD_MathUtils<double>::normTensor(mCurrentPlasticStrains);
+				return rValue;
+            rValue = SD_MathUtils<double>::normTensor(mCurrentPlasticStrains);
+			return rValue;
 	}
 
     //**********************************************************************
@@ -219,9 +235,9 @@ namespace Kratos
 	// not used in the exercises
     //**********************************************************************
     //**********************************************************************
-    Matrix DruckerPragerLaw::GetValue(const Variable<Matrix>& rVariable)
+    Matrix& DruckerPragerLaw::GetValue(const Variable<Matrix>& rVariable, Matrix& rValue)
     { 
-		return ZeroMatrix(0,0);
+		return( rValue );
     }
 
     //**********************************************************************
@@ -229,22 +245,19 @@ namespace Kratos
 	// not used in the exercises
     //**********************************************************************
     //**********************************************************************
-    Vector DruckerPragerLaw::GetValue(const Variable<Vector>& rVariable)
+    Vector& DruckerPragerLaw::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
     { 
         if( rVariable == INSITU_STRESS )
         {
-			Vector rResult(6);
-			rResult(0)= mInsituStress(0,0);
-			rResult(1)= mInsituStress(1,1);
-			rResult(2)= mInsituStress(2,2);
-			rResult(3)= mInsituStress(0,1);
-			rResult(4)= mInsituStress(1,2);
-			rResult(5)= mInsituStress(2,0);
-
-            return rResult;
+			rValue.resize( 6, false );
+			rValue(0)= mInsituStress(0,0);
+			rValue(1)= mInsituStress(1,1);
+			rValue(2)= mInsituStress(2,2);
+			rValue(3)= mInsituStress(0,1);
+			rValue(4)= mInsituStress(1,2);
+			rValue(5)= mInsituStress(2,0);
         }
-		else
-			return ZeroVector(0);
+        return( rValue );
     }
 
     //**********************************************************************

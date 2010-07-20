@@ -123,14 +123,14 @@ namespace Kratos
 	 */
 
          Isotropic_Damage::Isotropic_Damage() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	
 	{
 	  KRATOS_ERROR(std::logic_error,"Calling the empty constructor for Isotropic Damage","");
 	}
 
 	 Isotropic_Damage::Isotropic_Damage(FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property) 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	      mpFluencyCriteria   = FluencyCriteria;
               mpSofteningBehavior = SofteningBehavior;
@@ -160,7 +160,7 @@ namespace Kratos
 		return false;
 	}
 	
-	double Isotropic_Damage::GetValue( const Variable<double>& rThisVariable )
+	double& Isotropic_Damage::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
 	  if( rThisVariable == DAMAGE)
 	  {			
@@ -168,19 +168,19 @@ namespace Kratos
 	  return md_new;
 
 	  }
-	  else return 0.00;
+	  else return rValue;
 	    //KRATOS_ERROR(std::logic_error, "double Variable case not considered", "");
 	}
 	
 
-	Vector Isotropic_Damage::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& Isotropic_Damage::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+	    return( rValue );
 	}
 	
-	Matrix Isotropic_Damage::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& Isotropic_Damage::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Matrix Variable case not considered", "");
+	    return( rValue );
 	}
 
     void Isotropic_Damage::SetValue( const Variable<double>& rThisVariable, const double& rValue, 

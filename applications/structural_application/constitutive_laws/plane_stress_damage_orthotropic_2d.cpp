@@ -144,7 +144,7 @@ namespace Kratos
 	  KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 	}
 
-	void Plane_Stress_Damage_Orthotropic_2D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void Plane_Stress_Damage_Orthotropic_2D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 								   const ProcessInfo& rCurrentProcessInfo )
 	{
 	}

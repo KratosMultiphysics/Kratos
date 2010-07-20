@@ -88,7 +88,7 @@ namespace Kratos
 	 *	TO BE TESTED!!!
 	 */
 	ExternalIsotropic3D::ExternalIsotropic3D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	}
 	/**
@@ -115,27 +115,27 @@ namespace Kratos
 		return false;
 	}
 	
-	double ExternalIsotropic3D::GetValue( const Variable<double>& rThisVariable )
+	double& ExternalIsotropic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
-		KRATOS_ERROR(std::logic_error,"ExternalIsotropic3D::GetValue function doing nothing","");
+		return( rValue );
 	}
 	
-	Vector ExternalIsotropic3D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& ExternalIsotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
 		if( rThisVariable == INSITU_STRESS )
             return mInSituStress;
         else if( rThisVariable == MATERIAL_PARAMETERS )
             return mMaterialParameters;
         else
-            return Vector(0);
+            return rValue;
 	}
 	
-	Matrix ExternalIsotropic3D::GetValue( const Variable<Matrix>& rThisVariable )
+	Matrix& ExternalIsotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-		KRATOS_ERROR(std::logic_error,"ExternalIsotropic3D::GetValue function doing nothing","");
+		return( rValue );
 	}
 
-	void ExternalIsotropic3D::SetValue( const Variable<double>& rThisVariable, const double rValue, 
+	void ExternalIsotropic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 								   const ProcessInfo& rCurrentProcessInfo )
 	{
 	}

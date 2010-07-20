@@ -81,14 +81,14 @@ namespace Kratos
 
 	// First attempt: ISOTROPIC Hyperelastic Material
 
-	class Hyperelastic3D : public ConstitutiveLaw<Node<3> >
+	class Hyperelastic3D : public ConstitutiveLaw
 	{
 		public:
 
 				/**
 			 * Type Definitions
 			 */
-			typedef ConstitutiveLaw<Node<3> > BaseType;
+			typedef ConstitutiveLaw BaseType;
 			/**
 			 * Counted pointer of Hyperelastic3D
 			 */
@@ -103,9 +103,9 @@ namespace Kratos
 			Hyperelastic3D();
 			
 
-			virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new Hyperelastic3D());
+				boost::shared_ptr<ConstitutiveLaw> p_clone(new Hyperelastic3D());
 				return p_clone;
 			}
 
@@ -127,11 +127,11 @@ namespace Kratos
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
 			
-			double GetValue( const Variable<double>& rThisVariable );
-			Vector GetValue( const Variable<Vector>& rThisVariable );
-			Matrix GetValue( const Variable<Matrix>& rThisVariable );
+			double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+			Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+			Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 			
-			void SetValue( const Variable<double>& rThisVariable, const double rValue, 
+			void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
 							  const ProcessInfo& rCurrentProcessInfo );
 			void SetValue( const Variable<array_1d<double, 3> >& rThisVariable, 
 							  const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
@@ -146,6 +146,18 @@ namespace Kratos
 			void InitializeMaterial( const Properties& props,
 					const GeometryType& geom,
 					const Vector& ShapeFunctionsValues );
+            
+            void CalculateMaterialResponse( const Vector& StrainVector,
+                                      const Matrix& DeformationGradient,
+                                      Vector& StressVector,
+                                      Matrix& AlgorithmicTangent,
+                                      const ProcessInfo& CurrentProcessInfo,
+                                      const Properties& props, 
+                                      const GeometryType& geom,
+                                      const Vector& ShapeFunctionsValues,
+                                      bool CalculateStresses = true,
+                                      int CalculateTangent = true,
+                                      bool SaveInternalVariables = true );
 						
 			/**
 			 * Calculates the constitutive matrix for a given strain vector

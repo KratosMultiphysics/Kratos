@@ -91,14 +91,14 @@ namespace Kratos
 	 */
 
          Plasticity2D::Plasticity2D() 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	
 	{
 	  KRATOS_ERROR(std::logic_error,"Calling the empty constructor.","");
 	}
 
 	 Plasticity2D::Plasticity2D(FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property) 
-	: ConstitutiveLaw< Node<3> >()
+	: ConstitutiveLaw()
 	{
 	      mpFluencyCriteria   = FluencyCriteria;
               mpSofteningBehavior = SofteningBehavior;
@@ -130,31 +130,30 @@ namespace Kratos
 		return false;
 	}
 	
-	double Plasticity2D::GetValue( const Variable<double>& rThisVariable )
+	double& Plasticity2D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 	{
 	  if( rThisVariable == DAMAGE)
-	  {			
-	  return  mlamda;
-	  }
-	  else return 0.00;
+      {			
+          rValue = mlamda;
+      }
+      return rValue;
 	}   
 	
 
-	Vector Plasticity2D::GetValue( const Variable<Vector>& rThisVariable )
+	Vector& Plasticity2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 	{
-//             if(rThisVariable==PLASTIC_STRAIN_TENSOR)
-//             {
-//                return  mplastic_strain;
-//             }
-//             else
-            { 
-	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
-	    }
-        }
-	
-	Matrix Plasticity2D::GetValue( const Variable<Matrix>& rThisVariable )
+            if(rThisVariable==INTERNAL_VARIABLES)
+            {
+                rValue = ZeroVector(12);
+                for( unsigned int i=0; i<3; i++ )
+                    rValue[i] = mplastic_strain[i];
+            }
+            return( rValue );
+    }
+    	
+	Matrix& Plasticity2D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 	{
-	    KRATOS_ERROR(std::logic_error, "Matrix Variable case not considered", "");
+	    return( rValue );
 	}
 
     void Plasticity2D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
@@ -421,7 +420,6 @@ void Plasticity2D::CalculateElasticStress(const Vector& StrainVector, array_1d<d
               if(iter>max_iter){std::cout<<" It has`nt reached the required convergence"<<std::endl;}
               }
         }        
-
     KRATOS_CATCH("")       
 }
 
@@ -454,69 +452,65 @@ void Plasticity2D::CalculateElasticStress(const Vector& StrainVector, array_1d<d
 
 //***********************************************************************************************
 //***********************************************************************************************	
-	 void Plasticity2D::CalculateStressAndTangentMatrix(Vector& StressVector,
-                    const Vector& StrainVector,
-                    Matrix& algorithmicTangent)
-{
-                Matrix ElasticMatrix(4,4);
-                CalculateElasticMatrix(ElasticMatrix,mE,mNU);
-                if(ComputeTangentMatrix==true)
-                 {
-                      // Inconsistent tangent Modular Matrix
-
-                      double aux_b = 0.00;
-                      Vector Aux_1(4);
-                      Vector Aux_2(4);
-                      Vector DerivateFluencyCriteria(6);
-                      
-                      mpFluencyCriteria->CalculateDerivateFluencyCriteria(StressVector, DerivateFluencyCriteria);
-		      mDerivate_Fluency[0]      = DerivateFluencyCriteria[0];    
-		      mDerivate_Fluency[1]      = DerivateFluencyCriteria[1];
-		      mDerivate_Fluency[2]      = DerivateFluencyCriteria[3];
-		      mDerivate_Fluency[3]      = DerivateFluencyCriteria[2]; //deformacion plsatica ez
-			  
-
-                      Aux_1 = prod(ElasticMatrix, mDerivate_Fluency);
-                      
-                      switch (mpFluencyCriteria->mPotencialPlastic) 
-                       {   
-                         case(Associated):
-                          {                    
-                          aux_b = inner_prod(mDerivate_Fluency, Aux_1) +  (*mpProperties)[PLASTIC_MODULUS];
-                          noalias(ElasticMatrix) = ElasticMatrix - (outer_prod(Aux_1,Aux_1))/aux_b;
-                          break;
-                          }
-                      case(Not_Associated): 
-                        {         
-                          break;         
-                        }
-                       }
-                 }
-
-                switch (mpFluencyCriteria->mState)
-		  {
-		    case Plane_Stress:
-                      {
-                      ComputeCondentationMatrix(ElasticMatrix,algorithmicTangent);              
-                      break;
-                      }
-                    case Plane_Strain:
-                      {
-                      for(unsigned int i = 0; i<3; i ++)
-		      {
-                            for(unsigned int j= 0;j<3; j++)
-                               {
-                                  algorithmicTangent(i,j) = ElasticMatrix(i,j);  
-                               }
-                       }
-                      }
-                    case Tri_D:
-                      {
-                        std::cout<<"Warning: The cosntitutive law is apled only for 2D  "<<std::endl;
-                      }
-
-                    }
-}
+   void Plasticity2D::CalculateStressAndTangentMatrix(Vector& StressVector,
+           const Vector& StrainVector,
+           Matrix& algorithmicTangent)
+   {
+       Matrix ElasticMatrix(4,4);
+       CalculateElasticMatrix(ElasticMatrix,mE,mNU);
+       if(ComputeTangentMatrix==true)
+       {
+           // Inconsistent tangent Modular Matrix
+           double aux_b = 0.00;
+           Vector Aux_1(4);
+           Vector Aux_2(4);
+           Vector DerivateFluencyCriteria(6);
+           
+           mpFluencyCriteria->CalculateDerivateFluencyCriteria(StressVector, DerivateFluencyCriteria);
+           mDerivate_Fluency[0]      = DerivateFluencyCriteria[0];    
+           mDerivate_Fluency[1]      = DerivateFluencyCriteria[1];
+           mDerivate_Fluency[2]      = DerivateFluencyCriteria[3];
+           mDerivate_Fluency[3]      = DerivateFluencyCriteria[2]; //deformacion plsatica ez
+           
+           Aux_1 = prod(ElasticMatrix, mDerivate_Fluency);
+           switch (mpFluencyCriteria->mPotencialPlastic) 
+           {   
+               case(Associated):
+               {
+                   aux_b = inner_prod(mDerivate_Fluency, Aux_1) +  (*mpProperties)[PLASTIC_MODULUS];
+                   noalias(ElasticMatrix) = ElasticMatrix - (outer_prod(Aux_1,Aux_1))/aux_b;
+                   break;
+               }
+               case(Not_Associated): 
+               {
+                   break;
+               }
+           }
+       }
+       switch (mpFluencyCriteria->mState)
+       {
+           case Plane_Stress:
+           {
+               ComputeCondentationMatrix(ElasticMatrix,algorithmicTangent);
+               break;
+           }
+           case Plane_Strain:
+           {
+               for(unsigned int i = 0; i<3; i ++)
+               {
+                   for(unsigned int j= 0;j<3; j++)
+                   {
+                       algorithmicTangent(i,j) = ElasticMatrix(i,j);  
+                   }
+               }
+               break;
+           }
+           case Tri_D:
+           {
+               std::cout<<"Warning: The cosntitutive law is apled only for 2D  "<<std::endl;
+           }
+       }
+   }
                         
                          
 
