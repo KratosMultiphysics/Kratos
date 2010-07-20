@@ -403,13 +403,13 @@ void Erase_Old_Element_And_Create_New_Tetra_Element(
        ElementsArrayType::iterator it_end   =  rElements.ptr_end(); 
        Element const rReferenceElement;   
        unsigned int to_be_deleted = 0;
-       unsigned int large_id = (rElements.end()-1)->Id() * 10;
+       unsigned int large_id = (rElements.end()-1)->Id() * 15;
        unsigned int current_id = (rElements.end()-1)->Id() + 1;     
        bool create_element = false; 
             
        ProcessInfo& rCurrentProcessInfo  = this_model_part.GetProcessInfo();  
        int edge_ids[6];       
-       int  t[40]; for (unsigned int i = 0; i<40; i++) {t[i]=-1; }      
+       int  t[56]; for (unsigned int i = 0; i<56; i++) {t[i]=-1; }      
        int  nel = 0;
        int  splitted_edges = 0;
        int internal_node   = 0;     
@@ -465,7 +465,14 @@ void Erase_Old_Element_And_Create_New_Tetra_Element(
                aux[9] = Coord(index_3, index_2);
             else 
 	       aux[9] = Coord(index_2, index_3);
-              
+	    
+// KRATOS_WATCH(   it->Id() ); 
+// KRATOS_WATCH(index_0);
+// KRATOS_WATCH(index_1);
+// KRATOS_WATCH(index_2);
+// KRATOS_WATCH(index_3);
+// KRATOS_WATCH(   aux );
+
             ///**************************************************  
 
 	    //edge 01
@@ -511,20 +518,21 @@ void Erase_Old_Element_And_Create_New_Tetra_Element(
 		edge_ids[5] = 9;
 
 	      //do the split
-          for (unsigned int i = 0; i<6; i++) { std::cout<< "edges[" << i << "] = " << edge_ids[i] << std::endl;}  
-          KRATOS_WATCH("-------------------------------------------" )  
+//           for (unsigned int i = 0; i<6; i++) { std::cout<< "edges[" << i << "] = " << edge_ids[i] << std::endl;}  
+//           KRATOS_WATCH("-------------------------------------------" )  
 	  
 	  
 	  create_element =  Split(edge_ids, t, &nel, &splitted_edges, &internal_node);    
 
 	  if(internal_node == 1)
 		KRATOS_ERROR(std::logic_error,"case not handled","");   
-
-          KRATOS_WATCH(aux)        
+/*KRATOS_WATCH(splitted_edges);
+KRATOS_WATCH(internal_node);*/
+//           KRATOS_WATCH(aux)        
           //KRATOS_WATCH(splitted_edges)          
             
-          for (unsigned int i = 0; i<40; i++) { std::cout<< "t[" << i << "] = " << t[i] << std::endl;}   
-          KRATOS_WATCH("-------------------------------------------" )  
+//           for (unsigned int i = 0; i<56; i++) { std::cout<< "t[" << i << "] = " << t[i] << std::endl;}   
+//           KRATOS_WATCH("-------------------------------------------" )  
 
 
           if(create_element==true)
