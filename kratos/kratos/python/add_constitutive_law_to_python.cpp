@@ -45,13 +45,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_ADD_CONSTITUTIVE_LAW_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CONSTITUTIVE_LAW_TO_PYTHON_H_INCLUDED
-
-
 // System includes 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include "python/add_constitutive_law_to_python.h"
 
 // External includes 
 #include "boost/smart_ptr.hpp"
@@ -73,27 +70,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
     namespace Python
     {
-	    using namespace boost::python;
-	    
-	    typedef ConstitutiveLaw<Node<3> > ConstitutiveLawBaseType;
-		typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-	    
-	    void  AddConstitutiveLawToPython()
-	    {
-			class_< ConstitutiveLaw<Node<3> >, boost::noncopyable >
-					("ConstitutiveLaw",
-					 init<>() )
-					;
-			
-			class_<Variable<ConstitutiveLawBaseType::Pointer> , bases<VariableData>, boost::noncopyable >("ConstitutiveLawVariable", no_init)
-		       ;
-	    }
-
-	}  // namespace Python.
-  
+        using namespace boost::python;
+        
+        typedef ConstitutiveLaw ConstitutiveLawBaseType;
+        typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+        
+        void  AddConstitutiveLawToPython()
+        {
+            class_< ConstitutiveLaw, boost::noncopyable >
+                    ("ConstitutiveLaw",
+                     init<>() )
+                    ;
+            
+            class_<Variable<ConstitutiveLawBaseType::Pointer> , bases<VariableData>, boost::noncopyable >("ConstitutiveLawVariable", no_init)
+                    ;
+        }
+    }  // namespace Python.
 }  // namespace Kratos.
-
-#endif // KRATOS_ADD_CONSTITUTIVE_LAWS_TO_PYTHON_H_INCLUDED  defined 
