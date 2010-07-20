@@ -65,22 +65,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
-    template< class TPointType = Node<3> > class ConstitutiveLaw
+    /**
+     * Base class of constitutive laws.
+     */
+    class ConstitutiveLaw
     {
         public:
-            typedef ProcessInfo ProcessInfoType;
-            typedef Geometry<TPointType> GeometryType;
+            
+            enum StrainMeasure{
+                StrainMeasure_Linear, //linear strain measure in Voigt notation
+                StrainMeasure_Green_Lagrange //nonlinear strain measure
+            };
+            
+            enum StressMeasure{
+                StressMeasure_PK1, //stress related to reference configuration
+                StressMeasure_Cauchy //true stresses related to deformed configuration
+            };
             /**
-             * Type of 4th order material tensor
-             * needed for tensorial formulation of constitutive laws
+             * Type definitions
+             * NOTE: geometries are assumed to be of type Node<3> for all problems
              */
-            typedef array_1d<double,81> MaterialTensorType;
+            typedef ProcessInfo ProcessInfoType;
+            typedef typename std::size_t SizeType;
+            typedef Geometry<Node<3> > GeometryType;
             
             /** 
              * Counted pointer of ConstitutiveLaw 
              */
-            KRATOS_CLASS_POINTER_DEFINITION( ConstitutiveLaw<TPointType> );
+            KRATOS_CLASS_POINTER_DEFINITION( ConstitutiveLaw );
             
             /** 
              * Constructor.
@@ -97,12 +109,33 @@ namespace Kratos
             }
             
             /**
-             * Clone function
+             * Clone function (has to be implemented by any derived class)
+             * @return a pointer to a new instance of this constitutive law
+             * NOTE: implementation scheme: 
+             *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
+             *      return p_clone;
              */
-            virtual boost::shared_ptr<ConstitutiveLaw<TPointType> > Clone() const
+            virtual ConstitutiveLaw::Pointer Clone() const
             {
-                boost::shared_ptr<ConstitutiveLaw<TPointType> > p_clone(new ConstitutiveLaw());
-                return p_clone;
+                KRATOS_ERROR(std::logic_error,  "Called the virtual function for Clone" , "");
+            }
+            
+            /**
+             * @return the working space dimension of the current constitutive law
+             * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
+             */
+            virtual SizeType WorkingSpaceDimension()
+            {
+                KRATOS_ERROR(std::logic_error,  "Called the virtual function for WorkingSpaceDimension" , "");
+            }
+            
+            /**
+             * returns the size of the strain vector of the current constitutive law 
+             * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
+             */
+            virtual SizeType GetStrainSize()
+            {
+                KRATOS_ERROR(std::logic_error,  "Called the virtual function for GetStrainSize" , "");
             }
             
             /**
@@ -112,8 +145,9 @@ namespace Kratos
              */
             virtual bool Has( const Variable<double>& rThisVariable )
             {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for Has" , "");
+                return false;
             }
+            
             /**
              * returns whether this constitutive Law has specified variable
              * @param rThisVariable the variable to be checked for
@@ -121,8 +155,9 @@ namespace Kratos
              */
             virtual bool Has( const Variable<Vector>& rThisVariable )
             {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for Has" , "");
+                return false;
             }
+            
             /**
              * returns whether this constitutive Law has specified variable
              * @param rThisVariable the variable to be checked for
@@ -130,35 +165,88 @@ namespace Kratos
              */
             virtual bool Has( const Variable<Matrix>& rThisVariable )
             {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for Has" , "");
+                return false;
             }
+            
+            /**
+             * returns whether this constitutive Law has specified variable
+             * @param rThisVariable the variable to be checked for
+             * @return true if the variable is defined in the constitutive law
+             * NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
+             */
+            virtual bool Has( const Variable<array_1d<double, 3> >& rThisVariable )
+            {
+                return false;
+            }
+            
+            /**
+             * returns whether this constitutive Law has specified variable
+             * @param rThisVariable the variable to be checked for
+             * @return true if the variable is defined in the constitutive law
+             * NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
+             */
+            virtual bool Has( const Variable<array_1d<double, 6> >& rThisVariable )
+            {
+                return false;
+            }
+            
+            /**
+             * returns the value of a specified variable
+             * @param rThisVariable the variable to be returned
+             * @param rValue a reference to the returned value
+             * @param rValue output: the value of the specified variable
+             */
+            virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue )
+            {
+                return rValue;
+            }
+            
+            /**
+             * returns the value of a specified variable
+             * @param rThisVariable the variable to be returned
+             * @param rValue a reference to the returned value
+             * @return the value of the specified variable
+             */
+            virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
+            {
+                return rValue;
+            }
+            
             /**
              * returns the value of a specified variable
              * @param rThisVariable the variable to be returned
              * @return the value of the specified variable
              */
-            virtual double GetValue( const Variable<double>& rThisVariable )
+            virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
             {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for GetValue" , "");
+                return rValue;
             }
+            
             /**
              * returns the value of a specified variable
              * @param rThisVariable the variable to be returned
+             * @param rValue a reference to the returned value
              * @return the value of the specified variable
              */
-            virtual Vector GetValue( const Variable<Vector>& rThisVariable )
+            virtual array_1d<double,3>& GetValue( const Variable<array_1d<double,3> >& rVariable, 
+                                                  array_1d<double,3>& rValue )
             {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for GetValue" , "");
+                return rValue;
             }
+            
             /**
              * returns the value of a specified variable
              * @param rThisVariable the variable to be returned
+             * @param rValue a reference to the returned value
              * @return the value of the specified variable
              */
-            virtual Matrix GetValue( const Variable<Matrix>& rThisVariable )
+            virtual array_1d<double,6>& GetValue( const Variable<array_1d<double,6> >& rVariable, 
+                                                  array_1d<double,6>& rValue )
             {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for GetValue" , "");
+                return rValue;
             }
+
+            
             /**
              * sets the value of a specified variable
              * @param rVariable the variable to be returned
@@ -166,23 +254,12 @@ namespace Kratos
              * @param rCurrentProcessInfo the process info
              */
             virtual void SetValue( const Variable<double>& rVariable, 
-                                   const double Value, 
+                                   const double& Value, 
                                    const ProcessInfo& rCurrentProcessInfo)
             {
                 KRATOS_ERROR(std::logic_error,  "Called the virtual function for SetValue" , "");
             }
-            /**
-             * sets the value of a specified variable
-             * @param rVariable the variable to be returned
-             * @param Value new value of the specified variable
-             * @param rCurrentProcessInfo the process info
-             */
-            virtual void SetValue( const Variable<array_1d<double,3> >& rVariable, 
-                                   const array_1d<double,3>& Value, 
-                                   const ProcessInfo& rCurrentProcessInfo)
-            {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for SetValue" , "");
-            }
+            
             /**
              * sets the value of a specified variable
              * @param rVariable the variable to be returned
@@ -190,8 +267,7 @@ namespace Kratos
              * @param rCurrentProcessInfo the process info
              */
             virtual void SetValue( const Variable<Vector >& rVariable, 
-                                   const Vector& Value, 
-                                   const ProcessInfo& rCurrentProcessInfo)
+                                   const Vector& Value, const ProcessInfo& rCurrentProcessInfo)
             {
                 KRATOS_ERROR(std::logic_error,  "Called the virtual function for SetValue" , "");
             }
@@ -206,12 +282,72 @@ namespace Kratos
             {
                 KRATOS_ERROR(std::logic_error,  "Called the virtual function for SetValue" , "");
             }
+            
             /**
-             * TODO: to be removed
+             * sets the value of a specified variable
+             * @param rVariable the variable to be returned
+             * @param Value new value of the specified variable
+             * @param rCurrentProcessInfo the process info
              */
-            template<class TVariableType> bool Has(const TVariableType& rThisVariable) const
+            virtual void SetValue( const Variable<array_1d<double,3> >& rVariable, 
+                                   const array_1d<double,3>& Value, 
+                                   const ProcessInfo& rCurrentProcessInfo)
             {
-                KRATOS_ERROR(std::logic_error,  "Called the virtual function for GetValue" , "");
+                KRATOS_ERROR(std::logic_error,  "Called the virtual function for SetValue" , "");
+            }
+            
+            /**
+             * sets the value of a specified variable
+             * @param rVariable the variable to be returned
+             * @param Value new value of the specified variable
+             * @param rCurrentProcessInfo the process info
+             */
+            virtual void SetValue( const Variable<array_1d<double,6> >& rVariable, 
+                                   const array_1d<double,6>& Value, 
+                                   const ProcessInfo& rCurrentProcessInfo)
+            {
+                KRATOS_ERROR(std::logic_error,  "Called the virtual function for SetValue" , "");
+            }
+            
+            /**
+             * Is called to check whether the provided material parameters in the Properties
+             * match the requirements of current constitutive model.
+             * @param props the current Properties to be validated against.
+             * @return true, if parameters are correct; false, if parameters are insufficient / faulty
+             * NOTE: this has to implemented by each constitutive model. Returns false in base class since
+             * no valid implementation is contained here.
+             */
+            virtual bool ValidateInput( const Properties& props )
+            {
+                return false;
+            }
+            
+            /**
+             * returns the expected strain measure of this constitutive law (by default linear strains)
+             * @return the expected strain measure
+             */
+            virtual StrainMeasure GetStrainMeasure()
+            {
+                return StrainMeasure_Linear;
+            }
+            
+            /**
+             * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
+             * @return the expected stress measure
+             */
+            virtual StressMeasure GetStressMeasure()
+            {
+                return StressMeasure_PK1;
+            }
+            
+            /**
+             * returns whether this constitutive model is formulated in incremental strains/stresses
+             * NOTE: by default, all constitutive models should be formulated in total strains
+             * @return true, if formulated in incremental strains/stresses, false otherwise
+             */
+            virtual bool IsIncremental()
+            {
+                return false;
             }
             
             /**
@@ -244,53 +380,6 @@ namespace Kratos
             }
             
             /**
-             * Updates the material (e.g. performs return-map algorithm)
-             * This is to be called at each iteration right before the stresses
-             * are requested
-             * May be left out for linear calculations
-             * @param StrainVector the current total strain vector $$\epsilon = \left[\epsilon_{11},
-             * \epsilon_{22}, \epsilon_{33}, 2\,\epsilon_{33}, 2\,\epsilon_{33}, 2\,\epsilon_{33}\right]$$
-             * @param props the Properties instance of the current element
-             * @param geom the geometry of the current element
-             * @param ShapeFunctionsValues the values of the shape functions in the current 
-             * integration point
-             * @param the current ProcessInfo instance
-             */
-            virtual void UpdateMaterial( const Vector& StrainVector,
-                                         const Properties& props,
-                                         const GeometryType& geom,
-                                         const Vector& ShapeFunctionsValues ,
-                                         const ProcessInfo& CurrentProcessInfo)
-            {
-            }
-
-            /**
-             * performs and calculates the stressVector and tangnet Matrix
-             * This is to be called at each iteration right before the stresses
-             * are requested
-             * May be left out for linear calculations
-             * @param StressTensor the calculated stress tensor
-             * @param StrainTensor the given strain tensor
-             * @param algorithmicTangent the 4th order algorithmic tangent tensor
-             * @param the current ProcessInfo instance
-              */
-
-           virtual void CalculateMaterialResponse(
-                            const Vector& StrainVector,
-                            //const ProcessInfo& CurrentProcessInfo,
-                            Vector& StressVector,
-                            Matrix& algorithmicTangent,
-                            bool calculate_stress_flag,
-                            bool calculate_tangent_flag,
-                            bool  save_internal_variables
-                            )
-          {
-               if(calculate_stress_flag == true) this->CalculateStress(StrainVector,StressVector);
-               if(calculate_tangent_flag == true) this->CalculateConstitutiveMatrix(StrainVector,algorithmicTangent);
-          }
-
-            
-            /**
              * to be called at the end of each solution step
              * (e.g. from Element::FinalizeSolutionStep)
              * @param props the Properties instance of the current element
@@ -301,181 +390,128 @@ namespace Kratos
             virtual void FinalizeSolutionStep( const Properties& props,
                                                const GeometryType& geom, 
                                                const Vector& ShapeFunctionsValues ,
-                                               const ProcessInfo& CurrentProcessInfo)
+                                               const ProcessInfo& CurrentProcessInfo )
             {
             }
             
-            /**
-             * calculates the current stress and the material tangent
-             * NOTE: there are two versions of this function: one for a matrix representation
-             * of the material tensor and one for a tensorial formulation. Each ConstitutiveLaw
-             * HAS TO IMPLEMENT both of them (for convenience, there are conversation functions 
-             * available in MathUtils for either of them)
-             * @param StressTensor the calculated stress vector 
-             */
-//             virtual void CalculateStressAndTangentMatrix(Matrix& StressTensor, 
-//                     const Matrix& StrainTensor, 
-//                     std::vector<std::vector<Matrix> >& algorithmicTangent)
-//             {
-//             }
-            
-
-            /**
-             * calculates the current stress and the material tangent
-             * NOTE: there are two versions of this function: one for a matrix representation
-             * of the material tensor and one for a tensorial formulation. Each ConstitutiveLaw
-             * HAS TO IMPLEMENT both of them (for convenience, there are conversation functions 
-             * available in MathUtils for either of them)
-             * @param StressTensor the calculated stress tensor
-             * @param StrainTensor the given strain tensor
-             * @param algorithmicTangent the 4th order algorithmic tangent tensor
-             */
-            virtual void CalculateStressAndTangentMatrix( Matrix& StressTensor,
-                    const Matrix& StrainTensor,
-                    MaterialTensorType& algorithmicTangent)
+            virtual void InitializeNonLinearIteration( const Properties& props, 
+                                                       const GeometryType& geom, 
+                                                       const Vector& ShapeFunctionsValues, 
+                                                       const ProcessInfo& CurrentProcessInfo )
             {
-                KRATOS_ERROR(std::logic_error,  
-                             "Called the virtual function for CalculateStressAndTangentMatrix" , "");
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for InitializeNonLinearIteration", "" );
             }
             
             /**
-             * calculates the current stress and the material tangent
-             * NOTE: there are two versions of this function: one for a matrix representation
-             * of the material tensor and one for a tensorial formulation. Each ConstitutiveLaw
-             * HAS TO IMPLEMENT both of them (for convenience, there are conversation functions 
-             * available in MathUtils for either of them)
-             * @param StressVector the calculated stress vector 
-             * @param StrainVector the given strain vector
-             * @param algorithmicTangent the calculated algorithmic tangent matrix
+             * Computes the material response in terms of stresses and algorithmic tangent
+             * @param StrainVector the current strains (total strains, input)
+             * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear strain measure is used)
+             * @param StressVector the computed stresses (output)
+             * @param algorithmicTangent the material tangent matrix (output)
+             * @param CurrentProcessInfo current ProcessInfo instance
+             * @param props the material's Properties object
+             * @param geom the element's geometry
+             * @param ShapeFunctionsValues the shape functions values in the current integration pointer
+             * @param CalculateStresses flag whether or not to compute the stress response
+             * @param CalculateTangent flag to determine if to compute the material tangent
+             * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
+             * @param SaveInternalVariables flag whether or not to store internal (history) variables
              */
-            virtual void CalculateStressAndTangentMatrix( Vector& StressVector,
-                    const Vector& StrainVector,
-                    Matrix& algorithmicTangent)
+            virtual void CalculateMaterialResponse( const Vector& StrainVector,
+                                                    const Matrix& DeformationGradient,
+                                                    Vector& StressVector,
+                                                    Matrix& AlgorithmicTangent,
+                                                    const ProcessInfo& CurrentProcessInfo,
+                                                    const Properties& props, 
+                                                    const GeometryType& geom,
+                                                    const Vector& ShapeFunctionsValues,
+                                                    bool CalculateStresses = true,
+                                                    int CalculateTangent = true,
+                                                    bool SaveInternalVariables = true
+                                                  )
             {
-                KRATOS_ERROR(std::logic_error,  
-                             "Called the virtual function for CalculateStressAndTangentMatrix" , "");
-            }
-
-            /**
-             * this is to calculate the Cauchy stresses from a given Piola-Kirchhoff-2 stresses
-             * vector
-             * @param Cauchy_StressVector output: Cauchy stresses
-             * @param F input: deformation gradient
-             * @param PK2_StressVector input: Piola-Kirchhoff-2 stresses
-             * @param GreenLagrangeStrainVector input Green-Lagrange strains
-             */
-            virtual void CalculateCauchyStresses( Vector& Cauchy_StressVector,
-                    const Matrix& F,
-                    const Vector& PK2_StressVector,
-                    const Vector& GreenLagrangeStrainVector)
-            {
-            }
-            
-	/****/
-		 virtual void CalculateStressAndTangentMatrix( Matrix& StressTensor,
-			const Matrix& F,
-                        const Matrix& StrainTensor,
-                        Matrix& algorithmicTangent)
-                {
-                }
-
-
-            /**
-             * TO BE REMOVED
-             */
-            virtual void CalculateConstitutiveMatrix( const Vector& StrainVector, 
-                    Matrix& ElasticityTensor )
-            {
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for CalculateMaterialResponse", "" );
             }
             
             /**
-             * calculates the current stresses (in vector representation).
-             * This is intended for linear calculations where the algorithmic tangent
-             * is not needed
-             * @param StrainVector input: current total strains
-             * @param StressVector output: the current stresses
+             * Computes the volumetric part of the material response in terms of stresses and algorithmic tangent
+             * @param StrainVector the current strains (total strains, input)
+             * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
+             * @param StressVector the computed stresses (output)
+             * @param algorithmicTangent the material tangent matrix (output)
+             * @param CurrentProcessInfo current ProcessInfo instance
+             * @param props the material's Properties object
+             * @param geom the element's geometry
+             * @param ShapeFunctionsValues the shape functions values in the current integration pointer
+             * @param CalculateStresses flag whether or not to compute the stress response
+             * @param CalculateTangent flag to determine if to compute the material tangent
+             * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
+             * @param SaveInternalVariables flag whether or not to store internal (history) variables
              */
-            virtual void CalculateStress( const Vector& StrainVector, 
-                                          Vector& StressVector)
+            virtual void CalculateVolumetricResponse( const double VolumetricStrain,
+                                                      const Matrix& DeformationGradient,
+                                                      double& VolumetricStress,
+                                                      double& AlgorithmicBulk,
+                                                      const ProcessInfo& CurrentProcessInfo,
+                                                      const Properties& props, 
+                                                      const GeometryType& geom,
+                                                      const Vector& ShapeFunctionsValues,
+                                                      bool CalculateStresses = true,
+                                                      int CalculateTangent = true,
+                                                      bool SaveInternalVariables = true )
             {
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for CalculateVolumetricResponse", "" );
             }
             
             /**
-             * Calculates the value of a given variable on the current integration point
-             * @param rVariable input: given variable
-             * @param Output output: the calculated value of the variable
-             * @param rCurrentProcessInfo input: the current ProcessInfo instance
+             * Computes the deviatoric part of the material response in terms of stresses and algorithmic tangent
+             * @param StrainVector the current strains (total strains, input)
+             * @param DeformationGradient the current deformation gradient (can be an empty matrix if a linear
+             * @param StressVector the computed stresses (output)
+             * @param algorithmicTangent the material tangent matrix (output)
+             * @param CurrentProcessInfo current ProcessInfo instance
+             * @param props the material's Properties object
+             * TODO: add proper definition for algorithmic tangent
              */
-            virtual void Calculate( const Variable<double>& rVariable, 
-                                    double& Output, 
-                                    const ProcessInfo& rCurrentProcessInfo)
+            virtual void CalculateDeviatoricResponse( const Vector& StrainVector,
+                                                      const Matrix& DeformationGradient,
+                                                      Vector& StressVector,
+                                                      Matrix& AlgorithmicTangent,
+                                                      const ProcessInfo& CurrentProcessInfo,
+                                                      const Properties& props, 
+                                                      const GeometryType& geom,
+                                                      const Vector& ShapeFunctionsValues,
+                                                      bool CalculateStresses = true,
+                                                      int CalculateTangent = true,
+                                                      bool SaveInternalVariables = true )
             {
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for CalculateDeviatoricResponse", "" );
             }
             
-            /**
-             * Calculates the value of a given variable on the current integration point
-             * @param rVariable input: given variable
-             * @param Output output: the calculated value of the variable
-             * @param rCurrentProcessInfo input: the current ProcessInfo instance
-             */
-            virtual void Calculate( const Variable<Vector >& rVariable, 
-                                    Vector& Output, 
-                                    const ProcessInfo& rCurrentProcessInfo)
-            {
-            }
-            
-            /**
-             * Calculates the value of a given variable on the current integration point
-             * @param rVariable input: given variable
-             * @param Output output: the calculated value of the variable
-             * @param rCurrentProcessInfo input: the current ProcessInfo instance
-             */
-            virtual void Calculate( const Variable<Matrix >& rVariable, 
-                                    Matrix& Output, 
-                                    const ProcessInfo& rCurrentProcessInfo)
-            {
-            }
-            
-                /**
-             * Calculates the value of a given variable on the current integration point
-             * @param weight 
-             * @param Other_Constitutive_Law
-             * @param rCurrentProcessInfo input: the current ProcessInfo instance
-             */
-            virtual void Interpolate_Internal_Variables(double& weight, 
-                                    ConstitutiveLaw<Node<3> >& Other_Constitutive_Law,   
-                                    const ProcessInfo& rCurrentProcessInfo)
-            {
-            }
-
-
             /**
              * This can be used in order to reset all internal variables of the
              * constitutive law (e.g. if a model should be reset to its reference state)
+             * @param props the Properties instance of the current element
+             * @param geom the geometry of the current element
+             * @param ShapeFunctionsValues the shape functions values in the current integration point
+             * @param the current ProcessInfo instance
              */
-            virtual void ResetMaterial( const Properties& props )
+            virtual void ResetMaterial( const Properties& props,
+                                        const GeometryType& geom,
+                                        const Vector& ShapeFunctionsValues )
             {
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for ResetMaterial", "" );
             }
- 
-                       /// Turn back information as a string.
-            virtual std::string Info() const
-            {
-                std::stringstream buffer;
-                buffer << "No Constitutive Law" << std::endl; 
-                return buffer.str();
-            }
+
             
-        
         protected:
- 
- 
-        
+            
         private:
     }; /* Class ConstitutiveLaw */
     
     /**
      * definition of CONSTITUTIVE_LAW variable
      */
-    KRATOS_DEFINE_VARIABLE(ConstitutiveLaw<Node<3> >::Pointer, CONSTITUTIVE_LAW)
+    KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 }  /* namespace Kratos.*/
 #endif /* KRATOS_CONSTITUTIVE_LAW  defined */
