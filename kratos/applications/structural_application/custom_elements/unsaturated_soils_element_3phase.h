@@ -102,7 +102,7 @@ namespace Kratos
       ///@{
 				typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-               typedef ConstitutiveLaw<Node<3> > ConstitutiveLawType;
+               typedef ConstitutiveLaw ConstitutiveLawType;
 
                typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
       /// Counted pointer of UnsaturatedSoilsElement_3phase
@@ -239,7 +239,7 @@ namespace Kratos
       ///@{ 
                Geometry< Node<3> >::Pointer  mpPressureGeometry; 
 
-	  std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
+	  std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
                
 				IntegrationMethod mThisIntegrationMethod;
 
@@ -510,11 +510,11 @@ namespace Kratos
                
                void CalculateStressAndTangentialStiffnessUnsaturatedSoils(Matrix& StressTensor,std::vector<std::vector<Matrix> >& tanC_U,
                        Matrix& tanC_W,Matrix& tanC_A, Matrix& StrainTensor,
-                       const Matrix& DN_DX_DISP, double waterPressure, double airPressure, int PointNumber);
+                       const Matrix& DN_DX_DISP, double waterPressure, double airPressure, int PointNumber, ProcessInfo& rCurrentProcessInfo);
                
                void CalculateStressAndTangentialStiffnessUnsaturatedSoils(Matrix& StressTensor, array_1d<double,81>& tanC_U,
                        Matrix& tanC_W,Matrix& tanC_A, Matrix& StrainTensor,
-                       const Matrix& DN_DX_DISP, double waterPressure, double airPressure, int PointNumber);
+                       const Matrix& DN_DX_DISP, double waterPressure, double airPressure, int PointNumber, ProcessInfo& rCurrentProcessInfo);
         //************************************************************************************
 	//************************************************************************************
         //STRESSES, STRAINS AND CONSTITUTIVE MODELL

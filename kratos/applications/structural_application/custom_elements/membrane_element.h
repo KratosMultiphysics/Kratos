@@ -173,7 +173,7 @@ class MembraneElement
 
 		/// privat variables
 
-		std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
+		std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 		Geometry< Point<3,double> >::Pointer  mpReferenceGeometry; 
 
 		Vector mDetJ0;

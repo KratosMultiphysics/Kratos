@@ -252,13 +252,25 @@ namespace MixedLagrangianAuxiliaries
                       
                         CalculateAlamnsiStrain(msF,msStrainVector);
 
-			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-					GetProperties(),
-					GetGeometry(),
-					row(Ncontainer,PointNumber),
-					rCurrentProcessInfo );
+// 			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+// 					GetProperties(),
+// 					GetGeometry(),
+// 					row(Ncontainer,PointNumber),
+// 					rCurrentProcessInfo );
 			//Calculation of stress
-			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
+// 			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    msF,
+                    msStressVector,
+                    msD,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(Ncontainer,PointNumber),
+                    true,
+                    CalculateStiffnessMatrixFlag,
+                    true );
 
                         CalculateSPKStress(msF,msStressVector);
 
@@ -272,7 +284,7 @@ namespace MixedLagrangianAuxiliaries
 			if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 			{
 				//mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
-                                mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);	
+//                                 mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix(msStressVector,msStrainVector,msD);	
 				//contributions to stiffness matrix calculated on the reference config
 				noalias(rLeftHandSideMatrix) += prod(trans(msB),(IntToReferenceWeight)*Matrix(prod(msD,msB)) ); //to be optimized to remove the temporary
                                 //KRATOS_WATCH(msD)
@@ -592,16 +604,29 @@ namespace MixedLagrangianAuxiliaries
             if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
                 Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
 		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
 	}
 	//************************************************************************************
 	//************************************************************************************
 	void MixedLagrangian::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
 	{
-            if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+        if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
                 Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());
-		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+        
+        if(rVariable==INSITU_STRESS)
+        {
+            for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+            {
+                if(Output[ii].size() != msStrainVector.size())
+                    Output[ii].resize(msStrainVector.size(),false);
+                Output[ii] = mConstitutiveLawVector[ii]->GetValue(INSITU_STRESS, Output[ii]);
+            }
+        }
+        else
+        {
+            for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+                Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
+        }
 	}
 	//************************************************************************************
 	//************************************************************************************
@@ -650,21 +675,27 @@ namespace MixedLagrangianAuxiliaries
 				if(Output[PointNumber].size2() != msStrainVector.size())
 					Output[PointNumber].resize(1,msStrainVector.size(),false);
 				
-				mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-						GetProperties(),
-						GetGeometry(),
-						row(Ncontainer,PointNumber),
-						rCurrentProcessInfo );
-				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //saving 
+// 				mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+// 						GetProperties(),
+// 						GetGeometry(),
+// 						row(Ncontainer,PointNumber),
+// 						rCurrentProcessInfo );
+// 				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //saving 
+                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    msF,
+                    msStressVector,
+                    msD,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(),PointNumber),
+                    true,
+                    0,
+                    true );
 
 				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++)
 					Output[PointNumber](0,ii) = msStressVector[ii];
-			}
-			else if(rVariable==INSITU_STRESS)
-			{
-				if(Output[PointNumber].size2() != msStrainVector.size())
-					Output[PointNumber].resize(1,msStrainVector.size(),false);
-				row(Output[PointNumber],0) = mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
 			}
 		}
 		KRATOS_CATCH("")
@@ -675,13 +706,12 @@ namespace MixedLagrangianAuxiliaries
 	//************************************************************************************
 	void MixedLagrangian::SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
-
-
-                  for( unsigned int PointNumber = 0; PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
-                  {
-                        mConstitutiveLawVector[PointNumber]->SetValue(rVariable ,
-                                rValues[PointNumber], rCurrentProcessInfo );
-                  }
+        for( unsigned int PointNumber = 0;
+             PointNumber<GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
+        {
+            mConstitutiveLawVector[PointNumber]->SetValue(rVariable ,
+                    rValues[PointNumber], rCurrentProcessInfo );
+        }
 	
 	}
 	
@@ -707,7 +737,7 @@ namespace MixedLagrangianAuxiliaries
                 	rValues.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
 														
 		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-			rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+			rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
 	}
 
 
@@ -723,7 +753,7 @@ namespace MixedLagrangianAuxiliaries
                      PointNumber++ )
                 {
                     rValues[PointNumber] = 
-                            mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
+                            mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS,rValues[PointNumber]);
                 }
             }
             if(rVariable==MATERIAL_PARAMETERS)
@@ -732,7 +762,7 @@ namespace MixedLagrangianAuxiliaries
                      PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
                 {
                     rValues[PointNumber] =
-                            mConstitutiveLawVector[PointNumber]->GetValue(MATERIAL_PARAMETERS);
+                            mConstitutiveLawVector[PointNumber]->GetValue(MATERIAL_PARAMETERS,rValues[PointNumber]);
                 }
             }
             if (rVariable==INTERNAL_VARIABLES)
@@ -742,7 +772,7 @@ namespace MixedLagrangianAuxiliaries
                      PointNumber++ )
                 {
                     rValues[PointNumber] = 
-                            mConstitutiveLawVector[PointNumber]->GetValue(INTERNAL_VARIABLES);
+                            mConstitutiveLawVector[PointNumber]->GetValue(INTERNAL_VARIABLES,rValues[PointNumber]);
                 }
             }
         }

@@ -486,7 +486,8 @@ namespace Kratos
         if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
 	{
 		array_1d<double,6> temp;
-                Matrix plastic_strain = mConstitutiveLawVector[0]->GetValue(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR);
+        Matrix plastic_strain = ZeroMatrix(3,3);
+        plastic_strain = mConstitutiveLawVector[0]->GetValue(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, plastic_strain);
 //                KRATOS_WATCH(plastic_strain);
 		array_1d<double,6> global_strain;
 		array_1d<double,3>& v1 = phi1;
@@ -1620,9 +1621,10 @@ namespace Kratos
         strain[0] = membrane_strain[0] + bending_strain[0]*eta*lambda*t_half;
         strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
         strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
-        mConstitutiveLawVector[0]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
+//         mConstitutiveLawVector[0]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
         mstrains(0,0) = strain[0]; mstrains(0,1) = strain[1]; mstrains(0,2) = strain[2];
-        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
+
 
 //        mConstitutiveLawVector[0]->CalculateStress(strain,stress);
 //        mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix(stress, strain, D);
@@ -1640,9 +1642,9 @@ namespace Kratos
         strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
         strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
 //        KRATOS_WATCH(strain);
-        mConstitutiveLawVector[1]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
+//         mConstitutiveLawVector[1]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
         mstrains(1,0) = strain[0]; mstrains(1,1) = strain[1]; mstrains(1,2) = strain[2];
-        mConstitutiveLawVector[1]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
 //	mConstitutiveLawVector[1]->CalculateStress(strain,stress);
 //        mConstitutiveLawVector[1]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;
@@ -1659,9 +1661,9 @@ namespace Kratos
         strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
         strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
 //        KRATOS_WATCH(strain);
-        mConstitutiveLawVector[2]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
+//         mConstitutiveLawVector[2]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
         mstrains(2,0) = strain[0]; mstrains(2,1) = strain[1]; mstrains(2,2) = strain[2];
-        mConstitutiveLawVector[2]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
 //	mConstitutiveLawVector[2]->CalculateStress(strain,stress);
 //        mConstitutiveLawVector[2]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;
@@ -1678,9 +1680,10 @@ namespace Kratos
         strain[1] = membrane_strain[1] + bending_strain[1]*eta*lambda*t_half;
         strain[2] = membrane_strain[2] + bending_strain[2]*eta*lambda*t_half; //note that the 2 is already included in the membrane and bending strain;
 //        KRATOS_WATCH(strain);
-        mConstitutiveLawVector[3]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
+//         mConstitutiveLawVector[3]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
         mstrains(3,0) = strain[0]; mstrains(3,1) = strain[1]; mstrains(3,2) = strain[2];
-        mConstitutiveLawVector[3]->CalculateMaterialResponse(strain,stress,D,true,true,false);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
+//         mConstitutiveLawVector[3]->CalculateMaterialResponse(strain,stress,D,true,true,false);
 //	mConstitutiveLawVector[3]->CalculateStress(strain,stress);
 //        mConstitutiveLawVector[3]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;

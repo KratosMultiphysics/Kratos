@@ -186,7 +186,7 @@ namespace Kratos {
         array_1d<double,3> mK0;
 
         //vector of constitutive laws across the thickness
-        std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
+        std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
 
 

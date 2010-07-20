@@ -112,7 +112,7 @@ namespace Kratos
             ///@name Type Definitions
             ///@{
             ///Reference type definition for constitutive laws
-            typedef ConstitutiveLaw<Node<3> > ConstitutiveLawType;
+            typedef ConstitutiveLaw ConstitutiveLawType;
             ///Pointer type for constitutive laws
             typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
             ///Type definition for integration methods
@@ -263,7 +263,7 @@ namespace Kratos
             /**
              * Container for constitutive law instances on each integration point
              */
-            std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
+            std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
             
             double mTotalDomainInitialSize;
             std::vector< Matrix > mInvJ0;

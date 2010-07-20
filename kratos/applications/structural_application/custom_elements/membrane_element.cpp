@@ -350,15 +350,30 @@ namespace Kratos
 
 			// Calculation of the StrainVector
 			CalculateStrain(msStrainVector, C);
+            
+            Matrix dummy = ZeroMatrix(1,1);
+            
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    ZeroMatrix(1),
+                    msStressVector,
+                    dummy,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(),PointNumber),
+                    true,
+                    0,
+                    true );
 
 			// calculation of the StressVector (PK2)
-			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-						GetProperties(),
-						GetGeometry(),
-						row(GetGeometry().ShapeFunctionsValues(),PointNumber),
-						rCurrentProcessInfo );
+// 			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+// 						GetProperties(),
+// 						GetGeometry(),
+// 						row(GetGeometry().ShapeFunctionsValues(),PointNumber),
+// 						rCurrentProcessInfo );
 			
-			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); 
+// 			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); 
 
 			noalias(mStressesVector[PointNumber]) = ZeroVector(6);
 			Calculate_GlobalStressVector(mStressesVector[PointNumber], msStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
@@ -1032,16 +1047,29 @@ namespace Kratos
 			// calculation of the StrainVector
 			CalculateStrain(msStrainVector, msC);
 			mStrainsVector[PointNumber] = msStrainVector;	//saving the strain vector
+            
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    ZeroMatrix(1),
+                    msStressVector,
+                    msD,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(Ncontainer,PointNumber),
+                    true,
+                    (int)CalculateStiffnessMatrixFlag,
+                    true );
 
 			// material update (considering the level of strain achieved)
-			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-						GetProperties(),
-						GetGeometry(),
-						row(Ncontainer,PointNumber),
-						rCurrentProcessInfo );
+// 			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+// 						GetProperties(),
+// 						GetGeometry(),
+// 						row(Ncontainer,PointNumber),
+// 						rCurrentProcessInfo );
 
 			// calculation of the StressVector (PK2)			
-			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); 
+// 			mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); 
 
 			noalias(mStressesVector[PointNumber]) = ZeroVector(6);
 			Calculate_GlobalStressVector(mStressesVector[PointNumber], msStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
@@ -1079,7 +1107,7 @@ namespace Kratos
 			// LEFT HAND SIDE MATRIX
 			if (CalculateStiffnessMatrixFlag == true)
 			{
-				mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
+// 				mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector,msD);
 
 				//adding contributions to the stiffness matrix
 				CalculateAndAddKm(rLeftHandSideMatrix, msB, msD, IntToReferenceWeight);

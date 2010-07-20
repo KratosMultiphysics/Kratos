@@ -28,7 +28,7 @@ namespace Kratos
     {
     public:
 
-      typedef ConstitutiveLaw<Node<3> > ConstitutiveLawType;
+      typedef ConstitutiveLaw ConstitutiveLawType;
       typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
 
       KRATOS_CLASS_POINTER_DEFINITION(HypoelasticElement);
@@ -83,7 +83,7 @@ namespace Kratos
 
 	  double mTotalDomainInitialSize;
 
-		std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
+		std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
 	  std::vector< Matrix > mInvJ0;
 		Vector mDetJ0;

@@ -761,7 +761,7 @@ namespace Kratos
                         mConstitutiveLawVector[Point]->FinalizeSolutionStep(GetProperties(), GetGeometry(), ZeroVector(0), CurrentProcessInfo);
                 }
                 Vector Dummy_Vector(9);
-                noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES);
+                noalias(Dummy_Vector)= mConstitutiveLawVector[0]->GetValue(INTERNAL_VARIABLES, Dummy_Vector);
                 for(unsigned int i=0; i< GetGeometry().size(); i++)
                 {
                         GetGeometry()[i].GetSolutionStepValue(MOMENTUM_X)= Dummy_Vector(0);
@@ -2986,10 +2986,20 @@ namespace Kratos
 
                 //Set suction in const. law
                 mConstitutiveLawVector[PointNumber]->SetValue(SUCTION, (airPressure-waterPressure),  rCurrentProcessInfo);
-                mConstitutiveLawVector[PointNumber]->CalculateStress(StrainVector, StressVector);
-                //Call the material law to get the current algorithmic tangent
-                mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(StrainVector, tanC_U);
-
+                
+                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    StrainVector,
+                    ZeroMatrix(1),
+                    StressVector,
+                    tanC_U,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(),PointNumber),
+                    true,
+                    1,
+                    true );
+                
                 CalculateEffectiveStress(StressVector, tanC_W, tanC_A, waterPressure, airPressure);
 
                 KRATOS_CATCH("")
@@ -3075,7 +3085,7 @@ namespace Kratos
                         {
                                 if(rValues[i].size1() != 3 || rValues[i].size2() != 3 )
                                         rValues[i].resize(3,3);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(ELASTIC_LEFT_CAUCHY_GREEN_OLD);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(ELASTIC_LEFT_CAUCHY_GREEN_OLD, rValues[i]);
                         }
                 }
         }
@@ -3094,7 +3104,7 @@ namespace Kratos
                         {
                                 if(rValues[i].size() != 6 )
                                         rValues[i].resize(6);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS, rValues[i]);
                         }
                 }
                 //To Plot Internal variables
@@ -3104,7 +3114,7 @@ namespace Kratos
                         {
                                 if(rValues[i].size() != 9 )
                                         rValues[i].resize(9);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES,rValues[i]);
                         }
                 }
                 //To Plot Stresses
@@ -3114,7 +3124,7 @@ namespace Kratos
                         {
                                 if(rValues[i].size() != 6 )
                                         rValues[i].resize(6);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(STRESSES);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(STRESSES, rValues[i]);
                         }
                 }
                 //To Plot Fluid Flows

@@ -259,24 +259,27 @@ namespace LinearElementAuxiliaries
                         
 
 			//material update (considering the level of strain achieved)
-			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-					GetProperties(),
-					GetGeometry(),
-					row(Ncontainer,PointNumber),
-					rCurrentProcessInfo );
+// 			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+// 					GetProperties(),
+// 					GetGeometry(),
+// 					row(Ncontainer,PointNumber),
+// 					rCurrentProcessInfo );
 			//Calculation of stress
                         //KRATOS_WATCH( Id() )
                         //KRATOS_WATCH(PointNumber)
 			//mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector);
-                        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-                            msStrainVector,
-                            //rCurrentProcessInfo,
-                            msStressVector,
-                            msD,
-                            true,
-                            CalculateStiffnessMatrixFlag,
-                            true
-                            );
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    ZeroMatrix(1),
+                    msStressVector,
+                    msD,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(Ncontainer,PointNumber),
+                    true,
+                    CalculateStiffnessMatrixFlag,
+                    true );
 
 			//calculating operator B
 			CalculateB(msB,msDN_DX,msStrainVector.size());
@@ -624,16 +627,29 @@ namespace LinearElementAuxiliaries
             if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
                 Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
 		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
 	}
 	//************************************************************************************
 	//************************************************************************************
 	void LinearElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
 	{
-            if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
+        if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
                 Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());
-		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-			Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+            
+        if(rVariable==INSITU_STRESS)
+        {
+            for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+            {
+                if(Output[ii].size() != msStrainVector.size())
+                    Output[ii].resize(msStrainVector.size(),false);
+                Output[ii] = mConstitutiveLawVector[ii]->GetValue(INSITU_STRESS, Output[ii]);
+            }
+        }
+        else
+        {
+            for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
+                Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
+        }
 	}
 	//************************************************************************************
 	//************************************************************************************
@@ -689,34 +705,39 @@ namespace LinearElementAuxiliaries
 				if(Output[PointNumber].size2() != msStrainVector.size())
 					Output[PointNumber].resize(1,msStrainVector.size(),false);
 				
-				mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-						GetProperties(),
-						GetGeometry(),
-						row(Ncontainer,PointNumber),
-						rCurrentProcessInfo );
-				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //
+// 				mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+// 						GetProperties(),
+// 						GetGeometry(),
+// 						row(Ncontainer,PointNumber),
+// 						rCurrentProcessInfo );
+// 				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //
+                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    msF,
+                    msStressVector,
+                    msD,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(),PointNumber),
+                    true,
+                    0,
+                    true );
 				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++){
 					Output[PointNumber](0,ii) = msStressVector[ii];}
 			}
-			else if(rVariable==INSITU_STRESS)
-			{
-				if(Output[PointNumber].size2() != msStrainVector.size())
-					Output[PointNumber].resize(1,msStrainVector.size(),false);
-				row(Output[PointNumber],0) = mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
-
-                        }
-
-                       else if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+			
+            else if(rVariable==GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
 			{
                                 double size  = msStrainVector.size();
                                 msPlasticStrainVector.resize(1,size);
 				if(Output[PointNumber].size2() != msStrainVector.size())
 				    Output[PointNumber].resize(1, size,false);
                                          
-				mConstitutiveLawVector[PointNumber]->Calculate(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, msPlasticStrainVector, rCurrentProcessInfo);
+				mConstitutiveLawVector[PointNumber]->GetValue(GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR, msPlasticStrainVector);
 			        Output[PointNumber] = msPlasticStrainVector;
 			}
-	           }
+        }
 
       KRATOS_CATCH("")
 }
@@ -773,7 +794,7 @@ namespace LinearElementAuxiliaries
                 	rValues.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
 														
 		for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-			rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable );
+			rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
 	}
 
 
@@ -789,7 +810,7 @@ namespace LinearElementAuxiliaries
                      PointNumber++ )
                 {
                     rValues[PointNumber] = 
-                            mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS);
+                            mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS, rValues[PointNumber]);
                 }
             }
             if(rVariable==MATERIAL_PARAMETERS)
@@ -798,7 +819,7 @@ namespace LinearElementAuxiliaries
                      PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); PointNumber++ )
                 {
                     rValues[PointNumber] =
-                            mConstitutiveLawVector[PointNumber]->GetValue(MATERIAL_PARAMETERS);
+                            mConstitutiveLawVector[PointNumber]->GetValue(MATERIAL_PARAMETERS, rValues[PointNumber]);
                 }
             }
             if (rVariable==INTERNAL_VARIABLES)
@@ -808,7 +829,7 @@ namespace LinearElementAuxiliaries
                      PointNumber++ )
                 {
                     rValues[PointNumber] = 
-                            mConstitutiveLawVector[PointNumber]->GetValue(INTERNAL_VARIABLES);
+                            mConstitutiveLawVector[PointNumber]->GetValue(INTERNAL_VARIABLES, rValues[PointNumber]);
                            
                 }
             }
@@ -909,7 +930,7 @@ namespace LinearElementAuxiliaries
                       PointNumber < GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(); 
                       PointNumber++ )
                  {
-                    mConstitutiveLawVector[PointNumber]-> Calculate(DELTA_TIME, c, rCurrentProcessInfo);
+                    mConstitutiveLawVector[PointNumber]-> GetValue(DELTA_TIME, c);
                     Values[PointNumber] = c; 
                  }
              }

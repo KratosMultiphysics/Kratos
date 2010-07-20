@@ -72,7 +72,7 @@ namespace Kratos
       
 				typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    typedef ConstitutiveLaw<Node<3> > ConstitutiveLawType;
+    typedef ConstitutiveLaw ConstitutiveLawType;
 
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
      

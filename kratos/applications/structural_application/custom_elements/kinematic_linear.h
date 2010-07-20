@@ -104,7 +104,7 @@ namespace Kratos
       ///@{
 				typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-                typedef ConstitutiveLaw<Node<3> > ConstitutiveLawType;
+                typedef ConstitutiveLaw ConstitutiveLawType;
 
                	typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
       /// Counted pointer of KinematicLinear
@@ -255,7 +255,7 @@ namespace Kratos
       ///@} 
       ///@name Member Variables 
       ///@{ 
-	  			std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
+	  			std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
                
 				IntegrationMethod mThisIntegrationMethod;
 
