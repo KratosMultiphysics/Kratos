@@ -21,6 +21,7 @@
 #include "custom_utilities/projection.h"
 #include "custom_utilities/GenerateModelPartUtilities.h"
 #include "custom_utilities/local_triangle_refine_mesh.h"
+#include "custom_utilities/local_tetrahedra_refine_mesh.h"
 
 
 namespace Kratos
@@ -67,6 +68,11 @@ namespace Python
          class_<Local_Refine_Triangle_Mesh, boost::noncopyable >
                     ("LocalRefineTriangleMesh", init<ModelPart&>() )
 		    .def("LocalRefineMesh",              &Local_Refine_Triangle_Mesh::Local_Refine_Mesh)
+                    ;
+
+         class_<Local_Refine_Tetrahedra_Mesh, boost::noncopyable >
+                    ("LocalRefineTetrahedraMesh", init<ModelPart&>() )
+		    .def("LocalRefineMesh",              &Local_Refine_Tetrahedra_Mesh::Local_Refine_Mesh)
                     ;
 
 
