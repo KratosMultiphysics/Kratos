@@ -239,7 +239,22 @@ namespace Kratos
 			//KRATOS_WATCH("FOR CALCULATEALL");
 			//KRATOS_WATCH(msF);
 			//CalculateStress(msStrainVector,msStressVector,msF,msD, rCurrentProcessInfo);
-			mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(msStressVector, msF, row(vectorcauchyN,PointNumber), GLstrain);
+// 			mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(msStressVector, msF, row(vectorcauchyN,PointNumber), GLstrain);
+            Matrix dummy(0,0);
+            Vector cauchy_stress = row(vectorcauchyN,PointNumber);
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    GLstrain,
+                    msF,
+                    cauchy_stress,
+                    dummy,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(Ncontainer,PointNumber),
+                    true,
+                    0,//no material matrix is computed
+                    true );
+            noalias(row(vectorcauchyN,PointNumber)) = cauchy_stress;
 
 			//CalculateRotatedStress(msStressVector,msF, rCurrentProcessInfo);
 			
@@ -341,8 +356,9 @@ namespace Kratos
 			//temporary
 
 			mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW];
-			
-			mConstitutiveLawVector[i]->InitializeMaterial( 	GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(), i) ); 
+			if( mConstitutiveLawVector[i]->GetStressMeasure() != ConstitutiveLaw::StressMeasure_Cauchy )
+                KRATOS_ERROR( std::logic_error, "The specified constitutive law does not support Cauchy stresses, please choose a suitable constitutive model", "" );
+            mConstitutiveLawVector[i]->InitializeMaterial( 	GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(), i) ); 
 
 		}
 
@@ -586,9 +602,22 @@ namespace Kratos
 		msDN_DX = ZeroMatrix(msDN_DX.size1(),msDN_DX.size2());
 		noalias(msDN_DX) = prod(DN_De[0],mInvJ[0]);
 		
-		Matrix StressTensor;
-		Matrix StrainTensor;
-		mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix(StressTensor, msF, StrainTensor, msD);
+// 		Matrix StressTensor;
+// 		Matrix StrainTensor;
+// 		mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix(StressTensor, msF, StrainTensor, msD);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(
+                    msStrainVector,
+                    msF,
+                    msStressVector,
+                    msD,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row( GetGeometry().ShapeFunctionsValues(), 0 ),
+                    true,
+                    1,
+                    true );
+        
 		//Hypoconstitutive(msD,msF,rCurrentProcessInfo);
 		CalculateB(msB,msDN_DX);
 		
@@ -692,7 +721,7 @@ namespace Kratos
 		//double detF = MathUtils<double>::Det(F);
 		
 		Matrix cauchyN;
-		Matrix vectorcauchyN;
+		Vector vectorcauchyN;
 		Vector transformed_cauchy;
 		Vector GLstrain;
 		Matrix tempstr;
@@ -710,11 +739,23 @@ namespace Kratos
 		//KRATOS_WATCH(StrainVector);
 		//KRATOS_WATCH(StressVector);
 		
-		vectorcauchyN = (*this).GetValue(PK2_STRESS_TENSOR);
+		vectorcauchyN = row((*this).GetValue(PK2_STRESS_TENSOR),0);
 		//KRATOS_WATCH("IT IS SUPPOSED TO BE (1000,0,0)");
 		//KRATOS_WATCH(vectorcauchyN);
+        mConstitutiveLawVector[0]->CalculateMaterialResponse(
+                    GLstrain,
+                    F,
+                    vectorcauchyN,
+                    tempstr,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(),0),
+                    true,
+                    0,
+                    true );
 
-		mConstitutiveLawVector[0]->CalculateCauchyStresses(transformed_cauchy, F, row(vectorcauchyN,0), GLstrain);
+// 		mConstitutiveLawVector[0]->CalculateCauchyStresses(transformed_cauchy, F, row(vectorcauchyN,0), GLstrain);
 
 /*
 		cauchyN(0,0)=vectorcauchyN(0,0);
@@ -775,7 +816,7 @@ namespace Kratos
 		for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
 			mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
 				GetGeometry(),
-                                            row( GetGeometry().ShapeFunctionsValues(), i ),
+                            row( GetGeometry().ShapeFunctionsValues(), i ),
 				CurrentProcessInfo);	
 		
 		//Updating stress
@@ -919,16 +960,28 @@ namespace Kratos
 		//KRATOS_WATCH(nowJ);
 
 		for(unsigned int intpn = 0; intpn < intg_points.size(); intpn++)
-		     {	
-			MathUtils<double>::InvertMatrix(nowJ[intpn],mInvJ[intpn],mDetJ[intpn]);
+        {
+            MathUtils<double>::InvertMatrix(nowJ[intpn],mInvJ[intpn],mDetJ[intpn]);
 			msDN_DX = ZeroMatrix(msDN_DX.size1(),msDN_DX.size2());
 			
 			noalias(msDN_DX) = prod(DNN[intpn],mInvJ[intpn]);
 
 			//Hypoconstitutive(msD,msF,rCurrentProcessInfo);;
-			Matrix StressTensor;
-			Matrix StrainTensor;
-			mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix(StressTensor, msF, StrainTensor, msD);
+			Vector StressTensor;
+			Vector StrainTensor;
+// 			mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix(StressTensor, msF, StrainTensor, msD);
+            mConstitutiveLawVector[intpn]->CalculateMaterialResponse(
+                    StrainTensor,
+                    msF,
+                    StressTensor,
+                    msD,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(),intpn),
+                    true,
+                    1,
+                    true );
 			CalculateB(msB,msDN_DX);
 			//KRATOS_WATCH(msB);
 			double weightdv = intg_points[intpn].Weight()*mDetJ[intpn];

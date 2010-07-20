@@ -241,7 +241,7 @@ namespace Kratos
         if(Output.size() != GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
             Output.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size(),false);
         for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-            Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable/*, Output[ii]*/ );
+            Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
     }
     
     /**
@@ -306,10 +306,21 @@ namespace Kratos
             Weight= integration_points[PointNumber].Weight();
             
             //calculate stress
-            mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-                    GetProperties(), GetGeometry(), row(Ncontainer,PointNumber), rCurrentProcessInfo );
-            mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector, msStressVector);
-//             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( msStrainVector, msStressVector, msTanC, rCurrentProcessInfo, GetProperties(), GetGeometry(), row(Ncontainer,PointNumber) );
+//             mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+//                     GetProperties(), GetGeometry(), row(Ncontainer,PointNumber), rCurrentProcessInfo );
+//             mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector, msStressVector);
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    ZeroMatrix(1),
+                    msStressVector,
+                    msTanC,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(Ncontainer,PointNumber),
+                    true,
+                    0,
+                    true );
             
             if(Output[PointNumber].size2() != msStrainVector.size())
                 Output[PointNumber].resize(1,msStrainVector.size(),false);
@@ -326,8 +337,8 @@ namespace Kratos
             }
             else if(rVariable==INSITU_STRESS)
             {
-//                 Vector dummy = row(Output[PointNumber],0);
-                row(Output[PointNumber],0) = mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS/*, dummy*/ );
+                Vector dummy = row(Output[PointNumber],0);
+                row(Output[PointNumber],0) = mConstitutiveLawVector[PointNumber]->GetValue(INSITU_STRESS, dummy );
             }
 //             std::cout << msStressVector[2] << "\t";
         }
@@ -353,7 +364,7 @@ namespace Kratos
         KRATOS_TRY
         for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
         {
-            mConstitutiveLawVector[i]->ResetMaterial(GetProperties()/*, GetGeometry(), row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i)*/ );
+            mConstitutiveLawVector[i]->ResetMaterial(GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) );
         }
         KRATOS_CATCH("")
     }
@@ -416,15 +427,26 @@ namespace Kratos
             CalculateStrain(msB, msCurrentDisp, msStrainVector);
             
             //calculate stress
-            mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-                    GetProperties(), GetGeometry(), row(Ncontainer,PointNumber), rCurrentProcessInfo );
-            mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector, msStressVector);
-//             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse( msStrainVector, msStressVector, msTanC, rCurrentProcessInfo, GetProperties(), GetGeometry(), row(Ncontainer,PointNumber) );
+//             mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
+//                     GetProperties(), GetGeometry(), row(Ncontainer,PointNumber), rCurrentProcessInfo );
+//             mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector, msStressVector);
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    msStrainVector,
+                    ZeroMatrix(1),
+                    msStressVector,
+                    msTanC,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(Ncontainer,PointNumber),
+                    true,
+                    (int)CalculateStiffnessMatrixFlag,
+                    true );
             
             if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
             {
                 //calculate material tangent
-                mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector, msTanC);
+//                 mConstitutiveLawVector[PointNumber]->CalculateConstitutiveMatrix(msStrainVector, msTanC);
                 //calculate stiffness matrix
                 noalias(rLeftHandSideMatrix) +=
                         prod(trans(msB),(integration_points[PointNumber].Weight()*mDetJ0[PointNumber])*Matrix(prod(msTanC,msB)) );
@@ -902,7 +924,7 @@ namespace Kratos
                        GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
                         rValues.resize(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());
                     for(unsigned int ii = 0; ii<mConstitutiveLawVector.size(); ii++)
-                        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable/*, rValues[ii]*/ );
+                        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
                 }
 
                 if(rVariable==INSITU_STRESS)
@@ -911,7 +933,7 @@ namespace Kratos
                         {
                                 if(rValues[i].size() != 6 )
                                         rValues[i].resize(6);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS/*, rValues[i]*/);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS, rValues[i]);
                         }
                 }
 
@@ -921,7 +943,7 @@ namespace Kratos
                         {
                                 if(rValues[i].size() != 8 )
                                         rValues[i].resize(8);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES/*, rValues[i]*/);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INTERNAL_VARIABLES, rValues[i]);
                         }
                 }
 // std::cout<<"END::GetValue On Integration Points"<<std::endl;
@@ -941,7 +963,7 @@ namespace Kratos
         //reading integration points and local gradients
         for(unsigned int Point=0; Point< mConstitutiveLawVector.size(); Point++)
         {
-			rValues[Point]= mConstitutiveLawVector[Point]->GetValue( rVariable/*, rValues[Point]*/ ); 
+			rValues[Point]= mConstitutiveLawVector[Point]->GetValue( rVariable, rValues[Point] ); 
         }
 	}
 	/**

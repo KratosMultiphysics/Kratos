@@ -102,7 +102,7 @@ namespace Kratos
       ///@{
 				typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-                typedef ConstitutiveLaw<Node<3> > ConstitutiveLawType;
+                typedef ConstitutiveLaw ConstitutiveLawType;
 
                	typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
       /// Counted pointer of UnsaturatedSoilsElement_1phase_SmallStrain
@@ -251,7 +251,7 @@ namespace Kratos
       ///@{ 
                Geometry< Node<3> >::Pointer  mpPressureGeometry; 
 
-	  			std::vector<ConstitutiveLaw<Node<3> >::Pointer> mConstitutiveLawVector;
+	  			std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
                
 				IntegrationMethod mThisIntegrationMethod;
 

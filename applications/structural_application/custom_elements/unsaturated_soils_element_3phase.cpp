@@ -423,7 +423,7 @@ namespace Kratos
                                                         }
 
                         density= GetAveragedDensity(capillaryPressure, airPressure, porosity);
-                        CalculateStressAndTangentialStiffnessUnsaturatedSoils(StressTensor, tanC_U, tanC_W, tanC_A, StrainTensor, DN_DX_DISP, waterPressure, airPressure, PointNumber);
+                        CalculateStressAndTangentialStiffnessUnsaturatedSoils(StressTensor, tanC_U, tanC_W, tanC_A, StrainTensor, DN_DX_DISP, waterPressure, airPressure, PointNumber, rCurrentProcessInfo);
                         noalias(du_dx)= CalculateDisplacementGradient(DN_DX_DISP);
 
                         if (CalculateStiffnessMatrixFlag == true)
@@ -705,10 +705,32 @@ namespace Kratos
 
                 noalias(StrainTensor)= CalculateElasticNonlinearStrainTensorTrial
                         (DN_DX_DISP, PointNumber);
+                
+                Vector StrainVector = SD_MathUtils<double>::TensorToStrainVector( StrainTensor );
+                Vector StressVector = ZeroVector(6);
+                SD_MathUtils<double>::TensorToVector( StressTensor, StressVector );
+                Matrix tanC_U_matrix = ZeroMatrix(6,6);
+                SD_MathUtils<double>::TensorToMatrix( tanC_U, tanC_U_matrix );
 //              CalculateStressAndTangentialStiffness(StressTensor, tanC_U, StrainTensor); 
-                mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix( 
-                        StressTensor, StrainTensor, 
-                        tanC_U);	
+                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    StrainVector,
+                    ZeroMatrix(1),
+                    StressVector,
+                    tanC_U_matrix,
+                    CurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),PointNumber),
+                    true,
+                    1,
+                    true );
+                
+                StrainTensor = SD_MathUtils<double>::StrainVectorToTensor(StrainVector);
+                SD_MathUtils<double>::VectorToTensor(StressVector,StressTensor);
+                SD_MathUtils<double>::MatrixToTensor( tanC_U_matrix, tanC_U );
+//                 mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix( 
+//                         StressTensor, StrainTensor, 
+//                         tanC_U);	
             }
 
 			//Calculate Darcy Velo at Nodes
@@ -778,9 +800,33 @@ namespace Kratos
                 noalias(StrainTensor)= CalculateElasticNonlinearStrainTensorTrial
                            (DN_DX_DISP, 0);
 //              CalculateStressAndTangentialStiffness(StressTensor, tanC_U, StrainTensor); 
-                mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix( 
-                           StressTensor, StrainTensor, 
-                           tanC_U);	
+                
+                Vector StrainVector = SD_MathUtils<double>::TensorToStrainVector( StrainTensor );
+                Vector StressVector = ZeroVector(6);
+                SD_MathUtils<double>::TensorToVector( StressTensor, StressVector );
+                Matrix tanC_U_matrix = ZeroMatrix(6,6);
+                SD_MathUtils<double>::TensorToMatrix( tanC_U, tanC_U_matrix );
+//              CalculateStressAndTangentialStiffness(StressTensor, tanC_U, StrainTensor); 
+                mConstitutiveLawVector[0]->CalculateMaterialResponse(
+                    StrainVector,
+                    ZeroMatrix(1),
+                    StressVector,
+                    tanC_U_matrix,
+                    CurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),0),
+                    true,
+                    1,
+                    true );
+                
+                StrainTensor = SD_MathUtils<double>::StrainVectorToTensor(StrainVector);
+                SD_MathUtils<double>::VectorToTensor(StressVector,StressTensor);
+                SD_MathUtils<double>::MatrixToTensor( tanC_U_matrix, tanC_U );
+                
+//                 mConstitutiveLawVector[0]->CalculateStressAndTangentMatrix( 
+//                            StressTensor, StrainTensor, 
+//                            tanC_U);	
 
 				(GetGeometry()[node]).GetSolutionStepValue(PRESSURE)=StressTensor(2,2);
 			}
@@ -3423,7 +3469,7 @@ namespace Kratos
         void UnsaturatedSoilsElement_3phase::CalculateStressAndTangentialStiffnessUnsaturatedSoils
                 (Matrix& StressTensor,array_1d<double,81>& tanC_U,
                  Matrix& tanC_W,Matrix& tanC_A, Matrix& StrainTensor,
-                 const Matrix& DN_DX_DISP, double waterPressure, double airPressure, int PointNumber)
+                 const Matrix& DN_DX_DISP, double waterPressure, double airPressure, int PointNumber, ProcessInfo& rCurrentProcessInfo)
                 {
                     KRATOS_TRY
             
@@ -3445,9 +3491,33 @@ namespace Kratos
                             (DN_DX_DISP, PointNumber);
 
                                         //CalculateStressAndTangentialStiffness(StressTensor, tanC_U, StrainTensor); 
-                    mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix( 
-                            StressTensor, StrainTensor, 
-                            tanC_U);
+                    
+                    Vector StrainVector = SD_MathUtils<double>::TensorToStrainVector( StrainTensor );
+                    Vector StressVector = ZeroVector(6);
+                    SD_MathUtils<double>::TensorToVector( StressTensor, StressVector );
+                    Matrix tanC_U_matrix = ZeroMatrix(6,6);
+                    SD_MathUtils<double>::TensorToMatrix( tanC_U, tanC_U_matrix );
+                    
+                    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
+                    StrainVector,
+                    ZeroMatrix(1),
+                    StressVector,
+                    tanC_U_matrix,
+                    rCurrentProcessInfo,
+                    GetProperties(),
+                    GetGeometry(),
+                    row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),PointNumber),
+                    true,
+                    1,
+                    true );
+                    
+                    StrainTensor = SD_MathUtils<double>::StrainVectorToTensor(StrainVector);
+                    SD_MathUtils<double>::VectorToTensor(StressVector,StressTensor);
+                    SD_MathUtils<double>::MatrixToTensor( tanC_U_matrix, tanC_U );
+                    
+//                     mConstitutiveLawVector[PointNumber]->CalculateStressAndTangentMatrix( 
+//                             StressTensor, StrainTensor, 
+//                             tanC_U);
 
                     CalculateEffectiveStress(StressTensor, tanC_W, tanC_A, waterPressure, airPressure);
 
@@ -3466,7 +3536,7 @@ namespace Kratos
                     
             Matrix LeftCauchyGreenTensorOld(dim,dim);
             noalias(LeftCauchyGreenTensorOld)=
-                    mConstitutiveLawVector[PointNumber]->GetValue(ELASTIC_LEFT_CAUCHY_GREEN_OLD);
+                    mConstitutiveLawVector[PointNumber]->GetValue(ELASTIC_LEFT_CAUCHY_GREEN_OLD,LeftCauchyGreenTensorOld);
 
             //B=F*F_T
             //Calculate relative Deformation Gradient
@@ -3561,7 +3631,7 @@ namespace Kratos
         {
             KRATOS_TRY
             for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
-                    mConstitutiveLawVector[i]->ResetMaterial(GetProperties());
+                    mConstitutiveLawVector[i]->ResetMaterial(GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) );
             KRATOS_CATCH("")
         }
 
@@ -3577,7 +3647,7 @@ namespace Kratos
                         {
                                 if(rValues[i].size1() != 3 || rValues[i].size2() != 3 )
                                         rValues[i].resize(3,3,false);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(ELASTIC_LEFT_CAUCHY_GREEN_OLD);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(ELASTIC_LEFT_CAUCHY_GREEN_OLD,rValues[i]);
                         }
                 }
 
@@ -3594,7 +3664,7 @@ namespace Kratos
             {
                                 if(rValues[i].size() != 6 )
                                         rValues[i].resize(6,false);
-                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS);
+                                noalias(rValues[i])=mConstitutiveLawVector[i]->GetValue(INSITU_STRESS, rValues[i]);
                         }
                 }
 
