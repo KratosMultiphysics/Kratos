@@ -428,7 +428,7 @@ namespace Kratos
          */
         virtual double Length() const
 	{
-            return sqrt(fabs( DeterminantOfJacobian(PointType()))*0.5);
+            return sqrt(fabs(Area()));
         }
         
         /** This method calculates and returns area or surface area of
@@ -449,20 +449,17 @@ namespace Kratos
         virtual double Area() const
         {				
 
-										Vector temp;
-										DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
+	  Vector temp;
+	  DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
 
-          const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-          double Area=0.00;
-										for(unsigned int i=0;i<integration_points.size();i++)
-												{
-																Area+= temp[i]*integration_points[i].Weight();
-												}
-          //KRATOS_WATCH(temp)
-								  return Area;
-         
-            //return fabs(DeterminantOfJacobian(PointType())) * 0.5;
-                                                        
+	  const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
+	  double Area=0.00;
+	  for(unsigned int i=0;i<integration_points.size();i++)
+	  {
+	  Area+= temp[i]*integration_points[i].Weight();
+	  }
+          KRATOS_WATCH(Area)
+	  return Area;                                               
         }
         
         /** This method calculates and returns length, area or volume of
