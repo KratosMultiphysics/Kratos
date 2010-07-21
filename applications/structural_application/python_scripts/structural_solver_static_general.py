@@ -2,6 +2,7 @@
 from Kratos import *
 from KratosStructuralApplication import *
 from KratosExternalSolversApplication import *
+from KratosMKLSolversApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -52,7 +53,7 @@ class StaticStructuralSolver:
 
         #definition of the solvers
         #self.structure_linear_solver  =  SkylineLUFactorizationSolver()
-	self.structure_linear_solver = SuperLUSolver()
+	self.structure_linear_solver = MKLPardisoSolver() # SuperLUSolver()
         
         #definition of the convergence criteria
 
