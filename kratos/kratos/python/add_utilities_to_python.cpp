@@ -64,8 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
 
-//#include "utilities/split_elements_utility.h"
-
+//#include "spatial_containers/bounding_box.h"
+#include "utilities/bounding_box_utilities.h"
 
 
 namespace Kratos
@@ -130,7 +130,15 @@ namespace Python
 // 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
 	    .def(self_ns::str(self))
 		;
+ 
 
+
+
+          class_<BoundingBoxUtilities>("BoundingBoxUtilities", init<ModelPart&, const unsigned int& >() )
+                    .def("Test", &BoundingBoxUtilities::Test)
+                    ;
+
+         
 //           class_<SplitElements, boost::noncopyable >
 //                     ("SplitElements", init<ModelPart&, int >() )
 //                     .def("Split", &SplitElements::Split)
