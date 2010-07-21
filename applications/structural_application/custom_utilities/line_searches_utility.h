@@ -210,41 +210,34 @@ namespace Kratos
 			  TSparseSpace::SetToZero(prodr);
 			  TSparseSpace::SetToZero(lseta);
 
+                          lseta(0) =  0.00;
 			  lseta(1) =  1.00;
 			  prodr(0) =  1.00;
-                          meta     =  1.00;
+                          meta     = lseta(1);
+                            
 
-			  //KRATOS_WATCH(Delta_p)
-			  //KRATOS_WATCH(mDx)
-			  //KRATOS_WATCH(mb)			  
-			  so = TSparseSpace::Dot(Delta_p,mb); // mb inicial 
-			  //KRATOS_WATCH(so)
-
-
+			  so = TSparseSpace::Dot(Delta_p,mb); // mb inicial  
+			  //if (so < 0.00)
+                          {
 			  while (iteration_number <= mMaxLineSearchIterations)
 			    {
-
-			      
-			       pScheme->Update(rmodel_part,rDofSet,mA,mDx,mb);	
-			       this->BackupDatabase(rDofSet,mDx);
+                               rDofSet = pBuilderAndSolver->GetDofSet(); 
+			       pScheme->Update(rmodel_part,rDofSet,mA,mDx,mb); 
+			       BackupDatabase(rDofSet,mDx);
 			       //KRATOS_WATCH(mDx) 		       
-			       if(mMoveMeshFlag == true) MoveMesh(rmodel_part);	      		      
-			       std::cout<<"Line_Search_Iteration_Number:"<<(iteration_number)<<std::endl;
+			       if(mMoveMeshFlag == true) MoveMesh(rmodel_part);
 			       TSparseSpace::SetToZero(mb);
 			       pBuilderAndSolver->BuildRHS(pScheme,rmodel_part,mb); //mb para calculat eta
 			       TSparseSpace::Copy(Delta_p, mDx);	  
 			       seta = TSparseSpace::Dot(mDx,mb); //Delta_p =  Const
-			       //KRATOS_WATCH(seta)
-			       //KRATOS_WATCH(mb)
-			      // Posible restriccion en el denominador
-			       ils = iteration_number -1;
+
+			       ils = iteration_number - 1;
 			       prodr(ils+1) = (seta/so);
-                              
+                               std::cout<<"Line_Search_Iteration:"<<iteration_number<<" Reaches Toler = "<<  prodr(ils+1) << "  Required Toler = " << mtolls<<std::endl;
+
 			       if (fabs(prodr(ils+1)) < mtolls)
 				{ 
-				  //KRATOS_WATCH(meta)
 				  return true;
-				  //break;
 				 }
 			      else 
 				{
@@ -257,42 +250,28 @@ namespace Kratos
 				   {
 				      //ilfail = 2;
                                       meta = 1.00;
-				      std::cout<<"********************************"<<std::endl; 
-				      std::cout<<"******Line Search Trouble*******"<<std::endl; 
-				      std::cout<<"********************************"<<std::endl;
-                                      return false;
-				       
+				      std::cout<<"******Line Search Trouble. No Convergence Was Reaches *******"<<std::endl; 
+				      return false;
 				  }
 				
 				 meta = lseta(ils+2);
-				 
 				 TSparseSpace::Assign(mDx,meta, mDx); //mDx =lseta(iteration_number+1)*mDx
-				
 				 
 				 }
 				
-				/*if (ico==2)
-				   {
-				      //ilfail = 2;
-                                      meta = 1.00;
-				      std::cout<<"********************************"<<std::endl; 
-				      std::cout<<"******Line Search Trouble*******"<<std::endl; 
-				      std::cout<<"********************************"<<std::endl;
-                                      return false;
-				      //break; 
-				  }*/
-				
 				if (iteration_number>= mMaxLineSearchIterations) 
 				    {
-				      this->MaxIterationsExceeded();
+				      MaxIterationsExceeded();
 				      return false;
 				      //break; 
 				    }
 				
 				
 				iteration_number++;
-				}
-				return 0;  
+				  } 
+                               }
+ 
+				return true;  
 				KRATOS_CATCH("")			      
 			    }
                             
