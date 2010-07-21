@@ -17,7 +17,7 @@ class Nodal_Split_Elem:
         if(self.domain_size==2):  
 	    self.split         =  InterFractureTriangle(self.model_part, self.domain_size)
         else:
-	    self.split        =  InterFractureTetrahedra(self.model_part, self.domain_size)
+	    self.split         =  InterFractureTetrahedra(self.model_part, self.domain_size)
         
     #######################################################################
     def Initialize(self):
