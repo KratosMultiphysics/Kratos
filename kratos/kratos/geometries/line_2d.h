@@ -372,6 +372,7 @@ namespace Kratos
           return sqrt(lenght);
       }
 
+     
 
       ///@}      
       ///@name Jacobian 
