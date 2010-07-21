@@ -452,6 +452,14 @@ namespace Kratos
 				return false;
 			}
             
+
+     
+     virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
+             {
+                //rResult.Geometry() = *(this); 
+                BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
+             }
+     
             
             /**
              * Jacobian 
