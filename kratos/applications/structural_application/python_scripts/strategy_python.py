@@ -17,7 +17,7 @@ class SolvingStrategyPython:
         self.space_utils = UblasSparseSpace()
 
         #default values for some variables
-        self.max_iter = 30
+        self.max_iter = 500
         self.rebuild_level = 1 #rebuild at each solution step
         self.echo_level = 1
         self.builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
@@ -58,6 +58,8 @@ class SolvingStrategyPython:
             self.Initialize()
             self.InitializeWasPerformed = True
 
+        self.model_part.ProcessInfo[NL_ITERATION_NUMBER] = 1
+
         #perform initializations for the current step
         #this operation implies:
         #identifying the set of DOFs that will be solved during this step
@@ -85,6 +87,8 @@ class SolvingStrategyPython:
         
         while(it < self.max_iter and converged == False):
             #verify convergence
+	    print "No Linear Iteration Number =", it
+            #self.model_part.ProcessInfo[NL_ITERATION_NUMBER] = it
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
            
             #calculate iteration
@@ -99,6 +103,11 @@ class SolvingStrategyPython:
            
             #update iteration count
             it = it + 1
+
+	    if( it >= self.max_iter):
+		  print " ******************************************** "
+		  print " Warning: No Solution For This Step Was Found "
+                  print " ******************************************** "
 
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
