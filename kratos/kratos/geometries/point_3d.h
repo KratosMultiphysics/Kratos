@@ -363,6 +363,15 @@ namespace Kratos
          return 0.00;
       }
 
+
+     virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
+             {
+                //rResult.Geometry() = *(this);     
+                BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
+             }
+
+
+
       ///@}      
       ///@name Jacobian 
       ///@{
@@ -548,7 +557,32 @@ namespace Kratos
       //		  KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
       //	}
 
+/*
+
+
+     virtual void BoundingBox(Bounding_Box<TPointType>& rResult) const
+             { 
+                this->BoundingBox(rResult.mLowPoint, rResult.mHighPoint);                     
+             } 
+
+
+      virtual void BoundingBox(TPointType& rLowPoint, TPointType& rHighPoint) const
+             {
+ 
+                array_1d<double,3 > point = ZeroVector(3); 
+                 
+		point[0] =  BaseType::GetPoint(0).X();
+		point[1] =  BaseType::GetPoint(0).Y();
+		point[2] =  BaseType::GetPoint(0).Z(); 
+    
+                /// WARNINGson oguales los high y low point             
+		rLowPoint.push_back(point); 
+		rHighPoint.push_back(point);
+		      
+            }
       
+*/
+
       ///@}      
       ///@name Input and output
       ///@{
