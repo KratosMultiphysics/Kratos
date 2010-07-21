@@ -146,8 +146,8 @@ void Detect_And_Split_Elements(ModelPart& this_model_part)
    //ElementosVecinos.Execute(); 
    //NodosVecinos.Execute(); 
 
-   for(ModelPart::NodeIterator inode=i_begin; inode!= i_end; ++inode)     
-    {      
+    for(ModelPart::NodeIterator inode=i_begin; inode!= i_end; ++inode)     
+      {      
             bool& split = inode->FastGetSolutionStepValue(SPLIT_NODAL);   
             if(split == true) 
              {
@@ -201,6 +201,7 @@ NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
     if(Condition >= 1.00)
 	  {  
 	      i->FastGetSolutionStepValue(SPLIT_NODAL) = true;   
+              //mfail_node.push_back(*i.base()); 
 	  }
   }
 
@@ -507,6 +508,7 @@ int number_of_threads = omp_get_max_threads();
 int number_of_threads = 1;
 #endif
 
+//mfail_node.clear();
 vector<unsigned int> node_partition;
 CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
@@ -542,6 +544,7 @@ return fact + d;
 
 ModelPart& mr_model_part;
 unsigned int mdomain_size;
+//WeakPointerVector< Node<3> > mfail_node;
 
 
 
