@@ -407,8 +407,12 @@ namespace Kratos
          */
         virtual double Length() const
 	{
-            return sqrt(fabs( DeterminantOfJacobian(PointType()))*0.5);
+            //return sqrt(fabs( DeterminantOfJacobian(PointType()))*0.5);
+           double length = 0.000; 
+           length = 1.1283791670955*sqrt(fabs( Area()));  // (4xA/Pi)^(1/2)
+           return length;  
         }
+
         
         /** This method calculates and returns area or surface area of
          * this geometry depending to it's dimension. For one dimensional
@@ -428,21 +432,28 @@ namespace Kratos
         virtual double Area() const
         {				
 
-										Vector temp;
-										DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
+	    Vector temp;
+	    DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
 
-          const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-          double Area=0.00;
-										for(unsigned int i=0;i<integration_points.size();i++)
-												{
-																Area+= temp[i]*integration_points[i].Weight();
-												}
-          //KRATOS_WATCH(temp)
-								  return Area;
+	    const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
+	    double Area=0.00;
+	    for(unsigned int i=0;i<integration_points.size();i++)
+	    {
+	    Area+= temp[i]*integration_points[i].Weight();
+	    }
+	    return Area;
          
-            //return fabs(DeterminantOfJacobian(PointType())) * 0.5;
                                                         
         }
+
+      
+     virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
+             {
+                //rResult.Geometry() = *(this);  
+                BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
+             }
+      
+
 /*
         virtual double Area() const
         {
