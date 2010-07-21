@@ -100,8 +100,10 @@ namespace Kratos
         /**
          * Geometry as base class.
          */ 
-        typedef Geometry<TPointType> BaseType;
-        
+        typedef Geometry<TPointType> BaseType; 
+        typedef BoundingBox<TPointType, BaseType>  BoundingBoxType;  
+
+
         /**
          * Type of edge geometry
          */
@@ -412,8 +414,12 @@ namespace Kratos
          * (comment by janosch)
          */
         virtual double Length() const
-								{										
-									return sqrt(fabs( DeterminantOfJacobian(PointType())));
+	{										
+	//return sqrt(fabs( DeterminantOfJacobian(PointType())));
+           double length = 0.000; 
+           length = sqrt(fabs(Area()));
+           return length;  
+
         }
         
         /** This method calculates and returns area or surface area of
@@ -480,6 +486,33 @@ namespace Kratos
 			return false;
 		}
         
+
+
+        /** 
+           Geometry as derivate class class.      
+
+        */
+/*
+      virtual typename  BoundingBoxType::Pointer Create
+               (const TPointType& LowPoint, const TPointType& HighPoint) 
+	  {
+                //mpBondingBoxType = new BoundingBoxType(LowPoint, HighPoint, this ) ;
+                //return mpBondingBoxType;  
+		return typename BoundingBoxType::Pointer(new BoundingBoxType(LowPoint, HighPoint, this)) ;    
+	  }  
+*/
+
+       //typedef Quadrilateral2D4<TPointType> Quadrilateral2D4Type;    
+       virtual void Bounding_Box(BoundingBoxType& rResult) const
+             {              
+                //KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")  
+                //rResult.GetGeom() = this; 
+                BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
+             }
+     
+
+
+
         ///@}      
         ///@name Jacobian
         ///@{
