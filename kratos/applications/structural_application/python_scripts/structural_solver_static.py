@@ -41,6 +41,7 @@ class StaticStructuralSolver:
 
         #definition of the solvers
         self.structure_linear_solver =  SkylineLUFactorizationSolver()
+
         
         #definition of the convergence criteria
 #        self.conv_criteria = DisplacementCriteria(0.0001,1e-6)
@@ -55,12 +56,12 @@ class StaticStructuralSolver:
     def Initialize(self):
         #creating the solution strategy
         
-        import strategy_python
-        self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
-        (self.solver).SetEchoLevel(2)
-
+       #import strategy_python
+       #self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        ##(self.solver).SetEchoLevel(2)
+       
         #creating the solution strategy
- #       self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,True,True)
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,5000,True,True,True)
         
         #(self.solver).SetReformDofSetAtEachStepFlag(True)
         #(self.solver).SetMoveMeshFlag(True)
