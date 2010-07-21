@@ -86,7 +86,7 @@ namespace Kratos
              * NOTE: geometries are assumed to be of type Node<3> for all problems
              */
             typedef ProcessInfo ProcessInfoType;
-            typedef typename std::size_t SizeType;
+            typedef std::size_t SizeType;
             typedef Geometry<Node<3> > GeometryType;
             
             /** 
