@@ -367,7 +367,9 @@ namespace Kratos
           double lenght = pow(BaseType::GetPoint(0).X()-BaseType::GetPoint(2).X(),2) + pow(BaseType::GetPoint(0).Y()-BaseType::GetPoint(2).Y(),2);
           return sqrt(lenght);
       }
-      
+
+     
+
       /**
        * Returns whether given arbitrary point is inside the Geometry
        */
