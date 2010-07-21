@@ -41,7 +41,7 @@ class StaticStructuralSolver:
         self.toll = 1e-6
         self.absolute_tol = 1e-9
 
-        self.CalculateReactionFlag = False
+        self.CalculateReactionFlag = True
         self.ReformDofSetAtEachStep = False
         self.MoveMeshFlag = True
 
