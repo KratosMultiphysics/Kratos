@@ -173,6 +173,8 @@ int number_of_threads = omp_get_max_threads();
 int number_of_threads = 1;
 #endif
 
+mfail_node.reserve(1000);
+
 vector<unsigned int> node_partition;
 CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
@@ -188,6 +190,7 @@ NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
     if(Condition >= 1.00)
 	  {  
 	      i->FastGetSolutionStepValue(SPLIT_NODAL) = true;   
+              mfail_node.push_back(*(i.base()) );  
 	  }
   }
 
@@ -286,7 +289,7 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer pNode, const array
     array_1d<double, 3> Unit;   
     //unsigned int i = 0; 
     double prod  = 0.00;
-    KRATOS_WATCH(failure_map)
+    //KRATOS_WATCH(failure_map)
     for(WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
     neighb_elem != neighb_elems.end(); neighb_elem++)
     { 
@@ -509,6 +512,7 @@ int number_of_threads = 1;
 
 vector<unsigned int> node_partition;
 CreatePartition(number_of_threads, pNodes.size(), node_partition);
+mfail_node.clear();
 
 #pragma omp parallel for 
 for(int k=0; k<number_of_threads; k++)
@@ -543,6 +547,7 @@ static void Calculate_Normal_Faliure_Maps(array_1d<double,3>&  normal, const arr
 
 ModelPart& mr_model_part;
 unsigned int mdomain_size;
+WeakPointerVector< Node<3> > mfail_node;
 
 
 };
