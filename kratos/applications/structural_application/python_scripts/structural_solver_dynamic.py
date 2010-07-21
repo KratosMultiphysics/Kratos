@@ -42,24 +42,7 @@ class DynamicStructuralSolver:
 
         self.model_part = model_part
         self.echo_level = 0
-        
-        self.damp_factor = -0.1
-        self.toll = 1e-6
-        self.absolute_tol = 1e-9
-
-        self.Ide                        = 20
-	self.factor_delta_lmax          = 1.00
-	self.toler                      = 1.0E-9
-        self.norm                       = 1.0E-5 
-	self.MaxIterations              = 100
-        self.damp_factor                = 0; 
-
-
-        self.CalculateReactionFlag  = True
-        self.ReformDofSetAtEachStep = True
-        self.MoveMeshFlag           = True
-	self.ApplyBodyForce         = True
-        
+                
 
         #definition of the solvers
         self.structure_linear_solver =  SkylineLUFactorizationSolver()
@@ -75,6 +58,7 @@ class DynamicStructuralSolver:
 
       
         #definition of time scheme
+        self.damp_factor = -0.1; 
         self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(self.damp_factor)
         #definition of the convergence criteria
         #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
@@ -88,8 +72,8 @@ class DynamicStructuralSolver:
         self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
        
          
-           #creating the solution strategy
-         #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,False,True)
+         #creating the solution strategy
+        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,False,True)
 #        print "self.echo_level = " , self.echo_level
 ##        #(self.solver).SetBuilderAndSolver(builder_and_solver)
 ##        (self.solver).SetEchoLevel(self.echo_level)
