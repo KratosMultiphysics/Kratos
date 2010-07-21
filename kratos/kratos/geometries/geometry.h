@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/pointer_vector.h"
 #include "integration/integration_point.h"
 #include "geometries/geometry_data.h"
+#include "spatial_containers/bounding_box.h"
 #include "utilities/math_utils.h"
 
 
@@ -120,6 +121,10 @@ namespace Kratos
       /** Base type for geometry.
       */
       typedef PointerVector<TPointType> BaseType;
+
+  
+      /** The bounding box */
+      typedef BoundingBox<TPointType, GeometryType>  BoundingBoxType;      
 
       /** Array of counted pointers to point. This type used to hold
 	  geometry's points.
@@ -354,7 +359,7 @@ namespace Kratos
       */
       Geometry& operator=(const Geometry& rOther)
 	{
-	  BaseType::opeator=(rOther);
+	  BaseType::operator=(rOther);
 	  mpGeometryData = rOther.mpGeometryData;
 
 	  return *this;
@@ -535,6 +540,47 @@ namespace Kratos
 	  return 0;
 	}
 
+
+
+/*     
+     virtual typename  BoundingBoxType::Pointer Create
+               (const TPointType& LowPoint, const TPointType& HighPoint) //  GeometryType* ThisGeom )
+	{
+            
+                return typename BoundingBoxType::Pointer(new BoundingBoxType(LowPoint, HighPoint, this)) ; 	
+                //mpBondingBoxType = new BoundingBoxType(LowPoint, HighPoint, this ) ;
+                //return mpBondingBoxType;    
+	}
+*/     
+        
+
+     virtual void Bounding_Box(BoundingBoxType& rResult) const
+             {   
+                
+                Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
+             }
+
+ 
+     virtual void Bounding_Box(TPointType& rLowPoint, TPointType& rHighPoint) const 
+            { 
+               
+                               
+		rHighPoint = this->GetPoint(0);
+		rLowPoint  = this->GetPoint(0);           
+                 
+               for (unsigned int point = 1; point<PointsNumber(); point++)      
+                 {
+                    for(unsigned int i = 0; i<3; i++)
+                      {
+                         this->GetPoint(point)[i];  
+                         rHighPoint[i] =  (rHighPoint[i] < this->GetPoint(point)[i] ) ? this->GetPoint(point)[i] : rHighPoint[i];
+                         rLowPoint[i]  =  (rLowPoint[i]  > this->GetPoint(point)[i] ) ? this->GetPoint(point)[i] : rLowPoint[i]; 
+                      }
+                  }
+            } 
+       
+     
+
       /** Calculates center of this geometry by a simple averaging algorithm.
 	  Each center point component calculated using:
 	  \f[
@@ -601,7 +647,6 @@ namespace Kratos
 	    return (*this)(Index);
 	  KRATOS_CATCH_LEVEL_3(*this)
 	    }
-
 
       /** An access method to the i'th points stored in
 	  this geometry.
@@ -1681,8 +1726,10 @@ namespace Kratos
 
             
       ///@}
-      
-    private:
+  
+    
+
+     private:
       ///@name Static Member Variables 
       ///@{ 
         
@@ -1693,6 +1740,8 @@ namespace Kratos
       ///@{ 
         
 	  GeometryData const* mpGeometryData;
+         
+           
 
       ///@} 
       ///@name Private Operators
