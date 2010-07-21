@@ -65,7 +65,6 @@ namespace Kratos
 		   Lineal_Softening::Lineal_Softening():SofteningHardeningCriteria() {}
 		   Lineal_Softening::~Lineal_Softening(){}
                
-		   //Nota : Se require hablar con  Oller para verificar funcionalidad de funcion.q
 
                    // For damage model
                    double  Lineal_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
@@ -84,9 +83,9 @@ namespace Kratos
                    void Lineal_Softening::FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result)
 
                      {
-                         Result     = 0.00;
-                         der_Result = 0.00;
-			 if (capap<1.00)
+                         //Result     = 0.00;
+                         //der_Result = -sigma;
+			 if (capap<=1.00)
                                {
                                   Result     = sigma*(1.00 - capap);
                                   der_Result = -sigma;
