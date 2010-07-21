@@ -83,6 +83,11 @@ namespace Kratos
 	      { 
 		    return;
 	      }
+
+            virtual void Linear_Strain_Softening(Vector& Principal_Stress)
+             {
+               return;
+             } 
   
 	    protected:
 
