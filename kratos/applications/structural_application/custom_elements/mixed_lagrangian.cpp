@@ -641,9 +641,8 @@ namespace MixedLagrangianAuxiliaries
 		//resizing as needed the LHS
 		//unsigned int MatSize=number_of_nodes*dim;
 
-		//reading integration points and local gradients
-                const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-                const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+        //reading integration points and local gradients
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
 		//calculating actual jacobian
 		GeometryType::JacobiansType J;
@@ -689,7 +688,7 @@ namespace MixedLagrangianAuxiliaries
                     rCurrentProcessInfo,
                     GetProperties(),
                     GetGeometry(),
-                    row(GetGeometry().ShapeFunctionsValues(),PointNumber),
+                    row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),PointNumber),
                     true,
                     0,
                     true );

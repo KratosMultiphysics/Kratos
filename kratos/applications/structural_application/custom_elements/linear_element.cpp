@@ -653,21 +653,19 @@ namespace LinearElementAuxiliaries
 	}
 	//************************************************************************************
 	//************************************************************************************
-	void LinearElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-
-		ResizeAndInitializeAuxiliaries();
-			//const unsigned int number_of_nodes = GetGeometry().size();
-		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-
-		//resizing as needed the LHS
+    void LinearElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+                
+        ResizeAndInitializeAuxiliaries();
+        
+        const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+        
+        //resizing as needed the LHS
 		//unsigned int MatSize=number_of_nodes*dim;
 
 		//reading integration points and local gradients
-                
-                const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-                const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
 		//calculating actual jacobian
 		GeometryType::JacobiansType J;
@@ -705,12 +703,6 @@ namespace LinearElementAuxiliaries
 				if(Output[PointNumber].size2() != msStrainVector.size())
 					Output[PointNumber].resize(1,msStrainVector.size(),false);
 				
-// 				mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
-// 						GetProperties(),
-// 						GetGeometry(),
-// 						row(Ncontainer,PointNumber),
-// 						rCurrentProcessInfo );
-// 				mConstitutiveLawVector[PointNumber]->CalculateStress(msStrainVector,msStressVector); //
                 mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                     msStrainVector,
                     msF,
@@ -719,7 +711,7 @@ namespace LinearElementAuxiliaries
                     rCurrentProcessInfo,
                     GetProperties(),
                     GetGeometry(),
-                    row(GetGeometry().ShapeFunctionsValues(),PointNumber),
+                    row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod),PointNumber),
                     true,
                     0,
                     true );
