@@ -160,8 +160,6 @@ double Solve()
        ModelPart& r_model_part          = BaseType::GetModelPart();
        ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
       
-
-
       //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
       //if the operations needed were already performed this does nothing
       if(mInitializeWasPerformed == false)
@@ -169,17 +167,26 @@ double Solve()
 
        //OPERATIONS THAT SHOULD BE DONE ONCE  
       // Orden es crucial
-      if(mCalculateCriticalTime==false)
-         {
-          Compute_Critical_Time();
-          }
-      else
-        {
-           double step                    = CurrentProcessInfo[TIME_STEPS];   
-           double delta_time_used         = mfraction_delta_time*mdelta_time;
-           CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
-           r_model_part.CloneTimeStep(delta_time_used*step);
-        }
+//       if(mCalculateCriticalTime==false)
+//          {
+//           Compute_Critical_Time();
+//           }
+//       else
+//         {
+//            double step                    = CurrentProcessInfo[TIME_STEPS];   
+//            double delta_time_used         = mfraction_delta_time*mdelta_time;
+//            CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
+//            r_model_part.CloneTimeStep(delta_time_used*step);
+//         }
+
+
+     Compute_Critical_Time();
+     //const double step                    = CurrentProcessInfo[TIME_STEPS];   
+     //const double delta_time_used         = mfraction_delta_time*mdelta_time;
+     //const double timestep                = delta_time_used*step;
+     //CurrentProcessInfo[DELTA_TIME]       = delta_time_used; // reduzco el valor critico del tiempo en 75%
+     //r_model_part.CloneTimeStep(timestep);
+     
 
       if(mOldDisplacementComputed==false)
          {ComputeOldDisplacement();}
@@ -194,7 +201,7 @@ double Solve()
 
       if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-      //if(mCalculateReactionsFlag==true){CalculateReaction( ); }
+      if(mCalculateReactionsFlag==true){CalculateReaction( ); }
 
 
        //std::cout<<"************************************************"<<std::endl;
@@ -244,8 +251,8 @@ void InitializeElements()
       double start_prod = omp_get_wtime();   
       #endif
       std::cout<< "Initializing Elements " << std::endl;
-      KRATOS_WATCH(number_of_threads );
-      KRATOS_WATCH(element_partition );
+      //KRATOS_WATCH(number_of_threads );
+      //KRATOS_WATCH(element_partition );
 
       #pragma omp parallel for private(MassMatrix)
       for(int k=0; k<number_of_threads; k++)
@@ -311,7 +318,6 @@ void Compute_Critical_Time()
 
     vector<unsigned int> element_partition;
     CreatePartition(number_of_threads, pElements.size(), element_partition);
-    //KRATOS_WATCH( number_of_threads );
     //KRATOS_WATCH( element_partition );
 
     #ifdef _OPENMP
@@ -349,8 +355,6 @@ void Compute_Critical_Time()
     }
     }
 
-    //KRATOS_WATCH(delta_time_a)
-    //KRATOS_WATCH(dts)
     std::cout<<"------------------------------------------------------------------"<<std::endl; 
     mdelta_time  =  (*std::min_element(dts.begin(), dts.end()));
     std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
@@ -389,7 +393,7 @@ void ComputeOldDisplacement()
 
       double DeltaTime     = CurrentProcessInfo[DELTA_TIME]; 
       double steps         = CurrentProcessInfo[TIME_STEPS];
-  
+      
       if(DeltaTime == 0)
 	  KRATOS_ERROR(std::logic_error,"Detected delta_time = 0. Please check if the time step is created correctly for the current model part","");
     
@@ -407,9 +411,7 @@ void ComputeOldDisplacement()
 
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
-      KRATOS_WATCH( number_of_threads );
-      KRATOS_WATCH( node_partition );
-
+      
       #ifdef _OPENMP
       double start_prod = omp_get_wtime();  
       #endif
@@ -491,8 +493,8 @@ void Set_to_Zero_RHS()
 
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
-      KRATOS_WATCH( number_of_threads );
-      KRATOS_WATCH( node_partition );
+      //KRATOS_WATCH( number_of_threads );
+      //KRATOS_WATCH( node_partition );
 
       #ifdef _OPENMP
       double start_prod = omp_get_wtime();  
@@ -558,8 +560,8 @@ void Calculate_Conditions_RHS_and_Add()
       #endif
   
       std::cout<< "Calculating RHS Conditions " << std::endl;
-      KRATOS_WATCH(number_of_threads );
-      KRATOS_WATCH(condition_partition );
+      //KRATOS_WATCH(number_of_threads );
+      //KRATOS_WATCH(condition_partition );
 
      #pragma omp parallel for private (rhs_cond)
       for(int k=0; k<number_of_threads; k++)
@@ -634,8 +636,8 @@ void Calculate_Elements_RHS_and_Add()
       #endif  
 
       std::cout<< "Calculating RHS Elements " << std::endl;
-      KRATOS_WATCH(number_of_threads );
-      KRATOS_WATCH(element_partition );
+      //KRATOS_WATCH(number_of_threads );
+      //KRATOS_WATCH(element_partition );
 
      #pragma omp parallel for private (rhs_elem)
       for(int k=0; k<number_of_threads; k++)
@@ -712,8 +714,8 @@ void GetNextDisplacement()
 
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
-      KRATOS_WATCH( number_of_threads );
-      KRATOS_WATCH( node_partition );
+      //KRATOS_WATCH( number_of_threads );
+      //KRATOS_WATCH( node_partition );
 
       #ifdef _OPENMP
       double start_prod = omp_get_wtime();
@@ -847,8 +849,8 @@ void Update()
 
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
-      KRATOS_WATCH( number_of_threads );
-      KRATOS_WATCH( node_partition );
+      //KRATOS_WATCH( number_of_threads );
+      //KRATOS_WATCH( node_partition );
 
       #ifdef _OPENMP
       double start_prod = omp_get_wtime();
@@ -877,7 +879,7 @@ void Update()
             Oldacceleration =  OldAcc;
             Oldvelocity     =  OldVel;
 
-             if(i->Id()==389)
+             if(i->Id()==73)
               { 
  	       KRATOS_WATCH(OldAcc ) 
                KRATOS_WATCH(OldVel)                         
@@ -911,7 +913,7 @@ void Finalize()
     #ifdef _OPENMP
     double start_prod = omp_get_wtime();
     #endif  
-    KRATOS_WATCH(number_of_threads );
+    //KRATOS_WATCH(number_of_threads );
 
     #pragma omp parallel for
     for(int k=0; k<number_of_threads; k++)
@@ -945,6 +947,8 @@ void Finalize()
 }
 
 
+
+///* WARNING = check with rossi
 void CalculateReaction( ) 
 {
  
@@ -954,16 +958,31 @@ void CalculateReaction( )
  for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; 
 				i != r_model_part.NodesEnd() ; ++i)
      {
-             
-            // Las reacciones se calcularan a partir del paso antiguo 
+
+            KRATOS_WATCH(i->Id()) 
             double& mass                           = (i->FastGetSolutionStepValue(NODAL_MASS));
             array_1d<double,3>& reaction           = (i->FastGetSolutionStepValue(REACTION));
-            array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS,1)); // paso anterior 
-     	    array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
+            array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS,1));
+            array_1d<double,3>& rhs_1              = (i->FastGetSolutionStepValue(RHS,2));
+            array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
             array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));
-            noalias(reaction)                      = -mass*acceleration - mass*malpha_damp* velocity;     
-            noalias(reaction)                      += rhs; 
-     }
+            array_1d<double,3> dif                =  rhs - rhs_1;
+            KRATOS_WATCH(dif)
+            KRATOS_WATCH(mass*acceleration)       
+            //noalias(reaction)                      = -(mass*acceleration + mass*malpha_damp * velocity);  
+             
+
+            if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
+ 		{reaction[0] = -dif[0] - mass * acceleration[0] - mass * malpha_damp * velocity[0];}
+                
+            if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == true )
+		{reaction[1] = -dif[1] - mass * acceleration[1] - mass * malpha_damp * velocity[1];}
+          
+            if( i->HasDofFor(DISPLACEMENT_Z)){
+		if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == true )
+		{reaction[2] = -dif[2] - mass * acceleration[2] - mass * malpha_damp * velocity[2];}
+                }
+}
 }
 
 private:
@@ -981,7 +1000,8 @@ double malpha_damp;
 double mfraction_delta_time;
 double mdelta_time;
 double mmax_delta_time;
- 
+
+
 
 
 //******************************************************************************************
