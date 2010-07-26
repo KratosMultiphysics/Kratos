@@ -394,9 +394,10 @@ namespace Kratos
 			// Creating models part for analysis
 			InitializeAuxiliaryModelParts(BaseType::GetModelPart());
 			mstep = BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS];                
-			KRATOS_WATCH(mstep)
-                        KRATOS_WATCH(mIde)
-                      
+			std::cout<<"STEP NUMBER        = " << mstep << std::endl;  
+                        std::cout<<"DESIRED ITERATIONS = " << mIde  << std::endl; 
+                        std::cout<<"MAX ITERATIONS     = " << mMaxIterationNumber << std::endl;  
+			
 			//OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
 			//if the operations needed were already performed this does nothing
 			//Pointers needed in the solution
@@ -531,10 +532,10 @@ namespace Kratos
 				iteration_number++<mMaxIterationNumber) 
 			{
 				//setting the number of iteration
-                                std::cout<<std::endl;				
-				KRATOS_WATCH(iteration_number);
-				KRATOS_WATCH(mstep);
-				KRATOS_WATCH(mMaxIterationNumber);
+                                std::cout<<std::endl;		
+                                std::cout<<"ITERATIIONS NUMBER = " << iteration_number << std::endl;
+				
+	
 				is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb); // retorna true
 			        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;	
 			        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
@@ -559,9 +560,9 @@ namespace Kratos
                                             TSparseSpace::Assign(mDelta_p, mdelta_lamda,Sigma_q);       // mDelta_p = mdelta_lamda*Sigma_q; 
 					    mdelta_lamda_old  = mdelta_lamda;
                                             TSparseSpace::Copy(mDelta_p ,mDelta_pold);                  // mDelta_pold      = mDelta_p;
-					    KRATOS_WATCH(mdelta_l)
-                                            KRATOS_WATCH(mdelta_lamda)
-					    KRATOS_WATCH(Ao)
+					    //KRATOS_WATCH(mdelta_l)
+                                            //KRATOS_WATCH(mdelta_lamda)
+					    //KRATOS_WATCH(Ao)
                                             TSparseSpace::Copy(mRHS_cond,h); 
                              
 					}
@@ -569,8 +570,8 @@ namespace Kratos
 					{
 					    
 					    
-					    KRATOS_WATCH(mlamda_old)
-					    KRATOS_WATCH(mdelta_lamda_old)
+					    //KRATOS_WATCH(mlamda_old)
+					    //KRATOS_WATCH(mdelta_lamda_old)
 					      
 					    aux          = TSparseSpace::Dot(mDelta_pold,mDelta_pold);   //inner_prod(mDelta_pold,mDelta_pold);
                                             Ao           = aux/(mlamda_old*mlamda_old); 
@@ -579,10 +580,10 @@ namespace Kratos
 				            mdelta_lamda = miu*mdelta_lamda_old;
                                             TSparseSpace::Copy(mRHS_cond,h); 
 
-					    KRATOS_WATCH(mdelta_l)
-					    KRATOS_WATCH(Ao)
-					    KRATOS_WATCH(miu)
-					    KRATOS_WATCH(mdelta_lamda)
+					    //KRATOS_WATCH(mdelta_l)
+					    //KRATOS_WATCH(Ao)
+					    //KRATOS_WATCH(miu)
+					    //KRATOS_WATCH(mdelta_lamda)
 					    
                                            
 					}
@@ -604,8 +605,8 @@ namespace Kratos
 				    TSparseSpace::SetToZero(h);
 				    
 				    //pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart,mRHS_cond);
-				    KRATOS_WATCH(mlamda)
-                                    KRATOS_WATCH(meta)
+				    //KRATOS_WATCH(mlamda)
+                                    //KRATOS_WATCH(meta)
                                     //KRATOS_WATCH(mRHS_cond)
                                     TSparseSpace::ScaleAndAdd(mlamda,mRHS_cond,A,mb,e);    //e = mlamda*mRHS_cond + mb; // desequilibrado=> e ver ecuacion (7)
 				    g = TSparseSpace::Dot(e,mRHS_cond)/TSparseSpace::Dot(mRHS_cond,mRHS_cond);
@@ -633,7 +634,7 @@ namespace Kratos
                         TSparseSpace::SetToZero(mb); //mDx=0.00; 
 			mlamda  = mlamda_old + mdelta_lamda;
                         TSparseSpace::Copy(mDelta_p,mDx); //mDx= mDelta_p;
-		        KRATOS_WATCH(mlamda_old);
+		        //KRATOS_WATCH(mlamda_old);
 			//KRATOS_WATCH(mb);
 			//KRATOS_WATCH(mDelta_p);
 
@@ -747,7 +748,7 @@ namespace Kratos
 				    mdelta_lamda = mdelta_lamda_old;
 				    MaxIterationsExceeded();
                                     std::cout<<"Longitud de Arco Modificada"<<std::endl;
-                                    KRATOS_WATCH(mdelta_l);
+                                    //KRATOS_WATCH(mdelta_l);
 				 }
 
 
@@ -781,7 +782,7 @@ namespace Kratos
 			pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
                         this->FinalizeSolutionStep(iteration_number,reduce_arc_lenght);
 			BaseType::GetModelPart().GetProcessInfo()[LAMNDA] = mlamda;
-                        KRATOS_WATCH(mdelta_l)
+                        //KRATOS_WATCH(mdelta_l)
 
  
 			//Cleaning memory after the solution
@@ -950,9 +951,9 @@ namespace Kratos
 		          b = 2.00*(Ao*(mdelta_lamda-g) + TSparseSpace::Dot(Sigma_q,Aux_Vector)); 
 		          c = Ao*(mdelta_lamda-g)*(mdelta_lamda-g) - mdelta_l*mdelta_l + TSparseSpace::Dot(Aux_Vector,Aux_Vector); 
 				    
-			  KRATOS_WATCH(a);
-		          KRATOS_WATCH(b);
-		          KRATOS_WATCH(c);
+			  //KRATOS_WATCH(a);
+		          //KRATOS_WATCH(b);
+		          //KRATOS_WATCH(c);
 
 			  TSystemVectorPointerType pDelta_p1;
 		          TSystemVectorPointerType pDelta_p2;
@@ -969,7 +970,7 @@ namespace Kratos
                           TSparseSpace::SetToZero(mDelta_p);
                                    
 			  disc = b*b - 4.00*a*c;
-		          KRATOS_WATCH(disc);
+		          //KRATOS_WATCH(disc);
 
 		          if (disc>=0.00)
 			      {
@@ -977,7 +978,7 @@ namespace Kratos
                                  TSparseSpace::ScaleAndAdd(x_sol(0),Sigma_q,meta,Sigma_h,Delta_p1); //Delta_p1 = x_sol(0)*Sigma_q + meta*Sigma_h
 			         TSparseSpace::ScaleAndAdd(x_sol(1),Sigma_q,meta,Sigma_h,Delta_p2); //Delta_p2 = x_sol(1)*Sigma_q + meta*Sigma_h
 			         
-				 KRATOS_WATCH(x_sol)		 
+				 //KRATOS_WATCH(x_sol)		 
 				 x = x_sol(1);
                                  TSparseSpace::Copy(Delta_p2,mDelta_p); //mDelta_p = Delta_p2;
                                  
@@ -991,8 +992,8 @@ namespace Kratos
 				     }
 					  
 				  mdelta_lamda= mdelta_lamda - g + x;
-                                  KRATOS_WATCH(mdelta_lamda)
-				  KRATOS_WATCH(x)  
+                                  //KRATOS_WATCH(mdelta_lamda)
+				  //KRATOS_WATCH(x)  
 				    
 				}
 					
@@ -1003,10 +1004,10 @@ namespace Kratos
 				   std::cout<<"Discriminante Negativo"<<std::endl;
 			           std::cout<<"Calculating eta"<<std::endl;
 				   Calculate_eta(Ao,pSigma_q,pSigma_h,g,imag);
-				   KRATOS_WATCH(meta)
-				   KRATOS_WATCH(imag)
-				   KRATOS_WATCH(g)
-				   KRATOS_WATCH(Ao)
+				   //KRATOS_WATCH(meta)
+				   //KRATOS_WATCH(imag)
+				   //KRATOS_WATCH(g)
+				   //KRATOS_WATCH(Ao)
 
 				   if (imag==false && disc >= 0.00)
 					{
@@ -1043,10 +1044,10 @@ namespace Kratos
 					    //TSparseSpace::Assign(mDelta_p,(miu-1),mDelta_p);
                                             //mDelta_p = (1.00-miu)*mDelta_p;
                                             mdelta_lamda = miu*delta_lamda_cr;
-                                            KRATOS_WATCH(lamda_cr)
-				            KRATOS_WATCH(delta_lamda_cr)
-				            KRATOS_WATCH(miu)
-				            KRATOS_WATCH(mdelta_lamda)
+                                            //KRATOS_WATCH(lamda_cr)
+				            //KRATOS_WATCH(delta_lamda_cr)
+				            //KRATOS_WATCH(miu)
+				            //KRATOS_WATCH(mdelta_lamda)
 				  
 					    // dejandolo como estaba antes
 					    // mDx = -mDx;
@@ -1262,7 +1263,7 @@ namespace Kratos
 			 {
 				mdelta_lold = mdelta_lmax;
 				mdelta_l    = mdelta_lmax;
-                                KRATOS_WATCH(mdelta_lmax);
+                                //KRATOS_WATCH(mdelta_lmax);
 			 }     
 
 		    //BaseType::GetModelPart().GetProcessInfo()[ARC_LENGTH_REDUCED] = 0;
@@ -1341,19 +1342,19 @@ namespace Kratos
 			    c_prima = (Ao + inner_prod(Sigma_q,Sigma_q))*((inner_prod(mDelta_p,mDelta_p)-mdelta_l*mdelta_l))-(2.00*Ao*(mdelta_lamda-g)+inner_prod(Sigma_q,mDelta_p))*inner_prod(Sigma_q,mDelta_p) + inner_prod(Sigma_q,Sigma_q)*Ao*(mdelta_lamda-g)*(mdelta_lamda-g);
 
 			    disc    = b_prima*b_prima*-4.00*a_prima*c_prima;
-			    KRATOS_WATCH(a_prima)
-		            KRATOS_WATCH(b_prima)
-		            KRATOS_WATCH(c_prima)
+			    //KRATOS_WATCH(a_prima)
+		            //KRATOS_WATCH(b_prima)
+		            //KRATOS_WATCH(c_prima)
 
-                            KRATOS_WATCH(disc)
+                            //KRATOS_WATCH(disc)
 			    if (disc >= 0.00)
 				 {
 				    imag = false;
 				    Solve_Polinomial_Equation(a_prima,b_prima,c_prima,SOL);
-                                    KRATOS_WATCH(SOL)
-				    KRATOS_WATCH(a_prima)
-				    KRATOS_WATCH(b_prima)
-				    KRATOS_WATCH(c_prima)
+                                    //KRATOS_WATCH(SOL)
+				    //KRATOS_WATCH(a_prima)
+				    //KRATOS_WATCH(b_prima)
+				    //KRATOS_WATCH(c_prima)
 
 				    if (SOL(0)>SOL(1))
 				    {
