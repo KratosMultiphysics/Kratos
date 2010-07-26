@@ -299,14 +299,14 @@ namespace Kratos
 											pBuilderAndSolver,
 											rDofSet,
 											X_old,Delta_p,mDx,mb,mA);
-					  if ( Satisfactory_Line_Search== true)		
+					/*  if ( Satisfactory_Line_Search== true)		
 					      {
 						    std::cout<<"***************************************************"<<std::endl; 
-						    std::cout<<"******Line Searches Has Succecfuly Finished*******"<<std::endl; 
+						    std::cout<<"******Line Searches Has Succecfuly Finished********"<<std::endl; 
 						    std::cout<<"***************************************************"<<std::endl;
 					      }
 					   
-				      
+				         */
 					      std::cout<<"Line-Search Step Factor:"<<this->meta<<std::endl;
 					      rDofSet = pBuilderAndSolver->GetDofSet();
 					      this->SetDatabaseToValue(rDofSet, X_old);
