@@ -1192,18 +1192,18 @@ void partial_sort(RandomAccessIterator first,
 
 	if (2*P < unsigned(N))
 	{
-		::omptl::_pivot_range(first, last, *middle);
+		::omptl::_pivot_range(first, last, *middle, comp);
 		::omptl::sort(first, middle, comp, P);
 	}
 	else
-		::std::partial_sort(first, last, middle);
+		::std::partial_sort(first, last, middle, comp);
 }
 
 template <class RandomAccessIterator>
 void partial_sort(RandomAccessIterator first, RandomAccessIterator middle,
                   RandomAccessIterator last, const unsigned P)
 {
-	
+
 	typedef typename
 		::std::iterator_traits<RandomAccessIterator>::value_type VT;
 	::omptl::partial_sort(first, middle, last, ::std::less<VT>(), P);
@@ -1394,7 +1394,7 @@ struct Replace_copy_if_
 
 		return result;
 	}
-	
+
 };
 
 template <class Iterator2Tag>
@@ -1541,7 +1541,7 @@ ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1,
 					   partitions[t].second,
 					   first2, last2, binary_pred);
 
-		
+
 	}
 
 	const typename ::std::vector<ForwardIterator1>::iterator
@@ -1726,8 +1726,8 @@ void _par_stable_sort(RandomAccessIterator first, RandomAccessIterator last,
 	}
 
 	// Generate pivots
-	::std::vector<typename 
-		::std::iterator_traits<RandomAccessIterator>::value_type> 
+	::std::vector<typename
+		::std::iterator_traits<RandomAccessIterator>::value_type>
 			pivots;
 	_find_pivots(first, last, pivots, P);
 
@@ -1834,7 +1834,7 @@ struct Transform_
 		::omptl::_copy_partitions(source_partitions, result,
 					  dest_partitions, P);
 
-		#pragma omp parallel for 
+		#pragma omp parallel for
 		for (int t = 0; t < int(P); ++t)
 		{
 			IteratorOut tmp;

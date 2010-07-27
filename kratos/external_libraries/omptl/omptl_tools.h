@@ -1,5 +1,5 @@
 // Copyright (C) 2006 Fokko Beekhof
-// Email contact: Fokko.Beekhof@cui.unige.ch
+// Email contact: Fokko.Beekhof@unige.ch
 
 // The OMPTL library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ T log2N_(T n)
 {
 	assert(n > 0);
 	const std::size_t N = CHAR_BIT*sizeof(T);
-	
+
 	T result = 0;
 	for (std::size_t i = 1; i < N; ++i)
 	{
@@ -349,7 +349,7 @@ template<typename RandomAccessIterator, class StrictWeakOrdering>
 void _find_pivots(RandomAccessIterator first, RandomAccessIterator last,
 	::std::vector<typename
 	::std::iterator_traits<RandomAccessIterator>::value_type> &pivots,
-	StrictWeakOrdering comp, const unsigned P, 
+	StrictWeakOrdering comp, const unsigned P,
 	unsigned SAMPLE_RATIO = 8)
 {
 	assert(SAMPLE_RATIO > 0);
