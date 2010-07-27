@@ -66,13 +66,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	Matrix                                             MembraneElement::msB(0,0);
-	boost::numeric::ublas::bounded_matrix<double,3,3>  MembraneElement::msQ = ZeroMatrix(3,3);
-	Matrix											   MembraneElement::msD = ZeroMatrix(3,3);
-	Vector											   MembraneElement::msStrainVector = ZeroVector(3);
-	Vector							                   MembraneElement::msStressVector = ZeroVector(3);
-	boost::numeric::ublas::bounded_matrix<double,2,2>  MembraneElement::msC = ZeroMatrix(2,2);
-	Matrix											   MembraneElement::msDN_DX(0,0);
+	namespace MembraneAuxiliaries
+	{
+	    Matrix  msB(0,0);
+	    #pragma omp threadprivate(msB)
+	    
+	    boost::numeric::ublas::bounded_matrix<double,3,3>  msQ = ZeroMatrix(3,3);
+	    #pragma omp threadprivate(msQ)
+	    
+	    Matrix	msD = ZeroMatrix(3,3);
+	    #pragma omp threadprivate(msD)
+	    
+	    Vector	msStrainVector = ZeroVector(3);
+	    #pragma omp threadprivate(msStrainVector)
+	    
+	    Vector	msStressVector = ZeroVector(3);
+	    #pragma omp threadprivate(msStressVector)
+	    
+	    boost::numeric::ublas::bounded_matrix<double,2,2>  msC = ZeroMatrix(2,2);
+	    #pragma omp threadprivate(msC)
+	    
+	    Matrix	msDN_DX(0,0);
+	    #pragma omp threadprivate(msDN_DX)
+	}
+	using namespace MembraneAuxiliaries;
 
 	//***********************************************************************************
 	//***********************************************************************************

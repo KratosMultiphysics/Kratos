@@ -163,13 +163,13 @@ class MembraneElement
 	private:
 		///@name Static Member Variables 
 
-		static Matrix                                             msB;
-		static boost::numeric::ublas::bounded_matrix<double,3,3>  msQ;
-		static Matrix											  msD;
-		static Vector				                  msStrainVector;
-		static Vector				                  msStressVector;
-		static boost::numeric::ublas::bounded_matrix<double,2,2>  msC;
-		static Matrix											  msDN_DX;
+// 		static Matrix                                             msB;
+// 		static boost::numeric::ublas::bounded_matrix<double,3,3>  msQ;
+// 		static Matrix											  msD;
+// 		static Vector				                  msStrainVector;
+// 		static Vector				                  msStressVector;
+// 		static boost::numeric::ublas::bounded_matrix<double,2,2>  msC;
+// 		static Matrix											  msDN_DX;
 
 		/// privat variables
 
