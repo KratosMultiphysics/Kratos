@@ -170,8 +170,19 @@ namespace Kratos
                 {
                     index2_vector[i] = (int)(rA.index2_data()[i])+1;
                 }
-                
-                MKL_INT mtype = 11; /* Real nonsymmetric matrix */
+                /**
+                 *  Matrix type flag:
+                 * 1    real and structurally symmetric
+                 * 2    real and symmetic positive definite
+                 * -2   real and symmetric indefinite
+                 * 3    complex and structurally symmetric
+                 * 4    complex and Hermitian positive definite
+                 * -4   complex and Hermitian indefinite
+                 * 6    complex and symmetic
+                 * 11   real and nonsymmetric
+                 * 13   complex and nonsymmetric
+                 */
+                MKL_INT mtype = 11;
                 /* RHS and solution vectors. */
                 double *b = mbtraits::storage(rB);
                 double *x = mbtraits::storage(rX);
