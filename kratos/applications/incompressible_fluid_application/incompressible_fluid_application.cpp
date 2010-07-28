@@ -82,6 +82,8 @@ namespace Kratos
 		mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 			
 		mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mNoNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mNoNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
 		mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
 
@@ -163,7 +165,10 @@ namespace Kratos
 		KRATOS_REGISTER_CONDITION("NoSlipCondition2D", mNoSlipCondition2D);
 
 
-		KRATOS_REGISTER_ELEMENT("Fluid2DSplit", mFluid2DSplit);		
+		KRATOS_REGISTER_ELEMENT("Fluid2DSplit", mFluid2DSplit);
+		
+		KRATOS_REGISTER_ELEMENT("NoNewtonianASGS2D", mNoNewtonianASGS2D);		
+		KRATOS_REGISTER_ELEMENT("NoNewtonianASGS3D", mNoNewtonianASGS3D);		
 
 		std::cout << "Initializing KratosIncompressibleFluidApplication...elements succesfully registered " << std::endl;
 	
