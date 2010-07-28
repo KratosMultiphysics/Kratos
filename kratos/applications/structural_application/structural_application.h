@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
+#include "includes/constitutive_law.h"
 
 #include "custom_elements/total_lagrangian.h"
 #include "custom_elements/mixed_lagrangian.h"
@@ -130,6 +131,9 @@ namespace Kratos
     //typedef boost::numeric::ublas::bounded_matrix<double,3,3> fix_matrix_33;
     typedef Vector array3;
     //typedef array_1d<double,3> array3;
+    
+    KRATOS_DEFINE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW );
+    
     KRATOS_DEFINE_VARIABLE( fix_matrix_33 , MATRIX_A );
     KRATOS_DEFINE_VARIABLE( fix_matrix_33 , MATRIX_B );
     KRATOS_DEFINE_VARIABLE( fix_matrix_33 , MATRIX_D );
