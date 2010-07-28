@@ -278,8 +278,8 @@ namespace Kratos
             /// Destructor. Does nothing!!!
             virtual ~Hexahedra3D8(){}
             
-	    GeometryData::KratosGeometryFamily GetGeometryFamily(){return GeometryData::Kratos_Hexahedra; }
-	    GeometryData::KratosGeometryType GetGeometryType(){return GeometryData::Kratos_Hexahedra3D8; }
+            GeometryData::KratosGeometryFamily GetGeometryFamily(){return GeometryData::Kratos_Hexahedra; }
+            GeometryData::KratosGeometryType GetGeometryType(){return GeometryData::Kratos_Hexahedra3D8; }
             
             /**
              * Operators 
@@ -355,7 +355,7 @@ namespace Kratos
             
             
             /**
-             * Informations
+             * Information
              */
             
             /** 
@@ -396,25 +396,21 @@ namespace Kratos
             {
                 return fabs(DeterminantOfJacobian(PointType())) * 0.5;
             }
-
-
-	 virtual double Volume() const
-        {				
-
-	  Vector temp;
-	  DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
-	  const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-          double Volume=0.00;
-	  for(unsigned int i=0;i<integration_points.size();i++)
-		{
-			Volume+= temp[i]*integration_points[i].Weight();
-		}
-          //KRATOS_WATCH(temp)
-	return Volume;                                                       
-        }
-
-
-
+            
+            virtual double Volume() const
+            {
+                Vector temp;
+                DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
+                const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
+                double Volume=0.00;
+                for(unsigned int i=0;i<integration_points.size();i++)
+                {
+                    Volume+= temp[i]*integration_points[i].Weight();
+                }
+                return Volume;
+            }
+            
+            
             /** 
              * This method calculate and return length, area or volume of
              * this geometry depending to it's dimension. For one dimensional
@@ -432,53 +428,46 @@ namespace Kratos
             {
                 return fabs(DeterminantOfJacobian(PointType())) * 0.5;
             }
-			
-       		/**
-        	* Returns a matrix of the local coordinates of all points 
-        	* @param rResult a Matrix that will be overwritten by the results
-        	* @return the coordinates of all points of the current geometry 
-        	*/
-      		virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const 
-       		{
-				if(rResult.size1()!= 8 || rResult.size2()!= 3)
-					rResult.resize(8,3);
-
-				rResult(0,0)=-1.0;	rResult(0,1)=-1.0;	rResult(0,2)=-1.0;
-				rResult(1,0)=1.0;	rResult(1,1)=-1.0;	rResult(1,2)=-1.0;
-				rResult(2,0)=1.0;	rResult(2,1)=1.0;	rResult(2,2)=-1.0;
-				rResult(3,0)=-1.0;	rResult(3,1)=1.0;	rResult(3,2)=-1.0;
-				rResult(4,0)=-1.0;	rResult(4,1)=-1.0;	rResult(4,2)=1.0;
-				rResult(5,0)=1.0;	rResult(5,1)=-1.0;	rResult(5,2)=1.0;
-				rResult(6,0)=1.0;	rResult(6,1)=1.0;	rResult(6,2)=1.0;
-				rResult(7,0)=-1.0;	rResult(7,1)=1.0;	rResult(7,2)=1.0;
-
-           		return rResult;
-       		}
-			/**
-			 * Returns whether given arbitrary point is inside the Geometry
-			 */
-			virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
-			{
-				PointLocalCoordinates( rResult, rPoint );
-				if( fabs(rResult[0]) < 1+1.0e-8)
-					if( fabs(rResult[1]) < 1+1.0e-8)
-						if( fabs(rResult[2]) < 1+1.0e-8)
-							return true;
-// 				if( rResult[0] >= -1. && rResult[0] <= 1.0 )
-// 					if( rResult[1] >= -1.0 && rResult[1] <= 1.0 )
-// 						if( rResult[2] >= -1.0 && rResult[2] <= 1.0 )
-// 							return true;
-				return false;
-			}
-
-     
-     virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
-             {
+            
+            /**
+             * Returns a matrix of the local coordinates of all points 
+             * @param rResult a Matrix that will be overwritten by the results
+             * @return the coordinates of all points of the current geometry 
+             */
+            virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const 
+            {
+                if(rResult.size1()!= 8 || rResult.size2()!= 3)
+                    rResult.resize(8,3);
+                rResult(0,0)=-1.0;	rResult(0,1)=-1.0;	rResult(0,2)=-1.0;
+                rResult(1,0)=1.0;	rResult(1,1)=-1.0;	rResult(1,2)=-1.0;
+                rResult(2,0)=1.0;	rResult(2,1)=1.0;	rResult(2,2)=-1.0;
+                rResult(3,0)=-1.0;	rResult(3,1)=1.0;	rResult(3,2)=-1.0;
+                rResult(4,0)=-1.0;	rResult(4,1)=-1.0;	rResult(4,2)=1.0;
+                rResult(5,0)=1.0;	rResult(5,1)=-1.0;	rResult(5,2)=1.0;
+                rResult(6,0)=1.0;	rResult(6,1)=1.0;	rResult(6,2)=1.0;
+                rResult(7,0)=-1.0;	rResult(7,1)=1.0;	rResult(7,2)=1.0;
+                return rResult;
+            }
+            
+            /**
+             * Returns whether given arbitrary point is inside the Geometry
+             */
+            virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
+            {
+                PointLocalCoordinates( rResult, rPoint );
+                if( fabs(rResult[0]) < 1+1.0e-8)
+                    if( fabs(rResult[1]) < 1+1.0e-8)
+                        if( fabs(rResult[2]) < 1+1.0e-8)
+                            return true;
+                return false;
+            }
+            
+            
+            virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
+            {
                 //rResult.Geometry() = *(this);  
                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
-             }
-     
-
+            }
             
             /**
              * Jacobian 
@@ -529,12 +518,12 @@ namespace Kratos
                          jacobian(0,0) += (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,0));
                          jacobian(0,1) += (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,1));
                          jacobian(0,2) += (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,2));
-						 jacobian(1,0) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,0));
-						 jacobian(1,1) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,1));
-						 jacobian(1,2) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,2));
-						 jacobian(2,0) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,0));
-						 jacobian(2,1) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,1));
-						 jacobian(2,2) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,2));
+                         jacobian(1,0) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,0));
+                         jacobian(1,1) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,1));
+                         jacobian(1,2) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,2));
+                         jacobian(2,0) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,0));
+                         jacobian(2,1) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,1));
+                         jacobian(2,2) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,2));
                      }
                      rResult[pnt] = jacobian;
                  }//end of loop over all integration points
@@ -620,15 +609,15 @@ namespace Kratos
                 //loop over all nodes
                 for( unsigned int i=0; i<this->PointsNumber(); i++ )
                 {
-					rResult(0,0) += (this->GetPoint(i).X())*(shape_functions_gradients(i,0));
-					rResult(0,1) += (this->GetPoint(i).X())*(shape_functions_gradients(i,1));
-					rResult(0,2) += (this->GetPoint(i).X())*(shape_functions_gradients(i,2));
-					rResult(1,0) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,0));
-					rResult(1,1) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,1));
-					rResult(1,2) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,2));
-					rResult(2,0) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,0));
-					rResult(2,1) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,1));
-					rResult(2,2) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,2));
+                    rResult(0,0) += (this->GetPoint(i).X())*(shape_functions_gradients(i,0));
+                    rResult(0,1) += (this->GetPoint(i).X())*(shape_functions_gradients(i,1));
+                    rResult(0,2) += (this->GetPoint(i).X())*(shape_functions_gradients(i,2));
+                    rResult(1,0) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,0));
+                    rResult(1,1) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,1));
+                    rResult(1,2) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,2));
+                    rResult(2,0) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,0));
+                    rResult(2,1) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,1));
+                    rResult(2,2) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,2));
                 }
                 return rResult;
             }
@@ -952,33 +941,35 @@ namespace Kratos
              * TODO: TO BE VERIFIED
              */
             virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex, 
-											   const CoordinatesArrayType& rPoint) const
+                                               const CoordinatesArrayType& rPoint) const
             {
                 switch( ShapeFunctionIndex )
                 {
                     case 0:
-						return( 0.125*(1.0-rPoint[0])*(1.0-rPoint[1])*(1.0-rPoint[2]) );
+                        return( 0.125*(1.0-rPoint[0])*(1.0-rPoint[1])*(1.0-rPoint[2]) );
                     case 1:
-						return( 0.125*(1.0+rPoint[0])*(1.0-rPoint[1])*(1.0-rPoint[2]) );
+                        return( 0.125*(1.0+rPoint[0])*(1.0-rPoint[1])*(1.0-rPoint[2]) );
                     case 2:
-						return( 0.125*(1.0+rPoint[0])*(1.0+rPoint[1])*(1.0-rPoint[2]) );
+                        return( 0.125*(1.0+rPoint[0])*(1.0+rPoint[1])*(1.0-rPoint[2]) );
                     case 3:
-						return( 0.125*(1.0-rPoint[0])*(1.0+rPoint[1])*(1.0-rPoint[2]) );
+                        return( 0.125*(1.0-rPoint[0])*(1.0+rPoint[1])*(1.0-rPoint[2]) );
                     case 4:
-						return( 0.125*(1.0-rPoint[0])*(1.0-rPoint[1])*(1.0+rPoint[2]) );
+                        return( 0.125*(1.0-rPoint[0])*(1.0-rPoint[1])*(1.0+rPoint[2]) );
                     case 5:
-						return( 0.125*(1.0+rPoint[0])*(1.0-rPoint[1])*(1.0+rPoint[2]) );
+                        return( 0.125*(1.0+rPoint[0])*(1.0-rPoint[1])*(1.0+rPoint[2]) );
                     case 6:
-						return( 0.125*(1.0+rPoint[0])*(1.0+rPoint[1])*(1.0+rPoint[2]) );
+                        return( 0.125*(1.0+rPoint[0])*(1.0+rPoint[1])*(1.0+rPoint[2]) );
                     case 7:
-						return( 0.125*(1.0-rPoint[0])*(1.0+rPoint[1])*(1.0+rPoint[2]) );
+                        return( 0.125*(1.0-rPoint[0])*(1.0+rPoint[1])*(1.0+rPoint[2]) );
                     default:
                         KRATOS_ERROR(std::logic_error,
                                         "Wrong index of shape function!" , *this);
                 }
                 return 0;
             }
-                        /**
+            
+            
+            /**
              * Calculates the gradients in terms of local coordinateds 
              * of all shape functions in a given point.
              * 
@@ -1017,6 +1008,8 @@ namespace Kratos
                 rResult(7,2) =  0.125*(1.0-rPoint[0])*(1.0+rPoint[1]);
                 return rResult;
             }
+            
+            
             /**
              * Calculates the Gradients of the shape functions.
              * Calculates the gradients of the shape functions with regard to the global
@@ -1210,7 +1203,7 @@ namespace Kratos
                     shape_function_values(pnt,0) =
                             0.125*(1.0-integration_points[pnt].X())
                             *(1.0-integration_points[pnt].Y())
-							*(1.0-integration_points[pnt].Z());
+                            *(1.0-integration_points[pnt].Z());
                     shape_function_values(pnt,1) =
                             0.125*(1.0+integration_points[pnt].X())
                             *(1.0-integration_points[pnt].Y())
@@ -1365,14 +1358,14 @@ namespace Kratos
             static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
             {
                 ShapeFunctionsValuesContainerType shape_functions_values = 
-				{{
+                {{
                     Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                             GeometryData::GI_GAUSS_1),
                     Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                             GeometryData::GI_GAUSS_2),
                     Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                             GeometryData::GI_GAUSS_3)
-				}};
+                }};
                 return shape_functions_values;
             }
             
@@ -1383,14 +1376,14 @@ namespace Kratos
                     AllShapeFunctionsLocalGradients()
             {
                 ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = 
-				{{
+                {{
                     Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                             GeometryData::GI_GAUSS_1),
                     Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                             GeometryData::GI_GAUSS_2),
                     Hexahedra3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                             GeometryData::GI_GAUSS_3)
-				}};
+                }};
                 return shape_functions_local_gradients;
             }
             
