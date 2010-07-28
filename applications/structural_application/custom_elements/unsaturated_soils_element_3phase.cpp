@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes 
+#include "structural_application.h"
 #include "custom_elements/unsaturated_soils_element_3phase.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
