@@ -67,7 +67,9 @@ python-extension KratosIncompressibleFluidApplication
 	asgs_comp_pr_dc_3d.cpp
 	no_slip_condition_2d.cpp
 
-	fluid_2d_split.cpp		
+	fluid_2d_split.cpp
+	nonewtonian_asgs_2d.cpp
+	nonewtonian_asgs_3d.cpp
 
 	#kratos library
     #/kratos-prj/kratos//libkratos/<link>static
