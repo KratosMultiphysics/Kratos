@@ -172,6 +172,60 @@ namespace Kratos
                                         double SolutionTag, unsigned int value_index )
              {
              }
+             
+             virtual void PrintResults( Variable<array_1d<double,6> > rVariable, ModelPart& r_model_part,
+                                        double SolutionTag, unsigned int value_index )
+             {
+                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
+                {
+                    WriteGaussPoints();
+                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (const char*)("Kratos"),
+                                     SolutionTag, GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                    std::vector<array_1d<double, 6> > ValuesOnIntPoint(mSize);
+                    if( mMeshElements.size() != 0 )
+                    {
+                        for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin(); 
+                             it != mMeshElements.end(); ++it )
+                        {
+                            if( ! it->GetValue( IS_INACTIVE ) )
+                            {
+                               //KRATOS_WATCH(it->Id())
+                                it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                        r_model_part.GetProcessInfo() );
+                                for(unsigned int i=0; i<mIndexContainer.size(); i++)
+                                {
+                                    int index = mIndexContainer[i];
+                                    GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index][0],
+                                            ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2],
+                                                       ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
+                                                       ValuesOnIntPoint[index][5] );
+                                }
+                            }
+                        }
+                    }
+                    if( mMeshConditions.size() != 0 )
+                    {
+                        for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
+                             it != mMeshConditions.end(); it++ )
+                        {
+                            if( ! it->GetValue( IS_INACTIVE ) )
+                            {
+                                it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
+                                        r_model_part.GetProcessInfo() );
+                                for(unsigned int i=0; i<mIndexContainer.size(); i++)
+                                {
+                                    int index = mIndexContainer[i];
+                                    GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index][0],
+                                            ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2],
+                                                       ValuesOnIntPoint[index][3], ValuesOnIntPoint[index][4],
+                                                       ValuesOnIntPoint[index][5] );
+                                }
+                            }
+                        }
+                    }
+                    GiD_EndResult();
+                }
+             }
             
 
             virtual void PrintResults( Variable<Vector> rVariable, ModelPart& r_model_part, 
