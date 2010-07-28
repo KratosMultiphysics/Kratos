@@ -61,6 +61,10 @@
 
 #include "custom_elements/fluid_2d_split.h"
 
+#include "custom_elements/nonewtonian_asgs_2d.h"
+#include "custom_elements/nonewtonian_asgs_3d.h"
+
+
 namespace Kratos
 {
 
@@ -293,6 +297,10 @@ namespace Kratos
 		const ProjDirichletCond mProjDirichletCond;
 
 		const Fluid2DSplit mFluid2DSplit;
+
+		const NoNewtonianASGS2D mNoNewtonianASGS2D;
+		const NoNewtonianASGS3D mNoNewtonianASGS3D;
+
 		const NoSlipCondition2D mNoSlipCondition2D;
 
 		///@} 
