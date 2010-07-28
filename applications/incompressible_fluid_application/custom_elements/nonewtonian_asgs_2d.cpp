@@ -1055,17 +1055,12 @@ namespace Kratos {
             U[index] = vel[0];
             U[index + 1] = vel[1];
         }
-// KRATOS_WATCH(B)
-// KRATOS_WATCH(U)
+
         grad_sym_vel = prod(B, U);
-// 	for( int i = 0; i< nodes_number;i++)
-// 	{
-// 	  if (grad_sym_vel[i] < 0.00005)
-// 	    grad_sym_vel[i] = 0.0;
-// 	}
-// Norm of the gradient of velocity:
+
+	// Norm of the gradient of velocity:
 //         grad_sym_vel_norm = grad_sym_vel[0] * grad_sym_vel[0] + grad_sym_vel[1] * grad_sym_vel[1] + 0.5 * grad_sym_vel[2] * grad_sym_vel[2];
-// Gamma dot found in literature!!!:
+	// Gamma dot found in literature!!!:
         grad_sym_vel_norm = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
 
         if (grad_sym_vel_norm > 0.00001) {
@@ -1073,9 +1068,6 @@ namespace Kratos {
         } else
             grad_sym_vel_norm = 0.0;
 	
-	//print on gauss point the gamma dot as TEMPERATURE
-/*KRATOS_WATCH(grad_sym_vel_norm)
-KRATOS_WATCH(grad_sym_vel)*/	
 	
         KRATOS_CATCH("")
     }
@@ -1090,8 +1082,6 @@ KRATOS_WATCH(grad_sym_vel)*/
             const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
             const double & mu) {
         KRATOS_TRY
-        // 	        unsigned int dim = 2;
-        // 		unsigned int nodes_number = dim + 1;
         app_mu = 0.0;
 	double yield;
 
@@ -1103,27 +1093,35 @@ KRATOS_WATCH(grad_sym_vel)*/
 	CalculateGradSymVel(grad_sym_vel, grad_sym_vel_norm, B);
 	
 	
-// 	const double & pres_0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-// 	const double & pres_1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-// 	const double & pres_2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-//         // KRATOS_WATCH("yield_1")
-//         // KRATOS_WATCH(yield)
-// 	yield = (pres_0 + pres_1 + pres_2);
-// 	if(yield > 0.001){
-// 	  yield *= (0.333333333333333333333333  *friction_angle_tangent);
-// 	}
-// 	else
-	  yield = 1000000.0;
-
+	  // The yield is variable: it decreases where water is present
+	  unsigned int nodes_number = 3;
+	  yield = 7000.0;
+	  double water_pressure = 0.0;
+	  
+	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
+	      }
+	  }
+	  water_pressure /= nodes_number;
+	  //pay attention: negative yield stress meaningfull
+	  if(water_pressure < yield)
+	      yield -= water_pressure;
+	  else
+	      yield = 0.0;
+	  
         if (grad_sym_vel_norm > 0.00001) {
             aux_1 = 1.0 - exp(-(mcoef * grad_sym_vel_norm));
-            app_mu = mu + yield / grad_sym_vel_norm * aux_1;
+            app_mu = mu + (yield / grad_sym_vel_norm) * aux_1;
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
         } else {
             app_mu = mu + yield*mcoef ;
         }
+
+	
+	
         KRATOS_CATCH("")
     }
 
@@ -1190,12 +1188,12 @@ KRATOS_WATCH(grad_sym_vel)*/
             }
         }
 //PROVISIONALbegin---only for debugging
-	if (rVariable == TEMPERATURE) {
+	if (rVariable == TEMPERATURE) {//gamma dot
 	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 	  double grad_sym_vel_norm = 0.0;
-	  double Area;
-	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+// 	  double Area;
+// 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
 	  CalculateB(B, DN_DX);      
 
@@ -1207,15 +1205,15 @@ KRATOS_WATCH(grad_sym_vel)*/
 
             }
         }
-	if (rVariable == AUX_INDEX) {
+	if (rVariable == AUX_INDEX) {//app mu
 	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 	  double grad_sym_vel_norm = 0.0;
 	  double mu;
 	  double density;
           double app_mu;
-	  double Area;
-	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+// 	  double Area;
+// 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 	  calculatedensity(GetGeometry(), density, mu);
 	  CalculateB(B, DN_DX);    
 	  CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
@@ -1244,9 +1242,6 @@ KRATOS_WATCH(grad_sym_vel)*/
 
         density /= kk;
         viscosity /= kk;
-
-
-
         //Here we calculate Dynamic viscosity from Kinemeatic viscosity
         viscosity *= density;
 
@@ -1301,7 +1296,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 	//Bingham
         CalculateApparentViscosity(mu, grad_sym_vel, B, mu);	
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
-	//do nothing --> we don't need the calculation of gred_sym_vel in this case!!!
+	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
 	
 	
 /*provisional*/	
