@@ -1334,7 +1334,7 @@ KRATOS_WATCH(grad_sym_vel)*/
         // 	        unsigned int dim = 2;
         // 		unsigned int nodes_number = dim + 1;
         app_mu = 0.0;
-	double yield;
+// 	double yield;
 
 	double grad_sym_vel_norm = 0.0;
 //         double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
@@ -1346,15 +1346,17 @@ KRATOS_WATCH(grad_sym_vel)*/
 	
 	 // The yield is variable: it decreases where water is present
 	  unsigned int nodes_number = 4;
-	  yield = 3000.0;
+	  double yield = 0.0;
 	  double water_pressure = 0.0;
 	  
 	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
 		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
 	      }
+	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
 	  }
 	  water_pressure /= nodes_number;
+	  yield /= nodes_number;
 	  //pay attention: negative yield stress meaningfull
 	  if(water_pressure < yield)
 	      yield -= water_pressure;
