@@ -1049,7 +1049,7 @@ namespace Kratos {
 
         array_1d<double, 6 > U = ZeroVector(6);
         //		array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
-        for (int ii = 0; ii < nodes_number; ++ii) {
+        for (unsigned int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dim);
 	    const array_1d<double,3>& vel =  GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
             U[index] = vel[0];
@@ -1086,7 +1086,7 @@ namespace Kratos {
 	double yield;
 
 	double grad_sym_vel_norm = 0.0;
-        double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
+//         double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
         double mcoef = 300;
 	
 	double aux_1;
@@ -1208,7 +1208,7 @@ namespace Kratos {
 	if (rVariable == AUX_INDEX) {//app mu
 	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
-	  double grad_sym_vel_norm = 0.0;
+// 	  double grad_sym_vel_norm = 0.0;
 	  double mu;
 	  double density;
           double app_mu;
