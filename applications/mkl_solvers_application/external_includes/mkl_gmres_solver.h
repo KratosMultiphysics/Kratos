@@ -52,7 +52,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
+#include <mkl_types.h>
 #include <boost/timer.hpp>
 #include <omp.h>
 
@@ -136,18 +136,18 @@ namespace Kratos
                 /** 
                  * manual index vector generation
                  */
-                int *index1_vector = new (std::nothrow) int[rA.index1_data().size()];
-                int *index2_vector = new (std::nothrow) int[rA.index2_data().size()];
+                MKL_INT *index1_vector = new (std::nothrow) MKL_INT[rA.index1_data().size()];
+                MKL_INT *index2_vector = new (std::nothrow) MKL_INT[rA.index2_data().size()];
                 std::cout << "Size of the problem: " << n << std::endl;
 //                 std::cout << "Size of index1_vector: " << rA.index1_data().size() << std::endl;
                 std::cout << "number of nonzeros: " << rA.index2_data().size() << std::endl;
                 for(unsigned int i = 0; i < rA.index1_data().size(); i++ )
                 {
-                    index1_vector[i] = (int)(rA.index1_data()[i])+1;
+                    index1_vector[i] = (MKL_INT)(rA.index1_data()[i])+1;
                 } 
                 for(unsigned int i = 0; i < rA.index2_data().size(); i++ )
                 {
-                    index2_vector[i] = (int)(rA.index2_data()[i])+1;
+                    index2_vector[i] = (MKL_INT)(rA.index2_data()[i])+1;
                 }
                 
                 /* RHS and solution vectors. */
@@ -179,7 +179,7 @@ namespace Kratos
     // Allocate storage for the ?par parameters and the solution/rhs/residual vectors
     //---------------------------------------------------------------------------
                         MKL_INT ipar[128];
-                        int size_tmp = fmin(n,150);
+                        MKL_INT size_tmp = fmin(n,150);
                         double tmp[((2*size_tmp+1)*n+size_tmp*size_tmp+9)/2 + 1];
                         double dpar[128];
                         double expected_solution[n];

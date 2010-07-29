@@ -52,17 +52,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <mkl_types.h>
 /* PARDISO prototype. */
-#if defined(_WIN32) || defined(_WIN64)
-#define pardiso_ PARDISO
-#else
-#define PARDISO pardiso_
-#endif
-#if defined(MKL_ILP64)
-#define MKL_INT long long
-#else
-#define MKL_INT int
-#endif
 extern "C"
 {
     extern MKL_INT PARDISO
@@ -157,18 +148,20 @@ namespace Kratos
                 /** 
                  * manual index vector generation
                  */
-                int *index1_vector = new (std::nothrow) int[rA.index1_data().size()];
-                int *index2_vector = new (std::nothrow) int[rA.index2_data().size()];
+                MKL_INT *index1_vector = new (std::nothrow) MKL_INT[rA.index1_data().size()];
+                MKL_INT *index2_vector = new (std::nothrow) MKL_INT[rA.index2_data().size()];
                 std::cout << "Size of the problem: " << n << std::endl;
                 std::cout << "Size of index1_vector: " << rA.index1_data().size() << std::endl;
                 std::cout << "Size of index2_vector: " << rA.index2_data().size() << std::endl;
+                std::cout << "pardiso_solver: line 156" << std::endl;
                 for(unsigned int i = 0; i < rA.index1_data().size(); i++ )
                 {
-                    index1_vector[i] = (int)(rA.index1_data()[i])+1;
+                    index1_vector[i] = (MKL_INT)(rA.index1_data()[i])+1;
                 } 
+                std::cout << "pardiso_solver: line 161" << std::endl;
                 for(unsigned int i = 0; i < rA.index2_data().size(); i++ )
                 {
-                    index2_vector[i] = (int)(rA.index2_data()[i])+1;
+                    index2_vector[i] = (MKL_INT)(rA.index2_data()[i])+1;
                 }
                 /**
                  *  Matrix type flag:
@@ -222,7 +215,7 @@ namespace Kratos
                 iparm[9] = 13; /* Perturb the pivot elements with 1E-13 */
                 iparm[10] = 1; /* Use nonsymmetric permutation and scaling MPS */
                 iparm[11] = 0; /* Not in use */
-                iparm[12] = 0; /* Not in use */
+                iparm[12] = 1; /* Maximum weighted matching algorithm is switched-on (default for non-symmetric) */
                 iparm[13] = 0; /* Output: Number of perturbed pivots */
                 iparm[14] = 0; /* Not in use */
                 iparm[15] = 0; /* Not in use */
@@ -245,7 +238,7 @@ namespace Kratos
                 /* .. Reordering and Symbolic Factorization. This step also allocates */
                 /* all memory that is necessary for the factorization. */
                 /* -------------------------------------------------------------------- */
-                
+                std::cout << "pardiso_solver: line 241" << std::endl;
                 phase = 11;
                 PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                          &n, a, index1_vector, index2_vector, &idum, &nrhs,
@@ -255,6 +248,7 @@ namespace Kratos
                     std::cout << "ERROR during symbolic factorization: " << error << std::endl;
                     exit(1);
                 }
+                std::cout << "pardiso_solver: line 251" << std::endl;
                 std::cout << "Reordering completed ... " << std::endl;
                 //printf("\nNumber of nonzeros in factors = %d", iparm[17]);
                 //printf("\nNumber of factorization MFLOPS = %d", iparm[18]);
@@ -270,6 +264,7 @@ namespace Kratos
                     exit(2);
                 }
                 std::cout << "Factorization completed ... " << std::endl;
+                std::cout << "pardiso_solver: line 267" << std::endl;
                 /* -------------------------------------------------------------------- */
                 /* .. Back substitution and iterative refinement. */
                 /* -------------------------------------------------------------------- */
@@ -279,6 +274,7 @@ namespace Kratos
                 //for (i = 0; i < n; i++) {
                 //    b[i] = 1;
                 //}
+                std::cout << "pardiso_solver: line 277" << std::endl;
                 PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                          &n, a, index1_vector, index2_vector, &idum, &nrhs,
                          iparm, &msglvl, b, x, &error);
@@ -286,15 +282,20 @@ namespace Kratos
                     std::cout << "ERROR during solution: " << error << std::endl;
                     exit(3);
                 }
+                std::cout << "pardiso_solver: line 285" << std::endl;
                 /* -------------------------------------------------------------------- */
                 /* .. Termination and release of memory. */
                 /* -------------------------------------------------------------------- */
+                std::cout << "pardiso_solver: line 289" << std::endl;
                 phase = -1; /* Release internal memory. */
                 PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                          &n, &ddum, index1_vector, index2_vector, &idum, &nrhs,
                          iparm, &msglvl, &ddum, &ddum, &error);
+                std::cout << "pardiso_solver: line 294" << std::endl;
                 delete [] index1_vector;
+                std::cout << "pardiso_solver: line 296" << std::endl;
                 delete [] index2_vector;
+                std::cout << "pardiso_solver: line 298" << std::endl;
                 
                 std::cout << "#### SOLVER TIME: " << omp_get_wtime()-start_solver << " ####" << std::endl;
                 return true;
