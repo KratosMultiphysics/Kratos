@@ -15,17 +15,17 @@ project mkl_solvers_application
 		<include>$(MKL_INCLUDE_DIR)
 		<include>external_includes
 		<define>KRATOS_PYTHON
+		<define>MKL_ILP64
 		<link>shared
     ;
 
 #################################################################################
 #################################################################################
 ##definition of "dependencies for the project"
-#lib blaslib : : <name>blas_sp <search>custom_external_libraries/SuperLU_MT_2.0/lib ;
-lib mklsolverlib : : <name>mkl_solver_lp64 <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mklintellib : : <name>mkl_intel_lp64 <search>$(MKL_LIB_DIR)/em64t/ ;
+lib mklintellib : : <name>mkl_intel_ilp64 <search>$(MKL_LIB_DIR)/em64t/ ;
 lib mklthreadlib : : <name>mkl_intel_thread <search>$(MKL_LIB_DIR)/em64t/ ;
 lib mklcorelib : : <name>mkl_core <search>$(MKL_LIB_DIR)/em64t/ ;
+lib mklsolverlib : : <name>mkl_solver_ilp64 <search>$(MKL_LIB_DIR)/em64t/ ;
 lib mklmclib : : <name>mkl_mc <search>$(MKL_LIB_DIR)/em64t/ ;
 lib mkllapacklib : : <name>mkl_lapack <search>$(MKL_LIB_DIR)/em64t/ ;
 lib threadlib : : <name>pthread ;
@@ -41,13 +41,13 @@ python-extension KratosMKLSolversApplication
 		mkl_solvers_python_application.cpp 
 		mkl_solvers_application.cpp
 #blaslib
-        mklsolverlib/<link>static
         mklintellib/<link>shared
         mklthreadlib/<link>shared
         mklcorelib/<link>shared
+        mklsolverlib/<link>shared
         mkllapacklib/<link>shared
         mklmclib/<link>shared
-        threadlib/<link>shared
+#        threadlib/<link>shared
 ##        guidelib/<link>shared
 
         #####################kratos library as defined in the jamroot
