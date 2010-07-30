@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes 
 #include "includes/define.h"
-#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/linear_element.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "structural_application.h"
@@ -174,7 +174,6 @@ namespace LinearElementAuxiliaries
 			mConstitutiveLawVector.resize(integration_points.size());	
    //InitializeMaterial();
 		}
-
                  InitializeMaterial();
                  
 		//calculating the inverse J0
@@ -382,6 +381,7 @@ namespace LinearElementAuxiliaries
 	void LinearElement::InitializeMaterial()
 	{
 		KRATOS_TRY
+		KRATOS_WATCH(GetProperties()[CONSTITUTIVE_LAW]);
 		if(GetProperties()[CONSTITUTIVE_LAW] != NULL)
 		{
 			for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
