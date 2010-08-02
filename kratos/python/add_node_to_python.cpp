@@ -107,6 +107,37 @@ namespace Kratos
 // 	      KRATOS_WATCH(rReactionVariable);
 		rThisNode.pAddDof(rThisVariable, rReactionVariable);
 	  }
+	  
+	  
+	  void PointSetX0(Node<3>& ThisPoint, double Value)
+	  {
+	    ThisPoint.X0() = Value;
+	  }
+	  
+	  void PointSetY0(Node<3>& ThisPoint, double Value)
+	  {
+	    ThisPoint.Y0() = Value;
+	  }
+	  
+	  void PointSetZ0(Node<3>& ThisPoint, double Value)
+	  {
+	    ThisPoint.Z0() = Value;
+	  }
+	  
+	  double PointGetX0(Node<3>& ThisPoint)
+	  {
+	    return ThisPoint.X0();
+	  }
+	  
+	  double PointGetY0(Node<3>& ThisPoint)
+	  {
+	    return ThisPoint.Y0();
+	  }
+	  
+	  double PointGetZ0(Node<3>& ThisPoint)
+	  {
+	    return ThisPoint.Z0();
+	  }
 
 
 
@@ -181,6 +212,9 @@ namespace Kratos
 // 				.def("HasDofFor", &NodeType::HasDofFor)
 				.def(self_ns::str(self))
                                 .def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData)
+				.add_property("X0", PointGetX0, PointSetX0)
+				.add_property("Y0", PointGetY0, PointSetY0)
+				.add_property("Z0", PointGetZ0, PointSetZ0)
 				;
 
 			
