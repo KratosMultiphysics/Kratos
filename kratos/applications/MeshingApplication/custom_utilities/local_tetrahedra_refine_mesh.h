@@ -93,7 +93,7 @@ void Local_Refine_Mesh(bool refine_on_reference)
       
         
        ///WARNING = La numeracion local viene de 0 a 9 
- /*
+ 
       if(refine_on_reference==true)
        {
           for(ModelPart::NodesContainerType::iterator it=mr_model_part.NodesBegin(); it!=mr_model_part.NodesEnd(); it++)
@@ -103,16 +103,20 @@ void Local_Refine_Mesh(bool refine_on_reference)
 	       it->Z()=it->Z0();
              }
        }
-*/
+// KRATOS_WATCH("line 106");
 CSR_Row_Matrix(this_model_part, Coord );
+// KRATOS_WATCH("line 107");
 Search_Edge_To_Be_Refined(this_model_part,  Coord);
+// KRATOS_WATCH("line 108");
 Create_List_Of_New_Nodes(this_model_part, Coord, List_New_Nodes, Position_Node);
+// KRATOS_WATCH("line 110");
 Calculate_Coordinate_And_Insert_New_Nodes(this_model_part, new_nodes, Position_Node, List_New_Nodes);
-KRATOS_WATCH(List_New_Nodes);
+// KRATOS_WATCH("line 111");
+// KRATOS_WATCH(List_New_Nodes);
 Erase_Old_Element_And_Create_New_Tetra_Element(this_model_part, Coord, New_Elements );
 Renumering_Elements_And_Nodes( this_model_part);
 
-/*
+
   if(refine_on_reference==true)
   {
      for(ModelPart::NodesContainerType::iterator it=mr_model_part.NodesBegin(); it!=mr_model_part.NodesEnd(); it++)
@@ -124,7 +128,7 @@ Renumering_Elements_And_Nodes( this_model_part);
           }
   } 
 
-*/
+
 
 KRATOS_CATCH("")
 
@@ -181,8 +185,9 @@ ElementsArrayType::iterator it_begin = rElements.ptr_begin(); //+element_partiti
 ElementsArrayType::iterator it_end   = rElements.ptr_end();     //+element_partition[k+1];
 for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
   {   
-        unsigned int level = it->GetValue(REFINEMENT_LEVEL);
-         if( level > 0 )
+/*        unsigned int level = it->GetValue(REFINEMENT_LEVEL);
+         if( level > 0 )*/
+	   if(it->GetValue(SPLIT_ELEMENT) == true)
            {          
   	    Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento        
  	    for (unsigned int i = 0; i <geom.size(); i++)
@@ -287,6 +292,8 @@ for(unsigned int i = 0; i < Position_Node.size(); i++ )
      noalias(Coord_Node_2) = it_node2->Coordinates(); 
      noalias(Coordinate_New_Node[i]) =  0.50 * (Coord_Node_1 + Coord_Node_2);
      
+//      KRATOS_WATCH("line 294");
+     
      /// inserting the news node in the model part 
      Node<3>::Pointer  pnode = this_model_part.CreateNewNode(List_New_Nodes[i],Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2] );
      pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize() );
@@ -309,8 +316,10 @@ for(unsigned int i = 0; i < Position_Node.size(); i++ )
           { (p_new_dof)->FreeDof();}       
        
       }
+//       KRATOS_WATCH("line 318");
 
      ///* intepolating the data
+
      unsigned int buffer_size = pnode->GetBufferSize();
      for(unsigned int step = 0; step<buffer_size; step++)
       {
@@ -323,17 +332,20 @@ for(unsigned int i = 0; i < Position_Node.size(); i++ )
           new_step_data[j] = 0.5*(step_data1[j] + step_data2[j]);
         }						
      }
+     
+//      KRATOS_WATCH("line 334");
     
       /// WARNING =  only for reactions;
-      const double zero = 0.00;
+/*      const double zero = 0.00;
       for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)  
        {          
           if(pnode->IsFixed(iii->GetVariable())==false) 
                  { 
                     iii->GetSolutionStepReactionValue() = zero;
                    }       
-       }     
+       }  */   
 
+//     KRATOS_WATCH("line 346");
      new_nodes.push_back(pnode);  
   }
 }
@@ -526,7 +538,7 @@ void Erase_Old_Element_And_Create_New_Tetra_Element(
 
 	  if(internal_node == 1)
 	  {
-	    std::cout << "creating internal node" << std::endl;
+// 	    std::cout << "creating internal node" << std::endl;
 	    //generate new internal node
 	    aux[10] = CreateCenterNode(geom,this_model_part);
 	  }
@@ -568,10 +580,15 @@ KRATOS_WATCH(internal_node);*/
 						this_model_part.Nodes()(i3)
 									);
 
-				    
+				    //generate new element by cloning the base one
 				    Element::Pointer p_element;  
 				    p_element = it->Create(current_id, geom, it->pGetProperties());
-				    New_Elements.push_back(p_element);                         
+				    New_Elements.push_back(p_element); 
+				    
+				    //pass the REFINEMENT_LEVEL and ensure that no further refinement is performed
+				    p_element->GetValue(REFINEMENT_LEVEL) = it->GetValue(REFINEMENT_LEVEL);
+				    p_element->GetValue(SPLIT_ELEMENT) = false;
+				    
 				    current_id++;    
 						      
 			    }
@@ -672,7 +689,7 @@ KRATOS_WATCH(internal_node);*/
 /*KRATOS_WATCH(*(model_part.NodesEnd()-1));
      model_part.Nodes().push_back(pnode);*/
      
-     KRATOS_WATCH(*(model_part.NodesEnd()-1));
+//      KRATOS_WATCH(*(model_part.NodesEnd()-1));
      
      return new_id;    
  }
