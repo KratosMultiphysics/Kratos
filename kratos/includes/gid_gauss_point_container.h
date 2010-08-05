@@ -85,12 +85,13 @@ namespace Kratos
     {
         public:
             ///Constructor
-            GidGaussPointsContainer( char * gp_title, KratosGeometryFamily geometryFamily,
+            GidGaussPointsContainer( const char * gp_title, KratosGeometryFamily geometryFamily,
                                      GiD_ElementType gid_element_type,
                                      int number_of_integration_points,
                                      std::vector<int> index_container )
-            :mGPTitle(gp_title),mKratosElementFamily(geometryFamily),
-                      mGidElementFamily(gid_element_type), mSize(number_of_integration_points),
+				    :
+					mGPTitle(gp_title),mKratosElementFamily(geometryFamily),
+					mGidElementFamily(gid_element_type), mSize(number_of_integration_points),
                                         mIndexContainer(index_container){}
             
             bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
@@ -179,7 +180,7 @@ namespace Kratos
                     WriteGaussPoints();
                     GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                                       GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
-                    std::vector<array_1d<double,3>> ValuesOnIntPoint(mSize);
+                    std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
                     {
                         for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin(); 
@@ -472,7 +473,7 @@ namespace Kratos
             }                              
             
             ///member variables
-            char * mGPTitle;
+            const char * mGPTitle;
             KratosGeometryFamily mKratosElementFamily;
             GiD_ElementType mGidElementFamily;
             unsigned int mSize;
