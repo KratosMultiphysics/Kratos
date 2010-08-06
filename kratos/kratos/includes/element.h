@@ -479,10 +479,10 @@ namespace Kratos
                                            std::vector<double>& rValues, 
                                            const ProcessInfo& rCurrentProcessInfo){}
             virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-                                           std::vector<array_1d<double,3> > rValues, 
+                                           std::vector<array_1d<double,3> >& rValues, 
                                            const ProcessInfo& rCurrentProcessInfo){}
             virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,6> >& rVariable,
-                                           std::vector<array_1d<double,6> > rValues, 
+                                           std::vector<array_1d<double,6> >& rValues, 
                                            const ProcessInfo& rCurrentProcessInfo){}
             virtual void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
                                            std::vector<Vector>& rValues, 
