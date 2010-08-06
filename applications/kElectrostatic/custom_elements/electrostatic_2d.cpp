@@ -231,12 +231,15 @@ namespace Kratos
 	//************************************************************************************
 //	void Electrostatic2D::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
 	//void Electrostatic2D::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
-	void Electrostatic2D::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3> >& Output, const ProcessInfo& rCurrentProcessInfo)
+	void Electrostatic2D::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& Output, const ProcessInfo& rCurrentProcessInfo)
 //	void Electrostatic2D::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
 //            std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 //	void Electrostatic2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 //            Vector& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
+		KRATOS_WATCH("GiD Post Electrostatic - CalculateOnIntegrationPoints");
+
+
 		IntegrationMethod mThisIntegrationMethod;
 
         mThisIntegrationMethod= GetGeometry().GetDefaultIntegrationMethod();
@@ -313,10 +316,12 @@ namespace Kratos
 //            std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo)
     void Electrostatic2D::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
 		 std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
-//	void Electrostatic2D::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+//    void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+//                                           std::vector<array_1d<double,3> > rValues, 
+//                                           const ProcessInfo& rCurrentProcessInfo)//	void Electrostatic2D::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
 //          Vector& Output, const ProcessInfo& rCurrentProcessInfo)
     {
-		//KRATOS_WATCH("GiD Post Electrostatic - GetValueOnIntegrationPoints");
+		KRATOS_WATCH("GiD Post Electrostatic - GetValueOnIntegrationPoints");
 
         if(rVariable==ELECTRIC_FIELD)
         {
