@@ -189,7 +189,7 @@ def ImportApplications(kernel, applications_path):
         print "importing KratosR1MagnetostaticApplication ..."
         sys.path.append(applications_path + '/kMagnetostatic/python_scripts')
         from KratosR1MagnetostaticApplication import *
-        kElectrostatic = KratosR1MagnetostaticApplication()
+        kMagnetostatic = KratosR1MagnetostaticApplication()
         kernel.AddApplication(kMagnetostatic)
         print "Kratos ElectromagneticApplication2 sucessfully imported"       
         
