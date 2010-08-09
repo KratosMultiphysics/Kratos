@@ -204,7 +204,24 @@ namespace Kratos
 	
 		//***********************************************************************
 		//***********************************************************************
-        void SetToZero_ScalarVar( const Variable<  double >& Variable, ModelPart::NodesContainerType& rNodes)
+	void SetToZero_VelocityVectorVar( ModelPart::NodesContainerType& rNodes)
+        {
+			KRATOS_TRY
+			array_1d<double,3> zero = ZeroVector(3);
+			for(ModelPart::NodesContainerType::iterator i = rNodes.begin(); i!=rNodes.end(); i++)
+				{noalias(i->FastGetSolutionStepValue(VELOCITY)) = zero;
+				(i)->Fix(VELOCITY_X);
+				(i)->Fix(VELOCITY_Y);
+				(i)->Fix(VELOCITY_Z);
+				//i->FastGetSolutionStepValue(VELOCITY).Fix;
+				}
+
+			KRATOS_CATCH("")
+		}
+
+		//***********************************************************************
+		//***********************************************************************
+       void SetToZero_ScalarVar( const Variable<  double >& Variable, ModelPart::NodesContainerType& rNodes)
         {
 			KRATOS_TRY
 			for(ModelPart::NodesContainerType::iterator i = rNodes.begin(); i!=rNodes.end(); i++)
