@@ -132,7 +132,7 @@ namespace Kratos
     typedef Vector array3;
     //typedef array_1d<double,3> array3;
     
-    KRATOS_DEFINE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW );
+//     KRATOS_DEFINE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW );
     
     KRATOS_DEFINE_VARIABLE( fix_matrix_33 , MATRIX_A );
     KRATOS_DEFINE_VARIABLE( fix_matrix_33 , MATRIX_B );
