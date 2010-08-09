@@ -94,7 +94,7 @@ namespace Kratos
             /**
              * Counted pointer of ConstitutiveLaw
              */
-            KRATOS_CLASS_POINTER_DEFINITION ( ConstitutiveLaw );
+            KRATOS_CLASS_POINTER_DEFINITION( ConstitutiveLaw );
 
             /**
              * Constructor.
@@ -119,7 +119,7 @@ namespace Kratos
              */
             virtual ConstitutiveLaw::Pointer Clone() const
             {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for Clone" , "" );
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for Clone" , "" );
             }
 
             /**
@@ -128,7 +128,7 @@ namespace Kratos
              */
             virtual SizeType WorkingSpaceDimension()
             {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for WorkingSpaceDimension" , "" );
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for WorkingSpaceDimension" , "" );
             }
 
             /**
@@ -137,7 +137,7 @@ namespace Kratos
              */
             virtual SizeType GetStrainSize()
             {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for GetStrainSize" , "" );
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for GetStrainSize" , "" );
             }
 
             /**
@@ -145,7 +145,7 @@ namespace Kratos
              * @param rThisVariable the variable to be checked for
              * @return true if the variable is defined in the constitutive law
              */
-            virtual bool Has ( const Variable<double>& rThisVariable )
+            virtual bool Has( const Variable<double>& rThisVariable )
             {
                 return false;
             }
@@ -155,7 +155,7 @@ namespace Kratos
              * @param rThisVariable the variable to be checked for
              * @return true if the variable is defined in the constitutive law
              */
-            virtual bool Has ( const Variable<Vector>& rThisVariable )
+            virtual bool Has( const Variable<Vector>& rThisVariable )
             {
                 return false;
             }
@@ -165,7 +165,7 @@ namespace Kratos
              * @param rThisVariable the variable to be checked for
              * @return true if the variable is defined in the constitutive law
              */
-            virtual bool Has ( const Variable<Matrix>& rThisVariable )
+            virtual bool Has( const Variable<Matrix>& rThisVariable )
             {
                 return false;
             }
@@ -176,7 +176,7 @@ namespace Kratos
              * @return true if the variable is defined in the constitutive law
              * NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
              */
-            virtual bool Has ( const Variable<array_1d<double, 3> >& rThisVariable )
+            virtual bool Has( const Variable<array_1d<double, 3> >& rThisVariable )
             {
                 return false;
             }
@@ -187,7 +187,7 @@ namespace Kratos
              * @return true if the variable is defined in the constitutive law
              * NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
              */
-            virtual bool Has ( const Variable<array_1d<double, 6> >& rThisVariable )
+            virtual bool Has( const Variable<array_1d<double, 6> >& rThisVariable )
             {
                 return false;
             }
@@ -198,7 +198,7 @@ namespace Kratos
              * @param rValue a reference to the returned value
              * @param rValue output: the value of the specified variable
              */
-            virtual double& GetValue ( const Variable<double>& rThisVariable, double& rValue )
+            virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue )
             {
                 return rValue;
             }
@@ -209,7 +209,7 @@ namespace Kratos
              * @param rValue a reference to the returned value
              * @return the value of the specified variable
              */
-            virtual Vector& GetValue ( const Variable<Vector>& rThisVariable, Vector& rValue )
+            virtual Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
             {
                 return rValue;
             }
@@ -219,19 +219,7 @@ namespace Kratos
              * @param rThisVariable the variable to be returned
              * @return the value of the specified variable
              */
-            virtual Matrix& GetValue ( const Variable<Matrix>& rThisVariable, Matrix& rValue )
-            {
-                return rValue;
-            }
-
-            /**
-             * returns the value of a specified variable
-             * @param rThisVariable the variable to be returned
-             * @param rValue a reference to the returned value
-             * @return the value of the specified variable
-             */
-            virtual array_1d<double,3>& GetValue ( const Variable<array_1d<double,3> >& rVariable,
-                                                   array_1d<double,3>& rValue )
+            virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
             {
                 return rValue;
             }
@@ -242,8 +230,20 @@ namespace Kratos
              * @param rValue a reference to the returned value
              * @return the value of the specified variable
              */
-            virtual array_1d<double,6>& GetValue ( const Variable<array_1d<double,6> >& rVariable,
-                                                   array_1d<double,6>& rValue )
+            virtual array_1d<double, 3>& GetValue( const Variable<array_1d<double, 3> >& rVariable,
+                                                   array_1d<double, 3>& rValue )
+            {
+                return rValue;
+            }
+
+            /**
+             * returns the value of a specified variable
+             * @param rThisVariable the variable to be returned
+             * @param rValue a reference to the returned value
+             * @return the value of the specified variable
+             */
+            virtual array_1d<double, 6>& GetValue( const Variable<array_1d<double, 6> >& rVariable,
+                                                   array_1d<double, 6>& rValue )
             {
                 return rValue;
             }
@@ -255,11 +255,11 @@ namespace Kratos
              * @param Value new value of the specified variable
              * @param rCurrentProcessInfo the process info
              */
-            virtual void SetValue ( const Variable<double>& rVariable,
-                                    const double& Value,
-                                    const ProcessInfo& rCurrentProcessInfo )
+            virtual void SetValue( const Variable<double>& rVariable,
+                                   const double& Value,
+                                   const ProcessInfo& rCurrentProcessInfo )
             {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for SetValue" , "" );
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for SetValue" , "" );
             }
 
             /**
@@ -268,10 +268,10 @@ namespace Kratos
              * @param Value new value of the specified variable
              * @param rCurrentProcessInfo the process info
              */
-            virtual void SetValue ( const Variable<Vector >& rVariable,
-                                    const Vector& Value, const ProcessInfo& rCurrentProcessInfo )
+            virtual void SetValue( const Variable<Vector >& rVariable,
+                                   const Vector& Value, const ProcessInfo& rCurrentProcessInfo )
             {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for SetValue" , "" );
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for SetValue" , "" );
             }
             /**
              * sets the value of a specified variable
@@ -279,23 +279,10 @@ namespace Kratos
              * @param Value new value of the specified variable
              * @param rCurrentProcessInfo the process info
              */
-            virtual void SetValue ( const Variable<Matrix >& rVariable,
-                                    const Matrix& Value, const ProcessInfo& rCurrentProcessInfo )
+            virtual void SetValue( const Variable<Matrix >& rVariable,
+                                   const Matrix& Value, const ProcessInfo& rCurrentProcessInfo )
             {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for SetValue" , "" );
-            }
-
-            /**
-             * sets the value of a specified variable
-             * @param rVariable the variable to be returned
-             * @param Value new value of the specified variable
-             * @param rCurrentProcessInfo the process info
-             */
-            virtual void SetValue ( const Variable<array_1d<double,3> >& rVariable,
-                                    const array_1d<double,3>& Value,
-                                    const ProcessInfo& rCurrentProcessInfo )
-            {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for SetValue" , "" );
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for SetValue" , "" );
             }
 
             /**
@@ -304,11 +291,24 @@ namespace Kratos
              * @param Value new value of the specified variable
              * @param rCurrentProcessInfo the process info
              */
-            virtual void SetValue ( const Variable<array_1d<double,6> >& rVariable,
-                                    const array_1d<double,6>& Value,
-                                    const ProcessInfo& rCurrentProcessInfo )
+            virtual void SetValue( const Variable<array_1d<double, 3> >& rVariable,
+                                   const array_1d<double, 3>& Value,
+                                   const ProcessInfo& rCurrentProcessInfo )
             {
-                KRATOS_ERROR ( std::logic_error,  "Called the virtual function for SetValue" , "" );
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for SetValue" , "" );
+            }
+
+            /**
+             * sets the value of a specified variable
+             * @param rVariable the variable to be returned
+             * @param Value new value of the specified variable
+             * @param rCurrentProcessInfo the process info
+             */
+            virtual void SetValue( const Variable<array_1d<double, 6> >& rVariable,
+                                   const array_1d<double, 6>& Value,
+                                   const ProcessInfo& rCurrentProcessInfo )
+            {
+                KRATOS_ERROR( std::logic_error,  "Called the virtual function for SetValue" , "" );
             }
 
             /**
@@ -319,7 +319,7 @@ namespace Kratos
              * NOTE: this has to implemented by each constitutive model. Returns false in base class since
              * no valid implementation is contained here.
              */
-            virtual bool ValidateInput ( const Properties& props )
+            virtual bool ValidateInput( const Properties& props )
             {
                 return false;
             }
@@ -360,9 +360,9 @@ namespace Kratos
              * @param geom the geometry of the current element
              * @param ShapeFunctionsValues the shape functions values in the current integration point
              */
-            virtual void InitializeMaterial ( const Properties& props,
-                                              const GeometryType& geom,
-                                              const Vector& ShapeFunctionsValues )
+            virtual void InitializeMaterial( const Properties& props,
+                                             const GeometryType& geom,
+                                             const Vector& ShapeFunctionsValues )
             {
             }
 
@@ -374,10 +374,10 @@ namespace Kratos
              * @param ShapeFunctionsValues the shape functions values in the current integration point
              * @param the current ProcessInfo instance
              */
-            virtual void InitializeSolutionStep ( const Properties& props,
-                                                  const GeometryType& geom, //this is just to give the array of nodes
-                                                  const Vector& ShapeFunctionsValues ,
-                                                  const ProcessInfo& CurrentProcessInfo )
+            virtual void InitializeSolutionStep( const Properties& props,
+                                                 const GeometryType& geom, //this is just to give the array of nodes
+                                                 const Vector& ShapeFunctionsValues ,
+                                                 const ProcessInfo& CurrentProcessInfo )
             {
             }
 
@@ -389,19 +389,19 @@ namespace Kratos
              * @param ShapeFunctionsValues the shape functions values in the current integration point
              * @param the current ProcessInfo instance
              */
-            virtual void FinalizeSolutionStep ( const Properties& props,
-                                                const GeometryType& geom,
-                                                const Vector& ShapeFunctionsValues ,
-                                                const ProcessInfo& CurrentProcessInfo )
+            virtual void FinalizeSolutionStep( const Properties& props,
+                                               const GeometryType& geom,
+                                               const Vector& ShapeFunctionsValues ,
+                                               const ProcessInfo& CurrentProcessInfo )
             {
             }
 
-            virtual void InitializeNonLinearIteration ( const Properties& props,
+            virtual void InitializeNonLinearIteration( const Properties& props,
                     const GeometryType& geom,
                     const Vector& ShapeFunctionsValues,
                     const ProcessInfo& CurrentProcessInfo )
             {
-                KRATOS_ERROR ( std::logic_error, "Calling virtual function for InitializeNonLinearIteration", "" );
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for InitializeNonLinearIteration", "" );
             }
 
             /**
@@ -419,20 +419,20 @@ namespace Kratos
              * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
              * @param SaveInternalVariables flag whether or not to store internal (history) variables
              */
-            virtual void CalculateMaterialResponse ( const Vector& StrainVector,
-                    const Matrix& DeformationGradient,
-                    Vector& StressVector,
-                    Matrix& AlgorithmicTangent,
-                    const ProcessInfo& CurrentProcessInfo,
-                    const Properties& props,
-                    const GeometryType& geom,
-                    const Vector& ShapeFunctionsValues,
-                    bool CalculateStresses = true,
-                    int CalculateTangent = true,
-                    bool SaveInternalVariables = true
-                                                   )
+            virtual void CalculateMaterialResponse( const Vector& StrainVector,
+                                                    const Matrix& DeformationGradient,
+                                                    Vector& StressVector,
+                                                    Matrix& AlgorithmicTangent,
+                                                    const ProcessInfo& CurrentProcessInfo,
+                                                    const Properties& props,
+                                                    const GeometryType& geom,
+                                                    const Vector& ShapeFunctionsValues,
+                                                    bool CalculateStresses = true,
+                                                    int CalculateTangent = true,
+                                                    bool SaveInternalVariables = true
+                                                  )
             {
-                KRATOS_ERROR ( std::logic_error, "Calling virtual function for CalculateMaterialResponse", "" );
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for CalculateMaterialResponse", "" );
             }
 
             /**
@@ -450,7 +450,7 @@ namespace Kratos
              * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
              * @param SaveInternalVariables flag whether or not to store internal (history) variables
              */
-            virtual void CalculateVolumetricResponse ( const double VolumetricStrain,
+            virtual void CalculateVolumetricResponse( const double VolumetricStrain,
                     const Matrix& DeformationGradient,
                     double& VolumetricStress,
                     double& AlgorithmicBulk,
@@ -462,7 +462,7 @@ namespace Kratos
                     int CalculateTangent = true,
                     bool SaveInternalVariables = true )
             {
-                KRATOS_ERROR ( std::logic_error, "Calling virtual function for CalculateVolumetricResponse", "" );
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for CalculateVolumetricResponse", "" );
             }
 
             /**
@@ -475,7 +475,7 @@ namespace Kratos
              * @param props the material's Properties object
              * TODO: add proper definition for algorithmic tangent
              */
-            virtual void CalculateDeviatoricResponse ( const Vector& StrainVector,
+            virtual void CalculateDeviatoricResponse( const Vector& StrainVector,
                     const Matrix& DeformationGradient,
                     Vector& StressVector,
                     Matrix& AlgorithmicTangent,
@@ -487,7 +487,7 @@ namespace Kratos
                     int CalculateTangent = true,
                     bool SaveInternalVariables = true )
             {
-                KRATOS_ERROR ( std::logic_error, "Calling virtual function for CalculateDeviatoricResponse", "" );
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for CalculateDeviatoricResponse", "" );
             }
 
             /**
@@ -498,11 +498,11 @@ namespace Kratos
              * @param ShapeFunctionsValues the shape functions values in the current integration point
              * @param the current ProcessInfo instance
              */
-            virtual void ResetMaterial ( const Properties& props,
-                                         const GeometryType& geom,
-                                         const Vector& ShapeFunctionsValues )
+            virtual void ResetMaterial( const Properties& props,
+                                        const GeometryType& geom,
+                                        const Vector& ShapeFunctionsValues )
             {
-                KRATOS_ERROR ( std::logic_error, "Calling virtual function for ResetMaterial", "" );
+                KRATOS_ERROR( std::logic_error, "Calling virtual function for ResetMaterial", "" );
             }
 
 
@@ -511,5 +511,9 @@ namespace Kratos
         private:
     }; /* Class ConstitutiveLaw */
 
+    /**
+     * Definition of ConstitutiveLaw variable
+     */
+    KRATOS_DEFINE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW );
 }  /* namespace Kratos.*/
 #endif /* KRATOS_CONSTITUTIVE_LAW  defined */
