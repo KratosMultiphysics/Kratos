@@ -109,6 +109,10 @@ namespace Kratos
 		reduced_model_part.Elements().clear();
 		reduced_model_part.Nodes().clear();
 
+		reduced_model_part.Conditions().reserve(full_model_part.Conditions().size());
+		reduced_model_part.Elements().reserve(full_model_part.Elements().size());
+		reduced_model_part.Nodes().reserve(full_model_part.Nodes().size());
+
 		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
 				im != full_model_part.ElementsEnd() ; ++im)
 		{	  
@@ -129,20 +133,48 @@ namespace Kratos
 				im != full_model_part.ElementsEnd() ; ++im)
 		{	  
 			
+			/*n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+			
+			if (n_int==3)
+				{
+				im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE)=true;
+				im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE)=true;
+				im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE)=true;
+				}*/
+
 			n_disabled=im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE);
 			n_disabled+=im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE);
 			n_disabled+=im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE);
 			
 			if (n_disabled<3)
 				{
-				reduced_model_part.AddElement(*(im.base()));
+				reduced_model_part.Elements().push_back(*(im.base()));
 				//reduced_model_part.AddNode(im->GetGeometry()[0]);				
 				}
 			if (n_disabled>3)
 				KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
 
+			if (n_disabled==1 || n_disabled==2)
+				{
+				for (int i=0;i<3;i++)
+					{
+
+					if (im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)==1)
+						{
+						reduced_model_part.Nodes().push_back(im->GetGeometry()(i));				
+
+						}
+	
+					}
+				}
+
+
+
 		}
 	
+		
 		for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; 
 				in != full_model_part.NodesEnd() ; ++in)
 		{	  
@@ -151,64 +183,13 @@ namespace Kratos
 			
 			if (n_disabled==0.0)
 				{
-				reduced_model_part.AddNode(*(in.base()));
-				//reduced_model_part.AddNode(im->GetGeometry()[0]);				
+				reduced_model_part.Nodes().push_back(*(in.base()));
 				}
-			if (n_disabled>3)
-				KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
-
-		}
-
-		/*
-		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
-				im != full_model_part.ElementsEnd() ; ++im)
-		{	  
 			
-			n_disabled=im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE);
-			n_disabled+=im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE);
-			n_disabled+=im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE);
-			
-			if (n_disabled==1 || n_disabled==2)
-				{
-				for (int i=0;i<3;i++)
-					{
-
-					if (im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)==1)
-						{
-						reduced_model_part.AddNode(im->GetGeometry()(i));				
-
-						}
-	
-					}
-				}
 
 		}
-		for(ModelPart::NodesContainerType::iterator in = reduced_model_part.NodesBegin() ; 
-				in != reduced_model_part.NodesEnd() ; ++in)
-		{
-		if (in->Y()>0.00001  && in->Y()<0.09999)
-			{
-			if (in->FastGetSolutionStepValue(DISABLE)!=1.0)
-				{
-				in->Free(VELOCITY_X);
-				in->Free(VELOCITY_Y);
-				}
-			}
-		}
-		*/
-		/*
-		for(ModelPart::NodesContainerType::iterator in = reduced_model_part.NodesBegin() ; 
-				in != reduced_model_part.NodesEnd() ; ++in)
-		{	
-			if (in->FastGetSolutionStepValue(DISABLE,1)==1 && in->FastGetSolutionStepValue(DISABLE)!=1)
-				{
-				in->Free(VELOCITY_X);
-				in->Free(VELOCITY_Y);
-				}
 
-		}
-		*/
-				
+		reduced_model_part.Nodes().Unique();
 	
 		
 		KRATOS_CATCH("")
