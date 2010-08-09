@@ -181,7 +181,6 @@ namespace Kratos
         //integration method defined in the constructor
        	const GeometryType::IntegrationPointsArrayType& integration_points =
                 GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-        
         //initializing the Jacobian, the inverse Jacobian and Jacobians determinant in the reference 
         // configuration
         GeometryType::JacobiansType J0(integration_points.size());
@@ -223,8 +222,8 @@ namespace Kratos
         if(mConstitutiveLawVector.size() != integration_points.size())
         {
             mConstitutiveLawVector.resize(integration_points.size());
-            InitializeMaterial();
         }
+        InitializeMaterial();
 
         KRATOS_CATCH("")
     }
@@ -354,7 +353,8 @@ namespace Kratos
         for( unsigned int i=0; i<mConstitutiveLawVector.size(); i++ )
         {
             mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[i]->InitializeMaterial(GetProperties(), GetGeometry(), row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) );
+            mConstitutiveLawVector[i]->InitializeMaterial(GetProperties(), GetGeometry(),
+            row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) );
         }
 		KRATOS_CATCH("")
     } 
