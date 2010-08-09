@@ -86,6 +86,8 @@ namespace Python
 		.def("CopyScalarVar",&VariableUtils::CopyScalarVar)
 		.def("SetToZero_VectorVar",&VariableUtils::SetToZero_VectorVar)
 		.def("SetToZero_ScalarVar",&VariableUtils::SetToZero_ScalarVar)
+		.def("SetToZero_ScalarVar",&VariableUtils::SetToZero_ScalarVar)
+		.def("SetToZero_VelocityVectorVar",&VariableUtils::SetToZero_VelocityVectorVar)
 		;
 
 	  class_<NormalCalculationUtils>("NormalCalculationUtils", init<>())
