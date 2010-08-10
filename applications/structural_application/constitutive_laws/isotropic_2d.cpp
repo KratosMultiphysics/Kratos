@@ -232,7 +232,7 @@ namespace Kratos
 		msaux *= J;
 
 		if(rCauchy_StressVector.size() != 3)
-			rCauchy_StressVector.resize(3);
+			rCauchy_StressVector.resize(3,false);
 		
 		rCauchy_StressVector[0] = msaux(0,0);
 		rCauchy_StressVector[1] = msaux(1,1);
@@ -263,8 +263,10 @@ void Isotropic2D::Calculate(const Variable<double>& rVariable,
                                                int CalculateTangent,
                                                bool SaveInternalVariables )
  {
-     CalculateStress(StrainVector, StressVector);
-     CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+     if(CalculateStresses == true)
+        CalculateStress(StrainVector, StressVector);
+     if(CalculateTangent == true)
+        CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
  }
 
 /// Turn back information as a string.
