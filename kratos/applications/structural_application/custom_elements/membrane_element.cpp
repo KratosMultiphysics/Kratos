@@ -368,11 +368,11 @@ namespace Kratos
 			// Calculation of the StrainVector
 			CalculateStrain(msStrainVector, C);
             
-            Matrix dummy = ZeroMatrix(1,1);
-            
+            Matrix dummy = ZeroMatrix(0,0);
+//            KRATOS_WATCH(msStrainVector);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                     msStrainVector,
-                    ZeroMatrix(1),
+                    dummy,
                     msStressVector,
                     dummy,
                     rCurrentProcessInfo,
@@ -380,8 +380,11 @@ namespace Kratos
                     GetGeometry(),
                     row(GetGeometry().ShapeFunctionsValues(),PointNumber),
                     true,
-                    0,
-                    true );
+                    false,
+                    false );
+		    
+//		    KRATOS_WATCH(msStrainVector);
+//		    KRATOS_WATCH(msStressVector);
 
 			// calculation of the StressVector (PK2)
 // 			mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
@@ -407,6 +410,8 @@ namespace Kratos
 			{
 				if(Output[PointNumber].size2() != 6)
 					Output[PointNumber].resize(1,6);
+				
+//			KRATOS_WATCH(mStressesVector[PointNumber]);
 /*
 				mConstitutiveLawVector[PointNumber]->UpdateMaterial( msStrainVector,
 							GetProperties(),
