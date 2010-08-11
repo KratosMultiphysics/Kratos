@@ -71,13 +71,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //convergence criterias
 #include "custom_strategies/strategies/residualbasedq_fluid_strategy.h"
-//#include "custom_strategies/strategies/residualbased_ND_fluid_strategy.h"
-//#include "custom_strategies/strategies/residualbased_fluid_strategy_coupled.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
+
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
+//convergence criterias
 
+#include "custom_strategies/convergencecriterias/UP_criteria.h"
+
+//linear solvers
 
 namespace Kratos
 {
@@ -94,36 +98,49 @@ namespace Kratos
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-
+			typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
 			//********************************************************************
 			//********************************************************************
 			//
 
+			
+			class_< UPCriteria<SparseSpaceType, LocalSpaceType >, bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  boost::noncopyable >
+			("UPCriteria", init< double, double, double, double>() );
+			
 			class_< ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("ResidualBasedFluidStrategy", 
-				init<ModelPart&, LinearSolverType::Pointer, LinearSolverType::Pointer,
-				bool, bool, bool,
-				double, double,
-				int, int,
-				unsigned int, unsigned int, unsigned int,
-				bool
-				>() )
-				  .def("SolveStep1",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
-				  .def("SolveStep2",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
-				  .def("SolveStep3",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
-				  .def("SolveStep4",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep4)
-				  .def("ActOnLonelyNodes",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActOnLonelyNodes)
-				  .def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
-				  .def("FractionalVelocityIteration",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FractionalVelocityIteration)
-				  .def("ConvergenceCheck",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ConvergenceCheck)
-				  .def("InitializeFractionalStep",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeFractionalStep)
-				  .def("PredictVelocity",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::PredictVelocity)
+		    bases< BaseSolvingStrategyType >,  boost::noncopyable >
+			("ResidualBasedFluidStrategy", 
+			 init<ModelPart&, LinearSolverType::Pointer, LinearSolverType::Pointer,
+			 bool, bool, bool,
+			 double, double,
+			 int, int,
+			 unsigned int, unsigned int, unsigned int,
+			 bool
+			 >() )
+			.def("SolveStep1",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+			.def("SolveStep2",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+			.def("SolveStep3",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+			.def("SolveStep4",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep4)
+			.def("ActOnLonelyNodes",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActOnLonelyNodes)
+			.def("Clear",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+			.def("FractionalVelocityIteration",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FractionalVelocityIteration)
+			.def("ConvergenceCheck",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ConvergenceCheck)
+			.def("InitializeFractionalStep",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeFractionalStep)
+			.def("PredictVelocity",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::PredictVelocity)
 				  .def("InitializeProjections",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeProjections)
-				  .def("AssignInitialStepValues",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssignInitialStepValues)
-				  .def("IterativeSolve",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::IterativeSolve)
-				  .def("SavePressureIteration",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SavePressureIteration)
-				  .def("ApplyFractionalVelocityFixity",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ApplyFractionalVelocityFixity)				;
+			.def("AssignInitialStepValues",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::AssignInitialStepValues)
+			.def("IterativeSolve",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::IterativeSolve)
+			.def("SavePressureIteration",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SavePressureIteration)
+			.def("ApplyFractionalVelocityFixity",&ResidualBasedFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ApplyFractionalVelocityFixity)				;
+	  
+	  class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
+		  bases< BaseSchemeType >,  boost::noncopyable >
+	  (
+	   "ResidualBasedPredictorCorrectorVelocityBossakScheme", init< double, double >()
+					);
+
+			
+
 
 			/*class_< ResidualBasedNDFluidStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
