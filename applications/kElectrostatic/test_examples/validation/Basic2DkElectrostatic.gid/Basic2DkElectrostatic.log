@@ -11,8 +11,8 @@ Basic2DkElectrostatic.elem opened for io
 Basic2DkElectrostatic.cond opened for io
 Basic2DkElectrostatic.init opened for io
 initializing result files
-	Reading Nodes : 20 nodes read
-	Reading Elements : 22 Electrostatic2D read
+	Reading Nodes : 6 nodes read
+	Reading Elements : 4 Electrostatic2D read
 kratos_double_variables : Kratos components
     AIR_ENTRY_VALUE
     AIR_PRESSURE
@@ -55,6 +55,7 @@ kratos_double_variables : Kratos components
     DP_ALPHA1
     DP_EPSILON
     DP_K
+    DYNAMIC_TAU
     ELECTRIC_POTENTIAL
     ELECTRIC_POTENTIAL_DT
     ELECTRIC_POTENTIAL_DT2
@@ -78,9 +79,6 @@ kratos_double_variables : Kratos components
     FLAG_VARIABLE
     FRICTION_COEFFICIENT
     HEAT_FLUX
-    ICE_VOLUME_FRACTION
-    ICE_VOLUME_FRACTION_EINS
-    ICE_VOLUME_FRACTION_NULL
     INFINIT_COEFFICIENT
     INITIAL_PENALTY
     IS_BOUNDARY
@@ -127,13 +125,9 @@ kratos_double_variables : Kratos components
     SPECIFIC_HEAT
     START_TIME
     SUCTION
-    SURFACE_FLOW_HEAT
-    SURFACE_FLOW_WATER
     TANGENTIAL_CONTACT_STRESS
     TAU
     TEMPERATURE
-    TEMPERATURE_EINS
-    TEMPERATURE_NULL
     TEMP_CONV_PROJ
     THAWONE
     THAWTWO
@@ -152,162 +146,45 @@ kratos_double_variables : Kratos components
     WATER_PRESSURE_NULL_ACCELERATION
     WATER_PRESSURE_NULL_DT
     WATER_SOUND_VELOCITY
+    YIELD_STRESS
     YOUNG_MODULUS
 
 variable_name : ELECTROSTATIC_POTENTIAL
-rVariable : ELECTROSTATIC_POTENTIAL variable #118
-kratos_double_variables : Kratos components
-    AIR_ENTRY_VALUE
-    AIR_PRESSURE
-    AIR_PRESSURE_ACCELERATION
-    AIR_PRESSURE_DT
-    AIR_PRESSURE_EINS
-    AIR_PRESSURE_EINS_ACCELERATION
-    AIR_PRESSURE_EINS_DT
-    AIR_PRESSURE_NULL
-    AIR_PRESSURE_NULL_ACCELERATION
-    AIR_PRESSURE_NULL_DT
-    AIR_SOUND_VELOCITY
-    AMBIENT_TEMPERATURE
-    ARRHENIUS
-    ARRHENIUSAUX
-    AUX_INDEX
-    BULK_AIR
-    BULK_MODULUS
-    CONCENTRATION
-    CONCENTRATION_DT
-    CONCENTRATION_DT2
-    CONCENTRATION_EINS
-    CONCENTRATION_EINS_DT
-    CONCENTRATION_EINS_DT2
-    CONCENTRATION_NULL
-    CONCENTRATION_NULL_DT
-    CONCENTRATION_NULL_DT2
-    CONDUCTIVITY
-    CONTACT_STICK
-    CONVECTION_COEFFICIENT
-    CRACK_OPENING
-    CRACK_TRANSLATION
-    DELTA_TIME
-    DENSITY
-    DENSITY_AIR
-    DENSITY_WATER
-    DIAMETER
-    DISTANCE
-    DIVPROJ
-    DP_ALPHA1
-    DP_EPSILON
-    DP_K
-    ELECTRIC_POTENTIAL
-    ELECTRIC_POTENTIAL_DT
-    ELECTRIC_POTENTIAL_DT2
-    ELECTRIC_POTENTIAL_EINS
-    ELECTRIC_POTENTIAL_EINS_DT
-    ELECTRIC_POTENTIAL_EINS_DT2
-    ELECTRIC_POTENTIAL_NULL
-    ELECTRIC_POTENTIAL_NULL_DT
-    ELECTRIC_POTENTIAL_NULL_DT2
-    ELECTROSTATIC_POINT_CHARGE
-    ELECTROSTATIC_POTENTIAL
-    ELECTROSTATIC_SURFACE_CHARGE
-    ELECTROSTATIC_VOLUME_CHARGE
-    EMISSIVITY
-    END_TIME
-    ERASE_FLAG
-    ERROR_RATIO
-    EXTERNAL_PRESSURE
-    FACE_HEAT_FLUX
-    FIRST_SATURATION_PARAM
-    FLAG_VARIABLE
-    FRICTION_COEFFICIENT
-    HEAT_FLUX
-    ICE_VOLUME_FRACTION
-    ICE_VOLUME_FRACTION_EINS
-    ICE_VOLUME_FRACTION_NULL
-    INFINIT_COEFFICIENT
-    INITIAL_PENALTY
-    IS_BOUNDARY
-    IS_DIVIDED
-    IS_EROSIONABLE
-    IS_FLUID
-    IS_FREE_SURFACE
-    IS_INTERFACE
-    IS_LAGRANGIAN_INLET
-    IS_POROUS
-    IS_STRUCTURE
-    IS_VISITED
-    IS_WATER
-    IS_WATER_ELEMENT
-    LAGRANGE_AIR_PRESSURE
-    LAGRANGE_CONCENTRATION
-    LAGRANGE_ELECTRIC_POTENTIAL
-    LAGRANGE_TEMPERATURE
-    LAGRANGE_WATER_PRESSURE
-    LAMBDA
-    MIU
-    MU
-    NEGATIVE_FACE_PRESSURE
-    NODAL_AREA
-    NODAL_H
-    NODAL_MASS
-    NODAL_MAUX
-    NODAL_PAUX
-    NORMAL_CONTACT_STRESS
-    PARTITION_INDEX
-    PERMEABILITY_AIR
-    PERMEABILITY_WATER
-    POISSON_RATIO
-    POROSITY
-    POSITIVE_FACE_PRESSURE
-    PRESSURE
-    PRESSUREAUX
-    PRESSURE_OLD_IT
-    REACTION_AIR_PRESSURE
-    REACTION_WATER_PRESSURE
-    SATURATION
-    SECOND_SATURATION_PARAM
-    SOUND_VELOCITY
-    SPECIFIC_HEAT
-    START_TIME
-    SUCTION
-    SURFACE_FLOW_HEAT
-    SURFACE_FLOW_WATER
-    TANGENTIAL_CONTACT_STRESS
-    TAU
-    TEMPERATURE
-    TEMPERATURE_EINS
-    TEMPERATURE_NULL
-    TEMP_CONV_PROJ
-    THAWONE
-    THAWTWO
-    THICKNESS
-    TIME
-    VISCOSITY
-    VISCOSITY_AIR
-    VISCOSITY_WATER
-    WATER_PRESSURE
-    WATER_PRESSURE_ACCELERATION
-    WATER_PRESSURE_DT
-    WATER_PRESSURE_EINS
-    WATER_PRESSURE_EINS_ACCELERATION
-    WATER_PRESSURE_EINS_DT
-    WATER_PRESSURE_NULL
-    WATER_PRESSURE_NULL_ACCELERATION
-    WATER_PRESSURE_NULL_DT
-    WATER_SOUND_VELOCITY
-    YOUNG_MODULUS
-
-variable_name : ELECTROSTATIC_POINT_CHARGE
-rVariable : ELECTROSTATIC_POINT_CHARGE variable #117
-lines read : 85
+rVariable : ELECTROSTATIC_POTENTIAL variable #117
+lines read : 53
 writing a 2D mesh
 "setting up the dofs" : setting up the dofs
+"finished setting up the dofs" : finished setting up the dofs
 LU factorization solver finished.
 
 LU factorization solver finished.
 
-DISPLACEMENT CRITERIA :: Obtained tol = 2.90774e-016;  Expected ratio = 1e-006Absolute tol = 1.59429e-015
+DISPLACEMENT CRITERIA :: Obtained tol = 0;  Expected ratio = 1e-006Absolute tol = 0
 "convergence is achieved" : convergence is achieved
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
+"GiD Post Electrostatic - GetValueOnIntegrationPoints" : GiD Post Electrostatic - GetValueOnIntegrationPoints
+"GiD Post Electrostatic - CalculateOnIntegrationPoints" : GiD Post Electrostatic - CalculateOnIntegrationPoints
 Before importing kratos...
 Kratos library imported
 kernel created
@@ -325,7 +202,11 @@ Import_KratosTrilinosApplication: False
 Import_KratosMetisApplication: False
 Import_PoissonApplication: False
 Import_ElectrostaticApplication: False
+Import_MagnetostaticApplication: False
 Import_DamApplication: False
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
 Applications Available:
 Import_ALEApplication: False
 Import_IncompressibleFluidApplication: False
@@ -337,9 +218,13 @@ Import_ULFApplication: False
 Import_MeshingApplication: False
 Import_KratosTrilinosApplication: False
 Import_KratosMetisApplication: False
-Import_ PoissonApplication: False
-Import_ ElectrostaticApplication: True
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: True
+Import_MagnetostaticApplication: False
 Import_DamApplication: False
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
 importing KratosR1ElectrostaticApplication ...
 Kratos ElectromagnecticApplication1 sucessfully imported
 Before reading from GiD... Basic2DkElectrostatic
@@ -349,9 +234,9 @@ ASABERQUEElectrostaticPart model part
     Current solution step index : 0
 
     Mesh 0 : 
-    Number of Nodes      : 20
+    Number of Nodes      : 6
     Number of Properties : 1
-    Number of Elements   : 22
+    Number of Elements   : 4
     Number of Conditions : 0
 
 variables for the Poisson solver added correctly

@@ -1,5 +1,5 @@
-BeginZE D:\Kratos2010\kratos\applications\kElectrostatic\test_examples\validation\Basic2DkElectrostatic.gid\Basic2DkElectrostatic.post.vv
-   x -1.38734 4.38734
+BeginZE D:\kratos2009\kratos\applications\kElectrostatic\test_examples\validation\Basic2DkElectrostatic.gid\Basic2DkElectrostatic.post.vv
+   x -0.719653 3.71965
    y 2.15831 -1.15831
    z -4.97494 4.97494
    e 1.65831
@@ -15,5 +15,5 @@ BeginZE D:\Kratos2010\kratos\applications\kElectrostatic\test_examples\validatio
    NowUse 2
    DrawingType 3
    LightVector 74.53 48.0296 126.209 0
-EndZE D:\Kratos2010\kratos\applications\kElectrostatic\test_examples\validation\Basic2DkElectrostatic.gid\Basic2DkElectrostatic.post.vv
+EndZE D:\kratos2009\kratos\applications\kElectrostatic\test_examples\validation\Basic2DkElectrostatic.gid\Basic2DkElectrostatic.post.vv
 

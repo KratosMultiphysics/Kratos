@@ -8,50 +8,18 @@ End Properties
 
 Begin Nodes
 1    0.00000    1.00000    0.00000
-2    0.50000    1.00000    0.00000
-3    0.00000    0.50000    0.00000
-4    0.70833    0.51116    0.00000
-5    1.00000    1.00000    0.00000
-6    0.00000    0.00000    0.00000
-7    0.50000    0.00000    0.00000
-8    1.25000    0.56699    0.00000
-9    1.00000    0.00000    0.00000
-10    1.50000    1.00000    0.00000
-11    1.50000    0.00000    0.00000
-12    1.75000    0.43301    0.00000
-13    2.00000    1.00000    0.00000
-14    2.00000    0.00000    0.00000
-15    2.29167    0.48884    0.00000
-16    2.50000    1.00000    0.00000
-17    2.50000    0.00000    0.00000
-18    3.00000    1.00000    0.00000
-19    3.00000    0.50000    0.00000
-20    3.00000    0.00000    0.00000
+2    0.00000    0.00000    0.00000
+3    1.50000    1.00000    0.00000
+4    1.50000    0.00000    0.00000
+5    3.00000    1.00000    0.00000
+6    3.00000    0.00000    0.00000
 End Nodes
 
 Begin Elements Electrostatic2D
-1 1 6 7 3
-2 1 18 16 19
-3 1 14 17 15
-4 1 14 15 12
-5 1 15 17 19
-6 1 12 15 13
-7 1 5 2 4
-8 1 4 2 3
-9 1 5 4 8
-10 1 8 4 9
-11 1 5 8 10
-12 1 10 8 12
-13 1 20 19 17
-14 1 1 3 2
-15 1 9 11 8
-16 1 13 10 12
-17 1 16 13 15
-18 1 7 9 4
-19 1 11 14 12
-20 1 11 12 8
-21 1 16 15 19
-22 1 7 4 3
+1 1 6 5 3
+2 1 1 2 4
+3 1 4 6 3
+4 1 4 3 1
 End Elements
 
 Begin ElementalData ELECTROSTATIC_SURFACE_CHARGE
@@ -59,26 +27,26 @@ End ElementalData
 
 Begin NodalData ELECTROSTATIC_POTENTIAL
 1 1  0.0 
-3 1  0.0 
-6 1  0.0 
-18 1  10.0 
-19 1  10.0 
-20 1  10.0 
-End NodalData
-
-Begin NodalData ELECTROSTATIC_POINT_CHARGE
+2 1  0.0 
+5 1  10.0 
+6 1  10.0 
 End NodalData
 
 Begin Conditions PointCharge2D
 End Conditions
 
-Begin ElementalData ELECTRIC_DISPLACEMENT_FIELD
-End ElementalData
-
-Begin ElementalData INFINIT_COEFFICIENT
-End ElementalData
-
 Begin Conditions Efield2D
 End Conditions
+
+Begin ConditionalData ELECTROSTATIC_POINT_CHARGE
+End ConditionalData
+
+Begin ConditionalData ELECTRIC_DISPLACEMENT_FIELD
+End ConditionalData
+
+Begin ConditionalData INFINIT_COEFFICIENT
+End ConditionalData
+
+
 
 

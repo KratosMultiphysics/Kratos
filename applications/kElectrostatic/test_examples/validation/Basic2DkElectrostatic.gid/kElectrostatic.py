@@ -9,6 +9,7 @@ SolverType = "static_poisson_solver"
         
 problem_name="Basic2DkElectrostatic"
 problem_path="."
+#take care: this is for kratos\applications\kElectrostatic\test_examples\Validation\problem.gid
 kratos_path="../../../../../"
 
 
