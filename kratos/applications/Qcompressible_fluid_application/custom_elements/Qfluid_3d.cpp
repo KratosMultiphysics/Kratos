@@ -184,100 +184,79 @@ namespace Kratos
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
 		//CalculateGeometryData(msDN_DX,msN,Volume);
 
-		mInvJ.resize(integration_points.size());	
-		mDetJ.resize(integration_points.size());	
-
-		/*MathUtils<double>::InvertMatrix(J[0],mInvJ[0],mDetJ[0]);
-
-		KRATOS_WATCH(J[0]);	
-		KRATOS_WATCH(mInvJ[0]);	
-		KRATOS_WATCH(mDetJ[0]);	*/
-		
-		/*KRATOS_WATCH(msF);	
-		KRATOS_WATCH(mInvJ[0]);	
-		KRATOS_WATCH(mDetJ[0]);	*/
-		//getting the velocity vector on the nodes
  		int n=0;
 		//getting the velocity on the nodes
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& d0 = GetGeometry()[0].FastGetSolutionStepValue(DESP);
-		const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
-		const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+		const array_1d<double,3>& v0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+  		double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);//(PRESSURE_OLD_IT);
+    		double p0oldaux = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
                 const double T0 = GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+      		const int f0 = GetGeometry()[0].FastGetSolutionStepValue(IS_FLUID);    
+    		const int f0i = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+    		const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
+    		//const double& f0j = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE);
+    		const int f0a = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE); 
+	    	const int f_0a = GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE);
+     		const double A0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
+    		int j=0;
+		if(f0a==1) j++;
 
 
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& d1 = GetGeometry()[1].FastGetSolutionStepValue(DESP);
-  		const int f0i = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE); 
- 		if(f0i) n++;   
-		const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
-		const double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+		const array_1d<double,3>& v1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+  		double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);//(PRESSURE_OLD_IT);
+   		double p1oldaux = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
+	        const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
                 const double T1 = GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE);
- 		const int f1i = GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);    
-    		//const double& f1j = GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE);   
-   		 if(f1i) n++;
+      		const int f1 = GetGeometry()[1].FastGetSolutionStepValue(IS_FLUID);    
+    		const int f1i = GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+    		const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
+    		//const double& f0j = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE);
+    		const int f1a = GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE); 
+	    	const int f_1a = GetGeometry()[1].FastGetSolutionStepValue(MATERIAL_VARIABLE);
+     		const double A1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
+    		if(f1a==1) j++;
+
 
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& d2 = GetGeometry()[2].FastGetSolutionStepValue(DESP);
-		const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
-		const double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+		const array_1d<double,3>& v2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+  		double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);//(PRESSURE_OLD_IT);
+   		double p2oldaux = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
+	        const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
                 const double T2 = GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE);
+      		const int f2 = GetGeometry()[2].FastGetSolutionStepValue(IS_FLUID);    
+    		const int f2i = GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+    		const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
+    		//const double& f0j = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE);
+    		const int f2a = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE); 
+	    	const int f_2a = GetGeometry()[2].FastGetSolutionStepValue(MATERIAL_VARIABLE);
+     		const double A2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
+    		if(f2a==1) j++;
+
 		const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
-		const int f2i = GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);    
-		//const double& f2j = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE);  
-    		if(f2i) n++;
-
-
-		const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& d3 = GetGeometry()[3].FastGetSolutionStepValue(DESP);
-		const array_1d<double,3>& proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
-		const double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
+		const array_1d<double,3>& v3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
+  		double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE,1);//(PRESSURE_OLD_IT);
+   		double p3oldaux = GetGeometry()[3].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
+	        const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
 		const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
-                const double T3 = GetGeometry()[3].FastGetSolutionStepValue(TEMPERATURE); 
-		const int f3i = GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);    
-    		//const double& f2j = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE);  
-    		if(f3i) n++;
-	
-		if(n==3) {
-			if(!f0i) {
-			  		if(GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE)!=4)//1
-						{
-			  				GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE)=3;//humo
-						}
-				}
-			if(!f1i) {
-					if(GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE)!=4)
-						{
-							GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE)=3;
-						}
-				}
-			if(!f2i) {
-					if(GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE)!=4)
-						{
-		  					GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE)=3;
-						}
-				}	
-			if(!f3i) {
-					if(GetGeometry()[3].FastGetSolutionStepValue(FLAG_VARIABLE)!=4)
-						{
-							GetGeometry()[3].FastGetSolutionStepValue(FLAG_VARIABLE)=3;
-						}
-				}	
+                const double T3 = GetGeometry()[3].FastGetSolutionStepValue(TEMPERATURE);
+      		const int f3 = GetGeometry()[3].FastGetSolutionStepValue(IS_FLUID);    
+    		const int f3i = GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);
+    		const double k3 = GetGeometry()[3].FastGetSolutionStepValue(BULK_MODULUS);
+    		//const double& f0j = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE);
+    		const int f3a = GetGeometry()[3].FastGetSolutionStepValue(FLAG_VARIABLE); 
+	    	const int f_3a = GetGeometry()[3].FastGetSolutionStepValue(MATERIAL_VARIABLE);
+     		const double A3 = GetGeometry()[3].FastGetSolutionStepValue(ARRHENIUS);
+    		if(f3a==1) j++;
 
-			}
-	
-/**************/
-/**************/
+
+
+
+
 		//deformation gradient
  		noalias(msF)= ZeroMatrix(3,3);
  
