@@ -10,6 +10,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MAGNETIC_FLUX_DENSITY);
 
     model_part.AddNodalSolutionStepVariable(MAGNETOSTATIC_POTENTIAL);
+    model_part.AddNodalSolutionStepVariable(MAGNETOSTATIC_VECTOR_POTENTIAL);
     model_part.AddNodalSolutionStepVariable(MAGNETOSTATIC_POINT_CURRENT);
     model_part.AddNodalSolutionStepVariable(INFINIT_COEFFICIENT);
 
@@ -18,6 +19,9 @@ def AddDofs(model_part):
 
         #adding dofs
         node.AddDof(MAGNETOSTATIC_POTENTIAL);
+        node.AddDof(MAGNETOSTATIC_VECTOR_POTENTIAL_X);
+        node.AddDof(MAGNETOSTATIC_VECTOR_POTENTIAL_Y);
+        node.AddDof(MAGNETOSTATIC_VECTOR_POTENTIAL_Z);
 
     print "variables for the Magnetostatic solver added correctly"
 
