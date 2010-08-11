@@ -22,7 +22,6 @@
 
 namespace Kratos
 {
-
 	KRATOS_CREATE_VARIABLE(double,  CONDUCTIVITY)
 	KRATOS_CREATE_VARIABLE(double,  SPECIFIC_HEAT)
 	KRATOS_CREATE_VARIABLE(double,  HEAT_FLUX)	
@@ -50,16 +49,19 @@ namespace Kratos
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MAGNETIC_FLUX_DENSITY)
 	KRATOS_CREATE_VARIABLE(double, INFINIT_COEFFICIENT)
 
-
+	KRATOS_CREATE_VARIABLE(double, ELECTROSTATIC_POTENTIAL)
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_CONDUCTIVITY)
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
 
 	KratosR1MagnetostaticApplication::KratosR1MagnetostaticApplication():
 		mMagnetostatic2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mMagnetostatic3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
         mPointCurrent2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-		mMfield2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))))//,
+		mMfield2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 		//mMfield3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+		//mConductivity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mConductivity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 	{}
-
 		
 	void KratosR1MagnetostaticApplication::Register()
 	{
@@ -95,6 +97,9 @@ namespace Kratos
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MAGNETIC_FLUX_DENSITY)
 		KRATOS_REGISTER_VARIABLE(INFINIT_COEFFICIENT)
 
+		KRATOS_REGISTER_VARIABLE(ELECTROSTATIC_POTENTIAL)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_CONDUCTIVITY)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
 
 		// Registering elements and conditions here
 		KRATOS_REGISTER_ELEMENT("Magnetostatic2D", mMagnetostatic2D);
@@ -103,7 +108,8 @@ namespace Kratos
 		KRATOS_REGISTER_CONDITION("Mfield2D", mMfield2D);
 //		KRATOS_REGISTER_CONDITION("Mfield3D", mMfield3D);
 
-
+		//KRATOS_REGISTER_ELEMENT("Conductivity2D", mConductivity2D);
+		KRATOS_REGISTER_ELEMENT("Conductivity3D", mConductivity3D);
 	}
 	
 }  // namespace Kratos.

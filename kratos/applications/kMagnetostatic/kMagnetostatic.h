@@ -10,15 +10,11 @@
 #if !defined(KRATOS_MAGNETOSTATIC_H_INCLUDED )
 #define  KRATOS_MAGNETOSTATIC_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream> 
 
-
 // External includes 
-
 
 // Project includes
 #include "includes/define.h"
@@ -30,14 +26,14 @@
 #include "custom_conditions/mfield2D.h"
 //#include "custom_conditions/mfield3D.h"
 
+#include "custom_elements/conductivity_3d.h"
+
 #include "includes/variables.h"
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 
-
 namespace Kratos
 {
-
 	///@name Kratos Globals
 	///@{ 
 
@@ -67,6 +63,9 @@ namespace Kratos
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAGNETIC_FLUX_DENSITY)
 	KRATOS_DEFINE_VARIABLE(double, INFINIT_COEFFICIENT)
 
+	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_POTENTIAL)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_CONDUCTIVITY)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
 
 	///@} 
 	///@name Type Definitions
@@ -107,11 +106,9 @@ namespace Kratos
 		/// Destructor.
 		virtual ~KratosR1MagnetostaticApplication(){}
 
-
 		///@}
 		///@name Operators 
 		///@{
-
 
 		///@}
 		///@name Operations
@@ -119,17 +116,13 @@ namespace Kratos
 
 		virtual void Register();
 
-
-
 		///@}
 		///@name Access
 		///@{ 
 
-
 		///@}
 		///@name Inquiry
 		///@{
-
 
 		///@}      
 		///@name Input and output
@@ -163,11 +156,9 @@ namespace Kratos
 		KratosComponents<Condition>().PrintData(rOStream);
       }
 
-
 		///@}      
 		///@name Friends
 		///@{
-
 
 		///@}
 
@@ -175,36 +166,29 @@ namespace Kratos
 		///@name Protected static Member Variables 
 		///@{ 
 
-
 		///@} 
 		///@name Protected member Variables 
 		///@{ 
-
 
 		///@} 
 		///@name Protected Operators
 		///@{ 
 
-
 		///@} 
 		///@name Protected Operations
 		///@{ 
-
 
 		///@} 
 		///@name Protected  Access 
 		///@{ 
 
-
 		///@}      
 		///@name Protected Inquiry 
 		///@{ 
 
-
 		///@}    
 		///@name Protected LifeCycle 
 		///@{ 
-
 
 		///@}
 
@@ -217,7 +201,6 @@ namespace Kratos
 //		static const ThermalFace2D  msThermalFace2D;
 //		static const ThermalFace3D  msThermalFace3D;
 
-
 		//       static const ApplicationCondition  msApplicationCondition; 
 
 		///@} 
@@ -229,27 +212,24 @@ namespace Kratos
 		const Mfield2D  mMfield2D;
 		//const Mfield3D  mMfield3D;
 
-
+		//const Conductivity2D mConductivity2D;
+		const Conductivity3D mConductivity3D;
 
 		///@} 
 		///@name Private Operators
 		///@{ 
 
-
 		///@} 
 		///@name Private Operations
 		///@{ 
-
 
 		///@} 
 		///@name Private  Access 
 		///@{ 
 
-
 		///@}    
 		///@name Private Inquiry 
 		///@{ 
-
 
 		///@}    
 		///@name Un accessible methods 
@@ -261,24 +241,20 @@ namespace Kratos
 		/// Copy constructor.
 		KratosR1MagnetostaticApplication(KratosR1MagnetostaticApplication const& rOther);
 
-
 		///@}    
 
 	}; // Class KratosR1MagnetostaticApplication 
 
 	///@} 
 
-
 	///@name Type Definitions       
 	///@{ 
-
 
 	///@} 
 	///@name Input and output 
 	///@{ 
 
 	///@} 
-
 
 }  // namespace Kratos.
 

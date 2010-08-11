@@ -13,6 +13,11 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MAGNETOSTATIC_VECTOR_POTENTIAL);
     model_part.AddNodalSolutionStepVariable(MAGNETOSTATIC_POINT_CURRENT);
     model_part.AddNodalSolutionStepVariable(INFINIT_COEFFICIENT);
+    
+    model_part.AddNodalSolutionStepVariable(ELECTRICAL_CONDUCTIVITY);
+    model_part.AddNodalSolutionStepVariable(ELECTRIC_FIELD);
+    model_part.AddNodalSolutionStepVariable(ELECTROSTATIC_POTENTIAL);
+    
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -22,7 +27,9 @@ def AddDofs(model_part):
         node.AddDof(MAGNETOSTATIC_VECTOR_POTENTIAL_X);
         node.AddDof(MAGNETOSTATIC_VECTOR_POTENTIAL_Y);
         node.AddDof(MAGNETOSTATIC_VECTOR_POTENTIAL_Z);
-
+        
+        node.AddDof(ELECTROSTATIC_POTENTIAL);
+    
     print "variables for the Magnetostatic solver added correctly"
 
 class StaticPoissonSolver:
@@ -46,7 +53,6 @@ class StaticPoissonSolver:
         MoveMeshFlag = False
         import strategy_python
         self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.poisson_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
-      
                  
     #######################################################################   
     def Solve(self):
