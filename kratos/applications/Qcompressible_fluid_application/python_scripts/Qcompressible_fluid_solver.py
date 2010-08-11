@@ -1,14 +1,17 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosQcompressibleFluidApplication import *
+from KratosConvectionDiffusionSpeciesApplication import *
 from KratosMeshingApplication import *
 from KratosULFApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(DESP);
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(VELOCITY);  
+    model_part.AddNodalSolutionStepVariable(ERASE_FLAG);
     model_part.AddNodalSolutionStepVariable(FRACT_VEL);
+    model_part.AddNodalSolutionStepVariable(VEL_i);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT);
@@ -16,7 +19,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
     model_part.AddNodalSolutionStepVariable(CONV_PROJ);
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
-    model_part.AddNodalSolutionStepVariable(MASS);
+    model_part.AddNodalSolutionStepVariable(MASSQ);
     model_part.AddNodalSolutionStepVariable(NODAL_PRESS);
     model_part.AddNodalSolutionStepVariable(NODAL_MASSAUX);
     model_part.AddNodalSolutionStepVariable(NODAL_PRESSAUX);
@@ -24,11 +27,17 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_PAUX);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DENSITY);
+    model_part.AddNodalSolutionStepVariable(NODAL_DENSITYAUX);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
     model_part.AddNodalSolutionStepVariable(BULK_MODULUS);
+    model_part.AddNodalSolutionStepVariable(TC);
+    model_part.AddNodalSolutionStepVariable(IS_BURN);
+    model_part.AddNodalSolutionStepVariable(IS_DRIPPING);
+    model_part.AddNodalSolutionStepVariable(MATERIAL_VARIABLE);
+    model_part.AddNodalSolutionStepVariable(IS_WALL);
 ##flag variables
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
     model_part.AddNodalSolutionStepVariable(NODAL_H);
@@ -36,6 +45,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_FLUID);
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
+    model_part.AddNodalSolutionStepVariable(IS_PERMANENT);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     model_part.AddNodalSolutionStepVariable(ARRHENIUSAUX);
 
@@ -104,8 +114,10 @@ class QcompressibleFluidSolver:
         self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
 
 
-
-
+        print"MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+        print (model_part.Elements).Size()
+        print"KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+        
 ###############MESH CHANGES
         self.UlfUtils = UlfUtils()
         self.qUtils = qUtils()
@@ -139,14 +151,14 @@ class QcompressibleFluidSolver:
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
         #U NEED IT FOR ALPHA-shape
         Hfinder  = FindNodalHProcess(model_part);
-	print "ERROR" 
+	 
        	Hfinder.Execute();
 
         for node in self.model_part.Nodes:
             temp=node.GetSolutionStepValue(NODAL_H)
             node.SetSolutionStepValue(NODAL_H, 1,temp )
             node.SetSolutionStepValue(NODAL_H, 2,temp )
-    	print "ERROR11111111111"
+    	
 
 #########################
 
@@ -159,57 +171,29 @@ class QcompressibleFluidSolver:
         (self.solver).SetEchoLevel(self.echo_level)
  	(self.neigh_finder).Execute()
         (self.qUtils).IdentifyFluidNodes(self.model_part);
+        (self.qUtils).IdentifyInterfaceNodes(self.model_part);
+#        (self.qUtils).IdentifyWallNodes(self.model_part);
         self.Remesh() #comentadoooooooooooooo
         print "finished initialization of the fluid strategy"
         
    
     def Solve(self):
-#        print "mover nodos"
-#        (self.qUtils).QuasiLagrangianMove(self.model_part)
-#        self.Remesh()
 
-#        if(self.ReformDofAtEachIteration == True):
-#            (self.neigh_finder).Execute()
+        if(self.ReformDofAtEachIteration == True):
+            (self.neigh_finder).Execute()
 
-        print "just before solve"
-        print "probelama"
-        (self.qUtils).IdentifyFluidNodes(self.model_part);
+        #(self.qUtils).IdentifyFluidNodes(self.model_part);
+
         (self.solver).Solve()
+  
+    def Pressure(self):
+
+	(self.solver).SolveStep4();
+
+    def Move(self):
+	(self.qUtils).QuasiLagrangianMove(self.model_part)#//lo
 
 
-
-        print "mover nodos"
-        (self.qUtils).QuasiLagrangianMove(self.model_part)
-
-        print "Calcula si se invierte un elemento"
-	[inverted_elements,vol] = self.CheckForInvertedElements()
-        print "vol = " , vol
-
-
-        if(inverted_elements == True):
-            print "elementoinvertido "    
-            #(self.qUtils).ReduceTimeStep(model_part);
-            print "reducimostiempo "  
-            #(self.qUtils).Return(model_part);
-            #(self.qUtils).IdentifyFluidNodes(self.model_part);
-            #(self.solver).Solve()
-            #print "mover nodos"
-            #(self.qUtils).QuasiLagrangianMove(self.model_part)
-            #print "Calcula si se invierte un elemento"
-            #[inverted_elements,vol] = self.CheckForInvertedElements()
-            print "vol = " , vol
-
-
-        self.counter=self.counter+1
-#	if(self.counter>10):
-#            (self.qUtils).MarkExcessivelyCloseNodes(self.model_part,0.8)
-     
-#################################################CHANGE
-        (self.neigh_finder).Execute();
-	self.Remesh()
-#################################################
-
- 
     def WriteRestartFile(self,FileName):
         backupfile = open(FileName+".py",'w')
         
@@ -232,20 +216,27 @@ class QcompressibleFluidSolver:
 
     def Remesh(self):
 	print "AAlll"
-##        (self.fluid_solver).Clear()
+
         (self.solver).Clear();
-#        (self.solver).Clear();
+
 	print "AAAA"
 
 	(self.neigh_finder).ClearNeighbours();
         ((self.model_part).Elements).clear();
         ((self.model_part).Conditions).clear();            
 	print "PORAQUI??????"
-     
+#     	for node in self.model_part.Nodes:
+            
+            #node.SetSolutionStepValue(NODAL_H, 1,0.0048 )
+            #node.SetSolutionStepValue(NODAL_H, 2,0.0048 )
         if(self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process, True, True,self.alpha_shape, 0.5)
+            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process,False,False,self.alpha_shape, 0.5)################0.5
 	elif (self.domain_size == 3):
             (self.Mesher).ReGenerateMeshElementsQcomp(self.model_part, self.alpha_shape)#self.alpha_shape)
+
+        (self.solver).Clear();
+
+	print "AAAA"
 
         (self.neigh_finder).Execute();
 
@@ -283,4 +274,36 @@ class QcompressibleFluidSolver:
         
     ######################################################################   
         
+    def Remesh2(self):
+
+        #if(self.ReformDofAtEachIteration == True):
+        #    (self.neigh_finder).Execute()
+
+        #print "just before solve"
+        #print "probelama"
+
+        #(self.qUtils).IdentifyFluidNodes(self.model_part);
+	
+	#print "AAAA"
+
+	(self.neigh_finder).ClearNeighbours();
+        ((self.model_part).Elements).clear();
+        ((self.model_part).Conditions).clear();            
+	#print "PORAQUI??????"
+     
+        if(self.domain_size == 2):
+            (self.Mesher).ReGenerateMesh("QFluid2D","Condition2D", self.model_part, self.node_erase_process,True,False,1.6, 0.5)################0.5
+	elif (self.domain_size == 3):
+            (self.Mesher).ReGenerateMeshElementsQcomp(self.model_part, self.alpha_shape)#self.alpha_shape)
+
+        #(self.qUtils).IdentifyFluidNodes(self.model_part);
+
+#        (self.neigh_finder).Execute();
+
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
+
+        for node in self.model_part.Nodes:            
+            if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
+                node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
 
