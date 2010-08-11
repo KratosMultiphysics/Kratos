@@ -20,6 +20,7 @@
 
 #include "custom_utilities/projection.h"
 #include "custom_utilities/GenerateModelPartUtilities.h"
+#include "custom_utilities/connectivity_preserve_modeler.h"
 #include "custom_utilities/local_triangle_refine_mesh.h"
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
 
@@ -46,6 +47,14 @@ namespace Python
 		}
 	}
 
+	void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part,ModelPart& destination_model_part,const char* ElementName,const char* ConditionName )
+	{
+			GM.GenerateModelPart(origin_model_part, destination_model_part,
+				KratosComponents<Element>::Get(ElementName),
+				KratosComponents<Condition>::Get(ConditionName)	);
+
+	}
+
   void  AddCustomUtilitiesToPython()
   {
 	
@@ -61,9 +70,11 @@ namespace Python
 		.def("DirectScalarVarInterpolation", &MeshTransfer<3>::DirectVariableInterpolation<double>)
 		.def("DirectVectorialVarInterpolation", &MeshTransfer<3>::DirectVariableInterpolation< array_1d < double,3 > >);
 
-	 class_<GenerateModelPartUtilities >("GenerateModelPartUtilities",init< >()) 
+	 class_<GenerateModelPartUtilities, boost::noncopyable >("GenerateModelPartUtilities",init< >())
 	   .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart );
 	
+	 class_<ConnectivityPreserveModeler, boost::noncopyable  >("ConnectivityPreserveModeler",init< >())
+	   .def("GenerateModelPart", GenerateModelPart );
 
          class_<Local_Refine_Triangle_Mesh, boost::noncopyable >
                     ("LocalRefineTriangleMesh", init<ModelPart&>() )
@@ -73,7 +84,7 @@ namespace Python
          class_<Local_Refine_Tetrahedra_Mesh, boost::noncopyable >
                     ("LocalRefineTetrahedraMesh", init<ModelPart&>() )
 		    .def("LocalRefineMesh",              &Local_Refine_Tetrahedra_Mesh::Local_Refine_Mesh)
-                    ;
+                    ; 
 
 
 
