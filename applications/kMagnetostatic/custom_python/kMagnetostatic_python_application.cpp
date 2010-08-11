@@ -52,7 +52,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes 
 #include <boost/python.hpp>
 
-
 // Project includes 
 #include "includes/define.h"
 #include "kMagnetostatic.h"
@@ -60,16 +59,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_python/add_custom_utilities_to_python.h"
 //#include "custom_python/add_custom_io_to_python.h"
 
- 
 namespace Kratos
 {
 
 namespace Python
 {
-
   using namespace boost::python;
-
-
   
   BOOST_PYTHON_MODULE(KratosR1MagnetostaticApplication)
   {
@@ -112,10 +107,12 @@ namespace Python
 		KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MAGNETIC_FLUX_DENSITY)
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE(INFINIT_COEFFICIENT)
 
+		KRATOS_REGISTER_IN_PYTHON_VARIABLE(ELECTROSTATIC_POTENTIAL)
+		KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_CONDUCTIVITY)
+		KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
+
 		KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
-			 
   }
-  
   
 }  // namespace Python.
   

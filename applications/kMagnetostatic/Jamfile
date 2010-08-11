@@ -16,8 +16,6 @@ project MagnetostaticApplication
 		<link>shared
     ;
 
-
-
 #################################################################################
 #################################################################################
 ##definition of "dependencies for the project"
@@ -35,6 +33,8 @@ python-extension KratosR1MagnetostaticApplication
 	kMagnetostatic_python_application.cpp
 	magnetostatic_2d.cpp
 	magnetostatic_3d.cpp
+	#conductivity_2d.cpp
+	conductivity_3d.cpp
 	pointcurrent2D.cpp
 	mfield2D.cpp
 	#mfield3D.cpp
