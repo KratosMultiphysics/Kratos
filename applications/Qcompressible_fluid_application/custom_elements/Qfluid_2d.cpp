@@ -65,21 +65,41 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  boost::numeric::ublas::bounded_matrix<double,3,3> QFluid2D::msaux_matrix;
-  boost::numeric::ublas::bounded_matrix<double,3,3> QFluid2D::msMassFactors;
-  boost::numeric::ublas::bounded_matrix<double,3,3> QFluid2D::msMassC;
-  boost::numeric::ublas::bounded_matrix<double,2,2> QFluid2D::msF;
-  boost::numeric::ublas::bounded_matrix<double,3,2> QFluid2D::msDN_DX;
-  boost::numeric::ublas::bounded_matrix<double,3,2> QFluid2D::msDN_DXF;
-  //boost::numeric::ublas::bounded_matrix<double,3,6> QFluid2D::ms_temp;
-  array_1d<double,3> QFluid2D::msN; //dimension = number of nodes
-  array_1d<double,2> QFluid2D::ms_vel_gauss; //dimesion coincides with space dimension
-  array_1d<double,3> QFluid2D::ms_press; 
-  array_1d<double,3> QFluid2D::ms_temp_vec_np; //dimension = number of nodes
-  array_1d<double,3> QFluid2D::ms_u_DN; //dimension = number of nodes
+
+  static boost::numeric::ublas::bounded_matrix<double,3,3> msaux_matrix= ZeroMatrix(3, 3);
+#pragma omp threadprivate(msaux_matrix)
+  static boost::numeric::ublas::bounded_matrix<double,3,3> aux_matrix= ZeroMatrix(3, 3);
+#pragma omp threadprivate(aux_matrix)
+  //static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors= ZeroMatrix(3, 3);
+//#pragma omp threadprivate(msMassFactors)
+   boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
+        #pragma omp threadprivate(msMassFactors)
+  static boost::numeric::ublas::bounded_matrix<double,3,3> msMassC= ZeroMatrix(3, 3);
+#pragma omp threadprivate(msMassC)
+  static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX= ZeroMatrix(3, 2);
+#pragma omp threadprivate(msDN_DX)
+  static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DXF= ZeroMatrix(3, 2);
+#pragma omp threadprivate(msDN_DXF)
+  static boost::numeric::ublas::bounded_matrix<double,2,2> msF= ZeroMatrix(2, 2);
+#pragma omp threadprivate(msF)
+  static array_1d<double,3> msN= ZeroVector(3); //dimension = number of nodes
+#pragma omp threadprivate(msN)
+  //static Matrix msDN_DX;
+  //static Matrix msMassFactors;
+  static array_1d<double,2> ms_vel_gauss= ZeroVector(2); //dimesion coincides with space dimension
+#pragma omp threadprivate(ms_vel_gauss)
+  static array_1d<double,3> ms_press= ZeroVector(3);
+#pragma omp threadprivate(ms_press)
+  static array_1d<double,3> ms_temp_vec_np= ZeroVector(3); //dimension = number of nodes
+#pragma omp threadprivate(ms_temp_vec_np)
+  static array_1d<double,3> ms_u_DN= ZeroVector(3);
+#pragma omp threadprivate(ms_u_DN)
+  
+  
+  
   
   /*std::vector< Matrix > mInvJ;
-  Vector mDetJ;*/
+    Vector mDetJ;*/
   //************************************************************************************
   //************************************************************************************
   QFluid2D::QFluid2D(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -162,7 +182,7 @@ namespace Kratos
     unsigned int matsize = number_of_points *dim;
     const unsigned int number_of_nodes = GetGeometry().size();    
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-    int j=0;
+    int j=0;int p=0;int s=0;
     if(rLeftHandSideMatrix.size1() != matsize)
       rLeftHandSideMatrix.resize(matsize,matsize,false);
     
@@ -173,7 +193,7 @@ namespace Kratos
     double Area, T;
     //CalculateGeometryData(msDN_DX,msN,Area);
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
-    
+    bool volador=false;
     
     /*mInvJ.resize(integration_points.size());	
       mDetJ.resize(integration_points.size());*/	
@@ -184,262 +204,123 @@ namespace Kratos
     const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
     const array_1d<double,3>& v0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);//(PRESSURE_OLD_IT);
-    double p0oldaux = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-    
-    const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
     const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-    const double T0 = GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-    const int f0 = GetGeometry()[0].FastGetSolutionStepValue(IS_FLUID);    
-    const int f0i = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
     const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
-    //const double& f0j = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE);
-    const int f0a = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE); 
     const double A0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
-    if(f0a==1) j++;
-
-    //if(f0j==1) n++;
-    //if(f0i==2)	
+    
+    
     const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
     const array_1d<double,3>& v1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
     double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
-    double p1oldaux = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-
     const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
     const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-    const double T1 = GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE);    
-    const int f1 = GetGeometry()[1].FastGetSolutionStepValue(IS_FLUID); 
-    const int f1i = GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
     const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);    
-    //const double& f1j = GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE);   
-    //if(f1j==1) n++;
-    //if(f1i==2)
-    const int f1a = GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE); 
     const double A1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
-    if(f1a==1) j++;
+    //if(f1a==1) j++;
+    //if(f1a==2) p++;
+    //if(f_1a==1) s++;
 
     const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
     const array_1d<double,3>& v2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
     double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
-    double p2oldaux = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-    
     const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
     const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-    const double T2 = GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE);
     const int f2 = GetGeometry()[2].FastGetSolutionStepValue(IS_FLUID); 
-    const int f2i = GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);    
     const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
-    //const double& f2j = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE);  
-    const int f2a = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE);
     const double A2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS); 
-    if(f2a==1) j++;
     
-
-    //if(f2j==1) n++;
-    
-    
-    //deformation gradient
-    noalias(msF)= ZeroMatrix(2,2);
-    Matrix kronecker(2,2);
-    noalias(kronecker)=ZeroMatrix(2,2);
-    
-    for(int i=0; i<2;i++){ 
-      kronecker(i,i)=1.0;
-    }
-    //deformation gradient
-    for(int i=0; i<dim; i++)
-      for(int j=0; j<dim; j++)
-	for(int node=0; node<number_of_nodes; node++)
-	  {
-	    msF(i,j) += (GetGeometry()[node]).GetSolutionStepValue(DESP)(i)	*msDN_DX(node,j);//(DISPLACEMENT)(i)
-	    /*double s= (GetGeometry()[node]).GetSolutionStepValue(DESP)(i);
-	      KRATOS_WATCH(s);*/				
-	  }
-    // 
-    for(int i=0; i<dim; i++) msF(i,i) = kronecker(i,i);
-    /*********************/
-    /**************/
-    
-    //calculating actual jacobian
-    /*		GeometryType::JacobiansType J;
-		GetGeometry().Jacobian(J); */
-      
-      double dd=0.0;
-      Matrix Jinvv (2,2);
-      MathUtils<double>::InvertMatrix(msF/*J[0]*/,Jinvv,dd);
-      //MathUtils<double>::InvertMatrix(msF,mInvJ[0],mDetJ[0]);
-      if (dd<=0.0)
-	{
-	  std::cout<<"ERROR........ negative det"<<std::endl;
-	  std::cout<<"ERROR........ negative det"<<std::endl;
-	  std::cout<<"ERROR........ negative det"<<std::endl;
-	  std::cout<<"ERROR........ negative det"<<std::endl;
-	  std::cout<<"ERROR........ negative det"<<std::endl;
-	  std::cout<<"ERROR........ negative det"<<std::endl;
-	  std::cout<<"ERROR........ negative det"<<std::endl;
-	}
-      
-      
       //calculating viscosity
       double nu =0;
       double density =0;
       double K =0;
-	    /*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-	    density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
-	    K = 0.3333333333333333333333*(k0 + k1 + k2 );
+      K	 = 0.3333333333333333333333*(k0 + k1 + k2 );
+      nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+      density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+	
+     
+      const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+      
+      double k=K/BDFcoeffs[0];
+      
+      //noalias(msaux_matrix) = BDFcoeffs[0] * aux_matrix/*msMassFactors * density*/;
+      CalculateViscousMatrix(rLeftHandSideMatrix,aux_matrix, msDN_DX, nu, k,density, BDFcoeffs[0] );
 
-     if(j==3){
-	    nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-	    density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-	    K = 0.3333333333333333333333*(k0 + k1 + k2 );
-	   
+      //noalias(msaux_matrix) = BDFcoeffs[0] * aux_matrix/*msMassFactors * density*/;
+      //adding all contributions to the stiffness matrix
+      //ExpandAndAddReducedMatrix(rLeftHandSideMatrix,msaux_matrix,dim);
+      
+      rLeftHandSideMatrix *= Area /** density*/;
+      /*KRATOS_WATCH(rLeftHandSideMatrix);*/
+      // *****************************************
+    
+      //CALCULATION OF THE RHS
+      const array_1d<double,3>& force0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+      const array_1d<double,3>& force1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
+      const array_1d<double,3>& force2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);		
+      
+      
+      array_1d<double,3> rhs_aux;
+      for( unsigned int component_index = 0; component_index < dim; component_index++)
+	{
+	  //external forces (component)
+	  double force_component = 0.3333333333333333*(force0[component_index] + force1[component_index] + force2[component_index]);
 
-	}
-	 else{
 
-		/*if(f0a == 1) {
-			GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE)= 1;
- 		}
+	  noalias(rhs_aux) = force_component * msN * density/**(1-0.002*(T-273))*/;
 
-		if(f1a == 1) {
-			GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE)= 1;
- 		}
-
-		if(f2a == 1) {
-			GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE)= 1;
- 		}
-		*/
-		 	/*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-		    	density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
-			nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-	    		density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-	    		K = 0.3333333333333333333333*(k0 + k1 + k2 );
-		    	/*K = 0.3333333333333333333333*(k0 + k1 + k2 );	*/		
-			nu = 0.001;
-			density = 1.3; //0.3333333333333333333333*(rho0 + rho1 + rho2 );
-			/*K= 100000;*/	
+	  //adding pressure gradient (integrated by parts)
+	  double p_avg=0; double p_arrhenius=0;
+	    p_avg = p0old + p1old + p2old;
+	
+	  p_avg *= 0.3333333333333333/*/density*/;
+	  rhs_aux[0] += msDN_DX(0,component_index)*(p_avg ); 
+	  rhs_aux[1] += msDN_DX(1,component_index)*(p_avg ); 
+	  rhs_aux[2] += msDN_DX(2,component_index)*(p_avg );
+	
+	  //KRATOS_WATCH(rhs_aux);
+	  
+	  //adding the inertia terms
+	  // RHS += M*vhistory 
+	  //calculating the historical velocity
+	  noalias(ms_temp_vec_np) = ZeroVector(3);		
+	  for(unsigned int iii = 0; iii<number_of_points; iii++)
+	    {
+	      const array_1d<double,3>& v = (GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY,1) );
 		
-		}
-	/*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-	density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-	K = 0.3333333333333333333333*(k0 + k1 + k2 );	*/
-	/*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-	density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
-	K = 0.3333333333333333333333*(k0 + k1 + k2 );*/
+		//////////////
+		double rhoi = GetGeometry()[iii].FastGetSolutionStepValue(DENSITY);
 
-     const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-    	
-    //nu=0;
-    //noalias(msDN_DX)=prod(msDN_DX,mInvJ[0]);
-    //msDN_DX=prod(msDN_DX,Jinvv);
-
-    double k=K/BDFcoeffs[0];
-
-    CalculateViscousMatrix(rLeftHandSideMatrix, msDN_DX, nu, k,density);
-	/*KRATOS_WATCH(rLeftHandSideMatrix);*/
-       noalias(msaux_matrix) = BDFcoeffs[0] * msMassFactors * density;
-    /*KRATOS_WATCH(msaux_matrix);*/
-    //adding all contributions to the stiffness matrix
-    ExpandAndAddReducedMatrix(rLeftHandSideMatrix,msaux_matrix,dim);
-
-/*KRATOS_WATCH(rLeftHandSideMatrix);*/  
-  /*KRATOS_WATCH(rLeftHandSideMatrix);*/
-    //multiplication by the area
-    //rLeftHandSideMatrix *= Area*density;
-    /*KRATOS_WATCH(rLeftHandSideMatrix);*/
-    rLeftHandSideMatrix *= Area /** density*/;
-/*KRATOS_WATCH(rLeftHandSideMatrix);*/
-    // *****************************************
-    
-    //CALCULATION OF THE RHS
-    const array_1d<double,3>& force0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-    const array_1d<double,3>& force1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-    const array_1d<double,3>& force2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);		
-
-    
-    array_1d<double,3> rhs_aux;
-    for( unsigned int component_index = 0; component_index < dim; component_index++)
-      {
-	//external forces (component)
-	double force_component = 0.3333333333333333*(force0[component_index] + force1[component_index] + force2[component_index]);
-	noalias(rhs_aux) = force_component * msN * density/**(1-0.002*(T-273))*/;
-	
-	//adding pressure gradient (integrated by parts)
-	double p_avg=0; double p_arrhenius=0;
-	if(j==3){
-	p_avg = p0old + p1old + p2old;
-	}
-	else{
-	p_avg = p0oldaux + p1oldaux + p2oldaux;
-	}
-	
-	p_avg *= 0.3333333333333333/*/density*/;
-	rhs_aux[0] += msDN_DX(0,component_index)*(p_avg ); 
-	rhs_aux[1] += msDN_DX(1,component_index)*(p_avg ); 
-	rhs_aux[2] += msDN_DX(2,component_index)*(p_avg );
-	
-	//KRATOS_WATCH(rhs_aux);
-	
-	//adding the inertia terms
-	// RHS += M*vhistory 
-	//calculating the historical velocity
-	noalias(ms_temp_vec_np) = ZeroVector(3);		
-	for(unsigned int iii = 0; iii<number_of_points; iii++)
-	  {
-	    const array_1d<double,3>& v = (GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY,1) );
-	    ms_temp_vec_np[iii] = BDFcoeffs[0]*v[component_index]*density;
-	  }
-	
-	noalias(rhs_aux) += prod(msMassFactors,ms_temp_vec_np) ;
-	//KRATOS_WATCH(rhs_aux);
-
+		ms_temp_vec_np[iii] = BDFcoeffs[0]*v[component_index]*density;
+	    }
+	  
+	  noalias(rhs_aux) += prod(msMassFactors,ms_temp_vec_np) ;
+	  //KRATOS_WATCH(rhs_aux);
+	  
 	//writing the rhs_aux in its place
-	for( unsigned int i = 0; i < number_of_points; i++)
-	  {
-	    rRightHandSideVector[i*dim + component_index] = rhs_aux[i];
-	  }
-      }
+	  for( unsigned int i = 0; i < number_of_points; i++)
+	    {
+	      rRightHandSideVector[i*dim + component_index] = rhs_aux[i];
+	    }
+	}
 		
-    //multiplying by area
-   
-    rRightHandSideVector *= (Area/* * density*/);
-    
-    //LHS stabilization contribution //restando los terminos de la interfase
-    Vector fvvect(6);
-    //KRATOS_WATCH(rRightHandSideVector);
-
-    /*    KRATOS_WATCH(VELOCITY);*/
-    
-    	/*KRATOS_WATCH(fv0);
-	KRATOS_WATCH(fv1);
-	KRATOS_WATCH(fv2);
-	KRATOS_WATCH(v0);
-	KRATOS_WATCH(v1);
-	KRATOS_WATCH(v2);
-
-    KRATOS_WATCH(rhs_aux);*/
-    
-    for( unsigned int component_index = 0; component_index < dim; component_index++)
+      //multiplying by area
+      
+      rRightHandSideVector *= (Area/* * density*/);
+      
+      Vector fvvect(6);
+      
+      
+      for( unsigned int component_index = 0; component_index < dim; component_index++)
       {
-	fvvect[0 + component_index] = fv0[component_index];
-	fvvect[2 + component_index] = fv1[component_index];
-	fvvect[4 + component_index] = fv2[component_index];
+	fvvect[0 + component_index] = v0[component_index]; //fv0[component_index];
+	fvvect[2 + component_index] = v1[component_index]; //
+	fvvect[4 + component_index] = v2[component_index];
       }
-    /*KRATOS_WATCH(fvvect);
-      KRATOS_WATCH(rRightHandSideVector);
-    KRATOS_WATCH(rRightHandSideVector);
-	KRATOS_WATCH(prod(rLeftHandSideMatrix,fvvect));*/
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,fvvect);
-    /*KRATOS_WATCH(rRightHandSideVector);*/
-    /*KRATOS_WATCH(this->Id());
 
-/*    KRATOS_WATCH(rLeftHandSideMatrix);
-    KRATOS_WATCH(rRightHandSideVector);*/
+      noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,fvvect);
 
-   /* double nodal_contrib = 0.333333333333333333333333333 * Area;
-    GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-    GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-    GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib; */
-    KRATOS_CATCH("");
+      KRATOS_CATCH("");
   }
   
   
@@ -462,264 +343,125 @@ namespace Kratos
   // this subroutine calculates the nodal contributions for the explicit steps of the 
   // fractional step procedure
   void QFluid2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
-  	{
-	KRATOS_TRY
-	int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-	  
-	//getting data for the given geometry
-	double Area;
-	GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
-	if(FractionalStepNumber == 6) //calculation of velocities
-	{
-	      
-	      //Calculo de la presion
-		const unsigned int number_of_nodes = GetGeometry().size();
-	      	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-	      	const unsigned int dim = 2;
-	      	const Vector& BDFcoeffs = CurrentProcessInfo[BDF_COEFFICIENTS];
-	      	int n=0; int j=0;
-		//deformation gradient
- 		noalias(msF)= ZeroMatrix(2,2);
- 
-               	Matrix kronecker(2,2);
-               	noalias(kronecker)=ZeroMatrix(2,2);
-                                    
-                for(int i=0; i<2;i++){ 
-                     	kronecker(i,i)=1.0;
-               		}
-// 			//deformation gradient
- 		for(int i=0; i<dim; i++)
- 			for(int j=0; j<dim; j++)
- 				for(int node=0; node<number_of_nodes; node++)
- 				{
- 					msF(i,j) += (GetGeometry()[node]).GetSolutionStepValue(DESP)(i)	*msDN_DX(node,j);
-					/*double s= (GetGeometry()[node]).GetSolutionStepValue(DESP)(i);
-					KRATOS_WATCH(s);*/		
- 				}
-// 
- 		for(int i=0; i<dim; i++) msF(i,i) = kronecker(i,i);
-/*********************/
-
-		//athUtils<double>::InvertMatrix(msF,mInvJ[0],mDetJ[0]);
-	        double dd=0.0;
-		Matrix Jinvv (2,2);
-                MathUtils<double>::InvertMatrix(msF/*J[0]*/,Jinvv,dd);
-     //MathUtils<double>::InvertMatrix(msF,mInvJ[0],mDetJ[0]);
-		if (dd<=0.0)
-		{
-			std::cout<<"ERROR........ negative det"<<std::endl;
-			std::cout<<"ERROR........ negative det"<<std::endl;
-			std::cout<<"ERROR........ negative det"<<std::endl;
-			std::cout<<"ERROR........ negative det"<<std::endl;
-			std::cout<<"ERROR........ negative det"<<std::endl;
-			std::cout<<"ERROR........ negative det"<<std::endl;
-			std::cout<<"ERROR........ negative det"<<std::endl;
-		}
-		/*KRATOS_WATCH(msF);*/	
-///////////////////
-		//msDN_DX=prod(msDN_DX,Jinvv);
-///////////////////no considero el jacobiano, lo supongo igual a 1.
-	      
-	      double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-	      double p0n = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 
-	      double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
- 	      double p0oldaux = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-
-	      array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
-	      const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-	      const int f0i = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE); 
-	      const int f0a = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE); 
-	      if(f0i) n++;
-	      if(f0a==1) j++;
-	      const double A0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
-	      const double A00 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUSAUX);
-      	      const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
-
-	      double& p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-	      double p1n = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 
-	      double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
-	      double p1oldaux = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-	      array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-	      const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-	      const int f1i = GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);  
-	      const int f1a = GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE); 
-	      if(f1i) n++;
-	      if(f1a==1) j++;	
-	      const double A1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
-      	      const double A11 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUSAUX);
-       	      const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
-
-	      double& p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-	      double p2n = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 
-	      double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
-	      double p2oldaux = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-	      array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-	      const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-	      const int f2i = GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);    
-	      const int f2a = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE); 	     
-	      if(f2i) n++;
-	      if(f2a==1) j++;	
-
-
-	      const double A2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
-	      const double A22 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUSAUX);
-      	      const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
-	      double density = 0.33333333333333333333333*(rho0 + rho1 + rho2);
-	      
-	      double Aver = 0.33333333333333*(A0 + A1 + A2 );
-	      double K = 0.33333333333333*(k0 + k1 + k2 );
-	      double k=K/BDFcoeffs[0];
-	      if(n==3)
-		{
-			GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += 0;
-			GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += 0;
-         		GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS) +=0; 
-			GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 
-			GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 
-			GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 		
-
-
- 	   		double nodal_contrib = 0.33333333333333 * Area;
- 	   		GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += 0;
- 	   		GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += 0;
- 	   		GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += 0;
-			GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
-			GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
-			GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
-
-
-	   	}
-		else			
-		{		  
-		  	double aux0=0;
-		  	double aux1=0;
-		  	double aux2=0;
-		  	if(j==3)
-			{
-		  		double Gaux;
-		  		//k=100000/BDFcoeffs[0]; /*Aver=0;*/
-		  		double p_avg = p0old + p1old + p2old;
-	          		p_avg *= 0.33333333333333 ;
-		  		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1]; //LO COMENTE YO
-		  		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
-		  		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
-		  		aux0 = - Gaux * msN[0] * k + p_avg * msN[0] + Aver * msN[0] * k; 
-		  		aux1 = - Gaux * msN[1] * k + p_avg * msN[1] + Aver * msN[1] * k; 
-		  		aux2 = - Gaux * msN[2] * k + p_avg * msN[2] + Aver * msN[2] * k; 
-		  
-		 	 	GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += aux0 * Area;
-		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += aux1 * Area;
-		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS) += aux2 * Area;		    	  
-		  
-		  		double nodal_contrib = 0.33333333333333 * Area;
-		  	
-		  		GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-  			}
-			else
-			{
-		    	// k=100000/BDFcoeffs[0]; 
-				//k=100000/BDFcoeffs[0];
+  {
+    KRATOS_TRY
+      int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
+    
+    //getting data for the given geometry
+    double Area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
+    if(FractionalStepNumber == 6) //calculation of velocities
+      {
 	
-				double Gaux;
-				double p_avg = p0oldaux + p1oldaux + p2oldaux;
-	        		p_avg *= 0.33333333333333 ;
-		  		//aqui genera masa
-
-//////////////////////////
- 				double Aver0 = 0; double  Aver1 = 0; double Aver2 = 0;
-			/*Aver=0;*/	int s=0;
-						
-				Aver = A00 + A11 + A22; //Aver0 + Aver1 + Aver2;	
-			//Aver /= s;
-				Aver *= 0.33333333333333 ;
-				Aver *= -1;
-
-//////////////////////////
-
-		  		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1]; //LO COMENTE YO
-		  		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
-		  		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
-		  		aux0 = - Gaux * msN[0] * k + p_avg * msN[0] + Aver * msN[0] * k; 
-		  		aux1 = - Gaux * msN[1] * k + p_avg * msN[1] + Aver * msN[1] * k; 
-		  		aux2 = - Gaux * msN[2] * k + p_avg * msN[2] + Aver * msN[2] * k; 
-		  
-		  		GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux0 * Area;
-		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux1 * Area;
-		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX) += aux2 * Area;		    	  
-		  
-		  		double nodal_contribp = 0.33333333333333 * Area;
-		  
-				double SS1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX); 
-				double SS2 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX); 
-				double SS3 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX); 
-		
-				double ll1=GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
-				double ll2=GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
-				double ll3=GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASSAUX) += nodal_contribp;
-			}
-		}
-		}
-		else if(FractionalStepNumber == 5)
-		{
-	      		const Vector& BDFcoeffs = CurrentProcessInfo[BDF_COEFFICIENTS];
-	      		int n=0; int j=0;
-		
-			double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX);
-			double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-	      		const double rho0old = GetGeometry()[0].FastGetSolutionStepValue(DENSITY,1);
-	      		const int f0i = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE); 
-	      		const int f0a = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE); 
-      	      		const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
-	      		if(f0i) n++;
-	      		if(f0a==1) j++;
-
-
-	      		double& p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX);
-	        	double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-	  		const double rho1old = GetGeometry()[1].FastGetSolutionStepValue(DENSITY,1);
-	        	const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
-	      		const int f1i = GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);  
-	      		const int f1a = GetGeometry()[1].FastGetSolutionStepValue(FLAG_VARIABLE); 
-	      		if(f1i) n++;
-	      		if(f1a==1) j++;
-
-
-			double& p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX);
-	      		double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSUREAUX,1);//_OLD_IT);
-	      		const double rho2old = GetGeometry()[2].FastGetSolutionStepValue(DENSITY,1);
-	      		const int f2i = GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);    
-	      		const int f2a = GetGeometry()[2].FastGetSolutionStepValue(FLAG_VARIABLE); 
-			const double k2 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);	     
-	      		if(f2i) n++;
-	      		if(f2a==1) j++;	
-
-
-	      		double densityold = 0.33333333333333333333333*(rho0old + rho1old + rho2old);
-	      		double p_avg = 0.33333333333333333333333*(p0 + p1 + p2);
-			double p_avg_1 = 0.33333333333333333333333*(p0old + p1old + p2old);
-	      		double K = 0.33333333333333*(k0 + k1 + k2 );
-	      		double k=K/BDFcoeffs[0];
-	       		
+	//Calculo de la presion
+	const unsigned int number_of_nodes = GetGeometry().size();
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+	const unsigned int dim = 2;
+	const Vector& BDFcoeffs = CurrentProcessInfo[BDF_COEFFICIENTS];
+	int n=0; int j=0;
+	//deformation gradient
+ 	
+        
 	
-	  		double aux0=0;
-		  	double aux1=0;
-		  	double aux2=0;
-		  	if(j<3){
-		  		double Gaux;
-		  		k=100000/*/BDFcoeffs[0]*/; /*Aver=0;*/
-				aux0 =  (densityold/k) * (p_avg-p_avg_1) * msN[0] + densityold * msN[0]; 
-		  		aux1 =  (densityold/k) * (p_avg-p_avg_1) * msN[1] + densityold * msN[1]; 
-		  		aux2 =  (densityold/k) * (p_avg-p_avg_1) * msN[2] + densityold * msN[2]; 
-		  
-		  		GetGeometry()[0].FastGetSolutionStepValue(NODAL_DENSITYAUX) += aux0 * Area;
-		  		GetGeometry()[1].FastGetSolutionStepValue(NODAL_DENSITYAUX) += aux1 * Area;
-		  		GetGeometry()[2].FastGetSolutionStepValue(NODAL_DENSITYAUX) += aux2 * Area;		    	  
-				}
-		}
-	KRATOS_CATCH("");
-}  
+	/*KRATOS_WATCH(msF);*/	
+	///////////////////
+	
+	///////////////////no considero el jacobiano, lo supongo igual a 1.
+	
+	double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+	double p0n = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 
+	double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
+	
+	array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+	const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+	const int f0i = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE); 
+	if(f0i) n++;
+	
+	const double A0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
+	const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
+	
+	double& p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+	double p1n = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 
+	double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
+	array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+	const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+	const int f1i = GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);  
+	if(f1i) n++;
+	const double A1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
+	const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
+	
+	double& p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+	double p2n = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 
+	double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);//_OLD_IT);
+	array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+	const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+	const int f2i = GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);    
+	
+	if(f2i) n++;
+	
+	
+	
+	const double A2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
+	
+	const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
+	double density = 0.33333333333333333333333*(rho0 + rho1 + rho2);
+	
+	double Aver = 0.33333333333333*(A0 + A1 + A2 );
+	double K = 0.33333333333333*(k0 + k1 + k2 );
+	double k=K/BDFcoeffs[0];
+	if(n==3)
+	  {
+	    /*GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += 0;
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += 0;
+	    GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS) +=0; 
+	    GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 
+	    GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESSAUX) +=0; 		
+	    
+	    
+	    double nodal_contrib = 0.33333333333333 * Area;
+	    GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += 0;
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += 0;
+	    GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += 0;
+	    GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;
+	    GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASSAUX) += 0;*/
+	    
+	    
+	  }
+	else			
+	  {		  
+	    double aux0=0;
+	    double aux1=0;
+	    double aux2=0;
+	    
+	    double Gaux;
+	    //k=100000/BDFcoeffs[0]; /*Aver=0;*/
+	    
+	    double p_avg = p0old + p1old + p2old;
+	    p_avg *= 0.33333333333333 ;
+	    Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1]; //LO COMENTE YO
+	    Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
+	    Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
+				//Gaux * = dd;
+	    aux0 = - Gaux * msN[0] * k + p_avg * msN[0] + Aver * msN[0] * k; 
+	    aux1 = - Gaux * msN[1] * k  + p_avg * msN[1] + Aver * msN[1] * k; 
+	    aux2 = - Gaux * msN[2] * k  + p_avg * msN[2] + Aver * msN[2] * k; 
+	    
+	    GetGeometry()[0].FastGetSolutionStepValue(NODAL_PRESS) += aux0 * Area;
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_PRESS) += aux1 * Area;
+	    GetGeometry()[2].FastGetSolutionStepValue(NODAL_PRESS) += aux2 * Area;		    	  
+	    
+	    double nodal_contrib = 0.33333333333333 * Area;
+	    
+	    GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+	    GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+	  }
+      }
+    
+    KRATOS_CATCH("");
+  }  
   //************************************************************************************
   //************************************************************************************
   void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
@@ -736,8 +478,8 @@ namespace Kratos
 	
 	for (unsigned int i=0;i<number_of_nodes;i++)
 	  {
-	    rResult[i*dim] = GetGeometry()[i].GetDof(FRACT_VEL_X).EquationId();
-	    rResult[i*dim+1] = GetGeometry()[i].GetDof(FRACT_VEL_Y).EquationId();
+	    rResult[i*dim] = GetGeometry()[i].GetDof(VELOCITY_X).EquationId(); //etGeometry()[i].GetDof(FRACT_VEL_X).EquationId();
+	    rResult[i*dim+1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
 	  }
       }
     else if(FractionalStepNumber == 4) // pressure correction step
@@ -765,8 +507,8 @@ namespace Kratos
 	
 	for (unsigned int i=0;i<number_of_nodes;i++)
 	  {
-	    ElementalDofList[i*dim] = GetGeometry()[i].pGetDof(FRACT_VEL_X);
-	    ElementalDofList[i*dim+1] = GetGeometry()[i].pGetDof(FRACT_VEL_Y);
+	    ElementalDofList[i*dim] = GetGeometry()[i].pGetDof(VELOCITY_X); //GetGeometry()[i].pGetDof(FRACT_VEL_X);
+	    ElementalDofList[i*dim+1] = GetGeometry()[i].pGetDof(VELOCITY_Y);
 	  }
       }
     else if(FractionalStepNumber == 4) // pressure correction step
@@ -811,9 +553,18 @@ namespace Kratos
 */
 //#undef GRADPN_FORM
 
-  void QFluid2D::CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& k, const double& density)
+  void QFluid2D::CalculateViscousMatrix(MatrixType& K, boost::numeric::ublas::bounded_matrix<double,3,3>& ReducedMatrix, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& k, const double& density, const double& dt)
   {
+    	const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+    	const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+    	const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 
+	const int f_0a = GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE);
+ 	//KRATOS_WATCH(f_0a);
+	const int f_1a = GetGeometry()[1].FastGetSolutionStepValue(MATERIAL_VARIABLE);
+    	//KRATOS_WATCH(f_1a);
+	const int f_2a = GetGeometry()[2].FastGetSolutionStepValue(MATERIAL_VARIABLE);
+	//KRATOS_WATCH(f_2a);
 	int dim=2;
 	Matrix B(3,6);
 	Matrix ms_temp(3,6);
@@ -840,91 +591,36 @@ namespace Kratos
 		noalias(K) = prod( trans(B) , ms_temp);
 		
 
+/*    if(f_0a==1){ 
+    K(0,0) += (1.00/3.00)*rho0 * dt;
+    K(1,1) += (1.00/3.00)*rho0 * dt;
+	}
+    else
+	{*/
+    K(0,0) += (1.00/3.00)*density * dt;
+    K(1,1) += (1.00/3.00)*density * dt;
 
-				
-		
-		
-    /*double betta=0.666;
-    
-    K(0,0) = 2.0 * pow(DN_DX(0,0), 2) * nu + nu * pow(DN_DX(0,1), 2)-(betta*nu-k)*DN_DX(0,0)*DN_DX(0,0); //k=K(0,0);
-    K(0,1) = DN_DX(0,1) * nu * DN_DX(0,0)-(betta*nu-k)*DN_DX(0,0)*DN_DX(0,1);//k=K(0,1);
-    
-    K(0,2) = 2.0 * DN_DX(0,0) * nu * DN_DX(1,0) + DN_DX(0,1) * nu * DN_DX(1,1)-(betta*nu-k)*DN_DX(0,0)*DN_DX(1,0);//k=K(0,2);
-    K(0,3) = DN_DX(0,1) * nu * DN_DX(1,0)-(betta*nu-k)*DN_DX(0,0)*DN_DX(1,1);//k=K(0,3);
-    K(0,4) = 2.0 * DN_DX(0,0) * nu * DN_DX(2,0) + DN_DX(0,1) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(0,0)*DN_DX(2,0);//k=K(0,4);
-    K(0,5) = DN_DX(0,1) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(0,0)*DN_DX(2,1);//k=K(0,5);
-    K(1,0) = DN_DX(0,1) * nu * DN_DX(0,0)-(betta*nu-k)*DN_DX(0,1)*DN_DX(0,0);
-    K(1,1) = 2.0 * nu * pow(DN_DX(0,1), 2) + pow(DN_DX(0,0), 2) * nu-(betta*nu-k)*DN_DX(0,1)*DN_DX(0,1);//k=K(1,1);
-    K(1,2) = DN_DX(0,0) * nu * DN_DX(1,1)-(betta*nu-k)*DN_DX(0,1)*DN_DX(1,0);//k=K(1,2);
-    K(1,3) = 2.0 * DN_DX(0,1) * nu * DN_DX(1,1) + DN_DX(0,0) * nu * DN_DX(1,0)-(betta*nu-k)*DN_DX(0,1)*DN_DX(1,1);//k=K(1,3);
-    K(1,4) = DN_DX(0,0) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(0,1)*DN_DX(2,0);//k=K(1,4);
-    K(1,5) = 2.0 * DN_DX(0,1) * nu * DN_DX(2,1) + DN_DX(0,0) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(0,1)*DN_DX(2,1);//k=K(1,5);
-    K(2,0) = 2.0 * DN_DX(0,0) * nu * DN_DX(1,0) + DN_DX(0,1) * nu * DN_DX(1,1)-(betta*nu-k)*DN_DX(1,0)*DN_DX(0,0);
-    K(2,1) = DN_DX(0,0) * nu * DN_DX(1,1)-(betta*nu-k)*DN_DX(1,0)*DN_DX(0,1);
-    K(2,2) = 2.0 * pow(DN_DX(1,0), 2) * nu + nu * pow(DN_DX(1,1), 2)-(betta*nu-k)*DN_DX(1,0)*DN_DX(1,0);//k=K(2,2);
-    K(2,3) = DN_DX(1,1) * nu * DN_DX(1,0)-(betta*nu-k)*DN_DX(1,0)*DN_DX(1,1);//k=K(2,3);
-    K(2,4) = 2.0 * DN_DX(1,0) * nu * DN_DX(2,0) + DN_DX(1,1) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(1,0)*DN_DX(2,0);//k=K(2,4);
-    K(2,5) = DN_DX(1,1) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(1,0)*DN_DX(2,1);//k=K(2,5);
-    K(3,0) = DN_DX(0,1) * nu * DN_DX(1,0)-(betta*nu-k)*DN_DX(1,1)*DN_DX(0,0);
-    K(3,1) = 2.0 * DN_DX(0,1) * nu * DN_DX(1,1) + DN_DX(0,0) * nu * DN_DX(1,0)-(betta*nu-k)*DN_DX(1,1)*DN_DX(0,1);
-    K(3,2) = DN_DX(1,1) * nu * DN_DX(1,0)-(betta*nu-k)*DN_DX(1,1)*DN_DX(1,0);
-    K(3,3) = 2.0 * nu * pow(DN_DX(1,1), 2) + pow(DN_DX(1,0), 2) * nu-(betta*nu-k)*DN_DX(1,1)*DN_DX(1,1);//k=K(3,3);
-    K(3,4) = DN_DX(1,0) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(1,1)*DN_DX(2,0);//k=K(3,4);
-    K(3,5) = 2.0 * DN_DX(1,1) * nu * DN_DX(2,1) + DN_DX(1,0) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(1,1)*DN_DX(2,1);//k=K(3,5);
-    K(4,0) = 2.0 * DN_DX(0,0) * nu * DN_DX(2,0) + DN_DX(0,1) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(2,0)*DN_DX(0,0);
-    K(4,1) = DN_DX(0,0) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(2,0)*DN_DX(0,1);
-    K(4,2) = 2.0 * DN_DX(1,0) * nu * DN_DX(2,0) + DN_DX(1,1) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(2,0)*DN_DX(1,0);
-    K(4,3) = DN_DX(1,0) * nu * DN_DX(2,1)-(betta*nu-k)*DN_DX(2,0)*DN_DX(1,1);
-    
-    K(4,4) = 2.0 * pow(DN_DX(2,0), 2) * nu + nu * pow(DN_DX(2,1), 2)-(betta*nu-k)*DN_DX(2,0)*DN_DX(2,0);//k=K(4,4);
-    K(4,5) = DN_DX(2,1) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(2,0)*DN_DX(2,1);//k=K(4,5);
+/*	}
 
-    K(5,0) = DN_DX(0,1) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(2,1)*DN_DX(0,0);
-    
-    K(5,1) = 2.0 * DN_DX(0,1) * nu * DN_DX(2,1) + DN_DX(0,0) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(2,1)*DN_DX(0,1);
-    K(5,2) = DN_DX(1,1) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(2,1)*DN_DX(1,0);
-    K(5,3) = 2.0 * DN_DX(1,1) * nu * DN_DX(2,1) + DN_DX(1,0) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(2,1)*DN_DX(1,1);
-    K(5,4) = DN_DX(2,1) * nu * DN_DX(2,0)-(betta*nu-k)*DN_DX(2,1)*DN_DX(2,0);
-    K(5,5) = 2.0 * nu * pow(DN_DX(2,1), 2) + pow(DN_DX(2,0), 2) * nu-(betta*nu-k)*DN_DX(2,1)*DN_DX(2,1);//k=K(5,5);*/
-    
-/********************************/
-    /*K(0,0) *= (1/density);
-    K(0,1) *= (1/density); 
-    K(0,2) *= (1/density);
-    K(0,3) *= (1/density);
-    K(0,4) *= (1/density); 
-    K(0,5) *= (1/density); 
-    K(1,0) *= (1/density);
-    K(1,1) *= (1/density);
-    K(1,2) *= (1/density); 
-    K(1,3) *= (1/density);
-    K(1,4) *= (1/density);
-    K(1,5) *= (1/density); 
-    K(2,0) *= (1/density); 
-    K(2,1) *= (1/density);
-    K(2,2) *= (1/density);
-    K(2,3) *= (1/density);
-    K(2,4) *= (1/density); 
-    K(2,5) *= (1/density);
-    K(3,0) *= (1/density); 
-    K(3,1) *= (1/density); 
-    K(3,2) *= (1/density);
-    K(3,3) *= (1/density);
-    K(3,4) *= (1/density);
-    K(3,5) *= (1/density); 
-    K(4,0) *= (1/density); 
-    K(4,1) *= (1/density);
-    K(4,2) *= (1/density);
-    K(4,3) *= (1/density); 
-    K(4,4) *= (1/density);
-    K(4,5) *= (1/density);
-    K(5,0) *= (1/density); 
-    K(5,1) *= (1/density);
-    K(5,2) *= (1/density);
-    K(5,3) *= (1/density); 
-    K(5,4) *= (1/density); 
-    K(5,5) *= (1/density); */
+    	if(f_1a==1){
+    K(2,2) += (1.00/3.00)*rho1 * dt;
+    K(3,3) += (1.00/3.00)*rho1 * dt;
+}
+	else{*/
+    K(2,2) += (1.00/3.00)*density * dt;
+    K(3,3) += (1.00/3.00)*density * dt;
 
+/*}
+
+    	if(f_2a==1){
+    K(4,4) += (1.00/3.00)*rho2 * dt;
+    K(5,5) += (1.00/3.00)*rho2 * dt; 
+}
+else{*/
+    K(4,4) += (1.00/3.00)* density * dt;
+    K(5,5) += (1.00/3.00)* density * dt;
+
+/*}*/
 
     //filling the symmetric part
     /*for(unsigned int i = 1; i<K.size1(); i++)
@@ -956,8 +652,23 @@ namespace Kratos
   KRATOS_CATCH("")
     }
 
-} // Namespace Kratos
+		/*if(f0a == 1) {
+			GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE)= 1;
+ 		}
 
+		if(f1a == 1) {
+			GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE)= 1;
+ 		}
+
+		if(f2a == 1) {
+			GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE)= 1;
+ 		}
+		*/
+		 	/*nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+		    	density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
+
+
+} // Namespace Kratos
 
 
 

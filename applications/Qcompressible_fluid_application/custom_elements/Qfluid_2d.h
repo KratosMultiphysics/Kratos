@@ -107,13 +107,13 @@ namespace Kratos
       
       /// Default constructor.
 	  QFluid2D(IndexType NewId, GeometryType::Pointer pGeometry);
-      QFluid2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
-
-      /// Destructor.
-      virtual ~QFluid2D();
-      
-
-      ///@}
+	  QFluid2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+	  
+	  /// Destructor.
+	  virtual ~QFluid2D();
+	  
+	  
+	  ///@}
       ///@name Operators 
       ///@{
       
@@ -221,22 +221,7 @@ namespace Kratos
 //		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
 //		static array_1d<double,3> ms_u_DN;
         	
-      static boost::numeric::ublas::bounded_matrix<double,3,3> msaux_matrix;
-      static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-      static boost::numeric::ublas::bounded_matrix<double,3,3> msMassC;
-      static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-      static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DXF;
-      static boost::numeric::ublas::bounded_matrix<double,2,2> msF;
-
-      static array_1d<double,3> msN; //dimension = number of nodes
-      //static Matrix msDN_DX;
-      //static Matrix msMassFactors;
-      static array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
-      static array_1d<double,3> ms_press;
-      static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
-      static array_1d<double,3> ms_u_DN;
-      std::vector< Matrix > mInvJ;
-      Vector mDetJ;
+      
       ///@} 
       ///@name Member Variables 
       ///@{ 
@@ -248,22 +233,22 @@ namespace Kratos
       ///@{ 
 		void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);//, unsigned int ComponentIndex);
 
-
+		
 		void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
-      void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      void CalculateViscousMatrix(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& k, const double& density);       
-
-      inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	boost::numeric::ublas::bounded_matrix<double,3,3>& ReducedMatrix, const unsigned int dimension);
-
-      
-	  //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
-//	  inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
-        
-      ///@} 
+		void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+		void CalculateViscousMatrix(MatrixType& K,boost::numeric::ublas::bounded_matrix<double,3,3>& ReducedMatrix, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& k, const double& density,const double& dt );       
+		
+		inline void  ExpandAndAddReducedMatrix(MatrixType& Destination,	boost::numeric::ublas::bounded_matrix<double,3,3>& ReducedMatrix, const unsigned int dimension);
+		
+		
+		//inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
+		//	  inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
+		
+		///@} 
       ///@name Private Operations
       ///@{ 
-        
-        
+		
+		
       ///@} 
       ///@name Private  Access 
       ///@{ 
