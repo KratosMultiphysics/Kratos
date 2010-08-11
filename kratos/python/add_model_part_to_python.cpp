@@ -182,7 +182,8 @@ namespace Python
 
 	  ModelPart::IndexType (ModelPart::*pointer_to_clone_time_step_1)(void) = &ModelPart::CloneTimeStep;
 	  ModelPart::IndexType (ModelPart::*pointer_to_clone_time_step_2)(double) = &ModelPart::CloneTimeStep;
-	  ProcessInfo& (ModelPart::*pointer_to_get_process_info)(void) = &ModelPart::GetProcessInfo;
+	  ProcessInfo::Pointer (ModelPart::*pointer_to_get_process_info)(void) = &ModelPart::pGetProcessInfo;
+	  void (ModelPart::*pointer_to_set_process_info)(ProcessInfo::Pointer) = &ModelPart::SetProcessInfo;
 	    // ModelPart::MeshType::Pointer (ModelPart::*pointer_to_get_mesh)() = &ModelPart::pGetMesh;
 //	  std::string& (ModelPart::*pointer_to_name)(void) = &ModelPart::Name;
 
@@ -193,7 +194,7 @@ namespace Python
 	  .def(init<>())
 	  .add_property("Name", GetModelPartName, SetModelPartName)
 	//  .add_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
-		  .add_property("ProcessInfo", make_function(pointer_to_get_process_info,return_internal_reference<>() ), &ModelPart::SetProcessInfo )
+		  .add_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info )
 	  .def("CreateSolutionStep",&ModelPart::CreateSolutionStep)
 	  .def("CloneSolutionStep",&ModelPart::CloneSolutionStep)
 	  .def("CreateTimeStep",&ModelPart::CreateTimeStep)
