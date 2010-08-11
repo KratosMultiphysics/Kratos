@@ -55,6 +55,7 @@ kratos_double_variables : Kratos components
     DP_ALPHA1
     DP_EPSILON
     DP_K
+    DYNAMIC_TAU
     ELECTRIC_POTENTIAL
     ELECTRIC_POTENTIAL_DT
     ELECTRIC_POTENTIAL_DT2
@@ -74,9 +75,6 @@ kratos_double_variables : Kratos components
     FLAG_VARIABLE
     FRICTION_COEFFICIENT
     HEAT_FLUX
-    ICE_VOLUME_FRACTION
-    ICE_VOLUME_FRACTION_EINS
-    ICE_VOLUME_FRACTION_NULL
     INFINIT_COEFFICIENT
     INITIAL_PENALTY
     IS_BOUNDARY
@@ -126,13 +124,9 @@ kratos_double_variables : Kratos components
     SPECIFIC_HEAT
     START_TIME
     SUCTION
-    SURFACE_FLOW_HEAT
-    SURFACE_FLOW_WATER
     TANGENTIAL_CONTACT_STRESS
     TAU
     TEMPERATURE
-    TEMPERATURE_EINS
-    TEMPERATURE_NULL
     TEMP_CONV_PROJ
     THAWONE
     THAWTWO
@@ -151,13 +145,15 @@ kratos_double_variables : Kratos components
     WATER_PRESSURE_NULL_ACCELERATION
     WATER_PRESSURE_NULL_DT
     WATER_SOUND_VELOCITY
+    YIELD_STRESS
     YOUNG_MODULUS
 
 variable_name : MAGNETOSTATIC_POTENTIAL
-rVariable : MAGNETOSTATIC_POTENTIAL variable #191
+rVariable : MAGNETOSTATIC_POTENTIAL variable #188
 lines read : 9724
 writing a 2D mesh
 "setting up the dofs" : setting up the dofs
+"finished setting up the dofs" : finished setting up the dofs
 LU factorization solver finished.
 
 LU factorization solver finished.
@@ -183,6 +179,9 @@ Import_PoissonApplication: False
 Import_ElectrostaticApplication: False
 Import_MagnetostaticApplication: False
 Import_DamApplication: False
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
 Applications Available:
 Import_ALEApplication: False
 Import_IncompressibleFluidApplication: False
@@ -194,12 +193,15 @@ Import_ULFApplication: False
 Import_MeshingApplication: False
 Import_KratosTrilinosApplication: False
 Import_KratosMetisApplication: False
-Import_ PoissonApplication: False
-Import_ ElectrostaticApplication: False
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: False
 Import_MagnetostaticApplication: True
 Import_DamApplication: False
-importing KratosR1magnetostaticApplication ...
-Kratos ElectromagnecticApplication2 sucessfully imported
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
+importing KratosR1MagnetostaticApplication ...
+Kratos ElectromagneticApplication2 sucessfully imported
 Before reading from GiD... basic-motor
 After reading from GiD...
 ASABERQUEMagnetostaticPart model part
