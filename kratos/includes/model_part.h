@@ -218,7 +218,7 @@ namespace Kratos
         ModelPart()
         : mBufferSize(1)
         , mCurrentIndex(0)
-        , mProcessInfo()
+        , mpProcessInfo(new ProcessInfo())
         , mIndices(1, 0)
         , mpCommunicator(new Communicator)
         {
@@ -231,7 +231,7 @@ namespace Kratos
         ModelPart(std::string const& NewName)
         : mBufferSize(1)
         , mCurrentIndex(0)
-        , mProcessInfo()
+        , mpProcessInfo(new ProcessInfo())
         , mIndices(1, 0)
         , mpCommunicator(new Communicator)
         {
@@ -244,7 +244,7 @@ namespace Kratos
         ModelPart(std::string const& NewName, IndexType NewBufferSize)
         : mBufferSize(NewBufferSize)
         , mCurrentIndex(0)
-        , mProcessInfo()
+        , mpProcessInfo(new ProcessInfo())
         , mIndices(NewBufferSize, 0)
         , mpCommunicator(new Communicator)
         {
@@ -260,7 +260,7 @@ namespace Kratos
         : mName(rOther.mName)
         , mBufferSize(rOther.mBufferSize)
         , mCurrentIndex(rOther.mCurrentIndex)
-        , mProcessInfo(rOther.mProcessInfo)
+        , mpProcessInfo(rOther.mpProcessInfo)
         , mIndices(rOther.mIndices)
         , mMeshes(rOther.mMeshes)
         , mVariablesList(rOther.mVariablesList)
@@ -294,7 +294,7 @@ namespace Kratos
             mName = rOther.mName;
             mBufferSize = rOther.mBufferSize;
             mCurrentIndex = rOther.mCurrentIndex;
-            mProcessInfo = rOther.mProcessInfo;
+            mpProcessInfo = rOther.mpProcessInfo;
             mIndices = rOther.mIndices;
             mMeshes = rOther.mMeshes;
 
@@ -336,9 +336,9 @@ namespace Kratos
             mMeshes(mCurrentIndex) = MeshType::Pointer(new MeshType);
             mIndices[mCurrentIndex] = new_index;
 
-            mProcessInfo.CreateSolutionStepInfo(new_index);
-            mProcessInfo.ReIndexBuffer(mBufferSize);
-            mProcessInfo.ClearHistory(mBufferSize);
+            mpProcessInfo->CreateSolutionStepInfo(new_index);
+            mpProcessInfo->ReIndexBuffer(mBufferSize);
+            mpProcessInfo->ClearHistory(mBufferSize);
 
             return new_index;
         }
@@ -360,10 +360,10 @@ namespace Kratos
             // 	  mMeshes(current_index) = mMeshes(mCurrentIndex);
             // 	  mIndices[current_index] = new_index;
             mCurrentIndex++;
-            mProcessInfo.CloneSolutionStepInfo();
+            mpProcessInfo->CloneSolutionStepInfo();
             // //	  mProcessInfo.ReIndexBuffer(mBufferSize);
 
-            mProcessInfo.ClearHistory(mBufferSize);
+            mpProcessInfo->ClearHistory(mBufferSize);
 
 
             // 	  mCurrentIndex = current_index;
@@ -409,7 +409,7 @@ namespace Kratos
         IndexType CloneTimeStep()
         {
             IndexType new_index = CloneSolutionStep();
-            mProcessInfo.SetAsTimeStepInfo();
+            mpProcessInfo->SetAsTimeStepInfo();
 
             return new_index;
         }
@@ -425,7 +425,7 @@ namespace Kratos
         IndexType CreateTimeStep(double NewTime)
         {
             IndexType new_index = CreateSolutionStep();
-            mProcessInfo.SetAsTimeStepInfo(NewTime);
+            mpProcessInfo->SetAsTimeStepInfo(NewTime);
 
             return new_index;
         }
@@ -433,7 +433,7 @@ namespace Kratos
         IndexType CloneTimeStep(double NewTime)
         {
             IndexType new_index = CloneSolutionStep();
-            mProcessInfo.SetAsTimeStepInfo(NewTime);
+            mpProcessInfo->SetAsTimeStepInfo(NewTime);
 
 
             return new_index;
@@ -948,17 +948,32 @@ namespace Kratos
 
         ProcessInfo& GetProcessInfo()
         {
-            return mProcessInfo;
+            return *mpProcessInfo;
         }
 
         ProcessInfo const& GetProcessInfo() const
         {
-            return mProcessInfo;
+            return *mpProcessInfo;
+        }
+
+        ProcessInfo::Pointer pGetProcessInfo()
+        {
+            return mpProcessInfo;
+        }
+
+        const ProcessInfo::Pointer pGetProcessInfo() const
+        {
+            return mpProcessInfo;
+        }
+
+        void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
+        {
+            mpProcessInfo = pNewProcessInfo;
         }
 
         void SetProcessInfo(ProcessInfo& NewProcessInfo)
         {
-            mProcessInfo = NewProcessInfo;
+            *mpProcessInfo = NewProcessInfo;
         }
 
         MeshType::Pointer pGetMesh(IndexType ThisIndex = 0)
@@ -1068,7 +1083,7 @@ namespace Kratos
         virtual void PrintData(std::ostream& rOStream) const
         {
             rOStream << "    Buffer Size : " << mBufferSize << std::endl;
-            mProcessInfo.PrintData(rOStream);
+            mpProcessInfo->PrintData(rOStream);
             rOStream << std::endl;
             for (IndexType i = 0; i < mMeshes.size(); i++)
             {
@@ -1137,7 +1152,7 @@ namespace Kratos
 
         IndexType mCurrentIndex;
 
-        ProcessInfo mProcessInfo;
+        ProcessInfo::Pointer mpProcessInfo;
 
         std::vector<IndexType> mIndices;
 
