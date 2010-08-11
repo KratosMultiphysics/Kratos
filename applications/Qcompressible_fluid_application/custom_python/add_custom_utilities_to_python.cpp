@@ -74,30 +74,48 @@ namespace Kratos
     
     
     
-    void GenerateModelPart(Utils& Utils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
+    void GenerateModelPartQ(Utils& Utils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
     {
       if(domain_size == 2)
 	{
-	  Utils.GenerateModelPart(origin_model_part, destination_model_part,
-				  KratosComponents<Element>::Get("ConvDiff2D"),//
-				  KratosComponents<Condition>::Get("ThermalFace2D")	); //("ConvDiffQ2D" ConvDiff2D
+	
+	  Utils.GenerateModelPartQ(origin_model_part, destination_model_part,
+				  KratosComponents<Element>::Get("ConvDiff2Ds"),//
+				  KratosComponents<Condition>::Get("ThermalFace2Ds")	); //("ConvDiffQ2D" ConvDiff2D
 	}
       else if(domain_size == 3)
 	{
-			Utils.GenerateModelPart(origin_model_part, destination_model_part,
-						KratosComponents<Element>::Get("ConvDiff3D"),
-						KratosComponents<Condition>::Get("ThermalFace3D")	); 
+			Utils.GenerateModelPartQ(origin_model_part, destination_model_part,
+						KratosComponents<Element>::Get("ConvDiff3Ds"),
+						KratosComponents<Condition>::Get("ThermalFace3Ds")	); 
 	}
     }
     
+
+    void GenerateModelPartSpeciesQ(Utils& Utils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
+    {
+      if(domain_size == 2)
+	{
+	
+	  Utils.GenerateModelPartSpeciesQ(origin_model_part, destination_model_part,
+				  KratosComponents<Element>::Get("ConvDiffSpecies2Ds"),// //ConvDiffSpecies2D
+				  KratosComponents<Condition>::Get("ThermalFaceSpecies2Ds")	); //("ConvDiffQ2D" ConvDiff2DThermalFaceSpecies2D
+	}
+      else if(domain_size == 3)
+	{
+	}
+    }
+
     
     
     
     void  AddCustomUtilitiesToPython()
     {
       using namespace boost::python;
+
       class_<Utils>("Utils", init<>())
-	.def("GenerateModelPart",GenerateModelPart)
+	.def("GenerateModelPartQ",GenerateModelPartQ)
+	.def("GenerateModelPartSpeciesQ",GenerateModelPartSpeciesQ)
 	.def("ApplyInitialTemperature",&Utils::ApplyInitialTemperature)
 	.def("FindFluidLevel",&Utils::FindFluidLevel)
 	;
@@ -106,14 +124,27 @@ namespace Kratos
       class_<qUtils>("qUtils", init<>())
 	.def("EstimateDeltaTime",&qUtils::EstimateDeltaTime)
 	.def("IdentifyFluidNodes",&qUtils::IdentifyFluidNodes)
+	.def("IdentifyInterfaceNodes",&qUtils::IdentifyInterfaceNodes)
 	.def("QuasiLagrangianMove",&qUtils::QuasiLagrangianMove)
 	.def("MarkExcessivelyCloseNodes",&qUtils::MarkExcessivelyCloseNodes)
+	.def("MarkExcessivelyCloseInterfaceNodes",&qUtils::MarkExcessivelyCloseInterfaceNodes)
+	.def("MarkExcessivelyCloseInterfaceNodes2",&qUtils::MarkExcessivelyCloseInterfaceNodes2) 
+	.def("MarkOuterNodes",&qUtils::MarkOuterNodes)
 	.def("Predict",&qUtils::Predict)
+ 	.def("ConvergenceCheck",&qUtils::ConvergenceCheck)
+	.def("SaveVelocity",&qUtils::SaveVelocity)
 	.def("EstimateDeltaTime", &qUtils::EstimateDeltaTime)
+	.def("CalculateFace_Heat_Flux",&qUtils::CalculateFace_Heat_Flux)
         .def("CalculateNodalMass",&qUtils::CalculateNodalMass)
+        .def("IdentifyWallNodes",&qUtils::IdentifyWallNodes)
 	.def("MoveLonelyNodes",&qUtils::MoveLonelyNodes)
+	.def("Combustion",&qUtils::Combustion)
+	.def("Combustion1",&qUtils::Combustion1)
         .def("CalculateVolume",&qUtils::CalculateVolume)
 	.def("Return",&qUtils::Return)
+	.def("CalculateNodalPressure",&qUtils:: CalculateNodalPressure)
+	.def("Flux",&qUtils:: Flux)
+	.def("CalculateNodalOx",&qUtils:: CalculateNodalOx)
 	.def("ReduceTimeStep",&qUtils::ReduceTimeStep)
 	;
     }
