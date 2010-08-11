@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: jmarti $
-//   Date:                $Date: 2009-01-23 14:34:00 $
-//   Revision:            $Revision: 1.1 $
+//   Last Modified by:    $Author: anonymous $
+//   Date:                $Date: 2009-01-15 14:50:24 $
+//   Revision:            $Revision: 1.8 $
 //
 //
 
@@ -75,14 +75,13 @@ namespace Kratos
      * Auxiliary class to store gauss point containers and perform result printing
      * on gauss points
      */
-
     class PfemGidGaussPointsContainer
     {
         public:
             ///Constructor
-            PfemGidGaussPointsContainer( char* gp_title, KratosGeometryFamily geometryFamily,
+            PfemGidGaussPointsContainer( const char* gp_title, KratosGeometryFamily geometryFamily,
                                      GiD_ElementType gid_element_type,
-                                     int number_of_integration_points,
+                                     unsigned int number_of_integration_points,
                                      std::vector<int> index_container )
             :mGPTitle(gp_title),mKratosElementFamily(geometryFamily),
                       mGidElementFamily(gid_element_type), mSize(number_of_integration_points),
@@ -116,7 +115,7 @@ namespace Kratos
             }
             
             void PrintResults( Variable<double> rVariable, ModelPart& r_model_part, 
-                               double SolutionTag, int value_index = 0 )
+                               double SolutionTag, unsigned int value_index = 0 )
             {
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
@@ -157,7 +156,7 @@ namespace Kratos
             }
             
             void PrintResults( Variable<Vector> rVariable, ModelPart& r_model_part, 
-                               double SolutionTag, int value_index = 0 )
+                               double SolutionTag, unsigned int value_index = 0 )
             {
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
@@ -202,7 +201,7 @@ namespace Kratos
             }
             
             void PrintResults( Variable<Matrix> rVariable, ModelPart& r_model_part, 
-                               double SolutionTag, int value_index = 0 )
+                               double SolutionTag, unsigned int value_index = 0 )
             {
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
@@ -301,11 +300,12 @@ namespace Kratos
             }
             
             ///member variables
+            
+            const char* mGPTitle;
             KratosGeometryFamily mKratosElementFamily;
             GiD_ElementType mGidElementFamily;
+            unsigned int mSize;
             std::vector<int> mIndexContainer;
-            int mSize;
-            char* mGPTitle;
             ModelPart::ElementsContainerType mMeshElements;
             ModelPart::ConditionsContainerType mMeshConditions;
     };//class PfemGidGaussPointsContainer
@@ -319,7 +319,7 @@ namespace Kratos
         public:
             ///Constructor
             PfemGidMeshContainer( GeometryData::KratosGeometryType geometryType, 
-                              GiD_ElementType elementType, char* mesh_title )
+                              GiD_ElementType elementType, const char* mesh_title )
             :mGeometryType(geometryType), mGidElementType(elementType), mMeshTitle(mesh_title){}
             
             bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
@@ -408,22 +408,31 @@ namespace Kratos
                             nodes_id[i] = (it)->GetGeometry()[i].Id();
                         
                         //setting the color for either fluid or solid or contact element
-			unsigned int n_fl=0;
-			unsigned int n_str=0;
-			unsigned int color=13;
+			int n_fl=0;
+			int n_str=0;
+			int n_interf=0;
+			int color=13;
 			for ( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
 				{
-				n_fl += it->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID);
-				n_str+= it->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE);
+				if( it->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE)==1) n_fl++;
+				if( it->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE)==2) n_str++;
+				/*n_fl += int(it->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID));
+				n_str+= int(it->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE));
+				n_interf+= int(it->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE));*/
 				}
-			if (n_fl==(it)->GetGeometry().size() && n_str!= (it)->GetGeometry().size())
+			if (n_fl==(it)->GetGeometry().size() /*&& n_intf!=30*/)// && n_str!= (it)->GetGeometry().size())
 				{
 				color=4;				
 				}
-			else if (n_str==(it)->GetGeometry().size())// && n_fl!=(it)->GetGeometry().size())
+			if (n_str==(it)->GetGeometry().size() /*&& n_fl!=(it)->GetGeometry().size()*/)
+				{
+				color=14;				
+				} 
+			if (n_fl==1 || n_fl==2)// && n_fl!=(it)->GetGeometry().size())
 				{
 				color=14;				
 				}
+
 		
 			nodes_id[(it)->GetGeometry().size()]= color;
 			
@@ -460,16 +469,15 @@ namespace Kratos
                         for( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry()[i].Id();
 
-			unsigned int n_str=0;		
+			int n_str=0;		
+			int n_free_surf=0;	
 			
-			unsigned int n_free_surf=0;	
-			
-			for (int i=0;i<3;i++)
+			for (unsigned int i=0;i<3;i++)
 			{
-			n_free_surf+=(it)->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE);
-			n_str+=(it)->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE);
+			n_free_surf+=int((it)->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE));
+			n_str+=int((it)->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE));
 			}       
-			if (n_str==it->GetGeometry().size())// && n_free_surf!=it->GetGeometry().size())
+			if (n_str==int(it->GetGeometry().size()))// && n_free_surf!=it->GetGeometry().size())
 				{
 				nodes_id[3]=3;
 				 GiD_WriteElementMat((it)->Id(), nodes_id);			
@@ -511,18 +519,18 @@ namespace Kratos
                     {
                         for( unsigned int i=0; i<(it)->GetGeometry().size(); i++ )
                             nodes_id[i] = (it)->GetGeometry()[i].Id();
-			unsigned int n_fl=0;
-			unsigned int n_str=0;
+			int n_fl=0;
+			int n_str=0;
 			
 			for (int i=0;i<3;i++)
 			{
-			n_str+=(it)->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE);
-			n_fl+=(it)->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID);
+			n_str+=int((it)->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE));
+			n_fl+=int((it)->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID));
 
 			}       
 			//if (n_free_surf==it->GetGeometry().size())
 			//	nodes_id[3]=1;
-			if (n_fl==it->GetGeometry().size())
+			if (n_fl==int(it->GetGeometry().size()))
 				{	
 				//the color of water
 				nodes_id[3]=6;
@@ -552,7 +560,7 @@ namespace Kratos
             ModelPart::NodesContainerType mMeshNodes;
             ModelPart::ElementsContainerType mMeshElements;
             ModelPart::ConditionsContainerType mMeshConditions;
-            char* mMeshTitle;
+            const char* mMeshTitle;
     };//class PfemGidMeshContainer
 
 }// namespace Kratos.
