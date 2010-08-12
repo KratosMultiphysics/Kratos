@@ -253,7 +253,7 @@ namespace Kratos {
             unsigned int dim = 2;
             for(int iii=0; iii<added_nodes; iii++)
             {
-                unsigned int base = iii * (dim+1);
+                int base = iii * (dim+1);
 
                 Node<3>::Pointer pnode = *(ThisModelPart.NodesBegin() + old_size + iii).base();
 
@@ -261,6 +261,7 @@ namespace Kratos {
                 {
                     double* step_data = (pnode)->SolutionStepData().Data(step);
 //                    KRATOS_WATCH(pnode->Id());
+
 
                     double* node0_data = (ThisModelPart.NodesBegin() + nodes_from[base + 0] )->SolutionStepData().Data(step);
                     double* node1_data = (ThisModelPart.NodesBegin() + nodes_from[base + 1] )->SolutionStepData().Data(step);
