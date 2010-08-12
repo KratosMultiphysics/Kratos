@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "kMagnetostatic.h"
 //#include "custom_python/add_custom_strategies_to_python.h"
-//#include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 //#include "custom_python/add_custom_io_to_python.h"
 
 namespace Kratos
@@ -75,7 +75,7 @@ namespace Python
 			;
 
 		//AddCustomStrategiesToPython();
-		//AddCustomUtilitiesToPython();
+		AddCustomUtilitiesToPython();
 	    //AddCustomIOToPython();
 
 		//registering variables in python
