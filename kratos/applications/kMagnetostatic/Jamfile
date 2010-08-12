@@ -30,6 +30,7 @@ python-extension KratosR1MagnetostaticApplication
     :  
 	#list of sources
 	kMagnetostatic.cpp
+	add_custom_utilities_to_python.cpp
 	kMagnetostatic_python_application.cpp
 	magnetostatic_2d.cpp
 	magnetostatic_3d.cpp
