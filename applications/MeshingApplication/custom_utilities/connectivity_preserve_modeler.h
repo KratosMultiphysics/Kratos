@@ -101,7 +101,7 @@ namespace Kratos {
             DestinationModelPart.pGetProcessInfo() = OriginModelPart.pGetProcessInfo();
 
             //assigning Properties
-            DestinationModelPart.pProperties() = OriginModelPart.pProperties();
+            DestinationModelPart.SetProperties(OriginModelPart.pProperties());
 
             //assigning the nodes to the new model part
             DestinationModelPart.Nodes().clear();
