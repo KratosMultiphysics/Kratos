@@ -2892,13 +2892,14 @@ proc ::KMProps::ChangeInsideOutside { w} {
 proc ::KMProps::InsertCaption { w title} {
     variable Location
     
-    ttk::frame $w.caption -relief solid -borderwidth 1
+    ttk::frame $w.caption -relief ridge -borderwidth 1
     label $w.caption.title -foreground grey60
+    GidHelp $w.caption [_ "Double-click toggle window or inline visualization"]
     setTooltip $w.caption [_ "Double-click toggle window or inline visualization"]
     if { [ winfo class $w] != "Toplevel" } {
 	$w.caption.title configure -text $title
 	button $w.caption.close -image [ GetImage close17.gif] -command \
-	    "::KMProps::CloseWindow $w" -bd 0
+	    "::KMProps::CloseWindow $w" -bd 0 -relief flat
 	$w.caption.title configure -text [_ "Double click here to tear off the window"]
     } else {
 	$w.caption.title configure -text [_ "Double click here to integrate the window"]
@@ -2908,8 +2909,10 @@ proc ::KMProps::InsertCaption { w title} {
 	grid $w.caption.title -sticky ew
     } else {
 	grid $w.caption.title $w.caption.close -sticky ew
-	grid configure $w.caption.close  -sticky w
+	grid configure $w.caption.close  -sticky wns
     }
+    grid columnconfigure $w.caption 0 -weight 1
+    grid rowconfigure $w.caption 0 -weight 1
     bind $w.caption.title <Double-Button-1> "::KMProps::ChangeInsideOutside $w"
     return $w.caption
 }
