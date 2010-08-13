@@ -15,6 +15,14 @@
 #  VERSION : 0.1
 #
 #  HISTORY:
+#   0.5- 12/08/10 Miguel Pasenau: se puede integrar la ventana dentro de la ventana 
+#                 principal de GiD;
+#                 mediante una barrita (caption) debajo del titulo de la ventana se puede
+#                 seleccionar si se quiere integrar la ventana o no;
+#                 tambien se ha cambiado el empaquetamiendo de 'pack' a 'grid'
+#                 de momento esta puesto OUTSIDE / INSIDE_LEFT, 
+#                 nueva variable Location para indicar donde esta
+#                 ::OpenInsideMainWindow & ::CloseInsideWindow are present in GiD v >= 10.1.1d || v >= 10.0.4
 #   0.4- 05/05/10 LCA: Se han habilitado combos con idioma añadiendo al spd la propiedad "ivalues"
 #   0.3- 26/04/10 LCA: Estructura correcta del árbol, con filtros por dimensión(2D,3D) 
 #                y por Types (Structural, Solution y Analysis). Funciona link entre propiedades y materiales.
@@ -40,6 +48,9 @@ namespace eval ::KMProps:: {
 	variable WinPath ".gid.kmprops"
 	# Window layout ["OUTSIDE"|"LEFT"|"RIGHT"] 
 	variable WinLayout 
+	# Location: OUTSIDE | INSIDE_LEFT | INSIDE_RIGHT
+	variable Location         
+	variable PreferedInsideLocation INSIDE_LEFT
 	variable SystemHighlight
 	variable SystemHighlightText
 	variable TreePropsPath
@@ -84,6 +95,60 @@ proc ::KMProps::Init {} {
 	set ngroups 10000
 }
 
+proc ::KMProps::CreateWindow { w loc {whattab "Model"}} {
+    ::KMProps::OpenWindow $w $loc
+    
+    if {![winfo exists $w]} return 
+    
+    set wcap [ ::KMProps::InsertCaption $w [= "Project properties"]]
+    grid $wcap -sticky ew
+
+    #TAB PROPIEDADES y MATERIALES para separar los dos árboles
+    set nb "$w.nb"
+    # pack [ttk::notebook $nb] -expand 1 -fill both
+    grid [ttk::notebook $nb] -sticky ewns
+
+    grid columnconfigure $w 0 -weight 1
+    grid rowconfigure $w 1 -weight 1
+    
+    #
+    # PROPERTIES TREE 
+    #
+    set fProp ${nb}.fProp
+    $nb add [ttk::frame $fProp -padding {1 1 1 1}] -text "[= Model]"
+    
+    set ::KMProps::TreePropsPath [::KMProps::CreateTreeAndToolbar $fProp]
+    
+    #
+    # MATERIALS TREE
+    #
+    set fMat ${nb}.fMat
+    $nb add [ttk::frame $fMat -padding {1 1 1 1}] -text "[= Materials]"
+    
+    set ::KMat::TreeMatPath [::KMat::CreateTreeAndToolbar $fMat]
+    
+    ::KMat::initVisibilityClass
+    ::KMat::FillTreeMat
+    
+    ::KMProps::initVisibilityClass
+    ::KMProps::FillTreeProps
+    
+    # Select active tab
+    switch -exact -- $whattab {
+	"Model" {
+	    $nb select "$nb.fProp"
+	}
+	"Materials" {
+	    $nb select "$nb.fMat"
+	}
+    }
+    
+    # Binding
+    # bind $w <Alt-c> "destroy $w"
+    bind $w <Alt-c> "::KMProps::CloseWindow $w"
+    #bind $w <Escape> "destroy $w"
+}
+
 proc ::KMProps::InitBaseWindow {{whattab "Model"} {what "OUTSIDE"} } {
 	
 	#PRUEBAS - Fución para hacer pruebas. Si devuelve True se no carga la ventana
@@ -97,56 +162,8 @@ proc ::KMProps::InitBaseWindow {{whattab "Model"} {what "OUTSIDE"} } {
 	
 	set w "$::KMProps::WinPath"
 
-	if {$what == "OUTSIDE"} {
-		
-		# Open the window outside
-		::KMProps::OpenWindowOutside $w
-		
-		if {![winfo exists $w]} return 
-		
-		#TAB PROPIEDADES y MATERIALES para separar los dos árboles
-		set nb "$w.nb"
-		pack [ttk::notebook $nb] -expand 1 -fill both
-		
-		#
-		# PROPERTIES TREE 
-		#
-		set fProp ${nb}.fProp
-		$nb add [ttk::frame $fProp -padding {1 1 1 1}] -text "[= Model]"
-		
-		set ::KMProps::TreePropsPath [::KMProps::CreateTreeAndToolbar $fProp]
-		
-		#
-		# MATERIALS TREE
-		#
-		set fMat ${nb}.fMat
-		$nb add [ttk::frame $fMat -padding {1 1 1 1}] -text "[= Materials]"
-		
-		set ::KMat::TreeMatPath [::KMat::CreateTreeAndToolbar $fMat]
-		
-		::KMat::initVisibilityClass
-		::KMat::FillTreeMat
-		
-		::KMProps::initVisibilityClass
-		::KMProps::FillTreeProps
-		
-		# Select active tab
-		switch -exact -- $whattab {
-		    "Model" {
-		        $nb select "$nb.fProp"
-		    }
-		    "Materials" {
-		        $nb select "$nb.fMat"
-		    }
-		}
-	
-		# Binding
-		bind $w <Alt-c> "destroy $w"
-		#bind $w <Escape> "destroy $w"
-		
-	} else {
-		
-	}
+	# Open the window
+	::KMProps::CreateWindow $w $what $whattab
 }
 
 proc ::KMProps::CreateTreeAndToolbar { w } {
@@ -2796,24 +2813,108 @@ proc ::KMProps::WriteGeomToVar { w what geomname {InitComm ""}} {
 	#  msg $GidPriv($geomname)
 }
 
-proc ::KMProps::OpenWindowOutside { w } {
+proc ::KMProps::CloseWindow { w} {
+    variable Location
 	
-	if { [winfo exists $w] } {
-		::KMProps::CloseWindowOutside $w
-	}
+    ::KMProps::refreshTree "" 1
 
-	# Init the window
-	set title [= "Project properties"]
-	InitWindow $w $title KMPropsWindowGeom ::KMProps::InitBaseWindow
+    if { ( "$Location" == "OUTSIDE") || ( [ info procs ::CloseInsideMainWindow] == "")} {
+	::KMProps::CloseWindowOutside $w
+    } else {
+	::CloseInsideMainWindow $w
+    }
+}
+
+proc ::KMProps::OpenWindowOutside { w } {
+    variable Location
 	
-	wm protocol $w WM_DELETE_WINDOW "[list ::KMProps::refreshTree "" 1];destroy $w"
+    if { [ winfo exists $w] } {
+	# ::KMProps::CloseWindowOutside $w
+	::KMProps::CloseWindow $w
+    }
+
+    set Location OUTSIDE
+    
+    # Init the window
+    set title [= "Project properties"]
+    InitWindow $w $title KMPropsWindowGeom ::KMProps::InitBaseWindow
+    
+    # wm protocol $w WM_DELETE_WINDOW "[list ::KMProps::refreshTree "" 1];destroy $w"
+    wm protocol $w WM_DELETE_WINDOW "::KMProps::CloseWindow $w"
+
+    return $w
+}
+
+proc ::KMProps::OpenWindowInside { w } {
+    variable Location
+    variable PreferedInsideLocation
+
+    if { [ info procs ::OpenInsideMainWindow] != ""} {
+	if { [ winfo exists $w] } {
+	    ::KMProps::CloseWindow $w
+	}
 	
-	return $w
+	set Location $PreferedInsideLocation
+	
+	::OpenInsideMainWindow $w ::KMProps::CreateWindow $Location
+    } else {
+	::KMProps::OpenWindowOutside $w
+    }
+    
+    return $w
+}
+
+proc ::KMProps::OpenWindow { w loc } {
+    if { "$loc" == "OUTSIDE"} {
+	::KMProps::OpenWindowOutside $w
+    } else {
+	::KMProps::OpenWindowInside $w
+    }
+}
+
+proc ::KMProps::ChangeInsideOutside { w} {
+    variable Location
+
+    ::KMProps::CloseWindow $w
+    if { "$Location" == "OUTSIDE"} {
+	set Location INSIDE
+    } else {
+	set Location OUTSIDE
+    }
+    
+    if { "$Location" == "OUTSIDE"} {
+	::KMProps::CreateWindow $w $Location
+    } else {
+	::KMProps::CreateWindow $w $Location
+    }
+}
+
+proc ::KMProps::InsertCaption { w title} {
+    variable Location
+    
+    ttk::frame $w.caption -relief solid -borderwidth 1
+    label $w.caption.title -foreground grey60
+    setTooltip $w.caption [_ "Double-click toggle window or inline visualization"]
+    if { [ winfo class $w] != "Toplevel" } {
+	$w.caption.title configure -text $title
+	button $w.caption.close -image [ GetImage close17.gif] -command \
+	    "::KMProps::CloseWindow $w" -bd 0
+	$w.caption.title configure -text [_ "Double click here to tear off the window"]
+    } else {
+	$w.caption.title configure -text [_ "Double click here to integrate the window"]
+    }
+
+    if { "$Location" == "OUTSIDE"} {
+	grid $w.caption.title -sticky ew
+    } else {
+	grid $w.caption.title $w.caption.close -sticky ew
+	grid configure $w.caption.close  -sticky w
+    }
+    bind $w.caption.title <Double-Button-1> "::KMProps::ChangeInsideOutside $w"
+    return $w.caption
 }
 
 proc ::KMProps::CloseWindowOutside { w } {
-	
-	::KMProps::refreshTree "" 1
 	
 	destroy $w
 }
