@@ -15,7 +15,7 @@
 #  VERSION : 0.1
 #
 #  HISTORY:
-#   0.5- 12/08/10 Miguel Pasenau: se puede integrar la ventana dentro de la ventana 
+#   0.5- 13/08/10 Miguel Pasenau: se puede integrar la ventana dentro de la ventana 
 #                 principal de GiD;
 #                 mediante una barrita (caption) debajo del titulo de la ventana se puede
 #                 seleccionar si se quiere integrar la ventana o no;
