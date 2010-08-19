@@ -882,10 +882,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	
 	//************************************************************************************
 	//************************************************************************************
+        void ShellIsotropic::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, 
+                                           std::vector<Matrix>& rValues, 
+                                           const ProcessInfo& rCurrentProcessInfo)
+        {
+	  CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+	}
+
+
+
+	//************************************************************************************
+	//************************************************************************************
 	void ShellIsotropic::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
+KRATOS_WATCH(rVariable)
 
 		if(Output.size() != 1)
 			Output.resize(1);
