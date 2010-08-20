@@ -70,10 +70,11 @@ namespace Python
 	//////////////////////////////////////////////////////////////////////////////////////////
 	
 	//tetgen pfem refine
-	void TetRegenerateMeshContact(TetGenPfemContact& Mesher, char* ElementName, ModelPart& model_part )
+	void TetRegenerateMeshContact(TetGenPfemContact& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part )
 	{
 		Mesher.ReGenerateMesh(model_part, 
-			KratosComponents<Element>::Get(ElementName)
+			KratosComponents<Element>::Get(ElementName),
+			KratosComponents<Condition>::Get(ConditionName)
 				); 
 	}
 
