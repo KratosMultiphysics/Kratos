@@ -304,6 +304,67 @@ namespace Kratos
       //    KRATOS_WATCH(vc2);
 
 	}
+    //*************************************************************************************
+    //*************************************************************************************
+
+    void ASGSCOMPPRDC3D::CalculateTau(double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+                //calculate mean advective velocity and taus
+
+//         const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+//         const array_1d<double, 3 > & adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+//         const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+//         const array_1d<double, 3 > & adv_vel3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+        array_1d<double, 3 > ms_adv_vel = ZeroVector(3); //dimesion coincides with space dimension
+
+//         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]) + N[3]*(adv_vel3[0] - mesh_vel3[0]);
+//         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]) + N[3]*(adv_vel3[1] - mesh_vel3[1]);
+//         ms_adv_vel[2] = N[0]*(adv_vel0[2] - mesh_vel0[2]) + N[1]*(adv_vel1[2] - mesh_vel1[2]) + N[2]*(adv_vel2[2] - mesh_vel2[2]) + N[3]*(adv_vel3[2] - mesh_vel3[2]);
+
+        ms_adv_vel[0] = 0.0;
+        ms_adv_vel[1] = 0.0;
+        ms_adv_vel[2] = 0.0;
+
+        double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1]+ ms_adv_vel[2] * ms_adv_vel[2];
+        advvel_norm = sqrt(advvel_norm);
+
+        double ele_length = pow(12*volume,0.333333333333333333333);  
+        ele_length = 2.0/3.0 * ele_length * sqrt(3.00);
+
+        double mu;
+        //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        //mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
+
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+
+
+        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+	double length2 = ele_length * ele_length;
+
+        tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
+// std::cout << Id() <<" advvel_norm: " << advvel_norm << " " << "ele_length: " << ele_length << std::endl;
+// std::cout << "mu density time " << mu << ""<< density << ""<< time << std::endl;
+
+        tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
+
+
+// std::cout << "TAUs "<< tauone << " " << tautwo << std::endl;
+
+        KRATOS_CATCH("")
+
+
+    }
 	//*************************************************************************************
 	//*************************************************************************************
 
