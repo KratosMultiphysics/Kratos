@@ -176,6 +176,7 @@ namespace Kratos
 
 	virtual void CalculateSoundVelocity(Geometry< Node<3> > geom, double& vc);
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
+	virtual void CalculateTau(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
       ///@} 
       ///@name Protected Operators
       ///@{ 
