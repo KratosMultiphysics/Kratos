@@ -154,6 +154,7 @@ class MonolithicSolver:
         self.Remesh()
         print "145"
         (self.solver).Solve()
+        (self.PfemUtils).MoveLonelyNodes(self.model_part)
         print "a47"
 	(self.solver).Clear()
 	print "149"
