@@ -725,6 +725,14 @@ namespace Kratos {
                 noalias(RHS_Contribution) -= prod(M, VelocityBossakAuxiliaries::macc);
             }
 
+            //adding damping contribution
+            //damping contribution
+
+            if (D.size1() != 0) {
+                rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
+                noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
+            }
+
 
         }
 
@@ -742,6 +750,14 @@ namespace Kratos {
                 noalias(VelocityBossakAuxiliaries::macc) += mAlphaBossak * VelocityBossakAuxiliaries::maccold;
 
                 noalias(RHS_Contribution) -= prod(M, VelocityBossakAuxiliaries::macc);
+            }
+
+            //adding damping contribution
+            //damping contribution
+
+            if (D.size1() != 0) {
+                rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
+                noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
             }
 
 
