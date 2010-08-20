@@ -41,7 +41,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NORMAL);
 
 
-    print "variables for the dynamic structural solution added correctly"
+    print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
         
 def AddDofs(model_part):
     for node in model_part.Nodes:
