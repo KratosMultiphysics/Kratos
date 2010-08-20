@@ -179,8 +179,10 @@ namespace Kratos
       ///@{ 
        virtual void CalculateCompressibleStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,array_1d<double,4> N,const double thatwo,const double volume);
         virtual void CalculateMassContribution(MatrixType& K,const double time,const double volume); 	
+	virtual void CalculateLCSMassContribution(VectorType& rhs,const double time,const double volume);
 	virtual void CalculateSoundVelocity(Geometry< Node<3> > geom, double& vc);
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
+	virtual void CalculateTau(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
       ///@} 
       ///@name Protected Operators
       ///@{ 
