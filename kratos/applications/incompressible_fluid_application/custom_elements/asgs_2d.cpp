@@ -260,7 +260,7 @@ namespace Kratos {
         CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, delta_t, tauone, Area);
         //KRATOS_WATCH(rRightHandSideVector);
 
-	CalculateResidual(rDampMatrix, rRightHandSideVector);
+	//CalculateResidual(rDampMatrix, rRightHandSideVector);
 
         KRATOS_CATCH("")
     }
@@ -1287,7 +1287,7 @@ namespace Kratos {
         double ele_length = 2.0 * sqrt(area / 3.00);
 
         double mu;
-        ///*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
         //const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
         //const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
         //mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
