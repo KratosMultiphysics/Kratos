@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/lagrangian_euler_solver.h"
-
+#include "custom_utilities/exact_dt_estimate_utilities.h"
 namespace Kratos
 {
 	
@@ -119,7 +119,6 @@ namespace Python
 		.def("AssignNearBoundaryH",&PfemUtils::AssignNearBoundaryH)
 		.def("MoveNodes",&PfemUtils::MoveNodes)
 		.def("AssignMeshVelocity",&PfemUtils::AssignMeshVelocity)
-                .def("ExactDtEstimate",&PfemUtils::ExactDtEstimate)
                 .def("CFLdeltaT",&PfemUtils::CFLdeltaT)
 						     
 		 ;
@@ -167,10 +166,16 @@ namespace Python
                .def("ClearLaplacianSystem",&LagrangianEulerSolver< 2, SparseSpaceType, LinearSolverType >::ClearLaplacianSystem)
         ;
 
+
+	  class_<ExactDtEstimateUtilities>("ExactDtEstimateUtilities", init<>())
+		.def("CubicExactDt",&ExactDtEstimateUtilities::CubicExactDt)
+		;
+
 	  class_<DragUtils>("DragUtils", init<>())
 		.def("CalculateFluidDrag",&DragUtils::CalculateFluidDrag)
 		.def("AddDrag",&DragUtils::AddDrag)
 		;
+
 
 
   }
