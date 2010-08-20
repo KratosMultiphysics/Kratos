@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_processes/act_on_walls_nodal_process.h" 
 #include "custom_processes/find_nodal_h_process.h" 
+#include "custom_processes/find_nodal_h_respecting_distance_process.h"
 #include "custom_processes/coordinate_laplacian_smoother_process.h" 
 #include "custom_processes/move_mesh_process.h" 
 // #include "custom_processes/node_erase_process.h" 
@@ -105,6 +106,10 @@ namespace Python
          class_<UlfTimeStepDecProcess>("UlfTimeStepDecProcess", init<ModelPart&>())
 		.def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
 		;
+
+	  class_<FindNodalHRespectingDistanceProcess, bases<Process> >("FindNodalHRespectingDistanceProcess",
+		 init<ModelPart&>())
+		 ;
   }
 	
 }  // namespace Python.
