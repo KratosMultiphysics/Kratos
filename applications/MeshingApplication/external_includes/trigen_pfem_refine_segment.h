@@ -155,20 +155,20 @@ namespace Kratos
 			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 			KRATOS_WATCH(step_data_size);
 			// bucket types
-			//typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
-			//typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
+			typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
+			typedef Bins< 3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > StaticBins;
 			// bucket types
-			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
+			//typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;//commented
 		
 					
 			//*************
 			// DynamicBins;	
-			typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
-			//typedef Tree< StaticBins > Bin; 			     //Binstree;
-			unsigned int bucket_size = 20;
+			//typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
+			typedef Tree< StaticBins > kd_tree; 			     //Binstree;
+			unsigned int bucket_size = 64;
 
 			//performing the interpolation - all of the nodes in this list will be preserved
-			unsigned int max_results = 100;
+			unsigned int max_results = 500;
 			//PointerVector<PointType> res(max_results);
 			//NodeIterator res(max_results);
 			PointVector res(max_results);
@@ -765,9 +765,9 @@ namespace Kratos
 			typedef std::vector<double>::iterator     DistanceIterator;
 
 
-			typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
+			//typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;//commented
 
-			typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;
+			//typedef Tree< KDTreePartition<BucketType> > kd_tree; //Kdtree;//comented
 
 			//int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 
@@ -832,7 +832,7 @@ namespace Kratos
 				
 			//WHAT ARE THOSE????
 // 			Node<3> work_point(0,0.0,0.0,0.0);
- 			unsigned int MaximumNumberOfResults = 500;
+ 			unsigned int MaximumNumberOfResults = list_of_new_nodes.size();
 			PointVector Results(MaximumNumberOfResults);
 			DistanceVector ResultsDistances(MaximumNumberOfResults);
 
@@ -1298,7 +1298,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		{
 			double area = CalculateVol(x0,y0,x1,y1,x2,y2);
 			double inv_area = 0.0;
-			if(area < 0.000000000001)
+			if(area < 0.0000000000000001)
 			  {
 				KRATOS_ERROR(std::logic_error,"element with zero area found","");
 			  }
@@ -1372,19 +1372,33 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			pnode->GetValue(ERASE_FLAG)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
 			pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
+
+			pnode->FastGetSolutionStepValue(IS_BOUNDARY,1)=0.0;
+			pnode->FastGetSolutionStepValue(IS_STRUCTURE,1)=0.0;
+			pnode->GetValue(ERASE_FLAG)=0.0;
+			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE,1)=0.0;
+			pnode->FastGetSolutionStepValue(IS_FLUID,1)=1.0;
 			//pnode->FastGetSolutionStepValue(IS_VISITED)=0.0;
 
 			//pnode->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
 			pnode->FastGetSolutionStepValue(IS_INTERFACE) = aux_interface;
+			pnode->FastGetSolutionStepValue(IS_INTERFACE,1) = aux_interface;
 
 			double same_colour = 0.0;
 			for(int ii= 0; ii<= 2; ++ii)
 				if(geom[ii].FastGetSolutionStepValue(IS_WATER) == 0.0)
 							same_colour++;
 			if(same_colour == 3.0)
+			      {
 				pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;
+				pnode->FastGetSolutionStepValue(IS_WATER,1) = 0.0;
+
+			      }
 			else
+			      {
 				pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
+				pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;
+			      }
 
 			/*if(region_flag == 14.0)
 				{
@@ -1404,9 +1418,11 @@ pnode->FastGetSolutionStepValue(IS_WATER)!=-1.0)
 				{pnode->FastGetSolutionStepValue(IS_WATER) = 1.0;}*/
 
 			if(aux_interface) 
+				      {
 					pnode->FastGetSolutionStepValue(IS_WATER) = 0.0;   
-				
+					pnode->FastGetSolutionStepValue(IS_WATER,1) = 0.0;   
 
+				      }
 //KRATOS_WATCH(pnode->FastGetSolutionStepValue(IS_INTERFACE));
 
 
