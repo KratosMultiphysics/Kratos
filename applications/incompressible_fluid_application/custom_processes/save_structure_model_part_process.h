@@ -101,7 +101,7 @@ namespace Kratos
 			KRATOS_TRY
 				
 			//number of structure nodes
-			KRATOS_WATCH("SAVING STRUCTURE**********")
+// 			KRATOS_WATCH("SAVING STRUCTURE**********")
 		    for(ModelPart::ElementsContainerType::iterator im = fluid_model_part.ElementsBegin() ; 
 					im != fluid_model_part.ElementsEnd() ; ++im)
 			{		
@@ -137,8 +137,8 @@ namespace Kratos
 				}*/
 				
 			}
-KRATOS_WATCH("LLLLLLLLLLLLLLLLLLLLLL  NuMBER OF STRUCTURE ))))))))))))))))))))))))");
-KRATOS_WATCH((structure_model_part.Elements()).size());
+// KRATOS_WATCH("LLLLLLLLLLLLLLLLLLLLLL  NuMBER OF STRUCTURE ))))))))))))))))))))))))");
+// KRATOS_WATCH((structure_model_part.Elements()).size());
 		KRATOS_CATCH("")
 		}
 
