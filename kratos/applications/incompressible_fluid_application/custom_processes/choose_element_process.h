@@ -180,15 +180,15 @@ namespace Kratos
 
 				
 			}
-			KRATOS_WATCH(ElemPart.size());
-			KRATOS_WATCH((mr_model_part.Elements()).size());
-			KRATOS_WATCH(water_num);
-			KRATOS_WATCH(air_num);
+// 			KRATOS_WATCH(ElemPart.size());
+// 			KRATOS_WATCH((mr_model_part.Elements()).size());
+// 			KRATOS_WATCH(water_num);
+// 			KRATOS_WATCH(air_num);
 
 			mr_model_part.Elements() = ElemPart;
 
-			KRATOS_WATCH(mr_model_part.Elements().size());
-			KRATOS_WATCH("++++++++++++++++++++END OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
+// 			KRATOS_WATCH(mr_model_part.Elements().size());
+// 			KRATOS_WATCH("++++++++++++++++++++END OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 		 }
 
 		private:
