@@ -1124,164 +1124,168 @@ KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 		{
 		KRATOS_TRY;
 			
-		  if (domain_size==2)
-		  {
+		if (domain_size==2)
+			{
 			
 			for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
 					i!=ThisModelPart.ElementsEnd(); i++)
-			{	
-			      double n_str=0;
-			      
-			      //counting number on nodes at the wall
-			      Geometry< Node<3> >& geom = i->GetGeometry();
-			      n_str = geom[0].FastGetSolutionStepValue(IS_BOUNDARY);
-			      n_str+= geom[1].FastGetSolutionStepValue(IS_BOUNDARY);
-			      n_str+= geom[2].FastGetSolutionStepValue(IS_BOUNDARY);
-			      //if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
-			      if (n_str==2.0)
-			      {
-				  boost::numeric::ublas::bounded_matrix<double,3,2> sort_coord = ZeroMatrix(3,2);
-				  int cnt=1;
-				  for (int i=0; i<3;++i)
-				      if(geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
-					  {	
-					  sort_coord(0,0) = geom[i].X();
-					  sort_coord(0,1) = geom[i].Y();
-					  }
-				      else 
-					  {
-					  sort_coord(cnt,0) = geom[i].X();
-					  sort_coord(cnt,1) = geom[i].Y();
-					  cnt++;
-					  }
-
-				    array_1d<double,2> vec1 = ZeroVector(2);
-				    array_1d<double,2> vec2 = ZeroVector(2);
-
-				    vec1[0] = sort_coord(0,0) - sort_coord(1,0);  		
-				    vec1[1] = sort_coord(0,1) - sort_coord(1,1); 
-				  
-				    vec2[0] = sort_coord(2,0) - sort_coord(1,0);  		
-				    vec2[1] = sort_coord(2,1) - sort_coord(1,1); 
-
-				    double outer_prod = 0.0;
-				    outer_prod = vec2[1]*vec1[0]-vec1[1]*vec2[0];
-
-				    double length_measure =0.0;
-				    length_measure = vec2[0]*vec2[0] + vec2[1]*vec2[1];
-				    length_measure = sqrt(length_measure);
-				    outer_prod/=length_measure;
-
-					  //KRATOS_WATCH(fabs(outer_prod));
-				  //	RATOS_WATCH(factor*length_measure);
-
-				    if (fabs(outer_prod)<factor*length_measure)
-				    {
-					    for (int i=0;i<3;i++)
-					    {
-						      //if thats not the wall node, remove it
-						    if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
-						    {
-							      geom[i].GetValue(ERASE_FLAG)=true;
-							      KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
-						    }
-					    }
-				    }
-			      }
-
-			}
-		  }
-		  else
-		  {
-			for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
-				i!=ThisModelPart.ElementsEnd(); i++)
-			{	
-				double n_str=0;
-				
-				//counting number on nodes at the wall
-				Geometry< Node<3> >& geom = i->GetGeometry();
-				n_str = geom[0].FastGetSolutionStepValue(IS_STRUCTURE);
-				n_str+= geom[1].FastGetSolutionStepValue(IS_STRUCTURE);
-				n_str+= geom[2].FastGetSolutionStepValue(IS_STRUCTURE);
-				n_str+= geom[3].FastGetSolutionStepValue(IS_STRUCTURE);
-				//if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
-				if (n_str==3.0)
-				{
-					  boost::numeric::ublas::bounded_matrix<double,4,3> sort_coord = ZeroMatrix(4,3);
-					  int cnt=1;
-					for (int i=0; i<4;++i)
-					    if(geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
-						{	
-						sort_coord(0,0) = geom[i].X();
-						sort_coord(0,1) = geom[i].Y();
-						sort_coord(0,2) = geom[i].Z();
-						}
-					    else 
-						{
-						sort_coord(cnt,0) = geom[i].X();
-						sort_coord(cnt,1) = geom[i].Y();
-						sort_coord(cnt,2) = geom[i].Z();
-						cnt++;
-						}
-
-					  array_1d<double,3> vec1 = ZeroVector(3);
-					  array_1d<double,3> vec2 = ZeroVector(3);
-					  array_1d<double,3> vec3 = ZeroVector(3);
-
+				{	
+					double n_str=0;
 					
-					  vec1[0] = sort_coord(0,0) - sort_coord(1,0);  		
-					  vec1[1] = sort_coord(0,1) - sort_coord(1,1); 
-					  vec1[2] = sort_coord(0,2) - sort_coord(1,2); 
-					
-					  vec2[0] = sort_coord(2,0) - sort_coord(1,0);  		
-					  vec2[1] = sort_coord(2,1) - sort_coord(1,1); 
-					  vec2[2] = sort_coord(2,2) - sort_coord(1,2); 
-											
-					  vec3[0] = sort_coord(3,0) - sort_coord(1,0);  		
-					  vec3[1] = sort_coord(3,1) - sort_coord(1,1); 
-					  vec3[2] = sort_coord(3,2) - sort_coord(1,2); 
-
-					  //Control the hight of the thetraedral element
-					  //Volume of the tethraedra
-					  double vol = (vec2[0]*vec3[1]*vec1[2]-vec2[0]*vec3[2]*vec1[1]+
-							vec2[1]*vec3[2]*vec1[0]-vec2[1]*vec3[0]*vec1[2]+
-							vec2[2]*vec3[0]*vec1[1]-vec2[2]*vec3[1]*vec1[0])*0.1666666666667;
-					  //Area of the basis
-					  array_1d<double,3> outer_prod = ZeroVector(3);
-					  outer_prod[0] = vec2[1]*vec3[2]-vec2[2]*vec3[1];
-					  outer_prod[1] = vec2[2]*vec3[0]-vec2[0]*vec3[2];
-					  outer_prod[2] = vec2[0]*vec3[1]-vec2[1]*vec3[0];
-					  double area_base = norm_2(outer_prod);
-					  area_base *= 0.5;
-					  //height
-					  if(area_base >0.00001)
-					    vol/= area_base;
-					  else
-					    KRATOS_WATCH("Something strange: area of a wall triangular element --> zero");
-					  
-					  double length_measure1 = norm_2(vec2);						   
-					  double length_measure = norm_2(vec3);
-					  if(length_measure1 < length_measure)
-					  {
-					    length_measure = length_measure1;
-					  }
-
-					if (fabs(vol)<factor*length_measure)
-					{
-						for (int i=0;i<4;i++)
+					//counting number on nodes at the wall
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					n_str = geom[0].FastGetSolutionStepValue(IS_BOUNDARY);
+					n_str+= geom[1].FastGetSolutionStepValue(IS_BOUNDARY);
+					n_str+= geom[2].FastGetSolutionStepValue(IS_BOUNDARY);
+					//if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
+					if (n_str==2.0)
 						{
-							//if thats not the wall node, remove it
-							if (geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+						 boost::numeric::ublas::bounded_matrix<double,3,2> sort_coord = ZeroMatrix(3,2);
+						 int cnt=1;
+						for (int i=0; i<3;++i)
+						    if(geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
+						       {	
+							sort_coord(0,0) = geom[i].X();
+							sort_coord(0,1) = geom[i].Y();
+						       }
+						    else 
 							{
-								geom[i].GetValue(ERASE_FLAG)=true;
-								KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
+							sort_coord(cnt,0) = geom[i].X();
+							sort_coord(cnt,1) = geom[i].Y();
+							cnt++;
+							}
+
+						 array_1d<double,2> vec1 = ZeroVector(2);
+						 array_1d<double,2> vec2 = ZeroVector(2);
+
+						 vec1[0] = sort_coord(0,0) - sort_coord(1,0);  		
+						 vec1[1] = sort_coord(0,1) - sort_coord(1,1); 
+						
+						 vec2[0] = sort_coord(2,0) - sort_coord(1,0);  		
+						 vec2[1] = sort_coord(2,1) - sort_coord(1,1); 
+	
+						 double outer_prod = 0.0;
+						 outer_prod = vec2[1]*vec1[0]-vec1[1]*vec2[0];
+
+						 double length_measure =0.0;
+						 length_measure = vec2[0]*vec2[0] + vec2[1]*vec2[1];
+						 length_measure = sqrt(length_measure);
+						 outer_prod/=length_measure;
+	 
+						//KRATOS_WATCH(fabs(outer_prod));
+					//	RATOS_WATCH(factor*length_measure);
+
+						if (fabs(outer_prod)<factor*length_measure)
+							{
+								for (int i=0;i<3;i++)
+									{
+									//if thats not the wall node, remove it
+									if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
+										{
+										geom[i].GetValue(ERASE_FLAG)=true;
+										//KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
+										}
+									}
 							}
 						}
-					}
+
 				}
 			}
-		  }
-		  KRATOS_CATCH("")
+		else if(domain_size==3)
+  			{
+			  for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{
+				  
+					int n_bdr=0;
+					//counting number on nodes at the Interface
+					Geometry< Node<3> >& geom = i->GetGeometry();
+
+				    if(geom.size() == 4){	  
+					for(int ii = 0; ii <= domain_size ; ++ii)
+						n_bdr+= int(geom[ii].FastGetSolutionStepValue(IS_BOUNDARY));
+
+				//if three interfaces are at the interface, we check if the third node is close to it or not by passing the alpha-shape
+					if (n_bdr == domain_size)
+					  {
+						 boost::numeric::ublas::bounded_matrix<double,4,3> sort_coord = ZeroMatrix(4,3);
+						 int cnt=1;
+						 int non_interface_id = -1;
+						for (int j=0; j<=domain_size;++j)
+						  {
+						    if(geom[j].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
+						       {	
+							sort_coord(0,0) = geom[j].X();
+							sort_coord(0,1) = geom[j].Y();
+							sort_coord(0,2) = geom[j].Z();
+							non_interface_id = j;
+						       }
+						    else 
+							{
+							sort_coord(cnt,0) = geom[j].X();
+							sort_coord(cnt,1) = geom[j].Y();
+							sort_coord(cnt,2) = geom[j].Z();
+							cnt++;
+							}	
+						  }
+						 array_1d<double,3> outplane = ZeroVector(3);
+						 array_1d<double,3> inplane1 = ZeroVector(3);
+						 array_1d<double,3> inplane2 = ZeroVector(3);
+
+						 outplane[0] = sort_coord(0,0) - sort_coord(1,0);  		
+						 outplane[1] = sort_coord(0,1) - sort_coord(1,1); 
+						 outplane[2] = sort_coord(0,2) - sort_coord(1,2); 
+						
+						 inplane1[0] = sort_coord(2,0) - sort_coord(1,0);  		
+						 inplane1[1] = sort_coord(2,1) - sort_coord(1,1); 
+						 inplane1[2] = sort_coord(2,2) - sort_coord(1,2); 
+
+						 inplane2[0] = sort_coord(3,0) - sort_coord(1,0);  		
+						 inplane2[1] = sort_coord(3,1) - sort_coord(1,1); 
+						 inplane2[2] = sort_coord(3,2) - sort_coord(1,2); 
+				
+						//calculate normal to the surface
+					          array_1d<double,3> outerprod = ZeroVector(3);
+                                                 //boost::numeric::ublas::bounded_matrix<double, 1, 3 > outerprod = ZeroMatrix(1, 3);
+                                                  outerprod[0] = inplane1[1]*inplane2[2] - inplane1[2]*inplane2[1];
+                                                  outerprod[1] = inplane1[2]*inplane2[0] - inplane1[0]*inplane2[2];
+                                                  outerprod[2] = inplane1[0]*inplane2[1] - inplane1[1]*inplane2[0];
+                                                  
+						  //outerprod = outer_prod(inplane1,inplane2);
+				
+
+						 double len = inner_prod(outerprod,outerprod);
+                                                 len /= sqrt(len);
+           				        // double len = outerprod(0,0)*outerprod(0,0) + outerprod(1,0)*outerprod(1,0) + outerprod(2,0)*outerprod(2,0);
+						 outerprod *= 1.0/len;
+
+						//calc distance to surface
+						double dist_to_surf = 0.0;
+						dist_to_surf = inner_prod(outerprod, outplane);
+                                               // dist_to_surf = outerprod(0,0)*outplane(0)+ outerprod(1,0)*outplane(1)+outerprod(2,0)*outplane(2);
+				//KRATOS_WATCH("INSIDE TOCHING INTERFACE");
+			//	KRATOS_WATCH(ThisModelPart.GetProperties(0));
+						//get H
+						//double hnode2 = (ThisModelPart.GetProperties(0))[THICKNESS];
+						double hnode2 = geom[non_interface_id].FastGetSolutionStepValue(NODAL_H);
+                                                hnode2*=hnode2;
+								
+						//mark node to delete
+						if (fabs(dist_to_surf)<factor*hnode2 )
+							{
+KRATOS_WATCH(fabs(dist_to_surf));
+KRATOS_WATCH(factor*hnode2 );
+							   geom[non_interface_id].GetValue(ERASE_FLAG)=true;
+							   //KRATOS_WATCH("NODE TOUCHING THE SURFACE - WILL BE ERASED!!!!")
+							   //KRATOS_WATCH(dist_to_surf)
+							}
+			
+					  }//interface elemenets
+				}//non_shell
+			    }//all elements loop
+			}//domain_size==3				
+			
+			KRATOS_CATCH("")
 		}
 
 		//**********************************************************************************************
@@ -1354,8 +1358,8 @@ KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 					if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0 &&geom[i].FastGetSolutionStepValue(IS_INTERFACE)==0.0)
 										{
 										geom[i].GetValue(ERASE_FLAG)=true;
-										KRATOS_WATCH("NODE TOUCHING THE INTERFACE - WILL BE ERASED!!!!")
-										KRATOS_WATCH(outer_prod)
+										//KRATOS_WATCH("NODE TOUCHING THE INTERFACE - WILL BE ERASED!!!!")
+										//KRATOS_WATCH(outer_prod)
 										}
 									}
 							}
@@ -1377,11 +1381,13 @@ KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 			{
 			  for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
 					i!=ThisModelPart.ElementsEnd(); i++)
-				{	
+				{
+				  
 					int n_intr=0;
-					
 					//counting number on nodes at the Interface
 					Geometry< Node<3> >& geom = i->GetGeometry();
+
+				    if(geom.size() == 4){	  
 					for(int ii = 0; ii <= domain_size ; ++ii)
 						n_intr+= int(geom[ii].FastGetSolutionStepValue(IS_INTERFACE));
 
@@ -1437,27 +1443,32 @@ KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 						 double len = inner_prod(outerprod,outerprod);
                                                  len /= sqrt(len);
            				        // double len = outerprod(0,0)*outerprod(0,0) + outerprod(1,0)*outerprod(1,0) + outerprod(2,0)*outerprod(2,0);
-						 outerprod /= len;
+						 outerprod /=len;
 
 						//calc distance to surface
 						double dist_to_surf = 0.0;
 						dist_to_surf = inner_prod(outerprod, outplane);
                                                // dist_to_surf = outerprod(0,0)*outplane(0)+ outerprod(1,0)*outplane(1)+outerprod(2,0)*outplane(2);
-
+				//KRATOS_WATCH("INSIDE TOCHING INTERFACE");
+			//	KRATOS_WATCH(ThisModelPart.GetProperties(0));
 						//get H
+						//double hnode2 = (ThisModelPart.GetProperties(0))[THICKNESS];
+//KRATOS_WATCH("indside pfem utilities");
+//KRATOS_WATCH(hnode2);
 						double hnode2 = geom[non_interface_id].FastGetSolutionStepValue(NODAL_H);
-                                                hnode2*=hnode2;
+                                                //hnode2*=hnode2;
 								
 						//mark node to delete
 						if (fabs(dist_to_surf)<factor*hnode2 )
 							{
 							   geom[non_interface_id].GetValue(ERASE_FLAG)=true;
-							   KRATOS_WATCH("NODE TOUCHING THE SURFACE - WILL BE ERASED!!!!")
-							   KRATOS_WATCH(dist_to_surf)
+							   //KRATOS_WATCH("NODE TOUCHING THE SURFACE - WILL BE ERASED!!!!")
+							   //KRATOS_WATCH(dist_to_surf)
 							}
 			
 					  }//interface elemenets
-				}//all elements loop	
+				}//non_shell
+			    }//all elements loop
 			}//domain_size==3
 			KRATOS_CATCH("")
 		}
@@ -1866,6 +1877,9 @@ KRATOS_WATCH("INSSSSSSSSSIDE COLOUR");
 
 			KRATOS_CATCH("");
 		}
+
+
+
 
 	private:
 
