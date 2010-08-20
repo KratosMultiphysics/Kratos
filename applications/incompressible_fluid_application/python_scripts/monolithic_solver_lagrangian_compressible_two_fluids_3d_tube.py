@@ -49,6 +49,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(AUX_INDEX);  
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);  
+    model_part.AddNodalSolutionStepVariable(NORMAL);  
 
 
     print "variables for monolithic solver lagrangian compressible 3D solution added correctly"
@@ -192,6 +193,7 @@ class MonolithicSolver:
         self.Remesh()
         #(FindElementalNeighboursProcess(self.structure_model_part, 2, 20)).ClearNeighbours()          
         #(FindElementalNeighboursProcess(self.structure_model_part, 2, 20)).Execute()
+
         print "145"
         (self.solver).Solve()
         print "a47"
