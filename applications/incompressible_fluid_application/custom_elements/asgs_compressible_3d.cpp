@@ -123,7 +123,7 @@ namespace Kratos
 
 
 	noalias(rDampMatrix) = ZeroMatrix(matsize,matsize); 
-	
+
 	double delta_t= rCurrentProcessInfo[DELTA_TIME];
 	
 	
@@ -133,34 +133,64 @@ namespace Kratos
         array_1d<double,4> N = ZeroVector(4);
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Volume);
 	
+	if(Volume <= 0.0)
+	{
+	   // std::cout << "element " << Id() << " has negative volume!!! " << Volume << std::endl;
+	    noalias(rRightHandSideVector) = ZeroVector(matsize);
+	}
+	else
+	{
+	      //viscous term	
+	      CalculateViscousTerm(rDampMatrix, DN_DX, Volume);
+	      
+	      //Advective term
+	      double tauone;
+	      double tautwo;
+	      CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
-	//viscous term	
-	CalculateViscousTerm(rDampMatrix, DN_DX, Volume);
-	
-	//Advective term
-	double tauone;
-	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
-
-	CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Volume);
+ 	      CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Volume);
 
 
-	//calculate pressure term
-	CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Volume);
+	      //calculate pressure term
+	      CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Volume);
 
-	//compute projections
-	
-	//stabilization terms
-	//KRATOS_WATCH("ñññññññññ calculate stabilizing terms ñññññññññ");
-	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
-                       
-	CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Volume);
-          
+	      //compute projections
+	      
+	      //stabilization terms
+	      //KRATOS_WATCH("ñññññññññ calculate stabilizing terms ñññññññññ");
+	      CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
+			    
+	      CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Volume);
+		
 
-	CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Volume);
-          
-	//KRATOS_WATCH(rRightHandSideVector);
+	      CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Volume);
 
+
+	      //new stabilization added
+	      //CalculateLCSMassContribution(rRightHandSideVector, delta_t,Volume);
+		
+	      //KRATOS_WATCH(rRightHandSideVector);
+
+// double air_auxL = 0.0;
+// double air_auxR = 0.0;
+// for(unsigned int i=0; i<16; i++)
+// {
+//     air_auxR += rRightHandSideVector[i];
+//     //if(CalculateStiffnessMatrixFlag==true)	
+//       for(unsigned int j=0; j<16; j++)
+// 	  air_auxL += rDampMatrix(i,j);
+// }
+
+// std::cout << Id() << " " << air_auxR << " " << air_auxL << std::endl;
+// 					    double aaa = norm_2(row(DN_DX,0));
+// 					    double bbb = norm_2(row(DN_DX,1));
+// 					    double ccc = norm_2(row(DN_DX,2));
+// 					    double ddd = norm_2(row(DN_DX,3));
+// std::cout << "GRAD DN_DX "<< aaa << " " << bbb << " " << ccc << " " << ddd << std::endl;
+// std::cout << "TAUs "<< tauone << " " << tautwo << std::endl;
+// std::cout << "Volume: "<< Volume <<  std::endl;
+// std::cout << "Volume: "<<  std::endl;
+	  }
 
 		KRATOS_CATCH("")
 	}
@@ -208,7 +238,7 @@ namespace Kratos
 		if(rMassMatrix.size1() != MatSize)
 			rMassMatrix.resize(MatSize,MatSize,false);
 
-		rMassMatrix = ZeroMatrix(MatSize,MatSize);
+		noalias(rMassMatrix) = ZeroMatrix(MatSize,MatSize);
 	double delta_t= rCurrentProcessInfo[DELTA_TIME];
 		
 
@@ -218,18 +248,24 @@ namespace Kratos
         array_1d<double,4> N = ZeroVector(4);
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Volume);
 
-	//Calculate tau
-	double tauone;
-	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
+	//if(Volume <= 0.0)
+	 //   std::cout << "element " << Id() << " has negative volume!!! " << Volume << std::endl;
+	if(Volume > 0.0)
+	{
+	    //Calculate tau
+	    double tauone;
+	    double tautwo;
+	    CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
-	CalculateMassContribution(rMassMatrix,delta_t,Volume); 
-		//add stablilization terms due to advective term (a)grad(V) * ro*Acce
-	CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Volume);
-		//add stablilization terms due to grad term grad(q) * ro*Acce
-	CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Volume);
-		//add compressible stabilization terms
-	CalculateCompressibleStblTerms(rMassMatrix, DN_DX,N, tautwo,Volume);
+	    CalculateMassContribution(rMassMatrix,delta_t,Volume); 
+		    //add stablilization terms due to advective term (a)grad(V) * ro*Acce
+	    CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Volume);
+		    //add stablilization terms due to grad term grad(q) * ro*Acce
+	    CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Volume);
+		    //add compressible stabilization terms
+	    CalculateCompressibleStblTerms(rMassMatrix, DN_DX,N, tautwo,Volume);
+	}
+	
 	
 		KRATOS_CATCH("")
 	}
@@ -470,8 +506,125 @@ namespace Kratos
 	}
 	//************************************************************************************
 	//************************************************************************************
+	void ASGSCompressible3D::CalculateLCSMassContribution(VectorType& rhs,const double time,const double volume)
+	{
+		KRATOS_TRY
+	double lump_mass_fac = volume * 0.25;
+	double C_mass_fac = volume/20.0;
+	double density;
+	double mu;
+	calculatedensity(GetGeometry(), density, mu);
+
+	//update density and calculate sound velocity
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+
+	int nodes_number = 4;
+	int dof = 3;
+
+        boost::numeric::ublas::bounded_matrix<double,4,4> CLSMass = ZeroMatrix(4,4);
+	for ( int nd = 0; nd< nodes_number; nd++)
+	    {
 
 
+		CLSMass(nd , nd ) += lump_mass_fac/VC2;
+		CLSMass(nd , nd) += -C_mass_fac/VC2;
+// 		int row = nd*(dof + 1);
+		for( int jj=0; jj< nodes_number; jj++)
+			  CLSMass(nd , jj) += -C_mass_fac/VC2;			  
+// 
+// 		//add pressure mass
+// 			CLSMass(row + dof , row + dof ) += lump_mass_fac/VC2;
+	    }
+	
+	double alpha_fac = -0.1;
+	Vector time_drv;
+	GetSecondDerivativesVector(time_drv, 1);
+        array_1d<double,4> pr_acc = ZeroVector(4);
+	pr_acc(0) = alpha_fac*time_drv(3); 
+	pr_acc(1) = alpha_fac*time_drv(7); 
+	pr_acc(2) = alpha_fac*time_drv(11); 
+	pr_acc(3) = alpha_fac*time_drv(15); 
+
+        array_1d<double,4> rhs_ctr = ZeroVector(4);
+
+	noalias(rhs_ctr) = prod(CLSMass,pr_acc);
+
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1) + dof;
+            rhs[index] +=  rhs_ctr(ii);
+        }
+	
+	
+		KRATOS_CATCH("")
+	
+	}
+
+    //*************************************************************************************
+    //*************************************************************************************
+
+    void ASGSCompressible3D::CalculateTau(double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+                //calculate mean advective velocity and taus
+
+//         const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+//         const array_1d<double, 3 > & adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+//         const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+//         const array_1d<double, 3 > & adv_vel3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY, 0);
+//         const array_1d<double, 3 > & mesh_vel3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+        array_1d<double, 3 > ms_adv_vel = ZeroVector(3); //dimesion coincides with space dimension
+
+//         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]) + N[3]*(adv_vel3[0] - mesh_vel3[0]);
+//         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]) + N[3]*(adv_vel3[1] - mesh_vel3[1]);
+//         ms_adv_vel[2] = N[0]*(adv_vel0[2] - mesh_vel0[2]) + N[1]*(adv_vel1[2] - mesh_vel1[2]) + N[2]*(adv_vel2[2] - mesh_vel2[2]) + N[3]*(adv_vel3[2] - mesh_vel3[2]);
+
+        ms_adv_vel[0] = 0.0;
+        ms_adv_vel[1] = 0.0;
+        ms_adv_vel[2] = 0.0;
+
+
+        double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1]+ ms_adv_vel[2] * ms_adv_vel[2];
+        advvel_norm = sqrt(advvel_norm);
+
+        double ele_length = pow(12*volume,0.333333333333333333333);  
+        ele_length = 2.0/3.0 * ele_length * sqrt(3.00);
+
+        double mu;
+        //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        //const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        //mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
+
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+
+
+        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+	double length2 = ele_length * ele_length;
+
+        tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
+// std::cout << Id() <<" advvel_norm: " << advvel_norm << " " << "ele_length: " << ele_length << std::endl;
+// std::cout << "mu density time " << mu << ""<< density << ""<< time << std::endl;
+
+        tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
+
+
+
+        KRATOS_CATCH("")
+
+
+    }
+
+
+    //*************************************************************************************
+    //*************************************************************************************
 
 
 } // Namespace Kratos
