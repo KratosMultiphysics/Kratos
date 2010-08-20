@@ -75,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/pseudo_lag_part_process.h" 
 
 #include "custom_processes/save_element_by_size_process.h" 
+#include "custom_processes/save_element_by_flag_process.h" 
 
 #include "includes/node.h"
 
@@ -99,6 +100,7 @@ namespace Python
 		 ;
 	   class_<MergeInOneModelPartsProcess, bases<Process> >("MergeInOneModelPartsProcess", init<> ())
 		   .def("MergeParts", &MergeInOneModelPartsProcess::MergeParts)
+		   .def("ResetId", &MergeInOneModelPartsProcess::ResetId)
 		 ;
 	*/
 	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int,char*, char* >())
@@ -128,6 +130,8 @@ namespace Python
 		 ;
 
 	class_<SaveElementBySizeProcess, bases<Process> >("SaveElementBySizeProcess",init<ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&, unsigned int >())
+		 ;
+	class_<SaveElementByFlagProcess, bases<Process> >("SaveElementByFlagProcess",init<ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&,Kratos::Variable<int>& , int >())
 		 ;
 
 	
