@@ -170,6 +170,21 @@ namespace Kratos
 		KRATOS_CATCH("")
 		}
 
+		void ResetId(ModelPart& fluid_model_part)
+		{
+		  KRATOS_TRY
+		    unsigned int id = 1;
+				for(ModelPart::NodesContainerType::const_iterator in = fluid_model_part.NodesBegin();
+					in != fluid_model_part.NodesEnd(); in++)
+					{
+					    in->SetId(id);
+					      id++;
+    
+					}
+
+				fluid_model_part.Nodes().Sort();
+		  KRATOS_CATCH("")
+		}
 
 		///@}
 		///@name Access
