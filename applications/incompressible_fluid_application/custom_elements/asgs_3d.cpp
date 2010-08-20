@@ -115,10 +115,10 @@ namespace Kratos {
         unsigned int matsize = nodes_number * (dim + 1);
 
         if (rLeftHandSideMatrix.size1() != matsize)
-            rLeftHandSideMatrix.resize(matsize, matsize); //false says not to preserve existing storage!!
+            rLeftHandSideMatrix.resize(matsize, matsize,false); //false says not to preserve existing storage!!
 
         if (rRightHandSideVector.size() != matsize)
-            rRightHandSideVector.resize(matsize); //false says not to preserve existing storage!!
+            rRightHandSideVector.resize(matsize,false); //false says not to preserve existing storage!!
 
 
         noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
@@ -260,7 +260,7 @@ namespace Kratos {
         CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, delta_t, tauone, Volume);
         //KRATOS_WATCH(rRightHandSideVector);
 
-	CalculateResidual(rDampMatrix, rRightHandSideVector);
+	//CalculateResidual(rDampMatrix, rRightHandSideVector);
 
         KRATOS_CATCH("")
     }
@@ -615,9 +615,9 @@ namespace Kratos {
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1);
             int loc_index = ii*dof;
-            F[index] += 1.0 * volume * fbd_stblterm[loc_index];
-            F[index + 1] += 1.0 * volume * fbd_stblterm[loc_index + 1];
-            F[index + 2] += 1.0 * volume * fbd_stblterm[loc_index + 2];
+            F[index] +=  volume * fbd_stblterm[loc_index];
+            F[index + 1] +=  volume * fbd_stblterm[loc_index + 1];
+            F[index + 2] +=  volume * fbd_stblterm[loc_index + 2];
         }
         KRATOS_CATCH("")
     }
@@ -1288,10 +1288,13 @@ namespace Kratos {
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
 
+// std::cout << Id() <<" advvel_norm: " << advvel_norm << " " << "ele_length: " << ele_length << std::endl;
+// std::cout << "mu density time " << mu << ""<< density << ""<< time << std::endl;
+
 
         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
 
-
+// std::cout << "TAUs "<< tauone << " " << tautwo << std::endl;
 
         KRATOS_CATCH("")
 
