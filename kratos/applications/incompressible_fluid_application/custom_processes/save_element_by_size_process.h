@@ -90,7 +90,7 @@ namespace Kratos
 		
 	   virtual void Execute()
 		 {
-			KRATOS_WATCH("++++++++++++++++++++BEGIN OF SaveElementBySizeProcess PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
+// 			KRATOS_WATCH("++++++++++++++++++++BEGIN OF SaveElementBySizeProcess PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 			//ModelPart::ElementsContainerType ElemPart;
 			//KRATOS_WATCH(mr_model_part.Elements().size());
 			mr_fluid_elements.clear();
@@ -110,11 +110,11 @@ namespace Kratos
 
 				
 			}
-			KRATOS_WATCH("ALL ELEMENTS");
-			KRATOS_WATCH(mr_elements.size());
-
-			KRATOS_WATCH("Size Elements");
-			KRATOS_WATCH((mr_fluid_elements).size());
+// 			KRATOS_WATCH("ALL ELEMENTS");
+// 			KRATOS_WATCH(mr_elements.size());
+// 
+// 			KRATOS_WATCH("Size Elements");
+// 			KRATOS_WATCH((mr_fluid_elements).size());
 
 			KRATOS_WATCH("++++++++++++++++++++END OF SaveElementBySizeProcess PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 		 }
