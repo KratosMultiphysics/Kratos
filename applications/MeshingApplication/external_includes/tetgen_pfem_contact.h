@@ -272,11 +272,11 @@ KRATOS_WATCH("After adding elements");
 			{
 				in->FastGetSolutionStepValue(IS_BOUNDARY) = 0;
 			}
-
+*/
 
 			//***********************************************************************************
 			//***********************************************************************************
-			boost::timer adding_faces;
+/*			boost::timer adding_faces;
 KRATOS_WATCH(out_shell.numberoftrifaces);
 			(ThisModelPart.Conditions()).reserve(out_shell.numberoftrifaces   );
 
