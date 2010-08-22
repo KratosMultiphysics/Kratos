@@ -207,7 +207,7 @@ namespace Kratos
 			{	
 		          Geometry< Node<3> >& geom = i->GetGeometry();
 			  int str = 0;
-			    for(int ii=0; ii < geom.size(); ++ii)
+			    for(unsigned int ii=0; ii < geom.size(); ++ii)
 				if(geom[ii].FastGetSolutionStepValue(IS_STRUCTURE) == 1.0)
 				      str++;
 			      
