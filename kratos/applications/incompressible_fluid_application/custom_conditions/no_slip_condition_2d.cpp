@@ -190,7 +190,7 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			mod_vel = pow(mod_vel,0.5);
 			
 			//calcolo la K moltiplicativa:
-			double delta_t = rCurrentProcessInfo[DELTA_TIME];
+			//double delta_t = rCurrentProcessInfo[DELTA_TIME];
 			double v = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 			double K = 10.0*(mod_vel/area + v/(area*area));
 			
