@@ -74,82 +74,452 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h"
 #include "incompressible_fluid_application.h"
 
+// Some useful macros, will be renamed if not consistent
+#define KRATOS_OCL_LAPLACIANIJ_0_0(a)	a.s0
+#define KRATOS_OCL_LAPLACIANIJ_0_1(a)	a.s1
+#define KRATOS_OCL_LAPLACIANIJ_0_2(a)	a.s2
+#define KRATOS_OCL_LAPLACIANIJ_1_0(a)	a.s3
+#define KRATOS_OCL_LAPLACIANIJ_1_1(a)	a.s4
+#define KRATOS_OCL_LAPLACIANIJ_1_2(a)	a.s5
+#define KRATOS_OCL_LAPLACIANIJ_2_0(a)	a.s6
+#define KRATOS_OCL_LAPLACIANIJ_2_1(a)	a.s7
+#define KRATOS_OCL_LAPLACIANIJ_2_2(a)	a.s8
+
+#define KRATOS_OCL_MASS(a)				a.s9
+
+#define KRATOS_OCL_NI_DNJ_0(a)			a.sa
+#define KRATOS_OCL_NI_DNJ_1(a)			a.sb
+#define KRATOS_OCL_NI_DNJ_2(a)			a.sc
+
+#define KRATOS_OCL_DNI_NJ_0(a)			a.sd
+#define KRATOS_OCL_DNI_NJ_1(a)			a.se
+#define KRATOS_OCL_DNI_NJ_2(a)			a.sf
+
+#define KRATOS_OCL_COMP(a, n)			a.s[n]
+
+#define KRATOS_OCL_COMP_0(a)			a.x
+#define KRATOS_OCL_COMP_1(a)			a.y
+#define KRATOS_OCL_COMP_2(a)			a.z
 
 namespace Kratos
 {
 	
-        void FillOpenCLEdge(const EdgesStructureType& b, cl_double16& a)
+	void FillOpenCLEdge(cl_double16& a, const EdgesStructureType& b)
 	{
-	  cl_double16 a;
-	  a.s0 = b.LaplacianIJ(0,0);
-	  a.s1 = b.LaplacianIJ(0,1); 
-	  a.s2 = b.LaplacianIJ(0,2);
-	  a.s3 = b.LaplacianIJ(1,0);
-	  a.s4 = b.LaplacianIJ(1,1);
-	  a.s5 = b.LaplacianIJ(1,2);
-	  a.s6 = b.LaplacianIJ(2,0);
-	  a.s7 = b.LaplacianIJ(2,1);
-	  a.s8 = b.LaplacianIJ(2,2);
-	  a.s9 = b.Mass;
-	  a.sa = b.Ni_DNj[0];
-	  a.sb = b.Ni_DNj[1];
-	  a.sc = b.Ni_DNj[2];
-	  a.sd = b.DNi_Nj[0];
-	  a.se = b.DNi_Nj[1];
-	  a.sf = b.DNi_Nj[2];
+		KRATOS_OCL_LAPLACIANIJ_0_0(a) = b.LaplacianIJ(0, 0);
+		KRATOS_OCL_LAPLACIANIJ_0_1(a) = b.LaplacianIJ(0, 1);
+		KRATOS_OCL_LAPLACIANIJ_0_2(a) = b.LaplacianIJ(0, 2);
+		KRATOS_OCL_LAPLACIANIJ_1_0(a) = b.LaplacianIJ(1, 0);
+		KRATOS_OCL_LAPLACIANIJ_1_1(a) = b.LaplacianIJ(1, 1);
+		KRATOS_OCL_LAPLACIANIJ_1_2(a) = b.LaplacianIJ(1, 2);
+		KRATOS_OCL_LAPLACIANIJ_2_0(a) = b.LaplacianIJ(2, 0);
+		KRATOS_OCL_LAPLACIANIJ_2_1(a) = b.LaplacianIJ(2, 1);
+		KRATOS_OCL_LAPLACIANIJ_2_2(a) = b.LaplacianIJ(2, 2);
+
+		KRATOS_OCL_MASS(a) = b.Mass;
+
+		KRATOS_OCL_NI_DNJ_0(a) = b.Ni_DNj[0];
+		KRATOS_OCL_NI_DNJ_1(a) = b.Ni_DNj[1];
+		KRATOS_OCL_NI_DNJ_2(a) = b.Ni_DNj[2];
+
+		KRATOS_OCL_DNI_NJ_0(a) = b.DNi_Nj[0];
+		KRATOS_OCL_DNI_NJ_1(a) = b.DNi_Nj[1];
+		KRATOS_OCL_DNI_NJ_2(a) = b.DNi_Nj[2];
 	}
 
-         void Add_Gp(cl_double16* a, cl_double4* destination, const cl_double p_i, const cl_double p_j)
-	 {  
-	     //destination[comp] -= Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i;
-	     destination.x = destination.x - (a.sa*p_j - a.sd*p_i);
-	     destination.y = destination.y - (a.sb*p_j - a.se*p_i);
-	     destination.z = destination.z - (a.sc*p_j - a.sf*p_i);
-	 }			
+	void Add_Gp(cl_double16& a, cl_double4& destination, const cl_double& p_i, const cl_double& p_j)
+	{  
+	     // destination[comp] -= Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i
+	     KRATOS_OCL_COMP_0(destination) -= KRATOS_OCL_NI_DNJ_0(a) * p_j - KRATOS_OCL_DNI_NJ_0(a) * p_i;
+	     KRATOS_OCL_COMP_1(destination) -= KRATOS_OCL_NI_DNJ_1(a) * p_j - KRATOS_OCL_DNI_NJ_1(a) * p_i;
+	     KRATOS_OCL_COMP_2(destination) -= KRATOS_OCL_NI_DNJ_2(a) * p_j - KRATOS_OCL_DNI_NJ_2(a) * p_i;
+	}
 
-         void Sub_Gp(cl_double16* a, cl_double4* destination, const cl_double p_i, const cl_double p_j)
-	 {  
-	     //destination[comp] += Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i;
-	     destination.x = destination.x + (a.sa*p_j - a.sd*p_i);
-	     destination.y = destination.y + (a.sb*p_j - a.se*p_i);
-	     destination.z = destination.z + (a.sc*p_j - a.sf*p_i);
-	 }	
+	void Sub_Gp(cl_double16& a, cl_double4& destination, const cl_double& p_i, const cl_double& p_j)
+	{  
+	     // destination[comp] += Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i
+	     KRATOS_OCL_COMP_0(destination) += KRATOS_OCL_NI_DNJ_0(a) * p_j - KRATOS_OCL_DNI_NJ_0(a) * p_i;
+	     KRATOS_OCL_COMP_1(destination) += KRATOS_OCL_NI_DNJ_1(a) * p_j - KRATOS_OCL_DNI_NJ_1(a) * p_i;
+	     KRATOS_OCL_COMP_2(destination) += KRATOS_OCL_NI_DNJ_2(a) * p_j - KRATOS_OCL_DNI_NJ_2(a) * p_i;
+	}	
 	 
-	 void Add_D_v( cl_double* destination, const cl_double4* v_i, const cl_double4* v_j)
-	 {
-	    destination = destination + a.sa*(v_j.x-v_i.x) + a.sb*(v_j.y-v_i.y) + a.sc*(v_j.z-v_i.z)
-	 }
+	void Add_D_v(cl_double16& a, cl_double& destination, const cl_double4& v_i, const cl_double4& v_j)
+	{
+		// destination += Ni_DNj[comp] * (v_j[comp] - v_i[comp])
+		destination +=
+			KRATOS_OCL_NI_DNJ_0(a) * (KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_COMP_0(v_i)) +
+			KRATOS_OCL_NI_DNJ_1(a) * (KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_COMP_1(v_i)) +
+			KRATOS_OCL_NI_DNJ_2(a) * (KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_COMP_2(v_i));
+	}
 	 
-	 void Add_D_v( cl_double* destination, const cl_double4* v_i, const cl_double4* v_j)
-	 {
-	    destination = destination - a.sa*(v_j.x-v_i.x) + a.sb*(v_j.y-v_i.y) + a.sc*(v_j.z-v_i.z)
-	 }
+	void Sub_D_v(cl_double16& a, cl_double& destination, const cl_double4& v_i, const cl_double4& v_j)
+	{
+		// destination -= Ni_DNj[comp] * (v_j[comp] - v_i[comp])
+		destination -=
+			KRATOS_OCL_NI_DNJ_0(a) * (KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_COMP_0(v_i)) +
+			KRATOS_OCL_NI_DNJ_1(a) * (KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_COMP_1(v_i)) +
+			KRATOS_OCL_NI_DNJ_2(a) * (KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_COMP_2(v_i));
+	}
 			
-	 void Add_grad_p( cl_double4* destination, const cl_double p_i, const cl_double p_j)
-	 {  
-	    double dp = p_j-pi;
-	    destination.x = destination.x + a.sa*dp;
-	    destination.y = destination.y + a.sb*dp;
-	    destination.z = destination.z + a.sc*dp;
-         }
-	 
-	 void Sub_grad_p( cl_double4* destination, const cl_double p_i, const cl_double p_j)
-	 {  
-	    double dp = -(p_j-pi);
-	    destination.x = destination.x + a.sa*dp;
-	    destination.y = destination.y + a.sb*dp;
-	    destination.z = destination.z + a.sc*dp;
-         }
-	 
-	 void Add_D_v( cl_double* destination, const cl_double4* v_i, const cl_double4* v_j)
-	 {
-	    destination = destination - a.sa*v_j.x - a.sb*v_j.y - a.sc*v_j.z + a.sd*v_i.x + a.se*v_i.y + a.sf*v_i.z;
-	 }
+	void Add_grad_p(cl_double16& a, cl_double4& destination, const cl_double& p_i, const cl_double& p_j)
+	{
+		// destination[comp] += Ni_DNj[comp] * (p_j - p_i)
+		cl_double dp = p_j-pi;
 
-	 void Sub_D_v( cl_double* destination, const cl_double4* v_i, const cl_double4* v_j)
-	 {
-	    destination = destination + a.sa*v_j.x + a.sb*v_j.y + a.sc*v_j.z - a.sd*v_i.x - a.se*v_i.y - a.sf*v_i.z;
-	 }		
+		KRATOS_OCL_COMP_0(destination) += KRATOS_OCL_NI_DNJ_0(a) * dp;
+		KRATOS_OCL_COMP_1(destination) += KRATOS_OCL_NI_DNJ_1(a) * dp;
+		KRATOS_OCL_COMP_2(destination) += KRATOS_OCL_NI_DNJ_2(a) * dp;
+	}
+	 
+	void Sub_grad_p(cl_double16& a, cl_double4& destination, const cl_double& p_i, const cl_double& p_j)
+	{
+		// destination[comp] -= Ni_DNj[comp] * (p_j - p_i)
+		cl_double dp = p_j-pi;
+
+		KRATOS_OCL_COMP_0(destination) -= KRATOS_OCL_NI_DNJ_0(a) * dp;
+		KRATOS_OCL_COMP_1(destination) -= KRATOS_OCL_NI_DNJ_1(a) * dp;
+		KRATOS_OCL_COMP_2(destination) -= KRATOS_OCL_NI_DNJ_2(a) * dp;
+	}
+
+	void Add_div_v(cl_double16& a, cl_double& destination, const cl_double4& v_i, const cl_double4& v_j)
+	{
+		// destination -= Ni_DNj[comp]*v_j[comp] - DNi_Nj[comp]*v_i[comp]
+		destination -=
+			KRATOS_OCL_NI_DNJ_0(a) * KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_DNI_NJ_0(a) * KRATOS_OCL_COMP_0(v_i) +
+			KRATOS_OCL_NI_DNJ_1(a) * KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_DNI_NJ_1(a) * KRATOS_OCL_COMP_1(v_i) +
+			KRATOS_OCL_NI_DNJ_2(a) * KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_DNI_NJ_2(a) * KRATOS_OCL_COMP_2(v_i);
+	}
+	 
+	void Sub_div_v(cl_double16& a, cl_double& destination, const cl_double4& v_i, const cl_double4& v_j)
+	{
+		// destination += Ni_DNj[comp]*v_j[comp] - DNi_Nj[comp]*v_i[comp]
+		destination +=
+			KRATOS_OCL_NI_DNJ_0(a) * KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_DNI_NJ_0(a) * KRATOS_OCL_COMP_0(v_i) +
+			KRATOS_OCL_NI_DNJ_1(a) * KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_DNI_NJ_1(a) * KRATOS_OCL_COMP_1(v_i) +
+			KRATOS_OCL_NI_DNJ_2(a) * KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_DNI_NJ_2(a) * KRATOS_OCL_COMP_2(v_i);
+	}
+
+	void CalculateScalarLaplacian(cl_double16& a, cl_double& l_ij)
+	{
+		// l_ij += LaplacianIJ(comp, comp)
+		l_ij = KRATOS_OCL_LAPLACIAN_IJ_0_0(a) + KRATOS_OCL_LAPLACIAN_IJ_1_1(a) + KRATOS_OCL_LAPLACIAN_IJ_2_2(a);
+	}
+
+	void Add_ConvectiveContribution(cl_double16& a, cl_double4& destination,
+		const cl_double4& a_i, const cl_double4& U_i,
+		const cl_double4& a_j, const cl_double4& U_j)
+	{
+
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+
+		// temp += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double temp =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// destination[l_comp] += temp * (U_j[l_comp] - U_i[l_comp])
+		KRATOS_OCL_COMP_0(destination) += temp * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
+		KRATOS_OCL_COMP_1(destination) += temp * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
+		KRATOS_OCL_COMP_2(destination) += temp * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
+
+#else
+
+		// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// destination[l_comp] += aux_j * U_j[l_comp] - aux_i * U_i[l_comp]
+		KRATOS_OCL_COMP_0(destination) += aux_j * KRATOS_OCL_COMP_0(U_j) - aux_i * KRATOS_OCL_COMP_0(U_i);
+		KRATOS_OCL_COMP_1(destination) += aux_j * KRATOS_OCL_COMP_1(U_j) - aux_i * KRATOS_OCL_COMP_1(U_i);
+		KRATOS_OCL_COMP_2(destination) += aux_j * KRATOS_OCL_COMP_2(U_j) - aux_i * KRATOS_OCL_COMP_2(U_i);
+
+#endif
+
+	}
+
+	void Sub_ConvectiveContribution(cl_double16& a, cl_double4& destination,
+		const cl_double4& a_i, const cl_double4& U_i,
+		const cl_double4& a_j, const cl_double4& U_j)
+	{
+
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+
+		// temp += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double temp =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// destination[l_comp] -= temp * (U_j[l_comp] - U_i[l_comp])
+		KRATOS_OCL_COMP_0(destination) -= temp * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
+		KRATOS_OCL_COMP_1(destination) -= temp * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
+		KRATOS_OCL_COMP_2(destination) -= temp * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
+
+#else
+
+		// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// destination[l_comp] -= aux_j * U_j[l_comp] - aux_i * U_i[l_comp]
+		KRATOS_OCL_COMP_0(destination) -= aux_j * KRATOS_OCL_COMP_0(U_j) - aux_i * KRATOS_OCL_COMP_0(U_i);
+		KRATOS_OCL_COMP_1(destination) -= aux_j * KRATOS_OCL_COMP_1(U_j) - aux_i * KRATOS_OCL_COMP_1(U_i);
+		KRATOS_OCL_COMP_2(destination) -= aux_j * KRATOS_OCL_COMP_2(U_j) - aux_i * KRATOS_OCL_COMP_2(U_i);
+
+#endif
+
+	}
+
+	void Add_ConvectiveContribution(cl_double16& a, cl_double& destination,
+		const cl_double4& a_i, const cl_double4& phi_i,
+		const cl_double4& a_j, const cl_double4& phi_j)
+	{
+
+#ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
+
+		// temp += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double temp =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		destination += temp * (phi_j - phi_i);
+		
+#else
+
+		// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
+
+		destination += aux_j * phi_j - aux_i * phi_i;
+
+#endif
+
+	void Sub_ConvectiveContribution(cl_double16& a, cl_double& destination,
+		const cl_double4& a_i, const cl_double4& phi_i,
+		cconst l_double4& a_j, const cl_double4& phi_j)
+	{
+
+#ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
+
+		// temp += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double temp =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		destination -= temp * (phi_j - phi_i);
+		
+#else
+
+		// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
+
+		destination -= aux_j * phi_j - aux_i * phi_i;
+
+#endif
+
+	void CalculateConvectionStabilization_LOW(cl_double16& a, cl_double& stab_low,
+		const cl_double4& a_i, const cl_double4& U_i,
+		const cl_double4& a_j, const cl_double4& U_j)
+	{
+		// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
+		cl_double conv_stab =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_0_0(a) +
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_0_1(a) +
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_0_2(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_1_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_1_1(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_1_2(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_2_0(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_2_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_2_2(a);
+
+		// stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp])
+		KRATOS_OCL_COMP_0(stab_low) = conv_stab * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_j));
+		KRATOS_OCL_COMP_1(stab_low) = conv_stab * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_j));
+		KRATOS_OCL_COMP_2(stab_low) = conv_stab * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_j));
+	}
+
+	void CalculateConvectionStabilization_LOW(cl_double16& a, cl_double4& stab_low,
+		const cl_double4& a_i, const cl_double& phi_i,
+		const cl_double4& a_j, const cl_double& phi_j)
+	{
+		// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
+		cl_double conv_stab =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_0_0(a) +
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_0_1(a) +
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_0_2(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_1_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_1_1(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_1_2(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_2_0(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_2_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_2_2(a);
+
+		stab_low = conv_stab * (phi_j - phi_i);
+	}		
+
+	void CalculateConvectionStabilization_HIGH(cl_double16& a, cl_double4& stab_high,
+		const cl_double4& a_i, const cl_double4 pi_i,
+		const cl_double4& a_j, const cl_double4 pi_j)
+	{
+
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+
+		// temp += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double temp =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// stab_high[l_comp] = -temp * (pi_j[l_comp] - pi_i[l_comp])
+		KRATOS_OCL_COMP_0(stab_high) = -temp * (KRATOS_OCL_COMP_0(pi_j) - KRATOS_OCL_COMP_0(pi_i)); // check if the minus sign is correct
+		KRATOS_OCL_COMP_1(stab_high) = -temp * (KRATOS_OCL_COMP_1(pi_j) - KRATOS_OCL_COMP_1(pi_i)); // check if the minus sign is correct
+		KRATOS_OCL_COMP_2(stab_high) = -temp * (KRATOS_OCL_COMP_2(pi_j) - KRATOS_OCL_COMP_2(pi_i)); // check if the minus sign is correct
+
+#else
+
+		// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// stab_high[l_comp] =  -(aux_j * pi_j[l_comp] - aux_i * pi_i[l_comp])
+		KRATOS_OCL_COMP_0(stab_high) = -(aux_j * KRATOS_OCL_COMP_0(pi_j) - aux_i * KRATOS_OCL_COMP_0(pi_i));
+		KRATOS_OCL_COMP_1(stab_high) = -(aux_j * KRATOS_OCL_COMP_1(pi_j) - aux_i * KRATOS_OCL_COMP_1(pi_i));
+		KRATOS_OCL_COMP_2(stab_high) = -(aux_j * KRATOS_OCL_COMP_2(pi_j) - aux_i * KRATOS_OCL_COMP_2(pi_i));
+
+#endif
+
+	}
+
+	void CalculateConvectionStabilization_HIGH(cl_double16& a, cl_double& stab_high,
+		const cl_double4& a_i, const cl_double& pi_i,
+		const cl_double4& a_j, const cl_double& pi_j)
+	{
+
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+
+		// temp += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double temp =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		stab_high  = -temp * (pi_j - pi_i); // check if the minus sign is correct
+
+#else
+
+		// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
+
+		// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
+		cl_double aux_i =
+			KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) + 
+			KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) + 
+			KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
+
+		stab_high = -(aux_j * pi_j- aux_i * pi_i);
+
+#endif
+
+	}
+
+	void Add_StabContribution(cl_double16& a, cl_double4& destination,
+		const cl_double tau, const cl_double beta,
+		const cl_double4& stab_low, const cl_double4& stab_high)
+	{
+		// destination[l_comp] += tau * (stab_low[l_comp] - beta * stab_high[l_comp])
+		KRATOS_OCL_COMP_0(destination) += tau * (KRATOS_OCL_COMP_0(stab_low) - beta * KRATOS_OCL_COMP_0(stab_high));
+		KRATOS_OCL_COMP_1(destination) += tau * (KRATOS_OCL_COMP_1(stab_low) - beta * KRATOS_OCL_COMP_1(stab_high));
+		KRATOS_OCL_COMP_2(destination) += tau * (KRATOS_OCL_COMP_2(stab_low) - beta * KRATOS_OCL_COMP_2(stab_high));		
+	}
+
+	void Sub_StabContribution(cl_double16& a, cl_double4& destination,
+		const cl_double tau, const cl_double beta,
+		const cl_double4& stab_low, const cl_double4& stab_high)
+	{
+		// destination[l_comp] -= tau * (stab_low[l_comp] - beta * stab_high[l_comp])
+		KRATOS_OCL_COMP_0(destination) -= tau * (KRATOS_OCL_COMP_0(stab_low) - beta * KRATOS_OCL_COMP_0(stab_high));
+		KRATOS_OCL_COMP_1(destination) -= tau * (KRATOS_OCL_COMP_1(stab_low) - beta * KRATOS_OCL_COMP_1(stab_high));
+		KRATOS_OCL_COMP_2(destination) -= tau * (KRATOS_OCL_COMP_2(stab_low) - beta * KRATOS_OCL_COMP_2(stab_high));		
+	}
+
+	void Add_StabContribution(cl_double16& a, cl_double& destination,
+		const cl_double tau, const cl_double beta,
+		const cl_double& stab_low, const cl_double& stab_high)
+	{
+		destination += tau * (stab_low - beta * stab_high);
+	}
+
+	void Sub_StabContribution(cl_double16& a, cl_double& destination,
+		const cl_double tau, const cl_double beta,
+		const cl_double& stab_low, const cl_double& stab_high)
+	{
+		destination -= tau * (stab_low - beta * stab_high);
+	}
+
+	void Add_ViscousContribution(cl_double16& a, cl_double4& destination,
+		const cl_double4& U_i, const cl_double4& nu_i,
+		const cl_double4& U_j, const cl_double4& nu_j)
+	{
+		// L += LaplacianIJ(l_comp, l_comp)
+		cl_double L = KRATOS_OCL_LAPLACIAN_IJ_0_0(a) + KRATOS_OCL_LAPLACIAN_IJ_1_1(a) + KRATOS_OCL_LAPLACIAN_IJ_2_2(a);
+
+		cl_double nu_avg = 0.5 * (nu_i + nu_j);
+
+		// destination[l_comp] += nu_i * L * (U_j[l_comp] - U_i[l_comp])
+		KRATOS_OCL_COMP_0(destination) += nu_i * L * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
+		KRATOS_OCL_COMP_1(destination) += nu_i * L * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
+		KRATOS_OCL_COMP_2(destination) += nu_i * L * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
+	}
+	
+////////////////// Up to here!
 			
 	//class definition of matrices using CSR format
 	class OpenCLMatrixContainer
