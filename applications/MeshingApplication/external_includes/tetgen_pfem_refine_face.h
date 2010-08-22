@@ -1628,8 +1628,8 @@ KRATOS_WATCH("AFTER fill node_input");
 
                         }
 KRATOS_WATCH("Bofere mesh generation");
-			in_shell.save_nodes("shell_mesh_in");
-			in_shell.save_poly("shell_mesh_in");
+			//in_shell.save_nodes("shell_mesh_in");
+			//in_shell.save_poly("shell_mesh_in");
 			//char tetgen_options[] = "VMYYJ";pA
 			char tetgen_options[] = "CCVpYYJ";
 
@@ -1637,9 +1637,9 @@ KRATOS_WATCH("Bofere mesh generation");
 
 			tetrahedralize(tetgen_options, &in_shell, &out_shell); //with option to remove slivers
 
-		        out_shell.save_nodes("shell_mesh_out");
-		        out_shell.save_elements("shell_mesh_out");
-		        out_shell.save_faces("shell_mesh_out");
+		        //out_shell.save_nodes("shell_mesh_out");
+		        //out_shell.save_elements("shell_mesh_out");
+		        //out_shell.save_faces("shell_mesh_out");
 
 			in_shell.deinitialize();
                        // out.deinitialize();
