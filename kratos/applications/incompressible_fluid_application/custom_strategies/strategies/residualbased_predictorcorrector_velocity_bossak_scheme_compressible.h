@@ -238,14 +238,14 @@ namespace Kratos
 				i != r_model_part.NodesEnd() ; ++i)
 			{
 			
-			if(i->FastGetSolutionStepValue(AIR_PRESSURE) < 160.0)
+			/*if(i->FastGetSolutionStepValue(AIR_PRESSURE) < 160.0)
 			      {
 				i->FastGetSolutionStepValue(AIR_PRESSURE) = 160.0;//considering min ro = .01
 			      }
 			if(i->FastGetSolutionStepValue(WATER_PRESSURE) < 600000.0)//this is considering that min density of water is 997 (996.69 is w pressure zero)
 			      {
 				i->FastGetSolutionStepValue(WATER_PRESSURE) = 600000.0;//considering min ro = .01
-			      }
+			      }*/
 	
 				noalias(DeltaVel) = (i)->FastGetSolutionStepValue(VELOCITY)  - (i)->FastGetSolutionStepValue(VELOCITY,1);
 			DeltaWaterPressure = (i)->FastGetSolutionStepValue(WATER_PRESSURE)  - (i)->FastGetSolutionStepValue(WATER_PRESSURE,1);
@@ -497,22 +497,16 @@ namespace Kratos
 			 double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
 			double alpha = 1.0;
 
-// 			if(old_pr < 160.0)
-// 			      {
-// 				ind->FastGetSolutionStepValue(AIR_PRESSURE,1) = 160.0;
-// 				  old_pr = 160.0;
-// 				  KRATOS_WATCH("///////////////////////////// OLD PRESSURE RESET////////////////////////");
-// 				  std::cout<< ind->Id()<<std::endl;
-// 			      }
 
-			if(pr < 160.0)
+
+			/*if(pr < 160.0)
 			      {
 				KRATOS_WATCH(pr);
 				ind->FastGetSolutionStepValue(AIR_PRESSURE) = 160.0;//considering min ro = .01
 				  pr = 160.0;
 				  KRATOS_WATCH("///////////////////////////// a reset air pressure////////////////////////");
 				  std::cout<< ind->Id()<<std::endl;
-			      }
+			      }*/
 			if(old_pr == 0.0 ) 	
 				alpha = 0.0;
 			else
@@ -527,22 +521,16 @@ namespace Kratos
 			 double pr_w = ind->FastGetSolutionStepValue(WATER_PRESSURE);	
 			 double old_pr_w = ind->FastGetSolutionStepValue(WATER_PRESSURE,1); 
 
-// 			if(old_pr_w < 650000.0)
-// 			      {
-// 				ind->FastGetSolutionStepValue(WATER_PRESSURE,1) = 650000.0;
-// 				  old_pr_w = 650000.0;
-// 				  KRATOS_WATCH("///////////////////////////// old WATER pressure reset////////////////////////");
-// 				  std::cout<< ind->Id()<<std::endl;
-// 			      }
 
-			if(pr_w < 600000.0)
+
+			/*if(pr_w < 600000.0)
 			      {
 				KRATOS_WATCH(pr_w);
 				ind->FastGetSolutionStepValue(WATER_PRESSURE) = 600000.0;//this is considering that min density of water is 997 (996.69 is w pressure zero
 				  pr_w = 600000.0;
 				  KRATOS_WATCH("///////////////////////////// old WATER pressure reset////////////////////////");
 				  std::cout<< ind->Id()<<std::endl;
-			      }
+			      }*/
 
 
 
