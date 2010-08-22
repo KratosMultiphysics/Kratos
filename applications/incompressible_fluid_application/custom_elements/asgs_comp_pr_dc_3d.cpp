@@ -352,7 +352,7 @@ namespace Kratos
 	CalculateSoundVelocity(GetGeometry(), VC2);
 	double length2 = ele_length * ele_length;
 
-        tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
+        tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (length2 * density) + 2.0 * advvel_norm / ele_length);
 // std::cout << Id() <<" advvel_norm: " << advvel_norm << " " << "ele_length: " << ele_length << std::endl;
 // std::cout << "mu density time " << mu << ""<< density << ""<< time << std::endl;
 
