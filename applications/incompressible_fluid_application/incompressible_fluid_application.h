@@ -29,7 +29,7 @@
 
 #include "custom_conditions/fluid3d_neumann.h"
 #include "custom_conditions/monolithic2d_neumann.h"
-#include "custom_conditions/monolithic3d_neumann.h"
+//#include "custom_conditions/monolithic3d_neumann.h"
 
 #include "custom_conditions/no_slip_condition_2d.h"
 
@@ -293,7 +293,7 @@ namespace Kratos
  		const ASGSCOMPPRDC3D mASGSCOMPPRDC3D;
 
  		const Monolithic2DNeumann  mMonolithic2DNeumann; 
- 		const Monolithic3DNeumann  mMonolithic3DNeumann; 
+ 		//const Monolithic3DNeumann  mMonolithic3DNeumann; 
 
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
