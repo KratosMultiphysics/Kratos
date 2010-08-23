@@ -360,7 +360,80 @@ namespace Kratos
 		KRATOS_CATCH("");
 	}
 
+	//*************************************************************************************
+	//*************************************************************************************
+	void ASGSPRDC::calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity)
+	{
 
+	/*double kk = 0.0;
+	for(int ii=0;ii<3;++ii)
+		if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
+			{
+				kk++;
+				density +=geom[ii].FastGetSolutionStepValue(DENSITY);
+			}
+
+	density/=kk;*/
+	/*
+		density = ZeroVector(3);
+	for(int ii=0;ii<3;++ii)
+		density[ii] = geom[ii].FastGetSolutionStepValue(DENSITY);*/
+	
+	const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY_AIR);
+	const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY_AIR);
+	const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY_AIR);
+	 density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+
+	const double visc0 = geom[0].FastGetSolutionStepValue(VISCOSITY_AIR);
+	const double visc1 = geom[1].FastGetSolutionStepValue(VISCOSITY_AIR);
+	const double visc2 = geom[2].FastGetSolutionStepValue(VISCOSITY_AIR);
+	 viscosity = 0.3333333333333333333333*(visc0 + visc1 + visc2 );
+
+/*
+	double first = geom[0].FastGetSolutionStepValue(IS_WATER);
+	double second = geom[1].FastGetSolutionStepValue(IS_WATER);
+	double third = geom[2].FastGetSolutionStepValue(IS_WATER);
+
+	density = 0.0;
+
+	if(first == second && second==third)
+	  {
+		//for inside the domain totally inside one fluid
+		density = geom[0].FastGetSolutionStepValue(DENSITY);	
+		viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);	
+	  }
+	else
+	  {
+		//for element having common node between two fluids or boundary element with IS_WATER==1 inside the domain
+		for(int ii=0;ii<3;++ii)
+			{
+			  if(geom[ii].GetSolutionStepValue(IS_WATER) == 1.0 && geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
+				{
+			  	 density = geom[ii].FastGetSolutionStepValue(DENSITY_WATER);
+				 viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY_WATER);
+
+				}
+			}
+		//for boundary element with IS_WATER==1 on the boundary
+		if(density == 0.0)
+			for(int ii=0;ii<3;++ii)	
+			 {
+			  if(geom[ii].GetSolutionStepValue(IS_WATER) == 0.0)
+				{
+				 density = geom[ii].FastGetSolutionStepValue(DENSITY_AIR);
+				 viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY_AIR);
+
+			
+				}
+			 }	
+			
+	  }
+*/
+
+	//Here we calculate Dynamic viscosity from Kinemeatic viscosity
+	viscosity *= density;
+
+	}
 	//*************************************************************************************
 	//*************************************************************************************
 
