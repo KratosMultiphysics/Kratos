@@ -21,6 +21,7 @@
 #include "geometries/line_2d_2.h"
 #include "incompressible_fluid_application.h"
 #include "includes/variables.h"
+#include "geometries/point_3d.h"
 
 
 namespace Kratos
@@ -64,6 +65,8 @@ namespace Kratos
 
 
 		mASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+        mASGSPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+
 
 		mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -72,6 +75,7 @@ namespace Kratos
 		mASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
 		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+		mMonolithic3DNeumann(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
 
 		mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mFluid3DGLS_expl(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -86,6 +90,9 @@ namespace Kratos
 		mNoNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
 		mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
+
+		//mABC2D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
+
 
 
 
@@ -136,6 +143,7 @@ namespace Kratos
 		
 		KRATOS_REGISTER_CONDITION("Fluid3DNeumann", mFluid3DNeumann);
 		KRATOS_REGISTER_CONDITION("Monolithic2DNeumann", mMonolithic2DNeumann);
+		KRATOS_REGISTER_CONDITION("Monolithic3DNeumann", mMonolithic3DNeumann);
 		
 		KRATOS_REGISTER_ELEMENT("NDFluid2D", mNDFluid2D);
 		KRATOS_REGISTER_ELEMENT("NDFluid3D", mNDFluid3D);
@@ -145,7 +153,7 @@ namespace Kratos
 
 		KRATOS_REGISTER_ELEMENT("ASGS2D", mASGS2D);
 		KRATOS_REGISTER_ELEMENT("ASGS3D", mASGS3D);	
-		//KRATOS_REGISTER_ELEMENT("ASGSPRDC", mASGSPRDC);	
+		KRATOS_REGISTER_ELEMENT("ASGSPRDC2D", mASGSPRDC2D);	
  		KRATOS_REGISTER_ELEMENT("ASGSCompressible2D", mASGSCompressible2D);
  		KRATOS_REGISTER_ELEMENT("ASGSCompressible3D", mASGSCompressible3D);
  		KRATOS_REGISTER_ELEMENT("ASGSCOMPPRDC2D", mASGSCOMPPRDC2D);
@@ -164,11 +172,14 @@ namespace Kratos
 		KRATOS_REGISTER_CONDITION("ProjDirichletCond", mProjDirichletCond);
 		KRATOS_REGISTER_CONDITION("NoSlipCondition2D", mNoSlipCondition2D);
 
+		//KRATOS_REGISTER_CONDITION("ABC2D", mABC2D);
+
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DSplit", mFluid2DSplit);
 		
 		KRATOS_REGISTER_ELEMENT("NoNewtonianASGS2D", mNoNewtonianASGS2D);		
 		KRATOS_REGISTER_ELEMENT("NoNewtonianASGS3D", mNoNewtonianASGS3D);		
+
 
 		std::cout << "Initializing KratosIncompressibleFluidApplication...elements succesfully registered " << std::endl;
 	
