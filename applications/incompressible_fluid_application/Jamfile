@@ -59,13 +59,15 @@ python-extension KratosIncompressibleFluidApplication
 	asgs_2d.cpp 
 	asgs_3d.cpp 
 
-	#asgs_pr_dc.cpp
+	asgs_pr_dc_2d.cpp
 	asgs_compressible_2d.cpp
 	asgs_compressible_3d.cpp
 	monolithic2d_neumann.cpp
+	monolithic3d_neumann.cpp
 	asgs_comp_pr_dc_2d.cpp
 	asgs_comp_pr_dc_3d.cpp
 	no_slip_condition_2d.cpp
+	abc_2d.cpp
 
 	fluid_2d_split.cpp
 	nonewtonian_asgs_2d.cpp
