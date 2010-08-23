@@ -29,6 +29,8 @@
 
 #include "custom_conditions/fluid3d_neumann.h"
 #include "custom_conditions/monolithic2d_neumann.h"
+#include "custom_conditions/monolithic3d_neumann.h"
+
 #include "custom_conditions/no_slip_condition_2d.h"
 
 #include "includes/variables.h"
@@ -43,7 +45,7 @@
 #include "custom_elements/NDfluid_2d_CrankNicolson.h"
 
 #include "custom_elements/asgs_2d.h"
-//#include "custom_elements/asgs_pr_dc.h"
+#include "custom_elements/asgs_pr_dc_2d.h"
 #include "custom_elements/asgs_compressible_2d.h"
  #include "custom_elements/asgs_comp_pr_dc_2d.h"
 
@@ -61,8 +63,13 @@
 
 #include "custom_elements/fluid_2d_split.h"
 
+
+//#include "custom_conditions/abc_2d.h"
+
+
 #include "custom_elements/nonewtonian_asgs_2d.h"
 #include "custom_elements/nonewtonian_asgs_3d.h"
+
 
 
 namespace Kratos
@@ -279,13 +286,14 @@ namespace Kratos
 		const ASGSCompressible3D  mASGSCompressible3D; 
 
 
-		//const ASGSPRDC  mASGSPRDC;
+		const ASGSPRDC2D  mASGSPRDC2D;
 
 
  		const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
  		const ASGSCOMPPRDC3D mASGSCOMPPRDC3D;
 
  		const Monolithic2DNeumann  mMonolithic2DNeumann; 
+ 		const Monolithic3DNeumann  mMonolithic3DNeumann; 
 
 
 		const Fluid2DGLS_expl  mFluid2DGLS_expl;
@@ -302,6 +310,8 @@ namespace Kratos
 		const NoNewtonianASGS3D mNoNewtonianASGS3D;
 
 		const NoSlipCondition2D mNoSlipCondition2D;
+
+		//const ABC2D mABC2D;
 
 		///@} 
 		///@name Private Operations
