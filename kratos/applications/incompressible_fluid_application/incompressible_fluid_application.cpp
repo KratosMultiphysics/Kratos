@@ -75,7 +75,7 @@ namespace Kratos
 		mASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
 		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
-		mMonolithic3DNeumann(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+		//mMonolithic3DNeumann(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
 
 		mFluid2DGLS_expl(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mFluid3DGLS_expl(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -143,7 +143,7 @@ namespace Kratos
 		
 		KRATOS_REGISTER_CONDITION("Fluid3DNeumann", mFluid3DNeumann);
 		KRATOS_REGISTER_CONDITION("Monolithic2DNeumann", mMonolithic2DNeumann);
-		KRATOS_REGISTER_CONDITION("Monolithic3DNeumann", mMonolithic3DNeumann);
+		//KRATOS_REGISTER_CONDITION("Monolithic3DNeumann", mMonolithic3DNeumann);
 		
 		KRATOS_REGISTER_ELEMENT("NDFluid2D", mNDFluid2D);
 		KRATOS_REGISTER_ELEMENT("NDFluid3D", mNDFluid3D);
