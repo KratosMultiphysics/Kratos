@@ -111,6 +111,7 @@ namespace Kratos
 					NeighbourElements[i] = -1;
 					OppositeNodes[i] = -1;
 					OppositeEdge[i] = -1;
+					IsInside[i] = false;
 				}
 				IsSwapCandidate = false;
 				IsElementErased = false;
@@ -119,6 +120,7 @@ namespace Kratos
 			array_1d<int, 3> NeighbourElements;
 			array_1d<int, 3> OppositeNodes;
 			array_1d<int, 3> OppositeEdge;
+			array_1d<bool, 3> IsInside;
 			bool IsSwapCandidate;
 			bool IsElementErased;
 			int SwapWith;
@@ -206,6 +208,7 @@ namespace Kratos
 		  // 	    find_element_neighbours_process.Execute(); 
 
 
+			//  WriteMesh(rThisModelPart, "/home/pooyan/kratos/tests/before_remesh.post.msh");
 		  for(int repeat = 0 ; (repeat < maximum_repeat_number) & (number_of_bad_quality_elements != 0) ; repeat++)
 		  {
 			  ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
@@ -214,9 +217,11 @@ namespace Kratos
 			  const int number_of_nodes = rThisModelPart.NumberOfNodes(); 
 			  const int number_of_elements = rThisModelPart.NumberOfElements(); 
 
+ 			  #pragma omp parallel for 
 			  for(int i = 0 ; i < number_of_nodes ; i++)
 				  nodes_array[i]->SetId(i+1);
 
+  			  #pragma omp parallel for 
 			  for(int i = 0 ; i < number_of_elements ; i++)
 				  elements_array[i]->SetId(i+1);
 
@@ -237,7 +242,9 @@ namespace Kratos
 						  {
 							  if(mSwappingData[neighbour_index].IsSwapCandidate == false)
 							  {
-								  if(IsInElementSphere(*(elements_array[i]), *(nodes_array[mSwappingData[i].OppositeNodes[j]-1])))
+							    // std::cout << "check element #" << elements_array[i]->Id() << " with nodes: " << (*(elements_array[i])).GetGeometry()[0].Id()  << "," << (*(elements_array[i])).GetGeometry()[1].Id() << ","  << (*(elements_array[i])).GetGeometry()[2].Id() << std::endl;
+								if(mSwappingData[i].IsInside[j])
+								 // if(IsInElementSphere(*(elements_array[i]), *(nodes_array[mSwappingData[i].OppositeNodes[j]-1])))
 								  {
 									  swap_counter++;
 									  mSwappingData[neighbour_index].IsSwapCandidate = true;
@@ -288,11 +295,49 @@ namespace Kratos
 			  //{
 				 // number_of_bad_quality_elements_old=number_of_bad_quality_elements;
 			  //}
+			  //WriteMesh(rThisModelPart, "/home/pooyan/kratos/tests/before_collapse.post.msh");
 		  
 			  CollapseNodes(rThisModelPart);
+			  //WriteMesh(rThisModelPart, "/home/pooyan/kratos/tests/after_collapse.post.msh");
 
 		  }
+			  //WriteMesh(rThisModelPart, "/home/pooyan/kratos/tests/after_remesh.post.msh");
+
+			//set the coordinates to the original value
+			/*  for( ModelPart::NodeIterator it =  rThisModelPart.NodesBegin(); it!= rThisModelPart.NodesEnd(); it++)
+			{				
+				const array_1d<double,3>& disp = (it)->FastGetSolutionStepValue(DISPLACEMENT);
+				(it)->X0() = (it)->X() - disp[0];
+				(it)->Y0() = (it)->Y() - disp[1];
+				(it)->Z0() = 0.0;	
+			}
+*/
 		  Timer::Stop("Edge Swapping");
+	  }
+
+	  void WriteMesh(ModelPart& rThisModelPart, std::string Filename)
+	  {
+	    std::ofstream temp_file(Filename.c_str());
+
+	    temp_file << "MESH \"Kratos_Triangle2D3_Mesh\" dimension 2 ElemType Triangle Nnode 3" << std::endl;
+
+	    temp_file << "Coordinates" << std::endl;
+
+	    for(ModelPart::NodeIterator i_node = rThisModelPart.NodesBegin() ; i_node != rThisModelPart.NodesEnd() ; i_node++)
+	      temp_file << i_node->Id() << " " << i_node->X() << " " << i_node->Y() << " " << i_node->Z() << std::endl;
+
+	    temp_file << "End Coordinates" << std::endl;
+
+	    temp_file << "Elements" << std::endl;
+
+	    for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
+	      temp_file << i_element->Id() << " " << i_element->GetGeometry()[0].Id() << " " << i_element->GetGeometry()[1].Id() << " " << i_element->GetGeometry()[2].Id() << " 0"<< std::endl;
+
+
+	    temp_file << "End Elements" << std::endl;
+
+
+	    
 	  }
 
 	  void CollapseNodes(ModelPart& rThisModelPart)
@@ -310,6 +355,8 @@ namespace Kratos
 		  for(int i = 0 ; i < number_of_nodes ; i++)
 		  {
 			  NodeType& r_node = *(nodes_array[i]);
+
+			  //			  std::cout << "node #" << r_node.Id() << " ERASE_FLAG : " << r_node.GetValue(ERASE_FLAG) << std::endl;
 
 			  if(r_node.GetValue(ERASE_FLAG) == true)
 			  {
@@ -456,8 +503,20 @@ namespace Kratos
 
 		  int next2[3] = {2,0,1};
 
+/* 		  std::cout << "Element1 #" << rElement1.Id() << " : " << rElement1.GetGeometry()[0].Id()  << " : " << rElement1.GetGeometry()[1].Id() << " : " << rElement1.GetGeometry()[2].Id() << std::endl; */
+/* 		  std::cout << "Element2 #" << rElement2.Id() << " : " << rElement2.GetGeometry()[0].Id()  << " : " << rElement2.GetGeometry()[1].Id() << " : " << rElement2.GetGeometry()[2].Id() << std::endl; */
+		  KRATOS_WATCH(Edge1);
+		  KRATOS_WATCH(Edge2);
+
+		  KRATOS_WATCH(rElement1.GetGeometry().Area())
+		  KRATOS_WATCH(rElement2.GetGeometry().Area())
+
 		  rElement1.GetGeometry()(next2[Edge1]) = rElement2.GetGeometry()(Edge2);
 		  rElement2.GetGeometry()(next2[Edge2]) = rElement1.GetGeometry()(Edge1);
+
+		  KRATOS_WATCH(rElement1.GetGeometry().Area())
+		  KRATOS_WATCH(rElement2.GetGeometry().Area())
+
 
 	  }
 
@@ -471,16 +530,29 @@ namespace Kratos
 		  if(mBadQuality.size() != rThisModelPart.NumberOfElements())
 			  mBadQuality.resize(rThisModelPart.NumberOfElements());
 
-		  // To be parallelized.
-		  for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
+		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
+		  const int number_of_elements = rThisModelPart.NumberOfElements(); 
+
+  		  #pragma omp parallel for 
+		  for(int i = 0 ; i < number_of_elements ; i++)
 		  {
-			  if(ElementQuality(*i_element) < threshold)
+		    if(ElementQuality(*elements_array[i]) < threshold)
 			  {
 				  marked++;
-				  mBadQuality[counter] = true;
+				  mBadQuality[i] = true;
 			  }
-			  counter++;
 		  }
+
+// To be parallelized.
+// 		  for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
+// 		  {
+// 			  if(ElementQuality(*i_element) < threshold)
+// 			  {
+// 				  marked++;
+// 				  mBadQuality[counter] = true;
+// 			  }
+// 			  counter++;
+// 		  }
 
 		  return marked;
 	  }
@@ -527,6 +599,7 @@ namespace Kratos
 
 	  void SetSwappingData(ModelPart& rThisModelPart)
 	  {
+		  ModelPart::NodesContainerType::ContainerType& nodes_array = rThisModelPart.NodesArray();
 		  ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
 		  const int number_of_elements = static_cast<int>(rThisModelPart.NumberOfElements()); 
 
@@ -535,18 +608,21 @@ namespace Kratos
 		  if(static_cast<int>(mSwappingData.size()) != number_of_elements)
 			  mSwappingData.resize(number_of_elements);
 
+  		  #pragma omp parallel for
 		  for(int i = 0 ; i < number_of_elements ; i++)
 				  mSwappingData[i].Reset();
 
+  		  #pragma omp parallel for
 		  for(int i = 0 ; i < number_of_elements ; i++)
 		  {
 			  Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
 			  int id = elements_array[i]->Id();
+			  FindNeighbourElement(r_geometry[1].Id(), r_geometry[2].Id(), id, elements_array, mSwappingData[i], 0);
+			  FindNeighbourElement(r_geometry[2].Id(), r_geometry[0].Id(), id, elements_array, mSwappingData[i], 1);
+			  FindNeighbourElement(r_geometry[0].Id(), r_geometry[1].Id(), id, elements_array, mSwappingData[i], 2);
 			  for(unsigned int j = 0; j < r_geometry.size(); j++)
 			  {
-				  FindNeighbourElement(r_geometry[1].Id(), r_geometry[2].Id(), id, elements_array, mSwappingData[i], 0);
-				  FindNeighbourElement(r_geometry[2].Id(), r_geometry[0].Id(), id, elements_array, mSwappingData[i], 1);
-				  FindNeighbourElement(r_geometry[0].Id(), r_geometry[1].Id(), id, elements_array, mSwappingData[i], 2);
+				  mSwappingData[i].IsInside[j] = IsInElementSphere(*(elements_array[i]), *(nodes_array[mSwappingData[i].OppositeNodes[j]-1]));
 			  }
 		  }
 
