@@ -126,6 +126,8 @@ namespace Kratos
 
         /** Constructor.
          */
+	BodyDistanceCalculationUtils(){};
+	virtual ~BodyDistanceCalculationUtils(){};
 
 
         /** Destructor.
@@ -196,7 +198,7 @@ namespace Kratos
                 }
 
             }
-            //            KRATOS_WATCH(elements_to_solve.size());
+                        KRATOS_WATCH(elements_to_solve.size());
 
             //this is the "total" solution loop
             boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
