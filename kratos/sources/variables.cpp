@@ -66,8 +66,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/triangle_3d_3.h"
 //#include "geometries/tetrahedra_3d_4.h"
 
+#include "includes/convection_diffusion_settings.h"
+
+
 namespace Kratos
 {
+ 	
+    KRATOS_CREATE_VARIABLE(ConvectionDiffusionSettings::Pointer,  CONVECTION_DIFFUSION_SETTINGS)	
+    
     KRATOS_CREATE_VARIABLE(bool, IS_INACTIVE)
     KRATOS_CREATE_VARIABLE(int, OSS_SWITCH)
     KRATOS_CREATE_VARIABLE(double, DYNAMIC_TAU)
@@ -357,7 +363,9 @@ namespace Kratos
 
     void KratosApplication::RegisterVariables()
     {
+	KRATOS_REGISTER_VARIABLE(CONVECTION_DIFFUSION_SETTINGS)
         KRATOS_REGISTER_VARIABLE(CONSTITUTIVE_LAW)
+        
         KRATOS_REGISTER_VARIABLE(IS_INACTIVE)
 
         KRATOS_REGISTER_VARIABLE(OSS_SWITCH)
