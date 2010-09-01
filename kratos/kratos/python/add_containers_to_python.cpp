@@ -374,11 +374,16 @@ namespace Kratos
 			  .def("SetUnknownVariable",&ConvectionDiffusionSettings::SetUnknownVariable)
 			  .def("SetVolumeSourceVariable",&ConvectionDiffusionSettings::SetVolumeSourceVariable)
 			  .def("SetSurfaceSourceVariable",&ConvectionDiffusionSettings::SetSurfaceSourceVariable)
+			  .def("SetProjectionVariable",&ConvectionDiffusionSettings::SetConvectionVariable)
+			  .def("SetMeshVelocityVariable",&ConvectionDiffusionSettings::SetMeshVelocityVariable)
  			  .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, return_internal_reference<>() )
 			  .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, return_internal_reference<>() )
 			  .def("GetUnknownVariable",&ConvectionDiffusionSettings::GetUnknownVariable, return_internal_reference<>() )
 			  .def("GetVolumeSourceVariable",&ConvectionDiffusionSettings::GetVolumeSourceVariable, return_internal_reference<>() )
 			  .def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
+			  .def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
+			  .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_internal_reference<>() )
+			  .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, return_internal_reference<>() )
 			  ;	
            KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONVECTION_DIFFUSION_SETTINGS)
 
