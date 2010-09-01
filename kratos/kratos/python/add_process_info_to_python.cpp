@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/process_info.h"
 #include "python/add_process_info_to_python.h"
 #include "containers/data_value_container.h"
+#include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
 {
@@ -74,6 +75,22 @@ namespace Python
 // 	{	  return rModelPart.GetProcessInfo();	 }
 // 	void SetProcessInfo(ModelPart& rModelPart, ProcessInfo& NewProcessInfo)
 // 	{	  rModelPart.SetProcessInfo(NewProcessInfo);	  }
+
+	template< class TContainerType, class TVariableType > void MySetValueHelperFunction1(
+                TContainerType& el, 
+                const TVariableType& rVar,
+                const typename TVariableType::Type& Data)
+        {
+            el.SetValue(rVar,Data);
+        }
+        
+        template< class TContainerType, class TVariableType > 
+                typename TVariableType::Type MyGetValueHelperFunction1( TContainerType& el, 
+                        const TVariableType& rVar )
+        {
+            return el.GetValue(rVar);
+        }
+        
 //
 	void  AddProcessInfoToPython()
 	{
