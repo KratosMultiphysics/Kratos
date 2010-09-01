@@ -65,6 +65,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/vector_scalar_operator_python.h"
 #include "python/vector_vector_operator_python.h"
 
+#include "includes/convection_diffusion_settings.h"
+
+
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
@@ -145,6 +148,10 @@ namespace Kratos
             class_<Variable<ConstitutiveLaw::Pointer>, bases<VariableData>, boost::noncopyable >( "ConstitutuveLawVariable", no_init )
             .def( self_ns::str( self ) )
             ;
+	    
+	    class_<Variable<ConvectionDiffusionSettings::Pointer > , bases<VariableData>, boost::noncopyable >("ConvectionDiffusionSettingsVariable", no_init)
+	    .def( self_ns::str( self ) )
+            ;
 
             class_<VariableComponent<VectorComponentAdaptor<vector<double> > >, bases<VariableData>, boost::noncopyable >( "VectorComponentVariable", no_init )
             .def( self_ns::str( self ) )
@@ -153,6 +160,7 @@ namespace Kratos
             class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, bases<VariableData>, boost::noncopyable >( "Array1DComponentVariable", no_init )
             .def( self_ns::str( self ) )
             ;
+	    
 
             class_<DataValueContainer, DataValueContainer::Pointer>( "DataValueContainer" )
             .def( "__len__", &DataValueContainer::Size )
@@ -161,6 +169,7 @@ namespace Kratos
             .def( VariableIndexingPython<DataValueContainer, Variable<array_1d<double, 3> > >() )
             .def( VariableIndexingPython<DataValueContainer, Variable<vector<double> > >() )
             .def( VariableIndexingPython<DataValueContainer, Variable<matrix<double> > >() )
+            .def( VariableIndexingPython<DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer > >() )
             .def( VariableIndexingPython<DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
             .def( self_ns::str( self ) )
             ;
@@ -175,6 +184,10 @@ namespace Kratos
             .def( VariableIndexingPython<VariablesListDataValueContainer,    VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
             .def( self_ns::str( self ) )
             ;
+	    
+	    
+
+
 
             KRATOS_REGISTER_IN_PYTHON_VARIABLE( OSS_SWITCH )
             KRATOS_REGISTER_IN_PYTHON_VARIABLE( DYNAMIC_TAU )
@@ -353,6 +366,22 @@ namespace Kratos
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_DUPLICATED )
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( SPLIT_NODAL )
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( SPLIT_ELEMENT )
+           
+           
+	    class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
+ 			  .def("SetDensityVariable",&ConvectionDiffusionSettings::SetDensityVariable)
+			  .def("SetDiffusionVariable",&ConvectionDiffusionSettings::SetDiffusionVariable)
+			  .def("SetUnknownVariable",&ConvectionDiffusionSettings::SetUnknownVariable)
+			  .def("SetVolumeSourceVariable",&ConvectionDiffusionSettings::SetVolumeSourceVariable)
+			  .def("SetSurfaceSourceVariable",&ConvectionDiffusionSettings::SetSurfaceSourceVariable)
+ 			  .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, return_internal_reference<>() )
+			  .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, return_internal_reference<>() )
+			  .def("GetUnknownVariable",&ConvectionDiffusionSettings::GetUnknownVariable, return_internal_reference<>() )
+			  .def("GetVolumeSourceVariable",&ConvectionDiffusionSettings::GetVolumeSourceVariable, return_internal_reference<>() )
+			  .def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
+			  ;	
+           KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONVECTION_DIFFUSION_SETTINGS)
+
         }
     }  // namespace Python.
 } // Namespace Kratos
