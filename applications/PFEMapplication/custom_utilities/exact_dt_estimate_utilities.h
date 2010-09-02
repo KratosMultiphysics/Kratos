@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "utilities/math_utils.h"
 
 
 namespace Kratos
@@ -411,8 +412,7 @@ namespace Kratos
 		///@} 
 		///@name Member Variables 
 	
-
-
+ 
 
 	     //***********************************************************************
 	    //***********************************************************************
@@ -440,12 +440,12 @@ namespace Kratos
 				    {
 					    //three real solutions!
 					    //Confine the argument of ACOS to the interval [-1;1]!
-					    PHI = acos(fmin(1.0,fmax(-1.0,Q/sqrt(-P))));
+					    PHI = acos(MathUtils<double>::Min(1.0,MathUtils<double>::Max(-1.0,Q/sqrt(-P))));
 					    P=2.0*pow((-P),(5.e-1*THIRD));
 					    for (int i=0;i<3;i++)	U[i] = P*cos((PHI+2*(double(i))*PI)*THIRD)-W;
-					    roots[0] = fmin(U[0], fmin(U[1], U[2]));
-					    roots[1] = fmax(fmin(U[0], U[1]),fmax( fmin(U[0], U[2]), fmin(U[1], U[2])));
-					    roots[2] = fmax(U[0], fmax(U[1], U[2]));
+					    roots[0] = MathUtils<double>::Min(U[0], MathUtils<double>::Min(U[1], U[2]));
+					    roots[1] = MathUtils<double>::Max(MathUtils<double>::Min(U[0], U[1]),MathUtils<double>::Max( MathUtils<double>::Min(U[0], U[2]), MathUtils<double>::Min(U[1], U[2])));
+					    roots[2] = MathUtils<double>::Max(U[0], MathUtils<double>::Max(U[1], U[2]));
 					    num_Rroots = 3;
 				    }
 				    else
