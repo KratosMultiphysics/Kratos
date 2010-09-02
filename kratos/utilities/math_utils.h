@@ -135,6 +135,12 @@ namespace Kratos
 		//***********************************************************************
             static TDataType Abs(const TDataType& rData)
             {return rData > TDataType(0) ? rData : -rData;}
+
+            static TDataType Min(const TDataType& rValue1, const TDataType& rValue2)
+            {return rValue1 > rValue2 ? rValue2 : rValue1;}
+
+            static TDataType Max(const TDataType& rValue1, const TDataType& rValue2)
+            {return rValue1 > rValue2 ? rValue1 : rValue2;}
 		
 		//***********************************************************************
 		/** 
