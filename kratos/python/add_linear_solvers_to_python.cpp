@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "linear_solvers/scaling_solver.h"
 
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/diagonal_preconditioner.h"
@@ -89,6 +90,7 @@ typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
 typedef DeflatedCGSolver<SpaceType,  LocalSpaceType> DeflatedCGSolverType;
 typedef BICGSTABSolver<SpaceType,  LocalSpaceType> BICGSTABSolverType;
 typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
+typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
 typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
 
 	bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
@@ -156,7 +158,11 @@ typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverTy
 		  .def(self_ns::str(self))
 		  .def(init<double, unsigned int,  PreconditionerType::Pointer>())
 		  ;  
-          
+
+    class_<ScalingSolverType, ScalingSolverType::Pointer, bases<LinearSolverType> >("ScalingSolver")
+		  .def(init<LinearSolverType::Pointer, bool >())
+		  ;
+
           class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, bases<LinearSolverType> >("PowerIterationEigenvalueSolver")
                   .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
                           ;
