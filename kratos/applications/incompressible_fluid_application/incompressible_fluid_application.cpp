@@ -66,6 +66,8 @@ namespace Kratos
 
 		mASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mASGSPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mASGS2DPARTICLE(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+
 
 
 		mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -160,7 +162,7 @@ namespace Kratos
  		KRATOS_REGISTER_ELEMENT("ASGSCOMPPRDC3D", mASGSCOMPPRDC3D);
 
 	
-
+		KRATOS_REGISTER_ELEMENT("ASGS2DPARTICLE", mASGS2DPARTICLE);
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);
 		KRATOS_REGISTER_ELEMENT("Fluid3DGLS_expl", mFluid3DGLS_expl);		
