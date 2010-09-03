@@ -70,7 +70,7 @@
 #include "custom_elements/nonewtonian_asgs_2d.h"
 #include "custom_elements/nonewtonian_asgs_3d.h"
 
-
+#include "custom_elements/asgs_2d_particle.h"
 
 namespace Kratos
 {
@@ -280,14 +280,16 @@ namespace Kratos
 		const NDFluid2DCrankNicolson	 mNDFluid2DCrankNicolson;
 
 		const ASGS2D  mASGS2D; 
+		const ASGSPRDC2D  mASGSPRDC2D;
+
 		const ASGSCompressible2D  mASGSCompressible2D; 
 		      
 		const ASGS3D  mASGS3D;
 		const ASGSCompressible3D  mASGSCompressible3D; 
 
 
-		const ASGSPRDC2D  mASGSPRDC2D;
 
+		const ASGS2DPARTICLE  mASGS2DPARTICLE; 
 
  		const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
  		const ASGSCOMPPRDC3D mASGSCOMPPRDC3D;
