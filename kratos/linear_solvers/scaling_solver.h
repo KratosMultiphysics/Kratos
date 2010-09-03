@@ -177,7 +177,15 @@ namespace Kratos
                   scaling_vector[i] = sqrt(scaling_vector[i]);
               
               SymmetricScaling(rA,scaling_vector);
+	      
+	      
           }
+          
+          //scale RHS
+	  #pragma omp parallel for
+          for(int i=0; i< static_cast<int>(scaling_vector.size()); i++)
+                  rB[i] /= scaling_vector[i];
+
 
           //solve the problem
           bool is_solved = mp_linear_solver->Solve(rA,rX,rB);
