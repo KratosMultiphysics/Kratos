@@ -428,7 +428,7 @@ namespace Kratos
 
 
 			//initializing the parameters of the Newton-Raphson cicle
-			unsigned int iteration_number=1; 
+			int iteration_number=1; 
 			BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;	
 //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
 			bool is_converged = false;
@@ -570,7 +570,7 @@ namespace Kratos
 			bool is_converged = false;
 			int number_of_cycles = 0;
 
-			while(is_converged == false && number_of_cycles++ <= mNumberOfCycles )
+			while(is_converged == false && number_of_cycles++ < mNumberOfCycles )
 			  {
 			    KRATOS_WATCH("****************** inside cyclic_lopp*******************");
 			    KRATOS_WATCH(mNumberOfCycles);
@@ -621,7 +621,7 @@ namespace Kratos
 				}
 			   }//end of cyclic loop
 
-
+				  BaseType::GetModelPart().GetProcessInfo()[SCALE] = number_of_cycles;
 			TSystemMatrixType& mA = *mpA;
 			TSystemVectorType& mDx = *mpDx;
 			TSystemVectorType& mb = *mpb;
