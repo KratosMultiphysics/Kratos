@@ -365,8 +365,32 @@ namespace Kratos
 
 
     }
+
 	//*************************************************************************************
 	//*************************************************************************************
+    void ASGSCOMPPRDC3D::CalculateResidual(const MatrixType& K, VectorType& F) {
+        KRATOS_TRY
+
+                int nodes_number = 4;
+        int dof = 3;
+
+
+        array_1d<double, 16 > UP = ZeroVector(16);
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1);
+            UP[index] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY, 0)[0];
+            UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY, 0)[1];
+            UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY, 0)[2];
+            UP[index + 3] = GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE, 0);
+        }
+
+        F -= prod(K, UP);
+
+        KRATOS_CATCH("")
+    }
+
+    //*************************************************************************************
+    //*************************************************************************************
 
 } // Namespace Kratos
 
