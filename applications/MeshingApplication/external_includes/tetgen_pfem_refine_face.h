@@ -673,7 +673,7 @@ KRATOS_WATCH("RIGHT BEFORE ADAPTIVE MESHER");
 				
 			}		
 			*/
-			int fined_node_counter = 0;
+			unsigned int fined_node_counter = 0;
 			if(outnew.numberofpoints-n_points_before_refinement > 0) //if we added points
 			{
 				kd_tree  nodes_tree2(list_of_new_nodes.begin(),list_of_new_nodes.end(),bucket_size);
