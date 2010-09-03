@@ -260,7 +260,7 @@ namespace Kratos {
         CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, delta_t, tauone, Area);
         //KRATOS_WATCH(rRightHandSideVector);
 
-	//CalculateResidual(rDampMatrix, rRightHandSideVector);
+	CalculateResidual(rDampMatrix, rRightHandSideVector);
 
         KRATOS_CATCH("")
     }
@@ -1299,7 +1299,6 @@ namespace Kratos {
         tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
 
         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
-
 
 
         KRATOS_CATCH("")
