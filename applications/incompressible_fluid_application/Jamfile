@@ -59,6 +59,8 @@ python-extension KratosIncompressibleFluidApplication
 	asgs_2d.cpp 
 	asgs_3d.cpp 
 
+	asgs_2d_particle.cpp 
+
 	asgs_pr_dc_2d.cpp
 	asgs_compressible_2d.cpp
 	asgs_compressible_3d.cpp
