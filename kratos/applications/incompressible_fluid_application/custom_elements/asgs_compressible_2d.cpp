@@ -165,6 +165,8 @@ namespace Kratos
         //add body force and momentum
        // AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone, tautwo);
 
+	CalculateResidual(rDampMatrix, rRightHandSideVector);
+
 		KRATOS_CATCH("")
 	}
         
@@ -568,8 +570,32 @@ namespace Kratos
 	viscosity *= density;
 
 	}
+    //************************************************************************************
+    //************************************************************************************
+
+    void ASGSCompressible2D::CalculateResidual(const MatrixType& K, VectorType& F) 
+	{
+	    KRATOS_TRY
+
+		    int nodes_number = 3;
+	    int dof = 2;
+
+
+	    array_1d<double, 9 > UP = ZeroVector(9);
+	    for (int ii = 0; ii < nodes_number; ++ii) {
+		int index = ii * (dof + 1);
+		UP[index] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY, 0)[0];
+		UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY, 0)[1];
+		UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(AIR_PRESSURE, 0);
+	    }
+
+	    F -= prod(K, UP);
+
+	    KRATOS_CATCH("")
+	}
 	//************************************************************************************
 	//************************************************************************************
+
 
 
 
