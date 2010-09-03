@@ -181,6 +181,9 @@ namespace Kratos {
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
 
+
+// mAlphaBossak= 0.0;
+// mGammaNewmark= 1.0;
             //mGammaNewmark = 1.0;
             //mBetaNewmark = 0.5;
             //mAlphaBossak = 0.0;
@@ -728,10 +731,10 @@ namespace Kratos {
             //adding damping contribution
             //damping contribution
 
-            if (D.size1() != 0) {
-                rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
-                noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
-            }
+//             if (D.size1() != 0) {
+//                 rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
+//                 noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
+//             }
 
 
         }
@@ -755,10 +758,10 @@ namespace Kratos {
             //adding damping contribution
             //damping contribution
 
-            if (D.size1() != 0) {
-                rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
-                noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
-            }
+//             if (D.size1() != 0) {
+//                 rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
+//                 noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
+//             }
 
 
         }
