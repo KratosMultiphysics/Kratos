@@ -522,7 +522,7 @@ namespace Kratos
 
 	  unsigned int MarkBadQualityElements(ModelPart& rThisModelPart)
 	  {
-		  unsigned int counter = 0;
+// 		  unsigned int counter = 0;
 		  unsigned int marked = 0;
 
 		  const double threshold = 0.25;
