@@ -42,7 +42,7 @@ project KratosProject
 	#############################################################################
 	############### TO BE CUSTOMIZED -- LINUX VERSION EXAMPLE!! #################
 	requirements 	<include>$(BOOST_INCLUDE_DIR)               #to be CUSTOMIZED 
-			<include>/usr/include/python2.5/                    #to be CUSTOMIZED 
+			<include>/usr/include/python2.6/                    #to be CUSTOMIZED 
 			<include>$(TOP)/kratos
 			<include>$(TOP)/external_libraries
 	#############################################################################
@@ -50,7 +50,7 @@ project KratosProject
 	#############################################################################
 	############### TO BE CUSTOMIZED -- WINDOWS VERSION EXAMPLE!! ###############
 	##requirements <include>"C:/Archivos de programa/boost/boost_1_34_1/"    #to be CUSTOMIZED
-	##		<include>"C:/Python25/include"                                  #to be CUSTOMIZED 
+	##		<include>"C:/Python26/include"                                  #to be CUSTOMIZED 
 	##		<include>$(TOP)/kratos
 	##		<include>$(TOP)/external_libraries
 	#############################################################################	
@@ -88,9 +88,9 @@ project KratosProject
 
 #############################################################################
 ############### TO BE CUSTOMIZED -- LINUX VERSION EXAMPLE!! #################
-lib pythonlib : : <name>python2.5 ; 
-lib boost_python_lib : : <variant>debug <name>boost_python-mt-d <search>$(BOOST_LIB_DIR) ;    
-lib boost_python_lib : : <variant>release <name>boost_python-mt <search>$(BOOST_LIB_DIR) ;    
+lib pythonlib : : <name>python2.6 ; 
+lib boost_python_lib : : <variant>debug <name>boost_python-mt-py26 <search>$(BOOST_LIB_DIR) ;    
+lib boost_python_lib : : <variant>release <name>boost_python-mt-py26 <search>$(BOOST_LIB_DIR) ;    
 #############################################################################
 
 #blas and lapack libraries
