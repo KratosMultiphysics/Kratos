@@ -36,17 +36,21 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 from KratosIncompressibleFluidApplication import *
 from KratosExternalSolversApplication import *
 
-##################################################################
+
 ##################################################################
 def NodeFinder(node_list,X,Y,Z):
    for node in node_list:
-	if((node.X-X)**2 + (node.Y-Y)**2 + (node.Z-Z)**2 < .000001):
+	if((node.X-X)**2 + (node.Y-Y)**2 + (node.Z-Z)**2 < .0001):
 		return node
 
 def BenchmarkCheck(time, node1):
     benchmarking.Output(time, "Time")
-    benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 1.0)
-    benchmarking.Output(node1.GetSolutionStepValue(VELOCITY_Y), "Node 2 velocity_y", 1.0)
+    print "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+    benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 1.0,.1)
+    benchmarking.Output(node1.GetSolutionStepValue(VELOCITY_Y), "Node 2 velocity_y", 1.0,.1)
+
+
+##################################################################
 
 
 #defining a model part for the fluid and one for the structure
@@ -123,7 +127,7 @@ print "fluid solver created"
 #settings to be changed
 Dt = fluid_only_var.Dt 
 full_Dt = Dt 
-initial_Dt = 0.001 * full_Dt #0.05 #0.01
+initial_Dt = 0.001* full_Dt #0.05 #0.01
 final_time = fluid_only_var.max_time
 output_step = fluid_only_var.output_step
 
@@ -139,11 +143,10 @@ gid_io.FinalizeMesh()
 gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
 
 ###############################################################
-back_node = NodeFinder(fluid_model_part.Nodes , 6.199, 4.0, 0.0)
+back_node = NodeFinder(fluid_model_part.Nodes , 8.027, 4.198, 0.0)
 print back_node
 
 ###############################################################
-
 
 time = 0.0
 step = 0
