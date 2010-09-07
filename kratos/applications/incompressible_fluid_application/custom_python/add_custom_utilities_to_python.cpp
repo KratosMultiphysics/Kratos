@@ -71,6 +71,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/elembased_extrapolation_utilities.h" 
 #include "custom_utilities/elembased_BC_utilities.h" 
 #include "custom_utilities/assign_no_slip_condition.h" 
+#include "custom_utilities/mark_for_refinement.h" 
+
 
 //#include "custom_utilities/edgebased_levelset.h"
 
@@ -103,7 +105,10 @@ namespace Python
 		.def("CalculatePressureForces2D",&CalculateForcesUtils::CalculatePressureForces2D)
 		;
 
-
+	  class_<RefinementUtilities>("RefinementUtilities", init<>())
+		.def("MarkForRefinement",&RefinementUtilities::MarkForRefinement)
+		;
+		
 	  class_<AssignNoSlipCondition>("AssignNoSlipCondition", init<>())
 		.def("AssignNoSlipCondition2D",&AssignNoSlipCondition::AssignNoSlipCondition2D)
 		;
