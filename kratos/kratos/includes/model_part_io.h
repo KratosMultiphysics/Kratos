@@ -816,7 +816,7 @@ namespace Kratos
 	  number_of_nodes_read++;
 	}
 
-       #ifndef _OPENMP
+        #ifndef _OPENMP
             for(std::size_t i = 0 ; i < id_vector.size() ; i++)
             {
                 const array_1d<double,3>& temp = coordinates_vector[i];
