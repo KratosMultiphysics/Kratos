@@ -73,8 +73,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/apply_proj_dirichlet_process.h" 
 #include "custom_processes/subdomain_disable_process.h" 
 #include "custom_processes/pseudo_lag_part_process.h" 
-
 #include "custom_processes/save_element_by_size_process.h" 
+#include "custom_processes/generate_slip_condition_process.h" 
+#include "custom_processes/subscale_error_estimate_process.h" 
 #include "custom_processes/save_element_by_flag_process.h" 
 
 #include "includes/node.h"
@@ -109,6 +110,11 @@ namespace Python
 	class_<CFLProcess <2>, bases<Process> >("CFLProcess2D", init<ModelPart&>())
 		   .def("EstimateTime", &CFLProcess<2>::EstimateTime)
 		 ;
+	class_<SubscaleEstimatorProcess, bases<Process> >("SubscaleEstimatorProcess", init<ModelPart&, int, double>())
+		   .def("Execute", &SubscaleEstimatorProcess::Execute)
+		 ;
+		 
+		 
 	class_<CFLProcess <3>, bases<Process> >("CFLProcess3D", init<ModelPart&>())
 		   .def("EstimateTime", &CFLProcess<3>::EstimateTime)
 		 ;
@@ -127,6 +133,12 @@ namespace Python
 		 ;
 	class_<PseudoLagPartProcess, bases<Process> >("PseudoLagPartProcess", init<>())
 		   .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
+		 ;
+		 
+	class_<GenerateSlipConditionProcess, bases<Process> >("GenerateSlipConditionProcess", init<ModelPart&, int >())
+		    .def("Execute", &GenerateSlipConditionProcess::Execute)
+		    .def("SetNormalVelocityToZero", &GenerateSlipConditionProcess::SetNormalVelocityToZero)
+		    .def("ApplyEdgeConstraints", &GenerateSlipConditionProcess::ApplyEdgeConstraints)
 		 ;
 
 	class_<SaveElementBySizeProcess, bases<Process> >("SaveElementBySizeProcess",init<ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&, unsigned int >())
