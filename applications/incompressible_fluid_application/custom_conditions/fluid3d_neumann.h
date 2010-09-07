@@ -133,8 +133,9 @@ namespace Kratos
       
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-	  void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
+      void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
 
+      void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
       ///@}
       ///@name Access
       ///@{ 
