@@ -144,7 +144,7 @@ namespace Kratos
 	{
 		mE  = props[YOUNG_MODULUS];
 		mNU = props[POISSON_RATIO];
-                mDE = props[DENSITY];
+//                mDE = props[DENSITY];
 
 //	KRATOS_WATCH("INSIDE THE CONS LAW")
 //		KRATOS_WATCH(mE)
@@ -245,7 +245,7 @@ void Isotropic2D::Calculate(const Variable<double>& rVariable,
                                     double& Output, 
                                     const ProcessInfo& rCurrentProcessInfo)
    {
-    Output = sqrt(mE/mDE);
+//    Output = sqrt(mE/mDE);
     //KRATOS_WATCH(Output)
     //KRATOS_WATCH(mDE)
    }
@@ -264,9 +264,18 @@ void Isotropic2D::Calculate(const Variable<double>& rVariable,
                                                bool SaveInternalVariables )
  {
      if(CalculateStresses == true)
+     {
+         if(StressVector.size() != 3)
+            StressVector.resize(3,false);
         CalculateStress(StrainVector, StressVector);
-     if(CalculateTangent == true)
-        CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+     }
+     if(CalculateTangent == 1)
+     {
+         if(AlgorithmicTangent.size1() != 3 || AlgorithmicTangent.size2() != 3)
+             AlgorithmicTangent.resize(3,3,false);
+             CalculateConstitutiveMatrix(StrainVector, AlgorithmicTangent);
+     }
+        
  }
 
 /// Turn back information as a string.
