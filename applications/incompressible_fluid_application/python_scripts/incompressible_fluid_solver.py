@@ -3,7 +3,6 @@ from Kratos import *
 from KratosIncompressibleFluidApplication import *
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -15,30 +14,19 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
-    model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
+
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
+    model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
+    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
+
     print "variables for the incompressible fluid solver added correctly"
 
 def AddDofs(model_part):
   
     for node in model_part.Nodes:
-        #adding variables
-##        node.GetSolutionStepValue(DISPLACEMENT)
-##        node.GetSolutionStepValue(VELOCITY)
-##        node.GetSolutionStepValue(FRACT_VEL)
-##        node.GetSolutionStepValue(MESH_VELOCITY)
-##        node.GetSolutionStepValue(PRESSURE)
-##        node.GetSolutionStepValue(PRESSURE,1)
-##        node.GetSolutionStepValue(PRESS_PROJ)
-##        node.GetSolutionStepValue(CONV_PROJ)
-##        node.GetSolutionStepValue(NODAL_AREA)  
-##        node.GetSolutionStepValue(BODY_FORCE)
-##        node.GetSolutionStepValue(DENSITY)
-##        node.GetSolutionStepValue(VISCOSITY)
-
         #adding dofs
         node.AddDof(PRESSURE);
         node.AddDof(FRACT_VEL_X);
@@ -95,15 +83,27 @@ class IncompressibleFluidSolver:
         self.echo_level = 0
 
         #definition of the solvers
-        pDiagPrecond = DiagonalPreconditioner()
-#        pILUPrecond = ILU0Preconditioner()
+##        pDiagPrecond = DiagonalPreconditioner()
+###        pILUPrecond = ILU0Preconditioner()
+####        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+####        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
 ##        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
-        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
-        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+####        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
+##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
+        vsolver = BICGSTABSolver(1e-6, 5000)
+        psolver = CGSolver(1e-3, 5000)
+
+        self.velocity_linear_solver = ScalingSolver(vsolver,True)
+        self.pressure_linear_solver = ScalingSolver(psolver,True)
+        
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+
+
+        ##handling slip condition
+        self.slip_conditions_initialized = False
+        self.create_slip_conditions = GenerateSlipConditionProcess(self.model_part,domain_size)
+        
 
 
     def Initialize(self):
@@ -116,8 +116,10 @@ class IncompressibleFluidSolver:
         solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form,self.use_dt_in_stabilization )
         self.solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
-
-
+        ##generating the slip conditions
+        self.create_slip_conditions.Execute()
+        (self.solver).SetSlipProcess(self.create_slip_conditions);
+        self.slip_conditions_initialized = True
 
         (self.solver).SetEchoLevel(self.echo_level)
         print "finished initialization of the fluid strategy"
@@ -127,8 +129,28 @@ class IncompressibleFluidSolver:
         if(self.ReformDofAtEachIteration == True):
             (self.neighbour_search).Execute()
 
+            self.slip_conditions_initialized = False
+
+        if(self.slip_conditions_initialized == False):
+            self.create_slip_conditions.Execute()
+            err
+            (self.solver).SetSlipProcess(self.create_slip_conditions);
+            self.slip_conditions_initialized = True
+            
+##            (self.create_slip_conditions).SetNormalVelocityToZero()
+##            (self.create_slip_conditions).ApplyEdgeConstraints()
+            
+
         print "just before solve"
         (self.solver).Solve()
+
+##        (self.create_slip_conditions).SetNormalVelocityToZero()
+##        (self.create_slip_conditions).ApplyEdgeConstraints()
+
+    def Clear(self):
+        (self.solver).Clear()
+        self.slip_conditions_initialized = True
+        
 
     def WriteRestartFile(self,FileName):
         backupfile = open(FileName+".py",'w')
