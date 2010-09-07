@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 domain_size = 2
 
 Dt = 0.1
@@ -12,5 +13,5 @@ dynamic_tau = 0.001
 # Declare Python Variables
 
 problem_name="cavity2D"
-problem_path="/home/rrossi/kratos/applications/incompressible_fluid_application/test_examples/cavity2D.gid"
-kratos_path="/home/rrossi/kratos"
+problem_path="."
+kratos_path="../../../.."
