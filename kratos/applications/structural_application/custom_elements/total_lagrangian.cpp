@@ -749,8 +749,8 @@ namespace TotalLagrangianAuxiliaries
                     GetGeometry(),
                     row(Ncontainer,PointNumber),
                     true,
-                    0,
-                    true );
+                    false,
+                    false );
 				for(unsigned int ii = 0; ii<msStrainVector.size(); ii++){
 					Output[PointNumber](0,ii) = msStressVector[ii];}
 			}
