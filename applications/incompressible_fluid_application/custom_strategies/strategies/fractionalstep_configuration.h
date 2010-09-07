@@ -16,7 +16,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 //#include "incompressible_fluid_application.h"
 
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_slip.h"
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_discretelaplacian_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_discretelaplacian_builder_and_solver_flexiblefsi.h"
 
@@ -108,7 +108,8 @@ namespace Kratos
                         
                         //computation of the fractional vel velocity (first step)
                         //3 dimensional case
-			typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VarComponent;			typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VarComponent;
+			typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VarComponent;			
+// 			typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VarComponent;
 			typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 			typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
@@ -118,22 +119,11 @@ namespace Kratos
 				( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
 
                         //CONSTRUCTION OF VELOCITY 
-			BuilderSolverTypePointer vel_x_build =BuilderSolverTypePointer(	new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver, VarComponent>(pNewVelocityLinearSolver,FRACT_VEL_X) );	
+			BuilderSolverTypePointer vel_x_build =BuilderSolverTypePointer(	new ResidualBasedEliminationBuilderAndSolverSlip<TSparseSpace,TDenseSpace,TLinearSolver, VarComponent> (pNewVelocityLinearSolver,this->mDomainSize,FRACT_VEL_X,FRACT_VEL_Y,FRACT_VEL_Z) );	
 			this->mpfracvel_x_strategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >				(model_part,pscheme,pNewVelocityLinearSolver,vel_x_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 			this->mpfracvel_x_strategy->SetEchoLevel(1);
 
-			BuilderSolverTypePointer vel_y_build	= BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,VarComponent> (pNewVelocityLinearSolver,FRACT_VEL_Y) );
-			this->mpfracvel_y_strategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver > 				(model_part,pscheme,pNewVelocityLinearSolver,vel_y_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-			this->mpfracvel_y_strategy->SetEchoLevel(1);
- 
-			if(this->mDomainSize == 3)
-			{
-				BuilderSolverTypePointer vel_z_build = BuilderSolverTypePointer(
-					new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,VarComponent>(pNewVelocityLinearSolver,FRACT_VEL_Z) );
-				this->mpfracvel_z_strategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >					(model_part,pscheme,pNewVelocityLinearSolver,vel_z_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-				this->mpfracvel_z_strategy->SetEchoLevel(1);
-			}
-                        
+                       
                         
                         
                         //CONSTRUCTION OF PRESSURE SOLVER
@@ -148,11 +138,6 @@ namespace Kratos
 				this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >					(model_part,pscheme,pNewPressureLinearSolver,pressure_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 				this->mppressurestep->SetEchoLevel(1);
 
-//				this->mppressurestep = typename BaseType::Pointer(
-//                                        new  ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> >(pNewVelocityLinearSolver,FRACT_VEL_Z) );
-//					new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >
-//					(model_part,pscheme,pNewPressureLinearSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-//				this->mppressurestep->SetEchoLevel(1);
 			}
 			else if( laplacian_form == 2) //discrete laplacian form
 			{
