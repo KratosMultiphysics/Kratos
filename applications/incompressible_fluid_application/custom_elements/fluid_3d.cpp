@@ -884,7 +884,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	inline double Fluid3D::CalculateTau(const double h, const double nu, const double norm_u, ProcessInfo& CurrentProcessInfo)
+	inline double Fluid3D::CalculateTau(const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
 	{
               const double c1 = 4.00;
               const double c2 = 2.00;
@@ -898,6 +898,120 @@ namespace Kratos
                 return tau;
 
 	}
+	
+    //************************************************************************************
+    //************************************************************************************
+
+    void Fluid3D::Calculate(const Variable<double >& rVariable,
+            double& Output,
+            const ProcessInfo& rCurrentProcessInfo) 
+    {
+	KRATOS_TRY
+	
+	if(rVariable == ERROR_RATIO)
+	{
+	      double Volume;
+	      GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
+	      //CalculateGeometryData(msDN_DX,msN,Volume);
+
+	      //getting the velocity vector on the nodes
+
+	      //getting the velocity on the nodes
+	      const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+	      const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+	      const array_1d<double,3>& proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
+	      const double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+	      const array_1d<double,3>& press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
+	      const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+	      const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+
+	      const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+	      const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+	      const array_1d<double,3>& proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
+	      const double& p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+	      const array_1d<double,3>& press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
+	      const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+	      const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+
+	      const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+	      const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+	      const array_1d<double,3>& proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
+	      const double& p2 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+	      const array_1d<double,3>& press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
+	      const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+	      const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+
+	      const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
+	      const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+	      const array_1d<double,3>& proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
+	      const double& p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
+	      const array_1d<double,3>& press_proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
+	      const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
+	      const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+
+	      // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+	      noalias(ms_aux) = fv0;	noalias(ms_aux) -= w0;	
+	      noalias(ms_vel_gauss) = msN[0]*ms_aux;
+
+	      noalias(ms_aux) = fv1;	noalias(ms_aux) -= w1;	
+	      noalias(ms_vel_gauss) += msN[1]*ms_aux;
+
+	      noalias(ms_aux) = fv2;	noalias(ms_aux) -= w2;	
+	      noalias(ms_vel_gauss) += msN[2]*ms_aux;
+
+	      noalias(ms_aux) = fv3;	noalias(ms_aux) -= w3;	
+	      noalias(ms_vel_gauss) += msN[3]*ms_aux;
+
+	      //calculating viscosity
+	      double nu = 0.25*(nu0 + nu1 + nu2 + nu3);
+	      double density = 0.25*(rho0 + rho1 + rho2 + rho3);
+
+	      //getting the BDF2 coefficients (not fixed to allow variable time step)
+	      //the coefficients INCLUDE the time step
+	      //const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+	      //calculating parameter tau (saved internally to each element)
+	      double h = CalculateH(Volume);
+	      double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
+	      norm_u = sqrt(norm_u);
+	      double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
+
+	      //calculating the subscale velocity assuming that it is governed by the convection part
+	      noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
+	      
+	      array_1d<double,3> vel_subscale = ms_u_DN[0]*fv0;
+	      noalias(vel_subscale) += ms_u_DN[1]*fv1;
+	      noalias(vel_subscale) += ms_u_DN[2]*fv2;
+	      noalias(vel_subscale) += ms_u_DN[3]*fv3;
+	      vel_subscale*=density;
+	      
+	      vel_subscale[0] -= 0.25*(proj0[0]+proj1[0]+proj2[0]+proj3[0]);
+	      vel_subscale[1] -= 0.25*(proj0[1]+proj1[1]+proj2[1]+proj3[1]);
+	      vel_subscale[2] -= 0.25*(proj0[2]+proj1[2]+proj2[2]+proj3[2]);
+	      
+	      //pressure gradient contributions
+	      vel_subscale[0] += (msDN_DX(0,0)*p0 + msDN_DX(1,0)*p1 + msDN_DX(2,0)*p2 + msDN_DX(3,0)*p3);
+	      vel_subscale[1] += (msDN_DX(0,1)*p0 + msDN_DX(1,1)*p1 + msDN_DX(2,1)*p2 + msDN_DX(3,1)*p3);
+	      vel_subscale[2] += (msDN_DX(0,2)*p0 + msDN_DX(1,2)*p1 + msDN_DX(2,2)*p2 + msDN_DX(3,2)*p3);
+	      vel_subscale[0] -= 0.25*(press_proj0[0]+press_proj1[0]+press_proj2[0]+press_proj3[0]);
+	      vel_subscale[1] -= 0.25*(press_proj0[1]+press_proj1[1]+press_proj2[1]+press_proj3[1]);
+	      vel_subscale[2] -= 0.25*(press_proj0[2]+press_proj1[2]+press_proj2[2]+press_proj3[2]);
+	      
+// 	      noalias(vel_subscale) -= 0.25*proj0;
+// 	      noalias(vel_subscale) -= 0.25*proj1;
+// 	      noalias(vel_subscale) -= 0.25*proj2;
+// 	      noalias(vel_subscale) -= 0.25*proj3;
+	      
+	      vel_subscale *= (tau/density);
+	      
+	      double subscale_kin_energy = 0.5*inner_prod(vel_subscale,vel_subscale);
+	      
+	      Output = subscale_kin_energy; ///(norm_u*norm_u + 1e-6);
+
+	}
+	KRATOS_CATCH("");
+
+    }
 
 } // Namespace Kratos
 
