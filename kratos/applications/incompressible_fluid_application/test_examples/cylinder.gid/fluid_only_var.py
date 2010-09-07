@@ -1,6 +1,6 @@
 domain_size = 2
 
-Dt = 1
+Dt = 1.0
 max_time = 10
 SolverType = "monolithic_solver_eulerian"
 laplacian_form = 3
