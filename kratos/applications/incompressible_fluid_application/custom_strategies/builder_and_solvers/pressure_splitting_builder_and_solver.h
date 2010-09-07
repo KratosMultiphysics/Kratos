@@ -66,7 +66,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    // PressureSplittingBuilderAndSolver class
+    /// A builder and solver scheme based on separating pressure and velocity Dofs
+    /**
+     The PressureSplittingBuilderAndSolver class is intended to solve the
+     velocity and pressure degrees of freedom separately, thanks to a Pressure
+     Schur complement type decomposition. Given a system equation of the type
+     \f[
+      \left[ \begin{array}{cc}
+       S & G \\
+       D & L
+      \end{array} \right]
+      \left[ \begin{array}{c}
+       \delta u \\
+       \delta p
+      \end{array} \right]
+      =
+      \left[ \begin{array}{c}
+       r_u \\
+       r_p
+      \end{array} \right]
+     \f]
+     This class divides the system and solves it as
+     \f[
+      S \delta u = r_u - G \, \delta p
+     \f]
+     \f[
+      \left( L - D K^{-1} G \right) \, \delta p = r_p - D {K}^{-1} \, r_u
+     \f]
+     where \f$ K^{-1} \f$ is approximated by \f$ \left( \text{Diag} \left( K \right) \right)^{-1} \f$
+     */
     template< class TSparseSpace,
 	class TDenseSpace , //= DenseSpace<double>,
 	class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
@@ -75,8 +103,8 @@ namespace Kratos
         public BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >
     {
         /* Please note that this builder and solver splits the system matrix
-         * in 4 blocks and stores them separately. The system matrix A used as
-         * input (to preserve the same function signstures as other builder and
+         * in 4 blocks and stores them separately. The system matrix A given as
+         * input (to preserve the same function signatures as other builder and
          * solvers) is used here to store the matrix of the pressure equation.
          */
     public:
@@ -123,7 +151,7 @@ namespace Kratos
 
         // Life Cycle
 
-        /* Constructor */
+        /// Constructor
         PressureSplittingBuilderAndSolver(
                 typename TLinearSolver::Pointer pNewVelLinearSystemSolver, // Velocity solver, stored internally
                 typename TLinearSolver::Pointer pNewPressLinearSystemSolver, // Pressure solver, stored by the base class
@@ -148,12 +176,12 @@ namespace Kratos
             mSmallTol = 0.5*NonLinearTol;
         }
 
-        /* Destructor */
+        /// Destructor
         virtual ~PressureSplittingBuilderAndSolver() {}
 
         // Operations
 
-        /* Build System */
+        /// Build System
         void Build(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -307,7 +335,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Build LHS only */
+        /// Build Left Hand Side only
         void BuildLHS(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -377,7 +405,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Build LHS with extra columns, including fixed Dofs */
+        /// Build Left Hand Side with extra columns, including fixed Dofs
         void BuildLHS_CompleteOnFreeRows(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -447,7 +475,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Call Solver */
+        /// Solve one iteration
         void SystemSolve(
                 TSystemMatrixType& A,
                 TSystemVectorType& Dx,
@@ -569,7 +597,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Build and Solve sytem */
+        /// Build and Solve system
         void BuildAndSolve(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -611,7 +639,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Solve System for updated RHS */
+        /// Solve System for updated Right Hand Side
         void BuildRHSAndSolve(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -627,7 +655,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Build RHS only */
+        /// Build Right Hand Side only
         void BuildRHS(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -712,7 +740,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Identify Dofs and store pointers to them */
+        /// Identify Dofs and store pointers to them
         /* Single list version */
         void SetUpDofSet(
                 typename TSchemeType::Pointer pScheme,
@@ -790,7 +818,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Organise Dofs, separating fixed and free nodes */
+        /// Organise Dofs, separating fixed and free nodes
         void SetUpSystem(ModelPart& rModelPart)
         {
             KRATOS_TRY;
@@ -842,7 +870,9 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /* Initialize pointers to the different vectors involved, check that they
+        /// Initialize pointers to system vectors and matrices, check sizes
+        /**
+         *  Initialize pointers to the different vectors involved, check that they
          * have the correct size
          */
         void ResizeAndInitializeVectors(
@@ -986,7 +1016,7 @@ namespace Kratos
                 TSystemVectorType& b)
         {}
 
-        /* Calculate Reactions */
+        /// Calculate Reactions
         void CalculateReactions(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -1039,7 +1069,9 @@ namespace Kratos
                 TSystemVectorType& b)
         {}
 
-        /* this function is intended to be called at the end of the solution
+        /// Free memory used by class members once no longer needed
+        /**
+         *  this function is intended to be called at the end of the solution
          * step to clean up memory storage not needed
          */
         void Clear()
@@ -1069,11 +1101,14 @@ namespace Kratos
             }
         }
 
-        /* Provides a way to modify the system matrix from outside the buider and solver.
+        /// Force a recalculation of the graph for the pressure system matrix
+        /**
+         * Provides a way to modify the system matrix from outside the buider and solver.
          * Use carefully. Remember that this should be called before Build(), where
          * the matrix will be filled. If the DofSet changes between time steps, the
          * system matrix will be reformed internally, so this function should only be used
-         * if the system matrix structure changes inside the time step. */
+         * if the system matrix structure changes inside the time step.
+         */
         inline void ReshapeSystemMatrix(TSystemMatrixType& A)
         {
             AllocateSystemMatrix(A);
@@ -1082,6 +1117,7 @@ namespace Kratos
 
     protected:
 
+        /// Compute graphs for the different matrices involved in the problem
         virtual void ConstructMatrixStructure(
                 TSystemMatrixType& S,
                 TSystemMatrixType& D,
@@ -1206,9 +1242,7 @@ namespace Kratos
 
     private:
 
-        /**
-         *  Add a matrix position to the list (check that it hasn't been used before)
-         */
+        /// Add a matrix position to the list (check that it hasn't been used before)
         void AddUnique(
                 std::vector<std::size_t>& Row,
                 const std::size_t& Candidate)
@@ -1230,6 +1264,7 @@ namespace Kratos
 
         // ALL ASSEMBLY FUNCTIONS NEED OPENMP. CONSIDER ADDING Assemble_OnFreeRows
 
+        /// Add terms from an elemental matrix to system matrices
 #ifndef _OPENMP
         void Assemble(
                 TSystemVectorType& b,
@@ -1339,6 +1374,7 @@ namespace Kratos
 
 #endif
 
+        /// Add terms from an elemental matrix to system matrices (LHS only)
         void AssembleLHS(
                 LocalSystemMatrixType& LHS_Contribution,
                 Element::EquationIdVectorType& EquationId)
@@ -1428,6 +1464,7 @@ namespace Kratos
             }
         }
 
+        /// Asseble local contribution to the right hand side vector
         /**
          * Asseble local contribution to the right hand side vector
          *
@@ -1459,7 +1496,7 @@ namespace Kratos
             }
         }
 
-        /*
+        /**
          * Pressure System matrix functions
          * Compute L - D*Inv(Diag(S))*G
          */
@@ -1524,7 +1561,7 @@ namespace Kratos
 #endif
 
 
-        /* Identify non-zero tems in the system matrix */
+        /// Identify non-zero tems in the system matrix
         void ConstructSystemMatrix(
                 TSystemMatrixType& A)
         {
@@ -1614,6 +1651,7 @@ namespace Kratos
             }
         }
 
+        /// Compute the Pressure System Matrix
         /**
          *  Compute the System Matrix A = L - D*Inv(Diag(S))*G. The multiplication
          * is performed in random order, so each row will be stored in a temporary
@@ -1734,7 +1772,7 @@ namespace Kratos
         }
 
 
-        /* Helper function for Sytem matrix functions */
+        /// Helper function for Sytem matrix functions
         void SortCols(
                 std::vector<unsigned int>& ColList,
                 std::size_t& NumCols)
@@ -1759,8 +1797,7 @@ namespace Kratos
         }
 
 
-        /* allocate space for member matrices */
-
+        /// allocate space for member matrices
         void AllocateSpace(
                 TSystemMatrixType& A,
                 std::vector< std::vector<std::size_t> >& indices)
@@ -1795,7 +1832,7 @@ namespace Kratos
 
 #ifdef _OPENMP
 
-        /* y += A*x in parallel */
+        /// y += A*x in parallel
         void Parallel_ProductAdd(
                 const TSystemMatrixType& A,
                 const TSystemVectorType& in,
@@ -1814,8 +1851,8 @@ namespace Kratos
                 int thread_id = omp_get_thread_num();
                 int number_of_rows = partition[thread_id+1] - partition[thread_id];
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator row_iter_begin = A.index1_data().begin()+partition[thread_id];
-                 typename compressed_matrix<TDataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
-                 typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
+                typename compressed_matrix<TDataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
+                typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
 
 
                 partial_product_add(number_of_rows,
@@ -1828,9 +1865,7 @@ namespace Kratos
             }
         }
 
-	/**
-	 * calculates partial product
-	 */
+	/// calculates partial product for Parallel_ProductAdd
         void partial_product_add(
                 int number_of_rows,
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator row_begin,
@@ -1859,7 +1894,7 @@ namespace Kratos
 
 #endif
 
-        /* Set iterative solver tolerance using inexact Newton criteria */
+        /// Set initial iterative solver tolerance using inexact Newton criteria
         void SetInitialTolerance(
                 double RHSNorm,
                 double& TolFactor)
@@ -1869,6 +1904,7 @@ namespace Kratos
             std::cout << "Set iterative solver tolerance to " << TolFactor << std::endl;
         }
 
+        /// Correct iterative solver tolerance using inexact Newton criteria
         void UpdateTolerance(
                 double OldRHSNorm,
                 double NewRHSNorm,
@@ -1893,42 +1929,58 @@ namespace Kratos
         }
 
         // Total number of Dofs: BaseType::mEquationSystemSize;
-        unsigned int mVelFreeDofs; // Position of 1st Free Pressure Dof
-        unsigned int mVelFixedDofsEnd; // Position of 1st Fixed Pressure Dof
+        /// Position of 1st Free Pressure Dof
+        unsigned int mVelFreeDofs;
+        /// Position of 1st Fixed Pressure Dof
+        unsigned int mVelFixedDofsEnd;
 
         unsigned int mPressFreeDofs;
 
-        TSystemMatrixPointerType mpS; // System Matrix for the momentum equation
-        TSystemMatrixPointerType mpD; // Discrete Divergence operator
-        TSystemMatrixPointerType mpG; // Discrete Gradient operator
-        TSystemMatrixPointerType mpL; // Stabilization term
+        /// System Matrix for the momentum equation
+        TSystemMatrixPointerType mpS;
+        /// Discrete Divergence operator
+        TSystemMatrixPointerType mpD;
+        /// Discrete Gradient operator
+        TSystemMatrixPointerType mpG;
+        /// Stabilization term
+        TSystemMatrixPointerType mpL;
 
-        TSystemVectorPointerType mpIDiagS; // Inv(Diag(S)), stored as a vector
+        /// Inv(Diag(S)), stored as a vector
+        TSystemVectorPointerType mpIDiagS;
 
-        typename TLinearSolver::Pointer mpVelLinearSystemSolver; // Linear solver for velocity system
+        /// Linear solver for velocity system (pressure solver stored in base class)
+        typename TLinearSolver::Pointer mpVelLinearSystemSolver;
 
-        // Flag for matrix reconstruction
+        /// Flag for matrix reconstruction
         bool mDofSetChanged;
 
-        unsigned int mVelocityCorrection;
-        /* Ensure that velocity is divergence free after each iteration
-         * 0: Do not
-         * 1: Solve the system Diag(S)*dv = -G*dp
-         * 2: Solve the full system S*dv = -G*dp
+        /// Choice of method to ensure that velocity solution is divergence free
+        /** Ensure that velocity is divergence free after each iteration
+         * 0: Do not force (iteration process will eventually reach correct solution)
+         * 1: By solving the system Diag(S)*dv = -G*dp
+         * 2: By solving the full system S*dv = -G*dp
          */
+        unsigned int mVelocityCorrection;
 
         // Variables for inexact Newton tolerance control
-        bool mInexactNewton; // Use Inexact Newton method
-        double mMaxTolFactor; // used to compute maximum solution tolerance
-        double mSmallTol; // Minimum solution tolerance: 0.5*NonLinearTol
+        /// Use Inexact Newton method
+        bool mInexactNewton;
+        /// used to compute maximum solution tolerance in Inexact Newton
+        double mMaxTolFactor;
+        /// Minimum solution tolerance for inexact Newton: 0.5*NonLinearTol
+        double mSmallTol;
+        /// Inexact Newton parameter
         double mGamma;
 
-        bool mFirstIteration; // Keeps track of the first iteration in each step
+        /// Keeps track of the first iteration in each step
+        bool mFirstIteration;
 
 //        double mVelTolFactor;
+        /// Inexact Newton pressure tolerance factor
         double mPressTolFactor;
 
 //        double mLastVelRHSNorm;
+        /// Inexact Newton pressure tolerance factor
         double mLastPressRHSNorm;
     };
 }

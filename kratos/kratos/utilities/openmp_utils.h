@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-/* 
+/*
  * File:   openmp_utils.h
  * Author: jcotela
  *
@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    /// Implements basic tasks for OpenMP parallelism and suitable scalar alternatives
     /**
      This class defines utility functions that implement some basic OpenMP
      capabilities and an equivalent scalar alternative to use in compilations
@@ -63,6 +64,10 @@ namespace Kratos
     {
     public:
 
+        /// Vector type for the output of DivideInPartitions
+        /** Vector type for the output of the DivideInPartitions method
+         *  @see OpenMPUtils::DivideInPartitions
+         */
         typedef std::vector<int> PartitionVector;
 
         /**
@@ -88,7 +93,7 @@ namespace Kratos
             return 0;
             #endif
         }
-        
+
         /**
          Timing routine
          */
