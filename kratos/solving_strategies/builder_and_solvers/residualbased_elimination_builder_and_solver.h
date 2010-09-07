@@ -359,6 +359,9 @@ namespace Kratos
 			for(int i = 0; i<A_size; i++)
 			    omp_destroy_lock(&lock_array[i]);
 			KRATOS_WATCH("finished parallel building");
+
+//                        //ensure that all the threads are syncronized here
+//                        #pragma omp barrier
                         #endif
 
 
