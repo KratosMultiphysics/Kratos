@@ -81,7 +81,7 @@ namespace Kratos
 	  
 		//**********************************************************************************************
 		//**********************************************************************************************
-  		void MarkForRefinement(Variable<double>& rVariable, ModelPart& ThisModelPart, double admissible_ratio, unsigned int max_levels)
+  		void MarkForRefinement(Variable<double>& rVariable, ModelPart& ThisModelPart, double admissible_ratio, int max_levels)
 		{			
 			KRATOS_TRY;
 			
