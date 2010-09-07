@@ -135,6 +135,8 @@ namespace Kratos
 	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
 	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+	  
+	  void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
       ///@}
       ///@name Access
@@ -234,7 +236,7 @@ namespace Kratos
       void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
 	  inline double CalculateH(double Volume);
-      inline double CalculateTau(const double h, const double nu, const double norm_u,  ProcessInfo& CurrentProcessInfo);
+      inline double CalculateTau(const double h, const double nu, const double norm_u,  const ProcessInfo& CurrentProcessInfo);
        
    
 	  //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Volume)
