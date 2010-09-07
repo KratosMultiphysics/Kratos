@@ -88,6 +88,18 @@ namespace Kratos
             return 0;
             #endif
         }
+        
+        /**
+         Timing routine
+         */
+        static double GetCurrentTime()
+	{
+	    #ifndef _OPENMP
+		  return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+	    #else
+		  return  omp_get_wtime();
+	    #endif
+	}
 
         /**
          Divide an array of length NumTerms between NumThreads threads.
