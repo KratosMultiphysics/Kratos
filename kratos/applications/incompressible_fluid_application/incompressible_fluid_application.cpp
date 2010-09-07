@@ -91,8 +91,8 @@ namespace Kratos
 		mNoNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mNoNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
-		mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
-		mNoSlipFractStep(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
+		mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
+// 		mNoSlipFractStep(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
 
 		//mABC2D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
 
@@ -174,7 +174,7 @@ namespace Kratos
 
 		KRATOS_REGISTER_CONDITION("ProjDirichletCond", mProjDirichletCond);
 		KRATOS_REGISTER_CONDITION("NoSlipCondition2D", mNoSlipCondition2D);
-		KRATOS_REGISTER_CONDITION("NoSlipFractStep", mNoSlipFractStep);
+// 		KRATOS_REGISTER_CONDITION("NoSlipFractStep", mNoSlipFractStep);
 
 		//KRATOS_REGISTER_CONDITION("ABC2D", mABC2D);
 
