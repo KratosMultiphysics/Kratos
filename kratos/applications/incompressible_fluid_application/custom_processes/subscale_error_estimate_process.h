@@ -68,7 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 
 //tools for adaptivity
-#include "custom_utilities/adaptivity_utilities.h" 
+// #include "custom_utilities/adaptivity_utilities.h" 
 
 
 namespace Kratos
@@ -139,28 +139,39 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-			double nu = mr_model_part.GetMesh().GetProperties(1)[VISCOSITY];
-			double density = mr_model_part.GetMesh().GetProperties(1)[DENSITY];
+// 			double nu = mr_model_part.GetMesh().GetProperties(1)[VISCOSITY];
+// 			double density = mr_model_part.GetMesh().GetProperties(1)[DENSITY];
 
 			array_1d<double,3> aux;
 			array_1d<double,3> u_tilda;
 			double minimum_energy = 0.0001;
 			double h;
+			
+// 			//reset flags
+// 			for(ModelPart::ElementIterator ie = mr_model_part.ElementsBegin() ; 
+// 				ie != mr_model_part.ElementsEnd() ; ++ie)
+// 			{
+// 				ie->GetValue(REFINE_FLAG) = 0;
+// 
+// 			}
+			
 
 			for(ModelPart::NodeIterator in = mr_model_part.NodesBegin() ; 
 				in != mr_model_part.NodesEnd() ; ++in)
 			{
+				const double density = in->FastGetSolutionStepValue(DENSITY);
+				const double nu = in->FastGetSolutionStepValue(VISCOSITY);
 				const array_1d<double,3>& v = in->FastGetSolutionStepValue(VELOCITY);
 				const array_1d<double,3>& w = in->FastGetSolutionStepValue(MESH_VELOCITY);
 				noalias(aux) = v; noalias(aux)-=w;
-				const double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+				const double nodal_area = in->FastGetSolutionStepValue(NODAL_MASS)/density;
 				const double pressure = in->FastGetSolutionStepValue(PRESSURE);
 
 				//calculate tau
 				double norm_u = sqrt( aux[0]*aux[0] + aux[1]*aux[1] + aux[2]*aux[2] );
 				if(mdomain_size == 2)
 					h = sqrt(nodal_area);
-				else if (mdomain_size == 3)
+				else
 					h = pow(nodal_area,0.3333333333333);
 
 				double tau = 1.00 / ( 4.0*nu/(h*h) + 2.0*norm_u/h );
@@ -169,14 +180,14 @@ namespace Kratos
 //double bb = pow(2.0*norm_u/(h),2);
 //tau = sqrt(1.0/(aa+bb));
 
-				//ESTIMATE SUBSCALE VELOCITY
+				//ESTIMATE SUBSCALE VELOCITY (projections already include density)
 				noalias(u_tilda) = in->FastGetSolutionStepValue(PRESS_PROJ);
 				noalias(u_tilda) += in->FastGetSolutionStepValue(CONV_PROJ);
 				u_tilda *= tau;
 
 				//calculate total fluid energy on the node
 				double energy_tot = 0.5*density*inner_prod(v,v) + fabs(pressure); 
-				double energy_tilda = 0.5*density*inner_prod(u_tilda,u_tilda);
+				double energy_tilda = 0.5*inner_prod(u_tilda,u_tilda);
 
 				//calculate the ratio (error)
 				double ratio = 0.0;
@@ -187,27 +198,29 @@ namespace Kratos
 
 				//saving the ratio as error
 				in->FastGetSolutionStepValue(ERROR_RATIO) = ratio;
-			}
-
-
-			//decide which elements to refine
-			for(ModelPart::ElementIterator ie = mr_model_part.ElementsBegin() ; 
-				ie != mr_model_part.ElementsEnd() ; ++ie)
-			{
-				Geometry<Node<3> >& geom = ie->GetGeometry();
-
-				//calculate avg error
-				double avg_err = 0.00;
-				for(int i=0; i<geom.size(); i++)
-				{
-					avg_err += geom[i].FastGetSolutionStepValue(ERROR_RATIO);
-				}
-				avg_err /= double(geom.size());
-
-				if(avg_err > mlimit_ratio)
-					ie->GetValue(REFINE_FLAG) = 1;
+				
 
 			}
+
+
+// 			//decide which elements to refine
+// 			for(ModelPart::ElementIterator ie = mr_model_part.ElementsBegin() ; 
+// 				ie != mr_model_part.ElementsEnd() ; ++ie)
+// 			{
+// 				Geometry<Node<3> >& geom = ie->GetGeometry();
+// 
+// 				//calculate avg error
+// 				double avg_err = 0.00;
+// 				for(int i=0; i<geom.size(); i++)
+// 				{
+// 					avg_err += geom[i].FastGetSolutionStepValue(ERROR_RATIO);
+// 				}
+// 				avg_err /= double(geom.size());
+// 
+// 				if(avg_err > mlimit_ratio)
+// 					ie->GetValue(REFINE_FLAG) = 1;
+// 
+// 			}
 
 
 				KRATOS_CATCH("")
@@ -326,10 +339,10 @@ namespace Kratos
 		///@{ 
 
 		/// Assignment operator.
-		SubscaleEstimatorProcess& operator=(SubscaleEstimatorProcess const& rOther);
+// 		SubscaleEstimatorProcess& operator=(SubscaleEstimatorProcess const& rOther);
 
 		/// Copy constructor.
-		SubscaleEstimatorProcess(SubscaleEstimatorProcess const& rOther);
+// 		SubscaleEstimatorProcess(SubscaleEstimatorProcess const& rOther);
 
 
 		///@}    
