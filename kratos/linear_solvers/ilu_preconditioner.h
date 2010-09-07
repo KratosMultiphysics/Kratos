@@ -134,6 +134,13 @@ namespace Kratos
         if ( U!=NULL) delete[]  U;
         if (iU!=NULL) delete[] iU;
         if (jU!=NULL) delete[] jU;
+        
+        L = NULL;
+	iL = NULL;
+	jL = NULL;
+	U = NULL;
+	iU = NULL;
+	jU = NULL;
       }
       
 

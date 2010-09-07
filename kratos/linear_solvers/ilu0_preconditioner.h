@@ -130,7 +130,7 @@ namespace Kratos
 
 
 		/// Copy constructor.
-		ILU0Preconditioner(const ILU0Preconditioner& Other){}
+// 		ILU0Preconditioner(const ILU0Preconditioner& Other){}
 
 
 		/// Destructor.
@@ -142,6 +142,13 @@ namespace Kratos
 			if ( BaseType::U!=NULL) delete[]  BaseType::U;
 			if (BaseType::iU!=NULL) delete[] BaseType::iU;
 			if (BaseType::jU!=NULL) delete[] BaseType::jU;
+			
+			BaseType::L = NULL;
+			BaseType::iL = NULL;
+			BaseType::jL = NULL;
+			BaseType::U = NULL;
+			BaseType::iU = NULL;
+			BaseType::jU = NULL;
 		}
 
 
@@ -151,11 +158,11 @@ namespace Kratos
 		///@{
 
 		/// Assignment operator.
-		ILU0Preconditioner& operator=(const ILU0Preconditioner& Other)
-		{
-			BaseType::operator=(Other);
-			return *this;
-		}
+// 		ILU0Preconditioner& operator=(const ILU0Preconditioner& Other)
+// 		{
+// 			BaseType::operator=(Other);
+// 			return *this;
+// 		}
 
 
 
@@ -191,6 +198,13 @@ namespace Kratos
 			if ( BaseType::U!=NULL) delete[]  BaseType::U;
 			if (BaseType::iU!=NULL) delete[] BaseType::iU;
 			if (BaseType::jU!=NULL) delete[] BaseType::jU;
+			
+			BaseType::L = NULL;
+			BaseType::iL = NULL;
+			BaseType::jL = NULL;
+			BaseType::U = NULL;
+			BaseType::iU = NULL;
+			BaseType::jU = NULL;
 
 
 			// Create copy of matrix split in its BaseType::L and BaseType::U parts
