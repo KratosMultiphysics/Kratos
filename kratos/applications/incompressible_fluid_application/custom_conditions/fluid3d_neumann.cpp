@@ -110,21 +110,36 @@ namespace Kratos
 			v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
 
 			MathUtils<double>::CrossProduct(An,v1,v2);
-			An *= 0.5 * 0.3333333333333333;
-
-			unsigned int component = FractionalStepNumber-1;
-			for(unsigned int i = 0; i<GetGeometry().size(); i++)
-				rRightHandSideVector[i] = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) * An[component] ; 
+			An *= 0.5 ;
 			
+			unsigned int is_structure = this->GetValue(IS_STRUCTURE);
 
+			if(is_structure != 1.0)
+			{
+			    unsigned int component = FractionalStepNumber-1;
+			    for(unsigned int i = 0; i<GetGeometry().size(); i++)
+				    rRightHandSideVector[i] = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) * An[component] * 0.3333333333333333; 
+			}
+			else
+			{
+			    unsigned int component = FractionalStepNumber-1;
+			    double p0 = 2.0*GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+			    double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+			    double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+			    rRightHandSideVector[0] = -p0 * An[component] / 12.0; 
+			    rRightHandSideVector[1] = -p1 * An[component] / 12.0; 
+			    rRightHandSideVector[2] = -p2 * An[component] / 12.0; 
+			   
+			}
+			
+;
 		}
-/*		if(FractionalStepNumber == 4) //pressure step
-		{
-			bool CalculateStiffnessMatrixFlag = false;
-			bool CalculateResidualVectorFlag = true;
-			MatrixType temp = Matrix();
-			CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-		}*/
+// 		if(FractionalStepNumber == 4) //pressure step
+// 		{
+// 			if(rRightHandSideVector.size() != 3)
+// 					rRightHandSideVector.resize(3,false);
+// 			
+// 		}
 		else
 		{
 			if(rRightHandSideVector.size() != 0)
@@ -142,7 +157,19 @@ namespace Kratos
 
 		unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 
-//		KRATOS_WATCH(FractionalStepNumber);
+
+		//calculate normal to element
+		array_1d<double,3> An,v1,v2;
+		v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
+		v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
+		v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
+					
+		v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
+		v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
+		v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
+
+		MathUtils<double>::CrossProduct(An,v1,v2);
+		An *= 0.5 ;
 
 		if(FractionalStepNumber < 4)
 		{
@@ -152,38 +179,64 @@ namespace Kratos
 					rRightHandSideVector.resize(3,false);
 					noalias(rLeftHandSideMatrix) = ZeroMatrix(3,3);
 			}
+			
+			unsigned int is_structure = this->GetValue(IS_STRUCTURE);
 
-			//calculate normal to element
-			array_1d<double,3> An,v1,v2;
-			v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
-			v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
-			v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
-						
-			v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
-			v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
-			v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
-
-			MathUtils<double>::CrossProduct(An,v1,v2);
-			An *= 0.5 * 0.3333333333333333;
-
-			unsigned int component = FractionalStepNumber-1;
-			for(unsigned int i = 0; i<GetGeometry().size(); i++)
+			if(is_structure == 1.0)
 			{
-				rRightHandSideVector[i] = - GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) * An[component];
-				
-// 				KRATOS_WATCH(GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) );
-// 				KRATOS_WATCH(An[component] );
-// 				KRATOS_WATCH(rRightHandSideVector[i] );
+			    unsigned int component = FractionalStepNumber-1;
+			    double p0 = 2.0*GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+			    double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+			    double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+			    rRightHandSideVector[0] = -p0 * An[component] / 12.0; 
+			    rRightHandSideVector[1] = -p1 * An[component] / 12.0; 
+			    rRightHandSideVector[2] = -p2 * An[component] / 12.0; 
+// 			    KRATOS_WATCH(p0);
+// std::cout << this->Id() << " " << An << " " << p0 << " " << p1 << " " << p2 <<std::endl;			
+			   
 			}
-// 			KRATOS_WATCH(An);
-// 			KRATOS_WATCH(rRightHandSideVector);
+			
+			  else
+			{
+			    unsigned int component = FractionalStepNumber-1;
+			    for(unsigned int i = 0; i<GetGeometry().size(); i++)
+				    rRightHandSideVector[i] = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE) * An[component] * 0.3333333333333333; 
+			}
 		}
-
-/*		if(FractionalStepNumber == 4) //pressure step
+/*		else if(FractionalStepNumber == 4) //pressure step
 		{
-			CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-		}*/
-		
+			if(rLeftHandSideMatrix.size1() != 3)
+			{
+					rLeftHandSideMatrix.resize(3,3,false);
+					rRightHandSideVector.resize(3,false);
+					noalias(rLeftHandSideMatrix) = ZeroMatrix(3,3);
+			}
+			
+			unsigned int is_structure = this->GetValue(IS_STRUCTURE);
+
+			if(is_structure == 1)
+			{
+			    double vn0 = inner_prod(An,GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL));
+			    double vn1 = inner_prod(An,GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL));
+			    double vn2 = inner_prod(An,GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL));
+			    double v0 = 2.0*vn0 + vn1 + vn2;
+			    double v1 = vn0 + 2.0*vn1 + vn2;
+			    double v2 = vn0 + vn1 + 2.0*vn2;
+// 			    KRATOS_WATCH(vn0);
+// 			    KRATOS_WATCH(vn1);
+// 			    KRATOS_WATCH(vn2);
+// 			    KRATOS_WATCH(v0);
+// 			    KRATOS_WATCH(v1);
+// 			    KRATOS_WATCH(v2);
+			    rRightHandSideVector[0] = v0 / 12.0; 
+			    rRightHandSideVector[1] = v1 / 12.0; 
+			    rRightHandSideVector[2] = v2 / 12.0; 
+			   
+			}
+			else
+			  noalias(rRightHandSideVector) = ZeroVector(3);
+		}
+	*/	
 		else
 		{
 			if(rLeftHandSideMatrix.size1() != 0)
@@ -289,7 +342,20 @@ namespace Kratos
 			else if(FractionalStepNumber == 3) //step 2
 				for (unsigned int i=0;i<number_of_nodes;i++)
 					rResult[i] = GetGeometry()[i].GetDof(FRACT_VEL_Z).EquationId();	
+				
+			std::cout << this->Id();
+			for (unsigned int i=0;i<number_of_nodes;i++)
+			  std::cout << " " << rResult[i];
+			std::cout <<std::endl;
 		}
+// 		else if(FractionalStepNumber == 4)
+// 		{
+// 			if(rResult.size() != number_of_nodes)
+// 				rResult.resize(number_of_nodes,false);
+// 
+// 			for (unsigned int i=0;i<number_of_nodes;i++)
+// 				rResult[i] = GetGeometry()[i].GetDof(PRESSURE).EquationId();	
+// 		}
 		else
 				if(rResult.size() != 0)
 					rResult.resize(0,false);
@@ -314,10 +380,11 @@ namespace Kratos
 	  void Fluid3DNeumann::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
 	{
 		unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-		unsigned int number_of_nodes = GetGeometry().PointsNumber();
+		
 
 		if(FractionalStepNumber < 4)
 		{
+			unsigned int number_of_nodes = GetGeometry().PointsNumber();
 			if(ConditionalDofList.size() != number_of_nodes)
 				ConditionalDofList.resize(number_of_nodes);
 
@@ -331,23 +398,71 @@ namespace Kratos
 				for (unsigned int i=0;i<number_of_nodes;i++)
 					ConditionalDofList[i] = GetGeometry()[i].pGetDof(FRACT_VEL_Z);	
 		}
-		else
-				if(ConditionalDofList.size() != 0)
-					ConditionalDofList.resize(0);
-
-/*		if(FractionalStepNumber == 4) //pressure step
-		{
-			if(ConditionalDofList.size() != GetGeometry().size())
-				ConditionalDofList.resize(GetGeometry().size());
-			for (unsigned int i=0;i<GetGeometry().size();i++)
-			{
-				ConditionalDofList[i] = (GetGeometry()[i].pGetDof(PRESSURE));
-			}
-		}
+// 		if(FractionalStepNumber == 4) //pressure step
+// 		{
+// 			if(ConditionalDofList.size() != GetGeometry().size())
+// 				ConditionalDofList.resize(GetGeometry().size());
+// 			for (unsigned int i=0;i<GetGeometry().size();i++)
+// 			{
+// 				ConditionalDofList[i] = (GetGeometry()[i].pGetDof(PRESSURE));
+// 			}
+// 		}
 		else
 			if(ConditionalDofList.size() != 0)
 				ConditionalDofList.resize(0);
-*/	}
+	}
+	
+	
+	//************************************************************************************
+	//************************************************************************************
+	void Fluid3DNeumann::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+	{
+		KRATOS_TRY
+		
+		unsigned int is_structure = this->GetValue(IS_STRUCTURE);
+
+		if(is_structure == 1.0)
+		{
+		  
+			int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
+		  if(FractionalStepNumber  == 6) //calculation of stabilization terms
+		      {
+			
+		      //getting data for the given geometry
+		      //calculate normal to element
+		      array_1d<double,3> An,v1,v2;
+		      v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
+		      v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
+		      v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
+					      
+		      v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
+		      v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
+		      v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
+
+		      MathUtils<double>::CrossProduct(An,v1,v2);
+		      An *= 0.5 ;
+		      
+		      
+			  double dp0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) - GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+			  double dp1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) - GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+			  double dp2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) - GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+			  
+			  double p0 = 2.0*dp0 + dp1 + dp2;
+			  double p1 = dp0 + 2.0*dp1 + dp2;
+			  double p2 = dp0 + dp1 + 2.0*dp2;
+			  
+			  p0/=12.0;
+			  p1/=12.0;
+			  p2/=12.0;
+			  
+			  noalias(GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL)) += -p0 * An; 
+			  noalias(GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL)) += -p1 * An; 
+			  noalias(GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL)) += -p2 * An; 
+		      }
+		}
+		
+		KRATOS_CATCH("");
+	}
 	  
 } // Namespace Kratos
 
