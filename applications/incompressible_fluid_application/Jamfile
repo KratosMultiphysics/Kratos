@@ -69,6 +69,7 @@ python-extension KratosIncompressibleFluidApplication
 	asgs_comp_pr_dc_2d.cpp
 	asgs_comp_pr_dc_3d.cpp
 	no_slip_condition_2d.cpp
+	no_slip_fract_step.cpp
 	#abc_2d.cpp
 
 	fluid_2d_split.cpp
@@ -89,21 +90,7 @@ python-extension KratosIncompressibleFluidApplication
 
 #################################################################################
 #################################################################################
-## rules to install ... and to remove the prefix "lib"
+## rules to install ... 
 
-##rule tag ( name : type ? : property-set )
-##{
-##  if $(name) = "libKratosIncompressibleFluidApplication"
-##  {
-##    if [ $(property-set).get <os> ] = NT
-##    {  return KratosIncompressibleFluidApplication.dll ;  }
-##    else
-##    {  return KratosIncompressibleFluidApplication.so ;   }
-##  }
-##  else
-##  {
-##    return $(name) ;
-##  }  
-##}
 install install : KratosIncompressibleFluidApplication : <location>$(TOP)/libs ;
 

@@ -32,6 +32,7 @@
 //#include "custom_conditions/monolithic3d_neumann.h"
 
 #include "custom_conditions/no_slip_condition_2d.h"
+#include "custom_conditions/no_slip_fract_step.h"
 
 #include "includes/variables.h"
 #include "includes/condition.h"
@@ -312,6 +313,7 @@ namespace Kratos
 		const NoNewtonianASGS3D mNoNewtonianASGS3D;
 
 		const NoSlipCondition2D mNoSlipCondition2D;
+		const NoSlipFractStep mNoSlipFractStep;
 
 		//const ABC2D mABC2D;
 
