@@ -56,32 +56,67 @@ def Run():
 	
         # Add other examples here	
 
-        ################################################################
+##        ################################################################
+##	# cavity2D
+##
+##	Text += "cavity2d: "
+##	os.chdir("cavity2d.gid")
+##	sys.path.append(os.getcwd())
+##
+##	#import column_benchmark
+##	#Msg = column_benchmark.Run()
+##
+##	print "Running cavity.py..."
+##	Msg = benchmarking.RunBenchmark("cavity2d.py", "cavity_ref.txt")	
+##	
+##	if (Msg == True):
+##		Text += "OK\n"
+##		print "cavity2d example succesful"
+##	else:
+##		Text += "FAILED\n"
+##		Text += Msg
+##		Text += "\n\n"
+##		print "cavity2d example FAILED"
+##
+##	os.chdir("..")
+##	
+##        # Add other examples here
+
+
+        ###############################################################################
 	# cavity2D
 
-	Text += "cavity2d: "
-	os.chdir("cavity2d.gid")
+	Text += "cavity2D: "
+	os.chdir("cavity2D.gid")
 	sys.path.append(os.getcwd())
 
-	#import column_benchmark
-	#Msg = column_benchmark.Run()
+        print "verifying  test_fractstep_cont_laplacian.py..."
+        Msg = benchmarking.RunBenchmark("test_fractstep_cont_laplacian.py", "fractstep_cont_laplacian_benchmarking_ref.txt")
 
-	print "Running cavity.py..."
-	Msg = benchmarking.RunBenchmark("cavity2d.py", "cavity_ref.txt")	
-	
-	if (Msg == True):
-		Text += "OK\n"
-		print "cavity2d example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "cavity2d example FAILED"
+        if (Msg == True):
+            Text += "OK\n"
+            print "test_fractstep_cont_laplacian example succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "test_fractstep_cont_laplacian example FAILED"
 
-	os.chdir("..")
-	
-        # Add other examples here
+        print "verifying  test_fractstep_discrete_laplacian.py..."
+        Msg = benchmarking.RunBenchmark("test_fractstep_discrete_laplacian.py", "fractstep_discrete_laplacian_benchmarking_ref.txt")
 
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "test_fractstep_discrete_laplacian example succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "test_fractstep_discrete_laplacian example FAILED"
+
+        os.chdir("..")
+    
         ################################################################
 	# cylinder
 
