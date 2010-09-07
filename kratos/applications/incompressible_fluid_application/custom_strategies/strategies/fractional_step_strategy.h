@@ -25,6 +25,7 @@
 //#include "incompressible_fluid_application.h"
 #include "custom_strategies/strategies/solver_configuration.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_processes/generate_slip_condition_process.h"
 
 #ifdef _OPENMP
     #include "omp.h"
@@ -181,8 +182,6 @@ namespace Kratos
                             KRATOS_ERROR(std::logic_error,"domain size not coinciding","")
 
                         this->mpfracvel_x_strategy = solver_config.pGetStrategy(std::string("vel_x_strategy"));
-                        this->mpfracvel_y_strategy = solver_config.pGetStrategy(std::string("vel_y_strategy"));
-                        this->mpfracvel_z_strategy = solver_config.pGetStrategy(std::string("vel_z_strategy"));
                         this->mppressurestep = solver_config.pGetStrategy(std::string("pressure_strategy"));
 
 
@@ -204,7 +203,7 @@ namespace Kratos
 
 			this->m_step = 1;
 
-			this->mOldDt  =0.00;
+			mHasSlipProcess=false;
 
 			KRATOS_CATCH("")
 		}
@@ -251,7 +250,6 @@ namespace Kratos
 				this->Clear();
 
 			this->m_step += 1;
-			this->mOldDt =  BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
 			return Dp_norm;
 			KRATOS_CATCH("")
@@ -275,7 +273,7 @@ namespace Kratos
                         while(	Dp_norm >= this->mpressure_toll && iteration++ < MaxPressureIterations  )
 			{
 				double p_norm = SavePressureIteration();				
-
+KRATOS_WATCH("ln276")
 				Dp_norm = FracStepSolution();
 
 				if(fabs(p_norm) > 1e-10)
@@ -294,7 +292,14 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-
+		//*********************************************************************************
+		//**********************************************************************
+		void SetSlipProcess(GenerateSlipConditionProcess::Pointer pSlipProcess)
+		{
+		      mpSlipProcess = pSlipProcess;
+		      mHasSlipProcess = true;
+		}
+		
 		//*********************************************************************************
 		//**********************************************************************
 
@@ -455,6 +460,14 @@ namespace Kratos
 					}		
 				}			
 			}
+			
+			//if we have slip condition apply it
+			if( mHasSlipProcess == true)
+			{
+// 			   KRATOS_WATCH("final correction")
+			    mpSlipProcess->SetNormalVelocityToZero(VELOCITY);
+// 			    mpSlipProcess->ApplyEdgeConstraints(VELOCITY);
+			}
 
 
 
@@ -472,19 +485,35 @@ namespace Kratos
 			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 			double Dt = rCurrentProcessInfo[DELTA_TIME];
 			
-			if(this->mOldDt == 0.00) //needed for the first step
-				this->mOldDt = Dt;
+			KRATOS_WATCH(time_order)
+			KRATOS_WATCH(step)
 
 			if(time_order == 2 && step > time_order)
 			{
 				if(BaseType::GetModelPart().GetBufferSize() < 3)
 					KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
-
+					
+				double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+				
+				double rho = dt_old/Dt;
+				double coeff = 1.0/(Dt*rho*rho+Dt*rho);
+				
+/*				KRATOS_WATCH(rho);
+				KRATOS_WATCH(coeff);*/
+				
 				rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3,false);
 				Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-				BDFcoeffs[0] =	1.5 / Dt;	//coefficient for step n+1
-				BDFcoeffs[1] =	-2.0 / Dt;//coefficient for step n
-				BDFcoeffs[2] =	0.5 / Dt;//coefficient for step n-1
+				BDFcoeffs[0] =	coeff*(rho*rho+2.0*rho);	//coefficient for step n+1
+				BDFcoeffs[1] =	-coeff*(rho*rho+2.0*rho+1.0);//coefficient for step n
+				BDFcoeffs[2] =	coeff;
+					
+// 					(y2+(-rho^2-2*rho-1)*y1+(rho^2+2*rho)*y0)/(dt0*rho^2+dt0*rho)
+
+// 				rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3,false);
+// 				Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+// 				BDFcoeffs[0] =	1.5 / Dt;	//coefficient for step n+1
+// 				BDFcoeffs[1] =	-2.0 / Dt;//coefficient for step n
+// 				BDFcoeffs[2] =	0.5 / Dt;//coefficient for step n-1
 			}
 			else
 			{
@@ -581,14 +610,27 @@ namespace Kratos
 
 			bool is_converged = false;
 			double iteration = 1;
+			
+			if( mHasSlipProcess == true)
+			{
+			    mpSlipProcess->SetNormalVelocityToZero(FRACT_VEL);
+// 			    mpSlipProcess->ApplyEdgeConstraints(FRACT_VEL);
+			}
 
 			//solve for fractional step velocities
 			while(	is_converged == false && iteration++<MaxIterations  ) 
 			{
 				//perform one iteration over the fractional step velocity
 				FractionalVelocityIteration(normDx);
-
 				is_converged = ConvergenceCheck(normDx,velocity_toll);
+				
+				
+			}
+			
+			if( mHasSlipProcess == true)
+			{
+			    mpSlipProcess->SetNormalVelocityToZero(FRACT_VEL);
+// 			    mpSlipProcess->ApplyEdgeConstraints(FRACT_VEL);
 			}
 
 			if (is_converged == false)
@@ -598,9 +640,9 @@ namespace Kratos
 			if(mReformDofAtEachIteration == true && mpredictor_corrector == false )
 			{
 				this->mpfracvel_x_strategy->Clear();
-				this->mpfracvel_y_strategy->Clear();
-				if(this->mdomain_size == 3)
-					this->mpfracvel_z_strategy->Clear();
+// 				this->mpfracvel_y_strategy->Clear();
+// 				if(this->mdomain_size == 3)
+// 					this->mpfracvel_z_strategy->Clear();
 			}
 
 			KRATOS_CATCH("");
@@ -918,9 +960,7 @@ namespace Kratos
 		bool ConvergenceCheck(const array_1d<double,3>& normDx, double toll)
 		{
 			KRATOS_TRY;
-			double norm_vx = 0.00;
-			double norm_vy = 0.00;
-			double norm_vz = 0.00;
+			double norm_v = 0.00;
 
 
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
@@ -928,32 +968,24 @@ namespace Kratos
 			{
 				const array_1d<double,3>& v = (i)->FastGetSolutionStepValue(FRACT_VEL);
 
-				norm_vx += v[0]*v[0];
-				norm_vy += v[1]*v[1];
-				norm_vz += v[2]*v[2];
+				norm_v += v[0]*v[0];
+				norm_v += v[1]*v[1];
+				norm_v += v[2]*v[2];
 			}
 
-                        BaseType::GetModelPart().GetCommunicator().SumAll(norm_vx);
-                        BaseType::GetModelPart().GetCommunicator().SumAll(norm_vy);
-                        BaseType::GetModelPart().GetCommunicator().SumAll(norm_vz);
+                        BaseType::GetModelPart().GetCommunicator().SumAll(norm_v);
 
-			norm_vx = sqrt(norm_vx);
-			norm_vy = sqrt(norm_vy);
-			norm_vz = sqrt(norm_vz);
+			norm_v = sqrt(norm_v);
 
-			if(norm_vx == 0.0) norm_vx  = 1.00;
-			if(norm_vy == 0.0) norm_vy  = 1.00;
-			if(norm_vz == 0.0) norm_vz  = 1.00;
+			if(norm_v == 0.0) norm_v  = 1.00;
 
-			double ratio_x = normDx[0]/norm_vx;
-			double ratio_y = normDx[1]/norm_vy;
-			double ratio_z = normDx[2]/norm_vz;
+			double ratio = normDx[0]/norm_v;
 
                         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-                        if(rank == 0)  std::cout << "ratio_x = " << ratio_x << " ratio_Y = " << ratio_y << " ratio_Z = " << ratio_z << std::endl;
+                        if(rank == 0)  std::cout << "velocity ratio = " << ratio  << std::endl;
 
 
-			if(ratio_x < toll && ratio_y < toll && ratio_z < toll)
+			if(ratio < toll)
 			{
 				if(rank == 0)  std::cout << "convergence achieved" << std::endl;
 				return true;
@@ -974,16 +1006,11 @@ namespace Kratos
 			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 			
 			rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
+			//if we have slip condition apply it
 			normDx[0] = mpfracvel_x_strategy->Solve();
+normDx[1] = 0.0;
+normDx[2] = 0.0;
 
-			rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
-			normDx[1] = mpfracvel_y_strategy->Solve();
-
-			if(mdomain_size == 3)
-			{
-				rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
-				normDx[2] = mpfracvel_z_strategy->Solve();
-			}
 			KRATOS_CATCH("");
 		}
 
@@ -1003,10 +1030,6 @@ namespace Kratos
 		virtual void SetEchoLevel(int Level) 
 		{
 			mpfracvel_x_strategy->SetEchoLevel(Level);
-			mpfracvel_y_strategy->SetEchoLevel(Level);
-			if(mdomain_size == 3)
-				mpfracvel_z_strategy->SetEchoLevel(Level);
-			//
 			mppressurestep->SetEchoLevel(Level);
 		}
 
@@ -1017,9 +1040,6 @@ namespace Kratos
                         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
                         if(rank == 0)  KRATOS_WATCH("FractionalStepStrategy Clear Function called");
 			mpfracvel_x_strategy->Clear();
-			mpfracvel_y_strategy->Clear();
-			if(mdomain_size == 3)
-				mpfracvel_z_strategy->Clear();
 			mppressurestep->Clear();
 		}
 
@@ -1028,9 +1048,9 @@ namespace Kratos
 			if(step == 1)
 				return mpfracvel_x_strategy->GetResidualNorm();
 			if(step == 2)
-				return mpfracvel_y_strategy->GetResidualNorm();
+				return mpfracvel_x_strategy->GetResidualNorm();
 			if(step == 3)
-				return mpfracvel_z_strategy->GetResidualNorm();
+				return mpfracvel_x_strategy->GetResidualNorm();
 			if(step == 4)
 				return mppressurestep->GetResidualNorm();
                         else
@@ -1072,8 +1092,6 @@ namespace Kratos
 		/**@name Protected member Variables */
 		/*@{ */
 		typename BaseType::Pointer mpfracvel_x_strategy;
-		typename BaseType::Pointer mpfracvel_y_strategy;
-		typename BaseType::Pointer mpfracvel_z_strategy;
 		typename BaseType::Pointer mppressurestep;
 
 		double mvelocity_toll;
@@ -1126,8 +1144,10 @@ namespace Kratos
 		/*@{ */
 		unsigned int m_step;
 		unsigned int mdomain_size;
-		double mOldDt;
 		bool proj_is_initialized;
+		
+		GenerateSlipConditionProcess::Pointer mpSlipProcess;
+		bool mHasSlipProcess;
 
                 //******************************************************************************************
 		//******************************************************************************************

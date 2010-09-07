@@ -608,7 +608,7 @@ namespace Kratos
 				G*=volume;
 
 				array_1d<double,6> aaa;
-				aaa = prod(G,pres_inc);
+				noalias(aaa) = prod(G,pres_inc);
 
 				array_1d<double,3> aux;
 				aux[0]=aaa[0];
@@ -668,7 +668,7 @@ namespace Kratos
 				G*=volume;
 
 				array_1d<double,12> aaa;
-				aaa = prod(G,pres_inc);
+				noalias(aaa) = prod(G,pres_inc);
 
 				array_1d<double,3> aux;
 				aux[0]=aaa[0];
