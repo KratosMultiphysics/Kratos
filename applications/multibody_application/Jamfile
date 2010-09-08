@@ -1,0 +1,51 @@
+project MultibodyApplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_conditions
+       custom_elements
+       custom_processes 
+       custom_python
+       custom_strategies
+       custom_utilities
+       external_includes
+    :
+    requirements <include>. 
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+# no libs needed for this application ... have a look to PFEMapplication for examples
+# of use in a more general case
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+import python ;
+python-extension KratosMultibodyApplication
+    :  
+	#list of sources
+	add_custom_processes_to_python.cpp
+	kratos_multibody_application.cpp
+	kratos_multibody_python_application.cpp
+
+    /KratosProject//libkratos_static
+
+    /KratosProject//libomp
+    	 
+	/KratosProject//pythonlib
+	/KratosProject//boost_python_lib
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+
+install install : KratosMultibodyApplication : <location>$(TOP)/libs ;
+
