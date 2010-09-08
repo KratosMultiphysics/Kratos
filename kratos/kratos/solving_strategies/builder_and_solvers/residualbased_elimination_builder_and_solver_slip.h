@@ -552,7 +552,7 @@ namespace Kratos
 			std::vector< std::vector<int> > index_list(BaseType::mEquationSystemSize);
 // KRATOS_WATCH("inside PArallel Construct Graph")
 
-                        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+                        int number_of_threads = OpenMPUtils::GetNumThreads();
 
 			unsigned int pos_x = (mActiveNodes.begin())->GetDofPosition(mrVar_x);
 			unsigned int pos_y = (mActiveNodes.begin())->GetDofPosition(mrVar_y);
