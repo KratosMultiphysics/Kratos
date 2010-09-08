@@ -51,6 +51,29 @@ def Run():
 		print "testConvection example FAILED"
 
 	os.chdir("..")
+
+	
+
+	################################################################
+	# testConvection Edgebased
+
+	Text += "square_edgebased: "
+	os.chdir("square_edgebased.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running edgebased_PureConvection.py..."
+	Msg = benchmarking.RunBenchmark("edgebased_PureConvection.py", "test_pureconvectionsolver_benchmarking_ref.txt")
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "testConvectionEdgebased example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "testConvectionEdgebased example FAILED"
+
+	os.chdir("..")
         # Add other examples here
 
 
