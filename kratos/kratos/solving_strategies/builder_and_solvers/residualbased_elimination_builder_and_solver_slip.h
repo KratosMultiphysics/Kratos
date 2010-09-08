@@ -561,7 +561,9 @@ namespace Kratos
 
                         vector<unsigned int> partition;
                         vector<unsigned int> local_sizes(number_of_threads);
-			for(unsigned int i=0; i<number_of_threads; i++)
+			
+			#pragma omp parallel for
+			for(int i=0; i<number_of_threads; i++)
                             local_sizes[i] = 0;
 
 			CreatePartition(number_of_threads, mActiveNodes.size(), partition);
@@ -719,6 +721,7 @@ namespace Kratos
 
                         //calculate the total size of the system
                         int total_size = 0.0;
+			#pragma omp for reduction(+:total_size)
                         for(int i=0; i<number_of_threads; i++)
                             total_size += local_sizes[i];
 
