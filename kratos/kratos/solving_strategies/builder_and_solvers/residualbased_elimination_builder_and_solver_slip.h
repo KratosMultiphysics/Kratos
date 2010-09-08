@@ -721,7 +721,7 @@ namespace Kratos
 
                         //calculate the total size of the system
                         int total_size = 0.0;
-			#pragma omp for reduction(+:total_size)
+			#pragma omp parallel for reduction(+:total_size)
                         for(int i=0; i<number_of_threads; i++)
                             total_size += local_sizes[i];
 
@@ -736,6 +736,10 @@ namespace Kratos
 					A.push_back(i,indices[j] , 0.00);
 				}
 			}
+			
+
+
+
 // KRATOS_WATCH("finished PArallel Construct Graph")
 			KRATOS_CATCH("")
 		}
