@@ -719,7 +719,7 @@ namespace Kratos
 
                         //calculate the total size of the system
                         int total_size = 0.0;
-                        for(unsigned int i=0; i<number_of_threads; i++)
+                        for(int i=0; i<number_of_threads; i++)
                             total_size += local_sizes[i];
 
 			A.reserve(total_size,false);
