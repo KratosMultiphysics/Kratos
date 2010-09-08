@@ -48,6 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifdef _OPENMP
 #include <omp.h>
+#else
+#include <ctime>
 #endif
 
 namespace Kratos
