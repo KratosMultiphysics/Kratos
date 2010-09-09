@@ -273,7 +273,7 @@ namespace Kratos
                         while(	Dp_norm >= this->mpressure_toll && iteration++ < MaxPressureIterations  )
 			{
 				double p_norm = SavePressureIteration();				
-KRATOS_WATCH("ln276")
+
 				Dp_norm = FracStepSolution();
 
 				if(fabs(p_norm) > 1e-10)
@@ -485,8 +485,8 @@ KRATOS_WATCH("ln276")
 			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 			double Dt = rCurrentProcessInfo[DELTA_TIME];
 			
-			KRATOS_WATCH(time_order)
-			KRATOS_WATCH(step)
+// 			KRATOS_WATCH(time_order)
+// 			KRATOS_WATCH(step)
 
 			if(time_order == 2 && step > time_order)
 			{
