@@ -136,7 +136,7 @@ namespace Kratos
 		if(mscaling_type == SymmetricScaling)
 		{
 		  Epetra_Vector scaling_vect(rA.RowMap());
-		  rA.InvRowSums(scaling_vect);
+		  rA.InvColSums(scaling_vect);
 		  
 		  int MyLength = scaling_vect.MyLength();
 		  for( int i=0 ; i<MyLength ; ++i ) scaling_vect[i] = sqrt(scaling_vect[i]);
@@ -147,7 +147,7 @@ namespace Kratos
 		else if (mscaling_type == LeftScaling)
 		{
 		  Epetra_Vector scaling_vect(rA.RowMap());
-		  rA.InvRowSums(scaling_vect);
+		  rA.InvColSums(scaling_vect);
 		  		  
 		  AztecProblem.LeftScale(scaling_vect);
   
