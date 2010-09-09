@@ -134,7 +134,7 @@ class IncompressibleFluidSolver:
         self.velocity_linear_solver =  AztecSolver(velocity_aztec_parameters,velocity_preconditioner_type,velocity_preconditioner_parameters,velocity_linear_tol,velocity_nit_max,velocity_overlap_level);
         self.pressure_linear_solver =  AztecSolver(pressure_aztec_parameters,pressure_preconditioner_type,pressure_preconditioner_parameters,pressure_linear_tol,pressure_nit_max,pressure_overlap_level);
         self.velocity_linear_solver.SetScalingType(AztecScalingType.NoScaling)
-        self.pressure_linear_solver.SetScalingType(AztecScalingType.NoScaling)
+        self.pressure_linear_solver.SetScalingType(AztecScalingType.NoScaling) 
         
         ##handling slip condition
         self.slip_conditions_initialized = False
@@ -225,6 +225,7 @@ class IncompressibleFluidSolver:
         backupfile.close()
 
 
-        
+
+
         
 
