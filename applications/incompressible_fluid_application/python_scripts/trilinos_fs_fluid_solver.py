@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 import mpi
 from Kratos import *
@@ -6,7 +7,6 @@ from KratosIncompressibleFluidApplication import *
 from KratosTrilinosApplication import *
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -18,11 +18,15 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
+
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);
-    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
 
     mpi.world.barrier()
     print "variables for the trilinos incompressible fluid solver added correctly"
@@ -93,7 +97,8 @@ class IncompressibleFluidSolver:
         velocity_aztec_parameters = ParameterList()
         velocity_aztec_parameters.set("AZ_solver","AZ_gmres");
         velocity_aztec_parameters.set("AZ_kspace",100);
-        velocity_aztec_parameters.set("AZ_output",32);
+        velocity_aztec_parameters.set("AZ_output","AZ_none");
+       #velocity_aztec_parameters.set("AZ_output",32);
 
 ##        preconditioner_type = "Amesos"
 ##        preconditioner_parameters = ParameterList()
@@ -117,7 +122,8 @@ class IncompressibleFluidSolver:
         pressure_aztec_parameters = ParameterList()
         pressure_aztec_parameters.set("AZ_solver","CG");
         pressure_preconditioner_type = "IC"
-        pressure_aztec_parameters.set("AZ_output",32);
+        #pressure_aztec_parameters.set("AZ_output",32);
+        pressure_aztec_parameters.set("AZ_output","AZ_none");
         pressure_preconditioner_parameters = ParameterList()
         pressure_overlap_level = 1
         pressure_nit_max = 1000
@@ -125,6 +131,11 @@ class IncompressibleFluidSolver:
         
         self.velocity_linear_solver =  AztecSolver(velocity_aztec_parameters,velocity_preconditioner_type,velocity_preconditioner_parameters,velocity_linear_tol,velocity_nit_max,velocity_overlap_level);
         self.pressure_linear_solver =  AztecSolver(pressure_aztec_parameters,pressure_preconditioner_type,pressure_preconditioner_parameters,pressure_linear_tol,pressure_nit_max,pressure_overlap_level);
+        
+        ##handling slip condition
+        self.slip_conditions_initialized = False
+        self.create_slip_conditions = GenerateSlipConditionProcess(self.model_part,domain_size)
+
 ##        ##############################################################
 
 ##        vel_solver_parameters = ParameterList()
@@ -150,7 +161,12 @@ class IncompressibleFluidSolver:
         print "solver configuration created correctly"
         self.solver = TrilinosFractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
+        ##generating the slip conditions
+        self.create_slip_conditions.Execute()
+        #(self.solver).SetSlipProcess(self.create_slip_conditions);
+        self.slip_conditions_initialized = True
 
+        (self.solver).SetEchoLevel(self.echo_level)
 
 
 
@@ -160,22 +176,27 @@ class IncompressibleFluidSolver:
    
     def Solve(self):
         if(self.ReformDofAtEachIteration == True):
-            (self.neighbour_search).Execute()
+            self.slip_conditions_initialized = False
 
-##        (self.solver).Solve()
+        if(self.slip_conditions_initialized == False):
+            self.create_slip_conditions.Execute()
+            #(self.solver).SetSlipProcess(self.create_slip_conditions);
+            self.slip_conditions_initialized = True
 
-        (self.solver).ApplyFractionalVelocityFixity()
-        (self.solver).InitializeFractionalStep(self.step, self.time_order);
-        (self.solver).InitializeProjections(self.step,self.projections_are_initialized);
-        self.projections_are_initialized = True;
+        (self.solver).Solve()
 
-        (self.solver).AssignInitialStepValues();
+        #(self.solver).ApplyFractionalVelocityFixity()
+        #(self.solver).InitializeFractionalStep(self.step, self.time_order);
+        #(self.solver).InitializeProjections(self.step,self.projections_are_initialized);
+        #self.projections_are_initialized = True;
 
-        (self.solver).SolveStep1(self.vel_toll,self.max_vel_its)
-        (self.solver).SolveStep2();
-        (self.solver).ActOnLonelyNodes();
-        (self.solver).SolveStep3();
-        (self.solver).SolveStep4();
+        #(self.solver).AssignInitialStepValues();
+
+        #(self.solver).SolveStep1(self.vel_toll,self.max_vel_its)
+        #(self.solver).SolveStep2();
+        #(self.solver).ActOnLonelyNodes();
+        #(self.solver).SolveStep3();
+        #(self.solver).SolveStep4();
 
         
 
