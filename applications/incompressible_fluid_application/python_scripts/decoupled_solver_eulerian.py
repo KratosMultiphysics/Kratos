@@ -87,7 +87,7 @@ class DecoupledSolver:
         self.rel_pres_tol = 1e-5
         self.abs_pres_tol = 1e-7
 
-        self.max_iter = 20
+        self.max_iter = 10
                             
         #default settings
         self.echo_level = 0
@@ -102,7 +102,7 @@ class DecoupledSolver:
         # 2: divergence-free condition imposed by the full divergence operator
 
         # inexact Newton iterations (to use, call self.UseInexactNewtonScheme())
-        self.use_inexact_newton=True
+        self.use_inexact_newton=False
         self.IN_min_tol = self.linear_tol
         self.IN_max_tol=0.1
         self.IN_gamma=0.9
