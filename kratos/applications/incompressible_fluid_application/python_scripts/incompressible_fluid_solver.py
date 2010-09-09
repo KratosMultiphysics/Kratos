@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
@@ -133,7 +134,6 @@ class IncompressibleFluidSolver:
 
         if(self.slip_conditions_initialized == False):
             self.create_slip_conditions.Execute()
-            err
             (self.solver).SetSlipProcess(self.create_slip_conditions);
             self.slip_conditions_initialized = True
             
