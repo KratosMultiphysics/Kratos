@@ -351,6 +351,36 @@ namespace Kratos {
                     .def("GetEchoLevel", &TrilinosPressureSplittingBuilderAndSolverType::GetEchoLevel)
                     ;
 
+//             typedef TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >
+//                     TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType;
+// 		    
+//             class_< TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType, boost::noncopyable >
+//                     ("TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > ())
+//                     .def("SetCalculateReactionsFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetCalculateReactionsFlag)
+//                     .def("GetCalculateReactionsFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetCalculateReactionsFlag)
+//                     .def("SetDofSetIsInitializedFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetDofSetIsInitializedFlag)
+//                     .def("GetDofSetIsInitializedFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetDofSetIsInitializedFlag)
+//                     .def("SetReshapeMatrixFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetReshapeMatrixFlag)
+//                     .def("GetReshapeMatrixFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetReshapeMatrixFlag)
+//                     .def("GetEquationSystemSize", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetEquationSystemSize)
+//                     .def("BuildLHS", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildLHS)
+//                     .def("BuildRHS", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildRHS)
+//                     .def("Build", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::Build)
+//                     .def("SystemSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SystemSolve)
+//                     .def("BuildAndSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildAndSolve)
+//                     .def("BuildRHSAndSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildRHSAndSolve)
+//                     .def("ApplyDirichletConditions", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::ApplyDirichletConditions)
+//                     .def("SetUpDofSet", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetUpDofSet)
+//                     .def("GetDofSet", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetDofSet, return_internal_reference<>())
+//                     .def("SetUpSystem", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetUpSystem)
+//                     .def("ResizeAndInitializeVectors", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::ResizeAndInitializeVectors)
+//                     .def("InitializeSolutionStep", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::InitializeSolutionStep)
+//                     .def("FinalizeSolutionStep", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::FinalizeSolutionStep)
+//                     .def("CalculateReactions", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::CalculateReactions)
+//                     .def("Clear", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::Clear)
+//                     .def("SetEchoLevel", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetEchoLevel)
+//                     .def("GetEchoLevel", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetEchoLevel)
+//                     ;
 
             //********************************************************************************************
             class_< SolverConfiguration<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
