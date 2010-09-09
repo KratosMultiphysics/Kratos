@@ -897,8 +897,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	{
 		KRATOS_TRY
 
-KRATOS_WATCH(rVariable)
-
 		if(Output.size() != 1)
 			Output.resize(1);
 
