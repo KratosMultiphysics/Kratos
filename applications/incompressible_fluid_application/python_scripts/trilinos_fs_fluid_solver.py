@@ -74,7 +74,7 @@ class IncompressibleFluidSolver:
         #assignation of parameters to be used
         self.vel_toll = 0.001;
         self.press_toll = 0.001;
-        self.max_vel_its = 4;
+        self.max_vel_its = 6;
         self.max_press_its = 3;
         self.time_order = 2;
         self.CalculateReactions = False;
@@ -120,10 +120,12 @@ class IncompressibleFluidSolver:
         velocity_linear_tol = 1e-6
        
         pressure_aztec_parameters = ParameterList()
-        pressure_aztec_parameters.set("AZ_solver","CG");
-        pressure_preconditioner_type = "IC"
-        #pressure_aztec_parameters.set("AZ_output",32);
-        pressure_aztec_parameters.set("AZ_output","AZ_none");
+        pressure_aztec_parameters.set("AZ_solver","AZ_bicgstab");
+        #pressure_preconditioner_type = "IC"
+        pressure_preconditioner_type = "ILU"
+        #pressure_preconditioner_type = "AZ_none"
+        pressure_aztec_parameters.set("AZ_output",32);
+        #pressure_aztec_parameters.set("AZ_output","AZ_none");
         pressure_preconditioner_parameters = ParameterList()
         pressure_overlap_level = 1
         pressure_nit_max = 1000
@@ -131,6 +133,8 @@ class IncompressibleFluidSolver:
         
         self.velocity_linear_solver =  AztecSolver(velocity_aztec_parameters,velocity_preconditioner_type,velocity_preconditioner_parameters,velocity_linear_tol,velocity_nit_max,velocity_overlap_level);
         self.pressure_linear_solver =  AztecSolver(pressure_aztec_parameters,pressure_preconditioner_type,pressure_preconditioner_parameters,pressure_linear_tol,pressure_nit_max,pressure_overlap_level);
+        self.velocity_linear_solver.SetScalingType(AztecScalingType.NoScaling)
+        self.pressure_linear_solver.SetScalingType(AztecScalingType.NoScaling)
         
         ##handling slip condition
         self.slip_conditions_initialized = False
