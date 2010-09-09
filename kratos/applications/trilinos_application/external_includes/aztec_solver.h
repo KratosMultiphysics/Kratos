@@ -65,6 +65,8 @@
 
 namespace Kratos
 {
+    enum AztecScalingType{NoScaling,LeftScaling,SymmetricScaling};
+  
     template< class TSparseSpaceType, class TDenseSpaceType, 
               class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
         class AztecSolver : public LinearSolver< TSparseSpaceType, 
@@ -98,6 +100,8 @@ namespace Kratos
 			mIFPreconditionerType = IFPreconditionerType;
 			mpreconditioner_parameter_list = preconditioner_parameter_list;
 			moverlap_level = overlap_level;
+			
+			mscaling_type = SymmetricScaling;
 
 /*			if(overlap_level == 0)
 				KRATOS_ERROR(std::logic_error,"the overlap level for the Aztecsolver with IFPackshould be greater than 0","");*/
@@ -107,6 +111,10 @@ namespace Kratos
              * Destructor
              */
             virtual ~AztecSolver(){}
+            
+            //function to set the scaling typedef
+	    void SetScalingType(AztecScalingType scaling_type)
+	    {mscaling_type = scaling_type;}
             
             /** 
              * Normal solve method.
@@ -123,56 +131,64 @@ namespace Kratos
 
 		Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
 		
-		//perfomr scaling
-		Epetra_Vector scaling_vect(rA.RowMap());
-		rA.InvRowSums(scaling_vect);
- 		AztecProblem.LeftScale(scaling_vect);
- 
+		
+		//perform GS1 scaling if required
+		if(mscaling_type == SymmetricScaling)
+		{
+		  Epetra_Vector scaling_vect(rA.RowMap());
+		  rA.InvRowSums(scaling_vect);
+		  
+		  int MyLength = scaling_vect.MyLength();
+		  for( int i=0 ; i<MyLength ; ++i ) scaling_vect[i] = sqrt(scaling_vect[i]);
+		  
+		  AztecProblem.LeftScale(scaling_vect);
+		  AztecProblem.RightScale(scaling_vect);
+		}
+		else if (mscaling_type == LeftScaling)
+		{
+		  Epetra_Vector scaling_vect(rA.RowMap());
+		  rA.InvRowSums(scaling_vect);
+		  		  
+		  AztecProblem.LeftScale(scaling_vect);
+  
+		}
+		
 		AztecOO aztec_solver(AztecProblem);
-  		aztec_solver.SetParameters(maztec_parameter_list);
+		aztec_solver.SetParameters(maztec_parameter_list);
 
-		//ifpack preconditioner type
-  		Ifpack Factory;
+		//here we verify if we want a preconditioner
+ 		if( mIFPreconditionerType!=std::string("AZ_none") )
+ 		{
+		   
+		    //ifpack preconditioner type
+		    Ifpack Factory;
 
-		string PrecType = mIFPreconditionerType;
-		Ifpack_Preconditioner* Prec = Factory.Create(PrecType, &rA, moverlap_level);
-		assert(Prec != 0);
+		    string PrecType = mIFPreconditionerType;
+		    Ifpack_Preconditioner* Prec = Factory.Create(PrecType, &rA, moverlap_level);
+		    assert(Prec != 0);
 
-// 		List.set("amesos: solver type", "Amesos_Klu");
-// 		List.set("schwarz: combine mode", "Zero");
+		    IFPACK_CHK_ERR(Prec->SetParameters(mpreconditioner_parameter_list));
+		    IFPACK_CHK_ERR(Prec->Initialize());
+		    IFPACK_CHK_ERR(Prec->Compute());
 
- 		IFPACK_CHK_ERR(Prec->SetParameters(mpreconditioner_parameter_list));
- 		IFPACK_CHK_ERR(Prec->Initialize());
- 		IFPACK_CHK_ERR(Prec->Compute());
-
-		// specify solver
-/*		aztec_solver.SetAztecOption(AZ_solver,AZ_gmres);
-		aztec_solver.SetAztecOption(AZ_kspace,50);
-		aztec_solver.SetAztecOption(AZ_output,32);*/
+		    // HERE WE SET THE IFPACK PRECONDITIONER
+		    aztec_solver.SetPrecOperator(Prec);
+		    
+		    //and ... here we solve
+		    aztec_solver.Iterate(mmax_iter,mtol);
 		
-		// HERE WE SET THE IFPACK PRECONDITIONER
-		aztec_solver.SetPrecOperator(Prec);
-		aztec_solver.Iterate(mmax_iter,mtol);
-
-                delete Prec;
+		    delete Prec;
+  		}
+  		else
+		{		
+		    aztec_solver.Iterate(mmax_iter,mtol);
+		}
 		
-	
+// 		for( int i=0 ; i<(rX).MyLength() ; ++i )
+// 		{
+// 		     (&rX)[i] = (&rX)[i]/scaling_vect[i] ;
+// 		}
 
-
-// 		aztec_solver.Iterate(mmax_iter,mtol);
-// //   				aztec_solver.SetAztecOption(AZ_precond, AZ_Jacobi);
-// //  				aztec_solver.SetAztecOption(AZ_solver, AZ_gmres);
-/*				aztec_solver.SetAztecOption(AZ_precond, AZ_dom_decomp);
- 				aztec_solver.SetAztecOption(AZ_subdomain_solve, AZ_ilut);
-  				aztec_solver.SetAztecOption(AZ_overlap, 3);*/
-// // 				aztec_solver.SetAztecOption(AZ_conv, AZ_sol);
-// //  				aztec_solver.SetAztecOption(AZ_graph_fill, 1);
-// //  				aztec_solver.SetAztecOption(AZ_output, AZ_warnings);
-// //   				aztec_solver.SetAztecOption(AZ_solver, AZ_bicgstab);
-/*   				aztec_solver.SetAztecOption(AZ_solver, AZ_gmres);
-   				aztec_solver.SetAztecOption(AZ_kspace, 200);*/
-//  				aztec_solver.Iterate(mmax_iter,mtol);
-// // 				aztec_solver.Iterate(5000,1e-9);
 
                 rA.Comm().Barrier();
                 
@@ -215,6 +231,7 @@ namespace Kratos
 	    Teuchos::ParameterList maztec_parameter_list;
 	    double mtol;
 	    int mmax_iter;
+	    AztecScalingType mscaling_type;
 
 	    std::string mIFPreconditionerType;
 
