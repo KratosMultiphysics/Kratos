@@ -18,6 +18,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver_componentwise_slip.h"
 
 
 namespace Kratos
@@ -119,20 +120,23 @@ namespace Kratos
 				( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
 
                         //CONSTRUCTION OF VELOCITY
-			BuilderSolverTypePointer vel_x_build =BuilderSolverTypePointer(	new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm,guess_row_size,pNewVelocityLinearSolver) );
+			typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VarComponent;			
+			BuilderSolverTypePointer vel_x_build =
+			BuilderSolverTypePointer(	
+			new TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit<TSparseSpace,TDenseSpace,TLinearSolver,VarComponent>(Comm,guess_row_size,pNewVelocityLinearSolver,this->mDomainSize,FRACT_VEL_X,FRACT_VEL_Y,FRACT_VEL_Z) );
 			this->mpfracvel_x_strategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(model_part,pscheme,pNewVelocityLinearSolver,vel_x_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 			this->mpfracvel_x_strategy->SetEchoLevel(1);
 
-			BuilderSolverTypePointer vel_y_build	= BuilderSolverTypePointer(	new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm,guess_row_size,pNewVelocityLinearSolver) );
-			this->mpfracvel_y_strategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(model_part,pscheme,pNewVelocityLinearSolver,vel_y_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-			this->mpfracvel_y_strategy->SetEchoLevel(1);
- 
-			if(this->mDomainSize == 3)
-			{
-				BuilderSolverTypePointer vel_z_build = BuilderSolverTypePointer(	new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm,guess_row_size,pNewVelocityLinearSolver) );
-				this->mpfracvel_z_strategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(model_part,pscheme,pNewVelocityLinearSolver,vel_z_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-				this->mpfracvel_z_strategy->SetEchoLevel(1);
-			}
+// 			BuilderSolverTypePointer vel_y_build	= BuilderSolverTypePointer(	new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm,guess_row_size,pNewVelocityLinearSolver) );
+// 			this->mpfracvel_y_strategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(model_part,pscheme,pNewVelocityLinearSolver,vel_y_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+// 			this->mpfracvel_y_strategy->SetEchoLevel(1);
+//  
+// 			if(this->mDomainSize == 3)
+// 			{
+// 				BuilderSolverTypePointer vel_z_build = BuilderSolverTypePointer(	new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm,guess_row_size,pNewVelocityLinearSolver) );
+// 				this->mpfracvel_z_strategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(model_part,pscheme,pNewVelocityLinearSolver,vel_z_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+// 				this->mpfracvel_z_strategy->SetEchoLevel(1);
+// 			}
                         
                         
                         
@@ -173,10 +177,10 @@ namespace Kratos
 
                     if(strategy_name == std::string("vel_x_strategy"))
                         return mpfracvel_x_strategy;
-                    else if(strategy_name == std::string("vel_y_strategy"))
-                         return mpfracvel_y_strategy;
-                    else if(strategy_name == std::string("vel_z_strategy"))
-                         return mpfracvel_z_strategy;
+//                     else if(strategy_name == std::string("vel_y_strategy"))
+//                          return mpfracvel_y_strategy;
+//                     else if(strategy_name == std::string("vel_z_strategy"))
+//                          return mpfracvel_z_strategy;
                     else if(strategy_name == std::string("pressure_strategy"))
                          return mppressurestep;
                     else
@@ -253,8 +257,8 @@ namespace Kratos
 		/**@name Member Variables */
 		/*@{ */
                 typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer mpfracvel_x_strategy;
-		typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer mpfracvel_y_strategy;
-		typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer mpfracvel_z_strategy;
+/*		typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer mpfracvel_y_strategy;
+		typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer mpfracvel_z_strategy;*/
 		typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer mppressurestep;
 
                 /*@{ */
