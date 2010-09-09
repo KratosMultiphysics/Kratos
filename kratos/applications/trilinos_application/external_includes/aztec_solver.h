@@ -99,8 +99,8 @@ namespace Kratos
 			mpreconditioner_parameter_list = preconditioner_parameter_list;
 			moverlap_level = overlap_level;
 
-			if(overlap_level == 0)
-				KRATOS_ERROR(std::logic_error,"the overlap level for the Aztecsolver with IFPackshould be greater than 0","");
+/*			if(overlap_level == 0)
+				KRATOS_ERROR(std::logic_error,"the overlap level for the Aztecsolver with IFPackshould be greater than 0","");*/
 		}
             
             /**
@@ -122,6 +122,11 @@ namespace Kratos
                 rA.Comm().Barrier();
 
 		Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
+		
+		//perfomr scaling
+		Epetra_Vector scaling_vect(rA.RowMap());
+		rA.InvRowSums(scaling_vect);
+ 		AztecProblem.LeftScale(scaling_vect);
  
 		AztecOO aztec_solver(AztecProblem);
   		aztec_solver.SetParameters(maztec_parameter_list);
