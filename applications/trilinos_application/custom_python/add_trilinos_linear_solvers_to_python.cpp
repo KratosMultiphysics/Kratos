@@ -98,7 +98,9 @@ namespace Kratos {
             typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
             class_<AztecSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
                     ("AztecSolver",
-                    init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >());
+                    init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
+                    .def("SetScalingType", &AztecSolverType::SetScalingType)
+                    ;
 
             typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
             class_<AmesosSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
@@ -109,6 +111,12 @@ namespace Kratos {
             class_<MLSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
                     ("MultiLevelSolver",
                     init<Teuchos::ParameterList&, double, int >());
+		    
+	    enum_<AztecScalingType>("AztecScalingType")
+                    .value("NoScaling", NoScaling)
+                    .value("LeftScaling", LeftScaling)
+                    .value("SymmetricScaling", SymmetricScaling)
+                    ;
         }
 
 
