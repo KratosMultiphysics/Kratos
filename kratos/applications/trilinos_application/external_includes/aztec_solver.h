@@ -135,6 +135,7 @@ namespace Kratos
 		//perform GS1 scaling if required
 		if(mscaling_type == SymmetricScaling)
 		{
+		  KRATOS_ERROR(std::logic_error,"somethign wrong with the scaling to be further teststed","")
 		  Epetra_Vector scaling_vect(rA.RowMap());
 		  rA.InvColSums(scaling_vect);
 		  
