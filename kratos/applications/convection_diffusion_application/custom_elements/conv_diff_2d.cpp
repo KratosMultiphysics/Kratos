@@ -81,6 +81,22 @@ namespace Kratos
 
         array_1d<double,3> ms_u_DN = ZeroVector(3); //dimension = number of nodes
         #pragma omp threadprivate(ms_u_DN)
+	
+	array_1d<double,2> grad_g = ZeroVector(2); //dimesion coincides with space dimension
+        #pragma omp threadprivate(grad_g)
+
+	boost::numeric::ublas::bounded_matrix<double,2,2> Identity = 1.0*IdentityMatrix(2,2);
+        #pragma omp threadprivate( Identity)
+
+	boost::numeric::ublas::bounded_matrix<double,2,2> First = ZeroMatrix(2,2);
+        #pragma omp threadprivate(First)
+
+	boost::numeric::ublas::bounded_matrix<double,2,2> Second = ZeroMatrix(2,2);
+        #pragma omp threadprivate(Second)
+
+	boost::numeric::ublas::bounded_matrix<double,2,3> Third = ZeroMatrix(2,3);
+        #pragma omp threadprivate(Third)
+
 
     }
     using  namespace ConvDiff2Dauxiliaries;
@@ -162,16 +178,34 @@ namespace Kratos
 		heat_flux *= lumping_factor;
 		proj *= lumping_factor;
 		ms_vel_gauss *= lumping_factor;
-		
-		double alpha = conductivity/(density*specific_heat);
-
-		//calculating parameter tau 
 		double c1 = 4.00;
 		double c2 = 2.00;
 		double h = sqrt(2.00*Area);
 		double norm_u =norm_2(ms_vel_gauss);
-		//double tau = 1.00 / ( c1*alpha/(h*h) + c2*norm_u/h );
 		double tau1=( h*h )/(c1 * conductivity + c2 * density * specific_heat * norm_u * h);
+		double alpha = conductivity/(density*specific_heat);
+
+		double g=0.0;
+    		double p1= msDN_DX(0,0)*GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)+msDN_DX(1,0)*GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE)+ msDN_DX(2,0)*GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE); 
+    		double p2 = msDN_DX(0,1)*GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)+msDN_DX(1,1)*GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE)+ msDN_DX(2,1)*GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE); 
+    		grad_g[0] =p1;
+    		grad_g[1] = p2;
+    		double norm_g =norm_2(grad_g);
+
+		double res = density*specific_heat*(inner_prod(ms_vel_gauss,grad_g)) ;//+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
+		double norm_grad=norm_2(grad_g);
+		double k_aux=fabs(res) /(norm_grad + 0.000000000001);
+
+
+		noalias(First) =outer_prod(ms_vel_gauss,trans(ms_vel_gauss));
+		First /=((norm_u+0.0000000001)*(norm_u+0.0000000001));
+		noalias(Second) =Identity- First;
+		noalias(Third) =prod(Second, trans(msDN_DX));
+
+
+		//calculating parameter tau 
+		
+
 		//getting the BDF2 coefficients (not fixed to allow variable time step)
 		//the coefficients INCLUDE the time step
 		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
@@ -184,12 +218,9 @@ namespace Kratos
 		noalias(rLeftHandSideMatrix) += density * specific_heat * density * specific_heat * tau1 * outer_prod(ms_u_DN,ms_u_DN);
 
 		//VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
-		noalias(rLeftHandSideMatrix) += (conductivity )* prod(msDN_DX,trans(msDN_DX));
+		noalias(rLeftHandSideMatrix) += (conductivity * prod(msDN_DX,trans(msDN_DX)) +  k_aux * h * prod(msDN_DX,Third));
 
                 		//filling the mass factors
-//	msMassFactors(0,0) = 1.00/6.00;  msMassFactors(0,1) = 1.00/12.00; msMassFactors(0,2) = 1.00/12.00;
-//		msMassFactors(1,0) = 1.00/12.00; msMassFactors(1,1) = 1.00/6.00;  msMassFactors(1,2) = 1.00/12.00;
-//		msMassFactors(2,0) = 1.00/12.00; msMassFactors(2,1) = 1.00/12.00; msMassFactors(2,2) = 1.00/6.00;
 		msMassFactors(0,0) = 1.00/3.00; msMassFactors(0,1) = 0.00;		msMassFactors(0,2) = 0.00;
 		msMassFactors(1,0) = 0.00;		msMassFactors(1,1) = 1.00/3.00; msMassFactors(1,2) = 0.00;
 		msMassFactors(2,0) = 0.00;		msMassFactors(2,1) = 0.00;		msMassFactors(2,2) = 1.00/3.00;
@@ -221,16 +252,14 @@ namespace Kratos
 			ms_temp_vec_np[iii] = GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE);
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
 		
-		//multiplying by area, rho and density
+		
 		rRightHandSideVector *= Area;
 		rLeftHandSideMatrix *= Area;
-		//multiplying by area
-		//rRightHandSideVector *= Area;
-		//rLeftHandSideMatrix *= Area;
-//KRATOS_WATCH(rLeftHandSideMatrix)
-//KRATOS_WATCH(rRightHandSideVector)
+
 		KRATOS_CATCH("");
 	}
+
+
 
 	//************************************************************************************
 	//************************************************************************************
