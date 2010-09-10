@@ -38,6 +38,10 @@ os.chdir(ApplicationsRoot + "FSIapplication/test_examples")
 import FSI_benchmarks
 Text += FSI_benchmarks.Run()
 
+# PFEM application
+os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
+import pfem_benchmarks
+Text += pfem_benchmarks.Run()
 # Add other directories here
 
 
