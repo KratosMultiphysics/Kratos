@@ -295,7 +295,7 @@ namespace Kratos {
        CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
 	//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
 	// Remember to modify CalculateResidualand CalculateTau.
-	app_mu = mu;
+// 	app_mu = mu;
 	
         C(0, 0) = 2.0;
         C(0, 1) = 0.0;
@@ -801,7 +801,7 @@ namespace Kratos {
         CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
 // 	Newtonian Fluid: Leave Decommented the CalculateApparentviscosity (we need grad_sym_vel) and decomment the following line
 //	Remember to modify CalculateViscousTerm and CalculateTau
-	app_mu = mu;
+// 	app_mu = mu;
 	
         aux_1 = 2 * app_mu * grad_sym_vel;
 	aux_1[2] *= 0.5; //considering Voigt notation for the gradient of velocity (alternative to the C matrix of the viscous term.
@@ -1296,7 +1296,7 @@ namespace Kratos {
 
   
 	//Bingham
-//         CalculateApparentViscosity(mu, grad_sym_vel, B, mu);	
+        CalculateApparentViscosity(mu, grad_sym_vel, B, mu);	
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
 	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
 	
