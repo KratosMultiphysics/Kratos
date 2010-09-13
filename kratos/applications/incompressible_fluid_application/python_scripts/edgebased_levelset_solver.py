@@ -80,15 +80,12 @@ class EdgeBasedLevelSetSolver:
             self.matrix_container = MatrixContainer2D()
         else:
             self.matrix_container = MatrixContainer3D()
-
         self.matrix_container.ConstructCSRVector(self.model_part)
         self.matrix_container.BuildCSRData(self.model_part)
-
         ##for 3D problems we need to evaluate the condition's neighbours
         if(self.domain_size == 3):
             self.condition_neighbours_finder = FindConditionsNeighboursProcess(self.model_part,self.domain_size,10)
             self.condition_neighbours_finder.Execute()
-
         ##constructing the solver
         if(self.domain_size == 2):
             self.distance_utils = SignedDistanceCalculationUtils2D()
@@ -97,7 +94,6 @@ class EdgeBasedLevelSetSolver:
             self.distance_utils = SignedDistanceCalculationUtils3D()
 #            self.distance_utils = SignedDistanceCalculationBinBased3D()
             self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
-
 #
         self.max_edge_size = self.distance_utils.FindMaximumEdgeSize(self.model_part)
         self.distance_size = self.max_edge_size * 3.0;
@@ -106,11 +102,6 @@ class EdgeBasedLevelSetSolver:
 #        self.reorder = True
 #        self.distance_tools = BodyDistanceCalculationUtils()
 
-#TO BE DELETED SOON
-##        print "ASSIGNING DIAMETER FROM SOLVER: TO BE REMOVED SOOOOOON!!!!!!!!!!!!!!!!!!!!"
-        for node in self.model_part.Nodes:
-##            if(node.GetSolutionStepValue(POROSITY) != 1.0):
-            node.SetSolutionStepValue(DIAMETER,0, 0.01)
 
         self.fluid_solver.Initialize()
 
