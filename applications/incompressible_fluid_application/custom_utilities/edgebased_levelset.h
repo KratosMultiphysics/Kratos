@@ -988,7 +988,9 @@ namespace Kratos {
                 }
             }
 
-
+	    for (int i_node = 0; i_node < n_nodes; i_node++) 
+                if (mL(i_node, i_node) < 1e-20) 
+                    mL(i_node, i_node) = max_diag;
 
 
 
@@ -1803,7 +1805,13 @@ namespace Kratos {
 //                mphi_n1[i_node] = fabs(mphi_n1[i_node]);
 //                mphi_n[i_node] = fabs(mphi_n[i_node]);
 //            }
-
+            //create and fill a vector of nodes for which we want to convect the velocity
+            for (int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
+                active_nodes[i_node] = (it_begin + i_node)->GetValue(IS_VISITED);
+            }
+            
             //calculating the convective projection
             array_1d<double, TDim> a_i;
             array_1d<double, TDim> a_j;
@@ -1840,12 +1848,7 @@ namespace Kratos {
             }
 
 
-            //create and fill a vector of nodes for which we want to convect the velocity
-            for (int i_node = 0; i_node < n_nodes; i_node++)
-            {
-                ModelPart::NodesContainerType::iterator it_begin = mr_model_part.NodesBegin();
-                active_nodes[i_node] = (it_begin + i_node)->GetValue(IS_VISITED);
-            }
+
 //            mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, active_nodes, rNodes);
 
             //read time step size from Kratos
@@ -2425,11 +2428,11 @@ void ActivateWallResistance(double Ywall)
                         CornerDectectionHelper(face_geometry,face_normal,An,neighb,1,2, 0,temp_edge_nodes,temp_cornern_list );
 
                     //check for neighbour one
-                    if(neighb[0].Id() != current_id) //check if the neighbour exists
+                    if(neighb[1].Id() != current_id) //check if the neighbour exists
                         CornerDectectionHelper(face_geometry,face_normal,An,neighb,2,0, 1,temp_edge_nodes,temp_cornern_list );
 
                     //check for neighbour two
-                    if(neighb[0].Id() != current_id) //check if the neighbour exists
+                    if(neighb[2].Id() != current_id) //check if the neighbour exists
                         CornerDectectionHelper(face_geometry,face_normal,An,neighb,0,1, 2,temp_edge_nodes,temp_cornern_list );
 
                 }
