@@ -250,15 +250,21 @@ critical_en = 0.000001;
 
 ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, POROSITY, POROSITY);
 ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, DIAMETER, DIAMETER);
+for node in fixed_model_part.Nodes:
+   if(node.GetSolutionStepValue(POROSITY) == 0.0):
+       node.SetSolutionStepValue(POROSITY,0,1.0)
+   if(node.GetSolutionStepValue(DIAMETER) == 0.0):
+       node.SetSolutionStepValue(DIAMETER,0,1.0)
+
+
 ##bool to decide to solve or not the pfem model 
 calculate_dam = True
 
 #settings to be changed edgebased FIXED
-max_Dt = edgebased_levelset_var.max_time_step 
-initial_Dt_ls = 0.001 * max_Dt 
+max_Dt = edgebased_levelset_var.max_time_step
+initial_Dt_ls = 0.001 * max_Dt
 final_time = edgebased_levelset_var.max_time
 safety_factor = edgebased_levelset_var.safety_factor
-
 number_of_inital_steps = edgebased_levelset_var.number_of_inital_steps
 initial_time_step = edgebased_levelset_var.initial_time_step
 out = 0
@@ -289,10 +295,10 @@ while(Time < final_time):
         if(safety_factor > max_safety_factor):
             safety_factor = max_safety_factor
 
-    Dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
 
+    Dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
         
-    Time = Time + Dt    
+    Time = Time + Dt
     fixed_model_part.CloneTimeStep(Time)
 
     ##let's do this later ... only each substep_number fluid solutions
