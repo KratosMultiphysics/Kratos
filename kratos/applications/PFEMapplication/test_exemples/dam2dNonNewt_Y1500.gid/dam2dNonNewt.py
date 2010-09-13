@@ -11,8 +11,8 @@ domain_size = pfem_nonewtonian_var.domain_size
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = pfem_nonewtonian_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = pfem_nonewtonian_var.kratos_path + '/applications' ##kratos_root/applications
+kratos_libs_path            = '../../../../libs' ##kratos_root/libs
+kratos_applications_path    = '../../../../applications' ##kratos_root/applications
 kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
 sys.path.append(kratos_libs_path)
