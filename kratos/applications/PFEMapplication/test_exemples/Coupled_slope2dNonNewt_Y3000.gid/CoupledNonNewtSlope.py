@@ -70,7 +70,7 @@ def NodeFinder(node_list,X,Y,Z):
 		return node
 
 def BenchmarkCheck(time, node1):
-    benchmarking.Output(time, "Time",0.0001,0.0001)
+    benchmarking.Output(time, "Time",0.1,0.0001)
 ##    print "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
     benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 0.1,.0001)
     benchmarking.Output(node1.GetSolutionStepValue(VELOCITY_Y), "Node 2 velocity_y", 0.1,.0001)
