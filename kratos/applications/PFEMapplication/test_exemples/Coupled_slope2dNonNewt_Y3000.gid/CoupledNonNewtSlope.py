@@ -384,7 +384,7 @@ while(Time < final_time):
                 structural_solver.Remesh();
                 print "Remesh in done!"
                 (structural_solver.solver).Solve();
-                BenchmarkCheck(time, back_node)
+                BenchmarkCheck(Time, back_node)
                 
                 print "Solve in done!"
                 (structural_solver.solver).Clear();
