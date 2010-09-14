@@ -10,13 +10,15 @@
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : add a new global procedure msg to call WarnWinText
+#    LAST MODIFICATION : add the event InitGIDPostProcess to read Kratos result files when pass from preproces to postprocess
 #
-#    VERSION : 0.3
+#    VERSION : 0.5
 #
 #    HISTORY: 
 #
-#     0.3- 01/02/10-G. Socorro, add a new global procedure msg to call WarnWinText
+#     0.5- 08/09/10- G. Socorro, add the event InitGIDPostProcess to read Kratos result files when pass from preproces to postprocess
+#     0.4- 03/09/10- G. Socorro, add BeforeMeshGeneration option to modify the normal to the line and surfaces
+#     0.3- 01/02/10- G. Socorro, add a new global procedure msg to call WarnWinText
 #     0.2- 24/12/09- G. Socorro, add new xmlutils, xpathq and wkcf namespaces
 #     0.1- 01/11/09- G. Socorro, create the base source file
 #
@@ -154,6 +156,74 @@ proc msg {mesage} {
     WarnWinText $mesage
 }
 
+proc BeforeMeshGeneration {elementsize} { 
+
+    set ndime "3D"
+    # Get the spatial dimension
+    set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
+    set cproperty "dv"
+    catch { set ndime [::xmlutils::setXml $cxpath $cproperty] }
+    
+    if {$ndime =="2D"} {
+	::wkcf::AlignLineNormals Outwards 	
+    } elseif {$ndime =="3D"} {
+	::wkcf::AlignSurfNormals Outwards
+    }
+
+}
+
+proc InitGIDPostProcess {} { 
+ 
+    # Get application type
+    # Structural analysis
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.StructuralAnalysis"
+    set cproperty "dv"
+    set StructuralAnalysis [::xmlutils::setXml $cxpath $cproperty]
+    
+    # WarnWinText "StructuralAnalysis:$StructuralAnalysis"
+
+    # Fuild application
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.Fluid"
+    set cproperty "dv"
+    set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
+
+    # WarnWinText "FluidApplication:$FluidApplication"
+    set appid ""
+    if {$FluidApplication =="Yes"} {
+	set appid "Fluid"
+    } elseif {$StructuralAnalysis=="Yes"} {
+	set appid "StructuralAnalysis"
+    }
+
+    if {$appid !=""} {
+	# Get the result type
+	set cprop "GiDMultiFileFlag"
+	set cxpath "$appid//c.Results//c.GiDOptions//i.${cprop}"
+     	set cproperty "dv"
+     	set rtype [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "rtype:$rtype"
+	
+	# Get the GiD post mode
+	set cprop "GiDPostMode"
+	set cxpath "$appid//c.Results//c.GiDOptions//i.${cprop}"
+     	set cproperty "dv"
+     	set pmode [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "pmode:$pmode"
+
+	set existfiles [::KUtils::ReadResultsFromFiles $appid $rtype $pmode "CheckRFiles"]
+	if {!$existfiles} {
+	    WarnWin [= "The simulation is not calculated yet or is currently being calculated"].
+	    return ""
+	} else {
+	    # Try to read the result files
+	    set ok [::KUtils::ReadResultsFromFiles $appid $rtype $pmode "ReadRFiles"]
+	}
+    } 
+}
+ 
+ 
+ 
+ 
  
  
  
