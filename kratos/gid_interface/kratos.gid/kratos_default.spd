@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.0.1">
+<Kratos_Data version="1.0.4">
     <Groups/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -68,7 +68,7 @@
                 <Item id="ConvergenceCriteria" pid="Convergence criteria" class="convCriteria" dv="Residual" ivalues="Displacement,Residual,DisplacementAndResidual,DisplacementOrResidual" values="Displacement,Residual,Displacement and residual,Displacement or residual" help=""/>
                 <Item id="ResidualConvergenceTolerance" pid="Residual convergence tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-3" help="Residual convergence tolerance"/>
                 <Item id="ResidualAbsoluteTolerance" pid="Residual absolute tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Residual absolute tolerance"/>
-		<Item id="DisplacementConvergenceTolerance" pid="Displacement convergence tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Displacement convergence tolerance"/>
+				<Item id="DisplacementConvergenceTolerance" pid="Displacement convergence tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Displacement convergence tolerance"/>
                 <Item id="DisplacementAbsoluteTolerance" pid="Displacement absolute tolerance" convCriteria="Displacement,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-9" help="Displacement absolute tolerance"/>
                 <Item id="MaximumIterations" pid="Maximum iterations" dv="30" help=""/>
             </Container>
@@ -106,9 +106,9 @@
                 <Item id="PK2StressTensor" pid="2nd Piola - Kirchhoff stress tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="2nd Piola - Kirchhoff stress tensor"/>
 	    </Container>
 	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess otions" open="1">
-	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,AsciiZipped,Binary" values="Ascii,Ascii zipped,Binary" help="GiD result file format"/>
-	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
-	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
+	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
+	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
+	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
 	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiplies files"/>
 	    </Container>
 	</Container>
@@ -123,9 +123,9 @@
             <Item id="EnvironmentTemperature" pid="Environment temperature" fluidType="Incompressible" dv="0.0" help=""/>
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
-	  <Item id="LinearSolverTypeMonolithic" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-	  <Item id="DirectSolverTypeMonolithic" pid="Direct solver type" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
-	  <Item id="IterativeSolverTypeMonolithic" pid="Iterative solver type"  monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="ConjugateGradient,BiConjugateGradientStabilized,GMRES" values="Conjugate gradient,BiConjugate gradient stabilized,GMRES" help=""/>
+	  <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+	  <Item id="MonolithicDirectSolverType" pid="Direct solver type" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
+	  <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="ConjugateGradient,BiConjugateGradientStabilized,GMRES" values="Conjugate gradient,BiConjugate gradient stabilized,GMRES" help=""/>
 	  <Item id="MonolithicISTolerance" pid="Solver tolerance" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1E-6" help=""/>
 	  <Item id="MonolithicISMaximumIteration" pid="Solver maximum iteration" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help=""/>
 	  <Item id="MonolithicPreconditionerType" pid="Preconditioner type" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
@@ -138,9 +138,9 @@
 	  <Item id="PressureLinearSolverType" pid="Pressure linear solver type" class="pressureLinearSolvTyp" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
 	  <Item id="PressureDirectSolverType" pid="Pressure direct solver type" pressureLinearSolvTyp="Direct" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" fluidType="Incompressible" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
              <Item id="PressureIterativeSolverType" pid="Pressure iterative solver type" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="ConjugateGradient,BiConjugateGradientStabilized" values="Conjugate gradient,BiConjugate gradient stabilized" help=""/>
-	   <Item id="PressureISTolerance" pid="Pressure solver tolerance" pressureLinearSolvTyp="Iterative" dv="1E-6" help=""/>
-	   <Item id="PressureISMaximumIteration" pid="Pressure solver maximum iteration" pressureLinearSolvTyp="Iterative" dv="5000" help=""/>
-	   <Item id="PressurePreconditionerType" pid="Pressure preconditioner type" pressureLinearSolvTyp="Iterative" fluidType="Incompressible" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
+	   <Item id="PressureISTolerance" pid="Pressure solver tolerance" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" dv="1E-6" help=""/>
+	   <Item id="PressureISMaximumIteration" pid="Pressure solver maximum iteration" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" dv="5000" help=""/>
+	   <Item id="PressurePreconditionerType" pid="Pressure preconditioner type" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" fluidType="Incompressible" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
 	   <Item id="LinearSolverTypeCompressible" pid="Linear solver type" class="linearSolvTyp" fluidType="Compressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
 	   <Item id="DirectSolverTypeCompressible" pid="Direct solver type" linearSolvTyp="Direct" fluidType="Compressible" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
 	   <Item id="IterativeSolverTypeCompressible" pid="Iterative solver type" linearSolvTyp="Iterative" fluidType="Compressible" dv="ConjugateGradient" ivalues="ConjugateGradient" values="Conjugate gradient" help=""/>
@@ -156,6 +156,7 @@
 	      <Item id="RelativePressureTolerance" pid="Relative pressure tolerance" fluidSolvTyp="Monolithic,PressureSplitting,ElementBased,EdgeBased" dv="1E-3" help="Relative pressure tolerance"/>
 	      <Item id="AbsolutePressureTolerance" pid="Absolute pressure tolerance" fluidSolvTyp="Monolithic,PressureSplitting" dv="1E-6" help="Absolute pressure tolerance"/>
 	      <Item id="MaximumPressureIterations" pid="Maximum pressure iterations" fluidSolvTyp="ElementBased,EdgeBased" dv="3" help=""/>
+	      <Item id="MaximumIterations" pid="Maximum iterations" fluidSolvTyp="Monolithic,PressureSplitting" dv="10" help=""/>
 	      <Item id="TimeOrder" pid="Time order" dv="2" fluidSolvTyp="ElementBased,EdgeBased" ivalues="1,2" values="1,2" help=""/>
 	      <Item id="LaplacianForm" pid="Laplacian form" dv="Discrete" fluidSolvTyp="ElementBased,EdgeBased" ivalues="Continuous,Discrete,DiscreteWithDt" values="Continuous,Discrete,Discrete with dt" help=""/>
 	      <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
@@ -164,8 +165,8 @@
 	  </Container>
 	  <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="1"/>
         <Container id="Elements" pid="Elements" help="Elements" open="1">
-            <Container id="ASGS2D" pid="ASGS" class="Groups" nDim="2D" GiDEntity="surface"   fluidSolvTyp="Monolithic" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
-            <Container id="ASGS3D" pid="ASGS" class="Groups" nDim="3D" GiDEntity="volume"    fluidSolvTyp="Monolithic" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
+            <Container id="ASGS2D" pid="ASGS" class="Groups" nDim="2D" GiDEntity="surface"   fluidSolvTyp="Monolithic,PressureSplitting" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
+            <Container id="ASGS3D" pid="ASGS" class="Groups" nDim="3D" GiDEntity="volume"    fluidSolvTyp="Monolithic,PressureSplitting" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
             <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  fluidSolvTyp="ElementBased,EdgeBased,LevelSet" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
             <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"   fluidSolvTyp="ElementBased,EdgeBased,LevelSet" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
         </Container>
@@ -179,7 +180,7 @@
             <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
             <Container id="OutletPressure" pid="Outlet pressure" class="Groups" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="1"/>
             <Container id="Slip" pid="Slip" class="Groups" fluidSolvTyp="EdgeBased" idTemplate="Displacements" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
-            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="Displacements" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
+            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="Displacements" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
         </Container>
         <Container id="Results" pid="Results" class="Tab" help="Results" open="1">
             <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delata time"/>
@@ -188,10 +189,10 @@
 	      <Item id="Velocity" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
 	      <Item id="Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
 	      <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
-	      <Item id="Distance" pid="Distance" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Distance"/>
+	      <Item id="Distance" pid="Distance" dv="No" ivalues="Yes,No" values="Yes,No" help="Distance"/>
 	    </Container>
 	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess otions" open="1">
-	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,AsciiZipped,Binary" values="Ascii,Ascii zipped,Binary" help="GiD result file format"/>
+	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
 	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
 	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
 	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiplies files"/>
@@ -306,6 +307,10 @@
             </Container>
         </Template>
     </Templates>
+    <GlobalProjectSettings>
+    	<Item id="ValidateModel" pid="Validate model before calculate" dv="1" widget="check" help=""/>
+    	<Item id="CheckSpdVersion" pid="Check problem type version" dv="1" widget="check" help=""/>
+    </GlobalProjectSettings>
     <ClassConfiguration>
         <Class>nDim,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,freeSurf,convCriteria</Class>
     </ClassConfiguration>
