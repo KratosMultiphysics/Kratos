@@ -6,18 +6,20 @@
 #
 #    QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#    AUTHOR : G. Socorro
+#    AUTHOR : G. Socorro => GS
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : add the procedure GetDefinedMeshGiDEntities to get the GiD mesh entities that belong to a group identifier
+#    LAST MODIFICATION : modify ReadResultsFromFiles procedure to load lst GiD files ${appid}.post.lst
 #
-#    VERSION : 0.2
+#    VERSION : 0.4
 #
 #    HISTORY:
 #
-#     0.2- 22/04/10-G. Socorro, add the procedure GetDefinedMeshGiDEntities to get the GiD mesh entities that belong to a group identifier
-#     0.1- 01/11/09-G. Socorro, create a base source code
+#     0.4- 14/09/10-GS, modify ReadResultsFromFiles procedure to load lst GiD files ${appid}.post.lst
+#     0.3- 08/09/10-GS, add the procedure ReadResultsFromFiles to check and read kratos result files in the GiD postprocess
+#     0.2- 22/04/10-GS, add the procedure GetDefinedMeshGiDEntities to get the GiD mesh entities that belong to a group identifier
+#     0.1- 01/11/09-GS, create a base source code
 #
 ###############################################################################
 
@@ -25,6 +27,111 @@
 
 namespace eval ::KUtils:: {
  
+}
+
+proc ::KUtils::ReadResultsFromFiles {appid rtype pmode {what CheckRFiles}} {
+    # ABSTRACT
+    # Check and read the Kratos result files to the GiD postprocess
+    # Arguments
+    # appid  => Application identifier
+    # rtype  => Result type ["Single"|"Multiples"]
+    # pmode  => Postprocess mode ["Ascii"|"Binary"]
+
+    # ok
+    set ok 1 
+    # WarnWinText "appid:$appid rtype:$rtype pmode:$pmode what:$what"
+    set fpath [::KUtils::GetPaths "PFPath"]
+    # WarnWinText "fpath:$fpath"
+    if {$appid =="Fluid"} {
+	# For fluid application load the lst file
+	set ext "${appid}.post.lst"
+	# End file name
+	set efn "${fpath}${ext}"
+	if {$what =="CheckRFiles"} {
+	    if {[file exists $efn] == 1} {
+		return 1
+	    } else {
+		return 0
+	    }
+	} elseif {$what =="ReadRFiles"} {
+	    if {[file exists $efn] == 1} {
+		cd [::KUtils::GetPaths "PDir"]
+		GiD_Process MEscape files read [file tail $efn]
+	    }
+	}
+
+    } else {
+	if {$rtype =="Single"} {
+	    # Single file
+	    if {$pmode =="Ascii"} {
+		set ext "${appid}_0.post.res"
+	    } elseif {$pmode =="Binary"} {
+		set ext "${appid}.post.bin"
+	    }
+	    
+	    # End file name
+	    set efn "${fpath}${ext}"
+	    if {$what =="CheckRFiles"} {
+		if {[file exists $efn] == 1} {
+		    return 1
+		} else {
+		    return 0
+		}
+	    } elseif {$what =="ReadRFiles"} {
+		if {[file exists $efn] == 1} {
+		    cd [::KUtils::GetPaths "PDir"]
+		    GiD_Process MEscape files read [file tail $efn]
+		}
+	    }
+	    
+	} elseif {$rtype =="Multiples"} {
+	    # Get the project name
+	    set pname [::KUtils::GetPaths "PName"]
+	    if {$pmode =="Ascii"} {
+		set ext "${appid}_0.post.res"
+		set fp "${pname}${appid}_*.post.res"
+	    } elseif {$pmode =="Binary"} {
+		set ext "${appid}.post.bin"
+		set fp "${pname}${appid}_*.post.bin"
+	    }
+	    
+	    if {$what =="CheckRFiles"} {
+		cd [::KUtils::GetPaths "PDir"]
+		set flist [glob $fp]
+		# WarnWinText "flist:$flist\n\n"
+		if {[llength $flist]} {
+		    # Check the first file
+		    set checkfname [lindex $flist 0]
+		    if {[file exists $checkfname] == 1} {
+			return 1
+		    } else {
+			return 0
+		    }
+		} else {
+		    return 0
+		}
+	    } elseif {$what =="ReadRFiles"} {
+		# Get the file list
+		cd [::KUtils::GetPaths "PDir"]
+		set flist [glob $fp]
+		if {[llength $flist]} {
+		    set endflist [list]
+		    foreach fileid $flist {
+			if {[file exists $fileid] == 1} {
+			    lappend endflist $fileid
+			}
+		    }
+		    if {[llength $endflist]} {
+			# Read all file in the GiD postprocess
+			# Multiple files
+			GiD_Process MEscape Files ReadMultiple $endflist
+		    }
+		}
+	    }
+	}
+    }
+	
+    return $ok
 }
 
 proc ::KUtils::GetDefinedMeshGiDEntities {groupid {etype point} {what Elements} {isquadratic 0}} {

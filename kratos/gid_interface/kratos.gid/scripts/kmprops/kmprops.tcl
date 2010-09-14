@@ -15,14 +15,13 @@
 #  VERSION : 0.1
 #
 #  HISTORY:
-#   0.5- 13/08/10 Miguel Pasenau: se puede integrar la ventana dentro de la ventana 
+#   0.5- 12/08/10 Miguel Pasenau: se puede integrar la ventana dentro de la ventana 
 #                 principal de GiD;
 #                 mediante una barrita (caption) debajo del titulo de la ventana se puede
 #                 seleccionar si se quiere integrar la ventana o no;
 #                 tambien se ha cambiado el empaquetamiendo de 'pack' a 'grid'
 #                 de momento esta puesto OUTSIDE / INSIDE_LEFT, 
 #                 nueva variable Location para indicar donde esta
-#                 ::OpenInsideMainWindow & ::CloseInsideWindow are present in GiD v >= 10.1.1d || v >= 10.0.4
 #   0.4- 05/05/10 LCA: Se han habilitado combos con idioma añadiendo al spd la propiedad "ivalues"
 #   0.3- 26/04/10 LCA: Estructura correcta del árbol, con filtros por dimensión(2D,3D) 
 #                y por Types (Structural, Solution y Analysis). Funciona link entre propiedades y materiales.
@@ -50,7 +49,6 @@ namespace eval ::KMProps:: {
 	variable WinLayout 
 	# Location: OUTSIDE | INSIDE_LEFT | INSIDE_RIGHT
 	variable Location         
-	variable PreferedInsideLocation INSIDE_LEFT
 	variable SystemHighlight
 	variable SystemHighlightText
 	variable TreePropsPath
@@ -332,6 +330,7 @@ proc ::KMProps::stateNode { node } {
 		                return "hidden"
 		        }
 		}
+		
 	}
 	
 	set state [$node getAttribute state "normal"]
@@ -341,14 +340,14 @@ proc ::KMProps::stateNode { node } {
 	if {$state == "hiddenAll"} {
 		return "-1"
 	}
-	if { [$node nodeName] == "Item" } {
-		
-		#Salvedad para no mostrar la propiedad Thickness en algunos casos
-		set id [$node getAttribute id ""]
-		if { $id == "PressureValue" } {
-		        set id $id
-		}
-	}
+	
+	#if { [$node nodeName] == "Item" } {
+	#	#Salvedad para no mostrar la propiedad Thickness en algunos casos
+	#	set id [$node getAttribute id ""]
+	#	if { $id == "PressureValue" } {
+	#	        set id $id
+	#	}
+	#}
 		
 	foreach var $::KMProps::visibilityVars {
 		
@@ -360,20 +359,22 @@ proc ::KMProps::stateNode { node } {
 		#Si el nodo tiene alguna restriccion de clase (p.ej. del tipo strucType=Shell)
 		# y no coincide con el valor seleccionado, ocultamos el nodo        
 		if { $nodeValuesVar != "" } {
-		        
-		        if { !($globalVar in $nodeValuesVar) } {
-		        
-		        #msg "$state:  --------- > g: $globalVar in nodeVals: $nodeValuesVar"
-		        if {$var == "strucType" } {
-		                if { $globalVar != "Generic"} { 
-		                #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
-		                return -1
-		                }
-		        } else {
-		                #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
-		                return -1
-		        }
-		        }
+			
+			if { !($globalVar in $nodeValuesVar) } {
+			
+			#msg "$state:  --------- > g: $globalVar in nodeVals: $nodeValuesVar"
+			if {$var == "strucType" } {
+				if { $globalVar != "Generic"} { 
+				#msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
+				::KMProps::setNoActiveGroups $node
+				return -1
+				}
+			} else {
+				#msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
+				::KMProps::setNoActiveGroups $node
+				return -1
+			}
+			}
 		}
 	}
 	
@@ -387,25 +388,43 @@ proc ::KMProps::stateNode { node } {
 		
 		if {$var == $class} {
 		
-		#Caso especial para el solver de fluidos
-		if { $var == "fluidSolvTyp" } {
-		        
-		        #El solver de fluidos está duplicado dependiendo de una variable prebia
-		        set freeYesOrNo [$node getAttribute freeSurf ""]
-		        
-		        if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
-		        set ::KMProps::fluidSolvTyp "$value"
-		        }
-		} else {
-		        #Caso general
-		        set ::KMProps::$var $value
-		}
+			#Caso especial para el solver de fluidos
+			if { $var == "fluidSolvTyp" } {
+			
+				#El solver de fluidos está duplicado dependiendo de una variable prebia
+				set freeYesOrNo [$node getAttribute freeSurf ""]
+				
+				if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
+					set ::KMProps::fluidSolvTyp "$value"
+				}
+			} else {
+				#Caso general
+				set ::KMProps::$var $value
+			}
 		}
 	}
-		
+	
+	if { $class == "Group" } {
+		#Si llega aquí quiere decir que el nodo es visible
+		if { $state == "normal" } {	
+			$node setAttribute active 1
+		}
+	}
 	
 	#Devolvemos el estado del nodo ("normal" por defecto)
 	return $state
+}
+
+proc ::KMProps::setNoActiveGroups { node } {
+	
+	if {[$node getAttribute class ""] == "Groups" } {
+		
+		foreach nod [$node childNodes] {
+			if {[$nod getAttribute class ""] == "Group" } {
+				$nod setAttribute active 0
+			}
+		}
+	}
 }
 
 #
@@ -413,110 +432,110 @@ proc ::KMProps::stateNode { node } {
 #  DIMENSION (2D / 3D)
 #  STATE (normal, hidden, disabled)
 #
-proc ::KMProps::stateNode2 { node } {
-	
-	#Validamos para cada nodo si tiene que estar visible 
-	#(en función de los valores elegidos en algunos combos)
-	if { [$node nodeName] == "Item" } {
-		
-		#Salvedad para no mostrar la propiedad Thickness en algunos casos
-		set id [$node getAttribute id ""]
-		
-		if { $id == "ElemType" } {
-		        
-		        set ::KMProps::ElemTypeThickness [$node getAttribute dv ""]
-		        
-		} elseif { $id == "Thickness" } {
-		        
-		        if { ![::KMProps::showThickness]} {
-		                
-		                return "hidden"
-		        }
-		}
-		
-		#Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
-		
-		set value [$node getAttribute dv ""]
-		
-		set class [$node getAttribute class ""]
-		#Equivalente a Switch $class
-		foreach var $::KMProps::visibilityVars {
-		        
-		        if {$var == $class} {
-		        
-		        #Caso especial para el solver de fluidos
-		        if { $var == "fluidSolvTyp" } {
-		                
-		                #El solver de fluidos está duplicado dependiendo de una variable prebia
-		                set freeYesOrNo [$node getAttribute freeSurf ""]
-		                
-		                if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
-		                set ::KMProps::fluidSolvTyp "$value"
-		                }
-		        } else {
-		                #Caso general
-		                set ::KMProps::$var $value
-		        }
-		        }
-		}
-	} else {
-		
-		#Caso especial para application
-		#set class [$node getAttribute class ""]
-		#if { $class == "application" } {
-		
-		#set apliState [$node getAttribute state ""]
-		
-		#if {$apliState != "hiddenAll" } {
-		#set ::KMProps::application [$node getAttribute id ""]
-		#}
-		#}
-	}
-	
-	set state [$node getAttribute state "normal"]
-	
-	#Si el estado es hiddenAll se oculta el nodo y toda su descendencia
-	if {$state == "hiddenAll"} {
-		return "-1"
-	}
-	if { [$node nodeName] == "Item" } {
-		
-		#Salvedad para no mostrar la propiedad Thickness en algunos casos
-		set id [$node getAttribute id ""]
-		if { $id == "PressureValue" } {
-		        set id $id
-		}
-	}
-		
-	foreach var $::KMProps::visibilityVars {
-		
-		set globalVar [set ::KMProps::$var]
-		
-		set nodeValuesVar [split [$node getAttribute $var ""] ","]
-
-		
-		#Si el nodo tiene alguna restriccion de clase (p.ej. del tipo strucType=Shell)
-		# y no coincide con el valor seleccionado, ocultamos el nodo        
-		if { $nodeValuesVar != "" } {
-		        
-		        if { !($globalVar in $nodeValuesVar) } {
-		        
-		        if {$var == "strucType" } {
-		                if { $globalVar != "Generic"} { 
-		                
-		                return -1
-		                }
-		        } else {
-		                
-		                return -1
-		        }
-		        }
-		}
-	}
-	
-	#Devolvemos el estado del nodo ("normal" por defecto)
-	return $state
-}
+#proc ::KMProps::stateNode2 { node } {
+#	
+#	#Validamos para cada nodo si tiene que estar visible 
+#	#(en función de los valores elegidos en algunos combos)
+#	if { [$node nodeName] == "Item" } {
+#		
+#		#Salvedad para no mostrar la propiedad Thickness en algunos casos
+#		set id [$node getAttribute id ""]
+#		
+#		if { $id == "ElemType" } {
+#		        
+#		        set ::KMProps::ElemTypeThickness [$node getAttribute dv ""]
+#		        
+#		} elseif { $id == "Thickness" } {
+#		        
+#		        if { ![::KMProps::showThickness]} {
+#		                
+#		                return "hidden"
+#		        }
+#		}
+#		
+#		#Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
+#		
+#		set value [$node getAttribute dv ""]
+#		
+#		set class [$node getAttribute class ""]
+#		#Equivalente a Switch $class
+#		foreach var $::KMProps::visibilityVars {
+#		        
+#		        if {$var == $class} {
+#		        
+#		        #Caso especial para el solver de fluidos
+#		        if { $var == "fluidSolvTyp" } {
+#		                
+#		                #El solver de fluidos está duplicado dependiendo de una variable prebia
+#		                set freeYesOrNo [$node getAttribute freeSurf ""]
+#		                
+#		                if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
+#		                set ::KMProps::fluidSolvTyp "$value"
+#		                }
+#		        } else {
+#		                #Caso general
+#		                set ::KMProps::$var $value
+#		        }
+#		        }
+#		}
+#	} else {
+#		
+#		#Caso especial para application
+#		#set class [$node getAttribute class ""]
+#		#if { $class == "application" } {
+#		
+#		#set apliState [$node getAttribute state ""]
+#		
+#		#if {$apliState != "hiddenAll" } {
+#		#set ::KMProps::application [$node getAttribute id ""]
+#		#}
+#		#}
+#	}
+#	
+#	set state [$node getAttribute state "normal"]
+#	
+#	#Si el estado es hiddenAll se oculta el nodo y toda su descendencia
+#	if {$state == "hiddenAll"} {
+#		return "-1"
+#	}
+#	if { [$node nodeName] == "Item" } {
+#		
+#		#Salvedad para no mostrar la propiedad Thickness en algunos casos
+#		set id [$node getAttribute id ""]
+#		if { $id == "PressureValue" } {
+#		        set id $id
+#		}
+#	}
+#		
+#	foreach var $::KMProps::visibilityVars {
+#		
+#		set globalVar [set ::KMProps::$var]
+#		
+#		set nodeValuesVar [split [$node getAttribute $var ""] ","]
+#
+#		
+#		#Si el nodo tiene alguna restriccion de clase (p.ej. del tipo strucType=Shell)
+#		# y no coincide con el valor seleccionado, ocultamos el nodo        
+#		if { $nodeValuesVar != "" } {
+#		        
+#		        if { !($globalVar in $nodeValuesVar) } {
+#		        
+#		        if {$var == "strucType" } {
+#		                if { $globalVar != "Generic"} { 
+#		                
+#		                return -1
+#		                }
+#		        } else {
+#		                
+#		                return -1
+#		        }
+#		        }
+#		}
+#	}
+#	
+#	#Devolvemos el estado del nodo ("normal" por defecto)
+#	return $state
+#}
 
 #
 # Separa cada node en "inicialNombreTag.idNodo"
@@ -2815,20 +2834,17 @@ proc ::KMProps::WriteGeomToVar { w what geomname {InitComm ""}} {
 
 proc ::KMProps::CloseWindow { w} {
     variable Location
-	
-    ::KMProps::refreshTree "" 1
-
-    if { ( "$Location" == "OUTSIDE") || ( [ info procs ::CloseInsideMainWindow] == "")} {
+    if { "$Location" == "OUTSIDE"} {
 	::KMProps::CloseWindowOutside $w
     } else {
-	::CloseInsideMainWindow $w
+	CloseInsideMainWindow $w
     }
 }
 
 proc ::KMProps::OpenWindowOutside { w } {
     variable Location
 	
-    if { [ winfo exists $w] } {
+    if { [winfo exists $w] } {
 	# ::KMProps::CloseWindowOutside $w
 	::KMProps::CloseWindow $w
     }
@@ -2839,27 +2855,21 @@ proc ::KMProps::OpenWindowOutside { w } {
     set title [= "Project properties"]
     InitWindow $w $title KMPropsWindowGeom ::KMProps::InitBaseWindow
     
-    # wm protocol $w WM_DELETE_WINDOW "[list ::KMProps::refreshTree "" 1];destroy $w"
-    wm protocol $w WM_DELETE_WINDOW "::KMProps::CloseWindow $w"
+    wm protocol $w WM_DELETE_WINDOW "[list ::KMProps::refreshTree "" 1];destroy $w"
 
     return $w
 }
 
 proc ::KMProps::OpenWindowInside { w } {
     variable Location
-    variable PreferedInsideLocation
-
-    if { [ info procs ::OpenInsideMainWindow] != ""} {
-	if { [ winfo exists $w] } {
-	    ::KMProps::CloseWindow $w
-	}
-	
-	set Location $PreferedInsideLocation
-	
-	::OpenInsideMainWindow $w ::KMProps::CreateWindow $Location
-    } else {
-	::KMProps::OpenWindowOutside $w
+    
+    if { [winfo exists $w] } {
+	::KMProps::CloseWindow $w
     }
+    
+    set Location INSIDE_LEFT
+    
+    OpenInsideMainWindow $w ::KMProps::CreateWindow INSIDE_LEFT
     
     return $w
 }
@@ -2892,14 +2902,13 @@ proc ::KMProps::ChangeInsideOutside { w} {
 proc ::KMProps::InsertCaption { w title} {
     variable Location
     
-    ttk::frame $w.caption -relief ridge -borderwidth 1
+    ttk::frame $w.caption -relief solid -borderwidth 1
     label $w.caption.title -foreground grey60
-    GidHelp $w.caption [_ "Double-click toggle window or inline visualization"]
     setTooltip $w.caption [_ "Double-click toggle window or inline visualization"]
     if { [ winfo class $w] != "Toplevel" } {
 	$w.caption.title configure -text $title
 	button $w.caption.close -image [ GetImage close17.gif] -command \
-	    "::KMProps::CloseWindow $w" -bd 0 -relief flat
+	    "::KMProps::CloseWindow $w" -bd 0
 	$w.caption.title configure -text [_ "Double click here to tear off the window"]
     } else {
 	$w.caption.title configure -text [_ "Double click here to integrate the window"]
@@ -2909,15 +2918,15 @@ proc ::KMProps::InsertCaption { w title} {
 	grid $w.caption.title -sticky ew
     } else {
 	grid $w.caption.title $w.caption.close -sticky ew
-	grid configure $w.caption.close  -sticky wns
+	grid configure $w.caption.close  -sticky w
     }
-    grid columnconfigure $w.caption 0 -weight 1
-    grid rowconfigure $w.caption 0 -weight 1
     bind $w.caption.title <Double-Button-1> "::KMProps::ChangeInsideOutside $w"
     return $w.caption
 }
 
 proc ::KMProps::CloseWindowOutside { w } {
+	
+	::KMProps::refreshTree "" 1
 	
 	destroy $w
 }

@@ -10,12 +10,15 @@
 #
 #    CREATED AT: 10/05/10
 #
-#    LAST MODIFICATION : add the elasto-plastic material model to the constitutive laws
+#    LAST MODIFICATION : correct an error when defined body force for group of element with the same property
 #
-#    VERSION : 0.6
+#    VERSION : 0.9
 #
 #    HISTORY:
 #
+#     0.9- 07/09/10-G. Socorro, correct an error when defined body force for group of element with the same property
+#     0.8- 06/09/10-G. Socorro, check for active group variable when get the element properties
+#     0.7- 03/09/10-G. Socorro, correct an error with the BC for inlet and no-slip
 #     0.6- 16/06/10-G. Socorro, add the elasto-plastic material model to the constitutive laws
 #     0.5- 15/06/10-G. Socorro, add the damage material model to the constitutive laws
 #     0.4- 11/06/10-G. Socorro, update material properties using the new constitutive equation
@@ -111,70 +114,76 @@ proc ::wkcf::CreateKratosPropertiesIdentifier {} {
     # Check for used body forces
     set usebforce "No"    
     if {$StructuralAnalysis =="Yes"} {
-    set AppId "StructuralAnalysis"
-    # List with all group that use body forces
-    set dprops($AppId,AllBodyForceGroupId) [list]
-    foreach cloadtid $dprops($AppId,AllLoadTypeId) {
-        if {$cloadtid =="BodyForce"} {
-        # Check the group identifier
-        if {([info exists dprops($AppId,Loads,$cloadtid,AllGroupId)]) && ([llength $dprops($AppId,Loads,$cloadtid,AllGroupId)]>0)} {
-            foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-            if {$cgroupid ni $dprops($AppId,AllKEGroupId)} {
-                # Error => In this version all body force must belong the an element group
-            } else {
-                set usebforce "Yes"
-                if {$cgroupid ni $dprops($AppId,AllBodyForceGroupId)} {
-                lappend dprops($AppId,AllBodyForceGroupId) $cgroupid
-                }
-            }
-            }
-        } else {
-            # Error: First define some group identifier for this body force
-        }
-        break
-        }
-    }
+	set AppId "StructuralAnalysis"
+	# List with all group that use body forces
+	set dprops($AppId,AllBodyForceGroupId) [list]
+	foreach cloadtid $dprops($AppId,AllLoadTypeId) {
+	    if {$cloadtid =="BodyForce"} {
+		# Check the group identifier
+		if {([info exists dprops($AppId,Loads,$cloadtid,AllGroupId)]) && ([llength $dprops($AppId,Loads,$cloadtid,AllGroupId)]>0)} {
+		    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+			if {$cgroupid ni $dprops($AppId,AllKEGroupId)} {
+			    # Error => In this version all body force must belong to the same an element group
+			} else {
+			    set usebforce "Yes"
+			    if {$cgroupid ni $dprops($AppId,AllBodyForceGroupId)} {
+				lappend dprops($AppId,AllBodyForceGroupId) $cgroupid
+			    }
+			}
+		    }
+		} else {
+		    # Error: First define some group identifier for this body force
+		}
+		break
+	    }
+	}
+	
+	# WarnWinText "usebforce:$usebforce"
 
-    # Create the global kratos properties list
-    set dprops($AppId,GKProps,AllPropertyId) $dprops($AppId,AllKPropertyId)
-    # For all defined kratos elements
-    foreach celemid $dprops($AppId,AllKElemId) {
-        # For all defined group identifier for this elements
-        foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
-        # Get the group properties
-        lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
-        set dprops($AppId,GKProps,$PropertyId,AddBF) "No"
-        if {$usebforce =="Yes"} {
-            # Check to add body force properties
-            if {$cgroupid in $dprops($AppId,AllBodyForceGroupId)} {
-            set dprops($AppId,GKProps,$PropertyId,AddBF) "Yes"
-            } 
-        }
-        
-        # Update the global kratos property identifier 
-        set GlobalPId [expr [lsearch $dprops($AppId,GKProps,AllPropertyId) $PropertyId]+1]
-        set dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId) $GlobalPId
-        }
-    }
+	# Create the global kratos properties list
+	set dprops($AppId,GKProps,AllPropertyId) $dprops($AppId,AllKPropertyId)
+	# For all defined kratos elements
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    # WarnWinText "celemid:$celemid"
+	    # For all defined group identifier for this elements
+	    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		# Get the group properties
+		lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+		# WarnWinText "cgroupid:$cgroupid PropertyId:$PropertyId"
+		if {![info exists dprops($AppId,GKProps,$PropertyId,AddBF)]} {
+		    set dprops($AppId,GKProps,$PropertyId,AddBF) "No"
+		}
+		if {$usebforce =="Yes"} {
+		    # Check to add body force properties
+		    if {$cgroupid in $dprops($AppId,AllBodyForceGroupId)} {
+			set dprops($AppId,GKProps,$PropertyId,AddBF) "Yes"
+		    } 
+		}
+		
+		# Update the global kratos property identifier 
+		set GlobalPId [expr [lsearch $dprops($AppId,GKProps,AllPropertyId) $PropertyId]+1]
+		set dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId) $GlobalPId
+	    }
+	}
     }
     
     # For fluid application
     if {$FluidApplication =="Yes"} {
-    set AppId "Fluid"
-    # Create the global kratos properties list
-    set dprops($AppId,GKProps,AllPropertyId) $dprops($AppId,AllKPropertyId)
-    # For all defined kratos elements
-    foreach celemid $dprops($AppId,AllKElemId) {
-        # For all defined group identifier for this elements
-        foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
-        # Get the group properties
-        # lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
-       
-        # Update the global kratos property identifier 
-        set GlobalPId 0
-        set dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId) $GlobalPId
-        }
-    }
+	set AppId "Fluid"
+	# Create the global kratos properties list
+	set dprops($AppId,GKProps,AllPropertyId) $dprops($AppId,AllKPropertyId)
+	# For all defined kratos elements
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    # For all defined group identifier for this elements
+	    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		# Get the group properties
+		# lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+		
+		# Update the global kratos property identifier 
+		set GlobalPId 0
+		set dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId) $GlobalPId
+	    }
+	}
     }
 }
 
@@ -646,89 +655,104 @@ proc ::wkcf::GetElementProperties {} {
 
     # For each active application
     foreach AppId $ActiveAppList {
-    # Get the application root identifier    
-    set rootdataid $AppId
-    # Get the properties element links
-    # All kratos element identifier
-    set dprops($AppId,AllKElemId) [list]
-    # All kratos property identifier
-    set dprops($AppId,AllKPropertyId) [list]
-    # All Kratos element group identifier
-    set dprops($AppId,AllKEGroupId) [list]
-    # Get all defined element types
-    set cxpath "$rootdataid//c.Elements"
-    set glist [::xmlutils::setXmlContainerIds $cxpath]
-    set kwxpath "Applications/$rootdataid"
-    # WarnWinText "glist:$glist"
-    foreach celemid $glist {
-        # Get the group identifier defined for this element 
-        set cxpath "$rootdataid//c.Elements//c.${celemid}"
-        set cgrouplist [::xmlutils::setXmlContainerIds $cxpath]
-        if {[llength $cgrouplist]>0} { 
-        if {$celemid ni $dprops($AppId,AllKElemId)} {
-            lappend dprops($AppId,AllKElemId) $celemid
-        }
-        # WarnWinText "cgrouplist:$cgrouplist"
-        foreach cgroupid $cgrouplist {
-            # Update all group identifier
-            if {$cgroupid ni $dprops($AppId,AllKEGroupId)} {
-            lappend dprops($AppId,AllKEGroupId) $cgroupid
-            }
-            # Get the GiD entity type
-            set cxpath "$rootdataid//c.Elements//c.${celemid}"
-            set cproperty "GiDEntity"
-            set GiDEntity [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "GiDEntity:$GiDEntity"
-            # Get the GiD element type for Kratos elements type
-            set cxpath "$rootdataid//c.Elements//c.${celemid}//c.${cgroupid}//c.Properties//i.ElementType"
-            set cproperty "dv"
-            set GiDElemType [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "GiDElemType:$GiDElemType"
-            # Get the property identifier
-            set cxpath "$rootdataid//c.Elements//c.${celemid}//c.${cgroupid}//c.Properties//i.Property"
-            set cproperty "dv"
-            set PropertyId [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "PropertyId:$PropertyId"
-            # Get the Key word for the element type
-            set kelemtype [::xmlutils::getKKWord $kwxpath $celemid "kkword"]
-            # set cxpath "$rootdataid//c.Elements//c.${celemid}"
-            # set cproperty "kkword"
-            # set kelemtype [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "kelemtype:$kelemtype"
-            # Get ndim
-            set cxpath "$rootdataid//c.Elements//c.${celemid}"
-            set cproperty "nDim"
-            set nDim [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "nDim:$nDim"
-            
-            set GProps [list $GiDEntity $GiDElemType $PropertyId $kelemtype $nDim]
-            
-            # Kratos element to group link
-            # Group list
-            if {![info exists dprops($AppId,KElem,$celemid,AllGroupId)]} {
-            set dprops($AppId,KElem,$celemid,AllGroupId) [list]
-            }
-            if {$cgroupid ni $dprops($AppId,KElem,$celemid,AllGroupId)} {
-            lappend dprops($AppId,KElem,$celemid,AllGroupId) $cgroupid
-            }
-            # Group properties
-            if {![info exists dprops($AppId,KElem,$celemid,$cgroupid,GProps)]} {
-            set dprops($AppId,KElem,$celemid,$cgroupid,GProps) [list]
-            }
-            set dprops($AppId,KElem,$celemid,$cgroupid,GProps) $GProps
-            
-            # Update AllKPropertyId list
-            if {$PropertyId ni $dprops($AppId,AllKPropertyId)} {
-            lappend dprops($AppId,AllKPropertyId) $PropertyId
-            }
-            # Property to group identifier link
-            if {![info exists dprops($AppId,Property,$PropertyId,GroupId)]} {
-            set dprops($AppId,Property,$PropertyId,GroupId) [list]
-            }
-            set dprops($AppId,Property,$PropertyId,GroupId) $cgroupid
-        }
-        }
-    }
+	# Get the application root identifier    
+	set rootdataid $AppId
+	# Get the properties element links
+	# All kratos element identifier
+	set dprops($AppId,AllKElemId) [list]
+	# All kratos property identifier
+	set dprops($AppId,AllKPropertyId) [list]
+	# All Kratos element group identifier
+	set dprops($AppId,AllKEGroupId) [list]
+	# Get all defined element types
+	set cxpath "$rootdataid//c.Elements"
+	set glist [::xmlutils::setXmlContainerIds $cxpath]
+	set kwxpath "Applications/$rootdataid"
+	# WarnWinText "glist:$glist"
+	foreach celemid $glist {
+	    # Get the group identifier defined for this element 
+	    set cxpath "$rootdataid//c.Elements//c.${celemid}"
+	    set cgrouplist [::xmlutils::setXmlContainerIds $cxpath]
+	    if {[llength $cgrouplist]>0} { 
+		# WarnWinText "cgrouplist:$cgrouplist"
+		foreach cgroupid $cgrouplist {
+		    # Check if this group is in active state
+		    # Get active propery
+		    set cxpath "$rootdataid//c.Elements//c.${celemid}//c.${cgroupid}"
+		    set cproperty "active"
+		    set ActiveGroup [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "ActiveGroup:$ActiveGroup"
+		    if {$ActiveGroup =="0"} {
+			continue
+		    }
+		    # Update all kratos element identifier
+		    if {$celemid ni $dprops($AppId,AllKElemId)} {
+			lappend dprops($AppId,AllKElemId) $celemid
+		    }
+		    # Update all group identifier
+		    if {$cgroupid ni $dprops($AppId,AllKEGroupId)} {
+			lappend dprops($AppId,AllKEGroupId) $cgroupid
+		    }
+		    # Get the GiD entity type
+		    set cxpath "$rootdataid//c.Elements//c.${celemid}"
+		    set cproperty "GiDEntity"
+		    set GiDEntity [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "GiDEntity:$GiDEntity"
+		    # Get the GiD element type for Kratos elements type
+		    set cxpath "$rootdataid//c.Elements//c.${celemid}//c.${cgroupid}//c.Properties//i.ElementType"
+		    set cproperty "dv"
+		    set GiDElemType [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "GiDElemType:$GiDElemType"
+		    # Get the property identifier
+		    set cxpath "$rootdataid//c.Elements//c.${celemid}//c.${cgroupid}//c.Properties//i.Property"
+		    set cproperty "dv"
+		    set PropertyId [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "PropertyId:$PropertyId"
+		    # Get the Key word for the element type
+		    set kelemtype [::xmlutils::getKKWord $kwxpath $celemid "kkword"]
+		    # set cxpath "$rootdataid//c.Elements//c.${celemid}"
+		    # set cproperty "kkword"
+		    # set kelemtype [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "kelemtype:$kelemtype"
+		    # Get ndim
+		    set cxpath "$rootdataid//c.Elements//c.${celemid}"
+		    set cproperty "nDim"
+		    set nDim [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "nDim:$nDim"
+		    
+		    set GProps [list $GiDEntity $GiDElemType $PropertyId $kelemtype $nDim]
+		    
+		    # Kratos element to group link
+		    # Group list
+		    if {![info exists dprops($AppId,KElem,$celemid,AllGroupId)]} {
+			set dprops($AppId,KElem,$celemid,AllGroupId) [list]
+		    }
+		    if {$cgroupid ni $dprops($AppId,KElem,$celemid,AllGroupId)} {
+			lappend dprops($AppId,KElem,$celemid,AllGroupId) $cgroupid
+		    }
+		    # Group properties
+		    if {![info exists dprops($AppId,KElem,$celemid,$cgroupid,GProps)]} {
+			set dprops($AppId,KElem,$celemid,$cgroupid,GProps) [list]
+		    }
+		    set dprops($AppId,KElem,$celemid,$cgroupid,GProps) $GProps
+		    
+		    # Update AllKPropertyId list
+		    if {$PropertyId ni $dprops($AppId,AllKPropertyId)} {
+			lappend dprops($AppId,AllKPropertyId) $PropertyId
+		    }
+		    # Property to group identifier link
+		    if {![info exists dprops($AppId,Property,$PropertyId,GroupId)]} {
+			set dprops($AppId,Property,$PropertyId,GroupId) [list]
+		    }
+		    # Update the link between group and property => if the property exist add to the list
+		    if {[info exists dprops($AppId,Property,$PropertyId,GroupId)]} {
+			lappend dprops($AppId,Property,$PropertyId,GroupId) $cgroupid
+		    } else {
+			set dprops($AppId,Property,$PropertyId,GroupId) $cgroupid
+		    }
+		}
+	    }
+	}
     }
 }
 
@@ -816,40 +840,46 @@ proc ::wkcf::AlignLineNormals {direction} {
     # Arguments
     # direction => Direction option ["Inwards"|"Outwards"]
     # Note: This procedure in the same used in the fluid_only problem type
-
+    
     switch $direction {
-    Inwards {
-        set wrong_way "DIFF1ST"
-    }
-    Outwards {
-        set wrong_way "SAME1ST"
-    } 
-    default {puts "Unknown direction, line normals not aligned"}
+	Inwards {
+	    set wrong_way "DIFF1ST"
+	}
+	Outwards {
+	    set wrong_way "SAME1ST"
+	} 
+	default {puts "Unknown direction, line normals not aligned"}
     }
     
     set surfacelist [GiD_Geometry list surface 1:]
     
     # For each surface, we look for boundary lines oriented in the wrong direction
+    set linelist [list]
     foreach surface $surfacelist {
-    set surfaceinfo [GiD_Info list_entities surfaces $surface]
-    set numpos [lsearch $surfaceinfo "NumLines:"]
-    set numlines [lindex $surfaceinfo [expr {$numpos +1}]]
-    for {set i 0} {$i < $numlines} {incr i} {
-        set orient [lindex $surfaceinfo [expr {$numpos+5+4*$i}]]
-        if {[string compare $orient $wrong_way]==0} {
-        # If the normal is pointing in the wrong direction, 
-        # Check if it's a contour line
-        set linenum [lindex $surfaceinfo [expr {$numpos+3+4*$i}]]
-        set lineinfo [GiD_Info list_entities lines $linenum]
-        #set highpos [lsearch $surfinfo "HigherEntity:"]
-        set higherentities [lindex $lineinfo 4]
-        if {$higherentities==1} {
-            # If its in the contour, switch its normal
-            GiD_Process Mescape Utilities SwapNormals Lines Select $linenum
-        }
-        }
+	set surfaceinfo [GiD_Info list_entities surfaces $surface]
+	set numpos [lsearch $surfaceinfo "NumLines:"]
+	set numlines [lindex $surfaceinfo [expr {$numpos +1}]]
+	for {set i 0} {$i < $numlines} {incr i} {
+	    set orient [lindex $surfaceinfo [expr {$numpos+5+4*$i}]]
+	    if {[string compare $orient $wrong_way]==0} {
+		# If the normal is pointing in the wrong direction, 
+		# Check if it's a contour line
+		set linenum [lindex $surfaceinfo [expr {$numpos+3+4*$i}]]
+		set lineinfo [GiD_Info list_entities lines $linenum]
+		#set highpos [lsearch $surfinfo "HigherEntity:"]
+		set higherentities [lindex $lineinfo 4]
+		if {$higherentities==1} {
+		    lappend linelist $linenum
+		}
+	    }
+	}
     }
+    # WarnWinText "linelist:$linelist"
+    if {[llength $linelist]} {
+	# If its in the contour, switch its normal
+	eval GiD_Process Mescape Utilities SwapNormals Lines Select $linelist
     }
+
 }
 
 proc ::wkcf::AlignSurfNormals {direction} {
@@ -857,38 +887,43 @@ proc ::wkcf::AlignSurfNormals {direction} {
     # Arguments
     # direction => Direction option ["Inwards"|"Outwards"]
     # Note: This procedure in the same used in the fluid_only problem type
-
+    
     switch $direction {
-    Inwards {
-        set wrong_way "DIFF1ST"
-    }
-    Outwards {
-        set wrong_way "SAME1ST"
-    } 
-    default {puts "Unknown Direction, surface normals not aligned"}
+	Inwards {
+	    set wrong_way "DIFF1ST"
+	}
+	Outwards {
+	    set wrong_way "SAME1ST"
+	} 
+	default {puts "Unknown Direction, surface normals not aligned"}
     }
     
     set volumelist [GiD_Geometry list volume 1:]
-    
+
+    set surfacelist [list] 
     # For each volume, we look for face surfaces with oriented in the wrong direction
     foreach volume $volumelist {
-    set volumeinfo [GiD_Info list_entities volumes $volume]
-    set numpos [lsearch $volumeinfo "NumSurfaces:"]
-    set numsurf [lindex $volumeinfo [expr {$numpos +1 }]]
-    for {set i 0} {$i < $numsurf} {incr i} {
-        set orient [lindex $volumeinfo [expr {$numpos+5+4*$i}]]
-        if {[string compare $orient $wrong_way]==0} {
-        # If the normal is pointing in the wrong direction,
-        # Check if it's a contour surface
-        set surfnum [lindex $volumeinfo [expr {$numpos+3+4*$i}]]
-        set surfinfo [GiD_Info list_entities surfaces $surfnum]
-        set higherentities [lindex $surfinfo 4]
-        if {$higherentities==1} {
-            # If its in the contour, switch its normal
-            GiD_Process Mescape Utilities SwapNormals Surfaces Select $surfnum
-        }
-        }
+	set volumeinfo [GiD_Info list_entities volumes $volume]
+	set numpos [lsearch $volumeinfo "NumSurfaces:"]
+	set numsurf [lindex $volumeinfo [expr {$numpos +1 }]]
+	for {set i 0} {$i < $numsurf} {incr i} {
+	    set orient [lindex $volumeinfo [expr {$numpos+5+4*$i}]]
+	    if {[string compare $orient $wrong_way]==0} {
+		# If the normal is pointing in the wrong direction,
+		# Check if it's a contour surface
+		set surfnum [lindex $volumeinfo [expr {$numpos+3+4*$i}]]
+		set surfinfo [GiD_Info list_entities surfaces $surfnum]
+		set higherentities [lindex $surfinfo 4]
+		if {$higherentities==1} {
+		 lappend surfacelist $surfnum
+		}
+	    }
+	}
     }
+
+    if {[llength $surfacelist]} {
+	# If its in the contour, switch its normal
+	eval GiD_Process Mescape Utilities SwapNormals Surfaces Select $surfacelist
     }
 }
 
@@ -936,40 +971,40 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype} {
     set cproperty "dv"
 
     puts $fileid "# $vartype solver"
-
+    
     set cxpath "$rootid//c.SolutionStrategy//i.${vartype}LinearSolverType"
     set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
     if {$LinearSolverType =="Direct"} {
-    # Direct solver type
-    set cxpath "$rootid//c.SolutionStrategy//i.${vartype}DirectSolverType"
-    set DirectSolverType [::xmlutils::setXml $cxpath $cproperty]
-    WarnWinText "DirectSolverType:$DirectSolverType"
-    set cDirectSolverType [::xmlutils::getKKWord $kxpath $DirectSolverType]
-    puts $fileid "${vartype}_Linear_Solver = \"$cDirectSolverType\""
+	# Direct solver type
+	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}DirectSolverType"
+	set DirectSolverType [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "DirectSolverType:$DirectSolverType"
+	set cDirectSolverType [::xmlutils::getKKWord $kxpath $DirectSolverType]
+	puts $fileid "${vartype}_Linear_Solver = \"$cDirectSolverType\""
     
     } elseif {$LinearSolverType =="Iterative"} {
+	
+	# Iterative solver type 
+	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}IterativeSolverType"
+	set IterativeSolverType [::xmlutils::setXml $cxpath $cproperty]
+	# Tolerance
+	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISTolerance"
+	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
+	# Maximum iteration
+	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISMaximumIteration"
+	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
+	# preconditioner type
+	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}PreconditionerType"
+	set PreconditionerType [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "IterativeSolverType:$IterativeSolverType Tolerance:$Tolerance MaximumIteration:$MaximumIteration PreconditionerType:$PreconditionerType"
     
-    # Iterative solver type 
-    set cxpath "$rootid//c.SolutionStrategy//i.${vartype}IterativeSolverType"
-    set IterativeSolverType [::xmlutils::setXml $cxpath $cproperty]
-    # Tolerance
-    set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISTolerance"
-    set Tolerance [::xmlutils::setXml $cxpath $cproperty]
-    # Maximum iteration
-    set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISMaximumIteration"
-    set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
-    # preconditioner type
-    set cxpath "$rootid//c.SolutionStrategy//i.${vartype}PreconditionerType"
-    set PreconditionerType [::xmlutils::setXml $cxpath $cproperty]
-    WarnWinText "IterativeSolverType:$IterativeSolverType Tolerance:$Tolerance MaximumIteration:$MaximumIteration PreconditionerType:$PreconditionerType"
-    
-    # Solver type
-    set lsolver [::xmlutils::getKKWord $kxpath $IterativeSolverType]
-    puts $fileid "${vartype}_Linear_Solver = \"$lsolver\""
-    puts $fileid "${vartype}_Iterative_Tolerance = $Tolerance"
-    puts $fileid "${vartype}_Solver_Max_Iteration = $MaximumIteration"
-    # Preconditioner
-    set precond [::xmlutils::getKKWord $kxpath $PreconditionerType]
-    puts $fileid "${vartype}_Preconditioner_type = \"$precond\""
+	# Solver type
+	set lsolver [::xmlutils::getKKWord $kxpath $IterativeSolverType]
+	puts $fileid "${vartype}_Linear_Solver = \"$lsolver\""
+	puts $fileid "${vartype}_Iterative_Tolerance = $Tolerance"
+	puts $fileid "${vartype}_Solver_Max_Iteration = $MaximumIteration"
+	# Preconditioner
+	set precond [::xmlutils::getKKWord $kxpath $PreconditionerType]
+	puts $fileid "${vartype}_Preconditioner_type = \"$precond\""
     }
  }

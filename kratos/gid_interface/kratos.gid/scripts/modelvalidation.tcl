@@ -55,7 +55,17 @@ proc ::KMValid::ValidateModel {{w .gid.modelvalidation}} {
 }
 
 proc ::KMValid::CreateReportWindow {w} {
+	
+	global KPriv
 
+	#Comprobamos en los settings del proyecto si es necesario validar la versión
+	set ValidateModel [::kps::getConfigValue "ValidateModel"]
+	
+	if { !$ValidateModel } {
+		
+		return 0
+	}
+	
 	# Init the window
 	set title [= "Model validation"]
 	InitWindow $w $title ::KMValid::CreateReportWindowWindowGeom ::KMValid::CreateReportWindow
@@ -143,7 +153,6 @@ proc ::KMValid::CreateReportWindow {w} {
 	
 	#lappend allreportlist "ErrorAplication:ApplicationTitle Structural Analysis:"
 	
-	global KPriv
 	set xml $KPriv(xml)	
 	set apliXpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='ApplicationTypes'\]/Item"
 	
@@ -197,7 +206,7 @@ proc ::KMValid::CreateReportWindow {w} {
 	}
 	
 	if { $aviso != "" } {
-		set answer [::WinUtils::confirmBox "." "$aviso"]
+		set answer [::WinUtils::confirmBox "." "$aviso" "okcancel"]
 		if { $answer == "ok" } {
 			return 1
 		} else {
