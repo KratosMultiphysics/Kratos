@@ -11,12 +11,16 @@
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : add quotes to the Solution_method variable
+#    LAST MODIFICATION : add "Distance" variable to the fluid application results
 #
-#    VERSION : 2.1
+#    VERSION : 2.5
 #
 #    HISTORY:
 #
+#     2.5- 08/09/10-G. Socorro, add "Distance" variable to the fluid application results
+#     2.4- 06/09/10-G. Socorro, reset xcomp, ycomp and zcomp at the end of the foreach group when write no-slip BC in the fluid application  
+#     2.3- 06/09/10-G. Socorro, correct an error when defined body force for group of element with the same property
+#     2.2- 03/09/10-G. Socorro, add monolithic and pressuresplitting solver option, change "True" by true
 #     2.1- 05/06/10-G. Socorro, add quotes to the Solution_method variable
 #     2.0- 30/06/10-G. Socorro, update fluid parameter file
 #     1.9- 28/06/10-G. Socorro, add GiDOptions variable in the parameter file
@@ -217,8 +221,7 @@ proc ::wkcf::WriteProperties {AppId} {
 	    write_calc_data puts "Begin Properties $propid // GUI property identifier: $PropertyId"
 	    # Get the material identifier for this property 
 	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
-	    # Get the group identifier
-	    set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
+	    # WarnWinText "PropertyId:$PropertyId MatId:$MatId"
 	    write_calc_data puts "// GUI material identifier: $MatId"
 	    # Write material properties
 	    foreach propid $dprops($AppId,Material,$MatId,Props) {
@@ -238,10 +241,18 @@ proc ::wkcf::WriteProperties {AppId} {
 	    if {$dprops($AppId,GKProps,$PropertyId,AddBF)=="Yes"} {
 		# Get the body force properties
 		set cloadtid "BodyForce"
-		set cprop $dprops($AppId,Loads,$cloadtid,$GroupId,GProps)
-		# WarnWinText "cprop:$cprop GroupId:$GroupId"
-		write_calc_data puts "// GUI body force group identifier: $GroupId"
-		::wkcf::WriteBodyForceValues $cprop
+		# Get the group identifier list for this property
+		if {([info exists dprops($AppId,Property,$PropertyId,GroupId)]) && ([llength $dprops($AppId,Property,$PropertyId,GroupId)]>0)} {
+		    foreach GroupId $dprops($AppId,Property,$PropertyId,GroupId) {
+			# WarnWinText "GroupId:$GroupId"
+			if {[info exists dprops($AppId,Loads,$cloadtid,$GroupId,GProps)]} {
+			    set cprop $dprops($AppId,Loads,$cloadtid,$GroupId,GProps)
+			    # WarnWinText "cprop:$cprop GroupId:$GroupId"
+			    write_calc_data puts "// GUI body force group identifier: $GroupId"
+			    ::wkcf::WriteBodyForceValues $cprop
+			}
+		    }
+		}
 	    }
 	    write_calc_data puts "End Properties"
 	}
@@ -532,12 +543,16 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 		    }
 		    "InletVelocity" {
 			if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
-			    lappend inletvelglist $dprops($AppId,BC,$ccondid,AllGroupId)
+			    foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
+				lappend inletvelglist $_gid
+			    }
 			}
 		    }
 		    "No-Slip" {
 			if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
-			    lappend noslipglist $dprops($AppId,BC,$ccondid,AllGroupId)
+			    foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
+				lappend noslipglist $_gid
+			    }
 			}
 		    }
 		}
@@ -557,6 +572,7 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
     variable gidentitylist; variable ndime
     variable useqelem; variable dprops
 
+    # WarnWinText "inletvelglist:$inletvelglist\nnoslipglist:$noslipglist\nkwordlist:$kwordlist"
     # Map Inlet-NoSlip => Use no-slip values at share nodes
     set icondid "InletVelocity"; set nscondid "No-Slip"
     set cpropid "1"
@@ -604,6 +620,7 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
 	    # For each group in the no-slip condition
 	    foreach nsgroupid $noslipglist {
 		set nsGProps $dprops($AppId,BC,$nscondid,$nsgroupid,GProps)
+		# WarnWinText "nsgroupid:$nsgroupid nsGProps:$nsGProps"
 		foreach nsnodeid $allnslip($nsgroupid,NodeList) {
 		    set clist [list 0 0 0]
 		    if {[lindex $nsGProps 0]} {
@@ -642,6 +659,9 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
 			write_calc_data puts ""
 		    }
 		}
+
+		# Reset xcomp, ycomp and zcomp
+		set xcomp ""; set ycomp ""; set zcomp ""
 	    }
 
 	    # Get the Inlet velocity entities
@@ -679,12 +699,14 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
 	    set ixcomp ""; set iycomp ""; set izcomp ""
 	    foreach igroupid $inletvelglist {
 		set iGProps $dprops($AppId,BC,$icondid,$igroupid,GProps)
+		# WarnWinText "igroupid:$igroupid iGProps:$iGProps"
 		foreach inodeid $allninlet($igroupid,NodeList) {
+		    # WarnWinText "inodeid:$inodeid"
 		    # Check that this node identifier exists in the dictionary
 		    if {[dict exists $condmatch $inodeid]} {
 			# Get the properties
 			set nprop [dict get $condmatch $inodeid] 
-			#WarnWinText "nprop:$nprop"
+			# WarnWinText "nprop:$nprop"
 			# Check x flag
 			if {[lindex $nprop 0]=="0"} {
 			    # Write this node identifier
@@ -1343,9 +1365,28 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 		}
 		"PressureSplitting" {
 		    # Pressure splitting
+		    
+		    # Solution strategy
+		    # Linear solvers
+		    # Velocity
+		    ::wkcf::WriteFluidSolvers $rootid $fileid "Velocity"
+		    puts $fileid ""
+		    # Pressure
+		    ::wkcf::WriteFluidSolvers $rootid $fileid "Pressure"
+
+		}
+		"Monolithic" {
+		    # Monolithic
+
+		    # Solution strategy
+		    # Linear solvers
+		    # Velocity
+		    ::wkcf::WriteFluidSolvers $rootid $fileid "Monolithic"
+		    puts $fileid ""
+
 		}
 	    }
-
+	  
 	    # Write relative and absolute tolerances
 	    puts $fileid ""
 	    set ctlist [list "RelativeVelocityTolerance" "AbsoluteVelocityTolerance" "RelativePressureTolerance" "AbsolutePressureTolerance"]
@@ -1365,18 +1406,27 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 	    # Predictor corrector
 	    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.PredictorCorrector"
 	    set PredictorCorrector [::xmlutils::setXml $cxpath $cproperty]
-	    puts $fileid "predictor_corrector = \"$PredictorCorrector\""
+	    puts $fileid "predictor_corrector = $PredictorCorrector"
 	    
-	    # Maximum velocity iterations
-	    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumVelocityIterations"
-	    set MaximumVelocityIterations [::xmlutils::setXml $cxpath $cproperty]
-	    puts $fileid "max_vel_its = $MaximumVelocityIterations"
- 
-	    # Maximum pressure iterations
-	    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumPressureIterations"
-	    set MaximumPressureIterations [::xmlutils::setXml $cxpath $cproperty]
-	    puts $fileid "max_press_its = $MaximumPressureIterations"
-	    
+	    if {$SolverType in [list "ElementBased" "EdgeBased"]} {
+		# Maximum velocity iterations
+		set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumVelocityIterations"
+		set MaximumVelocityIterations [::xmlutils::setXml $cxpath $cproperty]
+		puts $fileid "max_vel_its = $MaximumVelocityIterations"
+		
+		# Maximum pressure iterations
+		set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumPressureIterations"
+		set MaximumPressureIterations [::xmlutils::setXml $cxpath $cproperty]
+		puts $fileid "max_press_its = $MaximumPressureIterations"
+
+	    } elseif {$SolverType in [list "Monolithic" "PressureSplitting"]} {
+		# Maximum iterations
+		set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumIterations"
+		set MaximumIterations [::xmlutils::setXml $cxpath $cproperty]
+		puts $fileid "max_iterations = $MaximumIterations"
+
+	    }
+
 	    # Laplacian form
 	    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.LaplacianForm"
 	    set LaplacianForm [::xmlutils::setXml $cxpath $cproperty]
@@ -1424,9 +1474,9 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     set cxpath "$rootid//c.Results//c.OnNodes//i.Reactions"
     set Reactions [::xmlutils::setXml $cxpath $cproperty]
     if {$Reactions =="Yes"} {
-	puts $fileid "Calculate_reactions = \"True\""
+	puts $fileid "Calculate_reactions = True"
     } else {
-	puts $fileid "Calculate_reactions = \"False\""
+	puts $fileid "Calculate_reactions = False"
     }
 
     puts $fileid ""
@@ -1442,7 +1492,8 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     # For results
     puts $fileid ""
     # On nodes results
-    set cnrlist [list "Velocity" "Pressure" "Reactions"]
+    set cnrlist [list "Velocity" "Pressure" "Reactions" "Distance"]
+    # set cnrlist [list "Velocity" "Pressure" "Reactions"]
     set nodal_results "nodal_results=\["
     foreach cnr $cnrlist {
      	set cxpath "$rootid//c.Results//c.OnNodes//i.${cnr}"
@@ -1459,6 +1510,10 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
      	append nodal_results "\]" 
      	puts $fileid "$nodal_results"
      }
+
+    # Set gauss_points_results to empty
+    puts $fileid "gauss_points_results=\[\]"
+
     # WarnWinText "nodal_results:$nodal_results"
  
     # GiD post mode variables
@@ -1751,8 +1806,10 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
 	    } elseif {$cvalue =="Yes"} {
 		set cvalue "False"
 	    }
+	    puts $fileid "$gidrkw = $cvalue"
+	} else {
+	    puts $fileid "$gidrkw = \"$cvalue\""
 	}
-	puts $fileid "$gidrkw = \"$cvalue\""
     }
 }
 

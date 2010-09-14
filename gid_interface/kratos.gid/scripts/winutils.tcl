@@ -32,17 +32,17 @@ namespace eval ::WinUtils:: {
 # 1. 
 # 2.
 
-proc ::WinUtils::confirmBox {w txt {option okcancel} } {
+proc ::WinUtils::confirmBox {w txt {option okcancel} {title "Confirm"}} {
 	
     global msgboxIcon msgboxType
     
     if { $option == "okcancel" } {
-    	set button [tk_messageBox -type okcancel \
-		-title "Eliminar" -parent $w \
+	    set button [tk_messageBox -type okcancel \
+		-title "$title" -parent $w \
 		-message $txt]
 	} else {
 		set button [tk_messageBox -type $option \
-		-title "Eliminar" -icon warning -parent $w \
+		-title "$title" -icon warning -parent $w \
 		-message $txt]
 	}
 	return $button
@@ -95,11 +95,11 @@ proc ::WinUtils::GetImage { imageid } {
     global KPriv
 	
 	if { $imageid != "" && [file exists [file native "$KPriv(dir)/images/${imageid}"]] } {
-    	#msg "imgId:$imageid [Bitmap::get $KPriv(dir)/images/${imageid}]"
-    	return [Bitmap::get [file native "$KPriv(dir)/images/${imageid}"]]
+	    #msg "imgId:$imageid [Bitmap::get $KPriv(dir)/images/${imageid}]"
+	    return [Bitmap::get [file native "$KPriv(dir)/images/${imageid}"]]
     } else {
-    	#msg "NoImage(-1)"
-    	return -1
+	    #msg "NoImage(-1)"
+	    return -1
     }
 }
 
@@ -136,20 +136,20 @@ proc ::WinUtils::Print {w} {
     if { ![info exists s${i}] || ![winfo exists [set s${i}]] } { continue }
     foreach "${i}1 ${i}2" [$listbox ${i}view] break
     if { [set ${i}1] == 0 && [set ${i}2] == 1 } {
-        after idle grid remove [set s${i}]
+	after idle grid remove [set s${i}]
     } else {
-        # WarnWinText "what set:[set s${i}]\n i:$i\n all:[grid info $listbox]"
-        after idle grid [set s${i}]
-        if {$i=="y"} {
-        # set findrow [lindex [grid info $listbox] [expr [lsearch [grid info $listbox] -column]+1]]
-        set findcol [lindex [grid info $listbox] 3]
-        # WarnWinText "findcol:$findcol by:[lsearch [grid info $listbox] -column]"
-        after idle grid configure [set s${i}] -column [expr $findcol+1]
-        } elseif {$i=="x"} {
-        set findrow [lindex [grid info $listbox] 5]
-        # WarnWinText "findrow:$findrow by:[lsearch [grid info $listbox] -column]"
-        after idle grid configure [set s${i}] -row [expr $findrow+1]
-        }
+	# WarnWinText "what set:[set s${i}]\n i:$i\n all:[grid info $listbox]"
+	after idle grid [set s${i}]
+	if {$i=="y"} {
+	# set findrow [lindex [grid info $listbox] [expr [lsearch [grid info $listbox] -column]+1]]
+	set findcol [lindex [grid info $listbox] 3]
+	# WarnWinText "findcol:$findcol by:[lsearch [grid info $listbox] -column]"
+	after idle grid configure [set s${i}] -column [expr $findcol+1]
+	} elseif {$i=="x"} {
+	set findrow [lindex [grid info $listbox] 5]
+	# WarnWinText "findrow:$findrow by:[lsearch [grid info $listbox] -column]"
+	after idle grid configure [set s${i}] -row [expr $findrow+1]
+	}
     }
     }
 }

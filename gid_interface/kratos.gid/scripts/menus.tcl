@@ -84,14 +84,15 @@ proc ::kmtb::AddMenuToPreprocessMenu {dir} {
 			       [= "Material database#C#menu"] \
 			       --- \
 			       [= "Function editor#C#menu"] \
-			       [= "Project setting#C#menu"]]
+			       [= "Project settings#C#menu"]]
     
     set MenuCommands($pos) [list [list -np- ::KEGroups::InitBaseWindow] \
 				"" \
 				[list -np- ::KMProps::InitBaseWindow] \
 				[list -np- ::KMProps::InitBaseWindow Materials] \
 				"" \
-				[list] [list]]
+				[list ] \
+				[list  -np- ::kps::InitSettingWindow]]
     
     
     set MenuAcceler($pos) {"" "" "" "" ""}

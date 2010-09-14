@@ -53,6 +53,10 @@ proc ::kfiles::LoadSPD {filename} {
    	set KPriv(encrXml) [lindex $xmlArray 1]
    	set KPriv(xmlDoc) [lindex $xmlArray 2]
    	
+   	# Crea el archivo Kratos.ini, si aun no existe e inicializa
+	#  las variables globales KPriv(xmlIni)...
+	::kps::updateKratosIniFile
+    
    	#Si estamos cargando el default se tendrán que comprobar las versiones
    	if {$filename != "$KPriv(dir)/$xmlNameFile"} {
    		
@@ -99,17 +103,26 @@ proc ::kfiles::LoadSPD {filename} {
 	::xmlutils::getLanguageWords
 	
 	
-	#PRUEBAS: Inicios rápidos para probar
-	# ::KMValid::ValidateModel
 	
-	#::KMProps::InitBaseWindow Materials
-	#::KMProps::InitBaseWindow
-    #::KFun::InitBaseWindow ".gid.kmprops.nb.fProp.fBottom.nb.fMainProperties" "Fx"
 
     # Set KMat xml path
     if {[info exists ::KMat::xml]} {
-	set ::KMat::xml $KPriv(xmlMat)
+		set ::KMat::xml $KPriv(xmlMat)
     }
+    
+    # Nos guardamos el nombre del problemType cargado
+    set ptypeName [lindex [split $KPriv(problemTypeDir) "/"] end]
+    set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]
+    
+    
+    #PRUEBAS: Inicios rápidos para probar
+    #::kps::InitSettingWindow
+	# ::KMValid::ValidateModel
+	#::KMProps::InitBaseWindow Materials
+	#::KMProps::InitBaseWindow
+    #::KFun::InitBaseWindow ".gid.kmprops.nb.fProp.fBottom.nb.fMainProperties" "Fx"
+    
+    
 }
 
 proc ::kfiles::SaveSPD {filename} {
@@ -172,3 +185,73 @@ proc ::kfiles::MakeBackupCopyOfSPDFile {filename {extension ".spd"}} {
     }
 }
 
+#------------------------------------------------------------------------------
+#
+# Funciones para manejar el PROJECT SETTINGS
+#
+#------------------------------------------------------------------------------
+
+proc ::kfiles::giveConfigFile { {ptypeName "kratos"} } {
+	
+    global KPriv
+
+    set filename [GiveGidDefaultsFile]
+    set dirname [file dirname $filename]
+    set extname [file extension $filename]
+    set kname "${ptypeName}${extname}"
+    
+    return [file join $dirname $kname]
+}
+
+proc ::kfiles::varOnConfigFile { var {def 0} } {
+	
+    # Check the value of variable in the configuration file
+    set file [::kfiles::giveConfigFile]
+    if { [catch { set fileid [open $file r] }] } {
+    return $def
+    }
+    while { ![eof $fileid] } {
+    set aa [gets $fileid]
+    if { [regexp "$var\[ ]*(\[01])" $aa {} val] } {
+        close $fileid
+        return $val
+    }
+    }
+    close $fileid
+    return $def
+}
+
+proc ::kfiles::writeVarConfigFile { varArray valArray } {
+	
+	# Write the value of variable to the configuration file
+	
+	set fileid ""
+	
+	set file [::kfiles::giveConfigFile]
+	if { [file readable $file] } {
+		if { [catch { set fileid [open $file r] }] } { return 0 }
+		set fileread [read $fileid]
+		close $fileid
+	} else {
+		set fileread ""
+	}
+	
+	foreach var $varArray val $valArray {
+		
+		if { [regexp "$var" $fileread {}] } {
+			regsub "$var\[ ]*(\[01])" $fileread "$var $val"  filewrite
+		} else {
+			set filewrite ""
+			append filewrite $fileread "\n$var $val"
+		}
+		if { [catch { set fileid [open $file w+] }] } {
+			WarnWin [= "Cannot write file %s. Permission denied" $file].
+			return 0
+		}
+		puts $fileid $filewrite
+	}
+	if { $fileid != "" } {
+		close $fileid
+	}
+	return 1
+}
