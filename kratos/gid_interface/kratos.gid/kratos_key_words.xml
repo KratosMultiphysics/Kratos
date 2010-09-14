@@ -55,6 +55,7 @@
         <Item id="Velocity" kkword="VELOCITY" />
         <Item id="Pressure" kkword="PRESSURE" />
 	<Item id="Reactions" kkword="REACTION" />
+	<Item id="Distance" kkword="DISTANCE" />
         <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
         <Item id="SuperLU" kkword="Super LU" />
         <Item id="ParallelMKLPardiso" kkword="Parallel MKL Pardiso" />
