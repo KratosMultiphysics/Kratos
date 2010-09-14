@@ -402,8 +402,10 @@ while(time < final_time):
 
     out = out + Dt
 
-if Multifile == False:
-    gid_io.FinalizeResults()
+if Multifile:
     f.close()
+else:
+    gid_io.FinalizeResults()
+    
           
         
