@@ -667,18 +667,12 @@ namespace Kratos {
         //y += A*x in parallel
         static void ParallelProductNoAdd( const MatrixType& A, const VectorType& in, VectorType& out)
         {
-//std::cout << "in function ParallelProductNoAdd" << std::endl;
-            typedef  unsigned int size_type;
-            typedef  double value_type;
-
             //create partition
-            vector<size_type> partition;
-            int number_of_threads = omp_get_max_threads();
-            CreatePartition(number_of_threads, A.size1(), partition);
+            vector<unsigned int> partition;
+            unsigned int number_of_threads = omp_get_max_threads();
+            unsigned int number_of_initialized_rows = A.filled1() - 1;
+            CreatePartition(number_of_threads, number_of_initialized_rows, partition);
             //parallel loop
-            size_type  processor_row_begin, processor_row_end;
-            int proc_id = 0;
-
             #pragma omp parallel
             {
                 int thread_id = omp_get_thread_num();
