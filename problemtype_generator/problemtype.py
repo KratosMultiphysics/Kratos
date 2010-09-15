@@ -4,7 +4,7 @@ import core_definitions
 import tcl_functions
 import os
 
-def generate(input_file):
+def generate(input_file,base_folder = '.'):
 
     global code_db
     global condition_dictionary
@@ -19,6 +19,7 @@ def generate(input_file):
     current_group=None
     currentconds=list()
     auto_conditions=dict()
+    script_folder = None
     # tcl variables
     point_code=''
     point_end=''
@@ -76,8 +77,21 @@ def generate(input_file):
             elif line[0]=='DEFINITION' and line[1]=='FOLDER':
                 # Read input files from the 'template_name' folder
                 template_name=line[2]
-                code_db,condition_classes,property_classes,material_classes,part_classes=read_tools.read_definitions(template_name)
+                template_path = os.path.join(os.getcwd(),template_name)
                 print 'Definition folder: ',template_name
+                code_db,condition_classes,property_classes,material_classes,part_classes=read_tools.read_definitions(template_path)
+
+            elif line == ['USE','KRATOS','DEFINITIONS']:
+                # Use default templates for Kratos
+                template_path = os.path.join(base_folder,'kratos_definitions')
+                print 'Using default Kratos definitions'
+                code_db,condition_classes,property_classes,material_classes,part_classes=read_tools.read_definitions(template_path)
+
+            elif line[0]=='USE' and line[1]=='PYTHON' and line[2]=='SCRIPTS':
+                # Include the python scripts found in folder as default Kratos
+                # scripts fot the problemtype
+                # Folder must be in the same path as the input file
+                script_folder = line[3]
                 
             elif line[0]=='DEFINE':
                 # Create a material or part data entry
@@ -412,16 +426,25 @@ def generate(input_file):
 
         # Write files
         print '\nGenerating Files...\n'
-        file_functions.generate_files(projectname,template_name)
+        file_functions.generate_files(projectname,template_path)
+        # if a folder containing default python scripts for GiD was provided, include
+        # them in the problemtype
+        if script_folder != None:
+            file_functions.add_python_scripts(projectname,script_folder)
+
+        # Once the problemtype folder has been created and filled with default
+        # files, move there (set it as current working directory)
+        os.chdir(projectname+'.gid/')
+        
         code_db.clean()
         code_db.write(projectname)
 
         # Purge unused books (GiD won't work properly with them) and create a custom Tcl Menu
-        menustring=file_functions.check_books(projectname,template_name)
+        menustring=file_functions.check_books(projectname,template_path)
         menucode=core_definitions.code(menustring,'','.tcl','\t# Custom Menu\n')
         menucode.write(projectname)
         
-        endstring='PROBLEMTYPE GENERATED\n\nCopy the '+projectname+'.gid folder to GiD\'s problemtypes folder.'
+        endstring='\nPROBLEMTYPE GENERATED\n\nCopy the '+projectname+'.gid folder to GiD\'s problemtypes folder.'
         print endstring
 
 def store_auto_data(part_obj,auto_dict):
@@ -444,11 +467,15 @@ def store_auto_data(part_obj,auto_dict):
 
 if __name__=='__main__':
     import sys
+    import os
+
+    # Path to the folder containing this script
+    basefolder = os.path.split(sys.argv[0])[0]
     try:
         inputfile = sys.argv[1]
     except: inputfile = None
     if inputfile:
         import problemtype
-        problemtype.generate(inputfile)
+        problemtype.generate(inputfile,basefolder)
     else:
         print 'Use python problemtype.py <input file>'            
