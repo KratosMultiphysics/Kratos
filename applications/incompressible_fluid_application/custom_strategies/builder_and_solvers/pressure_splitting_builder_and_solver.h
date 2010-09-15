@@ -91,9 +91,9 @@ namespace Kratos
       S \delta u = r_u - G \, \delta p
      \f]
      \f[
-      \left( L - D K^{-1} G \right) \, \delta p = r_p - D {K}^{-1} \, r_u
+      \left( L - D S^{-1} G \right) \, \delta p = r_p - D {S}^{-1} \, r_u
      \f]
-     where \f$ K^{-1} \f$ is approximated by \f$ \left( \text{Diag} \left( K \right) \right)^{-1} \f$
+     where \f$ S^{-1} \f$ is approximated by \f$ \left( \text{Diag} \left( S \right) \right)^{-1} \f$
      */
     template< class TSparseSpace,
 	class TDenseSpace , //= DenseSpace<double>,
@@ -326,7 +326,6 @@ namespace Kratos
             for(int i = 0; i< TotalSize; i++)
                 omp_destroy_lock(&lock_array[i]);
 
-            KRATOS_WATCH("finished parallel building");
 #endif
 
             /* Build the pressure system matrix */
@@ -607,6 +606,8 @@ namespace Kratos
         {
             KRATOS_TRY
 
+            std::cout << "Building system" << std::endl;
+
             Timer::Start("Build");
 
             Build(pScheme, rModelPart, A, b);
@@ -622,6 +623,8 @@ namespace Kratos
                 std::cout << "unknowns vector = " << Dx << std::endl;
                 std::cout << "RHS vector = " << b << std::endl;
             }
+
+            std::cout << "Solving System" << std::endl;
 
             Timer::Start("Solve");
 
@@ -741,14 +744,18 @@ namespace Kratos
         }
 
         /// Identify Dofs and store pointers to them
-        /* Single list version */
+        /**
+         * Generates a list of the degrees of freedom in the model.
+         * @param pScheme A pointer to the solution scheme
+         * @param rModelPart A reference to the model part that contains the dofs
+         */
         void SetUpDofSet(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart)
         {
             KRATOS_TRY;
 
-            KRATOS_WATCH("setting up the dofs");
+            std::cout << "Setting up degrees of freedom" << std::endl;
             //Gets the array of elements from the modeler
             ElementsArrayType& pElements = rModelPart.Elements();
             ConditionsArrayType& pConditions = rModelPart.Conditions();
@@ -819,6 +826,15 @@ namespace Kratos
         }
 
         /// Organise Dofs, separating fixed and free nodes
+        /**
+         * This function orders the degrees of freedom of the system.
+         * To prepare for uncoupled solution, the numeration is assigned as follows:
+         * free velocity dofs, free pressure dofs, fixed velocity dofs and fixed pressure dofs
+         * This ordering allows us to set up separated dof counters for each dof type.
+         * They will be used to keep track of the type (variable and fixity) of each dof
+         *  during dof loops.
+         * @param rModelPart A reference to the model part that contains the dofs
+         */
         void SetUpSystem(ModelPart& rModelPart)
         {
             KRATOS_TRY;
@@ -1231,9 +1247,7 @@ namespace Kratos
 
             L.reserve(NumTermsL, false);
 
-            // Fill with zeros the matrix (create the structure)
-
-            // Note that AllocateSpace has different definitions depending on _OPENMP
+            // Fill the matrix with zeros (create the structure)
             AllocateSpace(S, indicesS);
             AllocateSpace(G, indicesG);
             AllocateSpace(D, indicesD);
@@ -1799,9 +1813,11 @@ namespace Kratos
 
         /// allocate space for member matrices
         void AllocateSpace(
+//        unsigned int AllocateSpace( // Commented version checks for empty rows in the matrix
                 TSystemMatrixType& A,
                 std::vector< std::vector<std::size_t> >& indices)
         {
+//            unsigned int NumEmptyRows = 0; // Keeps track of empty rows for error checking (they can be a symptom of insuficient boundary conditions)
             int NumThreads = OpenMPUtils::GetNumThreads();
             PartitionVector MatrixPartition;
 
@@ -1824,10 +1840,12 @@ namespace Kratos
                         {
                             A.push_back(i,*it,0.00);
                         }
+//                        if(Row.begin() == Row.end()) NumEmptyRows++;
                         Row.clear();
                     }
                 }
             }
+//            return NumEmptyRows;
         }
 
 #ifdef _OPENMP
@@ -1838,22 +1856,18 @@ namespace Kratos
                 const TSystemVectorType& in,
                 TSystemVectorType& out)
         {
-            typedef  unsigned int size_type;
-            typedef  double value_type;
-
             //create partition
             PartitionVector partition;
             int number_of_threads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::DivideInPartitions(A.size1(),number_of_threads,partition);
+            OpenMPUtils::DivideInPartitions(A.filled1()-1,number_of_threads,partition);
 
             #pragma omp parallel
             {
                 int thread_id = omp_get_thread_num();
-                int number_of_rows = partition[thread_id+1] - partition[thread_id];
+                unsigned int number_of_rows = partition[thread_id+1] - partition[thread_id];
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator row_iter_begin = A.index1_data().begin()+partition[thread_id];
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator index_2_begin = A.index2_data().begin()+*row_iter_begin;
                 typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin = A.value_data().begin()+*row_iter_begin;
-
 
                 partial_product_add(number_of_rows,
                                     row_iter_begin,
@@ -1867,7 +1881,7 @@ namespace Kratos
 
 	/// calculates partial product for Parallel_ProductAdd
         void partial_product_add(
-                int number_of_rows,
+                unsigned int number_of_rows,
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator row_begin,
                 typename compressed_matrix<TDataType>::index_array_type::const_iterator index2_begin,
                 typename compressed_matrix<TDataType>::value_array_type::const_iterator value_begin,
@@ -1875,16 +1889,15 @@ namespace Kratos
 		unsigned int output_begin_index,
 		TSystemVectorType& output_vec)
         {
-            int row_size;
-	    int kkk = output_begin_index;
+	    unsigned int kkk = output_begin_index;
             typename TSystemMatrixType::index_array_type::const_iterator row_it = row_begin;
-            for(int k = 0; k < number_of_rows; k++)
+            for(unsigned int k = 0; k < number_of_rows; k++)
             {
-                row_size= *(row_it+1)-*row_it;
-                row_it++;
+                unsigned int RowBegin = *row_it;
+                unsigned int RowEnd = *(++row_it);
                 TDataType t = TDataType();
 
-                for(int i = 0; i<row_size; i++)
+                for(unsigned int i = RowBegin; i < RowEnd; i++)
                     t += *value_begin++ *   ( input_vec[*index2_begin++]);
 
 		output_vec[kkk++] += t;
