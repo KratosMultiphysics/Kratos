@@ -128,6 +128,8 @@ namespace Kratos
 				mA.resize(n_nodes);
 				mHmin.resize(n_nodes);
 				mTau.resize(n_nodes);
+				mBeta.resize(n_nodes);
+				mx.resize(n_nodes);
 
 				//read variables from Kratos
 				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes());
@@ -136,6 +138,7 @@ namespace Kratos
 				mr_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
 				mr_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes());
 
+				mr_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes());
 
 				//set flag for first time step
 				mFirstStep = true;
@@ -168,7 +171,7 @@ namespace Kratos
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
 				{
 					//use CFL condition to compute time step size
-					double delta_t_i = CFLNumber * 1.0 / (norm_2(mUn1[i_node])/mHmin[i_node] ) ;
+					double delta_t_i = CFLNumber * mHmin[i_node] / norm_2(mUn1[i_node] ) ;
 					//choose the overall minimum of delta_t_i
 					if (delta_t_i < delta_t)
 						delta_t = delta_t_i;
@@ -282,13 +285,16 @@ namespace Kratos
 				#pragma omp parallel for 
 				for (int i_node = 0; i_node < n_nodes; i_node++)
 				{
-					double& pi_i = mPi[i_node];  
+					 array_1d<double, TDim>& pi_i = mPi[i_node];  
+					 
+					//setting to zero the projection
+					for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+						pi_i[l_comp] = 0.0;
+					
+// 					double& pi_i = mPi[i_node];  
 					const double& phi_i = mphi[i_node];
 
-					//set to zero the projection
-					pi_i = 0;
-
-					const array_1d<double, TDim>& a_i = convective_velocity[i_node];
+					const array_1d<double, TDim> a_i = convective_velocity[i_node];
 					
 					//loop to all the edges surrounding node I
 					for (unsigned int csr_index=mr_matrix_container.GetRowStartIndex()[i_node]; csr_index!=mr_matrix_container.GetRowStartIndex()[i_node+1]; csr_index++)
@@ -301,13 +307,77 @@ namespace Kratos
 						
 						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 						
- 						edge_ij.Add_ConvectiveContribution(pi_i,a_i,phi_i,a_j,phi_j);
+//  						edge_ij.Add_ConvectiveContribution(pi_i,a_i,phi_i,a_j,phi_j);						
+						edge_ij.Add_grad_p(pi_i,phi_i,phi_j);
+						
 					}
 
 					//apply inverted mass matrix
 					const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-					pi_i *= m_inv;
+// 					pi_i *= m_inv;
+
+					for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+						pi_i[l_comp] *= m_inv;
 // KRATOS_WATCH(pi_i);
+				}
+				
+				//calculating limitor
+				array_1d<double, TDim> dir;
+				#pragma omp parallel for private(dir)
+				for (int i_node = 0; i_node < n_nodes; i_node++)
+				{
+					const array_1d<double, TDim>& x_i = mx[i_node];
+					const array_1d<double, TDim>& proj_i = mPi[i_node];
+					const double& p_i = mphi[i_node];
+					double& beta_i = mBeta[i_node];
+					beta_i = 0.0;
+					double n = 0.0;
+					double h=0.0;
+
+					    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+					    {
+						  unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+						    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+						    const double& p_j = mphi[j_neighbour];
+						    
+						    const array_1d<double, TDim>& x_j = mx[j_neighbour];
+						    
+						    for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+							    dir[l_comp] = x_j[l_comp] - x_i[l_comp];
+						     						    
+						    double lenght = dir[0]*dir[0];
+ 						    for (unsigned int l_comp = 1; l_comp < TDim; l_comp++)
+ 							    lenght += dir[l_comp]*dir[l_comp];
+ 						    lenght = sqrt(lenght);
+						
+						    const array_1d<double, TDim>& proj_j = mPi[j_neighbour];
+
+						    double proj = 0.0;
+						    for (unsigned int comp = 0; comp < TDim; comp++)
+							proj += 0.5*dir[comp]*(proj_i[comp]+proj_j[comp]);
+// 							proj += dir[comp]*pi_i[comp];
+						    
+						    double numerator = fabs( fabs(p_j - p_i) - fabs(proj) );
+						    double denom = fabs( fabs(p_j - p_i)  + 1e-6);
+						    
+ 						    double beta = numerator/denom;
+
+						    beta_i += beta;
+						    n += 1.0;
+						    h += lenght;
+						    
+/*						    if(beta_i < beta)
+							beta_i = beta;*/
+					    }
+					   
+					beta_i /= n;
+					h /=n;
+					
+					if(beta_i > 1.0)
+							beta_i = 1.0;
+					
+					beta_i*=h;
+//  KRATOS_WATCH(beta_i);
 				}
 				
 				//perform MPI syncronization
@@ -315,15 +385,28 @@ namespace Kratos
 				//calculating the RHS
 				double stab_low;
 				double stab_high;
-				#pragma omp parallel for private(stab_low,stab_high) 
+				array_1d<double, TDim> aux;
+				#pragma omp parallel for private(stab_low,stab_high,aux) 
 				for ( int i_node = 0; i_node < n_nodes; i_node++)
 				{
 					double& rhs_i = rhs[i_node];
 					const double& phi_i = mphi[i_node];
+					const double& beta_i = mBeta[i_node];
 					const array_1d<double, TDim>& a_i = convective_velocity[i_node]; 
-					const double& pi_i = mPi[i_node];
-					//double& h_i = mHmin[i_node];
+					const array_1d<double, TDim>& proj_i = mPi[i_node];
+// 					const array_1d<double, TDim>& x_i = mx[i_node];
 
+					double pi_i = proj_i[0]*a_i[0];
+					for (unsigned int l_comp = 1; l_comp < TDim; l_comp++)
+						pi_i += proj_i[l_comp]*a_i[l_comp];
+					//double& h_i = mHmin[i_node];
+					
+					double norm_a = a_i[0]*a_i[0];
+					for (unsigned int l_comp = 1; l_comp < TDim; l_comp++)
+						norm_a += a_i[l_comp]*a_i[l_comp];
+					norm_a = sqrt(norm_a);
+
+					
 					//initializing with the external forces (e.g. gravity)
 					rhs_i = 0.0;
 
@@ -331,11 +414,18 @@ namespace Kratos
 					for (unsigned int csr_index=mr_matrix_container.GetRowStartIndex()[i_node]; csr_index!=mr_matrix_container.GetRowStartIndex()[i_node+1]; csr_index++)
 					{
 						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+											
+// 						const array_1d<double, TDim>& x_j = mx[j_neighbour];
 
 						//double& rhs_j = rhs[j_neighbour];
 						const double& phi_j = mphi[j_neighbour];
 						const array_1d<double, TDim>& a_j = convective_velocity[j_neighbour]; 
-						const double& pi_j = mPi[j_neighbour];
+
+						const array_1d<double, TDim>& proj_j = mPi[j_neighbour];
+						double pi_j = proj_j[0]*a_i[0];
+						for (unsigned int l_comp = 1; l_comp < TDim; l_comp++)
+						  pi_j += proj_j[l_comp]*a_i[l_comp];
+						
 						//double& h_j = mHmin[j_neighbour];
 						
 						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
@@ -348,9 +438,52 @@ namespace Kratos
 												
 						double edge_tau = mTau[i_node];
 						
+						
+						
 						edge_ij.CalculateConvectionStabilization_HIGH( stab_high,a_i,pi_i,a_j,pi_j);
 						
  						edge_ij.Sub_StabContribution( rhs_i, edge_tau, 1.0, stab_low, stab_high);
+/*						
+						double laplacian_ij=0.0;
+						edge_ij.CalculateScalarLaplacian( laplacian_ij );
+						double capturing= laplacian_ij * (phi_j - phi_i);
+  						rhs_i-= 0.1*0.5*capturing*beta_i*norm_a*mHmin[i_node];*/
+						
+						
+						
+// 						 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+// 							    dir[l_comp] = x_j[l_comp] - x_i[l_comp];
+// 						    
+// 						    double proj = 0.0;
+// 						    for (unsigned int comp = 0; comp < TDim; comp++)
+// 							proj += 0.5*dir[comp]*(proj_i[comp]+proj_j[comp]);
+// // 							proj += dir[comp]*proj_i[comp];
+// 						    
+// 						    double numerator = fabs( fabs(pi_j - pi_i) - fabs(proj) );
+// 						    double denom = fabs( fabs(pi_j - pi_i) + fabs(proj) + 1e-6);
+// 						    
+//  						    double beta = numerator/denom;
+// 						 
+// 						 if(beta > 1.0)
+// 							beta = 1.0;
+						 
+						 double beta = beta_i;
+						 
+						 double coeff = 0.35; //=0.5*0.5;
+						 double laplacian_ij=0.0;
+						edge_ij.CalculateScalarLaplacian( laplacian_ij );
+						double capturing= laplacian_ij * (phi_j - phi_i);
+   						rhs_i-= coeff*capturing*beta*norm_a;
+												
+// 						double aaa = 0.0;
+// 						for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
+// 							for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
+// 								aaa += a_i[k_comp] * a_i[m_comp] * edge_ij.LaplacianIJ(k_comp,m_comp);
+// 						aaa/=(norm_a*norm_a);
+// 						double capturing2 = aaa * (phi_j - phi_i);
+// 						
+//     						rhs_i-= coeff*(capturing - capturing2)*beta*norm_a;
+						//
 
 					}
 
@@ -409,6 +542,8 @@ namespace Kratos
 				mphi_n1.clear();
  				mHmin.clear();
  				mTau.clear();
+				mBeta.clear();
+				mx.clear();
 
 			KRATOS_CATCH("")
 			}
@@ -425,8 +560,11 @@ namespace Kratos
 			//nodal values
 			//velocity vector U at time steps n and n+1
 			CalcVectorType  mUn1,mUn;
+			CalcVectorType  mPi;
 			//pressure vector p at time steps n and n+1
-			ValuesVectorType mWork, mPi;
+			CalcVectorType mx;
+			ValuesVectorType mBeta;
+			ValuesVectorType mWork;
 			ValuesVectorType mphi_n, mphi_n1; //variable to be convected
 
 			//advective velocity vector
