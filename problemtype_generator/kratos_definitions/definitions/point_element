@@ -1,0 +1,23 @@
+file	problemtype.bas
+where	*# Element Blocks
+
+*if(CondNumEntities > 0)
+Begin Elements <NAME>
+*loop elems *OnlyInCond
+*format "%i%i%i"
+*ElemsNum *ElemsMat	*ElemsConec(1)
+*end elems
+End Elements
+
+*endif
+
+file problemtype.cnd
+where # Add Default Conditions Here
+
+CONDITION: element_<NAME>
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: I_must_have_a_question_field
+VALUE:1
+STATE: HIDDEN
+END CONDITION
