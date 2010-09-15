@@ -12,16 +12,17 @@ intdata_block=re.compile(r'^INTERVAL DATA[\s\n]*(.*)\Z',re.MULTILINE | re.DOTALL
 
 # Create required files
 
-def generate_files(projectname,templates):
+def generate_files(projectname,templates_path):
     """Creates all required files, either copying them from the 'files' folder
 or creating empty ones"""
     os.mkdir(projectname+'.gid')
-    filelist=os.listdir('./'+templates+'/files')
+    files_folder = os.path.join(templates_path,'files')
+    filelist=os.listdir(files_folder)
     for filename in filelist:
 	# print filename
 	if (filename.startswith('.')==False):
 	    newname=filename.replace('problemtype',projectname)
-	    copyfile('./'+templates+'/files/'+filename,'./'+projectname+'.gid/'+newname)
+	    copyfile(os.path.join(files_folder,filename),'./'+projectname+'.gid/'+newname)
     # Check that some relevant files have been created
     if 'problemtype.cnd' not in filelist:
         copyfile('./default/problemtype.cnd','./'+projectname+'.gid/'+projectname+'.cnd')
@@ -46,11 +47,28 @@ or creating empty ones"""
         os.chmod(pth,stat.S_IEXEC | stat.S_IREAD | stat.S_IWRITE)
     # Note that GiD can work with an empty problemtype.bas file (if there are
     # other .bas files in the same folder), but empty .bat files are useless
-    os.chdir(projectname+'.gid/')
+    print 'Created problemtype folder'
+##    os.chdir(projectname+'.gid/')
+
+# Add default python scripts to the problemtype. Python scripts will be copied
+# from the folder 'script_folder', which must be found at the same path as the
+# input file
+
+def add_python_scripts(projectname,script_folder):
+    problemtype_folder = os.path.join(os.getcwd(),projectname+'.gid')
+    script_folder = os.path.join(os.getcwd(),script_folder)
+    script_list = os.listdir(script_folder)
+    for filename in script_list:
+        extension = os.path.splitext(filename)[1]
+        if extension == '.py':
+            origin = os.path.join(script_folder,filename)
+            destination = os.path.join(problemtype_folder,filename)
+            copyfile(origin,destination)
+            print 'Added Python script',filename
 
 # Delete empty books and generate a custom menu for the problem type
 
-def check_books(projectname,templates):
+def check_books(projectname,templates_path):
     menuname=projectname.replace('_',' ')
     if menuname[0].islower():
         menuname=menuname[0].capitalize()+menuname[1:]

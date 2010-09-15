@@ -26,7 +26,7 @@ code_pieces=re.compile("""
 
 ### Read the definition of the problemtype from def_file_name.py
 
-def read_definitions(def_file_name):
+def read_definitions(definitions_path):
 
     # Create a dictionary for each basic data type    
     condition_dict=dict() # GiD conditional data (conditions and elements)
@@ -37,15 +37,17 @@ def read_definitions(def_file_name):
     template_code=core_definitions.code_container()
     # A core_definitions.code_container object, stores code read from definition files
 
-    sys.path.append(os.getcwd()+'/'+def_file_name)
+    sys.path.append(definitions_path)
     import new_classes
     class_list=inspect.getmembers(new_classes,inspect.isclass)
 
     for class_name,class_item in class_list:
         template_code.create_entry(class_item.call,list())
+        definitions_folder = os.path.join(definitions_path,'definitions')
 
         if class_item.definition_file!='': # If the class uses a definition file
-            f=open('./'+def_file_name+'/definitions/'+class_item.definition_file)
+            def_file = os.path.join(definitions_folder,class_item.definition_file)
+            f=open(def_file)
             templates=f.read()
             f.close()
 
