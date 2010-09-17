@@ -15,10 +15,9 @@ project KratosOpenCLApplication
     :
     requirements <include>.
                 <include>custom_external_libraries
-                <include>/usr/include/nvidia-current/
-                <define>KRATOS_PYTHON
-                ##<define>VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK
-                <link>shared
+		<define>KRATOS_PYTHON
+                <define>VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK
+		<link>shared
     ;
 
 lib libOCL 		: : <name>OpenCL <search>/usr/lib ;

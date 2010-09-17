@@ -20,7 +20,6 @@ Import_DamApplication = False
 Import_TestApplication = False
 Import_OpenCLApplication = False
 Import_PodApplication = False
-Import_ScratchApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -41,7 +40,6 @@ print "Import_DamApplication: False"
 print "Import_TestApplication: False"
 print "Import_OpenCLApplication: False"
 print "Import_PodApplication: False"
-print "Import_ScratchApplication: False"
 
 def ImportApplications(kernel, applications_path):
     ##########################################################################
@@ -63,8 +61,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_DamApplication: "+str(Import_DamApplication)
     print "Import_TestApplication: "+str(Import_TestApplication)
     print "Import_OpenCLApplication: "+str(Import_OpenCLApplication)
-    print "Import_PodApplication: "+str(Import_OpenCLApplication)
-    print "Import_ScratchApplication: "+str(Import_ScratchApplication)
+    print "Import_PodApplication: "+str(Import_PodApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -227,14 +224,6 @@ def ImportApplications(kernel, applications_path):
         pod_application = KratosPodApplication()
         kernel.AddApplication(pod_application)
         print "KratosPodApplication sucessfully imported"
-
-    if(Import_ScratchApplication == True):
-        print "importing KratosScratchApplication ..."
-        sys.path.append(applications_path + '/ScratchApplication/python_scripts')
-        from KratosScratchApplication import *
-        scratch_application = KratosScratchApplication()
-        kernel.AddApplication(scratch_application)
-        print "KratosScratchApplication sucessfully imported"
         
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
@@ -275,7 +264,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(test_application);
     if(Import_OpenCLApplication == True):
         kernel.InitializeApplication(opencl_application);
-    if(Import_OpenCLApplication == True):
+    if(Import_PodApplication == True):
         kernel.InitializeApplication(pod_application);
-    if(Import_ScratchApplication == True):
-        kernel.InitializeApplication(scratch_application);
