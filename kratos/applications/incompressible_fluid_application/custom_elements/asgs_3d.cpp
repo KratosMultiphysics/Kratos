@@ -767,6 +767,10 @@ namespace Kratos {
         const array_1d<double, 3 > bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
         const array_1d<double, 3 > bdf3 = GetGeometry()[3].FastGetSolutionStepValue(BODY_FORCE);
 
+/*
+        const bounded_matrix<double,4,3> bdfm; // Define once as thradprivate, call in various functions
+        noalias(row(bdfm,0)) = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
+*/
 
         bdf[0] = N[0]*(density * bdf0[0]) + N[1]*(density * bdf1[0]) + N[2]*(density * bdf2[0]) + N[3]*(density * bdf3[0]);
         bdf[1] = N[0]*(density * bdf0[1]) + N[1]*(density * bdf1[1]) + N[2]*(density * bdf2[1]) + N[3]*(density * bdf3[1]);
