@@ -40,7 +40,7 @@ namespace viennacl
         * @param drop_tolerance   The drop tolerance for ILUT
         */
         ilut_tag(unsigned int entries_per_row = 10,
-                 double drop_tolerance = 1e-8) : _entries_per_row(entries_per_row), _drop_tolerance(drop_tolerance) {};
+                 double drop_tolerance = 1e-3) : _entries_per_row(entries_per_row), _drop_tolerance(drop_tolerance) {}; 
 
         void set_drop_tolerance(double tol)
         {
@@ -114,7 +114,7 @@ namespace viennacl
           double temp = k->second / output(index_k, index_k);
           if (output(index_k, index_k) == 0.0)
           {
-            std::cerr << "FATAL ERROR in ILUT(): Diagonal entry "<< index_k << " is zero!" << std::endl;
+            std::cerr << "FATAL ERROR in ILUT(): Diagonal entry is zero!" << std::endl;
           }
           
           //line 5: (dropping rule to w_k)
