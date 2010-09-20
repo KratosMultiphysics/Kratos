@@ -134,6 +134,17 @@ namespace Kratos
                    const ProcessInfo& rCurrentProcessInfo)
     {
     }
+    
+    double& Isotropic2D::GetValue( const Variable<double>& rThisVariable, double& rValue )
+    {
+      if(rThisVariable==DELTA_TIME)
+       {
+         rValue = sqrt(mE/mDE);
+       }
+       
+       return rValue; 
+       
+    }
 	
 	/**
 	 *	TO BE TESTED!!!
@@ -144,11 +155,7 @@ namespace Kratos
 	{
 		mE  = props[YOUNG_MODULUS];
 		mNU = props[POISSON_RATIO];
-//                mDE = props[DENSITY];
-
-//	KRATOS_WATCH("INSIDE THE CONS LAW")
-//		KRATOS_WATCH(mE)
-//			KRATOS_WATCH(mNU)
+                mDE = props[DENSITY];
 	}
 		
 	/**
@@ -282,7 +289,7 @@ void Isotropic2D::Calculate(const Variable<double>& rVariable,
 std::string Isotropic2D::Info() const
 {
     std::stringstream buffer;
-    buffer << "Isotrop_2D" << std::endl;
+    buffer << "Isotropic_2D" << std::endl;
     return buffer.str();
 }
 
