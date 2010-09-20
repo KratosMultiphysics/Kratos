@@ -990,14 +990,9 @@ void  TotalLagrangian::Comprobate_State_Vector(Vector& Result)
                     }
                     
                     
-std::string TotalLagrangian::Info() const
-   {
-       std::stringstream buffer;
-       buffer << "Element #" << this->Id();
-       const std::string law = this->mConstitutiveLawVector[0]->Info();
-       KRATOS_WATCH(law)
-       return buffer.str();
-   }
+// 
+
+
 
 
 
