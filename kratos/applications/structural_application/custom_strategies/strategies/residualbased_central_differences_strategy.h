@@ -173,16 +173,17 @@ double Solve()
            }
        else
          {
-            double step                    = CurrentProcessInfo[TIME_STEPS];   
-            double delta_time_used         = mfraction_delta_time*mdelta_time;
-            CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
-            r_model_part.CloneTimeStep(delta_time_used*step);
+            const double step              = CurrentProcessInfo[TIME_STEPS];   
+            const double delta_time_used   = mfraction_delta_time*mdelta_time;
+	    const double time_step         = delta_time_used*step;  
+            CurrentProcessInfo[DELTA_TIME] = delta_time_used;
+            r_model_part.CloneTimeStep(time_step);
 	    
 	    std::cout<<"------------------------------------------------------------------"<<std::endl; 
 	    std::cout<< "Factor Delta Critical Time   = "<< mfraction_delta_time << std::endl;
 	    std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
 	    std::cout<< "Delta Time Used              = "<< delta_time_used << std::endl;
-	    std::cout<< "Current Time                 = "<< time <<std::endl;
+	    std::cout<< "Current Time                 = "<< time_step <<std::endl;
 	    std::cout<< "Analysis Time Step           = "<< step <<std::endl;
             std::cout<<"------------------------------------------------------------------"<<std::endl;
 	    
