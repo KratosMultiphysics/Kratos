@@ -122,7 +122,10 @@ namespace Kratos
             void SetValue( const Variable<Matrix>& rThisVariable, 
                            const Matrix& rValue, 
                            const ProcessInfo& rCurrentProcessInfo );
-			/**
+			   
+	    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+		
+		/**
 			 * Material parameters are inizialized
 			 */ 
 			void InitializeMaterial( const Properties& props,
@@ -243,7 +246,7 @@ namespace Kratos
 			  */
 			 void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
 
-		         double mE,mNU;
+		         double mE,mNU, mDE ;
 
  	//		 void CalculatePlaneElasticMatrix(Matrix& C, const double E, const double NU);
 
