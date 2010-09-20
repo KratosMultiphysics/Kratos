@@ -48,22 +48,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_FLUENCY_CRITERIA
 
 /* System includes */
+#include <cmath>
+#include <string>
+#include <iostream>
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
 
-/* Project includes */
-//#include "includes/define.h"
-//#include "includes/variables.h"
-//#include "utilities/math_utils.h"
-//#include "custom_utilities/sd_math_utils.h"
+
+
 #include "structural_application.h"
 #include "custom_utilities/tensor_utils.h"
 #include "includes/ublas_interface.h"
 #include "includes/properties.h"
-#include <cmath>
-#include <string>
-#include <iostream>
+
 
 
 
@@ -76,18 +74,26 @@ namespace Kratos
       class FluencyCriteria
 	  {
         public:
+	  
+
 
 	            double mSigma_e;          // Esfuerzo efectivo
-	            double mSigma_y;          // Esfuerzo Resistencia de Comparacion
-                    double mElasticDomain;
+	            double mSigma_y;          // Esfuerzo Resistencia de Comparacion. Este valor evoluciona
+                    double mElasticDomain;    // the elastic domain
+		    double mSigma_o;          // initial value of the damage or plastic threshold 
+		    
+		    ///  deformacion plastica acumulada. 
+		    ///  Segun Owen depende del criterio del fluecia que uses.
+		    double maccumulated_plastic_strain_current;   
+                    double maccumulated_plastic_strain_old;
  
                     ///* Multisurface Platicity
                     Vector mMultisurface_Platicity_Yield;
                     Vector mMultisurface_Platicity_Sigma;  
-                    //array_1d<double,6> mMorh_Coulomb_Yield;   
-                    //array_1d<double,6> mMorh_Coulomb_Sigma_e; 
-                    //array_1d<double,3> mRankine_Yield;   
-                    //array_1d<double,3> mRankine_Sigma_e; 
+		    
+		    const Properties *mprops;
+                    myState mState;
+                    myPotencialPlastic mPotencialPlastic;
 
 
 		    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
@@ -121,7 +127,7 @@ namespace Kratos
 		      }
 
 		    virtual void CalculateEquivalentUniaxialStress(  
-		    const Vector& StressVector, const Vector& StrainVector, const Matrix& Other, double& Result)
+		    const Vector& StressVector, const Vector& StrainVector, double& Result)
 		    {
                         KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStress" , "");
 		    }
@@ -448,14 +454,9 @@ namespace Kratos
 
                       } 
                   
-                        
-		    public:
+                      
 		    
-		    const Properties *mprops;
-                    myState mState;
-                    myPotencialPlastic mPotencialPlastic;
-                    double maccumulated_plastic_strain_current;   
-                    double maccumulated_plastic_strain_old;
+
 
                     private:
                     double mtetha_Lode;
@@ -466,8 +467,5 @@ namespace Kratos
     }; /* Class FluencyCriteria */
     
 
-    /**
-     * definition of CONSTITUTIVE_LAW variable
-     */
 }  /* namespace Kratos.*/
 #endif /* FLUENCY_CRITERIA defined */
