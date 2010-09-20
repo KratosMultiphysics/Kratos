@@ -190,6 +190,8 @@ namespace Kratos
 
 
 	    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+	    
+	    std::string Info() const; 
             
             ///@}
             ///@name Access
