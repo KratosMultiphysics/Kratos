@@ -81,8 +81,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/hooks_law.h"
 #include "constitutive_laws/drucker_prager_law.h"
 #include "constitutive_laws/isotropic_planestress_wrinkling.h"
-#include "constitutive_laws/Isotropic_Damage.h"
-#include "constitutive_laws/Isotropic_Damage_3D.h"
+#include "constitutive_laws/isotropic_damage_2d.h"
+#include "constitutive_laws/isotropic_damage_3d.h"
 #include "constitutive_laws/plasticity_2d.h"
 #include "constitutive_laws/plane_stress_J2.h"
 //#include "constitutive_laws/plasticity_3d.h"
@@ -155,8 +155,8 @@ namespace Kratos
                      init<>() ) 
                     ;
             
-            class_< Isotropic_Damage, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-                    ("Isotropic_Damage",
+            class_< Isotropic_Damage_2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("IsotropicDamage2D",
                      init<>() )
                     .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
                     ;
