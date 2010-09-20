@@ -167,26 +167,29 @@ double Solve()
 
        //OPERATIONS THAT SHOULD BE DONE ONCE  
       // Orden es crucial
-//       if(mCalculateCriticalTime==false)
-//          {
-//           Compute_Critical_Time();
-//           }
-//       else
-//         {
-//            double step                    = CurrentProcessInfo[TIME_STEPS];   
-//            double delta_time_used         = mfraction_delta_time*mdelta_time;
-//            CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
-//            r_model_part.CloneTimeStep(delta_time_used*step);
-//         }
+       if(mCalculateCriticalTime==false)
+          {
+           Compute_Critical_Time();
+           }
+       else
+         {
+            double step                    = CurrentProcessInfo[TIME_STEPS];   
+            double delta_time_used         = mfraction_delta_time*mdelta_time;
+            CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
+            r_model_part.CloneTimeStep(delta_time_used*step);
+	    
+	    std::cout<<"------------------------------------------------------------------"<<std::endl; 
+	    std::cout<< "Factor Delta Critical Time   = "<< mfraction_delta_time << std::endl;
+	    std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
+	    std::cout<< "Delta Time Used              = "<< delta_time_used << std::endl;
+	    std::cout<< "Current Time                 = "<< time <<std::endl;
+	    std::cout<< "Analysis Time Step           = "<< step <<std::endl;
+            std::cout<<"------------------------------------------------------------------"<<std::endl;
+	    
+         }
 
 
-     Compute_Critical_Time();
-     //const double step                    = CurrentProcessInfo[TIME_STEPS];   
-     //const double delta_time_used         = mfraction_delta_time*mdelta_time;
-     //const double timestep                = delta_time_used*step;
-     //CurrentProcessInfo[DELTA_TIME]       = delta_time_used; // reduzco el valor critico del tiempo en 75%
-     //r_model_part.CloneTimeStep(timestep);
-     
+     //Compute_Critical_Time();
 
       if(mOldDisplacementComputed==false)
          {ComputeOldDisplacement();}
@@ -201,10 +204,10 @@ double Solve()
 
       if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-      if(mCalculateReactionsFlag==true){CalculateReaction( ); }
+      //if(mCalculateReactionsFlag==true){CalculateReaction( ); }
 
 
-       //std::cout<<"************************************************"<<std::endl;
+       std::cout<<"FINISHED SOLVE"<<std::endl;
        return 0;     
     }
 
@@ -257,19 +260,13 @@ void InitializeElements()
       #pragma omp parallel for private(MassMatrix)
       for(int k=0; k<number_of_threads; k++)
       {
-	  //#ifdef _OPENMP
-          //int thread_id = omp_get_thread_num();
-          //#else
-          //int thread_id = 1.00;
-          //#endif
 
-	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+        typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
 	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
 
       for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
       {
 	
-        //KRATOS_WATCH(thread_id) 
         Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
         (it)->Initialize(); 
         (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
@@ -357,7 +354,6 @@ void Compute_Critical_Time()
 
     std::cout<<"------------------------------------------------------------------"<<std::endl; 
     mdelta_time  =  (*std::min_element(dts.begin(), dts.end()));
-    std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
     mdelta_time = Truncar_Delta_Time(mdelta_time);
     if(mdelta_time>mmax_delta_time) {mdelta_time = mmax_delta_time;}
     delta_time_used = mfraction_delta_time * mdelta_time;
@@ -366,6 +362,7 @@ void Compute_Critical_Time()
     time = CurrentProcessInfo[TIME];
     mCalculateCriticalTime = true;
     std::cout<< "Factor Delta Critical Time   = "<< mfraction_delta_time << std::endl;
+    std::cout<< "Delta Critical Time Computed = "<< mdelta_time << std::endl; 
     std::cout<< "Delta Time Used              = "<< delta_time_used << std::endl;
     std::cout<< "Current Time                 = "<< time <<std::endl;
     std::cout<< "Analysis Time Step           = "<< step <<std::endl;
@@ -798,7 +795,7 @@ void GetNextDisplacement()
        
          #ifdef _OPENMP
 	 double stop_prod = omp_get_wtime();
-         std::cout << "Time for calculating GetNextDisplacement()  = " << stop_prod - start_prod << std::endl;
+         std::cout << "Time for calculating GetNextDisplacement  = " << stop_prod - start_prod << std::endl;
          #endif
          KRATOS_CATCH("")
 	    
@@ -873,20 +870,21 @@ void Update()
             const array_1d<double,3>& oldDispl_2   = (i->FastGetSolutionStepValue(DISPLACEMENT,2));
          
 
-            OldAcc = (1.00/(DeltaTime*DeltaTime))*(currentdisp- 2.00*oldDispl_1 + oldDispl_2);
-            OldVel = (1.00/(2.00*DeltaTime))*(currentdisp - oldDispl_2); 
+            noalias(OldAcc) = (1.00/(DeltaTime*DeltaTime))*(currentdisp- 2.00*oldDispl_1 + oldDispl_2);
+            noalias(OldVel) = (1.00/(2.00*DeltaTime))*(currentdisp - oldDispl_2); 
 
-            Oldacceleration =  OldAcc;
-            Oldvelocity     =  OldVel;
-
-             if(i->Id()==73)
-              { 
- 	       KRATOS_WATCH(OldAcc ) 
-               KRATOS_WATCH(OldVel)                         
-              } 
+            noalias(Oldacceleration) =  OldAcc;
+            noalias(Oldvelocity)     =  OldVel;
 
 	  }
+	  
+	  
       }
+      
+      	 #ifdef _OPENMP
+	 double stop_prod = omp_get_wtime();
+         std::cout << "Time for Update= " << stop_prod - start_prod << std::endl;
+         #endif
 }
 
 
@@ -959,7 +957,7 @@ void CalculateReaction( )
 				i != r_model_part.NodesEnd() ; ++i)
      {
 
-            KRATOS_WATCH(i->Id()) 
+            //KRATOS_WATCH(i->Id()) 
             double& mass                           = (i->FastGetSolutionStepValue(NODAL_MASS));
             array_1d<double,3>& reaction           = (i->FastGetSolutionStepValue(REACTION));
             array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS,1));
@@ -967,8 +965,8 @@ void CalculateReaction( )
             array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
             array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));
             array_1d<double,3> dif                =  rhs - rhs_1;
-            KRATOS_WATCH(dif)
-            KRATOS_WATCH(mass*acceleration)       
+            //KRATOS_WATCH(dif)
+            //KRATOS_WATCH(mass*acceleration)       
             //noalias(reaction)                      = -(mass*acceleration + mass*malpha_damp * velocity);  
              
 
