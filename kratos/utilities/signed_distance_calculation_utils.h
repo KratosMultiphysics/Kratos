@@ -248,7 +248,7 @@ namespace Kratos
                                     //find one division point on one edge
                                     for(unsigned int i = 1; i<TDim+1; i++)
                                     {
-                                        if(distances[0]*distances[i]<0) //if the edge is divided
+                                        if(distances[0]*distances[i]<=0) //if the edge is divided
                                          {
                                                 double delta_d = fabs(distances[i]) + fabs(distances[0]);
 
