@@ -1,8 +1,7 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
+##from KratosExternalSolversApplication import * # For SuperLU solver
 
 
 def AddVariables(model_part):
