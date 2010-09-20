@@ -74,72 +74,49 @@ namespace Kratos
     
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
+		  // Energy_Criteria
+		  // Diferent limits in traccion and compresion
       
 		    void  Energy_Yield_Function::InitializeMaterial(const Properties& props) {
 		      mprops = &props;
-                      mSigma_y = (*mprops)[FT]/sqrt((*mprops)[CONCRETE_YOUNG_MODULUS_C]);}
+                      mSigma_y = (*mprops)[FC]; 
+		      mSigma_o =  mSigma_y; 
+		      }
 		     
 
+                     /// WARNING = Revisar por un posible bag
 		    void  Energy_Yield_Function::CalculateEquivalentUniaxialStress(
-		    const Vector& StressVector, const Vector& StrainVector, const Matrix& Other, double& Result)
+		    const Vector& StressVector, const Vector& StrainVector, double& Result)
 
 			    {
+			      
 			    int    iter      = 50;
 			    double zero      = 1.0E-9;
 			    double teta_a    = 0.00;
 			    double teta_b    = 0.00;
 			    double teta      = 0.00;
                             double n         = (*mprops)[FC]/(*mprops)[FT];
-			    //double norma     = 0.00; 
-
-                       
-
-
 			    Matrix StressTensor    = ZeroMatrix(3,3);
                             Matrix EigenVectors    = ZeroMatrix(3,3);
-			    //Matrix InvertedMatrix  = ZeroMatrix(6,6);
 			    Vector PrincipalStress = ZeroVector(3);
-			    //Vector Aux_Vector      = ZeroVector(6);
-
-// 			    if( mState == Plane_Stress || mState==Plane_Strain) 
-// 				{
-// 				  Aux_Vector      = ZeroVector(3);
-//                                   InvertedMatrix  = ZeroMatrix(3,3);
-// 				}  
-
-
 		            this->State_Tensor(StressVector,StressTensor);
-		            this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
-                           
-
-			    //SD_MathUtils<double>::InvertMatrix(Other, InvertedMatrix);
-			    
-			    //norma = SD_MathUtils<double>::normTensor(StressTensor);
-
-                            //if (norma>=1E-3)
-			    //PrincipalStress  = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);
-                            SD_MathUtils<double>::EigenVectors(StressTensor, EigenVectors,PrincipalStress, zero, iter);
-			       
+		            this->Comprobate_State_Tensor(StressTensor, StressVector); 
+                            SD_MathUtils<double>::EigenVectors(StressTensor, EigenVectors,PrincipalStress, zero, iter);			       
 			    teta_a =  Tensor_Utils<double>::Mc_aully(PrincipalStress);
 			    teta_b =  norm_1(PrincipalStress);  
 			    
- 
 			    // Condicion para no tener divison de 0/0 
 			    if (teta_a==0.00 && teta_b==0.00)
 			    {teta = 1.00;}
 			    else
 			    {teta = teta_a/teta_b;}
 			      
-			    //noalias(Aux_Vector) = prod(trans(StressVector),InvertedMatrix);
-			    //Result              = inner_prod(StressVector,Aux_Vector);
                             Result              = inner_prod(StressVector,StrainVector); 
 			    Result              = sqrt(Result);
 			    Result              = (teta + (1.00-teta)/n)*Result;
 			    mSigma_e = Result;
-                            Result -= mSigma_y;
-                           
+                            Result  -= mSigma_y; 
+			    mElasticDomain = Result;
 			    }
 
 
@@ -149,16 +126,15 @@ namespace Kratos
 			  
 		          double iter  = 50;
                           double zero  = 1E-10;  
-                          //double norma = 0.00;
 		          double u_a   = 0.00;
                           double u_b   = 0.00;
                           double u_c   = 0.00;      
                           double r     = 0.00;
 
-			  Matrix StressTensor     = ZeroMatrix(3,3);
-			  Vector PrincipalStress  = ZeroVector(3);
+			  Matrix StressTensor     =  ZeroMatrix(3,3);
+			  Vector PrincipalStress  =  ZeroVector(3);
                           mP_Stress               =  ZeroVector(3);
-                          Matrix EigenVectors     = ZeroMatrix(3,3);
+                          Matrix EigenVectors     =  ZeroMatrix(3,3);
 		          double n                = (*mprops)[FC]/(*mprops)[FT];
 
 			  
@@ -167,29 +143,21 @@ namespace Kratos
 		          
 			  {SD_MathUtils<double>::EigenVectors(StressTensor, EigenVectors,PrincipalStress, zero, iter);}
                           if(norm_2(PrincipalStress)<1E-5){PrincipalStress = ZeroVector(3);}
-
-
-                          //KRATOS_WATCH(StressVector)
                           mu_a = u_a = norm_2(PrincipalStress);
                           mu_b = u_b = sum(PrincipalStress);
 			  mu_c = u_c = norm_1(PrincipalStress); 
 
                           noalias(mP_Stress) = PrincipalStress;     
-                          //KRATOS_WATCH(mu_a)
-                          //KRATOS_WATCH(mu_b)
-                          //KRATOS_WATCH(mu_c) 
 
                           mr = r = 0.5 + 0.5*(u_b/u_c);
 			  if (u_b== 0.00 && u_c==0.00)
 			     {mr = r = 1.00; }
 
-			  Result = (r +(1.00-r)/n)*u_a/sqrt((*mprops)[CONCRETE_YOUNG_MODULUS_C]);
+			  //Result = (r +(1.00-r)/n)*u_a/sqrt((*mprops)[YOUNG_MODULUS]);
+			  Result = (1.00 + r*(n-1.00))*u_a; //sqrt((*mprops)[YOUNG_MODULUS]);
                           mSigma_e = Result;
-                          //KRATOS_WATCH(Result)
                           Result -= mSigma_y;
-                          //KRATOS_WATCH(Result)
                           mElasticDomain = Result;
-		    
 			}
 
 
@@ -247,8 +215,8 @@ namespace Kratos
 			    }
 
  
-			    double par_a = (1.00 - 1.00/n)*mu_a/sqrt((*mprops)[CONCRETE_YOUNG_MODULUS_C]);
-                            double par_b = (mr - (1.00-mr)/n)/sqrt((*mprops)[CONCRETE_YOUNG_MODULUS_C]);
+			    double par_a = (1.00 - 1.00/n)*mu_a/sqrt((*mprops)[YOUNG_MODULUS]);
+                            double par_b = (mr - (1.00-mr)/n)/sqrt((*mprops)[YOUNG_MODULUS]);
 
 			    if(mu_a==0.00 && mu_b==0.00 && mu_c==0.00)
                              {
