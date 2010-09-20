@@ -92,7 +92,7 @@ namespace Kratos
 		     
 
 		    void  CalculateEquivalentUniaxialStress(
-		    const Vector& StressVector,const Vector& StrainVector,  const Matrix& Other, double& Result);
+		    const Vector& StressVector,const Vector& StrainVector,  double& Result);
 
 
 		    void CalculateEquivalentUniaxialStressViaInvariants(
