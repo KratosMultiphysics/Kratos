@@ -53,7 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes 
 
-
 // External includes 
 
 
@@ -413,9 +412,8 @@ namespace TotalLagrangianAuxiliaries
 			for (unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
 			{
                 	mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-					mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) ); 
-
-                                        //KRATOS_WATCH(mConstitutiveLawVector[i])
+		        mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),	
+			        row(GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod), i) ); 
 			}
 		}
 		else
@@ -830,6 +828,10 @@ namespace TotalLagrangianAuxiliaries
 
 	void TotalLagrangian::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
+	    const unsigned int& size = GetGeometry().IntegrationPoints(mThisIntegrationMethod).size();
+            if(rValues.size() != size)
+		   rValues.resize(size);
+	    
             if(rVariable==INSITU_STRESS)
             {
                 for( unsigned int PointNumber = 0; 
@@ -946,7 +948,9 @@ namespace TotalLagrangianAuxiliaries
 	void TotalLagrangian::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
 	{
 
-         double c =  0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]);       
+	 double lamda = 1.00; // parametro que depende del tipo de problema y del elemento pag 308 libro dinamica de Barbat
+         double c     = 0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]);   
+	 double wmax  = 0.00; 
          Vector Values(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size());  
          //KRATOS_WATCH(Values.size())
          //KRATOS_WATCH(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
@@ -967,7 +971,9 @@ namespace TotalLagrangianAuxiliaries
 	 double le =  GetGeometry().Length(); 
          //KRATOS_WATCH(le)
         
-	 Output          =  le/c; 
+         /// maxima frecuencia de un elemento 
+	 wmax     =  (lamda * c) / le; 
+	 Output   =  2.0/wmax;
          //KRATOS_WATCH(Output)
 	  
 	}
@@ -982,6 +988,17 @@ void  TotalLagrangian::Comprobate_State_Vector(Vector& Result)
 				    Result(i) = 0.00;}
 		          } 
                     }
+                    
+                    
+std::string TotalLagrangian::Info() const
+   {
+       std::stringstream buffer;
+       buffer << "Element #" << this->Id();
+       const std::string law = this->mConstitutiveLawVector[0]->Info();
+       KRATOS_WATCH(law)
+       return buffer.str();
+   }
+
 
 
 } // Namespace Kratos
