@@ -65,19 +65,46 @@ namespace Kratos
 		   Exponential_Softening::Exponential_Softening():SofteningHardeningCriteria() {}
 		   Exponential_Softening::~Exponential_Softening(){}
                
-                   double  Exponential_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
+//                    double  Exponential_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
+// 		   {
+// 		      double elev =  A*(1.00-r/r_o);
+//                       double q_r  =  r_o*exp(elev);
+//                       double a    =  1.00 - (q_r/r);
+// 		      if (a < 0.00) 
+// 		      {
+// 		      a = fabs(a);
+// 		      }               
+//                       return a;
+// 		   }   
+		   
+		   double Exponential_Softening::Calculate(Vector& Imput_Parameters)
 		   {
-		      double elev =  A*(1.00-r/r_o);
-                      double q_r  =  r_o*exp(elev);
-                      double a    =  1.00 - (q_r/r);
-		      if (a < 0.00) 
-		      {
-		      a = fabs(a);
-		      }
-                     
-                      return a;
-		      
-		   }   
+		     const double& Ft   = (*mprops)[FT];
+		     const double& Ec   = (*mprops)[YOUNG_MODULUS];
+		     const double& GE   = (*mprops)[FRACTURE_ENERGY];
+		     const double& l    = Imput_Parameters[0];
+		     const double& r_o  = Imput_Parameters[1];  // Ft/sqrt(Ec);
+		     const double& r    = Imput_Parameters[2];
+		     
+		     const double Hs_barra = Ft * Ft /(  2.00 * Ec * GE );
+		     const double ls_barra = 1.00 / Hs_barra; 
+ 		     double Hs       = l / (ls_barra - l);
+		     if (Hs < 0.00)
+ 		      {    
+ 		        Hs  = 0.00;
+                        std::cout<<"Warning: Softening Parameters is less than zero. Please refine more."<<std::endl;
+ 		      }
+		     double elev = -2.00 * Hs *( (r-r_o) /r_o );
+		     double q_r  =  r_o*exp(elev);
+		     double a    =  1.00 - (q_r/r);
+		     
+		     return a;
+		    }
+		   
+		   //void Exponential_Softening::InitializeMaterial(const Properties& props)
+		   //  {
+		   //     mprops = &props;
+		   //  }
     
     /**
      * definition of CONSTITUTIVE_LAW variable
