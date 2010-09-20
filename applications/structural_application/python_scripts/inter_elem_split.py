@@ -32,6 +32,7 @@ class Nodal_Split_Elem:
         self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR, self.model_part, self.domain_size)
         self.smoothing.Finalize()  
         
+        #print "DETECTING AND SPLIT ELEMENTS "
         self.split.DetectAndSplitElements(self.model_part) 
 	  
 
