@@ -729,11 +729,6 @@ Node<3>::Pointer& pduplicate_node
 
 {
 
-KRATOS_WATCH( List_New_Nodes)
-KRATOS_WATCH( Coordinate_New_Node)
-KRATOS_WATCH( Position_Node)
-
-
 //node to get the DOFs from	
 unsigned int size = Position_Node.size();
 unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
@@ -850,7 +845,7 @@ for(unsigned int i = 0; i<size; i++)
    noalias(dist) =   Coord_Node_1 - Coord_New_Node; 
    dist_2        =   sqrt(inner_prod(dist, dist ) );   
    ratio         =   dist_2 / dist_1;
-   KRATOS_WATCH(ratio) 
+
    if( (1.00 - ratio) <= toler )
    {  
    pnode = this_model_part.CreateNewNode(id, x, y, z);
