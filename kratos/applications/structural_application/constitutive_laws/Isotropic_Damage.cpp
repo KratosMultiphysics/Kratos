@@ -164,12 +164,15 @@ namespace Kratos
 	{
 	  if( rThisVariable == DAMAGE)
 	  {			
-	  //KRATOS_WATCH(md)
-	  return md_new;
-
+	     return md_new;
 	  }
+	  
+	  else if(rThisVariable==DELTA_TIME)
+           {
+             rValue = sqrt( (1.0 - md_new ) * mE/mDE);
+           }
+	  
 	  else return rValue;
-	    //KRATOS_ERROR(std::logic_error, "double Variable case not considered", "");
 	}
 	
 
@@ -225,7 +228,7 @@ namespace Kratos
         mDE    = (*mpProperties)[DENSITY];
 
 	 mpFluencyCriteria->InitializeMaterial(*mpProperties);
-        //KRATOS_WATCH((*mpProperties))
+         KRATOS_WATCH((*mpProperties))
 
          // la resistencia a traccion  o compresion del hormigon va evolucionando a medida que el daño se hace efectivo.
          // Por esta razon Sigma_y deberia ir evolucionado. No obstante, el modelo  
