@@ -61,8 +61,6 @@ alias sources_KratosStructuralApplication
 	faceforce3D.cpp
 	hooks_law.cpp
 	external_isotropic_3d.cpp
-	Isotropic_Damage.cpp
-	Isotropic_Damage_3D.cpp
 	drucker_prager_law.cpp
 	isotropic_planestress_wrinkling.cpp
 	structural_application.cpp 
@@ -121,7 +119,8 @@ alias sources_KratosStructuralApplication
         plastic_damage_2d.cpp
         mohr_coulomb_plane_strain.cpp
         plane_stress_J2.cpp
-
+        isotropic_damage_2d.cpp
+        isotropic_damage_3d.cpp
 
 	#####################kratos library as defined in the jamroot
  #   	/kratos-prj/kratos//libkratos/<link>static
