@@ -65,10 +65,10 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
-      ParallelDistanceCalculator();
+      ParallelDistanceCalculator(){};
 
       /// Destructor.
-      virtual ~ParallelDistanceCalculator();
+      virtual ~ParallelDistanceCalculator(){};
       
       ///Function to calculate a signed distance function suitable for calculations using the Level Set Method
       ///the function assumes given a "signed distance" distributions and recomputes the distances
@@ -243,7 +243,7 @@ namespace Kratos
 	    {
 		Geometry<Node<3> >&geom = it->GetGeometry();
 		
-		double h = 0.0;
+		double h = 0.0; 
 		
 		for(unsigned int i=0; i<TDim+1; i++)
 		{
@@ -302,13 +302,18 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      virtual std::string Info() const
+      {
+	std::stringstream buffer;
+        buffer << "ParallelDistanceCalculator" << TDim << "D";
+        return buffer.str();
+      };
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ParallelDistanceCalculator" << TDim << "D";};
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      virtual void PrintData(std::ostream& rOStream) const {};
       
             
       ///@}      
@@ -552,10 +557,10 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      ParallelDistanceCalculator<TDim>& operator=(ParallelDistanceCalculator<TDim> const& rOther);
+       ParallelDistanceCalculator<TDim>& operator=(ParallelDistanceCalculator<TDim> const& rOther){};
 
       /// Copy constructor.
-      ParallelDistanceCalculator(ParallelDistanceCalculator<TDim> const& rOther);
+       ParallelDistanceCalculator(ParallelDistanceCalculator<TDim> const& rOther){};
 
         
       ///@}    
@@ -576,7 +581,7 @@ namespace Kratos
   /// input stream function
   template<unsigned int TDim>
   inline std::istream& operator >> (std::istream& rIStream, 
-				    ParallelDistanceCalculator<TDim>& rThis);
+				    ParallelDistanceCalculator<TDim>& rThis){}
 
   /// output stream function
    template<unsigned int TDim>
