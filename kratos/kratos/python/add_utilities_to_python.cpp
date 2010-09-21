@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
+
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
 #include "utilities/timer.h"
@@ -74,7 +75,7 @@ namespace Kratos
 	
 namespace Python
 {
-
+ 
   void  AddUtilitiesToPython()
   {
 	using namespace boost::python;
@@ -123,6 +124,7 @@ namespace Python
 			  .def("CalculateDistances",&ParallelDistanceCalculator<3>::CalculateDistances )
                           .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<3>::FindMaximumEdgeSize )
  			  ;
+			  
 			  
 // 	  class_<SignedDistanceCalculationBinBased<2> >("SignedDistanceCalculationBinBased2D", init<>())
 // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
