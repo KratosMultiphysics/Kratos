@@ -121,7 +121,7 @@ namespace Python
 
 	  class_<ParallelDistanceCalculator<3>, boost::noncopyable >("ParallelDistanceCalculator3D", init<>())
 			  .def("CalculateDistances",&ParallelDistanceCalculator<3>::CalculateDistances )
-                          .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<2>::FindMaximumEdgeSize )
+                          .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<3>::FindMaximumEdgeSize )
  			  ;
 			  
 // 	  class_<SignedDistanceCalculationBinBased<2> >("SignedDistanceCalculationBinBased2D", init<>())
