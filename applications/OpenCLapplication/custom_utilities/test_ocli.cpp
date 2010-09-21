@@ -12,7 +12,11 @@ int main(int argc, char *argv[])
 	Kratos::OpenCL::OpenCLManager Manager;
 	std::cout << Manager.DebugData << std::endl;
 
-	Kratos::OpenCL::OpenCLDeviceGroup DeviceGroup = Manager.CreateDeviceGroup(CL_DEVICE_TYPE_CPU);
+	Kratos::OpenCL::OpenCLDeviceGroup DeviceGroup = Manager.CreateDeviceGroup(CL_DEVICE_TYPE_ALL);
+	DeviceGroup.BuildProgramFromSource("test_ocli.cl");
+	DeviceGroup.RegisterKernel("Test");
+	DeviceGroup.SetKernelArg(0, 0, 1.00);
+	DeviceGroup.SetKernelArg(0, 1, 2.00);
 
 	return 0;
 }

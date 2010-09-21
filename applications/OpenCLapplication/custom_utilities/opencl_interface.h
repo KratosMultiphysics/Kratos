@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 
@@ -75,14 +76,25 @@ namespace OpenCL
 // Useful types
 
 	typedef std::vector<cl_device_id> DeviceIDList;
+	typedef std::vector<cl_context> ContextList;
 	typedef std::vector<cl_command_queue> CommandQueueList;
+	typedef std::vector<cl_program> ProgramList;
+	typedef std::vector<cl_kernel> KernelList;
+	typedef std::vector<KernelList> KernelList2D;
 
 //
 // KRATOS_OCL_CHECK
 //
 // Used to check an OpenCL return code and abort with some debugging information
 
-#define KRATOS_OCL_CHECK(Code)				Kratos::OpenCL::CheckError(Code, __FILE__, __FUNCTION__, __LINE__);
+#define KRATOS_OCL_CHECK(Code)				Kratos::OpenCL::CheckError(Code, __FILE__, __FUNCTION__, __LINE__, true);
+
+//
+// KRATOS_OCL_WARN
+//
+// Used to check an OpenCL return code and print some debugging information
+
+#define KRATOS_OCL_WARN(Code)				Kratos::OpenCL::CheckError(Code, __FILE__, __FUNCTION__, __LINE__, false);
 
 //
 // KRATOS_OCL_CHECKED_EXPRESSION
@@ -103,9 +115,9 @@ namespace OpenCL
 //
 // Returns a string representation of an OpenCL error
 
-	const char *ErrorString(cl_int Code)
+	const char *ErrorString(cl_int _Code)
 	{
-		switch(Code)
+		switch(_Code)
 		{
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_SUCCESS);
 		
@@ -161,26 +173,40 @@ namespace OpenCL
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_INVALID_PROPERTY);
 
 			// Default case
-			default: return "unknown";
+			default:
+
+				return "unknown";
 		}	
 	}
 
 //
 // RaiseError
 //
-// Used to raise an OpenCL error and abort
+// Used to raise an OpenCL error and abort if requested
 // Do not use directly; use the KRATOS_OCL_CHECK or KRATOS_OCL_CHECKED_EXPRESSION macros
 
-	void RaiseError(cl_int Code, const char *FileName, const char *Function, unsigned int Line, const char *Expression = "")
+	void RaiseError(cl_int _Code, const char *_FileName, const char *_Function, unsigned int _Line, bool _Abort, const char *_Expression = "")
 	{
-		std::cout
-			<< "OpenCL reported " << ErrorString(Code) << " error"
-			<< Expression
-			<< " in function " << Function << ", file " << FileName << ", line " << Line << "." << std::endl
-			<< "Forcing a SEGFAULT now; you may use this to find the problem in a debugger." << std::endl;
+		std::cout <<
+			std::endl <<
+			"OpenCL reported " << ErrorString(_Code) << " error" <<
+			_Expression <<
+			" in function " << _Function << ", file " << _FileName << ", line " << _Line << "." << std::endl;
 
-		// This will cause a SEGFAULT, so we can find it easily with a debugger
-		*((int *) 0) = 0;
+		if (_Abort)
+		{
+			std::cout <<
+				"Aborting now; try setting a breakpoint on abort() to find the problem." << std::endl <<
+				std::endl;
+
+			abort();
+		}
+		else
+		{
+			std::cout <<
+				"Execution will continue." << std::endl <<
+				std::endl;
+		}
 	}		
 
 //
@@ -189,10 +215,10 @@ namespace OpenCL
 // Used to check an OpenCL return code and abort
 // Do not use directly; use the KRATOS_OCL_CHECK or KRATOS_OCL_CHECKED_EXPRESSION macros
 
-	inline void CheckError(cl_int Code, const char *FileName, const char *Function, unsigned int Line, const char *Expression = "")
+	inline void CheckError(cl_int _Code, const char *_FileName, const char *_Function, unsigned int _Line, bool _Abort, const char *_Expression = "")
 	{
-		if (Code != CL_SUCCESS)
-			RaiseError(Code, FileName, Function, Line, Expression);
+		if (_Code != CL_SUCCESS)
+			RaiseError(_Code, _FileName, _Function, _Line, _Abort, _Expression);
 	}
 
 // Forward declaration
@@ -211,12 +237,13 @@ namespace OpenCL
 			OpenCLManager &Manager;
 
 			DeviceIDList DeviceIDs;
+			ContextList Contexts;
 			CommandQueueList CommandQueues;
+			ProgramList Programs;
+			KernelList2D Kernels;
 			
 			cl_uint DeviceNo;
 			cl_device_type DeviceType;
-			cl_context Context;
-			cl_command_queue CommandQueue;
 			
 			// Constructors
 			OpenCLDeviceGroup(OpenCLManager &_Manager, cl_device_type _DeviceType): Manager(_Manager), DeviceType(_DeviceType)
@@ -235,12 +262,99 @@ namespace OpenCL
 				cl_int Err;
 				
 				// Releasing OpenCL objects
-				Err = clReleaseContext(Context);
-				KRATOS_OCL_CHECK(Err);
-				
-				for (int i = 0; i < DeviceNo; i++)
+				for (int i = 0; i < Contexts.size(); i++)
+				{
+					Err = clReleaseContext(Contexts[i]);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				for (int i = 0; i < CommandQueues.size(); i++)
 				{
 					Err = clReleaseCommandQueue(CommandQueues[i]);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				for (int i = 0; i < Programs.size(); i++)
+				{
+					Err = clReleaseProgram(Programs[i]);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				for (int i = 0; i < Kernels.size(); i++)
+					for (int j = 0; j < Kernels[i].size(); j++)
+					{
+						Err = clReleaseKernel(Kernels[i][j]);
+						KRATOS_OCL_CHECK(Err);
+					}
+			}
+
+			// Load a program source file and build it; for simplicity we do not support multiple programs
+			void BuildProgramFromSource(const char *_FileName)
+			{
+				cl_int Err;
+				
+				std::ifstream SourceFile(_FileName);
+				std::stringstream Source;
+				
+				Source << SourceFile.rdbuf();
+				std::string SourceStr = Source.str();
+				
+				const char *SourceText = SourceStr.c_str();
+				size_t SourceLen = SourceStr.size();
+
+				// Build program for all devices
+				Programs.resize(DeviceNo);
+
+				for (int i = 0; i < DeviceNo; i++)
+				{
+					Programs[i] = clCreateProgramWithSource(Contexts[i], 1, &SourceText, &SourceLen, &Err);
+					KRATOS_OCL_CHECK(Err);
+
+					Err = clBuildProgram(Programs[i], 0, NULL, NULL, NULL, NULL);
+					KRATOS_OCL_WARN(Err);
+
+					if (Err != CL_SUCCESS)
+					{
+						char CharData[1024];
+
+						Err = clGetProgramBuildInfo(Programs[i], DeviceIDs[i], CL_PROGRAM_BUILD_LOG, sizeof(CharData), CharData, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						std::cout <<
+							"Build log:" << std::endl <<
+							std::endl <<
+							CharData << std::endl;
+					}
+				}
+			}
+
+			// Register a kernel in the built program
+			void RegisterKernel(const char *_KernelName)
+			{
+				cl_int Err;
+				
+				// Register the kernel on all devices
+				KernelList CurrentKernels(DeviceNo);
+
+				for (int i = 0; i < DeviceNo; i++)
+				{
+					CurrentKernels[i] = clCreateKernel(Programs[i], _KernelName, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				// Append these to the list
+				Kernels.push_back(CurrentKernels);
+			}
+
+			// Set a kernel argument
+			template <typename Type> void SetKernelArg(int _KernelIndex, int _ArgIndex, Type _Value)
+			{
+				cl_int Err;
+				
+				// Set a kernel argument on all devices
+				for (int i = 0; i < DeviceNo; i++)
+				{
+					Err = clSetKernelArg(Kernels[_KernelIndex][i], _ArgIndex, sizeof(Type), &_Value);
 					KRATOS_OCL_CHECK(Err);
 				}
 			}
@@ -275,7 +389,7 @@ namespace OpenCL
 				cl_platform_id *Platforms;
 
 				std::string PlatformVendor(_PlatformVendor);
-				std::ostringstream DebugDataStream;
+				std::stringstream DebugDataStream;
 				char CharData[1024];
 
 				DebugDataStream
@@ -300,11 +414,11 @@ namespace OpenCL
 					DebugDataStream << "Platform " << i << ":" << std::endl;
 
 					// Get some information about this platform; when appropriate check if this is the requested platform
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_NAME, sizeof(CharData), (void *) CharData, NULL);
+					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_NAME, sizeof(CharData), CharData, NULL);
 					KRATOS_OCL_CHECK(Err);
 					DebugDataStream << "  Name:             " << CharData << std::endl;
 
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VENDOR, sizeof(CharData), (void *) CharData, NULL);
+					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VENDOR, sizeof(CharData), CharData, NULL);
 					KRATOS_OCL_CHECK(Err);
 					DebugDataStream << "  Vendor:           " << CharData << std::endl;
 
@@ -312,15 +426,15 @@ namespace OpenCL
 					if (PlatformVendor.compare(CharData) == 0)
 						PlatformID = Platforms[i];
 
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VERSION, sizeof(CharData), (void *) CharData, NULL);
+					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VERSION, sizeof(CharData), CharData, NULL);
 					KRATOS_OCL_CHECK(Err);
 					DebugDataStream << "  Version:          " << CharData << std::endl;
 				
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_EXTENSIONS, sizeof(CharData), (void *) CharData, NULL);
+					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_EXTENSIONS, sizeof(CharData), CharData, NULL);
 					KRATOS_OCL_CHECK(Err);
 					DebugDataStream << "  Extensions:       " << CharData << std::endl;
 
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_PROFILE, sizeof(CharData), (void *) CharData, NULL);
+					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_PROFILE, sizeof(CharData), CharData, NULL);
 					KRATOS_OCL_CHECK(Err);
 					DebugDataStream << "  Profile:          " << CharData << std::endl;
 				
@@ -349,60 +463,63 @@ namespace OpenCL
 			}
 
 			// Creates a device group by type
-			OpenCLDeviceGroup CreateDeviceGroup(cl_device_type DeviceType)
+			OpenCLDeviceGroup CreateDeviceGroup(cl_device_type _DeviceType)
 			{
 				// TODO: correct this!
-				return OpenCLDeviceGroup(*this, DeviceType);
+				return OpenCLDeviceGroup(*this, _DeviceType);
 			}
 
 			// Creates a device group by explicit device ids
-			OpenCLDeviceGroup CreateDeviceGroup(DeviceIDList &DeviceIDs)
+			OpenCLDeviceGroup CreateDeviceGroup(DeviceIDList &_DeviceIDs)
 			{
 				// TODO: correct this!
-				return OpenCLDeviceGroup(*this, DeviceIDs);
+				return OpenCLDeviceGroup(*this, _DeviceIDs);
 			}
 
 		private:
 			
 	};
 
-void OpenCLDeviceGroup::Init()
-{
-	cl_int Err;
-	cl_context_properties Properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties) Manager.PlatformID, 0};
+//
+// OpenCLDeviceGroup::Init
+//
+// Initializes a device group based on given data in the constructor
 
-	// Create context; try to find out which constructor has been called
-	if (DeviceIDs.size() != 0)
+	void OpenCLDeviceGroup::Init()
 	{
-		// An explicit list of IDs are specified
-		Context = clCreateContext(Properties, DeviceIDs.size(), DeviceIDs.data(), NULL, NULL, &Err);
-		KRATOS_OCL_CHECK(Err);
+		cl_int Err;
+		cl_context_properties Properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties) Manager.PlatformID, 0};
 
-		DeviceNo = DeviceIDs.size();
-	}
-	else
-	{
-		// A device type is specified; get all devices of that type
-		Err = clGetDeviceIDs(Manager.PlatformID, DeviceType, 0, NULL, &DeviceNo);
-		KRATOS_OCL_CHECK(Err);
+		// Try to find out which constructor has been called
+		if (DeviceIDs.size() == 0)
+		{
+			// A device type is specified; get all devices of that type
+			Err = clGetDeviceIDs(Manager.PlatformID, DeviceType, 0, NULL, &DeviceNo);
+			KRATOS_OCL_CHECK(Err);
 
-		DeviceIDs.resize(DeviceNo);
-		Err = clGetDeviceIDs(Manager.PlatformID, DeviceType, DeviceNo, DeviceIDs.data(), NULL);
-		KRATOS_OCL_CHECK(Err);
+			DeviceIDs.resize(DeviceNo);
+			Err = clGetDeviceIDs(Manager.PlatformID, DeviceType, DeviceNo, DeviceIDs.data(), NULL);
+			KRATOS_OCL_CHECK(Err);
+		}
+		else
+		{
+			// An explicit list of device IDs is given
+			DeviceNo = DeviceIDs.size();
+		}
 
-		Context = clCreateContextFromType(Properties, DeviceType, NULL, NULL, &Err);
-		KRATOS_OCL_CHECK(Err);
-	}
-
-	// Create command queues one per device
-	CommandQueues.resize(DeviceNo);
+		// Create contexts and command queues, one per device, so we can have fine control over everything (mostly buffer creation)
+		Contexts.resize(DeviceNo);
+		CommandQueues.resize(DeviceNo);
 	
-	for (int i = 0; i < DeviceNo; i++)
-	{
-		CommandQueues[i] = clCreateCommandQueue(Context, DeviceIDs[i], 0, &Err);
-		KRATOS_OCL_CHECK(Err);
+		for (int i = 0; i < DeviceNo; i++)
+		{
+			Contexts[i] = clCreateContext(Properties, 1, &DeviceIDs[i], NULL, NULL, &Err);
+			KRATOS_OCL_CHECK(Err);
+
+			CommandQueues[i] = clCreateCommandQueue(Contexts[i], DeviceIDs[i], 0, &Err);
+			KRATOS_OCL_CHECK(Err);
+		}
 	}
-}
 
 }  // namespace OpenCL 
 
