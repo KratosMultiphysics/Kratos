@@ -93,7 +93,7 @@ namespace Kratos
      \f[
       \left( L - D S^{-1} G \right) \, \delta p = r_p - D {S}^{-1} \, r_u
      \f]
-     where \f$ S^{-1} \f$ is approximated by \f$ \left( \text{Diag} \left( S \right) \right)^{-1} \f$
+     where \f$ S^{-1} \f$ is approximated by \f$ \left( Diag \left( S \right) \right)^{-1} \f$
      */
     template< class TSparseSpace,
 	class TDenseSpace , //= DenseSpace<double>,
