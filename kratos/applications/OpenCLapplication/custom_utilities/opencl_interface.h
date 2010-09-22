@@ -61,7 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <vector>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -73,14 +73,25 @@ namespace Kratos
 namespace OpenCL
 {
 
-// Useful types
+// Useful vector types
 
+	typedef std::vector<cl_device_type> DeviceTypeList;
 	typedef std::vector<cl_device_id> DeviceIDList;
 	typedef std::vector<cl_context> ContextList;
 	typedef std::vector<cl_command_queue> CommandQueueList;
 	typedef std::vector<cl_program> ProgramList;
 	typedef std::vector<cl_kernel> KernelList;
 	typedef std::vector<KernelList> KernelList2D;
+
+	typedef std::vector<size_t> SizeTList;
+	typedef std::vector<SizeTList> SizeTList2D;
+
+//
+// KRATOS_OCL_CPU_WORK_GROUP_SIZE
+//
+// Size of a work group on CPU devices
+
+#define KRATOS_OCL_CPU_WORK_GROUP_SIZE		2
 
 //
 // KRATOS_OCL_CHECK
@@ -120,7 +131,7 @@ namespace OpenCL
 		switch(_Code)
 		{
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_SUCCESS);
-		
+
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_DEVICE_NOT_FOUND);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_DEVICE_NOT_AVAILABLE);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_COMPILER_NOT_AVAILABLE);
@@ -176,14 +187,14 @@ namespace OpenCL
 			default:
 
 				return "unknown";
-		}	
+		}
 	}
 
 //
 // RaiseError
 //
 // Used to raise an OpenCL error and abort if requested
-// Do not use directly; use the KRATOS_OCL_CHECK or KRATOS_OCL_CHECKED_EXPRESSION macros
+// Do not use directly; use the KRATOS_OCL_CHECK, KRATOS_OCL_WARN or KRATOS_OCL_CHECKED_EXPRESSION macros
 
 	void RaiseError(cl_int _Code, const char *_FileName, const char *_Function, unsigned int _Line, bool _Abort, const char *_Expression = "")
 	{
@@ -207,7 +218,7 @@ namespace OpenCL
 				"Execution will continue." << std::endl <<
 				std::endl;
 		}
-	}		
+	}
 
 //
 // CheckError
@@ -221,46 +232,64 @@ namespace OpenCL
 			RaiseError(_Code, _FileName, _Function, _Line, _Abort, _Expression);
 	}
 
-// Forward declaration
-
-	class OpenCLManager;
-
 //
-// OpenCLDeviceGroup
+// DeviceGroup
 //
-// A class to represent a group of OpenCL devices
+// A class to manage a group of OpenCL devices
 
-	class OpenCLDeviceGroup
+	class DeviceGroup
 	{
 		public:
 
-			OpenCLManager &Manager;
-
 			DeviceIDList DeviceIDs;
+			DeviceTypeList DeviceTypes;
 			ContextList Contexts;
 			CommandQueueList CommandQueues;
 			ProgramList Programs;
+
 			KernelList2D Kernels;
-			
+			SizeTList2D WorkGroupSizes;
+
 			cl_uint DeviceNo;
 			cl_device_type DeviceType;
-			
-			// Constructors
-			OpenCLDeviceGroup(OpenCLManager &_Manager, cl_device_type _DeviceType): Manager(_Manager), DeviceType(_DeviceType)
+			cl_platform_id PlatformID;
+
+			//
+			// DeviceGroup
+			//
+			// Constructor using a device type
+
+			DeviceGroup(cl_device_type _DeviceType, const char *_PlatformVendor = ""): DeviceType(_DeviceType)
 			{
-				Init();
+				_Init(_PlatformVendor);
 			}
 
-			OpenCLDeviceGroup(OpenCLManager &_Manager, DeviceIDList &_DeviceIDs): Manager(_Manager), DeviceIDs(_DeviceIDs)
+			//
+			// DeviceGroup
+			//
+			// Constructor using a device ID list
+
+			DeviceGroup(DeviceIDList &_DeviceIDs, const char *_PlatformVendor = ""): DeviceIDs(_DeviceIDs)
 			{
-				Init();
+				// Check if we got an empty DeviceIDList
+				if (_DeviceIDs.size() == 0)
+				{
+					std::cout << "DeviceIDList specified cannot be empty. Aborting." << std::endl;
+					abort();
+				}
+
+				_Init(_PlatformVendor);
 			}
 
-			// Destructor
-			~OpenCLDeviceGroup()
+			//
+			// ~DeviceGroup
+			//
+			// Destructor; frees OpenCL objects
+
+			~DeviceGroup()
 			{
 				cl_int Err;
-				
+
 				// Releasing OpenCL objects
 				for (int i = 0; i < Contexts.size(); i++)
 				{
@@ -288,17 +317,110 @@ namespace OpenCL
 					}
 			}
 
-			// Load a program source file and build it; for simplicity we do not support multiple programs
-			void BuildProgramFromSource(const char *_FileName)
+			//
+			// _Init
+			//
+			// Initializes a device group based on given data in the constructor
+			// Do not call directly
+
+			void _Init(const char *_PlatformVendor)
 			{
 				cl_int Err;
-				
+
+				cl_uint PlatformNo;
+				cl_platform_id *Platforms;
+				std::string PlatformVendor(_PlatformVendor);
+				char CharData[1024];
+
+				if (PlatformVendor.compare("") == 0)
+				{
+					// No specific platform vendor is specified, default to first one
+					Err = clGetPlatformIDs(1, &PlatformID, NULL);
+					KRATOS_OCL_CHECK(Err);
+				}
+				else
+				{
+					// Try to find platform vendor specified
+					Err = clGetPlatformIDs(0, NULL, &PlatformNo);
+					KRATOS_OCL_CHECK(Err);
+
+					Platforms = new cl_platform_id[PlatformNo];
+
+					Err = clGetPlatformIDs(PlatformNo, Platforms, NULL);
+					KRATOS_OCL_CHECK(Err);
+
+					// We default to first platform, in case we cannot find the requested platform vendor
+					PlatformID = Platforms[0];
+
+					for (int i = 0; i < PlatformNo; i++)
+					{
+						Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VENDOR, sizeof(CharData), CharData, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						// Check if this is the requested platform
+						if (PlatformVendor.compare(CharData) == 0)
+							PlatformID = Platforms[i];
+					}
+
+					delete [] Platforms;
+				}
+
+				// Try to find out which constructor has been called
+				if (DeviceIDs.size() == 0)
+				{
+					// A device type is specified; get all devices of that type
+					Err = clGetDeviceIDs(PlatformID, DeviceType, 0, NULL, &DeviceNo);
+					KRATOS_OCL_CHECK(Err);
+
+					DeviceIDs.resize(DeviceNo);
+					Err = clGetDeviceIDs(PlatformID, DeviceType, DeviceNo, DeviceIDs.data(), NULL);
+					KRATOS_OCL_CHECK(Err);
+				}
+				else
+				{
+					// An explicit list of device IDs is given
+					DeviceNo = DeviceIDs.size();
+				}
+
+				// Get device type for each specified device
+				DeviceTypes.resize(DeviceNo);
+				for (int i = 0; i < DeviceNo; i++)
+				{
+					Err = clGetDeviceInfo(DeviceIDs[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &DeviceTypes[i], NULL);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				// Create contexts and command queues, one per device, so we can have fine control over everything (mostly buffer creation)
+				cl_context_properties Properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties) PlatformID, 0};
+
+				Contexts.resize(DeviceNo);
+				CommandQueues.resize(DeviceNo);
+
+				for (int i = 0; i < DeviceNo; i++)
+				{
+					Contexts[i] = clCreateContext(Properties, 1, &DeviceIDs[i], NULL, NULL, &Err);
+					KRATOS_OCL_CHECK(Err);
+
+					CommandQueues[i] = clCreateCommandQueue(Contexts[i], DeviceIDs[i], 0, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+			}
+
+			//
+			// BuildProgramFromFile
+			//
+			// Load a program source file and build it; for simplicity we do not support multiple programs
+
+			void BuildProgramFromFile(const char *_FileName)
+			{
+				cl_int Err;
+
 				std::ifstream SourceFile(_FileName);
 				std::stringstream Source;
-				
+
 				Source << SourceFile.rdbuf();
 				std::string SourceStr = Source.str();
-				
+
 				const char *SourceText = SourceStr.c_str();
 				size_t SourceLen = SourceStr.size();
 
@@ -319,39 +441,73 @@ namespace OpenCL
 
 						Err = clGetProgramBuildInfo(Programs[i], DeviceIDs[i], CL_PROGRAM_BUILD_LOG, sizeof(CharData), CharData, NULL);
 						KRATOS_OCL_CHECK(Err);
-
-						std::cout <<
-							"Build log:" << std::endl <<
-							std::endl <<
-							CharData << std::endl;
 					}
 				}
 			}
 
-			// Register a kernel in the built program
+			//
+			// RegisterKernel
+			//
+			// Register a kernel in the built program on all devices
+
 			void RegisterKernel(const char *_KernelName)
 			{
 				cl_int Err;
-				
+
 				// Register the kernel on all devices
 				KernelList CurrentKernels(DeviceNo);
+				SizeTList CurrentWorkGroupSizes(DeviceNo);
 
 				for (int i = 0; i < DeviceNo; i++)
 				{
 					CurrentKernels[i] = clCreateKernel(Programs[i], _KernelName, &Err);
 					KRATOS_OCL_CHECK(Err);
+
+					size_t WorkGroupSize, MaxWorkGroupSize, PreferredWorkGroupSizeMultiple;
+
+					Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &MaxWorkGroupSize, NULL);
+					KRATOS_OCL_CHECK(Err);
+
+					Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(size_t), &PreferredWorkGroupSizeMultiple, NULL);
+					KRATOS_OCL_CHECK(Err);
+
+					// Select an optimal WorkGroupSize
+					if (DeviceTypes[i] == CL_DEVICE_TYPE_CPU)
+					{
+						// On CPU devices we use a fixed group size
+						WorkGroupSize = KRATOS_OCL_CPU_WORK_GROUP_SIZE;
+					}
+					else
+					{
+						if (MaxWorkGroupSize < PreferredWorkGroupSizeMultiple)
+						{
+							// MaxWorkGroupSize too low; use it as WorkGroupSize
+							WorkGroupSize = MaxWorkGroupSize;
+						}
+						else
+						{
+							// For best performance, we use the maximum work group size which is divisible by WorkGroupSizeMultiple
+							WorkGroupSize = (MaxWorkGroupSize / PreferredWorkGroupSizeMultiple) * PreferredWorkGroupSizeMultiple;
+						}
+					}
+
+					CurrentWorkGroupSizes[i] = WorkGroupSize;
 				}
 
-				// Append these to the list
+				// Append these to the lists
 				Kernels.push_back(CurrentKernels);
+				WorkGroupSizes.push_back(CurrentWorkGroupSizes);
 			}
 
-			// Set a kernel argument
+			//
+			// SetKernelArg
+			//
+			// Set a kernel argument on all devices
+
 			template <typename Type> void SetKernelArg(int _KernelIndex, int _ArgIndex, Type _Value)
 			{
 				cl_int Err;
-				
-				// Set a kernel argument on all devices
+
 				for (int i = 0; i < DeviceNo; i++)
 				{
 					Err = clSetKernelArg(Kernels[_KernelIndex][i], _ArgIndex, sizeof(Type), &_Value);
@@ -359,169 +515,74 @@ namespace OpenCL
 				}
 			}
 
-		private:
+			//
+			// SetKernelArg
+			//
+			// Set a kernel argument on a specific device
 
-			// Initialize OpenCL structures
-			void Init();
-	};
-
-//
-// OpenCLManager
-//
-// A helper class for OpenCL
-
-	class OpenCLManager
-	{
-		public:
-		
-			// Used platform ID
-			cl_platform_id PlatformID;
-
-			// Debug data
-			std::string DebugData;
-
-			// Constructor
-			OpenCLManager(const char *_PlatformVendor = "")
+			template <typename Type> void SetKernelArg(int _DeviceIndex, int _KernelIndex, int _ArgIndex, Type _Value)
 			{
 				cl_int Err;
 
-				cl_uint PlatformNo, DeviceNo;
-				cl_platform_id *Platforms;
-
-				std::string PlatformVendor(_PlatformVendor);
-				std::stringstream DebugDataStream;
-				char CharData[1024];
-
-				DebugDataStream
-					<< "OpenCL debug data" << std::endl
-					<< std::endl;
-				
-				// Query available platforms
-				Err = clGetPlatformIDs(0, NULL, &PlatformNo);
+				Err = clSetKernelArg(Kernels[_KernelIndex][_DeviceIndex], _ArgIndex, sizeof(Type), &_Value);
 				KRATOS_OCL_CHECK(Err);
+			}
 
-				DebugDataStream
-					<< "No. of platforms: " << PlatformNo << std::endl
-					<< std::endl;
+			//
+			// ExecuteKernel
+			//
+			// Execute a kernel on all devices
 
-				Platforms = new cl_platform_id[PlatformNo];
+			void ExecuteKernel(int _KernelIndex, cl_uint _GlobalWorkSize)
+			{
+				cl_int Err;
 
-				Err = clGetPlatformIDs(PlatformNo, Platforms, NULL);
-				KRATOS_OCL_CHECK(Err);
-
-				for (int i = 0; i < PlatformNo; i++)
+				// Enqueue kernels
+				for (int i = 0; i < DeviceNo; i++)
 				{
-					DebugDataStream << "Platform " << i << ":" << std::endl;
+					// We may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
+					size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][i] - 1) / WorkGroupSizes[_KernelIndex][i]) * WorkGroupSizes[_KernelIndex][i];
 
-					// Get some information about this platform; when appropriate check if this is the requested platform
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_NAME, sizeof(CharData), CharData, NULL);
+					Err = clEnqueueNDRangeKernel(CommandQueues[i], Kernels[_KernelIndex][i], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][i], 0, NULL, NULL);
 					KRATOS_OCL_CHECK(Err);
-					DebugDataStream << "  Name:             " << CharData << std::endl;
 
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VENDOR, sizeof(CharData), CharData, NULL);
+					Err = clFlush(CommandQueues[i]);
 					KRATOS_OCL_CHECK(Err);
-					DebugDataStream << "  Vendor:           " << CharData << std::endl;
-
-					// Check if this is the requested platform
-					if (PlatformVendor.compare(CharData) == 0)
-						PlatformID = Platforms[i];
-
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VERSION, sizeof(CharData), CharData, NULL);
-					KRATOS_OCL_CHECK(Err);
-					DebugDataStream << "  Version:          " << CharData << std::endl;
-				
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_EXTENSIONS, sizeof(CharData), CharData, NULL);
-					KRATOS_OCL_CHECK(Err);
-					DebugDataStream << "  Extensions:       " << CharData << std::endl;
-
-					Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_PROFILE, sizeof(CharData), CharData, NULL);
-					KRATOS_OCL_CHECK(Err);
-					DebugDataStream << "  Profile:          " << CharData << std::endl;
-				
-					// Query available devices on this platform
-					Err = clGetDeviceIDs(Platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &DeviceNo);
-					KRATOS_OCL_CHECK(Err);
-					DebugDataStream << "  No. of devices:   " << DeviceNo << std::endl;
-
-					// TODO: Collect debug data for each device here
 				}
 
-				// Store data
-				DebugData = DebugDataStream.str();
-
-				// If no specific platform is requested, default to first one
-				if (PlatformVendor.compare("") == 0)
-					PlatformID = Platforms[0];
-
-				delete [] Platforms;
+				// Wait for kernels to finish
+				for (int i = 0; i < DeviceNo; i++)
+				{
+					Err = clFinish(CommandQueues[i]);
+					KRATOS_OCL_CHECK(Err);
+				}
 			}
 
-			// Destructor
-			~OpenCLManager()
+			//
+			// ExecuteKernel
+			//
+			// Execute a kernel on a specific device
+
+			void ExecuteKernel(int _DeviceIndex, int _KernelIndex, cl_uint _GlobalWorkSize)
 			{
-				// Nothing to do!
-			}
+				cl_int Err;
 
-			// Creates a device group by type
-			OpenCLDeviceGroup CreateDeviceGroup(cl_device_type _DeviceType)
-			{
-				// TODO: correct this!
-				return OpenCLDeviceGroup(*this, _DeviceType);
-			}
+				// Enqueue kernel; we may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
+				size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][_DeviceIndex] - 1) / WorkGroupSizes[_KernelIndex][_DeviceIndex]) * WorkGroupSizes[_KernelIndex][_DeviceIndex];
 
-			// Creates a device group by explicit device ids
-			OpenCLDeviceGroup CreateDeviceGroup(DeviceIDList &_DeviceIDs)
-			{
-				// TODO: correct this!
-				return OpenCLDeviceGroup(*this, _DeviceIDs);
-			}
+				Err = clEnqueueNDRangeKernel(CommandQueues[_DeviceIndex], Kernels[_KernelIndex][_DeviceIndex], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][_DeviceIndex], 0, NULL, NULL);
+				KRATOS_OCL_CHECK(Err);
 
-		private:
-			
+				Err = clFlush(CommandQueues[_DeviceIndex]);
+				KRATOS_OCL_CHECK(Err);
+
+				// Wait for kernel to finish
+				Err = clFinish(CommandQueues[_DeviceIndex]);
+				KRATOS_OCL_CHECK(Err);
+			}
 	};
 
-//
-// OpenCLDeviceGroup::Init
-//
-// Initializes a device group based on given data in the constructor
-
-	void OpenCLDeviceGroup::Init()
-	{
-		cl_int Err;
-		cl_context_properties Properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties) Manager.PlatformID, 0};
-
-		// Try to find out which constructor has been called
-		if (DeviceIDs.size() == 0)
-		{
-			// A device type is specified; get all devices of that type
-			Err = clGetDeviceIDs(Manager.PlatformID, DeviceType, 0, NULL, &DeviceNo);
-			KRATOS_OCL_CHECK(Err);
-
-			DeviceIDs.resize(DeviceNo);
-			Err = clGetDeviceIDs(Manager.PlatformID, DeviceType, DeviceNo, DeviceIDs.data(), NULL);
-			KRATOS_OCL_CHECK(Err);
-		}
-		else
-		{
-			// An explicit list of device IDs is given
-			DeviceNo = DeviceIDs.size();
-		}
-
-		// Create contexts and command queues, one per device, so we can have fine control over everything (mostly buffer creation)
-		Contexts.resize(DeviceNo);
-		CommandQueues.resize(DeviceNo);
-	
-		for (int i = 0; i < DeviceNo; i++)
-		{
-			Contexts[i] = clCreateContext(Properties, 1, &DeviceIDs[i], NULL, NULL, &Err);
-			KRATOS_OCL_CHECK(Err);
-
-			CommandQueues[i] = clCreateCommandQueue(Contexts[i], DeviceIDs[i], 0, &Err);
-			KRATOS_OCL_CHECK(Err);
-		}
-	}
-
-}  // namespace OpenCL 
+}  // namespace OpenCL
 
 }  // namespace Kratos
 
