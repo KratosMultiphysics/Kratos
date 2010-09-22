@@ -86,20 +86,24 @@ namespace Kratos
 	{
 	  KRATOS_TRY
 	   //check that variables needed are in the model part
-	   if(!rmodel_part.Has(rDistanceVar))
+	   if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
 	     KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","")
-	   if(!rmodel_part.Has(rAreaVar))
+	   if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
 	     KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","")
-	     
+
 	   //reset the variables needed
-	   for(ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin(); it!=rmodel_part.NodesEnd(); it++)
-	   {
+	  #pragma omp parallel for
+	  for(int i = 0; i<rmodel_part.Nodes().size(); i++)
+	  {
+	      ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
 	      it->FastGetSolutionStepValue(rAreaVar) = 0.0;
 	      double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 	      it->SetValue(rDistanceVar,dist); //here we copy the distance function to the fixed database
 	      dist = 0.0; 
+	      
+	      it->SetValue(IS_VISITED,0);
 	   }
-	   
+
 	   //*****************************************************************+
 	   //*****************************************************************+
 	   //*****************************************************************+
@@ -107,122 +111,127 @@ namespace Kratos
 	   //attempting to mantain the original position of the free surface
 	   //note that the backup value is used in calculating the position of the free surface and the divided elements
 	   array_1d<double,TDim+1> dist, exact_dist;
-	   array_1d<double,TDim+1> areas;
+	   array_1d<double,TDim+1> visited;
 	   array_1d<double,TDim+1> N;
 	   double lumping_factor = 1.0/double(TDim+1);
 	   boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
-	   for(ModelPart::ElementsContainerType::iterator it=rmodel_part.ElementsBegin(); it!=rmodel_part.ElementsEnd(); it++)
+	   #pragma omp parallel for private(DN_DX,dist,exact_dist) firstprivate(lumping_factor)
+	   for(int i = 0; i<rmodel_part.Elements().size(); i++)
 	   {
-		  Geometry<Node<3> >&geom = it->GetGeometry();
-		  
-		  
-		  
-		  for(unsigned int i=0; i<TDim+1; i++)
-		    dist[i] = geom[i].GetValue(rDistanceVar);
-		  
-		  bool is_divided = IsDivided(dist);
-		  
-		  if(is_divided == true)
-		  {
-		    double Volume;
-                    GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
-		    
-		    ComputeExactDistances(DN_DX,Volume,geom,dist,exact_dist);
-		    
-		    for(unsigned int i=0; i<TDim+1; i++)
-		    {
-		      geom[i].SetLock();
-		      geom[i].FastGetSolutionStepValue(rDistanceVar) += exact_dist[i];
-		      geom[i].FastGetSolutionStepValue(rAreaVar) += Volume*lumping_factor;
-		      geom[i].UnSetLock();
-		    }
-		  }
+	      PointerVector< Element>::iterator it=rmodel_part.ElementsBegin()+i;
+
+	      Geometry<Node<3> >&geom = it->GetGeometry();
+			      
+	      for(unsigned int i=0; i<TDim+1; i++)
+		dist[i] = geom[i].GetValue(rDistanceVar);
+	      
+	      bool is_divided = IsDivided(dist);
+	      
+	      if(is_divided == true)
+	      {
+		double Volume;
+		GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
+		
+		ComputeExactDistances(DN_DX,Volume,geom,dist,exact_dist);
+		
+		for(unsigned int i=0; i<TDim+1; i++)
+		{
+		  geom[i].SetLock();
+		  geom[i].FastGetSolutionStepValue(rDistanceVar) += exact_dist[i]*Volume*lumping_factor;
+		  geom[i].FastGetSolutionStepValue(rAreaVar) += Volume*lumping_factor;
+		  geom[i].UnSetLock();
+		}
+	      }
 	   }	
-	   
+
+
 	   //mpi sync variables
 	   rmodel_part.GetCommunicator().AssembleCurrentData(rAreaVar);
 	   rmodel_part.GetCommunicator().AssembleCurrentData(rDistanceVar);
 	   
-	   for(ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin(); it!=rmodel_part.NodesEnd(); it++)
-	   {
+	  #pragma omp parallel for
+	  for(int i = 0; i<rmodel_part.Nodes().size(); i++)
+	  {
+		  ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
 		  double area = it->FastGetSolutionStepValue(rAreaVar);
 		  if(area > 1e-20) //this implies that node was computed
 		  {
-		    double& dist = it->FastGetSolutionStepValue(rDistanceVar);
-		    dist /= area;
+		    double& distance = it->FastGetSolutionStepValue(rDistanceVar);
+		    distance /= area;
+		    
+		    it->SetValue(IS_VISITED,1.0); //node is marked as already visited
 		  }
 	   }
 	   
-	   
-	   	 
 	   //*****************************************************************+
 	   //*****************************************************************+
 	   //*****************************************************************+
-	   PointerVector< Element > ActiveElements;
-	   ActiveElements.reserve( rmodel_part.Nodes().size() /4 );
-	   
-	   //now extend the distances layer by layer up to a maximum level of layers
+ 	   //now extend the distances layer by layer up to a maximum level of layers
 	   for(unsigned int level=0; level<max_levels; level++)
 	   {
-		//erase the active elements array
-		ActiveElements.clear();
-		
-		//fill the list of active elements
-		for(ModelPart::ElementsContainerType::iterator it=rmodel_part.ElementsBegin(); it!=rmodel_part.ElementsEnd(); it++)
+ 		//loop on active elements and advance the distance computation		
+		#pragma omp parallel for private(DN_DX,visited)
+		for(int i = 0; i<rmodel_part.Elements().size(); i++)
 		{
+		    PointerVector< Element>::iterator it=rmodel_part.ElementsBegin()+i;
 		    Geometry<Node<3> >&geom = it->GetGeometry();
-		    
+		     		    
 		    for(unsigned int i=0; i<TDim+1; i++)
-		      areas[i] = geom[i].FastGetSolutionStepValue(rAreaVar);
+		      visited[i] = geom[i].GetValue(IS_VISITED);
 				    
-		    if(IsActive(areas))
-		      ActiveElements.push_back(*(it.base()));
+		    if(IsActive(visited))
+		    {	     
+			double Volume;
+			GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
+			
+			AddDistanceToNodes(rDistanceVar,rAreaVar,geom,DN_DX,Volume);
+		    }
 		}
 		
-		//loop on active elements and advance the distance computation
-		for(PointerVector< Element>::iterator it=ActiveElements.begin();it!= ActiveElements.end(); it++)
-		{
-		     Geometry<Node<3> >&geom = it->GetGeometry();
-		     double Volume;
-		     GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
-		     
-		     AddDistanceToNodes(rDistanceVar,rAreaVar,geom,DN_DX,Volume);
-		}
-		
-		//mpi sync variables
+ 		//mpi sync variables
 		rmodel_part.GetCommunicator().AssembleCurrentData(rAreaVar);
 		rmodel_part.GetCommunicator().AssembleCurrentData(rDistanceVar);
 		
 		//finalize the computation of the distance
-		for(ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin(); it!=rmodel_part.NodesEnd(); it++)
+		#pragma omp parallel for private(DN_DX)
+		for(int i = 0; i<rmodel_part.Nodes().size(); i++)
 		{
-			double area = it->FastGetSolutionStepValue(rAreaVar);
-			if(area > 1e-20) //this implies that node was computed
+			ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
+			const double area = it->FastGetSolutionStepValue(rAreaVar);
+			double& is_visited = it->GetValue(IS_VISITED);
+			if(area > 1e-20 && is_visited != 1.0) //this implies that node was computed at the current level and not before
 			{
-			  double& dist = it->FastGetSolutionStepValue(rDistanceVar);
-			  dist /= area;
+			  double& distance = it->FastGetSolutionStepValue(rDistanceVar);
+			  distance /= area;
+			  is_visited = 1.0;
 			}
 		}
 	   }
-	   
-	   	 
+	      	 
 	   //*****************************************************************+
 	   //*****************************************************************+
 	   //*****************************************************************+
 	   //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
-	  for(ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin(); it!=rmodel_part.NodesEnd(); it++)
+	  #pragma omp parallel for
+	  for(int i = 0; i<rmodel_part.Nodes().size(); i++)
 	  {
+		  ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
 		  const double area = it->FastGetSolutionStepValue(rAreaVar);
 		  const double old_dist = it->GetValue(rDistanceVar);
 		  double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 		  
-		  if(dist > max_distance)
+		  if(dist < 0.0)
+		    KRATOS_ERROR(std::logic_error,"IMPOSSIBLE negative distance found !!","");
+		  
+		  if(dist > max_distance || area <1e-20)
 		    dist = max_distance;
 		  
 		  if(old_dist < 0)
-		      dist = -max_distance;
+		      dist = -fabs(dist);
+		  else
+		      dist = fabs(dist);
 	  }	   
-	     
+	      
 	     KRATOS_CATCH("")
 	}
 	
@@ -347,28 +356,28 @@ namespace Kratos
 	  {
 	    if(dist[i] >= 0)
 	      positive++;
-	    else;
+	    else
 	      negative++;
 	  }
 	    
 	   bool is_divided = false;
-	   if(positive > 0 and negative>0)
+	   if(positive > 0 && negative>0)
 	     is_divided = true;
 	   
 	   return is_divided;
       }
       
       //*******************************************************************
-      bool IsActive(array_1d<double,TDim+1>& areas)
+      bool IsActive(array_1d<double,TDim+1>& visited)
       {
 	  unsigned int positive = 0;
 	  
 	  for(unsigned int i=0; i<TDim+1; i++)
-	    if(areas[i] > 1e-20) //node was considered
+	    if(visited[i] > 0.9999999999) //node was considered
 	      positive++;
 	    
 	   bool is_active = false;
-	   if(positive > 0 )
+	   if(positive == TDim)
 	     is_active = true;
 	   
 	   return is_active;
@@ -397,12 +406,17 @@ namespace Kratos
 	    if(distances[0]*distances[i]<=0.0) //if the edge is divided
 	      {
 		    double delta_d = fabs(distances[i]) + fabs(distances[0]);
+		    
+		    if(delta_d>1e-20)
+		    {
+			double Ni = fabs(distances[0]) / delta_d;
+			double N0 = fabs(distances[i]) / delta_d;
 
-		    double Ni = fabs(distances[0]) / delta_d;
-		    double N0 = fabs(distances[i]) / delta_d;
-
-		    noalias(coord_on_0) = N0 * geom[0].Coordinates();
-		    noalias(coord_on_0) += Ni * geom[i].Coordinates();
+			noalias(coord_on_0) = N0 * geom[0].Coordinates();
+			noalias(coord_on_0) += Ni * geom[i].Coordinates();
+		    }
+		    else
+		        noalias(coord_on_0) = geom[0].Coordinates();
 
 		    break;
 
@@ -437,21 +451,25 @@ namespace Kratos
 	      unsigned int unknown_node_index = 0;
 	      array_1d<double,TDim> d;
 	      double nodal_vol = Volume/static_cast<double>(TDim+1);
-	      
+	      double avg_dist = 0.0;
 
-	      //compute discriminant
+	      //compute discriminant and find the index of the unknown node
 	      noalias(d) = ZeroVector(TDim);
 	      for (unsigned int iii = 0; iii < TDim + 1; iii++)
 	      {
-		  const double distance = geom[iii].FastGetSolutionStepValue(rDistanceVar);
-		  double nodal_area = geom[iii].FastGetSolutionStepValue(rAreaVar);
-		  
-		  if (nodal_area > 1e-20) //identyfing the unknown node
-		      for (unsigned int jjj = 0; jjj < TDim; jjj++)
+		  double node_is_known = geom[iii].GetValue(IS_VISITED);
+
+		  if (node_is_known == 1) //identyfing the unknown node
+		  {
+		      const double distance = geom[iii].FastGetSolutionStepValue(rDistanceVar);
+		      avg_dist += distance;
+		      for (unsigned int jjj = 0; jjj < TDim; jjj++)			
 			  d[jjj] += DN_DX(iii, jjj) * distance;
+		  }
 		  else
 		      unknown_node_index = iii;
 	      }
+	      avg_dist /= static_cast<double>(TDim);
 
 	      //finalizing computation of discriminant
 	      double c = -1.0;
@@ -468,23 +486,25 @@ namespace Kratos
 	      //here we require (a*x^2 + b*x + c)^2 to be minimum (x represents the unknown distance)
 	      //this implies setting to zero
 	      //(a*x^2 + b*x + c)*(2ax+b) = 0
-	      double distance = -10000.0;
+	      double distance;
 	      
 	      double discriminant = b * b - 4.0 * a*c;
 
 	      if (discriminant < 0.0) //here we solve (2ax+b) = 0
 	      {
-		  distance = -b / (2.0*a);
+// 		KRATOS_WATCH(discriminant);
+		  distance = -b / (2.0*a); //avg_dist ; //
 	      } 
 	      else //in this case we solve (a*x^2 + b*x + c)=0
 	      {
 		  //(accurate) computation of the distance
 		  //requires the solution of a*x^2+b*x+c=0
 		  double q, root1, root2;
+		  double sqrt_det = sqrt(discriminant);
 		  if (a != 0.0)
 		  {
-		      if (b > 0) q = -0.5 * (b + sqrt(discriminant));
-		      else q = -0.5 * (b - sqrt(discriminant));
+		      if (b > 0) q = -0.5 * (b + sqrt_det);
+		      else q = -0.5 * (b - sqrt_det);
 		      root1 = q / a;
 		      root2 = c / q;
 		      if (root1 > root2) distance = root1;
@@ -495,12 +515,16 @@ namespace Kratos
 		  }
 	      }
 	      
+	      if(distance < 0.0)
+		distance = 0.0;
+	      
 	      geom[unknown_node_index].SetLock();
-	      geom[unknown_node_index].FastGetSolutionStepValue(rDistanceVar) += distance;
+	      geom[unknown_node_index].FastGetSolutionStepValue(rDistanceVar) += distance*nodal_vol;
 	      geom[unknown_node_index].FastGetSolutionStepValue(rAreaVar) += nodal_vol;
 	      geom[unknown_node_index].UnSetLock();	
       }
       ///@} 
+      
       ///@name Protected Operations
       ///@{ 
         
