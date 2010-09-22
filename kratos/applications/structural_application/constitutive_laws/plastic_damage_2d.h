@@ -126,7 +126,7 @@ namespace Kratos
 				
                             return p_clone;
 			}
-			
+						
 
                         PlasticDamage2D(
                         FluencyCriteriaPointer FluencyCriteriaCompresion,
@@ -278,40 +278,14 @@ namespace Kratos
 
    void CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& C);
    void CalculateElasticStress(array_1d<double,4>& Strain, array_1d<double,4>& Stress);
-   void Updated_Internal_Variables(const Vector& Stress, const Vector& Strain);
-   void Tensile_Fracture_Model(const Vector& Stress, const Vector& plastic_strain );
-   void Coupling_Between_Degradetion_In_Compresion_And_Tension(array_1d<double, 3> inelastic_strain);
    void Compute_Principal_Stress(const Vector& StressVector);
-   void Compute_Derivate(vector<Vector>& Derivate,vector<array_1d<double,4> >& mD);
-   
-void ReturnMappingToMainPlane(const array_1d<double,4>& ElasticStress, const array_1d<double,3>& PrincipalStress, array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma);
-
-
-   void TwoVectorReturnToEdges(const array_1d<double,4>& ElasticStress,const array_1d<double,3>& PrincipalStress,
-   array_1d<double,3>& Sigma, array_1d<unsigned int,3>& order, const bool& edges);
-
-   void ReturnMappingToApex(array_1d<double,4>& ElasticStress, array_1d<double, 3 >& Sigma);
    void IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(array_1d<double, 3 >& PrincipalStress , array_1d<unsigned int,3>& order);
-   void SplitStressInTractionAndCompression(const array_1d<double,4>& Stress, array_1d<double,4>& Neg_Stress, array_1d<double,4>& Pos_Stress);
-   void SplitStrainInTractionAndCompression(const array_1d<double,4>& Strain, array_1d<double,4>& Neg_Strain, array_1d<double,4>& Pos_Strain);
-   void ModelForCompression(array_1d<double, 4>& Neg_Stress, array_1d<double, 4>& Total_Neg_Strain, array_1d<double, 4>& Neg_Elastic_Strain);
-   void ModelForTension(array_1d<double, 4>& Pos_Stress, array_1d<double, 4>& Total_Pos_Strain, array_1d<double, 4>& Pos_Elastic_Strain);
-
-   
    void AssembleUpdateStressAndStrainTensor(
         const array_1d<double,3>& Sigma,  
         const array_1d<double,4>& StrainVector_aux,   
         const array_1d<unsigned int,3>& order,
 	array_1d<double,4>& ElasticStrain,                                                
 	array_1d<double,4>& ElasticStress);     
-
-   bool CheckValidity(const array_1d<double,3>& Sigma);
-   bool ReturnToEdges(const array_1d<double,4>& ElasticStress);
-
-
-  ///* Model Combined Rankine and Mohr Colulomb 
-  void CombinedRankineMohrCoulombSurfaces(double& ElasticDomain_1,
-double& ElasticDomain_2, const array_1d<double, 3>& PrincipalStress, array_1d<double, 3>& Sigma);
 
 
 
