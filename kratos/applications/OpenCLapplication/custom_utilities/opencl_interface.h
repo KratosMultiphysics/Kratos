@@ -304,9 +304,9 @@ namespace OpenCL
 			//
 			// Constructor using a device type
 
-			DeviceGroup(cl_device_type _DeviceType, const char *_PlatformVendor = ""): DeviceType(_DeviceType)
+			DeviceGroup(cl_device_type _DeviceType, bool _SingleDeviceOnly = false, const char *_PlatformVendor = ""): DeviceType(_DeviceType)
 			{
-				_Init(_PlatformVendor);
+				_Init(_SingleDeviceOnly, _PlatformVendor);
 			}
 
 			//
@@ -323,7 +323,7 @@ namespace OpenCL
 					abort();
 				}
 
-				_Init(_PlatformVendor);
+				_Init(false, _PlatformVendor);
 			}
 
 			//
@@ -379,7 +379,7 @@ namespace OpenCL
 			// Initializes a device group based on given data in the constructor
 			// Do not call directly
 
-			void _Init(const char *_PlatformVendor)
+			void _Init(bool _SingleDeviceOnly, const char *_PlatformVendor)
 			{
 				cl_int Err;
 
@@ -424,11 +424,21 @@ namespace OpenCL
 				// Try to find out which constructor has been called
 				if (DeviceIDs.size() == 0)
 				{
-					// A device type is specified; get all devices of that type
-					Err = clGetDeviceIDs(PlatformID, DeviceType, 0, NULL, &DeviceNo);
-					KRATOS_OCL_CHECK(Err);
+					// A device type is specified; check if we need only a single device
+					if (_SingleDeviceOnly)
+					{
+						// Yes, a maximum of one device
+						DeviceNo = 1;
+					}
+					else
+					{
+						// No, get all devices of that type
+						Err = clGetDeviceIDs(PlatformID, DeviceType, 0, NULL, &DeviceNo);
+						KRATOS_OCL_CHECK(Err);
+					}
 
 					DeviceIDs.resize(DeviceNo);
+
 					Err = clGetDeviceIDs(PlatformID, DeviceType, DeviceNo, DeviceIDs.data(), NULL);
 					KRATOS_OCL_CHECK(Err);
 				}
@@ -724,6 +734,19 @@ namespace OpenCL
 					Err = clSetKernelArg(Kernels[_KernelIndex][i], _ArgIndex, sizeof(cl_mem), &Buffers[_BufferIndex][i]);
 					KRATOS_OCL_CHECK(Err);
 				}
+			}
+
+			//
+			// SetBufferAsKernelArg
+			//
+			// Sets a buffer as a kernel argument on a specific device
+
+			void SetBufferAsKernelArg(int _DeviceIndex, int _KernelIndex, int _ArgIndex, int _BufferIndex)
+			{
+				cl_int Err;
+
+				Err = clSetKernelArg(Kernels[_KernelIndex][_DeviceIndex], _ArgIndex, sizeof(cl_mem), &Buffers[_BufferIndex][_DeviceIndex]);
+				KRATOS_OCL_CHECK(Err);
 			}
 
 			//
