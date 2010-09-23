@@ -75,11 +75,19 @@ namespace OpenCL
 
 // Useful vector types
 
+	typedef enum {HostToDevice, DeviceToHost} BufferCopyDirection;
+
 	typedef std::vector<cl_device_type> DeviceTypeList;
 	typedef std::vector<cl_device_id> DeviceIDList;
 	typedef std::vector<cl_context> ContextList;
 	typedef std::vector<cl_command_queue> CommandQueueList;
 	typedef std::vector<cl_program> ProgramList;
+
+	typedef std::vector<void *> VoidPList;
+
+	typedef std::vector<cl_mem> MemList;
+	typedef std::vector<MemList> MemList2D;
+
 	typedef std::vector<cl_kernel> KernelList;
 	typedef std::vector<KernelList> KernelList2D;
 
@@ -233,6 +241,41 @@ namespace OpenCL
 	}
 
 //
+// DeviceTypeString
+//
+// Returns a string representation of an OpenCL device type
+
+	const char *DeviceTypeString(cl_device_type _DeviceType)
+	{
+		switch (_DeviceType)
+		{
+			case CL_DEVICE_TYPE_CPU:
+
+				return "CPU";
+
+			case CL_DEVICE_TYPE_GPU:
+
+				return "GPU";
+
+			case CL_DEVICE_TYPE_ACCELERATOR:
+
+				return "Accelerator";
+
+			case CL_DEVICE_TYPE_DEFAULT:
+
+				return "Default";
+
+			case CL_DEVICE_TYPE_ALL:
+
+				return "All";
+
+			default:
+
+				return "Unknown";
+		}
+	}
+
+//
 // DeviceGroup
 //
 // A class to manage a group of OpenCL devices
@@ -247,6 +290,8 @@ namespace OpenCL
 			CommandQueueList CommandQueues;
 			ProgramList Programs;
 
+			MemList2D Buffers;
+			SizeTList2D BufferLengths;
 			KernelList2D Kernels;
 			SizeTList2D WorkGroupSizes;
 
@@ -291,30 +336,41 @@ namespace OpenCL
 				cl_int Err;
 
 				// Releasing OpenCL objects
-				for (int i = 0; i < Contexts.size(); i++)
+				for (cl_uint i = 0; i < Contexts.size(); i++)
 				{
 					Err = clReleaseContext(Contexts[i]);
 					KRATOS_OCL_CHECK(Err);
 				}
 
-				for (int i = 0; i < CommandQueues.size(); i++)
+				for (cl_uint i = 0; i < CommandQueues.size(); i++)
 				{
 					Err = clReleaseCommandQueue(CommandQueues[i]);
 					KRATOS_OCL_CHECK(Err);
 				}
 
-				for (int i = 0; i < Programs.size(); i++)
+				for (cl_uint i = 0; i < Buffers.size(); i++)
+				{
+					for (cl_uint j = 0; j < Buffers[i].size(); j++)
+					{
+						Err = clReleaseMemObject(Buffers[i][j]);
+						KRATOS_OCL_CHECK(Err);
+					}
+				}
+
+				for (cl_uint i = 0; i < Programs.size(); i++)
 				{
 					Err = clReleaseProgram(Programs[i]);
 					KRATOS_OCL_CHECK(Err);
 				}
 
-				for (int i = 0; i < Kernels.size(); i++)
-					for (int j = 0; j < Kernels[i].size(); j++)
+				for (cl_uint i = 0; i < Kernels.size(); i++)
+				{
+					for (cl_uint j = 0; j < Kernels[i].size(); j++)
 					{
 						Err = clReleaseKernel(Kernels[i][j]);
 						KRATOS_OCL_CHECK(Err);
 					}
+				}
 			}
 
 			//
@@ -352,7 +408,7 @@ namespace OpenCL
 					// We default to first platform, in case we cannot find the requested platform vendor
 					PlatformID = Platforms[0];
 
-					for (int i = 0; i < PlatformNo; i++)
+					for (cl_uint i = 0; i < PlatformNo; i++)
 					{
 						Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VENDOR, sizeof(CharData), CharData, NULL);
 						KRATOS_OCL_CHECK(Err);
@@ -384,7 +440,8 @@ namespace OpenCL
 
 				// Get device type for each specified device
 				DeviceTypes.resize(DeviceNo);
-				for (int i = 0; i < DeviceNo; i++)
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					Err = clGetDeviceInfo(DeviceIDs[i], CL_DEVICE_TYPE, sizeof(cl_device_type), &DeviceTypes[i], NULL);
 					KRATOS_OCL_CHECK(Err);
@@ -396,7 +453,7 @@ namespace OpenCL
 				Contexts.resize(DeviceNo);
 				CommandQueues.resize(DeviceNo);
 
-				for (int i = 0; i < DeviceNo; i++)
+				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					Contexts[i] = clCreateContext(Properties, 1, &DeviceIDs[i], NULL, NULL, &Err);
 					KRATOS_OCL_CHECK(Err);
@@ -404,6 +461,131 @@ namespace OpenCL
 					CommandQueues[i] = clCreateCommandQueue(Contexts[i], DeviceIDs[i], 0, &Err);
 					KRATOS_OCL_CHECK(Err);
 				}
+			}
+
+			//
+			// CreateBuffer
+			//
+			// Allocates a buffer on all devices
+
+			void CreateBuffer(size_t _Size, cl_mem_flags _Flags)
+			{
+				cl_int Err;
+
+				MemList CurrentBuffers(DeviceNo);
+				SizeTList CurrentBufferLengths(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentBufferLengths[i] = _Size;
+
+					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Size, NULL, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Buffers.push_back(CurrentBuffers);
+				BufferLengths.push_back(CurrentBufferLengths);
+			}
+
+			//
+			// CreateBufferWithHostPtrs
+			//
+			// Allocates a buffer on all devices
+
+			void CreateBufferWithHostPtrs(size_t _Size, cl_mem_flags _Flags, VoidPList &_HostPtrs)
+			{
+				cl_int Err;
+
+				MemList CurrentBuffers(DeviceNo);
+				SizeTList CurrentBufferLengths(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentBufferLengths[i] = _Size;
+
+					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Size, _HostPtrs[i], &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Buffers.push_back(CurrentBuffers);
+				BufferLengths.push_back(CurrentBufferLengths);
+			}
+
+			//
+			// CopyBuffer
+			//
+			// Copies the content of a buffer on all devices
+
+			void CopyBuffer(int _BufferIndex, BufferCopyDirection _CopyDirection, VoidPList _HostPtrs)
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					switch (_CopyDirection)
+					{
+						case HostToDevice:
+
+							Err = clEnqueueWriteBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPtrs[i], 0, NULL, NULL);
+							KRATOS_OCL_CHECK(Err);
+
+							break;
+
+						case DeviceToHost:
+
+							Err = clEnqueueWriteBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPtrs[i], 0, NULL, NULL);
+							KRATOS_OCL_CHECK(Err);
+
+							break;
+					}
+				}
+			}
+
+			//
+			// CopyBuffer
+			//
+			// Copies the content of a buffer on a specific device
+
+			void CopyBuffer(int _DeviceIndex, int _BufferIndex, BufferCopyDirection _CopyDirection, void *_HostPtr)
+			{
+				cl_int Err;
+
+				switch (_CopyDirection)
+				{
+					case HostToDevice:
+
+						Err = clEnqueueWriteBuffer(CommandQueues[_DeviceIndex], Buffers[_BufferIndex][_DeviceIndex], CL_TRUE, 0, BufferLengths[_BufferIndex][_DeviceIndex], _HostPtr, 0, NULL, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						break;
+
+					case DeviceToHost:
+
+						Err = clEnqueueReadBuffer(CommandQueues[_DeviceIndex], Buffers[_BufferIndex][_DeviceIndex], CL_TRUE, 0, BufferLengths[_BufferIndex][_DeviceIndex], _HostPtr, 0, NULL, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						break;
+				}
+			}
+
+			//
+			// MapBuffer
+			//
+			// Maps a buffer on all devices
+
+			VoidPList MapBuffer(int _BufferIndex, cl_map_flags _Flags)
+			{
+				cl_int Err;
+
+				VoidPList CurrentPtrs(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentPtrs[i] = clEnqueueMapBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, _Flags, 0, BufferLengths[_BufferIndex][i], 0, NULL, NULL, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				return CurrentPtrs;
 			}
 
 			//
@@ -427,7 +609,7 @@ namespace OpenCL
 				// Build program for all devices
 				Programs.resize(DeviceNo);
 
-				for (int i = 0; i < DeviceNo; i++)
+				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					Programs[i] = clCreateProgramWithSource(Contexts[i], 1, &SourceText, &SourceLen, &Err);
 					KRATOS_OCL_CHECK(Err);
@@ -458,7 +640,7 @@ namespace OpenCL
 				KernelList CurrentKernels(DeviceNo);
 				SizeTList CurrentWorkGroupSizes(DeviceNo);
 
-				for (int i = 0; i < DeviceNo; i++)
+				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					CurrentKernels[i] = clCreateKernel(Programs[i], _KernelName, &Err);
 					KRATOS_OCL_CHECK(Err);
@@ -508,7 +690,7 @@ namespace OpenCL
 			{
 				cl_int Err;
 
-				for (int i = 0; i < DeviceNo; i++)
+				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					Err = clSetKernelArg(Kernels[_KernelIndex][i], _ArgIndex, sizeof(Type), &_Value);
 					KRATOS_OCL_CHECK(Err);
@@ -529,6 +711,22 @@ namespace OpenCL
 			}
 
 			//
+			// SetBufferAsKernelArg
+			//
+			// Sets a buffer as a kernel argument on all devices
+
+			void SetBufferAsKernelArg(int _KernelIndex, int _ArgIndex, int _BufferIndex)
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					Err = clSetKernelArg(Kernels[_KernelIndex][i], _ArgIndex, sizeof(cl_mem), &Buffers[_BufferIndex][i]);
+					KRATOS_OCL_CHECK(Err);
+				}
+			}
+
+			//
 			// ExecuteKernel
 			//
 			// Execute a kernel on all devices
@@ -538,7 +736,7 @@ namespace OpenCL
 				cl_int Err;
 
 				// Enqueue kernels
-				for (int i = 0; i < DeviceNo; i++)
+				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					// We may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
 					size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][i] - 1) / WorkGroupSizes[_KernelIndex][i]) * WorkGroupSizes[_KernelIndex][i];
@@ -551,7 +749,7 @@ namespace OpenCL
 				}
 
 				// Wait for kernels to finish
-				for (int i = 0; i < DeviceNo; i++)
+				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					Err = clFinish(CommandQueues[i]);
 					KRATOS_OCL_CHECK(Err);
