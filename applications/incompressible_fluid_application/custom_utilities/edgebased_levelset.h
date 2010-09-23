@@ -135,6 +135,8 @@ namespace Kratos {
             max_dt = 1.0;
 
             muse_mass_correction = use_mass_correction;
+	    
+	    mshock_coeff = 0.7;
 
 //            for (unsigned int i = 0; i < TDim; i++) mBodyForce[i] = 0;
 //            mBodyForce[1] = -9.81;
@@ -284,6 +286,10 @@ namespace Kratos {
 
             KRATOS_CATCH("")
         }
+        
+        
+        void SetShockCapturingCoefficient(double coeff) 
+        {mshock_coeff = coeff;}
 
         //***************************************
         //function to set adequate time step size
@@ -491,9 +497,9 @@ namespace Kratos {
 //            double time_inv = 1.0 / delta_t;
             double time_inv_avg = 1.0/mdelta_t_avg;
 
-            const double stabdt_pressure_factor  = mstabdt_pressure_factor;
-            const double stabdt_convection_factor  = mstabdt_convection_factor;
-	    const double tau2_factor = mtau2_factor;
+            double stabdt_pressure_factor  = mstabdt_pressure_factor;
+            double stabdt_convection_factor  = mstabdt_convection_factor;
+	    double tau2_factor = mtau2_factor;
 
 //            const double max_dt_inv = 1.0 / max_dt;
 
@@ -2174,6 +2180,8 @@ void ActivateWallResistance(double Ywall)
 
         double mdelta_t_avg;
         double max_dt;
+	
+	double mshock_coeff;
 
         //***********************************************************
         //functions to calculate area normals for boundary conditions
@@ -2414,7 +2422,7 @@ void ActivateWallResistance(double Ywall)
 
                             edge_ij.Sub_StabContribution(rhs_i, edge_tau, 1.0, stab_low, stab_high);
 			    
-			    double coeff = 0.35; //=0.7*0.5;
+			    double coeff = 0.5*mshock_coeff; //=0.7*0.5;
 			    double laplacian_ij=0.0;
 			    edge_ij.CalculateScalarLaplacian( laplacian_ij );
 			    double capturing= laplacian_ij * (phi_j - phi_i);
@@ -2633,14 +2641,14 @@ void ComputeWallResistance(
                 )
         {
             //parameters:
-            const double k = 0.41;
-            const double B = 5.1;
-            const double density = mRho;
-            const double mu = mViscosity;
-            const double toll = 1e-6;
-            const double ym = mY_wall; //0.0825877; //0.0093823
-            const double y_plus_incercept = 10.9931899;
-            const unsigned int itmax = 100;
+            double k = 0.41;
+            double B = 5.1;
+            double density = mRho;
+            double mu = mViscosity;
+            double toll = 1e-6;
+            double ym = mY_wall; //0.0825877; //0.0093823
+            double y_plus_incercept = 10.9931899;
+            unsigned int itmax = 100;
 
             if (mu == 0)
                 KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
