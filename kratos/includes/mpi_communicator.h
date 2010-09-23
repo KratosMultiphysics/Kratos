@@ -232,6 +232,19 @@ namespace Kratos
 	  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
           return rank;
       }
+      
+      int TotalProcesses()
+      {
+          int nproc;
+	  MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+          return nproc;
+	  
+      }
+      
+      void Barrier()
+      {
+	  MPI_Barrier(MPI_COMM_WORLD);
+      }
 
       ///@}
       ///@name Access

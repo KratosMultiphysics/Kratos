@@ -263,6 +263,15 @@ namespace Kratos
       {
           return 0;
       }
+      
+      virtual int TotalProcesses()
+      {
+          return 1;
+      }
+      
+      virtual void Barrier()
+      {
+      }
 
       SizeType GetNumberOfColors()
       {
