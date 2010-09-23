@@ -1,9 +1,9 @@
 #pragma OPENCL EXTENSION cl_amd_fp64: enable
 
-__kernel void Test(__global double *input, __global double *output)
+__kernel void Test(__global double *input, __global double *output, double offset)
 {
 	size_t id = get_global_id(0);
-	output[id] = input[id] * input[id];
+	output[id] = input[id] * input[id] + offset;
 }
 
 
