@@ -14,6 +14,8 @@ def AddVariables(model_part):
 #    model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(DIAMETER)
 
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+
     print "variables for the edgebased incompressible fluid solver added correctly"
 
 def AddDofs(model_part):
@@ -43,7 +45,9 @@ class EdgeBasedLevelSetSolver:
         self.extrapolation_layers = 5
         self.tau2_factor = 0.0
         self.edge_detection_angle = 45.0
-        self.assume_constant_pressure = False
+        self.assume_constant_pressure = True
+
+        self.use_parallel_distance_calculation = False
 
 
         #neighbour search
@@ -88,11 +92,18 @@ class EdgeBasedLevelSetSolver:
             self.condition_neighbours_finder.Execute()
         ##constructing the solver
         if(self.domain_size == 2):
-            self.distance_utils = SignedDistanceCalculationUtils2D()
+            if(self.use_parallel_distance_calculation == False):
+                self.distance_utils = SignedDistanceCalculationUtils2D()
+            else:
+                self.distance_utils = ParallelDistanceCalculator2D()
+                
             self.fluid_solver = EdgeBasedLevelSet2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
         else:
-            self.distance_utils = SignedDistanceCalculationUtils3D()
-#            self.distance_utils = SignedDistanceCalculationBinBased3D()
+            if(self.use_parallel_distance_calculation == False):
+                self.distance_utils = SignedDistanceCalculationUtils3D()
+            else:
+                self.distance_utils = ParallelDistanceCalculator3D()
+
             self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
 #
         self.max_edge_size = self.distance_utils.FindMaximumEdgeSize(self.model_part)
@@ -101,10 +112,30 @@ class EdgeBasedLevelSetSolver:
         
 #        self.reorder = True
 #        self.distance_tools = BodyDistanceCalculationUtils()
+        print "in 138"
+        nneg = 0
+        npos = 0
+        for node in self.model_part.Nodes:
+            if(node.GetSolutionStepValue(DISTANCE) < 0.0):
+                nneg = nneg+1
+            else:
+                npos = npos+1
 
+        print "nneg=",nneg;
+        print "npos=",npos
 
         self.fluid_solver.Initialize()
+        print "in 128"
+        nneg = 0
+        npos = 0
+        for node in self.model_part.Nodes:
+            if(node.GetSolutionStepValue(DISTANCE) < 0.0):
+                nneg = nneg+1
+            else:
+                npos = npos+1
 
+        print "nneg=",nneg;
+        print "npos=",npos
         self.Redistance()
 
 #        for node in self.model_part.Nodes:
@@ -116,27 +147,17 @@ class EdgeBasedLevelSetSolver:
         print "**********************************************"
         print "finished EdgeBasedLevelSetSolver initialize"
 
-    ################################################################
-    ################################################################
-#    def CalculateDistances(self):
-#        if(self.domain_size == 2):
-#            self.distance_tools.CalculateDistances2D(self.model_part.Elements,DISTANCE, self.reorder);
-#        else:
-#            self.distance_tools.CalculateDistances3D(self.model_part.Elements,DISTANCE, self.reorder);
 
     ################################################################
     ################################################################
     def Redistance(self):
-        self.distance_utils.CalculateDistances(self.model_part,DISTANCE,self.distance_size)
-#        self.distance_utils.CalculateDistances(self.model_part,DISTANCE,self.distance_size)
-
-
-#        self.fluid_solver.MarkInternalNodes()
-#        self.CalculateDistances()
-#        self.fluid_solver.MarkExternalAndMixedNodes()
-#        self.fluid_solver.ChangeSignToDistance()
-#        self.CalculateDistances()
-#        self.fluid_solver.ChangeSignToDistance()
+        if(self.use_parallel_distance_calculation == False):
+            self.distance_utils.CalculateDistances(self.model_part,DISTANCE,self.distance_size)
+        else:
+            print "max distance", self.distance_size
+            print "max extrapolation layers",self.extrapolation_layers
+            self.distance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.extrapolation_layers,self.max_edge_size*2.0)
+            
         
 
     ################################################################
