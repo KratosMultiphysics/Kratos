@@ -15,72 +15,44 @@ int main(int argc, char *argv[])
 	Kratos::OpenCL::DeviceGroup OCLDeviceGroup(CL_DEVICE_TYPE_ALL);
 
 	std::cout << "Found " << OCLDeviceGroup.DeviceNo << " device(s)." << std::endl;
-	for (int i = 0; i < OCLDeviceGroup.DeviceNo; i++)
+	for (cl_uint i = 0; i < OCLDeviceGroup.DeviceNo; i++)
 	{
-		std::cout << "  Device " << i << ": ";
-		switch (OCLDeviceGroup.DeviceTypes[i])
-		{
-			case CL_DEVICE_TYPE_CPU:
-
-				std::cout << "CPU" << std::endl;
-				break;
-
-			case CL_DEVICE_TYPE_GPU:
-
-				std::cout << "GPU" << std::endl;
-				break;
-
-			case CL_DEVICE_TYPE_ACCELERATOR:
-
-				std::cout << "Accelerator" << std::endl;
-				break;
-
-			default:
-
-				std::cout << "Unknown" << std::endl;
-		}
+		std::cout << "  Device " << i << ": " << Kratos::OpenCL::DeviceTypeString(OCLDeviceGroup.DeviceTypes[i]) << std::endl;
 	}
 
 	std::cout << "Loading kernel(s) from file test_ocli.cl..." << std::endl;
 	OCLDeviceGroup.BuildProgramFromFile("test_ocli.cl");
 
-	std::cout << "Registering kernel Test() and setting arguments..." << std::endl;
+	std::cout << "Registering kernel Test()..." << std::endl;
 	OCLDeviceGroup.RegisterKernel("Test");
 
-	const int DATA_SIZE = 10;
+	const int DataSize = 10;
 
-	double inputData[DATA_SIZE]={1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-	double results[DATA_SIZE]={0};
+	double Data[DataSize] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	double Results[DataSize] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-	cl_int Err;
-	cl_mem input, output;
+	std::cout << "Creating the buffers..." << std::endl;
+	OCLDeviceGroup.CreateBuffer(DataSize * sizeof(double), CL_MEM_READ_ONLY);
+	OCLDeviceGroup.CreateBuffer(DataSize * sizeof(double), CL_MEM_WRITE_ONLY);
 
-	// create buffers for the input and ouput
-	input = clCreateBuffer(OCLDeviceGroup.Contexts[0], CL_MEM_READ_ONLY, sizeof(double) * DATA_SIZE, NULL, &Err);
-	KRATOS_OCL_CHECK(Err);
+	std::cout << "Copying the data to the device(s)..." << std::endl;
+	OCLDeviceGroup.CopyBuffer(0, 0, Kratos::OpenCL::HostToDevice, Data);
 
-	output = clCreateBuffer(OCLDeviceGroup.Contexts[0], CL_MEM_WRITE_ONLY, sizeof(double) * DATA_SIZE, NULL, &Err);
-	KRATOS_OCL_CHECK(Err);
+	std::cout << "Setting kernel arguments..." << std::endl;
+	OCLDeviceGroup.SetBufferAsKernelArg(0, 0, 0);
+	OCLDeviceGroup.SetBufferAsKernelArg(0, 1, 1);
 
-	// load data into the input buffer
-	Err = clEnqueueWriteBuffer(OCLDeviceGroup.CommandQueues[0], input, CL_TRUE, 0, sizeof(double) * DATA_SIZE, inputData, 0, NULL, NULL);
-	KRATOS_OCL_CHECK(Err);
+	std::cout << "Executing kernel..." << std::endl;
+	OCLDeviceGroup.ExecuteKernel(0, 0, DataSize);
 
-	OCLDeviceGroup.SetKernelArg(0, 0, input);
-	OCLDeviceGroup.SetKernelArg(0, 1, output);
+	std::cout << "Copying the data from the device(s)..." << std::endl;
+	OCLDeviceGroup.CopyBuffer(0, 1, Kratos::OpenCL::DeviceToHost, Results);
 
-    std::cout << "Executing kernel..." << std::endl;
-	OCLDeviceGroup.ExecuteKernel(0, DATA_SIZE);
-
-   	// copy the results from out of the output buffer
-	Err = clEnqueueReadBuffer(OCLDeviceGroup.CommandQueues[0], output, CL_TRUE, 0, sizeof(double) *DATA_SIZE, results, 0, NULL, NULL);
-	KRATOS_OCL_CHECK(Err);
-
-    std::cout << "Results:" << std::endl;
-    for (int i = 0; i < DATA_SIZE; i++)
-    {
-        std::cout << results[i] << std::endl;
-    }
+	std::cout << "Results:" << std::endl;
+	for (int i = 0; i < DataSize; i++)
+	{
+		std::cout << Results[i] << std::endl;
+	}
 
 	return 0;
 }
