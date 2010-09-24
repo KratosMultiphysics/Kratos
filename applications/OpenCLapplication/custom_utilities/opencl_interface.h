@@ -204,7 +204,7 @@ namespace OpenCL
 // Used to raise an OpenCL error and abort if requested
 // Do not use directly; use the KRATOS_OCL_CHECK, KRATOS_OCL_WARN or KRATOS_OCL_CHECKED_EXPRESSION macros
 
-	void RaiseError(cl_int _Code, const char *_FileName, const char *_Function, unsigned int _Line, bool _Abort, const char *_Expression = "")
+	void RaiseError(cl_int _Code, const char *_FileName, const char *_Function, cl_uint _Line, bool _Abort, const char *_Expression = "")
 	{
 		std::cout <<
 			std::endl <<
@@ -234,7 +234,7 @@ namespace OpenCL
 // Used to check an OpenCL return code and abort
 // Do not use directly; use the KRATOS_OCL_CHECK or KRATOS_OCL_CHECKED_EXPRESSION macros
 
-	inline void CheckError(cl_int _Code, const char *_FileName, const char *_Function, unsigned int _Line, bool _Abort, const char *_Expression = "")
+	inline void CheckError(cl_int _Code, const char *_FileName, const char *_Function, cl_uint _Line, bool _Abort, const char *_Expression = "")
 	{
 		if (_Code != CL_SUCCESS)
 			RaiseError(_Code, _FileName, _Function, _Line, _Abort, _Expression);
@@ -478,9 +478,10 @@ namespace OpenCL
 			//
 			// Allocates a buffer on all devices
 
-			void CreateBuffer(size_t _Size, cl_mem_flags _Flags)
+			cl_uint CreateBuffer(size_t _Size, cl_mem_flags _Flags)
 			{
 				cl_int Err;
+				cl_uint BufferNo = Buffers.size();
 
 				MemList CurrentBuffers(DeviceNo);
 
@@ -492,6 +493,8 @@ namespace OpenCL
 
 				Buffers.push_back(CurrentBuffers);
 				BufferLengths.push_back(SizeTList(DeviceNo, _Size));
+
+				return BufferNo;
 			}
 
 			//
@@ -499,9 +502,10 @@ namespace OpenCL
 			//
 			// Allocates a buffer on all devices with given sizes
 
-			void CreateBuffer(SizeTList _Sizes, cl_mem_flags _Flags)
+			cl_uint CreateBuffer(SizeTList _Sizes, cl_mem_flags _Flags)
 			{
 				cl_int Err;
+				cl_uint BufferNo = Buffers.size();
 
 				MemList CurrentBuffers(DeviceNo);
 
@@ -513,6 +517,8 @@ namespace OpenCL
 
 				Buffers.push_back(CurrentBuffers);
 				BufferLengths.push_back(_Sizes);
+
+				return BufferNo;
 			}
 
 			//
@@ -520,9 +526,10 @@ namespace OpenCL
 			//
 			// Allocates a buffer on all devices
 
-			void CreateBufferWithHostPtrs(size_t _Size, cl_mem_flags _Flags, VoidPList &_HostPtrs)
+			cl_uint CreateBufferWithHostPtrs(size_t _Size, cl_mem_flags _Flags, VoidPList &_HostPtrs)
 			{
 				cl_int Err;
+				cl_uint BufferNo = Buffers.size();
 
 				MemList CurrentBuffers(DeviceNo);
 
@@ -534,6 +541,8 @@ namespace OpenCL
 
 				Buffers.push_back(CurrentBuffers);
 				BufferLengths.push_back(SizeTList(DeviceNo, _Size));
+
+				return BufferNo;
 			}
 
 			//
@@ -541,9 +550,10 @@ namespace OpenCL
 			//
 			// Allocates a buffer on all devices with given sizes
 
-			void CreateBufferWithHostPtrs(SizeTList _Sizes, cl_mem_flags _Flags, VoidPList &_HostPtrs)
+			cl_uint CreateBufferWithHostPtrs(SizeTList _Sizes, cl_mem_flags _Flags, VoidPList &_HostPtrs)
 			{
 				cl_int Err;
+				cl_uint BufferNo = Buffers.size();
 
 				MemList CurrentBuffers(DeviceNo);
 
@@ -555,6 +565,8 @@ namespace OpenCL
 
 				Buffers.push_back(CurrentBuffers);
 				BufferLengths.push_back(_Sizes);
+
+				return BufferNo;
 			}
 
 			//
@@ -562,7 +574,7 @@ namespace OpenCL
 			//
 			// Copies the content of a buffer on all devices
 
-			void CopyBuffer(int _BufferIndex, BufferCopyDirection _CopyDirection, VoidPList _HostPtrs)
+			void CopyBuffer(cl_uint _BufferIndex, BufferCopyDirection _CopyDirection, VoidPList _HostPtrs)
 			{
 				cl_int Err;
 
@@ -592,7 +604,7 @@ namespace OpenCL
 			//
 			// Copies the content of a buffer on a specific device
 
-			void CopyBuffer(int _DeviceIndex, int _BufferIndex, BufferCopyDirection _CopyDirection, void *_HostPtr)
+			void CopyBuffer(cl_uint _DeviceIndex, cl_uint _BufferIndex, BufferCopyDirection _CopyDirection, void *_HostPtr)
 			{
 				cl_int Err;
 
@@ -619,7 +631,7 @@ namespace OpenCL
 			//
 			// Maps a buffer on all devices
 
-			VoidPList MapBuffer(int _BufferIndex, cl_map_flags _Flags)
+			VoidPList MapBuffer(cl_uint _BufferIndex, cl_map_flags _Flags)
 			{
 				cl_int Err;
 
@@ -678,9 +690,10 @@ namespace OpenCL
 			//
 			// Register a kernel in the built program on all devices
 
-			void RegisterKernel(const char *_KernelName)
+			cl_uint RegisterKernel(const char *_KernelName)
 			{
 				cl_int Err;
+				cl_uint KernelNo = Kernels.size();
 
 				// Register the kernel on all devices
 				KernelList CurrentKernels(DeviceNo);
@@ -725,6 +738,8 @@ namespace OpenCL
 				// Append these to the lists
 				Kernels.push_back(CurrentKernels);
 				WorkGroupSizes.push_back(CurrentWorkGroupSizes);
+
+				return KernelNo;
 			}
 
 			//
@@ -732,7 +747,7 @@ namespace OpenCL
 			//
 			// Set a kernel argument on all devices
 
-			template <typename Type> void SetKernelArg(int _KernelIndex, int _ArgIndex, Type _Value)
+			template <typename Type> void SetKernelArg(cl_uint _KernelIndex, cl_uint _ArgIndex, Type _Value)
 			{
 				cl_int Err;
 
@@ -748,7 +763,7 @@ namespace OpenCL
 			//
 			// Set a kernel argument on a specific device
 
-			template <typename Type> void SetKernelArg(int _DeviceIndex, int _KernelIndex, int _ArgIndex, Type _Value)
+			template <typename Type> void SetKernelArg(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _ArgIndex, Type _Value)
 			{
 				cl_int Err;
 
@@ -761,7 +776,7 @@ namespace OpenCL
 			//
 			// Sets a buffer as a kernel argument on all devices
 
-			void SetBufferAsKernelArg(int _KernelIndex, int _ArgIndex, int _BufferIndex)
+			void SetBufferAsKernelArg(cl_uint _KernelIndex, cl_uint _ArgIndex, cl_uint _BufferIndex)
 			{
 				cl_int Err;
 
@@ -777,7 +792,7 @@ namespace OpenCL
 			//
 			// Sets a buffer as a kernel argument on a specific device
 
-			void SetBufferAsKernelArg(int _DeviceIndex, int _KernelIndex, int _ArgIndex, int _BufferIndex)
+			void SetBufferAsKernelArg(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _ArgIndex, cl_uint _BufferIndex)
 			{
 				cl_int Err;
 
@@ -790,7 +805,7 @@ namespace OpenCL
 			//
 			// Execute a kernel on all devices
 
-			void ExecuteKernel(int _KernelIndex, cl_uint _GlobalWorkSize)
+			void ExecuteKernel(cl_uint _KernelIndex, cl_uint _GlobalWorkSize)
 			{
 				cl_int Err;
 
@@ -820,7 +835,7 @@ namespace OpenCL
 			//
 			// Execute a kernel on a specific device
 
-			void ExecuteKernel(int _DeviceIndex, int _KernelIndex, cl_uint _GlobalWorkSize)
+			void ExecuteKernel(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _GlobalWorkSize)
 			{
 				cl_int Err;
 
