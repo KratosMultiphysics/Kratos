@@ -483,18 +483,36 @@ namespace OpenCL
 				cl_int Err;
 
 				MemList CurrentBuffers(DeviceNo);
-				SizeTList CurrentBufferLengths(DeviceNo);
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
-					CurrentBufferLengths[i] = _Size;
-
 					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Size, NULL, &Err);
 					KRATOS_OCL_CHECK(Err);
 				}
 
 				Buffers.push_back(CurrentBuffers);
-				BufferLengths.push_back(CurrentBufferLengths);
+				BufferLengths.push_back(SizeTList(DeviceNo, _Size));
+			}
+
+			//
+			// CreateBuffer
+			//
+			// Allocates a buffer on all devices with given sizes
+
+			void CreateBuffer(SizeTList _Sizes, cl_mem_flags _Flags)
+			{
+				cl_int Err;
+
+				MemList CurrentBuffers(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Sizes[i], NULL, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Buffers.push_back(CurrentBuffers);
+				BufferLengths.push_back(_Sizes);
 			}
 
 			//
@@ -507,18 +525,36 @@ namespace OpenCL
 				cl_int Err;
 
 				MemList CurrentBuffers(DeviceNo);
-				SizeTList CurrentBufferLengths(DeviceNo);
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
-					CurrentBufferLengths[i] = _Size;
-
 					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Size, _HostPtrs[i], &Err);
 					KRATOS_OCL_CHECK(Err);
 				}
 
 				Buffers.push_back(CurrentBuffers);
-				BufferLengths.push_back(CurrentBufferLengths);
+				BufferLengths.push_back(SizeTList(DeviceNo, _Size));
+			}
+
+			//
+			// CreateBufferWithHostPtrs
+			//
+			// Allocates a buffer on all devices with given sizes
+
+			void CreateBufferWithHostPtrs(SizeTList _Sizes, cl_mem_flags _Flags, VoidPList &_HostPtrs)
+			{
+				cl_int Err;
+
+				MemList CurrentBuffers(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Sizes[i], _HostPtrs[i], &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Buffers.push_back(CurrentBuffers);
+				BufferLengths.push_back(_Sizes);
 			}
 
 			//
