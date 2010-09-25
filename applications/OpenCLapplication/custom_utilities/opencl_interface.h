@@ -651,7 +651,7 @@ namespace OpenCL
 			//
 			// Load a program source file and build it; for simplicity we do not support multiple programs
 
-			void BuildProgramFromFile(const char *_FileName)
+			void BuildProgramFromFile(const char *_FileName, const char *_BuildOptions = NULL)
 			{
 				cl_int Err;
 
@@ -672,7 +672,7 @@ namespace OpenCL
 					Programs[i] = clCreateProgramWithSource(Contexts[i], 1, &SourceText, &SourceLen, &Err);
 					KRATOS_OCL_CHECK(Err);
 
-					Err = clBuildProgram(Programs[i], 0, NULL, NULL, NULL, NULL);
+					Err = clBuildProgram(Programs[i], 0, NULL, _BuildOptions, NULL, NULL);
 					KRATOS_OCL_WARN(Err);
 
 					if (Err != CL_SUCCESS)
