@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <cstdlib>
+
 
 // External includes
 
@@ -319,7 +319,10 @@ namespace OpenCL
 				// Check if we got an empty DeviceIDList
 				if (_DeviceIDs.size() == 0)
 				{
-					std::cout << "DeviceIDList specified cannot be empty. Aborting." << std::endl;
+					std::cout <<
+						"DeviceIDList specified cannot be empty." << std::endl <<
+						"Aborting." << std::endl;
+
 					abort();
 				}
 
@@ -663,6 +666,16 @@ namespace OpenCL
 
 				const char *SourceText = SourceStr.c_str();
 				size_t SourceLen = SourceStr.size();
+
+				// Check if we got an empty source text
+				if (SourceLen == 0)
+				{
+					std::cout <<
+						"Program source empty, probably an error occurred reading the file." << std::endl <<
+						"Aborting." << std::endl;
+
+					abort();
+				}
 
 				// Build program for all devices
 				Programs.resize(DeviceNo);
