@@ -1,7 +1,15 @@
 #include "opencl_interface.h"
 #include <cmath>
 
-const cl_uint DataSize = 3600000;
+#include <cstdlib>
+
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#include <ctime>
+#endif
+
+const cl_uint DataSize = 360000;
 const double Eps = 1e-10;
 
 double Input[DataSize], Output[DataSize];
@@ -9,7 +17,7 @@ double Input[DataSize], Output[DataSize];
 int main(int argc, char *argv[])
 {
 	std::cout << "Initializing OpenCL device group..." << std::endl;
-	Kratos::OpenCL::DeviceGroup OCLDeviceGroup(CL_DEVICE_TYPE_ALL, false);  // Try to find all available devices
+	Kratos::OpenCL::DeviceGroup OCLDeviceGroup(CL_DEVICE_TYPE_CPU, false);  // Try to find all available devices
 
 	std::cout << "Found " << OCLDeviceGroup.DeviceNo << " device(s)." << std::endl;
 	for (cl_uint i = 0; i < OCLDeviceGroup.DeviceNo; i++)
@@ -61,8 +69,32 @@ int main(int argc, char *argv[])
 			std::cout << "Error at position " << i << std::endl;
 		}
 	}
-
 	std::cout << "Verification finished." << std::endl;
+	
+	#ifndef _OPENMP
+	  double start_time = clock();
+	#else
+	  double start_time = omp_get_wtime();
+	#endif
+	
+	#pragma omp parallel for
+	for(int i =0; i<DataSize;i++)
+	  Output[i] = -1.0;
+	
+	#pragma omp parallel for
+	for(int i =0; i<DataSize;i++)
+	  Output[i] -= (2.00 * sin(i) * cos(i) + 10.00);
+
+	
+	#ifndef _OPENMP
+	  double stop_time = clock();
+	  std::cout << "no openmp timing " <<  (stop_time - start_time)/CLOCKS_PER_SEC <<  std::endl;
+	#else
+	  double stop_time = omp_get_wtime();
+	  std::cout << "with openmp " <<  (stop_time - start_time) <<  std::endl;
+	#endif
+	
+	
 
 	return 0;
 }
