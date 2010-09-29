@@ -100,8 +100,9 @@ namespace Kratos
 	     KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
 
 	   //reset the variables needed
+	  int node_size = rmodel_part.Nodes().size();
 	  #pragma omp parallel for
-	  for(int i = 0; i<rmodel_part.Nodes().size(); i++)
+	  for(int i = 0; i<node_size; i++)
 	  {
 	      ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
 	      it->FastGetSolutionStepValue(rAreaVar) = 0.0;
@@ -131,7 +132,7 @@ namespace Kratos
 	   double lumping_factor = 1.0/double(TDim+1);
 	   boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
 	   int elem_size = rmodel_part.Elements().size();
-	   int node_size = rmodel_part.Nodes().size();
+	   
 	   #pragma omp parallel for private(DN_DX,dist,exact_dist) firstprivate(lumping_factor,elem_size)
 	   for(int i = 0; i<elem_size; i++)
 	   {
@@ -263,7 +264,6 @@ namespace Kratos
 	  {
 		  ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
 		  const double area = it->FastGetSolutionStepValue(rAreaVar);
-		  const double old_dist = it->GetValue(rDistanceVar);
 		  double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 		  
 		  if(dist < 0.0)
@@ -289,8 +289,6 @@ namespace Kratos
         double FindMaximumEdgeSize(ModelPart& r_model_part) 
         {
             KRATOS_TRY
-
-            ModelPart::NodesContainerType& rNodes = r_model_part.Nodes();
 
             double h_max = 0.0;
 	    
@@ -469,7 +467,6 @@ namespace Kratos
 	    }
 	}
 	
-	double nodal_area_factor = Area/static_cast<double>(TDim+1);
 
 	//now calculate the distance of all the nodes from the elemental free surface
 	for(unsigned int i = 0; i<TDim+1; i++)
@@ -562,7 +559,7 @@ namespace Kratos
 	      }
 	      
 	      if(distance < 0.0)
-		distance = 0.0;
+		distance = 1e-15;
 	      
 	      geom[unknown_node_index].SetLock();
 	      geom[unknown_node_index].FastGetSolutionStepValue(rDistanceVar) += distance*nodal_vol;
@@ -655,7 +652,7 @@ namespace Kratos
   /// input stream function
   template<unsigned int TDim>
   inline std::istream& operator >> (std::istream& rIStream, 
-				    ParallelDistanceCalculator<TDim>& rThis){}
+				    ParallelDistanceCalculator<TDim>& rThis){return rIStream;}
 
   /// output stream function
    template<unsigned int TDim>
