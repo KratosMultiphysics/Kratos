@@ -91,20 +91,21 @@ namespace Kratos
   */
   template<
   std::size_t TDimension,
-  class TPointerType>
+  class TPointerType,
+  class TContainerType = std::vector<TPointerType> >
   class Cell
     {
     public:
       ///@name Type Definitions
       ///@{
       
-      typedef std::vector<TPointerType> ContainerType;
+      //typedef std::vector<TPointerType> ContainerType;
+      typedef TContainerType ContainerType;
+      //typedef std::size_t  IndexType;
       
-      typedef std::size_t  IndexType;
-      
-      typedef std::vector< IndexType > CellIndex;
+      //typedef std::vector< IndexType > CellIndex;
             
-      typedef Cell<TDimension, TPointerType>  CellType; 
+      //typedef Cell<TDimension, TPointerType>  CellType; 
       
       /// Pointer definition of Cell
       KRATOS_CLASS_POINTER_DEFINITION(Cell);
