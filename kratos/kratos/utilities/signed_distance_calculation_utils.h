@@ -251,12 +251,17 @@ namespace Kratos
                                         if(distances[0]*distances[i]<=0) //if the edge is divided
                                          {
                                                 double delta_d = fabs(distances[i]) + fabs(distances[0]);
+						
+						if(delta_d>1e-20)
+						{
+						  double Ni = fabs(distances[0]) / delta_d;
+						  double N0 = fabs(distances[i]) / delta_d;
 
-                                                double Ni = fabs(distances[0]) / delta_d;
-                                                double N0 = fabs(distances[i]) / delta_d;
-
-                                                noalias(coord_on_0) = N0 * geom[0].Coordinates();
-                                                noalias(coord_on_0) += Ni * geom[i].Coordinates();
+						  noalias(coord_on_0) = N0 * geom[0].Coordinates();
+						  noalias(coord_on_0) += Ni * geom[i].Coordinates();
+						}
+						else
+						  noalias(coord_on_0) = geom[0].Coordinates();
 
                                                 break;
 
