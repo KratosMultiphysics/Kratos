@@ -11,12 +11,13 @@
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : add "Distance" variable to the fluid application results
+#    LAST MODIFICATION : add Start_time variable
 #
-#    VERSION : 2.5
+#    VERSION : 2.6
 #
 #    HISTORY:
 #
+#     2.6- 23/09/10-G. Socorro, add Start_time variable
 #     2.5- 08/09/10-G. Socorro, add "Distance" variable to the fluid application results
 #     2.4- 06/09/10-G. Socorro, reset xcomp, ycomp and zcomp at the end of the foreach group when write no-slip BC in the fluid application  
 #     2.3- 06/09/10-G. Socorro, correct an error when defined body force for group of element with the same property
@@ -1454,7 +1455,8 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
     
     # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
-    puts $fileid "Dt = $StartTime"
+    puts $fileid "Dt = $DeltaTime"
+    puts $fileid "Start_time = $StartTime"
     puts $fileid "max_time = $EndTime"
     set nsteps [expr int(double($EndTime-$StartTime)/double($DeltaTime))]
     puts $fileid "nsteps = $nsteps"
