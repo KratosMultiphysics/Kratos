@@ -58,13 +58,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include <boost/array.hpp> 
+//#include <boost/array.hpp> 
 
 
 // Project includes
-#include "includes/define.h"
-#include "includes/ublas_interface.h"
-#include "containers/pointer_vector.h"
+//#include "includes/define.h"
+//#include "includes/ublas_interface.h"
+//#include "containers/pointer_vector.h"
 
 
 namespace Kratos
