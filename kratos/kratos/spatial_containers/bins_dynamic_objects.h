@@ -454,21 +454,21 @@ void AllocateCellsContainer() {
             // Resize Global Container
             mCells.resize(Size);
 	    
-	    AllocateCell() ;
+	    //AllocateCell() ;
         }
         
 //************************************************************************
 //************************************************************************ 
 
-void AllocateCell() 
-       {
-                 
-            const std::size_t Size = 10;/// mN[0];  WARNING = Calcular el maximo  
-            for(CellContainerIterator icell = GetCellContainer().begin() ; icell != GetCellContainer().end() ; icell++)
-	    {     
-               icell->AllocateCell(Size);
-	    }
-        }
+// void AllocateCell() 
+//        {
+//                  
+//             const std::size_t Size = 10;/// mN[0];  WARNING = Calcular el maximo  
+//             for(CellContainerIterator icell = GetCellContainer().begin() ; icell != GetCellContainer().end() ; icell++)
+// 	    {     
+//                icell->AllocateCell(Size);
+// 	    }
+//         }
         
         
      
