@@ -246,21 +246,23 @@ namespace Kratos
                         c += d[jjj] * d[jjj];
                     }
                     b *= 2.0;
-
+		    double distance;
                     double discriminant = b * b - 4.0 * a*c;
 
                     if (discriminant < 0.0) //element distance computation fails - we may have to tread specially this node
                     {
-                        failed_nodes.push_back(geom(unknown_node_index));
+		      distance = -b / (2.0*a); 
+//                         failed_nodes.push_back(geom(unknown_node_index));
                     } else
                     {
                         //(accurate) computation of the distance
                         //requires the solution of a*x^2+b*x+c=0
-                        double q, root1, root2, distance;
+                        double q, root1, root2;/*, distance*/;
+			double sqrt_det = sqrt(discriminant);
                         if (a != 0.0)
                         {
-                            if (b > 0) q = -0.5 * (b + sqrt(discriminant));
-                            else q = -0.5 * (b - sqrt(discriminant));
+                            if (b > 0) q = -0.5 * (b + sqrt_det);
+                            else q = -0.5 * (b - sqrt_det);
                             root1 = q / a;
                             root2 = c / q;
                             if (root1 > root2) distance = root1;
