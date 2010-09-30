@@ -15,7 +15,9 @@
 #	VERSION : 0.2
 #
 #	HISTORY:
-#
+#	0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
+#		se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
+#		y se valida que el path de Kratos exista en la computadora.
 #	0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
 #	0.1- 25/02/10 KS, create a base source code
 #
@@ -145,7 +147,6 @@ proc ::KMValid::CreateReportWindow {w} {
 	
 	# fill validation report list
 	set allreportlist [list]
-	set allreportlist [::KMValid::ValidateProjectInformation $allreportlist]
 	
 	set allreportlist [::KMValid::ValidateProjectConfiguration $allreportlist]
 	
@@ -192,7 +193,9 @@ proc ::KMValid::CreateReportWindow {w} {
 			set allreportlist [concat $allreportlist $reportAux]
 		}
 	}
-		
+	
+	set allreportlist [::KMValid::ValidateProjectInformation $allreportlist]
+	
 	# process messages
 	::KMValid::ProcessMessages $w $allreportlist
 		
@@ -353,8 +356,6 @@ proc ::KMValid::ProcessMessages {w allreportlist} {
 	wm protocol $w WM_DELETE_WINDOW "destroy $w" 
 	
 	update
-
-
 }
 
 #
@@ -405,6 +406,7 @@ proc ::KMValid::ValidateGroups { allreportlist } {
 				foreach group $noEntitiesGroups {
 					lappend allreportlist "Warning: $group"
 				}
+				lappend allreportlist "Warning:"
 			}
 			set line1 ""
 	        set line2 ""
@@ -423,8 +425,8 @@ proc ::KMValid::ValidateGroups { allreportlist } {
 # Error: Que las propiedades activas no sean nulas
 # Error: Que la property tenga Thickness no nulo (donde sea necesario)
 #
-# Error: Como mínimo hay un grupo con entidades en ELEMENTS
-# Error: Como mínimo hay un grupo con entidades en LOADS 
+# Error: Como mínimo hay un grupo activo con entidades en ELEMENTS
+# Error: Como mínimo hay un grupo activo con entidades en LOADS 
 # Error: BODYFORCE y PUNTUAL (Que las propiedades no sean nulas)
 # Error: Como mínimo hay un grupo con entidades en CONDITIONS
 # 
@@ -447,7 +449,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
 	set xml $KPriv(xml)
 	
 	#ELEMENTS
-			
+
 	#Buscamos los grupos asignados a algún element
 	set xpath "$appPath/Container\[@id='Elements'\]/Container"
 	set nodes [$xml selectNodes $xpath]
@@ -461,71 +463,79 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
 		#msg "idElem$idElem   groups:$groups\n"
 		foreach group $groups {
 			
-			if {[::KEGroups::getGroupGiDEntities $group ALL hasEntities]} {
-				#Si uno de los grupos tiene entidades ya no sacaremos ese error
-				set elementsGroups 1
-			}
+			set grNodeXPath "${groupsXPath}\[@id='$group'\]"
+			set active [::xmlutils::getAttribute $xml $grNodeXPath active]
 			
-			#Ahora comprobamos la propiedad asignada a este grupo
-			set grNodeXPath "${groupsXPath}\[@id='$groups'\]/Container"
-			set grNodeConainers [$xml selectNodes "$grNodeXPath"]
-			foreach nodeContainer $grNodeConainers {
-				
-				set nodeItems [$nodeContainer childNodes]
-				foreach item $nodeItems {
+			if {$active} {
+			
+			
+				if {[::KEGroups::getGroupGiDEntities $group ALL hasEntities]} {
+					#Si uno de los grupos tiene entidades ya no sacaremos ese error
 					
-					set idItem [$item getAttribute id ""]
-					if { $idItem == "Property" } {
-						set propId [$item getAttribute dv ""]
+					#Pero además tiene que estar activo para esa convinación de filtros (visible en el árbol)
+					#set isActiveGroup $groupsXPath...
+					
+					
+					set elementsGroups 1
+				}
+				
+				#Ahora comprobamos la propiedad asignada a este grupo
+				set grNodeXPath "${groupsXPath}\[@id='$group'\]/Container"
+				set grNodeConainers [$xml selectNodes "$grNodeXPath"]
+				foreach nodeContainer $grNodeConainers {
+					
+					set nodeItems [$nodeContainer childNodes]
+					foreach item $nodeItems {
 						
-						#Ahora buscamos esa propiedad en 'Properties'
-						set xpath "$appPath/Container\[@id='Properties'\]/Container\[@id='$propId'\]"
-						set node [$xml selectNodes $xpath]
-						if { $node != "" } {
+						set idItem [$item getAttribute id ""]
+						if { $idItem == "Property" } {
+							set propId [$item getAttribute dv ""]
 							
-							foreach nodeCont [$node childNodes] {
-								foreach nodePropIt [$nodeCont childNodes] {
-									
-									#Aquí tenemos los items de una propiedad
-									set idItem [$nodePropIt getAttribute id ""]
-									#Comprobamos que el material no sea nulo
-									if { $idItem == "Material" } {
-										if {  [$nodePropIt getAttribute dv ""] == "" } {
-											
-											#Si la propiedad no tiene material asignado, 
-											#la añadimos a la lista de propiedades sin material
-											if { !($propId in $noMaterialProps) } {
-											
-												lappend noMaterialProps $propId
+							#Ahora buscamos esa propiedad en 'Properties'
+							set xpath "$appPath/Container\[@id='Properties'\]/Container\[@id='$propId'\]"
+							set node [$xml selectNodes $xpath]
+							if { $node != "" } {
+								
+								foreach nodeCont [$node childNodes] {
+									foreach nodePropIt [$nodeCont childNodes] {
+										
+										#Aquí tenemos los items de una propiedad
+										set idItem [$nodePropIt getAttribute id ""]
+										#Comprobamos que el material no sea nulo
+										if { $idItem == "Material" } {
+											if {  [$nodePropIt getAttribute dv ""] == "" } {
+												
+												#Si la propiedad no tiene material asignado, 
+												#la añadimos a la lista de propiedades sin material
+												if { !($propId in $noMaterialProps) } {
+												
+													lappend noMaterialProps $propId
+												}
 											}
-										}
-									} elseif { $idItem == "ElemType" } {
-										
-										set ::KMProps::ElemTypeThickness [$nodePropIt getAttribute dv ""]
-										
-									} elseif { $idItem == "Thickness" } {
-										
-										#Comprobamos si necesita Thicness, y en ese caso que no sea nulo 
-										#set ::KMProps::ElemTypeThickness $idElem
-										set xpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='Domain'\]/Item\[@id='SpatialDimension'\]"
-										set ::KMProps::nDim  [::xmlutils::getAttribute $xml $xpath dv]
-										if { [::KMProps::showThickness] && [$nodePropIt getAttribute dv ""] == "" } {
+										} elseif { $idItem == "ElemType" } {
 											
-											#Si la propiedad necesita tickness y no lo tiene, error
-											if { !($propId in $nullThickness) } {
+											set ::KMProps::ElemTypeThickness [$nodePropIt getAttribute dv ""]
 											
-												lappend nullThickness $propId
+										} elseif { $idItem == "Thickness" } {
+											
+											#Comprobamos si necesita Thicness, y en ese caso que no sea nulo 
+											#set ::KMProps::ElemTypeThickness $idElem
+											set xpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='Domain'\]/Item\[@id='SpatialDimension'\]"
+											set ::KMProps::nDim  [::xmlutils::getAttribute $xml $xpath dv]
+											if { [::KMProps::showThickness] && [$nodePropIt getAttribute dv ""] == "" } {
+												
+												#Si la propiedad necesita tickness y no lo tiene, error
+												if { !($propId in $nullThickness) } {
+												
+													lappend nullThickness $propId
+												}
 											}
 										}
 									}
 								}
 							}
-							
-							
-							
-							
-						}
-					}	
+						}	
+					}
 				}
 			}
 		}
@@ -586,7 +596,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
 		
 		set allreportlist [::KMValid::checkGroups $xml $appPath "InitialConditions" $allreportlist]
 	}
-		
+	
 	#set xpath "$appPath/Container\[@id='Conditions'\]/Container"
 	#if { [llength [::KMValid::groupsWithEntities $xml $xpath]] == 0 } {	
 	#	lappend allreportlist "Error: There are no groups assigned to Conditions."
@@ -608,7 +618,7 @@ proc ::KMValid::groupsWithEntities { xml xpath {returnNodes 0}} {
 	
 	set groupEntities {}
 	
- 	#Buscamos los grupos asignados a algún element
+	#Buscamos los grupos asignados a algún element
 	set nodes [$xml selectNodes $xpath]
 	
 	foreach node $nodes {
@@ -617,18 +627,22 @@ proc ::KMValid::groupsWithEntities { xml xpath {returnNodes 0}} {
 		
 		set groupsXPath "${xpath}\[@id='$idElem'\]/Container"
 		set groups [$xml selectNodes $groupsXPath]
-		#set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ] 
+		#set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ]
 		
 		foreach nodeGroup $groups {
 			
 			set idGroup [$nodeGroup getAttribute id ""]
 			
-			if {[::KEGroups::getGroupGiDEntities $idGroup ALL hasEntities]} {
-				#Si uno de los grupos tiene entidades ya no sacaremos ese error
-				if { $returnNodes } {
-					lappend groupEntities $nodeGroup
-				} else {
-					lappend groupEntities $idGroup
+			#Se tiene que cumplir que el nodo esté activo (visible en árbol según los filtros seleccionados)
+			if {[$nodeGroup getAttribute active 0] != 0} {
+				
+				if {[::KEGroups::getGroupGiDEntities $idGroup ALL hasEntities]} {
+					#Si uno de los grupos tiene entidades ya no sacaremos ese error
+					if { $returnNodes } {
+						lappend groupEntities $nodeGroup
+					} else {
+						lappend groupEntities $idGroup
+					}
 				}
 			}
 		}
@@ -643,7 +657,6 @@ proc getPropertyItems { } {
 	foreach nodeCont $nodes {
 		foreach node [$nedeCont childNodes] {
 			#Aquí tenemos los items de una propiedad
-			
 		}
 	}
 }
@@ -678,6 +691,19 @@ proc ::KMValid::ValidateProjectInformation { allreportlist } {
 		lappend allreportlist "Warning:\n"
 	}
 	
+	set xpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='ProjectConfiguration'\]/Item\[@id='KratosPath']"
+	set node [$xml selectNodes $xpath]
+	
+	if {$node != "" } {
+		set dv [$node getAttribute dv ""]
+		
+		if { ![file isdirectory $dv] } {
+			lappend allreportlist ""
+			lappend allreportlist "Error: The kratos path '$dv' does not exists."
+			lappend allreportlist "Error:"
+		}
+	}
+	
 	set line1 ""
 	set line2 ""
 	lappend allreportlist ${line1}
@@ -705,17 +731,20 @@ proc ::KMValid::ValidateProjectConfiguration { allreportlist } {
 #
 proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
 	
+	if { $rootContainer == "InitialConditions" } {
+		
+		set errorOrWarn "Warning"
+	} else {
+		set errorOrWarn "Error"
+	}
+	
+	
 	set nullProps {}
 	set xpath "$appPath/Container\[@id='$rootContainer'\]/Container"
 	set returnNodes 1
 	set assignedGroups [::KMValid::groupsWithEntities $xml $xpath $returnNodes]
 	
 	if { [llength $assignedGroups] } {
-		
-		#Indica que habrá loads y no será necesario mensaje de error
-		set loadsGroups 1
-		#Para que la primera vez ponga el título LOADS
-		#set firstEmptyProp 1
 		
 		foreach nodeGroup $assignedGroups {
 			
@@ -740,14 +769,14 @@ proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
 					#lappend allreportlist "Error: LOADS:"
 				#}
 				
-				lappend allreportlist "Error: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
+				lappend allreportlist "${errorOrWarn}: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
 			}
 		}
 		#if { ! $firstEmptyProp } {
 			#lappend allreportlist "Error:\n"
 		#}
 	} else {
-		lappend allreportlist "Error: There are no groups assigned to $rootContainer."
+		lappend allreportlist "${errorOrWarn}: There are no groups assigned to $rootContainer."
 		#lappend allreportlist "Error:\n"
 	}
 	
