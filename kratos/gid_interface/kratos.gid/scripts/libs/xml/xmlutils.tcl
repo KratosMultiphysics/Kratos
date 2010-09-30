@@ -708,11 +708,11 @@ proc ::xmlutils::checkSpdVersion_OLD { filename } {
 			set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
 			set outfd [open $fullname w+]
 			
-			puts "Changes in configuration file .spd to the new version $defaultVersion"
-			puts ""
+			puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
+			puts $outfd ""
 			foreach line $logChanges {
-			#La escribe en el fichero de salida
-			puts $outfd $line
+				#La escribe en el fichero de salida
+				puts $outfd $line
 			}
 			
 			close $outfd
@@ -1122,12 +1122,12 @@ proc ::xmlutils::GetMatXmlContainerId {path} {
 	set xpath "[::xmlutils::setXPath $path mat]"
 	set xml $KPriv(xmlMat)
 	set node [$xml selectNodes "${xpath}"]
-	WarnWinText "xpath:$xpath node:$node"
+	#WarnWinText "xpath:$xpath node:$node"
 	set cidlist [list]
 	foreach node [$node descendant all Container] {
 		lappend cidlist [$node getAttribute id ""]
 	}
-	WarnWinText "cidlist:$cidlist"
+	#WarnWinText "cidlist:$cidlist"
 	return $cidlist
 }
 
@@ -1545,11 +1545,11 @@ proc ::xmlstruct::setxml {node xml} {
 #
 #
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#		   #   #	 #	 #	 #
-#			# #	  # # # #	 #
-#			 #	   #  #  #	 #
-#			# #	  #	 #	 #
-#		   #   #	 #	 #	 ######
+#          #   #       #     #       #
+#           # #        # # # #       #
+#            #         #  #  #       #
+#           # #        #     #       #
+#          #   #       #     #       ######
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
 #
@@ -1736,8 +1736,6 @@ proc ::xmlutils::copyTemplate { xml xpath templatePath idTemplate nodeName attri
 
 proc ::xmlutils::replaceTemplate { xml {xpath ""} } {
 	
-	global KPriv
-	
 	set xmlText [$xml asXML]
 	
 	set xmlText [string map {"<groupTemplate>" "" "</groupTemplate>" ""} $xmlText]
@@ -1748,6 +1746,7 @@ proc ::xmlutils::replaceTemplate { xml {xpath ""} } {
 
 	return [list $newXmlDoc $newXml]
 }
+
 
 #
 # Accede a la ruta $path y devuelve una lista con todos los ID de primer nivel
