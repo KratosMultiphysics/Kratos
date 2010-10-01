@@ -15,6 +15,7 @@
 #	VERSION : 0.2
 #
 #	HISTORY:
+#   0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
 #	0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
 #		se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
 #		y se valida que el path de Kratos exista en la computadora.
@@ -33,7 +34,7 @@ namespace eval ::KMValid:: {
 	variable winpath
 	variable Errors 0
 	variable Warnings 0
-	
+	variable initialConditions ""
 }
 
 proc ::KMValid::Init {} {
@@ -191,6 +192,13 @@ proc ::KMValid::CreateReportWindow {w} {
 			lappend allreportlist "Error: FLUID  APPLICATION:"
 			lappend allreportlist "Error:\n"
 			set allreportlist [concat $allreportlist $reportAux]
+		}
+		
+		#Se comprueba a parte si hay que añadir el Warnning de InitialConditions
+		if { $::KMValid::initialConditions != "" } {
+			
+			lappend allreportlist "$::KMValid::initialConditions"
+			lappend allreportlist "Warning:"
 		}
 	}
 	
@@ -594,6 +602,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
 		
 	} elseif { $application == "Fluid" } {
 		
+		#Ahora ya no es un error, es un warning, por lo que se gestiona de forma distinta
 		set allreportlist [::KMValid::checkGroups $xml $appPath "InitialConditions" $allreportlist]
 	}
 	
@@ -731,14 +740,6 @@ proc ::KMValid::ValidateProjectConfiguration { allreportlist } {
 #
 proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
 	
-	if { $rootContainer == "InitialConditions" } {
-		
-		set errorOrWarn "Warning"
-	} else {
-		set errorOrWarn "Error"
-	}
-	
-	
 	set nullProps {}
 	set xpath "$appPath/Container\[@id='$rootContainer'\]/Container"
 	set returnNodes 1
@@ -769,15 +770,25 @@ proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
 					#lappend allreportlist "Error: LOADS:"
 				#}
 				
-				lappend allreportlist "${errorOrWarn}: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
+				lappend allreportlist "Error: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
+				
+				
 			}
 		}
 		#if { ! $firstEmptyProp } {
 			#lappend allreportlist "Error:\n"
 		#}
 	} else {
-		lappend allreportlist "${errorOrWarn}: There are no groups assigned to $rootContainer."
-		#lappend allreportlist "Error:\n"
+		
+		#En el caso de Initial conditions se ha cambiado de error a warning, por lo que se ha creado
+		# una variable global para tratar este caso particular en vez de cambiar el diseño
+		if { $rootContainer == "InitialConditions" } {
+
+			set ::KMValid::initialConditions "Warning: There are no groups assigned to $rootContainer."
+		} else {
+			
+			lappend allreportlist "Error: There are no groups assigned to $rootContainer."
+		}
 	}
 	
 	return $allreportlist
