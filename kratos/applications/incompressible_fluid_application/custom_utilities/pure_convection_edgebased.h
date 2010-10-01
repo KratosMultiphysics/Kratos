@@ -301,7 +301,7 @@ namespace Kratos
 					{
 						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
 
-						const array_1d<double, TDim>& a_j = convective_velocity[j_neighbour];
+// 						const array_1d<double, TDim>& a_j = convective_velocity[j_neighbour];
 						const double& phi_j = mphi[j_neighbour];
 						
 						
@@ -337,7 +337,7 @@ namespace Kratos
 					    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
 					    {
 						  unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-						    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+// 						    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 						    const double& p_j = mphi[j_neighbour];
 						    
 						    const array_1d<double, TDim>& x_j = mx[j_neighbour];
