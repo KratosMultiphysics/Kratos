@@ -185,16 +185,22 @@ class EdgeBasedLevelSetSolver:
        # self.convection_solver.Solve();
         (self.fluid_solver).ConvectDistance()
 
-        ##solve fluid
-        (self.fluid_solver).SolveStep1();
-        (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
-        (self.fluid_solver).SolveStep3();
-
         if(self.step == self.redistance_frequency):
             self.Redistance()
             self.step = 0
             print "redistance was executed"
         self.step += 1
+
+        ##solve fluid
+        (self.fluid_solver).SolveStep1();
+        (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
+        (self.fluid_solver).SolveStep3();
+
+##        if(self.step == self.redistance_frequency):
+##            self.Redistance()
+##            self.step = 0
+##            print "redistance was executed"
+##        self.step += 1
 
     ################################################################
 #    ################################################################
