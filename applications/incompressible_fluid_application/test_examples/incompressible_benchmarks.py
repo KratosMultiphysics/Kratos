@@ -32,7 +32,27 @@ def Run():
 	#	print "colum example FAILED"
 
 	#os.chdir("..")
+        ################################################################
+	# naca3d test for edge based level set solver
 
+	Text += "naca3d test: "
+	os.chdir("naca3d.gid")
+	sys.path.append(os.getcwd())
+
+        print "running the benchmark for naca3d test..."
+        Msg = benchmarking.RunBenchmark("run_benchmark.py", "benchmark_reference_solution.txt")
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "naca3d test example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "naca3d test example FAILED"
+
+	os.chdir("..")
+	
         ################################################################
 	# mass conservation test for edge based level set solver
 
