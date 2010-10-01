@@ -77,7 +77,7 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible
     monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
 else:
-    raise Error("solver type not supported: options are FractionalStep - pressure_splitting - monolithic_solver_eulerian")
+    raise NameError("solver type not supported: options are FractionalStep - pressure_splitting - monolithic_solver_eulerian")
 
 #introducing input file name
 input_file_name = ProjectParameters.problem_name
