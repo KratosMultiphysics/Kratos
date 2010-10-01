@@ -77,7 +77,7 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible
     monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
 else:
-    raise "solver type not supported: options are FractionalStep - pressure_splitting - Monolithic"
+    raise Error("solver type not supported: options are FractionalStep - pressure_splitting - monolithic_solver_eulerian")
 
 #introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -133,7 +133,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     monolithic_solver_eulerian_compressible.AddDofs(fluid_model_part)
 
-#########select here the laplacian form!!!!!!!!!!!!!!!!!
+# If Lalplacian form = 2, free all pressure Dofs
 laplacian_form = ProjectParameters.laplacian_form 
 if(laplacian_form >= 2):
     for node in fluid_model_part.Nodes:
@@ -322,17 +322,6 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
 
 print "fluid solver created"
 
-#settings to be changed
-Dt = ProjectParameters.Dt 
-full_Dt = Dt 
-initial_Dt = 0.001 * full_Dt #0.05 #0.01
-Nsteps  = ProjectParameters.nsteps
-final_time = ProjectParameters.max_time
-output_time = ProjectParameters.output_time
-
-out = 0
-
-
 ###mesh to be printed (single mesh case)
 if ProjectParameters.GiDMultiFileFlag == "Single":
     mesh_name = 0.0
@@ -359,13 +348,20 @@ else: #  ProjectParameters.GiDMultiFileFlag == "Multiples":
     f = open(ProjectParameters.problem_name+'.post.lst','w')
     f.write('Multiple\n')
 
-Dt      = ProjectParameters.Dt
-MaxTime = ProjectParameters.max_time
-Nsteps  = ProjectParameters.nsteps
 
-time = 0.0
+# Stepping and time settings
+Dt = ProjectParameters.Dt 
+full_Dt = Dt 
+initial_Dt = 0.001 * full_Dt #0.05 #0.01
+Nsteps  = ProjectParameters.nsteps
+final_time = ProjectParameters.max_time
+output_time = ProjectParameters.output_time
+
+time = ProjectParameters.Start_time
+out = 0
 step = 0
-while(time < final_time):
+
+while(time <= final_time):
 
     if(step < 5):
         Dt = initial_Dt
@@ -402,8 +398,10 @@ while(time < final_time):
 
     out = out + Dt
 
-if Multifile == False:
-    gid_io.FinalizeResults()
+if Multifile:
     f.close()
+else:
+    gid_io.FinalizeResults()
+    
           
         
