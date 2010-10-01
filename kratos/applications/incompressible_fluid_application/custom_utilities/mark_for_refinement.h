@@ -138,7 +138,7 @@ namespace Kratos
 			}
 			
 			bool is_ok = false;
-			unsigned int nit = 0;
+			int nit = 0;
 			while(is_ok==false && nit<2*max_levels)
 			{
 			    is_ok = true;
