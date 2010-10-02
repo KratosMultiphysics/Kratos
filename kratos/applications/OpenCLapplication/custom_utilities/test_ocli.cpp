@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 	}
 
 	std::cout << "Loading kernel(s) from file test_ocli.cl..." << std::endl;
-	OCLDeviceGroup.BuildProgramFromFile("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities/opencl_edge_data.cl");
+	OCLDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-unsafe-math-optimizations");
 
 	std::cout << "Registering kernel Test()..." << std::endl;
 	cl_uint TestKernel = OCLDeviceGroup.RegisterKernel("Test");  // This will return 0, but we do not want to memorize it ourselves!
