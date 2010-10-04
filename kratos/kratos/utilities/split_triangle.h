@@ -53,36 +53,36 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SPLIT_TRIANGLE
 
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-#include "boost/smart_ptr.hpp"
-#include <boost/timer.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/operation.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-
-
-/* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/node.h"
-#include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "processes/find_nodal_neighbours_process.h"
-#include "processes/find_elements_neighbours_process.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
-#include "utilities/math_utils.h"
-
-
-#include <cmath>
-#include <algorithm>
+// #ifdef _OPENMP
+// #include <omp.h>
+// #endif
+// 
+// #include "boost/smart_ptr.hpp"
+// #include <boost/timer.hpp>
+// #include <boost/numeric/ublas/matrix.hpp>
+// #include <boost/numeric/ublas/vector.hpp>
+// #include <boost/numeric/ublas/banded.hpp>
+// #include <boost/numeric/ublas/matrix_sparse.hpp>
+// #include <boost/numeric/ublas/triangular.hpp>
+// #include <boost/numeric/ublas/operation.hpp>
+// #include <boost/numeric/ublas/lu.hpp>
+// 
+// 
+// /* Project includes */
+// #include "includes/define.h"
+// #include "includes/model_part.h"
+// #include "includes/node.h"
+// #include "includes/variables.h"
+// #include "containers/array_1d.h"
+// #include "processes/find_nodal_neighbours_process.h"
+// #include "processes/find_elements_neighbours_process.h"
+// #include "containers/data_value_container.h"
+// #include "includes/mesh.h"
+// #include "utilities/math_utils.h"
+// 
+// 
+// #include <cmath>
+// #include <algorithm>
 
 
 
@@ -91,19 +91,19 @@ namespace Kratos
      class Split_Triangle_Elements
       {
         public:
-          typedef ModelPart::NodesContainerType NodesArrayType;
-	  typedef ModelPart::ElementsContainerType ElementsArrayType;
-	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-          typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
-          typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;   
-          typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor; 
-          typedef Node<3> PointType;
-          typedef Node<3>::Pointer PointPointerType;
-          typedef std::vector<PointType::Pointer>  PointVector;
-          typedef PointVector::iterator PointIterator;
+//           typedef ModelPart::NodesContainerType NodesArrayType;
+// 	     typedef ModelPart::ElementsContainerType ElementsArrayType;
+// 	     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+//           typedef boost::numeric::ublas::vector<Matrix> Matrix_Order_Tensor;
+//           typedef boost::numeric::ublas::vector<Vector> Vector_Order_Tensor;   
+//           typedef boost::numeric::ublas::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor; 
+//           typedef Node<3> PointType;
+//           typedef Node<3>::Pointer PointPointerType;
+//           typedef std::vector<PointType::Pointer>  PointVector;
+//           typedef PointVector::iterator PointIterator;
 
           
-          Split_Triangle_Elements(); //*ModelPart& model_part) : mr_model_part(model_part)
+          Split_Triangle_Elements(){} //*ModelPart& model_part) : mr_model_part(model_part)
           ~Split_Triangle_Elements(){}
 
          
