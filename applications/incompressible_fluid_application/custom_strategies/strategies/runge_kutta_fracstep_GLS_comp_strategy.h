@@ -295,7 +295,7 @@ namespace Kratos
 		//if(this->mReformDofAtEachIteration == true )
 		//		this->Clear();
 		SolveStep3();
-
+		SaveAccelerations();
 
 		//return 0.0;//
 		return Dp_norm;
@@ -736,7 +736,11 @@ namespace Kratos
 				{
 				it->FastGetSolutionStepValue(VELOCITY_Y)+=dt_Minv*temp[1];						
 				}
-			//TODO: TILL NOW ITS A 2D STRATEGY!
+			if(!it->IsFixed(VELOCITY_Z))
+				{
+				it->FastGetSolutionStepValue(VELOCITY_Z)+=dt_Minv*temp[2];						
+				}
+			//TODO: CHECK THE 3D strategy!
 			//KRATOS_WATCH(it->FastGetSolutionStepValue(VELOCITY))
 		}
 		
@@ -760,6 +764,21 @@ namespace Kratos
 		}
 		//************************************
 		//************************************
+		void SaveAccelerations()
+		{
+		KRATOS_TRY
+		array_1d<double, 3> acc=ZeroVector(3);
+		ModelPart& model_part=BaseType::GetModelPart();
+		const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+		for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+				i != BaseType::GetModelPart().NodesEnd() ; ++i)
+			{
+			acc=(i)->FastGetSolutionStepValue(VELOCITY)-(i)->FastGetSolutionStepValue(VELOCITY,1);
+			(i)->FastGetSolutionStepValue(ACCELERATION)=acc/dt;
+			}
+		KRATOS_CATCH("")
+		}
+		////////////////////////////////////////////////
 		void ApplySlipBC()
 		{
 		KRATOS_TRY
