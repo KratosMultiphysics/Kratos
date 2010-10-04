@@ -75,59 +75,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "opencl_interface.h"
 
 //
-// AllocateArray1D
+// AllocateArray
 //
-// Helper function to allocate a 1D array
+// Helper function to allocate an array
+// Pass the address of the array variable
 
-template <typename Type> Type *AllocateArray1D(unsigned int Size)
+template <typename _Type> void AllocateArray(_Type **_Array, unsigned int _Size1, unsigned int _Size2 = 1)
 {
 	// Allocate memory
-	return new Type[Size];
+	*_Array = new _Type[_Size1 * _Size2];
 }
 
 //
-// FreeArray1D
+// FreeArray
 //
-// Helper function to free a 1D array
+// Helper function to free an array
+// Pass the address of the array variable
 
-template <typename Type> void FreeArray1D(Type *Array)
+template <typename _Type> void FreeArray(_Type **_Array)
 {
 	// Free memory
-	delete [] Array;
+	delete [] *_Array;
 }
 
 //
-// AllocateArray2D
+// Array
 //
-// Helper function to allocate a 2D array
+// Helper function to access a 2D array using its 1D memory with given _Dim2
 
-template <typename Type> Type **AllocateArray2D(unsigned int Size1, unsigned int Size2)
+template <typename _Type, unsigned int _Dim2> inline _Type &Array(_Type *_Array, unsigned int _i, unsigned int _j)
 {
-	// Allocate memory
-	Type **Array = new Type *[Size1];
-
-	for (unsigned int i = 0; i < Size1; i++)
-	{
-		Array[i] = new Type[Size2];
-	}
-
-	return Array;
+	return *(_Array + _i * _Dim2 + _j);
 }
 
 //
-// FreeArray2D
+// Array3
 //
-// Helper function to free a 2D array
+// Helper function to access a 2D array using its 1D memory with _Dim2 = 3
 
-template <typename Type> void FreeArray2D(Type **Array, unsigned int Size1)
+template <typename _Type> inline _Type &Array3(_Type *_Array, unsigned int _i, unsigned int _j)
 {
-	// Free memory
-	for (unsigned int i = 0; i < Size1; i++)
-	{
-		delete [] Array[i];
-	}
-
-	delete [] Array;
+	return *(_Array + _i * 3 + _j);
 }
 
 namespace Kratos
@@ -146,7 +134,7 @@ namespace Kratos
 			// Used types
 
 			// typedef typename unsigned int *IndicesVectorType;
-			typedef typename double **CalcVectorType;
+			typedef typename double *CalcVectorType;
 			typedef typename double *ValuesVectorType;
 
 			//
@@ -181,24 +169,33 @@ namespace Kratos
 					// Get no. of nodes
 					n_nodes = model_part.Nodes().size();
 
+					// Allocate a single chunk of memory for variables
+					// TODO: Use Page-locked memory for faster data transfer to GPU
+					// TODO: Order variables, such that variables copied to GPU together are together here too
+
+#define KRATOS_ASSIGN_AND_ADVANCE_POINTER(P, Size)	P = Temp; Temp += Size;
+
+					AllocateArray(&Mem, 21 * n_nodes); // 6 * n_nodes + 5 * 3 * n_nodes
+					double *Temp = Mem;
+
 					// Size data vectors
-					mWork = AllocateArray1D <double> (n_nodes);
-					mPi = AllocateArray2D <double> (n_nodes, 3);
-					mUn = AllocateArray2D <double> (n_nodes, 3);
-					mUn1 = AllocateArray2D <double> (n_nodes, 3);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mWork, n_nodes);
 
-					mphi_n = AllocateArray1D <double> (n_nodes);
-					mphi_n1 = AllocateArray1D <double> (n_nodes);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mPi, n_nodes * 3);
 
-					mA = AllocateArray2D <double> (n_nodes, 3);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mUn, n_nodes * 3);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mUn1, n_nodes * 3);
 
-					mHmin = AllocateArray1D <double> (n_nodes);
-					mTau = AllocateArray1D <double> (n_nodes);
-					mBeta = AllocateArray1D <double> (n_nodes);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mphi_n, n_nodes);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mphi_n1, n_nodes);
 
-					mx = AllocateArray2D <double> (n_nodes, 3);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mA, n_nodes * 3);
 
-					// Up to here!
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mHmin, n_nodes);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mTau, n_nodes);
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mBeta, n_nodes);
+
+					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mx, n_nodes * 3);
 
 					// Read variables from database
 					opencl_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, model_part.Nodes());
@@ -212,12 +209,13 @@ namespace Kratos
 					// Set flag for first time step
 					mFirstStep = true;
 
-					ValuesVectorType& aaa = opencl_matrix_container.GetHmin();
+					// TODO: Copy faster!
+
+					ValuesVectorType TempHmin = opencl_matrix_container.GetHmin();
 					for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
 					{
-						mHmin[i_node] = aaa[i_node];
+						mHmin[i_node] = TempHmin[i_node];
 					}
-
 
 				KRATOS_CATCH("")
 			}
@@ -226,6 +224,9 @@ namespace Kratos
 
 			// Matrix container
 			OpenCLMatrixContainer opencl_matrix_container;
+
+			// Pointer to memory used for variables
+			double *Mem;
 
 			// No. of nodes
 			unsigned int n_nodes;

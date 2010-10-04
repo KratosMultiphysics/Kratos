@@ -151,6 +151,165 @@ namespace Kratos
 				// Nothing to do!
 			}
 
+			//
+			// FillVectorFromDatabase
+			//
+			// Function to access database
+
+			void FillVectorFromDatabase(Variable <array_1d<double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			{
+				KRATOS_TRY
+
+				// Loop over all nodes
+				for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
+				{
+					// Get the global index of node i
+					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+
+					// Get the requested value in vector form
+					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
+
+					// Save value in the destination vector
+					for (unsigned int component = 0; component < TDim; component++)
+					{
+						Array3(rDestination, i_node, component) = vector[component];
+					}
+				}
+
+				KRATOS_CATCH("");
+			}
+
+			//
+			// FillOldVectorFromDatabase
+			//
+			// Function to access database
+
+			void FillOldVectorFromDatabase(Variable <array_1d<double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			{
+				KRATOS_TRY
+
+				// Loop over alle nodes
+				for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
+				{
+					// Get the global index of node i
+					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+
+					// Get the requested value in vector form
+					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable, 1);
+
+					// Save value in the destination vector
+					for(unsigned int component = 0; component < TDim; component++)
+					{
+						Array3(rDestination, i_node, component) = vector[component];
+					}
+				}
+
+				KRATOS_CATCH("");
+			}
+
+			//
+			// FillScalarFromDatabase
+			//
+			// Function to access database
+
+			void FillScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			{
+				KRATOS_TRY
+
+				// Loop over all nodes
+				for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
+				{
+					// Get the global index of node i
+					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+
+					// Get the requested scalar value
+					double &scalar = node_it -> FastGetSolutionStepValue(rVariable);
+
+					// Save value in the destination vector
+					rDestination[i_node] = scalar;
+				}
+
+				KRATOS_CATCH("");
+			}
+
+			//
+			// FillOldScalarFromDatabase
+			//
+			// Function to access database
+
+			void FillOldScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			{
+				KRATOS_TRY
+
+				// Loop over all nodes
+				for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
+				{
+					// Get the global index of node i
+					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+
+					// Get the requested scalar value
+					double &scalar = node_it -> FastGetSolutionStepValue(rVariable, 1);
+
+					// Save value in the destination vector
+					rDestination[i_node] = scalar;
+				}
+
+				KRATOS_CATCH("");
+			}
+
+			//
+			// WriteVectorToDatabase
+			//
+			// Function to access database
+
+			void WriteVectorToDatabase(Variable <array_1d<double, 3> > &rVariable, CalcVectorType rOrigin, ModelPart::NodesContainerType &rNodes)
+			{
+				KRATOS_TRY
+
+				// Loop over all nodes
+				for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
+				{
+					// Get the global index of node i
+					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+
+					// Get reference of destination
+					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
+
+					// Save vector in database
+					for(unsigned int component = 0; component < TDim; component++)
+					{
+						vector[component] = Array3(rOrigin, i_node, component);
+					}
+				}
+
+				KRATOS_CATCH("");
+			}
+
+			//
+			// WriteScalarToDatabase
+			//
+			// Function to access database
+
+			void WriteScalarToDatabase(Variable <double> &rVariable, ValuesVectorType rOrigin, ModelPart::NodesContainerType &rNodes)
+			{
+				KRATOS_TRY
+
+				// Loop over all nodes
+				for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
+				{
+					// Get the global index of node i
+					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+
+					// Get reference of destination
+					double &scalar = node_it -> FastGetSolutionStepValue(rVariable);
+
+					// Save scalar in database
+					scalar = rOrigin[i_node];
+				}
+
+				KRATOS_CATCH("");
+			}
+
 		private:
 
 			MatrixContainer matrix_container;
