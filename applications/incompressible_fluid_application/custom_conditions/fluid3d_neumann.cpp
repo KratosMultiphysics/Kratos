@@ -123,12 +123,12 @@ namespace Kratos
 			else
 			{
 			    unsigned int component = FractionalStepNumber-1;
-			    double p0 = 2.0*GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-			    double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-			    double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-			    rRightHandSideVector[0] = -p0 * An[component] / 12.0; 
-			    rRightHandSideVector[1] = -p1 * An[component] / 12.0; 
-			    rRightHandSideVector[2] = -p2 * An[component] / 12.0; 
+			    double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+			    double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+			    double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+			    rRightHandSideVector[0] = -(2.0*p0+p1+p2) * An[component] / 12.0; 
+			    rRightHandSideVector[1] = -(p0+2.0*p1+p2) * An[component] / 12.0; 
+			    rRightHandSideVector[2] = -(p0+p1+2.0*p2) * An[component] / 12.0; 
 			   
 			}
 			
@@ -185,15 +185,12 @@ namespace Kratos
 			if(is_structure == 1.0)
 			{
 			    unsigned int component = FractionalStepNumber-1;
-			    double p0 = 2.0*GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-			    double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-			    double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + GetGeometry()[2].FastGetSolutionStepValue(PRESSURE) + 2.0*GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-			    rRightHandSideVector[0] = -p0 * An[component] / 12.0; 
-			    rRightHandSideVector[1] = -p1 * An[component] / 12.0; 
-			    rRightHandSideVector[2] = -p2 * An[component] / 12.0; 
-// 			    KRATOS_WATCH(p0);
-// std::cout << this->Id() << " " << An << " " << p0 << " " << p1 << " " << p2 <<std::endl;			
-			   
+			    double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+			    double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+			    double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+			    rRightHandSideVector[0] = -(2.0*p0+p1+p2) * An[component] / 12.0; 
+			    rRightHandSideVector[1] = -(p0+2.0*p1+p2) * An[component] / 12.0; 
+			    rRightHandSideVector[2] = -(p0+p1+2.0*p2) * An[component] / 12.0;
 			}
 			
 			  else
