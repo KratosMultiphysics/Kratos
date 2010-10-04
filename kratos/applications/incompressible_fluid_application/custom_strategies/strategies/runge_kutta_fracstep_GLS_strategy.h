@@ -285,6 +285,7 @@ namespace Kratos
 		SolveStep3();
 		Timer::Stop("SolveStep3");
 
+		SaveAccelerations();
 		//return 0.0;//
 		return Dp_norm;
 		
@@ -739,6 +740,21 @@ namespace Kratos
 		}
 		//************************************
 		//************************************
+		void SaveAccelerations()
+		{
+		KRATOS_TRY
+		array_1d<double, 3> acc=ZeroVector(3);
+		ModelPart& model_part=BaseType::GetModelPart();
+		const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+		for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
+				i != BaseType::GetModelPart().NodesEnd() ; ++i)
+			{
+			acc=(i)->FastGetSolutionStepValue(VELOCITY)-(i)->FastGetSolutionStepValue(VELOCITY,1);
+			(i)->FastGetSolutionStepValue(ACCELERATION)=acc/dt;
+			}
+		KRATOS_CATCH("")
+		}
+		///////////////////////////////////////////
 		void ApplySlipBC()
 		{
 		KRATOS_TRY
