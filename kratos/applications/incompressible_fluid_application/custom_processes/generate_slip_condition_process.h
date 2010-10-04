@@ -143,6 +143,7 @@ namespace Kratos
 			for(ModelPart::NodeIterator in = mr_model_part.NodesBegin() ; 
 				in != mr_model_part.NodesEnd() ; ++in)
 			{
+				in->GetValue(IS_STRUCTURE) = 0;
 				array_1d<double,3>& n = in->GetValue(NORMAL);
 				noalias(n) = ZeroVector(3);
 				
@@ -179,6 +180,7 @@ namespace Kratos
 			    if (cond_it->GetValue(IS_STRUCTURE) == true)
 				for (int i = 0; i < mdomain_size; i++)
 				{
+				    face_geometry[i].GetValue(IS_STRUCTURE) = 1;
 				    face_geometry[i].GetValue(NORMAL) += node_factor*face_normal;
 				    mslip_nodes.push_back(Node<3>::Pointer(face_geometry(i)));
 				}
