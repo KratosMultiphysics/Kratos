@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/elembased_BC_utilities.h" 
 #include "custom_utilities/assign_no_slip_condition.h" 
 #include "custom_utilities/mark_for_refinement.h" 
+#include "custom_utilities/parallel_extrapolation_utilities.h" 
 
 
 //#include "custom_utilities/edgebased_levelset.h"
@@ -266,6 +267,12 @@ namespace Python
                           .def("Initialize",&PureConvectionEdgeBased< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
                           .def("Solve",&PureConvectionEdgeBased< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Solve)
 			  .def("ComputeTimeStep",&PureConvectionEdgeBased< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
+                        ;
+
+	class_< ParallelExtrapolationUtilities<  3 >,  boost::noncopyable >       ("ParallelExtrapolationUtilities3D", init<>() )
+                          .def("ExtrapolateVelocity",&ParallelExtrapolationUtilities< 3 >::ExtrapolateVelocity)
+                          .def("ExtrapolatePressureProjection",&ParallelExtrapolationUtilities< 3 >::ExtrapolatePressureProjection)
+                          .def("AssignFreeSurfacePressure",&ParallelExtrapolationUtilities< 3 >::AssignFreeSurfacePressure)
                         ;
 
 // 	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
