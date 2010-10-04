@@ -101,7 +101,10 @@ def TypedCompare(lr, lt):
 		if (lr[5] == "None"):
 			relerr = True
 		else:
-			relerr = (abs(n - m) / n) <= float(lr[5])
+                        if(n != 0.0):
+                                relerr = (abs(n - m) / n) <= float(lr[5])
+                        else:
+                                relerr = True
 
 		if (not (abserr and relerr)):
 			Msg = "Difference found in reference and test data:\n"
