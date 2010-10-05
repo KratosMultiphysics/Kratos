@@ -155,8 +155,8 @@ def BenchmarkCheck(time, model_part):
         if(press > max_press):
             max_press = press
     
-    benchmarking.Output(min_press, "min_pressure ", 0.00001, 0.00001)
-    benchmarking.Output(max_press, "max_pressure ", 0.00001, 0.00001)
+    benchmarking.Output(min_press, "min_pressure ", 0.0001, 0.0001)
+    benchmarking.Output(max_press, "max_pressure ", 0.0001, 0.0001)
 
 
 #settings to be changed
