@@ -91,7 +91,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "utilities/split_triangle.h"
 #include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/smoothing_utility.h"
 #include "geometries/triangle_2d_3.h"
