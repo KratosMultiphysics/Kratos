@@ -90,7 +90,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "utilities/split_triangle.h"
+#include "utilities/split_triangle.c"
 #include "custom_utilities/sd_math_utils.h"
 #include "custom_utilities/smoothing_utility.h"
 #include "geometries/triangle_2d_3.h"
@@ -924,11 +924,20 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
        boost::numeric::ublas::matrix<int> new_conectivity;    
        ElementsArrayType& rElements         =  this_model_part.Elements(); 
        Element const rReferenceElement;   
-       unsigned int to_be_deleted=0;
-       unsigned int large_id = (rElements.end()-1)->Id() * 7;
-       array_1d<int,3> triangle_ids; 
-       array_1d<int,3> edge_ids;
-       bool create_element = false; 
+
+       //int triangle_ids[3]; 
+       //int  edge_ids[3];
+       int  edge_ids[3];       
+       int  t[12];    
+       array_1d<int,6> aux;
+       int  nel                   = 0;
+       int  splitted_edges        = 0; 
+       int  nint                  = 0;
+       bool create_element        = false; 
+       unsigned int to_be_deleted = 0;
+       unsigned int large_id      = (rElements.end()-1)->Id() * 7;
+
+       
        PointerVector< Element > New_Elements; 
        ProcessInfo& rCurrentProcessInfo  = this_model_part.GetProcessInfo();      
        
@@ -939,47 +948,35 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
          it != this_model_part.ElementsEnd();it++)
          { 
                   
-                Element::GeometryType& geom = it->GetGeometry();  
-		triangle_ids[0] = geom[0].Id();    
-                triangle_ids[1] = geom[1].Id();
-                triangle_ids[2] = geom[2].Id();
-                
-                
-		int index_i = geom[0].Id()-1;
-		int index_j = geom[1].Id()-1;
-		int index_k = geom[2].Id()-1;  
-                  
-		if(index_i > index_j) edge_ids[0] = Coord(index_j, index_i );
-		else edge_ids[0] = Coord(index_i, index_j );
+	        /// setting to -1 the velues of T
+	        for (unsigned int i = 0; i<12; i++) {t[i]=-1; } 
+  	        Element::GeometryType& geom = it->GetGeometry();
+	        Calculate_Edges(geom, Coord, edge_ids, aux);
 		
-                
-		if(index_j > index_k) edge_ids[1] = Coord(index_k, index_j );
-		else edge_ids[1] = Coord(index_j, index_k );
- 		
-               
-		if(index_k > index_i) edge_ids[2] = Coord(index_i, index_k );
-		else edge_ids[2] = Coord(index_k, index_i ); 
-                
-                    
-                                             
-                ///* WARNING = siemrpre tendremos los 3 primeros casos 
-		create_element = Split_Triangle_Elements::Split_Triangle(triangle_ids, edge_ids, new_conectivity);   
+	        create_element =  Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint); 
          
 		if(create_element==true)
 		{             
                   to_be_deleted++;                
-		  for(unsigned int i=0; i<new_conectivity.size1();i++)
-		  {	    
-			  Triangle2D3<Node<3> > geom(
-						    this_model_part.Nodes()(new_conectivity(i,0))  ,
-						    this_model_part.Nodes()(new_conectivity(i,1))  ,
-						    this_model_part.Nodes()(new_conectivity(i,2)) 
-						    );
+		   for(int i=0; i<nel; i++)
+	            {
+                  
+		      unsigned int base = i * 3;
+		      unsigned int i0   = aux[t[base]];
+		      unsigned int i1   = aux[t[base+1]];
+		      unsigned int i2   = aux[t[base+2]];		  
+	    
+   		      Triangle2D3<Node<3> > geom(
+						this_model_part.Nodes()(i0),
+						this_model_part.Nodes()(i1),
+						this_model_part.Nodes()(i2) 
+						);
 
-			   Element::Pointer p_element;  
- 		           p_element = it->Create(current_id, geom, it->pGetProperties());
-                           New_Elements.push_back(p_element);   
-                           current_id++;
+                       
+                       Element::Pointer p_element;  
+ 		       p_element = it->Create(current_id, geom, it->pGetProperties());
+                       New_Elements.push_back(p_element);   
+                       current_id++;
 			   
                          
 
@@ -1053,6 +1050,65 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
 ///************************************************************************************************          
 ///************************************************************************************************  
 
+
+void  Calculate_Edges(Element::GeometryType& geom,
+		      const compressed_matrix<int>& Coord,
+		      int*  edge_ids,
+		      array_1d<int,6>& aux
+		      )
+{           
+             int index_0 = geom[0].Id()-1;
+             int index_1 = geom[1].Id()-1;
+             int index_2 = geom[2].Id()-1; 
+	     
+             aux[0] = geom[0].Id();
+	     aux[1] = geom[1].Id();
+	     aux[2] = geom[2].Id();
+            //------------------------------------------------------------------------- 
+            if(index_0 > index_1)
+	      aux[3] = Coord(index_1, index_0);
+            else
+              aux[3] = Coord(index_0, index_1); 
+
+  
+            if(index_1 > index_2)
+               aux[4] = Coord(index_2, index_1);
+            else 
+	       aux[4] = Coord(index_1, index_2 );
+
+	    
+            if(index_2 > index_0)
+               aux[5] = Coord(index_0, index_2);
+            else 
+	       aux[5] = Coord(index_2, index_0 );           
+	    //-------------------------------------------------------------------------
+	    
+	    //edge 01
+	    if(aux[3] < 0)
+		if(index_0 > index_1) edge_ids[0] = 0;                           
+		else edge_ids[0] = 1;
+	    else
+		edge_ids[0] = 3;
+
+	    //edge 12
+	    if(aux[4] < 0)
+		if(index_1 > index_2) edge_ids[1] = 1;
+		else edge_ids[1] = 2;
+	    else
+		edge_ids[1] = 4;
+
+	    //edge 20
+	    if(aux[5] < 0)
+		if(index_2 > index_0) edge_ids[2] = 2;
+		else edge_ids[2] = 0;
+	    else
+		edge_ids[2] = 5;
+  
+}  
+
+
+///************************************************************************************************          
+///************************************************************************************************  
 
 void Calculate_Negative_And_Positive_Elements(
 ModelPart& this_model_part, 
