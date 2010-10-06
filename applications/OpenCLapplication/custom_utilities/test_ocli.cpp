@@ -30,11 +30,13 @@ int main(int argc, char *argv[])
 		std::cout << "  Device " << i << ": " << Kratos::OpenCL::DeviceTypeString(OCLDeviceGroup.DeviceTypes[i]) << std::endl;
 	}
 
-	std::cout << "Loading kernel(s) from file test_ocli.cl..." << std::endl;
-	OCLDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-unsafe-math-optimizations");
+	std::cout << "Loading kernels from source files..." << std::endl;
+	cl_uint TestProgram1 = OCLDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-unsafe-math-optimizations");  // This will return 0, but we do not want to memorize it ourselves!
+	cl_uint TestProgram2 = OCLDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-unsafe-math-optimizations");  // This will return 1, but we do not want to memorize it ourselves!
 
-	std::cout << "Registering kernel Test()..." << std::endl;
-	cl_uint TestKernel = OCLDeviceGroup.RegisterKernel("Test");  // This will return 0, but we do not want to memorize it ourselves!
+	std::cout << "Registering kernels..." << std::endl;
+	cl_uint TestKernel1 = OCLDeviceGroup.RegisterKernel(TestProgram1, "Test");  // This will return 0, but we do not want to memorize it ourselves!
+	cl_uint TestKernel2 = OCLDeviceGroup.RegisterKernel(TestProgram2, "Test");  // This will return 1, but we do not want to memorize it ourselves!
 
 	for (cl_uint i = 0; i < DataSize; i++)
 	{
@@ -53,16 +55,44 @@ int main(int argc, char *argv[])
 	}
 
 	std::cout << "Setting kernel arguments..." << std::endl;
-	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel, 0, InputBuffer);
-	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel, 1, OutputBuffer);
-	OCLDeviceGroup.SetKernelArg(TestKernel, 2, Offset);
+	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel1, 0, InputBuffer);
+	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel1, 1, OutputBuffer);
+	OCLDeviceGroup.SetKernelArg(TestKernel1, 2, Offset);
 
-	double OCLTimer = TIMER();
+	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel2, 0, InputBuffer);
+	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel2, 1, OutputBuffer);
+	OCLDeviceGroup.SetKernelArg(TestKernel2, 2, Offset);
 
-	std::cout << "Executing kernel..." << std::endl;
-	OCLDeviceGroup.ExecuteKernel(TestKernel, DataSize / OCLDeviceGroup.DeviceNo);
+	double OCLTimer1 = TIMER();
 
-	OCLTimer = TIMER() - OCLTimer;
+	std::cout << "Executing kernel 1..." << std::endl;
+	OCLDeviceGroup.ExecuteKernel(TestKernel1, DataSize / OCLDeviceGroup.DeviceNo);
+
+	OCLTimer1 = TIMER() - OCLTimer1;
+
+	std::cout << "Copying the data from the device(s)..." << std::endl;
+	for (cl_uint i = 0; i < OCLDeviceGroup.DeviceNo; i++)
+	{
+		OCLDeviceGroup.CopyBuffer(i, OutputBuffer, Kratos::OpenCL::DeviceToHost, OCLOutput + i * DataSize / OCLDeviceGroup.DeviceNo);
+	}
+
+	std::cout << "Verification of results..." << std::endl;
+	for (cl_uint i = 0; i < DataSize; i++)
+	{
+		if (OCLOutput[i] - (2.00 * sin(i) * cos(i) + Offset) > Eps)
+		{
+			std::cout << "Error at position " << i << std::endl;
+		}
+	}
+
+	std::cout << "Verification finished." << std::endl;
+
+	double OCLTimer2 = TIMER();
+
+	std::cout << "Executing kernel 2..." << std::endl;
+	OCLDeviceGroup.ExecuteKernel(TestKernel2, DataSize / OCLDeviceGroup.DeviceNo);
+
+	OCLTimer2 = TIMER() - OCLTimer2;
 
 	std::cout << "Copying the data from the device(s)..." << std::endl;
 	for (cl_uint i = 0; i < OCLDeviceGroup.DeviceNo; i++)
@@ -100,14 +130,16 @@ int main(int argc, char *argv[])
 		std::cout <<
 			"Timing with OpenMP" << std::endl <<
 			std::endl <<
-			"OpenCL: " << OCLTimer << std::endl <<
-			"Host:   " << HostTimer << std::endl;
+			"OpenCL 1:" << OCLTimer1 << std::endl <<
+			"OpenCL 2:" << OCLTimer2 << std::endl <<
+			"Host:    " << HostTimer << std::endl;
 #else
 		std::cout <<
 			"Timing without OpenMP" << std::endl <<
 			std::endl <<
-			"OpenCL: " << OCLTimer / CLOCKS_PER_SEC << std::endl <<
-			"Host:   " << HostTimer / CLOCKS_PER_SEC << std::endl;
+			"OpenCL 1:" << OCLTimer1 / CLOCKS_PER_SEC << std::endl <<
+			"OpenCL 2:" << OCLTimer2 / CLOCKS_PER_SEC << std::endl <<
+			"Host:    " << HostTimer / CLOCKS_PER_SEC << std::endl;
 #endif
 
 	return 0;
