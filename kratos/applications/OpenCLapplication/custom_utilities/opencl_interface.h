@@ -82,9 +82,11 @@ namespace OpenCL
 	typedef std::vector<cl_device_id> DeviceIDList;
 	typedef std::vector<cl_context> ContextList;
 	typedef std::vector<cl_command_queue> CommandQueueList;
-	typedef std::vector<cl_program> ProgramList;
 
 	typedef std::vector<void *> VoidPList;
+
+	typedef std::vector<cl_program> ProgramList;
+	typedef std::vector<ProgramList> ProgramList2D;
 
 	typedef std::vector<cl_mem> MemList;
 	typedef std::vector<MemList> MemList2D;
@@ -289,8 +291,8 @@ namespace OpenCL
 			DeviceTypeList DeviceTypes;
 			ContextList Contexts;
 			CommandQueueList CommandQueues;
-			ProgramList Programs;
 
+			ProgramList2D Programs;
 			MemList2D Buffers;
 			SizeTList2D BufferLengths;
 			KernelList2D Kernels;
@@ -305,7 +307,7 @@ namespace OpenCL
 			//
 			// Constructor using a device type
 
-			DeviceGroup(cl_device_type _DeviceType, bool _SingleDeviceOnly = false, const char *_PlatformVendor = ""): DeviceType(_DeviceType)
+			DeviceGroup(cl_device_type _DeviceType, bool _SingleDeviceOnly = true, const char *_PlatformVendor = ""): DeviceType(_DeviceType)
 			{
 				_Init(_SingleDeviceOnly, _PlatformVendor);
 			}
@@ -363,8 +365,11 @@ namespace OpenCL
 
 				for (cl_uint i = 0; i < Programs.size(); i++)
 				{
-					Err = clReleaseProgram(Programs[i]);
-					KRATOS_OCL_CHECK(Err);
+					for (cl_uint j = 0; j < Programs[i].size(); j++)
+					{
+						Err = clReleaseProgram(Programs[i][j]);
+						KRATOS_OCL_CHECK(Err);
+					}
 				}
 
 				for (cl_uint i = 0; i < Kernels.size(); i++)
@@ -653,11 +658,12 @@ namespace OpenCL
 			//
 			// BuildProgramFromFile
 			//
-			// Load a program source file and build it; for simplicity we do not support multiple programs
+			// Load a program source file and build it
 
-			void BuildProgramFromFile(const char *_FileName, const char *_BuildOptions = NULL)
+			cl_uint BuildProgramFromFile(const char *_FileName, const char *_BuildOptions = NULL)
 			{
 				cl_int Err;
+				cl_uint ProgramNo = Programs.size();
 
 				std::ifstream SourceFile(_FileName);
 				std::stringstream Source;
@@ -679,24 +685,34 @@ namespace OpenCL
 				}
 
 				// Build program for all devices
-				Programs.resize(DeviceNo);
+				ProgramList CurrentPrograms(DeviceNo);
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
-					Programs[i] = clCreateProgramWithSource(Contexts[i], 1, &SourceText, &SourceLen, &Err);
+					CurrentPrograms[i] = clCreateProgramWithSource(Contexts[i], 1, &SourceText, &SourceLen, &Err);
 					KRATOS_OCL_CHECK(Err);
 
-					Err = clBuildProgram(Programs[i], 0, NULL, _BuildOptions, NULL, NULL);
-					KRATOS_OCL_WARN(Err);
+					Err = clBuildProgram(CurrentPrograms[i], 0, NULL, _BuildOptions, NULL, NULL);
 
-					if (Err != CL_SUCCESS)
+					if (Err == CL_BUILD_PROGRAM_FAILURE)
 					{
 						char CharData[1024];
 
-						Err = clGetProgramBuildInfo(Programs[i], DeviceIDs[i], CL_PROGRAM_BUILD_LOG, sizeof(CharData), CharData, NULL);
+						Err = clGetProgramBuildInfo(CurrentPrograms[i], DeviceIDs[i], CL_PROGRAM_BUILD_LOG, sizeof(CharData), CharData, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						KRATOS_OCL_CHECK(CL_BUILD_PROGRAM_FAILURE);
+					}
+					else
+					{
 						KRATOS_OCL_CHECK(Err);
 					}
 				}
+
+				// Append this to the list
+				Programs.push_back(CurrentPrograms);
+
+				return ProgramNo;
 			}
 
 			//
@@ -704,7 +720,7 @@ namespace OpenCL
 			//
 			// Register a kernel in the built program on all devices
 
-			cl_uint RegisterKernel(const char *_KernelName)
+			cl_uint RegisterKernel(cl_uint _ProgramIndex, const char *_KernelName)
 			{
 				cl_int Err;
 				cl_uint KernelNo = Kernels.size();
@@ -715,7 +731,7 @@ namespace OpenCL
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
-					CurrentKernels[i] = clCreateKernel(Programs[i], _KernelName, &Err);
+					CurrentKernels[i] = clCreateKernel(Programs[_ProgramIndex][i], _KernelName, &Err);
 					KRATOS_OCL_CHECK(Err);
 
 					size_t WorkGroupSize, MaxWorkGroupSize, PreferredWorkGroupSizeMultiple;
