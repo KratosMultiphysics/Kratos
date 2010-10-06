@@ -1,3 +1,6 @@
+#if !defined(KRATOS_SPLIT_TETRAHEDRA)
+#define  KRATOS_SPLIT_TETRAHEDRA
+
 // Copyright (C) 2010 Riccardo Rossi, Pooyan Dadvand, Nelson Maireni
 // Email contact: rrossi@cimne.upc.edu
 // The current tetrahedra splitting library is free software; you can redistribute it and/or
@@ -15,6 +18,7 @@
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 	
 
+//edges are enumerated as 01 02 03 12 13 23
 //input parametrs:
 //edges --> int c array of size 6
 //t     --> int c array of size 56 (=14*4) -- the first nel*4 positions will be occupied
@@ -26,6 +30,9 @@ bool Split(const int* edges, int* t, int* nel, int* splitted_edges, int* nint) {
     for (unsigned int i = 0; i < 6; i++)
         if (edges[i] > 3)
             *splitted_edges = *splitted_edges + 1;
+	
+    //the internal node is normally not needed so by default we set to false
+    (*nint) = 0;
 
     if (*splitted_edges == 0) {
         //no splitting needed
@@ -37,8 +44,6 @@ bool Split(const int* edges, int* t, int* nel, int* splitted_edges, int* nint) {
         return false;
     }
 
-    //the internal node is normally not needed so by default we set to false
-    (*nint) = 0;
 
     if (edges[0] == 0) {
         if (edges[1] == 0) {
@@ -13334,3 +13339,4 @@ bool Split(const int* edges, int* t, int* nel, int* splitted_edges, int* nint) {
     return true;
 }
 
+#endif // KRATOS_SPLIT_TETRAHEDRA  defined 
