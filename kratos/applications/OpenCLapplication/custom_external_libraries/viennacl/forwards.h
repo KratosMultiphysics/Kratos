@@ -19,7 +19,7 @@
 */
 
 /**
- @mainpage Source Code Documentation for ViennaCL 1.0.3
+ @mainpage Source Code Documentation for ViennaCL 1.0.5
 
  This is the source code documentation of ViennaCL. Detailed information about the functions in ViennaCL can be found here.
  
@@ -29,6 +29,8 @@
 
 #ifndef _VIENNACL_FORWARDS_H_
 #define _VIENNACL_FORWARDS_H_
+
+#include <stddef.h>
 
 namespace viennacl
 {
@@ -71,9 +73,18 @@ namespace viennacl
   
   template <typename LHS, typename RHS, typename OP>
   class vector_expression;
-  
+
+  template<class SCALARTYPE, unsigned int ALIGNMENT>
+  class vector_iterator;
+    
   template<class SCALARTYPE, unsigned int ALIGNMENT = 1>
   class vector;
+  
+  template <typename SCALARTYPE, unsigned int ALIGNMENT, typename CPU_ITERATOR>
+  void copy(CPU_ITERATOR const & cpu_begin,
+            CPU_ITERATOR const & cpu_end,
+            vector_iterator<SCALARTYPE, ALIGNMENT> & gpu_begin);
+  
   
   struct row_major;    
   
@@ -95,7 +106,7 @@ namespace viennacl
   template <typename SCALARTYPE, typename F, unsigned int A>
   class transposed_matrix_proxy;
   
-  template<class SCALARTYPE, unsigned int ALIGNMENT = 4>
+  template<class SCALARTYPE, unsigned int ALIGNMENT = 1>
   class compressed_matrix;
   
   template<class SCALARTYPE, unsigned int ALIGNMENT = 128>
@@ -121,7 +132,7 @@ namespace viennacl
     template<class SCALARTYPE, unsigned int ALIGNMENT>
     void norm_2_impl(const viennacl::vector<SCALARTYPE, ALIGNMENT> & vcl_vec,
                      scalar<SCALARTYPE> & result,
-                     unsigned int NUM_THREADS = 0);
+                     size_t NUM_THREADS = 0);
     
     //forward definition of prod_impl functions
     template<class SCALARTYPE, typename F, unsigned int ALIGNMENT, unsigned int VECTOR_ALIGNMENT>
@@ -129,21 +140,21 @@ namespace viennacl
                                 const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
                                 op_prod > prod_impl(const viennacl::matrix<SCALARTYPE, F, ALIGNMENT> &, 
                                                     const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> &, 
-                                                    unsigned int NUM_THREADS = 0);
+                                                    size_t NUM_THREADS = 0);
 
     template<class SCALARTYPE, unsigned int ALIGNMENT, unsigned int VECTOR_ALIGNMENT>
     viennacl::vector_expression<const viennacl::compressed_matrix<SCALARTYPE, ALIGNMENT>,
                                 const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
                                 op_prod > prod_impl(const viennacl::compressed_matrix<SCALARTYPE, ALIGNMENT> & , 
                                                     const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & , 
-                                                    unsigned int NUM_THREADS = 0);
+                                                    size_t NUM_THREADS = 0);
 
     template<class SCALARTYPE, unsigned int ALIGNMENT, unsigned int VECTOR_ALIGNMENT>
     viennacl::vector_expression<const viennacl::coordinate_matrix<SCALARTYPE, ALIGNMENT>,
                                 const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
                                 op_prod > prod_impl(const viennacl::coordinate_matrix<SCALARTYPE, ALIGNMENT> & , 
                                                     const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & , 
-                                                    unsigned int NUM_THREADS = 0);
+                                                    size_t NUM_THREADS = 0);
 
                                                     
     //forward definition of inner_prod_impl function
@@ -153,13 +164,13 @@ namespace viennacl
                                  viennacl::op_inner_prod >
     inner_prod_impl(const viennacl::vector<SCALARTYPE, ALIGNMENT1> &,
                     const viennacl::vector<SCALARTYPE, ALIGNMENT2> &,
-                    unsigned int NUM_THREADS = 0);
+                    size_t NUM_THREADS = 0);
                     
     template<class SCALARTYPE, unsigned int ALIGNMENT>
     void inner_prod_impl(const viennacl::vector<SCALARTYPE, ALIGNMENT> & vec1,
                           const viennacl::vector<SCALARTYPE, ALIGNMENT> & vec2,
                           scalar<SCALARTYPE> & result,
-                          unsigned int NUM_THREADS = 0);
+                          size_t NUM_THREADS = 0);
                     
       
     /** @brief A tag class representing a lower triangular matrix */

@@ -45,7 +45,7 @@ namespace viennacl
     void add(const viennacl::matrix<TYPE, F, ALIGNMENT> & mat1, 
              const viennacl::matrix<TYPE, F, ALIGNMENT> & mat2,
              viennacl::matrix<TYPE, F, ALIGNMENT> & result,
-             unsigned int NUM_THREADS = 0)
+             size_t NUM_THREADS = 0)
     {
       assert(mat1.rows() == mat2.rows());
       assert(mat1.columns() == mat2.columns());
@@ -62,7 +62,7 @@ namespace viennacl
       if (NUM_THREADS == 0)
         viennacl::linalg::kernels::vector<TYPE, ALIGNMENT>::add.start1D();
       else
-        viennacl::linalg::kernels::vector<TYPE, ALIGNMENT>::add.start1D(viennacl::ocl::device().work_groups() * NUM_THREADS, NUM_THREADS);
+        viennacl::linalg::kernels::vector<TYPE, ALIGNMENT>::add.start1D(viennacl::linalg::kernels::vector<TYPE, ALIGNMENT>::add.work_groups() * NUM_THREADS, NUM_THREADS);
     }
 
 
@@ -80,7 +80,7 @@ namespace viennacl
                                 const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
                                 op_prod > prod_impl(const viennacl::matrix<SCALARTYPE, F, ALIGNMENT> & mat, 
                                                     const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & vec, 
-                                                    unsigned int NUM_THREADS = 0)
+                                                    size_t NUM_THREADS)
     {
       return viennacl::vector_expression<const viennacl::matrix<SCALARTYPE, F, ALIGNMENT>,
                                          const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
@@ -100,7 +100,7 @@ namespace viennacl
     void prod_impl(const viennacl::matrix<TYPE, F, ALIGNMENT> & matrix, 
                     const viennacl::vector<TYPE, VECTOR_ALIGNMENT> & vec, 
                           viennacl::vector<TYPE, VECTOR_ALIGNMENT> & result, 
-                    unsigned int NUM_THREADS = 0)
+                    size_t NUM_THREADS = 0)
     {
       assert(matrix.size2() == vec.size());
       result.resize(matrix.size1());
@@ -116,7 +116,7 @@ namespace viennacl
       if (NUM_THREADS == 0)
         viennacl::linalg::kernels::matrix<TYPE,ALIGNMENT>::vec_mul.start1D();
       else
-        viennacl::linalg::kernels::matrix<TYPE,ALIGNMENT>::vec_mul.start1D(viennacl::ocl::device().work_groups() * NUM_THREADS, NUM_THREADS);
+        viennacl::linalg::kernels::matrix<TYPE,ALIGNMENT>::vec_mul.start1D(viennacl::linalg::kernels::matrix<TYPE,ALIGNMENT>::vec_mul.work_groups() * NUM_THREADS, NUM_THREADS);
     }
     
     // trans(A) * x
@@ -133,7 +133,7 @@ namespace viennacl
                                 const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
                                 op_prod > prod_impl(const viennacl::transposed_matrix_proxy<SCALARTYPE, F, ALIGNMENT> & proxy, 
                                                     const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & vec, 
-                                                    unsigned int NUM_THREADS = 0)
+                                                    size_t NUM_THREADS = 0)
     {
       return viennacl::vector_expression<const viennacl::transposed_matrix_proxy<SCALARTYPE, F, ALIGNMENT>,
                                          const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
@@ -146,7 +146,7 @@ namespace viennacl
     void prod_impl(const viennacl::transposed_matrix_proxy<SCALARTYPE, F, ALIGNMENT> & mat,
                     const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & vec, 
                           viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & result,
-                    unsigned int NUM_THREADS = 0)
+                    size_t NUM_THREADS = 0)
     {
       trans_prod_impl(mat.get_matrix(), vec, result, NUM_THREADS);
     }
@@ -164,7 +164,7 @@ namespace viennacl
     void trans_prod_impl(const viennacl::matrix<SCALARTYPE, F, ALIGNMENT> & mat,
                           const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & vec, 
                                 viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & result,
-                          unsigned int NUM_THREADS = 0)
+                          size_t NUM_THREADS = 0)
     {
       assert(mat.size1() == vec.size());  //remember: mat is transposed!
       result.resize(mat.size2());
@@ -180,7 +180,7 @@ namespace viennacl
       if (NUM_THREADS == 0)
         viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_vec_mul.start1D();
       else
-        viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_vec_mul.start1D(viennacl::ocl::device().work_groups() * NUM_THREADS, NUM_THREADS);
+        viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_vec_mul.start1D(viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_vec_mul.work_groups() * NUM_THREADS, NUM_THREADS);
     }
 
     /** @brief Returns a proxy class for the operation mat += vec1 * vec2^T, i.e. a rank 1 update
@@ -212,7 +212,7 @@ namespace viennacl
     void rank_1_update(viennacl::matrix<SCALARTYPE, F, ALIGNMENT> & mat1, 
                        const viennacl::vector<SCALARTYPE, ALIGNMENT> & vec1, 
                        const viennacl::vector<SCALARTYPE, ALIGNMENT> & vec2, 
-                       unsigned int NUM_THREADS = 0)
+                       size_t NUM_THREADS = 0)
     {
       assert(mat1.size1() == vec1.size());
       assert(mat1.size2() == vec2.size());
@@ -226,8 +226,9 @@ namespace viennacl
       viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::rank1_update.setArgument(pos++, vec2.size());
 
       if (NUM_THREADS == 0)
-        viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::rank1_update.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                       viennacl::ocl::device().work_items_per_group());
+        viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::rank1_update.start1D(
+                                                      viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::rank1_update.work_items_per_group(),
+                                                      viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::rank1_update.work_items_per_group());
       else
         viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::rank1_update.start1D(NUM_THREADS, NUM_THREADS);
     }
@@ -248,7 +249,7 @@ namespace viennacl
                               SCALARTYPE val,
                               const viennacl::vector<SCALARTYPE, ALIGNMENT> & vec1, 
                               const viennacl::vector<SCALARTYPE, ALIGNMENT> & vec2, 
-                              unsigned int NUM_THREADS = 0)
+                              size_t NUM_THREADS = 0)
     {
       assert(mat1.size1() == vec1.size());
       assert(mat1.size2() == vec2.size());
@@ -263,8 +264,9 @@ namespace viennacl
       viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::scaled_rank1_update.setArgument(pos++, vec2.size());
 
       if (NUM_THREADS == 0)
-        viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::scaled_rank1_update.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                              viennacl::ocl::device().work_items_per_group());
+        viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::scaled_rank1_update.start1D(
+                                                          viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::scaled_rank1_update.work_items_per_group(),
+                                                          viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::scaled_rank1_update.work_items_per_group());
       else
         viennacl::linalg::kernels::matrix<SCALARTYPE, ALIGNMENT>::scaled_rank1_update.start1D(NUM_THREADS, NUM_THREADS);
     }
@@ -285,7 +287,7 @@ namespace viennacl
                                                                                           viennacl::op_prod> & proxy) 
     {
       // check for the special case x = A * x
-      if (proxy.get_lhs().handle() == this->handle())
+      if (proxy.get_rhs().handle().get() == this->handle().get())
       {
         viennacl::vector<SCALARTYPE, ALIGNMENT> result(proxy.get_rhs().size());
         viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);
@@ -390,7 +392,7 @@ namespace viennacl
                                                                                           viennacl::op_prod> & proxy) 
     {
       // check for the special case x = trans(A) * x
-      if (proxy.get_lhs().get_matrix().handle() == this->handle())
+      if (proxy.get_rhs().handle().get() == this->handle().get())
       {
         viennacl::vector<SCALARTYPE, ALIGNMENT> result(proxy.get_rhs().size());
         viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);

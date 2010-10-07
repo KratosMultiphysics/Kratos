@@ -53,7 +53,7 @@ namespace viennacl
         something = _something;
         return *this;
       }
-      operator OCL_TYPE() const { return something; }
+      //operator OCL_TYPE() const { return something; }
       const OCL_TYPE & get() const { return something; }
     private:
       void inc();
@@ -67,8 +67,11 @@ namespace viennacl
     template<>
     void handle<cl_mem>::dec()
     {
+      //Decrement does not work properly with Apple, so don't use it there:
+      #ifndef __APPLE__
       cl_int err = clReleaseMemObject(something);
       CL_ERR_CHECK(err);
+      #endif
       //assert(err == CL_SUCCESS || err == CL_INVALID_MEM_OBJECT);
       //cout << "DEC cl_mem HANDLE" << endl;
     }
@@ -85,8 +88,11 @@ namespace viennacl
     template<>
     void handle<cl_program>::dec()
     {
+      //Decrement does not work properly with Apple, so don't use it there:
+      #ifndef __APPLE__
       cl_int err = clReleaseProgram(something);
       CL_ERR_CHECK(err);
+      #endif
       //assert(err == CL_SUCCESS || err == CL_INVALID_PROGRAM);
       //cout << "DEC cl_program HANDLE" << endl;
     }
@@ -103,8 +109,11 @@ namespace viennacl
     template<>
     void handle<cl_kernel>::dec()
     {
+      //Decrement does not work properly with Apple, so don't use it there:
+      #ifndef __APPLE__
       cl_int err = clReleaseKernel(something);
       CL_ERR_CHECK(err);
+      #endif
       //assert(err == CL_SUCCESS || err == CL_INVALID_KERNEL);
       //cout << "DEC cl_kernel HANDLE" << endl;
     }
@@ -121,8 +130,11 @@ namespace viennacl
     template<>
     void handle<cl_command_queue>::dec()
     {
+      //Decrement does not work properly with Apple, so don't use it there:
+      #ifndef __APPLE__
       cl_int err = clReleaseCommandQueue(something);
       CL_ERR_CHECK(err);
+      #endif
       //assert(err == CL_SUCCESS || err == CL_INVALID_COMMAND_QUEUE);
       //cout << "DEC cl_command_queue HANDLE" << endl;
     }
@@ -139,8 +151,11 @@ namespace viennacl
     template<>
     void handle<cl_context>::dec()
     {
+      //Decrement does not work properly with Apple, so don't use it there:
+      #ifndef __APPLE__
       cl_int err = clReleaseContext(something);
       CL_ERR_CHECK(err);
+      #endif
       //assert(err == CL_SUCCESS || err == CL_INVALID_CONTEXT);
       //cout << "DEC cl_context HANDLE" << endl;
     }

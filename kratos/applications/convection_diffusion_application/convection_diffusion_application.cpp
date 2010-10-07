@@ -26,7 +26,8 @@
 
 namespace Kratos
 {
-
+	
+	
 //	KRATOS_CREATE_VARIABLE( Vector, BDF_COEFFICIENTS )
 	//KRATOS_CREATE_VARIABLE(double, NODAL_AREA)
 //	KRATOS_CREATE_VARIABLE(int, AUX_INDEX)
@@ -63,6 +64,7 @@ namespace Kratos
 		// calling base class register to register Kratos components
 		KratosApplication::Register();
 		std::cout << "Initializing KratosConvectionDiffusionApplication... " << std::endl;
+		
 
 //		KRATOS_REGISTER_VARIABLE( BDF_COEFFICIENTS );
 		//KRATOS_REGISTER_VARIABLE( NODAL_AREA)

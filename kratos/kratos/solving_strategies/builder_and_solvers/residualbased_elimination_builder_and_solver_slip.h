@@ -340,8 +340,8 @@ namespace Kratos
 					    //assemble the elemental contribution
 					    Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
-					    AssembleLHS(A,LHS_Contribution,EquationId);
-					    AssembleRHS(b,RHS_Contribution,EquationId);
+					    this->AssembleLHS(A,LHS_Contribution,EquationId);
+					    this->AssembleRHS(b,RHS_Contribution,EquationId);
 #endif
 				     }
 
@@ -821,8 +821,8 @@ namespace Kratos
 #ifdef _OPENMP
 				    Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
-				    AssembleLHS(A,LHS_Contribution,EquationId);
-				    AssembleRHS(b,RHS_Contribution,EquationId);
+				    this->AssembleLHS(A,LHS_Contribution,EquationId);
+				    this->AssembleRHS(b,RHS_Contribution,EquationId);
 #endif
 
                                 }
@@ -877,8 +877,8 @@ namespace Kratos
 #ifdef _OPENMP
 				    Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
-				    AssembleLHS(A,LHS_Contribution,EquationId);
-				    AssembleRHS(b,RHS_Contribution,EquationId);
+				    this->AssembleLHS(A,LHS_Contribution,EquationId);
+				    this->AssembleRHS(b,RHS_Contribution,EquationId);
 #endif 
                                 }
                         }

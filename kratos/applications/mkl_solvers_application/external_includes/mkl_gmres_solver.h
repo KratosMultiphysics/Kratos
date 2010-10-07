@@ -54,7 +54,7 @@
 #include <math.h>
 #include <mkl_types.h>
 #include <boost/timer.hpp>
-#include <omp.h>
+#include "utilities/openmp_utils.h"
 
 #include "boost/smart_ptr.hpp"
 #include "includes/ublas_interface.h"
@@ -118,7 +118,7 @@ namespace Kratos
             bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
             {
                 std::cout << "======= ENTERING GMRES SOLVER =======" << std::endl;
-                double start_solver = omp_get_wtime();
+                double start_solver = OpenMPUtils::GetCurrentTime();
                 typedef boost::numeric::bindings::traits::sparse_matrix_traits<SparseMatrixType> matraits;
                 typedef boost::numeric::bindings::traits::vector_traits<VectorType> mbtraits;
                 typedef typename matraits::value_type val_t;
@@ -505,7 +505,7 @@ namespace Kratos
                         goto SUCCEDED;
                         
                         SUCCEDED: std::cout << "GMRES solver succeeded, number of iterations: " << itercount << std::endl;
-                        double stop_solver = omp_get_wtime();
+                        double stop_solver = OpenMPUtils::GetCurrentTime();
                         std::cout << "Solver time: " << stop_solver-start_solver << std::endl;
 //                        /*---------------------------------------------------------------------------
 //                        /* write back solution to X vector

@@ -537,7 +537,7 @@ namespace Kratos
 		   for( int k=0; k<maxiter; k++ )
 		   {
 			   CurrentGlobalCoords = ZeroVector(3);
-			   GlobalCoordinates( CurrentGlobalCoords, rResult );
+			   this->GlobalCoordinates( CurrentGlobalCoords, rResult );
 			   noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
 
 				//Caluclate Inverse of Jacobian

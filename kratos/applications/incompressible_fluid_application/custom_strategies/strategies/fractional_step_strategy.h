@@ -465,7 +465,7 @@ namespace Kratos
 			if( mHasSlipProcess == true)
 			{
 // 			   KRATOS_WATCH("final correction")
-			    mpSlipProcess->SetNormalVelocityToZero(VELOCITY);
+ 			    mpSlipProcess->SetNormalVelocityToZero(VELOCITY);
 // 			    mpSlipProcess->ApplyEdgeConstraints(VELOCITY);
 			}
 
@@ -613,7 +613,7 @@ namespace Kratos
 			
 			if( mHasSlipProcess == true)
 			{
-			    mpSlipProcess->SetNormalVelocityToZero(FRACT_VEL);
+ 			    mpSlipProcess->SetNormalVelocityToZero(FRACT_VEL);
 // 			    mpSlipProcess->ApplyEdgeConstraints(FRACT_VEL);
 			}
 
@@ -629,7 +629,7 @@ namespace Kratos
 			
 			if( mHasSlipProcess == true)
 			{
-			    mpSlipProcess->SetNormalVelocityToZero(FRACT_VEL);
+ 			    mpSlipProcess->SetNormalVelocityToZero(FRACT_VEL);
 // 			    mpSlipProcess->ApplyEdgeConstraints(FRACT_VEL);
 			}
 

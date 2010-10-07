@@ -68,18 +68,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "modeler/modeler.h"
 
 #include "meshing_application.h"
-namespace Kratos {
+namespace Kratos
+{
 
     class ConnectivityPreserveModeler : public Modeler
     {
     public:
 
-        ConnectivityPreserveModeler() {
+        ConnectivityPreserveModeler()
+        {
         }
 
         /// Destructor.
 
-        virtual ~ConnectivityPreserveModeler() {
+        virtual ~ConnectivityPreserveModeler()
+        {
         }
 
         //**********************************************************************************************
@@ -108,7 +111,8 @@ namespace Kratos {
             DestinationModelPart.Nodes() = OriginModelPart.Nodes();
 
             //generating the elements
-            for (ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++) {
+            for (ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
+            {
                 Properties::Pointer properties = iii->pGetProperties();
                 Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
                 DestinationModelPart.Elements().push_back(p_element);
@@ -116,7 +120,8 @@ namespace Kratos {
             std::cout << "Elements are generated" << std::endl;
 
             //generating the conditions
-            for (ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++) {
+            for (ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
+            {
                 Properties::Pointer properties = iii->pGetProperties();
 
                 Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(iii->Id(), iii->GetGeometry(), properties);

@@ -40,17 +40,48 @@ namespace viennacl
         * @param krylov_dim     The maximum dimension of the Krylov space before restart
         * @param max_restarts   The maximum number of restarts 
         */
-        gmres_tag(double tol = 1e-8, unsigned int krylov_dim = 20, unsigned int max_restarts = 5) : _tol(tol), _max_restarts(max_restarts), _krylov_dim(krylov_dim) {};
+        gmres_tag(double tol = 1e-8, unsigned int krylov_dim = 20, unsigned int max_restarts = 5) 
+         : _tol(tol), _max_restarts(max_restarts), _krylov_dim(krylov_dim), iters_taken_(0) {};
         
         double tolerance() const { return _tol; }
         unsigned int max_restarts() const { return _max_restarts; }
         unsigned int krylov_dim() const { return _krylov_dim; }
         
+        //number of solver iterations:
+        unsigned int iters() const { return iters_taken_; }
+        void iters(unsigned int i) const { iters_taken_ = i; }
+        
+        //esimated error :
+        double error() const { return last_error_; }
+        void error(double e) const { last_error_ = e; }
+        
       private:
         double _tol;
         unsigned int _max_restarts;
         unsigned int _krylov_dim;
+        
+        //return values from solver
+        mutable unsigned int iters_taken_;
+        mutable double last_error_;
     };
+    
+    namespace
+    {
+      
+      template <typename SRC_VECTOR, typename DEST_VECTOR>
+      void gmres_copy_helper(SRC_VECTOR const & src, DEST_VECTOR & dest, unsigned int len)
+      {
+        for (unsigned int i=0; i<len; ++i)
+          dest[i] = src[i];
+      }
+
+      template <typename ScalarType, typename DEST_VECTOR>
+      void gmres_copy_helper(viennacl::vector<ScalarType> const & src, DEST_VECTOR & dest, unsigned int len)
+      {
+        viennacl::copy(src.begin(), src.begin() + len, dest.begin());
+      }
+
+    }
 
     /** @brief Implementation of the GMRES solver.
     *
@@ -83,14 +114,17 @@ namespace viennacl
       const CPU_ScalarType gpu_scalar_1 = static_cast<CPU_ScalarType>(1);    //representing the scalar '1' on the GPU. Prevents blocking write operations
       const CPU_ScalarType gpu_scalar_2 = static_cast<CPU_ScalarType>(2);    //representing the scalar '2' on the GPU. Prevents blocking write operations
       
+      CPU_ScalarType norm_rhs = viennacl::linalg::norm_2(rhs);
+      
       unsigned int k;
       for (k = 0; k < tag.krylov_dim(); ++k)
       {
-        U[k].resize(rhs.size());
         R[k].resize(tag.krylov_dim()); 
+        U[k].resize(rhs.size());
       }
 
       //std::cout << "Starting GMRES..." << std::endl;
+      tag.iters(0);
 
       for (unsigned int it = 0; it < tag.max_restarts(); ++it)
       {
@@ -101,9 +135,10 @@ namespace viennacl
         CPU_ScalarType rho_0 = viennacl::linalg::norm_2(res); 
         CPU_ScalarType rho = 1.0;
 
-        if (rho_0 < tag.tolerance())
+        if (rho_0 / norm_rhs < tag.tolerance())
         {
           //std::cout << "Allowed Error reached at begin of loop" << std::endl;
+          tag.error(rho_0 / norm_rhs);
           return result;
         }
 
@@ -112,10 +147,14 @@ namespace viennacl
         {
           R[k].clear();
           U[k].clear();
+          R[k].resize(tag.krylov_dim()); 
+          U[k].resize(rhs.size());
         }
 
         for (k = 0; k < tag.krylov_dim(); ++k)
         {
+          tag.iters( tag.iters() + 1 ); //increase iteration counter
+
           //compute v_k = A * v_{k-1} via Householder matrices
           if (k == 0)
           {
@@ -140,12 +179,14 @@ namespace viennacl
           }
 
           U[k].clear();
+          U[k].resize(rhs.size());
           for (unsigned int i = 0; i < k; ++i)
-            U[k][i] = v_k_tilde(i);
+            U[k][i] = v_k_tilde[i];
 
           U[k][k] = std::sqrt( viennacl::linalg::inner_prod(v_k_tilde, v_k_tilde) - viennacl::linalg::inner_prod(U[k], U[k]) );
 
-          copy(U[k].begin(), U[k].begin() + (k+1), R[k].begin());
+          //generic copy from U to R (use of plain copy() leads to problems under Visual Studio 2008)
+          gmres_copy_helper(U[k], R[k], k+1);
           
           U[k] -= v_k_tilde;
           U[k] *= gpu_scalar_minus_1 / viennacl::linalg::norm_2( U[k] );
@@ -155,9 +196,10 @@ namespace viennacl
           projection_rhs[k] = res[k];
           rho *= std::sin( std::acos(projection_rhs[k] / rho) );
 
-          if (std::fabs(rho * rho_0) < tag.tolerance())
+          if (std::fabs(rho * rho_0 / norm_rhs) < tag.tolerance())
           {
             //std::cout << "Krylov space big enough" << endl;
+            tag.error( std::fabs(rho*rho_0 / norm_rhs) );
             break;
           }
           
@@ -184,9 +226,10 @@ namespace viennacl
         res *= rho_0;
         result += res;
 
-        if ( std::fabs(rho*rho_0) < tag.tolerance() )
+        if ( std::fabs(rho*rho_0 / norm_rhs) < tag.tolerance() )
         {
           //std::cout << "Allowed Error reached at end of loop" << std::endl;
+          tag.error(std::fabs(rho*rho_0 / norm_rhs));
           return result;
         }
 
@@ -195,7 +238,8 @@ namespace viennacl
         //std::cout << "norm_2(r)=" << norm_2(r) << std::endl;
         //std::cout << "std::abs(rho*rho_0)=" << std::abs(rho*rho_0) << std::endl;
         //std::cout << r << std::endl; 
-        
+
+        tag.error(std::fabs(rho*rho_0));
       }
 
       return result;

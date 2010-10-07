@@ -30,7 +30,7 @@ VALUE: 5.0
 QUESTION: SolverType#CB#(fractional_step,pressure_splitting,monolithic_solver_eulerian)
 VALUE: fractional_step
 QUESTION: laplacian_form
-VALUE: 2
+VALUE: 1
 QUESTION: output_step
 VALUE: 10
 QUESTION: predictor_corrector
@@ -40,7 +40,7 @@ VALUE: 3
 QUESTION: use_oss
 VALUE: 0
 QUESTION: dynamic_tau
-VALUE: 1.0
+VALUE: 0.001
 END PROBLEM DATA
 INTERVAL DATA
 END INTERVAL DATA

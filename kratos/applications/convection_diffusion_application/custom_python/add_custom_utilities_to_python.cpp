@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+//#include "custom_utilities/convection_diffusion_settings.h"
 
 namespace Kratos
 {
@@ -110,8 +111,10 @@ namespace Python
 			  .def("CalculateProjection",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::CalculateProjection)
 			  .def("ConvectScalarVar",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
 			  .def("ClearSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
-			  ;	
+			  ;
+			  
 
+            
 
   }
 	

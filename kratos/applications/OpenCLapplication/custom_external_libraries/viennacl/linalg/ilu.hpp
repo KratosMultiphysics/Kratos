@@ -84,7 +84,7 @@ namespace viennacl
       output.clear();
       assert(input.size1() == output.size1());
       assert(input.size2() == output.size2());
-      output.resize(input.size1(), input.size2(), false);
+      output.resize(static_cast<unsigned int>(input.size1()), static_cast<unsigned int>(input.size2()), false);
       SparseVector w;
       
       std::map<double, unsigned int> temp_map;
@@ -97,7 +97,7 @@ namespace viennacl
         //line 2:
         w.clear();
         for (InputColIterator col_iter = row_iter.begin(); col_iter != row_iter.end(); ++col_iter)
-          w[col_iter.index2()] = *col_iter;
+          w[static_cast<unsigned int>(col_iter.index2())] = *col_iter;
 
         //line 3:
         OutputRowIterator row_iter_out = output.begin1();
@@ -161,23 +161,23 @@ namespace viennacl
         unsigned int written_U = 0;
         for (typename std::map<double, unsigned int>::reverse_iterator iter = temp_map.rbegin(); iter != temp_map.rend(); ++iter)
         {
-          if (iter->second > row_iter.index1()) //entry for U
+          if (iter->second > static_cast<unsigned int>(row_iter.index1())) //entry for U
           {
             if (written_U < tag.get_entries_per_row())
             {
-              output(row_iter.index1(), iter->second) = static_cast<typename LUType::value_type>(w[iter->second]);
+              output(static_cast<unsigned int>(row_iter.index1()), iter->second) = static_cast<typename LUType::value_type>(w[iter->second]);
               ++written_U;
             }
           }
           else if (iter->second == row_iter.index1())
           {
-            output(row_iter.index1(),row_iter.index1()) = static_cast<typename LUType::value_type>(w[row_iter.index1()]);
+            output(iter->second, iter->second) = static_cast<typename LUType::value_type>(w[static_cast<unsigned int>(row_iter.index1())]);
           }
           else //entry for L
           {
             if (written_L < tag.get_entries_per_row())
             {
-              output(row_iter.index1(), iter->second) = static_cast<typename LUType::value_type>(w[iter->second]);
+              output(static_cast<unsigned int>(row_iter.index1()), iter->second) = static_cast<typename LUType::value_type>(w[iter->second]);
               ++written_L;
             }
           }
@@ -217,8 +217,9 @@ namespace viennacl
     {
       typedef typename MatrixType::const_reverse_iterator1    InputRowIterator;  //iterate along increasing row index
       typedef typename MatrixType::const_iterator2            InputColIterator;  //iterate along increasing column index
+      typedef typename VectorType::value_type                 ScalarType;
       
-      double diagonal_entry = 1.0;
+      ScalarType diagonal_entry = 1.0;
       
       for (InputRowIterator row_iter = mat.rbegin1(); row_iter != mat.rend1(); ++row_iter)
       {

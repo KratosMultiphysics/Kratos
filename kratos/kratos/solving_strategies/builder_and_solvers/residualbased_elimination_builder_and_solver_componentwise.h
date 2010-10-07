@@ -242,8 +242,8 @@ namespace Kratos
 					EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 
                                 //assemble the elemental contribution
-				AssembleLHS(A,LHS_Contribution,EquationId);
-				AssembleRHS(b,RHS_Contribution,EquationId);
+				this->AssembleLHS(A,LHS_Contribution,EquationId);
+				this->AssembleRHS(b,RHS_Contribution,EquationId);
 			}
 
 			LHS_Contribution.resize(0,0,false);
@@ -266,8 +266,8 @@ namespace Kratos
 				}
 
 				//assemble the elemental contribution
-				AssembleLHS(A,LHS_Contribution,EquationId);
-				AssembleRHS(b,RHS_Contribution,EquationId);
+				this->AssembleLHS(A,LHS_Contribution,EquationId);
+				this->AssembleRHS(b,RHS_Contribution,EquationId);
 			}
 #else
                         ////////////////////////////////////////////////////////////////////////

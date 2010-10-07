@@ -128,7 +128,7 @@ namespace Kratos
                 ublas::unbounded_array<int>, ublas::unbounded_array<double> > cm_t;
                 typedef ublas::matrix<double, ublas::row_major> m_t;
                 
-                if(IsNotConsistent(rA, rX, rB))
+                if(this->IsNotConsistent(rA, rX, rB))
                     return false;
                 
                 //manually create RHS matrix

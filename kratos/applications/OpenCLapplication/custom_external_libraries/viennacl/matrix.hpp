@@ -170,7 +170,7 @@ namespace viennacl
         _elements(viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*internal_size()))
       {
         cl_int err;
-        err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), mat.handle(), handle(), 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
+        err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), mat.handle().get(), handle().get(), 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
         CL_ERR_CHECK(err);
       }
 
@@ -178,7 +178,7 @@ namespace viennacl
       {
         resize(mat.size());
         cl_int err;
-        err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), mat.handle(), handle(), 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
+        err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), mat.handle().get(), handle().get(), 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
         CL_ERR_CHECK(err);
         return *this;
       }
@@ -292,7 +292,7 @@ namespace viennacl
     {
       std::vector<SCALARTYPE> tmp(gpu_matrix.internal_size());
       cl_int err;
-      err = clEnqueueReadBuffer(viennacl::ocl::device().queue(), gpu_matrix.handle(), CL_TRUE, 0, sizeof(SCALARTYPE) * gpu_matrix.internal_size(), &tmp[0], 0, NULL, NULL);
+      err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(), gpu_matrix.handle().get(), CL_TRUE, 0, sizeof(SCALARTYPE) * gpu_matrix.internal_size(), &tmp[0], 0, NULL, NULL);
       CL_ERR_CHECK(err);
       viennacl::ocl::finish();
       
@@ -335,7 +335,7 @@ namespace viennacl
     void copy(const CPU_MATRIX & cpu_matrix,
               matrix<SCALARTYPE, F, ALIGNMENT> & gpu_matrix )
     {
-      gpu_matrix.resize(cpu_matrix.size1(), cpu_matrix.size2(), false);
+      gpu_matrix.resize(static_cast<unsigned int>(cpu_matrix.size1()), static_cast<unsigned int>(cpu_matrix.size2()), false);
 
       std::vector<SCALARTYPE> data(gpu_matrix.internal_size());
       typename std::vector<SCALARTYPE>::iterator dst = data.begin();
@@ -368,7 +368,7 @@ namespace viennacl
       if ( (gpu_matrix.size1() > 0) && (gpu_matrix.size2() > 0) )
       {
         std::vector<SCALARTYPE> temp_buffer(gpu_matrix.internal_size());
-        cl_int err = clEnqueueReadBuffer(viennacl::ocl::device().queue(), gpu_matrix.handle(), CL_TRUE, 0, sizeof(SCALARTYPE)*gpu_matrix.internal_size(), &(temp_buffer[0]), 0, NULL, NULL);
+        cl_int err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(), gpu_matrix.handle().get(), CL_TRUE, 0, sizeof(SCALARTYPE)*gpu_matrix.internal_size(), &(temp_buffer[0]), 0, NULL, NULL);
         CL_ERR_CHECK(err);
         viennacl::ocl::finish();
         

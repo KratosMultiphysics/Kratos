@@ -51,8 +51,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <set>
-#include <omp.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /* External includes */
 #include "boost/smart_ptr.hpp"

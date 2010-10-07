@@ -123,7 +123,7 @@ namespace Kratos
           @param rB. Right hand side vector*/
       bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
       {
-              if(IsNotConsistent(rA, rX, rB))
+              if(this->IsNotConsistent(rA, rX, rB))
                 return false;
 
 
@@ -246,7 +246,7 @@ namespace Kratos
 
 
             VectorType v(size);
-            PreconditionedMult(rA, y1, v);
+            this->PreconditionedMult(rA, y1, v);
 
 
             VectorType u1(v);
@@ -325,7 +325,7 @@ namespace Kratos
 
 
                 //u2=A*y2;
-                PreconditionedMult(rA,y2,u2);    
+                this->PreconditionedMult(rA,y2,u2);    
                  
                 //w=w-alpha*u2;
                 TSparseSpaceType::ScaleAndAdd(-alpha, u2, 1.00, w);  
@@ -366,7 +366,7 @@ namespace Kratos
 
 
                 //u1 = A*y1;
-                PreconditionedMult(rA,y1,u1); 
+                this->PreconditionedMult(rA,y1,u1); 
                 
                 //v=u1+beta*(u2+beta*v);
                 TSparseSpaceType::ScaleAndAdd(1.00, u2, beta, v);  

@@ -52,7 +52,7 @@ namespace viennacl
       void setArgument(unsigned int pos, unsigned long val)
       {
         init();
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         //std::cout << "Setting unsigned long kernel argument at pos " << pos << " for kernel " << _name << std::endl;
         #endif
         setArgument(pos, static_cast<unsigned int>(val));
@@ -62,73 +62,88 @@ namespace viennacl
       void setArgument(unsigned int pos, TYPE val)
       {
         init();
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         //std::cout << "Setting TYPE kernel argument at pos " << pos << " for kernel " << _name << std::endl;
         #endif
-        cl_int err = clSetKernelArg(h, pos, sizeof(TYPE), (void*)&val);
+        cl_int err = clSetKernelArg(h.get(), pos, sizeof(TYPE), (void*)&val);
         CL_ERR_CHECK(err);
       }
 
       void setArgument(unsigned int pos, const handle<cl_mem> & val)
       {
         init();
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         //std::cout << "Setting cl_mem kernel argument at pos " << pos << " for kernel " << _name << std::endl;
         #endif
-        cl_int err = clSetKernelArg(h, pos, sizeof(cl_mem), (void*)&val.get());
+        cl_int err = clSetKernelArg(h.get(), pos, sizeof(cl_mem), (void*)&val.get());
         CL_ERR_CHECK(err);
       }
 
       void setLocalBuffer(unsigned int pos, unsigned int size)
       {
         init();
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         //std::cout << "Setting local buffer kernel argument at pos " << pos << " for kernel " << _name << std::endl;
         #endif
-        cl_int err = clSetKernelArg(h, pos, size, 0);
+        cl_int err = clSetKernelArg(h.get(), pos, size, 0);
         CL_ERR_CHECK(err);
       }
       
       void start1D()
       {
-        start1D(device().work_groups() * device().work_items_per_group(),
-                device().work_items_per_group());
+        start1D(_work_groups * _work_items_per_group, _work_items_per_group);
       }
 
-      void start1D(const unsigned int & global_work_size)
+      void start1D(const size_t & global_work_size)
       {
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         std::cout << "Starting kernel '" << _name << "'..." << std::endl;
         #endif
         size_t tmp = global_work_size;
-        cl_int err = clEnqueueNDRangeKernel(device().queue(), h, 1, NULL, &tmp, NULL, 0, NULL, NULL);
+        cl_int err = clEnqueueNDRangeKernel(device().queue().get(), h.get(), 1, NULL, &tmp, NULL, 0, NULL, NULL);
         CL_ERR_CHECK(err);
         //assert(err == CL_SUCCESS);
       }
-      void start1D(const unsigned int & global_work_size, const unsigned int & local_work_size)
+      void start1D(const size_t & global_work_size, const size_t & local_work_size)
       {
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         std::cout << "Starting kernel '" << _name << "'..." << std::endl;
         #endif
         size_t tmp_global = global_work_size;
         size_t tmp_local = local_work_size;
-        cl_int err = clEnqueueNDRangeKernel(device().queue(), h, 1, NULL, &tmp_global, &tmp_local, 0, NULL, NULL);
-        CL_ERR_CHECK(err);
-        /*
-        if (err != CL_SUCCESS)
+        cl_int err = clEnqueueNDRangeKernel(device().queue().get(), h.get(), 1, NULL, &tmp_global, &tmp_local, 0, NULL, NULL);
+
+        if (err != CL_SUCCESS)  //if not successful, try to start with smaller work size
         {
-          //std::cout << "Flushing queue, then enqueuing again with half the size..." << std::endl;
-          unsigned int new_global_work_size = global_work_size / 2;
-          unsigned int new_local_work_size = local_work_size / 2;
-          err = clEnqueueNDRangeKernel(device().command_queue(), h, 1, NULL, &new_global_work_size, &new_local_work_size, 0, NULL, NULL);
+          while (err != CL_SUCCESS && tmp_local > 1)
+          {
+            //std::cout << "Flushing queue, then enqueuing again with half the size..." << std::endl;
+            tmp_global /= 2;
+            tmp_local /= 2;
+
+            err = clEnqueueNDRangeKernel(device().queue().get(), h.get(), 1, NULL, &tmp_global, &tmp_local, 0, NULL, NULL);
+          }
+          
           if (err != CL_SUCCESS)
           {
-            std::cout << "Finishing queue, then enqueuing kernel '" << _name << "' again..." << std::endl;
-            clFlush(device().command_queue());
-            err = clEnqueueNDRangeKernel(device().command_queue(), h, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
+            //could not start kernel with any parameters
+            std::cerr << "Could not start kernel '" << _name << "' with global work size " << tmp_global << " and local work size " << tmp_local << "." << std::endl;
+            std::cerr << "Smaller work sizes also failed." << std::endl;
             CL_ERR_CHECK(err);
           }
-        } */
+          else
+          {
+            //remember parameters:
+            _work_items_per_group = tmp_local;
+            _work_groups = tmp_global / tmp_local;
+            #ifdef VIENNACL_BUILD_INFO
+            std::cout << "Kernel '" << _name << "' now uses global work size " << tmp_global << " and local work size " << tmp_local << "."  << std::endl;
+            #endif
+          }          
+        }
+        
+        CL_ERR_CHECK(err);
+        
         //assert(err == CL_SUCCESS);
       }
 
@@ -137,6 +152,9 @@ namespace viennacl
         init();
         return h; 
       }
+
+      size_t work_items_per_group() const { return _work_items_per_group; }
+      size_t work_groups() const { return _work_groups; }
 
     private:
       
@@ -148,12 +166,35 @@ namespace viennacl
       void create_kernel()
       {
         cl_int err;
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         std::cout << "Building " << _name << std::endl;
         #endif
-        h = clCreateKernel(_program.get(), _name.c_str(), &err);
+        h = clCreateKernel(_program.handle().get(), _name.c_str(), &err);
+        
+        if (err != CL_SUCCESS)
+        {
+          std::cerr << "Could not build kernel '" << _name << "'." << std::endl;
+          #ifdef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK_ON_GPU
+          if (_name.find("norm") != std::string::npos)
+            std::cerr << "You seem to be using one of the functions norm_1, norm_2, norm_inf and index_norm_inf, which are not available on ATI GPUs! This also affects the GMRES solver." << std::endl;
+          #endif
+        }
+        CL_ERR_CHECK(err);
+        
+        //set work group sizes and the like:
+        if (viennacl::ocl::device().type() == CL_DEVICE_TYPE_CPU)
+        {
+          _work_items_per_group = 1;
+          _work_groups = 2;   //some experiments on a Core 2 Quad 9550 show that two work groups give good results
+        }
+        else
+        {
+          _work_items_per_group = 128;
+          _work_groups = 128;
+        }
         CL_ERR_CHECK(err);
       }
+
 
       void init()
       {
@@ -168,6 +209,8 @@ namespace viennacl
       program _program;
       std::string _name;
       std::string _source;
+      size_t _work_items_per_group;
+      size_t _work_groups;
       bool _init_done;
     };
     

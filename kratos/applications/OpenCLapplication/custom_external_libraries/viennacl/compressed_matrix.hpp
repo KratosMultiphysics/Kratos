@@ -95,9 +95,9 @@ namespace viennacl
           _elements = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE) * new_nonzeros);
           
           cl_int err;
-          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), _col_buffer_old, _col_buffer, 0, 0, sizeof(unsigned int)*_nonzeros, 0, NULL, NULL);
+          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), _col_buffer_old.get(), _col_buffer.get(), 0, 0, sizeof(unsigned int)*_nonzeros, 0, NULL, NULL);
           CL_ERR_CHECK(err);
-          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), _elements_old, _elements, 0, 0, sizeof(SCALARTYPE)*_nonzeros, 0, NULL, NULL);
+          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), _elements_old.get(), _elements.get(), 0, 0, sizeof(SCALARTYPE)*_nonzeros, 0, NULL, NULL);
           CL_ERR_CHECK(err);
 
           _nonzeros = new_nonzeros;
@@ -125,23 +125,23 @@ namespace viennacl
               std::vector<unsigned int> coord_temp(new_size1 + 1);
               std::vector<SCALARTYPE> temp(new_size1 + 1);
               cl_int err;
-              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _row_buffer, CL_TRUE, 0, sizeof(unsigned int)*coord_temp.size(), &(coord_temp[0]), 0, NULL, NULL);
+              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _row_buffer.get(), CL_TRUE, 0, sizeof(unsigned int)*coord_temp.size(), &(coord_temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
-              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _col_buffer, CL_TRUE, 0, sizeof(unsigned int)*coord_temp.size(), &(coord_temp[0]), 0, NULL, NULL);
+              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _col_buffer.get(), CL_TRUE, 0, sizeof(unsigned int)*coord_temp.size(), &(coord_temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
-              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _elements, CL_TRUE, 0, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
+              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _elements.get(), CL_TRUE, 0, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
             }
             else //enlarge only row array, because no entries are added to the matrix
             {
               viennacl::ocl::handle<cl_mem> _row_buffer_old = _row_buffer;
               _row_buffer = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(unsigned int)*(new_size1 + 1));
-              cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), _row_buffer_old, _row_buffer, 0, 0, sizeof(unsigned int)* (_rows + 1), 0, NULL, NULL);
+              cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), _row_buffer_old.get(), _row_buffer.get(), 0, 0, sizeof(unsigned int)* (_rows + 1), 0, NULL, NULL);
               CL_ERR_CHECK(err);
               
               //set new memory to zero:
               std::vector<SCALARTYPE> temp(new_size1 - _rows + 1);
-              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _elements, CL_TRUE, sizeof(SCALARTYPE)*(_rows + 1), sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
+              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _elements.get(), CL_TRUE, sizeof(SCALARTYPE)*(_rows + 1), sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
             }
           }
@@ -149,7 +149,7 @@ namespace viennacl
           {
               viennacl::ocl::handle<cl_mem> _row_buffer_old = _row_buffer;
               _row_buffer = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(unsigned int)*(new_size1 + 1));
-              cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), _row_buffer_old, _row_buffer, 0, 0, sizeof(unsigned int) * (new_size1 + 1), 0, NULL, NULL);
+              cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), _row_buffer_old.get(), _row_buffer.get(), 0, 0, sizeof(unsigned int) * (new_size1 + 1), 0, NULL, NULL);
               CL_ERR_CHECK(err);
             
             //TODO: discard entries in the matrix that are beyond the allowed sizes
@@ -208,7 +208,7 @@ namespace viennacl
     {
       if ( cpu_matrix.size1() > 0 && cpu_matrix.size2() > 0 )
       {
-        gpu_matrix.resize(cpu_matrix.size1(), cpu_matrix.size2(), false);
+        gpu_matrix.resize(static_cast<unsigned int>(cpu_matrix.size1()), static_cast<unsigned int>(cpu_matrix.size2()), false);
         
         //determine nonzeros:
         long num_entries = 0;
@@ -247,7 +247,7 @@ namespace viennacl
                 col_it != row_it.end();
                 ++col_it)
           {
-            col_buffer[data_index] = col_it.index2();
+            col_buffer[data_index] = static_cast<unsigned int>(col_it.index2());
             elements[data_index] = *col_it;
             ++data_index;
           }
@@ -260,7 +260,7 @@ namespace viennacl
         gpu_matrix._elements = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, elements);
         
         gpu_matrix._nonzeros = num_entries;*/
-        gpu_matrix.set(&row_buffer[0], &col_buffer[0], &elements[0], cpu_matrix.size1(), num_entries);
+        gpu_matrix.set(&row_buffer[0], &col_buffer[0], &elements[0], static_cast<unsigned int>(cpu_matrix.size1()), num_entries);
       }
     }
     
@@ -304,11 +304,11 @@ namespace viennacl
         //std::cout << "GPU->CPU, nonzeros: " << gpu_matrix.nnz() << std::endl;
         
         cl_int err;
-        err = clEnqueueReadBuffer(viennacl::ocl::device().queue(), gpu_matrix.handle1(), CL_TRUE, 0, sizeof(unsigned int)*(gpu_matrix.size1() + 1), &(row_buffer[0]), 0, NULL, NULL);
+        err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(), gpu_matrix.handle1().get(), CL_TRUE, 0, sizeof(unsigned int)*(gpu_matrix.size1() + 1), &(row_buffer[0]), 0, NULL, NULL);
         CL_ERR_CHECK(err);
-        err = clEnqueueReadBuffer(viennacl::ocl::device().queue(), gpu_matrix.handle2(), CL_TRUE, 0, sizeof(unsigned int)*gpu_matrix.nnz(), &(col_buffer[0]), 0, NULL, NULL);
+        err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(), gpu_matrix.handle2().get(), CL_TRUE, 0, sizeof(unsigned int)*gpu_matrix.nnz(), &(col_buffer[0]), 0, NULL, NULL);
         CL_ERR_CHECK(err);
-        err = clEnqueueReadBuffer(viennacl::ocl::device().queue(), gpu_matrix.handle(), CL_TRUE, 0, sizeof(SCALARTYPE)*gpu_matrix.nnz(), &(elements[0]), 0, NULL, NULL);
+        err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(), gpu_matrix.handle().get(), CL_TRUE, 0, sizeof(SCALARTYPE)*gpu_matrix.nnz(), &(elements[0]), 0, NULL, NULL);
         CL_ERR_CHECK(err);
         viennacl::ocl::finish();
         
