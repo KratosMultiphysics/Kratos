@@ -80,9 +80,13 @@ namespace Kratos
 
 ///************************************************************************************************          
 ///************************************************************************************************  
-void Local_Refine_Mesh(bool refine_on_reference)
+void Local_Refine_Mesh(bool refine_on_reference, bool interpolate_internal_variables)
 {
       KRATOS_TRY  
+      
+      if(refine_on_reference==true)
+	 if(!(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)) )
+	     KRATOS_ERROR(std::logic_error,"DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true","")
 
       //NodesArrayType& pNodes = mr_model_part.Nodes();
       compressed_matrix<int> Coord;
@@ -107,7 +111,7 @@ void Local_Refine_Mesh(bool refine_on_reference)
       Create_List_Of_New_Nodes(mr_model_part, Coord, List_New_Nodes, Position_Node);
       Calculate_Coordinate_And_Insert_New_Nodes(mr_model_part, Position_Node, List_New_Nodes);
       //Insert_New_Node_In_Mesh(mr_model_part, Coordinate_New_Node, Position_Node, List_New_Nodes);
-      Erase_Old_Element_And_Create_New_Triangle_Element(mr_model_part, Coord, New_Elements); 
+      Erase_Old_Element_And_Create_New_Triangle_Element(mr_model_part, Coord, New_Elements, interpolate_internal_variables); 
       Renumering_Elements_And_Nodes(mr_model_part, New_Elements);
 
 
@@ -427,7 +431,8 @@ for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 void Erase_Old_Element_And_Create_New_Triangle_Element(
            ModelPart& this_model_part,
            const compressed_matrix<int>& Coord,
-           PointerVector< Element >& New_Elements            
+           PointerVector< Element >& New_Elements,
+	   bool interpolate_internal_variables
           )   
     {
 
@@ -569,7 +574,9 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
                        p_element->FinalizeSolutionStep(rCurrentProcessInfo);   
 		       
 		       /// setting the internal variables in the child elem
-		       InterpolateInteralVariables(nel , *it.base(),p_element,rCurrentProcessInfo);	
+		       if(interpolate_internal_variables == true)
+			  InterpolateInteralVariables(nel , *it.base(),p_element,rCurrentProcessInfo);	
+		       
 		       //int level =  it->GetValue(REFINEMENT_LEVEL);
 		       p_element->SetValue(REFINEMENT_LEVEL, 1);	       
                        New_Elements.push_back(p_element);                         
@@ -606,7 +613,6 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
 
 /// ************************************************************************************************          
 /// ************************************************************************************************ 
-
 void  Calculate_Edges(Element::GeometryType& geom,
 		      const compressed_matrix<int>& Coord,
 		      int*  edge_ids,
