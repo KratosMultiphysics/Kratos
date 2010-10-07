@@ -826,7 +826,7 @@ namespace Kratos
   /// input stream function
   template<unsigned int TDim>
   inline std::istream& operator >> (std::istream& rIStream, 
-				    ParallelExtrapolationUtilities<TDim>& rThis){}
+				    ParallelExtrapolationUtilities<TDim>& rThis){return rIStream;}
 
   /// output stream function
    template<unsigned int TDim>

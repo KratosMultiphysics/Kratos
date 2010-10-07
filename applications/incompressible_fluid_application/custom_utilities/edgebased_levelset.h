@@ -137,6 +137,8 @@ namespace Kratos {
             muse_mass_correction = use_mass_correction;
 	    
 	    mshock_coeff = 0.7;
+	    
+	    mWallLawIsActive = false;
 
 //            for (unsigned int i = 0; i < TDim; i++) mBodyForce[i] = 0;
 //            mBodyForce[1] = -9.81;
@@ -1141,6 +1143,7 @@ namespace Kratos {
         void ApplyVelocityBC(CalcVectorType& VelArray) {
             KRATOS_TRY
 
+
             if(mWallLawIsActive == false)
             {
                 //apply conditions on corner edges
@@ -1161,10 +1164,10 @@ namespace Kratos {
 
                          for (unsigned int comp = 0; comp < TDim; comp++)
                              U_i[comp] = direction[comp]*temp;
-                    }
+		    }
                 }
 
-                //apply conditions on corners
+		//apply conditions on corners
                 int corner_size = mcorner_nodes.size();
                 for (int i = 0; i < corner_size; i++)
                 {
@@ -2484,9 +2487,18 @@ void ActivateWallResistance(double Ywall)
 
                                 edge_nodes[index1] += 1;
                                 edge_nodes[index2] += 1;
-
-                                cornern_list[index1] += edge;
-                                cornern_list[index2] += edge;
+				
+				double sign1 = inner_prod(cornern_list[index1],edge);
+				if(sign1 >= 0)
+				    cornern_list[index1] += edge;
+				else
+				    cornern_list[index1] -= edge;
+				
+				double sign2 = inner_prod(cornern_list[index2],edge);
+				if(sign2 >= 0)
+				  cornern_list[index2] += edge;
+				else
+				  cornern_list[index2] -= edge;
 
 
                             }
@@ -2562,6 +2574,7 @@ void ActivateWallResistance(double Ywall)
                 {
                     medge_nodes.push_back(i_node);
                     array_1d<double,TDim>& node_edge = temp_cornern_list[i_node];
+		    
                     node_edge /= norm_2(node_edge);
                     medge_nodes_direction.push_back(node_edge);
                 }
