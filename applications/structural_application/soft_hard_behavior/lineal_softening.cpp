@@ -67,17 +67,17 @@ namespace Kratos
                
 
                    // For damage model
-                   double  Lineal_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
-		   {
-		      double q_r  =  r_o/(A+1.00);
-                      double a    =  1.00 - q_r/r;
-		      if (a < 0.00) 
-		      {
-		      a = fabs(a);
-		      }
-                      return a;
-		      
-		   }
+//                    double  Lineal_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
+// 		   {
+// 		      double q_r  =  r_o/(A+1.00);
+//                       double a    =  1.00 - q_r/r;
+// 		      if (a < 0.00) 
+// 		      {
+// 		      a = fabs(a);cd
+// 		      }
+//                       return a;
+// 		      
+// 		   }
 
                    // for geomaterials model
                    void Lineal_Softening::FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result)
@@ -94,6 +94,35 @@ namespace Kratos
                       //KRATOS_WATCH(der_Result)     
                       return;
                      }
+                     
+                  double Lineal_Softening::Calculate(Vector& Imput_Parameters)
+		   {
+		     const double& Ft   = (*mprops)[FT];
+		     const double& Ec   = (*mprops)[YOUNG_MODULUS];
+		     const double& GE   = (*mprops)[FRACTURE_ENERGY];
+		     const double& l    = Imput_Parameters[0];
+		     const double& r_o  = Imput_Parameters[1];  // Ft/sqrt(Ec);
+		     const double& r    = Imput_Parameters[2];
+		     
+		     const double Hs_barra = Ft * Ft /(  2.00 * Ec * GE );
+		     const double ls_barra = 1.00 / Hs_barra; 
+ 		     double Hs       = l / (ls_barra - l);
+		     if (Hs < 0.00)
+ 		      {    
+ 		        Hs  = 0.00;
+                        std::cout<<"Warning: Softening Parameters is less than zero. Please refine more."<<std::endl;
+ 		      }
+ 		     
+ 		     const double ru =  r_o * (1.00  + 1.00/Hs); 
+		     double q_r      = 0.00;
+		     if ( r>=r_o  && r <= ru)
+		     {
+		       q_r = r_o - Hs * (r - r_o );
+		     }
+		     double a    =  1.00 - (q_r/r);
+		     return a;
+		    }
+                     
     
     /**
      * definition of CONSTITUTIVE_LAW variable
