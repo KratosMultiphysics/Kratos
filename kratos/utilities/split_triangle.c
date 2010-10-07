@@ -1,3 +1,5 @@
+#if !defined(KRATOS_SPLIT_TRIANGLE)
+#define  KRATOS_SPLIT_TRIANGLE
 
 //input parametrs:
 //edges --> int c array of size 
@@ -233,4 +235,6 @@ bool Split_Triangle(const int* edges, int* t, int* nel, int* splitted_edges, int
                       }
                 
 	}
+
+#endif // KRATOS_SPLIT_TRIANGLE  defined 
 

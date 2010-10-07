@@ -151,6 +151,9 @@ namespace Kratos
 		mprecision = precision;
 		msolver_type=solver_type;
 		mpreconditioner_type = preconditioner_type;
+		
+		mentries_per_row = 10;
+		mdrop_tolerance = 1e-3;
 	}
 
       /// Copy constructor.
@@ -171,9 +174,12 @@ namespace Kratos
 	return *this;
       }
       
+      
       ///@}
       ///@name Operations
       ///@{
+      void SetILUEntriesPerRow(unsigned int entries){mentries_per_row = entries;}
+      void SetILUDropTolerance(double tol){mdrop_tolerance = tol;}
       
       /** Normal solve method.
 	  Solves the linear system Ax=b and puts the result on SystemVector& rX. 
@@ -211,7 +217,7 @@ namespace Kratos
 	    }
 	    else if(mpreconditioner_type == ILU)
 	    {
-	      viennacl::linalg::ilut_precond< viennacl::compressed_matrix<scalar_type> > vcl_ilut(gpu_A, viennacl::linalg::ilut_tag());
+	      viennacl::linalg::ilut_precond< viennacl::compressed_matrix<scalar_type> > vcl_ilut(gpu_A, viennacl::linalg::ilut_tag(mentries_per_row,mdrop_tolerance));
 		
 	      if(msolver_type == CG)
 		gpu_X = solve(gpu_A, gpu_B, viennacl::linalg::cg_tag(tol,maxIter),vcl_ilut);
@@ -247,7 +253,7 @@ namespace Kratos
  	    }
 	    else if(mpreconditioner_type == ILU)
 	    {
-	      viennacl::linalg::ilut_precond< viennacl::compressed_matrix<scalar_type> > vcl_ilut(gpu_A, viennacl::linalg::ilut_tag());
+	      viennacl::linalg::ilut_precond< viennacl::compressed_matrix<scalar_type> > vcl_ilut(gpu_A, viennacl::linalg::ilut_tag(mentries_per_row,mdrop_tolerance));
 		
 	      if(msolver_type == CG)
 		gpu_X = solve(gpu_A, gpu_B, viennacl::linalg::cg_tag(tol,maxIter),vcl_ilut);
@@ -331,6 +337,9 @@ namespace Kratos
 	bool havePreconditioner;
         size_t maxIter;
 	double tol;
+	
+	unsigned int mentries_per_row;
+	double mdrop_tolerance;
 	
 	OpenCLPrecision mprecision;
 	OpenCLSolverType msolver_type;

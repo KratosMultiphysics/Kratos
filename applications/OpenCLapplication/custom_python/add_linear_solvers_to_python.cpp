@@ -78,6 +78,8 @@ namespace Python
         class_<ViennaCLSolverType, ViennaCLSolverType::Pointer,
         bases<LinearSolverType> >( "ViennaCLSolver" )
                 .def(init<double, unsigned int,OpenCLPrecision, OpenCLSolverType, OpenCLPreconditionerType>() )
+                .def("SetILUEntriesPerRow", &ViennaCLSolverType::SetILUEntriesPerRow)
+                .def("SetILUDropTolerance", &ViennaCLSolverType::SetILUDropTolerance)
                 .def(self_ns::str(self))
                 ;
 

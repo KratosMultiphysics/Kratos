@@ -42,9 +42,22 @@ namespace viennacl
       
         double tolerance() const { return _tol; }
         unsigned int iterations() const { return _iterations; }
+        
+        //number of solver iterations:
+        unsigned int iters() const { return iters_taken_; }
+        void iters(unsigned int i) const { iters_taken_ = i; }
+        
+        //esimated error :
+        double error() const { return last_error_; }
+        void error(double e) const { last_error_ = e; }
+        
       private:
         double _tol;
         unsigned int _iterations;
+
+        //return values from solver
+        mutable unsigned int iters_taken_;
+        mutable double last_error_;
     };
     
 
@@ -74,12 +87,13 @@ namespace viennacl
       ScalarType ip_rr0star = viennacl::linalg::inner_prod(rhs,r0star);
       ScalarType alpha;
       ScalarType omega;
-      ScalarType new_ip_rr0star;
+      ScalarType new_ip_rr0star = 0;
       ScalarType beta;
       ScalarType norm_rhs = ip_rr0star;
       
       for (unsigned int i = 0; i < tag.iterations(); ++i)
       {
+        tag.iters(i+1);
         tmp0 = viennacl::linalg::prod(matrix, p);
         alpha = ip_rr0star / viennacl::linalg::inner_prod(tmp0, r0star);
 
@@ -92,7 +106,7 @@ namespace viennacl
         residual = s - omega*tmp1;
         
         new_ip_rr0star = viennacl::linalg::inner_prod(residual,r0star);
-        if (std::fabs(new_ip_rr0star / norm_rhs) < tag.tolerance() )
+        if (std::fabs(new_ip_rr0star / norm_rhs) < tag.tolerance() * tag.tolerance())
           break;
         
         beta = new_ip_rr0star / ip_rr0star * alpha/omega;
@@ -100,6 +114,9 @@ namespace viennacl
 
         p = residual + beta * (p - omega*tmp0);
       }
+      
+      //store last error estimate:
+      tag.error(std::sqrt(std::fabs(new_ip_rr0star / norm_rhs)));
       
       return result;
     }
@@ -133,12 +150,13 @@ namespace viennacl
       ScalarType ip_rr0star = viennacl::linalg::inner_prod(residual,r0star);
       ScalarType alpha;
       ScalarType omega;
-      ScalarType new_ip_rr0star;
+      ScalarType new_ip_rr0star = 0;
       ScalarType beta;
       ScalarType norm_rhs = ip_rr0star;
       
       for (unsigned int i = 0; i < tag.iterations(); ++i)
       {
+        tag.iters(i+1);
         tmp0 = viennacl::linalg::prod(matrix, p);
         precond.apply(tmp0);
         alpha = ip_rr0star / viennacl::linalg::inner_prod(tmp0, r0star);
@@ -153,7 +171,7 @@ namespace viennacl
         residual = s - omega*tmp1;
         
         new_ip_rr0star = viennacl::linalg::inner_prod(residual,r0star);
-        if (std::fabs(new_ip_rr0star / norm_rhs) < tag.tolerance() )
+        if (std::fabs(new_ip_rr0star / norm_rhs) < tag.tolerance() * tag.tolerance() )
           break;
         
         beta = new_ip_rr0star / ip_rr0star * alpha/omega;
@@ -161,6 +179,9 @@ namespace viennacl
 
         p = residual + beta * (p - omega*tmp0);
       }
+      
+      //store last error estimate:
+      tag.error(std::sqrt(std::fabs(new_ip_rr0star / norm_rhs)));
       
       return result;
     }

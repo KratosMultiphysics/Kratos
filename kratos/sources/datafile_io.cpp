@@ -315,7 +315,7 @@ namespace Kratos
 	    for(iterator_type i_component = KratosComponents<TComponentType>::GetComponents().begin() ; 
 		i_component != KratosComponents<TComponentType>::GetComponents().end() ; 
 		i_component++)
-	      add(i_component->first.c_str(), i_component->second);
+	      this->add(i_component->first.c_str(), i_component->second);
     	}
 	
       };

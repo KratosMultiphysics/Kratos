@@ -64,7 +64,8 @@ extern "C"
 
 
 #include <boost/timer.hpp>
-#include <omp.h>
+
+#include "utilities/openmp_utils.h"
 
 #include "boost/smart_ptr.hpp"
 #include "includes/ublas_interface.h"
@@ -130,7 +131,7 @@ namespace Kratos
              */
             bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
             {
-                double start_solver = omp_get_wtime();
+                double start_solver = OpenMPUtils::GetCurrentTime();
                 typedef boost::numeric::bindings::traits::sparse_matrix_traits<SparseMatrixType> matraits;
                 typedef boost::numeric::bindings::traits::vector_traits<VectorType> mbtraits;
                 typedef typename matraits::value_type val_t;
@@ -153,12 +154,12 @@ namespace Kratos
                 std::cout << "Size of the problem: " << n << std::endl;
                 std::cout << "Size of index1_vector: " << rA.index1_data().size() << std::endl;
                 std::cout << "Size of index2_vector: " << rA.index2_data().size() << std::endl;
-                std::cout << "pardiso_solver: line 156" << std::endl;
+//                 std::cout << "pardiso_solver: line 156" << std::endl;
                 for(unsigned int i = 0; i < rA.index1_data().size(); i++ )
                 {
                     index1_vector[i] = (MKL_INT)(rA.index1_data()[i])+1;
                 } 
-                std::cout << "pardiso_solver: line 161" << std::endl;
+//                 std::cout << "pardiso_solver: line 161" << std::endl;
                 for(unsigned int i = 0; i < rA.index2_data().size(); i++ )
                 {
                     index2_vector[i] = (MKL_INT)(rA.index2_data()[i])+1;
@@ -201,8 +202,8 @@ namespace Kratos
                 iparm[0] = 1; /* No solver default */
                 iparm[1] = 2; /* Fill-in reordering from METIS */
                 /* Numbers of processors, value of OMP_NUM_THREADS */
-                iparm[2] = omp_get_max_threads();
-                std::cout << "number of threads: " << iparm[2] << std::endl;
+                iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_max_threads();
+//                 std::cout << "number of threads: " << iparm[2] << std::endl;
                 if( mRefinements > 0 )
                     iparm[3] = 1; /* iterative-direct algorithm */
                 else
@@ -238,7 +239,7 @@ namespace Kratos
                 /* .. Reordering and Symbolic Factorization. This step also allocates */
                 /* all memory that is necessary for the factorization. */
                 /* -------------------------------------------------------------------- */
-                std::cout << "pardiso_solver: line 241" << std::endl;
+//                 std::cout << "pardiso_solver: line 241" << std::endl;
                 phase = 11;
                 PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                          &n, a, index1_vector, index2_vector, &idum, &nrhs,
@@ -248,11 +249,13 @@ namespace Kratos
                     std::cout << "ERROR during symbolic factorization: " << error << std::endl;
                     exit(1);
                 }
-                std::cout << "pardiso_solver: line 251" << std::endl;
+//                 std::cout << "pardiso_solver: line 251" << std::endl;
                 std::cout << "Reordering completed ... " << std::endl;
                 //printf("\nNumber of nonzeros in factors = %d", iparm[17]);
                 //printf("\nNumber of factorization MFLOPS = %d", iparm[18]);
                 /* -------------------------------------------------------------------- */
+		KRATOS_WATCH(iparm[63]);
+		
                 /* .. Numerical factorization. */
                 /* -------------------------------------------------------------------- */
                 phase = 22;
@@ -264,7 +267,7 @@ namespace Kratos
                     exit(2);
                 }
                 std::cout << "Factorization completed ... " << std::endl;
-                std::cout << "pardiso_solver: line 267" << std::endl;
+//                 std::cout << "pardiso_solver: line 267" << std::endl;
                 /* -------------------------------------------------------------------- */
                 /* .. Back substitution and iterative refinement. */
                 /* -------------------------------------------------------------------- */
@@ -274,7 +277,7 @@ namespace Kratos
                 //for (i = 0; i < n; i++) {
                 //    b[i] = 1;
                 //}
-                std::cout << "pardiso_solver: line 277" << std::endl;
+//                 std::cout << "pardiso_solver: line 277" << std::endl;
                 PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                          &n, a, index1_vector, index2_vector, &idum, &nrhs,
                          iparm, &msglvl, b, x, &error);
@@ -282,22 +285,22 @@ namespace Kratos
                     std::cout << "ERROR during solution: " << error << std::endl;
                     exit(3);
                 }
-                std::cout << "pardiso_solver: line 285" << std::endl;
+//                 std::cout << "pardiso_solver: line 285" << std::endl;
                 /* -------------------------------------------------------------------- */
                 /* .. Termination and release of memory. */
                 /* -------------------------------------------------------------------- */
-                std::cout << "pardiso_solver: line 289" << std::endl;
+//                 std::cout << "pardiso_solver: line 289" << std::endl;
                 phase = -1; /* Release internal memory. */
                 PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                          &n, &ddum, index1_vector, index2_vector, &idum, &nrhs,
                          iparm, &msglvl, &ddum, &ddum, &error);
-                std::cout << "pardiso_solver: line 294" << std::endl;
+//                 std::cout << "pardiso_solver: line 294" << std::endl;
                 delete [] index1_vector;
-                std::cout << "pardiso_solver: line 296" << std::endl;
+//                 std::cout << "pardiso_solver: line 296" << std::endl;
                 delete [] index2_vector;
-                std::cout << "pardiso_solver: line 298" << std::endl;
+//                 std::cout << "pardiso_solver: line 298" << std::endl;
                 
-                std::cout << "#### SOLVER TIME: " << omp_get_wtime()-start_solver << " ####" << std::endl;
+                std::cout << "#### SOLVER TIME: " << OpenMPUtils::GetCurrentTime()-start_solver << " ####" << std::endl;
                 return true;
             }
             

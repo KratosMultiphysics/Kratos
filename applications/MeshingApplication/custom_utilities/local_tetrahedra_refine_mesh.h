@@ -79,10 +79,25 @@ namespace Kratos
         {
         }
 
-        void Local_Refine_Mesh(bool refine_on_reference)
+	///This function performs a local refinement of a given tetrahedral mesh.
+	///the "skin" of the mesh is also refined accordingly
+	///The resulting mesh is guaranteed to be conformant, and (in principle) termination of the algorithm is guaranteed
+	///to identify an element to be splitted do:
+	///elementpointer->SetValue(SPLIT_ELEMENT,true)
+	///all of the internal variables are interpolated for the newly created nodes. 
+	///if a degree of freedom is fixed at both ends of a given edge, than the new node created on that edge is also fixed
+	///@param refine_on_reference the interpolation of the variables is performed on the undeformed domain (requires DISPLACEMENT)
+	///@param interpolate_internal_variables flag to specify if constitutive law variables should be interpolated or not
+	///WARNING: nodal neighbours are assumed in this function and need to be updated on exit.
+        void Local_Refine_Mesh(bool refine_on_reference, bool interpolate_internal_variables)
         {
 
             KRATOS_TRY
+            
+	    if(refine_on_reference==true)
+	      if(!(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)) )
+		  KRATOS_ERROR(std::logic_error,"DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true","")
+
             boost::numeric::ublas::vector<array_1d<int, 2 > > Position_Node;
             boost::numeric::ublas::vector<int> List_New_Nodes;
             compressed_matrix<int> Coord;

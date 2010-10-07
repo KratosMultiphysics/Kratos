@@ -286,9 +286,12 @@ namespace viennacl
        source.append(viennacl::tools::make_double_kernel(vector_align4_inplace_mul_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align1_swap));
        source.append(viennacl::tools::make_double_kernel(vector_align4_cpu_mul_add));
+       #ifndef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK_ON_GPU
        source.append(viennacl::tools::make_double_kernel(vector_align1_norm_1));
        source.append(viennacl::tools::make_double_kernel(vector_align4_norm_2));
        source.append(viennacl::tools::make_double_kernel(vector_align1_index_norm_inf));
+       source.append(viennacl::tools::make_double_kernel(vector_align1_norm_inf));
+       #endif
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_divide));
        source.append(viennacl::tools::make_double_kernel(vector_align1_mul_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align1_sum));
@@ -296,7 +299,6 @@ namespace viennacl
        source.append(viennacl::tools::make_double_kernel(vector_align1_plane_rotation));
        source.append(viennacl::tools::make_double_kernel(vector_align1_cpu_mult));
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_mult));
-       source.append(viennacl::tools::make_double_kernel(vector_align1_norm_inf));
        source.append(viennacl::tools::make_double_kernel(vector_align1_cpu_inplace_mult));
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align4_inplace_div_add));
@@ -352,9 +354,12 @@ namespace viennacl
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_mul_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align1_swap));
        source.append(viennacl::tools::make_double_kernel(vector_align1_cpu_mul_add));
+       #ifndef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK_ON_GPU
        source.append(viennacl::tools::make_double_kernel(vector_align1_norm_1));
        source.append(viennacl::tools::make_double_kernel(vector_align1_norm_2));
        source.append(viennacl::tools::make_double_kernel(vector_align1_index_norm_inf));
+       source.append(viennacl::tools::make_double_kernel(vector_align1_norm_inf));
+       #endif
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_divide));
        source.append(viennacl::tools::make_double_kernel(vector_align1_mul_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align1_sum));
@@ -362,7 +367,6 @@ namespace viennacl
        source.append(viennacl::tools::make_double_kernel(vector_align1_plane_rotation));
        source.append(viennacl::tools::make_double_kernel(vector_align1_cpu_mult));
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_mult));
-       source.append(viennacl::tools::make_double_kernel(vector_align1_norm_inf));
        source.append(viennacl::tools::make_double_kernel(vector_align1_cpu_inplace_mult));
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align1_inplace_div_add));
@@ -418,9 +422,12 @@ namespace viennacl
        source.append(viennacl::tools::make_double_kernel(vector_align4_inplace_mul_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align1_swap));
        source.append(viennacl::tools::make_double_kernel(vector_align4_cpu_mul_add));
+       #ifndef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK_ON_GPU
        source.append(viennacl::tools::make_double_kernel(vector_align1_norm_1));
        source.append(viennacl::tools::make_double_kernel(vector_align4_norm_2));
        source.append(viennacl::tools::make_double_kernel(vector_align1_index_norm_inf));
+       source.append(viennacl::tools::make_double_kernel(vector_align1_norm_inf));
+       #endif
        source.append(viennacl::tools::make_double_kernel(vector_align16_inplace_divide));
        source.append(viennacl::tools::make_double_kernel(vector_align1_mul_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align1_sum));
@@ -428,7 +435,6 @@ namespace viennacl
        source.append(viennacl::tools::make_double_kernel(vector_align1_plane_rotation));
        source.append(viennacl::tools::make_double_kernel(vector_align16_cpu_mult));
        source.append(viennacl::tools::make_double_kernel(vector_align16_inplace_mult));
-       source.append(viennacl::tools::make_double_kernel(vector_align1_norm_inf));
        source.append(viennacl::tools::make_double_kernel(vector_align1_cpu_inplace_mult));
        source.append(viennacl::tools::make_double_kernel(vector_align16_inplace_sub));
        source.append(viennacl::tools::make_double_kernel(vector_align4_inplace_div_add));

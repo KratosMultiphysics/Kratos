@@ -102,7 +102,7 @@ namespace viennacl
       scalar(const scalar & other) : _val(viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(TYPE)))
       {
         //copy value:
-        cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), other.handle(), handle(), 0, 0, sizeof(TYPE), 0, NULL, NULL);
+        cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), other.handle().get(), handle().get(), 0, 0, sizeof(TYPE), 0, NULL, NULL);
         CL_ERR_CHECK(err);
       }
 
@@ -111,7 +111,7 @@ namespace viennacl
       {
         TYPE tmp;
         cl_int err;
-        err = clEnqueueReadBuffer(viennacl::ocl::device().queue(), _val, CL_TRUE, 0, sizeof(TYPE), &tmp, 0, NULL, NULL);
+        err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(), _val.get(), CL_TRUE, 0, sizeof(TYPE), &tmp, 0, NULL, NULL);
         assert(err == CL_SUCCESS);
         viennacl::ocl::finish();
         return tmp;
@@ -121,7 +121,7 @@ namespace viennacl
       scalar<TYPE> & operator= (vector_entry_proxy<TYPE> const & other)
       {
         //copy value:
-        cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), handle(), other.handle(), 0, other.index(), sizeof(TYPE), 0, NULL, NULL);
+        cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), other.handle().get(), handle().get(), other.index() * sizeof(TYPE), 0, sizeof(TYPE), 0, NULL, NULL);
         CL_ERR_CHECK(err);
         return *this;
       }
@@ -130,7 +130,7 @@ namespace viennacl
       scalar<TYPE> & operator= (scalar<TYPE> const & other)
       {
         //copy value:
-        cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), other.handle(), handle(), 0, 0, sizeof(TYPE), 0, NULL, NULL);
+        cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), other.handle().get(), handle().get(), 0, 0, sizeof(TYPE), 0, NULL, NULL);
         CL_ERR_CHECK(err);
         
         return *this;

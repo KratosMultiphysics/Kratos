@@ -247,6 +247,7 @@ const char * const matrix_align1_upper_triangular_substitute_inplace =
 "  float temp; \n"
 "  for (int row = size-1; row > -1; --row) \n"
 "  { \n"
+"    barrier(CLK_GLOBAL_MEM_FENCE); \n"
 "    if (get_global_id(0) == 0) \n"
 "      vector[row] /= matrix[row*row_length+row]; \n"
 " \n"

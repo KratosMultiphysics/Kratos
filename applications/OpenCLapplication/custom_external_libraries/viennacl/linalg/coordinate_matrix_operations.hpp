@@ -44,7 +44,7 @@ namespace viennacl
                                 const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
                                 viennacl::op_prod > prod_impl(const viennacl::coordinate_matrix<SCALARTYPE, ALIGNMENT> & mat, 
                                                               const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT> & vec, 
-                                                              unsigned int NUM_THREADS)
+                                                              size_t NUM_THREADS)
     {
       return viennacl::vector_expression<const viennacl::coordinate_matrix<SCALARTYPE, ALIGNMENT>,
                                const viennacl::vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
@@ -65,7 +65,7 @@ namespace viennacl
       void prod_impl(const viennacl::coordinate_matrix<TYPE, ALIGNMENT> & mat, 
                      const viennacl::vector<TYPE, VECTOR_ALIGNMENT> & vec,
                            viennacl::vector<TYPE, VECTOR_ALIGNMENT> & result,
-                      unsigned int NUM_THREADS = 0)
+                      size_t NUM_THREADS = 0)
       {
         assert(mat.size1() == result.size());
         assert(mat.size2() == vec.size());
@@ -74,7 +74,7 @@ namespace viennacl
         //std::cout << "prod(coordinate_matrix" << ALIGNMENT << ", vector) called with internal_nnz=" << mat.internal_nnz() << std::endl;
         
         //unsigned int thread_num = 128;
-        unsigned int thread_num = 32;
+        unsigned int thread_num = 1;
         if (viennacl::ocl::device().type() == CL_DEVICE_TYPE_CPU)
         {
           thread_num = 1;
@@ -102,7 +102,6 @@ namespace viennacl
 
 
 
-    //v = A * x, TODO: Check for self-assignment
     /** @brief Implementation of the operation v1 = A * v2, where A is a matrix
     *
     * @param proxy  An expression template proxy class.
@@ -115,7 +114,7 @@ namespace viennacl
                                                                                           viennacl::op_prod> & proxy) 
     {
       // check for the special case x = A * x
-      if (proxy.get_lhs().handle() == this->handle())
+      if (proxy.get_rhs().handle().get() == this->handle().get())
       {
         viennacl::vector<SCALARTYPE, ALIGNMENT> result(proxy.get_rhs().size());
         viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);

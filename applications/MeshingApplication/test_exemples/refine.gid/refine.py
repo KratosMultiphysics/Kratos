@@ -49,7 +49,7 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 #defining a model part
 model_part = ModelPart("FluidPart");  
-
+model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 #model_part.AddNodalSolutionStepVariable(FORCE);
 #model_part.AddNodalSolutionStepVariable(NODAL_DAMAGE);
 #model_part.AddNodalSolutionStepVariable(NODAL_AREA);
@@ -114,7 +114,7 @@ Refine = LocalRefineTriangleMesh(model_part)
 
 Dt      = 0.0001
 maxtime = 3
-nsteps  = 4
+nsteps  = 10
 
 
 
@@ -128,7 +128,9 @@ for step in range(0,nsteps):
     if(step >= 3):
       
         #refinando los elementos seleccionados
-        Refine.LocalRefineMesh() 
+        refine_on_reference = True
+        interpolate_internal_variables = False
+        Refine.LocalRefineMesh(refine_on_reference,interpolate_internal_variables) 
 
         #recalculating neighbours 
         nodal_neighbour_search.Execute()

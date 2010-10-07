@@ -495,7 +495,7 @@ namespace Kratos
 			 */
 			virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
 			{	
-				PointLocalCoordinates( rResult, rPoint );
+				this->PointLocalCoordinates( rResult, rPoint );
 				if( rResult[0] >= 0.0-1.0e-8 && rResult[0] <= 1.0+1.0e-8 )
 					if( rResult[1] >= 0.0-1.0e-8 && rResult[1] <= 1.0 +1.0e-8)
 						if( rResult[2] >= -1.0-1.0e-8 && rResult[2] <= 1.0+1.0e-8 )

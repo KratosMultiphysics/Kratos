@@ -49,7 +49,7 @@ namespace viennacl
       {
         if (ptr) flags |= CL_MEM_COPY_HOST_PTR;
         cl_int err;
-        handle<cl_mem> mem = clCreateBuffer(_context, flags, size, ptr, &err);
+        handle<cl_mem> mem = clCreateBuffer(_context.get(), flags, size, ptr, &err);
         //assert(err == CL_SUCCESS);
         CL_ERR_CHECK(err);
         return mem;
@@ -58,7 +58,7 @@ namespace viennacl
       template < typename SCALARTYPE, typename A, template <typename, typename> class VectorType >
       handle<cl_mem> createMemory(cl_mem_flags flags, const VectorType<SCALARTYPE, A> & _buffer)
       {
-        return createMemory(flags, sizeof(SCALARTYPE) * _buffer.size(), (void*)&_buffer[0]);
+        return createMemory(flags, static_cast<unsigned int>(sizeof(SCALARTYPE) * _buffer.size()), (void*)&_buffer[0]);
       }
 
 
@@ -119,12 +119,10 @@ namespace viennacl
         return ret;
       }
       
-      unsigned int max_work_group_size() const { return _max_work_group_size; }
+      size_t max_work_group_size() const { return _max_work_group_size; }
       cl_uint compute_units() const { return _compute_units; }
       
       unsigned int type() const { return _type; }
-      unsigned int work_items_per_group() const { return _work_items_per_group; }
-      unsigned int work_groups() const { return _work_groups; }
 
     private:
 
@@ -142,24 +140,18 @@ namespace viennacl
         {
           //No suitable GPU found. Try to find a suitable CPU (available via ATI Stream SDK)
           err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
-          
-          //set default parameters:
           _type = CL_DEVICE_TYPE_CPU;
-          _work_items_per_group = 1;
-          _work_groups = 2;   //some experiments on a Core 2 Quad 9550 show that two work groups give good results
         }
         else
         {
           _type = CL_DEVICE_TYPE_GPU;
-          _work_items_per_group = 128;
-          _work_groups = 128;
         }
         CL_ERR_CHECK(err);
         
         //create OpenCL context for device
         _context = clCreateContext(0, 1, &device, NULL, NULL, &err);
         CL_ERR_CHECK(err);
-        default_command_queue = clCreateCommandQueue(_context, device, 0, &err);
+        default_command_queue = clCreateCommandQueue(_context.get(), device, 0, &err);
         CL_ERR_CHECK(err);
 
         //get extensions and search for double precision
@@ -167,7 +159,10 @@ namespace viennacl
         std::string extensions(buffer);
         supported_double = false;
         if (extensions.find("cl_khr_fp64") != std::string::npos
-        #ifdef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK
+        #ifdef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK_ON_CPU
+          || extensions.find("cl_amd_fp64") != std::string::npos
+        #endif
+        #ifdef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK_ON_GPU
           || extensions.find("cl_amd_fp64") != std::string::npos
         #endif
           )
@@ -193,8 +188,6 @@ namespace viennacl
       size_t _max_work_group_size;
       cl_uint _compute_units;
       
-      unsigned int _work_items_per_group;
-      unsigned int _work_groups;
       unsigned int _type; //device type
     };
 
@@ -211,14 +204,14 @@ namespace viennacl
     */
     void flush()
     {
-      clFlush(device().queue());
+      clFlush(device().queue().get());
     }
     
     /** @brief Blocks until all kernels on the device have finished
     */
     void finish()
     {
-      clFinish(device().queue());
+      clFinish(device().queue().get());
     }
     
   } //namespace ocl

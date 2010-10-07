@@ -230,7 +230,7 @@ namespace Kratos
 
 			boost::timer building_time;
 
-			Build(pScheme,r_model_part,A,b);
+			this->Build(pScheme,r_model_part,A,b);
 
 			if(BaseType::GetEchoLevel()>0)
 			{
@@ -238,7 +238,7 @@ namespace Kratos
 			}
 			
 			//apply dirichlet conditions
-			ApplyDirichletConditions(pScheme,r_model_part,A,Dx,b);
+			this->ApplyDirichletConditions(pScheme,r_model_part,A,Dx,b);
 
 			if (BaseType::GetEchoLevel()== 3)
 			{

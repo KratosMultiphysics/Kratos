@@ -198,7 +198,7 @@ namespace Kratos {
 
             BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
-            AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+            this->AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
             KRATOS_CATCH("")
         }

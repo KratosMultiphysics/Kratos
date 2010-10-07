@@ -373,7 +373,7 @@ namespace Kratos
     inline std::istream& operator >> (std::istream& IStream, 
 				      LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
     {
-      return 0;
+      return IStream;
     }
 
     /// output stream function

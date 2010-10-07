@@ -34,6 +34,7 @@ alias libtetgen : libtetgen_win : <toolset>msvc ;
 alias libtetgen : libtetgen_linux : <toolset>gcc ;
 alias libtetgen : libtetgen_linux : <toolset>intel ;
 alias libtetgen : libtetgen_linux : <toolset>sun ;
+alias libtetgen : libtetgen_linux : <toolset>clang ;
 
 lib libtriangle_win 		: : <name>libtriangle <search>custom_external_libraries/triangle/ ;
 lib libtriangle_linux 		: : <name>triangle <search>custom_external_libraries/triangle/ ;
@@ -41,6 +42,7 @@ alias libtriangle : libtriangle_win : <toolset>msvc ;
 alias libtriangle : libtriangle_linux : <toolset>gcc ;
 alias libtriangle : libtriangle_linux : <toolset>intel ;
 alias libtriangle : libtriangle_linux : <toolset>sun ;
+alias libtriangle : libtriangle_linux : <toolset>clang ;
 
 lib libmsuite_win 		: : <name>libmsuite <search>custom_external_libraries/msuite/ ;
 lib libmsuite_linux 		: : <name>msuite <search>custom_external_libraries/msuite/ ;
@@ -48,6 +50,7 @@ alias libmsuite : libmsuite_win : <toolset>msvc ;
 alias libmsuite : libmsuite_linux : <toolset>gcc ;
 alias libmsuite : libmsuite_linux : <toolset>intel ;
 alias libmsuite : libmsuite_linux : <toolset>sun ;
+alias libmsuite : libmsuite_linux : <toolset>clang ;
 
 
 #compilation of additional libraries

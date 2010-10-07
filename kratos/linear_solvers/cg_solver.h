@@ -155,7 +155,7 @@ namespace Kratos
       */
       bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 	{
-	  if(IsNotConsistent(rA, rX, rB))
+	  if(this->IsNotConsistent(rA, rX, rB))
 	    return false;
 	  
 // 	  GetTimeTable()->Start(Info());
@@ -315,7 +315,7 @@ namespace Kratos
     
 	VectorType r(size);
 	
-	PreconditionedMult(rA,rX,r);
+	this->PreconditionedMult(rA,rX,r);
 	TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
 
 	BaseType::mBNorm = TSparseSpaceType::TwoNorm(rB);
@@ -333,7 +333,7 @@ namespace Kratos
 	    
 	do
 	  {
-	    PreconditionedMult(rA,p,q);
+	    this->PreconditionedMult(rA,p,q);
 
 	    double pq = TSparseSpaceType::Dot(p,q);
 

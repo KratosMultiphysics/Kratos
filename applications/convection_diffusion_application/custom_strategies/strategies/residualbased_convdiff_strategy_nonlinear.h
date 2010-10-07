@@ -186,12 +186,17 @@ namespace Kratos
 			{
 				if(BaseType::GetModelPart().GetBufferSize() < 3)
 					KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
+										
+				double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+				
+				double rho = dt_old/Dt;
+				double coeff = 1.0/(Dt*rho*rho+Dt*rho);
 
 				rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
 				Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-				BDFcoeffs[0] =	1.5 / Dt;	//coefficient for step n+1
-				BDFcoeffs[1] =	-2.0 / Dt;//coefficient for step n
-				BDFcoeffs[2] =	0.5 / Dt;//coefficient for step n-1
+				BDFcoeffs[0] =	coeff*(rho*rho+2.0*rho);	//coefficient for step n+1
+				BDFcoeffs[1] =	-coeff*(rho*rho+2.0*rho+1.0);//coefficient for step n
+				BDFcoeffs[2] =	coeff;
 			}
 			else
 			{

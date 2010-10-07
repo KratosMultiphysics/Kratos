@@ -43,13 +43,14 @@ namespace viennacl
       assert(mat.size2() == vec.size());
 
       unsigned int pos = 0;
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, mat.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, vec.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, vec.size());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, mat.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, vec.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.setArgument(pos++, vec.size());
       
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                         viennacl::ocl::device().work_items_per_group());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.start1D(
+                                                viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.work_items_per_group(),
+                                                viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::upper_triangular_substitute_inplace.work_items_per_group());
     }
 
     /** @brief Direct inplace solver for dense upper triangular systems with unit diagonal
@@ -66,13 +67,14 @@ namespace viennacl
       assert(mat.size2() == vec.size());
 
       unsigned int pos = 0;
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, mat.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, vec.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, vec.size());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, mat.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, vec.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.setArgument(pos++, vec.size());
       
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                              viennacl::ocl::device().work_items_per_group());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.start1D(
+                                          viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.work_items_per_group(),
+                                          viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_upper_triangular_substitute_inplace.work_items_per_group());
     }
 
     //upper triangular solver for transposed lower triangular matrices
@@ -90,13 +92,14 @@ namespace viennacl
       assert(proxy.get_matrix().size2() == vec.size());
 
       unsigned int pos = 0;
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, vec.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().internal_size2());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, vec.size());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, vec.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().internal_size2());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.setArgument(pos++, vec.size());
       
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                               viennacl::ocl::device().work_items_per_group());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.start1D(
+                                              viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.work_items_per_group(),
+                                              viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_upper_triangular_substitute_inplace.work_items_per_group());
     }
     
     
@@ -116,13 +119,14 @@ namespace viennacl
       assert(mat.size2() == vec.size());
 
       unsigned int pos = 0;
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, mat.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, vec.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, vec.size());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, mat.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, vec.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.setArgument(pos++, vec.size());
       
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                         viennacl::ocl::device().work_items_per_group());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.start1D(
+                                        viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.work_items_per_group(),
+                                        viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lower_triangular_substitute_inplace.work_items_per_group());
     }
 
     /** @brief Direct inplace solver for lower triangular systems with unit diagonal
@@ -139,13 +143,14 @@ namespace viennacl
       assert(mat.size2() == vec.size());
 
       unsigned int pos = 0;
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, mat.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, vec.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, vec.size());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, mat.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, vec.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, mat.internal_size2());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.setArgument(pos++, vec.size());
       
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                              viennacl::ocl::device().work_items_per_group());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.start1D(
+                                                    viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.work_items_per_group(),
+                                                    viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::unit_lower_triangular_substitute_inplace.work_items_per_group());
     }
 
     /** @brief Direct inplace solver for dense lower triangular systems that stem from transposed upper triangular systems
@@ -162,13 +167,14 @@ namespace viennacl
       assert(proxy.get_matrix().size2() == vec.size());
 
       unsigned int pos = 0;
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, vec.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().internal_size2());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, vec.size());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, vec.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, proxy.get_matrix().internal_size2());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.setArgument(pos++, vec.size());
       
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                                               viennacl::ocl::device().work_items_per_group());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.start1D(
+                                            viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.work_items_per_group(),
+                                            viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::trans_lower_triangular_substitute_inplace.work_items_per_group());
     }
    
    
@@ -228,12 +234,13 @@ namespace viennacl
       assert(mat.size1() == mat.size2());
 
       unsigned int pos = 0;
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.setArgument(pos++, mat.handle());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.setArgument(pos++, mat.internal_size2());
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.setArgument(pos++, mat.size1());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.setArgument(pos++, mat.handle());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.setArgument(pos++, mat.internal_size2());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.setArgument(pos++, mat.size1());
       
-      kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.start1D(viennacl::ocl::device().work_items_per_group(),
-                                                                  viennacl::ocl::device().work_items_per_group());
+      viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.start1D(
+                                              viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.work_items_per_group(),
+                                              viennacl::linalg::kernels::matrix<SCALARTYPE,ALIGNMENT>::lu_factorize.work_items_per_group());
     }
 
 

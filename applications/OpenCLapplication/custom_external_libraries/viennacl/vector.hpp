@@ -109,7 +109,7 @@ namespace viennacl
         */
         vector_entry_proxy & operator=(scalar<SCALARTYPE> const & value)
         {
-          cl_int err = clEnqueueCopyBuffer(_command_queue, value.handle(), _elements, 0, sizeof(SCALARTYPE)*_index, sizeof(SCALARTYPE), 0, NULL, NULL);
+          cl_int err = clEnqueueCopyBuffer(_command_queue.get(), value.handle().get(), _elements.get(), 0, sizeof(SCALARTYPE)*_index, sizeof(SCALARTYPE), 0, NULL, NULL);
           //assert(err == CL_SUCCESS);
           CL_ERR_CHECK(err);
           return *this;
@@ -119,9 +119,9 @@ namespace viennacl
         */
         vector_entry_proxy &  operator=(vector_entry_proxy const & other)
         {
-          cl_int err = clEnqueueCopyBuffer(_command_queue,
-                                           other._elements, //src
-                                           _elements,       //dest
+          cl_int err = clEnqueueCopyBuffer(_command_queue.get(),
+                                           other._elements.get(), //src
+                                           _elements.get(),       //dest
                                            sizeof(SCALARTYPE) * other._index, //offset src
                                            sizeof(SCALARTYPE) * _index,       //offset dest
                                            sizeof(SCALARTYPE), 0, NULL, NULL);
@@ -159,7 +159,7 @@ namespace viennacl
         {
           SCALARTYPE temp;
           cl_int err;
-          err = clEnqueueReadBuffer(_command_queue, _elements, CL_TRUE, sizeof(SCALARTYPE)*_index, sizeof(SCALARTYPE), &temp, 0, NULL, NULL);
+          err = clEnqueueReadBuffer(_command_queue.get(), _elements.get(), CL_TRUE, sizeof(SCALARTYPE)*_index, sizeof(SCALARTYPE), &temp, 0, NULL, NULL);
           //assert(err == CL_SUCCESS);
           CL_ERR_CHECK(err);
           viennacl::ocl::finish();
@@ -171,7 +171,7 @@ namespace viennacl
         void write(SCALARTYPE value)
         {
           cl_int err;
-          err = clEnqueueWriteBuffer(_command_queue, _elements, CL_TRUE, sizeof(SCALARTYPE)*_index, sizeof(SCALARTYPE), &value, 0, NULL, NULL);
+          err = clEnqueueWriteBuffer(_command_queue.get(), _elements.get(), CL_TRUE, sizeof(SCALARTYPE)*_index, sizeof(SCALARTYPE), &value, 0, NULL, NULL);
           //assert(err == CL_SUCCESS);
           CL_ERR_CHECK(err);
         }
@@ -251,26 +251,39 @@ namespace viennacl
         *   @param vec    The vector over which to iterate
         *   @param index  The starting index of the iterator
         */        
-        const_vector_iterator(vector<SCALARTYPE, ALIGNMENT> const & vec, unsigned int index) : _index(index), _vec(vec) {};
+        const_vector_iterator() {};
+        const_vector_iterator(vector<SCALARTYPE, ALIGNMENT> const & vec,      unsigned int index)  : _elements(vec.handle()), _index(index) {};
+        const_vector_iterator(viennacl::ocl::handle<cl_mem> const & elements, unsigned int index)  : _elements(elements), _index(index) {};
+
         
-        value_type operator*(void) const { return _vec[_index]; }
-        self_type & operator++(void) { ++_index; return *this; }
-        self_type & operator++(int) { self_type tmp = *this; ++(*this); return tmp; }
+        value_type operator*(void) const 
+        { 
+           value_type result;
+           result = vector_entry_proxy<SCALARTYPE>(_index, viennacl::ocl::device().queue(), _elements);
+           return result;
+        }
+        self_type operator++(void) { ++_index; return *this; }
+        self_type operator++(int) { self_type tmp = *this; ++(*this); return tmp; }
         
-        bool operator==(self_type const & other) { return _index == other._scalar; }
-        bool operator!=(self_type const & other) { return _index != other._scalar; }
+        bool operator==(self_type const & other) { return _index == other._index; }
+        bool operator!=(self_type const & other) { return _index != other._index; }
         
+//        self_type & operator=(self_type const & other)
+//        {
+//           _index = other._index;
+//           _elements = other._elements;
+//           return *this;
+//        }   
+
         difference_type operator-(self_type const & other) const { difference_type result = _index; return result - other._index; }
-        self_type operator+(difference_type diff) const { return self_type(_vec, _index + diff); }
+        self_type operator+(difference_type diff) const { return self_type(_elements, _index + diff); }
         
-        vector<SCALARTYPE, ALIGNMENT> const & get_vector_readable() const { return _vec; }
+        viennacl::ocl::handle<cl_mem> const & handle() const { return _elements; }
 
       protected:
         /** @brief  The index of the entry the iterator is currently pointing to */
+        viennacl::ocl::handle<cl_mem> _elements;
         unsigned int _index;
-
-      private:
-        vector<SCALARTYPE, ALIGNMENT> const & _vec;
     };
     
 
@@ -303,19 +316,25 @@ namespace viennacl
         *   @param vec    The vector over which to iterate
         *   @param index  The starting index of the iterator
         */        
-        vector_iterator(vector<SCALARTYPE, ALIGNMENT> & vec, unsigned int index) : base_type(vec, index), _vec(vec) {};
+        vector_iterator() : base_type(){};
+        vector_iterator(viennacl::ocl::handle<cl_mem> const & elements, unsigned int index)  : base_type(elements, index) {};
+        vector_iterator(vector<SCALARTYPE, ALIGNMENT> & vec, unsigned int index) : base_type(vec, index) {};
 
-        vector_entry_proxy<SCALARTYPE> operator*(void) { return _vec[base_type::_index]; }
+        //vector_entry_proxy<SCALARTYPE> operator*(void) { return _vec[base_type::_index]; }
+        typename base_type::value_type operator*(void)  
+        { 
+           typename base_type::value_type result;
+           result = vector_entry_proxy<SCALARTYPE>(base_type::_index, viennacl::ocl::device().queue(),base_type::_elements); 
+           return result;
+        }
         
-        vector<SCALARTYPE, ALIGNMENT> & get_vector_writeable() const { return _vec; }
+//        vector<SCALARTYPE, ALIGNMENT> & get_vector_writeable() const { return _vec; }
+        viennacl::ocl::handle<cl_mem> handle() { return base_type::_elements; }
         
         operator base_type() const
         {
-          return base_type(_vec, base_type::_index);
+          return base_type(base_type::_elements, base_type::_index);
         }
-      
-      private:
-        vector<SCALARTYPE, ALIGNMENT> & _vec;
     };
 
     // forward definition in VCLForwards.h!
@@ -356,7 +375,7 @@ namespace viennacl
         if (_size < _internal_size)
         {
           std::vector<SCALARTYPE> temp(_internal_size - _size);
-          cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _elements, CL_TRUE, sizeof(SCALARTYPE)*_size, sizeof(SCALARTYPE)*(_internal_size - _size), &(temp[0]), 0, NULL, NULL);
+          cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _elements.get(), CL_TRUE, sizeof(SCALARTYPE)*_size, sizeof(SCALARTYPE)*(_internal_size - _size), &(temp[0]), 0, NULL, NULL);
           //assert(err == CL_SUCCESS);
           CL_ERR_CHECK(err);
         }
@@ -375,7 +394,7 @@ namespace viennacl
         {
           _elements = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*_internal_size);
           cl_int err;
-          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), vec.handle(), _elements, 0, 0, sizeof(SCALARTYPE)*_internal_size, 0, NULL, NULL);
+          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), vec.handle().get(), _elements.get(), 0, 0, sizeof(SCALARTYPE)*_internal_size, 0, NULL, NULL);
           //assert(err == CL_SUCCESS);
           CL_ERR_CHECK(err);
         }
@@ -389,7 +408,7 @@ namespace viennacl
         if (size() != 0)
         {
           cl_int err;
-          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), vec.handle(), _elements, 0, 0, sizeof(SCALARTYPE)*_internal_size, 0, NULL, NULL);
+          err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), vec.handle().get(), _elements.get(), 0, 0, sizeof(SCALARTYPE)*_internal_size, 0, NULL, NULL);
           CL_ERR_CHECK(err);
         }
         return *this;
@@ -695,19 +714,19 @@ namespace viennacl
               _elements = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*new_internal_size);
               //set new memory to zero:
               std::vector<SCALARTYPE> temp(new_internal_size);
-              cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _elements, CL_TRUE, 0, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
+              cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _elements.get(), CL_TRUE, 0, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
             }
             else
             {
               viennacl::ocl::handle<cl_mem> _elements_old = _elements;
               _elements = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*new_internal_size);
-              cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), _elements_old, _elements, 0, 0, sizeof(SCALARTYPE)*_size, 0, NULL, NULL);
+              cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), _elements_old.get(), _elements.get(), 0, 0, sizeof(SCALARTYPE)*_size, 0, NULL, NULL);
               CL_ERR_CHECK(err);
               
               //set new memory to zero:
               std::vector<SCALARTYPE> temp(new_internal_size - _size);
-              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _elements, CL_TRUE, sizeof(SCALARTYPE)*_size, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
+              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _elements.get(), CL_TRUE, sizeof(SCALARTYPE)*_size, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
             }
             _internal_size = new_internal_size;
@@ -716,14 +735,14 @@ namespace viennacl
           {
             viennacl::ocl::handle<cl_mem> _elements_old = _elements;
             _elements = viennacl::ocl::device().createMemory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*new_internal_size);
-            cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), _elements_old, _elements, 0, 0, sizeof(SCALARTYPE)*new_size, 0, NULL, NULL);
+            cl_int err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), _elements_old.get(), _elements.get(), 0, 0, sizeof(SCALARTYPE)*new_size, 0, NULL, NULL);
             CL_ERR_CHECK(err);
 
             //set padded memory to zero:
             if (new_internal_size > new_size)
             {
               std::vector<SCALARTYPE> temp(new_internal_size - new_size);
-              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _elements, CL_TRUE, sizeof(SCALARTYPE)*new_size, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
+              err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _elements.get(), CL_TRUE, sizeof(SCALARTYPE)*new_size, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
             }
             
@@ -731,11 +750,12 @@ namespace viennacl
           }
           else  //same internal size, thus no memory creation needed, but unused memory must be set to zero:
           {
-            if (_internal_size > new_size)
+            if (_size != new_size && _internal_size > new_size)
             {
               std::vector<SCALARTYPE> temp(_internal_size - new_size);
-              cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), _elements, CL_TRUE, sizeof(SCALARTYPE)*new_size, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
+              cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), _elements.get(), CL_TRUE, sizeof(SCALARTYPE)*new_size, sizeof(SCALARTYPE)*temp.size(), &(temp[0]), 0, NULL, NULL);
               CL_ERR_CHECK(err);
+              viennacl::ocl::finish();
             }
           }
           
@@ -766,7 +786,7 @@ namespace viennacl
       {
         scalar<SCALARTYPE> tmp;
         cl_int err;
-        err = clEnqueueCopyBuffer(viennacl::ocl::device().queue(), _elements, tmp.handle(), sizeof(SCALARTYPE)*index, 0, sizeof(SCALARTYPE), 0, NULL, NULL);
+        err = clEnqueueCopyBuffer(viennacl::ocl::device().queue().get(), _elements.get(), tmp.handle().get(), sizeof(SCALARTYPE)*index, 0, sizeof(SCALARTYPE), 0, NULL, NULL);
         //assert(err == CL_SUCCESS);
         CL_ERR_CHECK(err);
         return tmp;
@@ -1123,8 +1143,7 @@ namespace viennacl
         viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::clear.setArgument(pos++, _elements);
         viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::clear.setArgument(pos++, _internal_size);
         
-        viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::clear.start1D(viennacl::ocl::device().work_groups() * viennacl::ocl::device().work_items_per_group(),
-                                                                                viennacl::ocl::device().work_items_per_group());
+        viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::clear.start1D();
       }
       //void swap(vector & other){}
       
@@ -1153,11 +1172,11 @@ namespace viennacl
               const const_vector_iterator<SCALARTYPE, ALIGNMENT> & gpu_end,
               CPU_ITERATOR cpu_begin )
     {
-      if (gpu_begin.get_vector_readable().size() != 0)
+      if (gpu_end - gpu_begin != 0)
       {
         std::vector<SCALARTYPE> temp_buffer(gpu_end - gpu_begin);
-        cl_int err = clEnqueueReadBuffer(viennacl::ocl::device().queue(),
-                                         gpu_begin.get_vector_readable().handle(), CL_TRUE, 0, 
+        cl_int err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(),
+                                         gpu_begin.handle().get(), CL_TRUE, 0, 
                                          sizeof(SCALARTYPE)*(gpu_end - gpu_begin),
                                          &(temp_buffer[0]), 0, NULL, NULL);
         CL_ERR_CHECK(err);
@@ -1178,6 +1197,7 @@ namespace viennacl
     void copy(const vector_iterator<SCALARTYPE, ALIGNMENT> & gpu_begin,
               const vector_iterator<SCALARTYPE, ALIGNMENT> & gpu_end,
               CPU_ITERATOR cpu_begin )
+
     {
       copy(const_vector_iterator<SCALARTYPE, ALIGNMENT>(gpu_begin),
            const_vector_iterator<SCALARTYPE, ALIGNMENT>(gpu_end),
@@ -1215,8 +1235,8 @@ namespace viennacl
     {
       if (gpu_begin.get_vector().size() != 0)
       {
-        cl_int err = clEnqueueReadBuffer(viennacl::ocl::device().queue(),
-                                         gpu_begin.get_vector_readable().handle(), CL_TRUE, 0,
+        cl_int err = clEnqueueReadBuffer(viennacl::ocl::device().queue().get(),
+                                         gpu_begin.get_vector_readable().handle().get(), CL_TRUE, 0,
                                          sizeof(SCALARTYPE)*(gpu_end - gpu_begin),
                                          &(*cpu_begin), 0, NULL, NULL);
         CL_ERR_CHECK(err);
@@ -1235,15 +1255,15 @@ namespace viennacl
     template <typename SCALARTYPE, unsigned int ALIGNMENT, typename CPU_ITERATOR>
     void copy(CPU_ITERATOR const & cpu_begin,
               CPU_ITERATOR const & cpu_end,
-              const vector_iterator<SCALARTYPE, ALIGNMENT> & gpu_begin)
+              vector_iterator<SCALARTYPE, ALIGNMENT> gpu_begin)
     {
       if (cpu_begin != cpu_end)
       {
         //we require that the size of the gpu_vector is larger or equal to the cpu-size
         std::vector<SCALARTYPE> temp_buffer(cpu_end - cpu_begin);
         std::copy(cpu_begin, cpu_end, temp_buffer.begin());
-        cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(),
-                                          gpu_begin.get_vector_writeable().handle(), CL_TRUE, 0,
+        cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(),
+                                          gpu_begin.handle().get(), CL_TRUE, 0,
                                           sizeof(SCALARTYPE)*(cpu_end - cpu_begin),
                                           &(temp_buffer[0]), 0, NULL, NULL);
         CL_ERR_CHECK(err);
@@ -1258,7 +1278,7 @@ namespace viennacl
     template <typename SCALARTYPE, unsigned int ALIGNMENT, typename CPUVECTOR>
     void copy(const CPUVECTOR & cpu_vec, vector<SCALARTYPE, ALIGNMENT> & gpu_vec)
     {
-      copy(cpu_vec.begin(), cpu_vec.end(), gpu_vec.begin());
+      viennacl::copy(cpu_vec.begin(), cpu_vec.end(), gpu_vec.begin());
     }
 
     
@@ -1281,8 +1301,8 @@ namespace viennacl
       if (cpu_begin != cpu_end)
       {
         //we require that the size of the gpu_vector is larger or equal to the cpu-size
-        cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue(), 
-                                          gpu_begin.get_vector_writeable().handle(), CL_TRUE, 0, 
+        cl_int err = clEnqueueWriteBuffer(viennacl::ocl::device().queue().get(), 
+                                          gpu_begin.get_vector_writeable().handle().get(), CL_TRUE, 0, 
                                           sizeof(SCALARTYPE)*(cpu_end - cpu_begin), &(*cpu_begin), 0, NULL, NULL);
         CL_ERR_CHECK(err);
       }
@@ -1319,7 +1339,7 @@ namespace viennacl
     template<class SCALARTYPE, unsigned int ALIGNMENT>
     void swap(viennacl::vector<SCALARTYPE, ALIGNMENT> & vec1,
               viennacl::vector<SCALARTYPE, ALIGNMENT> & vec2, 
-              unsigned int NUM_THREADS = viennacl::ocl::device().work_items_per_group())
+              size_t NUM_THREADS = 0)
     {
       assert(vec1.size() == vec2.size());
 
@@ -1328,7 +1348,10 @@ namespace viennacl
       viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::swap.setArgument(pos++, vec2.handle());
       viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::swap.setArgument(pos++, vec1.size());
 
-      viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::swap.start1D(viennacl::ocl::device().work_groups() * NUM_THREADS, NUM_THREADS);
+      if (NUM_THREADS == 0)
+        viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::swap.start1D();
+      else
+        viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::swap.start1D(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::swap.work_groups() * NUM_THREADS, NUM_THREADS);
     }
     
     
@@ -1438,7 +1461,7 @@ namespace viennacl
     vector<SCALARTYPE> operator * (vector_expression< LHS, RHS, OP> const & proxy,
                                    scalar<SCALARTYPE> const & val)
     {
-      vector<SCALARTYPE> result;
+      vector<SCALARTYPE> result(proxy.size());
       result = proxy;
       result *= val;
       return result;
@@ -1453,7 +1476,7 @@ namespace viennacl
     vector<SCALARTYPE> operator / (vector_expression< LHS, RHS, OP> const & proxy,
                                       scalar<SCALARTYPE> const & val)
     {
-      vector<SCALARTYPE> result;
+      vector<SCALARTYPE> result(proxy.size());
       result = proxy;
       result /= val;
       return result;
@@ -1471,7 +1494,7 @@ namespace viennacl
     vector<SCALARTYPE> operator * (scalar<SCALARTYPE> const & val,
                                    vector_expression< LHS, RHS, OP> const & proxy)
     {
-      vector<SCALARTYPE> result;
+      vector<SCALARTYPE> result(proxy.size());
       result = proxy;
       result *= val;
       return result;
@@ -1486,7 +1509,7 @@ namespace viennacl
     viennacl::vector<SCALARTYPE> operator * (SCALARTYPE val,
                                    viennacl::vector_expression< LHS, RHS, OP> const & proxy)
     {
-      viennacl::vector<SCALARTYPE> result;
+      viennacl::vector<SCALARTYPE> result(proxy.size());
       result = proxy;
       result *= val;
       return result;

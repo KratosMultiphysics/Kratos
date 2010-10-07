@@ -161,7 +161,7 @@ namespace Kratos
       */
       bool Solve(SparseMatrixType& rA, SparseVectorType& rX, SparseVectorType& rB)
 	{
-	  if(IsNotConsistent(rA, rX, rB))
+	  if(this->IsNotConsistent(rA, rX, rB))
 	    return false;
 	  
 // 	  GetTimeTable()->Start(Info());
@@ -416,7 +416,7 @@ namespace Kratos
 	SparseVectorType th(size2), dh(size2);
 
 	// r = rA * rX
-	PreconditionedMult(rA, rX, r);
+	this->PreconditionedMult(rA, rX, r);
 
 	// r = rB - r
 	TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
@@ -436,14 +436,14 @@ namespace Kratos
 	TSparseSpaceType::ScaleAndAdd(1.00, t, 1.00, rX);
 
 	//r = rA * rX
-	PreconditionedMult(rA, rX, r);
+	this->PreconditionedMult(rA, rX, r);
 
 	// r = B - r
 	TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
 
 	// t = A * r
 	//TSparseSpaceType::Mult(rA, r, t);
-	PreconditionedMult(rA, r, t);
+	this->PreconditionedMult(rA, r, t);
 
 	// th = W^T * t
 	TSparseSpaceType::TransposeMult(W, t, th);
@@ -475,7 +475,7 @@ namespace Kratos
 	    
 	do
 	  {
-	    PreconditionedMult(rA, p, q);
+	    this->PreconditionedMult(rA, p, q);
 
 	    double pq = TSparseSpaceType::Dot(p, q);
 
@@ -496,7 +496,7 @@ namespace Kratos
 
 	    // t = A * r
 	    //TSparseSpaceType::Mult(rA, r, t);
-	    PreconditionedMult(rA, r, t);
+	    this->PreconditionedMult(rA, r, t);
 
 	    // th = W^T * t
 	    TSparseSpaceType::TransposeMult(W, t, th);

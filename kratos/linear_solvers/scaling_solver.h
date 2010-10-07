@@ -157,7 +157,7 @@ namespace Kratos
       */
       bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 	{
-	  if(IsNotConsistent(rA, rX, rB))
+	  if(this->IsNotConsistent(rA, rX, rB))
 	    return false;
 
           VectorType scaling_vector(rX.size());

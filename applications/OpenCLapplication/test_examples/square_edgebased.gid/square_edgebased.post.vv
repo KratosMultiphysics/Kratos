@@ -3,9 +3,9 @@ BeginZE /home/rrossi/kratos/applications/OpenCLapplication/test_examples/square_
    y 0.726483 -0.726483
    z -2.17945 2.17945
    e 0.726483
-   v 0 0 0
-   r 1
-   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   v 2.18557e-08 1.91069e-15 -8.74228e-08
+   r -1
+   m 1 -1.74846e-07 -7.64274e-15 0 1.74846e-07 1 4.37114e-08 0 0 -4.37114e-08 1 0 0 0 0 1
    c 0 0 0
    pd 0
    pno 0
@@ -48,13 +48,13 @@ BeginSingleMesh
     Color Shininess: 0.3
     Property Massive: 0
     Property Transparent: 0
-    Property Style: 14
+    Property Style: 13
     Property Edge Width: 1
     Property Vector Filter Factor: 0
     Property Stream Arrow: 0
   EndSet: 0
 EndSingleMesh
-  ResultView: {Id 45} {Contour Fill} Kratos 19.705900192260742 DISTANCE DISTANCE 0.0
+  ResultView: {Id 167} {No results} {} {} {} {}
   Post_Prefs_Vector_Size: 0 32 32 32
 EndPostState
 

@@ -195,7 +195,7 @@ class ULF_FSISolver:
         print "succesful solution of the fluid "
 
         reduction_factor = 0.5
-        max_reduction_steps = 5
+        max_reduction_steps = 0
         time_reduction_step = 0
         while(inverted_elements == True and time_reduction_step <= max_reduction_steps):
             print " *************************************************** "
@@ -225,33 +225,33 @@ class ULF_FSISolver:
             (self.solver).Solve(self.domain_size,self.UlfUtils)
             [inverted_elements,vol] = self.CheckForInvertedElements()            
 
-        if(inverted_elements == True):
-            
-            print "***********************************************************************"
-            print "***********************************************************************"
-            print "CRITICAL: ... element is still inverted after reducing the time step"
-            print "***********************************************************************"
-            print "***********************************************************************"
-            factor = 2.0**5 #this is the original time step
-            (self.UlfUtils).ReduceTimeStep(self.combined_model_part,factor);
-            (self.UlfUtils).ReduceTimeStep(self.fluid_model_part,factor);
-            (self.UlfUtils).ReduceTimeStep(self.structure_model_part,factor);
-            
-##            for node in (self.combined_model_part).Nodes:
-##                pold = node.GetSolutionStepValue(PRESSURE,1);
-##                dispold = node.GetSolutionStepValue(DISPLACEMENT,1);
-##                velold = node.GetSolutionStepValue(VELOCITY,1);
-##                accold = node.GetSolutionStepValue(ACCELERATION,1);
+##        if(inverted_elements == True):
+##            
+##            print "***********************************************************************"
+##            print "***********************************************************************"
+##            print "CRITICAL: ... element is still inverted after reducing the time step"
+##            print "***********************************************************************"
+##            print "***********************************************************************"
+##            factor = 2.0**5 #this is the original time step
+##            (self.UlfUtils).ReduceTimeStep(self.combined_model_part,factor);
+##            (self.UlfUtils).ReduceTimeStep(self.fluid_model_part,factor);
+##            (self.UlfUtils).ReduceTimeStep(self.structure_model_part,factor);
+##            
+####            for node in (self.combined_model_part).Nodes:
+####                pold = node.GetSolutionStepValue(PRESSURE,1);
+####                dispold = node.GetSolutionStepValue(DISPLACEMENT,1);
+####                velold = node.GetSolutionStepValue(VELOCITY,1);
+####                accold = node.GetSolutionStepValue(ACCELERATION,1);
+####
+####                node.SetSolutionStepValue(PRESSURE,0,pold);
+####                node.SetSolutionStepValue(DISPLACEMENT,0,dispold);
+####                node.SetSolutionStepValue(VELOCITY,0,velold);
+####                node.SetSolutionStepValue(ACCELERATION,0,accold);
 ##
-##                node.SetSolutionStepValue(PRESSURE,0,pold);
-##                node.SetSolutionStepValue(DISPLACEMENT,0,dispold);
-##                node.SetSolutionStepValue(VELOCITY,0,velold);
-##                node.SetSolutionStepValue(ACCELERATION,0,accold);
-
-            self.solver.MoveMesh()
-
-            print "advancing in time without doing anything..."
-            (self.solver).PredictionStep(self.domain_size,self.UlfUtils)
+##            self.solver.MoveMesh()
+##
+##            print "advancing in time without doing anything..."
+##            (self.solver).PredictionStep(self.domain_size,self.UlfUtils)
             
                             
         #print "pressure contribution process" - to be executed using exclusively fluid elements
@@ -281,10 +281,10 @@ class ULF_FSISolver:
         #mark outer nodes for erasing
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         #adaptivity=True
-        h_factor=0.5
+        h_factor=0.25 #0.5
         if (self.remeshing_flag==1.0):
             if (self.domain_size == 2):
-                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
             elif (self.domain_size == 3):
                 (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
        

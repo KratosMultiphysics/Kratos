@@ -29,11 +29,11 @@ namespace viennacl
     {
     public:
       program() {}
-      program(const handle<cl_program> & _prog) : h(_prog) {}
+      program(const viennacl::ocl::handle<cl_program> & _prog) : h(_prog) {}
       
-      program & operator=(const handle<cl_program> & _prog) { h = _prog; return *this; }
+      program & operator=(const viennacl::ocl::handle<cl_program> & _prog) { h = _prog; return *this; }
 
-      const handle<cl_program> & get() const { return h; }
+      const viennacl::ocl::handle<cl_program> & handle() const { return h; }
 
       void create(const char * source)
       {
@@ -50,7 +50,7 @@ namespace viennacl
         //std::cout << _source << std::endl;
 
         cl_int err;
-        h = clCreateProgramWithSource(device().context(), 1, (const char **)&source_text, &source_size, &err);
+        h = clCreateProgramWithSource(device().context().get(), 1, (const char **)&source_text, &source_size, &err);
         //if (err != CL_SUCCESS)
           //std::cerr << _source << std::endl;
         //assert(err == CL_SUCCESS);
@@ -58,18 +58,18 @@ namespace viennacl
         //Timer watch;
         //double cpu_time = watch.get();
         //err = clBuildProgram(prog, 0, NULL, "-cl-mad-enable", NULL, NULL);
-        err = clBuildProgram(h, 0, NULL, NULL, NULL, NULL);
+        err = clBuildProgram(h.get(), 0, NULL, NULL, NULL, NULL);
         //std::cout << "Build time: " << watch.get() - cpu_time << std::endl;
         //assert(err == CL_SUCCESS);
         //if (err != CL_SUCCESS)
         //  std::cerr << _source << std::endl;
         
         //additional debug info
-        #ifdef VCL_BUILD_INFO
+        #ifdef VIENNACL_BUILD_INFO
         char buffer[1024];
         cl_build_status status;
-        clGetProgramBuildInfo(h, device().id(), CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, NULL);
-        clGetProgramBuildInfo(h, device().id(), CL_PROGRAM_BUILD_LOG, sizeof(char)*1024, &buffer, NULL);
+        clGetProgramBuildInfo(h.get(), device().id(), CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, NULL);
+        clGetProgramBuildInfo(h.get(), device().id(), CL_PROGRAM_BUILD_LOG, sizeof(char)*1024, &buffer, NULL);
         std::cout << "Build Scalar: Err = " << err << " Status = " << status << std::endl;
         std::cout << "Log: " << buffer << std::endl;
         #endif
@@ -78,7 +78,7 @@ namespace viennacl
       }
 
     private:
-      handle<cl_program> h;
+      viennacl::ocl::handle<cl_program> h;
     };
   } //namespace ocl
 } //namespace viennacl
