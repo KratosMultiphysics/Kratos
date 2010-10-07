@@ -77,7 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "soft_hard_behavior/exponencial_softening.h"
-#include "soft_hard_behavior/lineal_softening.h"
+#include "soft_hard_behavior/linear_softening.h"
 
 
 
@@ -163,8 +163,8 @@ namespace Kratos
 			      init<> () )
 			      ; 
 
-			      class_<Lineal_Softening, bases< SofteningHardeningCriteriaType>, boost::noncopyable >
-			      ("LinealSoftening",
+			      class_<Linear_Softening, bases< SofteningHardeningCriteriaType>, boost::noncopyable >
+			      ("LinearSoftening",
 			      init<> () )
 			      ; 
 
