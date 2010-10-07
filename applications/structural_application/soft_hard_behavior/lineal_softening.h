@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
-#if !defined( KRATOS_LINEAL_SOFTENING_CRITERIA)
-#define KRATOS_LINEAL_SOFTENING_CRITERIA
+#if !defined( KRATOS_LINEAR_SOFTENING_CRITERIA)
+#define KRATOS_LINEAR_SOFTENING_CRITERIA
 
 /* System includes */
 
@@ -69,11 +69,12 @@ namespace Kratos
 	    {
 	    
 		public: 
-		  Lineal_Softening();
+		   Lineal_Softening();
 		  ~Lineal_Softening();
                    KRATOS_CLASS_POINTER_DEFINITION(Lineal_Softening);
-                   double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
+//                    double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
                    void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result); 
+		   double Calculate(Vector& Imput_Parameters);
            };    
     
 
