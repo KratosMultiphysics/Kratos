@@ -48,6 +48,10 @@ int main(int argc, char *argv[])
 	cl_uint InputBuffer = OCLDeviceGroup.CreateBuffer(DataSize / OCLDeviceGroup.DeviceNo * sizeof(double), CL_MEM_READ_ONLY);  // This will return 0, but we do not want to memorize it ourselves!
 	cl_uint OutputBuffer = OCLDeviceGroup.CreateBuffer(DataSize / OCLDeviceGroup.DeviceNo * sizeof(double), CL_MEM_WRITE_ONLY);  // This will return 1, but we do not want to memorize it ourselves!
 
+	std::cout << "Creating the sub-buffers..." << std::endl;
+	cl_uint InputSubBuffer = OCLDeviceGroup.CreateSubBuffer(InputBuffer, DataSize / 2, DataSize / 2);
+	cl_uint OutputSubBuffer = OCLDeviceGroup.CreateSubBuffer(OutputBuffer, DataSize / 2, DataSize / 2);
+
 	std::cout << "Copying the data to the device(s)..." << std::endl;
 	for (cl_uint i = 0; i < OCLDeviceGroup.DeviceNo; i++)
 	{
@@ -59,8 +63,8 @@ int main(int argc, char *argv[])
 	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel1, 1, OutputBuffer);
 	OCLDeviceGroup.SetKernelArg(TestKernel1, 2, Offset);
 
-	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel2, 0, InputBuffer);
-	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel2, 1, OutputBuffer);
+	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel2, 0, InputSubBuffer);
+	OCLDeviceGroup.SetBufferAsKernelArg(TestKernel2, 1, OutputSubBuffer);
 	OCLDeviceGroup.SetKernelArg(TestKernel2, 2, Offset);
 
 	double OCLTimer1 = TIMER();
@@ -90,7 +94,7 @@ int main(int argc, char *argv[])
 	double OCLTimer2 = TIMER();
 
 	std::cout << "Executing kernel 2..." << std::endl;
-	OCLDeviceGroup.ExecuteKernel(TestKernel2, DataSize / OCLDeviceGroup.DeviceNo);
+	OCLDeviceGroup.ExecuteKernel(TestKernel2, DataSize / 2 / OCLDeviceGroup.DeviceNo);
 
 	OCLTimer2 = TIMER() - OCLTimer2;
 
