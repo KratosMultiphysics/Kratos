@@ -307,7 +307,7 @@ namespace OpenCL
 			//
 			// Constructor using a device type
 
-			DeviceGroup(cl_device_type _DeviceType, bool _SingleDeviceOnly = true, const char *_PlatformVendor = ""): DeviceType(_DeviceType)
+			DeviceGroup(cl_device_type _DeviceType, bool _SingleDeviceOnly, const char *_PlatformVendor = ""): DeviceType(_DeviceType)
 			{
 				_Init(_SingleDeviceOnly, _PlatformVendor);
 			}
@@ -531,6 +531,74 @@ namespace OpenCL
 			}
 
 			//
+			// CreateSubBuffer
+			//
+			// Creates a sub-buffer on all devices
+
+			cl_uint CreateBuffer(cl_uint _BufferIndex, size_t _Offset, size_t _Size)
+			{
+				cl_int Err;
+				cl_uint BufferNo = Buffers.size();
+
+				MemList CurrentBuffers(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					cl_mem_flags Flags;
+					cl_buffer_region Region;
+
+					// Get flags of original buffer
+					Err = clGetMemObjectInfo(Buffers[_BufferIndex][i], CL_MEM_FLAGS, sizeof(Flags), &Flags, NULL);
+					KRATOS_OCL_CHECK(Err);
+
+					Region.origin = _Offset;
+					Region.size = _Size;
+
+					CurrentBuffers[i] = clCreateSubBuffer(Buffers[_BufferIndex][i], Flags, CL_BUFFER_CREATE_TYPE_REGION, &Region, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Buffers.push_back(CurrentBuffers);
+				BufferLengths.push_back(SizeTList(DeviceNo, _Size));
+
+				return BufferNo;
+			}
+
+			//
+			// CreateSubBuffer
+			//
+			// Allocates a buffer on all devices with given offsets and sizes
+
+			cl_uint CreateSubBuffer(cl_uint _BufferIndex, SizeTList _Offsets, SizeTList _Sizes)
+			{
+				cl_int Err;
+				cl_uint BufferNo = Buffers.size();
+
+				MemList CurrentBuffers(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					cl_mem_flags Flags;
+					cl_buffer_region Region;
+
+					// Get flags of original buffer
+					Err = clGetMemObjectInfo(Buffers[_BufferIndex][i], CL_MEM_FLAGS, sizeof(Flags), &Flags, NULL);
+					KRATOS_OCL_CHECK(Err);
+
+					Region.origin = _Offsets[i];
+					Region.size = _Sizes[i];
+
+					CurrentBuffers[i] = clCreateSubBuffer(Buffers[_BufferIndex][i], Flags, CL_BUFFER_CREATE_TYPE_REGION, &Region, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Buffers.push_back(CurrentBuffers);
+				BufferLengths.push_back(_Sizes);
+
+				return BufferNo;
+			}
+
+			//
 			// CreateBufferWithHostPtrs
 			//
 			// Allocates a buffer on all devices
@@ -696,10 +764,14 @@ namespace OpenCL
 
 					if (Err == CL_BUILD_PROGRAM_FAILURE)
 					{
-						char CharData[1024];
+						char CharData[10240];
 
 						Err = clGetProgramBuildInfo(CurrentPrograms[i], DeviceIDs[i], CL_PROGRAM_BUILD_LOG, sizeof(CharData), CharData, NULL);
 						KRATOS_OCL_CHECK(Err);
+
+						std::cout <<
+							"Build log:" << std::endl <<
+							CharData << std::endl;
 
 						KRATOS_OCL_CHECK(CL_BUILD_PROGRAM_FAILURE);
 					}
