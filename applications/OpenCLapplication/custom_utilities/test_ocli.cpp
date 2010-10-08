@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "Loading kernels from source files..." << std::endl;
 	cl_uint TestProgram1 = OCLDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-unsafe-math-optimizations");  // This will return 0, but we do not want to memorize it ourselves!
-	cl_uint TestProgram2 = OCLDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-unsafe-math-optimizations");  // This will return 1, but we do not want to memorize it ourselves!
+	cl_uint TestProgram2 = OCLDeviceGroup.BuildProgramFromFile("opencl_pure_convection_edgebased.cl", "-cl-unsafe-math-optimizations");  // This will return 1, but we do not want to memorize it ourselves!
 
 	std::cout << "Registering kernels..." << std::endl;
 	cl_uint TestKernel1 = OCLDeviceGroup.RegisterKernel(TestProgram1, "Test");  // This will return 0, but we do not want to memorize it ourselves!
