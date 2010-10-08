@@ -1,6 +1,7 @@
 using gcc ;
 using intel : : : <cxxflags>"-fPIC -ansi -funroll-loops -cxxlib-gcc -openmp -wd654 -wd10010" <cflags>"-fPIC -funroll-loops -cxxlib-gcc -openmp -wd654 -wd10010" ;
 using sun : : : <cflags>" -w  -DBOOST_UBLAS_UNSUPPORTED_COMPILER=0"  <cxxflags>" -w  -DBOOST_UBLAS_UNSUPPORTED_COMPILER=0" <linkflags>" -w  -DBOOST_UBLAS_UNSUPPORTED_COMPILER=0" ;
+using clang : : : <cflags>"-fPIC -funroll-loops" <cxxflags>"-fPIC -ansi -funroll-loops -ffast-math -Wno-unknown-pragmas" ;
 ##using msvc ;
 using python ; 
 
@@ -105,6 +106,7 @@ alias libomp : intelomp : <toolset>intel ;
 alias libomp : : <toolset>gcc ;
 alias libomp : : <toolset>msvc ;
 alias libomp : : <toolset>sun ;
+alias libomp : : <toolset>clang ;
 
 ## MPI LIBRARIES - comment out if using mpi is not required
 ##lib mpilibrary : : <name>mpi <search>$(MPI_LIB_DIR) ;
