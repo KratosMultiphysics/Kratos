@@ -535,7 +535,7 @@ namespace OpenCL
 			//
 			// Creates a sub-buffer on all devices
 
-			cl_uint CreateBuffer(cl_uint _BufferIndex, size_t _Offset, size_t _Size)
+			cl_uint CreateSubBuffer(cl_uint _BufferIndex, size_t _Offset, size_t _Size)
 			{
 				cl_int Err;
 				cl_uint BufferNo = Buffers.size();
