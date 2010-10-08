@@ -16,6 +16,7 @@
 
 #include <cstdlib> // qsort, malloc/free
 #include "pline.h" // plines para array1h
+#include <cstring>
 
 //template <class c> class array1h;
 
