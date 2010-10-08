@@ -45,8 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 
-#if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY )
-#define  KRATOS_RESIDUALBASED_NEWTON_RAPHSON_STRATEGY
+#if !defined(KRATOS_NEWTON_RAPHSON_STRATEGY )
+#define  KRATOS_NEWTON_RAPHSON_STRATEGY
 
 
 /* System includes */
