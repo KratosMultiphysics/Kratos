@@ -66,11 +66,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-#include "includes/define.h"
+//#include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
+//#include "includes/node.h"
 //#include "geometries/geometry.h"
-#include "utilities/geometry_utilities.h"
+//#include "utilities/geometry_utilities.h"
 //#include "incompressible_fluid_application.h"
 //#include "opencl_interface.h"
 
@@ -98,9 +98,14 @@ namespace Kratos
 			//
 			// Constructor
 
-			OpenCLPureConvectionEdgeBased(OpenCLMatrixContainer opencl_matrix_container, ModelPart &model_part): opencl_matrix_container(opencl_matrix_container), mr_model_part(model_part)
+			OpenCLPureConvectionEdgeBased(OpenCLMatrixContainer opencl_matrix_container, ModelPart &model_part): opencl_matrix_container(opencl_matrix_container), mrDeviceGroup(opencl_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
 			{
-				// Nothing to do!
+				// Loading program
+				// TODO: Add optimization flags here
+				mOpenCLPureConvectionEdgeBasedProgram = mrDeviceGroup.BuildProgramFromFile("opencl_pure_convection_edgebased.cl");
+
+				// Register kernels
+				mCalculateAdvectiveVelocityKernel = mrDeviceGroup.RegisterKernel(mOpenCLPureConvectionEdgeBasedProgram, "CalculateAdvectiveVelocity");
 			}
 
 			//
@@ -128,8 +133,9 @@ namespace Kratos
 					// Allocate a single chunk of memory for variables
 					// TODO: Use Page-locked memory for faster data transfer to GPU
 					// TODO: Order variables, such that variables copied to GPU together are together here too
+					// TODO: Account for device address alignment
 
-#define KRATOS_ASSIGN_AND_ADVANCE_POINTER(P, Size)	P = Temp; Temp += Size;
+#define KRATOS_ASSIGN_AND_ADVANCE_POINTER(P, Size)	P = Temp; Temp += Size
 
 					AllocateArray(&Mem, 21 * n_nodes); // 6 * n_nodes + 5 * (3 * n_nodes)
 					double *Temp = Mem;
@@ -154,11 +160,15 @@ namespace Kratos
 					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mx, n_nodes * 3);
 
 					// Read variables from database
+
+					// TODO: It seems that we do not need this as Solve() does this at first step
+					/*
 					opencl_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes());
 					opencl_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes());
 
 					opencl_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
 					opencl_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes());
+					*/
 
 					opencl_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes());
 
@@ -205,10 +215,71 @@ namespace Kratos
 				KRATOS_CATCH("")
 			}
 
+			//
+			// Solve
+			//
+			// Function to solve fluid equations - fractional step 1: compute fractional momentum
+
+			void Solve()
+			{
+				// TODO: Correct this
+
+				//ValuesVectorType rhs;
+				//rhs.resize(n_nodes);
+
+				// Read variables from Kratos
+				opencl_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes());
+				opencl_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes());
+
+				opencl_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
+				opencl_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes());
+
+				// Read time step size from Kratos
+				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+				double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+
+			}
+
+			//
+			// CalculateAdvectiveVelocity
+			//
+			// CalculateAdvectiveVelocity
+
+			void CalculateAdvectiveVelocity(const CalcVectorType mUn, const CalcVectorType mUn1, CalcVectorType mA, double coefficient)
+			{
+				// Setting arguments
+				// TODO: Set arguments
+				// TODO: Add a flag so that we know if we should really set them; we may need to change argument list
+
+				// Call OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mCalculateAdvectiveVelocityKernel, n_nodes);
+			}
+
+			//
+			// Clear
+			//
+			// Frees allocated memory
+
+			void Clear()
+			{
+				KRATOS_TRY
+
+				// We only need to free this, as we allocated one chunk of memory only
+				FreeArray(&Mem);
+
+				KRATOS_CATCH("")
+			}
+
 		private:
 
 			// Matrix container
 			OpenCLMatrixContainer opencl_matrix_container;
+
+			// OpenCL stuff
+			OpenCL::DeviceGroup &mrDeviceGroup;
+
+			cl_uint mOpenCLPureConvectionEdgeBasedProgram, mCalculateAdvectiveVelocityKernel;
 
 			// Associated model part
 			ModelPart &mr_model_part;
