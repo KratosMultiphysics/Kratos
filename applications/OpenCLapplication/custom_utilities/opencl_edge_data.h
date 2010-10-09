@@ -209,7 +209,13 @@ namespace Kratos
 
 			OpenCLMatrixContainer(cl_device_type device_type): mDeviceGroup(device_type, true)
 			{
-				// Nothing to do!
+				// Loading OpenCL program
+				// TODO: Add optimization flags here
+				mpOpenCLEdgeData = mDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl");
+
+				// Register kernels
+				mkAdd_Minv_value = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value");
+				mkSetToZero = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "SetToZero");
 			}
 
 			//
@@ -628,16 +634,16 @@ namespace Kratos
 
 				// Copy data to OpenCL device
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mNonzeroEdgeValues));
+				mDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, OpenCL::HostToDevice, OpenCL::VoidPList(1, mNonzeroEdgeValues));
 
-				mDeviceGroup.CopyBuffer(mbColumnIndex, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mColumnIndex));
-				mDeviceGroup.CopyBuffer(mbRowStartIndex, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mRowStartIndex));
+				mDeviceGroup.CopyBuffer(mbColumnIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mColumnIndex));
+				mDeviceGroup.CopyBuffer(mbRowStartIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mRowStartIndex));
 
-				mDeviceGroup.CopyBuffer(mbLumpedMassMatrix, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mLumpedMassMatrix));
-				mDeviceGroup.CopyBuffer(mbInvertedMassMatrix, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mInvertedMassMatrix));
-				mDeviceGroup.CopyBuffer(mbHmin, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mHmin));
+				mDeviceGroup.CopyBuffer(mbLumpedMassMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mLumpedMassMatrix));
+				mDeviceGroup.CopyBuffer(mbInvertedMassMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mInvertedMassMatrix));
+				mDeviceGroup.CopyBuffer(mbHmin, OpenCL::HostToDevice, OpenCL::VoidPList(1, mHmin));
 
-				mDeviceGroup.CopyBuffer(mbDiagGradientMatrix, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mDiagGradientMatrix));
+				mDeviceGroup.CopyBuffer(mbDiagGradientMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mDiagGradientMatrix));
 
 				KRATOS_CATCH("")
 			}
@@ -674,7 +680,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillCoordinatesFromDatabase(CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			void FillCoordinatesFromDatabase(CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
 			{
 				KRATOS_TRY
 
@@ -691,6 +697,9 @@ namespace Kratos
 					}
 				}
 
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+
 				KRATOS_CATCH("");
 			}
 
@@ -699,7 +708,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			void FillVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
 			{
 				KRATOS_TRY
 
@@ -719,6 +728,9 @@ namespace Kratos
 					}
 				}
 
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+
 				KRATOS_CATCH("");
 			}
 
@@ -727,7 +739,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillOldVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			void FillOldVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
 			{
 				KRATOS_TRY
 
@@ -747,6 +759,9 @@ namespace Kratos
 					}
 				}
 
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+
 				KRATOS_CATCH("");
 			}
 
@@ -755,7 +770,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			void FillScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
 			{
 				KRATOS_TRY
 
@@ -772,6 +787,9 @@ namespace Kratos
 					rDestination[i_node] = scalar;
 				}
 
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+
 				KRATOS_CATCH("");
 			}
 
@@ -780,7 +798,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillOldScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			void FillOldScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
 			{
 				KRATOS_TRY
 
@@ -797,6 +815,9 @@ namespace Kratos
 					rDestination[i_node] = scalar;
 				}
 
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+
 				KRATOS_CATCH("");
 			}
 
@@ -805,9 +826,12 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void WriteVectorToDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rOrigin, ModelPart::NodesContainerType &rNodes)
+			void WriteVectorToDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rOrigin, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
 			{
 				KRATOS_TRY
+
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
 
 				// Loop over all nodes
 				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
@@ -833,9 +857,12 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void WriteScalarToDatabase(Variable <double> &rVariable, ValuesVectorType rOrigin, ModelPart::NodesContainerType &rNodes)
+			void WriteScalarToDatabase(Variable <double> &rVariable, ValuesVectorType rOrigin, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
 			{
 				KRATOS_TRY
+
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
 
 				// Loop over all nodes
 				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
@@ -854,6 +881,69 @@ namespace Kratos
 			}
 
 			//
+			// Add_Minv_value
+			//
+			// destination = origin1 + value * Minv * origin
+
+			void Add_Minv_value(cl_uint DestinationBufferIndex, cl_uint Origin1BufferIndex, const double Value, cl_uint MinvBufferIndex, cl_uint OriginBufferIndex)
+			{
+				// TODO: Check if buffers are of the same size
+				// TODO: Single device code
+
+				cl_uint n = mDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(double);
+
+				// Setting arguments
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 0, DestinationBufferIndex);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 1, Origin1BufferIndex);
+				mDeviceGroup.SetKernelArg(mkAdd_Minv_value, 2, Value);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 3, MinvBufferIndex);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 4, OriginBufferIndex);
+				mDeviceGroup.SetKernelArg(mkSetToZero, 5, n);
+
+				// Execute OpenCL kernel
+				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value, n);
+			}
+
+			//
+			// Add_Minv_value3
+			//
+			// destination = origin1 + value * Minv * origin
+
+			void Add_Minv_value3()
+			{
+				//
+			}
+
+			//
+			// SetToZero
+			//
+			// Zeros a buffer on the OpenCL device group
+
+			void SetToZero(cl_uint BufferIndex)
+			{
+				// TODO: Single device code
+				cl_uint n = mDeviceGroup.BufferLengths[BufferIndex][0] / sizeof(double);
+
+				// Setting arguments
+				mDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, BufferIndex);
+				mDeviceGroup.SetKernelArg(mkSetToZero, 1, n);
+
+				// Execute OpenCL kernel
+				mDeviceGroup.ExecuteKernel(0, mkSetToZero, n);
+			}
+
+			//
+			// AssignVectorToVector
+			//
+			// Copies a vector to another
+
+			void AssignVectorToVector(cl_uint SourceBufferIndex, cl_uint DestinationBufferIndex)
+			{
+				// TODO: Single device code
+				mDeviceGroup.CopyBufferToBuffer(SourceBufferIndex, DestinationBufferIndex);
+			}
+
+			//
 			// Clear
 			//
 			// Frees allocated memory
@@ -861,6 +951,11 @@ namespace Kratos
 			void Clear()
 			{
 				KRATOS_TRY
+
+				// TODO: OpenCL buffers are not freed, so user cannot use Clear() and start over
+				std::cout <<
+					"Warning!" << std::endl <<
+					"OpenCL buffers are not freed, so user cannot use Clear() and start over." << std::endl;
 
 				// Free memory
 				FreeArray(&mNonzeroEdgeValues);
@@ -929,6 +1024,9 @@ namespace Kratos
 
 			// OpenCL stuff
 			OpenCL::DeviceGroup mDeviceGroup;
+
+			// OpenCL program and kernels
+			cl_uint mpOpenCLEdgeData, mkAdd_Minv_value, mkSetToZero;
 
 			// OpenCL buffers
 			cl_uint mbNonzeroEdgeValues, mbColumnIndex, mbRowStartIndex, mbLumpedMassMatrix, mbInvertedMassMatrix, mbDiagGradientMatrix, mbHmin;
