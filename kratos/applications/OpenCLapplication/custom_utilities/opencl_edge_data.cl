@@ -98,6 +98,34 @@ __kernel void Test(__global const double *input, __global double *output, const 
 	output[id] = 2.00 * sin(iv) * cos(iv) + offset;
 }
 
+// Common kernels
+
+__kernel void SetToZero(__global double *Vector, const unsigned int n)
+{
+	// Get work item index
+	const size_t id = get_global_id(0);
+
+	// Check if we are in the range
+	if (id < n)
+	{
+		Vector[id] = 0.00;
+	}
+}
+
+__kernel void Add_Minv_value(__global double *DestinationVector, __global const double *Origin1Vector, const double Value, __global const double *MinvVector, __global const double *OriginVector, const unsigned int n)
+{
+	// Get work item index
+	const size_t id = get_global_id(0);
+
+	// Check if we are in the range
+	if (id < n)
+	{
+		DestinationVector[id] = Origin1Vector[id] + Value * MinvVector[id] * OriginVector[id];
+	}
+}
+
+// Edge specific kernels
+
 void Add_Gp(double16 *a, double4 *destination, const double p_i, const double p_j)
 {
 	 // destination[comp] -= Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i

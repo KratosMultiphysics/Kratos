@@ -101,33 +101,61 @@ inline __global double *Array3(__global double *_Array, unsigned int _i, unsigne
 	return _Array + _i * 3 + _j;
 }
 
+// Test functions
+
+inline double3 _Array3(__global double *_Array, unsigned int _i)
+{
+	return (double3) (_Array[_i * 3 + 0], _Array[_i * 3 + 1], _Array[_i * 3 + 2]);
+}
+
+inline double3 *__Array3(__global double *_Array, unsigned int _i)
+{
+	return (double3 *) ((unsigned int) (_Array + _i * 3));
+}
+
+
+//
+// Norm2_3
+//
+// Helper function to calculate norm 2 of a vector with Dim2 = 3
+
+inline double Norm2_3(__global double *_Array, unsigned int _i)
+{
+	return length((double3) (*Array3(_Array, _i, 0), *Array3(_Array, _i, 1), *Array3(_Array, _i, 2)));
+}
+
 //
 // CalculateAdvectiveVelocity
 //
 // OpenCL version of PureConvectionEdgeBased::CalculateAdvectiveVelocity
 
-__kernel void CalculateAdvectiveVelocity(__global const double *mUn, __global const double *mUn1, __global double *mA, const double coefficient, const unsigned int n_node)
+__kernel void CalculateAdvectiveVelocity(__global const double *mUn, __global const double *mUn1, __global double *mA, const double coefficient, const unsigned int n_nodes)
 {
 	// Get work item index
 	unsigned int i_node = get_global_id(0);
 
 	// Check if we are in the range
-	if (i_node > n_node)
+	if (i_node < n_nodes)
 	{
-		return;
+		*Array3(mA, i_node, 0) = coefficient * *Array3(mUn1, i_node, 0) + (1.0 - coefficient) * *Array3(mUn, i_node, 0);
+		*Array3(mA, i_node, 1) = coefficient * *Array3(mUn1, i_node, 1) + (1.0 - coefficient) * *Array3(mUn, i_node, 1);
+		*Array3(mA, i_node, 2) = coefficient * *Array3(mUn1, i_node, 2) + (1.0 - coefficient) * *Array3(mUn, i_node, 2);
 	}
+}
 
-	//
-	// Original code:
-	//
-	// array_1d <double, TDim> &a_i = mA[i_node];
-	// const array_1d<double, TDim>&  Un_i = mUn[i_node];
-	// const array_1d<double, TDim>&  Un1_i = mUn1[i_node];
-	//
-	// for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-	//   a_i[k_comp] = coefficient * Un1_i[k_comp] + (1.0 - coefficient)* Un_i[k_comp];
+//
+// Solve1
+//
+// Part of Solve()
 
-	*Array3(mA, i_node, 0) = coefficient * *Array3(mUn1, i_node, 0) + (1.0 - coefficient) * *Array3(mUn, i_node, 0);
-	*Array3(mA, i_node, 1) = coefficient * *Array3(mUn1, i_node, 1) + (1.0 - coefficient) * *Array3(mUn, i_node, 1);
-	*Array3(mA, i_node, 2) = coefficient * *Array3(mUn1, i_node, 2) + (1.0 - coefficient) * *Array3(mUn, i_node, 2);
+__kernel void Solve1(__global const double *Hmin, __global const double *A, __global double *Tau, const double time_inv, const unsigned int n_nodes)
+{
+	// Get work item index
+	unsigned int i_node = get_global_id(0);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		Tau[i_node] = 1.00 / (2.00 * Norm2_3(A, i_node) / Hmin[i_node] + 0.01 * time_inv);
+	}
 }

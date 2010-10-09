@@ -704,6 +704,31 @@ namespace OpenCL
 			}
 
 			//
+			// CopyBufferToBuffer
+			//
+			// Copies the content of a buffer to another buffer on all devices
+
+			void CopyBufferToBuffer(cl_uint _SourceBufferIndex, cl_uint _DestinationBufferIndex)
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					// Check if the buffers are of the same length
+					if (BufferLengths[_SourceBufferIndex][i] != BufferLengths[_DestinationBufferIndex][i])
+					{
+						std::cout <<
+							"Buffers are not of the same size." << std::endl <<
+							"Aborting." << std::endl;
+
+						abort();
+					}
+
+					Err = clEnqueueCopyBuffer(CommandQueues[i], Buffers[_SourceBufferIndex][i], Buffers[_DestinationBufferIndex][i], 0, 0, BufferLengths[_SourceBufferIndex][i], 0, NULL, NULL);
+				}
+			}
+
+			//
 			// MapBuffer
 			//
 			// Maps a buffer on all devices

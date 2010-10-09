@@ -99,14 +99,15 @@ namespace Kratos
 			//
 			// Constructor
 
-			OpenCLPureConvectionEdgeBased(OpenCLMatrixContainer opencl_matrix_container, ModelPart &model_part): opencl_matrix_container(opencl_matrix_container), mrDeviceGroup(opencl_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
+			OpenCLPureConvectionEdgeBased(OpenCLMatrixContainer matrix_container, ModelPart &model_part): mr_matrix_container(matrix_container), mrDeviceGroup(mr_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
 			{
-				// Loading program
+				// Loading OpenCL program
 				// TODO: Add optimization flags here
-				mOpenCLPureConvectionEdgeBasedProgram = mrDeviceGroup.BuildProgramFromFile("opencl_pure_convection_edgebased.cl");
+				mpOpenCLPureConvectionEdgeBased = mrDeviceGroup.BuildProgramFromFile("opencl_pure_convection_edgebased.cl");
 
 				// Register kernels
-				mCalculateAdvectiveVelocityKernel = mrDeviceGroup.RegisterKernel(mOpenCLPureConvectionEdgeBasedProgram, "CalculateAdvectiveVelocity");
+				mkSolve1 = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "Solve1");
+				mkCalculateAdvectiveVelocity = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "CalculateAdvectiveVelocity");
 			}
 
 			//
@@ -128,55 +129,71 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-					// Get no. of nodes
-					n_nodes = mr_model_part.Nodes().size();
+				// Get no. of nodes
+				n_nodes = mr_model_part.Nodes().size();
 
-					// Allocate a single chunk of memory for variables
-					// TODO: Use Page-locked memory for faster data transfer to GPU
-					// TODO: Order variables, such that variables copied to GPU together are together here too
-					// TODO: Account for device address alignment
+				// TODO: Allocate a single chunk of memory for variables
+				// TODO: Use Page-locked memory for faster data transfer to GPU
+				// TODO: Order variables, such that variables copied to GPU together are together here too
+				// TODO: Account for device address alignment
 
-#define KRATOS_ASSIGN_AND_ADVANCE_POINTER(P, Size)	P = Temp; Temp += Size
+				// Size data vectors
+				AllocateArray(&mWork, n_nodes);
 
-					AllocateArray(&Mem, 21 * n_nodes); // 6 * n_nodes + 5 * (3 * n_nodes)
-					double *Temp = Mem;
+				AllocateArray(&mPi, n_nodes * 3);
 
-					// Size data vectors
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mWork, n_nodes);
+				AllocateArray(&mUn, n_nodes * 3);
+				AllocateArray(&mUn1, n_nodes * 3);
 
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mPi, n_nodes * 3);
+				AllocateArray(&mphi_n, n_nodes);
+				AllocateArray(&mphi_n1, n_nodes);
 
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mUn, n_nodes * 3);
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mUn1, n_nodes * 3);
+				AllocateArray(&mA, n_nodes * 3);
 
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mphi_n, n_nodes);
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mphi_n1, n_nodes);
+				AllocateArray(&mTau, n_nodes);
+				AllocateArray(&mBeta, n_nodes);
 
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mA, n_nodes * 3);
+				AllocateArray(&mx, n_nodes * 3);
 
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mHmin, n_nodes);
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mTau, n_nodes);
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mBeta, n_nodes);
+				AllocateArray(&mrhs, n_nodes);
 
-					KRATOS_ASSIGN_AND_ADVANCE_POINTER(mx, n_nodes * 3);
+				// Allocating buffers on OpenCL device
+				// TODO: Should these be read-write?
+				mbWork = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
 
-					// Read variables from database
+				mbPi = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
 
-					// TODO: It seems that we do not need this as Solve() does this at first step
-					/*
-					opencl_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes());
-					opencl_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes());
+				mbUn = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
+				mbUn1 = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
 
-					opencl_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
-					opencl_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes());
-					*/
+				mbphi_n = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
+				mbphi_n1 = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
 
-					opencl_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes());
+				mbA = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
 
-					// Set flag for first time step
-					mFirstStep = true;
+				mbTau = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
+				mbBeta = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
 
-					mHmin = opencl_matrix_container.GetHmin();
+				mbx = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
+
+				mbrhs = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
+
+				// Read variables from database
+
+				// TODO: It seems that we do not need this as Solve() does this at first step
+				/*
+				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes(), mbUn1);
+				mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes(), mbUn);
+
+				mr_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes(), mbphi_n1);
+				mr_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes(), mbphi_n);
+				*/
+				mr_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes(), mbx);
+
+				// Set flag for first time step
+				mFirstStep = true;
+
+				mHmin = mr_matrix_container.GetHmin();
 
 				KRATOS_CATCH("")
 			}
@@ -194,7 +211,7 @@ namespace Kratos
 				double delta_t = 1e10;
 
 				// Getting value of current velocity
-				opencl_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes());
+				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes(), mbUn1);
 
 				// Loop over all nodes
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -223,17 +240,13 @@ namespace Kratos
 
 			void Solve()
 			{
-				// TODO: Correct this
-
-				//ValuesVectorType rhs;
-				//rhs.resize(n_nodes);
-
+				// TODO: To optimize things, we can use double4 arrays, but we should take care on the host
 				// Read variables from Kratos
-				opencl_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes());
-				opencl_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes());
+				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes(), mbUn1);
+				mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes(), mbUn);
 
-				opencl_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
-				opencl_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes());
+				mr_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes(), mbphi_n1);
+				mr_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes(), mbphi_n);
 
 				// Read time step size from Kratos
 				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -243,10 +256,25 @@ namespace Kratos
 
 				// Compute advective velocity - area average of the current velocity
 				double coefficient = 1;
-				CalculateAdvectiveVelocity(mUn, mUn1, mA, coefficient);
+				CalculateAdvectiveVelocity(coefficient, true);
 
 				// Compute intrinsic time
 				double time_inv = 1.00 / delta_t;
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolve1, 0, mr_matrix_container.GetHminBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolve1, 1, mbA);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolve1, 2, mbTau);
+				mrDeviceGroup.SetKernelArg(mkSolve1, 3, time_inv);
+				mrDeviceGroup.SetKernelArg(mkSolve1, 4, n_nodes);
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkSolve1, n_nodes);
+
+				mr_matrix_container.AssignVectorToVector(mbphi_n, mbWork); // mbWork = mbphi_n
+
+				// First step of Runge Kutta
+				mr_matrix_container.SetToZero(mbrhs);
 			}
 
 			//
@@ -254,14 +282,19 @@ namespace Kratos
 			//
 			// CalculateAdvectiveVelocity
 
-			void CalculateAdvectiveVelocity(const CalcVectorType mUn, const CalcVectorType mUn1, CalcVectorType mA, double coefficient)
+			void CalculateAdvectiveVelocity(double coefficient, bool _SetArgs = false)
 			{
 				// Setting arguments
-				// TODO: Set arguments
-				// TODO: Add a flag so that we know if we should really set them; we may need to change argument list
+				if (_SetArgs)
+				{
+					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 0, mbUn);
+					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 1, mbUn1);
+					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 2, mbA);
+					mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 3, coefficient);
+				}
 
-				// Call OpenCL kernel
-				mrDeviceGroup.ExecuteKernel(mCalculateAdvectiveVelocityKernel, n_nodes);
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkCalculateAdvectiveVelocity, n_nodes);
 			}
 
 			//
@@ -273,8 +306,22 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				// We only need to free this, as we allocated one chunk of memory only
-				FreeArray(&Mem);
+				FreeArray(&mWork);
+
+				FreeArray(&mPi);
+
+				FreeArray(&mUn);
+				FreeArray(&mUn1);
+
+				FreeArray(&mphi_n);
+				FreeArray(&mphi_n1);
+
+				FreeArray(&mA);
+
+				FreeArray(&mTau);
+				FreeArray(&mBeta);
+
+				FreeArray(&mx);
 
 				KRATOS_CATCH("")
 			}
@@ -282,18 +329,19 @@ namespace Kratos
 		private:
 
 			// Matrix container
-			OpenCLMatrixContainer opencl_matrix_container;
+			OpenCLMatrixContainer mr_matrix_container;
 
 			// OpenCL stuff
 			OpenCL::DeviceGroup &mrDeviceGroup;
 
-			cl_uint mOpenCLPureConvectionEdgeBasedProgram, mCalculateAdvectiveVelocityKernel;
+			// OpenCL buffers
+			cl_uint mbWork, mbPi, mbUn, mbUn1, mbphi_n, mbphi_n1, mbA, mbTau, mbBeta, mbx, mbrhs;
+
+			// OpenCL program and kernels
+			cl_uint mpOpenCLPureConvectionEdgeBased, mkSolve1, mkCalculateAdvectiveVelocity;
 
 			// Associated model part
 			ModelPart &mr_model_part;
-
-			// Pointer to memory used for variables
-			double *Mem;
 
 			// No. of nodes
 			unsigned int n_nodes;
@@ -327,6 +375,9 @@ namespace Kratos
 
 			// Intrinsic time step size
 			ValuesVectorType mTau;
+
+			// RHS, used in Solve()
+			ValuesVectorType mrhs;
 
 	};
 
