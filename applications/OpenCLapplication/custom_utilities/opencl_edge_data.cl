@@ -91,10 +91,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // A dummy kernel for test
-__kernel void Test(__global double *input, __global double *output, double offset)
+__kernel void Test(__global const double *input, __global double *output, const double offset)
 {
-	size_t id = get_global_id(0);
-	output[id] = 2.00 * sin(input[id]) * cos(input[id]) + offset;
+	const size_t id = get_global_id(0);
+	const double iv = input[id];
+	output[id] = 2.00 * sin(iv) * cos(iv) + offset;
 }
 
 void Add_Gp(double16 *a, double4 *destination, const double p_i, const double p_j)

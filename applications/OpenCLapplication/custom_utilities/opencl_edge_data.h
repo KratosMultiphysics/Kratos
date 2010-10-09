@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
 //#include "incompressible_fluid_application/custom_utilities/edge_data.h"
+#include "opencl_interface.h"
 
 // Some useful macros, will be renamed if not consistent
 #define KRATOS_OCL_LAPLACIANIJ_0_0(a)	a.s0
@@ -182,36 +183,6 @@ namespace Kratos
 	}
 
 	//
-	// FillOpenCLEdge
-	//
-	// Fills an OpenCL edge (actually a double16) from an EdgesStructureType <3>
-
-	/*
-	void FillOpenCLEdge(cl_double16 &a, const EdgesStructureType <3> &b)
-	{
-		KRATOS_OCL_LAPLACIANIJ_0_0(a) = b.LaplacianIJ(0, 0);
-		KRATOS_OCL_LAPLACIANIJ_0_1(a) = b.LaplacianIJ(0, 1);
-		KRATOS_OCL_LAPLACIANIJ_0_2(a) = b.LaplacianIJ(0, 2);
-		KRATOS_OCL_LAPLACIANIJ_1_0(a) = b.LaplacianIJ(1, 0);
-		KRATOS_OCL_LAPLACIANIJ_1_1(a) = b.LaplacianIJ(1, 1);
-		KRATOS_OCL_LAPLACIANIJ_1_2(a) = b.LaplacianIJ(1, 2);
-		KRATOS_OCL_LAPLACIANIJ_2_0(a) = b.LaplacianIJ(2, 0);
-		KRATOS_OCL_LAPLACIANIJ_2_1(a) = b.LaplacianIJ(2, 1);
-		KRATOS_OCL_LAPLACIANIJ_2_2(a) = b.LaplacianIJ(2, 2);
-
-		KRATOS_OCL_MASS(a) = b.Mass;
-
-		KRATOS_OCL_NI_DNJ_0(a) = b.Ni_DNj[0];
-		KRATOS_OCL_NI_DNJ_1(a) = b.Ni_DNj[1];
-		KRATOS_OCL_NI_DNJ_2(a) = b.Ni_DNj[2];
-
-		KRATOS_OCL_DNI_NJ_0(a) = b.DNi_Nj[0];
-		KRATOS_OCL_DNI_NJ_1(a) = b.DNi_Nj[1];
-		KRATOS_OCL_DNI_NJ_2(a) = b.DNi_Nj[2];
-	}
-	*/
-
-	//
 	// OpenCLMatrixContainer
 	//
 	// A helper class for edge based mathods
@@ -254,13 +225,6 @@ namespace Kratos
 			//
 			// Functions to return private values
 
-			inline OpenCL::DeviceGroup &GetDeviceGroup()
-			{
-				return mDeviceGroup;
-			}
-
-			// TODO: Remove unneeded ones
-
 			inline unsigned int GetNumberEdges()
 			{
 				return mNumberEdges;
@@ -301,6 +265,48 @@ namespace Kratos
 				return mHmin;
 			}
 
+			// OpenCL stuff
+
+			inline OpenCL::DeviceGroup &GetDeviceGroup()
+			{
+				return mDeviceGroup;
+			}
+
+			inline cl_uint GetNonzeroEdgeValuesBuffer()
+			{
+				return mbNonzeroEdgeValues;
+			}
+
+			inline cl_uint GetColumnIndexBuffer()
+			{
+				return mbColumnIndex;
+			}
+
+			inline cl_uint GetRowStartIndexBuffer()
+			{
+				return mbRowStartIndex;
+			}
+
+			inline cl_uint GetLumpedMassMatrixBuffer()
+			{
+				return mbLumpedMassMatrix;
+			}
+
+			inline cl_uint GetInvertedMassMatrixBuffer()
+			{
+				return mbInvertedMassMatrix;
+			}
+
+			inline cl_uint GetDiagGradientMatrixBuffer()
+			{
+				return mbDiagGradientMatrix;
+			}
+
+			inline cl_uint GetHminBuffer()
+			{
+				return mbHmin;
+			}
+
 			//
 			// ConstructCSRVector
 			//
@@ -339,12 +345,29 @@ namespace Kratos
 				// Allocating memory for block of CSR data
 				// TODO: Can this be optimized?
 				AllocateArray(&mNonzeroEdgeValues, mNumberEdges);
+
 				AllocateArray(&mColumnIndex, mNumberEdges);
 				AllocateArray(&mRowStartIndex, n_nodes + 1);
+
 				AllocateArray(&mLumpedMassMatrix, n_nodes);
 				AllocateArray(&mInvertedMassMatrix, n_nodes);
-				AllocateArray(&mDiagGradientMatrix, n_nodes, 3);
 				AllocateArray(&mHmin, n_nodes);
+
+				AllocateArray(&mDiagGradientMatrix, n_nodes, 3);
+
+				// Allocating buffers on OpenCL device
+				// TODO: Should these be read-only?
+				// TODO: Try using Page-Locked memory, mapping, one chunk of memory, etc.
+				mbNonzeroEdgeValues = mDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_double16), CL_MEM_READ_ONLY);
+
+				mbColumnIndex = mDeviceGroup.CreateBuffer(mNumberEdges * sizeof(unsigned int), CL_MEM_READ_ONLY);
+				mbRowStartIndex = mDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(unsigned int), CL_MEM_READ_ONLY);
+
+				mbLumpedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_ONLY);
+				mbInvertedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_ONLY);
+				mbHmin = mDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_ONLY);
+
+				mbDiagGradientMatrix = mDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_ONLY);
 
 				// Initializing the CSR vector
 
@@ -589,17 +612,32 @@ namespace Kratos
 					}
 				}
 
+				unsigned int n_nodes = model_part.Nodes().size();
+
 				// Copy mass matrix to inverted mass matrix
-				for (unsigned int inode = 0; inode < model_part.Nodes().size(); inode++)
+				for (unsigned int inode = 0; inode < n_nodes; inode++)
 				{
 					mInvertedMassMatrix[inode] = mLumpedMassMatrix[inode];
 				}
 
 				// Calculating inverted mass matrix (this requires syncronization for MPI paraellelism
-				for (unsigned int inode = 0; inode < model_part.Nodes().size(); inode++)
+				for (unsigned int inode = 0; inode < n_nodes; inode++)
 				{
 					mInvertedMassMatrix[inode] = 1.00 / mInvertedMassMatrix[inode];
 				}
+
+				// Copy data to OpenCL device
+				// TODO: Single device code
+				mDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mNonzeroEdgeValues));
+
+				mDeviceGroup.CopyBuffer(mbColumnIndex, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mColumnIndex));
+				mDeviceGroup.CopyBuffer(mbRowStartIndex, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mRowStartIndex));
+
+				mDeviceGroup.CopyBuffer(mbLumpedMassMatrix, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mLumpedMassMatrix));
+				mDeviceGroup.CopyBuffer(mbInvertedMassMatrix, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mInvertedMassMatrix));
+				mDeviceGroup.CopyBuffer(mbHmin, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mHmin));
+
+				mDeviceGroup.CopyBuffer(mbDiagGradientMatrix, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, mDiagGradientMatrix));
 
 				KRATOS_CATCH("")
 			}
@@ -661,7 +699,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillVectorFromDatabase(Variable <array_1d<double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			void FillVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
 			{
 				KRATOS_TRY
 
@@ -689,7 +727,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillOldVectorFromDatabase(Variable <array_1d<double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
+			void FillOldVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes)
 			{
 				KRATOS_TRY
 
@@ -703,7 +741,7 @@ namespace Kratos
 					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable, 1);
 
 					// Save value in the destination vector
-					for(unsigned int component = 0; component < 3; component++)
+					for (unsigned int component = 0; component < 3; component++)
 					{
 						Array3(rDestination, i_node, component) = vector[component];
 					}
@@ -767,7 +805,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void WriteVectorToDatabase(Variable <array_1d<double, 3> > &rVariable, CalcVectorType rOrigin, ModelPart::NodesContainerType &rNodes)
+			void WriteVectorToDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rOrigin, ModelPart::NodesContainerType &rNodes)
 			{
 				KRATOS_TRY
 
@@ -781,7 +819,7 @@ namespace Kratos
 					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
 
 					// Save vector in database
-					for(unsigned int component = 0; component < 3; component++)
+					for (unsigned int component = 0; component < 3; component++)
 					{
 						vector[component] = Array3(rOrigin, i_node, component);
 					}
@@ -891,6 +929,9 @@ namespace Kratos
 
 			// OpenCL stuff
 			OpenCL::DeviceGroup mDeviceGroup;
+
+			// OpenCL buffers
+			cl_uint mbNonzeroEdgeValues, mbColumnIndex, mbRowStartIndex, mbLumpedMassMatrix, mbInvertedMassMatrix, mbDiagGradientMatrix, mbHmin;
 
 			// CSR data vector for storage of the G, L and consistent M components of edge ij
 			EdgesVectorType mNonzeroEdgeValues;

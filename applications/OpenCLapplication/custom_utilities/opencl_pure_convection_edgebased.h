@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_OPENCL_PURE_CONVECTION_EDGEBASED_SOLVER_H_INCLUDED)
 #define KRATOS_OPENCL_PURE_CONVECTION_EDGEBASED_SOLVER_H_INCLUDED
 
+// TODO: What are these?
 #define SPLIT_OSS
 //#define SYMM_PRESS
 
@@ -238,7 +239,14 @@ namespace Kratos
 				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 				double delta_t = CurrentProcessInfo[DELTA_TIME];
 
+				// TODO: This should take place on GPU
 
+				// Compute advective velocity - area average of the current velocity
+				double coefficient = 1;
+				CalculateAdvectiveVelocity(mUn, mUn1, mA, coefficient);
+
+				// Compute intrinsic time
+				double time_inv = 1.00 / delta_t;
 			}
 
 			//
