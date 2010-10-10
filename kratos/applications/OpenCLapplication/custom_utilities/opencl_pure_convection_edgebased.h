@@ -275,6 +275,44 @@ namespace Kratos
 
 				// First step of Runge Kutta
 				mr_matrix_container.SetToZero(mbrhs);
+				CalculateRHS(mbphi_n1, mbA, mbrhs);
+
+				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 6.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+
+				// Second step
+				mr_matrix_container.SetToZero(mbrhs);
+				CalculateRHS(mbphi_n1, mbA, mbrhs);
+
+				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 3.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+
+				// Third step
+				CalculateAdvectiveVelocity(coefficient);
+
+				mr_matrix_container.SetToZero(mbrhs);
+				CalculateRHS(mbphi_n1, mbA, mbrhs);
+
+				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 3.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+
+				// Fourth step
+				CalculateAdvectiveVelocity(coefficient);
+
+				mr_matrix_container.SetToZero(mbrhs);
+				CalculateRHS(mbphi_n1, mbA, mbrhs);
+
+				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 6.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+
+				// Compute right-hand side
+				mr_matrix_container.AssignVectorToVector(mbWork, mbphi_n1);
+
+				mr_matrix_container.WriteScalarToDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes(), mbphi_n1);
+			}
+
+			void CalculateRHS(cl_uint mphi_buffer, cl_uint convective_velocity_buffer, cl_uint mbrhs)
+			{
+				//
 			}
 
 			//
