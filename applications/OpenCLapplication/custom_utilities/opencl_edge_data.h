@@ -293,17 +293,17 @@ namespace Kratos
 				return mbRowStartIndex;
 			}
 
-			inline cl_uint GetLumpedMassMatrixBuffer()
+			inline cl_uint GetLumpedMassBuffer()
 			{
 				return mbLumpedMassMatrix;
 			}
 
-			inline cl_uint GetInvertedMassMatrixBuffer()
+			inline cl_uint GetInvertedMassBuffer()
 			{
 				return mbInvertedMassMatrix;
 			}
 
-			inline cl_uint GetDiagGradientMatrixBuffer()
+			inline cl_uint GetDiagGradientBuffer()
 			{
 				return mbDiagGradientMatrix;
 			}
