@@ -240,11 +240,6 @@ namespace Kratos
           return nproc;
 	  
       }
-      
-      void Barrier()
-      {
-	  MPI_Barrier(MPI_COMM_WORLD);
-      }
 
       ///@}
       ///@name Access
@@ -254,11 +249,51 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+      
+      void Barrier()
+      {
+	  MPI_Barrier(MPI_COMM_WORLD);
+      }
+
+      virtual bool SumAll(int& rValue)
+      {
+          int local_value = rValue;
+          MPI_Allreduce (&local_value,&rValue,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+          return true;
+      }
 
       virtual bool SumAll(double& rValue)
       {
           double local_value = rValue;
           MPI_Allreduce (&local_value,&rValue,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+          return true;
+      }
+
+     virtual bool MinAll(int& rValue)
+      {
+          int local_value = rValue;
+          MPI_Allreduce (&local_value,&rValue,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
+          return true;
+      }
+
+     virtual bool MinAll(double& rValue)
+      {
+          double local_value = rValue;
+          MPI_Allreduce (&local_value,&rValue,1,MPI_DOUBLE,MPI_MIN,MPI_COMM_WORLD);
+          return true;
+      }
+
+     virtual bool MaxAll(int& rValue)
+      {
+          int local_value = rValue;
+          MPI_Allreduce (&local_value,&rValue,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+          return true;
+      }
+
+     virtual bool MaxAll(double& rValue)
+      {
+          double local_value = rValue;
+          MPI_Allreduce (&local_value,&rValue,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
           return true;
       }
 
