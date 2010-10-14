@@ -90,7 +90,6 @@ namespace Kratos
   /** Detail class definition.
   */
   template<
-  std::size_t TDimension,
   class TPointerType,
   class TContainerType = std::vector<TPointerType> >
   class Cell
@@ -152,12 +151,12 @@ namespace Kratos
       ///@name Operators 
       ///@{
       
-      Cell& operator=(Cell const& rOther){}
+      //Cell& operator=(Cell const& rOther){}
       
             
 
       /// Copy constructor.
-      Cell(Cell const& rOther){}
+      //Cell(Cell const& rOther){}
       
       
       ///@}
@@ -183,6 +182,7 @@ namespace Kratos
       /// Turn back information as a string.
       virtual std::string Info() const
       {
+	return "Cell Class "; 
       }
       
       /// Print information about this object.
@@ -297,19 +297,15 @@ namespace Kratos
  
   /// input stream function
   template<
-  std::size_t TDimension,
   class TPointerType>
   inline std::istream& operator >> (std::istream& rIStream, 
-				    Cell<TDimension, TPointerType>& rThis)
-				    {
-				    }
+				    Cell<TPointerType>& rThis){ return rIStream}
 
   /// output stream function
   template<
-  std::size_t TDimension,
   class TPointerType>
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Cell<TDimension, TPointerType>& rThis)
+				    const Cell<TPointerType>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
