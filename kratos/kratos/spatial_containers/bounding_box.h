@@ -92,7 +92,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  template<class TPointType, class TGeometryType> 
+  template<class TPointType,  class TPointerType>   //class TGeometryType> 
   class BoundingBox
     {
     public:
@@ -102,8 +102,9 @@ namespace Kratos
       /// Pointer definition of BoundingBox
       KRATOS_CLASS_POINTER_DEFINITION(BoundingBox);
       
-      typedef TGeometryType GeometryType;     
-      typedef BoundingBox<TPointType,GeometryType> BoundingBoxType;   
+      //typedef TGeometryType GeometryType;
+      typedef TPointerType  PointerType;
+      typedef BoundingBox<TPointType, PointerType > BoundingBoxType;   
         
   
       ///@}
@@ -113,17 +114,18 @@ namespace Kratos
       /// Default constructor.
       BoundingBox() : mHighPoint(), mLowPoint()
       {
+	std::cout<< "Calling empty constructor" <<std::endl;
       }
       
-      BoundingBox(const TPointType& Point) : mHighPoint(Point), mLowPoint(Point)
+      BoundingBox(const TPointType& Point) :  mLowPoint(Point), mHighPoint(Point)
        {
        }
 
-      BoundingBox(const TPointType& HighPoint, const TPointType& LowPoint) : mHighPoint(HighPoint), mLowPoint(LowPoint)
+      BoundingBox(const TPointType& LowPoint, const TPointType& HighPoint ) :  mLowPoint(LowPoint), mHighPoint(HighPoint)
        {
        } 
 
-       BoundingBox(const TPointType& HighPoint, const TPointType& LowPoint,  GeometryType* pGeometry) : mHighPoint(HighPoint), mLowPoint(LowPoint), mpGeom(pGeometry)
+       BoundingBox(const PointerType pElem, const TPointType& LowPoint, const TPointType& HighPoint) :  mLowPoint(LowPoint), mHighPoint(HighPoint), mpElem(pElem)
        {
        }    
 
@@ -145,6 +147,15 @@ namespace Kratos
       ///@}
       ///@name Access
       ///@{ 
+      
+      void Set(const TPointerType pElem, const TPointType& LowPoint, const TPointType& HighPoint)   
+      { 
+	mLowPoint  = LowPoint;
+	mHighPoint = HighPoint; 
+	//mpGeom     = pGeometry;
+	mpElem     = pElem;
+	
+      }
       
       TPointType const& HighPoint() const
         {
@@ -169,17 +180,17 @@ namespace Kratos
         }
 
  
-       TGeometryType& GetGeom() const
+/*       TGeometryType& GetGeom() const
          {
            return  *mpGeom;         
-         }   
+         } */  
 
       /// Assignment operator.
       BoundingBox& operator=(BoundingBox const& rOther)
        {
 	  mHighPoint = rOther.mHighPoint;
 	  mLowPoint  = rOther.mLowPoint;
-	  mpGeom     = rOther.mpGeom;
+	  mpElem     = rOther.mpElem;
 	  return *this;
         }
        
@@ -188,7 +199,7 @@ namespace Kratos
       BoundingBox(BoundingBox const& rOther) : 
           mHighPoint(rOther.mHighPoint), 
           mLowPoint(rOther.mLowPoint),
-          mpGeom(rOther.mpGeom)     
+          mpElem(rOther.mpElem)     
        {             
        }
 
@@ -275,7 +286,8 @@ namespace Kratos
       ///@{ 
       TPointType mHighPoint;        
       TPointType mLowPoint;           
-      TGeometryType* mpGeom;
+      //TPointerType* mpGeom;
+      TPointerType  mpElem;
 
         
       ///@} 
@@ -321,14 +333,14 @@ namespace Kratos
         
  
   /// input stream function
-  template<class TPointType, class TGeometryType> 
+  template<class TPointType, class TPointerType> 
   inline std::istream& operator >> (std::istream& rIStream, 
-				     BoundingBox<TPointType, TGeometryType>& rThis);
+				     BoundingBox<TPointType, TPointerType>& rThis);
 
   /// output stream function
-  template<class TPointType, class TGeometryType> 
+  template<class TPointType, class TPointerType> 
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const BoundingBox<TPointType, TGeometryType>& rThis)
+				    const BoundingBox<TPointType, TPointerType>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
