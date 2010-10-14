@@ -90,9 +90,8 @@ namespace Kratos
 			//
 			// Used types
 
-			// typedef unsigned int *IndicesVectorType;
-			typedef double *CalcVectorType;
-			typedef double *ValuesVectorType;
+			typedef cl_double3 *CalcVectorType;
+			typedef cl_double *ValuesVectorType;
 
 			//
 			// OpenCLPureConvectionEdgeBased
@@ -107,6 +106,9 @@ namespace Kratos
 
 				// Register kernels
 				mkSolve1 = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "Solve1");
+				mkCalculateRHS1 = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "CalculateRHS1");
+				mkCalculateRHS2 = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "CalculateRHS2");
+				mkCalculateRHS3 = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "CalculateRHS3");
 				mkCalculateAdvectiveVelocity = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "CalculateAdvectiveVelocity");
 			}
 
@@ -217,7 +219,7 @@ namespace Kratos
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
 				{
 					// Use CFL condition to compute time step size
-					double delta_t_i = CFLNumber * mHmin[i_node] / Norm2_3(mUn1, i_node);
+					double delta_t_i = CFLNumber * mHmin[i_node] / Norm2_3(mUn1[i_node]);
 
 					// Choose the overall minimum of delta_t_i
 					if (delta_t_i < delta_t)
@@ -260,6 +262,8 @@ namespace Kratos
 
 				// Compute intrinsic time
 				double time_inv = 1.00 / delta_t;
+
+				// Calling Solve1 OpenCL kernel
 
 				// Setting arguments
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolve1, 0, mr_matrix_container.GetHminBuffer());
@@ -310,9 +314,57 @@ namespace Kratos
 				mr_matrix_container.WriteScalarToDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes(), mbphi_n1);
 			}
 
-			void CalculateRHS(cl_uint mphi_buffer, cl_uint convective_velocity_buffer, cl_uint mbrhs)
+			//
+			// CalculateRHS
+			//
+			// Function to calculate right-hand side of fractional momentum equation
+
+			void CalculateRHS(cl_uint phi_buffer, cl_uint convective_velocity_buffer, cl_uint rhs_buffer)
 			{
-				//
+				// Calling CalculateRHS1 OpenCL kernel
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 0, mbPi);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 1, phi_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 2, mr_matrix_container.GetRowStartIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 3, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 5, mr_matrix_container.GetInvertedMassBuffer());
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS1, 6, n_nodes);
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkCalculateRHS1, n_nodes);
+
+				// Calling CalculateRHS2 OpenCL kernel
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 0, mbPi);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 1, phi_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 2, mr_matrix_container.GetRowStartIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 3, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 4, mbx);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 5, mbBeta);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS2, 6, n_nodes);
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkCalculateRHS2, n_nodes);
+
+				// Calling CalculateRHS3 OpenCL kernel
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 0, mbPi);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 1, phi_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 2, mr_matrix_container.GetRowStartIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 3, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 5, convective_velocity_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 6, mbBeta);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 7, mbrhs);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 8, mbTau);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS3, 9, n_nodes);
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkCalculateRHS3, n_nodes);
 			}
 
 			//
@@ -376,7 +428,7 @@ namespace Kratos
 			cl_uint mbWork, mbPi, mbUn, mbUn1, mbphi_n, mbphi_n1, mbA, mbTau, mbBeta, mbx, mbrhs;
 
 			// OpenCL program and kernels
-			cl_uint mpOpenCLPureConvectionEdgeBased, mkSolve1, mkCalculateAdvectiveVelocity;
+			cl_uint mpOpenCLPureConvectionEdgeBased, mkSolve1, mkCalculateRHS1, mkCalculateRHS2, mkCalculateRHS3, mkCalculateAdvectiveVelocity;
 
 			// Associated model part
 			ModelPart &mr_model_part;

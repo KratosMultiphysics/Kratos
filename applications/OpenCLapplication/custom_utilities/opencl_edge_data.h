@@ -92,11 +92,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_OCL_DNI_NJ_1(a)			a.se
 #define KRATOS_OCL_DNI_NJ_2(a)			a.sf
 
-#define KRATOS_OCL_COMP(a, n)			a.s[n]
-
 #define KRATOS_OCL_COMP_0(a)			a.x
 #define KRATOS_OCL_COMP_1(a)			a.y
 #define KRATOS_OCL_COMP_2(a)			a.z
+
 
 namespace Kratos
 {
@@ -107,10 +106,10 @@ namespace Kratos
 	// Helper function to allocate an array
 	// Pass the address of the array variable
 
-	template <typename _Type> void AllocateArray(_Type **_Array, unsigned int _Size1, unsigned int _Size2 = 1)
+	template <typename _Type> void AllocateArray(_Type **_Array, unsigned int _Size)
 	{
 		// Allocate memory
-		*_Array = new _Type[_Size1 * _Size2];
+		*_Array = new _Type[_Size];
 	}
 
 	//
@@ -126,50 +125,13 @@ namespace Kratos
 	}
 
 	//
-	// Array
-	//
-	// Helper function to access a 2D array using its 1D memory with given _Dim2
-
-	template <typename _Type, unsigned int _Dim2> inline _Type &Array(_Type *_Array, unsigned int _i, unsigned int _j)
-	{
-		return *(_Array + _i * _Dim2 + _j);
-	}
-
-	//
-	// Array3
-	//
-	// Helper function to access a 2D array using its 1D memory with _Dim2 = 3
-
-	template <typename _Type> inline _Type &Array3(_Type *_Array, unsigned int _i, unsigned int _j)
-	{
-		return *(_Array + _i * 3 + _j);
-	}
-
-	//
 	// Sqr
 	//
 	// Helper function to return square of a number
 
-	template <typename _Type> inline _Type Sqr(_Type _X)
+	inline double Sqr(double _X)
 	{
 		return _X * _X;
-	}
-
-	//
-	// Norm2
-	//
-	// Helper function to calculate norm 2 of a vector
-
-	template <typename _Type, unsigned int _Dim2> inline _Type Norm2(_Type *_Array, unsigned int _i)
-	{
-		_Type Sum();
-
-		for (unsigned int Component = 0; Component < _Dim2; Component++)
-		{
-			Sum += Sqr(Array <_Type, _Dim2> (_Array, _i, Component));
-		}
-
-		return sqrt(Sum);
 	}
 
 	//
@@ -177,9 +139,9 @@ namespace Kratos
 	//
 	// Helper function to calculate norm 2 of a vector with _Dim2 = 3
 
-	template <typename _Type> inline _Type Norm2_3(_Type *_Array, unsigned int _i)
+	inline double Norm2_3(cl_double3 X)
 	{
-		return sqrt(Sqr(Array3(_Array, _i, 0)) + Sqr(Array3(_Array, _i, 1)) + Sqr(Array3(_Array, _i, 2)));
+		return sqrt(Sqr(KRATOS_OCL_COMP_0(X)) + Sqr(KRATOS_OCL_COMP_1(X)) + Sqr(KRATOS_OCL_COMP_2(X)));
 	}
 
 	//
@@ -195,9 +157,9 @@ namespace Kratos
 			// Used types
 
 			typedef cl_double16 *EdgesVectorType;
-			typedef unsigned int *IndicesVectorType;
-			typedef double *CalcVectorType;
-			typedef double *ValuesVectorType;
+			typedef cl_uint *IndicesVectorType;
+			typedef cl_double3 *CalcVectorType;
+			typedef cl_double *ValuesVectorType;
 
 			//typedef UblasSpace <double, CompressedMatrix, Vector> SparseSpaceType;
 			//typedef MatrixContainer <3, SparseSpaceType> MatrixContainerType;
@@ -278,7 +240,7 @@ namespace Kratos
 				return mDeviceGroup;
 			}
 
-			inline cl_uint GetNonzeroEdgeValuesBuffer()
+			inline cl_uint GetEdgeValuesBuffer()
 			{
 				return mbNonzeroEdgeValues;
 			}
@@ -336,7 +298,7 @@ namespace Kratos
 				for (ModelPart::NodesContainerType::iterator node_it = model_part.NodesBegin(); node_it != model_part.NodesEnd(); node_it++)
 				{
 					// Counting neighbours of each node
-					mNumberEdges += (node_it->GetValue(NEIGHBOUR_NODES)).size();
+					mNumberEdges += (node_it -> GetValue(NEIGHBOUR_NODES)).size();
 
 					// Assigning global index to each node
 					node_it -> FastGetSolutionStepValue(AUX_INDEX) = static_cast <double> (i_node++);
@@ -359,21 +321,21 @@ namespace Kratos
 				AllocateArray(&mInvertedMassMatrix, n_nodes);
 				AllocateArray(&mHmin, n_nodes);
 
-				AllocateArray(&mDiagGradientMatrix, n_nodes, 3);
+				AllocateArray(&mDiagGradientMatrix, n_nodes);
 
 				// Allocating buffers on OpenCL device
 				// TODO: Should these be read-only?
 				// TODO: Try using Page-Locked memory, mapping, one chunk of memory, etc.
 				mbNonzeroEdgeValues = mDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_double16), CL_MEM_READ_ONLY);
 
-				mbColumnIndex = mDeviceGroup.CreateBuffer(mNumberEdges * sizeof(unsigned int), CL_MEM_READ_ONLY);
-				mbRowStartIndex = mDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(unsigned int), CL_MEM_READ_ONLY);
+				mbColumnIndex = mDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_uint), CL_MEM_READ_ONLY);
+				mbRowStartIndex = mDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
 
-				mbLumpedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_ONLY);
-				mbInvertedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_ONLY);
-				mbHmin = mDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_ONLY);
+				mbLumpedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
+				mbInvertedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
+				mbHmin = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
 
-				mbDiagGradientMatrix = mDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_ONLY);
+				mbDiagGradientMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_ONLY);
 
 				// Initializing the CSR vector
 
@@ -459,7 +421,7 @@ namespace Kratos
 				}
 
 				// Set the heights to a huge number
-				for (i_node=0; i_node<n_nodes; i_node++)
+				for (i_node = 0; i_node<n_nodes; i_node++)
 				{
 					mHmin[i_node] = 1e10;
 				}
@@ -467,9 +429,9 @@ namespace Kratos
 				// Diagonal of gradient matrix (elements Gii)
 				for (i_node = 0; i_node < n_nodes; i_node++)
 				{
-					Array3(mDiagGradientMatrix, i_node, 0) = 0.00;
-					Array3(mDiagGradientMatrix, i_node, 1) = 0.00;
-					Array3(mDiagGradientMatrix, i_node, 2) = 0.00;
+					KRATOS_OCL_COMP_0(mDiagGradientMatrix[i_node]) = 0.00;
+					KRATOS_OCL_COMP_1(mDiagGradientMatrix[i_node]) = 0.00;
+					KRATOS_OCL_COMP_2(mDiagGradientMatrix[i_node]) = 0.00;
 				}
 
 				KRATOS_CATCH("")
@@ -612,9 +574,9 @@ namespace Kratos
 					for (unsigned int ie_node = 0; ie_node <= 3; ie_node++)
 					{
 						// Diagonal of the global gradient matrix
-						Array3(mDiagGradientMatrix, nodal_indices[ie_node], 0) += dN_dx(ie_node, 0) * weighted_volume;
-						Array3(mDiagGradientMatrix, nodal_indices[ie_node], 1) += dN_dx(ie_node, 1) * weighted_volume;
-						Array3(mDiagGradientMatrix, nodal_indices[ie_node], 2) += dN_dx(ie_node, 2) * weighted_volume;
+						KRATOS_OCL_COMP_0(mDiagGradientMatrix[nodal_indices[ie_node]]) += dN_dx(ie_node, 0) * weighted_volume;
+						KRATOS_OCL_COMP_1(mDiagGradientMatrix[nodal_indices[ie_node]]) += dN_dx(ie_node, 1) * weighted_volume;
+						KRATOS_OCL_COMP_2(mDiagGradientMatrix[nodal_indices[ie_node]]) += dN_dx(ie_node, 2) * weighted_volume;
 					}
 				}
 
@@ -691,10 +653,9 @@ namespace Kratos
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
 					// Save value in the destination vector
-					for (unsigned int component = 0; component < 3; component++)
-					{
-						Array3(rDestination, i_node, component) = (*node_it)[component];
-					}
+					KRATOS_OCL_COMP_0(rDestination[i_node]) = (*node_it)[0];
+					KRATOS_OCL_COMP_1(rDestination[i_node]) = (*node_it)[1];
+					KRATOS_OCL_COMP_2(rDestination[i_node]) = (*node_it)[2];
 				}
 
 				// TODO: Single device code
@@ -722,10 +683,9 @@ namespace Kratos
 					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
 
 					// Save value in the destination vector
-					for (unsigned int component = 0; component < 3; component++)
-					{
-						Array3(rDestination, i_node, component) = vector[component];
-					}
+					KRATOS_OCL_COMP_0(rDestination[i_node]) = vector[0];
+					KRATOS_OCL_COMP_1(rDestination[i_node]) = vector[1];
+					KRATOS_OCL_COMP_2(rDestination[i_node]) = vector[2];
 				}
 
 				// TODO: Single device code
@@ -753,10 +713,9 @@ namespace Kratos
 					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable, 1);
 
 					// Save value in the destination vector
-					for (unsigned int component = 0; component < 3; component++)
-					{
-						Array3(rDestination, i_node, component) = vector[component];
-					}
+					KRATOS_OCL_COMP_0(rDestination[i_node]) = vector[0];
+					KRATOS_OCL_COMP_1(rDestination[i_node]) = vector[1];
+					KRATOS_OCL_COMP_2(rDestination[i_node]) = vector[2];
 				}
 
 				// TODO: Single device code
@@ -843,10 +802,9 @@ namespace Kratos
 					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
 
 					// Save vector in database
-					for (unsigned int component = 0; component < 3; component++)
-					{
-						vector[component] = Array3(rOrigin, i_node, component);
-					}
+					vector[0] = KRATOS_OCL_COMP_0(rOrigin[i_node]);
+					vector[1] = KRATOS_OCL_COMP_1(rOrigin[i_node]);
+					vector[2] = KRATOS_OCL_COMP_2(rOrigin[i_node]);
 				}
 
 				KRATOS_CATCH("");
@@ -902,16 +860,6 @@ namespace Kratos
 
 				// Execute OpenCL kernel
 				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value, n);
-			}
-
-			//
-			// Add_Minv_value3
-			//
-			// destination = origin1 + value * Minv * origin
-
-			void Add_Minv_value3()
-			{
-				//
 			}
 
 			//
@@ -1057,5 +1005,3 @@ namespace Kratos
 } //namespace Kratos
 
 #endif //KRATOS_OPENCL_EDGE_DATA_H_INCLUDED defined
-
-
