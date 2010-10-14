@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream> 
 #include <cmath>
 #include <algorithm>
+#include <time.h>
 
 // External includes 
 //#include "boost/smart_ptr.hpp"
@@ -65,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "tree.h"
 #include "cell.h"
 #include "bounding_box.h"
+#include "utilities/timer.h"
 
 
 namespace Kratos
@@ -89,6 +91,11 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
+    
+
+    
+    
+ 
   /// Short class definition.
   /** Detail class definition.
   */
@@ -96,32 +103,32 @@ namespace Kratos
     std::size_t TDimension,
     class TPointType,
     class TContainerType,
-    class TGeometryType,
-    //class TBoundingBoxFunction,
+    class TCalculateBoundingBoxFunction,
     class TDistanceIteratorType = typename std::vector<double>::iterator,
     class TPointerType          = typename TContainerType::value_type,
     class TIteratorType         = typename TContainerType::iterator,
-    class TDistanceFunction     = Kratos::SearchUtils::SquaredDistanceFunction<TDimension,TPointType>  
+    class TDistanceFunction     = Kratos::SearchUtils::SquaredDistanceFunction<TDimension,TPointType>
     > 
   class BinsObjectDynamic  
     {
     public:
       ///@name Type Definitions
       ///@{
-      typedef Cell<TDimension, TPointerType> CellType;     
+      typedef Cell<TPointerType>             CellType;     
       typedef TPointType                     PointType;
       typedef TContainerType                 ContainerType;
       typedef TIteratorType                  IteratorType;
       typedef TDistanceIteratorType          DistanceIteratorType;
       typedef TPointerType                   PointerType;
       typedef TDistanceFunction              DistanceFunction;
+      typedef TCalculateBoundingBoxFunction  CalculateBoundingBoxFunction;  
       
       enum { Dimension = TDimension };
            
       typedef std::vector< CellType> CellContainerType;
       typedef typename CellContainerType::iterator CellContainerIterator;
       
-      typedef BoundingBox< TPointType,TGeometryType > BoundingBoxType;
+      typedef BoundingBox< TPointType,TPointerType> BoundingBoxType;
       typedef std::vector< BoundingBoxType > BoundingBoxContainerType;
       typedef typename BoundingBoxContainerType::iterator BoundingBoxIterator; 
       
@@ -150,16 +157,15 @@ namespace Kratos
       BinsObjectDynamic (TIteratorType const& ObjectsBegin, TIteratorType const& ObjectsEnd) 
            : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
       {
-	
-	 
-	 CalculateBoundingBoxes();
+	  
+	 CalculateBoundingBoxes();	 
 	 CalculateBoundingBox();
-         CalculateCellSize();
-         AllocateCellsContainer();
-         GenerateBins();
+	 CalculateCellSize();
+	 AllocateCellsContainer();
+	 GenerateBins();
+	 	 
 	 
       }
-     
      
 
       /// Destructor.
@@ -191,9 +197,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-      }
+      virtual std::string Info() const{ return "Bins " ; }
       
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const{}
@@ -246,13 +250,16 @@ namespace Kratos
     /// Computa los boxes de cada uno de los elementos del model part		
     void CalculateBoundingBoxes()
     {
-      KRATOS_TRY 	
-      TPointType Low, High;
+      KRATOS_TRY 
       
+      TPointType Low, High;
+      SizeType size = std::distance(mObjectsBegin,mObjectsEnd);
+      mBoxes.resize(size);
+      BoundingBoxType rThisBoundingBox;
       for (TIteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
-	 {
-	        i_object->GetGeometry().Bounding_Box(High, Low); 
-		 BoundingBoxType rThisBoundingBox(High, Low, &i_object->GetGeometry());
+	 { 
+	         CalculateBoundingBoxFunction()(i_object, Low, High);
+		 rThisBoundingBox.Set(*i_object, Low, High); //&i_object->GetGeometry());
 	         mBoxes.push_back(rThisBoundingBox ); 
 	 }
 	 
@@ -337,16 +344,16 @@ namespace Kratos
    void GenerateBins()
    {    
       TPointType Low, High;
-      Tvector<CoordinateType,TDimension>  MinPoint;
-      Tvector<CoordinateType,TDimension>  MaxPoint;
+      //Tvector<CoordinateType,TDimension>  MinPoint;
+      //Tvector<CoordinateType,TDimension>  MaxPoint;
       //Tvector<IndexType,TDimension> Cell;
       
       SearchStructureType Box;
       for(IteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
            {
-	     i_object->GetGeometry().Bounding_Box(High, Low);
-	     for(SizeType i = 0 ; i < TDimension ; i++)
-	       { MinPoint[i] =  Low[i]; MaxPoint[i] = High[i];}
+	     CalculateBoundingBoxFunction()(i_object, Low, High);
+	     //for(SizeType i = 0 ; i < TDimension ; i++)
+	     // { MinPoint[i] =  Low[i]; MaxPoint[i] = High[i];}
 	     
              Box.Set( CalculateCell(Low), CalculateCell(High), mN );
              FillObject(Box,i_object);
