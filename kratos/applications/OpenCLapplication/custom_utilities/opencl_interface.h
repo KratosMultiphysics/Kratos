@@ -45,6 +45,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_OPENCL_INTERFACE_H_INCLUDED)
 #define KRATOS_OPENCL_INTERFACE_H_INCLUDED
 
+// System includes
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <cstdlib>
+
 // OpenCL include path is different on Apple
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -53,13 +61,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	#include <CL/cl.h>
 #endif
 
-// System includes
+// Including proper header for a function to get current working directory
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <cstdlib>
+#if defined(WINDOWS)
+	#include <direct.h>
+	#define GETCWD _getcwd
+#else
+	#include <unistd.h>
+	#define GETCWD getcwd
+#endif
+
 
 
 // External includes
@@ -480,6 +491,9 @@ namespace OpenCL
 					CommandQueues[i] = clCreateCommandQueue(Contexts[i], DeviceIDs[i], 0, &Err);
 					KRATOS_OCL_CHECK(Err);
 				}
+
+				// Getting current working directory
+				GETCWD(CurrentWorkingDirectory, sizeof(CurrentWorkingDirectory));
 			}
 
 			//
@@ -753,7 +767,7 @@ namespace OpenCL
 			//
 			// Load a program source file and build it
 
-			cl_uint BuildProgramFromFile(const char *_FileName, const char *_BuildOptions = NULL)
+			cl_uint BuildProgramFromFile(const char *_FileName, const char *_BuildOptions = "", bool AddCWDAsIncludePath = true)
 			{
 				cl_int Err;
 				cl_uint ProgramNo = Programs.size();
@@ -780,12 +794,28 @@ namespace OpenCL
 				// Build program for all devices
 				ProgramList CurrentPrograms(DeviceNo);
 
+				std::string Options(_BuildOptions);
+
+				// Add include path if requested
+				if (AddCWDAsIncludePath)
+				{
+					// Add an space if not empty
+					if (Options.size() != 0)
+					{
+						Options += " ";
+					}
+
+					// Add -I option
+					Options += "-I";
+					Options += CurrentWorkingDirectory;
+				}
+
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					CurrentPrograms[i] = clCreateProgramWithSource(Contexts[i], 1, &SourceText, &SourceLen, &Err);
 					KRATOS_OCL_CHECK(Err);
 
-					Err = clBuildProgram(CurrentPrograms[i], 0, NULL, _BuildOptions, NULL, NULL);
+					Err = clBuildProgram(CurrentPrograms[i], 0, NULL, Options.c_str(), NULL, NULL);
 
 					if (Err == CL_BUILD_PROGRAM_FAILURE)
 					{
@@ -979,6 +1009,10 @@ namespace OpenCL
 				Err = clFinish(CommandQueues[_DeviceIndex]);
 				KRATOS_OCL_CHECK(Err);
 			}
+
+		private:
+
+			char CurrentWorkingDirectory[FILENAME_MAX];
 	};
 
 }  // namespace OpenCL

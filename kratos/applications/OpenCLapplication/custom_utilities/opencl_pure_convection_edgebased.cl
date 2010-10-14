@@ -53,83 +53,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // OpenCL kernels and functions used in opencl_edge_data.h
 
-// Enable OpenCL extension
-#pragma OPENCL EXTENSION cl_amd_fp64: enable
 
-// Some useful macros, will be renamed if not consistent
-#define KRATOS_OCL_LAPLACIANIJ_0_0(a)	(*a).s0
-#define KRATOS_OCL_LAPLACIANIJ_0_1(a)	(*a).s1
-#define KRATOS_OCL_LAPLACIANIJ_0_2(a)	(*a).s2
-#define KRATOS_OCL_LAPLACIANIJ_1_0(a)	(*a).s3
-#define KRATOS_OCL_LAPLACIANIJ_1_1(a)	(*a).s4
-#define KRATOS_OCL_LAPLACIANIJ_1_2(a)	(*a).s5
-#define KRATOS_OCL_LAPLACIANIJ_2_0(a)	(*a).s6
-#define KRATOS_OCL_LAPLACIANIJ_2_1(a)	(*a).s7
-#define KRATOS_OCL_LAPLACIANIJ_2_2(a)	(*a).s8
-
-#define KRATOS_OCL_MASS(a)				(*a).s9
-
-#define KRATOS_OCL_NI_DNJ_0(a)			(*a).sa
-#define KRATOS_OCL_NI_DNJ_1(a)			(*a).sb
-#define KRATOS_OCL_NI_DNJ_2(a)			(*a).sc
-
-#define KRATOS_OCL_DNI_NJ_0(a)			(*a).sd
-#define KRATOS_OCL_DNI_NJ_1(a)			(*a).se
-#define KRATOS_OCL_DNI_NJ_2(a)			(*a).sf
-
-#define KRATOS_OCL_COMP(a, n)			(*a).s[n]
-
-#define KRATOS_OCL_COMP_0(a)			(*a).x
-#define KRATOS_OCL_COMP_1(a)			(*a).y
-#define KRATOS_OCL_COMP_2(a)			(*a).z
+#include "opencl_edge_data_common.cl"
 
 
-// A dummy kernel for test
-__kernel void Test(__global double *input, __global double *output, double offset)
-{
-	size_t id = get_global_id(0);
-	output[id] = 2.00 * sin(input[id]) * cos(input[id]) + offset;
-}
-
-//
-// Array3
-//
-// Helper function to access a 2D array using its 1D memory with _Dim2 = 3
-
-inline __global double *Array3(__global double *_Array, unsigned int _i, unsigned int _j)
-{
-	return _Array + _i * 3 + _j;
-}
-
-// Test functions
-
-inline double3 _Array3(__global double *_Array, unsigned int _i)
-{
-	return (double3) (_Array[_i * 3 + 0], _Array[_i * 3 + 1], _Array[_i * 3 + 2]);
-}
-
-inline double3 *__Array3(__global double *_Array, unsigned int _i)
-{
-	return (double3 *) ((unsigned int) (_Array + _i * 3));
-}
-
-
-//
-// Norm2_3
-//
-// Helper function to calculate norm 2 of a vector with Dim2 = 3
-
-inline double Norm2_3(__global double *_Array, unsigned int _i)
-{
-	return length((double3) (*Array3(_Array, _i, 0), *Array3(_Array, _i, 1), *Array3(_Array, _i, 2)));
-}
+// TODO: Optimize kernels (vectorize, use built-in functions, avoid excessive use of __global data)
 
 //
 // CalculateAdvectiveVelocity
 //
 // OpenCL version of PureConvectionEdgeBased::CalculateAdvectiveVelocity
 
-__kernel void CalculateAdvectiveVelocity(__global const double *mUn, __global const double *mUn1, __global double *mA, const double coefficient, const unsigned int n_nodes)
+__kernel void CalculateAdvectiveVelocity(__global const VectorType *mUn, __global const VectorType *mUn1, __global VectorType *mA, const ValueType coefficient, const IndexType n_nodes)
 {
 	// Get work item index
 	unsigned int i_node = get_global_id(0);
@@ -137,9 +72,7 @@ __kernel void CalculateAdvectiveVelocity(__global const double *mUn, __global co
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		*Array3(mA, i_node, 0) = coefficient * *Array3(mUn1, i_node, 0) + (1.0 - coefficient) * *Array3(mUn, i_node, 0);
-		*Array3(mA, i_node, 1) = coefficient * *Array3(mUn1, i_node, 1) + (1.0 - coefficient) * *Array3(mUn, i_node, 1);
-		*Array3(mA, i_node, 2) = coefficient * *Array3(mUn1, i_node, 2) + (1.0 - coefficient) * *Array3(mUn, i_node, 2);
+		mA[i_node] = coefficient * mUn1[i_node] + (1.00 - coefficient * mUn[i_node]);
 	}
 }
 
@@ -148,7 +81,7 @@ __kernel void CalculateAdvectiveVelocity(__global const double *mUn, __global co
 //
 // Part of Solve()
 
-__kernel void Solve1(__global const double *Hmin, __global const double *A, __global double *Tau, const double time_inv, const unsigned int n_nodes)
+__kernel void Solve1(__global const ValueType *Hmin, __global const VectorType *A, __global ValueType *Tau, const ValueType time_inv, const IndexType n_nodes)
 {
 	// Get work item index
 	unsigned int i_node = get_global_id(0);
@@ -156,6 +89,141 @@ __kernel void Solve1(__global const double *Hmin, __global const double *A, __gl
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		Tau[i_node] = 1.00 / (2.00 * Norm2_3(A, i_node) / Hmin[i_node] + 0.01 * time_inv);
+		Tau[i_node] = 1.00 / (2.00 * length(A[i_node]) / Hmin[i_node] + 0.01 * time_inv);
+	}
+}
+
+//
+// CalculateRHS1
+//
+// Part of CalculateRHS
+
+__kernel void CalculateRHS1(__global VectorType *Pi, __global const ValueType *phi, __global const IndexType *RowStartIndex, __global const IndexType *ColumnIndex, __global const EdgeType *EdgeValues, __global const ValueType *InvertedMass, const IndexType n_nodes)
+{
+	// Get work item index
+	unsigned int i_node = get_global_id(0);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		Pi[i_node] = 0.00;
+
+		for (unsigned int csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		{
+			unsigned int j_neighbour = ColumnIndex[csr_index];
+
+			Add_grad_p(&EdgeValues[csr_index], &Pi[i_node], phi[i_node], phi[j_neighbour]);
+		}
+
+		// Apply inverted mass matrix
+		const double m_inv = InvertedMass[i_node];
+
+		Pi[i_node] *= m_inv;
+	}
+}
+
+//
+// CalculateRHS2
+//
+// Part of CalculateRHS
+
+__kernel void CalculateRHS2(__global VectorType *Pi, __global const ValueType *phi, __global const IndexType *RowStartIndex, __global const IndexType *ColumnIndex, __global const VectorType *x, __global ValueType *Beta, const IndexType n_nodes)
+{
+	// Get work item index
+	unsigned int i_node = get_global_id(0);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		VectorType dir;
+
+		Beta[i_node] = 0.00;
+
+		double n = 0.00;
+		double h = 0.00;
+
+		for (unsigned int csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		{
+			unsigned int j_neighbour = ColumnIndex[csr_index];
+
+			dir = x[j_neighbour] - x[i_node];
+
+			double proj = 0.5 * dot(dir, Pi[i_node] + Pi[j_neighbour]);
+
+			double numerator = fabs(fabs(phi[j_neighbour] - phi[i_node]) - fabs(proj));
+			double denominator = fabs(fabs(phi[j_neighbour] - phi[i_node]) + 1e-6);
+
+			double beta = numerator / denominator;
+
+			Beta[i_node] += beta;
+
+			n += 1.0;
+			h += length(dir);
+		}
+
+		Beta[i_node] /= n;
+		h /= n;
+
+		if (Beta[i_node] > 1.00)
+		{
+			Beta[i_node] = 1.00;
+		}
+
+		Beta[i_node] *= h;
+	}
+}
+
+//
+// CalculateRHS3
+//
+// Part of CalculateRHS
+
+__kernel void CalculateRHS3(__global VectorType *Pi, __global const ValueType *phi, __global const IndexType *RowStartIndex, __global const IndexType *ColumnIndex, __global const EdgeType *EdgeValues, __global const VectorType *convective_velocity, __global const ValueType *Beta, __global ValueType *rhs, __global const ValueType *Tau, const IndexType n_nodes)
+{
+	// Get work item index
+	unsigned int i_node = get_global_id(0);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		double stab_low;
+		double stab_high;
+
+		double pi_i = dot(Pi[i_node], convective_velocity[i_node]);
+
+		double norm_a = length(convective_velocity[i_node]);
+
+		rhs[i_node] = 0.00;
+
+		for (unsigned int csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		{
+			unsigned int j_neighbour = ColumnIndex[csr_index];
+
+			double pi_j = dot(Pi[j_neighbour], convective_velocity[i_node]);
+
+			// Convection operator
+			Sub_ConvectiveContribution2(&EdgeValues[csr_index], &rhs[i_node], &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
+
+			// Calculate stabilization part
+			CalculateConvectionStabilization_LOW2(&EdgeValues[csr_index], &stab_low, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
+
+			double edge_tau = Tau[i_node];
+
+			CalculateConvectionStabilization_HIGH2(&EdgeValues[csr_index], &stab_high, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
+
+			Sub_StabContribution2(&EdgeValues[csr_index], &rhs[i_node], edge_tau, 1.00, stab_low, stab_high);
+
+			double beta = Beta[i_node];
+
+			double coeff = 0.35;
+
+			double laplacian_ij = 0.00;
+
+			CalculateScalarLaplacian(&EdgeValues[csr_index], &laplacian_ij);
+
+			double capturing = laplacian_ij * (phi[j_neighbour] - phi[i_node]);
+
+			rhs[i_node] -= coeff * capturing * beta * norm_a;
+		}
 	}
 }
