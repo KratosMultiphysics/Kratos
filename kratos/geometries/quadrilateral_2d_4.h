@@ -101,7 +101,7 @@ namespace Kratos
          * Geometry as base class.
          */ 
         typedef Geometry<TPointType> BaseType; 
-        typedef BoundingBox<TPointType, BaseType>  BoundingBoxType;  
+        //typedef BoundingBox<TPointType, BaseType>  BoundingBoxType;  
 
 
         /**
@@ -503,12 +503,12 @@ namespace Kratos
 */
 
        //typedef Quadrilateral2D4<TPointType> Quadrilateral2D4Type;    
-       virtual void Bounding_Box(BoundingBoxType& rResult) const
-             {              
-                //KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")  
-                //rResult.GetGeom() = this; 
-                BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
-             }
+//        virtual void Bounding_Box(BoundingBoxType& rResult) const
+//              {              
+//                 //KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")  
+//                 //rResult.GetGeom() = this; 
+//                 BaseType::Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
+//              }
      
 
 
