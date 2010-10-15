@@ -56,7 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 	#include <CL/cl.h>
 // #endif
 
+#include "includes/model_part.h"
 #include "custom_utilities/opencl_edge_data.h"
+#include "custom_utilities/opencl_pure_convection_edgebased.h"
+
 
 namespace Kratos
 {
@@ -72,6 +75,12 @@ namespace Python
                           .def("ConstructCSRVector",&OpenCLMatrixContainer::ConstructCSRVector)
                           .def("BuildCSRData",&OpenCLMatrixContainer::BuildCSRData)
                           .def("Clear",&OpenCLMatrixContainer::Clear)
+                        ;
+
+          class_< OpenCLPureConvectionEdgeBased3D,  boost::noncopyable >   ("OpenCLPureConvectionEdgeBased3D", init< OpenCLMatrixContainer&, ModelPart& >() )
+                          .def("Initialize", &OpenCLPureConvectionEdgeBased3D::Initialize)
+                          .def("Solve", &OpenCLPureConvectionEdgeBased3D::Solve)
+						  .def("ComputeTimeStep", &OpenCLPureConvectionEdgeBased3D::ComputeTimeStep)
                         ;
 
           enum_<cl_device_type>("cl_device_type")
