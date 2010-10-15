@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 __kernel void CalculateAdvectiveVelocity(__global const VectorType *mUn, __global const VectorType *mUn1, __global VectorType *mA, const ValueType coefficient, const IndexType n_nodes)
 {
 	// Get work item index
-	unsigned int i_node = get_global_id(0);
+	IndexType i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -84,7 +84,7 @@ __kernel void CalculateAdvectiveVelocity(__global const VectorType *mUn, __globa
 __kernel void Solve1(__global const ValueType *Hmin, __global const VectorType *A, __global ValueType *Tau, const ValueType time_inv, const IndexType n_nodes)
 {
 	// Get work item index
-	unsigned int i_node = get_global_id(0);
+	IndexType i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -101,24 +101,23 @@ __kernel void Solve1(__global const ValueType *Hmin, __global const VectorType *
 __kernel void CalculateRHS1(__global VectorType *Pi, __global const ValueType *phi, __global const IndexType *RowStartIndex, __global const IndexType *ColumnIndex, __global const EdgeType *EdgeValues, __global const ValueType *InvertedMass, const IndexType n_nodes)
 {
 	// Get work item index
-	unsigned int i_node = get_global_id(0);
+	IndexType i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		Pi[i_node] = 0.00;
+		VectorType Temp_Pi_i_node = 0.00;
 
-		for (unsigned int csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
 		{
-			unsigned int j_neighbour = ColumnIndex[csr_index];
+			IndexType j_neighbour = ColumnIndex[csr_index];
 
-			Add_grad_p(&EdgeValues[csr_index], &Pi[i_node], phi[i_node], phi[j_neighbour]);
+			Add_grad_p(&EdgeValues[csr_index], &Temp_Pi_i_node, phi[i_node], phi[j_neighbour]);
 		}
 
 		// Apply inverted mass matrix
-		const double m_inv = InvertedMass[i_node];
-
-		Pi[i_node] *= m_inv;
+		Temp_Pi_i_node *= InvertedMass[i_node];
+		Pi[i_node] = Temp_Pi_i_node;
 	}
 }
 
@@ -130,46 +129,47 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global const ValueType *p
 __kernel void CalculateRHS2(__global VectorType *Pi, __global const ValueType *phi, __global const IndexType *RowStartIndex, __global const IndexType *ColumnIndex, __global const VectorType *x, __global ValueType *Beta, const IndexType n_nodes)
 {
 	// Get work item index
-	unsigned int i_node = get_global_id(0);
+	IndexType i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
 		VectorType dir;
 
-		Beta[i_node] = 0.00;
+		ValueType Temp_Beta_i_node = 0.00;
 
-		double n = 0.00;
-		double h = 0.00;
+		ValueType n = 0.00;
+		ValueType h = 0.00;
 
-		for (unsigned int csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
 		{
-			unsigned int j_neighbour = ColumnIndex[csr_index];
+			IndexType j_neighbour = ColumnIndex[csr_index];
 
 			dir = x[j_neighbour] - x[i_node];
 
-			double proj = 0.5 * dot(dir, Pi[i_node] + Pi[j_neighbour]);
+			ValueType proj = 0.5 * dot(dir, Pi[i_node] + Pi[j_neighbour]);
 
-			double numerator = fabs(fabs(phi[j_neighbour] - phi[i_node]) - fabs(proj));
-			double denominator = fabs(fabs(phi[j_neighbour] - phi[i_node]) + 1e-6);
+			ValueType numerator = fabs(fabs(phi[j_neighbour] - phi[i_node]) - fabs(proj));
+			ValueType denominator = fabs(fabs(phi[j_neighbour] - phi[i_node]) + 1e-6);
 
-			double beta = numerator / denominator;
+			ValueType beta = numerator / denominator;
 
-			Beta[i_node] += beta;
+			Temp_Beta_i_node += beta;
 
 			n += 1.0;
 			h += length(dir);
 		}
 
-		Beta[i_node] /= n;
+		Temp_Beta_i_node /= n;
 		h /= n;
 
-		if (Beta[i_node] > 1.00)
+		if (Temp_Beta_i_node > 1.00)
 		{
-			Beta[i_node] = 1.00;
+			Temp_Beta_i_node = 1.00;
 		}
 
-		Beta[i_node] *= h;
+		Temp_Beta_i_node *= h;
+		Beta[i_node] = Temp_Beta_i_node;
 	}
 }
 
@@ -181,49 +181,43 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global const ValueType *p
 __kernel void CalculateRHS3(__global VectorType *Pi, __global const ValueType *phi, __global const IndexType *RowStartIndex, __global const IndexType *ColumnIndex, __global const EdgeType *EdgeValues, __global const VectorType *convective_velocity, __global const ValueType *Beta, __global ValueType *rhs, __global const ValueType *Tau, const IndexType n_nodes)
 {
 	// Get work item index
-	unsigned int i_node = get_global_id(0);
+	IndexType i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		double stab_low;
-		double stab_high;
+		ValueType stab_low;
+		ValueType stab_high;
 
-		double pi_i = dot(Pi[i_node], convective_velocity[i_node]);
+		ValueType pi_i = dot(Pi[i_node], convective_velocity[i_node]);
 
-		double norm_a = length(convective_velocity[i_node]);
+		ValueType Temp_rhs_i_node = 0.00;
 
-		rhs[i_node] = 0.00;
-
-		for (unsigned int csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
 		{
-			unsigned int j_neighbour = ColumnIndex[csr_index];
+			IndexType j_neighbour = ColumnIndex[csr_index];
 
-			double pi_j = dot(Pi[j_neighbour], convective_velocity[i_node]);
+			ValueType pi_j = dot(Pi[j_neighbour], convective_velocity[i_node]);
 
 			// Convection operator
-			Sub_ConvectiveContribution2(&EdgeValues[csr_index], &rhs[i_node], &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
+			Sub_ConvectiveContribution2(&EdgeValues[csr_index], &Temp_rhs_i_node, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
 
 			// Calculate stabilization part
 			CalculateConvectionStabilization_LOW2(&EdgeValues[csr_index], &stab_low, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
 
-			double edge_tau = Tau[i_node];
-
 			CalculateConvectionStabilization_HIGH2(&EdgeValues[csr_index], &stab_high, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
 
-			Sub_StabContribution2(&EdgeValues[csr_index], &rhs[i_node], edge_tau, 1.00, stab_low, stab_high);
+			Sub_StabContribution2(&EdgeValues[csr_index], &Temp_rhs_i_node, Tau[i_node], 1.00, stab_low, stab_high);
 
-			double beta = Beta[i_node];
 
-			double coeff = 0.35;
-
-			double laplacian_ij = 0.00;
+			ValueType laplacian_ij = 0.00;
 
 			CalculateScalarLaplacian(&EdgeValues[csr_index], &laplacian_ij);
 
-			double capturing = laplacian_ij * (phi[j_neighbour] - phi[i_node]);
+			ValueType capturing = laplacian_ij * (phi[j_neighbour] - phi[i_node]);
 
-			rhs[i_node] -= coeff * capturing * beta * norm_a;
+			Temp_rhs_i_node -= 0.35 * capturing * Beta[i_node] * length(convective_velocity[i_node]);
+			rhs[i_node] = Temp_rhs_i_node;
 		}
 	}
 }
