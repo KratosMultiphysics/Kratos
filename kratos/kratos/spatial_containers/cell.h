@@ -299,7 +299,7 @@ namespace Kratos
   template<
   class TPointerType>
   inline std::istream& operator >> (std::istream& rIStream, 
-				    Cell<TPointerType>& rThis){ return rIStream}
+				    Cell<TPointerType>& rThis){ return rIStream;}
 
   /// output stream function
   template<
