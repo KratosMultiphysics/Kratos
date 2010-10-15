@@ -79,11 +79,11 @@ namespace Kratos
 {
 
 	//
-	// OpenCLPureConvectionEdgeBased
+	// OpenCLPureConvectionEdgeBased3D
 	//
 	// OpenCL based pure convection edge based solver
 
-	class OpenCLPureConvectionEdgeBased
+	class OpenCLPureConvectionEdgeBased3D
 	{
 		public:
 
@@ -94,11 +94,11 @@ namespace Kratos
 			typedef cl_double *ValuesVectorType;
 
 			//
-			// OpenCLPureConvectionEdgeBased
+			// OpenCLPureConvectionEdgeBased3D
 			//
 			// Constructor
 
-			OpenCLPureConvectionEdgeBased(OpenCLMatrixContainer matrix_container, ModelPart &model_part): mr_matrix_container(matrix_container), mrDeviceGroup(mr_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
+			OpenCLPureConvectionEdgeBased3D(OpenCLMatrixContainer matrix_container, ModelPart &model_part): mr_matrix_container(matrix_container), mrDeviceGroup(mr_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
 			{
 				// Loading OpenCL program
 				// TODO: Add optimization flags here
@@ -113,11 +113,11 @@ namespace Kratos
 			}
 
 			//
-			// ~OpenCLPureConvectionEdgeBased
+			// ~OpenCLPureConvectionEdgeBased3D
 			//
 			// Destructor
 
-			~OpenCLPureConvectionEdgeBased()
+			~OpenCLPureConvectionEdgeBased3D()
 			{
 				// Nothing to do!
 			}
