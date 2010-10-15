@@ -68,11 +68,18 @@ namespace Python
         
         using namespace boost::python; 
         
-          class_< OpenCLMatrixContainer,  boost::noncopyable >   ("OpenCLMatrixContainer3D", init< cl_device_type   >() )
+          class_< OpenCLMatrixContainer,  boost::noncopyable >   ("OpenCLMatrixContainer3D", init< cl_device_type >() )
                           .def("ConstructCSRVector",&OpenCLMatrixContainer::ConstructCSRVector)
                           .def("BuildCSRData",&OpenCLMatrixContainer::BuildCSRData)
                           .def("Clear",&OpenCLMatrixContainer::Clear)
                         ;
+
+          enum_<cl_device_type>("cl_device_type")
+                          .value("CL_DEVICE_TYPE_CPU", CL_DEVICE_TYPE_CPU)
+                          .value("CL_DEVICE_TYPE_GPU", CL_DEVICE_TYPE_GPU)
+                          .value("CL_DEVICE_TYPE_ALL", CL_DEVICE_TYPE_ALL)
+                        ;
+
 
                           
   }
