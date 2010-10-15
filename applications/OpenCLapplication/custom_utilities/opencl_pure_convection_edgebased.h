@@ -98,7 +98,7 @@ namespace Kratos
 			//
 			// Constructor
 
-			OpenCLPureConvectionEdgeBased3D(OpenCLMatrixContainer matrix_container, ModelPart &model_part): mr_matrix_container(matrix_container), mrDeviceGroup(mr_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
+			OpenCLPureConvectionEdgeBased3D(OpenCLMatrixContainer &matrix_container, ModelPart &model_part): mr_matrix_container(matrix_container), mrDeviceGroup(mr_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
 			{
 				// Loading OpenCL program
 				// TODO: Add optimization flags here
