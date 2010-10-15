@@ -107,6 +107,7 @@ __kernel void Test(__global const double *input, __global double *output, const 
 // Edge specific kernels
 
 // TODO: Optimize kernels (vectorize, use built-in functions, avoid excessive use of __global data)
+// TODO: Some __global attributes must be removed, depending on the usage, like Add_grad_p
 
 void Add_Gp(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
@@ -142,7 +143,7 @@ void Sub_D_v(__global EdgeType *a, __global ValueType *destination, __global con
 		KRATOS_OCL_NI_DNJ_2(a) * (KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_COMP_2(v_i));
 }
 
-void Add_grad_p(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
+void Add_grad_p(__global EdgeType *a, VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	// destination[comp] += Ni_DNj[comp] * (p_j - p_i)
 	ValueType dp = p_j - p_i;
@@ -303,7 +304,7 @@ void Add_ConvectiveContribution2(__global EdgeType *a, __global ValueType *desti
 
 }
 
-void Sub_ConvectiveContribution2(__global EdgeType *a, __global ValueType *destination,
+void Sub_ConvectiveContribution2(__global EdgeType *a, ValueType *destination,
 	__global const VectorType *a_i, const ValueType phi_i,
 	__global const VectorType *a_j, const ValueType phi_j)
 {
@@ -482,7 +483,7 @@ void Add_StabContribution2(__global EdgeType *a, __global ValueType *destination
 	*destination += tau * (stab_low - beta * stab_high);
 }
 
-void Sub_StabContribution2(__global EdgeType *a, __global ValueType *destination,
+void Sub_StabContribution2(__global EdgeType *a, ValueType *destination,
 	const ValueType tau, const ValueType beta,
 	const ValueType stab_low, const ValueType stab_high)
 {

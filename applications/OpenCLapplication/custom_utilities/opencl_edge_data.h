@@ -72,29 +72,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "opencl_interface.h"
 
 // Some useful macros, will be renamed if not consistent
-#define KRATOS_OCL_LAPLACIANIJ_0_0(a)	a.s0
-#define KRATOS_OCL_LAPLACIANIJ_0_1(a)	a.s1
-#define KRATOS_OCL_LAPLACIANIJ_0_2(a)	a.s2
-#define KRATOS_OCL_LAPLACIANIJ_1_0(a)	a.s3
-#define KRATOS_OCL_LAPLACIANIJ_1_1(a)	a.s4
-#define KRATOS_OCL_LAPLACIANIJ_1_2(a)	a.s5
-#define KRATOS_OCL_LAPLACIANIJ_2_0(a)	a.s6
-#define KRATOS_OCL_LAPLACIANIJ_2_1(a)	a.s7
-#define KRATOS_OCL_LAPLACIANIJ_2_2(a)	a.s8
+#define KRATOS_OCL_LAPLACIANIJ_0_0(a)	a.s[0]
+#define KRATOS_OCL_LAPLACIANIJ_0_1(a)	a.s[1]
+#define KRATOS_OCL_LAPLACIANIJ_0_2(a)	a.s[2]
+#define KRATOS_OCL_LAPLACIANIJ_1_0(a)	a.s[3]
+#define KRATOS_OCL_LAPLACIANIJ_1_1(a)	a.s[4]
+#define KRATOS_OCL_LAPLACIANIJ_1_2(a)	a.s[5]
+#define KRATOS_OCL_LAPLACIANIJ_2_0(a)	a.s[6]
+#define KRATOS_OCL_LAPLACIANIJ_2_1(a)	a.s[7]
+#define KRATOS_OCL_LAPLACIANIJ_2_2(a)	a.s[8]
 
-#define KRATOS_OCL_MASS(a)				a.s9
+#define KRATOS_OCL_MASS(a)				a.s[9]
 
-#define KRATOS_OCL_NI_DNJ_0(a)			a.sa
-#define KRATOS_OCL_NI_DNJ_1(a)			a.sb
-#define KRATOS_OCL_NI_DNJ_2(a)			a.sc
+#define KRATOS_OCL_NI_DNJ_0(a)			a.s[10]
+#define KRATOS_OCL_NI_DNJ_1(a)			a.s[11]
+#define KRATOS_OCL_NI_DNJ_2(a)			a.s[12]
 
-#define KRATOS_OCL_DNI_NJ_0(a)			a.sd
-#define KRATOS_OCL_DNI_NJ_1(a)			a.se
-#define KRATOS_OCL_DNI_NJ_2(a)			a.sf
+#define KRATOS_OCL_DNI_NJ_0(a)			a.s[13]
+#define KRATOS_OCL_DNI_NJ_1(a)			a.s[14]
+#define KRATOS_OCL_DNI_NJ_2(a)			a.s[15]
 
-#define KRATOS_OCL_COMP_0(a)			a.x
-#define KRATOS_OCL_COMP_1(a)			a.y
-#define KRATOS_OCL_COMP_2(a)			a.z
+#define KRATOS_OCL_COMP_0(a)			a.s[0]
+#define KRATOS_OCL_COMP_1(a)			a.s[1]
+#define KRATOS_OCL_COMP_2(a)			a.s[2]
 
 
 namespace Kratos
