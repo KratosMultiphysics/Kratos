@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "OpenCLapplication.h"
 #include "custom_python/add_linear_solvers_to_python.h"
+#include "custom_python/add_utilities_to_python.h"
 
  
 namespace Kratos
@@ -82,6 +83,7 @@ namespace Python
 			;
 
 	AddLinearSolversToPython();
+	AddUtilitiesToPython();
 
 	//registering variables in python
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
