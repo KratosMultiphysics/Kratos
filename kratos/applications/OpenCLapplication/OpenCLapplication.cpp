@@ -30,7 +30,7 @@ namespace Kratos
  	{
  		// calling base class register to register Kratos components
  		KratosApplication::Register();
-		std::cout << "Initializing KratosTestApplication... " << std::endl;
+		std::cout << "Initializing KratosOpenCLApplication... " << std::endl;
 	}
 
 }  // namespace Kratos.
