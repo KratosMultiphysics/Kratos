@@ -132,7 +132,7 @@ namespace Kratos
 				vel=im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 				nu=im->GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
 				//reuse dummy to temporarily store the scalar product of vel and height
-				dt=1.0/(fabs(inner_prod(vel,aux)) + 2.0*nu/h*h);
+				dt=1.0/(2.0*fabs(inner_prod(vel,aux)) + 4.0*nu/h*h);
 				if(dt<glob_min_dt) 
 					glob_min_dt=dt;
 				}
