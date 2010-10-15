@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_KMat_DB version="1.0">
+<Kratos_KMat_DB version="1.0.4">
     <Materials>
         <MaterialGroup id="Metal" pid="Metal" icon="grey.gif" help="Helptext" open="1">
             <Material id="Steel_AISI1059" pid="Steel_AISI1059" icon="grey.gif" help="Helptext" open="0">
@@ -66,7 +66,7 @@
                         <Property id="HardeningLaw" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
                         <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
-                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Misses,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Mises,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear" values="Linear" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -170,7 +170,7 @@
                         <Property id="HardeningLaw" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
                         <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
-                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Misses,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Mises,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear" values="Linear" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -276,7 +276,7 @@
                         <Property id="HardeningLaw" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
                         <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
-                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Misses,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Mises,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear" values="Linear" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -380,7 +380,7 @@
                         <Property id="HardeningLaw" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
                         <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
-                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Misses,Energy,Mohr-Coulomb,Rankine,Drucker-Prager" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Mises,Energy,Mohr-Coulomb,Rankine,Drucker-Prager" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear" values="Linear" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -487,7 +487,7 @@
                         <Property id="HardeningLaw" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
                         <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
-                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Misses,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Mises,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear" values="Linear" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -600,7 +600,7 @@
                     <Property id="HardeningLaw" pid="Hardening law" class="HardeningLaw" value="Isotropic" ivalues="Isotropic,Kinematic,IsotropicKinematic" values="Isotropic,Kinematic,Isotropic + Kinematic" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="IsotropicHardeningModulus" pid="Isotropic hardening modulus" HardeningLaw="Isotropic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
                     <Property id="KinematicHardeningModulus" pid="Kinematic hardening modulus" HardeningLaw="Kinematic,IsotropicKinematic" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
-                    <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Misses,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                    <Property id="YieldCriteria" pid="Yield criteria" class="YieldCriteria" value="VonMisses" ivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca" values="Von-Mises,Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="SofteningLaw" pid="Softening law" class="SofteningLaw" value="Linear" ivalues="Linear" values="Linear" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>

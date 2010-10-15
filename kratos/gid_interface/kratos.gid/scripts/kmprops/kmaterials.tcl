@@ -16,6 +16,7 @@
 #
 #	HISTORY:
 #
+#	0.6- 27/09/10 LC, Correct bugs inserting new materials and double click in containers
 #	0.5- 08/06/10 KS, New materials database structure + template for add material.
 #	0.4- 11/05/10 KS, varius bugs fixed.
 #	0.3- 26/04/10 KS, Material Groups.

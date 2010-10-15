@@ -355,7 +355,7 @@ proc ::xmlutils::checkSpdVersion { filename } {
 						set foundNode [$baseNodeOld find id $id]
 						if { $foundNode != "" && [$foundNode nodeName] == [$nodeAux nodeName] } {
 						
-						#Hemos encontrado el mismo nodo en el modelo del problemtye
+						#Hemos encontrado el mismo nodo en el modelo del problemtype
 						
 						set dvOld [$foundNode getAttribute $att ""]
 						set dvNew [$nodeAux getAttribute $att ""]
@@ -566,23 +566,30 @@ proc ::xmlutils::copyGroupNode { xml groupNode nodeClassPath idTemplate {class "
 			}
 		}
 	}
-	foreach node $dvNodes {
-	    
-	    set fullname [file native [file join $KPriv(problemTypeDir) updateSPD.log]]
-	    set outfd [open $fullname w+]
-	    
-	    puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
-	    puts $outfd ""
-	    foreach line $logChanges {
-	    	#La escribe en el fichero de salida
-	    	puts $outfd $line
-	    }
-	    
-	    close $outfd
-	 }
-    
 	
-	lappend ::xmlutils::logChanges "[$targetNode getAttribute id 0] --> $idGroup"  
+	lappend ::xmlutils::logChanges "[$targetNode getAttribute id 0] --> $idGroup"
+	
+	
+	#Código antiguo para guardar en el log de cambios que se había colado
+	#global KPriv
+	#if { [llength $dvNodes] && [info exists KPriv(problemTypeDir)] } {
+	#	
+	#	set fullname [file native [file join $KPriv(problemTypeDir) updateSPD.log]]
+	#	set outfd [open $fullname w+]
+	#	    
+	#	foreach node $dvNodes {
+	#	    
+	#	    puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
+	#	    puts $outfd ""
+	#	    foreach line $logChanges {
+	#	    	#La escribe en el fichero de salida
+	#	    	puts $outfd $line
+	#	    }
+	#	    
+	#	    close $outfd
+	#	 }
+	#}
+	#lappend ::xmlutils::logChanges "[$targetNode getAttribute id 0] --> $idGroup"  
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -697,28 +704,28 @@ proc ::xmlutils::checkSpdVersion_OLD { filename } {
 			
 		}
 		
-		#Crea un archivo de log con los cambios realizados
-		if { [llength $logChanges] } {
-			
-			set ptypeName "updateSPD.log"
-			catch {
-			set ptypeName [string map {".gid" ""} [lindex [split $KPriv(problemTypeDir) "/"] end] ]
-			}
-			
-			set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
-			set outfd [open $fullname w+]
-			
-			puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
-			puts $outfd ""
-			foreach line $logChanges {
-				#La escribe en el fichero de salida
-				puts $outfd $line
-			}
-			
-			close $outfd
-		}
-		
-		
+		##Crea un archivo de log con los cambios realizados
+		#if { [llength $logChanges] } {
+		#	
+		#	set ptypeName "updateSPD.log"
+		#	catch {
+		#	set ptypeName [string map {".gid" ""} [lindex [split $KPriv(problemTypeDir) "/"] end] ]
+		#	}
+		#	
+		#	set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
+		#	set outfd [open $fullname w+]
+		#	
+		#	puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
+		#	puts $outfd ""
+		#	foreach line $logChanges {
+		#		#La escribe en el fichero de salida
+		#		puts $outfd $line
+		#	}
+		#	
+		#	close $outfd
+		#}
+		#
+		#
 		#::xmlutils::xmlVersion $xml $defaultVersion
 		
 	}
