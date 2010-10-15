@@ -42,6 +42,7 @@ python-extension KratosOpenCLApplication
 	OpenCLapplication.cpp 
 	opencl_python_application.cpp
         add_linear_solvers_to_python.cpp
+        add_utilities_to_python.cpp
 
         libOCL
 
