@@ -77,11 +77,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_OCL_DNI_NJ_1(a)			(*a).se
 #define KRATOS_OCL_DNI_NJ_2(a)			(*a).sf
 
-#define KRATOS_OCL_COMP(a, n)			(*a).s[n]
-
-#define KRATOS_OCL_COMP_0(a)			(*a).x
-#define KRATOS_OCL_COMP_1(a)			(*a).y
-#define KRATOS_OCL_COMP_2(a)			(*a).z
+#define KRATOS_OCL_COMP_0(a)			(*a).s0
+#define KRATOS_OCL_COMP_1(a)			(*a).s1
+#define KRATOS_OCL_COMP_2(a)			(*a).s2
 
 //
 // Used types
