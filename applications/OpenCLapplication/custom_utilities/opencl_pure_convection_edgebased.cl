@@ -72,7 +72,7 @@ __kernel void CalculateAdvectiveVelocity(__global const VectorType *mUn, __globa
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		mA[i_node] = coefficient * mUn1[i_node] + (1.00 - coefficient * mUn[i_node]);
+		mA[i_node] = coefficient * mUn1[i_node] + (1.00 - coefficient) * mUn[i_node];
 	}
 }
 
