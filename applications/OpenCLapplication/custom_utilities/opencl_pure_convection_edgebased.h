@@ -142,43 +142,43 @@ namespace Kratos
 				// Size data vectors
 				AllocateArray(&mWork, n_nodes);
 
-				AllocateArray(&mPi, n_nodes * 3);
+				AllocateArray(&mPi, n_nodes);
 
-				AllocateArray(&mUn, n_nodes * 3);
-				AllocateArray(&mUn1, n_nodes * 3);
+				AllocateArray(&mUn, n_nodes);
+				AllocateArray(&mUn1, n_nodes);
 
 				AllocateArray(&mphi_n, n_nodes);
 				AllocateArray(&mphi_n1, n_nodes);
 
-				AllocateArray(&mA, n_nodes * 3);
+				AllocateArray(&mA, n_nodes);
 
 				AllocateArray(&mTau, n_nodes);
 				AllocateArray(&mBeta, n_nodes);
 
-				AllocateArray(&mx, n_nodes * 3);
+				AllocateArray(&mx, n_nodes);
 
 				AllocateArray(&mrhs, n_nodes);
 
 				// Allocating buffers on OpenCL device
 				// TODO: Should these be read-write?
-				mbWork = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
+				mbWork = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
-				mbPi = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
+				mbPi = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 
-				mbUn = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
-				mbUn1 = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
+				mbUn = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
+				mbUn1 = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 
-				mbphi_n = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
-				mbphi_n1 = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
+				mbphi_n = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+				mbphi_n1 = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
-				mbA = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
+				mbA = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 
-				mbTau = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
-				mbBeta = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
+				mbTau = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+				mbBeta = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
-				mbx = mrDeviceGroup.CreateBuffer(n_nodes * 3 * sizeof(double), CL_MEM_READ_WRITE);
+				mbx = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 
-				mbrhs = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(double), CL_MEM_READ_WRITE);
+				mbrhs = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
 				// Read variables from database
 
@@ -258,7 +258,7 @@ namespace Kratos
 
 				// Compute advective velocity - area average of the current velocity
 				double coefficient = 1;
-				CalculateAdvectiveVelocity(coefficient, true);
+				CalculateAdvectiveVelocity(mbUn, mbUn1, mbA, coefficient);
 
 				// Compute intrinsic time
 				double time_inv = 1.00 / delta_t;
@@ -292,7 +292,7 @@ namespace Kratos
 				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Third step
-				CalculateAdvectiveVelocity(coefficient);
+				CalculateAdvectiveVelocity(mbUn, mbUn1, mbA, coefficient);
 
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbphi_n1, mbA, mbrhs);
@@ -301,7 +301,7 @@ namespace Kratos
 				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Fourth step
-				CalculateAdvectiveVelocity(coefficient);
+				CalculateAdvectiveVelocity(mbUn, mbUn1, mbA, coefficient);
 
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbphi_n1, mbA, mbrhs);
@@ -372,17 +372,14 @@ namespace Kratos
 			//
 			// CalculateAdvectiveVelocity
 
-			void CalculateAdvectiveVelocity(double coefficient, bool _SetArgs = false)
+			void CalculateAdvectiveVelocity(cl_uint Un_buffer, cl_uint Un1_buffer, cl_uint A_buffer, double coefficient)
 			{
 				// Setting arguments
-				if (_SetArgs)
-				{
-					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 0, mbUn);
-					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 1, mbUn1);
-					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 2, mbA);
-					mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 3, coefficient);
-					mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 4, n_nodes);
-				}
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 0, Un_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 1, Un1_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 2, A_buffer);
+				mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 3, coefficient);
+				mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 4, n_nodes);
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkCalculateAdvectiveVelocity, n_nodes);

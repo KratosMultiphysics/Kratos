@@ -492,8 +492,9 @@ namespace OpenCL
 					KRATOS_OCL_CHECK(Err);
 				}
 
-				// Getting current working directory
-				GETCWD(CurrentWorkingDirectory, sizeof(CurrentWorkingDirectory));
+				// Getting current working directory; Dummy is used to avoid warning
+				char *Dummy = GETCWD(CurrentWorkingDirectory, sizeof(CurrentWorkingDirectory));
+				Dummy = NULL;
 			}
 
 			//
