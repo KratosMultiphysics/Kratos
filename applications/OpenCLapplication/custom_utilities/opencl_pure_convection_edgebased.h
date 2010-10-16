@@ -381,6 +381,7 @@ namespace Kratos
 					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 1, mbUn1);
 					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 2, mbA);
 					mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 3, coefficient);
+					mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 4, n_nodes);
 				}
 
 				// Execute OpenCL kernel
