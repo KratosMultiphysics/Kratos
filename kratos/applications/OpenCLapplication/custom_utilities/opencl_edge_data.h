@@ -856,7 +856,7 @@ namespace Kratos
 				mDeviceGroup.SetKernelArg(mkAdd_Minv_value, 2, Value);
 				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 3, MinvBufferIndex);
 				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 4, OriginBufferIndex);
-				mDeviceGroup.SetKernelArg(mkSetToZero, 5, n);
+				mDeviceGroup.SetKernelArg(mkAdd_Minv_value, 5, n);
 
 				// Execute OpenCL kernel
 				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value, n);
