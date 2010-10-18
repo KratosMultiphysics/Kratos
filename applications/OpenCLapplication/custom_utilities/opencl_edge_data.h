@@ -176,7 +176,8 @@ namespace Kratos
 				mpOpenCLEdgeData = mDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl");
 
 				// Register kernels
-				mkAdd_Minv_value = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value");
+				mkAdd_Minv_value1 = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value1");
+				mkAdd_Minv_value3 = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value3");
 				mkSetToZero = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "SetToZero");
 			}
 
@@ -839,27 +840,53 @@ namespace Kratos
 			}
 
 			//
-			// Add_Minv_value
+			// Add_Minv_value1
 			//
 			// destination = origin1 + value * Minv * origin
+			// cl_double version
 
-			void Add_Minv_value(cl_uint DestinationBufferIndex, cl_uint Origin1BufferIndex, const double Value, cl_uint MinvBufferIndex, cl_uint OriginBufferIndex)
+			void Add_Minv_value1(cl_uint DestinationBufferIndex, cl_uint Origin1BufferIndex, const cl_double Value, cl_uint MinvBufferIndex, cl_uint OriginBufferIndex)
 			{
 				// TODO: Check if buffers are of the same size
 				// TODO: Single device code
 
-				cl_uint n = mDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(double);
+				cl_uint n = mDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(cl_double);
 
 				// Setting arguments
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 0, DestinationBufferIndex);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 1, Origin1BufferIndex);
-				mDeviceGroup.SetKernelArg(mkAdd_Minv_value, 2, Value);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 3, MinvBufferIndex);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value, 4, OriginBufferIndex);
-				mDeviceGroup.SetKernelArg(mkAdd_Minv_value, 5, n);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 0, DestinationBufferIndex);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 1, Origin1BufferIndex);
+				mDeviceGroup.SetKernelArg(mkAdd_Minv_value1, 2, Value);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 3, MinvBufferIndex);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 4, OriginBufferIndex);
+				mDeviceGroup.SetKernelArg(mkAdd_Minv_value1, 5, n);
 
 				// Execute OpenCL kernel
-				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value, n);
+				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value1, n);
+			}
+
+			//
+			// Add_Minv_value3
+			//
+			// destination = origin1 + value * Minv * origin
+			// cl_double3 version
+
+			void Add_Minv_value3(cl_uint DestinationBufferIndex, cl_uint Origin1BufferIndex, const cl_double Value, cl_uint MinvBufferIndex, cl_uint OriginBufferIndex)
+			{
+				// TODO: Check if buffers are of the same size
+				// TODO: Single device code
+
+				cl_uint n = mDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(cl_double3);
+
+				// Setting arguments
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 0, DestinationBufferIndex);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 1, Origin1BufferIndex);
+				mDeviceGroup.SetKernelArg(mkAdd_Minv_value3, 2, Value);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 3, MinvBufferIndex);
+				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 4, OriginBufferIndex);
+				mDeviceGroup.SetKernelArg(mkAdd_Minv_value3, 5, n);
+
+				// Execute OpenCL kernel
+				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value3, n);
 			}
 
 			//
@@ -974,7 +1001,7 @@ namespace Kratos
 			OpenCL::DeviceGroup mDeviceGroup;
 
 			// OpenCL program and kernels
-			cl_uint mpOpenCLEdgeData, mkAdd_Minv_value, mkSetToZero;
+			cl_uint mpOpenCLEdgeData, mkAdd_Minv_value1, mkAdd_Minv_value3, mkSetToZero;
 
 			// OpenCL buffers
 			cl_uint mbNonzeroEdgeValues, mbColumnIndex, mbRowStartIndex, mbLumpedMassMatrix, mbInvertedMassMatrix, mbDiagGradientMatrix, mbHmin;

@@ -683,7 +683,7 @@ namespace OpenCL
 
 						case DeviceToHost:
 
-							Err = clEnqueueWriteBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPtrs[i], 0, NULL, NULL);
+							Err = clEnqueueReadBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPtrs[i], 0, NULL, NULL);
 							KRATOS_OCL_CHECK(Err);
 
 							break;
