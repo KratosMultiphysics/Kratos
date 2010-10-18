@@ -195,8 +195,6 @@ namespace Kratos
 				// Set flag for first time step
 				mFirstStep = true;
 
-				mHmin = mr_matrix_container.GetHmin();
-
 				KRATOS_CATCH("")
 			}
 
@@ -219,7 +217,7 @@ namespace Kratos
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
 				{
 					// Use CFL condition to compute time step size
-					double delta_t_i = CFLNumber * mHmin[i_node] / Norm2_3(mUn1[i_node]);
+					double delta_t_i = CFLNumber * mr_matrix_container.GetHmin()[i_node] / Norm2_3(mUn1[i_node]);
 
 					// Choose the overall minimum of delta_t_i
 					if (delta_t_i < delta_t)
@@ -242,7 +240,6 @@ namespace Kratos
 
 			void Solve()
 			{
-				// TODO: To optimize things, we can use double4 arrays, but we should take care on the host
 				// Read variables from Kratos
 				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes(), mbUn1);
 				mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes(), mbUn);
@@ -257,7 +254,7 @@ namespace Kratos
 				// TODO: This should take place on GPU
 
 				// Compute advective velocity - area average of the current velocity
-				double coefficient = 1;
+				double coefficient = 1.00;
 				CalculateAdvectiveVelocity(mbUn, mbUn1, mbA, coefficient);
 
 				// Compute intrinsic time
@@ -281,15 +278,15 @@ namespace Kratos
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbphi_n1, mbA, mbrhs);
 
-				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 6.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
-				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value1(mbWork, mbWork, delta_t / 6.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value1(mbphi_n1, mbphi_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Second step
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbphi_n1, mbA, mbrhs);
 
-				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 3.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
-				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value1(mbWork, mbWork, delta_t / 3.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value1(mbphi_n1, mbphi_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Third step
 				CalculateAdvectiveVelocity(mbUn, mbUn1, mbA, coefficient);
@@ -297,8 +294,8 @@ namespace Kratos
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbphi_n1, mbA, mbrhs);
 
-				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 3.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
-				mr_matrix_container.Add_Minv_value(mbphi_n1, mbphi_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value1(mbWork, mbWork, delta_t / 3.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value1(mbphi_n1, mbphi_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Fourth step
 				CalculateAdvectiveVelocity(mbUn, mbUn1, mbA, coefficient);
@@ -306,7 +303,7 @@ namespace Kratos
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbphi_n1, mbA, mbrhs);
 
-				mr_matrix_container.Add_Minv_value(mbWork, mbWork, delta_t / 6.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value1(mbWork, mbWork, delta_t / 6.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Compute right-hand side
 				mr_matrix_container.AssignVectorToVector(mbWork, mbphi_n1);
@@ -374,15 +371,28 @@ namespace Kratos
 
 			void CalculateAdvectiveVelocity(cl_uint Un_buffer, cl_uint Un1_buffer, cl_uint A_buffer, double coefficient)
 			{
-				// Setting arguments
-				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 0, Un_buffer);
-				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 1, Un1_buffer);
-				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 2, A_buffer);
-				mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 3, coefficient);
-				mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 4, n_nodes);
+				// Special cases
+				if (coefficient == 0.00)
+				{
+					// A = Un
+					mrDeviceGroup.CopyBufferToBuffer(Un_buffer, A_buffer);
+				}
+				else if (coefficient == 1.00)
+				{
+					// A = Un1
+					mrDeviceGroup.CopyBufferToBuffer(Un1_buffer, A_buffer);
+				} else
+				{
+					// Setting arguments
+					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 0, Un_buffer);
+					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 1, Un1_buffer);
+					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 2, A_buffer);
+					mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 3, coefficient);
+					mrDeviceGroup.SetKernelArg(mkCalculateAdvectiveVelocity, 4, n_nodes);
 
-				// Execute OpenCL kernel
-				mrDeviceGroup.ExecuteKernel(mkCalculateAdvectiveVelocity, n_nodes);
+					// Execute OpenCL kernel
+					mrDeviceGroup.ExecuteKernel(mkCalculateAdvectiveVelocity, n_nodes);
+				}
 			}
 
 			//
@@ -454,9 +464,6 @@ namespace Kratos
 
 			// Advective velocity vector
  			CalcVectorType mA;
-
-			// Minimum length of the edges surrounding each nodal point
-			ValuesVectorType mHmin;
 
 			// Flag for first time step
 			bool mFirstStep;
