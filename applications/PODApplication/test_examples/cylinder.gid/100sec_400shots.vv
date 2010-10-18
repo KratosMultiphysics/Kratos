@@ -1,0 +1,45 @@
+BeginZE /home/khaled/kratos/applications/PODApplication/test_examples/cylinder.gid/100sec_400shots.vv
+   x -1.95051 11.4923
+   y 9.48974 2.24972
+   z -28 28
+   e 9.33333
+   v 0 0 0
+   r 1
+   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   c 8 4 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+EndZE /home/khaled/kratos/applications/PODApplication/test_examples/cylinder.gid/100sec_400shots.vv
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 0
+  Num sets: 1
+  Num cuts: 0
+  Set: 0
+  State: On
+    Name: "Kratos Triangle2D3 Mesh 0"
+    IdSet: 0
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.1 0.1 0.1 0.5
+    Color Specular: 0.7 0.7 0.7 0.5
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 61
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 0
+EndSingleMesh
+  ResultView: {Id 10} {Contour Fill} Kratos 1.0499999523162842 VELOCITY X-VELOCITY 0.0
+EndPostState
+
