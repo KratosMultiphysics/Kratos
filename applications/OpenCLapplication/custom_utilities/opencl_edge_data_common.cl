@@ -303,8 +303,8 @@ void Add_ConvectiveContribution2(__global EdgeType *a, __global ValueType *desti
 }
 
 void Sub_ConvectiveContribution2(__global EdgeType *a, ValueType *destination,
-	__global const VectorType *a_i, const ValueType phi_i,
-	__global const VectorType *a_j, const ValueType phi_j)
+	const VectorType *a_i, const ValueType phi_i,
+	const VectorType *a_j, const ValueType phi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
@@ -360,8 +360,8 @@ void CalculateConvectionStabilization_LOW(__global EdgeType *a, __global VectorT
 }
 
 void CalculateConvectionStabilization_LOW2(__global EdgeType *a, ValueType *stab_low,
-	__global const VectorType *a_i, const ValueType phi_i,
-	__global const VectorType *a_j, const ValueType phi_j)
+	const VectorType *a_i, const ValueType phi_i,
+	const VectorType *a_j, const ValueType phi_j)
 {
 	// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
 	ValueType conv_stab =
@@ -420,8 +420,8 @@ void CalculateConvectionStabilization_HIGH(__global EdgeType *a, __global Vector
 }
 
 void CalculateConvectionStabilization_HIGH2(__global EdgeType *a, ValueType *stab_high,
-	__global const VectorType *a_i, const ValueType pi_i,
-	__global const VectorType *a_j, const ValueType pi_j)
+	const VectorType *a_i, const ValueType pi_i,
+	const VectorType *a_j, const ValueType pi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
