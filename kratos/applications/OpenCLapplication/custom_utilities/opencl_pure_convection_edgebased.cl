@@ -107,12 +107,13 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global const ValueType *p
 	if (i_node < n_nodes)
 	{
 		VectorType Temp_Pi_i_node = 0.00;
+		ValueType Temp_Phi_i_node = phi[i_node];
 
 		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
 
-			Add_grad_p(&EdgeValues[csr_index], &Temp_Pi_i_node, phi[i_node], phi[j_neighbour]);
+			Add_grad_p(&EdgeValues[csr_index], &Temp_Pi_i_node, Temp_Phi_i_node, phi[j_neighbour]);
 		}
 
 		// Apply inverted mass matrix
@@ -141,16 +142,22 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global const ValueType *p
 		ValueType n = 0.00;
 		ValueType h = 0.00;
 
+		VectorType Temp_x_i_node = x[i_node];
+		VectorType Temp_Pi_i_node = Pi[i_node];
+		ValueType Temp_Phi_i_node = phi[i_node];
+
 		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
 
-			dir = x[j_neighbour] - x[i_node];
+			ValueType Temp_Phi_j_neighbour = phi[j_neighbour];
 
-			ValueType proj = 0.5 * dot(dir, Pi[i_node] + Pi[j_neighbour]);
+			dir = x[j_neighbour] - Temp_x_i_node;
 
-			ValueType numerator = fabs(fabs(phi[j_neighbour] - phi[i_node]) - fabs(proj));
-			ValueType denominator = fabs(fabs(phi[j_neighbour] - phi[i_node]) + 1e-6);
+			ValueType proj = 0.5 * dot(dir, Temp_Pi_i_node + Pi[j_neighbour]);
+
+			ValueType numerator = fabs(fabs(Temp_Phi_j_neighbour - Temp_Phi_i_node) - fabs(proj));
+			ValueType denominator = fabs(fabs(Temp_Phi_j_neighbour - Temp_Phi_i_node) + 1e-6);
 
 			ValueType beta = numerator / denominator;
 
@@ -189,34 +196,42 @@ __kernel void CalculateRHS3(__global VectorType *Pi, __global const ValueType *p
 		ValueType stab_low;
 		ValueType stab_high;
 
-		ValueType pi_i = dot(Pi[i_node], convective_velocity[i_node]);
-
+		VectorType Temp_convective_velocity_i_node = convective_velocity[i_node];
+		ValueType Temp_convective_velocity_i_node_length = length(Temp_convective_velocity_i_node);
+		ValueType Temp_Phi_i_node = phi[i_node];
+		ValueType Temp_Tau_i_node = Tau[i_node];
+		ValueType Temp_Beta_i_node = Beta[i_node];
 		ValueType Temp_rhs_i_node = 0.00;
+
+		ValueType pi_i = dot(Pi[i_node], Temp_convective_velocity_i_node);
 
 		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
 
-			ValueType pi_j = dot(Pi[j_neighbour], convective_velocity[i_node]);
+			VectorType Temp_convective_velocity_j_neighbour = convective_velocity[j_neighbour];
+			ValueType Temp_Phi_j_neighbour = phi[j_neighbour];
+
+			ValueType pi_j = dot(Pi[j_neighbour], Temp_convective_velocity_i_node);
 
 			// Convection operator
-			Sub_ConvectiveContribution2(&EdgeValues[csr_index], &Temp_rhs_i_node, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
+			Sub_ConvectiveContribution2(&EdgeValues[csr_index], &Temp_rhs_i_node, &Temp_convective_velocity_i_node, Temp_Phi_i_node, &Temp_convective_velocity_j_neighbour, Temp_Phi_j_neighbour);
 
 			// Calculate stabilization part
-			CalculateConvectionStabilization_LOW2(&EdgeValues[csr_index], &stab_low, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
+			CalculateConvectionStabilization_LOW2(&EdgeValues[csr_index], &stab_low, &Temp_convective_velocity_i_node, Temp_Phi_i_node, &Temp_convective_velocity_j_neighbour, Temp_Phi_j_neighbour);
 
-			CalculateConvectionStabilization_HIGH2(&EdgeValues[csr_index], &stab_high, &convective_velocity[i_node], phi[i_node], &convective_velocity[j_neighbour], phi[j_neighbour]);
+			CalculateConvectionStabilization_HIGH2(&EdgeValues[csr_index], &stab_high, &Temp_convective_velocity_i_node, Temp_Phi_i_node, &Temp_convective_velocity_j_neighbour, Temp_Phi_j_neighbour);
 
-			Sub_StabContribution2(&EdgeValues[csr_index], &Temp_rhs_i_node, Tau[i_node], 1.00, stab_low, stab_high);
+			Sub_StabContribution2(&EdgeValues[csr_index], &Temp_rhs_i_node, Temp_Tau_i_node, 1.00, stab_low, stab_high);
 
 
 			ValueType laplacian_ij = 0.00;
 
 			CalculateScalarLaplacian(&EdgeValues[csr_index], &laplacian_ij);
 
-			ValueType capturing = laplacian_ij * (phi[j_neighbour] - phi[i_node]);
+			ValueType capturing = laplacian_ij * (Temp_Phi_j_neighbour - Temp_Phi_i_node);
 
-			Temp_rhs_i_node -= 0.35 * capturing * Beta[i_node] * length(convective_velocity[i_node]);
+			Temp_rhs_i_node -= 0.35 * capturing * Temp_Beta_i_node * Temp_convective_velocity_i_node_length;
 			rhs[i_node] = Temp_rhs_i_node;
 		}
 	}

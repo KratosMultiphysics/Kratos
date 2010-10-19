@@ -192,8 +192,9 @@ namespace Kratos
 				*/
 				mr_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes(), mbx);
 
+				// TODO: Unused, remove
 				// Set flag for first time step
-				mFirstStep = true;
+				// mFirstStep = true;
 
 				KRATOS_CATCH("")
 			}
@@ -381,7 +382,8 @@ namespace Kratos
 				{
 					// A = Un1
 					mrDeviceGroup.CopyBufferToBuffer(Un1_buffer, A_buffer);
-				} else
+				}
+				else
 				{
 					// Setting arguments
 					mrDeviceGroup.SetBufferAsKernelArg(mkCalculateAdvectiveVelocity, 0, Un_buffer);
@@ -444,8 +446,9 @@ namespace Kratos
 			// No. of nodes
 			unsigned int n_nodes;
 
-			bool msmooth_convective_velocity;
-			bool minclude_shock_capturing;
+			// TODO: Unused, remove
+			// bool msmooth_convective_velocity;
+			// bool minclude_shock_capturing;
 
 			// Nodal values
 
@@ -465,8 +468,9 @@ namespace Kratos
 			// Advective velocity vector
  			CalcVectorType mA;
 
+			// TODO: Unused, remove
 			// Flag for first time step
-			bool mFirstStep;
+			//bool mFirstStep;
 
 			// Intrinsic time step size
 			ValuesVectorType mTau;
