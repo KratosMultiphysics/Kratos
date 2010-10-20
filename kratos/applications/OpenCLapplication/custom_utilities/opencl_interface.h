@@ -61,16 +61,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	#include <CL/cl.h>
 #endif
 
-// Including proper header for a function to get current working directory
-
 #if defined(WINDOWS)
 	#include <direct.h>
 	#define GETCWD _getcwd
+	#define PATH_SEPARATOR '\\'
 #else
 	#include <unistd.h>
 	#define GETCWD getcwd
+	#define PATH_SEPARATOR '/'
 #endif
-
 
 
 // External includes
@@ -88,6 +87,8 @@ namespace OpenCL
 // Useful vector types
 
 	typedef enum {HostToDevice, DeviceToHost} BufferCopyDirection;
+
+	typedef std::vector<std::string> StringList;
 
 	typedef std::vector<cl_device_type> DeviceTypeList;
 	typedef std::vector<cl_device_id> DeviceIDList;
@@ -298,6 +299,8 @@ namespace OpenCL
 	{
 		public:
 
+			StringList CLSearchPath;
+
 			DeviceIDList DeviceIDs;
 			DeviceTypeList DeviceTypes;
 			ContextList Contexts;
@@ -493,8 +496,19 @@ namespace OpenCL
 				}
 
 				// Getting current working directory; Dummy is used to avoid warning
+				char CurrentWorkingDirectory[FILENAME_MAX];
 				char *Dummy = GETCWD(CurrentWorkingDirectory, sizeof(CurrentWorkingDirectory));
 				Dummy = NULL;
+
+				// Check if we need to add a PATH_SEPARATOR
+				std::string TempStr = CurrentWorkingDirectory;
+				if (TempStr[TempStr.size() - 1] != PATH_SEPARATOR)
+				{
+					TempStr += PATH_SEPARATOR;
+				}
+
+				// Add current directory to list of search paths
+				CLSearchPath.push_back(TempStr);
 			}
 
 			//
@@ -764,41 +778,65 @@ namespace OpenCL
 			}
 
 			//
+			// AddCLSearchPath
+			//
+			// Adds a path to search list for .cl files
+
+			void AddCLSearchPath(const char *Path)
+			{
+				CLSearchPath.push_back(Path);
+			}
+
+			//
 			// BuildProgramFromFile
 			//
 			// Load a program source file and build it
 
-			cl_uint BuildProgramFromFile(const char *_FileName, const char *_BuildOptions = "", bool AddCWDAsIncludePath = true)
+			cl_uint BuildProgramFromFile(const char *_FileName, const char *_BuildOptions = "")
 			{
 				cl_int Err;
 				cl_uint ProgramNo = Programs.size();
 
-				std::ifstream SourceFile(_FileName);
+				std::ifstream SourceFile;
 				std::stringstream Source;
 
-				Source << SourceFile.rdbuf();
-				std::string SourceStr = Source.str();
+				for (cl_uint i = 0; i < CLSearchPath.size(); i++)
+				{
+					// Try to open the file
+					std::string TempFileName = CLSearchPath[i] + _FileName;
+					SourceFile.open(TempFileName.c_str());
 
-				const char *SourceText = SourceStr.c_str();
-				size_t SourceLen = SourceStr.size();
+					if (SourceFile.is_open())
+					{
+						break;
+					}
+				}
 
-				// Check if we got an empty source text
-				if (SourceLen == 0)
+				// Check if the file was found finally
+				if (!SourceFile.is_open())
 				{
 					std::cout <<
-						"Program source empty, probably an error occurred reading the file." << std::endl <<
+						"An error occurred reading the kernel file. Try adding the appropriate path using AddCLSearchPath()." << std::endl <<
 						"Aborting." << std::endl;
 
 					abort();
 				}
+
+				Source << SourceFile.rdbuf();
+				SourceFile.close();
+
+				std::string SourceStr = Source.str();
+
+				const char *SourceText = SourceStr.c_str();
+				size_t SourceLen = SourceStr.size();
 
 				// Build program for all devices
 				ProgramList CurrentPrograms(DeviceNo);
 
 				std::string Options(_BuildOptions);
 
-				// Add include path if requested
-				if (AddCWDAsIncludePath)
+				// Add CLSearchPath to compiler's include path, so #include's work as intended
+				for (cl_uint i = 0; i < CLSearchPath.size(); i++)
 				{
 					// Add an space if not empty
 					if (Options.size() != 0)
@@ -808,7 +846,7 @@ namespace OpenCL
 
 					// Add -I option
 					Options += "-I";
-					Options += CurrentWorkingDirectory;
+					Options += CLSearchPath[i];
 				}
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
@@ -1010,10 +1048,6 @@ namespace OpenCL
 				Err = clFinish(CommandQueues[_DeviceIndex]);
 				KRATOS_OCL_CHECK(Err);
 			}
-
-		private:
-
-			char CurrentWorkingDirectory[FILENAME_MAX];
 	};
 
 }  // namespace OpenCL

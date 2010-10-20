@@ -169,16 +169,16 @@ namespace Kratos
 			//
 			// Constructor
 
-			OpenCLMatrixContainer(cl_device_type device_type): mDeviceGroup(device_type, true)
+			OpenCLMatrixContainer(OpenCL::DeviceGroup device_group): mrDeviceGroup(device_group)
 			{
 				// Loading OpenCL program
 				// TODO: Add optimization flags here
-				mpOpenCLEdgeData = mDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl");
+				mpOpenCLEdgeData = mrDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl");
 
 				// Register kernels
-				mkAdd_Minv_value1 = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value1");
-				mkAdd_Minv_value3 = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value3");
-				mkSetToZero = mDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "SetToZero");
+				mkAdd_Minv_value1 = mrDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value1");
+				mkAdd_Minv_value3 = mrDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value3");
+				mkSetToZero = mrDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "SetToZero");
 			}
 
 			//
@@ -238,7 +238,7 @@ namespace Kratos
 
 			inline OpenCL::DeviceGroup &GetDeviceGroup()
 			{
-				return mDeviceGroup;
+				return mrDeviceGroup;
 			}
 
 			inline cl_uint GetEdgeValuesBuffer()
@@ -327,16 +327,16 @@ namespace Kratos
 				// Allocating buffers on OpenCL device
 				// TODO: Should these be read-only?
 				// TODO: Try using Page-Locked memory, mapping, one chunk of memory, etc.
-				mbNonzeroEdgeValues = mDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_double16), CL_MEM_READ_ONLY);
+				mbNonzeroEdgeValues = mrDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_double16), CL_MEM_READ_ONLY);
 
-				mbColumnIndex = mDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_uint), CL_MEM_READ_ONLY);
-				mbRowStartIndex = mDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
+				mbColumnIndex = mrDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_uint), CL_MEM_READ_ONLY);
+				mbRowStartIndex = mrDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
 
-				mbLumpedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
-				mbInvertedMassMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
-				mbHmin = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
+				mbLumpedMassMatrix = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
+				mbInvertedMassMatrix = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
+				mbHmin = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_ONLY);
 
-				mbDiagGradientMatrix = mDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_ONLY);
+				mbDiagGradientMatrix = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_ONLY);
 
 				// Initializing the CSR vector
 
@@ -597,16 +597,16 @@ namespace Kratos
 
 				// Copy data to OpenCL device
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, OpenCL::HostToDevice, OpenCL::VoidPList(1, mNonzeroEdgeValues));
+				mrDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, OpenCL::HostToDevice, OpenCL::VoidPList(1, mNonzeroEdgeValues));
 
-				mDeviceGroup.CopyBuffer(mbColumnIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mColumnIndex));
-				mDeviceGroup.CopyBuffer(mbRowStartIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mRowStartIndex));
+				mrDeviceGroup.CopyBuffer(mbColumnIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mColumnIndex));
+				mrDeviceGroup.CopyBuffer(mbRowStartIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mRowStartIndex));
 
-				mDeviceGroup.CopyBuffer(mbLumpedMassMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mLumpedMassMatrix));
-				mDeviceGroup.CopyBuffer(mbInvertedMassMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mInvertedMassMatrix));
-				mDeviceGroup.CopyBuffer(mbHmin, OpenCL::HostToDevice, OpenCL::VoidPList(1, mHmin));
+				mrDeviceGroup.CopyBuffer(mbLumpedMassMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mLumpedMassMatrix));
+				mrDeviceGroup.CopyBuffer(mbInvertedMassMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mInvertedMassMatrix));
+				mrDeviceGroup.CopyBuffer(mbHmin, OpenCL::HostToDevice, OpenCL::VoidPList(1, mHmin));
 
-				mDeviceGroup.CopyBuffer(mbDiagGradientMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mDiagGradientMatrix));
+				mrDeviceGroup.CopyBuffer(mbDiagGradientMatrix, OpenCL::HostToDevice, OpenCL::VoidPList(1, mDiagGradientMatrix));
 
 				KRATOS_CATCH("")
 			}
@@ -660,7 +660,7 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
 
 				KRATOS_CATCH("");
 			}
@@ -690,7 +690,7 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
 
 				KRATOS_CATCH("");
 			}
@@ -720,7 +720,7 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
 
 				KRATOS_CATCH("");
 			}
@@ -748,7 +748,7 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
 
 				KRATOS_CATCH("");
 			}
@@ -776,7 +776,7 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
 
 				KRATOS_CATCH("");
 			}
@@ -791,7 +791,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
+				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
 
 				// Loop over all nodes
 				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
@@ -821,7 +821,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				// TODO: Single device code
-				mDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
+				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
 
 				// Loop over all nodes
 				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
@@ -850,18 +850,18 @@ namespace Kratos
 				// TODO: Check if buffers are of the same size
 				// TODO: Single device code
 
-				cl_uint n = mDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(cl_double);
+				cl_uint n = mrDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(cl_double);
 
 				// Setting arguments
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 0, DestinationBufferIndex);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 1, Origin1BufferIndex);
-				mDeviceGroup.SetKernelArg(mkAdd_Minv_value1, 2, Value);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 3, MinvBufferIndex);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 4, OriginBufferIndex);
-				mDeviceGroup.SetKernelArg(mkAdd_Minv_value1, 5, n);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 0, DestinationBufferIndex);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 1, Origin1BufferIndex);
+				mrDeviceGroup.SetKernelArg(mkAdd_Minv_value1, 2, Value);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 3, MinvBufferIndex);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value1, 4, OriginBufferIndex);
+				mrDeviceGroup.SetKernelArg(mkAdd_Minv_value1, 5, n);
 
 				// Execute OpenCL kernel
-				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value1, n);
+				mrDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value1, n);
 			}
 
 			//
@@ -875,18 +875,18 @@ namespace Kratos
 				// TODO: Check if buffers are of the same size
 				// TODO: Single device code
 
-				cl_uint n = mDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(cl_double3);
+				cl_uint n = mrDeviceGroup.BufferLengths[OriginBufferIndex][0] / sizeof(cl_double3);
 
 				// Setting arguments
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 0, DestinationBufferIndex);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 1, Origin1BufferIndex);
-				mDeviceGroup.SetKernelArg(mkAdd_Minv_value3, 2, Value);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 3, MinvBufferIndex);
-				mDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 4, OriginBufferIndex);
-				mDeviceGroup.SetKernelArg(mkAdd_Minv_value3, 5, n);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 0, DestinationBufferIndex);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 1, Origin1BufferIndex);
+				mrDeviceGroup.SetKernelArg(mkAdd_Minv_value3, 2, Value);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 3, MinvBufferIndex);
+				mrDeviceGroup.SetBufferAsKernelArg(mkAdd_Minv_value3, 4, OriginBufferIndex);
+				mrDeviceGroup.SetKernelArg(mkAdd_Minv_value3, 5, n);
 
 				// Execute OpenCL kernel
-				mDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value3, n);
+				mrDeviceGroup.ExecuteKernel(0, mkAdd_Minv_value3, n);
 			}
 
 			//
@@ -897,14 +897,14 @@ namespace Kratos
 			void SetToZero(cl_uint BufferIndex)
 			{
 				// TODO: Single device code
-				cl_uint n = mDeviceGroup.BufferLengths[BufferIndex][0] / sizeof(double);
+				cl_uint n = mrDeviceGroup.BufferLengths[BufferIndex][0] / sizeof(double);
 
 				// Setting arguments
-				mDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, BufferIndex);
-				mDeviceGroup.SetKernelArg(mkSetToZero, 1, n);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, BufferIndex);
+				mrDeviceGroup.SetKernelArg(mkSetToZero, 1, n);
 
 				// Execute OpenCL kernel
-				mDeviceGroup.ExecuteKernel(0, mkSetToZero, n);
+				mrDeviceGroup.ExecuteKernel(0, mkSetToZero, n);
 			}
 
 			//
@@ -915,7 +915,7 @@ namespace Kratos
 			void AssignVectorToVector(cl_uint SourceBufferIndex, cl_uint DestinationBufferIndex)
 			{
 				// TODO: Single device code
-				mDeviceGroup.CopyBufferToBuffer(SourceBufferIndex, DestinationBufferIndex);
+				mrDeviceGroup.CopyBufferToBuffer(SourceBufferIndex, DestinationBufferIndex);
 			}
 
 			//
@@ -998,7 +998,7 @@ namespace Kratos
 			unsigned int mNumberEdges;
 
 			// OpenCL stuff
-			OpenCL::DeviceGroup mDeviceGroup;
+			OpenCL::DeviceGroup mrDeviceGroup;
 
 			// OpenCL program and kernels
 			cl_uint mpOpenCLEdgeData, mkAdd_Minv_value1, mkAdd_Minv_value3, mkSetToZero;
