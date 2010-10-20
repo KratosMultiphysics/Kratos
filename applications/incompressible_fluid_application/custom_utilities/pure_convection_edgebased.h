@@ -473,19 +473,18 @@ namespace Kratos
 						 double laplacian_ij=0.0;
 						edge_ij.CalculateScalarLaplacian( laplacian_ij );
 						double capturing= laplacian_ij * (phi_j - phi_i);
-   						rhs_i-= coeff*capturing*beta*norm_a;
+//    						rhs_i-= coeff*capturing*beta*norm_a;
 												
-// 						double aaa = 0.0;
-// 						for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-// 							for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
-// 								aaa += a_i[k_comp] * a_i[m_comp] * edge_ij.LaplacianIJ(k_comp,m_comp);
+						double aaa = 0.0;
+						for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
+							for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
+								aaa += a_i[k_comp] * a_i[m_comp] * edge_ij.LaplacianIJ(k_comp,m_comp);
 
-/*						if(norm_a > 1e-20)
-						  aaa/=(norm_a*norm_a);*/
-// 						aaa/=(norm_a*norm_a);
-// 						double capturing2 = aaa * (phi_j - phi_i);
+						if(norm_a > 1e-20)
+						  aaa/=(norm_a*norm_a);
+						double capturing2 = aaa * (phi_j - phi_i);
 // 						
-//     						rhs_i-= coeff*(capturing - capturing2)*beta*norm_a;
+     						rhs_i-= coeff*(capturing - capturing2)*beta*norm_a;
 						//
 
 					}
