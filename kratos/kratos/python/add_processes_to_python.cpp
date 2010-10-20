@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/node_erase_process.h" 
-//#include "processes/add_dofs_nodal_process.h"
+#include "processes/eliminate_isolated_nodes_process.h"
 #include "includes/node.h"
 
 namespace Kratos
@@ -98,6 +98,11 @@ namespace Python
 	  class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
 		 init<ModelPart&>())
 		 ;
+		 
+	  class_<EliminateIsolatedNodesProcess, bases<Process> >("EliminateIsolatedNodesProcess",
+		 init<ModelPart&>())
+		 ;
+		 
       //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
       //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
 
