@@ -10,7 +10,7 @@ End Properties
 Begin Nodes
 *#// id	  X	Y	Z
 *loop nodes
-*format "%i%10.5f%10.5f%10.5f"
+*format "%i%10.5e%10.5e%10.5e"
 *nodesnum	*NodesCoord(1)	*NodesCoord(2)	*NodesCoord(3)
 *end nodes
 End Nodes
