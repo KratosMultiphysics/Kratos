@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -57,21 +57,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #endif
 
 #include "includes/model_part.h"
+
+#include "custom_utilities/opencl_interface.h"
 #include "custom_utilities/opencl_edge_data.h"
 #include "custom_utilities/opencl_pure_convection_edgebased.h"
 
 
 namespace Kratos
 {
-    
+
 namespace Python
 {
     void  AddUtilitiesToPython()
     {
-        
-        using namespace boost::python; 
-        
-          class_< OpenCLMatrixContainer,  boost::noncopyable >   ("OpenCLMatrixContainer3D", init< cl_device_type >() )
+
+        using namespace boost::python;
+
+          class_< OpenCL::DeviceGroup, boost::noncopyable > ("OpenCLDeviceGroup", init<cl_device_type, bool> ())
+						  .def("AddCLSearchPath", &OpenCL::DeviceGroup::AddCLSearchPath)
+						;
+
+          class_< OpenCLMatrixContainer,  boost::noncopyable >   ("OpenCLMatrixContainer3D", init< OpenCL::DeviceGroup& >() )
                           .def("ConstructCSRVector",&OpenCLMatrixContainer::ConstructCSRVector)
                           .def("BuildCSRData",&OpenCLMatrixContainer::BuildCSRData)
                           .def("Clear",&OpenCLMatrixContainer::Clear)
@@ -90,9 +96,9 @@ namespace Python
                         ;
 
 
-                          
+
   }
-	
+
 }  // namespace Python.
 
 } // Namespace Kratos
