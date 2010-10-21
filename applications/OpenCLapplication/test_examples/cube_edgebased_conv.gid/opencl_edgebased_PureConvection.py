@@ -136,6 +136,7 @@ print "**********"
 #constructing the solver
 single_device_flag = True
 device_group = OpenCLDeviceGroup(cl_device_type.CL_DEVICE_TYPE_GPU,single_device_flag)
+device_group.AddCLSearchPath('../../custom_utilities')
 print "^^^^^^^^^^^^^^^^^"
 print device_group
 
