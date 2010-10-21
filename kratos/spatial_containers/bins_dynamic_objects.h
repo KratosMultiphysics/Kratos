@@ -46,8 +46,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_BINS_CONTAINER_H_INCLUDED)
-#define  KRATOS_BINS_CONTAINER_H_INCLUDED
+#if !defined(KRATOS_BINS_DYNAMIC_OBJECTS_CONTAINER_H_INCLUDED)
+#define  KRATOS_BINS_DYNAMIC_OBJECTS_CONTAINER_H_INCLUDED
 
 
 
@@ -67,6 +67,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "cell.h"
 #include "bounding_box.h"
 #include "utilities/timer.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 namespace Kratos
@@ -103,11 +107,12 @@ namespace Kratos
     std::size_t TDimension,
     class TPointType,
     class TContainerType,
-    class TCalculateBoundingBoxFunction,
+    class TCalculateBoundingBoxFunction,  /// funcion que crea las cajas
+    class TIntersectionFunction,          /// funcion que calcula la interseccion de objetos y celdas
+    class TDistanceFunction,              /// Verifica si los objetos contenidos en la celda estan en contacto  
     class TDistanceIteratorType = typename std::vector<double>::iterator,
     class TPointerType          = typename TContainerType::value_type,
-    class TIteratorType         = typename TContainerType::iterator,
-    class TDistanceFunction     = Kratos::SearchUtils::SquaredDistanceFunction<TDimension,TPointType>
+    class TIteratorType         = typename TContainerType::iterator
     > 
   class BinsObjectDynamic  
     {
@@ -130,6 +135,9 @@ namespace Kratos
       
       typedef BoundingBox< TPointType,TPointerType> BoundingBoxType;
       typedef std::vector< BoundingBoxType > BoundingBoxContainerType;
+      typedef std::vector<std::pair<TPointerType, TPointerType> >  PairContainerType;
+      
+      
       typedef typename BoundingBoxContainerType::iterator BoundingBoxIterator; 
       
       typedef TreeNode<TDimension,TPointType,TPointerType,TIteratorType,TDistanceIteratorType> TreeNodeType;
@@ -157,8 +165,7 @@ namespace Kratos
       BinsObjectDynamic (TIteratorType const& ObjectsBegin, TIteratorType const& ObjectsEnd) 
            : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
       {
-	  
-	 CalculateBoundingBoxes();	 
+	
 	 CalculateBoundingBox();
 	 CalculateCellSize();
 	 AllocateCellsContainer();
@@ -220,6 +227,20 @@ namespace Kratos
        return mCellSize;
       }
       
+//************************************************************************   
+//************************************************************************
+
+    void SearchObjects(PairContainerType& Pair)
+    {
+      
+     /// Buscando si los elementos dentro de la celda estan en contacto      
+      for(CellContainerIterator icell= GetCellContainer().begin(); icell != GetCellContainer().end(); icell++)
+	{
+	  DistanceFunction()(icell->Begin(), icell->End(), Pair);
+	}
+	        
+    }
+      
       
       
             
@@ -248,53 +269,81 @@ namespace Kratos
 	
 	
     /// Computa los boxes de cada uno de los elementos del model part		
-    void CalculateBoundingBoxes()
+    void CalculateBoundingBox()
     {
       KRATOS_TRY 
       
-      TPointType Low, High;
-      SizeType size = std::distance(mObjectsBegin,mObjectsEnd);
-      mBoxes.resize(size);
-      BoundingBoxType rThisBoundingBox;
-      for (TIteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
-	 { 
+      TPointType Low, High;  
+      CalculateBoundingBoxFunction()(mObjectsBegin,mMinPoint,mMaxPoint);
+      
+      std::size_t size = std::distance(mObjectsBegin, mObjectsEnd);     
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+      #endif
+
+      vector<unsigned int> node_partition;
+      CreatePartition(number_of_threads, size, node_partition);
+    
+      std::vector<TPointType> Max(number_of_threads);
+      std::vector<TPointType> Min(number_of_threads);
+       
+      for(unsigned int k=0; k<number_of_threads; k++ )
+      {
+	 Max[k] = mMaxPoint;   
+	 Min[k] = mMinPoint;
+      }
+      
+       
+      #ifdef _OPENMP
+      double start_prod = omp_get_wtime();
+      #endif
+      
+      #pragma omp parallel for  private(High, Low)  // if(size>1000000) shared(mMaxPoint, mMinPoint)
+      for(int k=0; k<number_of_threads; k++)
+ 	{
+ 	  TIteratorType i_begin = mObjectsBegin + node_partition[k];
+ 	  TIteratorType i_end   = mObjectsBegin + node_partition[k+1];
+      
+          for ( TIteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
+          //for (TIteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
+	    { 
 	         CalculateBoundingBoxFunction()(i_object, Low, High);
-		 rThisBoundingBox.Set(*i_object, Low, High); //&i_object->GetGeometry());
-	         mBoxes.push_back(rThisBoundingBox ); 
-	 }
-	 
+		 for(std::size_t i = 0 ; i < TDimension ; i++)
+		 {
+		   
+		    Max[k][i]      =   (Max[k][i]  < High[i]) ? High[i] : Max[k][i];
+		    Min[k][i]      =   (Min[k][i]  > Low[i])  ? Low[i]  : Min[k][i];
+		   //mMaxPoint[i]  =   (mMaxPoint[i]  < High[i]) ? High[i] : mMaxPoint[i];
+		   //mMinPoint[i]  =   (mMinPoint[i]  > Low[i])  ? Low[i]  : mMinPoint[i]; 
+		 }
+	    }
+	}	
+
+          for(int k=0; k<number_of_threads; k++)
+ 	    {
+               for(std::size_t i = 0 ; i < TDimension ; i++)
+		 {
+		    mMaxPoint[i]  =   (mMaxPoint[i]  < Max[k][i]) ? Max[k][i] : mMaxPoint[i];
+		    mMinPoint[i]  =   (mMinPoint[i]  > Min[k][i]) ? Min[k][i] : mMinPoint[i]; 
+		 }
+	    }
+	
+	
+       #ifdef _OPENMP
+       double stop_prod = omp_get_wtime();
+       std::cout << "Time Calculating Bounding Boxes  = " << stop_prod - start_prod << std::endl;
+       #endif
+	 //std::cout<< mMaxPoint[0] << " " << mMaxPoint[1] << std::endl;
+	 //std::cout<< mMinPoint[0] << " " << mMinPoint[1] << std::endl;  
+      
       KRATOS_CATCH("")    
      }
      
     
-    
-              
-    //************************************************************************          
-    /// Computa el punto minimo y maximo de todos los bounding box          
-    
-    void CalculateBoundingBox()
-    { 
-     KRATOS_TRY 
-     BoundingBoxIterator it; 
-     for(size_t i = 0 ; i < TDimension ; i++){
-            mMinPoint[i] = (mBoxes[0].LowPoint())[i];
-            mMaxPoint[i] = (mBoxes[0].HighPoint())[i];  
-       } 	    
-      for(it=mBoxes.begin(); it!=mBoxes.end() ; it++)
-       {
- 	 for(size_t i = 0 ; i < TDimension ; i++)
- 	    {
- 	      mMaxPoint[i]  =   (mMaxPoint[i]  < ((*it).HighPoint())[i] ) ? ((*it).HighPoint())[i] : mMaxPoint[i];
- 	      mMinPoint[i]  =   (mMinPoint[i]  > ((*it).LowPoint())[i] )  ? ((*it).LowPoint())[i]  : mMinPoint[i]; 
- 	    }
-       }
-      KRATOS_CATCH("")      
-    } 
-    
-    
-    
-     //************************************************************************
-    
+//************************************************************************   
+//************************************************************************   
     
     void CalculateCellSize()
     {
@@ -337,32 +386,23 @@ namespace Kratos
     }
     
     
-   
 //************************************************************************   
 //************************************************************************
    
    void GenerateBins()
    {    
-      TPointType Low, High;
-      //Tvector<CoordinateType,TDimension>  MinPoint;
-      //Tvector<CoordinateType,TDimension>  MaxPoint;
-      //Tvector<IndexType,TDimension> Cell;
-      
+      TPointType Low, High;      
       SearchStructureType Box;
+      /// LLenando las celdas con los objectos
       for(IteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
            {
 	     CalculateBoundingBoxFunction()(i_object, Low, High);
-	     //for(SizeType i = 0 ; i < TDimension ; i++)
-	     // { MinPoint[i] =  Low[i]; MaxPoint[i] = High[i];}
-	     
              Box.Set( CalculateCell(Low), CalculateCell(High), mN );
              FillObject(Box,i_object);
            }
-   }
-        
-       
+   }    
       
-        
+            
 
 //************************************************************************   
 //************************************************************************
@@ -393,10 +433,39 @@ namespace Kratos
     // Dimension = 2
     void FillObject( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, IteratorType i_object)
     {
+       
+       TPointType  LowPointCell;
+       TPointType  HighPointCell;
+       SizeType number;
+       const IndexType columns = Box.Axis[1].Block;   
+       for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block ) 
+          {
+           for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ) 
+	       {
+	        number           = round(static_cast<SizeType>(II / columns));;
+ 		LowPointCell[0]  = (I-II) * mCellSize[0];
+ 		LowPointCell[1]  = number * mCellSize[1];
+ 		HighPointCell[0] = (I-II + 1  ) * mCellSize[0];
+		HighPointCell[1] = (number + 1) * mCellSize[1];		
+		if (TIntersectionFunction()(i_object, LowPointCell, HighPointCell ) )
+		{
+	           mCells[I].Add(*i_object);
+	        }
+       }
+    }
+   }
+    
+    
+//************************************************************************   
+//************************************************************************
+
+    // Dimension = 2
+    void FillObjectNew( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, IteratorType i_object)
+    {
        for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
            for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ) 
 	        mCells[I].Add(*i_object);
-    }
+    }   
 
 //************************************************************************   
 //************************************************************************
@@ -412,6 +481,10 @@ namespace Kratos
 
 //************************************************************************
 //************************************************************************
+
+  
+
+
 
     IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType ThisDimension )
         {
@@ -521,8 +594,9 @@ void AllocateCellsContainer() {
       Tvector<CoordinateType,TDimension>  mInvCellSize;
       Tvector<SizeType,TDimension>  mN;
       
-       CellContainerType mCells; // The bin    
-       BoundingBoxContainerType mBoxes;
+      CellContainerType mCells; // The bin    
+      //PairContainerType mPairs; 
+       //BoundingBoxContainerType mBoxes;
       
 
       
@@ -537,6 +611,16 @@ void AllocateCellsContainer() {
       ///@} 
       ///@name Private Operations
       ///@{ 
+      
+    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    {
+      partitions.resize(number_of_threads+1);
+      int partition_size = number_of_rows / number_of_threads;
+      partitions[0] = 0;
+      partitions[number_of_threads] = number_of_rows;
+      for(unsigned int i = 1; i<number_of_threads; i++)
+      partitions[i] = partitions[i-1] + partition_size ;
+  }
         
         
       ///@} 
@@ -577,36 +661,38 @@ void AllocateCellsContainer() {
         
  
   /// input stream function
-  
+  /*
   template<
-  std::size_t TDimension,
-  class TPointType,
-  class TContainerType,
-  class TGeometryType,
-  class TBoundingBoxFunction,
-  class TDistanceIteratorType, 
-  class TPointerType,
-  class TIteratorType,
-  class TDistanceFunction
-  >
+    std::size_t TDimension,
+    class TPointType,
+    class TContainerType,
+    class TCalculateBoundingBoxFunction,
+    class TIntersectionFunction,
+    class TDistanceFunction, 
+    class TDistanceIteratorType, = typename std::vector<double>::iterator,
+    class TPointerType,          = typename TContainerType::value_type,
+    class TIteratorType,         = typename TContainerType::iterator
+    > 
   inline std::istream& operator >> (std::istream& rIStream, 
-				    BinsObjectDynamic<TDimension, TPointerType, TPointType, TGeometryType, TBoundingBoxFunction, TIteratorType, TDistanceFunction>& rThis);
+				    BinsObjectDynamic<TDimension, TPointerType, TPointType, TGeometryType, TBoundingBoxFunction, 
+				    TIntersectionFunction, TIteratorType>& rThis);
 				    
 
   /// output stream function
   template<
-  std::size_t TDimension,
-  class TPointType,
-  class TContainerType,
-  class TGeometryType,
-  class TBoundingBoxFunction,
-  class TDistanceIteratorType, 
-  class TPointerType,
-  class TIteratorType,
-  class TDistanceFunction
-  >
+    std::size_t TDimension,
+    class TPointType,
+    class TContainerType,
+    class TCalculateBoundingBoxFunction,
+    class TIntersectionFunction,
+    class TDistanceFunction, 
+    class TDistanceIteratorType = typename std::vector<double>::iterator,
+    class TPointerType          = typename TContainerType::value_type,
+    class TIteratorType         = typename TContainerType::iterator
+    > 
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const BinsObjectDynamic<TDimension, TPointerType, TPointType, TGeometryType,TBoundingBoxFunction, TIteratorType, TDistanceFunction>& rThis)
+				    const BinsObjectDynamic<TDimension, TPointerType, TPointType, TGeometryType,TBoundingBoxFunction, 
+				    TIntersectionFunction, TIteratorType>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -615,7 +701,7 @@ void AllocateCellsContainer() {
       return rOStream;
     }
   ///@} 
-  
+  */
   
 }  // namespace Kratos.
 
