@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(CELL_H_INCLUDED)
-#define  CELL_H_INCLUDED
+#if !defined(KRATOS_CELL_H_INCLUDED)
+#define  KRATOS_CELL_H_INCLUDED
 
 
 
@@ -91,7 +91,9 @@ namespace Kratos
   */
   template<
   class TPointerType,
-  class TContainerType = std::vector<TPointerType> >
+  class TContainerType = typename std::vector<TPointerType>, 
+  class TIteratorType  = typename TContainerType::iterator
+  > 
   class Cell
     {
     public:
@@ -100,7 +102,10 @@ namespace Kratos
       
       //typedef std::vector<TPointerType> ContainerType;
       typedef TContainerType ContainerType;
-      //typedef std::size_t  IndexType;
+      
+      typedef TIteratorType IteratorType; 
+      
+      typedef std::size_t  SizeType;
       
       //typedef std::vector< IndexType > CellIndex;
             
@@ -138,7 +143,7 @@ namespace Kratos
 	mObjects.reserve(size);
       }
       
-      unsigned int GetContainerSize()
+      SizeType GetContainerSize()
       {
 	return mObjects.size();  
       }
@@ -147,6 +152,19 @@ namespace Kratos
        {
 	 return mObjects;
        }
+       
+       const IteratorType& Begin() 
+       {
+	 return mObjects.begin();
+       }
+       
+       const IteratorType& End() 
+       {
+	 return mObjects.end();
+       }
+       
+       
+       
       ///@}
       ///@name Operators 
       ///@{
@@ -296,14 +314,12 @@ namespace Kratos
         
  
   /// input stream function
-  template<
-  class TPointerType>
+  template< class TPointerType,class TContainerType, class TIteratorType> 
   inline std::istream& operator >> (std::istream& rIStream, 
 				    Cell<TPointerType>& rThis){ return rIStream;}
 
   /// output stream function
-  template<
-  class TPointerType>
+  template< class TPointerType, class TContainerType, class TIteratorType> 
   inline std::ostream& operator << (std::ostream& rOStream, 
 				    const Cell<TPointerType>& rThis)
     {
