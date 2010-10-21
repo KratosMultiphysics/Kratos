@@ -169,11 +169,15 @@ namespace Kratos
 			//
 			// Constructor
 
-			OpenCLMatrixContainer(OpenCL::DeviceGroup device_group): mrDeviceGroup(device_group)
+			OpenCLMatrixContainer(OpenCL::DeviceGroup& device_group): mrDeviceGroup(device_group)
 			{
 				// Loading OpenCL program
 				// TODO: Add optimization flags here
+
+// 				mpOpenCLEdgeData = mDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl","-cl-fast-relaxed-math");
+
 				mpOpenCLEdgeData = mrDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl");
+
 
 				// Register kernels
 				mkAdd_Minv_value1 = mrDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value1");
@@ -298,11 +302,10 @@ namespace Kratos
 				// Counting the edges connecting the nodes
 				for (ModelPart::NodesContainerType::iterator node_it = model_part.NodesBegin(); node_it != model_part.NodesEnd(); node_it++)
 				{
-					// Counting neighbours of each node
 					mNumberEdges += (node_it -> GetValue(NEIGHBOUR_NODES)).size();
 
 					// Assigning global index to each node
-					node_it -> FastGetSolutionStepValue(AUX_INDEX) = static_cast <double> (i_node++);
+					node_it->FastGetSolutionStepValue(AUX_INDEX) = static_cast <double> (i_node++);
 				}
 
 				// Error message in case number of nodes does not coincide with number of indices
