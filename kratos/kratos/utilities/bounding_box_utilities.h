@@ -86,40 +86,82 @@ namespace Kratos
 {
   
   
-  
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
 template <std::size_t TDimension>
 class BoxFunction
   {
-  public:
-    
+   public:   
    template< class TPointType, class TPointerType> 
    void operator ()(const TPointerType& rObject, TPointType& rLowPoint, TPointType& rHighPoint)
     { 
-
     rHighPoint = rObject->GetGeometry().GetPoint(0);
-    rLowPoint  = rObject->GetGeometry().GetPoint(0);           
-      
+    rLowPoint  = rObject->GetGeometry().GetPoint(0);            
     for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)      
       {
 	for(std::size_t i = 0; i<TDimension; i++)
 	  {
-	      rLowPoint[i]  =  (rLowPoint[i]  <  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i]; 
-	      rHighPoint[i] =  (rHighPoint[i] >  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
+	      rLowPoint[i]  =  (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i]; 
+	      rHighPoint[i] =  (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
 	  }
-      }       
+       }       
+     }
+  };
+
+
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+		
+template <std::size_t TDimension>
+class TriBoxOverlapFunction
+  {
+    public:		
+    template< class TPointerType, class TPointType> 
+    bool operator ()(const TPointerType& rObject, const TPointType& rLowPoint, const TPointType& rHighPoint)
+    { 
+      return  rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint); 
     }
-};
-        
+ };
+
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+class TDistanceFunction
+  {
+    public:		
+    template<class TIteratorType, class TPointerType> 
+    void operator ()(const TIteratorType& rBegin, const TIteratorType& rEnd, std::vector<std::pair<TPointerType,TPointerType> >& Results)
+      { 
+	for( TIteratorType it_1 = rBegin; it_1!= rEnd; it_1++ )
+	  { 
+	    Element::GeometryType& geom_1 = it_1->GetGeometry();
+	    for(TIteratorType it_2 = it_1 + 1 ; it_2!= rEnd; it_2++)
+	    {  
+	      Element::GeometryType& geom_2 = it_2->GetGeometry();
+	      if (geom_1.HasIntersection(geom_2 )) {Results.push_back(std::pair<TPointerType,TPointerType>(*it_1, *it_2));}
+	    }
+	  }
+       }
+     
+ };
+
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+ 
  class BoundingBoxUtilities
 	{
 	public:
  
-	    typedef Node<3> NodeType;  
-	    typedef Point<3, double> PointType;
-	    typedef Geometry<NodeType> GeometryType;        
-	    //typedef BoundingBox<NodeType,  GeometryType>  BoundingBoxType;
-            //typedef std::vector<BoundingBoxType> BoundingBoxContainerType;
-            //typedef BoundingBoxContainerType::iterator BoundingBoxIterator; 
+	    // typedef Node<3> NodeType;  
+	    // typedef Geometry<NodeType> GeometryType;        
+	    // typedef BoundingBox<NodeType,  GeometryType>  BoundingBoxType;
+            // typedef std::vector<BoundingBoxType> BoundingBoxContainerType;
+            // typedef BoundingBoxContainerType::iterator BoundingBoxIterator; 
 	    
 	    
 	   
@@ -137,7 +179,11 @@ class BoxFunction
 		     std::cout<< "Begin AddCellsTomesh " << std::endl; 
                      AddCellsTomesh(mr_model_part);
 		     std::cout<< "End AddCellsTomesh " << std::endl;
-		}  
+		}
+		
+
+	 	 
+		
 
 /*
             void AddBoundingBoxToMesh(
@@ -302,42 +348,37 @@ class BoxFunction
       {
 	
 	  const std::size_t dimension = 2;
-          typedef ModelPart::ElementsContainerType    ElementsArrayType; 
-	  typedef ElementsArrayType::value_type       PointerType;
-	  typedef ElementsArrayType::iterator         ElementsArrayTypeIterator;  
-	  typedef BoxFunction<dimension>              BoxType;
+	  typedef Point<dimension, double>                       PointType;
+          typedef ModelPart::ElementsContainerType               ElementsArrayType; 
+	  typedef ElementsArrayType::value_type                  PointerType;
+	  typedef ElementsArrayType::iterator                    ElementsArrayTypeIterator;  
+	  typedef BoxFunction<dimension>                         BoxType;
+	  typedef TriBoxOverlapFunction<dimension>               TriBoxType; 
+	  typedef TDistanceFunction                              TDistanceFunctionType;                    
 	  
 	  
           ElementsArrayType& rElements         =    rThisModelPart.Elements(); 
           ElementsArrayTypeIterator it_begin   =    rElements.begin();
           ElementsArrayTypeIterator it_end     =    rElements.end(); 
 
-	  //           std::string name = rThisModelPart.Name(); 
-//           name+="_Cells.msh";
-//           std::ofstream output_file( name.c_str());
+	  std::string name = rThisModelPart.Name(); 
+          name+="_Cells.msh";
+          std::ofstream output_file( name.c_str());
 	  
-	  typedef Cell<PointerType>       CellType;
+	  typedef Cell<PointerType>                  CellType;
 	  typedef std::vector<CellType>              CellContainerType;
           typedef CellContainerType::iterator        CellContainerIterator;
 	  typedef std::vector<PointerType>::iterator PointerTypeIterator;
+	  typedef std::vector<std::pair<PointerType,PointerType> >PairContainerType;
 	  
-	 
-// 	  NodeType MaxPoint, MinPoint;
-//           std::vector<BoundingBoxType> Boxes;
-// 	  
-// 	  for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-// 	    {						                    
-// 	      it->GetGeometry().Bounding_Box(MaxPoint, MinPoint); 
-// 	      BoundingBoxType rThisBoundingBox(MaxPoint, MinPoint, &it->GetGeometry());
-// 	      Boxes.push_back( rThisBoundingBox );	      
-// 	   }
-// 	   
-// 	  CalculateBoundingBox(Boxes, MinPoint, MaxPoint);
+	  PairContainerType Pair;
 	  
+	  PointType MaxPoint, MinPoint;	  
+ 	  std::cout<< "Making the Bins " << std::endl;
+ 	  std::cout<<std::fixed<<std::setprecision(10);
+	  BinsObjectDynamic< dimension, PointType, ElementsArrayType, BoxType, TriBoxType, TDistanceFunctionType> mybins(it_begin, it_end );
+          mybins.SearchObjects(Pair);
 	  
-	  std::cout<< "Making the Bins " << std::endl;
-	  std::cout<<std::fixed<<std::setprecision(10);
-	  BinsObjectDynamic<dimension, PointType, ElementsArrayType,  BoxType> mybins(it_begin, it_end );
 // 	  unsigned int local = 0;
 // 	  for( CellContainerType::iterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
 // 	  {
@@ -352,68 +393,70 @@ class BoxFunction
 // 	    std::cout<<"-------------------------------"<<std::endl;
 // 	    
 // 	  }
+
+          
+          /*
+          if (mrdimension==3)
+              {
+		std::cout<< "No printing mesh yet " << std::endl;
+	      }
+	      
+	  else
+	  {
+	  unsigned int sizecell =  1;	  
+	  for(unsigned int i = 0; i< dimension; i++ )
+	  {
+	    sizecell *= mybins.GetDivisions()[i]; 
+	  }
+	 
+	  std::vector< array_1d< array_1d<double,2 > ,2 > > Cell; 
+	  Cell.resize(sizecell);
+	  std::size_t& filas = mybins.GetDivisions()[0];  
 	  
-// 	  if (mrdimension==3)
-//               {
-// 		std::cout<< "No printing mesh yet " << std::endl;
-// 	      }
-// 	      
-// 	  else
-// 	  {
-// 	  unsigned int sizecell =  1;	  
-// 	  for(unsigned int i = 0; i< dimension; i++ )
-// 	  {
-// 	    sizecell *= mybins.GetDivisions()[i]; 
-// 	  }
-// 	 
-// 	  std::vector< array_1d< array_1d<double,2 > ,2 > > Cell; 
-// 	  Cell.resize(sizecell);
-// 	  std::size_t& filas = mybins.GetDivisions()[0];  
-// 	  
-// 	  for (unsigned int y = 0; y< static_cast<unsigned int> (mybins.GetDivisions()[1]); y++)
-// 	  {
-// 	      for (unsigned int x = 0; x< static_cast<unsigned int>(mybins.GetDivisions()[0]); x++)
-// 	      {
-//                 double a =   static_cast<double>(mybins.GetCellSize()[0]);   
-//                 double b =   static_cast<double>(mybins.GetCellSize()[1]);   
-// 	        Cell[GetIndex(filas, x, y) ][0][0] = MinPoint[0] + x * a;
-//  		Cell[GetIndex(filas, x, y) ][0][1] = MinPoint[1] + y * b;
-// 		Cell[GetIndex(filas, x, y) ][1][0] = MinPoint[0] + (x + 1.0) * a;
-// 		Cell[GetIndex(filas, x, y) ][1][1] = MinPoint[1] + (y + 1.0) * b;
-// 	      }
-// 	  }
-// 	  
-// 	  output_file << "MESH \"Cells\" dimension 2 ElemType Quadrilateral Nnode 4" << std::endl;
-// 	  output_file << "Coordinates" << std::endl;
-// 	  
-// 	  unsigned int nofn = 0;
-// 	  for (unsigned int i = 0; i<Cell.size(); i++ )
-// 	  {
-// 	  const double& xmin = Cell[i][0][0];
-// 	  const double& ymin = Cell[i][0][1];
-// 	  const double& xmax = Cell[i][1][0];
-// 	  const double& ymax = Cell[i][1][1];              
-// 	  
-// 	  output_file << nofn+1 << "  " <<  xmin << "  " <<  ymin <<  std::endl;
-// 	  output_file << nofn+2 << "  " <<  xmax << "  " <<  ymin <<  std::endl;
-// 	  output_file << nofn+3 << "  " <<  xmax << "  " <<  ymax <<  std::endl;
-// 	  output_file << nofn+4 << "  " <<  xmin << "  " <<  ymax <<  std::endl;
-// 
-// 	  nofn += 4;  
-// 	  }
-// 	  output_file << "end coordinates" << std::endl;  
-// 	  output_file << "Elements" << std::endl;
-// 	  unsigned int nofe =  0;   
-// 	  int material_id   = 0;   
-// 	  for (unsigned int i = 1; i<=sizecell; i++)
-// 	  {
-// 	  output_file << i << "  " << nofe + 1  << "  " <<  nofe + 2 << "  " <<  nofe + 3  << " " <<  nofe + 4 << "  " << material_id << std::endl;
-// 	  nofe+=4;  
-// 	  }   
-// 
-// 	  output_file << "end elements" << std::endl;
-// 	  
-// 	  }
+	  for (unsigned int y = 0; y< static_cast<unsigned int> (mybins.GetDivisions()[1]); y++)
+	  {
+	      for (unsigned int x = 0; x< static_cast<unsigned int>(mybins.GetDivisions()[0]); x++)
+	      {
+                double a =   static_cast<double>(mybins.GetCellSize()[0]);   
+                double b =   static_cast<double>(mybins.GetCellSize()[1]);   
+	        Cell[GetIndex(filas, x, y) ][0][0] = MinPoint[0] + x * a;
+ 		Cell[GetIndex(filas, x, y) ][0][1] = MinPoint[1] + y * b;
+		Cell[GetIndex(filas, x, y) ][1][0] = MinPoint[0] + (x + 1.0) * a;
+		Cell[GetIndex(filas, x, y) ][1][1] = MinPoint[1] + (y + 1.0) * b;
+	      }
+	  }
+	  
+	  output_file << "MESH \"Cells\" dimension 2 ElemType Quadrilateral Nnode 4" << std::endl;
+	  output_file << "Coordinates" << std::endl;
+	  
+	  unsigned int nofn = 0;
+	  for (unsigned int i = 0; i<Cell.size(); i++ )
+	  {
+	  const double& xmin = Cell[i][0][0];
+	  const double& ymin = Cell[i][0][1];
+	  const double& xmax = Cell[i][1][0];
+	  const double& ymax = Cell[i][1][1];              
+	  
+	  output_file << nofn+1 << "  " <<  xmin << "  " <<  ymin <<  std::endl;
+	  output_file << nofn+2 << "  " <<  xmax << "  " <<  ymin <<  std::endl;
+	  output_file << nofn+3 << "  " <<  xmax << "  " <<  ymax <<  std::endl;
+	  output_file << nofn+4 << "  " <<  xmin << "  " <<  ymax <<  std::endl;
+
+	  nofn += 4;  
+	  }
+	  output_file << "end coordinates" << std::endl;  
+	  output_file << "Elements" << std::endl;
+	  unsigned int nofe =  0;   
+	  int material_id   = 0;   
+	  for (unsigned int i = 1; i<=sizecell; i++)
+	  {
+	  output_file << i << "  " << nofe + 1  << "  " <<  nofe + 2 << "  " <<  nofe + 3  << " " <<  nofe + 4 << "  " << material_id << std::endl;
+	  nofe+=4;  
+	  }   
+
+	  output_file << "end elements" << std::endl;
+	  
+	  }
 	  
 
 	  int celda      = 1; 
@@ -424,12 +467,12 @@ class BoxFunction
 	  
 	  for( CellContainerType::iterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
 	    {
-	      //std::cout<< " celda = " << celda++  << std::endl; 
+	      std::cout<< " celda = " << celda++  << std::endl; 
 	      for(PointerTypeIterator it_1 = icell->GetContainer().begin(); it_1!= icell->GetContainer().end(); it_1++ )
 	        { 
 		  for(PointerTypeIterator it_2 = it_1 + 1 ; it_2!= icell->GetContainer().end(); it_2++ )
 		  {
-		    //std::cout<< " Elem " << it_1->Id() << "  " << "with elem  " << it_2->Id() << std::endl;     
+		    std::cout<< " Elem " << it_1->Id() << "  " << "with elem  " << it_2->Id() << std::endl;     
 		    Element::GeometryType& geom_1 = it_1->GetGeometry();
 		    Element::GeometryType& geom_2 = it_2->GetGeometry();
 
@@ -439,25 +482,25 @@ class BoxFunction
 		  }
 		}
 	    }
-	    
-	    for (unsigned int i = 0; i<results.size(); i++)
+	    */
+	    for (unsigned int i = 0; i<Pair.size(); i++)
 	     {
-	       std::cout<< results[i].first << "  " <<  results[i].second << std::endl;
+	       std::cout<< Pair[i].first << "  " <<  Pair[i].second << std::endl;
 	     }
 	      
 	    
-	    final=clock()-init;
-            std::cout << "Time Looping =" << (double)final / ((double)CLOCKS_PER_SEC) << std::endl;
+ 	   //final=clock()-init;
+           //std::cout << "Time Looping =" << (double)final / ((double)CLOCKS_PER_SEC) << std::endl;
 
       }
       
-  /*    
+   
    unsigned int GetIndex( const std::size_t filas, const unsigned int& x, const unsigned int y)
    {
       return   filas * y + x;
    }
 
-   */      
+        
 
        private:
        ModelPart mr_model_part; 
