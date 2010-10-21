@@ -540,11 +540,22 @@ namespace Kratos
 	  return 0;
 	}
 
+
+ 
+     /// Interseciones con geometrias igual a el mismo
      virtual bool HasIntersection(const GeometryType& ThisGeometry)
      {
        std::cout<< "Calling the base class " << std::endl;
        return false;
      }
+     
+     /// Interseciones con la geometrias y cajas
+     virtual bool HasIntersection(const Point<3, double>& LowPoint, const Point<3, double>& HighPoint)
+     {
+       std::cout<< "Calling the base class " << std::endl;
+       return false;
+     }
+        
         
 
 //     virtual void BoundingBox(BoundingBoxType& rResult) const
@@ -553,24 +564,25 @@ namespace Kratos
 //                 Bounding_Box(rResult.LowPoint(), rResult.HighPoint());  
 //              }
 
+
+     //template<class TDimension, class TPointType>
      virtual void BoundingBox(TPointType& rLowPoint, TPointType& rHighPoint) const 
-            { 
-                                    
-	       rHighPoint = this->GetPoint(0);
-	       rLowPoint  = this->GetPoint(0);           
+            {                           
+	      rHighPoint         = this->GetPoint(0);
+	      rLowPoint          = this->GetPoint(0);   
+	      const SizeType dim = WorkingSpaceDimension();
                  
                for (unsigned int point = 0; point<PointsNumber(); point++)      
                  {
-                    for(unsigned int i = 0; i<3; i++)
+                    for(unsigned int i = 0; i<dim; i++)
                       {
-                         rHighPoint[i] =  (rHighPoint[i] > this->GetPoint(point)[i] ) ? this->GetPoint(point)[i] : rHighPoint[i];
-                         rLowPoint[i]  =  (rLowPoint[i]  < this->GetPoint(point)[i] ) ? this->GetPoint(point)[i] : rLowPoint[i]; 
+                         rHighPoint[i] =  (rHighPoint[i] < this->GetPoint(point)[i] ) ? this->GetPoint(point)[i] : rHighPoint[i];
+                         rLowPoint[i]  =  (rLowPoint[i]  > this->GetPoint(point)[i] ) ? this->GetPoint(point)[i] : rLowPoint[i]; 
                       }
                   }
             } 
        
      
-
       /** Calculates center of this geometry by a simple averaging algorithm.
 	  Each center point component calculated using:
 	  \f[
