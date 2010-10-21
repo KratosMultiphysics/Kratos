@@ -455,9 +455,47 @@ namespace Kratos
         { 
 	    const BaseType& geom_1 = *this;
 	    const BaseType& geom_2 = ThisGeometry;  
-	    bool has_intersected = NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
-	    return has_intersected; 
+	    return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
+	    //return has_intersected; 
         }
+        
+        
+      /// detect if  triangle and box are intersected    
+      virtual bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint)
+      {
+	const BaseType& geom_1 = *this;
+	std::size_t dim        =  geom_1.WorkingSpaceDimension();
+	
+	Point<3, double> boxcenter;
+	Point<3, double> boxhalfsize;
+
+	boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]); 
+	boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
+	if(dim==3) 
+	boxcenter[2]   = 0.50 * (rLowPoint[2] + rHighPoint[2]);
+	else 
+	boxcenter[2]=0;
+
+
+	boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]); 
+	boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
+	if(dim==3) 
+	boxhalfsize[2] = 0.50 * (rHighPoint[2] - rLowPoint[2]);
+	else 
+	boxhalfsize[2]=0;
+
+	std::size_t size = geom_1.size();
+	std::vector<Point<3, double> > triverts;
+	triverts.resize(size); 
+	for(unsigned int i = 0; i< size; i++ )
+	{
+	triverts[i] =  geom_1.GetPoint(i);
+	}
+	
+	return TriBoxOverlap(boxcenter, boxhalfsize, triverts);
+	
+      }
+      
 
       
 //      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const
@@ -1668,6 +1706,241 @@ inline void Sort(double& a, double& b)
 
 
 
+inline void FindMinMax(const double& x0, 
+		       const double& x1,
+		       const double& x2,
+		       double& min,
+		       double& max) 
+ {
+  min = max = x0;   
+  if(x1<min) min=x1;
+  if(x1>max) max=x1;
+  if(x2<min) min=x2;
+  if(x2>max) max=x2;
+ }
+ 
+ 
+inline  bool planeBoxOverlap(const array_1d<double,3 >& normal,  const double& d, const array_1d<double,3 >& maxbox)
+{
+  int q;
+  array_1d<double,3 >  vmin,vmax;
+  for(q=0;q<=2;q++)
+  {
+    if(normal[q]>0.0f)
+    {
+      vmin[q]=-maxbox[q];
+      vmax[q]= maxbox[q];
+    }
+    else
+    {
+      vmin[q]=maxbox[q];
+      vmax[q]=-maxbox[q];
+    }
+  }
+  if(inner_prod(normal,vmin)+d>0.0f) return false;
+  if(inner_prod(normal,vmax)+d>=0.0f) return true;
+  
+  return false;
+}
+
+/*======================== X-tests ========================*/
+inline unsigned int  AxisTest_X01(double& a,   double& b, 
+			   double& fa,  double& fb,
+			   double& p0,  double& p2,
+			   double& min, double& max, double& rad, 
+			   array_1d<double,3 >& v0,
+			   array_1d<double,3 >& v2,
+			   Point<3, double>& boxhalfsize
+			   )
+	{
+	  p0 = a*v0[1] - b*v0[2];			       	   
+	  p2 = a*v2[1] - b*v2[2];			       	   
+          if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} 
+	  rad = fa * boxhalfsize[1] + fb * boxhalfsize[2];   
+	  if(min>rad || max<-rad) return 0; 
+	  else return 1;
+	}
+
+inline unsigned int  AxisTest_X2(double& a,   double& b, 
+			   double& fa,  double& fb,
+			   double& p0,  double& p1,
+			   double& min, double& max, double& rad, 
+			   array_1d<double,3 >& v0,
+			   array_1d<double,3 >& v1,
+			   Point<3, double>& boxhalfsize
+			   )
+	{
+	p0 = a*v0[1] - b*v0[2];			           
+	p1 = a*v1[1] - b*v1[2];			       	   
+        if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} 
+	rad = fa * boxhalfsize[1] + fb * boxhalfsize[2];   
+	if(min>rad || max<-rad) return 0;
+        else return 1;
+	}
+
+/*======================== Y-tests ========================*/
+inline unsigned int  AxisTest_Y02(double& a, double& b, 
+			   double& fa,  double& fb,
+			   double& p0,  double& p2,
+			   double& min, double& max, double& rad, 
+			   array_1d<double,3 >& v0,
+			   array_1d<double,3 >& v2,
+			   Point<3, double>& boxhalfsize
+			   )
+	{
+	  
+	p0 = -a*v0[0] + b*v0[2];		      	   
+	p2 = -a*v2[0] + b*v2[2];	       	       	   
+        if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} 
+	rad = fa * boxhalfsize[0] + fb * boxhalfsize[2];   
+	if(min>rad || max<-rad) return 0;
+	else return 1;
+        }
+        
+inline unsigned int  AxisTest_Y1(double& a,   double& b, 
+			   double& fa,  double& fb,
+			   double& p0,  double& p1,
+			   double& min, double& max, double& rad, 
+			   array_1d<double,3 >& v0,
+			   array_1d<double,3 >& v1,
+			   Point<3, double>& boxhalfsize
+			   )
+			   
+	 {
+	    p0 = -a*v0[0] + b*v0[2];
+	    p1 = -a*v1[0] + b*v1[2];
+            if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} 
+	    rad = fa * boxhalfsize[0] + fb * boxhalfsize[2];   
+	    if(min>rad || max<-rad) return 0;
+	    else return 1;
+	 }
+	 
+/*======================== Z-tests ========================*/
+
+inline unsigned int  AxisTest_Z12(double& a, double& b, 
+			   double& fa,  double& fb,
+			   double& p1,  double& p2,
+			   double& min, double& max, double& rad, 
+			   array_1d<double,3 >& v1,
+			   array_1d<double,3 >& v2,
+			   Point<3, double>& boxhalfsize
+			   )
+			 {
+			      p1 = a*v1[0] - b*v1[1];			           
+			      p2 = a*v2[0] - b*v2[1];			       	   
+			      if(p2<p1) {min=p2; max=p1;} else {min=p1; max=p2;} 
+			      rad = fa * boxhalfsize[0] + fb * boxhalfsize[1];   
+			      if(min>rad || max<-rad) return 0;
+			      else return 1;
+			 }  
+			 
+inline unsigned int  AxisTest_Z0(double& a, double& b, 
+			   double& fa,  double& fb,
+			   double& p0,  double& p1,
+			   double& min, double& max, double& rad, 
+			   array_1d<double,3 >& v0,
+			   array_1d<double,3 >& v1,
+			   Point<3, double>& boxhalfsize
+			   ) 
+            {
+		  p0 = a*v0[0] - b*v0[1];
+		  p1 = a*v1[0] - b*v1[1];			           
+		  if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} 
+		  rad = fa * boxhalfsize[0] + fb * boxhalfsize[1];   
+		  if(min>rad || max<-rad) return 0;
+		  else return 1;
+	    } 
+
+inline bool TriBoxOverlap(Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& triverts)
+	      {
+
+		  /*    use separating axis theorem to test overlap between triangle and box */
+		  /*    need to test for overlap in these directions: */
+		  /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
+		  /*       we do not even need to test these) */
+		  /*    2) normal of the triangle */
+		  /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
+		  /*       this gives 3x3=9 more tests */
+		  
+		  double min,max,d,p0,p1,p2,rad,fex,fey,fez;  
+ 		  array_1d<double,3 > v0,v1,v2;
+ 		  array_1d<double,3 > axis;
+ 		  array_1d<double,3 > normal, e0, e1 ,e2;
+// 
+// 		  /* This is the fastest branch on Sun */
+// 		  /* move everything so that the boxcenter is in (0,0,0) */
+ 		  noalias(v0) = triverts[0]- boxcenter;
+ 		  noalias(v1) = triverts[1]- boxcenter;
+ 		  noalias(v2) = triverts[2]- boxcenter;
+// 
+// 		  /* compute triangle edges */
+ 		  noalias(e0) = v1 - v0;      /* tri edge 0 */
+ 		  noalias(e1) = v2 - v1;      /* tri edge 1 */
+ 		  noalias(e2) = v0 - v2;      /* tri edge 2 */
+// 
+// 		  /* Bullet 3:  */
+// 		  /*  test the 9 tests first (this was faster) */
+ 		  fex = fabs(e0[0]);
+ 		  fey = fabs(e0[1]);
+ 		  fez = fabs(e0[2]);		  
+		  //AXISTEST_X01(e0[2], e0[1], fez, fey);
+		  if (AxisTest_X01(e0[2], e0[1], fez, fey, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false; 
+		  //AXISTEST_Y02(e0[2], e0[0], fez, fex);
+		  if(AxisTest_Y02( e0[2], e0[0], fez, fex, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
+ 		  //AXISTEST_Z12(e0[1], e0[0], fey, fex);
+                  if(AxisTest_Z12(e0[1], e0[0], fey, fex, p1, p2, min, max, rad, v1,v2, boxhalfsize )==0) return false;
+			   
+		  
+		  
+		  fex = fabs(e1[0]);
+		  fey = fabs(e1[1]);
+		  fez = fabs(e1[2]);
+		  //AXISTEST_X01(e1[2], e1[1], fez, fey);
+		  if( AxisTest_X01(e1[2], e1[1], fez, fey, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false; 
+		  //AXISTEST_Y02(e1[2], e1[0], fez, fex);
+		  if(AxisTest_Y02( e1[2], e1[0], fez, fex, p0, p2, min,max, rad, v0, v2, boxhalfsize)==0) return false;
+		  //AXISTEST_Z0(e1[1], e1[0], fey, fex);
+		  if( AxisTest_Z0(e1[1], e1[0], fey, fex, p0,  p1, min, max, rad, v0, v1,boxhalfsize)==0) return false; 
+		  
+
+		  fex = fabs(e2[0]);
+		  fey = fabs(e2[1]);
+		  fez = fabs(e2[2]);
+		  //AXISTEST_X2(e2[2], e2[1], fez, fey);
+		  if (AxisTest_X2(e2[2], e2[1], fez, fey, p0, p1, min, max, rad, v0, v1, boxhalfsize )==0) return false;
+		  //AXISTEST_Y1(e2[2], e2[0], fez, fex);
+		  if (AxisTest_Y1(e2[2], e2[0], fez, fex, p0, p1, min, max, rad, v0, v1, boxhalfsize )==0) return false; 
+		  //AXISTEST_Z12(e2[1], e2[0], fey, fex);
+		  if(AxisTest_Z12(e2[1], e2[0], fey, fex, p1, p2, min, max, rad, v1,v2, boxhalfsize ) ==0) return false;
+		  
+
+		  /* Bullet 1: */
+		  /*  first test overlap in the {x,y,z}-directions */
+		  /*  find min, max of the triangle each direction, and test for overlap in */
+		  /*  that direction -- this is equivalent to testing a minimal AABB around */
+		  /*  the triangle against the AABB */
+
+		  /* test in X-direction */
+		  FindMinMax(v0[0],v1[0],v2[0],min,max);
+		  if(min>boxhalfsize[0] || max<-boxhalfsize[0]) return false;
+
+		  /* test in Y-direction */
+		  FindMinMax(v0[1],v1[1],v2[1],min,max);
+		  if(min>boxhalfsize[1] || max<-boxhalfsize[1]) return false;
+
+		  /* test in Z-direction */
+		  FindMinMax(v0[2],v1[2],v2[2],min,max);
+		  if(min>boxhalfsize[2] || max<-boxhalfsize[2]) return false;
+
+		  /* Bullet 2: */
+		  /*  test if the box intersects the plane of the triangle */
+		  /*  compute plane equation of triangle: normal*x+d=0 */
+		  MathUtils<double>::CrossProduct(normal, e0, e1);
+		  d=-inner_prod(normal,v0);  /* plane eq: normal.x+d=0 */
+		  if(!planeBoxOverlap(normal,d,boxhalfsize)) return false;
+
+		  return true;   /* box and triangle overlaps */
+ 	      }
 
         
         ///@} 
