@@ -1,5 +1,6 @@
 PROBLEMTYPE edgebased_levelset	# The name of your problemtype
-DEFINITION FOLDER edgebased_levelset_problemtype # The folder containing the definition file and the .bas templates
+USE KRATOS DEFINITIONS # Use default definition for this problemtype...
+USE PYTHON SCRIPTS edgebased_script # ... but include my scripts from this folder
 
 VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
