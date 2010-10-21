@@ -647,14 +647,9 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int nnodes = rNodes.size();
-				  
-				#pragma omp parallel for firstprivate(nnodes,it_begin)
-				for(int i = 0; i<nnodes; i++)
+				// Loop over all nodes
+				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
 				{
-					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
-				
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
@@ -679,14 +674,9 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int nnodes = rNodes.size();
-				  
-				#pragma omp parallel for firstprivate(nnodes,it_begin)
-				for(int i = 0; i<nnodes; i++)
+				// Loop over all nodes
+				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
 				{
-					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
-					
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
@@ -714,14 +704,9 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int nnodes = rNodes.size();
-				  
-				#pragma omp parallel for firstprivate(nnodes,it_begin)
-				for(int i = 0; i<nnodes; i++)
+				// Loop over alle nodes
+				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
 				{
-					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
-
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
@@ -749,13 +734,9 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int nnodes = rNodes.size();
-				  
-				#pragma omp parallel for firstprivate(nnodes,it_begin)
-				for(int i = 0; i<nnodes; i++)
+				// Loop over all nodes
+				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
 				{
-					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
@@ -781,13 +762,9 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int nnodes = rNodes.size();
-				  
-				#pragma omp parallel for firstprivate(nnodes,it_begin)
-				for(int i = 0; i<nnodes; i++)
+				// Loop over all nodes
+				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
 				{
-					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
@@ -816,14 +793,9 @@ namespace Kratos
 				// TODO: Single device code
 				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
 
-				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int nnodes = rNodes.size();
-				  
-				#pragma omp parallel for firstprivate(nnodes,it_begin)
-				for(int i = 0; i<nnodes; i++)
+				// Loop over all nodes
+				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
 				{
-					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
-
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
@@ -851,14 +823,9 @@ namespace Kratos
 				// TODO: Single device code
 				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
 
-				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int nnodes = rNodes.size();
-				  
-				#pragma omp parallel for firstprivate(nnodes,it_begin)
-				for(int i = 0; i<nnodes; i++)
+				// Loop over all nodes
+				for (ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
 				{
-					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
-
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
