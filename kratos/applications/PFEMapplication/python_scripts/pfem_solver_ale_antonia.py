@@ -62,6 +62,8 @@ class PFEMSolver:
         self.mesh_every_nsteps = 10;
         self.substep = 0;
        
+        model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+
         if(domain_size == 2):
             self.Mesher = TriGenPFEMModeler()
 #            self.Mesher = TriGenModeler()
