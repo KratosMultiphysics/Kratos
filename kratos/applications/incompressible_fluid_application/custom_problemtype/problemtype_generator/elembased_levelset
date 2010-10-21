@@ -1,5 +1,4 @@
 PROBLEMTYPE elembased_levelset	# The name of your problemtype
-#DEFINITION FOLDER elembased_levelset_problemtype # The folder containing the definition file and the .bas templates
 USE KRATOS DEFINITIONS # Use default definition for this problemtype...
 USE PYTHON SCRIPTS elembased_script # ... but include my scripts from this folder
 
