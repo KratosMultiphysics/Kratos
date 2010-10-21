@@ -500,15 +500,7 @@ namespace OpenCL
 				char *Dummy = GETCWD(CurrentWorkingDirectory, sizeof(CurrentWorkingDirectory));
 				Dummy = NULL;
 
-				// Check if we need to add a PATH_SEPARATOR
-				std::string TempStr = CurrentWorkingDirectory;
-				if (TempStr[TempStr.size() - 1] != PATH_SEPARATOR)
-				{
-					TempStr += PATH_SEPARATOR;
-				}
-
-				// Add current directory to list of search paths
-				CLSearchPath.push_back(TempStr);
+				AddCLSearchPath(CurrentWorkingDirectory);
 			}
 
 			//
@@ -784,7 +776,14 @@ namespace OpenCL
 
 			void AddCLSearchPath(const char *Path)
 			{
-				CLSearchPath.push_back(Path);
+				// Check if we need to add a PATH_SEPARATOR
+				std::string TempPath(Path);
+				if (TempPath[TempPath.size() - 1] != PATH_SEPARATOR)
+				{
+					TempPath += PATH_SEPARATOR;
+				}
+
+				CLSearchPath.push_back(TempPath);
 			}
 
 			//
