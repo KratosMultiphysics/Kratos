@@ -55,7 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* External includes */
 #include <boost/smart_ptr.hpp>
-#include "utilities/timer.h"
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 
@@ -608,11 +607,7 @@ namespace Kratos
 
             std::cout << "Building system" << std::endl;
 
-            Timer::Start("Build");
-
             Build(pScheme, rModelPart, A, b);
-
-            Timer::Stop("Build");
 
 //        //does nothing...dirichlet conditions are naturally dealt with in defining the residual
 //        ApplyDirichletConditions(pScheme,rModelPart,A,Dx,b);
@@ -626,11 +621,8 @@ namespace Kratos
 
             std::cout << "Solving System" << std::endl;
 
-            Timer::Start("Solve");
-
             SystemSolve(A, Dx, b);
 
-            Timer::Stop("Solve");
 
             if (this->GetEchoLevel() == 3) {
                 std::cout << "after the solution of the system" << std::endl;
@@ -1087,7 +1079,7 @@ namespace Kratos
 
         /// Free memory used by class members once no longer needed
         /**
-         *  this function is intended to be called at the end of the solution
+         * this function is intended to be called at the end of the solution
          * step to clean up memory storage not needed
          */
         void Clear()
@@ -1113,7 +1105,7 @@ namespace Kratos
                         TSparseSpace::Clear((this->mpIDiagS));
 
             if (this->GetEchoLevel() > 0) {
-                KRATOS_WATCH("ResidualBasedEliminationBuilderAndSolver Clear Function called");
+                std::cout << "ResidualBasedEliminationBuilderAndSolver Clear Function called" << std::endl;
             }
         }
 
@@ -1247,7 +1239,7 @@ namespace Kratos
 
             L.reserve(NumTermsL, false);
 
-            // Fill the matrix with zeros (create the structure)
+            // Create the matrix structure, filling it with zeros
             AllocateSpace(S, indicesS);
             AllocateSpace(G, indicesG);
             AllocateSpace(D, indicesD);
