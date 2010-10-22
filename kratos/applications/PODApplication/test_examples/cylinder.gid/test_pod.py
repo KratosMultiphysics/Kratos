@@ -39,7 +39,7 @@ from KratosIncompressibleFluidApplication import *
 from KratosExternalSolversApplication import *
 from KratosPodApplication import *
 
-print kernel
+#print kernel
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
@@ -63,7 +63,7 @@ else:
 input_file_name = fluid_only_var.problem_name
 
 #reading the fluid part
-gid_mode = GiDPostMode.GiD_PostAscii
+gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
@@ -109,10 +109,11 @@ def Intial_Values_Read(infile,Number_Nodes):
       print "begin reading Intial VX values"  
       #i=0
       while (t_<=Number_Nodes):
-	   searchname_=str('Result "VELOCITY" "Kratos" 4.05 Vector OnNodes')
+	   searchname_=str('Result "Velocity_avrged" "Kratos" 1 Vector OnNodes')
            line = File.readline()
            #print "searching for:   " +searchname_        
            if not line:
+             #print "aaaaaaaaaaaaaaaaaaaaaA"
              break
            else:   
 	     if(line.find(searchname_) >= 0):
@@ -134,21 +135,63 @@ def Intial_Values_Read(infile,Number_Nodes):
                         #searchname_=str('Result "')+Quantity_+str ('" "Kratos" ')+str(t_)+str(' ')+Dimension_+str(' OnNodes')
                         #print searchname_
                      else:
-		        
 		        aaa = line.split();
+		        #print aaa
 		        #in_[j]=float(aaa[0])
 		        j=j+1
-		        fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_X,0,float(aaa[1]))
+		        fluid_model_part.Nodes[j].SetValue(VELOCITY_X,float(aaa[1]))
+		        fluid_model_part.Nodes[j].SetValue(VELOCITY_Y,float(aaa[2]))
+#		        fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_X,0,float(aaa[1]))
 		        #fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_Y,0,float(aaa[2]))
 		       
 		   t_=t_+1
       File.close()	   
+      #File = open(infile,'r')
+      #t_=1
+      #print "begin reading Intial VY values"  
+      ##i=0
+      #while (t_<=Number_Nodes):
+	   #searchname_=str('Result "VelocityY_average" "Kratos" 1 Scalar OnNodes')
+           #line = File.readline()
+           ##print "searching for:   " +searchname_        
+           #if not line:
+             #break
+           #else:   
+	     #if(line.find(searchname_) >= 0):
+	        #print "begin reading "+searchname_ 
+                #line = File.readline()
+                #line = File.readline()
+                #j=0
+                #if(line.find(str('Values')) >= 0):
+		   #go_on = True 
+                   #while go_on:
+                     #line = File.readline()
+                     #if not line:
+                        #break
+                   
+                     #if (line.find("End values") >= 0):
+                        #print 'END Reading elements'
+                        #go_on = False;
+                        
+                        ##searchname_=str('Result "')+Quantity_+str ('" "Kratos" ')+str(t_)+str(' ')+Dimension_+str(' OnNodes')
+                        ##print searchname_
+                     #else:
+		        
+		        #aaa = line.split();
+		        ##in_[j]=float(aaa[0])
+		        #j=j+1
+		        ##fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_X,0,float(aaa[1]))
+###		        fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_Y,0,float(aaa[1]))
+		        #fluid_model_part.Nodes[j].SetValue(VELOCITY_Y,float(aaa[1]))
+		       
+		   #t_=t_+1               
+      #File.close()
       File = open(infile,'r')
       t_=1
-      print "begin reading Intial VY values"  
+      print "begin reading Intial PRESSURE values"  
       #i=0
       while (t_<=Number_Nodes):
-	   searchname_=str('Result "VELOCITY" "Kratos" 4.05 Vector OnNodes')
+	   searchname_=str('Result "PRESSURE_avrged" "Kratos" 1 Scalar OnNodes')
            line = File.readline()
            #print "searching for:   " +searchname_        
            if not line:
@@ -178,7 +221,8 @@ def Intial_Values_Read(infile,Number_Nodes):
 		        #in_[j]=float(aaa[0])
 		        j=j+1
 		        #fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_X,0,float(aaa[1]))
-		        fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_Y,0,float(aaa[1]))
+##		        fluid_model_part.Nodes[j].SetSolutionStepValue(VELOCITY_Y,0,float(aaa[1]))
+		        fluid_model_part.Nodes[j].SetValue(PRESSURE,float(aaa[1]))
 		       
 		   t_=t_+1               
       File.close()
@@ -231,12 +275,12 @@ def Reduced_Pods_Read(infile,Variable,Number_Nodes,Number_Pods,BC_name):
 		   
 		   if(BC_name==False):
 		     fluid_model_part.Nodes[t_].SetValue(Variable,in_[0:j])
-		   else:
+		   #else:
 	           
-	             if(fluid_model_part.Nodes[t_].IsFixed(BC_name) == False):
-		        fluid_model_part.Nodes[t_].SetValue(Variable,in_[0:j])
-		     else:
-		        fluid_model_part.Nodes[t_].SetValue(Variable,in_boundary[0:j])
+	             #if(fluid_model_part.Nodes[t_].IsFixed(BC_name) == False):
+		        #fluid_model_part.Nodes[t_].SetValue(Variable,in_[0:j])
+		     #else:
+		        #fluid_model_part.Nodes[t_].SetValue(Variable,in_boundary[0:j])
 		   
 		   t_=t_+1
 	               
@@ -244,15 +288,19 @@ def Reduced_Pods_Read(infile,Variable,Number_Nodes,Number_Pods,BC_name):
       
      
  #POD_VELOCITY_X    
-npods = 4
+npods = 20
 nnodes = len(fluid_model_part.Nodes)
 
 
-Intial_Values_Read('cylinder_0.post.res',nnodes)
+dirname = './PODS_verticies_combined/'
+#dirname = './20sec_200shots_4podmodes_average.intial/'
 
-Reduced_Pods_Read('VH_Pressure_reduced.txt',POD_PRESSURE,nnodes,npods,False)
-Reduced_Pods_Read('VH_VY_reduced.txt',POD_VELOCITY_Y,nnodes,npods,False)
-Reduced_Pods_Read('VH_VX_reduced.txt',POD_VELOCITY_X,nnodes,npods,False)
+Intial_Values_Read(dirname+'averaged_snapshots.res',nnodes)
+#Intial_Values_Read('cylinder_0.post.res',nnodes)
+
+#Reduced_Pods_Read(dirname+'VH_Pressure_reduced.txt',POD_PRESSURE,nnodes,npods,False)
+Reduced_Pods_Read(dirname+'VH_VY_reduced.txt',POD_VELOCITY_Y,nnodes,npods,False)
+Reduced_Pods_Read(dirname+'VH_VX_reduced.txt',POD_VELOCITY_X,nnodes,npods,False)
 
 
 #Reduced_Pods_Read('VH_VZ_reduced.txt',POD_VELOCITY_Z,nnodes,npods)
@@ -281,7 +329,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver = monolithic_solver_eulerian_POD.MonolithicSolver(fluid_model_part,domain_size)
     oss_swith = fluid_only_var.use_oss
     dynamic_tau = fluid_only_var.dynamic_tau
-    #fluid_solver.max_iter = 15
+    fluid_solver.max_iter = 30
     fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
     fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
     fluid_solver.Initialize()
@@ -302,7 +350,7 @@ full_Dt = Dt
 initial_Dt = 1.0 * full_Dt #0.05 #0.01
 final_time = fluid_only_var.max_time
 output_step = fluid_only_var.output_step
-1 
+
 fluid_only_var.output_step
 
 out = 0
@@ -319,7 +367,12 @@ gid_io.FinalizeMesh()
 
 gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
 
-
+for node in fluid_model_part.Nodes:
+  vel = node.GetValue(VELOCITY)
+  node.SetSolutionStepValue(VELOCITY,0,vel)
+  
+  #press = node.GetValue(PRESSURE)
+  #node.SetSolutionStepValue(PRESSURE,0,press)
  
 time = 0.0
 step = 0
@@ -336,8 +389,24 @@ while(time < final_time):
     fluid_model_part.CloneTimeStep(time)
 
     if(step >= 3):
+        #if(step == 3):
+            #print "*****************************"
+            #for node in fluid_model_part.Nodes:
+                #vel = node.GetValue(VELOCITY)
+                #node.SetSolutionStepValue(VELOCITY,0,vel)
+	#for node in fluid_model_part.Nodes:
+	  #vel = node.GetValue(VELOCITY)
+	  #node.SetSolutionStepValue(VELOCITY,0,vel)
+        
 	#print VELOCITY
         fluid_solver.Solve()
+        
+        #if(time < 20.0):
+	  #for node in fluid_model_part.Nodes:
+	    #node.SetSolutionStepValue(BODY_FORCE_Y,0,-1.0)
+	#else:
+	  #for node in fluid_model_part.Nodes:
+	    #node.SetSolutionStepValue(BODY_FORCE_Y,0,0.0)
         
     
 
@@ -347,26 +416,9 @@ while(time < final_time):
             gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
         else:
             gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(AIR_PRESSURE,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(WATER_PRESSURE,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
-            #gid_io.WriteNodalResults(DISPLACEMENT,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(MESH_VELOCITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_STRUCTURE,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_BOUNDARY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_POROUS,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_FREE_SURFACE,fluid_model_part.Nodes,time,0)
-            #gid_io.PrintOnGaussPoints(THAWONE,fluid_model_part,time)
-            #gid_io.PrintOnGaussPoints(THAWTWO,fluid_model_part,time)
-            gid_io.WriteNodalResults(ADVPROJ,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(DIVPROJ,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(DENSITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(DENSITY_AIR,fluid_model_part.Nodes,time,0)
-           ## gid_io.WriteNodalResults(NODAL_H,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(VISCOSITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(AIR_SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
-
+            gid_io.WriteNodalResults(ACCELERATION,fluid_model_part.Nodes,time,0)
+ 
         out = 0
 
     out = out + 1
