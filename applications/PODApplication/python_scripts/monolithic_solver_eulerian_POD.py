@@ -93,7 +93,7 @@ class MonolithicSolver:
         
     #######################################################################
     def Initialize(self):
-        self.builder_and_solver = ResidualBasedEliminationBuilderAndSolverStandard(self.linear_solver)
+        self.builder_and_solver = ResidualBasedEliminationBuilderAndSolverPOD(self.linear_solver)
 
         # Note that the strategy asks for a solver but doesn't use it (when
         # called using this constructor). This is good, as this builder and
