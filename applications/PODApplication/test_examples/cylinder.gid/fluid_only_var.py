@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 domain_size = 2
 
-Dt = 0.05
-max_time =20
+Dt = 1.0
+max_time =1000
 #20.0
 #0.1
 #100
 #20.0
 SolverType = "monolithic_solver_eulerian"
 laplacian_form = 3
-output_step = 2
+output_step = 1
 #20
 #2
 predictor_corrector = True
