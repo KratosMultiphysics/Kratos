@@ -429,7 +429,7 @@ namespace Kratos
 		private:
 
 			// Matrix container
-			OpenCLMatrixContainer mr_matrix_container;
+			OpenCLMatrixContainer &mr_matrix_container;
 
 			// OpenCL stuff
 			OpenCL::DeviceGroup &mrDeviceGroup;
