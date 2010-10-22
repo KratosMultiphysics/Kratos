@@ -48,7 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_BIGGERLOCALM )
 #define  KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER_BIGGERLOCALM
 
-// #define SEPRATED_V
+
 
 //  REMEMBER to update "lu.hpp" header includes from boost-CVS
  #include <boost/numeric/ublas/vector.hpp>
@@ -364,16 +364,12 @@ namespace Kratos
 		  
 			KRATOS_TRY
 			if(!pScheme)
-					KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+				KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
 
 			//getting the elements from the model
 			ElementsArrayType& pElements = r_model_part.Elements();
 			//getting the nodes from the model_part
 		        NodesContainerType& rNodes = r_model_part.Nodes(); //gives access to the list of nodes
-
-// 			NodesArrayTypee& PNodes= r_model_part.Nodes();
-			
-			
 
 			//getting the array of the conditions
 			ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
@@ -385,575 +381,153 @@ namespace Kratos
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 			
-
 			//vector containing the localization in the system of the different
 			//terms
 			Element::EquationIdVectorType EquationId;
 
-                        //double StartTime = GetTickCount();
-
 			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 			// assemble all elements
+			std::cout << "this is Khaled's POD builder and solver" << std::endl;
 			
-// 			model_part.Nodes()[12].SetValue(POD_PRESSURE,[1,2,3]);
-			
-#ifndef _OPENMP
-			    numer_of_pod_modes =(r_model_part.NodesBegin()->GetValue(POD_VELOCITY_X)).size();
-// 			    15;
-// 			    
-			    
- #ifdef SEPRATED_V
-                       std::cout << "this is Khaled's standard builder and solver WIHT SEPRATED Cooficents==>VX - VY- VP............." << std::endl;
- 
-		        mLHS_POD_Contribution.resize(3*numer_of_pod_modes,3*numer_of_pod_modes,false);
-			mRHS_POD_Contribution.resize(3*numer_of_pod_modes,false);
-			mX_POD_Contribution.resize(3*numer_of_pod_modes,false);
-			
-			
-			noalias(mLHS_POD_Contribution) = ZeroMatrix(3*numer_of_pod_modes,3*numer_of_pod_modes);
-			noalias(mRHS_POD_Contribution) = ZeroVector(3*numer_of_pod_modes);
-			noalias(mX_POD_Contribution) = ZeroVector(3*numer_of_pod_modes);
-
-		        for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
-			{
-			  
-
-				//calculate elemental contribution
-				pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
-
-  				LocalSystemMatrixType V=LocalSystemMatrixType((3*numer_of_pod_modes),LHS_Contribution.size2()); 
-			
-				for(unsigned int index=0; index<(*it)->GetGeometry().size(); index++)
-				{
-				    const Vector& vel_x = (*it)->GetGeometry()[index].GetValue(POD_VELOCITY_X);
-				    const Vector& vel_y = (*it)->GetGeometry()[index].GetValue(POD_VELOCITY_Y);
-				    const Vector& press = (*it)->GetGeometry()[index].GetValue(POD_PRESSURE);
-				    
-				    if((*it)->GetGeometry()[index].IsFixed(VELOCITY_X) == true)
-				    {
-				      KRATOS_WATCH(Id());
-				      KRATOS_WATCH(vel_x);
-				    }
-				    if((*it)->GetGeometry()[index].IsFixed(VELOCITY_Y) == true)
-				    {
-				      KRATOS_WATCH(Id());
-				      KRATOS_WATCH(vel_y);
-				    }				    
-				    if((*it)->GetGeometry()[index].IsFixed(PRESSURE) == true)
-				    {
-				      KRATOS_WATCH(Id());
-				      KRATOS_WATCH(press);
-				    }// 				    KRATOS_WATCH(vel_x);
-				    
-				    unsigned int base = index*3;
-				    for(unsigned int i = 0; i<(numer_of_pod_modes); i++)
-				    {
-				       
- 				       V(i,base) =vel_x[i];
-				       V(i,base+1) = 0.0;
-// 				       vel_y[i];
-				       V(i,base+2) = 0.0;
-			
-				    }
-				    
-				    for(unsigned int i =0;i<(numer_of_pod_modes); i++)
-				    {
- 				       V(i+numer_of_pod_modes,base) =0.0; 
-//  				       vel_x[i];
-				       V(i+numer_of_pod_modes,base+1) =vel_y[i];
-				       V(i+numer_of_pod_modes,base+2) =0.0;
-			
-				    }
-				    
-				      for(unsigned int i =0;i<(numer_of_pod_modes); i++)
-				    {
- 				       V(i+2*numer_of_pod_modes,base) =0.0; 
-//  				       vel_x[i];
-				       V(i+2*numer_of_pod_modes,base+1) =0.0;
-				       V(i+2*numer_of_pod_modes,base+2) =press[i];
-			
-				    }
-				   
-				   
- 				   
-				    
-				}
-// 				KRATOS_WATCH(V);
-// 				KRATOS_WATCH(trans(V));
-
-// 				  
-				///working on the LHS
-				Matrix tmp = prod(LHS_Contribution,trans(V));
-// 				 KRATOS_WATCH(LHS_Contribution);
-// 				  KRATOS_WATCH(trans(V));
-//   				  KRATOS_WATCH(tmp);
-				  
-  				noalias(mLHS_POD_Contribution) += prod(V,tmp);
-// 				KRATOS_WATCH(mLHS_POD_Contribution);
-				/// working on the RHS
-				noalias(mRHS_POD_Contribution)+=prod(V,RHS_Contribution);
-			        
-// 				KRATOS_WATCH(mRHS_POD_Contribution);
-				
-				
-// 			        assemble the elemental contribution
-// 				AssembleLHS(A,LHS_Contribution,EquationId);
-// 				AssembleRHS(b,RHS_Contribution,EquationId);
-                          
-				pScheme->CleanMemory(*it);
-				
-			 
-			}
-			
-			
-			
-			
-// 			KRATOS_WATCH(tmp);
-// 			KRATOS_WATCH(mLHS_POD_Contribution);
-
-			
-			/// INversion LU         inverting ,LHS_POD_contribution
-// 			using namespace boost::numeric::ublas;
- 	                typedef boost::numeric::ublas::permutation_matrix<std::size_t> pmatrix;
-// 	
-		  
-		  bool singular;
-		  matrix<double> inverse = gjinverse(mLHS_POD_Contribution, singular);
-		  
-// 		  KRATOS_WATCH(mLHS_POD_Contribution);
-// 		  KRATOS_WATCH(inverse);
-// 		  KRATOS_WATCH(mRHS_POD_Contribution);
-// 		  KRATOS_WATCH(mX_POD_Contribution);
-		  noalias(mX_POD_Contribution) = prod(inverse,mRHS_POD_Contribution);
-		  
-		  
-// 		  linalg.det(mLHS_POD_Contribution) 
-//  		  KRATOS_WATCH(mLHS_POD_Contribution);
-// 		  KRATOS_WATCH(linalg.det(mLHS_POD_Contribution))
-//  		  KRATOS_WATCH(prod(inverse,mLHS_POD_Contribution));
-//  		  KRATOS_WATCH(prod(mLHS_POD_Contribution,inverse));
-	
-			
-		#else
-					
-			std::cout << "this is Khaled's standard builder and solver WIHT SEPRATED Cooficents  V -P.   ONLY............" << std::endl;
-			
+			unsigned int number_of_pod_modes = (r_model_part.NodesBegin()->GetValue(POD_VELOCITY_X)).size();
 			
 			/// the reduction pod local matrix
+			mLHS_POD_Contribution.resize(3*number_of_pod_modes,3*number_of_pod_modes,false);
+			mRHS_POD_Contribution.resize(3*number_of_pod_modes,false);
+			mX_POD_Contribution.resize(3*number_of_pod_modes,false);
 			
-			mLHS_POD_Contribution.resize(2*numer_of_pod_modes,2*numer_of_pod_modes,false);
-			mRHS_POD_Contribution.resize(2*numer_of_pod_modes,false);
-			mX_POD_Contribution.resize(2*numer_of_pod_modes,false);
-			
-			
-			noalias(mLHS_POD_Contribution) = ZeroMatrix(2*numer_of_pod_modes,2*numer_of_pod_modes);
-			noalias(mRHS_POD_Contribution) = ZeroVector(2*numer_of_pod_modes);
-			noalias(mX_POD_Contribution) = ZeroVector(2*numer_of_pod_modes);
-			
-			
-//  			KRATOS_WATCH(mLHS_POD_Contribution)
+			noalias(mLHS_POD_Contribution) = ZeroMatrix(3*number_of_pod_modes,3*number_of_pod_modes);
+			noalias(mRHS_POD_Contribution) = ZeroVector(3*number_of_pod_modes);
+			noalias(mX_POD_Contribution) = ZeroVector(3*number_of_pod_modes);
 
-			
-                        for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
-			{
-			  
+			int number_of_threads = OpenMPUtils::GetNumThreads();
 
-				//calculate elemental contribution
-				pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
-
-				
-				
-  				LocalSystemMatrixType V=LocalSystemMatrixType((2*numer_of_pod_modes),LHS_Contribution.size2()); 
-			
-				for(unsigned int index=0; index<(*it)->GetGeometry().size(); index++)
-				{
-				    const Vector& vel_x = (*it)->GetGeometry()[index].GetValue(POD_VELOCITY_X);
-				    const Vector& vel_y = (*it)->GetGeometry()[index].GetValue(POD_VELOCITY_Y);
-				    const Vector& press = (*it)->GetGeometry()[index].GetValue(POD_PRESSURE);
-				    
-// 				    if((*it)->GetGeometry()[index].IsFixed(VELOCITY_X) == true)
-// 				    {
-// 				      KRATOS_WATCH((*it)->GetGeometry()[index].Id());
-// 				      KRATOS_WATCH(vel_x);
-// 				    }
-// 				    if((*it)->GetGeometry()[index].IsFixed(VELOCITY_Y) == true)
-// 				    {
-// 				      KRATOS_WATCH((*it)->GetGeometry()[index].Id());
-// 				      KRATOS_WATCH(vel_y);
-// 				    }				    
-// 				    if((*it)->GetGeometry()[index].IsFixed(PRESSURE) == true)
-// 				    {
-// 				      KRATOS_WATCH((*it)->GetGeometry()[index].Id());
-// 				      KRATOS_WATCH(press);
-// 				    }
-
-				    unsigned int base = index*3;
-				    for(unsigned int i = 0; i<(numer_of_pod_modes); i++)
-				    {
-				       
- 				       V(i,base) = vel_x[i];
-				       V(i,base+1) = vel_y[i];
-				       V(i,base+2) = 0.0;
-			
-				    }
-				    
-				    for(unsigned int i =0;i<(numer_of_pod_modes); i++)
-				    {
- 				       V(i+numer_of_pod_modes,base) =0.0; 
-//  				       vel_x[i];
-				       V(i+numer_of_pod_modes,base+1) =0.0; 
-// 				       vel_y[i];
-				       V(i+numer_of_pod_modes,base+2) =press[i];
-			
-				    }
-				   
-				    if((*it)->GetGeometry()[index].IsFixed(VELOCITY_X) == true){
-				     double diag = LHS_Contribution(3*index,3*index);
-				       for(unsigned int i=0;i<LHS_Contribution.size2();i++){
-				      
-					LHS_Contribution(3*index,i)=0.0;
-					LHS_Contribution(i,3*index)=0.0;
-					
-					
-				      }
-				    
-				    RHS_Contribution(3*index)=0.0;
-				    LHS_Contribution(3*index,3*index)=diag;
-// 				    KRATOS_WATCH(LHS_Contribution);
-				      
-				    }
-				    
-				    if((*it)->GetGeometry()[index].IsFixed(VELOCITY_Y) == true){
-				       double diag = LHS_Contribution(3*index+1,3*index+1);
-				      for(unsigned int i=0;i<=LHS_Contribution.size2();i++){
-				      
-					LHS_Contribution(3*index+1,0)=0.0;
-					LHS_Contribution(0,3*index+1)=0.0;
-					
-				      }
-				      
-				      RHS_Contribution(3*index+1)=0.0;
-				      LHS_Contribution(3*index+1,3*index+1)=diag;
-// 				      
-
-				    }
-				    
-				    if((*it)->GetGeometry()[index].IsFixed(PRESSURE) == true){
-				     double diag = LHS_Contribution(3*index+2,3*index+2);
-				      
-				      
-				      for(unsigned int i=0;i<=LHS_Contribution.size2();i++){
-				      
-					LHS_Contribution(3*index+2,i)=0.0;
-					LHS_Contribution(i,3*index+2)=0.0;
-					
-				      }
-				      
-				     RHS_Contribution(3*index+2)=0.0; 
-				     LHS_Contribution(3*index+2,3*index+2)=diag;
-// 				     KRATOS_WATCH(LHS_Contribution);
-				    }
-				    
-				   
-				   
- 				   
-				    
-				}
-// 				KRATOS_WATCH(V);
-
-// 				  
-				///working on the LHS
-				Matrix tmp = prod(LHS_Contribution,trans(V));
-				
-// 				 KRATOS_WATCH(LHS_Contribution);
-// 				  KRATOS_WATCH(trans(V));
-//  				  KRATOS_WATCH(tmp);
-				
-  				noalias(mLHS_POD_Contribution) += prod(V,tmp);
-			
-// 				KRATOS_WATCH(mLHS_POD_Contribution);
-				/// working on the RHS
-				noalias(mRHS_POD_Contribution)+=prod(V,RHS_Contribution);
-			        
-// 				KRATOS_WATCH(mRHS_POD_Contribution);
-				
-				
-// 			        assemble the elemental contribution
-// 				AssembleLHS(A,LHS_Contribution,EquationId);
-// 				AssembleRHS(b,RHS_Contribution,EquationId);
-                          
-				pScheme->CleanMemory(*it);
-				
-			 
-			}
-			
-// 			KRATOS_WATCH(mRHS_POD_Contribution);
-// 			KRATOS_WATCH(mLHS_POD_Contribution);
-
-			
-			/// INversion LU         inverting ,LHS_POD_contribution
-// 			using namespace boost::numeric::ublas;
-// 	
-
-                  typedef boost::numeric::ublas::permutation_matrix<std::size_t> pmatrix;
-// 			typedef boost::numeric::ublas::identity_matrix<std::size_t> identitymatrix;
-// 			typedef boost::numeric::ublas::matrix<std::size_t> Matrix;
-			
-// 			
-//  			Matrix K(mLHS_POD_Contribution.size1(),mLHS_POD_Contribution.size2());
-// 			noalias(K) = mLHS_POD_Contribution;
-// // 		
-// 			pmatrix pm(mLHS_POD_Contribution.size2());
-// // // 			
-//  		        lu_factorize(K, pm);
-// // // 			
-// 			Matrix inverse = IdentityMatrix(2*numer_of_pod_modes,2*numer_of_pod_modes);
-// // 
-// // // 			
-//  			lu_substitute(K,pm,inverse);
-// 		      noalias(mX_POD_Contribution) = prod(inverse,mRHS_POD_Contribution);
-
-
-                    
-		  
-		  bool singular;
-		  matrix<double> inverse = gjinverse(mLHS_POD_Contribution, singular);
-	          
-		  noalias(mX_POD_Contribution) = prod(inverse,mRHS_POD_Contribution);
-		  
-// 		  linalg.det(mLHS_POD_Contribution) 
-//  		  KRATOS_WATCH(mX_POD_Contribution);
-// 		  KRATOS_WATCH(linalg.det(mLHS_POD_Contribution))
-//  		  KRATOS_WATCH(prod(inverse,mLHS_POD_Contribution));
-//  		  KRATOS_WATCH(prod(mLHS_POD_Contribution,inverse));
-
-		
-	#endif
-		
-		
-		      
-			LHS_Contribution.resize(0,0,false);
-			RHS_Contribution.resize(0,false);
-
-
-			
-
-#else
-                        //creating an array of lock variables of the size of the system matrix
-			std::vector< omp_lock_t > lock_array(A.size1());
-
-			int A_size = A.size1();
-			for(int i = 0; i<A_size; i++)
-			    omp_init_lock(&lock_array[i]);
-
-                        //create a partition of the element array
-			int number_of_threads = omp_get_max_threads();
-
-			vector<unsigned int> element_partition;
+                        vector<unsigned int> element_partition;
 			CreatePartition(number_of_threads, pElements.size(), element_partition);
-			KRATOS_WATCH( number_of_threads );
-			KRATOS_WATCH( element_partition );
 
-
-    			double start_prod = omp_get_wtime();
-
-			#pragma omp parallel for 
+			
+			#pragma omp parallel for firstprivate(number_of_threads ) schedule(static,1)
 			for(int k=0; k<number_of_threads; k++)
 			{
 				//contributions to the system
 				LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
 				LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-	
+				
+				Matrix local_LHS_POD(3*number_of_pod_modes,3*number_of_pod_modes);
+				Vector local_RHS_POD(3*number_of_pod_modes);
+				Vector local_X_POD(3*number_of_pod_modes);
+				noalias(local_LHS_POD) = ZeroMatrix(3*number_of_pod_modes,3*number_of_pod_modes);
+				noalias(local_RHS_POD) = ZeroVector(3*number_of_pod_modes);
+
 				//vector containing the localization in the system of the different
 				//terms
 				Element::EquationIdVectorType EquationId;
 				ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 				typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
 				typename ElementsArrayType::ptr_iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-
+				
 				// assemble all elements
 				for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
 				{
-
 					//calculate elemental contribution
 					pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-                                        //assemble the elemental contribution
-                                        Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
-
-                                        // clean local elemental memory
+					LocalSystemMatrixType V=LocalSystemMatrixType(3*number_of_pod_modes,LHS_Contribution.size2()); 
+					
+					for(unsigned int index=0; index<(*it)->GetGeometry().size(); index++)
+					{
+					    const Vector& vel_x = (*it)->GetGeometry()[index].GetValue(POD_VELOCITY_X);
+					    const Vector& vel_y = (*it)->GetGeometry()[index].GetValue(POD_VELOCITY_Y);
+					    const Vector& press = (*it)->GetGeometry()[index].GetValue(POD_PRESSURE);
+					      
+					    unsigned int base = index*3;
+					    for(unsigned int i = 0; i<(number_of_pod_modes); i++)
+					    {
+					      V(i,base) =vel_x[i];
+					      V(i,base+1) = 0.0;
+					      V(i,base+2) = 0.0;
+					    }
+					    
+					    for(unsigned int i =0;i<(number_of_pod_modes); i++)
+					    {
+					      V(i+number_of_pod_modes,base) =0.0; 
+					      V(i+number_of_pod_modes,base+1) =vel_y[i];
+					      V(i+number_of_pod_modes,base+2) =0.0; 
+					    }
+					    
+					    for(unsigned int i =0;i<(number_of_pod_modes); i++)
+					    {
+					      V(i+2*number_of_pod_modes,base) =0.0; 
+					      V(i+2*number_of_pod_modes,base+1) =0.0;
+					      V(i+2*number_of_pod_modes,base+2) =press[i]; 
+					    }
+					    
+					}
+					  
+					///working on the LHS
+					Matrix tmp = prod(LHS_Contribution,trans(V));
+					noalias(local_LHS_POD) += prod(V,tmp);
+				
+					/// working on the RHS
+					noalias(local_RHS_POD)+=prod(V,RHS_Contribution);
+								  
 					pScheme->CleanMemory(*it);
-
-//					#pragma omp critical
-//					{
-//						//assemble the elemental contribution
-//						AssembleLHS(A,LHS_Contribution,EquationId);
-//						AssembleRHS(b,RHS_Contribution,EquationId);
-//
-//						// clean local elemental memory
-//						pScheme->CleanMemory(*it);
-//					}
+					
+				
 				}
-			}
-
-			vector<unsigned int> condition_partition;
-			CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
-
- 			#pragma omp parallel for
-			for(int k=0; k<number_of_threads; k++)
-			{
-				//contributions to the system
-				LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
-				LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-				Condition::EquationIdVectorType EquationId;
-
-				ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-				typename ConditionsArrayType::ptr_iterator it_begin=ConditionsArray.ptr_begin()+condition_partition[k];
-				typename ConditionsArrayType::ptr_iterator it_end=ConditionsArray.ptr_begin()+condition_partition[k+1];
-
-				// assemble all elements
-				for (typename ConditionsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+				
+				#pragma omp critical
 				{
-					//calculate elemental contribution
-					pScheme->Condition_CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
-
-                                        //assemble the elemental contribution
-                                        Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
-
-//                                        #pragma omp critical
-//					{
-//						//assemble the elemental contribution
-//						AssembleLHS(A,LHS_Contribution,EquationId);
-//						AssembleRHS(b,RHS_Contribution,EquationId);
-//					}
+				  noalias(mLHS_POD_Contribution) += local_LHS_POD;
+				  noalias(mRHS_POD_Contribution) += local_RHS_POD;
 				}
+			
 			}
-                        
-                        
+			
+			
 
-			double stop_prod = omp_get_wtime();
-			std::cout << "time: " << stop_prod - start_prod << std::endl;
+			
+			/// INversion LU         inverting ,LHS_POD_contribution
+// 			using namespace boost::numeric::ublas;
+ 	                typedef boost::numeric::ublas::permutation_matrix<std::size_t> pmatrix;
+// 			typedef boost::numeric::ublas::identity_matrix<std::size_t> identitymatrix;
+// 			typedef boost::numeric::ublas::matrix<std::size_t> Matrix;
 
-			for(int i = 0; i<A_size; i++)
-			    omp_destroy_lock(&lock_array[i]);
-			KRATOS_WATCH("finished parallel building");
-                        #endif
+		  UblasSolve(mLHS_POD_Contribution,mRHS_POD_Contribution,mX_POD_Contribution);
+		  
+		  
+/*		  bool singular;
+		  matrix<double> inverse = gjinverse(mLHS_POD_Contribution, singular);
+		  
+		  noalias(mX_POD_Contribution) = prod(inverse,mRHS_POD_Contribution);*/
+		  
+//  		  KRATOS_WATCH(inverse);
 
+		  
+			
+			
+                         //double EndTime = GetTickCount();
 
-			KRATOS_CATCH("")
-
-		}
-
-		//**************************************************************************
-		//**************************************************************************
-		void BuildLHS(
-			typename TSchemeType::Pointer pScheme,
-			ModelPart& r_model_part,
-			TSystemMatrixType& A)
-		{
-			KRATOS_TRY
-
-				//getting the elements from the model
-				ElementsArrayType& pElements = r_model_part.Elements();
-
-			//getting the array of the conditions
-			ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
-			//resetting to zero the vector of reactions
-			TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
-
-			//contributions to the system
-			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
-
-			//vector containing the localization in the system of the different
-			//terms
-			Element::EquationIdVectorType EquationId;
-
-			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-			// assemble all elements
-			for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
-			{
-				//calculate elemental contribution
-				pScheme->Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
-
-				//assemble the elemental contribution
-				AssembleLHS(A,LHS_Contribution,EquationId);
-
-				// clean local elemental memory
-				pScheme->CleanMemory(*it);
-			}
-
+		      //std::cout << "total time " << EndTime - StartTime << std::endl;
+		      //std::cout << "writing in the system matrix " << ccc << std::endl;
+		      //std::cout << "calculating the elemental contrib " << ddd << std::endl;
+		      
+		      
 			LHS_Contribution.resize(0,0,false);
+			RHS_Contribution.resize(0,false);
 
-			// assemble all conditions
-			for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
-			{
-				//calculate elemental contribution
-				pScheme->Condition_Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
-
-				//assemble the elemental contribution
-				AssembleLHS(A,LHS_Contribution,EquationId);
-			}
-
-			KRATOS_CATCH("")
-
-		}
-
-		//**************************************************************************
-		//**************************************************************************
-		void BuildLHS_CompleteOnFreeRows(
-			typename TSchemeType::Pointer pScheme,
-			ModelPart& r_model_part,
-			TSystemMatrixType& A)
-		{
-			KRATOS_TRY
-
-				//getting the elements from the model
-				ElementsArrayType& pElements = r_model_part.Elements();
-
-			//getting the array of the conditions
-			ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
-			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-			//resetting to zero the vector of reactions
-			TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
-
-			//contributions to the system
-			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
-
-			//vector containing the localization in the system of the different
-			//terms
-			Element::EquationIdVectorType EquationId;
-
-			// assemble all elements
-			for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
-			{
-				//calculate elemental contribution
-				pScheme->Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
-
-				//assemble the elemental contribution
-				AssembleLHS_CompleteOnFreeRows(A,LHS_Contribution,EquationId);
-
-				// clean local elemental memory
-				pScheme->CleanMemory(*it);
-			}
-
-			LHS_Contribution.resize(0,0,false);
-			// assemble all conditions
-			for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
-			{
-				//calculate elemental contribution
-				pScheme->Condition_Calculate_LHS_Contribution(*it,LHS_Contribution,EquationId,CurrentProcessInfo);
-
-				//assemble the elemental contribution
-				AssembleLHS_CompleteOnFreeRows(A,LHS_Contribution,EquationId);
-			}
-
-
+			/// assemble all conditions
+// 			for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
+// 			{
+// 				//calculate elemental contribution
+// 				pScheme->Condition_CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
+// 
+// 				//assemble the elemental contribution
+// 				AssembleLHS(A,LHS_Contribution,EquationId);  // A is the Global matarix after assembling!!
+// 				AssembleRHS(b,RHS_Contribution,EquationId);
+// 			}
+			
+			
 			KRATOS_CATCH("")
 
 		}
@@ -989,27 +563,33 @@ namespace Kratos
 
 		}
 		
-//         template<class T>
-//         bool InvertMatrix (const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
-//  	using namespace boost::numeric::ublas;
-//  	typedef permutation_matrix<std::size_t> pmatrix;
-//  	// create a working copy of the input
-//  	matrix<T> A(input);
-//  	// create a permutation matrix for the LU-factorization
-//  	pmatrix pm(A.size1());
-// 
-//  	// perform LU-factorization
-//  	int res = lu_factorize(A,pm);
-//         if( res != 0 ) return false;
-// 
-//  	// create identity matrix of "inverse"
-//  	inverse.assign(ublas::identity_matrix<T>(A.size1()));
-// 
-//  	// backsubstitute to get the inverse
-//  	lu_substitute(A, pm, inverse);
-// 
-//  	return true;
-//        }
+        
+        bool UblasSolve (const Matrix& input, const Vector& rhs, Vector& x)
+        {
+	    using namespace boost::numeric::ublas;
+	    typedef permutation_matrix<std::size_t> pmatrix;
+	    // create a working copy of the input
+	    Matrix A(input);
+	    // create a permutation matrix for the LU-factorization
+	    pmatrix pm(A.size1());
+
+	    // perform LU-factorization
+	    int res = lu_factorize(A,pm);
+	    if( res != 0 ) return false;
+	    
+	    noalias(x) = rhs;
+
+	    // backsubstitute to get the inverse
+// 	    lu_substitute(A, pm, inverse);
+	    lu_substitute(A,pm,x);
+	    
+	    Vector aaa=rhs;
+	    aaa -= prod(input,x);
+	    
+// 	    KRATOS_WATCH(aaa);
+	    
+	    return true;
+	}
 
 
 		//**************************************************************************
@@ -1023,24 +603,9 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-// 			boost::timer building_time;
-
 			Timer::Start("Build");
-// KRATOS_WATCH("before build");
-// KRATOS_WATCH(r_model_part.Nodes()[587].FastGetSolutionStepValue(VELOCITY));				
 			Build(pScheme,r_model_part,A,b);
-
 			Timer::Stop("Build");
-// KRATOS_WATCH("after build");
-// KRATOS_WATCH(r_model_part.Nodes()[587].FastGetSolutionStepValue(VELOCITY));				
-
-
-// 			if(this->GetEchoLevel()>0)
-// 			{
-// 				std::cout << "Building Time : " << building_time.elapsed() << std::endl;
-// 			}
-
-//			ApplyPointLoads(pScheme,r_model_part,b);
 
 			//does nothing...dirichlet conditions are naturally dealt with in defining the residual
 			ApplyDirichletConditions(pScheme,r_model_part,A,Dx,b);
@@ -1055,140 +620,61 @@ namespace Kratos
 
 // 			boost::timer solve_time;
 			Timer::Start("Solve");
-			
-			/// Expending the compressed POD_X vector
-// KRATOS_WATCH("right before update");
-// KRATOS_WATCH(r_model_part.Nodes()[587].FastGetSolutionStepValue(VELOCITY));				
-			
+// KRATOS_WATCH(mX_POD_Contribution);			
+			/// here we set the solution step value to zero, so to be sure that the update will do nothing
 			TSparseSpace::SetToZero( Dx);
-// 			TSystemMatrix::ZeroMatrix(Dx);
-// 			noalias(mLHS_POD_Contribution) = ZeroMatrix(numer_of_pod_modes,numer_of_pod_modes);
-// 			KRATOS_WATCH(mX_POD_Contribution);
 			
-	#ifdef SEPRATED_V
-	
-// 	               KRATOS_WATCH(mX_POD_Contribution);
-			unsigned int base1;
-			unsigned int base2;
-			unsigned int base3;
 			for(NodesContainerType::iterator it = r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
 			{
-			  
-			  
 			   const Vector& vel_pod_x = (it)->GetValue(POD_VELOCITY_X);
 			   const Vector& vel_pod_y = (it)->GetValue(POD_VELOCITY_Y);
-		           const Vector& press_pod = (it)->GetValue(POD_PRESSURE);
-			   
-// 			   KRATOS_WATCH(it->Id());
-// 			    KRATOS_WATCH(vel_pod_x);
-// 			   KRATOS_WATCH(vel_pod_y);
-// 			    KRATOS_WATCH(press_pod);
-			  if((it)->IsFixed(VELOCITY_X) == false)
+			   const Vector& press_pod = (it)->GetValue(POD_PRESSURE);
+			   array_1d<double,3>& vel = it->FastGetSolutionStepValue(VELOCITY);
+/*			   
+			   unsigned int base = 0.0;
+			   for(unsigned int i = 0; i<number_of_pod_modes; i++)
 			  {
-			     base1=0;
-			      for(unsigned int i = 0; i<numer_of_pod_modes; i++)
+			    base = i*2;
+			      vel[0] += vel_pod_x[i]*mX_POD_Contribution[base];
+			      vel[1] += vel_pod_y[i]*mX_POD_Contribution[base+1];
+			  }*/
+
+
+ 			  
+ 			  if((it)->IsFixed(VELOCITY_X) == false)
+			  {
+			    unsigned int base1=0;
+			      for(unsigned int i = 0; i<number_of_pod_modes; i++)
 				    {
-				     base1++; 
-			         (it->FastGetSolutionStepValue(VELOCITY))[0] += vel_pod_x[base1]*mX_POD_Contribution[i];
+			         vel[0] += vel_pod_x[base1++]*mX_POD_Contribution[i];
+			      
 				    }
 			  }
 				    
 			  if((it)->IsFixed(VELOCITY_Y) == false)
 			  { 
-			    base2=0; 
-			    for(unsigned int i = numer_of_pod_modes; i<2*numer_of_pod_modes; i++)
+			    unsigned int base2=0; 
+			    for(unsigned int i = number_of_pod_modes; i<2*number_of_pod_modes; i++)
 				    { 
-				      base2++; 
-			         (it->FastGetSolutionStepValue(VELOCITY))[1] += vel_pod_y[base2]*mX_POD_Contribution[i];
+			         vel[1] += vel_pod_y[base2++]*mX_POD_Contribution[i];
 				    }
 			  }
-
+			  vel[2] = 0.0;
+			  
 			  if((it)->IsFixed(PRESSURE) == false)
-			  {
-			    base3=0;
-			    for(unsigned int i = 2*numer_of_pod_modes; i<(3*numer_of_pod_modes); i++)
-				    {
-				  base3++;
-// 			    KRATOS_WATCH(l);
-// 			    KRATOS_WATCH(i);
-// 			    KRATOS_WATCH(press_pod[l]);
-// 			    KRATOS_WATCH(mX_POD_Contribution[i]);
-// 			    
-			         (it->FastGetSolutionStepValue(PRESSURE))+= press_pod[base3]*mX_POD_Contribution[i];
-		
+			  { 
+			    unsigned int base3=0; 
+			    for(unsigned int i = 2*number_of_pod_modes; i<3*number_of_pod_modes; i++)
+				    { 
+			         it->FastGetSolutionStepValue(PRESSURE) += press_pod[base3++]*mX_POD_Contribution[i];
 				    }
 			  }
+			  
 			}
 			
-	#else
-			unsigned int l;
-			for(NodesContainerType::iterator it = r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
-			{
-			  
-			  
-			   const Vector& vel_pod_x = (it)->GetValue(POD_VELOCITY_X);
-			   const Vector& vel_pod_y = (it)->GetValue(POD_VELOCITY_Y);
-		           const Vector& press_pod = (it)->GetValue(POD_PRESSURE);
-			   
-// 			   KRATOS_WATCH(it->Id());
-// 			    KRATOS_WATCH(vel_pod_x);
-// 			   KRATOS_WATCH(vel_pod_y);
-// 			    KRATOS_WATCH(press_pod);
-			  if((it)->IsFixed(VELOCITY_X) == false)
-			  {
-			      for(unsigned int i = 0; i<numer_of_pod_modes; i++)
-				    { 
-			         (it->FastGetSolutionStepValue(VELOCITY))[0] += vel_pod_x[i]*mX_POD_Contribution[i];
-				    }
-			  }
-				    
-			  if((it)->IsFixed(VELOCITY_Y) == false)
-			  {
-			    for(unsigned int i = 0; i<numer_of_pod_modes; i++)
-				    { 
-				      
-			         (it->FastGetSolutionStepValue(VELOCITY))[1] += vel_pod_y[i]*mX_POD_Contribution[i];
-				    }
-			  }
-
-			  if((it)->IsFixed(PRESSURE) == false)
-			  {
-			    l=0;
-			    for(unsigned int i = numer_of_pod_modes; i<(2*numer_of_pod_modes); i++)
-				    {
-				  l++;
-// 			    KRATOS_WATCH(l);
-// 			    KRATOS_WATCH(i);
-// 			    KRATOS_WATCH(press_pod[l]);
-// 			    KRATOS_WATCH(mX_POD_Contribution[i]);
-// 			    
-			         (it->FastGetSolutionStepValue(PRESSURE))+= press_pod[l]*mX_POD_Contribution[i];
-		
-				    }
-			  }
-			  
-			    
-			}
-			
-			
-			
-// 			KRATOS_WATCH("fgdjkgfhjdfhjkhsdjkfgh");
-// 			KRATOS_WATCH(VELOCITY);
-// 			KRATOS_WATCH(PRESSURE);
-// 			KRATOS_WATCH(POD_VELOCITY_X);
-
-	  #endif
-
-
-// KRATOS_WATCH(r_model_part.Nodes()[587].FastGetSolutionStepValue(VELOCITY));
-// 	
-
 			Timer::Stop("Solve");
 
-// 			if(this->GetEchoLevel()>0)
-// 			{
-// 				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
-// 			}
+
 			if (this->GetEchoLevel()== 3)
 			{
 				std::cout << "after the solution of the system" << std::endl;
@@ -1196,7 +682,7 @@ namespace Kratos
 				std::cout << "unknowns vector = " << Dx << std::endl;
 				std::cout << "RHS vector = " << b << std::endl;
 			}
-			
+// KRATOS_WATCH("	BuildAndSolve is finished");		
 			KRATOS_CATCH("")
 		}
 
@@ -1280,7 +766,7 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-KRATOS_WATCH("setting up the dofs");
+// KRATOS_WATCH("setting up the dofs");
 				//Gets the array of elements from the modeler
 				ElementsArrayType& pElements = r_model_part.Elements();
 
@@ -1358,7 +844,7 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
 				KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
 
 			BaseType::mDofSetIsInitialized = true;
-KRATOS_WATCH("finished setting up the dofs");
+// KRATOS_WATCH("finished setting up the dofs");
 			KRATOS_CATCH("")
 		}
 
@@ -1787,7 +1273,7 @@ KRATOS_WATCH(ReactionsVector[i]);*/
 		/*@{ */
 		
 		
-		int numer_of_pod_modes;
+		int number_of_pod_modes;
 		
 		LocalSystemMatrixType mLHS_POD_Contribution ;
    		LocalSystemVectorType mRHS_POD_Contribution ;
