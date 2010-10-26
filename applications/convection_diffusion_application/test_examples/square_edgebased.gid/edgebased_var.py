@@ -1,6 +1,6 @@
 domain_size = 2
 
-max_time = 7.0
+max_time = 6.66666667
 safety_factor = 0.9
 max_time_step = 0.001
 output_dt = 0.5
