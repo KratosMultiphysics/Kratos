@@ -1,6 +1,6 @@
-BeginZE /home/antonia/kratos/applications/convection_diffusion_application/test_examples/square_edgebased.gid/square_edgebased.post.vv
+BeginZE /home/rrossi/kratos/applications/convection_diffusion_application/test_examples/square_edgebased.gid/square_edgebased.post.vv
    x -1.52022 1.52022
-   y 0.726483 -0.726483
+   y 0.770679 -0.770679
    z -2.17945 2.17945
    e 0.726483
    v 0 0 0
@@ -15,7 +15,21 @@ BeginZE /home/antonia/kratos/applications/convection_diffusion_application/test_
    NowUse 2
    DrawingType 3
    LightVector 90 90 150 0
-EndZE /home/antonia/kratos/applications/convection_diffusion_application/test_examples/square_edgebased.gid/square_edgebased.post.vv
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 8192
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.08
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/rrossi/kratos/applications/convection_diffusion_application/test_examples/square_edgebased.gid/square_edgebased.post.vv
 
 
 BeginPostState
@@ -34,13 +48,13 @@ BeginSingleMesh
     Color Shininess: 0.3
     Property Massive: 0
     Property Transparent: 0
-    Property Style: 13
+    Property Style: 30
     Property Edge Width: 1
     Property Vector Filter Factor: 0
     Property Stream Arrow: 0
   EndSet: 0
 EndSingleMesh
-  ResultView: {Id 693} {Contour Fill} Kratos 19.705900192260742 DISTANCE DISTANCE 0.0
+  ResultView: {Id 423} {Contour Fill} Kratos 19.705900192260742 DISTANCE DISTANCE 0.0
   Post_Prefs_Vector_Size: 0 32 32 32
 EndPostState
 
