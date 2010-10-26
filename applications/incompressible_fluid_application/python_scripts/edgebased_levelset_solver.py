@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
@@ -55,6 +56,10 @@ class EdgeBasedLevelSetSolver:
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
         (self.neighbour_search).Execute()
+        
+        #erase isolated notes
+        eliminate_isolated = EliminateIsolatedNodesProcess(model_part)
+        eliminate_isolated.Execute()
 
         #definition of the solvers
 #        pDiagPrecond = DiagonalPreconditioner()
