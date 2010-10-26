@@ -849,8 +849,14 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over alle nodes
-						for (typename ModelPart::NodesContainerType::iterator node_it=rNodes.begin(); node_it!=rNodes.end(); node_it++)
-				{
+ 		                unsigned int nnodes = rNodes.size();
+				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
+				
+				#pragma omp parallel for firstprivate(nnodes,it_begin) 
+				for(int i = 0; i<nnodes; i++) 
+				{ 
+ 		                        ModelPart::NodesContainerType::iterator node_it = it_begin + i; 
+
 					//get the global index of node i
 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 
@@ -873,8 +879,14 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over alle nodes
-						for (typename ModelPart::NodesContainerType::iterator node_it=rNodes.begin(); node_it!=rNodes.end(); node_it++)
-				{
+ 		                unsigned int nnodes = rNodes.size();
+				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
+				
+				#pragma omp parallel for firstprivate(nnodes,it_begin) 
+				for(int i = 0; i<nnodes; i++) 
+				{ 
+ 		                        ModelPart::NodesContainerType::iterator node_it = it_begin + i; 
+
 					//get the global index of node i
 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 
@@ -893,8 +905,14 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over alle nodes
-						for (typename ModelPart::NodesContainerType::iterator node_it=rNodes.begin(); node_it!=rNodes.end(); node_it++)
-				{
+ 		                unsigned int nnodes = rNodes.size();
+				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
+				
+				#pragma omp parallel for firstprivate(nnodes,it_begin) 
+				for(int i = 0; i<nnodes; i++) 
+				{ 
+ 		                        ModelPart::NodesContainerType::iterator node_it = it_begin + i; 
+
 					//get the global index of node i
 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 
@@ -913,8 +931,14 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-						for (typename ModelPart::NodesContainerType::iterator node_it=rNodes.begin(); node_it!=rNodes.end(); node_it++)
-				{
+ 		                unsigned int nnodes = rNodes.size();
+				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
+				
+				#pragma omp parallel for firstprivate(nnodes,it_begin) 
+				for(int i = 0; i<nnodes; i++) 
+				{ 
+ 		                        ModelPart::NodesContainerType::iterator node_it = it_begin + i; 
+
 					//get the global index of node i
 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 					
@@ -931,8 +955,14 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-						for (typename ModelPart::NodesContainerType::iterator node_it=rNodes.begin(); node_it!=rNodes.end(); node_it++)
-				{
+ 		                unsigned int nnodes = rNodes.size();
+				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
+				
+				#pragma omp parallel for firstprivate(nnodes,it_begin) 
+				for(int i = 0; i<nnodes; i++) 
+				{ 
+ 		                        ModelPart::NodesContainerType::iterator node_it = it_begin + i; 
+
 					//get the global index of node i
 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 					
@@ -950,8 +980,14 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over alle nodes
-						for (typename ModelPart::NodesContainerType::iterator node_it=rNodes.begin(); node_it!=rNodes.end(); node_it++)
-				{
+ 		                unsigned int nnodes = rNodes.size();
+				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
+				
+				#pragma omp parallel for firstprivate(nnodes,it_begin) 
+				for(int i = 0; i<nnodes; i++) 
+				{ 
+ 		                        ModelPart::NodesContainerType::iterator node_it = it_begin + i; 
+
 					//get the global index of node i
 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 
@@ -970,8 +1006,14 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-						for (typename ModelPart::NodesContainerType::iterator node_it=rNodes.begin(); node_it!=rNodes.end(); node_it++)
-				{
+ 		                unsigned int nnodes = rNodes.size();
+				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
+				
+				#pragma omp parallel for firstprivate(nnodes,it_begin) 
+				for(int i = 0; i<nnodes; i++) 
+				{ 
+ 		                        ModelPart::NodesContainerType::iterator node_it = it_begin + i; 
+
 					//get the global index of node i
 					unsigned int i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
 					
