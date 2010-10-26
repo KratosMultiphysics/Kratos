@@ -102,6 +102,7 @@ fluid_solver.redistance_frequency = edgebased_levelset_var.redistance_frequency
 fluid_solver.extrapolation_layers = edgebased_levelset_var.extrapolation_layers
 
 fluid_solver.Initialize()
+fluid_solver.fluid_solver.SetShockCapturingCoefficient(0.05)
 ####
 
 def BenchmarkCheck(time, model_part):
