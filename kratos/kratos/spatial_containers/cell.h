@@ -148,20 +148,31 @@ namespace Kratos
 	return mObjects.size();  
       }
             
-       ContainerType& GetContainer()
+       ContainerType GetContainer() 
        {
 	 return mObjects;
        }
        
-       const IteratorType& Begin() 
+       IteratorType Begin() 
        {
 	 return mObjects.begin();
        }
        
-       const IteratorType& End() 
+       IteratorType End()  
        {
 	 return mObjects.end();
        }
+       
+       IteratorType Begin() const   
+        { 	 
+	  return mObjects.begin();
+	}
+        
+       IteratorType End() const  
+       {
+	 return mObjects.end();
+       }
+       
        
        
        
