@@ -451,17 +451,17 @@ namespace Kratos
 
 
       /// detect if two triangle are intersected  
-      virtual bool HasIntersection( const BaseType& ThisGeometry)
+      virtual bool HasIntersection( const BaseType& rThisGeometry) 
         { 
 	    const BaseType& geom_1 = *this;
-	    const BaseType& geom_2 = ThisGeometry;  
+	    const BaseType& geom_2 = rThisGeometry;  	    
 	    return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
 	    //return has_intersected; 
         }
         
         
       /// detect if  triangle and box are intersected    
-      virtual bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint)
+     virtual bool HasIntersection(const Point<2, double>& rLowPoint, const Point<2, double>& rHighPoint) 
       {
 	const BaseType& geom_1 = *this;
 	std::size_t dim        =  geom_1.WorkingSpaceDimension();
@@ -1365,12 +1365,12 @@ namespace Kratos
  *
  */
 
-bool NoDivTriTriIsect( const Point<3,double>& V0,
+inline bool NoDivTriTriIsect( const Point<3,double>& V0,
                        const Point<3,double>& V1,
                        const Point<3,double>& V2,
                        const Point<3,double>& U0,
                        const Point<3,double>& U1,
-                       const Point<3,double>& U2)
+                       const Point<3,double>& U2) 
 {
   
   short index;
@@ -1546,7 +1546,7 @@ inline bool coplanar_tri_tri( const array_1d<double, 3>& N,
 		              const Point<3,double>& V2,
 		              const Point<3,double>& U0,
 		              const Point<3,double>& U1,
-		              const Point<3,double>& U2)
+		              const Point<3,double>& U2) 
 {
    array_1d<double, 3 > A;
    short i0,i1;
@@ -1612,7 +1612,7 @@ inline bool Edge_Edge_Test(double& Ax,
 				   const short& i1,
                                    const Point<3,double>&V0,
 				   const Point<3,double>&U0,
-				   const Point<3,double>&U1)        
+				   const Point<3,double>&U1)      
 {
   Bx=U0[i0]-U1[i0];                                   
   By=U0[i1]-U1[i1];                                   
@@ -1664,7 +1664,7 @@ inline bool Point_In_Tri(const short& i0,
                          const Point<3,double>& V0,
 			 const Point<3,double>& U0,
 			 const Point<3,double>& U1,
-			 const Point<3,double>& U2)           
+			 const Point<3,double>& U2)         
 {                                           
   double a,b,c,d0,d1,d2;                     
   // is T1 completly inside T2? //          
