@@ -95,19 +95,19 @@ class BoxFunction
   {
    public:   
    template< class TPointType, class TPointerType> 
-   void operator ()(const TPointerType& rObject, TPointType& rLowPoint, TPointType& rHighPoint)
+   void operator ()(TPointerType& rObject, TPointType& rLowPoint, TPointType& rHighPoint)
     { 
-    rHighPoint = rObject->GetGeometry().GetPoint(0);
-    rLowPoint  = rObject->GetGeometry().GetPoint(0);            
-    for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)      
-      {
-	for(std::size_t i = 0; i<TDimension; i++)
+    rHighPoint = rObject.GetGeometry().GetPoint(0);
+    rLowPoint  = rObject.GetGeometry().GetPoint(0);        
+     for (unsigned int point = 0; point<rObject.GetGeometry().PointsNumber(); point++)      
+       {
+ 	for(std::size_t i = 0; i<TDimension; i++)
 	  {
-	      rLowPoint[i]  =  (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i]; 
-	      rHighPoint[i] =  (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
-	  }
-       }       
-     }
+ 	      rLowPoint[i]  =  (rLowPoint[i]  >  rObject.GetGeometry().GetPoint(point)[i] ) ?  rObject.GetGeometry().GetPoint(point)[i] : rLowPoint[i]; 
+ 	      rHighPoint[i] =  (rHighPoint[i] <  rObject.GetGeometry().GetPoint(point)[i] ) ?  rObject.GetGeometry().GetPoint(point)[i] : rHighPoint[i];
+ 	  }
+        }           
+    }
   };
 
 
@@ -115,17 +115,16 @@ class BoxFunction
 ///******************************************************************************************************************
 ///******************************************************************************************************************
 		
-template <std::size_t TDimension>
 class TriBoxOverlapFunction
   {
     public:		
-    template< class TPointerType, class TPointType> 
-    bool operator ()(const TPointerType& rObject, const TPointType& rLowPoint, const TPointType& rHighPoint)
+    template< class TPointType, class TPointerType> 
+    bool operator ()(TPointerType& rObject,  const TPointType& rLowPoint, const TPointType& rHighPoint)
     { 
-      return  rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint); 
+      return rObject.GetGeometry().HasIntersection(rLowPoint, rHighPoint); 
     }
  };
-
+ 
 
 ///******************************************************************************************************************
 ///******************************************************************************************************************
@@ -133,25 +132,19 @@ class TriBoxOverlapFunction
 class TDistanceFunction
   {
     public:		
-    template<class TIteratorType, class TPointerType> 
-    void operator ()(const TIteratorType& rBegin, const TIteratorType& rEnd, std::vector<std::pair<TPointerType,TPointerType> >& Results)
+    template<class TPointerType> 
+     bool operator ()(TPointerType& rObj_1, TPointerType& rObj_2)
       { 
-	for( TIteratorType it_1 = rBegin; it_1!= rEnd; it_1++ )
-	  { 
-	    Element::GeometryType& geom_1 = it_1->GetGeometry();
-	    for(TIteratorType it_2 = it_1 + 1 ; it_2!= rEnd; it_2++)
-	    {  
-	      Element::GeometryType& geom_2 = it_2->GetGeometry();
-	      if (geom_1.HasIntersection(geom_2 )) {Results.push_back(std::pair<TPointerType,TPointerType>(*it_1, *it_2));}
-	    }
-	  }
-       }
-     
- };
+	      Element::GeometryType& geom_1 = rObj_1.GetGeometry();
+	      Element::GeometryType& geom_2 = rObj_2.GetGeometry();
+	      return  geom_1.HasIntersection(geom_2); 
+      }
+   };
 
 
 ///******************************************************************************************************************
 ///******************************************************************************************************************
+ 
  
  class BoundingBoxUtilities
 	{
@@ -353,8 +346,8 @@ class TDistanceFunction
 	  typedef ElementsArrayType::value_type                  PointerType;
 	  typedef ElementsArrayType::iterator                    ElementsArrayTypeIterator;  
 	  typedef BoxFunction<dimension>                         BoxType;
-	  typedef TriBoxOverlapFunction<dimension>               TriBoxType; 
-	  typedef TDistanceFunction                              TDistanceFunctionType;                    
+	  typedef TriBoxOverlapFunction                          TriBoxType; 
+	  typedef TDistanceFunction                              DistanceFunctionType;                    
 	  
 	  
           ElementsArrayType& rElements         =    rThisModelPart.Elements(); 
@@ -365,19 +358,31 @@ class TDistanceFunction
           name+="_Cells.msh";
           std::ofstream output_file( name.c_str());
 	  
-	  typedef Cell<PointerType>                  CellType;
-	  typedef std::vector<CellType>              CellContainerType;
-          typedef CellContainerType::iterator        CellContainerIterator;
-	  typedef std::vector<PointerType>::iterator PointerTypeIterator;
-	  typedef std::vector<std::pair<PointerType,PointerType> >PairContainerType;
-	  
-	  PairContainerType Pair;
+	  typedef Cell<PointerType, ElementsArrayType> CellType;
+	  typedef std::vector<CellType>                CellContainerType;
+          typedef CellContainerType::iterator          CellContainerIterator;
+	  typedef std::vector<PointerType>::iterator   PointerTypeIterator;
+	  //typedef std::vector<double>::iterator       DistanceIteratorType;
 	  
 	  PointType MaxPoint, MinPoint;	  
  	  std::cout<< "Making the Bins " << std::endl;
  	  std::cout<<std::fixed<<std::setprecision(10);
-	  BinsObjectDynamic< dimension, PointType, ElementsArrayType, BoxType, TriBoxType, TDistanceFunctionType> mybins(it_begin, it_end );
-          mybins.SearchObjects(Pair);
+	  BinsObjectDynamic<dimension, PointType, ElementsArrayType, BoxType, TriBoxType, DistanceFunctionType> mybins(it_begin, it_end );
+	  
+	  std::size_t MaxNumberOfResults = 10; 
+	  std::size_t NumberOfResults;     
+	  ElementsArrayType Results; 
+	  ElementsArrayTypeIterator ResultsIterator = Results.begin();  
+	  
+	  for(ElementsArrayTypeIterator it = it_begin; it!=it_end; it++)
+	  {
+	     NumberOfResults = mybins.SearchObjects(*it, ResultsIterator, MaxNumberOfResults);
+	     KRATOS_WATCH(it->Id())
+	     std::cout<< "NumberOfResults = " << NumberOfResults << std::endl;
+	  }
+// 	  
+ 	  KRATOS_WATCH(Results)
+          //mybins.SearchObjects(Pair);
 	  
 // 	  unsigned int local = 0;
 // 	  for( CellContainerType::iterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
@@ -458,31 +463,31 @@ class TDistanceFunction
 	  
 	  }
 	  
-
+           */
 	  int celda      = 1; 
 	  int intersect = false; 
-	  std::vector<std::pair<int,int> > results;
-	  clock_t init, final;
-          init=clock();
+	  std::vector<std::pair<int,int> > Pair;
+	  //clock_t init, final;
+          //init=clock();
 	  
-	  for( CellContainerType::iterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
+ 	  for( CellContainerIterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
 	    {
 	      std::cout<< " celda = " << celda++  << std::endl; 
-	      for(PointerTypeIterator it_1 = icell->GetContainer().begin(); it_1!= icell->GetContainer().end(); it_1++ )
+	      for(ElementsArrayTypeIterator it_1 = icell->Begin(); it_1!= icell->End(); it_1++ )
 	        { 
-		  for(PointerTypeIterator it_2 = it_1 + 1 ; it_2!= icell->GetContainer().end(); it_2++ )
+		  for(ElementsArrayTypeIterator it_2 = it_1 + 1 ; it_2!= icell->End(); it_2++ )
 		  {
-		    std::cout<< " Elem " << it_1->Id() << "  " << "with elem  " << it_2->Id() << std::endl;     
+		    std::cout<< " Elem " << it_1->Id() << "  " << " with elem " << it_2->Id() << std::endl;     
 		    Element::GeometryType& geom_1 = it_1->GetGeometry();
 		    Element::GeometryType& geom_2 = it_2->GetGeometry();
 
 		        bool intersect = geom_1.HasIntersection( geom_2 ) ;
-			if (intersect==true) {results.push_back(std::pair<int,int>(it_1->Id(),it_2->Id()));}
+			if (intersect==true) {Pair.push_back(std::pair<int,int>(it_1->Id(),it_2->Id()));}
 		    
 		  }
 		}
 	    }
-	    */
+	    
 	    for (unsigned int i = 0; i<Pair.size(); i++)
 	     {
 	       std::cout<< Pair[i].first << "  " <<  Pair[i].second << std::endl;
