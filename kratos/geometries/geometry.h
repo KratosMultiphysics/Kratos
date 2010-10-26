@@ -543,18 +543,25 @@ namespace Kratos
 
  
      /// Interseciones con geometrias igual a el mismo
-     virtual bool HasIntersection(const GeometryType& ThisGeometry)
+     virtual bool HasIntersection(const GeometryType& ThisGeometry) 
      {
        std::cout<< "Calling the base class " << std::endl;
        return false;
      }
      
-     /// Interseciones con la geometrias y cajas
-     virtual bool HasIntersection(const Point<3, double>& LowPoint, const Point<3, double>& HighPoint)
+     /// Interseciones con la geometrias y cajas en 3D
+     virtual bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint) 
      {
        std::cout<< "Calling the base class " << std::endl;
        return false;
      }
+        
+     /// Interseciones con la geometrias y cajas en 2D
+     virtual bool HasIntersection(const Point<2, double>& rLowPoint, const Point<2, double>& rHighPoint) 
+     {
+       std::cout<< "Calling the base class " << std::endl;
+       return false;
+     }   
         
         
 
