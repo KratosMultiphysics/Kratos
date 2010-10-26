@@ -973,7 +973,7 @@ namespace Kratos {
 
 	    for (int i_node = 0; i_node < n_nodes; i_node++) 
 	    {
-	      if(  mL(i_node, i_node) < 1e-10)
+	      if(  fabs(mL(i_node, i_node)) < 1e-20)
 	      {
 		mL(i_node, i_node)=max_diag;
 		rhs[i_node] = 0.0;
