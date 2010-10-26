@@ -152,7 +152,6 @@ namespace Kratos
       { 
 	mLowPoint  = LowPoint;
 	mHighPoint = HighPoint; 
-	//mpGeom     = pGeometry;
 	mpElem     = pElem;
 	
       }
