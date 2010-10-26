@@ -549,7 +549,7 @@ namespace Kratos
 		void ParallelConstructGraph(TSystemMatrixType& A)
 		{
 			KRATOS_TRY
-			std::vector< std::vector<int> > index_list(BaseType::mEquationSystemSize);
+			std::vector< std::vector<std::size_t> > index_list(BaseType::mEquationSystemSize);
 // KRATOS_WATCH("inside PArallel Construct Graph")
 
                         int number_of_threads = OpenMPUtils::GetNumThreads();
@@ -587,10 +587,10 @@ namespace Kratos
 				    
                                     if( current_dof_x.IsFixed() == false)
                                     {
-                                            int index_i = (current_dof_x).EquationId();
+                                            std::size_t index_i = (current_dof_x).EquationId();
                                             WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
-                                            std::vector<int>& indices = index_list[index_i];
+                                            std::vector<std::size_t>& indices = index_list[index_i];
                                             indices.reserve(neighb_nodes.size()+4);
 					    
 					    if(is_slip == 1.0)
@@ -616,14 +616,14 @@ namespace Kratos
                                                     Node<3>::DofType& neighb_dof = i->GetDof(mrVar_x,pos_x);
                                                     if(neighb_dof.IsFixed() == false )
                                                     {
-                                                            int index_j = (neighb_dof).EquationId();
+                                                            std::size_t index_j = (neighb_dof).EquationId();
                                                             indices.push_back(index_j);
                                                     }
                                             }
 
                                             //sorting the indices and elminating the duplicates
                                             std::sort(indices.begin(),indices.end());
-                                            typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
+                                            typename std::vector<std::size_t>::iterator new_end = std::unique(indices.begin(),indices.end());
                                             indices.erase(new_end,indices.end());
 
                                             local_sizes[k] += indices.size();
@@ -632,10 +632,10 @@ namespace Kratos
 				    //initialize component Y			    
                                     if( current_dof_y.IsFixed() == false)
                                     {
-                                            int index_i = (current_dof_y).EquationId();
+                                            std::size_t index_i = (current_dof_y).EquationId();
                                             WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
-                                            std::vector<int>& indices = index_list[index_i];
+                                            std::vector<std::size_t>& indices = index_list[index_i];
                                             indices.reserve(neighb_nodes.size()+4);
 
                                             //filling the first neighbours list
@@ -659,14 +659,14 @@ namespace Kratos
                                                     Node<3>::DofType& neighb_dof = i->GetDof(mrVar_y,pos_y);
                                                     if(neighb_dof.IsFixed() == false )
                                                     {
-                                                            int index_j = (neighb_dof).EquationId();
+                                                            std::size_t index_j = (neighb_dof).EquationId();
                                                             indices.push_back(index_j);
                                                     }
                                             }
 
                                             //sorting the indices and elminating the duplicates
                                             std::sort(indices.begin(),indices.end());
-                                            typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
+                                            typename std::vector<std::size_t>::iterator new_end = std::unique(indices.begin(),indices.end());
                                             indices.erase(new_end,indices.end());
 
                                             local_sizes[k] += indices.size();
@@ -679,10 +679,10 @@ namespace Kratos
 					  
 					  if( current_dof_z.IsFixed() == false)
 					  {
-						  int index_i = (current_dof_z).EquationId();
+						  std::size_t index_i = (current_dof_z).EquationId();
 						  WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
-						  std::vector<int>& indices = index_list[index_i];
+						  std::vector<std::size_t>& indices = index_list[index_i];
 						  indices.reserve(neighb_nodes.size()+4);
 
 						  //filling the first neighbours list
@@ -703,14 +703,14 @@ namespace Kratos
 							  Node<3>::DofType& neighb_dof = i->GetDof(mrVar_z,pos_z);
 							  if(neighb_dof.IsFixed() == false )
 							  {
-								  int index_j = (neighb_dof).EquationId();
+								  std::size_t index_j = (neighb_dof).EquationId();
 								  indices.push_back(index_j);
 							  }
 						  }
 
 						  //sorting the indices and elminating the duplicates
 						  std::sort(indices.begin(),indices.end());
-						  typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
+						  typename std::vector<std::size_t>::iterator new_end = std::unique(indices.begin(),indices.end());
 						  indices.erase(new_end,indices.end());
 
 						  local_sizes[k] += indices.size();
@@ -726,7 +726,7 @@ namespace Kratos
                             total_size += local_sizes[i];
 
 			A.reserve(total_size,false);
-
+/*
 			//setting to zero the matrix (and the diagonal matrix)
 			for(unsigned int i=0; i<BaseType::mEquationSystemSize; i++)
 			{
@@ -735,9 +735,41 @@ namespace Kratos
 				{
 					A.push_back(i,indices[j] , 0.00);
 				}
-			}
+			}*/
 			
-
+#ifndef _OPENMP
+            for(std::size_t i = 0 ; i < BaseType::mEquationSystemSize ; i++)
+            {
+                std::vector<std::size_t>& row_indices = index_list[i];
+                
+                for(std::vector<std::size_t>::iterator it= row_indices.begin(); it != row_indices.end() ; it++)
+                {
+                    A.push_back(i,*it,0.00);
+                }
+                row_indices.clear(); 
+            }
+#else
+            vector<unsigned int> matrix_partition;
+            CreatePartition(number_of_threads, BaseType::mEquationSystemSize, matrix_partition);
+            KRATOS_WATCH( matrix_partition );
+            for( int k=0; k<number_of_threads; k++ )
+            {
+                #pragma omp parallel
+                if( omp_get_thread_num() == k )
+                {
+                    for( std::size_t i = matrix_partition[k]; i < matrix_partition[k+1]; i++ )
+                    {
+                        std::vector<std::size_t>& row_indices = index_list[i];
+                        
+                        for(std::vector<std::size_t>::iterator it= row_indices.begin(); it != row_indices.end() ; it++)
+                        {
+                            A.push_back(i,*it,0.00);
+                        }
+                        row_indices.clear(); 
+                    }
+                }
+            }
+#endif
 
 
 // KRATOS_WATCH("finished PArallel Construct Graph")
