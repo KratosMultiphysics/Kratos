@@ -47,6 +47,7 @@ elif(SolverType == "pressure_splitting"):
 elif(SolverType == "monolithic_solver_eulerian"):
     import monolithic_solver_eulerian
     monolithic_solver_eulerian.AddVariables(fluid_model_part)
+    fluid_model_part.AddNodalSolutionStepVariable(YIELD_STRESS)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible
     monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
@@ -197,6 +198,9 @@ while(time < final_time):
             gid_io.WriteNodalResults(VISCOSITY,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(AIR_SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
+            gid_io.WriteNodalResults(EXTERNAL_PRESSURE,fluid_model_part.Nodes,time,0)
+            gid_io.PrintOnGaussPoints(TEMPERATURE,fluid_model_part,time)
+            gid_io.PrintOnGaussPoints(AUX_INDEX,fluid_model_part,time)
 
         out = 0
 
