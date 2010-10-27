@@ -1,0 +1,19 @@
+BeginZE /home/antonia/kratos/applications/PFEMapplication/test_exemples/CouetteNonNewtonian2d.gid/CouetteNonNewtonian2d.vv
+   x 2.02824 3.90821
+   y 1.14744 -0.425479
+   z -9.94987 9.94987
+   e 3.31662
+   v 2.18557e-08 1.91069e-15 -8.74228e-08
+   r -1
+   m 1 -1.74846e-07 -7.64274e-15 0 1.74846e-07 1 4.37114e-08 0 0 -4.37114e-08 1 0 0 0 0 1
+   c 3 0.5 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+EndZE /home/antonia/kratos/applications/PFEMapplication/test_exemples/CouetteNonNewtonian2d.gid/CouetteNonNewtonian2d.vv
+
