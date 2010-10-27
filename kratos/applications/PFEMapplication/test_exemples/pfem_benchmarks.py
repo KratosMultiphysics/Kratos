@@ -77,6 +77,29 @@ def Run():
 
 	os.chdir("..")
         ###############################################################################
+	#slope 2D COUETTE NON-NEWTONIAN
+	
+	Text += "COUETTE_2d_Non-Newtonian: "
+	os.chdir("CouetteNonNewtonian2d.gid")	
+	sys.path.append(os.getcwd())
+
+	print "running the Couette2dNonNewt benchmark test..."
+        Msg = benchmarking.RunBenchmark("Couette2dNonNewt.py", "Couette2dNonNewt_ref.txt")
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "Couette2dNonNewt example succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "Couette2dNonNewt example FAILED"
+
+
+
+
+	os.chdir("..")
+        ###############################################################################
 
 
 	# Add other examples here
