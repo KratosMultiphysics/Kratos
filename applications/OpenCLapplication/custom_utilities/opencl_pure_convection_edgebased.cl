@@ -91,7 +91,7 @@ __kernel void Solve1(__global const ValueType *Hmin, __global const VectorType *
 	if (i_node < n_nodes)
 	{
 		// Tau[i_node] = 1.00 / (2.00 * length(A[i_node]) / Hmin[i_node] + 0.01 * time_inv);
-		Tau[i_node] = KRATOS_OCL_NATIVE_RECIP(KRATOS_OCL_NATIVE_DIVIDE(2.00 * length(A[i_node]), Hmin[i_node]) + 0.01 * time_inv);
+		Tau[i_node] = KRATOS_OCL_NATIVE_RECIP(KRATOS_OCL_NATIVE_DIVIDE(2.00 * KRATOS_OCL_LENGTH3(A[i_node]), Hmin[i_node]) + 0.01 * time_inv);
 	}
 }
 
@@ -166,7 +166,7 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global const ValueType *p
 			Temp_Beta_i_node += beta;
 
 			n += 1.0;
-			h += length(dir);
+			h += KRATOS_OCL_LENGTH3(dir);
 		}
 
 		Temp_Beta_i_node /= n;
@@ -199,7 +199,7 @@ __kernel void CalculateRHS3(__global VectorType *Pi, __global const ValueType *p
 		ValueType stab_high;
 
 		VectorType Temp_convective_velocity_i_node = convective_velocity[i_node];
-		ValueType Temp_convective_velocity_i_node_length = length(Temp_convective_velocity_i_node);
+		ValueType Temp_convective_velocity_i_node_length = KRATOS_OCL_LENGTH3(Temp_convective_velocity_i_node);
 		ValueType Temp_Phi_i_node = phi[i_node];
 		ValueType Temp_Tau_i_node = Tau[i_node];
 		ValueType Temp_Beta_i_node = Beta[i_node];

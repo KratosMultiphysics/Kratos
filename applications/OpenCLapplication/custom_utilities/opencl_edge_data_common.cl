@@ -109,6 +109,7 @@ typedef double4 double3;
 
 #define KRATOS_OCL_NATIVE_DIVIDE(x, y)	native_divide(x, y)
 #define KRATOS_OCL_NATIVE_RECIP(x)		native_recip(x)
+#define KRATOS_OCL_NATIVE_SQRT(x)		native_sqrt(x)
 
 
 //
@@ -122,6 +123,24 @@ typedef unsigned int IndexType;
 typedef double3 VectorType;
 
 typedef double ValueType;
+
+
+//
+// OpenCL defines length() as length of the vector, so if we use double4 instead of double3, we have to take care of this
+
+inline ValueType length3(double4 x)
+{
+	double4 t = x;
+	t.s3 = 0.00;
+
+	return KRATOS_OCL_NATIVE_SQRT(dot(t, t));
+}
+
+#if __OPENCL_VERSION__ < 110
+	#define KRATOS_OCL_LENGTH3(x)		length3(x)
+#else
+	#define KRATOS_OCL_LENGTH3(x)		length(x)
+#endif
 
 
 // A dummy kernel for test
