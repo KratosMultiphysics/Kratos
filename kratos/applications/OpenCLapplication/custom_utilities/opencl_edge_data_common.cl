@@ -53,10 +53,32 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // OpenCL kernels and functions used in opencl_EdgeType_data.h
 
-// Enable OpenCL extension
+// Enable OpenCL extensions
+
+//
+// Khronos version, not supported on AMD SDK
+
+// #pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+//
+// AMD SDK version
+
 #pragma OPENCL EXTENSION cl_amd_fp64: enable
 
-// Some useful macros, will be renamed if not consistent
+
+//
+// OpenCL 1.0 adjustment
+
+#if __OPENCL_VERSION__ < 110
+
+typedef double4 double3;
+
+#endif
+
+
+//
+// Helper macros
+
 #define KRATOS_OCL_LAPLACIANIJ_0_0(a)	((*a).s0)
 #define KRATOS_OCL_LAPLACIANIJ_0_1(a)	((*a).s1)
 #define KRATOS_OCL_LAPLACIANIJ_0_2(a)	((*a).s2)
@@ -81,6 +103,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_OCL_COMP_1(a)			((*a).s1)
 #define KRATOS_OCL_COMP_2(a)			((*a).s2)
 
+
+//
+// Fast math macros
+
+#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	native_divide(x, y)
+#define KRATOS_OCL_NATIVE_RECIP(x)		native_recip(x)
+
+
 //
 // Used types
 
@@ -102,6 +132,7 @@ __kernel void Test(__global const double *input, __global double *output, const 
 	output[id] = 2.00 * sin(iv) * cos(iv) + offset;
 }
 
+//
 // Edge specific kernels
 
 // TODO: Optimize kernels (vectorize, use built-in functions, avoid excessive use of __global data)

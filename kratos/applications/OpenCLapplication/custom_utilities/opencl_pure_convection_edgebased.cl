@@ -72,7 +72,8 @@ __kernel void CalculateAdvectiveVelocity(__global const VectorType *mUn, __globa
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		mA[i_node] = coefficient * mUn1[i_node] + (1.00 - coefficient) * mUn[i_node];
+		// mA[i_node] = coefficient * mUn1[i_node] + (1.00 - coefficient) * mUn[i_node];
+		mA[i_node] = mix(mUn[i_node], mUn1[i_node], coefficient);
 	}
 }
 
@@ -89,7 +90,8 @@ __kernel void Solve1(__global const ValueType *Hmin, __global const VectorType *
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		Tau[i_node] = 1.00 / (2.00 * length(A[i_node]) / Hmin[i_node] + 0.01 * time_inv);
+		// Tau[i_node] = 1.00 / (2.00 * length(A[i_node]) / Hmin[i_node] + 0.01 * time_inv);
+		Tau[i_node] = KRATOS_OCL_NATIVE_RECIP(KRATOS_OCL_NATIVE_DIVIDE(2.00 * length(A[i_node]), Hmin[i_node]) + 0.01 * time_inv);
 	}
 }
 
@@ -159,7 +161,7 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global const ValueType *p
 			ValueType numerator = fabs(fabs(Temp_Phi_j_neighbour - Temp_Phi_i_node) - fabs(proj));
 			ValueType denominator = fabs(fabs(Temp_Phi_j_neighbour - Temp_Phi_i_node) + 1e-6);
 
-			ValueType beta = numerator / denominator;
+			ValueType beta = KRATOS_OCL_NATIVE_DIVIDE(numerator, denominator);
 
 			Temp_Beta_i_node += beta;
 
