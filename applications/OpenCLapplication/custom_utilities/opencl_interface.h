@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <vector>
 #include <cstdlib>
 
+//
 // OpenCL include path is different on Apple
 
 #if defined(__APPLE__) || defined(__MACOSX)
@@ -60,6 +61,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #else
 	#include <CL/cl.h>
 #endif
+
+//
+// Try to find out OpenCL version
+
+#ifdef CL_VERSION_1_1
+	#define KRATOS_OCL_VERSION			110
+#else
+	#define KRATOS_OCL_VERSION			100
+#endif
+
+//
+// Path handling stuff
 
 #if defined(WINDOWS)
 	#include <direct.h>
@@ -77,6 +90,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 
+
+//
+// OpenCL 1.0 adjustments
+
+#if KRATOS_OCL_VERSION < 110
+
+// cl_double3 is the same as cl_double4 in OpenCL 1.1 and later
+typedef cl_double4 cl_double3;
+
+#endif
 
 namespace Kratos
 {
@@ -167,8 +190,12 @@ namespace OpenCL
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_IMAGE_FORMAT_NOT_SUPPORTED);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_BUILD_PROGRAM_FAILURE);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_MAP_FAILURE);
+
+#if KRATOS_OCL_VERSION > 100
+
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_MISALIGNED_SUB_BUFFER_OFFSET);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST);
+#endif
 
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_INVALID_VALUE);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_INVALID_DEVICE_TYPE);
@@ -204,7 +231,12 @@ namespace OpenCL
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_INVALID_BUFFER_SIZE);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_INVALID_MIP_LEVEL);
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_INVALID_GLOBAL_WORK_SIZE);
+
+#if KRATOS_OCL_VERSION > 100
+
 			KRATOS_OCL_DEFINE_ERROR_CODE(CL_INVALID_PROPERTY);
+
+#endif
 
 			// Default case
 			default:
@@ -555,6 +587,9 @@ namespace OpenCL
 			// CreateSubBuffer
 			//
 			// Creates a sub-buffer on all devices
+			// OpenCL 1.1 and later only
+
+#if KRATOS_OCL_VERSION > 100
 
 			cl_uint CreateSubBuffer(cl_uint _BufferIndex, size_t _Offset, size_t _Size)
 			{
@@ -585,10 +620,15 @@ namespace OpenCL
 				return BufferNo;
 			}
 
+#endif
+
 			//
 			// CreateSubBuffer
 			//
 			// Allocates a buffer on all devices with given offsets and sizes
+			// OpenCL 1.1 and later only
+
+#if KRATOS_OCL_VERSION > 100
 
 			cl_uint CreateSubBuffer(cl_uint _BufferIndex, SizeTList _Offsets, SizeTList _Sizes)
 			{
@@ -618,6 +658,8 @@ namespace OpenCL
 
 				return BufferNo;
 			}
+
+#endif
 
 			//
 			// CreateBufferWithHostPtrs
@@ -904,8 +946,16 @@ namespace OpenCL
 					Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &MaxWorkGroupSize, NULL);
 					KRATOS_OCL_CHECK(Err);
 
+#if KRATOS_OCL_VERSION > 100
+
 					Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(size_t), &PreferredWorkGroupSizeMultiple, NULL);
 					KRATOS_OCL_CHECK(Err);
+
+#else
+					// For OpenCL 1.0 only
+					PreferredWorkGroupSizeMultiple = 64;
+
+#endif
 
 					// Select an optimal WorkGroupSize
 					if (DeviceTypes[i] == CL_DEVICE_TYPE_CPU)
