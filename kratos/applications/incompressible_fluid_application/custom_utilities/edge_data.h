@@ -878,8 +878,10 @@ namespace Kratos
 
 				KRATOS_TRY
 
-				//loop over all nodes
+				//loop over alle nodes
+
 				unsigned int n_nodes = rNodes.size();
+
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
 				#pragma omp parallel for firstprivate(n_nodes, it_begin) 
@@ -906,6 +908,7 @@ namespace Kratos
 
 				//loop over all nodes
 				unsigned int n_nodes = rNodes.size();
+
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
 				#pragma omp parallel for firstprivate(n_nodes, it_begin) 
@@ -932,6 +935,7 @@ namespace Kratos
 
 				//loop over all nodes
 				unsigned int n_nodes = rNodes.size();
+
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
 				#pragma omp parallel for firstprivate(n_nodes, it_begin) 
@@ -954,7 +958,6 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				//loop over all nodes
 				unsigned int n_nodes = rNodes.size();
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
@@ -1037,7 +1040,7 @@ namespace Kratos
 					   )
 			{
 				KRATOS_TRY
-						int loop_size = destination.size();	
+				int loop_size = destination.size();	
 				#pragma omp parallel for	
 				for (int i_node = 0; i_node < loop_size; i_node++)
 				{
