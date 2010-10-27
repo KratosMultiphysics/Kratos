@@ -74,6 +74,8 @@ python-extension KratosIncompressibleFluidApplication
 
 	fluid_2d_split.cpp
 	nonewtonian_asgs_2d.cpp
+	couette_nonnewtonian_asgs_2d.cpp
+
 	nonewtonian_asgs_3d.cpp
 
 	#kratos library
