@@ -1058,9 +1058,9 @@ namespace Kratos {
 
         grad_sym_vel = prod(B, U);
 
-	// Norm of the gradient of velocity:
+// Norm of the gradient of velocity:
 //         grad_sym_vel_norm = grad_sym_vel[0] * grad_sym_vel[0] + grad_sym_vel[1] * grad_sym_vel[1] + 0.5 * grad_sym_vel[2] * grad_sym_vel[2];
-	// Gamma dot found in literature!!!:
+// Gamma dot found in literature!!!:
         grad_sym_vel_norm = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
 
         if (grad_sym_vel_norm > 0.00001) {
@@ -1083,7 +1083,6 @@ namespace Kratos {
             const double & mu) {
         KRATOS_TRY
         app_mu = 0.0;
-// 	double yield;
 
 	double grad_sym_vel_norm = 0.0;
 //         double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
@@ -1121,9 +1120,6 @@ namespace Kratos {
         } else {
             app_mu = mu + yield*mcoef ;
         }
-
-	
-	
         KRATOS_CATCH("")
     }
 
