@@ -75,6 +75,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "incompressible_fluid_application.h"
 //#include "opencl_interface.h"
 
+int64_t timeNanos()
+{
+	struct timespec tp;
+
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+	return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
+}
+
 namespace Kratos
 {
 
@@ -241,12 +249,16 @@ namespace Kratos
 
 			void Solve()
 			{
+				int64_t t0 = timeNanos();
+				
 				// Read variables from Kratos
 				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes(), mbUn1);
 				mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes(), mbUn);
 
 				mr_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes(), mbphi_n1);
 				mr_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes(), mbphi_n);
+
+				std::cout << "Reading data from Kratos took " << timeNanos() - t0 << " ns." << std::endl;
 
 				// Read time step size from Kratos
 				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -302,14 +314,23 @@ namespace Kratos
 				CalculateAdvectiveVelocity(mbUn, mbUn1, mbA, coefficient);
 
 				mr_matrix_container.SetToZero(mbrhs);
+
+				int64_t t1 = timeNanos();
+
 				CalculateRHS(mbphi_n1, mbA, mbrhs);
+
+				std::cout << "CalculateRHS took " << timeNanos() - t1 << " ns." << std::endl;
 
 				mr_matrix_container.Add_Minv_value1(mbWork, mbWork, delta_t / 6.0, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Compute right-hand side
 				mr_matrix_container.AssignVectorToVector(mbWork, mbphi_n1);
 
+				int64_t t2 = timeNanos();
+
 				mr_matrix_container.WriteScalarToDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes(), mbphi_n1);
+
+				std::cout << "WriteScalarToDatabase took " << timeNanos() - t2 << " ns." << std::endl;
 			}
 
 			//
@@ -483,5 +504,6 @@ namespace Kratos
 } //namespace Kratos
 
 #endif // KRATOS_OPENCL_PURE_CONVECTION_EDGEBASED_SOLVER_H_INCLUDED defined
+
 
 
