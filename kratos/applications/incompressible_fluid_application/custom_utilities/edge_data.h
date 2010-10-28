@@ -878,7 +878,7 @@ namespace Kratos
 
 				KRATOS_TRY
 
-				//loop over alle nodes
+				//loop over all nodes
 
 				unsigned int n_nodes = rNodes.size();
 
