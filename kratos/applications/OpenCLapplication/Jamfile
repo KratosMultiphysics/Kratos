@@ -57,15 +57,16 @@ python-extension KratosOpenCLApplication
 	/KratosProject//libomp
     ;
 
-exe test
-   :
-        test_ocli.cpp
-	libOCL
-	/KratosProject//libkratos_static
-	/KratosProject//libomp
-    ;
+#exe test
+#   :
+#        test_ocli.cpp
+#	libOCL
+#	/KratosProject//libkratos_static
+#	/KratosProject//libomp
+#    ;
 
 #################################################################################
 #################################################################################
 ## rules to install ... and to remove the prefix "lib"
-install install : KratosOpenCLApplication test : <location>$(TOP)/libs ;
+# install install : KratosOpenCLApplication test : <location>$(TOP)/libs ;
+install install : KratosOpenCLApplication : <location>$(TOP)/libs ;
