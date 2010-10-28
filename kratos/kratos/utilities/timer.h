@@ -127,10 +127,12 @@ namespace Kratos
       void PrintData(std::ostream& rOStream, double GlobalElapsedTime = -1.00) const
       {
 	if(mRepeatNumber != 0)
+	{
 	  if(GlobalElapsedTime <= 0.00)
 	    rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) << "s     \t" ;
 	  else
 	    rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) << "s     \t" << (mTotalElapsedTime/GlobalElapsedTime)*100.00 << "%" ;
+	}
 	    
       }
       };
