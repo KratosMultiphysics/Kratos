@@ -10,8 +10,8 @@ domain_size = edgebased_var.domain_size
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = "/home/rrossi/kratos/libs"
-kratos_applications_path    = '/home/rrossi/kratos//applications'
+kratos_libs_path            = "../../../../libs"
+kratos_applications_path    = '../../../../applications'
 
 import sys
 sys.path.append(kratos_libs_path)
