@@ -107,10 +107,12 @@ typedef double4 double3;
 //
 // Fast math macros
 
-#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	native_divide(x, y)
-#define KRATOS_OCL_NATIVE_RECIP(x)		native_recip(x)
-#define KRATOS_OCL_NATIVE_SQRT(x)		native_sqrt(x)
-
+// #define KRATOS_OCL_NATIVE_DIVIDE(x, y)	native_divide(x, y)
+// #define KRATOS_OCL_NATIVE_RECIP(x)		native_recip(x)
+// #define KRATOS_OCL_NATIVE_SQRT(x)		native_sqrt(x)
+#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	(x)/(y)
+#define KRATOS_OCL_NATIVE_RECIP(x)		1.0/(x)
+#define KRATOS_OCL_NATIVE_SQRT(x)		sqrt(x)
 
 //
 // Used types
@@ -552,3 +554,4 @@ void Add_ViscousContribution(__global EdgeType *a, __global VectorType *destinat
 	KRATOS_OCL_COMP_1(destination) += nu_i * L * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
 	KRATOS_OCL_COMP_2(destination) += nu_i * L * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
 }
+
