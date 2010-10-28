@@ -1038,10 +1038,6 @@ namespace Kratos
 
 	KratosComponents<Variable<double> > kratos_double_variables;
 
-	KRATOS_WATCH(kratos_double_variables);
-
-	KRATOS_WATCH(variable_name);
-
 	if(KratosComponents<Variable<double> >::Has(variable_name))
 	{
 	  ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
@@ -1087,8 +1083,6 @@ namespace Kratos
 
 	std::string value;
 
-KRATOS_WATCH(rVariable);
-	
 	while(!mInput.eof())
 	{
 	  ReadWord(value); // reading id
