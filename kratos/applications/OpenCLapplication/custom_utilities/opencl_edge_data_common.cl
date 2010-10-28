@@ -121,9 +121,22 @@ typedef double4 double3;
 //
 // Fast math macros
 
-#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	((x) / (y))		/* native_divide(x, y) */
-#define KRATOS_OCL_NATIVE_RECIP(x)		(1.00 / (x))	/* native_recip(x) */
-#define KRATOS_OCL_NATIVE_SQRT(x)		sqrt(x)			/* native_sqrt(x) */
+//
+// Currently these are not supported on GPUs
+
+#ifdef __CPU__
+
+	#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	native_divide(x, y)
+	#define KRATOS_OCL_NATIVE_RECIP(x)		native_recip(x)
+	#define KRATOS_OCL_NATIVE_SQRT(x)		native_sqrt(x)
+
+#else
+
+	#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	((x) / (y))
+	#define KRATOS_OCL_NATIVE_RECIP(x)		(1.00 / (x))
+	#define KRATOS_OCL_NATIVE_SQRT(x)		sqrt(x)
+
+#endif
 
 //
 // Used types
