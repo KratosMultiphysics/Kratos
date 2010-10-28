@@ -56,5 +56,14 @@ namespace Kratos
   std::ofstream Timer::msOutputFile;
 
   bool Timer::msPrintOnScreen = false;
+  
+#ifndef _OPENMP
+	double Timer::msGlobalStart = std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+#else
+       double Timer::msGlobalStart = omp_get_wtime();
+#endif
+  
+  
+  
 
 }
