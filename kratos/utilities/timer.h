@@ -124,10 +124,14 @@ namespace Kratos
 
 	}
       /// Print object's data.
-      void PrintData(std::ostream& rOStream) const
+      void PrintData(std::ostream& rOStream, double GlobalElapsedTime = -1.00) const
       {
 	if(mRepeatNumber != 0)
-	  rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) ;
+	  if(GlobalElapsedTime <= 0.00)
+	    rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) << "s     \t" ;
+	  else
+	    rOStream << mRepeatNumber << " \t" << mTotalElapsedTime << "s     \t" << mMaximumTime << "s     \t" << mMinimumTime << "s     \t" << mTotalElapsedTime/static_cast<double>(mRepeatNumber) << "s     \t" << (mTotalElapsedTime/GlobalElapsedTime)*100.00 << "%" ;
+	    
       }
       };
 
@@ -168,20 +172,12 @@ namespace Kratos
 
       static void Start(std::string const& IntervalName)
       {
-#ifndef _OPENMP
-	msTimeTable[IntervalName].SetStartTime(std::clock()/static_cast<double>(CLOCKS_PER_SEC));
-#else
-       msTimeTable[IntervalName].SetStartTime(omp_get_wtime());
-#endif
+	msTimeTable[IntervalName].SetStartTime(GetTime());
       }
 
       static void Stop(std::string const& IntervalName)
       {
-#ifndef _OPENMP
-	double stop_time = std::clock()/static_cast<double>(CLOCKS_PER_SEC);
-#else
-       double stop_time =  omp_get_wtime();
-#endif
+	double stop_time = GetTime();
 	ContainerType::iterator i_time_data = msTimeTable.find(IntervalName);
 
 	if(i_time_data == msTimeTable.end())
@@ -193,7 +189,14 @@ namespace Kratos
 	PrintIntervalInformation(IntervalName, i_time_data->second.GetStartTime(), stop_time);
       }
 
-      
+      static inline double GetTime()
+      {
+#ifndef _OPENMP
+	return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+#else
+       return omp_get_wtime();
+#endif
+      }
       
       ///@}
       ///@name Access
@@ -264,7 +267,8 @@ namespace Kratos
 
       static void PrintTimingInformation(std::ostream& rOStream)
       {
-	rOStream << "                                 Repeat # \tTotal     \tMax     \tMin     \tAverage" << std::endl;
+	double global_elapsed_time = GetTime() - msGlobalStart;
+	rOStream << "                                 Repeat # \tTotal     \tMax     \tMin     \tAverage     \t%" << std::endl;
 	for(ContainerType::iterator i_time_data = msTimeTable.begin() ; i_time_data != msTimeTable.end() ; i_time_data++)
 	  {
 	    rOStream << i_time_data->first;
@@ -272,7 +276,7 @@ namespace Kratos
 	      rOStream << ".";
 	    
 	    rOStream << " ";
-	    i_time_data->second.PrintData(rOStream);
+	    i_time_data->second.PrintData(rOStream, global_elapsed_time);
 	    rOStream << std::endl;
 	  }
       }
@@ -349,6 +353,8 @@ namespace Kratos
       static std::ofstream msOutputFile;
 
       static bool msPrintOnScreen;
+      
+      static double msGlobalStart;
 
         
         
