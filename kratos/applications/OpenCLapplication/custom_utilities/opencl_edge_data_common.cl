@@ -53,17 +53,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // OpenCL kernels and functions used in opencl_EdgeType_data.h
 
+
+//
+// Macros to control the behavior of the code
+
+#define USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
+
+#define USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+
+
+//
 // Enable OpenCL extensions
 
 //
-// Khronos version, not supported on AMD SDK
-
-// #pragma OPENCL EXTENSION cl_khr_fp64: enable
-
-//
-// AMD SDK version
+// Try enabling the AMD version
 
 #pragma OPENCL EXTENSION cl_amd_fp64: enable
+
+//
+// If failed, try Khronos version
+
+#ifndef cl_amd_fp64
+
+	#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+#endif
 
 
 //
@@ -107,12 +121,9 @@ typedef double4 double3;
 //
 // Fast math macros
 
-// #define KRATOS_OCL_NATIVE_DIVIDE(x, y)	native_divide(x, y)
-// #define KRATOS_OCL_NATIVE_RECIP(x)		native_recip(x)
-// #define KRATOS_OCL_NATIVE_SQRT(x)		native_sqrt(x)
-#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	(x)/(y)
-#define KRATOS_OCL_NATIVE_RECIP(x)		1.0/(x)
-#define KRATOS_OCL_NATIVE_SQRT(x)		sqrt(x)
+#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	((x) / (y))		/* native_divide(x, y) */
+#define KRATOS_OCL_NATIVE_RECIP(x)		(1.00 / (x))	/* native_recip(x) */
+#define KRATOS_OCL_NATIVE_SQRT(x)		sqrt(x)			/* native_sqrt(x) */
 
 //
 // Used types
