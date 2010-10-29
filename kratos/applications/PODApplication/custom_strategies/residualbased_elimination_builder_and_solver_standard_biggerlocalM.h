@@ -493,7 +493,11 @@ namespace Kratos
 // 			typedef boost::numeric::ublas::identity_matrix<std::size_t> identitymatrix;
 // 			typedef boost::numeric::ublas::matrix<std::size_t> Matrix;
 
+KRATOS_WATCH(mLHS_POD_Contribution);
+KRATOS_WATCH(mRHS_POD_Contribution);
+
 		  UblasSolve(mLHS_POD_Contribution,mRHS_POD_Contribution,mX_POD_Contribution);
+KRATOS_WATCH(mX_POD_Contribution);
 		  
 		  
 /*		  bool singular;
@@ -624,6 +628,8 @@ namespace Kratos
 			/// here we set the solution step value to zero, so to be sure that the update will do nothing
 			TSparseSpace::SetToZero( Dx);
 			
+			unsigned int number_of_pod_modes = (r_model_part.NodesBegin()->GetValue(POD_VELOCITY_X)).size();
+			
 			for(NodesContainerType::iterator it = r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
 			{
 			   const Vector& vel_pod_x = (it)->GetValue(POD_VELOCITY_X);
@@ -641,7 +647,7 @@ namespace Kratos
 
 
  			  
- 			  if((it)->IsFixed(VELOCITY_X) == false)
+  			  if((it)->IsFixed(VELOCITY_X) == false)
 			  {
 			    unsigned int base1=0;
 			      for(unsigned int i = 0; i<number_of_pod_modes; i++)
@@ -651,7 +657,7 @@ namespace Kratos
 				    }
 			  }
 				    
-			  if((it)->IsFixed(VELOCITY_Y) == false)
+ 			  if((it)->IsFixed(VELOCITY_Y) == false)
 			  { 
 			    unsigned int base2=0; 
 			    for(unsigned int i = number_of_pod_modes; i<2*number_of_pod_modes; i++)
@@ -661,7 +667,7 @@ namespace Kratos
 			  }
 			  vel[2] = 0.0;
 			  
-			  if((it)->IsFixed(PRESSURE) == false)
+ 			  if((it)->IsFixed(PRESSURE) == false)
 			  { 
 			    unsigned int base3=0; 
 			    for(unsigned int i = 2*number_of_pod_modes; i<3*number_of_pod_modes; i++)
@@ -669,6 +675,9 @@ namespace Kratos
 			         it->FastGetSolutionStepValue(PRESSURE) += press_pod[base3++]*mX_POD_Contribution[i];
 				    }
 			  }
+// 			  KRATOS_WATCH(vel);
+			  
+			  
 			  
 			}
 			
@@ -1273,7 +1282,7 @@ KRATOS_WATCH(ReactionsVector[i]);*/
 		/*@{ */
 		
 		
-		int number_of_pod_modes;
+// 		int number_of_pod_modes;
 		
 		LocalSystemMatrixType mLHS_POD_Contribution ;
    		LocalSystemVectorType mRHS_POD_Contribution ;
