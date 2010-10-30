@@ -221,10 +221,9 @@ void Add_grad_p(__global EdgeType *a, VectorType *destination, const ValueType p
 {
 	// destination[comp] += Ni_DNj[comp] * (p_j - p_i)
 	ValueType dp = p_j - p_i;
-
-	KRATOS_OCL_COMP_0(destination) += KRATOS_OCL_NI_DNJ_0(a) * dp;
-	KRATOS_OCL_COMP_1(destination) += KRATOS_OCL_NI_DNJ_1(a) * dp;
-	KRATOS_OCL_COMP_2(destination) += KRATOS_OCL_NI_DNJ_2(a) * dp;
+	EdgeType b = *a;
+	VectorType c = (VectorType)(KRATOS_OCL_NI_DNJ_0(&b), KRATOS_OCL_NI_DNJ_1(&b), KRATOS_OCL_NI_DNJ_2(&b), 0.00);
+	*destination += c * dp;
 }
 
 void Sub_grad_p(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
@@ -430,9 +429,9 @@ void CalculateConvectionStabilization_LOW(__global EdgeType *a, __global VectorT
 		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_2_2(a);
 
 	// stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp])
-	KRATOS_OCL_COMP_0(stab_low) = conv_stab * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_j));
-	KRATOS_OCL_COMP_1(stab_low) = conv_stab * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_j));
-	KRATOS_OCL_COMP_2(stab_low) = conv_stab * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_j));
+	KRATOS_OCL_COMP_0(stab_low) = conv_stab * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
+	KRATOS_OCL_COMP_1(stab_low) = conv_stab * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
+	KRATOS_OCL_COMP_2(stab_low) = conv_stab * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
 }
 
 void CalculateConvectionStabilization_LOW2(__global EdgeType *a, ValueType *stab_low,
