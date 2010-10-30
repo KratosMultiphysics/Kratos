@@ -221,9 +221,10 @@ void Add_grad_p(__global EdgeType *a, VectorType *destination, const ValueType p
 {
 	// destination[comp] += Ni_DNj[comp] * (p_j - p_i)
 	ValueType dp = p_j - p_i;
-	EdgeType b = *a;
-	VectorType c = (VectorType)(KRATOS_OCL_NI_DNJ_0(&b), KRATOS_OCL_NI_DNJ_1(&b), KRATOS_OCL_NI_DNJ_2(&b), 0.00);
-	*destination += c * dp;
+ 
+	KRATOS_OCL_COMP_0(destination) += KRATOS_OCL_NI_DNJ_0(a) * dp; 
+	KRATOS_OCL_COMP_1(destination) += KRATOS_OCL_NI_DNJ_1(a) * dp; 
+	KRATOS_OCL_COMP_2(destination) += KRATOS_OCL_NI_DNJ_2(a) * dp;
 }
 
 void Sub_grad_p(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
