@@ -653,7 +653,13 @@ namespace Kratos
       
 	template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
 	{  return mSolutionStepsNodalData.FastGetValue(rThisVariable, SolutionStepIndex);	}
-	//*******************************************************************************************
+
+	template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
+	{  return mSolutionStepsNodalData.FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);	}
+
+	template<class TVariableType> typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
+	{  return mSolutionStepsNodalData.FastGetCurrentValue(rThisVariable, ThisPosition);	}
+//*******************************************************************************************
 
       template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
 	{
