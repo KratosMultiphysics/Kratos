@@ -99,6 +99,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+  int64_t timeNanos()
+{
+	struct timespec tp;
+
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+	return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
+}
 
 	//
 	// AllocateArray
@@ -658,7 +665,8 @@ namespace Kratos
 
 					// Get the global index of node i
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
-
+					
+					
 					// Save value in the destination vector
 					KRATOS_OCL_COMP_0(rDestination[i_node]) = (*node_it)[0];
 					KRATOS_OCL_COMP_1(rDestination[i_node]) = (*node_it)[1];
@@ -683,23 +691,32 @@ namespace Kratos
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				unsigned int n_nodes = rNodes.size();
+ 				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
+				
+				int64_t t0 = timeNanos();
+				
 
-				#pragma omp parallel for firstprivate(n_nodes, it_begin)
+				#pragma omp parallel for firstprivate(n_nodes, it_begin,var_pos)
 				for(unsigned int i = 0; i < n_nodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
 					// Get the global index of node i
-					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+// 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					unsigned int i_node = i; 
 
 					// Get the requested value in vector form
-					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
-
+//   					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
+ 					array_1d <double, 3> &vector = node_it -> FastGetCurrentSolutionStepValue(rVariable,var_pos);
 					// Save value in the destination vector
 					KRATOS_OCL_COMP_0(rDestination[i_node]) = vector[0];
 					KRATOS_OCL_COMP_1(rDestination[i_node]) = vector[1];
 					KRATOS_OCL_COMP_2(rDestination[i_node]) = vector[2];
 				}
+				
+				int64_t t1 = timeNanos();
+				
+				std::cout << "transfer variables time" << t1 - t0 << std::endl;
 
 				// TODO: Single device code
 				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
@@ -719,17 +736,19 @@ namespace Kratos
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				unsigned int n_nodes = rNodes.size();
+				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
 
-				#pragma omp parallel for firstprivate(n_nodes, it_begin)
+				#pragma omp parallel for firstprivate(n_nodes, it_begin,var_pos)
 				for(unsigned int i = 0; i < n_nodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
 					// Get the global index of node i
-					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+// 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					unsigned int i_node = i; 
 
 					// Get the requested value in vector form
-					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable, 1);
+					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable, 1, var_pos);
 
 					// Save value in the destination vector
 					KRATOS_OCL_COMP_0(rDestination[i_node]) = vector[0];
@@ -755,17 +774,19 @@ namespace Kratos
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				unsigned int n_nodes = rNodes.size();
-
-				#pragma omp parallel for firstprivate(n_nodes, it_begin)
+				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
+				
+				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
 				for(unsigned int i = 0; i < n_nodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
 					// Get the global index of node i
-					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+// 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					unsigned int i_node = i; 
 
 					// Get the requested scalar value
-					double &scalar = node_it -> FastGetSolutionStepValue(rVariable);
+					double &scalar = node_it -> FastGetCurrentSolutionStepValue(rVariable,var_pos);
 
 					// Save value in the destination vector
 					rDestination[i_node] = scalar;
@@ -789,17 +810,19 @@ namespace Kratos
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				unsigned int n_nodes = rNodes.size();
-
-				#pragma omp parallel for firstprivate(n_nodes, it_begin)
+				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
+				
+				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
 				for(unsigned int i = 0; i < n_nodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
 					// Get the global index of node i
-					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+// 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					unsigned int i_node = i; 
 
 					// Get the requested scalar value
-					double &scalar = node_it -> FastGetSolutionStepValue(rVariable, 1);
+					double &scalar = node_it -> FastGetSolutionStepValue(rVariable, 1,var_pos);
 
 					// Save value in the destination vector
 					rDestination[i_node] = scalar;
@@ -826,17 +849,19 @@ namespace Kratos
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				unsigned int n_nodes = rNodes.size();
-
-				#pragma omp parallel for firstprivate(n_nodes, it_begin)
+				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
+				
+				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
 				for(unsigned int i = 0; i < n_nodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
 					// Get the global index of node i
-					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
-
+// 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					unsigned int i_node = i; 
+					
 					// Get reference of destination
-					array_1d <double, 3> &vector = node_it -> FastGetSolutionStepValue(rVariable);
+					array_1d <double, 3> &vector = node_it -> FastGetCurrentSolutionStepValue(rVariable,var_pos);
 
 					// Save vector in database
 					vector[0] = KRATOS_OCL_COMP_0(rOrigin[i_node]);
@@ -862,17 +887,19 @@ namespace Kratos
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				unsigned int n_nodes = rNodes.size();
+				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
 
-				#pragma omp parallel for firstprivate(n_nodes, it_begin)
+				#pragma omp parallel for firstprivate(n_nodes, it_begin,var_pos)
 				for(unsigned int i = 0; i < n_nodes; i++)
 				{
 					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
 					// Get the global index of node i
-					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
-
+// 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					unsigned int i_node = i; 
+					
 					// Get reference of destination
-					double &scalar = node_it -> FastGetSolutionStepValue(rVariable);
+					double &scalar = node_it -> FastGetCurrentSolutionStepValue(rVariable,var_pos);
 
 					// Save scalar in database
 					scalar = rOrigin[i_node];
