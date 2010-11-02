@@ -429,6 +429,18 @@ namespace Kratos
 		return *(TDataType*)Position(rThisVariable, QueueIndex);
 	    }
 	
+	template<class TDataType> 
+	TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
+	    {
+		return *(TDataType*)(Position(QueueIndex) + ThisPosition);
+	    }
+	
+	template<class TDataType> 
+	TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition)
+	    {
+		return *(TDataType*)(mpCurrentPosition + ThisPosition);
+	    }
+	
 	template<class TDataType>
 	const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
 	    {
@@ -447,6 +459,18 @@ namespace Kratos
 		return *(const TDataType*)Position(rThisVariable, QueueIndex);
 	    }
 
+	template<class TDataType> 
+	const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition) const
+	    {
+		return *(TDataType*)(Position(QueueIndex) + ThisPosition);
+	    }
+	
+	
+	template<class TDataType> 
+	const TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition) const
+	    {
+		return *(TDataType*)(mpCurrentPosition + ThisPosition);
+	    }
 
 	template<class TAdaptorType>
 	typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable)
