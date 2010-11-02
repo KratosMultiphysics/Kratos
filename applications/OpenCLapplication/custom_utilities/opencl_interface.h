@@ -97,6 +97,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if KRATOS_OCL_VERSION < 110
 
 // cl_double3 is the same as cl_double4 in OpenCL 1.1 and later
+
 typedef cl_double4 cl_double3;
 
 #endif
@@ -109,7 +110,18 @@ namespace OpenCL
 
 // Useful vector types
 
-	typedef enum {HostToDevice, DeviceToHost} BufferCopyDirection;
+	typedef enum {HostToDevice, DeviceToHost} CopyDirection;
+	typedef struct _ImageDimension
+	{
+		size_t Sizes[3];
+
+		_ImageDimension(size_t _Size1, size_t _Size2, size_t _Size3 = 1)
+		{
+			Sizes[0] = _Size1;
+			Sizes[1] = _Size2;
+			Sizes[2] = _Size3;
+		}
+	} ImageDimension;
 
 	typedef std::vector<std::string> StringList;
 
@@ -131,6 +143,9 @@ namespace OpenCL
 
 	typedef std::vector<size_t> SizeTList;
 	typedef std::vector<SizeTList> SizeTList2D;
+
+	typedef std::vector<ImageDimension> ImageDimensionList;
+	typedef std::vector<ImageDimensionList> ImageDimensionList2D;
 
 //
 // KRATOS_OCL_CPU_WORK_GROUP_SIZE
@@ -239,6 +254,7 @@ namespace OpenCL
 #endif
 
 			// Default case
+
 			default:
 
 				return "unknown";
@@ -339,8 +355,13 @@ namespace OpenCL
 			CommandQueueList CommandQueues;
 
 			ProgramList2D Programs;
+
 			MemList2D Buffers;
 			SizeTList2D BufferLengths;
+
+			MemList2D Images;
+			ImageDimensionList2D ImageDimensions;
+
 			KernelList2D Kernels;
 			SizeTList2D WorkGroupSizes;
 
@@ -366,6 +387,7 @@ namespace OpenCL
 			DeviceGroup(DeviceIDList &_DeviceIDs, const char *_PlatformVendor = ""): DeviceIDs(_DeviceIDs)
 			{
 				// Check if we got an empty DeviceIDList
+
 				if (_DeviceIDs.size() == 0)
 				{
 					std::cout <<
@@ -388,6 +410,7 @@ namespace OpenCL
 				cl_int Err;
 
 				// Releasing OpenCL objects
+
 				for (cl_uint i = 0; i < Contexts.size(); i++)
 				{
 					Err = clReleaseContext(Contexts[i]);
@@ -405,6 +428,15 @@ namespace OpenCL
 					for (cl_uint j = 0; j < Buffers[i].size(); j++)
 					{
 						Err = clReleaseMemObject(Buffers[i][j]);
+						KRATOS_OCL_CHECK(Err);
+					}
+				}
+
+				for (cl_uint i = 0; i < Images.size(); i++)
+				{
+					for (cl_uint j = 0; j < Images[i].size(); j++)
+					{
+						Err = clReleaseMemObject(Images[i][j]);
 						KRATOS_OCL_CHECK(Err);
 					}
 				}
@@ -446,12 +478,14 @@ namespace OpenCL
 				if (PlatformVendor.compare("") == 0)
 				{
 					// No specific platform vendor is specified, default to first one
+
 					Err = clGetPlatformIDs(1, &PlatformID, NULL);
 					KRATOS_OCL_CHECK(Err);
 				}
 				else
 				{
 					// Try to find platform vendor specified
+
 					Err = clGetPlatformIDs(0, NULL, &PlatformNo);
 					KRATOS_OCL_CHECK(Err);
 
@@ -461,6 +495,8 @@ namespace OpenCL
 					KRATOS_OCL_CHECK(Err);
 
 					// We default to first platform, in case we cannot find the requested platform vendor
+					// TODO: Make this ICD compatible by passing NULL in first parameter
+
 					PlatformID = Platforms[0];
 
 					for (cl_uint i = 0; i < PlatformNo; i++)
@@ -469,6 +505,7 @@ namespace OpenCL
 						KRATOS_OCL_CHECK(Err);
 
 						// Check if this is the requested platform
+
 						if (PlatformVendor.compare(CharData) == 0)
 							PlatformID = Platforms[i];
 					}
@@ -477,17 +514,21 @@ namespace OpenCL
 				}
 
 				// Try to find out which constructor has been called
+
 				if (DeviceIDs.size() == 0)
 				{
 					// A device type is specified; check if we need only a single device
+
 					if (_SingleDeviceOnly)
 					{
 						// Yes, a maximum of one device
+
 						DeviceNo = 1;
 					}
 					else
 					{
 						// No, get all devices of that type
+
 						Err = clGetDeviceIDs(PlatformID, DeviceType, 0, NULL, &DeviceNo);
 						KRATOS_OCL_CHECK(Err);
 					}
@@ -500,10 +541,12 @@ namespace OpenCL
 				else
 				{
 					// An explicit list of device IDs is given
+
 					DeviceNo = DeviceIDs.size();
 				}
 
 				// Get device type for each specified device
+
 				DeviceTypes.resize(DeviceNo);
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
@@ -513,6 +556,7 @@ namespace OpenCL
 				}
 
 				// Create contexts and command queues, one per device, so we can have fine control over everything (mostly buffer creation)
+
 				cl_context_properties Properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties) PlatformID, 0};
 
 				Contexts.resize(DeviceNo);
@@ -528,7 +572,9 @@ namespace OpenCL
 				}
 
 				// Getting current working directory; Dummy is used to avoid warning
+
 				char CurrentWorkingDirectory[FILENAME_MAX];
+
 				char *Dummy = GETCWD(CurrentWorkingDirectory, sizeof(CurrentWorkingDirectory));
 				Dummy = NULL;
 
@@ -604,6 +650,7 @@ namespace OpenCL
 					cl_buffer_region Region;
 
 					// Get flags of original buffer
+
 					Err = clGetMemObjectInfo(Buffers[_BufferIndex][i], CL_MEM_FLAGS, sizeof(Flags), &Flags, NULL);
 					KRATOS_OCL_CHECK(Err);
 
@@ -643,6 +690,7 @@ namespace OpenCL
 					cl_buffer_region Region;
 
 					// Get flags of original buffer
+
 					Err = clGetMemObjectInfo(Buffers[_BufferIndex][i], CL_MEM_FLAGS, sizeof(Flags), &Flags, NULL);
 					KRATOS_OCL_CHECK(Err);
 
@@ -662,11 +710,11 @@ namespace OpenCL
 #endif
 
 			//
-			// CreateBufferWithHostPtrs
+			// CreateBufferWithHostPointers
 			//
 			// Allocates a buffer on all devices
 
-			cl_uint CreateBufferWithHostPtrs(size_t _Size, cl_mem_flags _Flags, VoidPList &_HostPtrs)
+			cl_uint CreateBufferWithHostPointers(size_t _Size, cl_mem_flags _Flags, VoidPList &_HostPointers)
 			{
 				cl_int Err;
 				cl_uint BufferNo = Buffers.size();
@@ -675,7 +723,7 @@ namespace OpenCL
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
-					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Size, _HostPtrs[i], &Err);
+					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Size, _HostPointers[i], &Err);
 					KRATOS_OCL_CHECK(Err);
 				}
 
@@ -686,11 +734,11 @@ namespace OpenCL
 			}
 
 			//
-			// CreateBufferWithHostPtrs
+			// CreateBufferWithHostPointers
 			//
 			// Allocates a buffer on all devices with given sizes
 
-			cl_uint CreateBufferWithHostPtrs(SizeTList _Sizes, cl_mem_flags _Flags, VoidPList &_HostPtrs)
+			cl_uint CreateBufferWithHostPointers(SizeTList _Sizes, cl_mem_flags _Flags, VoidPList &_HostPointers)
 			{
 				cl_int Err;
 				cl_uint BufferNo = Buffers.size();
@@ -699,7 +747,7 @@ namespace OpenCL
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
-					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Sizes[i], _HostPtrs[i], &Err);
+					CurrentBuffers[i] = clCreateBuffer(Contexts[i], _Flags, _Sizes[i], _HostPointers[i], &Err);
 					KRATOS_OCL_CHECK(Err);
 				}
 
@@ -714,7 +762,7 @@ namespace OpenCL
 			//
 			// Copies the content of a buffer on all devices
 
-			void CopyBuffer(cl_uint _BufferIndex, BufferCopyDirection _CopyDirection, VoidPList _HostPtrs)
+			void CopyBuffer(cl_uint _BufferIndex, CopyDirection _CopyDirection, VoidPList _HostPointers)
 			{
 				cl_int Err;
 
@@ -724,14 +772,14 @@ namespace OpenCL
 					{
 						case HostToDevice:
 
-							Err = clEnqueueWriteBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPtrs[i], 0, NULL, NULL);
+							Err = clEnqueueWriteBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPointers[i], 0, NULL, NULL);
 							KRATOS_OCL_CHECK(Err);
 
 							break;
 
 						case DeviceToHost:
 
-							Err = clEnqueueReadBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPtrs[i], 0, NULL, NULL);
+							Err = clEnqueueReadBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, 0, BufferLengths[_BufferIndex][i], _HostPointers[i], 0, NULL, NULL);
 							KRATOS_OCL_CHECK(Err);
 
 							break;
@@ -744,7 +792,7 @@ namespace OpenCL
 			//
 			// Copies the content of a buffer on a specific device
 
-			void CopyBuffer(cl_uint _DeviceIndex, cl_uint _BufferIndex, BufferCopyDirection _CopyDirection, void *_HostPtr)
+			void CopyBuffer(cl_uint _DeviceIndex, cl_uint _BufferIndex, CopyDirection _CopyDirection, void *_HostPtr)
 			{
 				cl_int Err;
 
@@ -778,6 +826,7 @@ namespace OpenCL
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					// Check if the buffers are of the same length
+
 					if (BufferLengths[_SourceBufferIndex][i] != BufferLengths[_DestinationBufferIndex][i])
 					{
 						std::cout <<
@@ -792,6 +841,29 @@ namespace OpenCL
 			}
 
 			//
+			// CopyBufferToBuffer
+			//
+			// Copies the content of a buffer to another buffer on a specific device
+
+			void CopyBufferToBuffer(cl_uint _DeviceIndex, cl_uint _SourceBufferIndex, cl_uint _DestinationBufferIndex)
+			{
+				cl_int Err;
+
+				// Check if the buffers are of the same length
+
+				if (BufferLengths[_SourceBufferIndex][_DeviceIndex] != BufferLengths[_DestinationBufferIndex][_DeviceIndex])
+				{
+					std::cout <<
+						"Buffers are not of the same size." << std::endl <<
+						"Aborting." << std::endl;
+
+					abort();
+				}
+
+				Err = clEnqueueCopyBuffer(CommandQueues[_DeviceIndex], Buffers[_SourceBufferIndex][_DeviceIndex], Buffers[_DestinationBufferIndex][_DeviceIndex], 0, 0, BufferLengths[_SourceBufferIndex][_DeviceIndex], 0, NULL, NULL);
+			}
+
+			//
 			// MapBuffer
 			//
 			// Maps a buffer on all devices
@@ -800,15 +872,323 @@ namespace OpenCL
 			{
 				cl_int Err;
 
-				VoidPList CurrentPtrs(DeviceNo);
+				VoidPList CurrentPointers(DeviceNo);
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
-					CurrentPtrs[i] = clEnqueueMapBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, _Flags, 0, BufferLengths[_BufferIndex][i], 0, NULL, NULL, &Err);
+					CurrentPointers[i] = clEnqueueMapBuffer(CommandQueues[i], Buffers[_BufferIndex][i], CL_TRUE, _Flags, 0, BufferLengths[_BufferIndex][i], 0, NULL, NULL, &Err);
 					KRATOS_OCL_CHECK(Err);
 				}
 
-				return CurrentPtrs;
+				return CurrentPointers;
+			}
+
+			//
+			// CreateImage2D
+			//
+			// Creates a 2D image on all devices
+
+			cl_uint CreateImage2D(size_t _Size1, size_t _Size2, cl_mem_flags _Flags, cl_channel_order _ChannelOrder, cl_channel_type _ChannelType)
+			{
+				cl_int Err;
+				cl_uint ImageNo = Images.size();
+
+				MemList CurrentImages(DeviceNo);
+
+				cl_image_format Format = {_ChannelOrder, _ChannelType};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentImages[i] = clCreateImage2D(Contexts[i], _Flags, &Format, _Size1, _Size2, 0, NULL, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Images.push_back(CurrentImages);
+				ImageDimensions.push_back(ImageDimensionList(DeviceNo, ImageDimension(_Size1, _Size2)));
+
+				return ImageNo;
+			}
+
+			//
+			// CreateImage3D
+			//
+			// Creates a 3D image on all devices
+
+			cl_uint CreateImage3D(size_t _Size1, size_t _Size2, size_t _Size3, cl_mem_flags _Flags, cl_channel_order _ChannelOrder, cl_channel_type _ChannelType)
+			{
+				cl_int Err;
+				cl_uint ImageNo = Images.size();
+
+				MemList CurrentImages(DeviceNo);
+
+				cl_image_format Format = {_ChannelOrder, _ChannelType};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentImages[i] = clCreateImage3D(Contexts[i], _Flags, &Format, _Size1, _Size2, _Size3, 0, 0, NULL, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Images.push_back(CurrentImages);
+				ImageDimensions.push_back(ImageDimensionList(DeviceNo, ImageDimension(_Size1, _Size2, _Size3)));
+
+				return ImageNo;
+			}
+
+			//
+			// CreateImage2DWithHostPointers
+			//
+			// Creates a 2D image on all devices
+
+			cl_uint CreateImage2DWithHostPointers(size_t _Size1, size_t _Size2, cl_mem_flags _Flags, cl_channel_order _ChannelOrder, cl_channel_type _ChannelType, VoidPList _HostPointers)
+			{
+				cl_int Err;
+				cl_uint ImageNo = Images.size();
+
+				MemList CurrentImages(DeviceNo);
+
+				cl_image_format Format = {_ChannelOrder, _ChannelType};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentImages[i] = clCreateImage2D(Contexts[i], _Flags, &Format, _Size1, _Size2, 0, _HostPointers[i], &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Images.push_back(CurrentImages);
+				ImageDimensions.push_back(ImageDimensionList(DeviceNo, ImageDimension(_Size1, _Size2)));
+
+				return ImageNo;
+			}
+
+			//
+			// CreateImage3DWithHostPointers
+			//
+			// Creates a 3D image on all devices
+
+			cl_uint CreateImage3DWithHostPointers(size_t _Size1, size_t _Size2, size_t _Size3, cl_mem_flags _Flags, cl_channel_order _ChannelOrder, cl_channel_type _ChannelType, VoidPList _HostPointers)
+			{
+				cl_int Err;
+				cl_uint ImageNo = Images.size();
+
+				MemList CurrentImages(DeviceNo);
+
+				cl_image_format Format = {_ChannelOrder, _ChannelType};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					CurrentImages[i] = clCreateImage3D(Contexts[i], _Flags, &Format, _Size1, _Size2, _Size3, 0, 0, _HostPointers[i], &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				Images.push_back(CurrentImages);
+				ImageDimensions.push_back(ImageDimensionList(DeviceNo, ImageDimension(_Size1, _Size2, _Size3)));
+
+				return ImageNo;
+			}
+
+			//
+			// CopyImage
+			//
+			// Copies the content of an image on all devices
+
+			void CopyImage(cl_uint _ImageIndex, CopyDirection _CopyDirection, VoidPList _HostPointers)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					switch (_CopyDirection)
+					{
+						case HostToDevice:
+
+							Err = clEnqueueWriteImage(CommandQueues[i], Images[_ImageIndex][i], CL_TRUE, Origin, ImageDimensions[_ImageIndex][i].Sizes, 0, 0, _HostPointers[i], 0, NULL, NULL);
+							KRATOS_OCL_CHECK(Err);
+
+							break;
+
+						case DeviceToHost:
+
+							Err = clEnqueueReadImage(CommandQueues[i], Images[_ImageIndex][i], CL_TRUE, Origin, ImageDimensions[_ImageIndex][i].Sizes, 0, 0, _HostPointers[i], 0, NULL, NULL);
+							KRATOS_OCL_CHECK(Err);
+
+							break;
+					}
+				}
+			}
+
+			//
+			// CopyImage
+			//
+			// Copies the content of an image on a specific device
+
+			void CopyImage(cl_uint _DeviceIndex, cl_uint _ImageIndex, CopyDirection _CopyDirection, VoidPList _HostPointers)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				switch (_CopyDirection)
+				{
+					case HostToDevice:
+
+						Err = clEnqueueWriteImage(CommandQueues[_DeviceIndex], Images[_ImageIndex][_DeviceIndex], CL_TRUE, Origin, ImageDimensions[_ImageIndex][_DeviceIndex].Sizes, 0, 0, _HostPointers[_DeviceIndex], 0, NULL, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						break;
+
+					case DeviceToHost:
+
+						Err = clEnqueueReadImage(CommandQueues[_DeviceIndex], Images[_ImageIndex][_DeviceIndex], CL_TRUE, Origin, ImageDimensions[_ImageIndex][_DeviceIndex].Sizes, 0, 0, _HostPointers[_DeviceIndex], 0, NULL, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						break;
+				}
+			}
+
+			//
+			// CopyImageToImage
+			//
+			// Copies the content of a buffer to another buffer on all devices
+
+			void CopyImageToImage(cl_uint _SourceImageIndex, cl_uint _DestinationImageIndex)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					// Check if the images are of the same dimensions
+
+					if (ImageDimensions[_SourceImageIndex][i].Sizes[0] != ImageDimensions[_DestinationImageIndex][i].Sizes[0] &&
+						ImageDimensions[_SourceImageIndex][i].Sizes[1] != ImageDimensions[_DestinationImageIndex][i].Sizes[1] &&
+						ImageDimensions[_SourceImageIndex][i].Sizes[2] != ImageDimensions[_DestinationImageIndex][i].Sizes[2])
+					{
+						std::cout <<
+							"Images are not of the same dimension." << std::endl <<
+							"Aborting." << std::endl;
+
+						abort();
+					}
+
+					Err = clEnqueueCopyImage(CommandQueues[i], Images[_SourceImageIndex][i], Images[_DestinationImageIndex][i], Origin, Origin, ImageDimensions[_SourceImageIndex][i].Sizes, 0, NULL, NULL);
+				}
+			}
+
+			//
+			// CopyImageToImage
+			//
+			// Copies the content of a buffer to another buffer on a specific device
+
+			void CopyImageToImage(cl_uint _DeviceIndex, cl_uint _SourceImageIndex, cl_uint _DestinationImageIndex)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				// Check if the images are of the same dimensions
+
+				if (ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes[0] != ImageDimensions[_DestinationImageIndex][_DeviceIndex].Sizes[0] &&
+					ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes[1] != ImageDimensions[_DestinationImageIndex][_DeviceIndex].Sizes[1] &&
+					ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes[2] != ImageDimensions[_DestinationImageIndex][_DeviceIndex].Sizes[2])
+				{
+					std::cout <<
+						"Images are not of the same dimension." << std::endl <<
+						"Aborting." << std::endl;
+
+					abort();
+				}
+
+				Err = clEnqueueCopyImage(CommandQueues[_DeviceIndex], Images[_SourceImageIndex][_DeviceIndex], Images[_DestinationImageIndex][_DeviceIndex], Origin, Origin, ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes, 0, NULL, NULL);
+			}
+
+			//
+			// CopyBufferToImage
+			//
+			// Copies the content of a buffer to an image on all devices
+
+			void CopyBufferToImage(cl_uint _SourceBufferIndex, cl_uint _DestinationImageIndex)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					// We use the dimensions of the image; the user is responsible for the results
+
+					Err = clEnqueueCopyBufferToImage(CommandQueues[i], Buffers[_SourceBufferIndex][i], Images[_DestinationImageIndex][i], 0, Origin, ImageDimensions[_DestinationImageIndex][i].Sizes, 0, NULL, NULL);
+				}
+			}
+
+			//
+			// CopyBufferToImage
+			//
+			// Copies the content of a buffer to an image on a specific device
+
+			void CopyBufferToImage(cl_uint _DeviceIndex, cl_uint _SourceBufferIndex, cl_uint _DestinationImageIndex)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				// We use the dimensions of the image; the user is responsible for the results
+
+				Err = clEnqueueCopyBufferToImage(CommandQueues[_DeviceIndex], Buffers[_SourceBufferIndex][_DeviceIndex], Images[_DestinationImageIndex][_DeviceIndex], 0, Origin, ImageDimensions[_DestinationImageIndex][_DeviceIndex].Sizes, 0, NULL, NULL);
+			}
+
+			//
+			// CopyImageToBuffer
+			//
+			// Copies the content of an image to a buffer on all devices
+
+			void CopyImageToBuffer(cl_uint _DeviceIndex, cl_uint _SourceImageIndex, cl_uint _DestinationBufferIndex)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				// We use the dimensions of the image; the user is responsible for the results
+
+				Err = clEnqueueCopyImageToBuffer(CommandQueues[_DeviceIndex], Images[_SourceImageIndex][_DeviceIndex], Buffers[_DestinationBufferIndex][_DeviceIndex], Origin, ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes, 0, 0, NULL, NULL);
+			}
+
+			//
+			// CopyImageToBuffer
+			//
+			// Copies the content of an image to a buffer on all devices
+
+			void CopyImageToBuffer(cl_uint _SourceImageIndex, cl_uint _DestinationBufferIndex)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					// We use the dimensions of the image; the user is responsible for the results
+
+					Err = clEnqueueCopyImageToBuffer(CommandQueues[i], Images[_SourceImageIndex][i], Buffers[_DestinationBufferIndex][i], Origin, ImageDimensions[_SourceImageIndex][i].Sizes, 0, 0, NULL, NULL);
+				}
+			}
+
+			//
+			// MapImage
+			//
+			// Maps an image on all devices
+
+			VoidPList MapImage(cl_uint _ImageIndex, cl_map_flags _Flags)
+			{
+				cl_int Err;
+				size_t Origin[3] = {0, 0, 0};
+
+				VoidPList CurrentPointers(DeviceNo);
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					size_t ImageRowPitch;
+					size_t ImageSlicePitch;
+
+					CurrentPointers[i] = clEnqueueMapImage(CommandQueues[i], Images[_ImageIndex][i], CL_TRUE, _Flags, Origin, ImageDimensions[_ImageIndex][i].Sizes, &ImageRowPitch, &ImageSlicePitch, 0, NULL, NULL, &Err);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				return CurrentPointers;
 			}
 
 			//
@@ -818,8 +1198,9 @@ namespace OpenCL
 
 			void AddCLSearchPath(const char *Path)
 			{
-				// Check if we need to add a PATH_SEPARATOR
 				std::string TempPath(Path);
+
+				// Check if we need to add a PATH_SEPARATOR
 				if (TempPath[TempPath.size() - 1] != PATH_SEPARATOR)
 				{
 					TempPath += PATH_SEPARATOR;
@@ -854,6 +1235,7 @@ namespace OpenCL
 				}
 
 				// Check if the file was found finally
+
 				if (!SourceFile.is_open())
 				{
 					std::cout <<
@@ -872,11 +1254,13 @@ namespace OpenCL
 				size_t SourceLen = SourceStr.size();
 
 				// Build program for all devices
+
 				ProgramList CurrentPrograms(DeviceNo);
 
 				std::string Options(_BuildOptions);
 
 				// Add CLSearchPath to compiler's include path, so #include's work as intended
+
 				for (cl_uint i = 0; i < CLSearchPath.size(); i++)
 				{
 					// Add an space if not empty
@@ -886,6 +1270,7 @@ namespace OpenCL
 					}
 
 					// Add -I option
+
 					Options += "-I";
 					Options += CLSearchPath[i];
 				}
@@ -917,6 +1302,7 @@ namespace OpenCL
 				}
 
 				// Append this to the list
+
 				Programs.push_back(CurrentPrograms);
 
 				return ProgramNo;
@@ -933,6 +1319,7 @@ namespace OpenCL
 				cl_uint KernelNo = Kernels.size();
 
 				// Register the kernel on all devices
+
 				KernelList CurrentKernels(DeviceNo);
 				SizeTList CurrentWorkGroupSizes(DeviceNo);
 
@@ -953,14 +1340,17 @@ namespace OpenCL
 
 #else
 					// For OpenCL 1.0 only
+
 					PreferredWorkGroupSizeMultiple = 64;
 
 #endif
 
 					// Select an optimal WorkGroupSize
+
 					if (DeviceTypes[i] == CL_DEVICE_TYPE_CPU)
 					{
 						// On CPU devices we use a fixed group size
+
 						WorkGroupSize = KRATOS_OCL_CPU_WORK_GROUP_SIZE;
 					}
 					else
@@ -968,11 +1358,13 @@ namespace OpenCL
 						if (MaxWorkGroupSize < PreferredWorkGroupSizeMultiple)
 						{
 							// MaxWorkGroupSize too low; use it as WorkGroupSize
+
 							WorkGroupSize = MaxWorkGroupSize;
 						}
 						else
 						{
 							// For best performance, we use the maximum work group size which is divisible by WorkGroupSizeMultiple
+
 							WorkGroupSize = (MaxWorkGroupSize / PreferredWorkGroupSizeMultiple) * PreferredWorkGroupSizeMultiple;
 						}
 					}
@@ -981,6 +1373,7 @@ namespace OpenCL
 				}
 
 				// Append these to the lists
+
 				Kernels.push_back(CurrentKernels);
 				WorkGroupSizes.push_back(CurrentWorkGroupSizes);
 
@@ -1055,9 +1448,11 @@ namespace OpenCL
 				cl_int Err;
 
 				// Enqueue kernels
+
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					// We may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
+
 					size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][i] - 1) / WorkGroupSizes[_KernelIndex][i]) * WorkGroupSizes[_KernelIndex][i];
 
 					Err = clEnqueueNDRangeKernel(CommandQueues[i], Kernels[_KernelIndex][i], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][i], 0, NULL, NULL);
@@ -1068,6 +1463,7 @@ namespace OpenCL
 				}
 
 				// Wait for kernels to finish
+
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
 					Err = clFinish(CommandQueues[i]);
@@ -1085,6 +1481,7 @@ namespace OpenCL
 				cl_int Err;
 
 				// Enqueue kernel; we may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
+
 				size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][_DeviceIndex] - 1) / WorkGroupSizes[_KernelIndex][_DeviceIndex]) * WorkGroupSizes[_KernelIndex][_DeviceIndex];
 
 				Err = clEnqueueNDRangeKernel(CommandQueues[_DeviceIndex], Kernels[_KernelIndex][_DeviceIndex], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][_DeviceIndex], 0, NULL, NULL);
@@ -1094,6 +1491,7 @@ namespace OpenCL
 				KRATOS_OCL_CHECK(Err);
 
 				// Wait for kernel to finish
+
 				Err = clFinish(CommandQueues[_DeviceIndex]);
 				KRATOS_OCL_CHECK(Err);
 			}
