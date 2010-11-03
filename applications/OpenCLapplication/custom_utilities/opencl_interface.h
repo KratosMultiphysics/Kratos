@@ -166,6 +166,20 @@ namespace OpenCL
 #define KRATOS_OCL_CPU_WORK_GROUP_SIZE		2
 
 //
+// KRATOS_OCL_PROGRAM_BUILD_LOG_SIZE
+//
+// Size of program build log buffer
+
+#define KRATOS_OCL_PROGRAM_BUILD_LOG_SIZE	102400
+
+//
+// KRATOS_OCL_PLATFORM_DATA_SIZE
+//
+// Size of platform vendor name buffer
+
+#define KRATOS_OCL_PLATFORM_DATA_SIZE		256
+
+//
 // KRATOS_OCL_CHECK
 //
 // Used to check an OpenCL return code and abort with some debugging information
@@ -484,44 +498,48 @@ namespace OpenCL
 				cl_uint PlatformNo;
 				cl_platform_id *Platforms;
 				std::string PlatformVendor(_PlatformVendor);
-				char CharData[1024];
+				char PlatformVendorData[KRATOS_OCL_PLATFORM_DATA_SIZE];
 
-				if (PlatformVendor.compare("") == 0)
+				// Try to find platform vendor specified, or choose a reasonabe default
+
+				// Query available platforms
+
+				Err = clGetPlatformIDs(0, NULL, &PlatformNo);
+				KRATOS_OCL_CHECK(Err);
+
+				Platforms = new cl_platform_id[PlatformNo];
+
+				Err = clGetPlatformIDs(PlatformNo, Platforms, NULL);
+				KRATOS_OCL_CHECK(Err);
+
+				PlatformID = NULL;
+
+				for (cl_uint i = 0; i < PlatformNo; i++)
 				{
-					// No specific platform vendor is specified, default to first one
+					PlatformID = Platforms[i];
 
-					Err = clGetPlatformIDs(1, &PlatformID, NULL);
-					KRATOS_OCL_CHECK(Err);
-				}
-				else
-				{
-					// Try to find platform vendor specified
-
-					Err = clGetPlatformIDs(0, NULL, &PlatformNo);
+					Err = clGetPlatformInfo(PlatformID, CL_PLATFORM_VENDOR, sizeof(PlatformVendorData), PlatformVendorData, NULL);
 					KRATOS_OCL_CHECK(Err);
 
-					Platforms = new cl_platform_id[PlatformNo];
+					// Check if this is the requested platform
 
-					Err = clGetPlatformIDs(PlatformNo, Platforms, NULL);
-					KRATOS_OCL_CHECK(Err);
-
-					// We default to first platform, in case we cannot find the requested platform vendor
-					// TODO: Make this ICD compatible by passing NULL in first parameter
-
-					PlatformID = Platforms[0];
-
-					for (cl_uint i = 0; i < PlatformNo; i++)
+					if (PlatformVendor.compare(PlatformVendorData) == 0)
 					{
-						Err = clGetPlatformInfo(Platforms[i], CL_PLATFORM_VENDOR, sizeof(CharData), CharData, NULL);
-						KRATOS_OCL_CHECK(Err);
-
-						// Check if this is the requested platform
-
-						if (PlatformVendor.compare(CharData) == 0)
-							PlatformID = Platforms[i];
+						break;
 					}
+				}
 
-					delete [] Platforms;
+				delete [] Platforms;
+
+				// Check if we finally found a platform
+
+				if (PlatformID == NULL)
+				{
+					std::cout <<
+						"No platform available." << std::endl <<
+						"Aborting." << std::endl;
+
+					abort();
 				}
 
 				// Try to find out which constructor has been called
@@ -1236,6 +1254,7 @@ namespace OpenCL
 				for (cl_uint i = 0; i < CLSearchPath.size(); i++)
 				{
 					// Try to open the file
+
 					std::string TempFileName = CLSearchPath[i] + _FileName;
 					SourceFile.open(TempFileName.c_str());
 
@@ -1273,6 +1292,7 @@ namespace OpenCL
 				// Define KRATOS_OCL_VERSION macro inside the program
 
 				// Add an space if not empty
+
 				if (Options.size() != 0)
 				{
 					Options += " ";
@@ -1299,14 +1319,16 @@ namespace OpenCL
 
 					if (Err == CL_BUILD_PROGRAM_FAILURE)
 					{
-						char CharData[10240];
+						char *BuildLog = new char[KRATOS_OCL_PROGRAM_BUILD_LOG_SIZE];
 
-						Err = clGetProgramBuildInfo(CurrentPrograms[i], DeviceIDs[i], CL_PROGRAM_BUILD_LOG, sizeof(CharData), CharData, NULL);
+						Err = clGetProgramBuildInfo(CurrentPrograms[i], DeviceIDs[i], CL_PROGRAM_BUILD_LOG, KRATOS_OCL_PROGRAM_BUILD_LOG_SIZE, BuildLog, NULL);
 						KRATOS_OCL_CHECK(Err);
 
 						std::cout <<
 							"Build log:" << std::endl <<
-							CharData << std::endl;
+							BuildLog << std::endl;
+
+						delete [] BuildLog;
 
 						KRATOS_OCL_CHECK(CL_BUILD_PROGRAM_FAILURE);
 					}
