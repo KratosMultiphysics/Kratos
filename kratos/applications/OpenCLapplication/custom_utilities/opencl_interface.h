@@ -1505,6 +1505,35 @@ namespace OpenCL
 			}
 
 			//
+			// SetLocalMemAsKernelArg
+			//
+			// Sets a __local buffer on all devices
+
+			void SetLocalMemAsKernelArg(cl_uint _KernelIndex, cl_uint _ArgIndex, size_t _Size)
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					Err = clSetKernelArg(Kernels[_KernelIndex][i], _ArgIndex, _Size, NULL);
+					KRATOS_OCL_CHECK(Err);
+				}
+			}
+
+			//
+			// SetLocalMemAsKernelArg
+			//
+			// Sets a __local buffer on a specific device
+
+			void SetLocalMemAsKernelArg(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _ArgIndex, size_t _Size)
+			{
+				cl_int Err;
+
+				Err = clSetKernelArg(Kernels[_KernelIndex][_DeviceIndex], _ArgIndex, _Size, NULL);
+				KRATOS_OCL_CHECK(Err);
+			}
+
+			//
 			// ExecuteKernel
 			//
 			// Execute a kernel on all devices
