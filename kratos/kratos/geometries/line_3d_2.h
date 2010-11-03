@@ -335,7 +335,8 @@ namespace Kratos
       */
       virtual double Length() const
       {
-          double lenght = pow(BaseType::GetPoint(0).X()-BaseType::GetPoint(1).X(),2) + pow(BaseType::GetPoint(0).Y()-BaseType::GetPoint(1).Y(),2);
+          double lenght = pow(BaseType::GetPoint(0).X()-BaseType::GetPoint(1).X(),2) + pow(BaseType::GetPoint(0).Y()-BaseType::GetPoint(1).Y(),2)+
+                          pow(BaseType::GetPoint(0).Z()-BaseType::GetPoint(1).Z(),2);
           return sqrt(lenght);
       }
 
