@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/geometry.h"
 #include "includes/mesh.h"
 #include "spatial_containers/spatial_containers.h"
+#include "spatial_containers/spatial_containers_configure.h"
 //#include "spatial_containers/bounding_box.h"
 //#include "spatial_containers/cell.h"
 //#include "spatial_containers/bins_dynamic_objects.h"
@@ -341,47 +342,77 @@ class TDistanceFunction
       {
 	
 	  const std::size_t dimension = 2;
-	  typedef Point<dimension, double>                       PointType;
-          typedef ModelPart::ElementsContainerType               ElementsArrayType; 
-	  typedef ElementsArrayType::value_type                  PointerType;
-	  typedef ElementsArrayType::iterator                    ElementsArrayTypeIterator;  
-	  typedef BoxFunction<dimension>                         BoxType;
-	  typedef TriBoxOverlapFunction                          TriBoxType; 
-	  typedef TDistanceFunction                              DistanceFunctionType;                    
+	  typedef Point<dimension, double>                         PointType;
+          typedef ModelPart::ElementsContainerType::ContainerType  ElementsArrayType; 
+	  typedef ElementsArrayType::value_type                    PointerType;
+	  typedef ElementsArrayType::iterator                      ElementsArrayTypeIterator;  
+	  typedef BoxFunction<dimension>                           BoxType;
+	  typedef TriBoxOverlapFunction                            TriBoxType; 
+	  typedef TDistanceFunction                                DistanceFunctionType;                    
 	  
 	  
-          ElementsArrayType& rElements         =    rThisModelPart.Elements(); 
-          ElementsArrayTypeIterator it_begin   =    rElements.begin();
-          ElementsArrayTypeIterator it_end     =    rElements.end(); 
+           ElementsArrayType& rElements         =    rThisModelPart.ElementsArray();
+           ElementsArrayTypeIterator it_begin   =    rElements.begin();
+           ElementsArrayTypeIterator it_end     =    rElements.end(); 
 
 	  std::string name = rThisModelPart.Name(); 
           name+="_Cells.msh";
           std::ofstream output_file( name.c_str());
 	  
-	  typedef Cell<PointerType, ElementsArrayType> CellType;
-	  typedef std::vector<CellType>                CellContainerType;
-          typedef CellContainerType::iterator          CellContainerIterator;
-	  typedef std::vector<PointerType>::iterator   PointerTypeIterator;
-	  //typedef std::vector<double>::iterator       DistanceIteratorType;
+	   
+	  typedef Spatial_Containers_Configure<dimension>  Configure2D;   
+	  typedef Cell<Configure2D>                        CellType;
+	  typedef std::vector<CellType>                    CellContainerType;
+          typedef CellContainerType::iterator              CellContainerIterator;
+	  typedef std::vector<PointerType>::iterator       PointerTypeIterator;
 	  
-	  PointType MaxPoint, MinPoint;	  
- 	  std::cout<< "Making the Bins " << std::endl;
- 	  std::cout<<std::fixed<<std::setprecision(10);
-	  BinsObjectDynamic<dimension, PointType, ElementsArrayType, BoxType, TriBoxType, DistanceFunctionType> mybins(it_begin, it_end );
+	  typedef ContactPair<PointerType>                 ContactPairType; 
+	  //typedef array_1d<PointerType,2>                       ContactPairType;
+	  typedef std::vector<ContactPairType>             ContainerContactPair;   
+	  typedef std::vector<ContactPairType>::iterator   IteratorContainerContactPair;   
 	  
-	  std::size_t MaxNumberOfResults = 10; 
-	  std::size_t NumberOfResults;     
-	  ElementsArrayType Results; 
-	  ElementsArrayTypeIterator ResultsIterator = Results.begin();  
+	  //typedef std::vector<double>::iterator          DistanceIteratorType;
 	  
-	  for(ElementsArrayTypeIterator it = it_begin; it!=it_end; it++)
-	  {
-	     NumberOfResults = mybins.SearchObjects(*it, ResultsIterator, MaxNumberOfResults);
-	     KRATOS_WATCH(it->Id())
-	     std::cout<< "NumberOfResults = " << NumberOfResults << std::endl;
-	  }
-// 	  
- 	  KRATOS_WATCH(Results)
+ 	  PointType MaxPoint, MinPoint;  
+//  	  std::cout<< "Making the Bins " << std::endl;
+//  	  std::cout<<std::fixed<<std::setprecision(10);
+          BinsObjectDynamic<Configure2D> mybins(it_begin, it_end );
+// 
+ 	  std::size_t MaxNumberOfResults = 20; 
+ 	  std::size_t NumberOfResults    = 0;     
+ 	  //ElementsArrayType Results_1(MaxNumberOfResults); 
+	  //ElementsArrayType Results_2;
+ 	  //ElementsArrayTypeIterator ResultsIterator = Results_1.begin();  
+
+	  ContainerContactPair PairContacts(MaxNumberOfResults);
+	  IteratorContainerContactPair Pair = PairContacts.begin();
+	  
+	  //mybins.SearchContact(PairContacts);
+          NumberOfResults = mybins.SearchContact(Pair, MaxNumberOfResults);
+	  
+	  std::cout<< *(PairContacts[0][0]) << "   " <<*(PairContacts[0][1]) <<std::endl;
+          
+//           for (std::size_t i = 0; i<NumberOfResults; i++)
+//  	     {
+// 	       if(PairContacts[i].first!=NULL) 
+//  	          std::cout<< *PairContacts[i].first << "  " <<  *PairContacts[i].second << std::endl;
+//  	     }
+	  
+	  
+//                if(Results_1[i]!=NULL) 	     
+//  	          std::cout<< *Results_1[i]<< std::endl;
+// 	   }
+// 	   
+// 	   KRATOS_WATCH("******************************************************************* ")
+// 
+// 	   NumberOfResults = mybins.SearchObjects(*(it_begin+5), Results_2);
+//            KRATOS_WATCH(NumberOfResults)  
+// 	   for(unsigned int i=0; i<Results_2.size(); i++)
+// 	   {
+//                if(Results_2[i]!=NULL) 	     
+//  	          std::cout<< *Results_2[i]<< std::endl;
+// 	   }
+	   
           //mybins.SearchObjects(Pair);
 	  
 // 	  unsigned int local = 0;
@@ -400,7 +431,7 @@ class TDistanceFunction
 // 	  }
 
           
-          /*
+          
           if (mrdimension==3)
               {
 		std::cout<< "No printing mesh yet " << std::endl;
@@ -463,35 +494,35 @@ class TDistanceFunction
 	  
 	  }
 	  
-           */
-	  int celda      = 1; 
-	  int intersect = false; 
-	  std::vector<std::pair<int,int> > Pair;
+           
+// 	  int celda      = 1; 
+// 	  int intersect = false; 
+// 	  std::vector<std::pair<int,int> > Pair;
 	  //clock_t init, final;
           //init=clock();
 	  
- 	  for( CellContainerIterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
-	    {
-	      std::cout<< " celda = " << celda++  << std::endl; 
-	      for(ElementsArrayTypeIterator it_1 = icell->Begin(); it_1!= icell->End(); it_1++ )
-	        { 
-		  for(ElementsArrayTypeIterator it_2 = it_1 + 1 ; it_2!= icell->End(); it_2++ )
-		  {
-		    std::cout<< " Elem " << it_1->Id() << "  " << " with elem " << it_2->Id() << std::endl;     
-		    Element::GeometryType& geom_1 = it_1->GetGeometry();
-		    Element::GeometryType& geom_2 = it_2->GetGeometry();
-
-		        bool intersect = geom_1.HasIntersection( geom_2 ) ;
-			if (intersect==true) {Pair.push_back(std::pair<int,int>(it_1->Id(),it_2->Id()));}
-		    
-		  }
-		}
-	    }
-	    
-	    for (unsigned int i = 0; i<Pair.size(); i++)
-	     {
-	       std::cout<< Pair[i].first << "  " <<  Pair[i].second << std::endl;
-	     }
+//  	  for( CellContainerIterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
+// 	    {
+// 	      std::cout<< " celda = " << celda++  << std::endl; 
+// 	      for(ElementsArrayTypeIterator it_1 = icell->Begin(); it_1!= icell->End(); it_1++ )
+// 	        { 
+// 		  for(ElementsArrayTypeIterator it_2 = it_1 + 1 ; it_2!= icell->End(); it_2++ )
+// 		  {
+// 		    std::cout<< " Elem " << it_1->Id() << "  " << " with elem " << it_2->Id() << std::endl;     
+// 		    Element::GeometryType& geom_1 = it_1->GetGeometry();
+// 		    Element::GeometryType& geom_2 = it_2->GetGeometry();
+// 
+// 		        bool intersect = geom_1.HasIntersection( geom_2 ) ;
+// 			if (intersect==true) {Pair.push_back(std::pair<int,int>(it_1->Id(),it_2->Id()));}
+// 		    
+// 		  }
+// 		}
+// 	    }
+// 	    
+// 	    for (unsigned int i = 0; i<Pair.size(); i++)
+// 	     {
+// 	       std::cout<< Pair[i].first << "  " <<  Pair[i].second << std::endl;
+// 	     }
 	      
 	    
  	   //final=clock()-init;
