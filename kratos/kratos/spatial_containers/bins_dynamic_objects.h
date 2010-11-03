@@ -502,7 +502,8 @@ namespace Kratos
           {
            for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ) 
 	       {
-	        number           = round(static_cast<SizeType>(II / columns));;
+	        number           =  static_cast<SizeType>(II / columns);;
+// 	        number           = round(static_cast<SizeType>(II / columns));;
  		LowPointCell[0]  = (I-II) * mCellSize[0];
  		LowPointCell[1]  = number * mCellSize[1];
  		HighPointCell[0] = (I-II + 1  ) * mCellSize[0];
