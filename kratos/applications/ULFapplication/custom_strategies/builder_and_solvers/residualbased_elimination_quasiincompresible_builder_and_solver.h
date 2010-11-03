@@ -882,11 +882,12 @@ namespace Kratos
 			//inverting the mass matrix
 			for(unsigned int i = 0; i<TSparseSpace::Size(mMdiagInv); i++)
 			{
-				if (mMdiagInv[i]*mMdiagInv[i]>0.000000000000001)
+				if (mMdiagInv[i]>1e-26)
 					mMdiagInv[i] = 1.0/mMdiagInv[i];
 				else{ //if (mMdiagInv[i]==0.0)
-					//KRATOS_WATCH(mMdiagInv[i])					
-					mMdiagInv[i] = 0.0;					
+					//KRATOS_WATCH(mMdiagInv[i])	
+					KRATOS_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")				
+					//mMdiagInv[i] = 0.0;					
 					}
 			}
 
@@ -1123,7 +1124,7 @@ namespace Kratos
 				
 				
 				
-				if (fabs(preconditioner[i])>1e-20)
+				if (fabs(preconditioner[i])>1e-26)
 					//preconditioner[i] = 1.00/preconditioner[i];
 					preconditioner[i] = 1.00/preconditioner[i];
 				else 
