@@ -1278,7 +1278,7 @@ namespace OpenCL
 					Options += " ";
 				}
 
-				Options += "-D KRATOS_OCL_VERSION=" KRATOS_OCL_VERSION_STRING " ";
+				Options += "-DKRATOS_OCL_VERSION=" KRATOS_OCL_VERSION_STRING;
 
 				// Add CLSearchPath to compiler's include path, so #include's work as intended
 
@@ -1286,7 +1286,7 @@ namespace OpenCL
 				{
 					// Add -I option
 
-					Options += "-I";
+					Options += " -I";
 					Options += CLSearchPath[i];
 				}
 
