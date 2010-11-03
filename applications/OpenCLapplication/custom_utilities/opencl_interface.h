@@ -63,6 +63,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 //
+// Stringizer macro
+
+#define KRATOS_OCL_VALUE(x)				#x
+#define KRATOS_OCL_STRINGIZE(x)			KRATOS_OCL_VALUE(x)
+
+//
 // Try to find out OpenCL version
 
 #ifdef CL_VERSION_1_1
@@ -70,6 +76,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #else
 	#define KRATOS_OCL_VERSION			100
 #endif
+
+//
+// OpenCL version string
+
+#define KRATOS_OCL_VERSION_STRING		KRATOS_OCL_STRINGIZE(KRATOS_OCL_VERSION)
 
 //
 // Path handling stuff
@@ -1049,7 +1060,7 @@ namespace OpenCL
 			//
 			// CopyImageToImage
 			//
-			// Copies the content of a buffer to another buffer on all devices
+			// Copies the content of an image to another image on all devices
 
 			void CopyImageToImage(cl_uint _SourceImageIndex, cl_uint _DestinationImageIndex)
 			{
@@ -1078,7 +1089,7 @@ namespace OpenCL
 			//
 			// CopyImageToImage
 			//
-			// Copies the content of a buffer to another buffer on a specific device
+			// Copies the content of a image to another image on a specific device
 
 			void CopyImageToImage(cl_uint _DeviceIndex, cl_uint _SourceImageIndex, cl_uint _DestinationImageIndex)
 			{
@@ -1259,16 +1270,20 @@ namespace OpenCL
 
 				std::string Options(_BuildOptions);
 
+				// Define KRATOS_OCL_VERSION macro inside the program
+
+				// Add an space if not empty
+				if (Options.size() != 0)
+				{
+					Options += " ";
+				}
+
+				Options += "-D KRATOS_OCL_VERSION=" KRATOS_OCL_VERSION_STRING " ";
+
 				// Add CLSearchPath to compiler's include path, so #include's work as intended
 
 				for (cl_uint i = 0; i < CLSearchPath.size(); i++)
 				{
-					// Add an space if not empty
-					if (Options.size() != 0)
-					{
-						Options += " ";
-					}
-
 					// Add -I option
 
 					Options += "-I";
@@ -1435,6 +1450,35 @@ namespace OpenCL
 				cl_int Err;
 
 				Err = clSetKernelArg(Kernels[_KernelIndex][_DeviceIndex], _ArgIndex, sizeof(cl_mem), &Buffers[_BufferIndex][_DeviceIndex]);
+				KRATOS_OCL_CHECK(Err);
+			}
+
+			//
+			// SetImageAsKernelArg
+			//
+			// Sets an image as a kernel argument on all devices
+
+			void SetImageAsKernelArg(cl_uint _KernelIndex, cl_uint _ArgIndex, cl_uint _ImageIndex)
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					Err = clSetKernelArg(Kernels[_KernelIndex][i], _ArgIndex, sizeof(cl_mem), &Images[_ImageIndex][i]);
+					KRATOS_OCL_CHECK(Err);
+				}
+			}
+
+			//
+			// SetImageAsKernelArg
+			//
+			// Sets an image as a kernel argument on a specific device
+
+			void SetImageAsKernelArg(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _ArgIndex, cl_uint _ImageIndex)
+			{
+				cl_int Err;
+
+				Err = clSetKernelArg(Kernels[_KernelIndex][_DeviceIndex], _ArgIndex, sizeof(cl_mem), &Images[_ImageIndex][_DeviceIndex]);
 				KRATOS_OCL_CHECK(Err);
 			}
 
