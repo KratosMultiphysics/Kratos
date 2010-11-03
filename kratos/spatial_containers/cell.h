@@ -53,15 +53,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream> 
 #include <cmath>
-
-// External includes 
-//#include "boost/smart_ptr.hpp"
+#include <algorithm>
 
 
-// Project includes
-//#include "includes/define.h"
-//#include "includes/ublas_interface.h"
-//#include "includes/properties.h"
 
 
 namespace Kratos
@@ -89,23 +83,32 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  template<
+  /*template<
   class TPointerType,
   class TContainerType = typename std::vector<TPointerType>, 
   class TIteratorType  = typename TContainerType::iterator
-  > 
+  >*/ 
+  template< class  TConfigure> 
   class Cell
     {
     public:
       ///@name Type Definitions
       ///@{
+     
+	
+      typedef std::size_t  SizeType;      
+      typedef typename TConfigure::PointType               PointType;
+      typedef typename TConfigure::PointerType             PointerType;
+      typedef typename TConfigure::ContainerType           ContainerType;
+      typedef typename TConfigure::IteratorType            IteratorType;
+      typedef typename TConfigure::ResultContainerType     ResultContainerType; 
+      typedef typename TConfigure::ResultIteratorType      ResultIteratorType;
       
-      //typedef std::vector<TPointerType> ContainerType;
-      typedef TContainerType ContainerType;
+      //Contact Pair
+      typedef typename TConfigure::ContainerContactType  ContainerContactType;
+      typedef typename TConfigure::ContactPairType       ContactPairType;
+      typedef typename TConfigure::IteraratorContactType IteraratorContactType;
       
-      typedef TIteratorType IteratorType; 
-      
-      typedef std::size_t  SizeType;
       
       //typedef std::vector< IndexType > CellIndex;
             
@@ -127,7 +130,7 @@ namespace Kratos
       virtual ~Cell(){}
       
       
-      void Add(TPointerType& ThisObject)
+      void Add(PointerType& ThisObject)
       {
 	mObjects.push_back(ThisObject);
       }
@@ -143,6 +146,89 @@ namespace Kratos
 	mObjects.reserve(size);
       }
       
+
+//************************************************************************   
+//************************************************************************       
+
+void SearchObjects(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+      {
+        for(IteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++){
+	  if(TConfigure::Intersection(rThisObject, *i_object)) {
+	   ResultIteratorType repeated_object = find(Result-NumberOfResults, Result, *i_object);	
+	   if(repeated_object==Result) 
+	     {
+              *Result   = *i_object;
+               Result++;
+               NumberOfResults++;
+              }
+	   }
+	}
+      }  
+      
+//************************************************************************   
+//************************************************************************       
+     void SearchObjects(PointerType& rThisObject, ResultContainerType& Result)
+      {
+        for(IteratorType i_object = Begin() ; i_object != End(); i_object++){
+	 if(TConfigure::Intersection(rThisObject, *i_object))
+	 {
+	   ResultIteratorType repeated_object = find(Result.begin(), Result.end(), *i_object);
+	   if(repeated_object==Result.end()) 
+	    {   
+               Result.push_back(*i_object);
+            }
+	  }
+	}
+      }   
+      
+//************************************************************************   
+//************************************************************************ 
+  
+ 
+     void SearchContact(ContainerContactType& Result)
+      {
+	ContactPairType Pair;
+	 for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
+	        { 
+		  Pair[0] = *i_object_1;
+		  for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End(); i_object_2++ )
+		  {    
+		     if(TConfigure::Intersection(*i_object_1, *i_object_2)){
+		       Pair[1] = *i_object_2;
+		           IteraratorContactType repeated_par_1 = find(Result.begin(), Result.end(), Pair);
+			   if(repeated_par_1==Result.end())  
+			       Result.push_back(Pair);}
+		  }
+	     }
+      } 
+
+
+//************************************************************************   
+//************************************************************************ 
+     
+      void SearchContact(IteraratorContactType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults )
+       {
+	  ContactPairType Pair;
+	  for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
+	   { 
+	    Pair[0] = *i_object_1; 
+	    for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End() && NumberOfResults < MaxNumberOfResults ; i_object_2++ )
+	     {    
+ 	      Pair[1] = *i_object_2;
+	      if(TConfigure::Intersection(*i_object_1, *i_object_2)){
+		    IteraratorContactType repeated_par_1 = find(Result-NumberOfResults, Result, Pair);
+		     if(repeated_par_1==Result){
+			 *Result =  Pair;
+			 NumberOfResults++;
+			 Result++;
+		       }
+	          }
+	     }
+           }
+       }
+
+//************************************************************************   
+//************************************************************************  
       SizeType GetContainerSize()
       {
 	return mObjects.size();  
@@ -325,14 +411,14 @@ namespace Kratos
         
  
   /// input stream function
-  template< class TPointerType,class TContainerType, class TIteratorType> 
+  template< class  TConfigure> 
   inline std::istream& operator >> (std::istream& rIStream, 
-				    Cell<TPointerType>& rThis){ return rIStream;}
+				    Cell<TConfigure>& rThis){ return rIStream;}
 
   /// output stream function
-  template< class TPointerType, class TContainerType, class TIteratorType> 
+  template< class  TConfigure> 
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Cell<TPointerType>& rThis)
+				    const Cell<TConfigure>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
