@@ -39,7 +39,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: Nelson $
+//   Last Modified by:    $Author: Nelson Lafontaine $
 //   Date:                $Date: 29-09-2010 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
@@ -62,7 +62,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "tree.h"
 #include "cell.h"
 #include "bounding_box.h"
-//#include "spatial_containers_configure.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -127,11 +126,11 @@ namespace Kratos
       typedef typename TreeNodeType::IndexType       IndexType;       // std::size_t
            
       
-       //Contact Pair
+       ///Contact Pair
        typedef typename TConfigure::ContainerContactType  ContainerContactType;
        typedef typename TConfigure::IteraratorContactType IteraratorContactType;
       
-      //typedef TreeNodeType LeafType;    
+      ///typedef TreeNodeType LeafType;    
        typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
        typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
        
@@ -274,14 +273,13 @@ namespace Kratos
       double start_prod = omp_get_wtime();
       #endif
       
-      #pragma omp parallel for  private(High, Low)  // if(size>1000000) shared(mMaxPoint, mMinPoint)
+      #pragma omp parallel for  private(High, Low) 
       for(int k=0; k<number_of_threads; k++)
  	{
  	  IteratorType i_begin = mObjectsBegin + node_partition[k];
  	  IteratorType i_end   = mObjectsBegin + node_partition[k+1];
       
           for ( IteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
-          //for (IteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
 	    { 
 	         TConfigure::CalculateBoundingBox(*i_object, Low, High);
 		 for(std::size_t i = 0 ; i < Dimension ; i++)
@@ -289,8 +287,6 @@ namespace Kratos
 		   
 		    Max[k][i]      =   (Max[k][i]  < High[i]) ? High[i] : Max[k][i];
 		    Min[k][i]      =   (Min[k][i]  > Low[i])  ? Low[i]  : Min[k][i];
-		   //mMaxPoint[i]  =   (mMaxPoint[i]  < High[i]) ? High[i] : mMaxPoint[i];
-		   //mMinPoint[i]  =   (mMinPoint[i]  > Low[i])  ? Low[i]  : mMinPoint[i]; 
 		 }
 	    }
 	}	
@@ -304,13 +300,10 @@ namespace Kratos
 		 }
 	    }
 	
-	
        #ifdef _OPENMP
        double stop_prod = omp_get_wtime();
        std::cout << "Time Calculating Bounding Boxes  = " << stop_prod - start_prod << std::endl;
        #endif
-	 //std::cout<< mMaxPoint[0] << " " << mMaxPoint[1] << std::endl;
-	 //std::cout<< mMinPoint[0] << " " << mMinPoint[1] << std::endl;  
          
      }
      
@@ -540,7 +533,6 @@ namespace Kratos
            for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ) 
 	       {
 	        number           =  static_cast<SizeType>(II / columns);;
-// 	        number           = round(static_cast<SizeType>(II / columns));;
  		LowPointCell[0]  = (I-II) * mCellSize[0];
  		LowPointCell[1]  = number * mCellSize[1];
  		HighPointCell[0] = (I-II + 1  ) * mCellSize[0];
@@ -741,38 +733,15 @@ void AllocateCellsContainer()
         
  
   /// input stream function
-  /*
-  template<
-    std::size_t Dimension,
-    class PointType,
-    class ContainerType,
-    class TTConfigure::CalculateBoundingBox,
-    class TTConfigure::Intersection,
-    class TDistanceFunction, 
-    class TDistanceIteratorType, = typename std::vector<double>::iterator,
-    class PointerType,          = typename ContainerType::value_type,
-    class IteratorType,         = typename ContainerType::iterator
-    > 
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    BinsObjectDynamic<Dimension, PointerType, PointType, TGeometryType, TBoundingBoxFunction, 
-				    TTConfigure::Intersection, IteratorType>& rThis);
+ template<class TConfigure> 
+ inline std::istream& operator >> (std::istream& rIStream, 
+				    BinsObjectDynamic<TConfigure>& rThis){return rIStream;  }
 				    
 
   /// output stream function
-  template<
-    std::size_t Dimension,
-    class PointType,
-    class ContainerType,
-    class TTConfigure::CalculateBoundingBox,
-    class TTConfigure::Intersection,
-    class TDistanceFunction, 
-    class TDistanceIteratorType = typename std::vector<double>::iterator,
-    class PointerType          = typename ContainerType::value_type,
-    class IteratorType         = typename ContainerType::iterator
-    > 
+  template<class TConfigure>  
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const BinsObjectDynamic<Dimension, PointerType, PointType, TGeometryType,TBoundingBoxFunction, 
-				    TTConfigure::Intersection, IteratorType>& rThis)
+				    const BinsObjectDynamic<TConfigure> & rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -781,7 +750,7 @@ void AllocateCellsContainer()
       return rOStream;
     }
   ///@} 
-  */
+ 
   
 }  // namespace Kratos.
 
