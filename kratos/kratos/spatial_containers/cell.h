@@ -37,7 +37,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: Nelson $
+//   Last Modified by:    $Author: Nelson Lafontaine $
 //   Date:                $Date: 2010-10-08 16:07:33 $
 //   Revision:            $Revision: 1.0$
 //
@@ -80,14 +80,6 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  /*template<
-  class TPointerType,
-  class TContainerType = typename std::vector<TPointerType>, 
-  class TIteratorType  = typename TContainerType::iterator
-  >*/ 
   template< class  TConfigure> 
   class Cell
     {
@@ -96,6 +88,7 @@ namespace Kratos
       ///@{
      
 	
+      /// configure types
       typedef std::size_t  SizeType;      
       typedef typename TConfigure::PointType               PointType;
       typedef typename TConfigure::PointerType             PointerType;
@@ -104,15 +97,11 @@ namespace Kratos
       typedef typename TConfigure::ResultContainerType     ResultContainerType; 
       typedef typename TConfigure::ResultIteratorType      ResultIteratorType;
       
-      //Contact Pair
+      ///configure Contact Pair
       typedef typename TConfigure::ContainerContactType  ContainerContactType;
       typedef typename TConfigure::ContactPairType       ContactPairType;
       typedef typename TConfigure::IteraratorContactType IteraratorContactType;
       
-      
-      //typedef std::vector< IndexType > CellIndex;
-            
-      //typedef Cell<TDimension, TPointerType>  CellType; 
       
       /// Pointer definition of Cell
       KRATOS_CLASS_POINTER_DEFINITION(Cell);
@@ -140,124 +129,130 @@ namespace Kratos
 	mObjects.clear();
       }
       
-      /// WARNING = Solo para ser allocatado
+      
       void AllocateCell(const std::size_t size)
       {
 	mObjects.reserve(size);
       }
       
+      
+      /// Assignment operator.
+      Cell& operator=(Cell const& rOther)
+       {
+	  mObjects   = rOther.mObjects;
+	  return *this;
+       }
+       
+
+      /// Copy constructor.
+      Cell(Cell const& rOther) : 
+          mObjects(rOther.mObjects)    
+       {             
+       }
 
 //************************************************************************   
 //************************************************************************       
 
-void SearchObjects(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
-      {
-        for(IteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++){
-	  if(TConfigure::Intersection(rThisObject, *i_object)) {
-	   ResultIteratorType repeated_object = find(Result-NumberOfResults, Result, *i_object);	
-	   if(repeated_object==Result) 
-	     {
-              *Result   = *i_object;
-               Result++;
-               NumberOfResults++;
-              }
-	   }
-	}
-      }  
+      void SearchObjects(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+	    {
+	      for(IteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++){
+		if(TConfigure::Intersection(rThisObject, *i_object)) {
+		ResultIteratorType repeated_object = find(Result-NumberOfResults, Result, *i_object);	
+		if(repeated_object==Result) 
+		  {
+		    *Result   = *i_object;
+		    Result++;
+		    NumberOfResults++;
+		    }
+		}
+	      }
+	    }  
       
 //************************************************************************   
 //************************************************************************       
-     void SearchObjects(PointerType& rThisObject, ResultContainerType& Result)
-      {
-        for(IteratorType i_object = Begin() ; i_object != End(); i_object++){
-	 if(TConfigure::Intersection(rThisObject, *i_object))
-	 {
-	   ResultIteratorType repeated_object = find(Result.begin(), Result.end(), *i_object);
-	   if(repeated_object==Result.end()) 
-	    {   
-               Result.push_back(*i_object);
-            }
-	  }
-	}
-      }   
+
+      void SearchObjects(PointerType& rThisObject, ResultContainerType& Result)
+	    {
+	      for(IteratorType i_object = Begin() ; i_object != End(); i_object++){
+	      if(TConfigure::Intersection(rThisObject, *i_object))
+	      {
+		ResultIteratorType repeated_object = find(Result.begin(), Result.end(), *i_object);
+		if(repeated_object==Result.end()) 
+		  {   
+		    Result.push_back(*i_object);
+		  }
+		}
+	      }
+	    }   
       
 //************************************************************************   
 //************************************************************************ 
   
  
-     void SearchContact(ContainerContactType& Result)
-      {
-	ContactPairType Pair;
-	 for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
-	        { 
-		  Pair[0] = *i_object_1;
-		  for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End(); i_object_2++ )
-		  {    
-		     if(TConfigure::Intersection(*i_object_1, *i_object_2)){
-		       Pair[1] = *i_object_2;
-		           IteraratorContactType repeated_par_1 = find(Result.begin(), Result.end(), Pair);
-			   if(repeated_par_1==Result.end())  
-			       Result.push_back(Pair);}
+      void SearchContact(ContainerContactType& Result)
+	    {
+	      ContactPairType Pair;
+	      for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
+		      { 
+			Pair[0] = *i_object_1;
+			for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End(); i_object_2++ )
+			{    
+			  if(TConfigure::Intersection(*i_object_1, *i_object_2)){
+			    Pair[1] = *i_object_2;
+				IteraratorContactType repeated_par_1 = find(Result.begin(), Result.end(), Pair);
+				if(repeated_par_1==Result.end())  
+				    Result.push_back(Pair);}
+			}
 		  }
-	     }
-      } 
+	    } 
 
 
 //************************************************************************   
 //************************************************************************ 
      
       void SearchContact(IteraratorContactType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults )
-       {
-	  ContactPairType Pair;
-	  for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
-	   { 
-	    Pair[0] = *i_object_1; 
-	    for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End() && NumberOfResults < MaxNumberOfResults ; i_object_2++ )
-	     {    
- 	      Pair[1] = *i_object_2;
-	      if(TConfigure::Intersection(*i_object_1, *i_object_2)){
-		    IteraratorContactType repeated_par_1 = find(Result-NumberOfResults, Result, Pair);
-		     if(repeated_par_1==Result){
-			 *Result =  Pair;
-			 NumberOfResults++;
-			 Result++;
-		       }
-	          }
-	     }
-           }
-       }
+	    {
+		ContactPairType Pair;
+		for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
+		{ 
+		  Pair[0] = *i_object_1; 
+		  for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End() && NumberOfResults < MaxNumberOfResults ; i_object_2++ )
+		  {    
+		    Pair[1] = *i_object_2;
+		    if(TConfigure::Intersection(*i_object_1, *i_object_2)){
+			  IteraratorContactType repeated_par_1 = find(Result-NumberOfResults, Result, Pair);
+			  if(repeated_par_1==Result){
+			      *Result =  Pair;
+			      NumberOfResults++;
+			      Result++;
+			    }
+			}
+		  }
+		}
+	    }
 
 //************************************************************************   
 //************************************************************************  
-      SizeType GetContainerSize()
-      {
-	return mObjects.size();  
-      }
-            
-       ContainerType GetContainer() 
-       {
-	 return mObjects;
-       }
+
+      IteratorType Begin() 
+	    {
+	      return mObjects.begin();
+	    }
+
+      IteratorType End()  
+	    {
+	      return mObjects.end();
+	    }
        
-       IteratorType Begin() 
-       {
-	 return mObjects.begin();
-       }
-       
-       IteratorType End()  
-       {
-	 return mObjects.end();
-       }
-       
-       IteratorType Begin() const   
-        { 	 
-	  return mObjects.begin();
-	}
+      IteratorType Begin() const   
+	      { 	 
+		return mObjects.begin();
+	      }
         
-       IteratorType End() const  
-       {
-	 return mObjects.end();
-       }
+      IteratorType End() const  
+	    {
+	      return mObjects.end();
+	    }
        
        
        
@@ -266,12 +261,6 @@ void SearchObjects(PointerType& rThisObject, ResultIteratorType& Result, SizeTyp
       ///@name Operators 
       ///@{
       
-      //Cell& operator=(Cell const& rOther){}
-      
-            
-
-      /// Copy constructor.
-      //Cell(Cell const& rOther){}
       
       
       ///@}
@@ -301,14 +290,10 @@ void SearchObjects(PointerType& rThisObject, ResultIteratorType& Result, SizeTyp
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-      {
-      }
+      virtual void PrintInfo(std::ostream& rOStream) const{ return; }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      }
+      virtual void PrintData(std::ostream& rOStream) const{return;}
 
       
       
