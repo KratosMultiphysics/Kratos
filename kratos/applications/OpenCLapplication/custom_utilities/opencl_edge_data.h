@@ -354,7 +354,8 @@ namespace Kratos
 				for (ModelPart::NodesContainerType::iterator node_it = model_part.NodesBegin(); node_it != model_part.NodesEnd(); node_it++)
 				{
 					// Getting the global index of the node
-					i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					//i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					i_node = static_cast <unsigned int> (node_it-model_part.NodesBegin());
 
 					// Determining its neighbours
 					WeakPointerVector < Node<3> > &neighb_nodes = node_it -> GetValue(NEIGHBOUR_NODES);
@@ -664,8 +665,8 @@ namespace Kratos
 					ModelPart::NodesContainerType::iterator node_it = it_begin + i;
 
 					// Get the global index of node i
-					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
-					
+// 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
+					unsigned int i_node = i;
 					
 					// Save value in the destination vector
 					KRATOS_OCL_COMP_0(rDestination[i_node]) = (*node_it)[0];
