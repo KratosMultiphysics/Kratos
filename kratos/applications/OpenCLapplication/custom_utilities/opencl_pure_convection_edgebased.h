@@ -250,7 +250,7 @@ namespace Kratos
 			void Solve()
 			{
 				int64_t t0 = timeNanos();
-				
+
 				// Read variables from Kratos
 				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mUn1, mr_model_part.Nodes(), mbUn1);
 				mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mUn, mr_model_part.Nodes(), mbUn);

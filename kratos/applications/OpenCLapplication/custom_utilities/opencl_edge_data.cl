@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 __kernel void SetToZero(__global ValueType *Vector, const IndexType n)
 {
 	// Get work item index
-	const size_t id = get_global_id(0);
+	__private const IndexType id = get_global_id(0);
 
 	// Check if we are in the range
 	if (id < n)
@@ -84,10 +84,10 @@ __kernel void SetToZero(__global ValueType *Vector, const IndexType n)
 // DestinationVector = Origin1Vector + Value * MinvVector * OriginVector
 // double version
 
-__kernel void Add_Minv_value1(__global ValueType *DestinationVector, __global const ValueType *Origin1Vector, const ValueType Value, __global const ValueType *MinvVector, __global const ValueType *OriginVector, const IndexType n)
+__kernel void Add_Minv_value1(__global ValueType *DestinationVector, __global ValueType *Origin1Vector, const ValueType Value, __global ValueType *MinvVector, __global ValueType *OriginVector, const IndexType n)
 {
 	// Get work item index
-	const size_t id = get_global_id(0);
+	__private const IndexType id = get_global_id(0);
 
 	// Check if we are in the range
 	if (id < n)
@@ -102,10 +102,10 @@ __kernel void Add_Minv_value1(__global ValueType *DestinationVector, __global co
 // DestinationVector = Origin1Vector + Value * MinvVector * OriginVector
 // double3 version
 
-__kernel void Add_Minv_value3(__global VectorType *DestinationVector, __global const VectorType *Origin1Vector, const ValueType Value, __global const VectorType *MinvVector, __global const VectorType *OriginVector, const IndexType n)
+__kernel void Add_Minv_value3(__global VectorType *DestinationVector, __global VectorType *Origin1Vector, const ValueType Value, __global VectorType *MinvVector, __global VectorType *OriginVector, const IndexType n)
 {
 	// Get work item index
-	const size_t id = get_global_id(0);
+	__private const IndexType id = get_global_id(0);
 
 	// Check if we are in the range
 	if (id < n)

@@ -83,7 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // OpenCL 1.0 adjustment
 
-#if __OPENCL_VERSION__ < 110
+#if KRATOS_OCL_VERSION < 110
 
 typedef double4 double3;
 
@@ -93,62 +93,60 @@ typedef double4 double3;
 //
 // Helper macros
 
-#define KRATOS_OCL_LAPLACIANIJ_0_0(a)	((*a).s0)
-#define KRATOS_OCL_LAPLACIANIJ_0_1(a)	((*a).s1)
-#define KRATOS_OCL_LAPLACIANIJ_0_2(a)	((*a).s2)
-#define KRATOS_OCL_LAPLACIANIJ_1_0(a)	((*a).s3)
-#define KRATOS_OCL_LAPLACIANIJ_1_1(a)	((*a).s4)
-#define KRATOS_OCL_LAPLACIANIJ_1_2(a)	((*a).s5)
-#define KRATOS_OCL_LAPLACIANIJ_2_0(a)	((*a).s6)
-#define KRATOS_OCL_LAPLACIANIJ_2_1(a)	((*a).s7)
-#define KRATOS_OCL_LAPLACIANIJ_2_2(a)	((*a).s8)
+#define KRATOS_OCL_LAPLACIANIJ_0_0(a)	((a).s0)
+#define KRATOS_OCL_LAPLACIANIJ_0_1(a)	((a).s1)
+#define KRATOS_OCL_LAPLACIANIJ_0_2(a)	((a).s2)
+#define KRATOS_OCL_LAPLACIANIJ_1_0(a)	((a).s3)
+#define KRATOS_OCL_LAPLACIANIJ_1_1(a)	((a).s4)
+#define KRATOS_OCL_LAPLACIANIJ_1_2(a)	((a).s5)
+#define KRATOS_OCL_LAPLACIANIJ_2_0(a)	((a).s6)
+#define KRATOS_OCL_LAPLACIANIJ_2_1(a)	((a).s7)
+#define KRATOS_OCL_LAPLACIANIJ_2_2(a)	((a).s8)
 
-#define KRATOS_OCL_MASS(a)				((*a).s9)
+#define KRATOS_OCL_MASS(a)				((a).s9)
 
-#define KRATOS_OCL_NI_DNJ_0(a)			((*a).sa)
-#define KRATOS_OCL_NI_DNJ_1(a)			((*a).sb)
-#define KRATOS_OCL_NI_DNJ_2(a)			((*a).sc)
+#define KRATOS_OCL_NI_DNJ_0(a)			((a).sa)
+#define KRATOS_OCL_NI_DNJ_1(a)			((a).sb)
+#define KRATOS_OCL_NI_DNJ_2(a)			((a).sc)
 
-#define KRATOS_OCL_DNI_NJ_0(a)			((*a).sd)
-#define KRATOS_OCL_DNI_NJ_1(a)			((*a).se)
-#define KRATOS_OCL_DNI_NJ_2(a)			((*a).sf)
+#define KRATOS_OCL_DNI_NJ_0(a)			((a).sd)
+#define KRATOS_OCL_DNI_NJ_1(a)			((a).se)
+#define KRATOS_OCL_DNI_NJ_2(a)			((a).sf)
 
-#define KRATOS_OCL_COMP_0(a)			((*a).s0)
-#define KRATOS_OCL_COMP_1(a)			((*a).s1)
-#define KRATOS_OCL_COMP_2(a)			((*a).s2)
+#define KRATOS_OCL_COMP_0(a)			((a).s0)
+#define KRATOS_OCL_COMP_1(a)			((a).s1)
+#define KRATOS_OCL_COMP_2(a)			((a).s2)
 
 
 //
 // Fast math macros
 
-//
 // Currently these are not supported on GPUs
 
 #ifdef __CPU__
 
-	#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	native_divide(x, y)
-	#define KRATOS_OCL_NATIVE_RECIP(x)		native_recip(x)
-	#define KRATOS_OCL_NATIVE_SQRT(x)		native_sqrt(x)
+	#define KRATOS_OCL_DIVIDE(x, y)			native_divide(x, y)
+	#define KRATOS_OCL_RECIP(x)				native_recip(x)
+	#define KRATOS_OCL_SQRT(x)				native_sqrt(x)
 
 #else
 
-	#define KRATOS_OCL_NATIVE_DIVIDE(x, y)	((x) / (y))
-	#define KRATOS_OCL_NATIVE_RECIP(x)		(1.00 / (x))
-	#define KRATOS_OCL_NATIVE_SQRT(x)		sqrt(x)
+	#define KRATOS_OCL_DIVIDE(x, y)			((x) / (y))
+	#define KRATOS_OCL_RECIP(x)				(1.00 / (x))
+	#define KRATOS_OCL_SQRT(x)				sqrt(x)
 
 #endif
 
 //
 // Used types
 
-// TODO: Any better candidate? Or even a change in used fields to enable vector operations in kernels
-typedef double16 EdgeType;
-
 typedef unsigned int IndexType;
 
 typedef double3 VectorType;
 
 typedef double ValueType;
+
+typedef double16 EdgeType;
 
 
 //
@@ -159,423 +157,262 @@ inline ValueType length3(double4 x)
 	double4 t = x;
 	t.s3 = 0.00;
 
-	return KRATOS_OCL_NATIVE_SQRT(dot(t, t));
+	return KRATOS_OCL_SQRT(dot(t, t));
 }
 
-#if __OPENCL_VERSION__ < 110
-	#define KRATOS_OCL_LENGTH3(x)		length3(x)
+#if KRATOS_OCL_VERSION < 110
+	#define KRATOS_OCL_LENGTH3(x)			length3(x)
+	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z, 0.00))
 #else
-	#define KRATOS_OCL_LENGTH3(x)		length(x)
+	#define KRATOS_OCL_LENGTH3(x)			length(x)
+	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z))
 #endif
 
 
 // A dummy kernel for test
-__kernel void Test(__global const double *input, __global double *output, const double offset)
+__kernel void Test(__global double *input, __global double *output, const double offset)
 {
-	const size_t id = get_global_id(0);
+	__private const IndexType id = get_global_id(0);
 	const double iv = input[id];
 	output[id] = 2.00 * sin(iv) * cos(iv) + offset;
 }
 
 //
 // Edge specific kernels
-
-// TODO: Optimize kernels (vectorize, use built-in functions, avoid excessive use of __global data)
-// TODO: Some __global attributes must be removed, depending on the usage, like Add_grad_p
-
-void Add_Gp(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
+/*
+inline void Add_Gp(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	 // destination[comp] -= Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i
-	 KRATOS_OCL_COMP_0(destination) -= KRATOS_OCL_NI_DNJ_0(a) * p_j - KRATOS_OCL_DNI_NJ_0(a) * p_i;
-	 KRATOS_OCL_COMP_1(destination) -= KRATOS_OCL_NI_DNJ_1(a) * p_j - KRATOS_OCL_DNI_NJ_1(a) * p_i;
-	 KRATOS_OCL_COMP_2(destination) -= KRATOS_OCL_NI_DNJ_2(a) * p_j - KRATOS_OCL_DNI_NJ_2(a) * p_i;
+	 *destination -= (*a).Ni_DNj * p_j - (*a).DNi_Nj * p_i;
 }
 
-void Sub_Gp(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
+inline void Sub_Gp(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	 // destination[comp] += Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i
-	 KRATOS_OCL_COMP_0(destination) += KRATOS_OCL_NI_DNJ_0(a) * p_j - KRATOS_OCL_DNI_NJ_0(a) * p_i;
-	 KRATOS_OCL_COMP_1(destination) += KRATOS_OCL_NI_DNJ_1(a) * p_j - KRATOS_OCL_DNI_NJ_1(a) * p_i;
-	 KRATOS_OCL_COMP_2(destination) += KRATOS_OCL_NI_DNJ_2(a) * p_j - KRATOS_OCL_DNI_NJ_2(a) * p_i;
+	 *destination += (*a).Ni_DNj * p_j - (*a).DNi_Nj * p_i;
 }
 
-void Add_D_v(__global EdgeType *a, __global ValueType *destination, __global const VectorType *v_i, __global const VectorType *v_j)
+inline void Add_D_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
 {
 	// destination += Ni_DNj[comp] * (v_j[comp] - v_i[comp])
-	*destination +=
-		KRATOS_OCL_NI_DNJ_0(a) * (KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_COMP_0(v_i)) +
-		KRATOS_OCL_NI_DNJ_1(a) * (KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_COMP_1(v_i)) +
-		KRATOS_OCL_NI_DNJ_2(a) * (KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_COMP_2(v_i));
+	*destination += dot((*a).Ni_DNj, *v_j - *v_i);
 }
 
-void Sub_D_v(__global EdgeType *a, __global ValueType *destination, __global const VectorType *v_i, __global const VectorType *v_j)
+inline void Sub_D_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
 {
 	// destination -= Ni_DNj[comp] * (v_j[comp] - v_i[comp])
-	*destination -=
-		KRATOS_OCL_NI_DNJ_0(a) * (KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_COMP_0(v_i)) +
-		KRATOS_OCL_NI_DNJ_1(a) * (KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_COMP_1(v_i)) +
-		KRATOS_OCL_NI_DNJ_2(a) * (KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_COMP_2(v_i));
+	*destination -= dot((*a).Ni_DNj, *v_j - *v_i);
 }
-
-void Add_grad_p(__global EdgeType *a, VectorType *destination, const ValueType p_i, const ValueType p_j)
+*/
+inline void Add_grad_p(VectorType Ni_DNj, VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	// destination[comp] += Ni_DNj[comp] * (p_j - p_i)
-	ValueType dp = p_j - p_i;
- 
-	KRATOS_OCL_COMP_0(destination) += KRATOS_OCL_NI_DNJ_0(a) * dp; 
-	KRATOS_OCL_COMP_1(destination) += KRATOS_OCL_NI_DNJ_1(a) * dp; 
-	KRATOS_OCL_COMP_2(destination) += KRATOS_OCL_NI_DNJ_2(a) * dp;
+	*destination += Ni_DNj * (p_j - p_i);
 }
-
-void Sub_grad_p(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
+/*
+inline void Sub_grad_p(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	// destination[comp] -= Ni_DNj[comp] * (p_j - p_i)
-	ValueType dp = p_j - p_i;
-
-	KRATOS_OCL_COMP_0(destination) -= KRATOS_OCL_NI_DNJ_0(a) * dp;
-	KRATOS_OCL_COMP_1(destination) -= KRATOS_OCL_NI_DNJ_1(a) * dp;
-	KRATOS_OCL_COMP_2(destination) -= KRATOS_OCL_NI_DNJ_2(a) * dp;
+	*destination -= (*a).Ni_DNj * (p_j - p_i);
 }
 
-void Add_div_v(__global EdgeType *a, __global ValueType *destination, __global const VectorType *v_i, __global const VectorType *v_j)
+inline void Add_div_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
 {
 	// destination -= Ni_DNj[comp]*v_j[comp] - DNi_Nj[comp]*v_i[comp]
-	*destination -=
-		KRATOS_OCL_NI_DNJ_0(a) * KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_DNI_NJ_0(a) * KRATOS_OCL_COMP_0(v_i) +
-		KRATOS_OCL_NI_DNJ_1(a) * KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_DNI_NJ_1(a) * KRATOS_OCL_COMP_1(v_i) +
-		KRATOS_OCL_NI_DNJ_2(a) * KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_DNI_NJ_2(a) * KRATOS_OCL_COMP_2(v_i);
+	*destination -= dot((*a).Ni_DNj, *v_j) - dot((*a).DNi_Nj, *v_i);
 }
 
-void Sub_div_v(__global EdgeType *a, __global ValueType *destination, __global const VectorType *v_i, __global const VectorType *v_j)
+inline void Sub_div_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
 {
 	// destination += Ni_DNj[comp]*v_j[comp] - DNi_Nj[comp]*v_i[comp]
-	*destination +=
-		KRATOS_OCL_NI_DNJ_0(a) * KRATOS_OCL_COMP_0(v_j) - KRATOS_OCL_DNI_NJ_0(a) * KRATOS_OCL_COMP_0(v_i) +
-		KRATOS_OCL_NI_DNJ_1(a) * KRATOS_OCL_COMP_1(v_j) - KRATOS_OCL_DNI_NJ_1(a) * KRATOS_OCL_COMP_1(v_i) +
-		KRATOS_OCL_NI_DNJ_2(a) * KRATOS_OCL_COMP_2(v_j) - KRATOS_OCL_DNI_NJ_2(a) * KRATOS_OCL_COMP_2(v_i);
+	*destination += dot((*a).Ni_DNj, *v_j) - dot((*a).DNi_Nj, *v_i);
 }
-
-void CalculateScalarLaplacian(__global EdgeType *a, ValueType *l_ij)
+*/
+inline void CalculateScalarLaplacian(ValueType LaplacianIJ_0_0, ValueType LaplacianIJ_1_1, ValueType LaplacianIJ_2_2, ValueType *l_ij)
 {
 	// l_ij += LaplacianIJ(comp, comp)
-	*l_ij = KRATOS_OCL_LAPLACIANIJ_0_0(a) + KRATOS_OCL_LAPLACIANIJ_1_1(a) + KRATOS_OCL_LAPLACIANIJ_2_2(a);
+	*l_ij = LaplacianIJ_0_0 + LaplacianIJ_1_1 + LaplacianIJ_2_2;
 }
-
-void Add_ConvectiveContribution(__global EdgeType *a, __global VectorType *destination,
-	__global const VectorType *a_i, __global const VectorType *U_i,
-	__global const VectorType *a_j, __global const VectorType *U_j)
+/*
+inline void Add_ConvectiveContribution(__global EdgeType *a, __global VectorType *destination,
+	__global VectorType *a_i, __global VectorType *U_i,
+	__global VectorType *a_j, __global VectorType *U_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType temp =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// destination[l_comp] += temp * (U_j[l_comp] - U_i[l_comp])
-	KRATOS_OCL_COMP_0(destination) += temp * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
-	KRATOS_OCL_COMP_1(destination) += temp * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
-	KRATOS_OCL_COMP_2(destination) += temp * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
+	*destination += dot(*a_i, (*a).Ni_DNj) * (*U_j - *U_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_i =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_j =
-		KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// destination[l_comp] += aux_j * U_j[l_comp] - aux_i * U_i[l_comp]
-	KRATOS_OCL_COMP_0(destination) += aux_j * KRATOS_OCL_COMP_0(U_j) - aux_i * KRATOS_OCL_COMP_0(U_i);
-	KRATOS_OCL_COMP_1(destination) += aux_j * KRATOS_OCL_COMP_1(U_j) - aux_i * KRATOS_OCL_COMP_1(U_i);
-	KRATOS_OCL_COMP_2(destination) += aux_j * KRATOS_OCL_COMP_2(U_j) - aux_i * KRATOS_OCL_COMP_2(U_i);
+	*destination += dot(*a_j, (*a).Ni_DNj) * (*U_j) - dot(*a_i, (*a).Ni_DNj) * (*U_i);
 
 #endif
 
 }
 
-void Sub_ConvectiveContribution(__global EdgeType *a, __global VectorType *destination,
-	__global const VectorType *a_i, __global const VectorType *U_i,
-	__global const VectorType *a_j, __global const VectorType *U_j)
+inline void Sub_ConvectiveContribution(__global EdgeType *a, __global VectorType *destination,
+	__global VectorType *a_i, __global VectorType *U_i,
+	__global VectorType *a_j, __global VectorType *U_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType temp =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// destination[l_comp] -= temp * (U_j[l_comp] - U_i[l_comp])
-	KRATOS_OCL_COMP_0(destination) -= temp * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
-	KRATOS_OCL_COMP_1(destination) -= temp * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
-	KRATOS_OCL_COMP_2(destination) -= temp * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
+	*destination -= dot(*a_i, (*a).Ni_DNj) * (*U_j - *U_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_i =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_j =
-		KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// destination[l_comp] -= aux_j * U_j[l_comp] - aux_i * U_i[l_comp]
-	KRATOS_OCL_COMP_0(destination) -= aux_j * KRATOS_OCL_COMP_0(U_j) - aux_i * KRATOS_OCL_COMP_0(U_i);
-	KRATOS_OCL_COMP_1(destination) -= aux_j * KRATOS_OCL_COMP_1(U_j) - aux_i * KRATOS_OCL_COMP_1(U_i);
-	KRATOS_OCL_COMP_2(destination) -= aux_j * KRATOS_OCL_COMP_2(U_j) - aux_i * KRATOS_OCL_COMP_2(U_i);
+	*destination -= dot(*a_j, (*a).Ni_DNj) * (*U_j) - dot(*a_i, (*a).Ni_DNj) * (*U_i);
 
 #endif
 
 }
 
-void Add_ConvectiveContribution2(__global EdgeType *a, __global ValueType *destination,
-	__global const VectorType *a_i, const ValueType phi_i,
-	__global const VectorType *a_j, const ValueType phi_j)
+inline void Add_ConvectiveContribution2(__global EdgeType *a, __global ValueType *destination,
+	__global VectorType *a_i, const ValueType phi_i,
+	__global VectorType *a_j, const ValueType phi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType temp =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
-	*destination += temp * (phi_j - phi_i);
+	*destination += dot(*a_i, (*a).Ni_DNj) * (phi_j - phi_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_i =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_j =
-		KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
-
-	*destination += aux_j * phi_j - aux_i * phi_i;
+	*destination += dot(*a_j, (*a).Ni_DNj) * phi_j - dot(*a_i, (*a).Ni_DNj) * phi_i;
 
 #endif
 
 }
-
-void Sub_ConvectiveContribution2(__global EdgeType *a, ValueType *destination,
-	const VectorType *a_i, const ValueType phi_i,
-	const VectorType *a_j, const ValueType phi_j)
+*/
+inline void Sub_ConvectiveContribution2(VectorType Ni_DNj, ValueType *destination,
+	const VectorType a_i, const ValueType phi_i,
+	const VectorType a_j, const ValueType phi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType temp =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
-	*destination -= temp * (phi_j - phi_i);
+	*destination -= dot(a_i, Ni_DNj) * (phi_j - phi_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_i =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_j =
-		KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
-
-	*destination -= aux_j * phi_j - aux_i * phi_i;
+	*destination -= dot(a_j * phi_j - a_i * phi_i, Ni_DNj);
 
 #endif
 
 }
-
-void CalculateConvectionStabilization_LOW(__global EdgeType *a, __global VectorType *stab_low,
-	__global const VectorType *a_i, __global const VectorType *U_i,
-	__global const VectorType *a_j, __global const VectorType *U_j)
+/*
+inline void CalculateConvectionStabilization_LOW(__global EdgeType *a, __global VectorType *stab_low,
+	__global VectorType *a_i, __global VectorType *U_i,
+	__global VectorType *a_j, __global VectorType *U_j)
 {
 	// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
-	ValueType conv_stab =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_0_0(a) +
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_0_1(a) +
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_0_2(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_1_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_1_1(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_1_2(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_2_0(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_2_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_2_2(a);
-
 	// stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp])
-	KRATOS_OCL_COMP_0(stab_low) = conv_stab * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
-	KRATOS_OCL_COMP_1(stab_low) = conv_stab * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
-	KRATOS_OCL_COMP_2(stab_low) = conv_stab * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
+	*stab_low = dot(*a_i, KRATOS_OCL_VECTOR3(dot(*a_i, (*a).LaplacianIJ_0), dot(*a_i, (*a).LaplacianIJ_1), dot(*a_i, (*a).LaplacianIJ_2))) * (*U_j - *U_i);
 }
-
-void CalculateConvectionStabilization_LOW2(__global EdgeType *a, ValueType *stab_low,
-	const VectorType *a_i, const ValueType phi_i,
-	const VectorType *a_j, const ValueType phi_j)
+*/
+inline void CalculateConvectionStabilization_LOW2(VectorType LaplacianIJ_0, VectorType LaplacianIJ_1, VectorType LaplacianIJ_2, ValueType *stab_low,
+	const VectorType a_i, const ValueType phi_i,
+	const VectorType a_j, const ValueType phi_j)
 {
 	// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
-	ValueType conv_stab =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_0_0(a) +
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_0_1(a) +
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_0_2(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_1_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_1_1(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_1_2(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_LAPLACIANIJ_2_0(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_LAPLACIANIJ_2_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_LAPLACIANIJ_2_2(a);
-
-	*stab_low = conv_stab * (phi_j - phi_i);
+	*stab_low = dot(a_i, KRATOS_OCL_VECTOR3(dot(a_i, LaplacianIJ_0), dot(a_i, LaplacianIJ_1), dot(a_i, LaplacianIJ_2))) * (phi_j - phi_i);
 }
-
-void CalculateConvectionStabilization_HIGH(__global EdgeType *a, __global VectorType *stab_high,
-	__global const VectorType *a_i, __global const VectorType *pi_i,
-	__global const VectorType *a_j, __global const VectorType *pi_j)
+/*
+inline void CalculateConvectionStabilization_HIGH(__global EdgeType *a, __global VectorType *stab_high,
+	__global VectorType *a_i, __global VectorType *pi_i,
+	__global VectorType *a_j, __global VectorType *pi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType temp =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// stab_high[l_comp] = -temp * (pi_j[l_comp] - pi_i[l_comp])
-	KRATOS_OCL_COMP_0(stab_high) = -temp * (KRATOS_OCL_COMP_0(pi_j) - KRATOS_OCL_COMP_0(pi_i)); // check if the minus sign is correct
-	KRATOS_OCL_COMP_1(stab_high) = -temp * (KRATOS_OCL_COMP_1(pi_j) - KRATOS_OCL_COMP_1(pi_i)); // check if the minus sign is correct
-	KRATOS_OCL_COMP_2(stab_high) = -temp * (KRATOS_OCL_COMP_2(pi_j) - KRATOS_OCL_COMP_2(pi_i)); // check if the minus sign is correct
+	*stab_high = -dot(*a_i, (*a).Ni_DNj) * (*pi_j - *pi_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_i =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_j =
-		KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
-
-	// stab_high[l_comp] =  -(aux_j * pi_j[l_comp] - aux_i * pi_i[l_comp])
-	KRATOS_OCL_COMP_0(stab_high) = -(aux_j * KRATOS_OCL_COMP_0(pi_j) - aux_i * KRATOS_OCL_COMP_0(pi_i));
-	KRATOS_OCL_COMP_1(stab_high) = -(aux_j * KRATOS_OCL_COMP_1(pi_j) - aux_i * KRATOS_OCL_COMP_1(pi_i));
-	KRATOS_OCL_COMP_2(stab_high) = -(aux_j * KRATOS_OCL_COMP_2(pi_j) - aux_i * KRATOS_OCL_COMP_2(pi_i));
+	// stab_high[l_comp] = -(aux_j * pi_j[l_comp] - aux_i * pi_i[l_comp])
+	*stab_high = dot(*a_i, (*a).Ni_DNj) * (*pi_i) - dot(*a_j, (*a).Ni_DNj) * (*pi_j);
 
 #endif
 
 }
-
-void CalculateConvectionStabilization_HIGH2(__global EdgeType *a, ValueType *stab_high,
-	const VectorType *a_i, const ValueType pi_i,
-	const VectorType *a_j, const ValueType pi_j)
+*/
+inline void CalculateConvectionStabilization_HIGH2(VectorType Ni_DNj, ValueType *stab_high,
+	const VectorType a_i, const ValueType pi_i,
+	const VectorType a_j, const ValueType pi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType temp =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
-	*stab_high  = -temp * (pi_j - pi_i); // check if the minus sign is correct
+	*stab_high = dot(a_i, Ni_DNj) * (pi_i - pi_j);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_i =
-		KRATOS_OCL_COMP_0(a_i) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_i) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_i) * KRATOS_OCL_NI_DNJ_2(a);
-
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
-	ValueType aux_j =
-		KRATOS_OCL_COMP_0(a_j) * KRATOS_OCL_NI_DNJ_0(a) +
-		KRATOS_OCL_COMP_1(a_j) * KRATOS_OCL_NI_DNJ_1(a) +
-		KRATOS_OCL_COMP_2(a_j) * KRATOS_OCL_NI_DNJ_2(a);
-
-	*stab_high = -(aux_j * pi_j - aux_i * pi_i);
+	*stab_high = dot(a_i * pi_i - a_j * pi_j, Ni_DNj);
 
 #endif
 
 }
-
-void Add_StabContribution(__global EdgeType *a, __global VectorType *destination,
+/*
+inline void Add_StabContribution(__global EdgeType *a, __global VectorType *destination,
 	const ValueType tau, const ValueType beta,
-	__global const VectorType *stab_low, __global const VectorType *stab_high)
+	__global VectorType *stab_low, __global VectorType *stab_high)
 {
 	// destination[l_comp] += tau * (stab_low[l_comp] - beta * stab_high[l_comp])
-	KRATOS_OCL_COMP_0(destination) += tau * (KRATOS_OCL_COMP_0(stab_low) - beta * KRATOS_OCL_COMP_0(stab_high));
-	KRATOS_OCL_COMP_1(destination) += tau * (KRATOS_OCL_COMP_1(stab_low) - beta * KRATOS_OCL_COMP_1(stab_high));
-	KRATOS_OCL_COMP_2(destination) += tau * (KRATOS_OCL_COMP_2(stab_low) - beta * KRATOS_OCL_COMP_2(stab_high));
+	*destination += tau * ((*stab_low) - beta * (*stab_high));
 }
 
-void Sub_StabContribution(__global EdgeType *a, __global VectorType *destination,
+inline void Sub_StabContribution(__global EdgeType *a, __global VectorType *destination,
 	const ValueType tau, const ValueType beta,
-	__global const VectorType *stab_low, __global const VectorType *stab_high)
+	__global VectorType *stab_low, __global VectorType *stab_high)
 {
 	// destination[l_comp] -= tau * (stab_low[l_comp] - beta * stab_high[l_comp])
-	KRATOS_OCL_COMP_0(destination) -= tau * (KRATOS_OCL_COMP_0(stab_low) - beta * KRATOS_OCL_COMP_0(stab_high));
-	KRATOS_OCL_COMP_1(destination) -= tau * (KRATOS_OCL_COMP_1(stab_low) - beta * KRATOS_OCL_COMP_1(stab_high));
-	KRATOS_OCL_COMP_2(destination) -= tau * (KRATOS_OCL_COMP_2(stab_low) - beta * KRATOS_OCL_COMP_2(stab_high));
+	*destination -= tau * ((*stab_low) - beta * (*stab_high));
 }
 
-void Add_StabContribution2(__global EdgeType *a, __global ValueType *destination,
+inline void Add_StabContribution2(__global EdgeType *a, __global ValueType *destination,
 	const ValueType tau, const ValueType beta,
 	const ValueType stab_low, const ValueType stab_high)
 {
 	*destination += tau * (stab_low - beta * stab_high);
 }
-
-void Sub_StabContribution2(__global EdgeType *a, ValueType *destination,
+*/
+inline void Sub_StabContribution2(__global EdgeType *a, ValueType *destination,
 	const ValueType tau, const ValueType beta,
 	const ValueType stab_low, const ValueType stab_high)
 {
 	*destination -= tau * (stab_low - beta * stab_high);
 }
-
-void Add_ViscousContribution(__global EdgeType *a, __global VectorType *destination,
-	__global const VectorType *U_i, const ValueType nu_i,
-	__global const VectorType *U_j, const ValueType nu_j)
+/*
+inline void Add_ViscousContribution(__global EdgeType *a, __global VectorType *destination,
+	__global VectorType *U_i, const ValueType nu_i,
+	__global VectorType *U_j, const ValueType nu_j)
 {
 	// L += LaplacianIJ(l_comp, l_comp)
-	ValueType L = KRATOS_OCL_LAPLACIANIJ_0_0(a) + KRATOS_OCL_LAPLACIANIJ_1_1(a) + KRATOS_OCL_LAPLACIANIJ_2_2(a);
-
-	ValueType nu_avg = 0.5 * (nu_i + nu_j);
-
 	// destination[l_comp] += nu_i * L * (U_j[l_comp] - U_i[l_comp])
-	KRATOS_OCL_COMP_0(destination) += nu_i * L * (KRATOS_OCL_COMP_0(U_j) - KRATOS_OCL_COMP_0(U_i));
-	KRATOS_OCL_COMP_1(destination) += nu_i * L * (KRATOS_OCL_COMP_1(U_j) - KRATOS_OCL_COMP_1(U_i));
-	KRATOS_OCL_COMP_2(destination) += nu_i * L * (KRATOS_OCL_COMP_2(U_j) - KRATOS_OCL_COMP_2(U_i));
+	*destination += nu_i * ((*a).LaplacianIJ_0.x + (*a).LaplacianIJ_1.y + (*a).LaplacianIJ_2.z) * (*U_j - *U_i);
 }
-
+*/
