@@ -172,7 +172,7 @@ inline ValueType length3(double4 x)
 // A dummy kernel for test
 __kernel void Test(__global double *input, __global double *output, const double offset)
 {
-	__private const IndexType id = get_global_id(0);
+	__private const size_t id = get_global_id(0);
 	const double iv = input[id];
 	output[id] = 2.00 * sin(iv) * cos(iv) + offset;
 }

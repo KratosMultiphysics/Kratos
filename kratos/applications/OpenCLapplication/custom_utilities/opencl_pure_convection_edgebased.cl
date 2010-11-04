@@ -79,7 +79,7 @@ CalculateScalarLaplacian
 __kernel void CalculateAdvectiveVelocity(__global VectorType *mUn, __global VectorType *mUn1, __global VectorType *mA, const ValueType coefficient, const IndexType n_nodes)
 {
 	// Get work item index
-	__private const IndexType i_node = get_global_id(0);
+	__private const size_t i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -97,7 +97,7 @@ __kernel void CalculateAdvectiveVelocity(__global VectorType *mUn, __global Vect
 __kernel void Solve1(__global ValueType *Hmin, __global VectorType *A, __global ValueType *Tau, const ValueType time_inv, const IndexType n_nodes)
 {
 	// Get work item index
-	__private const IndexType i_node = get_global_id(0);
+	__private const size_t i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -115,7 +115,7 @@ __kernel void Solve1(__global ValueType *Hmin, __global VectorType *A, __global 
 __kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes)
 {
 	// Get work item index
-	__private const IndexType i_node = get_global_id(0);
+	__private const size_t i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -143,7 +143,7 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __
 __kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global VectorType *x, __global ValueType *Beta, const IndexType n_nodes)
 {
 	// Get work item index
-	__private const IndexType i_node = get_global_id(0);
+	__private const size_t i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -185,7 +185,7 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __
 __kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global VectorType *convective_velocity, __global ValueType *Beta, __global ValueType *rhs, __global ValueType *Tau, const IndexType n_nodes)
 {
 	// Get work item index
-	__private const IndexType i_node = get_global_id(0);
+	__private const size_t i_node = get_global_id(0);
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
