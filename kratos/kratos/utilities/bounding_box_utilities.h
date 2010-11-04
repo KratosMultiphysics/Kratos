@@ -76,11 +76,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/geometry.h"
 #include "includes/mesh.h"
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/spatial_containers_configure.h"
 //#include "spatial_containers/bounding_box.h"
 //#include "spatial_containers/cell.h"
 //#include "spatial_containers/bins_dynamic_objects.h"
 
+#include "utilities/spatial_containers_configure.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos
