@@ -11,12 +11,13 @@
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : add Start_time variable
+#    LAST MODIFICATION : modify the procedure WritePropertyAtNodes to use dict option => fast write option for big models
 #
-#    VERSION : 2.6
+#    VERSION : 2.7
 #
 #    HISTORY:
 #
+#     2.7- 02/11/10-G. Socorro, modify the procedure WritePropertyAtNodes to use dict option => fast write option for big models
 #     2.6- 23/09/10-G. Socorro, add Start_time variable
 #     2.5- 08/09/10-G. Socorro, add "Distance" variable to the fluid application results
 #     2.4- 06/09/10-G. Socorro, reset xcomp, ycomp and zcomp at the end of the foreach group when write no-slip BC in the fluid application  
@@ -102,13 +103,13 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	
 	# Write nodes block    
 	::wkcf::WriteNodalCoordinates $AppId
-		
+
 	# Write elements block 
 	::wkcf::WriteElementConnectivities $AppId
 
 	# Write boundary condition block
 	::wkcf::WriteBoundaryConditions $AppId
-	
+
 	# For structural analysis application
 	if {$AppId =="StructuralAnalysis"} {
 	    # Write load properties block
@@ -123,7 +124,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	# End
 	write_calc_data end
     }
-   
+    
     # Write the project parameters file
     ::wkcf::WriteProjectParameters
    
@@ -274,10 +275,11 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
     variable dprops
 
     set cproplist [list "Density" "Viscosity"]
-
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
-	set allnlist [list]
+	# set inittime [clock seconds]
+	# Create a dictionary
+	set nc [dict create 0 0]
 	# For all defined kratos elements	
 	foreach celemid $dprops($AppId,AllKElemId) {
 	    # Check for all defined group identifier for this element
@@ -294,10 +296,8 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
 			foreach elemid $allelist {
  			    # Get the element properties
  			    foreach nodeid [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] {
- 				if {$nodeid ni $allnlist} {
- 				    lappend allnlist $nodeid
-				}
- 			    }
+				dict set nc $nodeid $cgroupid 
+			    }
  			}
 		    }
 		}
@@ -334,31 +334,52 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
 	# WarnWinText "Density:$Density Viscosity:$Viscosity"
 	    
 	set kxpath "Materials"
-
-	# Write viscosity value
-	set vkword [::xmlutils::getKKWord $kxpath "Viscosity" "kkword"]
-	write_calc_data puts "Begin NodalData $vkword"
 	set cpropid "0"	
-	foreach nodeid $allnlist {
-	    set wbuff "[format "%4i  %4i" $nodeid $cpropid]    $Viscosity"
-	    write_calc_data puts "$wbuff"
-	}
-	write_calc_data puts "End NodalData"
-	write_calc_data puts ""
 
-	# Write density value
-	set dkword [::xmlutils::getKKWord $kxpath "Density" "kkword"]
-	write_calc_data puts "Begin NodalData $dkword"
-	foreach nodeid $allnlist {
-	    set wbuff "[format "%4i  %4i" $nodeid $cpropid]    $Density"
-	    write_calc_data puts "$wbuff"
+	# Write the group nodal properties
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    # Check for all defined group identifier for this element
+	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ($dprops($AppId,KElem,$celemid,AllGroupId)>0)} {
+	 	# For all defined group identifier for this element
+	 	foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		    set cnodeglist [list]
+		    dict for {nodeid dgroupid} $nc {
+			if {$cgroupid ==$dgroupid} {
+			    lappend cnodeglist $nodeid
+			}
+		    }
+		    if {[llength $cnodeglist]} {
+		        # Write all nodes for this group in incresing orden
+			set viscobf ""; set densibf ""
+		        foreach nodeid [lsort -integer $cnodeglist] {
+			    append viscobf "[format "%4i  %4i" $nodeid $cpropid]    $Viscosity\n"
+			    append densibf "[format "%4i  %4i" $nodeid $cpropid]    $Density\n"
+			}
+			# Write viscosity value for this group
+			set vkword [::xmlutils::getKKWord $kxpath "Viscosity" "kkword"]
+			write_calc_data puts "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
+			write_calc_data puts "[string trimright $viscobf]"
+			write_calc_data puts "End NodalData"
+			write_calc_data puts ""
+			
+			# Write density value for this group 
+			set dkword [::xmlutils::getKKWord $kxpath "Density" "kkword"]
+			write_calc_data puts "Begin NodalData $dkword \/\/ GUI group identifier: $cgroupid"
+			write_calc_data puts "[string trimright $densibf]"
+			write_calc_data puts "End NodalData"
+			write_calc_data puts ""
+		    }
+		}
+		unset cnodeglist
+	    }
 	}
-	write_calc_data puts "End NodalData"
-	write_calc_data puts ""
+ 	unset nc
 
-	unset allnlist 
+	# set endtime [clock seconds]
+	# set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	# WarnWinText "Property at nodes [::KUtils::Duration $ttime]"
     }
-
 }
 
 proc ::wkcf::WriteNodalCoordinates {AppId} {
@@ -370,11 +391,10 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
     # Arguments
     # AppId  => Application identifier
     variable ndime; variable dprops
-    
-    # Check for all defined kratos elements
+   
+     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
 	# set inittime [clock seconds]
-	# WarnWinText "inittime:$inittime"
 	set cnodeglist [list]
 	# Create a dictionary
 	set nc [dict create 0 0]
@@ -384,8 +404,6 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
 	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ($dprops($AppId,KElem,$celemid,AllGroupId)>0)} {
 		# For all defined group identifier for this element
 		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
-		    # Init the node group list
-		    set cnodeglist [list]
 		    # Get the GiD entity type, element type and property identifier
 		    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
 		    # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
@@ -411,6 +429,8 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
 	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ($dprops($AppId,KElem,$celemid,AllGroupId)>0)} {
 	 	# For all defined group identifier for this element
 	 	foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		    # Init the node group list
+		    set cnodeglist [list]
 		    dict for {nodeid dgroupid} $nc {
 			if {$cgroupid ==$dgroupid} {
 			    lappend cnodeglist $nodeid
@@ -419,29 +439,29 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
 		    if {[llength $cnodeglist]} {
 		        # Write all nodes for this group in incresing orden
 		        write_calc_data puts "Begin Nodes \/\/ GUI group identifier: $cgroupid"
+			set wbuff ""
 		        foreach nodeid [lsort -integer $cnodeglist] {
 			    set ncoord [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2]
 			    # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
 			    if {$ndime =="2D"} {
-				set wbuff [format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] 0.0]
-				write_calc_data puts "$wbuff"
+				append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] 0.0]\n"
 			    } elseif {$ndime =="3D"} {
-				set wbuff [format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] [lindex $ncoord 2]]
-				write_calc_data puts "$wbuff"
+				append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] [lindex $ncoord 2]]\n"
 			    }
 		        }
+ 			write_calc_data puts "[string trimright $wbuff]"
 		    }
 		    write_calc_data puts "End Nodes"
 		    write_calc_data puts ""
+		    unset cnodeglist 
 		}
 	    }
 	}
-	unset cnodeglist 
 	unset nc
 	# set endtime [clock seconds]
 	# set ttime [expr $endtime-$inittime]
 	# WarnWinText "endtime:$endtime ttime:$ttime"
-	# WarnWinText "[::KUtils::Duration $ttime]"
+	# WarnWinText "Coordinates [::KUtils::Duration $ttime]"
 	write_calc_data puts ""
     }
 }
@@ -458,9 +478,9 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
     global KPriv
     
     set shellidlist [list "ShellIsotropic" "ShellAnisotropic" "EBST" "ASGS2D" "ASGS3D" "Fluid2D" "Fluid3D"]
-
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
+	# set inittime [clock seconds]
 	# For all defined kratos elements	
 	foreach celemid $dprops($AppId,AllKElemId) {
 	    # Check for all defined group identifier for this element
@@ -505,15 +525,20 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 	    }
 	}
 	write_calc_data puts ""
+	# set endtime [clock seconds]
+	# set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	# WarnWinText "Connectivities [::KUtils::Duration $ttime]"
     }
 }
 
 proc ::wkcf::WriteBoundaryConditions {AppId} {
     # Write the boundary condition block
     variable dprops
-
+  
     # Check for all defined condition type
     if {([info exists dprops($AppId,AllBCTypeId)]) && ([llength $dprops($AppId,AllBCTypeId)]>0)} {
+	# set inittime [clock seconds]
 	set inletvelglist [list]; set noslipglist [list]
 	# For all defined condition identifier
 	foreach ccondid $dprops($AppId,AllBCTypeId) {
@@ -566,6 +591,10 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 	    set kwordlist [list [::xmlutils::getKKWord $kwxpath "Vx"] [::xmlutils::getKKWord $kwxpath "Vy"] [::xmlutils::getKKWord $kwxpath "Vz"]]
 	    ::wkcf::WriteFluidBC $AppId $inletvelglist $noslipglist $kwordlist
 	}
+	# set endtime [clock seconds]
+	# set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	# WarnWinText "BC [::KUtils::Duration $ttime]"
     }
 }
 
