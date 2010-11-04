@@ -56,7 +56,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream> 
 #include <cmath>
 #include <algorithm>
-#include <time.h>
+#include <ctime>
+#include <vector>
 
 // Project includes
 #include "tree.h"
@@ -128,7 +129,7 @@ namespace Kratos
       
        ///Contact Pair
        typedef typename TConfigure::ContainerContactType  ContainerContactType;
-       typedef typename TConfigure::IteraratorContactType IteraratorContactType;
+       typedef typename TConfigure::IteratorContactType   IteratorContactType;
       
       ///typedef TreeNodeType LeafType;    
        typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
@@ -256,7 +257,7 @@ namespace Kratos
       int number_of_threads = 1;
       #endif
 
-      vector<unsigned int> node_partition;
+      std::vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, size, node_partition);
     
       std::vector<PointType> Max(number_of_threads);
@@ -412,7 +413,7 @@ namespace Kratos
  //************************************************************************   
 //************************************************************************       
           
-      SizeType SearchContact(IteraratorContactType& Result, const SizeType& MaxNumberOfResults )
+      SizeType SearchContact(IteratorContactType& Result, const SizeType& MaxNumberOfResults )
     {
        SizeType NumberOfResults = 0;
        for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++)
@@ -683,7 +684,7 @@ void AllocateCellsContainer()
       ///@name Private Operations
       ///@{ 
       
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, std::vector<unsigned int>& partitions)
     {
       partitions.resize(number_of_threads+1);
       int partition_size = number_of_rows / number_of_threads;
