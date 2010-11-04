@@ -38,7 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: Nelson $
+//   Last Modified by:    $Author: Nelson Lafontaine $
 //   Date:                $Date: 2008-10-23 11:30:49 $
 //   Revision:            $Revision: 1.0 $
 //
@@ -56,15 +56,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sstream>
 #include <cstddef>
 
-
-// External includes
-//#include <boost/array.hpp> 
-
-
-// Project includes
-//#include "includes/define.h"
-//#include "includes/ublas_interface.h"
-//#include "containers/pointer_vector.h"
 
 
 namespace Kratos
@@ -92,7 +83,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  template<class TPointType,  class TPointerType>   //class TGeometryType> 
+  template<class TPointType,  class TPointerType>   
   class BoundingBox
     {
     public:
@@ -102,7 +93,6 @@ namespace Kratos
       /// Pointer definition of BoundingBox
       KRATOS_CLASS_POINTER_DEFINITION(BoundingBox);
       
-      //typedef TGeometryType GeometryType;
       typedef TPointerType  PointerType;
       typedef BoundingBox<TPointType, PointerType > BoundingBoxType;   
         
@@ -125,7 +115,7 @@ namespace Kratos
        {
        } 
 
-       BoundingBox(const PointerType pElem, const TPointType& LowPoint, const TPointType& HighPoint) :  mLowPoint(LowPoint), mHighPoint(HighPoint), mpElem(pElem)
+       BoundingBox(const PointerType Object, const TPointType& LowPoint, const TPointType& HighPoint) :  mLowPoint(LowPoint), mHighPoint(HighPoint), mObject(Object)
        {
        }    
 
@@ -148,11 +138,11 @@ namespace Kratos
       ///@name Access
       ///@{ 
       
-      void Set(const TPointerType pElem, const TPointType& LowPoint, const TPointType& HighPoint)   
+      void Set(const TPointerType Object, const TPointType& LowPoint, const TPointType& HighPoint)   
       { 
 	mLowPoint  = LowPoint;
 	mHighPoint = HighPoint; 
-	mpElem     = pElem;
+	mObject     = Object;
 	
       }
       
@@ -178,18 +168,13 @@ namespace Kratos
            return mLowPoint; 
         }
 
- 
-/*       TGeometryType& GetGeom() const
-         {
-           return  *mpGeom;         
-         } */  
 
       /// Assignment operator.
       BoundingBox& operator=(BoundingBox const& rOther)
        {
 	  mHighPoint = rOther.mHighPoint;
 	  mLowPoint  = rOther.mLowPoint;
-	  mpElem     = rOther.mpElem;
+	  mObject     = rOther.mObject;
 	  return *this;
         }
        
@@ -198,7 +183,7 @@ namespace Kratos
       BoundingBox(BoundingBox const& rOther) : 
           mHighPoint(rOther.mHighPoint), 
           mLowPoint(rOther.mLowPoint),
-          mpElem(rOther.mpElem)     
+          mObject(rOther.mObject)     
        {             
        }
 
@@ -285,8 +270,7 @@ namespace Kratos
       ///@{ 
       TPointType mHighPoint;        
       TPointType mLowPoint;           
-      //TPointerType* mpGeom;
-      TPointerType  mpElem;
+      TPointerType  mObject;
 
         
       ///@} 
