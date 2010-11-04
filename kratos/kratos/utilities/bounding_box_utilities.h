@@ -360,7 +360,7 @@ class TDistanceFunction
           std::ofstream output_file( name.c_str());
 	  
 	   
-	  typedef Spatial_Containers_Configure<dimension>  Configure2D;   
+	  typedef SpatialContainersConfigure<dimension>  Configure2D;   
 	  typedef Cell<Configure2D>                        CellType;
 	  typedef std::vector<CellType>                    CellContainerType;
           typedef CellContainerType::iterator              CellContainerIterator;

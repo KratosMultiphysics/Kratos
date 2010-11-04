@@ -86,7 +86,7 @@ class ContactPair
 	       return  (value[0] == Pair[0]) && (value[1] == Pair[1]) ;
 	     }
 	     
-    bool const operator == (const ContactPair& Pair) const
+    bool  operator == (const ContactPair& Pair) const
              { 
                 return ( (value[0] == Pair[0]) && (value[1] == Pair[1]) ) ;
 	     }
@@ -119,7 +119,7 @@ class SpatialContainersConfigure
       typedef ContactPair<PointerType>                       ContactPairType;
       //typedef array_1d<PointerType, 2>                       ContactPairType;
       typedef std::vector<ContactPairType>                   ContainerContactType; 
-      typedef std::vector<ContactPairType>::iterator         IteraratorContactType; 
+      typedef std::vector<ContactPairType>::iterator         IteratorContactType; 
       
       
         
