@@ -1,6 +1,6 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: Nelson $
+//   Last Modified by:    $Author: Nelson Lafontaine  $
 //   Date:                $Date: 2006-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
@@ -88,14 +88,14 @@ class ContactPair
 	     
     bool const operator == (const ContactPair& Pair) const
              { 
-                return (value[0] == Pair[0]) && (value[1] == Pair[1]) ;
+                return ( (value[0] == Pair[0]) && (value[1] == Pair[1]) ) ;
 	     }
     
     
 };  
  
 template <std::size_t TDimension>
-class Spatial_Containers_Configure
+class SpatialContainersConfigure
     {
     public:
       ///@name Type Definitions
@@ -123,18 +123,18 @@ class Spatial_Containers_Configure
       
       
         
-      /// Pointer definition of Spatial_Containers_Configure
-      KRATOS_CLASS_POINTER_DEFINITION(Spatial_Containers_Configure);
+      /// Pointer definition of SpatialContainersConfigure
+      KRATOS_CLASS_POINTER_DEFINITION(SpatialContainersConfigure);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      Spatial_Containers_Configure(){}
+      SpatialContainersConfigure(){}
 
       /// Destructor.
-      virtual ~Spatial_Containers_Configure(){}
+      virtual ~SpatialContainersConfigure(){}
       
 
       ///@}
@@ -288,15 +288,15 @@ class Spatial_Containers_Configure
       ///@{ 
       
       /// Assignment operator.
-      Spatial_Containers_Configure& operator=(Spatial_Containers_Configure const& rOther);
+      SpatialContainersConfigure& operator=(SpatialContainersConfigure const& rOther);
 
       /// Copy constructor.
-      Spatial_Containers_Configure(Spatial_Containers_Configure const& rOther);
+      SpatialContainersConfigure(SpatialContainersConfigure const& rOther);
 
         
       ///@}    
         
-    }; // Class Spatial_Containers_Configure 
+    }; // Class SpatialContainersConfigure 
 
   ///@} 
   
@@ -310,19 +310,21 @@ class Spatial_Containers_Configure
         
  
   /// input stream function
-//   inline std::istream& operator >> (std::istream& rIStream, 
-// 				    Spatial_Containers_Configure& rThis);
-// 
-//   /// output stream function
-//   inline std::ostream& operator << (std::ostream& rOStream, 
-// 				    const Spatial_Containers_Configure& rThis)
-//     {
-//       rThis.PrintInfo(rOStream);
-//       rOStream << std::endl;
-//       rThis.PrintData(rOStream);
-// 
-//       return rOStream;
-//     }
+  template <std::size_t TDimension>
+  inline std::istream& operator >> (std::istream& rIStream, 
+				    SpatialContainersConfigure<TDimension> & rThis){return rIStream; }
+
+  /// output stream function
+  template <std::size_t TDimension>
+  inline std::ostream& operator << (std::ostream& rOStream, 
+				    const SpatialContainersConfigure<TDimension>& rThis)
+    {
+      rThis.PrintInfo(rOStream);
+      rOStream << std::endl;
+      rThis.PrintData(rOStream);
+
+      return rOStream;
+    }
   ///@} 
   
   
