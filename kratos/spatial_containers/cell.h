@@ -100,7 +100,7 @@ namespace Kratos
       ///configure Contact Pair
       typedef typename TConfigure::ContainerContactType  ContainerContactType;
       typedef typename TConfigure::ContactPairType       ContactPairType;
-      typedef typename TConfigure::IteraratorContactType IteraratorContactType;
+      typedef typename TConfigure::IteratorContactType   IteratorContactType;
       
       
       /// Pointer definition of Cell
@@ -199,7 +199,7 @@ namespace Kratos
 			{    
 			  if(TConfigure::Intersection(*i_object_1, *i_object_2)){
 			    Pair[1] = *i_object_2;
-				IteraratorContactType repeated_par_1 = find(Result.begin(), Result.end(), Pair);
+				IteratorContactType repeated_par_1 = find(Result.begin(), Result.end(), Pair);
 				if(repeated_par_1==Result.end())  
 				    Result.push_back(Pair);}
 			}
@@ -210,7 +210,7 @@ namespace Kratos
 //************************************************************************   
 //************************************************************************ 
      
-      void SearchContact(IteraratorContactType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults )
+      void SearchContact(IteratorContactType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults )
 	    {
 		ContactPairType Pair;
 		for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
@@ -220,7 +220,7 @@ namespace Kratos
 		  {    
 		    Pair[1] = *i_object_2;
 		    if(TConfigure::Intersection(*i_object_1, *i_object_2)){
-			  IteraratorContactType repeated_par_1 = find(Result-NumberOfResults, Result, Pair);
+			  IteratorContactType repeated_par_1 = find(Result-NumberOfResults, Result, Pair);
 			  if(repeated_par_1==Result){
 			      *Result =  Pair;
 			      NumberOfResults++;
