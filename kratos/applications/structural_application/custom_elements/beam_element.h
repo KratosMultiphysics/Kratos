@@ -28,7 +28,6 @@
 #include "includes/constitutive_law.h"
 
 
-
 namespace Kratos
 {
 
@@ -36,94 +35,84 @@ namespace Kratos
     :public Element
 	{
                
+	      typedef GeometryData::IntegrationMethod IntegrationMethod;
+
       
      private:
      ///@name Static Member Variables  
 
 				
-				Matrix mGlobalMatrix;					             
-				//Vector mUniformLoads;					               // Valores de carga uniformenete distribuida. Axial, X or Y, Gravedad, Momento Distribuido. 
-				Vector mLoads;						                 // Vector cuyo contenido  son las cargas equivalentes de load: Fuerzas y Momentos. 
-				Vector mCurrentDisplacement;			          // Este Matriz incluye la rotacion y los desplazamientos preescritos
 
-				double mArea;                            // Area de la seccion tranversal de la viga. 
-				double mInertia_x;                       // Momento de Inercia alredor del eje Ix local.
-				double mInertia_y;                       // Momento de Inercia alrededor del eje Iy local.
-				double mInertia_Polar;                   // Momento Polar de Inercia
-				double mPoisson;                         // razon de Poisson
-				double mYoungs;                          // Modulo de Young
-				double mWeight;                          // Peso Especifico  
- 			double mElasticidad_Cortante;            // Modulo de elasticidad al Cortante.
-				double mReference_length;                // Longitud del Elemento.  
-	
-
-				double Unitarios(double a, double b);
-
-				void CalculateSectionProperties();
-
-				void CalculateLocalMatrix(Matrix& LocalMatrix);
-
-				void CalculateTransformationMatrix(Matrix& Rotation);
-
-    void CalculateLoads(Matrix Rotation, Vector& mLoads); 
+	      double mArea;                            // Area de la seccion tranversal de la viga. 
+	      double mInertia_x;                       // Momento de Inercia alredor del eje Ix local.
+	      double mInertia_y;                       // Momento de Inercia alrededor del eje Iy local.
+	      double mInertia_Polar;                   // Momento Polar de Inercia
+	      double mlength;                          // Longitud del Elemento.  
 
 
-				public:
-      
-				typedef GeometryData::IntegrationMethod IntegrationMethod;
+	      void CalculateSectionProperties();
 
-    typedef ConstitutiveLaw ConstitutiveLawType;
+	      void CalculateLocalMatrix(Matrix& LocalMatrix);
 
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-     
+	      void CalculateTransformationMatrix(Matrix& Rotation);
 
-    KRATOS_CLASS_POINTER_DEFINITION(BeamElement); 
-      
-      /// Default constructor.
-    BeamElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    BeamElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+	      void CalculateLoads(Matrix& Rotation, Vector& mLoads); 
+	      
 
-      /// Destructor.
-    virtual ~BeamElement();
-      
-			   // IntegrationMethod GetIntegrationMethod();
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+	      public:
+	      
+	      
 
-    void Initialize();
+	      KRATOS_CLASS_POINTER_DEFINITION(BeamElement); 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-			 void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+	      /// Default constructor.
+	      BeamElement(IndexType NewId, GeometryType::Pointer pGeometry);
+	      BeamElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+	      /// Destructor.
+	      virtual ~BeamElement();
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+	      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-			 void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+	      void Initialize();
 
-    void GetValuesVector(Vector& values, int Step);
+	      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+	      void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-				void CalculateRHS(Vector& rRightHandSideVector);
+	      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-				void CalculateLHS(Matrix& rLeftHandSideMatrix);
+	      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-				void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-                                         ProcessInfo& rCurrentProcessInfo,
-                                         bool CalculateStiffnessMatrixFlag,
-                                         bool CalculateResidualVectorFlag);
+	      void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
- void  GetFirstDerivativesVector(Vector& values, int Step);
- void  GetSecondDerivativesVector(Vector& values, int Step);
+	      void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+	      void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+	      void GetValuesVector(Vector& values, int Step);
+
+	      void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
+	      void CalculateRHS(Vector& rRightHandSideVector);
+
+	      void CalculateLHS(Matrix& rLeftHandSideMatrix);
+
+	      void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
+	      ProcessInfo& rCurrentProcessInfo,
+	      bool CalculateStiffnessMatrixFlag,
+	      bool CalculateResidualVectorFlag);
+
+	      void  GetFirstDerivativesVector(Vector& values, int Step);
+	      void  GetSecondDerivativesVector(Vector& values, int Step);
+
 
 
 		
+	      
+	      
 
 }; // Class BeamElement
 
