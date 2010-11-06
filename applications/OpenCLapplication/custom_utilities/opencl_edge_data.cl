@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 __kernel void SetToZero(__global ValueType *Vector, const IndexType n)
 {
 	// Get work item index
-	__private const size_t id = get_global_id(0);
+	const size_t id = get_global_id(0);
 
 	// Check if we are in the range
 	if (id < n)
@@ -87,7 +87,7 @@ __kernel void SetToZero(__global ValueType *Vector, const IndexType n)
 __kernel void Add_Minv_value1(__global ValueType *DestinationVector, __global ValueType *Origin1Vector, const ValueType Value, __global ValueType *MinvVector, __global ValueType *OriginVector, const IndexType n)
 {
 	// Get work item index
-	__private const size_t id = get_global_id(0);
+	const size_t id = get_global_id(0);
 
 	// Check if we are in the range
 	if (id < n)
@@ -105,7 +105,7 @@ __kernel void Add_Minv_value1(__global ValueType *DestinationVector, __global Va
 __kernel void Add_Minv_value3(__global VectorType *DestinationVector, __global VectorType *Origin1Vector, const ValueType Value, __global VectorType *MinvVector, __global VectorType *OriginVector, const IndexType n)
 {
 	// Get work item index
-	__private const size_t id = get_global_id(0);
+	const size_t id = get_global_id(0);
 
 	// Check if we are in the range
 	if (id < n)

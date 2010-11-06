@@ -172,135 +172,127 @@ inline ValueType length3(double4 x)
 // A dummy kernel for test
 __kernel void Test(__global double *input, __global double *output, const double offset)
 {
-	__private const size_t id = get_global_id(0);
+	const size_t id = get_global_id(0);
 	const double iv = input[id];
 	output[id] = 2.00 * sin(iv) * cos(iv) + offset;
 }
 
 //
 // Edge specific kernels
-/*
-inline void Add_Gp(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
+
+inline void Add_Gp(const VectorType Ni_DNj, const VectorType DNi_Nj, VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	 // destination[comp] -= Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i
-	 *destination -= (*a).Ni_DNj * p_j - (*a).DNi_Nj * p_i;
+	 *destination -= Ni_DNj * p_j - DNi_Nj * p_i;
 }
 
-inline void Sub_Gp(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
+inline void Sub_Gp(const VectorType Ni_DNj, const VectorType DNi_Nj, VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	 // destination[comp] += Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i
-	 *destination += (*a).Ni_DNj * p_j - (*a).DNi_Nj * p_i;
+	 *destination += Ni_DNj * p_j - DNi_Nj * p_i;
 }
 
-inline void Add_D_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
+inline void Add_D_v(const VectorType Ni_DNj, ValueType *destination, const VectorType v_i, const VectorType v_j)
 {
 	// destination += Ni_DNj[comp] * (v_j[comp] - v_i[comp])
-	*destination += dot((*a).Ni_DNj, *v_j - *v_i);
+	*destination += dot(Ni_DNj, v_j - v_i);
 }
 
-inline void Sub_D_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
+inline void Sub_D_v(const VectorType Ni_DNj, ValueType *destination, const VectorType v_i, const VectorType v_j)
 {
 	// destination -= Ni_DNj[comp] * (v_j[comp] - v_i[comp])
-	*destination -= dot((*a).Ni_DNj, *v_j - *v_i);
+	*destination -= dot(Ni_DNj, v_j - v_i);
 }
-*/
-inline void Add_grad_p(VectorType Ni_DNj, VectorType *destination, const ValueType p_i, const ValueType p_j)
+
+inline void Add_grad_p(const VectorType Ni_DNj, VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	// destination[comp] += Ni_DNj[comp] * (p_j - p_i)
 	*destination += Ni_DNj * (p_j - p_i);
 }
-/*
-inline void Sub_grad_p(__global EdgeType *a, __global VectorType *destination, const ValueType p_i, const ValueType p_j)
+
+inline void Sub_grad_p(const VectorType Ni_DNj, VectorType *destination, const ValueType p_i, const ValueType p_j)
 {
 	// destination[comp] -= Ni_DNj[comp] * (p_j - p_i)
-	*destination -= (*a).Ni_DNj * (p_j - p_i);
+	*destination -= Ni_DNj * (p_j - p_i);
 }
 
-inline void Add_div_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
+inline void Add_div_v(const VectorType Ni_DNj, const VectorType DNi_Nj, ValueType *destination, const VectorType v_i, const VectorType v_j)
 {
 	// destination -= Ni_DNj[comp]*v_j[comp] - DNi_Nj[comp]*v_i[comp]
-	*destination -= dot((*a).Ni_DNj, *v_j) - dot((*a).DNi_Nj, *v_i);
+	*destination -= dot(Ni_DNj, v_j) - dot(DNi_Nj, v_i);
 }
 
-inline void Sub_div_v(__global EdgeType *a, __global ValueType *destination, __global VectorType *v_i, __global VectorType *v_j)
+inline void Sub_div_v(const VectorType Ni_DNj, const VectorType DNi_Nj, ValueType *destination, const VectorType v_i, const VectorType v_j)
 {
 	// destination += Ni_DNj[comp]*v_j[comp] - DNi_Nj[comp]*v_i[comp]
-	*destination += dot((*a).Ni_DNj, *v_j) - dot((*a).DNi_Nj, *v_i);
+	*destination += dot(Ni_DNj, v_j) - dot(DNi_Nj, v_i);
 }
-*/
-inline void CalculateScalarLaplacian(ValueType LaplacianIJ_0_0, ValueType LaplacianIJ_1_1, ValueType LaplacianIJ_2_2, ValueType *l_ij)
+
+inline void CalculateScalarLaplacian(const ValueType LaplacianIJ_0_0, const ValueType LaplacianIJ_1_1, const ValueType LaplacianIJ_2_2, ValueType *l_ij)
 {
 	// l_ij += LaplacianIJ(comp, comp)
 	*l_ij = LaplacianIJ_0_0 + LaplacianIJ_1_1 + LaplacianIJ_2_2;
 }
-/*
-inline void Add_ConvectiveContribution(__global EdgeType *a, __global VectorType *destination,
-	__global VectorType *a_i, __global VectorType *U_i,
-	__global VectorType *a_j, __global VectorType *U_j)
+
+inline void Add_ConvectiveContribution(const VectorType Ni_DNj, VectorType *destination, const VectorType a_i, const VectorType U_i, const VectorType a_j, const VectorType U_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
 	// destination[l_comp] += temp * (U_j[l_comp] - U_i[l_comp])
-	*destination += dot(*a_i, (*a).Ni_DNj) * (*U_j - *U_i);
+	*destination += dot(a_i, Ni_DNj) * (U_j - U_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
 	// destination[l_comp] += aux_j * U_j[l_comp] - aux_i * U_i[l_comp]
-	*destination += dot(*a_j, (*a).Ni_DNj) * (*U_j) - dot(*a_i, (*a).Ni_DNj) * (*U_i);
+	*destination += dot(a_j * U_j - a_i * U_i, Ni_DNj);
 
 #endif
 
 }
 
-inline void Sub_ConvectiveContribution(__global EdgeType *a, __global VectorType *destination,
-	__global VectorType *a_i, __global VectorType *U_i,
-	__global VectorType *a_j, __global VectorType *U_j)
+inline void Sub_ConvectiveContribution(const VectorType Ni_DNj, VectorType *destination, const VectorType a_i, const VectorType U_i, const VectorType a_j, const VectorType U_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
 	// destination[l_comp] -= temp * (U_j[l_comp] - U_i[l_comp])
-	*destination -= dot(*a_i, (*a).Ni_DNj) * (*U_j - *U_i);
+	*destination -= dot(a_i, Ni_DNj) * (U_j - U_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
 	// destination[l_comp] -= aux_j * U_j[l_comp] - aux_i * U_i[l_comp]
-	*destination -= dot(*a_j, (*a).Ni_DNj) * (*U_j) - dot(*a_i, (*a).Ni_DNj) * (*U_i);
+	*destination -= dot(a_j * U_j - a_i * U_i, Ni_DNj);
 
 #endif
 
 }
 
-inline void Add_ConvectiveContribution2(__global EdgeType *a, __global ValueType *destination,
-	__global VectorType *a_i, const ValueType phi_i,
-	__global VectorType *a_j, const ValueType phi_j)
+inline void Add_ConvectiveContribution2(const VectorType Ni_DNj, ValueType *destination, const VectorType a_i, const ValueType phi_i, const VectorType a_j, const ValueType phi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
-	*destination += dot(*a_i, (*a).Ni_DNj) * (phi_j - phi_i);
+	*destination += dot(a_i, Ni_DNj) * (phi_j - phi_i);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
-	*destination += dot(*a_j, (*a).Ni_DNj) * phi_j - dot(*a_i, (*a).Ni_DNj) * phi_i;
+	*destination += dot(a_j * phi_j - a_i * phi_i, Ni_DNj);
 
 #endif
 
 }
-*/
-inline void Sub_ConvectiveContribution2(VectorType Ni_DNj, ValueType *destination,
-	const VectorType a_i, const ValueType phi_i,
-	const VectorType a_j, const ValueType phi_j)
+
+inline void Sub_ConvectiveContribution2(const VectorType Ni_DNj, ValueType *destination, const VectorType a_i, const ValueType phi_i, const VectorType a_j, const ValueType phi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
@@ -317,49 +309,41 @@ inline void Sub_ConvectiveContribution2(VectorType Ni_DNj, ValueType *destinatio
 #endif
 
 }
-/*
-inline void CalculateConvectionStabilization_LOW(__global EdgeType *a, __global VectorType *stab_low,
-	__global VectorType *a_i, __global VectorType *U_i,
-	__global VectorType *a_j, __global VectorType *U_j)
+
+inline void CalculateConvectionStabilization_LOW(const VectorType LaplacianIJ_0, const VectorType LaplacianIJ_1, const VectorType LaplacianIJ_2, VectorType *stab_low, const VectorType a_i, const VectorType U_i, const VectorType a_j, const VectorType U_j)
 {
 	// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
 	// stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp])
-	*stab_low = dot(*a_i, KRATOS_OCL_VECTOR3(dot(*a_i, (*a).LaplacianIJ_0), dot(*a_i, (*a).LaplacianIJ_1), dot(*a_i, (*a).LaplacianIJ_2))) * (*U_j - *U_i);
+	*stab_low = dot(a_i, KRATOS_OCL_VECTOR3(dot(a_i, LaplacianIJ_0), dot(a_i, LaplacianIJ_1), dot(a_i, LaplacianIJ_2))) * (U_j - U_i);
 }
-*/
-inline void CalculateConvectionStabilization_LOW2(VectorType LaplacianIJ_0, VectorType LaplacianIJ_1, VectorType LaplacianIJ_2, ValueType *stab_low,
-	const VectorType a_i, const ValueType phi_i,
-	const VectorType a_j, const ValueType phi_j)
+
+inline void CalculateConvectionStabilization_LOW2(const VectorType LaplacianIJ_0, const VectorType LaplacianIJ_1, const VectorType LaplacianIJ_2, ValueType *stab_low, const VectorType a_i, const ValueType phi_i, const VectorType a_j, const ValueType phi_j)
 {
 	// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
 	*stab_low = dot(a_i, KRATOS_OCL_VECTOR3(dot(a_i, LaplacianIJ_0), dot(a_i, LaplacianIJ_1), dot(a_i, LaplacianIJ_2))) * (phi_j - phi_i);
 }
-/*
-inline void CalculateConvectionStabilization_HIGH(__global EdgeType *a, __global VectorType *stab_high,
-	__global VectorType *a_i, __global VectorType *pi_i,
-	__global VectorType *a_j, __global VectorType *pi_j)
+
+inline void CalculateConvectionStabilization_HIGH(const VectorType Ni_DNj, VectorType *stab_high, const VectorType a_i, const VectorType pi_i, const VectorType a_j, const VectorType pi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 	// temp += a_i[k_comp] * Ni_DNj[k_comp]
 	// stab_high[l_comp] = -temp * (pi_j[l_comp] - pi_i[l_comp])
-	*stab_high = -dot(*a_i, (*a).Ni_DNj) * (*pi_j - *pi_i);
+	*stab_high = dot(a_i, Ni_DNj) * (pi_i - pi_j);
 
 #else
 
 	// aux_i += a_i[k_comp] * Ni_DNj[k_comp]
 	// aux_j += a_j[k_comp] * Ni_DNj[k_comp]
 	// stab_high[l_comp] = -(aux_j * pi_j[l_comp] - aux_i * pi_i[l_comp])
-	*stab_high = dot(*a_i, (*a).Ni_DNj) * (*pi_i) - dot(*a_j, (*a).Ni_DNj) * (*pi_j);
+	*stab_high = dot(a_i * pi_i - a_j * pi_j, Ni_DNj);
 
 #endif
 
 }
-*/
-inline void CalculateConvectionStabilization_HIGH2(VectorType Ni_DNj, ValueType *stab_high,
-	const VectorType a_i, const ValueType pi_i,
-	const VectorType a_j, const ValueType pi_j)
+
+inline void CalculateConvectionStabilization_HIGH2(const VectorType Ni_DNj, ValueType *stab_high, const VectorType a_i, const ValueType pi_i, const VectorType a_j, const ValueType pi_j)
 {
 
 #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
@@ -376,43 +360,32 @@ inline void CalculateConvectionStabilization_HIGH2(VectorType Ni_DNj, ValueType 
 #endif
 
 }
-/*
-inline void Add_StabContribution(__global EdgeType *a, __global VectorType *destination,
-	const ValueType tau, const ValueType beta,
-	__global VectorType *stab_low, __global VectorType *stab_high)
+
+inline void Add_StabContribution(VectorType *destination, const ValueType tau, const ValueType beta, const VectorType stab_low, const VectorType stab_high)
 {
 	// destination[l_comp] += tau * (stab_low[l_comp] - beta * stab_high[l_comp])
-	*destination += tau * ((*stab_low) - beta * (*stab_high));
+	*destination += tau * (stab_low - beta * stab_high);
 }
 
-inline void Sub_StabContribution(__global EdgeType *a, __global VectorType *destination,
-	const ValueType tau, const ValueType beta,
-	__global VectorType *stab_low, __global VectorType *stab_high)
+inline void Sub_StabContribution(VectorType *destination, const ValueType tau, const ValueType beta, const VectorType stab_low, const VectorType stab_high)
 {
 	// destination[l_comp] -= tau * (stab_low[l_comp] - beta * stab_high[l_comp])
-	*destination -= tau * ((*stab_low) - beta * (*stab_high));
+	*destination -= tau * (stab_low - beta * stab_high);
 }
 
-inline void Add_StabContribution2(__global EdgeType *a, __global ValueType *destination,
-	const ValueType tau, const ValueType beta,
-	const ValueType stab_low, const ValueType stab_high)
+inline void Add_StabContribution2(ValueType *destination, const ValueType tau, const ValueType beta, const ValueType stab_low, const ValueType stab_high)
 {
 	*destination += tau * (stab_low - beta * stab_high);
 }
-*/
-inline void Sub_StabContribution2(__global EdgeType *a, ValueType *destination,
-	const ValueType tau, const ValueType beta,
-	const ValueType stab_low, const ValueType stab_high)
+
+inline void Sub_StabContribution2(ValueType *destination, const ValueType tau, const ValueType beta, const ValueType stab_low, const ValueType stab_high)
 {
 	*destination -= tau * (stab_low - beta * stab_high);
 }
-/*
-inline void Add_ViscousContribution(__global EdgeType *a, __global VectorType *destination,
-	__global VectorType *U_i, const ValueType nu_i,
-	__global VectorType *U_j, const ValueType nu_j)
+
+inline void Add_ViscousContribution(const ValueType LaplacianIJ_0_0, const ValueType LaplacianIJ_1_1, const ValueType LaplacianIJ_2_2, __global VectorType *destination, const VectorType U_i, const ValueType nu_i, const VectorType U_j, const ValueType nu_j)
 {
 	// L += LaplacianIJ(l_comp, l_comp)
 	// destination[l_comp] += nu_i * L * (U_j[l_comp] - U_i[l_comp])
-	*destination += nu_i * ((*a).LaplacianIJ_0.x + (*a).LaplacianIJ_1.y + (*a).LaplacianIJ_2.z) * (*U_j - *U_i);
+	*destination += nu_i * (LaplacianIJ_0_0 + LaplacianIJ_1_1 + LaplacianIJ_2_2) * (U_j - U_i);
 }
-*/
