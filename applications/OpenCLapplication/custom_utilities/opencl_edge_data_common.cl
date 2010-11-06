@@ -49,9 +49,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 //
-// opencl_EdgeType_data_common.cl
+// opencl_edge_data_common.cl
 //
-// OpenCL kernels and functions used in opencl_EdgeType_data.h
+// OpenCL kernels and functions used in opencl_edge_data.h
 
 
 //
