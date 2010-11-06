@@ -51,23 +51,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // opencl_edge_data.cl
 //
-// OpenCL kernels and functions used in opencl_edge_data.h
+// OpenCL kernels and functions used in opencl_pure_convection_edgebased.h
 
 
 #include "opencl_edge_data_common.cl"
 
-/*
-
-Currently used functions:
-
-Add_grad_p
-Sub_ConvectiveContribution2
-CalculateConvectionStabilization_LOW2
-CalculateConvectionStabilization_HIGH2
-Sub_StabContribution2
-CalculateScalarLaplacian
-
-*/
 
 //
 // CalculateAdvectiveVelocity
