@@ -475,7 +475,7 @@ namespace Kratos
 
 		  UblasSolve(mLHS_POD_Contribution,mRHS_POD_Contribution,mX_POD_Contribution);
 
-		  KRATOS_WATCH(mX_POD_Contribution);
+// 		  KRATOS_WATCH(mX_POD_Contribution);
 		  
 			
 			
