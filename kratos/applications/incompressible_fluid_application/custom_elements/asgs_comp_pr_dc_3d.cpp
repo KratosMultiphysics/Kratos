@@ -307,7 +307,7 @@ namespace Kratos
     //*************************************************************************************
     //*************************************************************************************
 
-    void ASGSCOMPPRDC3D::CalculateTau(double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
+    void ASGSCOMPPRDC3D::CalculateTau(const array_1d<double,4>& N, double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
                 //calculate mean advective velocity and taus

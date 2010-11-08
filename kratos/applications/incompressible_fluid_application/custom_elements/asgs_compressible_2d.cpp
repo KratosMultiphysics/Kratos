@@ -65,20 +65,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-        namespace ASGSCompressible2Dauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(DN_DX)
-
-        array_1d<double,3> N = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(N)
-
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_adv_vel)
-
-    }
-    using  namespace ASGSCompressible2Dauxiliaries;
-
 
 	//************************************************************************************
 	//************************************************************************************
@@ -141,7 +127,7 @@ namespace Kratos
 	//Advective term
 	double tauone;
 	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+	CalculateTau(N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
         double VC2;
 	CalculateSoundVelocity(GetGeometry(), VC2);
@@ -158,7 +144,7 @@ namespace Kratos
         double tau_div = tautwo*VC2;
 	CalculateDivStblTerm(rDampMatrix, DN_DX, tau_div, Area);
 	//CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
-	CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
+	CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX,N, delta_t, tauone, Area);
 	//KRATOS_WATCH(rRightHandSideVector);
 
 
@@ -226,13 +212,13 @@ namespace Kratos
 	//Calculate tau
 	double tauone;
 	double tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+	CalculateTau(N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 	CalculateMassContribution(rMassMatrix,delta_t,Area); 
 		//add stablilization terms due to advective term (a)grad(V) * ro*Acce
 	//CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
 		//add stablilization terms due to grad term grad(q) * ro*Acce
-	CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
+	CalculateGradMassStblTerms(rMassMatrix, DN_DX,N, tauone,Area);
 		//add compressible stabilization terms
 	CalculateCompressibleStblTerms(rMassMatrix, DN_DX,N, tautwo,Area);
 	
@@ -241,7 +227,7 @@ namespace Kratos
             //************************************************************************************
     //************************************************************************************
 
-    void ASGSCompressible2D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double area) {
+    void ASGSCompressible2D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double tauone, const double area) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -306,7 +292,7 @@ namespace Kratos
         //************************************************************************************
     //************************************************************************************
 
-    void ASGSCompressible2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double time, const double tauone, const double area) {
+    void ASGSCompressible2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double time, const double tauone, const double area) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -411,7 +397,7 @@ namespace Kratos
 	}
 	//*************************************************************************************
 	//*************************************************************************************
-	void ASGSCompressible2D::CalculateCompressibleStblTerms(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,array_1d<double,3> N,const double tautwo,const double area)
+	void ASGSCompressible2D::CalculateCompressibleStblTerms(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N,const double tautwo,const double area)
 	{
 
 	  //double VC2;
@@ -483,7 +469,7 @@ namespace Kratos
               //*************************************************************************************
     //*************************************************************************************
 
-          void ASGSCompressible2D::CalculateTau(double& tauone, double& tautwo, const double time, const double area, const ProcessInfo& rCurrentProcessInfo)
+          void ASGSCompressible2D::CalculateTau(const array_1d<double,3>& N, double& tauone, double& tautwo, const double time, const double area, const ProcessInfo& rCurrentProcessInfo)
           {
 
             KRATOS_TRY

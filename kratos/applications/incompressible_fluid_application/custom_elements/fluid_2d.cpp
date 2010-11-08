@@ -64,40 +64,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Fluid2Dauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
-        #pragma omp threadprivate(msMassFactors)
-
-	boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-	#pragma omp threadprivate(msWorkMatrix)
-	
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(msDN_DX)
-
-        array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(msN)
-
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_vel_gauss)
-
-        array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(ms_temp_vec_np)
-
-        array_1d<double,3> ms_u_DN = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(ms_u_DN)
-	
-	array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
-	#pragma omp threadprivate(ms_aux0)
-	
-	array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
-	#pragma omp threadprivate(ms_aux1)
-	
-	array_1d<double,3> ms_aux2 = ZeroVector(3); //dimension = number of nodes
-	#pragma omp threadprivate(ms_aux2)
-    }
-    using  namespace Fluid2Dauxiliaries;
-
 
 	//************************************************************************************
 	//************************************************************************************
@@ -178,6 +144,17 @@ namespace Kratos
 
 		if(rRightHandSideVector.size() != number_of_points)
 			rRightHandSideVector.resize(number_of_points,false); //false says not to preserve existing storage!!
+			
+		boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+		array_1d<double,3> msN; 
+		array_1d<double,2> ms_vel_gauss; 
+		array_1d<double,3> ms_temp_vec_np; 
+		array_1d<double,3> ms_u_DN; 
+		array_1d<double,3> ms_aux0; 
+		array_1d<double,3> ms_aux1; 
+		array_1d<double,3> ms_aux2; 
 
 		//getting data for the given geometry
 		double Area;
@@ -411,7 +388,14 @@ namespace Kratos
 		if(rRightHandSideVector.size() != number_of_points)
 			rRightHandSideVector.resize(number_of_points,false);
 
-		//getting data for the given geometry
+
+		//boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+		array_1d<double,3> msN; 
+		array_1d<double,2> ms_vel_gauss; 
+		array_1d<double,3> ms_temp_vec_np; 
+		array_1d<double,3> ms_u_DN; 
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
 
@@ -531,7 +515,17 @@ namespace Kratos
 	{
 		KRATOS_TRY
 		int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
- 
+ 		boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+		array_1d<double,3> msN; 
+		array_1d<double,2> ms_vel_gauss; 
+		array_1d<double,3> ms_temp_vec_np; 
+		array_1d<double,3> ms_u_DN; 
+		array_1d<double,3> ms_aux0; 
+		array_1d<double,3> ms_aux1; 
+		array_1d<double,3> ms_aux2; 
+
 		//getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);

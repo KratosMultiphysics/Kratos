@@ -23,16 +23,6 @@
 
 namespace Kratos
 {
- namespace Proj_Dirichlet_Auxiliaries
-    {
-
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(msDN_DX)
-
-        array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(msN)
-    }
-    using  namespace Proj_Dirichlet_Auxiliaries;
 	//************************************************************************************
 	//************************************************************************************
 	ProjDirichletCond::ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -59,7 +49,7 @@ namespace Kratos
 		this->mVel1=vel1;
 		this->mVel2=vel2;
 
-		
+		array_1d<double,3> msN;
 
 		//and also fixing the velocity at the nodes, if the intersection is too close to them:
 		unsigned int bad_vertex_index1=100;
@@ -255,6 +245,8 @@ namespace Kratos
 	//************************************************************************************
 	void ProjDirichletCond::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
+		array_1d<double,3> msN;
+		
 		if(rLeftHandSideMatrix.size1() != 6)
 		{
 			rLeftHandSideMatrix.resize(6,6,false);

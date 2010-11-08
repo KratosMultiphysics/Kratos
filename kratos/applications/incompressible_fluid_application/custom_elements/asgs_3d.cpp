@@ -64,18 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h" 
 
 namespace Kratos {
-    namespace ASGS3Dauxiliaries {
-        boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX = ZeroMatrix(4, 3);
-#pragma omp threadprivate(DN_DX)
 
-        array_1d<double, 4 > N = ZeroVector(4); //dimension = number of nodes
-#pragma omp threadprivate(N)
-
-        array_1d<double, 3 > ms_adv_vel = ZeroVector(3); //dimesion coincides with space dimension
-#pragma omp threadprivate(ms_adv_vel)
-
-    }
-    using namespace ASGS3Dauxiliaries;
 
 
     //************************************************************************************
@@ -126,7 +115,9 @@ namespace Kratos {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-
+	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        array_1d<double, 4 > N; 
+//         array_1d<double, 3 > ms_adv_vel;
 
         //getting data for the given geometry
         double Volume;
@@ -134,11 +125,11 @@ namespace Kratos {
 
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
+        CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
 
         //add body force and momentum
-        AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Volume, tauone, tautwo);
+        AddBodyForceAndMomentum(rRightHandSideVector, DN_DX, N, delta_t, Volume, tauone, tautwo);
 
 
         //add projections
@@ -197,7 +188,10 @@ namespace Kratos {
         rMassMatrix = ZeroMatrix(MatSize, MatSize);
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-
+	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        array_1d<double, 4 > N; 
+        array_1d<double, 3 > ms_adv_vel;
+	
         //getting data for the given geometry
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
@@ -205,13 +199,13 @@ namespace Kratos {
         //Calculate tau
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
+        CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
         CalculateMassContribution(rMassMatrix, delta_t, Volume);
         //add stablilization terms due to advective term (a)grad(V) * ro*Acce
         CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Volume);
         //add stablilization terms due to grad term grad(q) * ro*Acce
-        CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone, Volume);
+        CalculateGradMassStblTerms(rMassMatrix, DN_DX, N, tauone, Volume);
 
         KRATOS_CATCH("")
     }
@@ -232,6 +226,9 @@ namespace Kratos {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
+	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        array_1d<double, 4 > N; 
+//         array_1d<double, 3 > ms_adv_vel;
 
 
         //getting data for the given geometry
@@ -245,7 +242,7 @@ namespace Kratos {
         //Advective term
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
+        CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
         CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Volume);
 
@@ -257,7 +254,7 @@ namespace Kratos {
         //stabilization terms
         CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
         CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Volume);
-        CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, delta_t, tauone, Volume);
+        CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, delta_t, tauone, Volume);
         //KRATOS_WATCH(rRightHandSideVector);
 
 	CalculateResidual(rDampMatrix, rRightHandSideVector);
@@ -317,11 +314,12 @@ namespace Kratos {
         double density;
         double mu;
         calculatedensity(GetGeometry(), density, mu);
-
-        ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]) + N[3]*(adv_vel3[0] - mesh_vel3[0]);
-        ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]) + N[3]*(adv_vel3[1] - mesh_vel3[1]);
-        ms_adv_vel[2] = N[0]*(adv_vel0[2] - mesh_vel0[2]) + N[1]*(adv_vel1[2] - mesh_vel1[2]) + N[2]*(adv_vel2[2] - mesh_vel2[2]) + N[3]*(adv_vel3[2] - mesh_vel3[2]);
-
+	array_1d<double,3> ms_adv_vel;
+        ms_adv_vel[0] = (adv_vel0[0] - mesh_vel0[0]) + (adv_vel1[0] - mesh_vel1[0]) + (adv_vel2[0] - mesh_vel2[0]) + (adv_vel3[0] - mesh_vel3[0]);
+        ms_adv_vel[1] = (adv_vel0[1] - mesh_vel0[1]) + (adv_vel1[1] - mesh_vel1[1]) + (adv_vel2[1] - mesh_vel2[1]) + (adv_vel3[1] - mesh_vel3[1]);
+        ms_adv_vel[2] = (adv_vel0[2] - mesh_vel0[2]) + (adv_vel1[2] - mesh_vel1[2]) + (adv_vel2[2] - mesh_vel2[2]) + (adv_vel3[2] - mesh_vel3[2]);
+	ms_adv_vel *= 0.25;
+	
         //ms_adv_vel[0] = 0.0;
         //ms_adv_vel[1] = 0.0;
 
@@ -333,6 +331,8 @@ namespace Kratos {
 
         boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
         boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
+	array_1d<double,4> N;
+	N[0] = 0.25; N[1] = 0.25; N[2] = 0.25; N[3] = 0.25;
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int column = ii*dof;
@@ -462,6 +462,7 @@ namespace Kratos {
         const array_1d<double, 3 > & adv_vel3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY, 0);
         const array_1d<double, 3 > & mesh_vel3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
 
+	array_1d<double,3> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]) + N[3]*(adv_vel3[0] - mesh_vel3[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]) + N[3]*(adv_vel3[1] - mesh_vel3[1]);
         ms_adv_vel[2] = N[0]*(adv_vel0[2] - mesh_vel0[2]) + N[1]*(adv_vel1[2] - mesh_vel1[2]) + N[2]*(adv_vel2[2] - mesh_vel2[2]) + N[3]*(adv_vel3[2] - mesh_vel3[2]);
@@ -636,6 +637,7 @@ namespace Kratos {
         const array_1d<double, 3 > & adv_vel3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY, 0);
         const array_1d<double, 3 > & mesh_vel3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
 
+	array_1d<double,3> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]) + N[3]*(adv_vel3[0] - mesh_vel3[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]) + N[3]*(adv_vel3[1] - mesh_vel3[1]);
         ms_adv_vel[2] = N[0]*(adv_vel0[2] - mesh_vel0[2]) + N[1]*(adv_vel1[2] - mesh_vel1[2]) + N[2]*(adv_vel2[2] - mesh_vel2[2]) + N[3]*(adv_vel3[2] - mesh_vel3[2]);
@@ -692,7 +694,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void ASGS3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double time, const double tauone, const double volume) {
+    void ASGS3D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N, const double time, const double tauone, const double volume) {
         KRATOS_TRY
                 int nodes_number = 4;
         int dof = 3;
@@ -787,7 +789,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void ASGS3D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double tauone, const double volume) {
+    void ASGS3D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double,4>& N,  const double tauone, const double volume) {
         KRATOS_TRY
                 int nodes_number = 4;
         int dof = 3;
@@ -819,7 +821,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void ASGS3D::AddBodyForceAndMomentum(VectorType& F, const array_1d<double, 4 > & N, const double time, const double volume, const double tauone, const double tautwo) {
+    void ASGS3D::AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double time, const double volume, const double tauone, const double tautwo) {
         KRATOS_TRY
                 int nodes_number = 4;
         int dof = 3;
@@ -913,7 +915,7 @@ namespace Kratos {
         const array_1d<double, 3 > & adv_vel3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY, 0);
         const array_1d<double, 3 > & mesh_vel3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
 
-
+	array_1d<double,3> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]) + N[3]*(adv_vel3[0] - mesh_vel3[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]) + N[3]*(adv_vel3[1] - mesh_vel3[1]);
         ms_adv_vel[2] = N[0]*(adv_vel0[2] - mesh_vel0[2]) + N[1]*(adv_vel1[2] - mesh_vel1[2]) + N[2]*(adv_vel2[2] - mesh_vel2[2]) + N[3]*(adv_vel3[2] - mesh_vel3[2]);
@@ -1139,14 +1141,18 @@ namespace Kratos {
         array_1d<double, 4 > div_proj = ZeroVector(4);
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
-
+	
+	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        array_1d<double, 4 > N; 
+        array_1d<double, 3 > ms_adv_vel;
+	
         //getting data for the given geometry
         double volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume);
 
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, volume, rCurrentProcessInfo);
+        CalculateTau(N,tauone, tautwo, delta_t, volume, rCurrentProcessInfo);
 
         ComputeProjections(adv_proj, div_proj, DN_DX, tauone, tautwo, N, volume, delta_t);
 
@@ -1248,7 +1254,7 @@ namespace Kratos {
     //*************************************************************************************
     //*************************************************************************************
 
-    void ASGS3D::CalculateTau(double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo) {
+    void ASGS3D::CalculateTau(const array_1d<double,4>& N, double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
                 //calculate mean advective velocity and taus
 
@@ -1261,7 +1267,7 @@ namespace Kratos {
         const array_1d<double, 3 > & adv_vel3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY, 0);
         const array_1d<double, 3 > & mesh_vel3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
 
-
+	array_1d<double,3> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]) + N[3]*(adv_vel3[0] - mesh_vel3[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]) + N[3]*(adv_vel3[1] - mesh_vel3[1]);
         ms_adv_vel[2] = N[0]*(adv_vel0[2] - mesh_vel0[2]) + N[1]*(adv_vel1[2] - mesh_vel1[2]) + N[2]*(adv_vel2[2] - mesh_vel2[2]) + N[3]*(adv_vel3[2] - mesh_vel3[2]);
@@ -1343,13 +1349,17 @@ namespace Kratos {
     void ASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
+	
+	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        array_1d<double, 4 > N; 
+	
 
         //getting data for the given geometry
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        CalculateTau(N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
         if (rVariable == THAWONE) {
             for (unsigned int PointNumber = 0;
                     PointNumber < 1;

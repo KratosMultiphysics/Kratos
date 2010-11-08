@@ -64,19 +64,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h" 
 
 namespace Kratos {
-    namespace NoNewtonianASGS2Dauxiliaries {
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
-#pragma omp threadprivate(DN_DX)
-
-        array_1d<double, 3 > N = ZeroVector(3); //dimension = number of nodes
-#pragma omp threadprivate(N)
-
-        array_1d<double, 2 > ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-#pragma omp threadprivate(ms_adv_vel)
-
-    }
-    using namespace NoNewtonianASGS2Dauxiliaries;
-
 
     //************************************************************************************
     //************************************************************************************
@@ -109,6 +96,11 @@ namespace Kratos {
 
     void NoNewtonianASGS2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
+        
+        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        array_1d<double, 3 > N;
+        array_1d<double, 2 > ms_adv_vel;
+	
                 // KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
                 int nodes_number = 3;
         int dim = 2;
@@ -134,11 +126,11 @@ namespace Kratos {
 
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 
         //add body force and momentum
-        AddBodyForceAndMomentum(rRightHandSideVector, N, delta_t, Area, tauone, tautwo);
+        AddBodyForceAndMomentum(rRightHandSideVector,DN_DX, N, delta_t, Area, tauone, tautwo);
 
 
 
@@ -198,7 +190,9 @@ namespace Kratos {
         rMassMatrix = ZeroMatrix(MatSize, MatSize);
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-
+        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        array_1d<double, 3 > N;
+	
         //getting data for the given geometry
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
@@ -206,14 +200,14 @@ namespace Kratos {
         //Calculate tau
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
         CalculateMassContribution(rMassMatrix, delta_t, Area);
         /**Stablization*/
         //add stablilization terms due to advective term (a)grad(V) * ro*Acce
         CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Area);
         //add stablilization terms due to grad term grad(q) * ro*Acce
-        CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone, Area);
+        CalculateGradMassStblTerms(rMassMatrix, DN_DX,N, tauone, Area);
 
         KRATOS_CATCH("")
     }
@@ -228,7 +222,10 @@ namespace Kratos {
 
         if (rDampMatrix.size1() != matsize)
             rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
-
+	    
+        boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        array_1d<double, 3 > N;
+//         array_1d<double, 2 > ms_adv_vel;
 
         noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
 
@@ -243,9 +240,9 @@ namespace Kratos {
         /**Advective term*/
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
-        CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
+        CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
 
         /**Calculate Pressure term + divergence term of pressure equation*/
         CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area);
@@ -255,12 +252,12 @@ namespace Kratos {
         //stabilization terms
         CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
         CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area);
-        CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, delta_t, tauone, Area);
+        CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
         //KRATOS_WATCH(rRightHandSideVector);
 
         /**         RHS           */
         /**Internal Forces*/
-        CalculateResidual(rDampMatrix, rRightHandSideVector, Area);
+        CalculateResidual(rDampMatrix, rRightHandSideVector,DN_DX, Area);
 
         /**         LHS           */
         /**Viscous term*/
@@ -343,8 +340,11 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double tautwo, const double time, const double area) {
+    void NoNewtonianASGS2D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 >& N, const double tauone, const double tautwo, const double time, const double area) {
         KRATOS_TRY
+        
+        array_1d<double, 2 > ms_adv_vel;
+
                 //calculate mean advective velocity and taus
                 const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
         const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -480,6 +480,7 @@ namespace Kratos {
         const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
         const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
+	array_1d<double,2> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
 
@@ -579,6 +580,7 @@ namespace Kratos {
         const array_1d<double, 3 > & adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY, 0);
         const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
+	array_1d<double,2> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
 
@@ -632,7 +634,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double time, const double tauone, const double area) {
+    void NoNewtonianASGS2D::CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,const array_1d<double,3>& N, const double time, const double tauone, const double area) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -681,7 +683,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double area) {
+    void NoNewtonianASGS2D::CalculateGradMassStblTerms(MatrixType& M, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double tauone, const double area) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -711,7 +713,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::AddBodyForceAndMomentum(VectorType& F, const array_1d<double, 3 > & N, const double time, const double area, const double tauone, const double tautwo) {
+    void NoNewtonianASGS2D::AddBodyForceAndMomentum(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double time, const double area, const double tauone, const double tautwo) {
         KRATOS_TRY
         int nodes_number = 3;
         int dof = 2;
@@ -761,7 +763,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateResidual(const MatrixType& K, VectorType& F, const double area) {
+    void NoNewtonianASGS2D::CalculateResidual(const MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area) {
         KRATOS_TRY
 
         int nodes_number = 3;
@@ -840,7 +842,7 @@ namespace Kratos {
         const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
 
-
+	array_1d<double,2> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
 
@@ -1136,6 +1138,10 @@ namespace Kratos {
         array_1d<double, 3 > div_proj = ZeroVector(3);
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
+	
+	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        array_1d<double, 3 > N;
+//         array_1d<double, 2 > ms_adv_vel;
 
         //getting data for the given geometry
         double Area;
@@ -1143,7 +1149,7 @@ namespace Kratos {
 
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
         ComputeProjections(adv_proj, div_proj, DN_DX, tauone, tautwo, N, Area, delta_t);
 
@@ -1156,13 +1162,17 @@ namespace Kratos {
     void NoNewtonianASGS2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
+	
+	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        array_1d<double, 3 > N;
+//         array_1d<double, 2 > ms_adv_vel;
 
         //getting data for the given geometry
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
         double tauone;
         double tautwo;
-        CalculateTau(tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+        CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
         if (rVariable == THAWONE) {
             for (unsigned int PointNumber = 0;
                     PointNumber < 1;
@@ -1247,7 +1257,7 @@ namespace Kratos {
     //*************************************************************************************
     //*************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateTau(double& tauone, double& tautwo, const double time, const double area, const ProcessInfo& rCurrentProcessInfo) {
+    void NoNewtonianASGS2D::CalculateTau(const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const array_1d<double,3>& N, double& tauone, double& tautwo, const double time, const double area, const ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
                 //calculate mean advective velocity and taus
                 const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
@@ -1258,7 +1268,7 @@ namespace Kratos {
         const array_1d<double, 3 > & mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
 
-
+	array_1d<double,2> ms_adv_vel;
         ms_adv_vel[0] = N[0]*(adv_vel0[0] - mesh_vel0[0]) + N[1]*(adv_vel1[0] - mesh_vel1[0]) + N[2]*(adv_vel2[0] - mesh_vel2[0]);
         ms_adv_vel[1] = N[0]*(adv_vel0[1] - mesh_vel0[1]) + N[1]*(adv_vel1[1] - mesh_vel1[1]) + N[2]*(adv_vel2[1] - mesh_vel2[1]);
 
@@ -1285,7 +1295,7 @@ namespace Kratos {
 	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 
 
-	CalculateB(B, DN_DX);
+	CalculateB(B, msDN_DX);
 //         for (int ii = 0; ii < nodes_number; ++ii) {
 //             yield += GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
 //         }
