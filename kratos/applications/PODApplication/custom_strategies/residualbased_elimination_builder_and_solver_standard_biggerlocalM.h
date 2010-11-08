@@ -493,13 +493,13 @@ namespace Kratos
 // 			typedef boost::numeric::ublas::identity_matrix<std::size_t> identitymatrix;
 // 			typedef boost::numeric::ublas::matrix<std::size_t> Matrix;
 
-KRATOS_WATCH(mLHS_POD_Contribution);
-KRATOS_WATCH(mRHS_POD_Contribution);
+// KRATOS_WATCH(mLHS_POD_Contribution);
+// KRATOS_WATCH(mRHS_POD_Contribution);
 
 		  UblasSolve(mLHS_POD_Contribution,mRHS_POD_Contribution,mX_POD_Contribution);
-KRATOS_WATCH(mX_POD_Contribution);
+// KRATOS_WATCH(mX_POD_Contribution);
 		  
-		  
+// 		   KRATOS_WATCH(mX_POD_Contribution);
 /*		  bool singular;
 		  matrix<double> inverse = gjinverse(mLHS_POD_Contribution, singular);
 		  
@@ -1287,7 +1287,7 @@ KRATOS_WATCH(ReactionsVector[i]);*/
 		LocalSystemMatrixType mLHS_POD_Contribution ;
    		LocalSystemVectorType mRHS_POD_Contribution ;
 		LocalSystemVectorType mX_POD_Contribution ;
-		LocalSystemVectorType Solution ;
+// 		LocalSystemVectorType Solution ;
 // 		LocalSystemMatrixType inverse;
 		 
 
