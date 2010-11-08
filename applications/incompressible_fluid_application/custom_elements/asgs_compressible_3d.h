@@ -182,7 +182,7 @@ namespace Kratos
 	virtual void CalculateLCSMassContribution(VectorType& rhs,const double time,const double volume);
 	virtual void CalculateSoundVelocity(Geometry< Node<3> > geom, double& vc);
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
-	virtual void CalculateTau(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
+	virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
       ///@} 
       ///@name Protected Operators

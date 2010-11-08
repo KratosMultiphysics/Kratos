@@ -66,30 +66,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-        namespace Fluid2DSplitauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(DN_DX)
-
-        array_1d<double,3> N = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(N)
-
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_adv_vel)
-
-        array_1d<double,3> conv_opr = ZeroVector(3); //
-        #pragma omp threadprivate(conv_opr)
-
-        array_1d<double,3> darcy_opr = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(darcy_opr)
-
-        array_1d<double,6> div_opr = ZeroVector(6);
-        #pragma omp threadprivate(div_opr)
-
-    }
-    using  namespace Fluid2DSplitauxiliaries;
-
-
 	//************************************************************************************
 	//************************************************************************************
 	Fluid2DSplit::Fluid2DSplit(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -140,6 +116,12 @@ namespace Kratos
 	
 	double delta_t= rCurrentProcessInfo[DELTA_TIME];
 	
+	boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        array_1d<double,3> N; 
+        array_1d<double,2> ms_adv_vel; 
+        array_1d<double,3> conv_opr; 
+        array_1d<double,3> darcy_opr; 
+        array_1d<double,6> div_opr;
 	
 	//getting data for the given geometry
 	double Area;
@@ -167,7 +149,7 @@ namespace Kratos
 // 		        double tauone = 0.0;//delta_t;
 // 		        double tautwo = 0.0;//delta_t;*/
 		        double tauone, tautwo;
- 		        CalculateTau(tauone, tautwo, delta_t, Area ,  rCurrentProcessInfo);
+ 		        CalculateTau(N,tauone, tautwo, delta_t, Area ,  rCurrentProcessInfo);
 
 
 		        //add body force and momentum
@@ -187,7 +169,7 @@ namespace Kratos
 // 		double tauone = 0.0;//delta_t;
 // 		double tautwo = 0.0;//delta_t;
 		double tauone, tautwo;
-		CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+		CalculateTau(N,tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
 
 
 		//add body force and momentum
@@ -254,7 +236,13 @@ namespace Kratos
 		rMassMatrix = ZeroMatrix(MatSize,MatSize);
 		double delta_t= rCurrentProcessInfo[DELTA_TIME];
 		
-
+		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+		array_1d<double,3> N; 
+		array_1d<double,2> ms_adv_vel; 
+		array_1d<double,3> conv_opr; 
+		array_1d<double,3> darcy_opr; 
+		array_1d<double,6> div_opr;
+	
 		//getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
@@ -327,11 +315,11 @@ namespace Kratos
 	 // 		        double tauone = 0.0;//delta_t;
 	 // 		        double tautwo = 0.0;//delta_t;*/
 				double tauone, tautwo;
-				CalculateTau(tauone, tautwo, delta_t, Area ,  rCurrentProcessInfo);
+				CalculateTau(N,tauone, tautwo, delta_t, Area ,  rCurrentProcessInfo);
 				//add stablilization terms due to advective term (a)grad(V) * rho*Acc
 				CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area_se);
 				//add stablilization terms due to grad term grad(q) * rho*Acc
-				CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area_se);
+				CalculateGradMassStblTerms(rMassMatrix, DN_DX, N, tauone,Area_se);
 			   }	
 		        }
 		}
@@ -341,12 +329,12 @@ namespace Kratos
         /*		double tauone = 0.0;//delta_t;
 		        double tautwo = 0.0;// delta_t;*/
 		        double tauone, tautwo;
-		        CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+		        CalculateTau(N,tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
 		        CalculateMassContribution(rMassMatrix,delta_t,Area); 
 		        //add stablilization terms due to advective term (a)grad(V) * ro*Acce
 		        CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Area);
 		        //add stablilization terms due to grad term grad(q) * ro*Acce
-		        CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Area);
+		        CalculateGradMassStblTerms(rMassMatrix, DN_DX,N, tauone,Area);
 
 		  }
 	 
@@ -369,7 +357,12 @@ namespace Kratos
 	
 	double delta_t= rCurrentProcessInfo[DELTA_TIME];
 	
-	
+	boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        array_1d<double,3> N; 
+        array_1d<double,2> ms_adv_vel; 
+        array_1d<double,3> conv_opr; 
+        array_1d<double,3> darcy_opr; 
+        array_1d<double,6> div_opr;	
 	
 	//getting data for the given geometry
 	double Area;
@@ -400,8 +393,8 @@ namespace Kratos
 // 		        double tauone = 0.0;//delta_t;
 // 		        double tautwo = 0.0;//delta_t;
 			double tauone, tautwo;
-			CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
-			CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area_se);
+			CalculateTau(N,tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+			CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area_se);
 // 		        //calculate pressure term
 			CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area_se);
 			//calculate Darcy term
@@ -412,7 +405,7 @@ namespace Kratos
 			//stabilization terms
 			CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area_se);
 			CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area_se);
-			CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area_se);
+			CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Area_se);
 
 		
 		  }
@@ -428,8 +421,8 @@ namespace Kratos
 		  //		  double tauone =0.0; //delta_t;
 		  //		  double tautwo =0.0;// delta_t;
 		  double tauone, tautwo;
-		  CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
-		  CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);		   
+		  CalculateTau(N,tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+		  CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);		   
 
 		  //calculate pressure term
 		  CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
@@ -442,7 +435,7 @@ namespace Kratos
 		  //stabilization terms
 		  CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
 		  CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
-		  CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Area);
+		  CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Area);
 		  
 	
 	}
@@ -488,9 +481,12 @@ namespace Kratos
 	}
 	//************************************************************************************
 	//************************************************************************************
-	void Fluid2DSplit::CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double tauone, const double tautwo, const double time,const double area)
+	void Fluid2DSplit::CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>&  N, const double tauone, const double tautwo, const double time,const double area)
 	{
 		KRATOS_TRY
+		
+		array_1d<double,3> conv_opr; 
+		
 	//calculate mean advective velocity and taus
 	const array_1d<double,3>& adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
@@ -502,6 +498,7 @@ namespace Kratos
 	double dp;
 	CalculateDensity(GetGeometry(), density, mu, eps, dp);
 
+	array_1d<double,2> ms_adv_vel;
 	ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
 	ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
 //*****Convective vel == real fluid velocity
@@ -741,6 +738,7 @@ KRATOS_WATCH(dp)	*/
 	int nodes_number = 3;
 	int dof = 2;
 	int matsize = dof*nodes_number;
+	array_1d<double,6> div_opr;
 
 	for(int ii=0; ii<nodes_number; ii++)
 	  {
@@ -796,6 +794,7 @@ KRATOS_WATCH(dp)	*/
 		const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
+		array_1d<double,2> ms_adv_vel;
 		ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
 		ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
 
@@ -815,7 +814,7 @@ ms_adv_vel[0] /=eps;
 ms_adv_vel[1] /=eps;
 //****
 
-
+		array_1d<double,3> conv_opr; 
 		for (int ii = 0; ii< nodes_number; ii++)
 		    {
 			 conv_opr[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
@@ -866,7 +865,7 @@ ms_adv_vel[1] /=eps;
 		{
 			 norm_vel_gp +=  vel_gp[ii]*vel_gp[ii];
 		}
-
+		array_1d<double,3> darcy_opr;
 		double fac_linear = kinv * mu / density;
 		double fac_nonlinear = 1.75  /eps * sqrt(norm_vel_gp *  kinv / (eps * 150.0));
 		for (int ii = 0; ii< nodes_number; ii++)
@@ -974,6 +973,7 @@ ms_adv_vel[1] /=eps;
 	const array_1d<double,3>& adv_vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
 
+	array_1d<double,2> ms_adv_vel;
 	ms_adv_vel[0] = N[0]*adv_vel0[0]+N[1]*adv_vel1[0]+N[2]*adv_vel2[0];
 	ms_adv_vel[1] = N[0]*adv_vel0[1]+N[1]*adv_vel1[1]+N[2]*adv_vel2[1];
 
@@ -998,7 +998,7 @@ ms_adv_vel[1] /=eps;
 ms_adv_vel[0] /=eps;
 ms_adv_vel[1] /=eps;
 //****
-
+array_1d<double,3> conv_opr; 
 	for (int ii = 0; ii< nodes_number; ii++)
 	    {
 		conv_opr[ii] = DN_DX(ii,0)*ms_adv_vel[0] + DN_DX(ii,1)*ms_adv_vel[1];
@@ -1028,7 +1028,7 @@ ms_adv_vel[1] /=eps;
 	}
 	//************************************************************************************
 	//************************************************************************************
-	void Fluid2DSplit::CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double time,const double tauone,const double area)
+	void Fluid2DSplit::CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double time,const double tauone,const double area)
 	{
 		KRATOS_TRY
 	int nodes_number = 3;
@@ -1136,7 +1136,7 @@ ms_adv_vel[1] /=eps;
 	}
 	//************************************************************************************
 	//************************************************************************************
-	void Fluid2DSplit::CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double tauone,const double area)
+	void Fluid2DSplit::CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double tauone,const double area)
 	{
 		KRATOS_TRY
 	int nodes_number = 3;
@@ -1216,7 +1216,7 @@ ms_adv_vel[1] /=eps;
 	}
 	//************************************************************************************
 	//************************************************************************************
-	 void Fluid2DSplit::AddVolumeCorrection(VectorType& F,const array_1d<double,3>& N, const double time,const double area)
+	 void Fluid2DSplit::AddVolumeCorrection(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double time,const double area)
 	   {
 		  KRATOS_TRY
 		  int nodes_number = 3;
@@ -1339,7 +1339,11 @@ ms_adv_vel[1] /=eps;
 	{
 
 	double delta_t= rCurrentProcessInfo[DELTA_TIME];
-		
+
+		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        array_1d<double,3> N; 
+
+	
 	//getting data for the given geometry
 	double Area;
 	GeometryUtils::CalculateGeometryData(GetGeometry(),DN_DX,N,Area);
@@ -1347,7 +1351,7 @@ ms_adv_vel[1] /=eps;
 // 	double tautwo = 0.0;//delta_t;*/
 
        double tauone, tautwo;
-	CalculateTau(tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
+	CalculateTau(N,tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
             if(rVariable==THAWONE)
             {
                 for( unsigned int PointNumber = 0; 
@@ -1471,7 +1475,7 @@ ms_adv_vel[1] /=eps;
 	//*************************************************************************************
 	//*************************************************************************************
 
-		void Fluid2DSplit::CalculateTau(double& tauone, double& tautwo, const double time,const double area, const ProcessInfo& rCurrentProcessInfo)
+		void Fluid2DSplit::CalculateTau(const array_1d<double,3>& N, double& tauone, double& tautwo, const double time,const double area, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 	//calculate mean advective velocity and taus
@@ -1481,7 +1485,7 @@ ms_adv_vel[1] /=eps;
 
 
 
-
+	array_1d<double,2> ms_adv_vel;
 	ms_adv_vel[0] = N[0]*(adv_vel0[0])+N[1]*(adv_vel1[0])+N[2]*(adv_vel2[0]);
 	ms_adv_vel[1] = N[0]*(adv_vel0[1])+N[1]*(adv_vel1[1])+N[2]*(adv_vel2[1]);
 									                                                                                                                                                                                                  

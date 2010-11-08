@@ -63,41 +63,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos 
 {
-    //space defined to allow parallelism
-    namespace Fluid3DAuxiliaries
-    {
-	boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
-        #pragma omp threadprivate(msMassFactors)
-
-        boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
-        #pragma omp threadprivate(msDN_DX)
-
-        array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
-        #pragma omp threadprivate(msN)
-
-        array_1d<double,3> ms_aux = ZeroVector(3); //dimension coincides with space dimension
-        #pragma omp threadprivate(ms_aux)
-
-        array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_vel_gauss)
-
-        array_1d<double,3> ms_temp; //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_temp)
-
-        array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes
-        #pragma omp threadprivate(ms_temp_vec_np)
-
-        array_1d<double,4> ms_u_DN = ZeroVector(4); //dimension = number of nodes
-        #pragma omp threadprivate(ms_u_DN)
- 
-    }
-	using namespace Fluid3DAuxiliaries;
-    
-
-	
-		
-
-
 	//************************************************************************************
 	//************************************************************************************
 	Fluid3D::Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -170,6 +135,8 @@ namespace Kratos
 
 		//getting data for the given geometry
 		double Volume;
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+		array_1d<double,4> msN;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
 		//CalculateGeometryData(msDN_DX,msN,Volume);
 
@@ -209,6 +176,8 @@ namespace Kratos
 		const double fcomp3 = GetGeometry()[3].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
 
 		// vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+		array_1d<double,3> ms_aux;
+		array_1d<double,3> ms_vel_gauss;
 		noalias(ms_aux) = fv0;	noalias(ms_aux) -= w0;	
 		noalias(ms_vel_gauss) = msN[0]*ms_aux;
 
@@ -244,6 +213,7 @@ namespace Kratos
 		//	tau *= GetProperties()[STABILIZATION_FACTOR];
 
 		//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
+		array_1d<double,4> ms_u_DN; 
 		noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
 		noalias(rLeftHandSideMatrix) = outer_prod(msN,ms_u_DN);
 
@@ -256,6 +226,7 @@ namespace Kratos
 
 		//INERTIA CONTRIBUTION
 		//  rLeftHandSideMatrix += M*BDFcoeffs[0]
+		boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
 		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMassFactors;
 
 		//multiplication by the Volume
@@ -292,7 +263,7 @@ namespace Kratos
 		//adding the inertia terms
 		// RHS += M*vhistory 
 		//calculating the historical velocity
-		noalias(ms_temp_vec_np) = ZeroVector(4);		
+		array_1d<double,4> ms_temp_vec_np = ZeroVector(4); 
 		for(unsigned int step = 1; step<BDFcoeffs.size(); step++)
 		{ 
 			for(int iii = 0; iii<4; iii++)
@@ -341,9 +312,15 @@ namespace Kratos
 
 		if(rRightHandSideVector.size() != number_of_points)
 			rRightHandSideVector.resize(number_of_points);
-
+		
+		array_1d<double,3> ms_vel_gauss;
+		array_1d<double,3> ms_aux;
+		array_1d<double,4> ms_temp_vec_np;		
+		
 		//getting data for the given geometry
 		double Volume;
+		array_1d<double,4> msN;
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
 		//CalculateGeometryData(msDN_DX,msN,Volume);
 
@@ -381,6 +358,7 @@ namespace Kratos
 		const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
 
 		// vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+
 		noalias(ms_aux) = fv0;		
 		ms_aux[0] -= w0[0]; ms_aux[1] -= w0[1]; ms_aux[2] -= w0[2];
 		noalias(ms_vel_gauss) = msN[0]*ms_aux;
@@ -527,6 +505,8 @@ namespace Kratos
  
 		//getting data for the given geometry
 		double Volume;
+		array_1d<double,4> msN;
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
 		//CalculateGeometryData(msDN_DX,msN,Volume);
 		
@@ -564,6 +544,8 @@ namespace Kratos
 			double density = 0.25*(rho0 + rho1 + rho2 + rho3);
 
 			//calculation of the pressure gradient (saved in ms_vel_gauss)
+			array_1d<double,3> ms_temp;
+			array_1d<double,4> ms_temp_vec_np;
 			ms_temp_vec_np[0] = p0;
 			ms_temp_vec_np[1] = p1;
 			ms_temp_vec_np[2] = p2;
@@ -623,6 +605,8 @@ namespace Kratos
 //                        press_proj3[2] += msN[3]*ms_vel_gauss[2];
                         
 			// vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+			array_1d<double,3> ms_vel_gauss;
+			array_1d<double,3> ms_aux;
 			noalias(ms_aux) = fv0;		
 			ms_aux[0] -= w0[0]; ms_aux[1] -= w0[1]; ms_aux[2] -= w0[2];
 			noalias(ms_vel_gauss) = msN[0]*ms_aux;
@@ -641,6 +625,7 @@ namespace Kratos
 
 
 			//calculating convective auxiliary vector
+			array_1d<double,4> ms_u_DN; 
 			noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
 
 			//attention changing the meaning of ms_vel_gauss!!
@@ -911,6 +896,8 @@ namespace Kratos
 	if(rVariable == ERROR_RATIO)
 	{
 	      double Volume;
+	      array_1d<double,4> msN;
+	      boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
 	      GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
 	      //CalculateGeometryData(msDN_DX,msN,Volume);
 
@@ -950,6 +937,8 @@ namespace Kratos
 	      const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
 
 	      // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+	      array_1d<double,3> ms_vel_gauss;
+	      array_1d<double,3> ms_aux;
 	      noalias(ms_aux) = fv0;	noalias(ms_aux) -= w0;	
 	      noalias(ms_vel_gauss) = msN[0]*ms_aux;
 
@@ -977,6 +966,7 @@ namespace Kratos
 	      double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
 
 	      //calculating the subscale velocity assuming that it is governed by the convection part
+	      array_1d<double,4> ms_u_DN; 
 	      noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
 	      
 	      array_1d<double,3> vel_subscale = ms_u_DN[0]*fv0;

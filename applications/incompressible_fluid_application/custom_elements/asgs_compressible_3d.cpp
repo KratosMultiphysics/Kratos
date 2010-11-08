@@ -65,21 +65,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  /*      namespace ASGSCompressible2Dauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(DN_DX)
-
-        array_1d<double,3> N = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(N)
-
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_adv_vel)
-
-    }
-    using  namespace ASGSCompressible2Dauxiliaries;*/
-
-
 	//************************************************************************************
 	//************************************************************************************
 	ASGSCompressible3D::ASGSCompressible3D(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -146,7 +131,7 @@ namespace Kratos
 	      //Advective term
 	      double tauone;
 	      double tautwo;
-	      CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
+	      CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
  	      CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Volume);
 
@@ -163,7 +148,7 @@ namespace Kratos
 	      CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Volume);
 		
 
-	      CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, delta_t, tauone, Volume);
+	      CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Volume);
 
 	      CalculateResidual(rDampMatrix, rRightHandSideVector);
 
@@ -256,13 +241,13 @@ namespace Kratos
 	    //Calculate tau
 	    double tauone;
 	    double tautwo;
-	    CalculateTau(tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
+	    CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
 	    CalculateMassContribution(rMassMatrix,delta_t,Volume); 
 		    //add stablilization terms due to advective term (a)grad(V) * ro*Acce
 	    CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N,tauone,Volume);
 		    //add stablilization terms due to grad term grad(q) * ro*Acce
-	    CalculateGradMassStblTerms(rMassMatrix, DN_DX, tauone,Volume);
+	    CalculateGradMassStblTerms(rMassMatrix, DN_DX,N, tauone,Volume);
 		    //add compressible stabilization terms
 	    CalculateCompressibleStblTerms(rMassMatrix, DN_DX,N, tautwo,Volume);
 	}
@@ -564,7 +549,7 @@ namespace Kratos
     //*************************************************************************************
     //*************************************************************************************
 
-    void ASGSCompressible3D::CalculateTau(double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
+    void ASGSCompressible3D::CalculateTau(const array_1d<double,4>& N, double& tauone, double& tautwo, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
                 //calculate mean advective velocity and taus

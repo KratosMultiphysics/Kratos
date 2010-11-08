@@ -177,14 +177,14 @@ namespace Kratos
       ///@} 
       ///@name Protected member Variables 
       ///@{ 
-       virtual void CalculateCompressibleStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,array_1d<double,3> N,const double thatwo,const double area);
+       virtual void CalculateCompressibleStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N,const double thatwo,const double area);
         virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 	
 	virtual void CalculateSoundVelocity(Geometry< Node<3> > geom, double& vc);
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
-       virtual void CalculateTau(double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
+       virtual void CalculateTau(const array_1d<double,3>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
        	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
-        virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double thawone,const double area);
-    virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double area);
+       virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const array_1d<double,3>& N, const double time,const double thawone,const double area);
+       virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
         //virtual void AddBodyForceAndMomentum(VectorType& F,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
       ///@} 

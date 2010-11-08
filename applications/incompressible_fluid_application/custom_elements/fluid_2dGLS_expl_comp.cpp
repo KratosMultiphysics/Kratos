@@ -64,61 +64,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Fluid2DGLS_expl_compauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
-        #pragma omp threadprivate(msAuxMat)
-
-        boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
-        #pragma omp threadprivate(msAuxMat)
-
-	boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
-	#pragma omp threadprivate(msAuxMat2)
-
-	boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
-	#pragma omp threadprivate(msGrad_ug)
-
-	array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-        #pragma omp threadprivate(msAuxVec)
-
-	array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
-        #pragma omp threadprivate(msStabMomRes)
-	
-	boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-	#pragma omp threadprivate(msWorkMatrix)
-	
-	boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
-	#pragma omp threadprivate(msShapeFunc)
-
-	boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
-	#pragma omp threadprivate(msConvOp)
-
-	boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
-	#pragma omp threadprivate(msGradOp)
-
-        boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(msDN_DX)
-
-	array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-	#pragma omp threadprivate(ms_adv_vel)
-
-        array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(msN)
-
-        array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_vel_gauss)
-
-        array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(ms_temp_vec_np)
-
-	array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
-	#pragma omp threadprivate(ms_aux0)
-	
-	array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
-	#pragma omp threadprivate(ms_aux1)
-	
-    }
-    using  namespace Fluid2DGLS_expl_compauxiliaries;
 
 //THIS IS A COMPRESSIBLE FLUID ELEMENT, WITH GLS STABILIZATION, RUNGE-KUTTA Momentum Time integration, FRACTIONAL STEP
 	//************************************************************************************
@@ -190,7 +135,12 @@ namespace Kratos
 void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		{
 		KRATOS_TRY
-				
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+		array_1d<double,2> ms_adv_vel; 
+		array_1d<double,3> msN; 
+		array_1d<double,2> ms_vel_gauss; 
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+		
 		//first we compute  the force term and pressure gradient terms:
 		//getting data for the given geometry
 		double Area;
@@ -249,7 +199,14 @@ void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& Galerki
 		int nodes_number = 3;
 		int dof = 2;
 		
-		
+		boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp;
+		boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc;
+		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat;
+		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1;
+		boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2;
+		array_1d<double,6> msAuxVec; 
+		array_1d<double,6> msStabMomRes; 
+	
 		for (int ii = 0; ii< nodes_number; ii++)
 		    {
 			int column = ii*dof;
@@ -334,7 +291,24 @@ void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& Galerki
 	void Fluid2DGLS_expl_comp::CalculateRHSVector(VectorType& Galerkin_RHS, double& dt)
 	{
 		KRATOS_TRY
-
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+		array_1d<double,2> ms_adv_vel; 
+		array_1d<double,3> msN; 
+		array_1d<double,2> ms_vel_gauss; 
+		array_1d<double,6> msAuxVec; 
+		array_1d<double,6> msStabMomRes; 
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+		boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc;
+		boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp;
+		boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp;
+		array_1d<double,3> ms_temp_vec_np; 
+		array_1d<double,3> ms_aux0; 
+		array_1d<double,3> ms_aux1; 
+		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat;
+		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1;
+		boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2;
+		boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug;
+	
 		//first we compute  the force term and pressure gradient terms:
 		//getting data for the given geometry
 		double Area;
@@ -501,6 +475,23 @@ void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& Galerki
 	void Fluid2DGLS_expl_comp::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+		array_1d<double,2> ms_adv_vel; 
+		array_1d<double,3> msN; 
+		array_1d<double,2> ms_vel_gauss; 
+		array_1d<double,6> msAuxVec; 
+		array_1d<double,6> msStabMomRes; 
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+		boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc;
+		boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp;
+		boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp;
+		array_1d<double,3> ms_temp_vec_np; 
+		array_1d<double,3> ms_aux0; 
+		array_1d<double,3> ms_aux1; 
+		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat;
+		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1;
+		boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2;
+		boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug;
 		
 		if(rRightHandSideVector.size() != 3)
 		{
