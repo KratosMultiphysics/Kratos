@@ -46,11 +46,13 @@ python-extension KratosConvectionDiffusionApplication
        ##/kratos-prj/kratos//libkratos/<link>static
     	/KratosProject//libkratos_static
 
-	/KratosProject//libomp
     	 
 	#"system" includes	
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
+
+	/KratosProject//libomp
+
 #    : <tag>@tag
     ;
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
@@ -76,10 +77,11 @@ gid_io = GidIO("square",gid_mode,multifile,deformed_mesh_flag, write_conditions)
 gid_io.ReadModelPart(model_part)
 
 print model_part
-
+print "line 79"
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
+print "line 84"
 ##add Degrees of Freedom to all of the nodes
 for node in model_part.Nodes:
     node.AddDof(TEMPERATURE)
@@ -87,6 +89,7 @@ for node in model_part.Nodes:
 #settings to be changed
 #INITIALIZING FLUID
 #assigning the fluid properties
+print "line 90"
 
 #assigning a rotational velocity field
 vel = Vector(3);
@@ -121,6 +124,7 @@ time = 0.0
 max_time = 7.0
 step = 0
 
+print "BEFORE ENTERING IN SOLVER"
 
 ##########    convection solver
 convection_order = 2 #order of the time scheme of the convection solver
