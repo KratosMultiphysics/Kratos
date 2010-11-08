@@ -62,29 +62,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//space defined to allow parallelism
-	 namespace ConvDiff3DAuxiliaries
-	 {
-	     boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
-	     #pragma omp threadprivate(msMassFactors)
-
-	     boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
-	     #pragma omp threadprivate(msDN_DX)
-
-	     array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
-	     #pragma omp threadprivate(msN)
-
-	     array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension
-	     #pragma omp threadprivate(ms_vel_gauss)
-
-	     array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes
-	     #pragma omp threadprivate(ms_temp_vec_np)
-
-	     array_1d<double,4> ms_u_DN = ZeroVector(4); //dimension = number of nodes
-	     #pragma omp threadprivate(ms_u_DN)
-
-	 }
-	 using namespace ConvDiff3DAuxiliaries;
+// 	//space defined to allow parallelism
+// 	 namespace ConvDiff3DAuxiliaries
+// 	 {
+// 	     boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
+// 	     #pragma omp threadprivate(msMassFactors)
+// 
+// 	     boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
+// 	     #pragma omp threadprivate(msDN_DX)
+// 
+// 	     array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
+// 	     #pragma omp threadprivate(msN)
+// 
+// 	     array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension
+// 	     #pragma omp threadprivate(ms_vel_gauss)
+// 
+// 	     array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes
+// 	     #pragma omp threadprivate(ms_temp_vec_np)
+// 
+// 	     array_1d<double,4> ms_u_DN = ZeroVector(4); //dimension = number of nodes
+// 	     #pragma omp threadprivate(ms_u_DN)
+// 
+// 	 }
+// 	 using namespace ConvDiff3DAuxiliaries;
 
 	//************************************************************************************
 	//************************************************************************************
@@ -118,8 +118,15 @@ namespace Kratos
 
 		const unsigned int number_of_points = GetGeometry().size();
 		const double lumping_factor = 1.00/double(number_of_points);
-unsigned int TDim = 3;
+		unsigned int TDim = 3;
 
+		const boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+		array_1d<double,4> msN;
+		array_1d<double,3> ms_vel_gauss;
+		array_1d<double,4> ms_temp_vec_np;
+		array_1d<double,4> ms_u_DN ;
+	     
 		if(rLeftHandSideMatrix.size1() != number_of_points)
 			rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
 
@@ -236,6 +243,13 @@ unsigned int TDim = 3;
 	{
 		KRATOS_TRY
 		int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
+		
+// 		const boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+		array_1d<double,4> msN;
+		array_1d<double,3> ms_vel_gauss;
+		array_1d<double,4> ms_temp_vec_np;
+		array_1d<double,4> ms_u_DN ;
  
 		//getting data for the given geometry
 		double Area;
