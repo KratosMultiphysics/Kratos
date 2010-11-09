@@ -67,24 +67,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
 
- 	namespace BossakAuxiliaries
-	{
-		extern Matrix mMass;
-                #pragma omp threadprivate(mMass)
-		extern Matrix mDamp;
-                #pragma omp threadprivate(mDamp) 
-		extern Vector mvel;
-                #pragma omp threadprivate(mvel)
-		extern Vector macc;
-                #pragma omp threadprivate(macc)
-		extern Vector maccold;
-                #pragma omp threadprivate(maccold)
-	}
- 
 	
 	/**@name Kratos Globals */
 	/*@{ */
@@ -182,6 +169,14 @@ namespace Kratos
 		mAlphaBossak = NewAlphaBossak;
 		mBetaNewmark = 0.25*pow((1.00-mAlphaBossak),2);
 		mGammaNewmark = 0.5-mAlphaBossak;
+		
+		//Allocate auxiliary memory
+		int NumThreads = OpenMPUtils::GetNumThreads();
+		mMass.resize(NumThreads);
+		mDamp.resize(NumThreads);
+		mvel.resize(NumThreads);
+		macc.resize(NumThreads);
+		maccold.resize(NumThreads);
 
 		//sizing work matrices
 		//mMass.resize(10,10);
@@ -357,6 +352,9 @@ LHS and to the RHS
 			)  
 		{
 			KRATOS_TRY
+			
+			int k = OpenMPUtils::ThisThread();
+			
 				//Initializing the non linear iteration for the current element
 				(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 //KRATOS_WATCH(LHS_Contribution);
@@ -365,9 +363,9 @@ LHS and to the RHS
 				
 				//KRATOS_WATCH(LHS_Contribution);
 				//KRATOS_WATCH(RHS_Contribution);
-				(rCurrentElement)->MassMatrix(BossakAuxiliaries::mMass,CurrentProcessInfo);
+				(rCurrentElement)->MassMatrix(mMass[k],CurrentProcessInfo);
 				
-				(rCurrentElement)->DampMatrix(BossakAuxiliaries::mDamp,CurrentProcessInfo);
+				(rCurrentElement)->DampMatrix(mDamp[k],CurrentProcessInfo);
 				
 				(rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
 				
@@ -378,9 +376,9 @@ LHS and to the RHS
 //KRATOS_WATCH(mDamp);	
 			//adding the dynamic contributions (statics is already included)
 		
-	AddDynamicsToLHS(LHS_Contribution,BossakAuxiliaries::mDamp,BossakAuxiliaries::mMass,CurrentProcessInfo);
+	AddDynamicsToLHS(LHS_Contribution,mDamp[k],mMass[k],CurrentProcessInfo);
 		
-	AddDynamicsToRHS(rCurrentElement,RHS_Contribution,BossakAuxiliaries::mDamp,BossakAuxiliaries::mMass,CurrentProcessInfo);
+	AddDynamicsToRHS(rCurrentElement,RHS_Contribution,mDamp[k],mMass[k],CurrentProcessInfo);
 //KRATOS_WATCH("ADDED DYNAMIC CONTRIBUTION");							
 //KRATOS_WATCH(RHS_Contribution);	
 	
@@ -395,18 +393,20 @@ LHS and to the RHS
 			Element::EquationIdVectorType& EquationId,
 			ProcessInfo& CurrentProcessInfo)
 		{
+		  int k = OpenMPUtils::ThisThread();
+		  
 				//Initializing the non linear iteration for the current element
 				(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
 			//basic operations for the element considered
 				(rCurrentElement)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-				(rCurrentElement)->MassMatrix(BossakAuxiliaries::mMass,CurrentProcessInfo);
-				(rCurrentElement)->DampMatrix(BossakAuxiliaries::mDamp,CurrentProcessInfo);
+				(rCurrentElement)->MassMatrix(mMass[k],CurrentProcessInfo);
+				(rCurrentElement)->DampMatrix(mDamp[k],CurrentProcessInfo);
 				(rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
 
 			//adding the dynamic contributions (static is already included)
 		
-	AddDynamicsToRHS(rCurrentElement,RHS_Contribution,BossakAuxiliaries::mDamp,BossakAuxiliaries::mMass,CurrentProcessInfo);
+	AddDynamicsToRHS(rCurrentElement,RHS_Contribution,mDamp[k],mMass[k],CurrentProcessInfo);
 			
 		}
 
@@ -422,17 +422,20 @@ LHS and to the RHS
 		  ProcessInfo& CurrentProcessInfo) 
 		{
 			KRATOS_TRY
+			
+			int k = OpenMPUtils::ThisThread();
+			
 			(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 			(rCurrentCondition)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-			(rCurrentCondition)->MassMatrix(BossakAuxiliaries::mMass,CurrentProcessInfo);
-			(rCurrentCondition)->DampMatrix(BossakAuxiliaries::mDamp,CurrentProcessInfo);
+			(rCurrentCondition)->MassMatrix(mMass[k],CurrentProcessInfo);
+			(rCurrentCondition)->DampMatrix(mDamp[k],CurrentProcessInfo);
 			(rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
 
 		//KRATOS_WATCH("ADDED CONDITION CONTRIBUTION");							
 		//KRATOS_WATCH(RHS_Contribution);	
-	AddDynamicsToLHS(LHS_Contribution,BossakAuxiliaries::mDamp,BossakAuxiliaries::mMass,CurrentProcessInfo);
+	AddDynamicsToLHS(LHS_Contribution,mDamp[k],mMass[k],CurrentProcessInfo);
 		
-	AddDynamicsToRHS(rCurrentCondition,RHS_Contribution,BossakAuxiliaries::mDamp,BossakAuxiliaries::mMass,CurrentProcessInfo);
+	AddDynamicsToRHS(rCurrentCondition,RHS_Contribution,mDamp[k],mMass[k],CurrentProcessInfo);
 		//KRATOS_WATCH("ADDED DYNAMIC CONDITION CONTRIBUTION");							
 		//KRATOS_WATCH(RHS_Contribution);	
 
@@ -446,18 +449,21 @@ LHS and to the RHS
 		  ProcessInfo& CurrentProcessInfo) 
 		{
 			KRATOS_TRY
+			
+			int k = OpenMPUtils::ThisThread();
+			
 			//Initializing the non linear iteration for the current condition
 			(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
 			//basic operations for the element considered
 			(rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-			(rCurrentCondition)->MassMatrix(BossakAuxiliaries::mMass,CurrentProcessInfo);
-			(rCurrentCondition)->DampMatrix(BossakAuxiliaries::mDamp,CurrentProcessInfo);
+			(rCurrentCondition)->MassMatrix(mMass[k],CurrentProcessInfo);
+			(rCurrentCondition)->DampMatrix(mDamp[k],CurrentProcessInfo);
 			(rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
 
 			//adding the dynamic contributions (static is already included)
 		
-	AddDynamicsToRHS(rCurrentCondition,RHS_Contribution,BossakAuxiliaries::mDamp,BossakAuxiliaries::mMass,CurrentProcessInfo);
+	AddDynamicsToRHS(rCurrentCondition,RHS_Contribution,mDamp[k],mMass[k],CurrentProcessInfo);
 
 			KRATOS_CATCH("")
 		}
@@ -529,7 +535,12 @@ LHS and to the RHS
 		double ma4;
 		double ma5;
 		double mam;
-		
+	
+		std::vector< Matrix >mMass;
+		std::vector< Matrix >mDamp;
+		std::vector< Vector >mvel;
+		std::vector< Vector >macc;
+		std::vector< Vector >maccold;		
        
         /*@} */
         /**@name Protected Operators*/
@@ -611,21 +622,23 @@ LHS and to the RHS
 			LocalSystemMatrixType& M,
 			ProcessInfo& CurrentProcessInfo) 
 		{ 
+			int k = OpenMPUtils::ThisThread();
+		  
 			//KRATOS_WATCH(RHS_Contribution);
 			//adding inertia contribution
 			if (M.size1() != 0) 
 			{
-				rCurrentElement->GetSecondDerivativesVector(BossakAuxiliaries::macc,0);
+				rCurrentElement->GetSecondDerivativesVector(macc[k],0);
 				
-				(BossakAuxiliaries::macc) *= (1.00-mAlphaBossak);
-				rCurrentElement->GetSecondDerivativesVector(BossakAuxiliaries::maccold,1); 
+				(macc[k]) *= (1.00-mAlphaBossak);
+				rCurrentElement->GetSecondDerivativesVector(maccold[k],1); 
 				
-				noalias(BossakAuxiliaries::macc) += mAlphaBossak * BossakAuxiliaries::maccold;
+				noalias(macc[k]) += mAlphaBossak * maccold[k];
 				
 				//KRATOS_WATCH("ACCELERATION");
 				
-				noalias(RHS_Contribution) -= prod(M, BossakAuxiliaries::macc );
-				//KRATOS_WATCH(prod(M, BossakAuxiliaries::macc ));
+				noalias(RHS_Contribution) -= prod(M, macc[k] );
+				//KRATOS_WATCH(prod(M, macc[k] ));
 				
 			}
 
@@ -633,10 +646,10 @@ LHS and to the RHS
 			//damping contribution
 			if (D.size1() != 0) 
 			{
-				rCurrentElement->GetFirstDerivativesVector(BossakAuxiliaries::mvel,0);
-				//KRATOS_WATCH(BossakAuxiliaries::mvel);
-				noalias(RHS_Contribution) -= prod(D,BossakAuxiliaries::mvel);
-				//KRATOS_WATCH(prod(D,BossakAuxiliaries::mvel));
+				rCurrentElement->GetFirstDerivativesVector(mvel[k],0);
+				//KRATOS_WATCH(mvel[k]);
+				noalias(RHS_Contribution) -= prod(D,mvel[k]);
+				//KRATOS_WATCH(prod(D,mvel[k]));
 			}
 	
 		
@@ -649,23 +662,25 @@ LHS and to the RHS
 			LocalSystemMatrixType& M,
 			ProcessInfo& CurrentProcessInfo) 
 		{ 
+			int k = OpenMPUtils::ThisThread();
+		  
 			//adding inertia contribution
 			if (M.size1() != 0) 
 			{
-				rCurrentCondition->GetSecondDerivativesVector(BossakAuxiliaries::macc,0);
-				(BossakAuxiliaries::macc) *= (1.00-mAlphaBossak);
-				rCurrentCondition->GetSecondDerivativesVector(BossakAuxiliaries::maccold,1); 
-				noalias(BossakAuxiliaries::macc) += mAlphaBossak * BossakAuxiliaries::maccold;
+				rCurrentCondition->GetSecondDerivativesVector(macc[k],0);
+				(macc[k]) *= (1.00-mAlphaBossak);
+				rCurrentCondition->GetSecondDerivativesVector(maccold[k],1); 
+				noalias(macc[k]) += mAlphaBossak * maccold[k];
 				
-				noalias(RHS_Contribution) -= prod(M, BossakAuxiliaries::macc );
+				noalias(RHS_Contribution) -= prod(M, macc[k] );
 			}
 
 			//adding damping contribution
 			//damping contribution
 			if (D.size1() != 0) 
 			{
-				rCurrentCondition->GetFirstDerivativesVector(BossakAuxiliaries::mvel,0);
-				noalias(RHS_Contribution) -= prod(D,BossakAuxiliaries::mvel);
+				rCurrentCondition->GetFirstDerivativesVector(mvel[k],0);
+				noalias(RHS_Contribution) -= prod(D,mvel[k]);
 			}
 
 		}
