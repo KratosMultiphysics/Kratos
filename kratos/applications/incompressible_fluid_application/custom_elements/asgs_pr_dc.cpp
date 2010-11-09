@@ -65,19 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-        namespace ASGSPRDCauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(DN_DX)
 
-        array_1d<double,3> N = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(N)
-
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_adv_vel)
-
-    }
-    using  namespace ASGSPRDCauxiliaries;
 
 
 	//************************************************************************************
@@ -132,7 +120,9 @@ namespace Kratos
 	
 	double delta_t= rCurrentProcessInfo[DELTA_TIME];
 	
-	
+	boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+        array_1d<double,3> N; 
+        array_1d<double,2> ms_adv_vel;	
 	
 	//getting data for the given geometry
 	double Area;
@@ -217,7 +207,7 @@ namespace Kratos
 	const array_1d<double,3>& adv_vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,0);
 	const array_1d<double,3>& mesh_vel2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
 
-	array_1d<double,2> mean_adv_vel = ZeroVector(2); 
+	array_1d<double,2> mean_adv_vel; 
 
 	mean_adv_vel[0] = N[0]*(adv_vel0[0]-mesh_vel0[0])+N[1]*(adv_vel1[0]-mesh_vel1[0])+N[2]*(adv_vel2[0]-mesh_vel2[0]);
 	mean_adv_vel[1] = N[0]*(adv_vel0[1]-mesh_vel0[1])+N[1]*(adv_vel1[1]-mesh_vel1[1])+N[2]*(adv_vel2[1]-mesh_vel2[1]);

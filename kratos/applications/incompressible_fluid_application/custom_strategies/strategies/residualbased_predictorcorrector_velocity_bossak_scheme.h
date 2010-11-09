@@ -71,21 +71,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos {
 
-    namespace VelocityBossakAuxiliaries {
-        Matrix mMass;
-        #pragma omp threadprivate(mMass)
-        Matrix mDamp;
-        #pragma omp threadprivate(mDamp)
-
-        Vector mvel;
-        #pragma omp threadprivate(mvel)
-        Vector macc;
-        #pragma omp threadprivate(macc)
-        Vector maccold;
-        #pragma omp threadprivate(maccold)
-    }
-
-
     /**@name Kratos Globals */
     /*@{ */
 
@@ -180,6 +165,16 @@ namespace Kratos {
             mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
             mGammaNewmark = 0.5 - mAlphaBossak;
             mMeshVelocity = MoveMeshStrategy;
+	    
+	    
+	    //Allocate auxiliary memory
+	    int NumThreads = OpenMPUtils::GetNumThreads();
+	    mMass.resize(NumThreads);
+	    mDamp.resize(NumThreads);
+	    mvel.resize(NumThreads);
+	    macc.resize(NumThreads);
+	    maccold.resize(NumThreads);
+	    
 
 
 // mAlphaBossak= 0.0;
@@ -416,6 +411,8 @@ namespace Kratos {
                 ProcessInfo& CurrentProcessInfo
                 ) {
             KRATOS_TRY
+            int k = OpenMPUtils::ThisThread();
+	    
             //Initializing the non linear iteration for the current element
             (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
             //KRATOS_WATCH(LHS_Contribution);
@@ -423,15 +420,15 @@ namespace Kratos {
             (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
 //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-            (rCurrentElement)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
-            (rCurrentElement)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
+            (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
+            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (statics is already included)
 
-            AddDynamicsToLHS(LHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
-            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
 
 
@@ -444,20 +441,22 @@ namespace Kratos {
                 LocalSystemVectorType& RHS_Contribution,
                 Element::EquationIdVectorType& EquationId,
                 ProcessInfo& CurrentProcessInfo) {
+	  int k = OpenMPUtils::ThisThread();
+	  
             //Initializing the non linear iteration for the current element
             (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentElement)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
 
-            (rCurrentElement)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
+            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
 
-            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
         }
 
@@ -471,18 +470,20 @@ namespace Kratos {
                 Element::EquationIdVectorType& EquationId,
                 ProcessInfo& CurrentProcessInfo) {
             KRATOS_TRY
+            int k = OpenMPUtils::ThisThread();
+	    
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
 
-            AddDynamicsToLHS(LHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             KRATOS_CATCH("")
         }
@@ -493,20 +494,23 @@ namespace Kratos {
                 Element::EquationIdVectorType& EquationId,
                 ProcessInfo& CurrentProcessInfo) {
             KRATOS_TRY
+            
+            int k = OpenMPUtils::ThisThread();
+	    
                     //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
                     //Initializing the non linear iteration for the current condition
                     (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
 
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             KRATOS_CATCH("")
         }
@@ -638,6 +642,15 @@ namespace Kratos {
         double ma4;
         double ma5;
         double mam;
+	
+	std::vector< Matrix >mMass;
+	std::vector< Matrix >mDamp;
+	std::vector< Vector >mvel;
+	std::vector< Vector >macc;
+	std::vector< Vector >maccold;
+	
+
+    
 
 
         /*@} */
@@ -721,11 +734,12 @@ namespace Kratos {
             //adding inertia contributionDISPLACEMENT
 
             if (M.size1() != 0) {
-                rCurrentElement->GetSecondDerivativesVector(VelocityBossakAuxiliaries::macc, 0);
-                (VelocityBossakAuxiliaries::macc) *= (1.00 - mAlphaBossak);
-                rCurrentElement->GetSecondDerivativesVector(VelocityBossakAuxiliaries::maccold, 1);
-                noalias(VelocityBossakAuxiliaries::macc) += mAlphaBossak * VelocityBossakAuxiliaries::maccold;
-                noalias(RHS_Contribution) -= prod(M, VelocityBossakAuxiliaries::macc);
+		int k = OpenMPUtils::ThisThread();
+                rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
+                (macc[k]) *= (1.00 - mAlphaBossak);
+                rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
+                noalias(macc[k]) += mAlphaBossak * maccold[k];
+                noalias(RHS_Contribution) -= prod(M, macc[k]);
             }
 
             //adding damping contribution
@@ -747,12 +761,13 @@ namespace Kratos {
                 ProcessInfo& CurrentProcessInfo) {
             //adding inertia contributionDISPLACEMENT
             if (M.size1() != 0) {
-                rCurrentElement->GetSecondDerivativesVector(VelocityBossakAuxiliaries::macc, 0);
-                (VelocityBossakAuxiliaries::macc) *= (1.00 - mAlphaBossak);
-                rCurrentElement->GetSecondDerivativesVector(VelocityBossakAuxiliaries::maccold, 1);
-                noalias(VelocityBossakAuxiliaries::macc) += mAlphaBossak * VelocityBossakAuxiliaries::maccold;
+		int k = OpenMPUtils::ThisThread();
+                rCurrentElement->GetSecondDerivativesVector(macc[k], 0);
+                (macc[k]) *= (1.00 - mAlphaBossak);
+                rCurrentElement->GetSecondDerivativesVector(maccold[k], 1);
+                noalias(macc[k]) += mAlphaBossak * maccold[k];
 
-                noalias(RHS_Contribution) -= prod(M, VelocityBossakAuxiliaries::macc);
+                noalias(RHS_Contribution) -= prod(M, macc[k]);
             }
 
             //adding damping contribution
