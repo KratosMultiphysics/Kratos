@@ -605,6 +605,8 @@ namespace Kratos
 					mInvertedMassMatrix[inode] = 1.00 / mInvertedMassMatrix[inode];
 				}
 
+				std::cout << "Number of nodes=" << n_nodes << " total number of edges=" << mNumberEdges << " average n edges per row=" << mNumberEdges/n_nodes << std::endl;
+
 				// Copy data to OpenCL device
 				// TODO: Single device code
 				mrDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, OpenCL::HostToDevice, OpenCL::VoidPList(1, mNonzeroEdgeValues));

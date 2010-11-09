@@ -67,17 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace ALE3Dauxiliaries
-    {
-	//static variables
-	boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-	#pragma omp threadprivate(msDN_DX)
-  	array_1d<double,4> msN; //dimension = number of nodes
-	#pragma omp threadprivate(msN)
-  	array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
-	#pragma omp threadprivate(ms_temp_vec_np)
-	}
-	using namespace ALE3Dauxiliaries;
+
 
 
 	//************************************************************************************
@@ -118,6 +108,10 @@ namespace Kratos
 			rRightHandSideVector.resize(number_of_points);
 
 		unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
+		
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+		array_1d<double,4> msN;
+		array_1d<double,4> ms_temp_vec_np; 
 
 		//getting data for the given geometry
 		double Area;
