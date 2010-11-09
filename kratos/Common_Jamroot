@@ -70,8 +70,8 @@ project KratosProject
 			 <warnings>on
 
 			 #gcc settings
-			<toolset>gcc:<cflags>"-fPIC -funroll-loops" ##settings for external libraries
- 			<toolset>gcc:<cxxflags>"-fPIC -ansi -funroll-loops -ffast-math -Wno-unknown-pragmas" 
+			<toolset>gcc:<cflags>"-fPIC -funroll-loops  -fopenmp" ##settings for external libraries
+ 			<toolset>gcc:<cxxflags>"-fPIC -ansi -funroll-loops -ffast-math -Wno-unknown-pragmas  -fopenmp" 
 
 			#msvc settings
 			<toolset>msvc:<linkflags>"/NODEFAULTLIB:libcmt"
@@ -100,10 +100,11 @@ lib lapacklibrary : : <name>lapack <search>$(LAPACK_LIB_DIR) <link>shared ;
 
 #intel omp library...
 lib intelomp  : : <name>guide  ; 
+lib gccomp  : : <name>gomp  ; 
 
 #ATTENTION: "this requires adding threading=multi to the bjam call"
 alias libomp : intelomp : <toolset>intel ;
-alias libomp : : <toolset>gcc ;
+alias libomp : gccomp : <toolset>gcc ;
 alias libomp : : <toolset>msvc ;
 alias libomp : : <toolset>sun ;
 alias libomp : : <toolset>clang ;
