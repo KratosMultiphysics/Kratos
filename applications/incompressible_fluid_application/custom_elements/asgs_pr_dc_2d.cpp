@@ -66,20 +66,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-        namespace ASGSPRDC2Dauxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX = ZeroMatrix(3,2);
-        #pragma omp threadprivate(DN_DX)
-
-        array_1d<double,3> N = ZeroVector(3); //dimension = number of nodes
-        #pragma omp threadprivate(N)
-
-        array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
-        #pragma omp threadprivate(ms_adv_vel)
-
-    }
-    using  namespace ASGSPRDC2Dauxiliaries;
-
 
 	//************************************************************************************
 	//************************************************************************************
