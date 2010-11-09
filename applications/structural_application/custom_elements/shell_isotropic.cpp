@@ -59,63 +59,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "structural_application.h"
 #include "utilities/math_utils.h" 
 
-                                                                                                                              namespace Kratos
+namespace Kratos
 {
-	namespace ShellIsotropicAuxiliaries
-	{
-		array_1d<int,9> local_indices;
-		#pragma omp threadprivate(local_indices)
-		boost::numeric::ublas::bounded_matrix<double,9,3> mBm = ZeroMatrix(9,3); //membrane displacement-strain matrix
-		#pragma omp threadprivate(mBm)
-		boost::numeric::ublas::bounded_matrix<double,9,3> mBb = ZeroMatrix(9,3); //bending displacement-strain matrix
-		#pragma omp threadprivate(mBb)
 
-		boost::numeric::ublas::bounded_matrix<double,3,3> Q = ZeroMatrix(3,3); 
-		#pragma omp threadprivate(Q)
-		boost::numeric::ublas::bounded_matrix<double,3,3> Q1 = ZeroMatrix(3,3); 
-		#pragma omp threadprivate(Q1)
-		boost::numeric::ublas::bounded_matrix<double,3,3> Q2 = ZeroMatrix(3,3); 
-		#pragma omp threadprivate(Q2)
-		boost::numeric::ublas::bounded_matrix<double,3,3> Q3 = ZeroMatrix(3,3); 
-		#pragma omp threadprivate(Q3)
-		boost::numeric::ublas::bounded_matrix<double,3,3> aux33 = ZeroMatrix(3,3);
-		#pragma omp threadprivate(aux33)
-		boost::numeric::ublas::bounded_matrix<double,3,3> Te = ZeroMatrix(3,3);
-		#pragma omp threadprivate(Te)
 
-		boost::numeric::ublas::bounded_matrix<double,3,3> mEm = ZeroMatrix(3,3);
-		#pragma omp threadprivate(mEm)
-		boost::numeric::ublas::bounded_matrix<double,3,3> mEb = ZeroMatrix(3,3);
-		#pragma omp threadprivate(mEb)
-
-		array_1d<double,9> H1 = ZeroVector(9); 
-		#pragma omp threadprivate(H1)
-		array_1d<double,9> H2 = ZeroVector(9); 
-		#pragma omp threadprivate(H2)
-		array_1d<double,9> H3 = ZeroVector(9);
-		#pragma omp threadprivate(H3)
-		array_1d<double,9> H4 = ZeroVector(9);
-		#pragma omp threadprivate(H4)
-
-		boost::numeric::ublas::bounded_matrix<double,9,3> TTu  = ZeroMatrix(9,3); //attention 9*3 and not 3*9
-		#pragma omp threadprivate(TTu)
-		boost::numeric::ublas::bounded_matrix<double,3,9> aux39  = ZeroMatrix(3,9);
-		#pragma omp threadprivate(aux39)
-		
-		boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system  = ZeroMatrix(18,18); //stiffness matrix in the local reference system
-		#pragma omp threadprivate(mKloc_system)
-		boost::numeric::ublas::bounded_matrix<double,18,18> rot18  = ZeroMatrix(18,18); //TAKE CARE!! this is VERY inefficient
-		#pragma omp threadprivate(rot18)
-
-		array_1d<double,3> temp = ZeroVector(3);
-		#pragma omp threadprivate(temp)
-		boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99 = ZeroMatrix(9,9);
-		#pragma omp threadprivate(mKloc99)
-		Vector values = ZeroVector(18); //help vector to get the current values of displacements (and rotations)
-		#pragma omp threadprivate(values)
-	}
-	
-	using namespace ShellIsotropicAuxiliaries;
 	
 	//************************************************************************************
 	//************************************************************************************
@@ -174,6 +121,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		)
 	{
 		KRATOS_TRY
+		  array_1d<double,3> temp;
+
 		//forming the base vectors - align with the side 1-2
 		v1[0] = GetGeometry()[1].X()-GetGeometry()[0].X(); 
 		v1[1] = GetGeometry()[1].Y()-GetGeometry()[0].Y();
@@ -223,6 +172,36 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 				)
 	{
 		KRATOS_TRY
+		
+// 		array_1d<int,9> local_indices;
+// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
+// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+// 
+		boost::numeric::ublas::bounded_matrix<double,3,3> Q;
+		boost::numeric::ublas::bounded_matrix<double,3,3> Q1;
+		boost::numeric::ublas::bounded_matrix<double,3,3> Q2;
+		boost::numeric::ublas::bounded_matrix<double,3,3> Q3;
+		boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
+ 		boost::numeric::ublas::bounded_matrix<double,3,3> Te;
+// 
+// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
+// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+// 
+// 		array_1d<double,9> H1;
+// 		array_1d<double,9> H2;
+// 		array_1d<double,9> H3;
+// 		array_1d<double,9> H4;
+ 
+		boost::numeric::ublas::bounded_matrix<double,9,3> TTu;
+// 		boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
+// 		
+// 		boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system;
+// 		boost::numeric::ublas::bounded_matrix<double,18,18> rot18;
+// 
+// 		array_1d<double,3> temp;
+// 		boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
+// 		Vector values(18);
+		
 	
 		//template parameters
 		const double alpha = 1.5;
@@ -330,6 +309,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 				)
 	{
 		KRATOS_TRY
+		
+		array_1d<double,9> H1;
+		array_1d<double,9> H2;
+		array_1d<double,9> H3;
+		array_1d<double,9> H4;
 
 		//calculate auxiliary parameters
 		double LL12 = x12*x12 + y12*y12;
@@ -418,6 +402,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 					boost::numeric::ublas::bounded_matrix<double,9,9>& Km)
 	{
 		KRATOS_TRY
+		boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
 		noalias(aux39) = prod(Em,trans(Bm) );
 		noalias(Km) = prod(Bm, aux39);
 		
@@ -432,7 +417,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 					boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system )
 	{
 		KRATOS_TRY
-	
+		array_1d<int,9> local_indices;
+		
+		
 		local_indices[0] = 0;
 		local_indices[1] = 1;
 		local_indices[2] = 5;
@@ -462,6 +449,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 					 )
 	{
 		KRATOS_TRY
+		boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
 		noalias(aux39) = prod(Eb,trans(Bb) );
 		noalias(Kb) = prod(Bb, aux39);
 		KRATOS_CATCH("")
@@ -475,7 +463,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 					boost::numeric::ublas::bounded_matrix<double,18,18>& Kloc_system )
 	{
 		KRATOS_TRY
-	
+		array_1d<int,9> local_indices;
 		local_indices[0] = 2;
 		local_indices[1] = 3;
 		local_indices[2] = 4;
@@ -515,6 +503,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 				const double& y31
 				)
 	{
+	  	boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
+		boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
+		boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+		
 		//membrane stiffness
 		double beta0 = CalculateBeta( Em );
 		CalculateMembraneB(mBm, beta0,  loc1, loc2, loc3, x12, x23, x31, y12, y23, y31 );	
@@ -591,6 +583,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo)
 	{
+		boost::numeric::ublas::bounded_matrix<double,18,18> mKloc_system;
+		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
+		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;	
+		Vector values(18);
+		
+		
 		//calculate local coordinates and rotation matrix
 		array_1d<double,3> v1;
 		array_1d<double,3> v2;
@@ -762,7 +760,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 			)
 	{
 		KRATOS_TRY
-				
+		boost::numeric::ublas::bounded_matrix<double,18,18> rot18;
+		boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
 		//calculate local rotation matrix
 		aux33(0,0) = v1[0];  aux33(0,1) = v1[1];  aux33(0,2) = v1[2]; 
 		aux33(1,0) = v2[0];  aux33(1,1) = v2[1];  aux33(1,2) = v2[2]; 
@@ -802,6 +801,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		)
 		{
 			KRATOS_TRY
+			
+			boost::numeric::ublas::bounded_matrix<double,18,18> rot18;
+			boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
 	
 			//calculate local rotation matrix
 			aux33(0,0) = v1[0];  aux33(0,1) = v1[1];  aux33(0,2) = v1[2]; 
@@ -899,6 +901,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 		if(Output.size() != 1)
 			Output.resize(1);
+		
+		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
+// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+		boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
 
 		if(rVariable==PK2_STRESS_TENSOR)
 		{
@@ -969,6 +975,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 		if(rVariable==TEMPERATURE)
 		{
+			boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
+	 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+			boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
+			boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+
 			//calculate local coordinates and rotation matrix
 			array_1d<double,3> v1;
 			array_1d<double,3> v2;
@@ -1096,11 +1107,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		boost::numeric::ublas::bounded_matrix<double,9,2> DN_Dx;
 		boost::numeric::ublas::bounded_matrix<double,2,9> temp29;
 
+// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
+// 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
+		boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
+// 		boost::numeric::ublas::bounded_matrix<double,9,3> mBb;
+		boost::numeric::ublas::bounded_matrix<double,9,9> mKloc99;
+		
 		//membrane stresses and strains
  		double beta0 = CalculateBeta( Em );
  		CalculateMembraneB(mBm, beta0,  loc1, loc2, loc3, x12, x23, x31, y12, y23, y31 );	
 		noalias(local_strain) = prod(trans(mBm),membrane_disp);
-		noalias(local_stress) = prod(mEm,local_strain); //this stress is STRESS*thickness
+		noalias(local_stress) = prod(Em,local_strain); //this stress is STRESS*thickness
 
 		//write the equivalent stress tensor
 		stress_tensor(0,0) = local_stress[0]; stress_tensor(0,1) = local_stress[2];
@@ -1166,6 +1183,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 			      )
 	{
 		KRATOS_TRY
+		
+		boost::numeric::ublas::bounded_matrix<double,3,3> mEm;
 
 		double weight,loc1,loc2,loc3;
 		

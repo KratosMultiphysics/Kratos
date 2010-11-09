@@ -66,35 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
-    namespace EbstAuxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
-#pragma omp threadprivate(msL1)
-
-        boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
-#pragma omp threadprivate(msB_f)
-
-        boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
-#pragma omp threadprivate(msB_m)
-
-        boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
-#pragma omp threadprivate(msK)
-
-        boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
-#pragma omp threadprivate(ms_coord)
-
-        boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
-#pragma omp threadprivate(ms_loc_der_central)
-
-        boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
-#pragma omp threadprivate(ms_loc_der_patch)
-
-    }
-
-    using namespace EbstAuxiliaries;
-
-
+	
     //***********************************************************************************
     //***********************************************************************************
     // -------- //
@@ -405,6 +377,14 @@ namespace Kratos
             const ProcessInfo& rCurrentProcessInfo)
     {
 	KRATOS_TRY
+	
+// 	boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
+//         boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
+        boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
+//         boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
 
 	//calculate a basis of the local system of coordinates
 	WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
@@ -615,6 +595,14 @@ namespace Kratos
             bool CalculateResidualVectorFlag)
     {
         KRATOS_TRY
+        
+        boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
+        boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
+        boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
+        boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
+        boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
+//         boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
 
         WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
 
@@ -1040,6 +1028,15 @@ namespace Kratos
     void Ebst::Initialize()
     {
         KRATOS_TRY
+        
+//         boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
+//         boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
+        boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
+         boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
+         boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
+
         //find the "nodal neighbours" given the elemental neighbours
         WeakPointerVector< Element >& elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
         if (elem_neigb.size() == 0) KRATOS_ERROR(std::logic_error, "the neighbour elements are not calculated", "")
@@ -1243,6 +1240,14 @@ namespace Kratos
             boost::numeric::ublas::bounded_matrix<double, 2, 6 > & dcg
             )
     {
+//               boost::numeric::ublas::bounded_matrix<double, 6, 18 > msL1;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_f;
+//         boost::numeric::ublas::bounded_matrix<double, 3, 18 > msB_m;
+//         boost::numeric::ublas::bounded_matrix<double, 18, 18 > msK;
+//         boost::numeric::ublas::bounded_matrix<double, 6, 3 > ms_coord;
+        boost::numeric::ublas::bounded_matrix<double, 3, 2 > ms_loc_der_central;
+        boost::numeric::ublas::bounded_matrix<double, 6, 2 > ms_loc_der_patch;
+
         double eta3 = 1.0 - eta2 - eta1;
 
         array_1d<double, 6 > N;
