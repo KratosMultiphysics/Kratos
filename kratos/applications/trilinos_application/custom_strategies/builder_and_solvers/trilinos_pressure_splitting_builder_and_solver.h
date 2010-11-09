@@ -767,7 +767,7 @@ namespace Kratos
             int GlobalOffsets[4]; // First position of each Dof type for this process
 
             MPI_Allreduce(&LocalCounts, &GlobalCounts, 4, MPI_INT, MPI_SUM, mrComm.Comm());
-            MPI_Exscan(&LocalCounts, &GlobalOffsets, 4, MPI_INT, MPI_SUM, mrComm.Comm());
+            MPI_Scan(&LocalCounts, &GlobalOffsets, 4, MPI_INT, MPI_SUM, mrComm.Comm());
             // NOTE: The output of Exscan is undefined for process 0.
             // For us, its proper output would be an array of zeros
 
@@ -779,20 +779,10 @@ namespace Kratos
             unsigned int VelFreeIndex, PressFreeIndex, VelFixedIndex, PressFixedIndex;
 
             // Each process will number its Dofs starting from:
-            if (Rank == 0) // GlobalOffsets[i] undefined for proc 0, but we know them to be zero
-            {
-                VelFreeIndex = 0;
-                PressFreeIndex = mVelFreeDofs;
-                VelFixedIndex = BaseType::mEquationSystemSize;
-                PressFixedIndex = BaseType::mEquationSystemSize + GlobalCounts[2];
-            }
-            else
-            {
-                VelFreeIndex = GlobalOffsets[0];
-                PressFreeIndex = GlobalOffsets[2] + mVelFreeDofs;
-                VelFixedIndex = GlobalOffsets[1] + BaseType::mEquationSystemSize;
-                PressFixedIndex = GlobalOffsets[3] + BaseType::mEquationSystemSize + GlobalCounts[2];
-            }
+            VelFreeIndex = GlobalOffsets[0]-LocalCounts[0];
+            PressFreeIndex = GlobalOffsets[2]-LocalCounts[2] + mVelFreeDofs;
+            VelFixedIndex = GlobalOffsets[1]-LocalCounts[1] + BaseType::mEquationSystemSize;
+            PressFixedIndex = GlobalOffsets[3]-LocalCounts[3] + BaseType::mEquationSystemSize + GlobalCounts[2];
 
             mLocalVelBegin = VelFreeIndex;
             mLocalPressBegin = PressFreeIndex - mVelFreeDofs;
