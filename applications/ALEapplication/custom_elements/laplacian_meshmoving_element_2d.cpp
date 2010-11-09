@@ -66,19 +66,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace ALE2Dauxiliaries
-    {
- 	//static variables
 	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-        #pragma omp threadprivate(msDN_DX)
-  	array_1d<double,3> msN; //dimension = number of nodes
-        #pragma omp threadprivate(msN)
-  	array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
-        #pragma omp threadprivate(ms_temp_vec_np)
-	}
-	using namespace ALE2Dauxiliaries;
-
-
+  	array_1d<double,3> msN; 
+  	array_1d<double,3> ms_temp_vec_np; 
 	//************************************************************************************
 	//************************************************************************************
 	LaplacianMeshMovingElem2D::LaplacianMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -125,7 +115,11 @@ namespace Kratos
 			rRightHandSideVector.resize(number_of_points,false);
 
 		unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
-
+		
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+		array_1d<double,3> msN; 
+		array_1d<double,3> ms_temp_vec_np; 
+	
 		//getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
