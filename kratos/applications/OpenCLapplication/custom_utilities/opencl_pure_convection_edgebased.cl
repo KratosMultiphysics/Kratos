@@ -98,10 +98,20 @@ __kernel void Solve1(__global ValueType *Hmin, __global VectorType *A, __global 
 //
 // Part of CalculateRHS
 
-__kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes)
+__kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -109,7 +119,7 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __
 		VectorType Temp_Pi_i_node = 0.00;
 		ValueType Temp_Phi_i_node = phi[i_node];
 
-		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			EdgeType CurrentEdge = EdgeValues[csr_index];
 			Add_grad_p(KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge)), &Temp_Pi_i_node, Temp_Phi_i_node, phi[ColumnIndex[csr_index]]);
@@ -126,10 +136,20 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __
 //
 // Part of CalculateRHS
 
-__kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global VectorType *x, __global ValueType *Beta, const IndexType n_nodes)
+__kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global VectorType *x, __global ValueType *Beta, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -143,8 +163,7 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __
 		VectorType Temp_Pi_i_node = Pi[i_node];
 		ValueType Temp_Phi_i_node = phi[i_node];
 
-		// TODO: Use __local to read bounds
-		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
 			VectorType dir = x[j_neighbour] - Temp_x_i_node;
@@ -169,10 +188,20 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __
 //
 // Part of CalculateRHS
 
-__kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global VectorType *convective_velocity, __global ValueType *Beta, __global ValueType *rhs, __global ValueType *Tau, const IndexType n_nodes)
+__kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global VectorType *convective_velocity, __global ValueType *Beta, __global ValueType *rhs, __global ValueType *Tau, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
 
 	// Check if we are in the range
 	if (i_node < n_nodes)
@@ -185,8 +214,7 @@ __kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __
 
 		ValueType pi_i = dot(Pi[i_node], Temp_convective_velocity_i_node);
 
-		// TODO: Use __local to read bounds
-		for (IndexType csr_index = RowStartIndex[i_node]; csr_index != RowStartIndex[i_node + 1]; csr_index++)
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
 

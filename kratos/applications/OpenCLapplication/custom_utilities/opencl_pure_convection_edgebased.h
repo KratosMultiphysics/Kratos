@@ -350,6 +350,7 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 4, mr_matrix_container.GetEdgeValuesBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 5, mr_matrix_container.GetInvertedMassBuffer());
 				mrDeviceGroup.SetKernelArg(mkCalculateRHS1, 6, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS1, 7, (mrDeviceGroup.WorkGroupSizes[0][mkCalculateRHS1] + 1) * sizeof(cl_uint));
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkCalculateRHS1, n_nodes);
@@ -364,6 +365,7 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 4, mbx);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS2, 5, mbBeta);
 				mrDeviceGroup.SetKernelArg(mkCalculateRHS2, 6, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS2, 7, (mrDeviceGroup.WorkGroupSizes[0][mkCalculateRHS2] + 1) * sizeof(cl_uint));
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkCalculateRHS2, n_nodes);
@@ -381,6 +383,7 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 7, mbrhs);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 8, mbTau);
 				mrDeviceGroup.SetKernelArg(mkCalculateRHS3, 9, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS3, 10, (mrDeviceGroup.WorkGroupSizes[0][mkCalculateRHS3] + 1) * sizeof(cl_uint));
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkCalculateRHS3, n_nodes);
