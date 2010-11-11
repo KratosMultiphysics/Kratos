@@ -54,6 +54,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // OpenCL kernels and functions used in opencl_edge_data.h
 
 
+// TODO: Use mad()
+
 //
 // Macros to control the behavior of the code
 
@@ -168,6 +170,48 @@ inline ValueType length3(double4 x)
 	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z))
 #endif
 
+
+//
+// DefaultSampler
+//
+// Default sampler for Image accesses
+
+__constant sampler_t DefaultSampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+
+
+double2 Float4ToDouble2(float4 x)
+{
+	uint4 y = as_uint4(x);
+
+	unsigned long int t0 = (unsigned long int) y.s0 + (((unsigned long int) y.s1) << 32);
+	unsigned long int t1 = (unsigned long int) y.s2 + (((unsigned long int) y.s3) << 32);
+
+	return (double2) (as_double(t0), as_double(t1));
+}
+
+
+//
+// ReadDouble16FromImage
+//
+// Reads a double16 from an Image
+
+double16 ReadDouble16FromImage(__read_only image2d_t Image, IndexType N)
+{
+	int h = get_image_height(Image);
+	int x = (N * 8) / h;
+	int y = (N * 8) % h;
+
+	return (double16) (
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 0))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 1))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 2))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 3))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 4))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 5))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 6))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 7)))
+	);
+}
 
 // A dummy kernel for test
 __kernel void Test(__global double *input, __global double *output, const double offset)

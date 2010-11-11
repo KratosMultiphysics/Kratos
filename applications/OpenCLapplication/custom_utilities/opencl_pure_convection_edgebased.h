@@ -347,7 +347,8 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 1, phi_buffer);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 2, mr_matrix_container.GetRowStartIndexBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 3, mr_matrix_container.GetColumnIndexBuffer());
-				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				//mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetImageAsKernelArg(mkCalculateRHS1, 4, mr_matrix_container.GetEdgeValuesBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS1, 5, mr_matrix_container.GetInvertedMassBuffer());
 				mrDeviceGroup.SetKernelArg(mkCalculateRHS1, 6, n_nodes);
 				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS1, 7, (mrDeviceGroup.WorkGroupSizes[mkCalculateRHS1][0] + 1) * sizeof(cl_uint));
@@ -377,7 +378,8 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 1, phi_buffer);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 2, mr_matrix_container.GetRowStartIndexBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 3, mr_matrix_container.GetColumnIndexBuffer());
-				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				//mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetImageAsKernelArg(mkCalculateRHS3, 4, mr_matrix_container.GetEdgeValuesBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 5, convective_velocity_buffer);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 6, mbBeta);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS3, 7, mbrhs);
