@@ -179,7 +179,13 @@ inline ValueType length3(double4 x)
 __constant sampler_t DefaultSampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
 
-double2 Float4ToDouble2(float4 x)
+//
+// Float4ToDouble2
+//
+// Casts a float4 to a double2
+// For little-endian platforms only
+
+inline double2 Float4ToDouble2(float4 x)
 {
 	uint4 y = as_uint4(x);
 
@@ -195,21 +201,21 @@ double2 Float4ToDouble2(float4 x)
 //
 // Reads a double16 from an Image
 
-double16 ReadDouble16FromImage(__read_only image2d_t Image, IndexType N)
+inline double16 ReadDouble16FromImage(__read_only image2d_t Image, IndexType N)
 {
-	int h = get_image_height(Image);
-	int x = (N * 8) / h;
-	int y = (N * 8) % h;
+	int w = get_image_width(Image);
+	const int y = (N << 3) / w;
+	const int x = (N << 3) % w;
 
 	return (double16) (
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 0))),
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 1))),
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 2))),
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 3))),
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 4))),
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 5))),
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 6))),
-		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x, y + 7)))
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 0, y))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 1, y))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 2, y))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 3, y))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 4, y))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 5, y))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 6, y))),
+		Float4ToDouble2(read_imagef(Image, DefaultSampler, (int2) (x + 7, y)))
 	);
 }
 
