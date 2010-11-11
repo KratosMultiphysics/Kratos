@@ -182,25 +182,25 @@ namespace Kratos
 				"Max Image dimensions: (" << MaxWidth << ", " << MaxHeight << ")" << std::endl;
 
 			// We have to read by column to be efficient, also each double16 is 8 float4 long and we need a power of two multiple
-			size_t Width;
-			size_t Height = 1;
+			size_t Width = 1;
+			size_t Height;
 
-			while ((MaxHeight >>= 1) != 0)
+			while ((MaxWidth >>= 1) != 0)
 			{
-				Height <<= 1;
+				Width <<= 1;
 			}
 
 			// Total number of float4's needed
 			size_t TotalSize = _Size * sizeof(cl_double16) / sizeof(cl_float4);
 
-			Width = TotalSize / Height;
+			Height = TotalSize / Width;
 
 			if (Width * Height < TotalSize)
 			{
-				Width++;
+				Height++;
 			}
 
-			if (Width > MaxWidth)
+			if (Height > MaxHeight)
 			{
 				std::cout <<
 					"Image dimensions requested is beyond capabilities of the device." << std::endl <<
