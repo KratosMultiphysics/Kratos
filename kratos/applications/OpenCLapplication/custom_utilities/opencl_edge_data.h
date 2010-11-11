@@ -54,24 +54,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+
 #include <string>
 #include <iostream>
 #include <algorithm>
+
 
 // External includes
 
 
 // Project includes
-//#include "includes/define.h"
-//#include "spaces/ublas_space.h"
 #include "includes/model_part.h"
-//#include "includes/node.h"
-//#include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
-//#include "incompressible_fluid_application/custom_utilities/edge_data.h"
 #include "opencl_interface.h"
 
-// Some useful macros, will be renamed if not consistent
+//
+// Helper macros
+
 #define KRATOS_OCL_LAPLACIANIJ_0_0(a)	(a.s[0])
 #define KRATOS_OCL_LAPLACIANIJ_0_1(a)	(a.s[1])
 #define KRATOS_OCL_LAPLACIANIJ_0_2(a)	(a.s[2])
@@ -102,13 +101,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  int64_t timeNanos()
-{
-	struct timespec tp;
 
-	clock_gettime(CLOCK_MONOTONIC, &tp);
-	return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
-}
+	int64_t timeNanos()
+	{
+		struct timespec tp;
+
+		clock_gettime(CLOCK_MONOTONIC, &tp);
+		return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
+	}
+
+	//
+	// Sqr
+	//
+	// Helper function to return square of a number
+
+	template <typename _Type> inline _Type Sqr(_Type _X)
+	{
+		return _X * _X;
+	}
+
+	//
+	// Norm2_3
+	//
+	// Helper function to calculate norm 2 of a vector with _Dim2 = 3
+
+	inline double Norm2_3(cl_double3 X)
+	{
+		return sqrt(Sqr(KRATOS_OCL_COMP_0(X)) + Sqr(KRATOS_OCL_COMP_1(X)) + Sqr(KRATOS_OCL_COMP_2(X)));
+	}
 
 	//
 	// AllocateArray
@@ -135,23 +155,66 @@ namespace Kratos
 	}
 
 	//
-	// Sqr
+	// AllocateArrayAndImage
 	//
-	// Helper function to return square of a number
+	// Helper function to allocate an array and an Image on all available devices
+	// Pass the address of the array variable
 
-	inline double Sqr(double _X)
+	void AllocateArrayAndImage(OpenCL::DeviceGroup &DeviceGroup, cl_double16 **_Array, unsigned int _Size, cl_uint *ImageIndices)
 	{
-		return _X * _X;
-	}
+		cl_uint Err;
 
-	//
-	// Norm2_3
-	//
-	// Helper function to calculate norm 2 of a vector with _Dim2 = 3
+		for (cl_uint i = 0; i < DeviceGroup.DeviceNo; i++)
+		{
+			size_t MaxWidth;
+			size_t MaxHeight;
 
-	inline double Norm2_3(cl_double3 X)
-	{
-		return sqrt(Sqr(KRATOS_OCL_COMP_0(X)) + Sqr(KRATOS_OCL_COMP_1(X)) + Sqr(KRATOS_OCL_COMP_2(X)));
+			// Get the maximum supported image dimensions by the device
+			Err = clGetDeviceInfo(DeviceGroup.DeviceIDs[i], CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &MaxWidth, NULL);
+			KRATOS_OCL_CHECK(Err);
+
+			Err = clGetDeviceInfo(DeviceGroup.DeviceIDs[i], CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(size_t), &MaxHeight, NULL);
+			KRATOS_OCL_CHECK(Err);
+
+			// TODO: Remove
+			std::cout <<
+				"Size:" << _Size << std::endl <<
+				"Max Image dimensions: (" << MaxWidth << ", " << MaxHeight << ")" << std::endl;
+
+			// We have to read by column to be efficient, also each double16 is 8 float4 long and we need a power of two multiple
+			size_t Width;
+			size_t Height = 1;
+
+			while ((MaxHeight >>= 1) != 0)
+			{
+				Height <<= 1;
+			}
+
+			// Total number of float4's needed
+			size_t TotalSize = _Size * sizeof(cl_double16) / sizeof(cl_float4);
+
+			Width = TotalSize / Height;
+
+			if (Width * Height < TotalSize)
+			{
+				Width++;
+			}
+
+			if (Width > MaxWidth)
+			{
+				std::cout <<
+					"Image dimensions requested is beyond capabilities of the device." << std::endl <<
+					"Aborting." << std::endl;
+			}
+
+			// TODO: Remove
+			std::cout <<
+				"Final Image dimensions: (" << Width << ", " << Height << ")" << std::endl;
+
+			AllocateArray(_Array, Height * Width * sizeof(cl_float4) / sizeof(cl_double16));
+
+			ImageIndices[i] = DeviceGroup.CreateImage2D(Width, Height, CL_MEM_READ_ONLY, CL_RGBA, CL_FLOAT);
+		}
 	}
 
 	//
@@ -325,7 +388,8 @@ namespace Kratos
 
 				// Allocating memory for block of CSR data
 				// TODO: Can this be optimized?
-				AllocateArray(&mNonzeroEdgeValues, mNumberEdges);
+				//AllocateArray(&mNonzeroEdgeValues, mNumberEdges);
+				AllocateArrayAndImage(mrDeviceGroup, &mNonzeroEdgeValues, mNumberEdges, &mbNonzeroEdgeValues);
 
 				AllocateArray(&mColumnIndex, mNumberEdges);
 				AllocateArray(&mRowStartIndex, n_nodes + 1);
@@ -339,7 +403,7 @@ namespace Kratos
 				// Allocating buffers on OpenCL device
 				// TODO: Should these be read-only?
 				// TODO: Try using Page-Locked memory, mapping, one chunk of memory, etc.
-				mbNonzeroEdgeValues = mrDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_double16), CL_MEM_READ_ONLY);
+				//mbNonzeroEdgeValues = mrDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_double16), CL_MEM_READ_ONLY);
 
 				mbColumnIndex = mrDeviceGroup.CreateBuffer(mNumberEdges * sizeof(cl_uint), CL_MEM_READ_ONLY);
 				mbRowStartIndex = mrDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
@@ -609,7 +673,8 @@ namespace Kratos
 
 				// Copy data to OpenCL device
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, OpenCL::HostToDevice, OpenCL::VoidPList(1, mNonzeroEdgeValues));
+				//mrDeviceGroup.CopyBuffer(mbNonzeroEdgeValues, OpenCL::HostToDevice, OpenCL::VoidPList(1, mNonzeroEdgeValues));
+				mrDeviceGroup.CopyImage(mbNonzeroEdgeValues, OpenCL::HostToDevice, OpenCL::VoidPList(1, mNonzeroEdgeValues));
 
 				mrDeviceGroup.CopyBuffer(mbColumnIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mColumnIndex));
 				mrDeviceGroup.CopyBuffer(mbRowStartIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, mRowStartIndex));

@@ -88,6 +88,7 @@ __kernel void Solve1(__global ValueType *Hmin, __global VectorType *A, __global 
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
+		// TODO: Use mad()
 		// Tau[i_node] = 1.00 / (2.00 * length(A[i_node]) / Hmin[i_node] + 0.01 * time_inv);
 		Tau[i_node] = KRATOS_OCL_RECIP(KRATOS_OCL_DIVIDE(2.00 * KRATOS_OCL_LENGTH3(A[i_node]), Hmin[i_node]) + 0.01 * time_inv);
 	}
@@ -98,7 +99,7 @@ __kernel void Solve1(__global ValueType *Hmin, __global VectorType *A, __global 
 //
 // Part of CalculateRHS
 
-__kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
+__kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -125,7 +126,8 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __
 
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
-			EdgeType CurrentEdge = EdgeValues[csr_index];
+			//EdgeType CurrentEdge = EdgeValues[csr_index];
+			EdgeType CurrentEdge = ReadDouble16FromImage(EdgeValues, csr_index);
 			Add_grad_p(KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge)), &Temp_Pi_i_node, Temp_Phi_i_node, phi[ColumnIndex[csr_index]]);
 		}
 
@@ -196,7 +198,7 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __
 //
 // Part of CalculateRHS
 
-__kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global EdgeType *EdgeValues, __global VectorType *convective_velocity, __global ValueType *Beta, __global ValueType *rhs, __global ValueType *Tau, const IndexType n_nodes, __local IndexType *Bounds)
+__kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global VectorType *convective_velocity, __global ValueType *Beta, __global ValueType *rhs, __global ValueType *Tau, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -233,7 +235,8 @@ __kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __
 			VectorType Temp_convective_velocity_j_neighbour = convective_velocity[j_neighbour];
 			ValueType Temp_Phi_j_neighbour = phi[j_neighbour];
 
-			EdgeType CurrentEdge = EdgeValues[csr_index];
+			//EdgeType CurrentEdge = EdgeValues[csr_index];
+			EdgeType CurrentEdge = ReadDouble16FromImage(EdgeValues, csr_index);
 
 			// Convection operator
 			Sub_ConvectiveContribution2(KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge)), &Temp_rhs_i_node, Temp_convective_velocity_i_node, Temp_Phi_i_node, Temp_convective_velocity_j_neighbour, Temp_Phi_j_neighbour);
