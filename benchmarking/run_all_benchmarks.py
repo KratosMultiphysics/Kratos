@@ -42,9 +42,13 @@ Text += FSI_benchmarks.Run()
 os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
 import pfem_benchmarks
 Text += pfem_benchmarks.Run()
+
+# Fluid Dynamics application
+os.chdir(ApplicationsRoot + "FluidDynamicsApplication/test_examples")
+import fluid_dynamics_run_all_benchmarks
+Text += fluid_dynamics_run_all_benchmarks.Run()
+
 # Add other directories here
-
-
 
 #print Text
 os.chdir(CurrentDir)
