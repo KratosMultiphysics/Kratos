@@ -1,4 +1,4 @@
-#path for applications 
+#path for applications
 import sys
 
 Import_ALEApplication = False
@@ -20,6 +20,7 @@ Import_DamApplication = False
 Import_TestApplication = False
 Import_OpenCLApplication = False
 Import_PodApplication = False
+Import_FluidDynamicsApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -40,6 +41,7 @@ print "Import_DamApplication: False"
 print "Import_TestApplication: False"
 print "Import_OpenCLApplication: False"
 print "Import_PodApplication: False"
+print "Import_FluidDynamicsApplication: False"
 
 def ImportApplications(kernel, applications_path):
     ##########################################################################
@@ -62,6 +64,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_TestApplication: "+str(Import_TestApplication)
     print "Import_OpenCLApplication: "+str(Import_OpenCLApplication)
     print "Import_PodApplication: "+str(Import_PodApplication)
+    print "Import_FluidDynamicsApplication: "+str(Import_FluidDynamicsApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -207,7 +210,7 @@ def ImportApplications(kernel, applications_path):
         from KratosTestApplication import *
         test_application = KratosTestApplication()
         kernel.AddApplication(test_application)
-        print "Kratos DamApplication sucessfully imported"
+        print "Kratos TestApplication sucessfully imported"
 
     if(Import_OpenCLApplication == True):
         print "importing KratosOpenCLApplication ..."
@@ -224,6 +227,14 @@ def ImportApplications(kernel, applications_path):
         pod_application = KratosPodApplication()
         kernel.AddApplication(pod_application)
         print "KratosPodApplication sucessfully imported"
+
+    if(Import_FluidDynamicsApplication == True):
+        print "importing KratosFluidDynamicsApplication ..."
+        sys.path.append(applications_path + '/FluidDynamicsApplication/python_scripts')
+        from KratosFluidDynamicsApplication import *
+        fluid_dynamics_application = KratosFluidDynamicsApplication()
+        kernel.AddApplication(fluid_dynamics_application)
+        print "KratosFluidDynamicsApplication sucessfully imported"
         
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
@@ -266,3 +277,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(opencl_application);
     if(Import_PodApplication == True):
         kernel.InitializeApplication(pod_application);
+    if(Import_FluidDynamicsApplication == True):
+        kernel.InitializeApplication(fluid_dynamics_application);
