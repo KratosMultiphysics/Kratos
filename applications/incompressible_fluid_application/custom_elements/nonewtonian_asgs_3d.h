@@ -249,7 +249,7 @@ namespace Kratos
 	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
         virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 	virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX);
-	virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & grad_sym_vel_norm,const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B);
+	virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & gamma_dot,const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B);
 // 	virtual void CalculateApparentViscosity(double & ApparentViscosity, const double & grad_sym_vel_norm, const double & mu, const double & YeldStress, const double mcoef);
 	virtual void CalculateApparentViscosity(double & ApparentViscosity, array_1d<double,6> & grad_sym_vel, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu);
  
