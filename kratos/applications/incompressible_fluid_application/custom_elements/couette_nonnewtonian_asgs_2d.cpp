@@ -99,8 +99,8 @@ namespace Kratos
   //************************************************************************************
     //************************************************************************************
 
-    void CouetteNonNewtonianASGS2D::CalculateApparentViscosity(double & app_mu,
-	    array_1d<double, 3 >&  grad_sym_vel,
+    void CouetteNonNewtonianASGS2D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
+	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
             const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
             const double & mu) {
         KRATOS_TRY
@@ -108,26 +108,30 @@ namespace Kratos
 // 	KRATOS_WATCH("COUETTE NON NEWTONIAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
 	unsigned int nodes_number = 3;
 	double yield = 0.0;
-	double grad_sym_vel_norm = 0.0;
-//         double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
+	double gamma_dot_inv;
         double mcoef = 300;
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
 	}
 	yield /= nodes_number;
 	double aux_1;
-	CalculateGradSymVel(grad_sym_vel, grad_sym_vel_norm, B);
+	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
 
-        if (grad_sym_vel_norm > 0.00001) {
-            aux_1 = 1.0 - exp(-(mcoef * grad_sym_vel_norm));
-            app_mu = mu + (yield / grad_sym_vel_norm) * aux_1;
+        if (gamma_dot > 0.00001) {
+            aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+	    gamma_dot_inv = 1/gamma_dot;
+            app_mu = mu + (yield / gamma_dot) * aux_1;
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
         } else {
-            app_mu = mu + yield*mcoef ;
+            app_mu = mu + yield * mcoef ;
+	    gamma_dot_inv = 0.0;
         }
+
+        app_mu_derivative = yield * gamma_dot_inv * (-gamma_dot_inv +  exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
+
         KRATOS_CATCH("")
     }
 	

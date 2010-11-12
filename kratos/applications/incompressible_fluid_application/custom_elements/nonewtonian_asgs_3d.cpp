@@ -1255,24 +1255,12 @@ namespace Kratos {
 // 	    KRATOS_WATCH(DN_DX)
 // 	    KRATOS_WATCH(B)
 	    
-            B(0, index) = DN_DX(i, 0);
-            B(0, index + 1) = 0.0;
-	    B(0, index + 2) = 0.0;
-            B(1, index) = 0.0;
-            B(1, index + 1) = DN_DX(i, 1);
-	    B(1, index + 2) =0.0;
-            B(2, index) = 0.0;
-            B(2, index + 1) = 0.0;
-	    B(2, index + 2) = DN_DX(i, 2);
-	    B(3, index) = DN_DX(i, 1);
-            B(3, index + 1) = DN_DX(i, 0);
-	    B(3, index + 2) = 0.0;
-	    B(4, index) = 0.0;
-            B(4, index + 1) = DN_DX(i, 2);
-	    B(4, index + 2) = DN_DX(i, 1);
-	    B(5, index) = DN_DX(i, 2);
-            B(5, index + 1) = 0.0;
-	    B(5, index + 2) = DN_DX(i, 0);
+            B(0, index) = DN_DX(i, 0);            B(0, index + 1) = 0.0;	    B(0, index + 2) = 0.0;
+            B(1, index) = 0.0;            B(1, index + 1) = DN_DX(i, 1);	    B(1, index + 2) =0.0;
+            B(2, index) = 0.0;            B(2, index + 1) = 0.0;	    B(2, index + 2) = DN_DX(i, 2);
+	    B(3, index) = DN_DX(i, 1);            B(3, index + 1) = DN_DX(i, 0);	    B(3, index + 2) = 0.0;
+	    B(4, index) = 0.0;            B(4, index + 1) = DN_DX(i, 2);	    B(4, index + 2) = DN_DX(i, 1);
+	    B(5, index) = DN_DX(i, 2);            B(5, index + 1) = 0.0;	    B(5, index + 2) = DN_DX(i, 0);
 // 	    KRATOS_WATCH(B)
             //CalculateBi(Bi,F,DN_DX,i);
             //MathUtils<double>::WriteMatrix(B,Bi,0,index);
@@ -1283,7 +1271,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS3D::CalculateGradSymVel(array_1d<double, 6 > & grad_sym_vel, double & grad_sym_vel_norm,
+    void NoNewtonianASGS3D::CalculateGradSymVel(array_1d<double, 6 > & grad_sym_vel, double & gamma_dot,
             const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B) {
         KRATOS_TRY
                 unsigned int dim = 3;
@@ -1305,15 +1293,15 @@ namespace Kratos {
 // Norm of the gradient of velocity:
 //         grad_sym_vel_norm = grad_sym_vel[0] * grad_sym_vel[0] + grad_sym_vel[1] * grad_sym_vel[1] + 0.5 * grad_sym_vel[2] * grad_sym_vel[2];
 // Gamma dot found in literature!!!:
-        grad_sym_vel_norm = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] + 2.0 * grad_sym_vel[2] * grad_sym_vel[2] + grad_sym_vel[3] * grad_sym_vel[3] + grad_sym_vel[4] * grad_sym_vel[4] + grad_sym_vel[5] * grad_sym_vel[5];
+        gamma_dot = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] + 2.0 * grad_sym_vel[2] * grad_sym_vel[2] + grad_sym_vel[3] * grad_sym_vel[3] + grad_sym_vel[4] * grad_sym_vel[4] + grad_sym_vel[5] * grad_sym_vel[5];
 
-        if (grad_sym_vel_norm > 0.00001) {
-            grad_sym_vel_norm = sqrt(grad_sym_vel_norm);
+        if (gamma_dot > 0.00001) {
+            gamma_dot = sqrt(gamma_dot);
         } else
-            grad_sym_vel_norm = 0.0;
+            gamma_dot = 0.0;
 	
 	//print on gauss point the gamma dot as TEMPERATURE
-/*KRATOS_WATCH(grad_sym_vel_norm)
+/*KRATOS_WATCH(gamma_dot)
 KRATOS_WATCH(grad_sym_vel)*/	
 	
         KRATOS_CATCH("")
@@ -1334,13 +1322,13 @@ KRATOS_WATCH(grad_sym_vel)*/
         app_mu = 0.0;
 // 	double yield;
 
-	double grad_sym_vel_norm = 0.0;
+	double gamma_dot = 0.0;
 //         double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
         double mcoef = 300;
 // 	double mcoef_inv = 1/mcoef;
 	
 	double aux_1;
-	CalculateGradSymVel(grad_sym_vel, grad_sym_vel_norm, B);
+	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
 	 // The yield is variable: it decreases where water is present
 	  unsigned int nodes_number = 4;
@@ -1361,11 +1349,11 @@ KRATOS_WATCH(grad_sym_vel)*/
 	  else
 	      yield = 0.0;
 	  
-        if (grad_sym_vel_norm > 0.00001) {
-            aux_1 = 1.0 - exp(-(mcoef * grad_sym_vel_norm));
+        if (gamma_dot > 0.00001) {
+            aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
 // 	    KRATOS_WATCH(aux_1)
-// 	    KRATOS_WATCH(grad_sym_vel_norm)
-            app_mu = mu + (yield / grad_sym_vel_norm) * aux_1;
+// 	    KRATOS_WATCH(gamma_dot)
+            app_mu = mu + (yield / gamma_dot) * aux_1;
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
@@ -1646,24 +1634,24 @@ KRATOS_WATCH(grad_sym_vel)*/
 	if (rVariable == TEMPERATURE) {//gamma dot
 	  boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
-	  double grad_sym_vel_norm = 0.0;
+	  double gamma_dot = 0.0;
 // 	  double Volume;
 // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
 	  CalculateB(B, DN_DX);      
 
-	  CalculateGradSymVel(grad_sym_vel, grad_sym_vel_norm, B);
+	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	     
             for (unsigned int PointNumber = 0;
                     PointNumber < 1; PointNumber++) {
-                rValues[PointNumber] = grad_sym_vel_norm;
+                rValues[PointNumber] = gamma_dot;
 
             }
         }
 // 	if (rVariable == TEMPERATURE) {//1st component of 2*app_mu*grad_sym_vel
 // 	  boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
 // 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
-// 	  double grad_sym_vel_norm = 0.0;
+// 	  double gamma_dot = 0.0;
 // 	  double mu;
 // 	  double density;
 // //           double app_mu;
@@ -1672,7 +1660,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 // 	  calculatedensity(GetGeometry(), density, mu);
 // 	  CalculateB(B, DN_DX);    
 // // 	  CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
-// 	  CalculateGradSymVel(grad_sym_vel, grad_sym_vel_norm, B);
+// 	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 // 	     
 //             for (unsigned int PointNumber = 0;
 //                     PointNumber < 1; PointNumber++) {
@@ -1683,7 +1671,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 	if (rVariable == AUX_INDEX) {//app mu
 	  boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
-// 	  double grad_sym_vel_norm = 0.0;
+// 	  double gamma_dot = 0.0;
 	  double mu;
 	  double density;
           double app_mu;
