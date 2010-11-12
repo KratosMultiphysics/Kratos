@@ -12,10 +12,12 @@ domain_size = edgebased_var.domain_size
 #including kratos path
 kratos_libs_path            = "../../../../libs"
 kratos_applications_path    = '../../../../applications'
+kratos_benchmarking_path 	= '../../../../benchmarking' ##kratos_root/benchmarking
 
 import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
+sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
 from Kratos import *
@@ -32,6 +34,8 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 ##################################################################
 from KratosIncompressibleFluidApplication import *
 from KratosMeshingApplication import *
+
+import benchmarking
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
@@ -119,8 +123,8 @@ for node in fluid_model_part.Nodes:
     X2 = (node.Y - yc) 
     X3 = (node.Z - zc)
     dist = math.sqrt((X1**2 + X2**2 +  X3**2)) - 0.1
-    if(dist > 0.0):
-        dist = 0.0
+##    if(dist > 0.0):
+##        dist = 0.0
     node.SetSolutionStepValue(DISTANCE,0,dist)
     
 print "assigned dist dirts"
@@ -167,16 +171,17 @@ while(time < final_time):
 
     convection_solver.ComputeTimeStep(safety_factor)
     Dt = ProcessInfo[DELTA_TIME]
-    print Dt
+    #print Dt
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
-    print "******** CURRENT TIME = ",time
+    #print "******** CURRENT TIME = ",time
 
     if(step >= 3):
-
         ##convect levelset function
         convection_solver.Solve()
+        
+        BenchmarkCheck(time, fluid_model_part)
         
         if(time >=  next_output_time):
             

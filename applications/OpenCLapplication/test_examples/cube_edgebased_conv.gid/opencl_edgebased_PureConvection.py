@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import edgebased_var
 
 ##################################################################
@@ -38,14 +37,13 @@ from KratosIncompressibleFluidApplication import *
 from KratosOpenCLApplication import *
 from KratosMeshingApplication import *
 
+import benchmarking
+
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
 
 #############################################
 
-print kernel
-
-import benchmarking
 
 ##importing the solvers needed
 fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
@@ -131,20 +129,14 @@ for node in fluid_model_part.Nodes:
 ##        dist = 0.0
     node.SetSolutionStepValue(DISTANCE,0,dist)
     
-    
-print "**********"
+print "assigned dist dirts"
 #constructing the solver
 single_device_flag = True
-device_group = OpenCLDeviceGroup(cl_device_type.CL_DEVICE_TYPE_GPU,single_device_flag)
+device_group = OpenCLDeviceGroup(cl_device_type.CL_DEVICE_TYPE_CPU,single_device_flag)
 device_group.AddCLSearchPath('../../custom_utilities')
-print "^^^^^^^^^^^^^^^^^"
-print device_group
 
 matrix_container = OpenCLMatrixContainer3D(device_group)
-print "aaaa"
 matrix_container.ConstructCSRVector(fluid_model_part)
-print "bbb"
-
 matrix_container.BuildCSRData(fluid_model_part)
 print "contructed matrix_containers"
 
@@ -188,7 +180,7 @@ while(time < final_time):
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
-    print "******** CURRENT TIME = ",time
+    #print "******** CURRENT TIME = ",time
 
     if(step >= 3):
         ##convect levelset function
@@ -197,11 +189,11 @@ while(time < final_time):
         BenchmarkCheck(time, fluid_model_part)
         
         if(time >=  next_output_time):
-            print "printing"
+            
             gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(DISTANCE,fluid_model_part.Nodes,time,0)
             gid_io.Flush()
-			
+
             next_output_time = time + output_dt
 
             out = 0
