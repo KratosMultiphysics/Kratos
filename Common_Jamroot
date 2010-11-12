@@ -135,6 +135,7 @@ use-project /kratos-prj/ALEapplication : $(TOP)/applications/ALEapplication ;
 use-project /kratos-prj/FSIapplication : $(TOP)/applications/FSIapplication ;
 use-project /kratos-prj/MeshingApplication : $(TOP)/applications/MeshingApplication ;
 ##use-project /kratos-prj/Qcompressible_fluid_application : $(TOP)/applications/Qcompressible_fluid_application ;
+use-project /kratos-prj/FluidDynamicsApplication : $(TOP)/applications/FluidDynamicsApplication ;
 
 ## REQUIRES METIS TO BE INSTALLED
 ##use-project /kratos-prj/MetisApplication : $(TOP)/applications/metis_application ;
@@ -170,6 +171,7 @@ alias install :
 #		/kratos-prj/FSIapplication//install
 #		/kratos-prj/mkl_solvers_application//install
 #		/kratos-prj/Qcompressible_fluid_application//install
+		/kratos-prj/FluidDynamicsApplication//install
 #		/kratos-prj/MetisApplication//install
 #		/kratos-prj/TrilinosApplication//install
 #		/kratos-prj/gpu_solvers_application//install
