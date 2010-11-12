@@ -69,9 +69,9 @@ def BenchmarkCheck(time, model_part, section_nodes, center):
     
     DragLift=CalculateDragLift(time,section_nodes,center)
                
-    benchmarking.Output(time, "Time")
-    benchmarking.Output(DragLift[0], "drag", 0.0001)
-    benchmarking.Output(DragLift[1], "lift", 0.0001)
+    benchmarking.Output(time, "Time", 0.000001)
+    benchmarking.Output(DragLift[0], "drag", 0.00001)
+    benchmarking.Output(DragLift[1], "lift", 0.00001)
 
 
 ##add Degrees of Freedom to all of the nodes
