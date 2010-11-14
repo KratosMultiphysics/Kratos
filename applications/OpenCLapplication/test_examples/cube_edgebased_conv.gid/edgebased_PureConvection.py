@@ -181,7 +181,8 @@ while(time < final_time):
         ##convect levelset function
         convection_solver.Solve()
         
-        BenchmarkCheck(time, fluid_model_part)
+        ## Uncomment to get benchmarking data
+        ## BenchmarkCheck(time, fluid_model_part)
         
         if(time >=  next_output_time):
             
