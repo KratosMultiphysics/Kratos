@@ -421,35 +421,6 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        /// Calculate Stabilization parameters
-        /**
-         * Calculates both tau parameters based on a given advective velocity
-         * @param TauOne: First stabilization parameter (momentum equation)
-         * @param TauTwo: Second stabilization parameter (mass equation)
-         * @param rAdvVel: advection velocity
-         * @param Area: Elemental area
-         * @param KinViscosity: Elemental kinematic viscosity (nu)
-         * @param rCurrentProcessInfo: Process info instance
-         */
-        virtual void CalculateTau(double& TauOne,
-                                  double& TauTwo,
-                                  const array_1d< double, 3 > & rAdvVel,
-                                  const double Volume,
-                                  const double KinViscosity,
-                                  const ProcessInfo& rCurrentProcessInfo)
-        {
-            // Compute mean advective velocity norm
-            double AdvVelNorm = 0.0;
-            for (unsigned int d = 0; d < DIM; ++d)
-                AdvVelNorm += rAdvVel[d] * rAdvVel[d];
-
-            AdvVelNorm = sqrt(AdvVelNorm);
-
-            const double ElementSize = 0.60046878 * pow(Volume,0.333333333333333333333); // Diameter of sphere circumscribed to regular tetrahedron of given volume
-
-            TauOne = 1.0 / (rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (ElementSize * ElementSize) + 2.0 * AdvVelNorm / ElementSize);
-            TauTwo = (KinViscosity + ElementSize * AdvVelNorm / 2.0);
-        }
 
         ///@}
         ///@name Protected  Access
@@ -486,6 +457,11 @@ namespace Kratos
         ///@}
         ///@name Private Operations
         ///@{
+
+        double ElementSize(const double Volume)
+        {
+            return 0.60046878 * pow(Volume,0.333333333333333333333); // Diameter of sphere circumscribed to regular tetrahedron of given volume
+        }
 
 
         ///@}

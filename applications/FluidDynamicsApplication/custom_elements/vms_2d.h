@@ -54,7 +54,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 
-
 // External includes
 
 
@@ -417,36 +416,6 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        /// Calculate Stabilization parameters
-        /**
-         * Calculates both tau parameters based on a given advective velocity
-         * @param TauOne: First stabilization parameter (momentum equation)
-         * @param TauTwo: Second stabilization parameter (mass equation)
-         * @param rAdvVel: advection velocity
-         * @param Area: Elemental area
-         * @param KinViscosity: Elemental kinematic viscosity (nu)
-         * @param rCurrentProcessInfo: Process info instance
-         */
-        virtual void CalculateTau(double& TauOne,
-                                  double& TauTwo,
-                                  const array_1d< double, 3 > & rAdvVel,
-                                  const double Area,
-                                  const double KinViscosity,
-                                  const ProcessInfo& rCurrentProcessInfo)
-        {
-            // Compute mean advective velocity norm
-            double AdvVelNorm = 0.0;
-            for (unsigned int d = 0; d < DIM; ++d)
-                AdvVelNorm += rAdvVel[d] * rAdvVel[d];
-
-            AdvVelNorm = sqrt(AdvVelNorm);
-
-//            const double Element_Size = 2.0 * sqrt(Area / 3.14); // This is the element's diameter, 3.14 approximates Pi
-            const double Element_Size = 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
-
-            TauOne = 1.0 / (rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
-            TauTwo = (KinViscosity + Element_Size * AdvVelNorm / 2.0);
-        }
 
         ///@}
         ///@name Protected  Access
@@ -479,6 +448,12 @@ namespace Kratos
         ///@name Private Operators
         ///@{
 
+        /// Estimate element size
+        double ElementSize(const double Area)
+        {
+//            const double Element_Size = 2.0 * sqrt(Area / 3.14); // This is the element's diameter, 3.14 approximates Pi
+            return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
+        }
 
         ///@}
         ///@name Private Operations
