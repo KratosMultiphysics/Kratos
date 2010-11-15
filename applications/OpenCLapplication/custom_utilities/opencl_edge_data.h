@@ -166,8 +166,21 @@ namespace Kratos
 
 		for (cl_uint i = 0; i < DeviceGroup.DeviceNo; i++)
 		{
-			size_t MaxWidth;
-			size_t MaxHeight;
+			cl_bool ImageSupport;
+
+			// Check for Image support
+			Err = clGetDeviceInfo(DeviceGroup.DeviceIDs[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(cl_bool), &ImageSupport, NULL);
+
+			if (!ImageSupport)
+			{
+				std::cout <<
+					"Images are not supported on this device." << std::endl <<
+					"Aborting." << std::endl;
+
+				abort();
+			}
+
+			size_t MaxWidth, MaxHeight;
 
 			// Get the maximum supported image dimensions by the device
 			Err = clGetDeviceInfo(DeviceGroup.DeviceIDs[i], CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &MaxWidth, NULL);
@@ -182,8 +195,9 @@ namespace Kratos
 				"Max Image dimensions: (" << MaxWidth << ", " << MaxHeight << ")" << std::endl;
 
 			// We have to read by column to be efficient, also each double16 is 8 float4 long and we need a power of two multiple
-			size_t Width = 1;
-			size_t Height;
+			size_t Width, Height;
+
+			Width = 1;
 
 			while ((MaxWidth >>= 1) != 0)
 			{
@@ -248,7 +262,7 @@ namespace Kratos
 			{
 				// Loading OpenCL program
 				// TODO: Add optimization flags here
-				mpOpenCLEdgeData = mrDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl");
+				mpOpenCLEdgeData = mrDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-fast-relaxed-math");
 
 				// Register kernels
 				mkAdd_Minv_value1 = mrDeviceGroup.RegisterKernel(mpOpenCLEdgeData, "Add_Minv_value1");
@@ -1163,6 +1177,6 @@ namespace Kratos
 
 	};
 
-} //namespace Kratos
+} // Namespace Kratos
 
 #endif //KRATOS_OPENCL_EDGE_DATA_H_INCLUDED defined
