@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/assign_no_slip_condition.h" 
 #include "custom_utilities/mark_for_refinement.h" 
 #include "custom_utilities/parallel_extrapolation_utilities.h" 
+#include "custom_utilities/wave_generator.h" 
 
 
 //#include "custom_utilities/edgebased_levelset.h"
@@ -275,6 +276,11 @@ namespace Python
                           .def("AssignFreeSurfacePressure",&ParallelExtrapolationUtilities< 3 >::AssignFreeSurfacePressure)
                         ;
 
+	class_< WaveGenerator,  boost::noncopyable >       ("WaveGenerator", init<>() )
+                          .def("GenerateWaveXYPlane",&WaveGenerator::GenerateWaveXYPlane)
+                        ;
+
+			
 // 	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
 //                           .def("ConstructSystemStructure",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::ConstructSystemStructure)
 //                           .def("Clear",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::Clear)
