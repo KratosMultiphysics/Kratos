@@ -67,13 +67,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
-//#include "includes/define.h"
 #include "includes/model_part.h"
-//#include "includes/node.h"
-//#include "geometries/geometry.h"
-//#include "utilities/geometry_utilities.h"
-//#include "incompressible_fluid_application.h"
-//#include "opencl_interface.h"
+
 
 int64_t timeNanos()
 {
@@ -110,7 +105,7 @@ namespace Kratos
 			{
 				// Loading OpenCL program
 				// TODO: Add optimization flags here
-				mpOpenCLPureConvectionEdgeBased = mrDeviceGroup.BuildProgramFromFile("opencl_pure_convection_edgebased.cl");
+				mpOpenCLPureConvectionEdgeBased = mrDeviceGroup.BuildProgramFromFile("opencl_pure_convection_edgebased.cl", "-cl-fast-relaxed-math");
 
 				// Register kernels
 				mkSolve1 = mrDeviceGroup.RegisterKernel(mpOpenCLPureConvectionEdgeBased, "Solve1");
@@ -506,9 +501,6 @@ namespace Kratos
 
 	};
 
-} //namespace Kratos
+} // Namespace Kratos
 
 #endif // KRATOS_OPENCL_PURE_CONVECTION_EDGEBASED_SOLVER_H_INCLUDED defined
-
-
-

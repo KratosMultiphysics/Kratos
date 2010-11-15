@@ -1312,6 +1312,54 @@ namespace OpenCL
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
+					cl_bool ImageSupport;
+
+					// Check for Image support
+
+					Err = clGetDeviceInfo(DeviceIDs[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(cl_bool), &ImageSupport, NULL);
+
+					if (ImageSupport)
+					{
+						Options += " -DKRATOS_OCL_IMAGE_SUPPORT";
+
+						std::stringstream OptionsBuilder;
+
+						size_t MaxWidth, MaxHeight;
+
+						// Get the maximum supported image dimensions by the device
+
+						Err = clGetDeviceInfo(DeviceIDs[i], CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &MaxWidth, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						Err = clGetDeviceInfo(DeviceIDs[i], CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(size_t), &MaxHeight, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+						OptionsBuilder << " -DKRATOS_OCL_IMAGE_WIDTH=" << MaxWidth;
+						OptionsBuilder << " -DKRATOS_OCL_IMAGE_HEIGHT=" << MaxHeight;
+
+						// Find the largest power of two less than height and width
+
+						size_t WidthBits, HeightBits;
+
+						WidthBits = 0;
+						HeightBits = 0;
+
+						while ((MaxWidth >>= 1) != 0)
+						{
+							WidthBits++;
+						}
+
+						while ((MaxHeight >>= 1) != 0)
+						{
+							HeightBits++;
+						}
+
+						OptionsBuilder << " -DKRATOS_OCL_IMAGE_WIDTH_BITS=" << WidthBits;
+						OptionsBuilder << " -DKRATOS_OCL_IMAGE_HEIGHT_BITS=" << HeightBits;
+
+						Options += OptionsBuilder.str();
+					}
+
 					CurrentPrograms[i] = clCreateProgramWithSource(Contexts[i], 1, &SourceText, &SourceLen, &Err);
 					KRATOS_OCL_CHECK(Err);
 

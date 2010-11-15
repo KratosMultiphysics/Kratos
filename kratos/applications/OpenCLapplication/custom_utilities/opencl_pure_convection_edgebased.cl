@@ -127,13 +127,16 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			//EdgeType CurrentEdge = EdgeValues[csr_index];
-			EdgeType CurrentEdge = ReadDouble16FromImage(EdgeValues, csr_index);
-			Add_grad_p(KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge)), &Temp_Pi_i_node, Temp_Phi_i_node, phi[ColumnIndex[csr_index]]);
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
+
+			//VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(EdgeValues[csr_index]), KRATOS_OCL_NI_DNJ_1(EdgeValues[csr_index]), KRATOS_OCL_NI_DNJ_2(EdgeValues[csr_index]));
+			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
+
+			Add_grad_p(Ni_DNj, &Temp_Pi_i_node, Temp_Phi_i_node, phi[ColumnIndex[csr_index]]);
 		}
 
 		// Apply inverted mass matrix
-		Temp_Pi_i_node *= InvertedMass[i_node];
-		Pi[i_node] = Temp_Pi_i_node;
+		Pi[i_node] = Temp_Pi_i_node * InvertedMass[i_node];
 	}
 }
 
@@ -232,33 +235,34 @@ __kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
 
-			VectorType Temp_convective_velocity_j_neighbour = convective_velocity[j_neighbour];
 			ValueType Temp_Phi_j_neighbour = phi[j_neighbour];
-
-			//EdgeType CurrentEdge = EdgeValues[csr_index];
-			EdgeType CurrentEdge = ReadDouble16FromImage(EdgeValues, csr_index);
-
-			// Convection operator
-			Sub_ConvectiveContribution2(KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge)), &Temp_rhs_i_node, Temp_convective_velocity_i_node, Temp_Phi_i_node, Temp_convective_velocity_j_neighbour, Temp_Phi_j_neighbour);
 
 			ValueType stab_low;
 			ValueType stab_high;
 
-			// Calculate stabilization part
-			CalculateConvectionStabilization_LOW2(
-				KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_2(CurrentEdge)),
-				KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge)),
-				KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge)),
-				&stab_low, Temp_convective_velocity_i_node, Temp_Phi_i_node, Temp_convective_velocity_j_neighbour, Temp_Phi_j_neighbour);
+			//EdgeType CurrentEdge = EdgeValues[csr_index];
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
 
-			CalculateConvectionStabilization_HIGH2(KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge)), &stab_high, Temp_convective_velocity_i_node, Temp_Phi_i_node, Temp_convective_velocity_j_neighbour, Temp_Phi_j_neighbour);
+			//VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(EdgeValues[csr_index]), KRATOS_OCL_NI_DNJ_1(EdgeValues[csr_index]), KRATOS_OCL_NI_DNJ_2(EdgeValues[csr_index]));
+			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
+			//ReadVectorFromDouble16Image(EdgeValues, csr_index, 5, &Ni_DNj);
 
-			Sub_StabContribution2(&Temp_rhs_i_node, Temp_Tau_i_node, 1.00, stab_low, stab_high);
+			Sub_ConvectiveContribution2(Ni_DNj, &Temp_rhs_i_node, Temp_convective_velocity_i_node, Temp_Phi_i_node, Temp_Phi_j_neighbour);
+			CalculateConvectionStabilization_HIGH2(Ni_DNj, &stab_high, Temp_convective_velocity_i_node, Temp_Phi_i_node, Temp_Phi_j_neighbour);
 
+			//VectorType Lij0 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(EdgeValues[csr_index]), KRATOS_OCL_LAPLACIANIJ_0_1(EdgeValues[csr_index]), KRATOS_OCL_LAPLACIANIJ_0_2(EdgeValues[csr_index]));
+			//VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(EdgeValues[csr_index]), KRATOS_OCL_LAPLACIANIJ_1_1(EdgeValues[csr_index]), KRATOS_OCL_LAPLACIANIJ_1_2(EdgeValues[csr_index]));
+			//VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(EdgeValues[csr_index]), KRATOS_OCL_LAPLACIANIJ_2_1(EdgeValues[csr_index]), KRATOS_OCL_LAPLACIANIJ_2_2(EdgeValues[csr_index]));
+			VectorType Lij0 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_2(CurrentEdge));
+			VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge));
+			VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge));
+			//Read3VectorFromDouble16Image(EdgeValues, csr_index, 0, &Lij0, &Lij1, &Lij2);
 
 			ValueType laplacian_ij;
+			CalculateScalarLaplacian(Lij0.x, Lij1.y, Lij2.z, &laplacian_ij);
 
-			CalculateScalarLaplacian(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge), &laplacian_ij);
+			CalculateConvectionStabilization_LOW2(Lij0, Lij1, Lij2, &stab_low, Temp_convective_velocity_i_node, Temp_Phi_i_node, Temp_Phi_j_neighbour);
+			Sub_StabContribution2(&Temp_rhs_i_node, Temp_Tau_i_node, 1.00, stab_low, stab_high);
 
 			Temp_rhs_i_node -= 0.35 * laplacian_ij * (Temp_Phi_j_neighbour - Temp_Phi_i_node) * Temp_Beta_i_node * KRATOS_OCL_LENGTH3(Temp_convective_velocity_i_node);
 		}
