@@ -28,6 +28,8 @@ namespace Kratos
 	//*****************************************************************************
 	//*****************************************************************************
   
+   typedef GeometryData::IntegrationMethod IntegrationMethod;
+  
 	BeamElement::BeamElement(IndexType NewId,GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
 	  {		
@@ -100,39 +102,6 @@ void BeamElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
  
 void BeamElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
     {
-      Matrix Rotation; 
-      Matrix LocalMatrix; 
-      array_1d<double, 12 > CurrentDisplacement;
-      array_1d<double, 12 > LocalDisplacement;
-      array_1d<double, 12 > Results;
-      Rotation.resize(12,12, false);
-       
-      CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);	
-      CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
-      CurrentDisplacement(2)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
-      CurrentDisplacement(3)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_X);
-      CurrentDisplacement(4)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y);
-      CurrentDisplacement(5)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z);
-      CurrentDisplacement(6)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X);	
-      CurrentDisplacement(7)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y);
-      CurrentDisplacement(8)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z);
-      CurrentDisplacement(9)		=   GetGeometry()[1].GetSolutionStepValue(ROTATION_X);
-      CurrentDisplacement(10)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y);
-      CurrentDisplacement(11)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z);
-      
-      CalculateTransformationMatrix(Rotation);
-      CalculateLocalMatrix(LocalMatrix);
-      noalias(LocalDisplacement) = prod(trans(Rotation), CurrentDisplacement);
-      noalias(Results) = prod(LocalMatrix, LocalDisplacement);
-      
-      GetGeometry()[0].SetValue(MOMENT_X, Results(3));
-      GetGeometry()[0].SetValue(MOMENT_Y, Results(4));
-      GetGeometry()[0].SetValue(MOMENT_Z, Results(5));
-      GetGeometry()[1].SetValue(MOMENT_X, Results(9));
-      GetGeometry()[1].SetValue(MOMENT_Y, Results(10));
-      GetGeometry()[1].SetValue(MOMENT_Z, Results(11));
-            
-      return;
     }
 
 
@@ -292,7 +261,7 @@ void BeamElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
       CalculateLocalMatrix(LocalMatrix);
       CalculateTransformationMatrix(Rotation);
       noalias(aux_matrix) = prod(Rotation, LocalMatrix); 
-      noalias(rLeftHandSideMatrix)= prod(aux_matrix,trans(Rotation));      
+      noalias(rLeftHandSideMatrix)= prod(aux_matrix,Matrix(trans(Rotation)));
       return;
     }
 
@@ -305,16 +274,17 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
   
     Matrix Rotation;
     Matrix GlobalMatrix;
-    //Vector Loads;
+    Vector LocalBody;
     
     array_1d<double, 12 > CurrentDisplacement;
 
     Rotation.resize(12,12, false);
-    //Loads.resize(12, false);
     rRightHandSideVector = ZeroVector(12);
+    LocalBody = ZeroVector(12);
     
     CalculateTransformationMatrix(Rotation);
-    CalculateLoads(Rotation, rRightHandSideVector);
+    CalculateBodyForce(Rotation, LocalBody, rRightHandSideVector);
+    
       
     CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);	
     CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
@@ -329,8 +299,6 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     CurrentDisplacement(10)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y);
     CurrentDisplacement(11)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z);
     
-    //noalias(rRightHandSideVector) = Loads; 
-    //KRATOS_WATCH(Loads)
     CalculateLHS(GlobalMatrix);
     noalias(rRightHandSideVector) -= prod(GlobalMatrix, CurrentDisplacement); 
     return;
@@ -470,7 +438,8 @@ void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
       LocalMatrix(7,11)	=  -(6*EIx)/(LL); 
       LocalMatrix(11,11)=  (4*EIx)/L;
       
-
+        
+      
  KRATOS_CATCH("")
 
 }
@@ -552,7 +521,6 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
             }
          }
       }
-
       KRATOS_CATCH("")
 
 }
@@ -560,7 +528,7 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 
 //************************************************************************************
 //************************************************************************************
- void BeamElement::CalculateLoads(Matrix& Rotation, Vector& Loads)
+ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody)
 
 {
       KRATOS_TRY
@@ -647,7 +615,8 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 	  Cargas_X[10]=   0.00;
 	  Cargas_X[11]=   (Load[1])*mlength*mlength/12.00;
 
-	  noalias(Loads) += prod(Rotation,Cargas_X);		// Cargas externas en coordenadas globales.
+	  noalias(GlobalBody) = prod(Rotation,Cargas_X);		// Cargas externas en coordenadas globales.
+	  noalias(LocalBody)  = Cargas_X;  
 
       }
 
@@ -696,7 +665,8 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 	  Cargas_Z[10]= (Load[1])*mlength*mlength/12.00;
 	  Cargas_Z[11]=  0.00; 
 
-	  noalias(Loads) += prod(Rotation,Cargas_Z);		// Cargas externas en coordenadas globales.
+	  noalias(GlobalBody) = prod(Rotation,Cargas_Z);		// Cargas externas en coordenadas globales.
+	  noalias(LocalBody)  = Cargas_Z;
 
       }
       
@@ -744,7 +714,8 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 	Cargas_Y[10]=   0.00;
 	Cargas_Y[11]=   (Load[1])*mlength*mlength/12.00;
 
-	noalias(Loads) += prod(Rotation,Cargas_Y);		// Cargas externas en coordenadas globales. 
+	noalias(GlobalBody) = prod(Rotation,Cargas_Y);		// Cargas externas en coordenadas globales. 
+	noalias(LocalBody)  = Cargas_Y;
       }
       
       KRATOS_CATCH("")
@@ -842,8 +813,247 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 	//************************************************************************************
 	//************************************************************************************
 	
+	void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+                                            std::vector< array_1d<double,3> >& Output, 
+                                            const ProcessInfo& rCurrentProcessInfo)
+               {
+		
+		
+		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_3); 
+                const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_3);
+		
+		
+		if(Output.size() != integration_points.size())
+			Output.resize(integration_points.size());
+		
+		Vector Stress;
+		Vector Load1;	
+		Vector Load2;	
+		Vector Load3;	
+		CalculateLocalNodalStress(Stress);
+		for(unsigned int i = 0; i<Stress.size(); i++)
+		{
+		  if( std::fabs(Stress[i])< 1E-6) Stress[i] = 0.00; 
+		}
+		
+		if(rVariable==MOMENT)
+		      {
+			
+			/// Punto Inical
+			Output[0][0] = Stress[3];
+			Output[0][1] = Stress[4];
+			Output[0][2] = Stress[5];
+			if(Id()==3) KRATOS_WATCH(Stress)
+			CalculateDistrubuitedBodyForce(1, Load1);
+			CalculateDistrubuitedBodyForce(2, Load2);
+			CalculateDistrubuitedBodyForce(3, Load3);
 
-	
+			Output[1][0] = 0.00;
+			Output[1][1] = 0.00;			
+			Output[1][2] = CalculateInternalForces(Stress[5], Stress[1], Load2[1], mlength/2);
+			
+						
+			Output[2][0] = 0.00;
+			Output[2][1] = 0.00;
+			Output[2][2] = CalculateInternalForces(Stress[5], Stress[1], Load2[1], mlength);
+			
+		      }
+		      
+		  if(rVariable==FORCE)
+		      {
+			Output[0][0] = Stress[0];
+			Output[0][1] = Stress[1];
+			Output[0][2] = Stress[2];
+			Output[1][0] = 0.00;
+			Output[1][1] = 0.00;
+			Output[1][2] = 0.00;
+			Output[2][0] = Stress[6];
+			Output[2][1] = Stress[7];
+			Output[2][2] = Stress[8];
+		      } 
+		      
+	    }
+	 
+	 
+	 double BeamElement::CalculateInternalForces(const double& Mo, const double& Po, const double& Load, const double& X)
+	   {
+	     
+	     return Mo -Po*X - 0.5 * Load * X * X;
+	   }
+	 
+           void BeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+                                           std::vector<array_1d<double,3> >& rValues, 
+                                           const ProcessInfo& rCurrentProcessInfo)
+                     {
+		       
+		       CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+		       
+		     }
+            IntegrationMethod  BeamElement::GetIntegrationMethod()
+            {
+               return GeometryData::GI_GAUSS_3;
+            }
+            
+            void BeamElement::CalculateLocalNodalStress(Vector& Stress)
+            {
+	      
+	        Matrix Rotation; 
+		Matrix LocalMatrix; 
+		array_1d<double, 12 > CurrentDisplacement;
+		array_1d<double, 12 > LocalDisplacement;
+		Vector LocalBody  = ZeroVector(12);
+		Vector GlobalBody = ZeroVector(12);
+		Rotation.resize(12,12, false);
+		Stress.resize(12, false);
+		
+		CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);	
+		CurrentDisplacement(1)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Y);
+		CurrentDisplacement(2)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
+		CurrentDisplacement(3)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_X);
+		CurrentDisplacement(4)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Y);
+		CurrentDisplacement(5)		=   GetGeometry()[0].GetSolutionStepValue(ROTATION_Z);
+		CurrentDisplacement(6)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_X);	
+		CurrentDisplacement(7)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Y);
+		CurrentDisplacement(8)		=   GetGeometry()[1].GetSolutionStepValue(DISPLACEMENT_Z);
+		CurrentDisplacement(9)		=   GetGeometry()[1].GetSolutionStepValue(ROTATION_X);
+		CurrentDisplacement(10)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Y);
+		CurrentDisplacement(11)	        =   GetGeometry()[1].GetSolutionStepValue(ROTATION_Z);
+
+		CalculateTransformationMatrix(Rotation);
+		CalculateLocalMatrix(LocalMatrix);
+
+		noalias(LocalDisplacement) = prod(Matrix(trans(Rotation)), CurrentDisplacement);
+		CalculateBodyForce(Rotation, LocalBody, GlobalBody);
+		
+	        if(Id()==3)
+		{
+		  KRATOS_WATCH(CurrentDisplacement);
+		  KRATOS_WATCH(LocalDisplacement);  
+		}
+		noalias(Stress) = -LocalBody + prod(LocalMatrix, LocalDisplacement);
+		return;
+	      
+	    }
+	    
+	      void BeamElement::CalculateDistrubuitedBodyForce(const int Direction, Vector& Load)
+	      {
+		
+		array_1d<double, 3> Weight;
+		Load.resize(2, false);
+                Weight[0]        =  GetProperties()[BODY_FORCE](0); 
+                Weight[1]        =  GetProperties()[BODY_FORCE](1);
+                Weight[2]        =  GetProperties()[BODY_FORCE](2);
+		
+		double alpha  =  0.00;
+		double signo  =  1.00;
+		double  sino; 
+		double  cose; 
+		
+		array_1d<double, 6 > x_zero;
+		
+		Vector Normal_Loads;
+		Vector Vector_zero;
+	        Normal_Loads.resize(3,false);
+		Vector_zero.resize(3,false);
+		
+		x_zero(0)= GetGeometry()[0].X0();  x_zero(1)= GetGeometry()[0].Y0();  x_zero(2)= GetGeometry()[0].Z0();
+		x_zero(3)= GetGeometry()[1].X0();  x_zero(4)= GetGeometry()[1].Y0();  x_zero(5)= GetGeometry()[1].Z0();
+
+		for (unsigned int i=0; i<3; i++)
+		{
+		Vector_zero[i] = x_zero[i+3] - x_zero[i];
+		}
+		
+		if(Direction==1) 
+		  Normal_Loads[0]   = 0.00;
+		  Normal_Loads[1]   = Vector_zero[1] ;
+		  Normal_Loads[2]   = Vector_zero[2] ;
+
+		  if (Vector_zero[0]<0) {signo =-1.00;}
+		  if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
+		  {
+		  alpha = signo*PI/2;
+		  }
+		  else
+		  {
+		  alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
+		  alpha	= signo*acos(alpha);
+		  }
+
+		  sino = sin(alpha);
+		  cose = cos(alpha);
+
+		  if(fabs(sino) < 1E-7) sino = 0.00;
+		  if(fabs(cose) < 1E-7) cose = 0.00;
+
+		  // las fuerzas consideradas son las de peso propio.
+		  Load[0]= mArea*Weight[0]*sino;         // Carga Axialmente Distribuida.
+		  Load[1]= mArea*Weight[0]*cose;         // Carga en la Direccion gravedad
+	      
+		
+		if(Direction==2) // 1=x, 2=y, 3=z
+		{
+		    Normal_Loads    = ZeroVector(3);
+		    Normal_Loads[0]	= Vector_zero[0] ;
+		    Normal_Loads[1]	= 0.00 ;
+		    Normal_Loads[2]	= Vector_zero[2];
+
+		    if (Vector_zero[1]<0) {signo =-1.00;}
+		    if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
+		    {
+		    alpha = signo*PI/2;
+		    }
+		    else
+		    {
+		    alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
+		    alpha = signo*acos(alpha);
+		    }
+
+		    sino = sin(alpha);
+		    cose = cos(alpha);
+
+		    if(fabs(sino) < 1E-7) sino = 0.00;
+		    if(fabs(cose) < 1E-7) cose = 0.00;
+
+
+		    // las fuerzas consideradas son las de peso propio.
+		    Load[0]= mArea*Weight[1]*sino;         // Carga Axialmente Distribuida.
+		    Load[1]= mArea*Weight[1]*cose;         // Carga en la Direccion gravedad
+		}
+		
+               if(Direction==3) // 1=x, 2=y, 3=z
+		 {  
+		  Normal_Loads[0]	= Vector_zero[0] ;
+		  Normal_Loads[1]	= Vector_zero[1] ;
+		  Normal_Loads[2]	= 0.00;
+
+		  if (Vector_zero[2]<0) {signo =-1.00;}
+		  if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
+		  {
+		  alpha = signo*PI/2;
+		  }
+		  else
+		  {
+		  alpha = inner_prod(Normal_Loads,Vector_zero)/(norm_2(Vector_zero)*norm_2( Normal_Loads));
+		  alpha	= signo*acos(alpha);
+		  }
+
+		  sino = sin(alpha);
+		  cose = cos(alpha);
+
+		  if(fabs(sino) < 1E-7) sino = 0.00;
+		  if(fabs(cose) < 1E-7) cose = 0.00;
+
+		  // las fuerzas consideradas son las de peso propio.
+		  Load[0]= mArea*Weight[2]*sino;         // Carga Axialmente Distribuida.
+		  Load[1]= mArea*Weight[2]*cose;         // Carga en la Direccion gravedad	   
+		 }
+		
+		
+		
+	      }
+            
+
 
 
 } // Namespace Kratos
