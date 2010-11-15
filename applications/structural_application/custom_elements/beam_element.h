@@ -56,9 +56,14 @@ namespace Kratos
 
 	      void CalculateTransformationMatrix(Matrix& Rotation);
 
-	      void CalculateLoads(Matrix& Rotation, Vector& mLoads); 
+	      void CalculateBodyForce(Matrix& Rotation,  Vector& LocalBody, Vector& GlobalBody);
 	      
-
+	      void CalculateLocalNodalStress(Vector& Stress); 
+	      
+	      double CalculateInternalForces(const double& Mo, const double& Po, const double& Load, const double& X);
+	      
+	      void CalculateDistrubuitedBodyForce(const int Direction, Vector& Load);
+	      
 
 	      public:
 	      
@@ -107,8 +112,17 @@ namespace Kratos
 
 	      void  GetFirstDerivativesVector(Vector& values, int Step);
 	      void  GetSecondDerivativesVector(Vector& values, int Step);
+	      				     
+              void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+                                            std::vector< array_1d<double,3> >& Output, 
+                                            const ProcessInfo& rCurrentProcessInfo);
+	      
+	      void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+                                           std::vector<array_1d<double,3> >& rValues, 
+                                           const ProcessInfo& rCurrentProcessInfo);
 
-
+             IntegrationMethod GetIntegrationMethod();
+             
 
 		
 	      
