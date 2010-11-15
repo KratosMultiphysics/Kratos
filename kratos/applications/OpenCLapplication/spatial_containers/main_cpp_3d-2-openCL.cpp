@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 #define KRATOS_INDEPENDENT
-#include "spatial_containers/spatial_containersOCL.h"
+#include "spatial_containers/spatial_containers.h"
 #include "timer.h"
 
 double rrandom(){
@@ -142,7 +142,8 @@ int main(int arg, char* argv[])
    typedef double*                             DistanceVector;
    typedef double*                             DistanceIterator;
 
-   typedef Kratos::BinsOCL< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, PointDistance2<PointType,Dim> > StaticBins;
+   typedef Kratos::Bins< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, PointDistance2<PointType,Dim> > StaticBins;
+   typedef Kratos::BinsOCL< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, PointDistance2<PointType,Dim> > StaticBinsOCL;
    typedef Kratos::BinsDynamic< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, PointDistance2<PointType,Dim> > DynamicBins;
 
    typedef Kratos::Bucket<Dim,PointType,PointVector, PtrPointType, PointIterator, DistanceIterator, PointDistance2<PointType,Dim> > BucketType;
@@ -173,6 +174,7 @@ int main(int arg, char* argv[])
    double radius  = 16.00;
    int rep = 10;
    int block = 1000;
+   int maxresults = 10;
   
    if(arg == 1){
       std::cout << " argument not founded " << std::endl;
@@ -192,6 +194,13 @@ int main(int arg, char* argv[])
       radius = atof(argv[2]);
       rep = atof(argv[3]);
       block = atof(argv[4]);
+   }
+   
+   if(arg == 6){
+      radius = atof(argv[2]);
+      rep = atof(argv[3]);
+      block = atof(argv[4]);
+      maxresults = atof(argv[5]);
    }
 
    filename = argv[1];
@@ -299,12 +308,20 @@ int main(int arg, char* argv[])
    //BinsContainer bin(points.begin(), points.end());
    for(std::size_t i = 0; i < npoints; i++)
      points1[i] = points[i];
-      StaticBins bin(points1,points1+npoints);
-          std::cout << "Bins\t\t" << time1 << "\t\t" << std::endl;
+   
+   //Original
+   StaticBins bin(points1,points1+npoints);
+      
+   //Ocl
+   StaticBinsOCL binOCL(points1,points1+npoints);
+      
+   std::cout << "Bins\t\t" << time1 << "\t\t" << std::endl;
    time1.restart();
    n = 0;
    AverDistance = 0.00;
-   for(std::size_t i = 0 ; i < npoints ; i++){
+   
+   for(std::size_t i = 0 ; i < npoints ; i++)
+   {
      n_res = bin.SearchInRadius( *points[i], radius3, results, distance, max_results);
      n += n_res;
      for(std::size_t j = 0; j < n_res; j++)
@@ -321,35 +338,33 @@ int main(int arg, char* argv[])
 
    //std::cout  << std::endl;
    std::cout  << radius << "\t" << n << "\t" << npoints << "\t\t" << 0/**PNearest*/ << std::endl;
-  std::cout  << "\t\t Total Distances = " << AverDistance << "(" << n << ")" << std::endl;
+   std::cout  << "\t\t Total Distances = " << AverDistance << "(" << n << ")" << std::endl;
   
    time1.restart();
    
+   struct timespec begin;
+   struct timespec end;
    
-     std::cout << "\nTesting parallel point calculaton" << std::endl;
-     std::cout << "Block\t\t" << "Reps\t\t" <<  std::endl;
-     std::cout << block << "\t\t" << rep << std::endl;
-     
-        struct timespec begin;
+   
+   std::cout << "\nTesting parallel point calculaton" << std::endl;
+   std::cout << "Block\t\t" << "Reps\t\t" <<  std::endl;
+   std::cout << block << "\t\t" << rep << std::endl;
 
    clock_gettime( CLOCK_REALTIME, &begin );
-     
-     for(int i = 0; i < rep; i++) {
-	bin.computeresultsN(radius3,block);
-     }
-     
-     struct timespec end;
-
-   clock_gettime( CLOCK_REALTIME, &end );
-
-   std::cout << "BEGIN: " << begin.tv_sec << "." << begin.tv_nsec << "\n"
-           << "END:    " << end.tv_sec << "." << end.tv_nsec << std::endl;
-	   std::cout << "TOTAL: " << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
-     //std::cout << time1 << "\t\t\t"; // 59.20 - 61   = 98.95
-     //std::cout << std::endl;
+     for(std::size_t i = 0 ; i < npoints ; i++){
+	binOCL.prepareData(*points[i]);
+   }  
    
-   /*    std::cout <<  "npoints = " << npoints <<  "  total results = " << n << std::endl; */
+     for(int i = 0; i < rep; i++) {
+	binOCL.computeresultsN(radius3,block,maxresults);
+     }
     
+   clock_gettime( CLOCK_REALTIME, &end );
+   
+      std::cout << "BEGIN: " << begin.tv_sec << "." << begin.tv_nsec << "\n"
+        << "END:    " << end.tv_sec << "." << end.tv_nsec << std::endl;
+	std::cout << "TOTAL: " << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+
    //**********************************************************************************
    /*CAPADO!!!!
    //return 0;

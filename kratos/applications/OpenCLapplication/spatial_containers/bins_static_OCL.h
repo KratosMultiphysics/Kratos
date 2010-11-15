@@ -75,7 +75,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
       int Size;
       
       cl_uint OCLGenerateBins, OCLSearchInRadius;
-      cl_mem OCL_Points, OCL_Cell, OCL_IndexCell, OCL_IndexCellReference, OCL_InvCellSize, OCL_N, OCL_MinPoint, OCL_BinsContainer;
+      cl_uint OCL_Points, OCL_Cell, OCL_IndexCell, OCL_IndexCellReference, OCL_InvCellSize, OCL_N, OCL_MinPoint, OCL_BinsContainer;
       
       cl_double4 * pointsToSearch; 
 
@@ -162,9 +162,10 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	 //************************************************************************
      
 	 void InitOCL() {
-	   //Kratos::OpenCL::DeviceGroup OCLDeviceGroup(CL_DEVICE_TYPE_ALL);
+	   
 	   //"Advanced Micro Devices, Inc."
 	   //"NVIDIA Corporation"
+	   
 	   OCLDeviceGroup = new Kratos::OpenCL::DeviceGroup(CL_DEVICE_TYPE_ALL,true,"NVIDIA Corporation");
 	   std::cout << "Found " << OCLDeviceGroup->DeviceNo << " device(s)." << std::endl;
 	   for (cl_uint i = 0; i < OCLDeviceGroup->DeviceNo; i++)
@@ -256,23 +257,23 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	   
 	   std::cout << "Building Ocl program.." << std::endl;
 	   
-	   pointsToSearch = new cl_double4[mPointEnd - mPointBegin];
+	   pointsToSearch = new cl_double4[SearchUtils::PointerDistance(mPointBegin, mPointEnd)];
 	   
 	   std::cout << "Generate Params..." << std::endl;
 	   
 	   char params[512] = "";
-	   sprintf(params,"-g -cl-mad-enable -D POINT_SIZE=%ld -D T_DIMENSION=%Zu -D CELL_SIZE=%d",(mPointEnd-mPointBegin),TDimension,Size+1);
+	   sprintf(params,"-D POINT_SIZE=%ld -D T_DIMENSION=%Zu -D CELL_SIZE=%d",SearchUtils::PointerDistance(mPointBegin, mPointEnd),TDimension,Size+1);
 	   
 	   std::cout << "Building programs" << std::endl;	   
-	   OCLDeviceGroup->BuildProgramFromFile("binshashOPT.cl",params);
+	   cl_uint OCL_program = OCLDeviceGroup->BuildProgramFromFile("binshashOPT.cl",params);
 	   
 	   std::cout << "Register Kernels..." << std::endl;	   
-	   OCLGenerateBins = OCLDeviceGroup->RegisterKernel(0,"GenerateBins");
-	   OCLSearchInRadius = OCLDeviceGroup->RegisterKernel(0,"SearchInRadiusMultiple");
+	   OCLGenerateBins   = OCLDeviceGroup->RegisterKernel(OCL_program,"GenerateBins");
+	   OCLSearchInRadius = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchInRadiusMultiple");
 	   
 	   int j = 0;
 	   
-	   cl_double4 * points = new cl_double4[(mPointEnd-mPointBegin)];
+	   cl_double4 * points = new cl_double4[SearchUtils::PointerDistance(mPointBegin, mPointEnd)];
 	   cl_double4 * MinPoint = new cl_double4();
 	   
 	   double InvCellSize[TDimension];
@@ -282,6 +283,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 		  points[j].x = (**Point)[0];
 		  points[j].y = (**Point)[1];
 		  points[j].z = (**Point)[2];
+		  points[j].w = j;
 		  j++;
 	   }
 	   
@@ -295,141 +297,39 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	      N[i] = mN[i];
 	   }
 	   
-	   int host_IndexCell[Size+1];
-	   for(int i = 0; i < Size+1; i++)
-	       host_IndexCell[i] = 0;
-	   
 	   // Prepare buffers
-	   OCL_Points             = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, (mPointEnd-mPointBegin) * sizeof(cl_double4), NULL, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   OCL_InvCellSize        = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, TDimension * sizeof(double), NULL, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   OCL_N                  = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, TDimension * sizeof(double), NULL, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   OCL_MinPoint           = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, sizeof(cl_double4), NULL, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   OCL_Cell               = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_WRITE, (Size+1) * sizeof(cl_double4), NULL, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   OCL_IndexCell          = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, (Size+1) * sizeof(int), &host_IndexCell, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   OCL_IndexCellReference = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_WRITE, (Size+1) * sizeof(int), NULL, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   OCL_BinsContainer      = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_WRITE, (mPointEnd-mPointBegin) * sizeof(cl_double4), NULL, &Err);
-	   KRATOS_OCL_CHECK(Err);
-	     
+	   OCL_Points             = OCLDeviceGroup->CreateBuffer(SearchUtils::PointerDistance(mPointBegin, mPointEnd) * sizeof(cl_double4), CL_MEM_READ_ONLY);
+	   OCL_InvCellSize        = OCLDeviceGroup->CreateBuffer(TDimension * sizeof(double), CL_MEM_READ_ONLY);
+	   OCL_N                  = OCLDeviceGroup->CreateBuffer(TDimension * sizeof(double), CL_MEM_READ_ONLY);
+	   OCL_MinPoint           = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4), CL_MEM_READ_ONLY);   
+	   OCL_Cell               = OCLDeviceGroup->CreateBuffer((Size+1) * sizeof(cl_double4), CL_MEM_READ_WRITE);
+	   OCL_IndexCellReference = OCLDeviceGroup->CreateBuffer((Size+1) * sizeof(int), CL_MEM_READ_WRITE);   
+	   OCL_BinsContainer      = OCLDeviceGroup->CreateBuffer(SearchUtils::PointerDistance(mPointBegin, mPointEnd) * sizeof(cl_double4), CL_MEM_READ_WRITE);
+
 	   // Load data into the input buffer
 	   std::cout << "Loading data into inputbuffer..." << std::endl;
-	   Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_Points,      CL_TRUE, 0, (mPointEnd-mPointBegin) * sizeof(cl_double4), points, 0, NULL, NULL);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_InvCellSize, CL_TRUE, 0, TDimension * sizeof(double), InvCellSize, 0, NULL, NULL);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_N,           CL_TRUE, 0, TDimension * sizeof(double), N, 0, NULL, NULL);
-	   KRATOS_OCL_CHECK(Err);
-	   
-	   Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_MinPoint,    CL_TRUE, 0, sizeof(cl_double4), MinPoint, 0, NULL, NULL);
-	   KRATOS_OCL_CHECK(Err);
+	   OCLDeviceGroup->CopyBuffer(OCL_Points     , OpenCL::HostToDevice, OpenCL::VoidPList(1,points));
+	   OCLDeviceGroup->CopyBuffer(OCL_InvCellSize, OpenCL::HostToDevice, OpenCL::VoidPList(1,InvCellSize));
+	   OCLDeviceGroup->CopyBuffer(OCL_N          , OpenCL::HostToDevice, OpenCL::VoidPList(1,N));
+	   OCLDeviceGroup->CopyBuffer(OCL_MinPoint   , OpenCL::HostToDevice, OpenCL::VoidPList(1,MinPoint));
 	   
 	   // Set arguments
 	   std::cout << "Setting arguments..." << std::endl;
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 0,  OCL_Points);
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 1,  OCL_Cell);
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 2,  OCL_IndexCell);
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 3,  OCL_IndexCellReference);
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 4,  OCL_InvCellSize);
+	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 0,  OCL_Points);
+	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 1,  OCL_IndexCellReference);
+	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 2,  OCL_InvCellSize);
 	   
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 5,  OCL_N);
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 6,  OCL_MinPoint);
-	   OCLDeviceGroup->SetKernelArg(OCLGenerateBins, 7,  OCL_BinsContainer);
+	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 3,  OCL_N);
+	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 4,  OCL_MinPoint);
+	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 5,  OCL_BinsContainer);
 	   
 	   std::cout << "Executing kernel..." << std::endl;
-	   OCLDeviceGroup->ExecuteKernel(OCLGenerateBins, 1);
-	   
-	   // Release mem
-	   clReleaseMemObject(OCL_Points);
-	   clReleaseMemObject(OCL_IndexCell);
+	   OCLDeviceGroup->ExecuteKernel(OCLGenerateBins, Size+1);
 	 }
 
 	 //************************************************************************
 
 	 void GenerateBins( ){
-	   PointVector TempPoint(mPointBegin,mPointEnd);
-
-	   // Reset index vector
-	   for( IteratorIterator Iter = mIndexCell.begin(); Iter != mIndexCell.end(); Iter++)
-		 *Iter = mPointBegin;
-
-	   // Update storage counter, storing ahead
-	   for( IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
-		 mIndexCell[ CalculateIndex(**Point) + 1 ]++;
-
-	   // Storage/reshufing pass 1
-
-	   // Update storage counter and store
-	   for( IteratorIterator Iter = mIndexCell.begin()+1 ; Iter != mIndexCell.end() ; Iter++)
-		 *Iter = *(Iter-1) + SearchUtils::PointerDistance(mPointBegin,*Iter);
-	   
-	   // Point pass 2
-	   // Store the points in lbin1
-
-	   // Update storage counter, storing in lbin1
-	   for( PointIterator Point = TempPoint.begin() ; Point != TempPoint.end() ; Point++) {
-		 //std::cout << "POINT:\t" << (**Point) << " \tHAVE INDEX:\t" << CalculateIndex(**Point) << std::endl;  
-		 *(mIndexCell[CalculateIndex(**Point)]++) = *Point;
-	   }
-/* 
-	   // TEST  !!! OJO -> No aumenta el contador del IteratorIterator !!!!
-	   for( PointIterator Point = TempPoint.begin() ; Point != TempPoint.end() ; Point++)
-	   {
-	     Iter = mIndexCell[CalculateIndex(**Point)];
-	     while( Iter != Point )
-		 {
-	       Iter2 = mIndexCell[CalculateIndex(**Iter)];
-	       std::swap(*Iter,*Iter2);
-	     }
-	   }
-*/  
-
-	   // Storage/reshuffing pass 2
-
-	   // Loop over bins, in reverse order
-	   for(IteratorIterator Iter = mIndexCell.end()-1; Iter != mIndexCell.begin(); Iter--)
-		 *Iter = *(Iter-1);
-	   mIndexCell[0] = mPointBegin;
-	   
-	   //Esto checkea que se genere el bins bien
-	   /*
-	   cl_double4 OCL_CellHost[Size];
-	   Err = clEnqueueReadBuffer(OCLDeviceGroup->CommandQueues[0], OCL_Cell, CL_TRUE, 0, sizeof(cl_double4) * (Size + 1), &OCL_CellHost, 0, NULL, NULL);
-
-	   //Pointchecker
-	   
-	   int errors = 0;
-	   std::cout << "Point checker" << std::endl;
-	   for(int i = 0; i < Size; i++) 
-	   {
-	     if ((OCL_CellHost[i].x != (**mIndexCell[i])[0] || OCL_CellHost[i].y != (**mIndexCell[i])[1] || OCL_CellHost[i].z != (**mIndexCell[i])[2])) 
-	     {
-	       errors++;
-	       std::cout << "!!!----------------------!!!" << std::endl;
-	       std::cout << "Point D:  " << CalculateIndex(**mIndexCell[i]) << "\t" << (**mIndexCell[i])[0] << " " << (**mIndexCell[i])[1] << " " << (**mIndexCell[i])[2] << " " << std::endl;
-	       std::cout << "Point CL: " << i << "\t" << OCL_CellHost[i].x << " " << OCL_CellHost[i].y << " " << OCL_CellHost[i].z << "  " << std::endl;
-	     }
-	   }
-	   if(errors)
-	     std::cout << "DETECTED: " << errors << " Error/s" << std::endl;
-	   */
-	   
-	   // Release Memobjwcts that are not shared betwen kernels
-	   clReleaseMemObject(OCL_Cell);
 	 }
 
 	 //************************************************************************
@@ -577,6 +477,17 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	   }
 	 
      }
+     
+     void prepareData(PointType const& ThisPoint) {
+	  static int index = 0;
+	  
+	  pointsToSearch[index].x = ThisPoint[0];
+	  pointsToSearch[index].y = ThisPoint[1];
+	  pointsToSearch[index].z = ThisPoint[2];
+	  
+	  index++;
+	  if (index == SearchUtils::PointerDistance(mPointBegin, mPointEnd)) index = 0;
+     }
 
 	 //************************************************************************
 	 //************************************************************************
@@ -649,170 +560,79 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
          DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
 	 {
-	      static int index = 0;
-	      
-	      pointsToSearch[index].x = ThisPoint[0];
-	      pointsToSearch[index].y = ThisPoint[1];
-	      pointsToSearch[index].z = ThisPoint[2];
-	      
-	      index++;
-	      
 	      for(IndexType II = Box.Axis[2].Begin() ; II <= Box.Axis[2].End() ; II += Box.Axis[2].Block )
 		  for(IndexType I = II + Box.Axis[1].Begin() ; I <= II + Box.Axis[1].End() ; I += Box.Axis[1].Block )
 		      SearchRadiusInRange()(Box.RowBegin[I],Box.RowEnd[I],ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
-	    
-		  /*
-	      static double total = 0;
-	      double results = -1;
-	      
-	      //cl_double4 resultPoints[2000];
-	      
-	      
-	      //Read number of results
-	      Err = clEnqueueReadBuffer(OCLDeviceGroup->CommandQueues[0], OCL_results, CL_TRUE, 0, sizeof(double), &results, 0, NULL, NULL);
-	      
-	      //Read result points
-	      //Err = clEnqueueReadBuffer(OCLDeviceGroup->CommandQueues[0], OCL_outData, CL_TRUE, 0, sizeof(cl_double4) * 20, &resultPoints, 0, NULL, NULL);
-	     
-	      //NumberOfResults = results;
-	      total += results;
-	      */
-	      //Check if results are correct
-	      /*if (NumberOfResults - results != 0 && false) {
-		std::cout << "-----------------------------------------------" << std::endl;
-		std::cout << "POINT: \t" << OCL_memPoint.x << " " << OCL_memPoint.y << " "  <<  OCL_memPoint.z << std::endl;
-		
-		total += results;
-		if (NumberOfResults - results != 0)
-		  std::cout << "*********************************************" << std::endl;
-		std::cout << "DEF results: \t" << NumberOfResults << std::endl;
-		//std::cout << Results << std::endl;
-		std::cout << "OCL results: \t" << results << "\t total: \t" << total << std::endl;
-		for( int i = 0; i < results; i++)
-		{
-		  std::cout << resultPoints[i].x << " " <<
-				resultPoints[i].y << " " <<
-				resultPoints[i].z << " " << " \t" << resultPoints[i].w <<
-				
-		  std::endl;
-		}
-		if (NumberOfResults - results != 0)
-		  std::cout << "*********************************************" << std::endl;
-	      }*/
-	      
-	      //Release execution-specific kernel buffers
-	      /*clReleaseMemObject(OCL_Radius);
-	      clReleaseMemObject(OCL_Point);
-	      clReleaseMemObject(OCL_outData);
-	      clReleaseMemObject(OCL_results);*/
-	      
-	      //NumberOfResults = results;
-	      //std::cout << "DEF results \t" << NumberOfResults << "\t" << "OCL results: \t" << results << "\t total: \t" << total << std::endl;
 	  }
          
-         void computeresultsN(double Radius, int ConcurrentPoints) 
-         {
-	      cl_mem OCL_Radius;
-	      cl_mem OCL_Radius2;
-	      cl_mem OCL_Points;
-	      cl_mem OCL_outData;
-	      cl_mem OCL_results;
-	      cl_mem OCL_resultsNum;
-	      cl_mem OCL_w_size;
-	      cl_mem OCL_maxResults;
+	  void computeresultsN(double Radius, int ConcurrentPoints, int maxResults) 
+	  {
+	      cl_uint OCL_Radius, OCL_Radius2, OCL_Points, OCL_outData, OCL_results, OCL_resultsNum, OCL_w_size, OCL_maxResults;
 	      
-	      double total = 0;
-	      
-	      int pointSize = (mPointEnd - mPointBegin);
+	      int pointSize = SearchUtils::PointerDistance(mPointBegin, mPointEnd);
 	      int processed = 0;
 	      
-	      int maxResults = 2;
 	      int result = 0;
 	      
 	      double HOST_memRadius  = Radius;
 	      double HOST_memRadius2 = Radius * Radius;
 	      
+	      int amount;
+	      
+	      OCL_Radius     = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
+	      OCL_Radius2    = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
+	      OCL_w_size     = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
+	      OCL_maxResults = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
+	      OCL_Points     = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * ConcurrentPoints, CL_MEM_READ_ONLY);
+	      OCL_results    = OCLDeviceGroup->CreateBuffer(sizeof(int) * ConcurrentPoints, CL_MEM_WRITE_ONLY);
+	      OCL_outData    = OCLDeviceGroup->CreateBuffer(sizeof(int) * ConcurrentPoints * maxResults, CL_MEM_WRITE_ONLY);
+	  
 	      while (processed < pointSize)
-	      {
-		  int amount;
-		 
-		  if (ConcurrentPoints > pointSize)
-		    amount = pointSize;
-		  else
-		    amount = (processed + ConcurrentPoints) < pointSize ? ConcurrentPoints : pointSize - processed;
-		  
-		  std::cout << "amount " << amount << std::endl;
+	      {	  
+		  amount = (ConcurrentPoints > pointSize) ? pointSize : (processed + ConcurrentPoints) < pointSize ? ConcurrentPoints : pointSize - processed;
 		  
 		  int HOST_w_size = amount;
-		  int results[amount];
+		  int * results;
+		  int * resultPoints;
 		  
-		  cl_double4 resultPoints[maxResults*amount]; // 20 resultados por punto
-		
-		  OCL_Radius  = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, sizeof(double), NULL, &Err);
-		  OCL_Radius2 = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, sizeof(double), NULL, &Err);
-		  
-		  OCL_w_size  = clCreateBuffer(OCLDeviceGroup->Contexts[0]    , CL_MEM_READ_ONLY, sizeof(double), NULL, &Err);
-		  OCL_maxResults  = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, sizeof(double), NULL, &Err);
-		  
-		  OCL_Points  = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_READ_ONLY, sizeof(cl_double4) * amount, NULL, &Err);
+		  results = (int *)malloc(sizeof(int) * amount);
+		  resultPoints = (int *)malloc(sizeof(int) * amount * maxResults);
 
-		  OCL_results = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_WRITE_ONLY, sizeof(int) * amount , NULL, &Err);
-		  OCL_outData = clCreateBuffer(OCLDeviceGroup->Contexts[0], CL_MEM_WRITE_ONLY, sizeof(cl_double4) * amount * maxResults, NULL, &Err);
-
+		  OCLDeviceGroup->CopyBuffer(OCL_Radius     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
+		  OCLDeviceGroup->CopyBuffer(OCL_Radius2    , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
+		  OCLDeviceGroup->CopyBuffer(OCL_w_size     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_w_size));
+		  OCLDeviceGroup->CopyBuffer(OCL_Points     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
+		  OCLDeviceGroup->CopyBuffer(OCL_maxResults , OpenCL::HostToDevice, OpenCL::VoidPList(1,&maxResults));
+		  		  
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 0,  OCL_IndexCellReference);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 1,  OCL_BinsContainer);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 2 , OCL_InvCellSize);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 3 , OCL_N);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 4,  OCL_Radius);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 5,  OCL_Radius2);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 6,  OCL_Points);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 7,  OCL_MinPoint);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 8,  OCL_outData);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 9,  OCL_results);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 10, OCL_w_size);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 11, OCL_maxResults);
 		  
-		  Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_Radius , CL_TRUE, 0, sizeof(double),  &HOST_memRadius, 0, NULL, NULL);
-		  KRATOS_OCL_CHECK(Err);
-
-		  Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_Radius2, CL_TRUE, 0, sizeof(double),  &HOST_memRadius2, 0, NULL, NULL);
-		  KRATOS_OCL_CHECK(Err);
-		  
-		  Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_w_size , CL_TRUE, 0, sizeof(int),     &HOST_w_size, 0, NULL, NULL);
-		  KRATOS_OCL_CHECK(Err);
-	
-		  Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_Points , CL_TRUE, 0, sizeof(cl_double4) * amount, &pointsToSearch[processed],  0, NULL, NULL);
-		  KRATOS_OCL_CHECK(Err);
-		  
-		  Err = clEnqueueWriteBuffer(OCLDeviceGroup->CommandQueues[0], OCL_maxResults , CL_TRUE, 0, sizeof(int),  &maxResults, 0, NULL, NULL);
-		  KRATOS_OCL_CHECK(Err);
-		  
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 0,  OCL_IndexCellReference);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 1,  OCL_BinsContainer);
-		
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 2 , OCL_InvCellSize);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 3 , OCL_N);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 4,  OCL_Radius);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 5,  OCL_Radius2);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 6,  OCL_Points);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 7,  OCL_MinPoint);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 8,  OCL_outData);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 9, OCL_results);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 10, OCL_w_size);
-		  OCLDeviceGroup->SetKernelArg(OCLSearchInRadius, 11, OCL_maxResults);
-		  
-		  //Execute kernel
 		  OCLDeviceGroup->ExecuteKernel(OCLSearchInRadius, amount);
 		  
-		  //Read number of results and results
-		  Err = clEnqueueReadBuffer(OCLDeviceGroup->CommandQueues[0], OCL_results, CL_TRUE, 0, sizeof(int) * amount, &results, 0, NULL, NULL);
-		  Err = clEnqueueReadBuffer(OCLDeviceGroup->CommandQueues[0], OCL_outData, CL_TRUE, 0, sizeof(cl_double4) * amount * maxResults, &resultPoints, 0, NULL, NULL);
+		  OCLDeviceGroup->CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,results));
+		  OCLDeviceGroup->CopyBuffer(OCL_outData, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
 		  
 		  for(int j = 0; j < amount; j++)
 		      result += results[j];
 		  
-		  clReleaseMemObject(OCL_Radius);
-		  clReleaseMemObject(OCL_Radius2);
-		  clReleaseMemObject(OCL_Points);
-		  clReleaseMemObject(OCL_outData);
-		  clReleaseMemObject(OCL_results);
-		  clReleaseMemObject(OCL_resultsNum);
-		  clReleaseMemObject(OCL_w_size);
-		  clReleaseMemObject(OCL_maxResults);
+		  free(results);
+		  free(resultPoints);
 		  
 		  processed += amount;
-		  std::cout << "Total Results while " << processed << " points done: " << result << std::endl;
+		  //std::cout << "Total Results while " << processed << " points done: " << result << std::endl;
 	      }
 	      
-	      std::cout << "Total Results: " << result << " (" << maxResults * (mPointEnd - mPointBegin) << " stored)"<< std::endl;
+	      std::cout << "Total Results: " << result << " (" << maxResults * SearchUtils::PointerDistance(mPointBegin, mPointEnd) << " stored)"<< std::endl;
          }
 
 	 //************************************************************************
