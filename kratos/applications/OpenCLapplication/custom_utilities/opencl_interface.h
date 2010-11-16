@@ -451,8 +451,14 @@ namespace OpenCL
 				{
 					for (cl_uint j = 0; j < Buffers[i].size(); j++)
 					{
-						Err = clReleaseMemObject(Buffers[i][j]);
-						KRATOS_OCL_CHECK(Err);
+
+						// Check if we have already deleted the buffer
+
+						if (Buffers[i][j] != NULL)
+						{
+							Err = clReleaseMemObject(Buffers[i][j]);
+							KRATOS_OCL_CHECK(Err);
+						}
 					}
 				}
 
@@ -460,8 +466,14 @@ namespace OpenCL
 				{
 					for (cl_uint j = 0; j < Images[i].size(); j++)
 					{
-						Err = clReleaseMemObject(Images[i][j]);
-						KRATOS_OCL_CHECK(Err);
+
+						// Check if we have already deleted the image
+
+						if (Images[i][j] != NULL)
+						{
+							Err = clReleaseMemObject(Images[i][j]);
+							KRATOS_OCL_CHECK(Err);
+						}
 					}
 				}
 
@@ -782,6 +794,24 @@ namespace OpenCL
 			}
 
 			//
+			// DeleteBuffer
+			//
+			// Deletes a buffer on all devices
+
+			void DeleteBuffer(cl_uint _BufferIndex)
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					Err = clReleaseMemObject(Buffers[_BufferIndex][i]);
+					KRATOS_OCL_CHECK(Err);
+
+					Buffers[_BufferIndex][i] = NULL;
+				}
+			}
+
+			//
 			// CopyBuffer
 			//
 			// Copies the content of a buffer on all devices
@@ -1001,6 +1031,24 @@ namespace OpenCL
 				ImageDimensions.push_back(ImageDimensionList(DeviceNo, ImageDimension(_Size1, _Size2, _Size3)));
 
 				return ImageNo;
+			}
+
+			//
+			// DeleteImage
+			//
+			// Deletes an image on all devices
+
+			void DeleteImage(cl_uint _ImageIndex)
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					Err = clReleaseMemObject(Images[_ImageIndex][i]);
+					KRATOS_OCL_CHECK(Err);
+
+					Images[_ImageIndex][i] = NULL;
+				}
 			}
 
 			//

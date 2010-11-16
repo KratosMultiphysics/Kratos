@@ -163,7 +163,6 @@ namespace Kratos
 				AllocateArray(&mrhs, n_nodes);
 
 				// Allocating buffers on OpenCL device
-				// TODO: Should these be read-write?
 				mbWork = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
 				mbPi = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
@@ -426,6 +425,29 @@ namespace Kratos
 			void Clear()
 			{
 				KRATOS_TRY
+
+				// Delete OpenCL buffers and Images
+
+				mrDeviceGroup.DeleteBuffer(mbWork);
+
+				mrDeviceGroup.DeleteBuffer(mbPi);
+
+				mrDeviceGroup.DeleteBuffer(mbUn);
+				mrDeviceGroup.DeleteBuffer(mbUn1);
+
+				mrDeviceGroup.DeleteBuffer(mbphi_n);
+				mrDeviceGroup.DeleteBuffer(mbphi_n1);
+
+				mrDeviceGroup.DeleteBuffer(mbA);
+
+				mrDeviceGroup.DeleteBuffer(mbTau);
+				mrDeviceGroup.DeleteBuffer(mbBeta);
+
+				mrDeviceGroup.DeleteBuffer(mbx);
+
+				mrDeviceGroup.DeleteBuffer(mbrhs);
+
+				// Free memory
 
 				FreeArray(&mWork);
 
