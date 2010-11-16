@@ -7,6 +7,7 @@
 
 #define KRATOS_INDEPENDENT
 #include "spatial_containers/spatial_containers.h"
+#include "bins_static_OCL.h"
 #include "timer.h"
 
 double rrandom(){

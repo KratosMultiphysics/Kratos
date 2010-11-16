@@ -10,7 +10,7 @@
 #if !defined(KRATOS_BINS_OCL_CONTAINER_H_INCLUDE)
 #define KRATOS_BINS_OCL_CONTAINER_H_INCLUDE
 
-#include "tree.h"
+#include "../../../kratos/spatial_containers/tree.h"
 #include "opencl_interface.h"
 #include <malloc.h>
 #include <stdio.h>
