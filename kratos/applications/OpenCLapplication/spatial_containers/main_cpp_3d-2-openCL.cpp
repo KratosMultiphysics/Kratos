@@ -418,22 +418,26 @@ int main(int arg, char* argv[])
 
 
    
-   struct timespec begin;
-   struct timespec end;
-   
-   
-   std::cout << "\nTesting parallel point calculaton" << std::endl;
-   std::cout << "Block\t\t" << "Reps\t\t" <<  std::endl;
-   std::cout << block << "\t\t" << rep << std::endl;
+    struct timespec begin;
+    struct timespec end;
 
-   clock_gettime( CLOCK_REALTIME, &begin );
-     for(std::size_t i = 0 ; i < npoints ; i++){
+
+    std::cout << "\nTesting parallel point calculaton" << std::endl;
+    std::cout << "Block\t\t" << "Reps\t\t" <<  std::endl;
+    std::cout << block << "\t\t" << rep << std::endl;
+
+    clock_gettime( CLOCK_REALTIME, &begin );
+    for(std::size_t i = 0 ; i < npoints ; i++)
+    {
 	binOCL.prepareData(*points[i]);
-   }  
+    }  
    
-     for(int i = 0; i < rep; i++) {
-	binOCL.computeresultsN(radius3,block,maxresults);
-     }
+    binOCL.allocateOCLBuffers(block,maxresults);
+    
+    for(int i = 0; i < rep; i++) 
+    {
+        binOCL.computeresultsN(radius3,block,maxresults);
+    }
     
    clock_gettime( CLOCK_REALTIME, &end );
    

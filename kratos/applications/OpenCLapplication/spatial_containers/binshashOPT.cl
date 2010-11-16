@@ -1,4 +1,4 @@
-#pragma OPENCL EXTENSION cl_amd_fp64: enable
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 
 inline double functionDistance(double4 a, double4 b) {
@@ -15,7 +15,7 @@ int calculatePosition(double ThisCoord,
 		      )
 {
     int d_index;
-
+    
     switch(ThisDimension) {
       case 2: d_index = (ThisCoord - MinPoint[0].z) * InvCellSize[ThisDimension]; break;
       case 1: d_index = (ThisCoord - MinPoint[0].y) * InvCellSize[ThisDimension]; break;
@@ -54,16 +54,18 @@ int calculateIndexForCell( double4 ThisIndex,
     return Index;
 }
 
-double4 calculateCell(double4 ThisPoint, 
+int4 calculateCell(double4 ThisPoint, 
 		      double Radius, 
 		      __global double * N, 
 		      __global double4 * MinPoint, 
 		      __global double * InvCellSize )
 {
-    double4 Cell;
+    int4 Cell;
+
     Cell.x = calculatePosition(ThisPoint.x+Radius,0,N,MinPoint,InvCellSize);
     Cell.y = calculatePosition(ThisPoint.y+Radius,1,N,MinPoint,InvCellSize);
     Cell.z = calculatePosition(ThisPoint.z+Radius,2,N,MinPoint,InvCellSize);
+
     return Cell;
 }
 
@@ -138,12 +140,13 @@ __kernel void SearchInRadiusMultiple(__global int * IndexCellReference,
 {
     int index;
     int tope;
-    double4 cellBegin;
-    double4 cellEnd;
+    int4 cellBegin;
+    int4 cellEnd;
 
     int ip = get_global_id(0);
 
-    if(ip < w_size[0]) {
+    private double4 pointIp = point[ip];
+
 	cellBegin = calculateCell(point[ip],-radius[0],N,MinPoint,InvCellSize);
 	cellEnd   = calculateCell(point[ip], radius[0],N,MinPoint,InvCellSize);
 	results[ip] = 0;
@@ -156,17 +159,19 @@ __kernel void SearchInRadiusMultiple(__global int * IndexCellReference,
 		{
 		    index = calculateIndexForCell((double4)(i,j,k,-1),N);
 		    
-		    for(size_t l = 0; (IndexCellReference[index]+l) < IndexCellReference[index+1]; l++) 
+		    __private int loIndex = IndexCellReference[index];
+		    __private int hiIndex = IndexCellReference[index+1];
+		    
+		    for(size_t l = loIndex; l < hiIndex; l++) 
 		    {
-			if(functionDistance(point[ip],BinsContainer[(int)IndexCellReference[index]+l]) < radius2[0]) 
+			if(functionDistance(pointIp,BinsContainer[l]) < radius2[0]) 
 			{
 			    if(results[ip] <= maxResults[0])
-				outdata[ip*maxResults[0]+results[ip]] = BinsContainer[(int)IndexCellReference[index]+l].w;
+				outdata[mad_hi(ip,maxResults[0],results[ip])] = BinsContainer[l].w;
 			    results[ip]++;
 			}
 		    }
 		}
 	    }
 	}
-    }
 }
