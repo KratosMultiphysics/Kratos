@@ -10,6 +10,8 @@
 #include "bins_static_OCL.h"
 #include "timer.h"
 
+#include <omp.h>
+
 double rrandom(){
    return double(rand())/RAND_MAX;
 };
@@ -320,6 +322,8 @@ int main(int arg, char* argv[])
    time1.restart();
    n = 0;
    AverDistance = 0.00;
+
+   
    
    for(std::size_t i = 0 ; i < npoints ; i++)
    {
@@ -337,11 +341,82 @@ int main(int arg, char* argv[])
    }*/
    std::cout << time1 << "\t\t\t";
 
+
+
+   time1.restart();
+
+   //RICCARDOs OPENMP
+
+	
+
+
+
+
+
+
+
+
+
+
+
    //std::cout  << std::endl;
    std::cout  << radius << "\t" << n << "\t" << npoints << "\t\t" << 0/**PNearest*/ << std::endl;
    std::cout  << "\t\t Total Distances = " << AverDistance << "(" << n << ")" << std::endl;
   
    time1.restart();
+
+
+
+
+
+
+
+
+
+
+
+
+
+   int omp_threads = omp_get_max_threads();
+   
+   // PointVector results = new PointType*[npoints];
+   // DistanceVector distance = new double[npoints];
+   
+   DistanceVector *parallel_distance = new double *[omp_threads];
+   PointVector *parallel_results = new PointType **[ omp_threads];
+   #pragma omp paralle for
+   for ( int i = 0; i < omp_threads; i++) {
+     parallel_distance[i] = new double[ npoints]; 
+     parallel_results[ i] = new PointType *[ npoints];
+   }
+
+    double t0 = omp_get_wtime();
+   #pragma omp parallel for firstprivate(radius3,max_results) 
+   for(std::size_t i = 0 ; i < npoints ; i++)
+   {
+     int my_id = omp_get_thread_num();
+     n_res = bin.SearchInRadius( *points[i], radius3, parallel_results[my_id], parallel_distance[my_id], max_results);
+/*     n += n_res;
+     for(std::size_t j = 0; j < n_res; j++)
+       AverDistance += distance[j];*/
+   }
+   std::cout << "parallel for time" <<  omp_get_wtime() - t0  << "\t\t\t";
+   
+   time1.restart();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    
    struct timespec begin;
    struct timespec end;
