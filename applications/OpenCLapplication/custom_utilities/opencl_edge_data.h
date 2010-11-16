@@ -1069,12 +1069,20 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				// TODO: OpenCL buffers are not freed, so user cannot use Clear() and start over
-				std::cout <<
-					"Warning!" << std::endl <<
-					"OpenCL buffers are not freed, so user cannot use Clear() and start over." << std::endl;
+				// Delete OpenCL buffers and Images
+
+				//mrDeviceGroup.DeleteBuffer(mbNonzeroEdgeValues);
+				mrDeviceGroup.DeleteImage(mbNonzeroEdgeValues);
+
+				mrDeviceGroup.DeleteBuffer(mbColumnIndex);
+				mrDeviceGroup.DeleteBuffer(mbRowStartIndex);
+				mrDeviceGroup.DeleteBuffer(mbLumpedMassMatrix);
+				mrDeviceGroup.DeleteBuffer(mbInvertedMassMatrix);
+				mrDeviceGroup.DeleteBuffer(mbHmin);
+				mrDeviceGroup.DeleteBuffer(mbDiagGradientMatrix);
 
 				// Free memory
+
 				FreeArray(&mNonzeroEdgeValues);
 				FreeArray(&mColumnIndex);
 				FreeArray(&mRowStartIndex);
