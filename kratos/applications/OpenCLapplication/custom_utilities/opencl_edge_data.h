@@ -173,11 +173,7 @@ namespace Kratos
 
 			if (!ImageSupport)
 			{
-				std::cout <<
-					"Images are not supported on this device." << std::endl <<
-					"Aborting." << std::endl;
-
-				abort();
+				KRATOS_OCL_ABORT("Images are not supported on this device.");
 			}
 
 			size_t MaxWidth, MaxHeight;
@@ -216,9 +212,7 @@ namespace Kratos
 
 			if (Height > MaxHeight)
 			{
-				std::cout <<
-					"Image dimensions requested is beyond capabilities of the device." << std::endl <<
-					"Aborting." << std::endl;
+				KRATOS_OCL_ABORT("Image dimensions requested is beyond capabilities of the device.");
 			}
 
 			// TODO: Remove

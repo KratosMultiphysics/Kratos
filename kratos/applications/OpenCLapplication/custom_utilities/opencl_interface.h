@@ -201,6 +201,13 @@ namespace OpenCL
 #define KRATOS_OCL_CHECKED_EXPRESSION(Expr)	{ cl_int Err = Expr; Kratos::OpenCL::CheckError(Err, __FILE__, __FUNCTION__, __LINE__, " while executing " #Expr); }
 
 //
+// KRATOS_OCL_ABORT
+//
+// Aborts the program with a given message
+
+#define KRATOS_OCL_ABORT(Why)				{ std::cout << Why << std::endl; abort(); }
+
+//
 // KRATOS_OCL_DEFINE_ERROR_CODE
 //
 // Used to define various error codes in ErrorString() function
@@ -302,11 +309,7 @@ namespace OpenCL
 
 		if (_Abort)
 		{
-			std::cout <<
-				"Aborting now; try setting a breakpoint on abort() to find the problem." << std::endl <<
-				std::endl;
-
-			abort();
+			KRATOS_OCL_ABORT("Aborting now; try setting a breakpoint on abort() to find the problem.");
 		}
 		else
 		{
@@ -415,11 +418,7 @@ namespace OpenCL
 
 				if (_DeviceIDs.size() == 0)
 				{
-					std::cout <<
-						"DeviceIDList specified cannot be empty." << std::endl <<
-						"Aborting." << std::endl;
-
-					abort();
+					KRATOS_OCL_ABORT("DeviceIDList specified cannot be empty.");
 				}
 
 				_Init(false, _PlatformVendor);
@@ -535,11 +534,7 @@ namespace OpenCL
 
 				if (PlatformID == NULL)
 				{
-					std::cout <<
-						"No platform available." << std::endl <<
-						"Aborting." << std::endl;
-
-					abort();
+					KRATOS_OCL_ABORT("No platform available.");
 				}
 
 				// Try to find out which constructor has been called
@@ -858,11 +853,7 @@ namespace OpenCL
 
 					if (BufferLengths[_SourceBufferIndex][i] != BufferLengths[_DestinationBufferIndex][i])
 					{
-						std::cout <<
-							"Buffers are not of the same size." << std::endl <<
-							"Aborting." << std::endl;
-
-						abort();
+						KRATOS_OCL_ABORT("Buffers are not of the same size.");
 					}
 
 					Err = clEnqueueCopyBuffer(CommandQueues[i], Buffers[_SourceBufferIndex][i], Buffers[_DestinationBufferIndex][i], 0, 0, BufferLengths[_SourceBufferIndex][i], 0, NULL, NULL);
@@ -882,11 +873,7 @@ namespace OpenCL
 
 				if (BufferLengths[_SourceBufferIndex][_DeviceIndex] != BufferLengths[_DestinationBufferIndex][_DeviceIndex])
 				{
-					std::cout <<
-						"Buffers are not of the same size." << std::endl <<
-						"Aborting." << std::endl;
-
-					abort();
+					KRATOS_OCL_ABORT("Buffers are not of the same size.");
 				}
 
 				Err = clEnqueueCopyBuffer(CommandQueues[_DeviceIndex], Buffers[_SourceBufferIndex][_DeviceIndex], Buffers[_DestinationBufferIndex][_DeviceIndex], 0, 0, BufferLengths[_SourceBufferIndex][_DeviceIndex], 0, NULL, NULL);
@@ -1093,11 +1080,7 @@ namespace OpenCL
 						ImageDimensions[_SourceImageIndex][i].Sizes[1] != ImageDimensions[_DestinationImageIndex][i].Sizes[1] &&
 						ImageDimensions[_SourceImageIndex][i].Sizes[2] != ImageDimensions[_DestinationImageIndex][i].Sizes[2])
 					{
-						std::cout <<
-							"Images are not of the same dimension." << std::endl <<
-							"Aborting." << std::endl;
-
-						abort();
+						KRATOS_OCL_ABORT("Images are not of the same dimension.");
 					}
 
 					Err = clEnqueueCopyImage(CommandQueues[i], Images[_SourceImageIndex][i], Images[_DestinationImageIndex][i], Origin, Origin, ImageDimensions[_SourceImageIndex][i].Sizes, 0, NULL, NULL);
@@ -1120,11 +1103,7 @@ namespace OpenCL
 					ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes[1] != ImageDimensions[_DestinationImageIndex][_DeviceIndex].Sizes[1] &&
 					ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes[2] != ImageDimensions[_DestinationImageIndex][_DeviceIndex].Sizes[2])
 				{
-					std::cout <<
-						"Images are not of the same dimension." << std::endl <<
-						"Aborting." << std::endl;
-
-					abort();
+					KRATOS_OCL_ABORT("Images are not of the same dimension.");
 				}
 
 				Err = clEnqueueCopyImage(CommandQueues[_DeviceIndex], Images[_SourceImageIndex][_DeviceIndex], Images[_DestinationImageIndex][_DeviceIndex], Origin, Origin, ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes, 0, NULL, NULL);
@@ -1268,11 +1247,7 @@ namespace OpenCL
 
 				if (!SourceFile.is_open())
 				{
-					std::cout <<
-						"An error occurred reading the kernel file. Try adding the appropriate path using AddCLSearchPath()." << std::endl <<
-						"Aborting." << std::endl;
-
-					abort();
+					KRATOS_OCL_ABORT("An error occurred reading the kernel file. Try adding the appropriate path using AddCLSearchPath().");
 				}
 
 				Source << SourceFile.rdbuf();
