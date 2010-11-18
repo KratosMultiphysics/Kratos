@@ -308,18 +308,17 @@ namespace Kratos {
         
         C *= app_mu;
 	
-// 	if(gamma_dot >0.001){
-// 		C(0, 0) +=  4 *  grad_sym_vel[0] * grad_sym_vel[0];
-// 		C(0, 1) +=  4 *  grad_sym_vel[0] * grad_sym_vel[1];
-// 		C(0, 2) +=  2 *  grad_sym_vel[0] * grad_sym_vel[2];
-// 		C(1, 0) +=  4 *  grad_sym_vel[1] * grad_sym_vel[0];
-// 		C(1, 1) +=  4 *  grad_sym_vel[1] * grad_sym_vel[1];
-// 		C(1, 2) +=  2 *  grad_sym_vel[1] * grad_sym_vel[2];
-// 		C(2, 0) +=  2 *  grad_sym_vel[2] * grad_sym_vel[0];
-// 		C(2, 1) +=  2 *  grad_sym_vel[2] * grad_sym_vel[1];
-// 		C(2, 2) +=       grad_sym_vel[2] * grad_sym_vel[2];
-// 		C *= app_mu_derivative / gamma_dot;
-// 	}
+//  	if(gamma_dot > 1e-10){
+// 		C(0, 0) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
+// 		C(0, 1) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
+// 		C(0, 2) +=  2.0 *  grad_sym_vel[0] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
+// 		C(1, 0) +=  4.0 *  grad_sym_vel[1] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
+// 		C(1, 1) +=  4.0 *  grad_sym_vel[1] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
+// 		C(1, 2) +=  2.0 *  grad_sym_vel[1] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
+// 		C(2, 0) +=  2.0 *  grad_sym_vel[2] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
+// 		C(2, 1) +=  2.0*  grad_sym_vel[2] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
+// 		C(2, 2) +=       grad_sym_vel[2] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
+//  	}
 
         // KRATOS_WATCH(C)
         //Calculating the viscous contribution to the LHS int(Btrans C B)dA
@@ -1114,33 +1113,53 @@ namespace Kratos {
 	  double yield = 0.0;
 	  double water_pressure = 0.0;
 	  double gamma_dot_inv;
-	  
+	  double solid_pressure = 0.0;
+	  double seepage_drag_x = 0.0;
 	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
 		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
 	      }
-	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+// 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+// 		    solid_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+	      }
+//       	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+// 	      seepage_drag_x += GetGeometry()[ii].FastGetSolutionStepValue(SEEPAGE_DRAG_X);
+	      //CHECK NEGATIVE VALUES....
+
 	  }
 	  water_pressure /= nodes_number;
 	  yield /= nodes_number;
-	  //pay attention: negative yield stress meaningfull
+// 	  solid_pressure /= nodes_number;
+// 	  seepage_drag_x /= nodes_number;
+	  //pay attention: negative yield stress meaningful
+// 	  if(yield < solid_pressure) //otherwise we are enshuring a minimum resistance of the material
+// 	    yield = solid_pressure; 
+//	  else
+//	    yield -= 10.0 * seepage_drag_x; //to make more week the downstream toe, where the seepage drag in x in higher.
+	  
 	  if(water_pressure < yield)
 	      yield -= water_pressure;
 	  else
 	      yield = 0.0;
+// KRATOS_WATCH(yield)
 	  
-        if (gamma_dot > 0.00001) {
+        if (gamma_dot > 1e-10) {
             aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
             app_mu = mu + (yield / gamma_dot) * aux_1;
-			gamma_dot_inv = 1/gamma_dot;
+// 			gamma_dot_inv = 1.0/gamma_dot;
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
         } else {
             app_mu = mu + yield*mcoef ;
-			gamma_dot_inv = 0.0;
+// 			gamma_dot_inv = 0.0;
         }
         
+        if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
+        else  gamma_dot_inv= 1.0/gamma_dot;
         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
 
         KRATOS_CATCH("")
