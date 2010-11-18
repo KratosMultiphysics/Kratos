@@ -82,6 +82,26 @@ GaussLegendreIntegrationPoints3::IntegrationPointsArrayType GaussLegendreIntegra
 		}
     };
 
+GaussLegendreIntegrationPoints4::IntegrationPointsArrayType GaussLegendreIntegrationPoints4::msIntegrationPoints =
+    {
+		{
+	  IntegrationPointType(-0.861136311594053, 0.347854845137454),
+	  IntegrationPointType(-0.339981043584856, 0.652145154862546),
+	  IntegrationPointType( 0.339981043584856, 0.652145154862546),
+	  IntegrationPointType( 0.861136311594053, 0.347854845137454)
+		}
+    };
+    
+    GaussLegendreIntegrationPoints5::IntegrationPointsArrayType GaussLegendreIntegrationPoints5::msIntegrationPoints =
+    {
+		{
+	  IntegrationPointType(-0.906179845938664, 0.236926885056189),
+	  IntegrationPointType(-0.538469310105683, 0.478628670499366),
+	  IntegrationPointType( 0.000000000000000, 0.568888888888889),
+	  IntegrationPointType( 0.538469310105683, 0.478628670499366),
+	  IntegrationPointType( 0.906179845938664, 0.236926885056189)
+		}
+    };
 
 	  TriangleGaussianIntegrationPoints1::IntegrationPointsArrayType TriangleGaussianIntegrationPoints1::msIntegrationPoints =
     {
