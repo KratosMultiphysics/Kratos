@@ -118,20 +118,37 @@ namespace Kratos
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
 
-        if (gamma_dot > 0.00001) {
+//         if (gamma_dot > 0.00001) {
+//             aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+// 	    gamma_dot_inv = 1/gamma_dot;
+//             app_mu = mu + (yield / gamma_dot) * aux_1;
+//             if (app_mu < mu) {
+//                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+//             }
+//         } else {
+//             app_mu = mu + yield * mcoef ;
+// 	    gamma_dot_inv = 0.0;
+//         }
+// 
+//         app_mu_derivative = yield * gamma_dot_inv * (-gamma_dot_inv +  exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
+
+        if (gamma_dot > 1e-10) {
             aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
-	    gamma_dot_inv = 1/gamma_dot;
             app_mu = mu + (yield / gamma_dot) * aux_1;
+// 			gamma_dot_inv = 1.0/gamma_dot;
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
         } else {
-            app_mu = mu + yield * mcoef ;
-	    gamma_dot_inv = 0.0;
+            app_mu = mu + yield*mcoef ;
+// 			gamma_dot_inv = 0.0;
         }
-
-        app_mu_derivative = yield * gamma_dot_inv * (-gamma_dot_inv +  exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
-
+        
+        if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
+        else  gamma_dot_inv= 1.0/gamma_dot;
+        
+        app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
+	
         KRATOS_CATCH("")
     }
 	
