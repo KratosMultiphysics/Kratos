@@ -753,8 +753,10 @@ namespace Kratos
 	{
 	  IntegrationPointsContainerType integration_points = {{
 	    Quadrature<GaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-	    Quadrature<GaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-	    Quadrature<GaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+	    Quadrature<GaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+	    Quadrature<GaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+	    Quadrature<GaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+	    Quadrature<GaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
 	  }};
 	  return integration_points;
 	}
@@ -764,7 +766,9 @@ namespace Kratos
 	    ShapeFunctionsValuesContainerType shape_functions_values = {{
 	      Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1),
 	      Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_2),
-	      Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_3)
+	      Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_3),
+	      Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_4),
+	      Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_5)
 		}};	  
 	    return shape_functions_values;
 	  } 
@@ -773,7 +777,10 @@ namespace Kratos
 	     ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
 	  Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_1),  
 	  Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_2),
-	  Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_3)
+	  Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_3),
+	  Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_4),
+	  Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::GI_GAUSS_5),
+	  
 		 }};	  
 	    return shape_functions_local_gradients;
 	  } 
