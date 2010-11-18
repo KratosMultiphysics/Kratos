@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2009-01-14 09:30:38 $
 //   Revision:            $Revision: 1.4 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -74,328 +74,308 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-   */
+    ///@name Kratos Globals
+    ///@{
+
+    ///@}
+    ///@name Type Definitions
+    ///@{
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    ///@}
+    ///@name  Functions
+    ///@{
+
+    ///@}
+    ///@name Kratos Classes
+    ///@{
+
+    /// Short class definition.
+    /** Detail class definition.
+     */
+
     class KinematicLinear
-    : public Element
-           {
-               public:
-      ///@name Type Definitions
-      ///@{
-				typedef GeometryData::IntegrationMethod IntegrationMethod;
+                : public Element
+    {
 
-                typedef ConstitutiveLaw ConstitutiveLawType;
+        public:
+            ///@name Type Definitions
+            ///@{
+            typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-               	typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-      /// Counted pointer of KinematicLinear
+            typedef ConstitutiveLaw ConstitutiveLawType;
 
-                       KRATOS_CLASS_POINTER_DEFINITION(KinematicLinear);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-                       KinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry);
-               KinematicLinear(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+            typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+            /// Counted pointer of KinematicLinear
 
-      /// Destructor.
-               virtual ~KinematicLinear();
-      
+            KRATOS_CLASS_POINTER_DEFINITION( KinematicLinear );
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-				IntegrationMethod GetIntegrationMethod();
+            ///@}
+            ///@name Life Cycle
+            ///@{
 
-               Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+            /// Default constructor.
+            KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry );
+            KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-               void Initialize();
-               
-               void ResetConstitutiveLaw();
-
-               void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-               void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-               void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-               void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-               
-               void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-               
-               void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
-	  
-               void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
-               
-                void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-               	//************************************************************************************
-
-                void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
- 				void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
- 				void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-                                void SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-                                std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo);
-
-				void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-				void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-       	 		void CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-
-				void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo);
-
-				void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& Output, const ProcessInfo& rCurrentProcessInfo);
-                
-                void GetValuesVector(Vector& values, int Step = 0);
-                void GetFirstDerivativesVector(Vector& values, int Step = 0);
-                void GetSecondDerivativesVector(Vector& values, int Step = 0);
+            /// Destructor.
+            virtual ~KinematicLinear();
 
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+            ///@}
+            ///@name Operators
+            ///@{
 
-      /// Turn back information as a string.
+
+            ///@}
+            ///@name Operations
+            ///@{
+            IntegrationMethod GetIntegrationMethod();
+
+            Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+
+            void Initialize();
+
+            void ResetConstitutiveLaw();
+
+            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+
+            void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+
+            void EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo );
+
+            void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
+
+            void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
+
+            void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
+
+            void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
+
+            void InitializeSolutionStep( ProcessInfo& CurrentProcessInfo );
+
+            void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
+
+            void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
+
+            void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+
+            void SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+                                              std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+
+            void SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
+
+            void SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
+
+            void CalculateOnIntegrationPoints( const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
+
+            void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
+
+            void CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& Output, const ProcessInfo& rCurrentProcessInfo );
+
+            void GetValuesVector( Vector& values, int Step = 0 );
+
+            void GetFirstDerivativesVector( Vector& values, int Step = 0 );
+
+            void GetSecondDerivativesVector( Vector& values, int Step = 0 );
+
+
+            ///@}
+            ///@name Access
+            ///@{
+
+
+            ///@}
+            ///@name Inquiry
+            ///@{
+
+
+            ///@}
+            ///@name Input and output
+            ///@{
+
+            /// Turn back information as a string.
 //      virtual String Info() const;
-      
-      /// Print information about this object.
+
+            /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
+            /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
 
-            
-      ///@}
-      
-               protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-               private:
-      ///@name Static Member Variables 
-      ///@{ 
 
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-	  			std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-               
-				IntegrationMethod mThisIntegrationMethod;
+            ///@}
+            ///@name Friends
+            ///@{
 
-               double mTotalDomainInitialSize;
-                   
 
-	  			std::vector< Matrix > mInvJ0;
-	 			Vector mDetJ0;
+            ///@}
 
-				bool mfirst_time_step;
+        protected:
+            ///@name Protected static Member Variables
+            ///@{
 
-                Matrix mInitialDisp;
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-                       /** K += weight*Btrans*D*B */
-              void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-                                         ProcessInfo& rCurrentProcessInfo,
-                                         bool CalculateStiffnessMatrixFlag,
-                                         bool CalculateResidualVectorFlag);
 
-               void CalculateBodyForces(
-                       Vector& BodyForce,
-               const ProcessInfo& CurrentProcessInfo
-                                       );
+            ///@}
+            ///@name Protected member Variables
+            ///@{
 
-               void InitializeVariables();
-		
-               void InitializeMaterial();
 
-               void InitializeMaterial(std::vector<std::vector<Matrix> >& C);
+            ///@}
+            ///@name Protected Operators
+            ///@{
 
-               void CalculateAndAddExtForceContribution(
-                       const Vector& N,
-               const ProcessInfo& CurrentProcessInfo,
-               Vector& BodyForce,
-               VectorType& mResidualVector,
-               double weight);
 
-        //************************************************************************************
-		//************************************************************************************
-        //************************************************************************************
-		//************************************************************************************
-             
-        //CALCULATE FORCEVECTORS DISPLACEMENT
-               
-               void AddBodyForcesToRHS(Vector& R, const Vector& N_DISP, double Weight, double detJ );
-               
-               void AddInternalForcesToRHS(Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ);       
-        //************************************************************************************
-		//************************************************************************************
-        //************************************************************************************
-		//************************************************************************************
-             
-        //CALCULATE STIFFNESS MATRICES DISPLACEMENT
-                     
-               void CalculateStiffnesMatrix(Matrix& K,const 
-                Matrix& tan_C,const Matrix& B_Operator, double Weight, double detJ);
+            ///@}
+            ///@name Protected Operations
+            ///@{
 
-        //************************************************************************************
-		//************************************************************************************
-        //STRESSES, STRAINS AND CONSTITUTIVE MODELL (UNSATURATED CASE)
-        //************************************************************************************
-        //************************************************************************************
 
-               void CalculateStressAndTangentialStiffness(Vector& StressVector, Matrix& tanC_U,
-                 	 Vector& StrainVector, const Matrix& B_Operator, int PointNumber, const ProcessInfo& CurrentProcessInfo);
-        //************************************************************************************
-		//************************************************************************************
-        //STRESSES, STRAINS AND CONSTITUTIVE MODELL
-        //************************************************************************************
-        //************************************************************************************
-               
-//                void CalculateStrainVector
-//                        (const Matrix& B_Operator, Vector& StrainVector, int PointNumber);
-               
-               void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
+            ///@}
+            ///@name Protected  Access
+            ///@{
 
-               Matrix GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, int PointNumber);
-//                Matrix CalculateDeformationTensor(const Matrix& DN_DX, unsigned int TimePoints);
 
-            void CalculateBoperator(Matrix& B_Operator, const Matrix& DN_DX);
-            
-            void ResizeAndInitializeAuxiliaries();
-    
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //KinematicLinear& operator=(const KinematicLinear& rOther);
+            ///@}
+            ///@name Protected Inquiry
+            ///@{
 
-      /// Copy constructor.
-      //KinematicLinear(const KinematicLinear& rOther);
 
-        
-      ///@}    
-        
-           }; // Class KinematicLinear 
+            ///@}
+            ///@name Protected LifeCycle
+            ///@{
 
-  ///@} 
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
-                   KinematicLinear& rThis);
-*/
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
-                   const KinematicLinear& rThis)
-           {
-                   rThis.PrintInfo(rOStream);
-                   rOStream << std::endl;
-                   rThis.PrintData(rOStream);
 
-                   return rOStream;
-}*/
-  ///@} 
+            ///@}
+
+        private:
+            ///@name Static Member Variables
+            ///@{
+
+            ///@}
+            ///@name Member Variables
+            ///@{
+            std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
+            IntegrationMethod mThisIntegrationMethod;
+
+            double mTotalDomainInitialSize;
+
+
+            std::vector< Matrix > mInvJ0;
+            Vector mDetJ0;
+
+            bool mfirst_time_step;
+
+            Matrix mInitialDisp;
+            ///@}
+            ///@name Private Operators
+            ///@{
+            /** K += weight*Btrans*D*B */
+            void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                               ProcessInfo& rCurrentProcessInfo,
+                               bool CalculateStiffnessMatrixFlag,
+                               bool CalculateResidualVectorFlag );
+
+            void CalculateBodyForces(
+                Vector& BodyForce,
+                const ProcessInfo& CurrentProcessInfo
+            );
+
+            void InitializeVariables();
+
+            void InitializeMaterial();
+
+            void InitializeMaterial( std::vector<std::vector<Matrix> >& C );
+
+            void CalculateAndAddExtForceContribution(
+                const Vector& N,
+                const ProcessInfo& CurrentProcessInfo,
+                Vector& BodyForce,
+                VectorType& mResidualVector,
+                double weight );
+
+            //************************************************************************************
+            //************************************************************************************
+            //************************************************************************************
+            //************************************************************************************
+
+            //CALCULATE FORCEVECTORS DISPLACEMENT
+
+            void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ );
+
+            void AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ );
+
+            void CalculateStiffnesMatrix( Matrix& K, const
+                                          Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ );
+
+            void CalculateStressAndTangentialStiffness( Vector& StressVector, Matrix& tanC_U,
+                    Vector& StrainVector, const Matrix& B_Operator, int PointNumber, const ProcessInfo& CurrentProcessInfo );
+
+            void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
+
+            Matrix GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, int PointNumber );
+
+            void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
+
+            ///@}
+            ///@name Private Operations
+            ///@{
+
+
+            ///@}
+            ///@name Private  Access
+            ///@{
+
+
+            ///@}
+            ///@name Private Inquiry
+            ///@{
+
+
+            ///@}
+            ///@name Un accessible methods
+            ///@{
+
+            /// Assignment operator.
+            //KinematicLinear& operator=(const KinematicLinear& rOther);
+
+            /// Copy constructor.
+            //KinematicLinear(const KinematicLinear& rOther);
+
+
+            ///@}
+
+    }; // Class KinematicLinear
+
+    ///@}
+    ///@name Type Definitions
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    /// input stream function
+    /*  inline std::istream& operator >> (std::istream& rIStream,
+                       KinematicLinear& rThis);
+    */
+    /// output stream function
+    /*  inline std::ostream& operator << (std::ostream& rOStream,
+                       const KinematicLinear& rThis)
+               {
+                       rThis.PrintInfo(rOStream);
+                       rOStream << std::endl;
+                       rThis.PrintData(rOStream);
+
+                       return rOStream;
+    }*/
+    ///@}
 
 }  // namespace Kratos.
 
