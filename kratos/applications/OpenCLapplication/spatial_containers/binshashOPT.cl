@@ -1,7 +1,15 @@
-#pragma OPENCL EXTENSION cl_khr_fp64: enable
+#pragma OPENCL EXTENSION cl_amd_fp64: enable
+//#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+#ifndef cl_amd_fp64
+
+	// Failed, probably we are not on an ATI platform, so try Khronos version
+	#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
+#endif
 
 
-inline double functionDistance(double4 a, double4 b) {
+double functionDistance(double4 a, double4 b) {
     double4 temp;
     temp = (a-b) * (a-b);
     return temp.x + temp.y + temp.z;
@@ -16,11 +24,13 @@ int calculatePosition(double ThisCoord,
 {
     int d_index;
     
-    switch(ThisDimension) {
-      case 2: d_index = (ThisCoord - MinPoint[0].z) * InvCellSize[ThisDimension]; break;
-      case 1: d_index = (ThisCoord - MinPoint[0].y) * InvCellSize[ThisDimension]; break;
-      case 0: d_index = (ThisCoord - MinPoint[0].x) * InvCellSize[ThisDimension]; break;
-    }
+    if(ThisDimension == 2)
+      d_index = (ThisCoord - MinPoint[0].z) * InvCellSize[ThisDimension];
+    else if(ThisDimension == 1)
+      d_index = (ThisCoord - MinPoint[0].y) * InvCellSize[ThisDimension];
+    else
+      d_index = (ThisCoord - MinPoint[0].x) * InvCellSize[ThisDimension];
+
     int index = (int)( (d_index < 0.00) ? 0.00 : d_index );
     
     return  (index > N[ThisDimension]-1) ? N[ThisDimension]-1 : index;
@@ -134,44 +144,173 @@ __kernel void SearchInRadiusMultiple(__global int * IndexCellReference,
 			     __global double4 * MinPoint,
 			     __global int * outdata,
 			     __global int * results,
-			     __global int * w_size,
 			     __global int * maxResults
 			    ) 
 {
-    int index;
-    int tope;
-    int4 cellBegin;
-    int4 cellEnd;
-
     int ip = get_global_id(0);
 
-    private double4 pointIp = point[ip];
+    __private double4 pointIp = point[ip];
 
-	cellBegin = calculateCell(point[ip],-radius[0],N,MinPoint,InvCellSize);
-	cellEnd   = calculateCell(point[ip], radius[0],N,MinPoint,InvCellSize);
-	results[ip] = 0;
+    __private int4 cellBegin = calculateCell(pointIp,-radius[0],N,MinPoint,InvCellSize);
+    __private int4 cellEnd   = calculateCell(pointIp, radius[0],N,MinPoint,InvCellSize);
+    results[ip] = 0;
 
-	for(size_t i = cellBegin.x; i <= cellEnd.x; i++) 
+    for(size_t i = cellBegin.x; i <= cellEnd.x; i++) 
+    {
+	for(size_t j = cellBegin.y; j <= cellEnd.y; j++) 
 	{
-	    for(size_t j = cellBegin.y; j <= cellEnd.y; j++) 
+	    for(size_t k = cellBegin.z; k <= cellEnd.z; k++) 
 	    {
-		for(size_t k = cellBegin.z; k <= cellEnd.z; k++) 
+		__private int index = calculateIndexForCell((double4)(i,j,k,-1),N);
+		
+		__private int loIndex = IndexCellReference[index];
+		__private int hiIndex = IndexCellReference[index+1];
+		
+		for(size_t l = loIndex; l < hiIndex; l++) 
 		{
-		    index = calculateIndexForCell((double4)(i,j,k,-1),N);
-		    
-		    __private int loIndex = IndexCellReference[index];
-		    __private int hiIndex = IndexCellReference[index+1];
-		    
-		    for(size_t l = loIndex; l < hiIndex; l++) 
+		    if(isless(functionDistance(pointIp,BinsContainer[l]),radius2[0])) 
 		    {
-			if(functionDistance(pointIp,BinsContainer[l]) < radius2[0]) 
-			{
-			    if(results[ip] <= maxResults[0])
-				outdata[mad_hi(ip,maxResults[0],results[ip])] = BinsContainer[l].w;
-			    results[ip]++;
-			}
+			if(results[ip] < maxResults[0])
+			    outdata[mad_hi(ip,maxResults[0],results[ip])] = BinsContainer[l].w;
+			results[ip]++;
 		    }
 		}
 	    }
 	}
+    }
+}
+
+__kernel void SearchNearestMultiple(__global int * IndexCellReference,
+				    __global double4 * BinsContainer,
+				    __global double * InvCellSize,
+				    __global double * N,
+				    __global double * radius,
+				    __global double * radius2,
+				    __global double4 * point,
+				    __global double4 * MinPoint,
+				    __global double * distance,
+				    __global int * results
+				    ) 
+{
+    int ip = get_global_id(0);
+
+    __private double4 pointIp = point[ip];
+
+    __private int4 cellBegin = calculateCell(pointIp,-radius[0],N,MinPoint,InvCellSize);
+    __private int4 cellEnd   = calculateCell(pointIp, radius[0],N,MinPoint,InvCellSize);
+    distance[ip] = INFINITY;
+
+    for(size_t i = cellBegin.x; i <= cellEnd.x; i++) 
+    {
+	for(size_t j = cellBegin.y; j <= cellEnd.y; j++) 
+	{
+	    for(size_t k = cellBegin.z; k <= cellEnd.z; k++) 
+	    {
+		__private int index = calculateIndexForCell((double4)(i,j,k,-1),N);
+		
+		__private int loIndex = IndexCellReference[index];
+		__private int hiIndex = IndexCellReference[index+1];
+		
+		for(size_t l = loIndex; l < hiIndex; l++) 
+		{
+		    __private double thisDist = functionDistance(pointIp,BinsContainer[l]); 
+		    if(isless(thisDist,distance[ip]))
+		    {
+			distance[ip] = thisDist;
+	                results[ip] = BinsContainer[l].w;
+		    }
+		}
+	    }
+	}
+    }
+}
+
+//Not sure if this code is correct
+__kernel void SearchNearestMultipleSpiral(__global int * IndexCellReference,
+				    __global double4 * BinsContainer,
+				    __global double * InvCellSize,
+				    __global double * N,
+				    __global double * radius,
+				    __global double * radius2,
+				    __global double4 * point,
+				    __global double4 * MinPoint,
+				    __global double * distance,
+				    __global int * results
+				    ) 
+{
+    int ip = get_global_id(0);
+
+    __private double4 pointIp = point[ip];
+
+    __private int4 cellBegin = calculateCell(pointIp,-radius[0],N,MinPoint,InvCellSize);
+    __private int4 cellEnd   = calculateCell(pointIp, radius[0],N,MinPoint,InvCellSize);
+    __private int4 cellPoint = calculateCell(pointIp, 0,N,MinPoint,InvCellSize);
+
+    distance[ip] = INFINITY;
+
+    bool Found = false;
+    bool partialFound = false;
+
+    int cellcuberadius = 0;
+    int maxradiusx = max(cellEnd.x - cellPoint.x, cellPoint.x - cellBegin.x);
+    int maxradiusy = max(cellEnd.y - cellPoint.y, cellPoint.y - cellBegin.y);
+    int maxradiusz = max(cellEnd.z - cellPoint.z, cellPoint.z - cellBegin.z);
+
+    int maxradius = max(max(maxradiusx,maxradiusy),maxradiusz);
+
+    while(!Found && cellcuberadius <= maxradius)
+    {
+      int kini = cellPoint.z - cellcuberadius;
+      int kend = cellPoint.z + cellcuberadius;
+      int k = kini;
+
+      while( !Found && k <= kend )
+      {
+	int jini = cellPoint.y - cellcuberadius;
+	int jend = cellPoint.y + cellcuberadius;
+	int j = jini;
+	while( !Found && j <= jend )
+	{
+          int iini = cellPoint.x - cellcuberadius;
+	  int iend = cellPoint.x + cellcuberadius;
+	  int i = iini;
+	  while( !Found && i <= iend )
+	  {
+	    if( (
+		  (k == kini) || 
+		  (k == kend) || 
+		  (j == 0)    || 
+		  (j == jend) || 
+		  (i == 0)    || 
+		  (i == iend)               ) &&
+		( k >= cellBegin.z && k <= cellEnd.z ) &&
+		( j >= cellBegin.y && j <= cellEnd.y ) &&
+		( i >= cellBegin.x && i <= cellEnd.z ) )
+	    {
+	      __private int index = calculateIndexForCell((double4)(i,j,k,-1),N);
+
+	      __private int loIndex = IndexCellReference[index];
+	      __private int hiIndex = IndexCellReference[index+1];
+	      
+	      for(size_t l = loIndex; l < hiIndex; l++) 
+	      {
+		  __private double thisDist = functionDistance(pointIp,BinsContainer[l]); 
+		  if(isless(thisDist,distance[ip]))
+		  {
+		      distance[ip] = thisDist;
+		      results[ip] = BinsContainer[l].w;
+		      partialFound = true;
+		  }
+	      }
+	    } // end if
+	    i++;
+	  } // endl while i
+	  j++;
+	} // endl while j
+	k++;
+	if(!(k < kend) && partialFound)
+	  Found = true; //congratulations! you found it!!!
+      } // endl while k
+      cellcuberadius++;
+    } //endl while cuberadius
 }
