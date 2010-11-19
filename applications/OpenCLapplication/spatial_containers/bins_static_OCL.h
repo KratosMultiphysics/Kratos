@@ -74,12 +74,12 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
       cl_int Err;
       int Size;
       
-      cl_uint OCLGenerateBins, OCLSearchInRadius;
+      cl_uint OCLGenerateBins, OCLSearchInRadius, OCLSearchNearest;
       cl_uint OCL_PointsBins, OCL_Cell, OCL_IndexCell, OCL_IndexCellReference, OCL_InvCellSize, OCL_N, OCL_MinPoint, OCL_BinsContainer;
       
       cl_double4 * pointsToSearch; 
       
-      cl_uint OCL_Radius, OCL_Radius2, OCL_Points, OCL_outData, OCL_results, OCL_resultsNum, OCL_w_size, OCL_maxResults;
+      cl_uint OCL_Radius, OCL_Radius2, OCL_Points, OCL_outData, OCL_results, OCL_distance, OCL_resultsNum, OCL_w_size, OCL_maxResults;
 
    public:
 
@@ -272,6 +272,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	   std::cout << "Register Kernels..." << std::endl;	   
 	   OCLGenerateBins   = OCLDeviceGroup->RegisterKernel(OCL_program,"GenerateBins");
 	   OCLSearchInRadius = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchInRadiusMultiple");
+	   OCLSearchNearest  = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchNearestMultiple");
 	   
 	   int j = 0;
 	   
@@ -285,7 +286,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 		  points[j].x = (**Point)[0];
 		  points[j].y = (**Point)[1];
 		  points[j].z = (**Point)[2];
-		  points[j].w = j;
+		  points[j].w = (**Point).id;
 		  j++;
 	   }
 	   
@@ -320,7 +321,6 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 0,  OCL_PointsBins);
 	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 1,  OCL_IndexCellReference);
 	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 2,  OCL_InvCellSize);
-	   
 	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 3,  OCL_N);
 	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 4,  OCL_MinPoint);
 	   OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBins, 5,  OCL_BinsContainer);
@@ -571,14 +571,14 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	  {
 	      OCL_Radius     = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
 	      OCL_Radius2    = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
-	      OCL_w_size     = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
 	      OCL_maxResults = OCLDeviceGroup->CreateBuffer(sizeof(double), CL_MEM_READ_ONLY);
 	      OCL_Points     = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * ConcurrentPoints, CL_MEM_READ_ONLY);
 	      OCL_results    = OCLDeviceGroup->CreateBuffer(sizeof(int) * ConcurrentPoints, CL_MEM_WRITE_ONLY);
 	      OCL_outData    = OCLDeviceGroup->CreateBuffer(sizeof(int) * ConcurrentPoints * maxResults, CL_MEM_WRITE_ONLY);
+	      OCL_distance   = OCLDeviceGroup->CreateBuffer(sizeof(double) * ConcurrentPoints, CL_MEM_READ_WRITE);
 	  }
          
-	  void computeresultsN(double Radius, int ConcurrentPoints, int maxResults) 
+	  void searchInRadiusOCL(double Radius, int ConcurrentPoints, int maxResults) 
 	  {
 	      int pointSize = SearchUtils::PointerDistance(mPointBegin, mPointEnd);
 	      int processed = 0;
@@ -598,12 +598,11 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 		  int * results;
 		  int * resultPoints;
 		  
-		  results = (int *)malloc(sizeof(int) * amount);
+		  results      = (int *)malloc(sizeof(int) * amount);
 		  resultPoints = (int *)malloc(sizeof(int) * amount * maxResults);
 
 		  OCLDeviceGroup->CopyBuffer(OCL_Radius     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
 		  OCLDeviceGroup->CopyBuffer(OCL_Radius2    , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
-		  OCLDeviceGroup->CopyBuffer(OCL_w_size     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_w_size));
 		  OCLDeviceGroup->CopyBuffer(OCL_Points     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
 		  OCLDeviceGroup->CopyBuffer(OCL_maxResults , OpenCL::HostToDevice, OpenCL::VoidPList(1,&maxResults));
 		  		  
@@ -617,8 +616,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 7,  OCL_MinPoint);
 		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 8,  OCL_outData);
 		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 9,  OCL_results);
-		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 10, OCL_w_size);
-		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 11, OCL_maxResults);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 10, OCL_maxResults);
 		  
 		  OCLDeviceGroup->ExecuteKernel(OCLSearchInRadius, amount);
 		  
@@ -636,6 +634,57 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	      }
 	      
 	      std::cout << "Total Results: " << result << " (" << maxResults * SearchUtils::PointerDistance(mPointBegin, mPointEnd) << " stored)"<< std::endl;
+         }
+         
+         void searchNearestOCL(double Radius, int ConcurrentPoints) 
+	  {
+	      int pointSize = SearchUtils::PointerDistance(mPointBegin, mPointEnd);
+	      int processed = 0;
+	      
+	      int result = 0;
+	      
+	      double HOST_memRadius  = Radius;
+	      double HOST_memRadius2 = Radius * Radius;
+	      
+	      int amount;
+	  
+	      while (processed < pointSize)
+	      {	  
+		  amount = (ConcurrentPoints > pointSize) ? pointSize : (processed + ConcurrentPoints) < pointSize ? ConcurrentPoints : pointSize - processed;
+		  
+		  int HOST_w_size = amount;
+		  int * resultPoints;
+		  
+		  resultPoints = (int *)malloc(sizeof(int) * amount);
+
+		  OCLDeviceGroup->CopyBuffer(OCL_Radius     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
+		  OCLDeviceGroup->CopyBuffer(OCL_Radius2    , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
+		  OCLDeviceGroup->CopyBuffer(OCL_Points     , OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
+
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 0,  OCL_IndexCellReference);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 1,  OCL_BinsContainer);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 2 , OCL_InvCellSize);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 3 , OCL_N);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 4,  OCL_Radius);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 5,  OCL_Radius2);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 6,  OCL_Points);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 7,  OCL_MinPoint);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 8,  OCL_distance);
+		  OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 9,  OCL_results);
+
+		  OCLDeviceGroup->ExecuteKernel(OCLSearchNearest, amount);
+	  
+		  OCLDeviceGroup->CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
+
+		  result = resultPoints[amount-1];
+
+		  free(resultPoints);
+
+		  processed += amount;
+		  //std::cout << "Total Results while " << processed << " points done: " << result << std::endl;
+	      }
+	      
+	      //std::cout << "Nearest Point ID: " << result << std::endl;
          }
 
 	 //************************************************************************

@@ -318,7 +318,7 @@ int main(int arg, char* argv[])
    //Ocl
    StaticBinsOCL binOCL(points1,points1+npoints);
       
-   std::cout << "Bins\t\t" << time1 << "\t\t" << std::endl;
+   std::cout << "Bins\t\t" << time1 << "\t\t";
    time1.restart();
    n = 0;
    AverDistance = 0.00;
@@ -334,48 +334,22 @@ int main(int arg, char* argv[])
    }
    std::cout <<  time1  << "\t\t\t";
    
-   time1.restart();/*
+   time1.restart();
    for(std::size_t j = 0 ; j < maxloops ; j++){
      for(std::size_t i = 0 ; i < numsearch_nearest ; i++)
        PNearest = bin.SearchNearestPoint( *points[i], distance[0] );
-   }*/
+   }
+   
    std::cout << time1 << "\t\t\t";
-
+   
+   //std::cout  << std::endl;
+   std::cout  << radius << "\t" << n << "\t" << npoints << "\t\t" << (*PNearest) << std::endl;
+   std::cout  << "\t\t Total Distances = " << AverDistance << "(" << n << ")" << std::endl;
 
 
    time1.restart();
 
    //RICCARDOs OPENMP
-
-	
-
-
-
-
-
-
-
-
-
-
-
-   //std::cout  << std::endl;
-   std::cout  << radius << "\t" << n << "\t" << npoints << "\t\t" << 0/**PNearest*/ << std::endl;
-   std::cout  << "\t\t Total Distances = " << AverDistance << "(" << n << ")" << std::endl;
-  
-   time1.restart();
-
-
-
-
-
-
-
-
-
-
-
-
 
    int omp_threads = omp_get_max_threads();
    
@@ -405,22 +379,8 @@ int main(int arg, char* argv[])
    time1.restart();
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-   
     struct timespec begin;
     struct timespec end;
-
 
     std::cout << "\nTesting parallel point calculaton" << std::endl;
     std::cout << "Block\t\t" << "Reps\t\t" <<  std::endl;
@@ -435,15 +395,23 @@ int main(int arg, char* argv[])
     binOCL.allocateOCLBuffers(block,maxresults);
     
     for(int i = 0; i < rep; i++) 
-    {
-        binOCL.computeresultsN(radius3,block,maxresults);
-    }
+        binOCL.searchInRadiusOCL(radius3,block,maxresults);
     
-   clock_gettime( CLOCK_REALTIME, &end );
+    clock_gettime( CLOCK_REALTIME, &end );
    
-      std::cout << "BEGIN: " << begin.tv_sec << "." << begin.tv_nsec << "\n"
-        << "END:    " << end.tv_sec << "." << end.tv_nsec << std::endl;
-	std::cout << "TOTAL: " << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+    //std::cout << "BEGIN: " << begin.tv_sec << "." << begin.tv_nsec << "\n"
+    //          << "END:   " << end.tv_sec   << "." << end.tv_nsec   << std::endl;
+    std::cout << "SearchInRadius: " << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+   
+    clock_gettime( CLOCK_REALTIME, &begin );
+    
+    for(int i = 0; i < rep; i++) 
+      for(std::size_t j = 0 ; j < maxloops ; j++)
+        binOCL.searchNearestOCL(radius3,block);
+   
+    clock_gettime( CLOCK_REALTIME, &end );
+    
+    std::cout << "SearchNearest: " << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 
    //**********************************************************************************
    /*CAPADO!!!!
