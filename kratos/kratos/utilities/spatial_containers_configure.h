@@ -81,15 +81,29 @@ class ContactPair
 	     }
    
     
-    bool operator == (const ContactPair& Pair)
+    inline bool operator == (const ContactPair& Pair)
              { 
 	       return  (value[0] == Pair[0]) && (value[1] == Pair[1]) ;
 	     }
 	     
-    bool  operator == (const ContactPair& Pair) const
+    inline bool  operator == (const ContactPair& Pair) const
              { 
                 return ( (value[0] == Pair[0]) && (value[1] == Pair[1]) ) ;
 	     }
+	     
+    inline std::ostream& operator << (const ContactPair& Pair)
+         {
+	    std::ostream OStream;
+	    OStream << "Object 1 =  "<<  Pair[0] << "  " << "Object 2 =" << Pair[1] << std::endl;  
+	    return OStream;  
+	 }
+	 
+    inline std::ostream& operator << (const ContactPair& Pair) const
+         {
+	    std::ostream OStream;
+	    OStream << "Object 1 =  "<<  Pair[0] << "  " << "Object 2 =" << Pair[1] << std::endl; 
+	    return OStream;
+	 }	 
     
     
 };  
@@ -149,7 +163,7 @@ class SpatialContainersConfigure
 ///******************************************************************************************************************
 ///******************************************************************************************************************  
 	
-   static inline void CalculateBoundingBox(PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
+   static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     { 
     rHighPoint = rObject->GetGeometry().GetPoint(0);
     rLowPoint  = rObject->GetGeometry().GetPoint(0);        
@@ -166,7 +180,7 @@ class SpatialContainersConfigure
 ///******************************************************************************************************************
 ///******************************************************************************************************************   
 
-     static inline bool Intersection(PointerType& rObj_1, PointerType& rObj_2)
+     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
       { 
       	      Element::GeometryType& geom_1 = rObj_1->GetGeometry();
 	      Element::GeometryType& geom_2 = rObj_2->GetGeometry();
@@ -178,7 +192,7 @@ class SpatialContainersConfigure
 ///******************************************************************************************************************
 ///******************************************************************************************************************   
     
-      static inline bool  IntersectionBox(PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
+      static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
       { 
 	 return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint); 
       }
