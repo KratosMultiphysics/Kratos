@@ -183,7 +183,7 @@ namespace Kratos
       return Result.size();
      }          
             
- //************************************************************************   
+//************************************************************************   
 //************************************************************************          
           
  void SearchContact(ContainerContactType& Result)
@@ -467,7 +467,7 @@ namespace Kratos
        PointType  MinBox, MaxBox;
        MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  // 
        MaxCell[0] = MinCell[0] + mCellSize[0];
-       for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+       for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0])
 	   if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
               mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
      }
@@ -488,10 +488,10 @@ namespace Kratos
       MinCell[1] = MinBox[1];
       MaxCell[1] = MaxBox[1];
       
-      for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block ) {
+      for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] )  {
 	MinCell[0] = MinBox[0];
         MaxCell[0] = MaxBox[0];
-        for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ) {
+       for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] ) {
 	  if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
 	     mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
 	}
