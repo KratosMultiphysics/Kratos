@@ -515,19 +515,19 @@ namespace Kratos
       MinCell[2] = MinBox[2];
       MaxCell[2] = MaxBox[2];  
        
-     for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block ){
-        MinCell[2] = MinBox[2];
-        MaxCell[2] = MaxBox[2];
-       for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block ) {
-	  MinCell[0] = MinBox[0];
+      for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block, MinCell[2] += mCellSize[2], MaxCell[2] += mCellSize[2] ){
+        MinCell[1] = MinBox[1];
+        MaxCell[1] = MaxBox[1];
+        for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] ) {
+          MinCell[0] = MinBox[0];
           MaxCell[0] = MaxBox[0]; 
- 	  for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ){
-	     if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
- 	        mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
-	     }
-	    }
+          for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] ){
+            if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
+              mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+            }
           }
-       }
+        }
+      }
      }
 
  //************************************************************************   
