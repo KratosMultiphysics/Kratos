@@ -85,7 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/spatial_containers_configure.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/timer.h"
-#include "utilities/timer_CLabra.h"
+//#include "utilities/timer_CLabra.h"
 
 namespace Kratos
 {
