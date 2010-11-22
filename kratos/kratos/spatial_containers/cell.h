@@ -101,7 +101,10 @@ namespace Kratos
       typedef typename TConfigure::ContainerContactType  ContainerContactType;
       typedef typename TConfigure::ContactPairType       ContactPairType;
       typedef typename TConfigure::IteratorContactType   IteratorContactType;
-      
+     
+      typedef std::vector<PointerType>     LocalContainerType;
+      typedef typename LocalContainerType::iterator LocalIteratorType;
+
       
       /// Pointer definition of Cell
       KRATOS_CLASS_POINTER_DEFINITION(Cell);
@@ -119,7 +122,7 @@ namespace Kratos
       virtual ~Cell(){}
       
       
-      void Add(PointerType& ThisObject)
+      void Add(const PointerType& ThisObject)
       {
 	mObjects.push_back(ThisObject);
       }
@@ -155,9 +158,9 @@ namespace Kratos
 
       void SearchObjects(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
 	    {
-	      for(IteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++){
+	      for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++){
 		if(TConfigure::Intersection(rThisObject, *i_object)) {
-		ResultIteratorType repeated_object = find(Result-NumberOfResults, Result, *i_object);	
+		ResultIteratorType repeated_object = std::find(Result-NumberOfResults, Result, *i_object);	
 		if(repeated_object==Result) 
 		  {
 		    *Result   = *i_object;
@@ -173,10 +176,10 @@ namespace Kratos
 
       void SearchObjects(PointerType& rThisObject, ResultContainerType& Result)
 	    {
-	      for(IteratorType i_object = Begin() ; i_object != End(); i_object++){
+	      for(LocalIteratorType i_object = Begin() ; i_object != End(); i_object++){
 	      if(TConfigure::Intersection(rThisObject, *i_object))
 	      {
-		ResultIteratorType repeated_object = find(Result.begin(), Result.end(), *i_object);
+		ResultIteratorType repeated_object = std::find(Result.begin(), Result.end(), *i_object);
 		if(repeated_object==Result.end()) 
 		  {   
 		    Result.push_back(*i_object);
@@ -192,14 +195,14 @@ namespace Kratos
       void SearchContact(ContainerContactType& Result)
 	    {
 	      ContactPairType Pair;
-	      for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
+	      for(LocalIteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
 		      { 
 			Pair[0] = *i_object_1;
-			for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End(); i_object_2++ )
+			for(LocalIteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End(); i_object_2++ )
 			{    
 			  if(TConfigure::Intersection(*i_object_1, *i_object_2)){
 			    Pair[1] = *i_object_2;
-				IteratorContactType repeated_par_1 = find(Result.begin(), Result.end(), Pair);
+				IteratorContactType repeated_par_1 = std::find(Result.begin(), Result.end(), Pair);
 				if(repeated_par_1==Result.end())  
 				    Result.push_back(Pair);}
 			}
@@ -213,14 +216,14 @@ namespace Kratos
       void SearchContact(IteratorContactType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults )
 	    {
 		ContactPairType Pair;
-		for(IteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
+		for(LocalIteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
 		{ 
 		  Pair[0] = *i_object_1; 
-		  for(IteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End() && NumberOfResults < MaxNumberOfResults ; i_object_2++ )
+		  for(LocalIteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End() && NumberOfResults < MaxNumberOfResults ; i_object_2++ )
 		  {    
 		    Pair[1] = *i_object_2;
 		    if(TConfigure::Intersection(*i_object_1, *i_object_2)){
-			  IteratorContactType repeated_par_1 = find(Result-NumberOfResults, Result, Pair);
+			  IteratorContactType repeated_par_1 = std::find(Result-NumberOfResults, Result, Pair);
 			  if(repeated_par_1==Result){
 			      *Result =  Pair;
 			      NumberOfResults++;
@@ -234,22 +237,22 @@ namespace Kratos
 //************************************************************************   
 //************************************************************************  
 
-      IteratorType Begin() 
+      LocalIteratorType Begin() 
 	    {
 	      return mObjects.begin();
 	    }
 
-      IteratorType End()  
+      LocalIteratorType End()  
 	    {
 	      return mObjects.end();
 	    }
        
-      IteratorType Begin() const   
+      LocalIteratorType Begin() const   
 	      { 	 
 		return mObjects.begin();
 	      }
         
-      IteratorType End() const  
+      LocalIteratorType End() const  
 	    {
 	      return mObjects.end();
 	    }
@@ -353,7 +356,7 @@ namespace Kratos
       ///@{ 
         
 
-      ContainerType mObjects;
+      std::vector<PointerType> mObjects;
         
       ///@} 
       ///@name Private Operators
