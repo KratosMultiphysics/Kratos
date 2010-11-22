@@ -85,7 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/spatial_containers_configure.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/timer.h"
-//#include "utilities/timer_CLabra.h"
+#include "utilities/timer_CLabra.h"
 
 namespace Kratos
 {
@@ -259,20 +259,40 @@ class Segment : public Point<TDimension, double>
 		  
 		  PointType MaxPoint, MinPoint;  
 		  BinsObjectDynamic<Configure2D>  rBinsObjectDynamic(it_begin, it_end );
-		  Time.stop("Stopping Time");
-		  std::cout<< "Time = " << Time << std::endl; 
+		  //std::cout<< "Time Bounding Box = " << Time << std::endl; 
 		  
-		  /*std::size_t MaxNumberOfResults = 1E7; 
+		  //std::size_t MaxNumberOfResults = 20; 
 		  std::size_t NumberOfResults    = 0;  
-		  ContainerType Results_1(MaxNumberOfResults); 
-		  IteratorType ResultsIterator = Results_1.begin();  
+		  ContainerType Results; //(MaxNumberOfResults); 
+		  //IteratorType ResultsIterator = Results.begin();  
 		  
-		  for(IteratorType elem = it_begin; elem!=it_end; elem++)      
-                         NumberOfResults+=rBinsObjectDynamic.SearchObjects(*elem, ResultsIterator, MaxNumberOfResults);
+		  //Time.restart("Starting Time");
+		  
+		  IteratorType elem = it_begin+5;                          
+		  NumberOfResults = rBinsObjectDynamic.SearchObjects(*elem, Results);
+		  std::cout<< (**elem).Id() << std::endl;
+		  std::cout<< "NumberOfResults = "<< NumberOfResults << std::endl;
+		  std::cout<< "****************************************" << std::endl;
+		  
+		  elem = it_begin+8;                          
+		  NumberOfResults = rBinsObjectDynamic.SearchObjects(*elem, Results);
+		  std::cout<< (**elem).Id() << std::endl;
+		  std::cout<< "NumberOfResults = "<< NumberOfResults << std::endl;
+		  std::cout<< "****************************************" << std::endl;
+		  
+		  /*
+		  for(IteratorType elem = it_begin; elem!=it_end; elem++){
+                         NumberOfResults = rBinsObjectDynamic.SearchObjects(*elem, Results);
+			 std::cout<< (**elem).Id() << std::endl;
+			 std::cout<< "NumberOfResults = "<< NumberOfResults << std::endl;
+			 std::cout<< "****************************************" << std::endl;
+		  }
+		  */
+		         //NumberOfResults+=rBinsObjectDynamic.SearchObjects(*elem, ResultsIterator, MaxNumberOfResults);
 		  
 
-		  std::cout<< "NumberOfResults = "<< NumberOfResults << std::endl;
-		  *///std::cout<< "Time = " << Time << std::endl; 
+		  std::cout<< "NumberOfResults = "<< Results.size() << std::endl;
+		  std::cout<< "Time Searching = " << Time << std::endl; 
 		  
  		  //std::size_t MaxNumberOfResults = 20; 
  		  //std::size_t NumberOfResults    = 0;     
