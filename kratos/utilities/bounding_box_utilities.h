@@ -249,69 +249,33 @@ class Segment : public Point<TDimension, double>
 
             void Test() 
                 { 
+		  CalculateBoundaryContour();
 		  
-		  //timer Time;
-		  //Time.start("Starting Time");
-                  #ifdef _OPENMP
-                  double start_prod = omp_get_wtime();
-                  #endif
 		  
-		  ContainerType& rElements  =  mr_model_part.ElementsArray();
-		  IteratorType it_begin     =  rElements.begin();
-		  IteratorType it_end       =  rElements.end(); 
-		  
-		  PointType MaxPoint, MinPoint;  
-		  BinsObjectDynamic<Configure2D>  rBinsObjectDynamic(it_begin, it_end );
-		  //std::cout<< "Time Bounding Box = " << Time << std::endl; 
+// 		  timer Time;
+// 		  Time.start("Starting Time");
+// 		  
+// 		  ContainerType& rElements  =  mr_model_part.ElementsArray();
+// 		  IteratorType it_begin     =  rElements.begin();
+// 		  IteratorType it_end       =  rElements.end(); 
+// 		  
+// 		  PointType MaxPoint, MinPoint;  
+// 		  BinsObjectDynamic<Configure2D>  rBinsObjectDynamic(it_begin, it_end );
+// 		  std::cout<< "Time Bounding Box = " << Time << std::endl; 
+// 		  
 		  //std::size_t MaxNumberOfResults = 20; 
-		  std::size_t NumberOfResults    = 0;  
+		  //std::size_t NumberOfResults    = 0;  
 		  //ContainerType Results; //(MaxNumberOfResults); 
 		  //IteratorType ResultsIterator = Results.begin();  
+		  
 		  //Time.restart("Starting Time");
+// 		  for(IteratorType elem = it_begin; elem!=it_end; elem++)
+//                           rBinsObjectDynamic.SearchObjects(*elem, Results);
+// 		  
 		  
-		  
-		  std::size_t size = std::distance(it_begin, it_end);     
-		  #ifdef _OPENMP
-		  int number_of_threads = omp_get_max_threads();
-		  #else
-		  int number_of_threads = 1;
-		  #endif
-
-                  std::vector<ContainerType> Results(number_of_threads);
-		  std::vector<unsigned int> node_partition;
-		  CreatePartition(number_of_threads, size, node_partition);
-             
-                 #pragma omp parallel for  
-                 for(int k=0; k<number_of_threads; k++)
- 	           {
- 	             IteratorType i_begin = it_begin + node_partition[k];
- 	             IteratorType i_end   = it_begin + node_partition[k+1];
-		     for ( IteratorType elem  = i_begin ; elem != i_end ; elem++ )
-		     {
-		        rBinsObjectDynamic.SearchObjects(*elem, Results[k]);
-		     }
-		   }
-		 /* 
-		  for(IteratorType elem = it_begin; elem!=it_end; elem++){ 
-                         NumberOfResults = rBinsObjectDynamic.SearchObjects(*elem, Results);
-			 //std::cout<< "NumberOfResults = "<< NumberOfResults << std::endl;
-			 //std::cout<< "****************************************" << std::endl;
-		  }
-		  */
 		  //NumberOfResults+=rBinsObjectDynamic.SearchObjects(*elem, ResultsIterator, MaxNumberOfResults);
-		  
-                 for(int k=0; k<number_of_threads; k++)
- 	           {
-		      NumberOfResults+= Results[k].size();
-		   }
-		   
-		   
-		  std::cout<< "NumberOfResults = "<< NumberOfResults << std::endl;
-	          #ifdef _OPENMP
-	          double stop_prod = omp_get_wtime();
-	          std::cout << "Time   = " << stop_prod - start_prod << std::endl;
-	          #endif 
-		 //std::cout<< "Time Searching = " << Time << std::endl; 
+		  //std::cout<< "NumberOfResults = "<< Results.size() << std::endl;
+		  //std::cout<< "Time Searching = " << Time << std::endl; 
 		  
  		  //std::size_t MaxNumberOfResults = 20; 
  		  //std::size_t NumberOfResults    = 0;     
@@ -390,6 +354,69 @@ class Segment : public Point<TDimension, double>
 		     */
 		}
 		
+	 
+	 void CalculateBoundaryContour()
+	 {
+	     
+	      ContainerType& rElements  =  mr_model_part.ElementsArray();
+	      IteratorType it_begin     =  rElements.begin();
+	      IteratorType it_end       =  rElements.end(); 
+	      WeakPointerVector< Node<3> > boundary_nodes;
+	      WeakPointerVector< Element > boundary_elements;
+	      boundary_nodes.reserve(3);
+	      typedef WeakPointerVector< Element >::iterator  ElementIteratorType; 
+	      
+	      vector<unsigned int > internal;
+	      bool is_boundary = false;
+	      for(IteratorType elem = it_begin; elem!=it_end; elem++)
+	      {
+		   is_boundary = false;
+		   WeakPointerVector< Element >& neighb_elems  = (*elem)->GetValue(NEIGHBOUR_ELEMENTS); 
+                   /// Puede incluir como vecnino el mismo en caso de que hayan menos de 3 elemtos veninos.  
+		   /// ckeck si se repited elmento
+		   for( ElementIteratorType neighb_elem  = neighb_elems.begin(); neighb_elem!= neighb_elems.end(); neighb_elem++)
+ 		            {
+			       if (neighb_elem->Id() ==  (*elem)->Id() )
+			       { is_boundary = true; break;}
+			    }
+		 
+		   
+ 		   if(is_boundary) /// un elemento triangular como maximo tres elementos vecinos 
+ 		   { 
+		     /// Elemento de boundary
+		     //(*elem)->GetValue(IS_BOUNDARY) = 
+		     boundary_elements.push_back(*elem);
+ 		     internal.resize(neighb_elems.size(), false);
+ 		     Element::GeometryType& geom_1 = (*elem)->GetGeometry();
+ 		     unsigned int k = 0;
+ 		     for(unsigned int i = 0; i<geom_1.size(); i++)
+ 			{
+ 		          for( ElementIteratorType neighb_elem  = neighb_elems.begin(); neighb_elem!= neighb_elems.end(); neighb_elem++)
+ 		            {    
+			       if(neighb_elem->Id() !=(*elem)->Id() )
+			       {
+ 		                 Element::GeometryType& geom_2   = neighb_elem->GetGeometry();
+ 			        for (unsigned int j = 0; j<geom_2.size(); j++)
+ 			        {
+ 			         if(geom_1[i].Id()==geom_2[j].Id())
+ 				   { internal[k] = 1;}
+ 			          } 
+			         }
+			         
+			        }
+ 			        k++;
+ 			     }
+ 			
+//  			if( sum(internal)== neighb_elems.size())
+// 			   boundary_nodes.push_back(*geom_1[i]);  
+ 	                }
+ 		   }
+	      
+	   for( ElementIteratorType neighb_elem  = boundary_elements.begin(); neighb_elem!= boundary_elements.end(); neighb_elem++)    
+	         std::cout<<neighb_elem->Id()<<std::endl; 
+		  
+	 }
+	
 	
 	/*
 	void GlobalSearchScheme(const PointType& rPoint, const SegmentType rSegment)
@@ -885,16 +912,6 @@ class Segment : public Point<TDimension, double>
        private:
        ModelPart mr_model_part; 
        unsigned int mrdimension;
-       
-       inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, std::vector<unsigned int>& partitions)
-       {
-          partitions.resize(number_of_threads+1);
-          int partition_size = number_of_rows / number_of_threads;
-          partitions[0] = 0;
-          partitions[number_of_threads] = number_of_rows;
-          for(unsigned int i = 1; i<number_of_threads; i++)
-            partitions[i] = partitions[i-1] + partition_size ;
-      }
 
 
        
