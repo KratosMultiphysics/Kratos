@@ -119,6 +119,10 @@ namespace Kratos
       typedef typename TreeNodeType::SizeType        SizeType;        // std::size_t
       typedef typename TreeNodeType::IndexType       IndexType;       // std::size_t
            
+
+      typedef Tvector<IndexType,Dimension>      IndexArray;
+      typedef Tvector<SizeType,Dimension>       SizeArray;
+      typedef Tvector<CoordinateType,Dimension> CoordinateArray;
       
        ///Contact Pair
       typedef typename TConfigure::ContainerContactType  ContainerContactType;
@@ -127,7 +131,7 @@ namespace Kratos
       ///typedef TreeNodeType LeafType;    
       typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
       typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
-       
+
       	
       /// Pointer definition of BinsObjectDynamic
       KRATOS_CLASS_POINTER_DEFINITION(BinsObjectDynamic);
@@ -144,13 +148,39 @@ namespace Kratos
       BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd) 
            : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
       {
-	
-	 CalculateBoundingBox();
-	 CalculateCellSize();
-	 AllocateCellsContainer();
-	 GenerateBins();
+        mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
+        CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
+        CalculateCellSize(mObjectsSize);  // Calculate number of Cells
+        AllocateContainer();              // Allocate cell list
+        GenerateBins();                   // Fill Cells with objects
       }
-      
+     
+      BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
+        : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0)
+      {
+
+        for(SizeType i = 0 ; i < Dimension ; i++)
+        {
+          mMinPoint[i] = MinPoint[i];
+          mMaxPoint[i] = MaxPoint[i];
+        }
+        CalculateCellSize(CellSize);
+        AllocateContainer();
+      }
+     
+      BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, SizeType NumPoints) 
+        : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0)
+      {
+
+        for(SizeType i = 0 ; i < Dimension ; i++)
+        {
+          mMinPoint[i] = MinPoint[i];
+          mMaxPoint[i] = MaxPoint[i];
+        }
+        CalculateCellSize(NumPoints);
+        AllocateContainer();
+      }
+
       
       /// Destructor.
       virtual ~BinsObjectDynamic(){}
@@ -184,21 +214,46 @@ namespace Kratos
      }          
             
 //************************************************************************   
+//************************************************************************
+     
+ SizeType SearchObjectsInner(PointerType& ThisObject, ResultIteratorType& Result,  const SizeType& MaxNumberOfResults )
+    {
+      PointType Low, High;      
+      SearchStructureType Box;
+      SizeType NumberOfResults = 0;
+      TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+      SearchObjectLocalInner(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
+      return NumberOfResults;
+     } 
+       
+
+//************************************************************************   
+//************************************************************************
+    
+ SizeType SearchObjectsInner(PointerType& ThisObject, ResultContainerType& Result)
+    {
+      PointType Low, High;      
+      SearchStructureType Box;
+      TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+      SearchObjectLocalInner(ThisObject, Result, Box );
+      return Result.size();
+     }          
+            
+//************************************************************************   
 //************************************************************************          
           
- void SearchContact(ContainerContactType& Result)
+    void SearchContact(ContainerContactType& Result)
     {
-       for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++)
-        {
-           icell->SearchContact(Result);
-        }
-       return; 
-     }          
+      for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++)
+        icell->SearchContact(Result);
+    }          
             
  //************************************************************************   
 //************************************************************************       
           
- SizeType SearchContact(IteratorContactType& Result, const SizeType& MaxNumberOfResults )
+    SizeType SearchContact(IteratorContactType& Result, const SizeType& MaxNumberOfResults )
     {
        SizeType NumberOfResults = 0;
        for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++)
@@ -209,16 +264,27 @@ namespace Kratos
      }          
             
  //************************************************************************   
-//************************************************************************   
-     
-  void AddObject(const PointerType& ThisObject)
-         {
-	  PointType Low, High;      
-          SearchStructureType Box;
-          TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-          Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-          FillObject(Box, ThisObject);
-         }  
+ //************************************************************************   
+
+    void AddObject(const PointerType& ThisObject)
+    {
+      PointType Low, High;      
+      SearchStructureType Box;
+      TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+      FillObject(Box,ThisObject);
+      mObjectsSize++;
+    }  
+
+    void RemoveObject(const PointerType& ThisObject)
+    {
+      PointType Low, High;      
+      SearchStructureType Box;
+      TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+      Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+      RemoveObjectLocal(Box,ThisObject);
+      mObjectsSize--;
+    }  
          
       ///@}
       ///@name Operators 
@@ -249,27 +315,33 @@ namespace Kratos
 	return "BinsObjectDynamic" ; }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const{
-      rOStream << "BinsObjectDynamic"; }
+      virtual void PrintInfo(std::ostream& rOStream) const
+      {
+        rOStream << Info();
+      }
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
       {	
-	  rOStream << Perfix << "Bin[" << std::distance(mObjectsBegin, mObjectsEnd) << "] : " << std::endl;
-/*	  for(CellContainerType::const_iterator i_cell = mCells.begin() ; i_cell != mCells.end() ; i_cell++)
-	  {
-	    rOStream << Perfix << "[ " ;
-	    for(std::vector<PointerType>::const_iterator i_object = i_cell->Begin() ; i_object != i_cell->End() ; i_object++)
-	      rOStream << *PointerType<< "    ";
-	    rOStream << " ]" << std::endl;
-	  }*/	
+        rOStream << " BinsSize: ";
+        for(SizeType i = 0 ; i < Dimension ; i++)
+          rOStream << "[" << mN[i] << "]";
+        rOStream << std::endl;
+        rOStream << "  CellSize: ";
+        for(SizeType i = 0 ; i < Dimension ; i++)
+          rOStream << "[" << mCellSize[i] << "]";
+        rOStream << std::endl;
+        SizeType nn = 0;
+        for(SizeType i = 0 ; i < mCells.size(); i++)
+          nn += mCells[i].Size();
+        rOStream << "NumPointers: " << nn << std::endl;
       }
       
      /// Print Size of Container
     void PrintSize( std::ostream& rout ){
       rout << " BinsSize: ";
-      for(SizeType i = 0 ; i < mN.size() ; i++)
-	  rout << "[" << mN[i] << "]";
+      for(SizeType i = 0 ; i < Dimension ; i++)
+        rout << "[" << mN[i] << "]";
       rout << std::endl;
     }
 
@@ -282,20 +354,20 @@ namespace Kratos
     }
       
       
-      CellContainerType& GetCellContainer()
-       {
-         return mCells; 
-       }
-       
-      Tvector<SizeType, Dimension>& GetDivisions()
-       {
-	 return mN;
-       }
-       
-      Tvector<CoordinateType, Dimension>& GetCellSize()  
-      {
-       return mCellSize;
-      }
+    CellContainerType& GetCellContainer()
+    {
+      return mCells; 
+    }
+
+    SizeArray& GetDivisions()
+    {
+      return mN;
+    }
+
+    CoordinateArray& GetCellSize()  
+    {
+      return mCellSize;
+    }
       
       
 
@@ -335,62 +407,54 @@ namespace Kratos
   
       PointType Low, High;  
       TConfigure::CalculateBoundingBox(*mObjectsBegin,mMinPoint,mMaxPoint);
-      
-      std::size_t size = std::distance(mObjectsBegin, mObjectsEnd);     
+
       #ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
+      SizeType number_of_threads = omp_get_max_threads();
       #else
-      int number_of_threads = 1;
+      SizeType number_of_threads = 1;
       #endif
 
-      std::vector<unsigned int> node_partition;
-      CreatePartition(number_of_threads, size, node_partition);
-    
+      std::vector<SizeType> node_partition;
+      CreatePartition(number_of_threads, mObjectsSize, node_partition);
+
       std::vector<PointType> Max(number_of_threads);
       std::vector<PointType> Min(number_of_threads);
-       
-      for(int k=0; k<number_of_threads; k++ )
-      {
-	 Max[k] = mMaxPoint;   
-	 Min[k] = mMinPoint;
-      }
-      
-       
-//       #ifdef _OPENMP
-//       double start_prod = omp_get_wtime();
-//       #endif
-//       
-      #pragma omp parallel for  private(High, Low) 
-      for(int k=0; k<number_of_threads; k++)
- 	{
- 	  IteratorType i_begin = mObjectsBegin + node_partition[k];
- 	  IteratorType i_end   = mObjectsBegin + node_partition[k+1];
-      
-          for ( IteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
-	    { 
-	         TConfigure::CalculateBoundingBox(*i_object, Low, High);
-		 for(std::size_t i = 0 ; i < Dimension ; i++)
-		 {
-		   
-		    Max[k][i]      =   (Max[k][i]  < High[i]) ? High[i] : Max[k][i];
-		    Min[k][i]      =   (Min[k][i]  > Low[i])  ? Low[i]  : Min[k][i];
-		 }
-	    }
-	}	
 
-          for(int k=0; k<number_of_threads; k++)
- 	    {
-               for(std::size_t i = 0 ; i < Dimension ; i++)
-		 {
-		    mMaxPoint[i]  =   (mMaxPoint[i]  < Max[k][i]) ? Max[k][i] : mMaxPoint[i];
-		    mMinPoint[i]  =   (mMinPoint[i]  > Min[k][i]) ? Min[k][i] : mMinPoint[i]; 
-		 }
-	    }
-	
-//        #ifdef _OPENMP
-//        double stop_prod = omp_get_wtime();
-//        std::cout << "Time Calculating Bounding Boxes  = " << stop_prod - start_prod << std::endl;
-//        #endif
+      for(SizeType k=0; k<number_of_threads; k++ )
+      {
+        Max[k] = mMaxPoint;   
+        Min[k] = mMinPoint;
+      }
+
+      #pragma omp parallel for  private(High, Low) 
+      for(SizeType k=0; k<number_of_threads; k++)
+      {
+        IteratorType i_begin = mObjectsBegin + node_partition[k];
+        IteratorType i_end   = mObjectsBegin + node_partition[k+1];
+
+        for (IteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
+        { 
+          TConfigure::CalculateBoundingBox(*i_object, Low, High);
+          for(SizeType i = 0 ; i < Dimension ; i++)
+          {
+            Max[k][i] = (Max[k][i]  < High[i]) ? High[i] : Max[k][i];
+            Min[k][i] = (Min[k][i]  > Low[i])  ? Low[i]  : Min[k][i];
+          }
+        }
+      }	
+
+      for(SizeType k=0; k<number_of_threads; k++)
+      {
+        for(SizeType i = 0 ; i < Dimension ; i++)
+        {
+          mMaxPoint[i]  = (mMaxPoint[i]  < Max[k][i]) ? Max[k][i] : mMaxPoint[i];
+          mMinPoint[i]  = (mMinPoint[i]  > Min[k][i]) ? Min[k][i] : mMinPoint[i]; 
+        }
+      }
+      //for(std::size_t i = 0 ; i < Dimension ; i++){
+        //mMaxPoint[i]  += 10.0 * DBL_EPSILON;
+        //mMinPoint[i]  -= 10.0 * DBL_EPSILON;
+      //}
          
      }
      
@@ -401,10 +465,9 @@ namespace Kratos
     void CalculateCellSize()
     {
       
-      
-      double delta[Dimension];
-      double alpha[Dimension];
-      double mult_delta = 1.00;
+      CoordinateType delta[Dimension];
+      CoordinateType alpha[Dimension];
+      CoordinateType mult_delta = 1.00;
       SizeType index = 0;
       for(SizeType i = 0 ; i < Dimension ; i++) {
          delta[i] = mMaxPoint[i] - mMinPoint[i];
@@ -419,23 +482,66 @@ namespace Kratos
       }
 
       
-      mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd)/mult_delta), 1.00/Dimension) +1 );
+      mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(mObjectsSize/mult_delta), 1.00/Dimension) +1 );
       
       for(SizeType i = 0 ; i < Dimension ; i++){
-      if(i!=index) {
-      mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
-      mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
-      }
+        if(i!=index) {
+          mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
+          mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
+        }
       }
 
       for(SizeType i = 0 ; i < Dimension ; i++){
-      mCellSize[i] = delta[i] / mN[i];
-      mInvCellSize[i] = 1.00 / mCellSize[i];
+        mCellSize[i] = delta[i] / mN[i];
+        mInvCellSize[i] = 1.00 / mCellSize[i];
       }
       
       
     }
+   
+    void CalculateCellSize(const CoordinateType& CellSize)
+    {
+      for(SizeType i = 0 ; i < Dimension ; i++){
+        mCellSize[i] = CellSize;
+        mInvCellSize[i] = 1.00 / mCellSize[i];
+        mN[i] = static_cast<SizeType>( (mMaxPoint[i]-mMinPoint[i]) / mCellSize[i]) + 1;
+      }
+    }
     
+    void CalculateCellSize( const SizeType& NumPoints )
+    {
+
+      CoordinateType delta[Dimension];
+      CoordinateType alpha[Dimension];
+      CoordinateType mult_delta = 1.00;
+      SizeType index = 0;
+      for(SizeType i = 0 ; i < Dimension ; i++) {
+        delta[i] = mMaxPoint[i] - mMinPoint[i];
+        if ( delta[i] > delta[index] )
+          index = i;
+        delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+      }
+
+      for(SizeType i = 0 ; i < Dimension ; i++){
+        alpha[i] = delta[i] / delta[index];
+        mult_delta *= alpha[i];
+      }
+
+      mN[index] = static_cast<SizeType>( pow(static_cast<CoordinateType>(NumPoints/mult_delta), 1.00/Dimension) +1 );
+
+      for(SizeType i = 0 ; i < Dimension ; i++){
+        if(i!=index) {
+          mN[i] = static_cast<SizeType>(alpha[i] * mN[index]);
+          mN[i] = ( mN[i] == 0 ) ? 1 : mN[i];
+        }
+      }
+
+      for(SizeType i = 0 ; i < Dimension ; i++){
+        mCellSize[i] = delta[i] / mN[i];
+        mInvCellSize[i] = 1.00 / mCellSize[i];
+      }
+
+    }
     
 //************************************************************************   
 //************************************************************************
@@ -444,7 +550,7 @@ namespace Kratos
    {    
       PointType Low, High;      
       SearchStructureType Box;
-      /// LLenando las celdas con los objectos
+      /// Fill container with objects
       for(IteratorType i_object = mObjectsBegin ; i_object != mObjectsEnd ; i_object++)
       {
         TConfigure::CalculateBoundingBox(*i_object, Low, High);
@@ -459,76 +565,144 @@ namespace Kratos
                   
 // **** THREAD SAFE
 // Dimension = 1
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, 
-			  SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
-     {
-       PointType  MinCell, MaxCell;
-       PointType  MinBox, MaxBox;
-       MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  // 
-       MaxCell[0] = MinCell[0] + mCellSize[0];
-       for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0])
-	   if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
-              mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+   void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+       SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+   {
+     PointType  MinCell, MaxCell;
+     PointType  MinBox, MaxBox;
+     MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  // 
+     MaxCell[0] = MinCell[0] + mCellSize[0];
+     for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0])
+       if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+         mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+   }
+
+   // Dimension = 2
+   void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+       SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+   {
+     PointType  MinCell, MaxCell;
+     PointType  MinBox, MaxBox;
+
+     for(SizeType i = 0; i < 2; i++){
+       MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];   
+       MaxBox[i] = MinBox[i] + mCellSize[i];
      }
 
-    // Dimension = 2
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, 
-			  SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
-    {
-       PointType  MinCell, MaxCell;
-       PointType  MinBox, MaxBox;
-
-       for(SizeType i = 0; i < 2; i++){
-        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];   
-        MaxBox[i] = MinBox[i] + mCellSize[i];
-       }
-
-      MinCell[1] = MinBox[1];
-      MaxCell[1] = MaxBox[1];
-      
-      for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] )  {
-	MinCell[0] = MinBox[0];
-        MaxCell[0] = MaxBox[0];
+     MinCell[1] = MinBox[1];
+     MaxCell[1] = MaxBox[1];
+     for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] )  {
+       MinCell[0] = MinBox[0];
+       MaxCell[0] = MaxBox[0];
        for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] ) {
-	  if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
-	     mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
-	}
-      }
-    } 
-
-    // Dimension = 3
-    void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, 
-			  SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
-     {
-       
-      PointType  MinCell, MaxCell;
-      PointType  MinBox, MaxBox;
-
-      for(SizeType i = 0; i < 3; i++){
-        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  // 
-        MaxBox[i] = MinBox[i] + mCellSize[i];
-      }
-
-      MinCell[2] = MinBox[2];
-      MaxCell[2] = MaxBox[2];  
-       
-      for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block, MinCell[2] += mCellSize[2], MaxCell[2] += mCellSize[2] ){
-        MinCell[1] = MinBox[1];
-        MaxCell[1] = MaxBox[1];
-        for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] ) {
-          MinCell[0] = MinBox[0];
-          MaxCell[0] = MaxBox[0]; 
-          for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] ){
-            if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
-              mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
-            }
-          }
-        }
-      }
+         if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+           mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+       }
      }
+   } 
+
+   // Dimension = 3
+   void SearchInBoxLocal(PointerType& ThisObject, ResultIteratorType& Result, 
+       SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+       SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+   {
+
+     PointType  MinCell, MaxCell;
+     PointType  MinBox, MaxBox;
+
+     for(SizeType i = 0; i < 3; i++){
+       MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  // 
+       MaxBox[i] = MinBox[i] + mCellSize[i];
+     }
+
+     MinCell[2] = MinBox[2];
+     MaxCell[2] = MaxBox[2];  
+     for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block, MinCell[2] += mCellSize[2], MaxCell[2] += mCellSize[2] ){
+       MinCell[1] = MinBox[1];
+       MaxCell[1] = MaxBox[1];
+       for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] ) {
+         MinCell[0] = MinBox[0];
+         MaxCell[0] = MaxBox[0]; 
+         for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] ){
+           if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
+             mCells[I].SearchObjects(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+           }
+         }
+       }
+     }
+   }
+
+ //************************************************************************   
+//************************************************************************
+                  
+// **** THREAD SAFE
+// Dimension = 1
+   void SearchObjectLocalInner(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+       SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+   {
+     PointType  MinCell, MaxCell;
+     PointType  MinBox, MaxBox;
+     MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  // 
+     MaxCell[0] = MinCell[0] + mCellSize[0];
+     for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0])
+       if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+         mCells[I].SearchObjectsInner(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+   }
+
+   // Dimension = 2
+   void SearchObjectLocalInner(PointerType& ThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+       SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+   {
+     PointType  MinCell, MaxCell;
+     PointType  MinBox, MaxBox;
+
+     for(SizeType i = 0; i < 2; i++){
+       MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];   
+       MaxBox[i] = MinBox[i] + mCellSize[i];
+     }
+
+     MinCell[1] = MinBox[1];
+     MaxCell[1] = MaxBox[1];
+     for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] )  {
+       MinCell[0] = MinBox[0];
+       MaxCell[0] = MaxBox[0];
+       for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] ) {
+         if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+           mCells[I].SearchObjectsInner(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+       }
+     }
+   } 
+
+   // Dimension = 3
+   void SearchObjectLocalInner(PointerType& ThisObject, ResultIteratorType& Result, 
+       SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+       SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+   {
+
+     PointType  MinCell, MaxCell;
+     PointType  MinBox, MaxBox;
+
+     for(SizeType i = 0; i < 3; i++){
+       MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  // 
+       MaxBox[i] = MinBox[i] + mCellSize[i];
+     }
+
+     MinCell[2] = MinBox[2];
+     MaxCell[2] = MaxBox[2];  
+     for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block, MinCell[2] += mCellSize[2], MaxCell[2] += mCellSize[2] ){
+       MinCell[1] = MinBox[1];
+       MaxCell[1] = MaxBox[1];
+       for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1] += mCellSize[1], MaxCell[1] += mCellSize[1] ) {
+         MinCell[0] = MinBox[0];
+         MaxCell[0] = MaxBox[0]; 
+         for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] ){
+           if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
+             mCells[I].SearchObjectsInner(ThisObject, Result, NumberOfResults, MaxNumberOfResults);
+           }
+         }
+       }
+     }
+   }
 
  //************************************************************************   
 //************************************************************************          
@@ -555,6 +729,84 @@ namespace Kratos
     void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Result, 
                           SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
+      PointType  MinCell, MaxCell;
+      PointType  MinBox, MaxBox;
+
+      for(SizeType i = 0; i < 2; i++){
+        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];   
+        MaxBox[i] = MinBox[i] + mCellSize[i];
+      }
+
+      MinCell[1] = MinBox[1];
+      MaxCell[1] = MaxBox[1];
+
+      for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block ){
+        MinCell[0] = MinBox[0];
+        MaxCell[0] = MaxBox[0];
+        for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ) 
+        {
+          if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+            mCells[I].SearchObjects(ThisObject, Result);
+        }
+      }
+    } 
+
+    // Dimension = 3
+    void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Result, 
+        SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    {
+      PointType  MinCell, MaxCell;
+      PointType  MinBox, MaxBox;
+
+      for(SizeType i = 0; i < 3; i++){
+        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  // 
+        MaxBox[i] = MinBox[i] + mCellSize[i];
+      }
+
+      MinCell[2] = MinBox[2];
+      MaxCell[2] = MaxBox[2];
+
+      for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block ){
+        MinCell[1] = MinBox[1];
+        MaxCell[1] = MaxBox[1];
+        for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block ){
+          MinCell[0] = MinBox[0];
+          MaxCell[0] = MaxBox[0]; 
+          for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ){
+            if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
+              mCells[I].SearchObjects(ThisObject, Result);
+            }
+          }
+        }
+      }
+    }
+
+
+
+//************************************************************************   
+//************************************************************************          
+            
+                  
+    // **** THREAD SAFE
+    
+    // Dimension = 1
+    void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result, 
+                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+     {
+       PointType  MinCell, MaxCell;
+       PointType  MinBox, MaxBox;
+       MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  // 
+       MaxCell[0] = MinCell[0] + mCellSize[0];
+       for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+         if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+           mCells[I].SearchObjectsInner(ThisObject, Result);
+
+     }
+
+    // Dimension = 2
+    void SearchObjectLocal(PointerType& ThisObject, ResultContainerType& Result, 
+                          SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    {
        PointType  MinCell, MaxCell;
        PointType  MinBox, MaxBox;
 
@@ -572,52 +824,52 @@ namespace Kratos
         for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ) 
 	{
 	   if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
-	       mCells[I].SearchObjects(ThisObject, Result);
+	       mCells[I].SearchObjectsInner(ThisObject, Result);
 	}
      }
     } 
 
     // Dimension = 3
-    void SearchInBoxLocal(PointerType& ThisObject, ResultContainerType& Result, 
+    void SearchObjectLocal(PointerType& ThisObject, ResultContainerType& Result, 
                           SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
-     {
-       PointType  MinCell, MaxCell;
-       PointType  MinBox, MaxBox;
+    {
+      PointType  MinCell, MaxCell;
+      PointType  MinBox, MaxBox;
 
-       for(SizeType i = 0; i < 3; i++){
+      for(SizeType i = 0; i < 3; i++){
         MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  // 
         MaxBox[i] = MinBox[i] + mCellSize[i];
       }
 
       MinCell[2] = MinBox[2];
       MaxCell[2] = MaxBox[2];
-     
+
       for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block ){
-	MinCell[2] = MinBox[2];
+        MinCell[2] = MinBox[2];
         MaxCell[2] = MaxBox[2];
         for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block ){
           MinCell[0] = MinBox[0];
           MaxCell[0] = MaxBox[0]; 
- 	  for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ){
-	       if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
- 	          mCells[I].SearchObjects(ThisObject, Result);
-	       }
-	  }
-	}
+          for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block ){
+            if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell)){
+              mCells[I].SearchObjectsInner(ThisObject, Result);
+            }
+          }
+        }
       }
-     }
+    }
 
 
 
 //************************************************************************   
 //************************************************************************
         
-     Tvector<IndexType,Dimension>  CalculateCell( const PointType& ThisPoint )
+     IndexArray  CalculateCell( const PointType& ThisPoint )
      {
-        Tvector<IndexType,Dimension>  Cell;
+        IndexArray IndexCell;
         for(SizeType i = 0 ; i < Dimension ; i++)
-            Cell[i] = CalculatePosition(ThisPoint[i],i);
-        return Cell; 
+            IndexCell[i] = CalculatePosition(ThisPoint[i],i);
+        return IndexCell; 
      }
      
      
@@ -704,57 +956,105 @@ namespace Kratos
 //************************************************************************
 //************************************************************************
 
+    // Dimension = 1 
+    void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, const PointerType& i_object)
+    {
+      PointType  MinCell, MaxCell;
+
+      MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  // 
+      MaxCell[0] = MinCell[0] + mCellSize[0];
+      for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0]+=mCellSize[0], MaxCell[0]+=mCellSize[0] )
+      {
+        if(TConfigure::IntersectionBox(i_object, MinCell, MaxCell))
+          mCells[I].Remove(i_object);
+      }
+    }
+
+   
+//************************************************************************   
+//************************************************************************
+
+    // Dimension = 2
+    void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, const PointerType& i_object)
+    {
+      PointType  MinCell, MaxCell;
+      PointType  MinBox, MaxBox;
+
+      for(SizeType i = 0; i < 2; i++){
+        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];   
+        MaxBox[i] = MinBox[i] + mCellSize[i];
+      }
+
+      MinCell[1] = MinBox[1];
+      MaxCell[1] = MaxBox[1];
+      for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1]+=mCellSize[1], MaxCell[1]+=mCellSize[1] )
+      {
+        MinCell[0] = MinBox[0];
+        MaxCell[0] = MaxBox[0];
+        for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0]+=mCellSize[0], MaxCell[0]+=mCellSize[0] )
+        {
+          if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell))
+            mCells[I].Remove(i_object);
+        }
+      }
+    }
+    
+
+//************************************************************************   
+//************************************************************************
+
+    // Dimension = 3
+    void RemoveObjectLocal( SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, const PointerType& i_object)
+    {
+      PointType  MinCell, MaxCell;
+      PointType  MinBox, MaxBox;
+
+      for(SizeType i = 0; i < 3; i++){
+        MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  // 
+        MaxBox[i] = MinBox[i] + mCellSize[i];
+      }
+
+      MinCell[2] = MinBox[2];
+      MaxCell[2] = MaxBox[2];
+      for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block, MinCell[2]+=mCellSize[2], MaxCell[2]+=mCellSize[2] )
+      {
+        MinCell[1] = MinBox[1];
+        MaxCell[1] = MaxBox[1];
+        for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block, MinCell[1]+=mCellSize[1], MaxCell[1]+=mCellSize[1] )
+        {
+          MinCell[0] = MinBox[0];
+          MaxCell[0] = MaxBox[0];
+          for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0]+=mCellSize[0], MaxCell[0]+=mCellSize[0] )
+          {
+            if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell))
+              mCells[I].Remove(i_object);
+          }
+        }
+      }
+    }
+
+//************************************************************************
+//************************************************************************
 
     IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType& ThisDimension )
-        {
-            CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
-            IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
-            return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
-	    
-        }
+    {
+      CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
+      IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
+      return  (index > mN[ThisDimension]-1) ? mN[ThisDimension]-1 : index;
 
+    }
 
-
-//************************************************************************
-//************************************************************************
-
-
-    IndexType CalculateIndex( PointType const& ThisPoint )
-         {
-            IndexType Index = 0;
-            for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--){
-               Index += CalculatePosition(ThisPoint[iDim],iDim);
-               Index *= mN[iDim-1];
-            }
-            Index += CalculatePosition(ThisPoint[0],0);
-            return Index;
-         }
 
 //************************************************************************
 //************************************************************************
 
-    IndexType CalculateIndex( CellType const& ThisIndex )
-         {
-            IndexType Index = 0;
-            for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--){
-               Index += ThisIndex[iDim];
-               Index *= mN[iDim-1];
-            }
-            Index += ThisIndex[0];
-            return Index;
-         }
-
-
-//************************************************************************
-//************************************************************************ 
-
-void AllocateCellsContainer() 
-       {
-	  SizeType Size = 1;
-	  for(SizeType i = 0 ; i < Dimension ; i++)
-	      Size *= mN[i];
-	  mCells.resize(Size);	    
-        }
+    void AllocateContainer() 
+    {
+      SizeType Size = mN[0];
+      for(SizeType i = 1 ; i < Dimension ; i++)
+        Size *= mN[i];
+      mCells.resize(Size);	    
+    }
              
         
       ///@} 
@@ -793,16 +1093,13 @@ void AllocateCellsContainer()
 
       IteratorType mObjectsBegin;
       IteratorType mObjectsEnd;
+      SizeType     mObjectsSize;
 
-      Tvector<CoordinateType,Dimension>  mCellSize;
-      Tvector<CoordinateType,Dimension>  mInvCellSize;
-      Tvector<SizeType,Dimension>  mN;
+      CoordinateArray  mCellSize;
+      CoordinateArray  mInvCellSize;
+      SizeArray        mN;
       
       CellContainerType mCells;  ///The bin    
-      
-
-      
- 
 	
 	
       ///@} 
@@ -814,14 +1111,14 @@ void AllocateCellsContainer()
       ///@name Private Operations
       ///@{ 
       
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, std::vector<unsigned int>& partitions)
+    inline void CreatePartition(SizeType number_of_threads, const SizeType number_of_rows, std::vector<SizeType>& partitions)
     {
       partitions.resize(number_of_threads+1);
-      int partition_size = number_of_rows / number_of_threads;
+      SizeType partition_size = number_of_rows / number_of_threads;
       partitions[0] = 0;
       partitions[number_of_threads] = number_of_rows;
-      for(unsigned int i = 1; i<number_of_threads; i++)
-      partitions[i] = partitions[i-1] + partition_size ;
+      for(SizeType i = 1; i<number_of_threads; i++)
+        partitions[i] = partitions[i-1] + partition_size ;
   }
         
         
