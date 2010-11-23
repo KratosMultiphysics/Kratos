@@ -127,6 +127,11 @@ namespace Kratos
 	mObjects.push_back(ThisObject);
       }
       
+      void Remove(const PointerType& ThisObject)
+      {
+       mObjects.erase(std::remove(mObjects.begin(),mObjects.end(),ThisObject),mObjects.end());
+      }
+      
       void Clear()
       {
 	mObjects.clear();
@@ -189,6 +194,47 @@ namespace Kratos
 	    }   
       
 //************************************************************************   
+//************************************************************************       
+
+      void SearchObjectsInner(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+      {
+        for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++){
+          if( rThisObject != *i_object )
+          {
+            if(TConfigure::Intersection(rThisObject, *i_object)) {
+              ResultIteratorType repeated_object = std::find(Result-NumberOfResults, Result, *i_object);	
+              if(repeated_object==Result) 
+              {
+                *Result   = *i_object;
+                Result++;
+                NumberOfResults++;
+              }
+            }
+          }
+        }
+      }  
+      
+//************************************************************************   
+//************************************************************************       
+
+      void SearchObjectsInner(PointerType& rThisObject, ResultContainerType& Result)
+      {
+        for(LocalIteratorType i_object = Begin() ; i_object != End(); i_object++){
+          if( rThisObject != *i_object )
+          {
+            if(TConfigure::Intersection(rThisObject, *i_object))
+            {
+              ResultIteratorType repeated_object = std::find(Result.begin(), Result.end(), *i_object);
+              if(repeated_object==Result.end()) 
+              {   
+                Result.push_back(*i_object);
+              }
+            }
+          }
+        }
+      }   
+      
+//************************************************************************   
 //************************************************************************ 
   
  
@@ -246,6 +292,11 @@ namespace Kratos
 	    {
 	      return mObjects.end();
 	    }
+      
+      SizeType Size()
+      {
+        return mObjects.size();
+      }
        
       LocalIteratorType Begin() const   
 	      { 	 
@@ -256,6 +307,11 @@ namespace Kratos
 	    {
 	      return mObjects.end();
 	    }
+      
+      SizeType Size() const
+      {
+        return mObjects.size();
+      }
        
        
        
