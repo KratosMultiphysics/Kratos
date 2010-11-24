@@ -85,7 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/spatial_containers_configure.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/timer.h"
-#include "utilities/timer_CLabra.h"
+//#include "utilities/timer_CLabra.h"
 
 namespace Kratos
 {
@@ -357,7 +357,7 @@ class Segment : public Point<TDimension, double>
 	 
 	 void CalculateBoundaryContour()
 	 {
-	     
+	     /*
 	      ContainerType& rElements  =  mr_model_part.ElementsArray();
 	      IteratorType it_begin     =  rElements.begin();
 	      IteratorType it_end       =  rElements.end(); 
@@ -384,7 +384,7 @@ class Segment : public Point<TDimension, double>
  		   if(is_boundary) /// un elemento triangular como maximo tres elementos vecinos 
  		   { 
 		     /// Elemento de boundary
-		     //(*elem)->GetValue(IS_BOUNDARY) = 
+		     // (*elem)->GetValue(IS_CONTOUR) = 1.00; 
 		     boundary_elements.push_back(*elem);
  		     internal.resize(neighb_elems.size(), false);
  		     Element::GeometryType& geom_1 = (*elem)->GetGeometry();
@@ -404,17 +404,18 @@ class Segment : public Point<TDimension, double>
 			         }
 			         
 			        }
+			          if( sum(internal)!= neighb_elems.size())
+				  { geom_1[i].GetValue(IS_CONTOUR)=1.00;}  
  			        k++;
  			     }
- 			
-//  			if( sum(internal)== neighb_elems.size())
-// 			   boundary_nodes.push_back(*geom_1[i]);  
  	                }
  		   }
 	      
-	   for( ElementIteratorType neighb_elem  = boundary_elements.begin(); neighb_elem!= boundary_elements.end(); neighb_elem++)    
-	         std::cout<<neighb_elem->Id()<<std::endl; 
-		  
+ 	   for( ElementIteratorType neighb_elem  = boundary_elements.begin(); neighb_elem!= boundary_elements.end(); neighb_elem++)    
+ 	       {  
+ 		  std::cout<<neighb_elem->Id()<<std::endl;
+ 	       }
+ 	       */
 	 }
 	
 	
