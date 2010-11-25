@@ -99,11 +99,12 @@ preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
 ##preconditioner_type = "ILU"
 ##preconditioner_parameters = ParameterList()
 
-overlap_level = 3
+overlap_level = 1
 nit_max = 300
 tol = 1e-6
 
 solver.structure_linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,tol,nit_max,overlap_level);
+solver.structure_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
 ##############################################################
 
 model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
