@@ -64,37 +64,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-//     namespace KinematicLinearAuxiliaries
-//     {
-//         Matrix msB(0,0);
-// #ifdef _OPENMP
-// #pragma omp threadprivate(msB)
-// #endif
-//         Matrix msTanC(0,0);
-// #ifdef _OPENMP
-// #pragma omp threadprivate(msTanC)
-// #endif
-//         Vector msStrainVector(0);
-// #ifdef _OPENMP
-// #pragma omp threadprivate(msStrainVector)
-// #endif
-//         Vector msStressVector(0);
-// #ifdef _OPENMP
-// #pragma omp threadprivate(msStressVector)
-// #endif
-//         Matrix msDN_DX(0,0);
-// #ifdef _OPENMP
-// #pragma omp threadprivate(msDN_DX)
-// #endif
-//         Matrix msCurrentDisp(0,0);
-// #ifdef _OPENMP
-// #pragma omp threadprivate(msCurrentDisp)
-// #endif
-//     }
-
-//     using namespace KinematicLinearAuxiliaries;
-
-
     KinematicLinear::KinematicLinear( IndexType NewId,
                                       GeometryType::Pointer pGeometry )
             : Element( NewId, pGeometry )
