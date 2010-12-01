@@ -157,139 +157,70 @@ namespace Kratos
 
 		virtual void Execute()
 		{
-		  KRATOS_TRY;
+			KRATOS_TRY;
 
-		  if(mNumberOfPartitions < 2) // There is no need to partition it and just reading the input
-		  {
-		    mrIO.ReadModelPart(mrModelPart);
-		    return;
-		  }
-
-		
-		  // Reading connectivities
-		  IO::ConnectivitiesContainerType elements_connectivities;
-		  int number_of_elements =  mrIO.ReadElementsConnectivities(elements_connectivities);
-
-		  int number_of_nodes = 0; 
-		  // considering sequencial numbering!! We can change it with a set to cover the no sequencial numbering. Pooyan.
-		  for(IO::ConnectivitiesContainerType::iterator i_element = elements_connectivities.begin() ; i_element != elements_connectivities.end() ; i_element++)
-		    for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
-		      if(*i_node_id > number_of_nodes)
-			number_of_nodes = *i_node_id;
-		      
-		  idxtype* epart = new idxtype[number_of_elements];
-		  idxtype* npart = new idxtype[number_of_nodes];
-			
-		  GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
-		  GraphType domains_colored_graph;
-
-		  int colors_number;
-
-		  
-		  if(rank == 0)
-		    {
-		      CallingMetis(number_of_nodes, number_of_elements, elements_connectivities, npart, epart);
-		      CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, npart, epart);
-		      GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
-// 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
-		      KRATOS_WATCH(colors_number);
-		      KRATOS_WATCH(domains_colored_graph);
-
-		      // Filling the sending buffer
-		      int buffer_index = 0;
-		      coloring_send_buffer = new int[mNumberOfPartitions*colors_number];
-		      for(unsigned int i = 0 ; i <  mNumberOfPartitions ; i++)
-			for(int j = 0 ; j <  colors_number ; j++)
-			  coloring_send_buffer[buffer_index++] = domains_colored_graph(i,j);
-
-		  mLogFile << rank << "  : colors_number = " << colors_number << std::endl;
-
-		  mLogFile << rank << " : coloring_send_buffer = [";
-		  for(SizeType j = 0 ; j < mNumberOfPartitions*colors_number ; j++)
-		    mLogFile << coloring_send_buffer[j] << " ,";
-		  mLogFile << "]" << std::endl;
-		    }
-			
-		  // Broadcasting partioning information
-		  MPI_Bcast(&colors_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
-		  MPI_Bcast(npart, number_of_nodes, MPI_INT, 0, MPI_COMM_WORLD);
-		  MPI_Bcast(epart, number_of_elements, MPI_INT, 0, MPI_COMM_WORLD);
+			if(mNumberOfPartitions < 2) // There is no need to partition it and just reading the input
+			{
+				return;
+			}
 
 
-/* 		  vector<int> neighbours_indices(colors_number); */
+			// Reading connectivities
+			IO::ConnectivitiesContainerType elements_connectivities;
+			int number_of_elements =  mrIO.ReadElementsConnectivities(elements_connectivities);
 
-		  
+			int number_of_nodes = 0; 
+			// calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
+			for(IO::ConnectivitiesContainerType::iterator i_element = elements_connectivities.begin() ; i_element != elements_connectivities.end() ; i_element++)
+				for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
+					if(*i_node_id > number_of_nodes)
+						number_of_nodes = *i_node_id;
 
-		  
+			idxtype* epart = new idxtype[number_of_elements];
+			idxtype* npart = new idxtype[number_of_nodes];
 
-		  Communicator::NeighbourIndicesContainerType& neighbours_indices = mrModelPart.GetCommunicator().NeighbourIndices();
-		  if(neighbours_indices.size() != static_cast<unsigned int>(colors_number))
-		    neighbours_indices.resize(colors_number,false);
-		  for(int i = 0 ; i  < colors_number ; i++)
-		    neighbours_indices[i] = 0;
+			GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
+			GraphType domains_colored_graph;
 
-		  mLogFile << rank << " : neighbours_indices = [";
-		  for(unsigned int j = 0 ; j < neighbours_indices.size()  ; j++)
-		    mLogFile << neighbours_indices[j] << " ,";
-		  mLogFile << "]" << std::endl;
+			int colors_number;
+			CallingMetis(number_of_nodes, number_of_elements, elements_connectivities, npart, epart);
+			CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, npart, epart);
+			GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
+			// 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
+			KRATOS_WATCH(colors_number);
+			KRATOS_WATCH(domains_colored_graph);
 
-		  mLogFile << rank << "  : colors_number = " << colors_number << std::endl;
-		  mrModelPart.GetCommunicator().SetNumberOfColors(colors_number);
+			std::vector<DomainEntitiesIdContainer> domains_nodes;
+
+			// Dividing nodes and storing the ids in domains_nodes
+			DividingNodes(domains_nodes, number_of_elements, elements_connectivities, npart, epart, colors_number);
+
+			mLogFile << rank << " : Start reading Properties " << std::endl;
+
+			// Adding properties to modelpart
+			mrIO.ReadProperties(mrModelPart.rProperties());
+
+			mLogFile << rank << " : End adding Properties " << std::endl;
+
+			// Adding elements to each partition mesh
+			AddingElements(temp_nodes, npart, epart);
 
 
- 		  MPI_Scatter(coloring_send_buffer,colors_number,MPI_INT,&(neighbours_indices[0]),colors_number,MPI_INT,0,MPI_COMM_WORLD);
-
-
-		  
-		  mLogFile << rank << " : ";
-		  for(int j = 0 ; j <  colors_number ; j++)
-		    mLogFile << mrModelPart.GetCommunicator().NeighbourIndices()[j] << " ,";
-		  mLogFile << "]" << std::endl;
-
-		  // Adding local, ghost and interface meshes to ModelPart if is necessary
-		  int number_of_meshes =  ModelPart::Kratos_Ownership_Size + colors_number; // (all + local + ghost) + (colors_number for interfaces) 
-		  if(mrModelPart.GetMeshes().size() < static_cast<unsigned int>(number_of_meshes))
-		    for(int i = mrModelPart.GetMeshes().size() ; i < number_of_meshes ; i++)
-		      mrModelPart.GetMeshes().push_back(ModelPart::MeshType());
-
-		  for(ModelPart::NodeIterator i_node = temp_nodes.begin() ; 
-		      i_node != temp_nodes.end() ; i_node++)
-		      i_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
-		   
-		  // Adding nodes to modelpart
- 		  AddingNodes(temp_nodes, number_of_elements, elements_connectivities, npart, epart);
-
-		  mLogFile << rank << " : Start reading Properties " << std::endl;
-				
-		  // Adding properties to modelpart
-		  mrIO.ReadProperties(mrModelPart.rProperties());
-
-		  mLogFile << rank << " : End adding Properties " << std::endl;
-
-		  // Adding elements to each partition mesh
- 		  AddingElements(temp_nodes, npart, epart);
-				
-
-		  // Adding conditions to each partition mesh
-		  ModelPart::ConditionsContainerType temp_conditions;
- 		  AddingConditions(temp_nodes, npart, epart, temp_conditions);
+			// Adding conditions to each partition mesh
+			ModelPart::ConditionsContainerType temp_conditions;
+			AddingConditions(temp_nodes, npart, epart, temp_conditions);
 
 
 
-		  mrIO.ReadInitialValues(temp_nodes, mrModelPart.Elements(), temp_conditions);
+			mrIO.ReadInitialValues(temp_nodes, mrModelPart.Elements(), temp_conditions);
 
-		  mLogFile << rank << " : start cleaning memory " << std::endl;
+			mLogFile << rank << " : start cleaning memory " << std::endl;
 
-				
+
 			delete[] epart;
- 			delete[] npart;
-			if(rank == 0)
-			  {
-			    mLogFile << rank << " : deleting coloring_send_buffer " << std::endl;
-			delete[] coloring_send_buffer; 
-			  }
+			delete[] npart;
 
-		  mLogFile << rank << " : cleaning memory Finished" << std::endl;
+			mLogFile << rank << " : cleaning memory Finished" << std::endl;
 
 			KRATOS_CATCH("")
 		}
@@ -311,27 +242,6 @@ namespace Kratos
 		    
 		  }
 
-// 		int GraphColoring(GraphType& rDomainsGraph, GraphType& rDomainsColoredGraph)
-// 		  {
-// 		    int max_color = 0;
-// 		    // Initializing the coloered graph. -1 means no connection
-// 		    rDomainsColoredGraph = ScalarMatrix(mNumberOfPartitions, mNumberOfPartitions, -1.00);
-		    
-// 		    // Start coloring...
-// 		    for(SizeType i = 0 ; i < rDomainsGraph.size1() ; i++) // for each domain
-// 		      for(SizeType j = i + 1 ; j < rDomainsGraph.size2() ; j++) // finding neighbor domains
-// 			if(rDomainsGraph(i,j) != 0.00) // domain i has interface with domain j
-// 			  for(SizeType color = 0 ; color < rDomainsColoredGraph.size2() ; color++) // finding color
-// 			    if((rDomainsColoredGraph(i,color) == -1.00) && (rDomainsColoredGraph(j,color) == -1.00)) // the first unused color 
-// 			    {
-// 			      rDomainsColoredGraph(i,color) = j;
-// 			      rDomainsColoredGraph(j,color) = i;
-// 			      if(max_color < static_cast<int>(color + 1))
-// 				max_color = color + 1;
-// 			      break;
-// 			    }
-// 		    return max_color;
-// 		  }
 
 		///@}
 		///@name Access
@@ -373,6 +283,44 @@ namespace Kratos
 		///@}
 
 	protected:
+
+		class DomainEntitiesIdContainer
+		{
+		public:
+			DomainEntitiesIdContainer(std::size_t NumberOfNeighbours)
+			{
+				mLocalIds.resize(NumberOfNeighbours);
+				mGhostsIds.resize(NumberOfNeighbours);
+				mInterfacesIds.resize(NumberOfNeighbours);
+			}
+
+			std::vector<std::size_t>& AllIds()
+			{
+				return mAllIds;
+			}
+
+			std::vector<std::vector<std::size_t> >& LocalIds()
+			{
+				return mLocalIds;
+			}
+
+			std::vector<std::vector<std::size_t> >& GhostsIds()
+			{
+				return mGhostsIds;
+			}
+
+			std::vector<std::vector<std::size_t> >& InterfacesIds()
+			{
+				return mInterfacesIds;
+			}
+		private:
+			std::vector<std::size_t> mAllIds;
+			std::vector<std::vector<std::size_t> > mLocalIds;
+			std::vector<std::vector<std::size_t> > mGhostsIds;
+			std::vector<std::vector<std::size_t> > mInterfacesIds;
+
+		}
+
 		///@name Protected static Member Variables 
 		///@{ 
 
@@ -387,8 +335,6 @@ namespace Kratos
 		
 		SizeType mNumberOfPartitions;
 
-		std::ofstream mLogFile;
-
 		SizeType mDimension;
 
 
@@ -401,174 +347,199 @@ namespace Kratos
 		///@name Protected Operations
 		///@{ 
 
-	        int GetRank()
-	        {
-		  int rank;
-		  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-		  return rank;
+
+		void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
+		{
+			// calculating total size of connectivity vector 
+			int connectivity_size = 0;
+			for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ;
+				i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
+				connectivity_size += i_connectivities->size();
+
+			int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
+
+			int ne = NumberOfElements;
+			int nn = NumberOfNodes;
+
+
+
+			int etype; 
+			if(number_of_element_nodes == 3) // triangles
+				etype = 1;
+			else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
+			{
+				if(mDimension == 2) // quadilateral
+					etype = 4; 
+				else  // tetrahedra
+					etype = 2;
+			}
+			else if(number_of_element_nodes == 8) // hexahedra
+				etype = 3;
+			else
+				KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
+
+
+			int numflag = 0;
+			int number_of_partitions = static_cast<int>(mNumberOfPartitions);
+			int edgecut;
+
+			idxtype* elmnts = new idxtype[connectivity_size];
+
+			int i = 0;
+			// Creating the elmnts array for Metis
+			for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ; 
+				i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
+				for(unsigned int j = 0 ; j < i_connectivities->size() ; j++)
+					elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
+
+			// Calling Metis to partition
+			METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+
+			delete[] elmnts;
+
 		}
 
-	        void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
-	        {
-		  int rank = GetRank();
-
-		  // calculating total size of connectivity vector 
-		  int connectivity_size = 0;
-		  for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ;
-		      i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-		    connectivity_size += i_connectivities->size();
-
-		  int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
-		  
-		  int ne = NumberOfElements;
-		  int nn = NumberOfNodes;
-
-
-
-		  int etype; 
-		  if(number_of_element_nodes == 3) // triangles
-		    etype = 1;
-		  else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
-		    {
-		      if(mDimension == 2) // quadilateral
-			etype = 4; 
-		      else  // tetrahedra
-			etype = 2;
-		    }
-		  else if(number_of_element_nodes == 8) // hexahedra
-		    etype = 3;
-		  else
-		    KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
-		  
-
-		  int numflag = 0;
-		  int number_of_partitions = static_cast<int>(mNumberOfPartitions);
-		  int edgecut;
-		  
-		  idxtype* elmnts = new idxtype[connectivity_size];
-		  
-		  mLogFile << rank << " : Preparing Data for metis..." << std::endl;
-		  int i = 0;
-		  // Creating the elmnts array for Metis
-		  for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ; 
-		      i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-		    for(unsigned int j = 0 ; j < i_connectivities->size() ; j++)
-		      elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
-		  
-		  mLogFile << rank << " : Calling metis..." << std::endl;
-		  // Calling Metis to partition
-		  METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
-		  mLogFile << rank << " : Metis Finished!!!" << std::endl;
-		  mLogFile << rank << " :     edgecut = " << edgecut << std::endl;
-		  
-		  delete[] elmnts;
-		  
-		}
-
-	        void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
-	        {
-		  int rank = GetRank();
-		  Communicator& r_communicator = mrModelPart.GetCommunicator();
-
-		  mLogFile << rank << " : Adding nodes to modelpart" << std::endl;
-		  // first adding the partition's nodes
-		  for(ModelPart::NodeIterator i_node = AllNodes.begin() ; 
-		      i_node != AllNodes.end() ; i_node++)
-		    if(NPart[i_node->Id()-1] == rank)
-		      {
-			mrModelPart.AssignNode(*(i_node.base()));
- 			r_communicator.LocalMesh().Nodes().push_back(*(i_node.base()));
-//  			mrModelPart.AssignNode(*(i_node.base()), ModelPart::Kratos_Local);
-			i_node->GetSolutionStepValue(PARTITION_INDEX) = rank;
-		      }
-
-  		  std::vector<int> interface_indices(mNumberOfPartitions, -1); 
-		  vector<int>& neighbours_indices = r_communicator.NeighbourIndices();
 
 		
+		
+		
+		
+		void DividingNodes(std::vector<DomainEntitiesIdContainer>& rDomainsNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart, SizeType ColorsNumber)
+		{
+			rDomainsNodes.resize(mNumberOfPartitions, DomainEntitiesIdContainer(ColorsNumber));
 
- 		  for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
- 		    if(SizeType(neighbours_indices[i]) < interface_indices.size())
- 		     interface_indices[neighbours_indices[i]] = i;
-		  
-//		  mLogFile << rank << " : Adding interface nodes to modelpart" << std::endl;
-		  // now adding interface nodes which belongs to other partitions
- 		  for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
- 		    if(EPart[i_element] == rank)
-		    { 
- 		      for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
- 			  i_node != ElementsConnectivities[i_element].end() ; i_node++)
+			for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
 			{
-			  int node_partition = NPart[*i_node-1];
-			  if(node_partition != rank) 
-			  {
+				const int element_partition = EPart[i_element];
+				DomainEntitiesIdContainer& r_entities_id = rDomainsNodes[element_partition];
+				//for each element in the model loop over its connectivities
+				for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
+					i_node != ElementsConnectivities[i_element].end() ; i_node++)
+				{
+					//get global id. We assume that node ids are began with one
+					const int my_gid = *i_node-1;
 
-			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
- 		           // Giving model part's variables list to the node
-	          	   p_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
+					//get the partition index for the node i am interested in
+					const int node_partition = NPart[my_gid];
 
-	          	  //set buffer size
-	          	   p_node->SetBufferSize(mrModelPart.GetBufferSize());
-			    mrModelPart.Nodes().push_back(p_node); 
-			    r_communicator.GhostMesh().Nodes().push_back(p_node); 
-if(SizeType(interface_indices[node_partition]) < neighbours_indices.size())
-{
-			    r_communicator.GhostMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
-			    r_communicator.InterfaceMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
-}
-else
-{
-	std::cout << rank << " : ERROR! Node #" << *i_node << " has not registered interface for partition #" << node_partition << std::endl;
-}
-			    r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
-//   			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
-			    p_node->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
-			  }
+					SizeType mesh_index = interface_indices[element_partition];
+
+					//add the node to the list of nodes of "rank"
+					r_entities_id.AllIds().push_back(my_gid);
+
+						if(node_partition != element_partition) //the node is not owned by "rank"
+						{
+							LocalNodes[node_partition][mesh_index].push_back(my_gid);
+							GhostNodes[mesh_index][node_partition].push_back(my_gid);
+						}
+				}
 			}
-		    }
-		    else  // adding the owened interface nodes 
-		    {
-  		      for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
-  			  i_node != ElementsConnectivities[i_element].end() ; i_node++) 
-  			if(NPart[*i_node-1] == rank) 
- 			  {
-			    SizeType mesh_index = interface_indices[EPart[i_element]];
-			    if(mesh_index > neighbours_indices.size()) // Means the neighbour domain is not registered!!
-{
-//std::cout << rank << " : cannot find interface for element #" << i_element << " with rank " << EPart[i_element] << std::endl;
-			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
-} 			    
 
-			    ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
-			    r_communicator.LocalMesh().Nodes().push_back(p_node); 
-			    r_communicator.LocalMesh(mesh_index).Nodes().push_back(p_node); 
-			    r_communicator.InterfaceMesh(mesh_index).Nodes().push_back(p_node); 
-			    r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
+		}
 
-// 			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
-// 			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
-// 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
-//  			    mrModelPart.AssignNode(AllNodes((*i_node)), mesh_index); 
-// // 		      mLogFile << rank << " : Adding interface node # " << *i_node << std::endl;
-// 			    mLogFile << rank << " : Adding interface node # " << *i_node << " to mesh: " << mesh_index  << std::endl;
-// 			AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = rank;
-// // 			mLogFile << rank << " : Adding interface node # " << AllNodes[(*i_node)] << "with partition index " << AllNodes[(*i_node)].GetSolutionStepValue(PARTITION_INDEX)  << " in " <<  AllNodes((*i_node)) << std::endl;
- 			  }
-		    }
+		void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
+		{
+			Communicator& r_communicator = mrModelPart.GetCommunicator();
 
-		// After making push_back to the nodes list now we need to make unique and sort for all meshes in communicator
-		mrModelPart.Nodes().Unique();
-		r_communicator.LocalMesh().Nodes().Unique();
-		r_communicator.GhostMesh().Nodes().Unique();
-		r_communicator.InterfaceMesh().Nodes().Unique();
-		for(SizeType i = 0 ; i < r_communicator.LocalMeshes().size() ; i++)
-			r_communicator.LocalMesh(i).Nodes().Unique();
-		for(SizeType i = 0 ; i < r_communicator.GhostMeshes().size() ; i++)
-			r_communicator.GhostMesh(i).Nodes().Unique();
-		for(SizeType i = 0 ; i < r_communicator.InterfaceMeshes().size() ; i++)
-			r_communicator.InterfaceMesh(i).Nodes().Unique();
+			mLogFile << rank << " : Adding nodes to modelpart" << std::endl;
+			// first adding the partition's nodes
+			for(ModelPart::NodeIterator i_node = AllNodes.begin() ; 
+				i_node != AllNodes.end() ; i_node++)
+				if(NPart[i_node->Id()-1] == rank)
+				{
+					mrModelPart.AssignNode(*(i_node.base()));
+					r_communicator.LocalMesh().Nodes().push_back(*(i_node.base()));
+					//  			mrModelPart.AssignNode(*(i_node.base()), ModelPart::Kratos_Local);
+					i_node->GetSolutionStepValue(PARTITION_INDEX) = rank;
+				}
 
-		  mLogFile << rank << " : Nodes added to modelpart" << std::endl;
+				std::vector<int> interface_indices(mNumberOfPartitions, -1); 
+				vector<int>& neighbours_indices = r_communicator.NeighbourIndices();
+
+
+
+				for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
+					if(SizeType(neighbours_indices[i]) < interface_indices.size())
+						interface_indices[neighbours_indices[i]] = i;
+
+				//		  mLogFile << rank << " : Adding interface nodes to modelpart" << std::endl;
+				// now adding interface nodes which belongs to other partitions
+				for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
+					if(EPart[i_element] == rank)
+					{ 
+						for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
+							i_node != ElementsConnectivities[i_element].end() ; i_node++)
+						{
+							int node_partition = NPart[*i_node-1];
+							if(node_partition != rank) 
+							{
+
+								ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
+								// Giving model part's variables list to the node
+								p_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
+
+								//set buffer size
+								p_node->SetBufferSize(mrModelPart.GetBufferSize());
+								mrModelPart.Nodes().push_back(p_node); 
+								r_communicator.GhostMesh().Nodes().push_back(p_node); 
+								if(SizeType(interface_indices[node_partition]) < neighbours_indices.size())
+								{
+									r_communicator.GhostMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
+									r_communicator.InterfaceMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
+								}
+								else
+								{
+									std::cout << rank << " : ERROR! Node #" << *i_node << " has not registered interface for partition #" << node_partition << std::endl;
+								}
+								r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
+								//   			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
+								p_node->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
+							}
+						}
+					}
+					else  // adding the owened interface nodes 
+					{
+						for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
+							i_node != ElementsConnectivities[i_element].end() ; i_node++) 
+							if(NPart[*i_node-1] == rank) 
+							{
+								SizeType mesh_index = interface_indices[EPart[i_element]];
+								if(mesh_index > neighbours_indices.size()) // Means the neighbour domain is not registered!!
+								{
+									//std::cout << rank << " : cannot find interface for element #" << i_element << " with rank " << EPart[i_element] << std::endl;
+									KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
+								} 			    
+
+								ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
+								r_communicator.LocalMesh().Nodes().push_back(p_node); 
+								r_communicator.LocalMesh(mesh_index).Nodes().push_back(p_node); 
+								r_communicator.InterfaceMesh(mesh_index).Nodes().push_back(p_node); 
+								r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
+
+								// 			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
+								// 			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
+								// 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
+								//  			    mrModelPart.AssignNode(AllNodes((*i_node)), mesh_index); 
+								// // 		      mLogFile << rank << " : Adding interface node # " << *i_node << std::endl;
+								// 			    mLogFile << rank << " : Adding interface node # " << *i_node << " to mesh: " << mesh_index  << std::endl;
+								// 			AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = rank;
+								// // 			mLogFile << rank << " : Adding interface node # " << AllNodes[(*i_node)] << "with partition index " << AllNodes[(*i_node)].GetSolutionStepValue(PARTITION_INDEX)  << " in " <<  AllNodes((*i_node)) << std::endl;
+							}
+					}
+
+					// After making push_back to the nodes list now we need to make unique and sort for all meshes in communicator
+					mrModelPart.Nodes().Unique();
+					r_communicator.LocalMesh().Nodes().Unique();
+					r_communicator.GhostMesh().Nodes().Unique();
+					r_communicator.InterfaceMesh().Nodes().Unique();
+					for(SizeType i = 0 ; i < r_communicator.LocalMeshes().size() ; i++)
+						r_communicator.LocalMesh(i).Nodes().Unique();
+					for(SizeType i = 0 ; i < r_communicator.GhostMeshes().size() ; i++)
+						r_communicator.GhostMesh(i).Nodes().Unique();
+					for(SizeType i = 0 ; i < r_communicator.InterfaceMeshes().size() ; i++)
+						r_communicator.InterfaceMesh(i).Nodes().Unique();
+
+					mLogFile << rank << " : Nodes added to modelpart" << std::endl;
 
 		}
 
