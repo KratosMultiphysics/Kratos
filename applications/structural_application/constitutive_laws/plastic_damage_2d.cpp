@@ -62,22 +62,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Plastic_Damage_2D_Auxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(mstemp)
-	#endif
-        boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(msaux)
-	#endif
-    } 
-    
-    
-    using namespace Plastic_Damage_2D_Auxiliaries;
-  
-
 	/**
 	 *	TO BE TESTED!!!
 	 */
@@ -541,17 +525,18 @@ void PlasticDamage2D::CalculateCauchyStresses(
 		Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
                 double J = MathUtils<double>::Det2( rF );
-
-		noalias(mstemp) = prod(rF,S);
-		noalias(msaux) = prod(mstemp,trans(rF));
-		msaux *= J;
+        boost::numeric::ublas::bounded_matrix<double,2,2> temp;
+        boost::numeric::ublas::bounded_matrix<double,2,2> aux;
+		noalias(temp) = prod(rF,S);
+		noalias(aux) = prod(temp,trans(rF));
+		aux *= J;
 
 		if(rCauchy_StressVector.size() != 3)
 			rCauchy_StressVector.resize(3);  
 		
-		rCauchy_StressVector[0] = msaux(0,0);
-		rCauchy_StressVector[1] = msaux(1,1);
-		rCauchy_StressVector[2] = msaux(1,2);
+		rCauchy_StressVector[0] = aux(0,0);
+		rCauchy_StressVector[1] = aux(1,1);
+		rCauchy_StressVector[2] = aux(1,2);
 }
 
 
