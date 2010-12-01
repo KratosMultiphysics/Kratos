@@ -317,7 +317,7 @@ namespace Kratos
 
         CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
-
+// KRATOS_WATCH(rRightHandSideVector);
 
 
     }
@@ -527,13 +527,13 @@ namespace Kratos
         unsigned int MatSize = number_of_nodes * 3;
         if (rMassMatrix.size1() != MatSize)
             rMassMatrix.resize(MatSize, MatSize, false);
-        rMassMatrix = ZeroMatrix(MatSize, MatSize);
+        noalias(rMassMatrix) = ZeroMatrix(MatSize, MatSize);
 
         double Area = GetGeometry().Area();
         double TotalMass = Area * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
         Vector LumpFact;
-        LumpFact = GetGeometry().LumpingFactors(LumpFact);
-
+        GetGeometry().LumpingFactors(LumpFact);
+// KRATOS_WATCH(GetProperties()[DENSITY]);
         for (unsigned int i = 0; i < 3; i++)
         {
             double temp = LumpFact[i] * TotalMass;
@@ -556,8 +556,18 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        if (rDampMatrix.size1() != 0)
-            rDampMatrix.resize(0, 0, false);
+        WeakPointerVector< Node < 3 > >& neigb = this->GetValue(NEIGHBOUR_NODES);
+
+        //rMassMatrix.resize(0,0);
+        // LUMPED MASS MATRIX
+        unsigned int number_of_nodes = 3 + NumberOfActiveNeighbours(neigb);
+        unsigned int MatSize = number_of_nodes * 3;
+        if (rDampMatrix.size1() != MatSize)
+            rDampMatrix.resize(MatSize, MatSize, false);
+
+        noalias(rDampMatrix) = ZeroMatrix(MatSize, MatSize);
+//         if (rDampMatrix.size1() != 0)
+//             rDampMatrix.resize(0, 0, false);
 
         KRATOS_CATCH("")
     }
@@ -1043,7 +1053,7 @@ namespace Kratos
             WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
         nodal_neigb.resize(3);
         Geometry< Node < 3 > >& center_geom = GetGeometry();
-
+        //KRATOS_WATCH(this->GetValue(NEIGHBOUR_ELEMENTS).size());
         //    std::cout << "I am elem" << Id() << std::endl;
         //    std::cout << "neighbours =" << elem_neigb[0].Id() << " " << elem_neigb[1].Id() << " " << elem_neigb[2].Id() << " " << std::endl;
         for (unsigned int i = 0; i < center_geom.size(); i++)
@@ -1649,7 +1659,7 @@ namespace Kratos
 //        KRATOS_WATCH(strain);
 //         mConstitutiveLawVector[1]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
         mstrains(1,0) = strain[0]; mstrains(1,1) = strain[1]; mstrains(1,2) = strain[2];
-        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
+        mConstitutiveLawVector[1]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
 //	mConstitutiveLawVector[1]->CalculateStress(strain,stress);
 //        mConstitutiveLawVector[1]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;
@@ -1668,7 +1678,7 @@ namespace Kratos
 //        KRATOS_WATCH(strain);
 //         mConstitutiveLawVector[2]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
         mstrains(2,0) = strain[0]; mstrains(2,1) = strain[1]; mstrains(2,2) = strain[2];
-        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
+        mConstitutiveLawVector[2]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
 //	mConstitutiveLawVector[2]->CalculateStress(strain,stress);
 //        mConstitutiveLawVector[2]->CalculateStressAndTangentMatrix(stress, strain, D);
         noalias(Dmat_m)             += membrane_weight * D;
@@ -1687,7 +1697,7 @@ namespace Kratos
 //        KRATOS_WATCH(strain);
 //         mConstitutiveLawVector[3]->UpdateMaterial( strain,GetProperties(),GetGeometry(),N,rCurrentProcessInfo );
         mstrains(3,0) = strain[0]; mstrains(3,1) = strain[1]; mstrains(3,2) = strain[2];
-        mConstitutiveLawVector[0]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
+        mConstitutiveLawVector[3]->CalculateMaterialResponse(strain,ZeroMatrix(1,1),stress,D,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
 //         mConstitutiveLawVector[3]->CalculateMaterialResponse(strain,stress,D,true,true,false);
 //	mConstitutiveLawVector[3]->CalculateStress(strain,stress);
 //        mConstitutiveLawVector[3]->CalculateStressAndTangentMatrix(stress, strain, D);
