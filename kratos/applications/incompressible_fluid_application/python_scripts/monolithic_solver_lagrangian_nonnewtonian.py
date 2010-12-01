@@ -78,11 +78,12 @@ class MonolithicSolver:
         
         #definition of the convergence criteria
 ##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
-        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-4,1e-7)
+        self.conv_criteria = UPCriteria(1e-4,1e-7,1e-3,1e-7)
+##        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-4,1e-7)
 ##        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
-        self.max_iter = 100
+        self.max_iter = 20
                           
         #default settings
         self.echo_level = 1
