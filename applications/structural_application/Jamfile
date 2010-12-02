@@ -76,7 +76,7 @@ alias sources_KratosStructuralApplication
 	hyperelastic_3d.cpp 
 	hyperelastic_2d.cpp 
 	von_mises_3d.cpp
-#von_mises_3d_new.cpp
+#    von_mises_3d_new.cpp
 	membrane_element.cpp 
 	isotropic_2d.cpp 
 	plane_strain.cpp
@@ -94,7 +94,6 @@ alias sources_KratosStructuralApplication
 	slave_contact_face_3D_newmark.cpp 
 	contact_link_3D_newmark.cpp 
 #	isotropic_elastic_large_strain.cpp
-	bossak_auxiliaries.cpp
 #	tensor.cpp
 	add_custom_parallel_strategies_to_python.cpp 
 	crisfield_truss_element.cpp
