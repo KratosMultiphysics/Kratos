@@ -365,8 +365,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {	
@@ -430,8 +430,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {
@@ -497,8 +497,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {
@@ -561,8 +561,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=TargetMeshElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=TargetMeshElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=TargetMeshElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=TargetMeshElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {
@@ -626,8 +626,8 @@ namespace Kratos
 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=TargetMeshElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=TargetMeshElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=TargetMeshElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=TargetMeshElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {
@@ -690,8 +690,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=TargetMeshElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=TargetMeshElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=TargetMeshElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=TargetMeshElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {
@@ -770,8 +770,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {
@@ -1017,8 +1017,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {
@@ -1155,8 +1155,8 @@ namespace Kratos
                 #pragma omp parallel for 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
-                    typename ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
+                    ElementsArrayType::ptr_iterator it_begin=ElementsArray.ptr_begin()+element_partition[k];
+                    ElementsArrayType::ptr_iterator it_end=ElementsArray.ptr_begin()+element_partition[k+1];
                     
                     for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
                     {	
