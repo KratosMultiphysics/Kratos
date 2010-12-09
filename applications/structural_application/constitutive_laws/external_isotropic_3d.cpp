@@ -70,18 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace ExternalExternalIsotropic3DAuxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
-#ifdef _OPENMP
-#pragma omp threadprivate(mstemp)
-#endif
-        boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
-#ifdef _OPENMP
-#pragma omp threadprivate(msaux)
-#endif
-    }
-    using namespace ExternalExternalIsotropic3DAuxiliaries;
+
 
 
 	/**
@@ -273,6 +262,10 @@ namespace Kratos
 		Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
         double J = MathUtils<double>::Det3( rF );
+	
+	        boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
+		boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
+
 
 		noalias(mstemp) = prod(rF,S);
 		noalias(msaux) = prod(mstemp,trans(rF));

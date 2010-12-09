@@ -78,28 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Isotropic_Damage_3D_Auxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(mstemp)
-	#endif
-        boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(msaux)
-	#endif	
-        Vector StrainVectorPerturbation(6);
-	#ifdef _OPENMP
-        #pragma omp threadprivate(StrainVectorPerturbation)
-        #endif
-	Vector StressVectorPerturbation(6);
-	#ifdef _OPENMP
-        #pragma omp threadprivate(StressVectorPerturbation)
-        #endif
-    } 
 
-
-    using namespace Isotropic_Damage_3D_Auxiliaries;
 
 	/**
 	 *	TO BE TESTED!!!
@@ -371,7 +350,10 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 		Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
 
 		double J = MathUtils<double>::Det3( rF );
-
+		boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
+		boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
+/*		Vector StrainVectorPerturbation(6);
+		Vector StressVectorPerturbation(6);*/
 		noalias(mstemp) = prod(rF,S);
 		noalias(msaux)  = prod(mstemp,trans(rF));
 		msaux *= J;
@@ -383,8 +365,8 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 		rCauchy_StressVector[1] = msaux(1,1);
 		rCauchy_StressVector[2] = msaux(2,2);
 		rCauchy_StressVector[3] = msaux(1,2);
-		rCauchy_StressVector[4] = msaux(1,3);
-		rCauchy_StressVector[5] = msaux(2,3);
+		rCauchy_StressVector[4] = msaux(1,2);
+		rCauchy_StressVector[5] = msaux(2,2);
   }
 
 //***********************************************************************************************
@@ -400,9 +382,10 @@ void Isotropic_Damage_3D::CalculateNoDamageStress(const Vector& StrainVector, Ve
                          double last_damage       =  md_new;
 			 double last_r            =  mr_new;
 
-			 
-			 StrainVectorPerturbation.resize(6, false);
-			 StressVectorPerturbation.resize(6, false);
+			  Vector StrainVectorPerturbation(6);
+			  Vector StressVectorPerturbation(6);			 
+/*			 StrainVectorPerturbation.resize(6, false);
+			 StressVectorPerturbation.resize(6, false);*/
 			 //StrainVectorPerturbation_aux.resize(6, false);
 			 //StressVectorPerturbation_aux.resize(6, false);
 			 

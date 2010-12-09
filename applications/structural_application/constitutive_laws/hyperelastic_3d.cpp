@@ -71,18 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	// Defines a hyperelastic constitutive law in 3D space, 
-	// for incompressible isotropic hyperelastic materials.
-	//////////////////
 
-    namespace Hyperelastic3DAuxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
-        #pragma omp threadprivate(mstemp)
-        boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
-        #pragma omp threadprivate(msaux)
-    }
-    using namespace Hyperelastic3DAuxiliaries;
 
 
 	/**
@@ -957,7 +946,9 @@ namespace Kratos
 	{
 		//Matrix S=MathUtils<double>::StressVectorToTensor(rPK2_StressVector); // I think I don't need this!!! S is already a matrix!
 		//Matrix S=dW;
-		
+		boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
+		boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
+
 		Matrix S= MathUtils<double>::StressVectorToTensor(rPK2_StressVector);
 		//KRATOS_WATCH(S);
 		double J = MathUtils<double>::Det3( rF ); // computing determinant of F

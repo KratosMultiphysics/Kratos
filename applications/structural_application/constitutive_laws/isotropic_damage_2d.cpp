@@ -70,53 +70,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Isotropic_Damage_2D_Auxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(mstemp)
-	#endif
-        boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
-	#ifdef _OPENMP
-	#pragma omp threadprivate(msaux)
-	#endif
-	Matrix ConstitutiveMatrixAux(3,3);
-        #ifdef _OPENMP
-        #pragma omp threadprivate(ConstitutiveMatrixAux)
-        #endif
-        Vector StrainVectorPerturbation(3);
-	#ifdef _OPENMP
-        #pragma omp threadprivate(StrainVectorPerturbation)
-        #endif
-	Vector StressVectorPerturbation(3);
-	#ifdef _OPENMP
-        #pragma omp threadprivate(StressVectorPerturbation)
-        #endif
-	Vector StrainVectorPerturbation_aux(3);
-	#ifdef _OPENMP
-        #pragma omp threadprivate(StrainVectorPerturbation_aux)
-        #endif
-	Vector StressVectorPerturbation_aux(3);
-	#ifdef _OPENMP
-        #pragma omp threadprivate(StressVectorPerturbation_aux)
-        #endif
 
 
-
-     /* // Ver pagina 57 " Metodologia de Evaluacion de Estructuras de Hormigon Armado"								
-	Matrix C(0,0);
-	#pragma omp threadprivate(C)
-	Matrix D(0,0);
-	#pragma omp threadprivate(D)
-	Matrix V(0,0);
-	#pragma omp threadprivate(V)
-        Vector d_Sigma(0);
-	#pragma omp threadprivate(d_Sigma)
-      */
-    } 
-
-
-    using namespace Isotropic_Damage_2D_Auxiliaries;
 
 	/**
 	 *	TO BE TESTED!!!
@@ -410,6 +365,14 @@ void Isotropic_Damage_2D::CalculateNoDamageStress(const Vector& StrainVector, Ve
 
 		double J = MathUtils<double>::Det2( rF );
 
+		boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
+		boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
+// 		Matrix ConstitutiveMatrixAux(3,3);
+// 		Vector StrainVectorPerturbation(3);
+// 		Vector StressVectorPerturbation(3);
+// 		Vector StrainVectorPerturbation_aux(3);
+// 		Vector StressVectorPerturbation_aux(3);
+	
 		noalias(mstemp) = prod(rF,S);
 		noalias(msaux)  = prod(mstemp,trans(rF));
 		msaux *= J;
@@ -491,11 +454,18 @@ void Isotropic_Damage_2D::CalculateNoDamageStress(const Vector& StrainVector, Ve
                          double last_damage       =  md_new;
 			 double last_r            =  mr_new;
                          
-			 
-			 StrainVectorPerturbation.resize(3, false);
-			 StressVectorPerturbation.resize(3, false);
-			 StrainVectorPerturbation_aux.resize(3, false);
-			 StressVectorPerturbation_aux.resize(3, false);
+/*			boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
+			boost::numeric::ublas::bounded_matrix<double,2,2> msaux;*/
+			Matrix ConstitutiveMatrixAux(3,3);
+			Vector StrainVectorPerturbation(3);
+			Vector StressVectorPerturbation(3);
+			Vector StrainVectorPerturbation_aux(3);
+			Vector StressVectorPerturbation_aux(3);
+	
+// 			 StrainVectorPerturbation.resize(3, false);
+// 			 StressVectorPerturbation.resize(3, false);
+// 			 StrainVectorPerturbation_aux.resize(3, false);
+// 			 StressVectorPerturbation_aux.resize(3, false);
 			 
 			 // diferencia con caso Damage-3D
 			 noalias(StrainVectorPerturbation)     = StrainVector;
