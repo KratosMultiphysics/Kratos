@@ -71,15 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Fluid2DAuxiliaries
-    {
-        boost::numeric::ublas::bounded_matrix<double,2,2> mstemp;
-        #pragma omp threadprivate(mstemp)
-        boost::numeric::ublas::bounded_matrix<double,2,2> msaux;
-        #pragma omp threadprivate(msaux)
-    }
 
-    using namespace Fluid2DAuxiliaries;
 
 	/**
 	 *	TO BE TESTED!!!
