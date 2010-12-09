@@ -386,7 +386,8 @@ void InterpolatedRecoveryGradients(const Variable<Matrix>& rVariable, ModelPart&
         std::vector<int> work_array_elem;
         Matrix This_Node_Stress = ZeroMatrix(1,domain_size);
         
-        #pragma omp parallel for firstprivate(init) private(Output_Values,Coord_Point, This_Node_Stress, Coord_Node,  Polynomial,  Aux_b, Aux_Poly, a, work_array_elem)  shared(size_2,rVariable, this_model_part)   
+        #pragma omp parallel for firstprivate(init) private(Output_Values,Coord_Point, This_Node_Stress, Coord_Node,  Polynomial,  Aux_b, Aux_Poly, a, work_array_elem)  
+        //shared(size_2,rVariable, this_model_part)   
         for(int k=0; k<number_of_threads; k++)
   	{
 	  ProcessInfo& CurrentProcessInfo    =  this_model_part.GetProcessInfo();  
