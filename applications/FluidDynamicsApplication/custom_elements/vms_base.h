@@ -147,9 +147,6 @@ namespace Kratos
 
         typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
-        ///Type definition for integration methods
-        typedef GeometryData::IntegrationMethod IntegrationMethod;
-
         ///@}
         ///@name Life Cycle
         ///@{
@@ -299,14 +296,7 @@ namespace Kratos
 
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
-
-                #ifndef KRATOS_VMS_ALT_TAU
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
-                #else
-                array_1d<double, 3> OldAdvVel;
-                this->GetAdvectiveVel(OldAdvVel, N, 1);
-                this->CalculateTau(TauOne, TauTwo, AdvVel, OldAdvVel, Area, KinViscosity, rCurrentProcessInfo);
-                #endif
 
                 this->AddProjectionToRHS(rRightHandSideVector, TauOne, TauTwo, N, DN_DX, Area);
             }
@@ -344,7 +334,7 @@ namespace Kratos
 
             // For ASGS: add dynamic stabilization terms
             // in OSS we treat them explicitly, see CalculateLocalVelocityContribution
-            if (rCurrentProcessInfo[OSS_SWITCH] == 0)
+            if (rCurrentProcessInfo[OSS_SWITCH] != 1)
             {
                 double KinViscosity;
                 this->GetPointContribution(KinViscosity, VISCOSITY, N);
@@ -355,14 +345,7 @@ namespace Kratos
 
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
-
-                #ifndef KRATOS_VMS_ALT_TAU
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
-                #else
-                array_1d<double, 3> OldAdvVel;
-                this->GetAdvectiveVel(OldAdvVel, N, 1);
-                this->CalculateTau(TauOne, TauTwo, AdvVel, OldAdvVel, Area, KinViscosity, rCurrentProcessInfo);
-                #endif
 
                 // Add dynamic stabilization terms ( all terms involving a delta(u) )
                 this->AddMassStabTerms<MatrixType> (rMassMatrix, Density, TauOne, N, DN_DX, Area);
@@ -406,14 +389,7 @@ namespace Kratos
 
             // Calculate stabilization parameters
             double TauOne, TauTwo;
-
-            #ifndef KRATOS_VMS_ALT_TAU
             this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
-            #else
-            array_1d<double, 3> OldAdvVel;
-            this->GetAdvectiveVel(OldAdvVel, N, 1);
-            this->CalculateTau(TauOne, TauTwo, AdvVel, OldAdvVel, Area, KinViscosity, rCurrentProcessInfo);
-            #endif
 
             this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, KinViscosity, TauOne, TauTwo, N, DN_DX, Area);
 
@@ -423,9 +399,10 @@ namespace Kratos
 
             for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
             {
+                array_1d< double,3 >& rVel = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
                 for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
                 {
-                    U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY)[d];
+                    U[LocalIndex] = rVel[d];
                     ++LocalIndex;
                 }
                 U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
@@ -488,14 +465,7 @@ namespace Kratos
 
             // Calculate stabilization parameters
             double TauOne, TauTwo;
-
-            #ifndef KRATOS_VMS_ALT_TAU
             this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
-            #else
-            array_1d<double, 3> OldAdvVel;
-            this->GetAdvectiveVel(OldAdvVel, N, 1);
-            this->CalculateTau(TauOne, TauTwo, AdvVel, OldAdvVel, Area, Viscosity, rCurrentProcessInfo);
-            #endif
 
             this->AddProjectionResidualContribution(AdvVel, Density, TauOne, TauTwo, rCurrentProcessInfo, N, DN_DX, Area);
         }
@@ -558,8 +528,7 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
-        #ifndef KRATOS_VMS_ALT_TAU
-        /// Calculate Stabilization parameters (standard version)
+        /// Calculate Stabilization parameters
         /**
          * Calculates both tau parameters based on a given advective velocity
          * @param TauOne: First stabilization parameter (momentum equation)
@@ -569,6 +538,30 @@ namespace Kratos
          * @param KinViscosity: Elemental kinematic viscosity (nu)
          * @param rCurrentProcessInfo: Process info instance
          */
+
+        #ifndef KRATOS_VMS_ALT_TAU
+        virtual void CalculateTau(double& TauOne,
+                                  double& TauTwo,
+                                  const array_1d< double, 3 > & rAdvVel,
+                                  const double Area,
+                                  const double KinViscosity,
+                                  const ProcessInfo& rCurrentProcessInfo)
+        {
+           // Compute mean advective velocity norm
+            double AdvVelNorm = 0.0;
+            for (unsigned int d = 0; d < TDim; ++d)
+                AdvVelNorm += rAdvVel[d] * rAdvVel[d];
+
+            AdvVelNorm = sqrt(AdvVelNorm);
+
+            const double Element_Size = this->ElementSize(Area);
+
+            TauOne = 1.0 / (rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
+            TauTwo = KinViscosity + 0.5 * Element_Size * AdvVelNorm;
+        }
+
+        #else
+
         virtual void CalculateTau(double& TauOne,
                                   double& TauTwo,
                                   const array_1d< double, 3 > & rAdvVel,
@@ -583,58 +576,36 @@ namespace Kratos
 
             AdvVelNorm = sqrt(AdvVelNorm);
 
-            const double Element_Size = this->ElementSize(Area);
+            double Element_Size = 0;
+
+            if(AdvVelNorm > 1e-16)
+            {
+                double tArea;
+                array_1d<double, TNumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, tArea);
+
+                for(unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    double Temp = 0;
+                    for(unsigned int i = 0; i < TDim; ++i)
+                    {
+                        Temp += rAdvVel[i]*DN_DX(j,i);
+                    }
+                    Element_Size += fabs(Temp);
+                }
+
+                Element_Size = 2.0*AdvVelNorm / Element_Size;
+            }
+            else
+            {
+                Element_Size = this->ElementSize(Area);
+            }
+//            const double Element_Size = this->ElementSize(Area);
 
             TauOne = 1.0 / (rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
-            TauTwo = (KinViscosity + Element_Size * AdvVelNorm / 2.0);
+            TauTwo = KinViscosity + 0.5 * Element_Size * AdvVelNorm;
         }
-
-        #else
-
-        /// Calculate Stabilization parameters (alternate dynamic tau)
-        /**
-         * Calculates both tau parameters based on a given advective velocity.
-         * This version reduces the dynamic part of TauOne if a steady state solution is reached.
-         * Note that this version uses the velocity results from this step and the previous one.
-         * @param TauOne: First stabilization parameter (momentum equation)
-         * @param TauTwo: Second stabilization parameter (mass equation)
-         * @param rNewAdvVel: current advection velocity
-         * @param rOldAdvVel: advective velocity for previous time step
-         * @param Area: Elemental area
-         * @param KinViscosity: Elemental kinematic viscosity (nu)
-         * @param rCurrentProcessInfo: Process info instance
-         */
-        virtual void CalculateTau(double& TauOne,
-                                  double& TauTwo,
-                                  const array_1d< double, 3 > & rNewAdvVel,
-                                  const array_1d< double, 3 > & rOldAdvVel,
-                                  const double Area,
-                                  const double KinViscosity,
-                                  const ProcessInfo& rCurrentProcessInfo)
-        {
-            const double Eps = 0.0000000001;
-            // Compute mean advective velocity norm
-            double AdvVelNorm = 0.0;
-            double AdvVelRatio = 0.0;
-            double VarAdvVelNorm = 0.0;
-            double OldAdvVelNorm = 0.0;
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                AdvVelRatio = rOldAdvVel[d] - rNewAdvVel[d]; // Note: I'm using this double as temporatry storage
-                AdvVelNorm += rNewAdvVel[d] * rNewAdvVel[d];
-                VarAdvVelNorm += AdvVelRatio * AdvVelRatio;
-                OldAdvVelNorm += rOldAdvVel[d] * rOldAdvVel[d];
-            }
-
-            AdvVelNorm = sqrt(AdvVelNorm);
-            AdvVelRatio = sqrt( VarAdvVelNorm / (OldAdvVelNorm+Eps) );
-
-            const double Element_Size = this->ElementSize(Area);
-
-            TauOne = 1.0 / ((rCurrentProcessInfo[DYNAMIC_TAU] * AdvVelRatio) / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
-            TauTwo = (KinViscosity + Element_Size * AdvVelNorm / 2.0);
-        }
-
         #endif
 
         /// Add the momentum equation contribution to the RHS (body forces)
@@ -870,8 +841,7 @@ namespace Kratos
             this->GetConvectionOperator(AGradN, rShapeFunc, rShapeDeriv); // Get a * grad(Ni)
 
             // Initialize containers
-            array_1d<double, 3> ElementalMomRes;
-            this->SetToZero < 3 > (ElementalMomRes);
+            array_1d<double, 3> ElementalMomRes(3,0.0);
             double ElementalMassRes(0);
 
             const double WeightedMass = Weight * Density;
@@ -925,9 +895,9 @@ namespace Kratos
                              const array_1d< double, TNumNodes >& rShapeFunc,
                              const std::size_t Step = 0)
         {
-            this->SetToZero< 3 >(rAdvVel);
             // Compute the weighted value of the advective velocity in the (Gauss) Point
-            for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+            rAdvVel = rShapeFunc[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,Step) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY,Step));
+            for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
                 rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY,Step) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY,Step));
         }
 
@@ -993,9 +963,9 @@ namespace Kratos
                                   const array_1d< double, TNumNodes >& rShapeFunc,
                                   const std::size_t Step = 0)
         {
-            rResult = 0;
             // Compute the weighted value of the nodal variable in the (Gauss) Point
-            for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+            rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable,Step);
+            for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
                 rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable,Step);
         }
 
@@ -1033,9 +1003,9 @@ namespace Kratos
                                   const Variable< array_1d< double, 3 > >& rVariable,
                                   const array_1d< double, TNumNodes >& rShapeFunc)
         {
-            this->SetToZero < 3 > (rResult);
             // Compute the weighted value of the nodal variable in the (Gauss) Point
-            for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+            rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
+            for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
                 rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
         }
 

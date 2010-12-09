@@ -86,6 +86,8 @@ namespace Python
 	AddCustomUtilitiesToPython();
 
 	//registering variables in python
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUONE);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUTWO);
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(VORTICITY);
 
 
