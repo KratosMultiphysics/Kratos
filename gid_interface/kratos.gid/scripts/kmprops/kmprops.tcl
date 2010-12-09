@@ -2896,7 +2896,7 @@ proc ::KMProps::ChangeInsideOutside { w} {
 	::KMProps::CreateWindow $w $Location
     } else {
 
-	# Desibled until the next gid beta version 
+	# Disabled until the next gid beta version 
 	set Location OUTSIDE
 	::KMProps::CreateWindow $w $Location
     }
