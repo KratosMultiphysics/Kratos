@@ -333,8 +333,9 @@ namespace Kratos
                     const array_1d<double, 3 > & rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
                     rVorticity[0] += N[iNode] * ( DN_DX(iNode,1)*rVelocity[2] - DN_DX(iNode,2)*rVelocity[1] );
                     rVorticity[1] += N[iNode] * ( DN_DX(iNode,2)*rVelocity[0] - DN_DX(iNode,0)*rVelocity[2] );
-                    rVorticity[2] += N[iNode] * (DN_DX(iNode, 0) * rVelocity[1] - DN_DX(iNode, 1) * rVelocity[0]);
+                    rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
                 }
+                rVorticity *= 0.5; // vorticity = 1/2 (nabla x velocity)
             }
         }
 
@@ -342,7 +343,31 @@ namespace Kratos
         virtual void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
                                                   std::vector<double>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo)
-        {}
+        {
+            double TauOne,TauTwo;
+            double Area;
+            array_1d<double, NUMNODES> N;
+            boost::numeric::ublas::bounded_matrix<double, NUMNODES, DIM> DN_DX;
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+            array_1d<double,3> AdvVel;
+            GetAdvectiveVel(AdvVel,N);
+
+            double KinViscosity;
+            GetPointContribution(KinViscosity,VISCOSITY,N);
+
+            CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
+
+            rValues.resize(1);
+            if (rVariable == TAUONE)
+            {
+                rValues[0] = TauOne;
+            }
+            else if (rVariable == TAUTWO)
+            {
+                rValues[0] = TauTwo;
+            }
+        }
 
         /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
         virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,6> >& rVariable,
