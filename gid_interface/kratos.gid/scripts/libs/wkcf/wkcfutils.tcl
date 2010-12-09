@@ -10,12 +10,13 @@
 #
 #    CREATED AT: 10/05/10
 #
-#    LAST MODIFICATION : correct an error when defined body force for group of element with the same property
+#    LAST MODIFICATION : add thickness for "Elastic-Isotropic" material model and shell element
 #
-#    VERSION : 0.9
+#    VERSION : 1.0
 #
 #    HISTORY:
 #
+#     1.0- 09/12/10-G. Socorro, add thickness for "Elastic-Isotropic" material model and shell element
 #     0.9- 07/09/10-G. Socorro, correct an error when defined body force for group of element with the same property
 #     0.8- 06/09/10-G. Socorro, check for active group variable when get the element properties
 #     0.7- 03/09/10-G. Socorro, correct an error with the BC for inlet and no-slip
@@ -331,119 +332,123 @@ proc ::wkcf::GetPropertiesData {} {
     # Process all properties
     variable dprops; variable ActiveAppList
     variable ndime
-
+    
     # For each active application
     foreach AppId $ActiveAppList {
-    # Get the application root identifier    
-    set rootdataid $AppId
-    # Get the properties identifier 
-    set cxpath "$rootdataid//c.Properties"
-    set cproplist [::xmlutils::setXmlContainerIds $cxpath]
-    # WarnWinText "cproplist:$cproplist"
-    # All material list
-    set dprops($AppId,AllMatId) [list]
-    # Get the properties
-    foreach propid $cproplist {
-        # Material identifier
-        set mxpath "$cxpath//c.${propid}//c.MainProperties//i.Material"
-        set cproperty "dv"
-        set MatId [::xmlutils::setXml $mxpath $cproperty]
-        # WarnWinText "MatId:$MatId"
-        set dprops($AppId,Property,$propid,MatId) "$MatId"
-        # Get the material properties
-        if {$MatId ni $dprops($AppId,AllMatId)} {
-        lappend dprops($AppId,AllMatId) $MatId
-        }
-           
-        # Thickness value
-        set txpath "$cxpath//c.${propid}//c.MainProperties//i.Thickness"
-        set cproperty "dv"
-        set Thickness [::xmlutils::setXml $txpath $cproperty]
-        # WarnWinText "Thickness:$Thickness"
-        set dprops($AppId,Property,$propid,Thickness) $Thickness
-
-        # Property type => Base element type
-        set ptypexpath "$cxpath//c.${propid}//c.MainProperties//i.ElemType"
-        set cproperty "dv"
-        set ptype [::xmlutils::setXml $ptypexpath $cproperty]
-        # WarnWinText "ptype:$ptype"
-        set dprops($AppId,Property,$propid,BaseElemType) $ptype
-
-        # Material model 
-        set xpath "$cxpath//c.${propid}//c.MainProperties//i.MatModel"
-        set cproperty "dv"
-        set MatModel [::xmlutils::setXml $xpath $cproperty]
-        # WarnWinText "MatModel:$MatModel"
-        set dprops($AppId,Property,$propid,MatModel) $MatModel
-
-        # Set fluency and behavior variables
-        set dprops($AppId,Material,$MatId,UseFluency) "No"
-        set dprops($AppId,Material,$MatId,Fluency) ""
-        set dprops($AppId,Material,$MatId,UseBehavior) "No"
-        set dprops($AppId,Material,$MatId,Behavior) ""
-
-        # Get material properties
-        switch -exact -- $MatModel {
-        "Elastic-Isotropic" {
-            if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel "One"
-            } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
-            set cptype "Isotropic2D"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
-            } elseif {(($ptype=="Solid")||($ptype=="Shell")) && ($ndime =="3D")} {
-            set cptype "Isotropic3D"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "No"
-            }
-        }
-        "Elastic-Orthotropic" {
-        }
-        "Elasto-Plastic" {
-            if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
-            set cptype "Plasticity2D"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
-            # Get the material behavior and fluency properties
-            ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-            } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
-            set cptype "Plasticity2D"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
-            # Get the material behavior and fluency properties
-            ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-            } elseif {($ptype=="Solid") && ($ndime =="3D")} {
-            set cptype "Plasticity3D"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "No"
-            # Get the material behavior and fluency properties
-            ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-            }
-        }
-        "Damage" {
-            if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
-            set cptype "IsotropicDamage"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
-            # Get the material behavior and fluency properties
-            ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-            } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
-            set cptype "IsotropicDamage"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
-            # Get the material behavior and fluency properties
-            ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-            } elseif {($ptype=="Solid") && ($ndime =="3D")} {
-            set cptype "IsotropicDamage3D"
-            # Get the material properties
-            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "No"
-            # Get the material behavior and fluency properties
-            ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-            }
-        }
-        }
-    }
+	# Get the application root identifier    
+	set rootdataid $AppId
+	# Get the properties identifier 
+	set cxpath "$rootdataid//c.Properties"
+	set cproplist [::xmlutils::setXmlContainerIds $cxpath]
+	# WarnWinText "cproplist:$cproplist"
+	# All material list
+	set dprops($AppId,AllMatId) [list]
+	# Get the properties
+	foreach propid $cproplist {
+	    # Material identifier
+	    set mxpath "$cxpath//c.${propid}//c.MainProperties//i.Material"
+	    set cproperty "dv"
+	    set MatId [::xmlutils::setXml $mxpath $cproperty]
+	    # WarnWinText "MatId:$MatId"
+	    set dprops($AppId,Property,$propid,MatId) "$MatId"
+	    # Get the material properties
+	    if {$MatId ni $dprops($AppId,AllMatId)} {
+		lappend dprops($AppId,AllMatId) $MatId
+	    }
+	    
+	    # Thickness value
+	    set txpath "$cxpath//c.${propid}//c.MainProperties//i.Thickness"
+	    set cproperty "dv"
+	    set Thickness [::xmlutils::setXml $txpath $cproperty]
+	    # WarnWinText "Thickness:$Thickness"
+	    set dprops($AppId,Property,$propid,Thickness) $Thickness
+	    
+	    # Property type => Base element type
+	    set ptypexpath "$cxpath//c.${propid}//c.MainProperties//i.ElemType"
+	    set cproperty "dv"
+	    set ptype [::xmlutils::setXml $ptypexpath $cproperty]
+	    # WarnWinText "ptype:$ptype"
+	    set dprops($AppId,Property,$propid,BaseElemType) $ptype
+	    
+	    # Material model 
+	    set xpath "$cxpath//c.${propid}//c.MainProperties//i.MatModel"
+	    set cproperty "dv"
+	    set MatModel [::xmlutils::setXml $xpath $cproperty]
+	    # WarnWinText "MatModel:$MatModel"
+	    set dprops($AppId,Property,$propid,MatModel) $MatModel
+	    
+	    # Set fluency and behavior variables
+	    set dprops($AppId,Material,$MatId,UseFluency) "No"
+	    set dprops($AppId,Material,$MatId,Fluency) ""
+	    set dprops($AppId,Material,$MatId,UseBehavior) "No"
+	    set dprops($AppId,Material,$MatId,Behavior) ""
+	    
+	    # Get material properties
+	    switch -exact -- $MatModel {
+		"Elastic-Isotropic" {
+		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel "One"
+		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
+			set cptype "Isotropic2D"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
+		    } elseif {(($ptype=="Solid")||($ptype=="Shell")) && ($ndime =="3D")} {
+			set usethick "No"
+			set cptype "Isotropic3D"
+			if {$ptype=="Shell"} {
+			    set usethick "Yes"
+			}
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "$usethick"
+		    }
+		}
+		"Elastic-Orthotropic" {
+		}
+		"Elasto-Plastic" {
+		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
+			set cptype "Plasticity2D"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
+			# Get the material behavior and fluency properties
+			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
+			set cptype "Plasticity2D"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
+			# Get the material behavior and fluency properties
+			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
+			set cptype "Plasticity3D"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "No"
+			# Get the material behavior and fluency properties
+			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+		    }
+		}
+		"Damage" {
+		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
+			set cptype "IsotropicDamage"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
+			# Get the material behavior and fluency properties
+			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
+			set cptype "IsotropicDamage"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
+			# Get the material behavior and fluency properties
+			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
+			set cptype "IsotropicDamage3D"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "No"
+			# Get the material behavior and fluency properties
+			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+		    }
+		}
+	    }
+	}
     }
 }
 
@@ -475,68 +480,68 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
     set mbwritev [split [::xmlutils::getKKWord $clxpath $ptype "mbwritev"] ,]
     # WarnWinText "mbwritev:$mbwritev mbivalues:$mbivalues\n$mpxpath//$mbxpath//p.$mbehavior cbvalue:$cbvalue"
     foreach mbiv $mbivalues mbwv $mbwritev {
-    if {$mbiv ==$cbvalue} {
-        set dprops($AppId,Material,$MatId,Behavior) "$mbwv"
-        break
-    }
+	if {$mbiv ==$cbvalue} {
+	    set dprops($AppId,Material,$MatId,Behavior) "$mbwv"
+	    break
+	}
     }
     # WarnWinText "dprops($AppId,Material,$MatId,Behavior):$dprops($AppId,Material,$MatId,Behavior)"
     if {$MatModel =="Damage"} {
-    # Damage models
-    # Get the energy yield function
-    # Get the internal state properties
-    set msivalues [split [::xmlutils::getKKWord $clxpath "MState" "msivalues"] ,]
-    # Get the write behavior properties
-    set mswritev [split [::xmlutils::getKKWord $clxpath "MState" "mswritev"] ,]
-    # WarnWinText "mswritev:$mswritev msivalues:$msivalues"
-    foreach msiv $msivalues mswv $mswritev {
-        # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
-        if {$msiv ==$cptype} {
-        set dprops($AppId,Material,$MatId,Fluency) "EnergyYieldFunction(myState.${mswv})"
-        break
-        }
-    }
+	# Damage models
+	# Get the energy yield function
+	# Get the internal state properties
+	set msivalues [split [::xmlutils::getKKWord $clxpath "MState" "msivalues"] ,]
+	# Get the write behavior properties
+	set mswritev [split [::xmlutils::getKKWord $clxpath "MState" "mswritev"] ,]
+	# WarnWinText "mswritev:$mswritev msivalues:$msivalues"
+	foreach msiv $msivalues mswv $mswritev {
+	    # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
+	    if {$msiv ==$cptype} {
+		set dprops($AppId,Material,$MatId,Fluency) "EnergyYieldFunction(myState.${mswv})"
+		break
+	    }
+	}
     } elseif {$MatModel == "Elasto-Plastic"} {
-    # Elasto-plastic models
-    # Get the internal state properties
-    set msivalues [split [::xmlutils::getKKWord $clxpath "MState" "msivalues"] ,]
-    # Get the write behavior properties
-    set mswritev [split [::xmlutils::getKKWord $clxpath "MState" "mswritev"] ,]
-    # WarnWinText "mswritev:$mswritev msivalues:$msivalues"
-    set cstate ""
-    foreach msiv $msivalues mswv $mswritev {
-        # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
-        if {$msiv ==$cptype} {
-        set cstate "myState.${mswv}"
-        break
-        }
-    }
-    # WarnWinText "cstate:$cstate"
-    # Get the yield function properties
-    # Get the yield criteria
-    set yfid "YieldFunctions"
-    set myieldcriteria [::xmlutils::getKKWord "$clxpath" $ptype "myieldcriteria"]
-    # Get the yield criteria xpath values
-    set mycxpath [::xmlutils::getKKWord "$clxpath" $ptype "mycxpath"]
-    # Get the current yield criteria
-    set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.$myieldcriteria"] 0 1]
-    # WarnWinText "myieldcriteria:$myieldcriteria mycxpath:$mycxpath cycvalue:$cycvalue"
-    # Get the yield function options
-    set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfivalues"] ,]
-    # Get the write yield function properties
-    set yfwritev [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfwritev"] ,]
-    # WarnWinText "yfwritev:$yfwritev yfivalues:$yfivalues"
-    set cyf ""
-    foreach yfiv $yfivalues yfwv $yfwritev {
-        # WarnWinText "yfiv:$yfiv cycvalue:$cycvalue yfwv:$yfwv" 
-        if {$yfiv ==$cycvalue} {
-        set cyf "$yfwv"
-        break
-        }
-    }
-    # WarnWinText "cyf:$cyf"
-
-    set dprops($AppId,Material,$MatId,Fluency) "${cyf}(${cstate},myPotencialPlastic.Associated)"
+	# Elasto-plastic models
+	# Get the internal state properties
+	set msivalues [split [::xmlutils::getKKWord $clxpath "MState" "msivalues"] ,]
+	# Get the write behavior properties
+	set mswritev [split [::xmlutils::getKKWord $clxpath "MState" "mswritev"] ,]
+	# WarnWinText "mswritev:$mswritev msivalues:$msivalues"
+	set cstate ""
+	foreach msiv $msivalues mswv $mswritev {
+	    # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
+	    if {$msiv ==$cptype} {
+		set cstate "myState.${mswv}"
+		break
+	    }
+	}
+	# WarnWinText "cstate:$cstate"
+	# Get the yield function properties
+	# Get the yield criteria
+	set yfid "YieldFunctions"
+	set myieldcriteria [::xmlutils::getKKWord "$clxpath" $ptype "myieldcriteria"]
+	# Get the yield criteria xpath values
+	set mycxpath [::xmlutils::getKKWord "$clxpath" $ptype "mycxpath"]
+	# Get the current yield criteria
+	set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.$myieldcriteria"] 0 1]
+	# WarnWinText "myieldcriteria:$myieldcriteria mycxpath:$mycxpath cycvalue:$cycvalue"
+	# Get the yield function options
+	set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfivalues"] ,]
+	# Get the write yield function properties
+	set yfwritev [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfwritev"] ,]
+	# WarnWinText "yfwritev:$yfwritev yfivalues:$yfivalues"
+	set cyf ""
+	foreach yfiv $yfivalues yfwv $yfwritev {
+	    # WarnWinText "yfiv:$yfiv cycvalue:$cycvalue yfwv:$yfwv" 
+	    if {$yfiv ==$cycvalue} {
+		set cyf "$yfwv"
+		break
+	    }
+	}
+	# WarnWinText "cyf:$cyf"
+	
+	set dprops($AppId,Material,$MatId,Fluency) "${cyf}(${cstate},myPotencialPlastic.Associated)"
     }
     # WarnWinText "dprops($AppId,Material,$MatId,Fluency):$dprops($AppId,Material,$MatId,Fluency)"
 }
@@ -551,7 +556,7 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick
     set clxpath "CLawProperties"
     # Xpath for materials
     set matxpath "Materials"
-  
+    
     # Get all material properties
     set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
     # WarnWinText "mpxpath:$mpxpath"
@@ -569,59 +574,59 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick
     # WarnWinText "MatModel:$MatModel mprops:$mprops mxpath:$mxpath"
     set matplist [list]
     foreach pid $mprops xpath $mxpath {
-    # Get the kratos key word
-    set kkword [::xmlutils::getKKWord $matxpath $pid "kkword"] 
-    # WarnWinText "pid:$pid kkword:$kkword"
-    # Get the current value for this properties
-    # WarnWinText "xpath:$mpxpath//$xpath//p.$pid"
-    set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
-    if {($kkword !="") && ($cvalue !="")} {
-        lappend matplist [list $kkword $cvalue]
+	# Get the kratos key word
+	set kkword [::xmlutils::getKKWord $matxpath $pid "kkword"] 
+	# WarnWinText "pid:$pid kkword:$kkword"
+	# Get the current value for this properties
+	# WarnWinText "xpath:$mpxpath//$xpath//p.$pid"
+	set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
+	if {($kkword !="") && ($cvalue !="")} {
+	    lappend matplist [list $kkword $cvalue]
+	}
     }
-    }
-
+    
     # Add others properties for specific constitutive models
     if {$CMatModel == "Elasto-Plastic"} {
-    # Get the yield function properties
-    set yfid "YieldFunctions"
-    # Get the yield criteria
-    set myieldcriteria [::xmlutils::getKKWord $clxpath $ptype "myieldcriteria"]
-    # Get the yield criteria xpath values
-    set mycxpath [::xmlutils::getKKWord $clxpath $ptype "mycxpath"]
-    # Get the current yield criteria
-    set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.$myieldcriteria"] 0 1]
-    # WarnWinText "myieldcriteria:$myieldcriteria mycxpath:$mycxpath cycvalue:$cycvalue"
-    # Get the yield function options
-    set cyf ""
-    set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfivalues"] ,]
-    foreach yfiv $yfivalues {
-        if {$yfiv ==$cycvalue} {
-        set cyf "$yfiv"
-        break
-        }
+	# Get the yield function properties
+	set yfid "YieldFunctions"
+	# Get the yield criteria
+	set myieldcriteria [::xmlutils::getKKWord $clxpath $ptype "myieldcriteria"]
+	# Get the yield criteria xpath values
+	set mycxpath [::xmlutils::getKKWord $clxpath $ptype "mycxpath"]
+	# Get the current yield criteria
+	set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.$myieldcriteria"] 0 1]
+	# WarnWinText "myieldcriteria:$myieldcriteria mycxpath:$mycxpath cycvalue:$cycvalue"
+	# Get the yield function options
+	set cyf ""
+	set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfivalues"] ,]
+	foreach yfiv $yfivalues {
+	    if {$yfiv ==$cycvalue} {
+		set cyf "$yfiv"
+		break
+	    }
+	}
+	# WarnWinText "cyf:$cyf"
+	# Get other properties for the specific yield function
+	if {$cyf !=""} {
+	    # Get the yield function parameters
+	    set privalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "$cyf" "privalues"] ,]
+	    # Get the write yield function parameters 
+	    set prxpath [split [::xmlutils::getKKWord "$clxpath//$yfid" "$cyf" "prxpath"] ,]
+	    # WarnWinText "$clxpath//$cyf prxpath:$prxpath privalues:$privalues"
+	    foreach pid $privalues xpath $prxpath {
+		# Get the kratos key word
+		set kkword [::xmlutils::getKKWord $matxpath $pid "kkword"] 
+		# WarnWinText "pid:$pid kkword:$kkword"
+		# Get the current value for this properties
+		# WarnWinText "xpath:$mpxpath//$xpath//p.$pid"
+		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
+		if {($kkword !="") && ($cvalue !="")} {
+		    lappend matplist [list $kkword $cvalue]
+		}
+	    }
+	}
     }
-    # WarnWinText "cyf:$cyf"
-    # Get other properties for the specific yield function
-    if {$cyf !=""} {
-        # Get the yield function parameters
-        set privalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "$cyf" "privalues"] ,]
-        # Get the write yield function parameters 
-        set prxpath [split [::xmlutils::getKKWord "$clxpath//$yfid" "$cyf" "prxpath"] ,]
-        # WarnWinText "$clxpath//$cyf prxpath:$prxpath privalues:$privalues"
-        foreach pid $privalues xpath $prxpath {
-        # Get the kratos key word
-        set kkword [::xmlutils::getKKWord $matxpath $pid "kkword"] 
-        # WarnWinText "pid:$pid kkword:$kkword"
-        # Get the current value for this properties
-        # WarnWinText "xpath:$mpxpath//$xpath//p.$pid"
-        set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
-        if {($kkword !="") && ($cvalue !="")} {
-            lappend matplist [list $kkword $cvalue]
-        }
-        }
-    }
-    }
-
+    
     # WarnWinText "matplist:$matplist"
     set dprops($AppId,Material,$MatId,Props) $matplist
     # Get others properties
@@ -631,21 +636,21 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick
     # Check to use thickness value
     set dprops($AppId,Material,$MatId,CProps) [list]
     switch -exact -- $usethick {
-    "Yes" {
-        # Get the current value
-        set Thickness $dprops($AppId,Property,$propid,Thickness)
-        set kword [::xmlutils::getKKWord $kmxpath [lindex $cprops 0] "kkword"]
-        # Update section properties
-        set dprops($AppId,Material,$MatId,CProps) [list [list $kword $Thickness]]
-        # WarnWinText "dprops($AppId,Material,$MatId,CProps):$dprops($AppId,Material,$MatId,CProps)"
-    }
-    "One" {
-        set Thickness "1.0"
-        set kword [::xmlutils::getKKWord $kmxpath [lindex $cprops 0] "kkword"]
-        # Update section properties
-        set dprops($AppId,Material,$MatId,CProps) [list [list $kword $Thickness]]
-        # WarnWinText "dprops($AppId,Material,$MatId,CProps):$dprops($AppId,Material,$MatId,CProps)"
-    }
+	"Yes" {
+	    # Get the current value
+	    set Thickness $dprops($AppId,Property,$propid,Thickness)
+	    set kword [::xmlutils::getKKWord $kmxpath [lindex $cprops 0] "kkword"]
+	    # Update section properties
+	    set dprops($AppId,Material,$MatId,CProps) [list [list $kword $Thickness]]
+	    # WarnWinText "dprops($AppId,Material,$MatId,CProps):$dprops($AppId,Material,$MatId,CProps)"
+	}
+	"One" {
+	    set Thickness "1.0"
+	    set kword [::xmlutils::getKKWord $kmxpath [lindex $cprops 0] "kkword"]
+	    # Update section properties
+	    set dprops($AppId,Material,$MatId,CProps) [list [list $kword $Thickness]]
+	    # WarnWinText "dprops($AppId,Material,$MatId,CProps):$dprops($AppId,Material,$MatId,CProps)"
+	}
     }
 }
 
