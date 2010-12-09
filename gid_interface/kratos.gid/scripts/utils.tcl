@@ -10,12 +10,13 @@
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : modify ReadResultsFromFiles procedure to load lst GiD files ${appid}.post.lst
+#    LAST MODIFICATION : modify the procedure GetDefinedMeshGiDEntities to get all nodes that defined a surface when using shell elements
 #
-#    VERSION : 0.4
+#    VERSION : 0.5
 #
 #    HISTORY:
 #
+#     0.5- 09/12/10-GS, modify the procedure GetDefinedMeshGiDEntities to get all nodes that defined a surface when using shell elements
 #     0.4- 14/09/10-GS, modify ReadResultsFromFiles procedure to load lst GiD files ${appid}.post.lst
 #     0.3- 08/09/10-GS, add the procedure ReadResultsFromFiles to check and read kratos result files in the GiD postprocess
 #     0.2- 22/04/10-GS, add the procedure GetDefinedMeshGiDEntities to get the GiD mesh entities that belong to a group identifier
@@ -198,6 +199,28 @@ proc ::KUtils::GetDefinedMeshGiDEntities {groupid {etype point} {what Elements} 
 			    }
 			    "Hexahedra" {
 				foreach nodeid [::KUtils::GetHexahedraFaceNodes $isquadratic $cid $eid] {
+				    if {$nodeid ni $nlist} {
+					lappend nlist $nodeid
+				    }  
+				}
+			    }
+			}
+		    }
+		} elseif {($cgroupid == $groupid) && ($cid =="E")} {
+		    # Condition applied over element by we need only the node identifier of this elements
+		     # Get the element properties
+		    foreach GiDElemType $gidetype {
+			# WarnWinText "GiDElemType:$GiDElemType"
+			switch $GiDElemType {
+			    "Triangle" {
+				foreach nodeid [lrange [GiD_Info Mesh Elements Triangle $eid] 1 end-1] {
+				    if {$nodeid ni $nlist} {
+					lappend nlist $nodeid
+				    }  
+				}
+			    }
+			    "Quadrilateral" {
+				foreach nodeid [lrange [GiD_Info Mesh Elements Quadrilateral $eid] 1 end-1] {
 				    if {$nodeid ni $nlist} {
 					lappend nlist $nodeid
 				    }  
