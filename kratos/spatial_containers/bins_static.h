@@ -336,11 +336,22 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
      //************************************************************************
      //************************************************************************
 
+	 PointerType SearchNearestPointInner( PointerType& ThisPoint )
+	 {
+	   PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
+	   CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
+         SearchStructureType Box( CalculateCell(*ThisPoint), mN, mIndexCellBegin );
+	   SearchNearestPointLocalInner( ThisPoint, Result, ResultDistance, Box );
+	   return Result;
+	 }
+
+	 //************************************************************************
+
 	 PointerType SearchNearestPoint( PointType const& ThisPoint )
 	 {
 	   PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
 	   CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
-       SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
+         SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
 	   SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box );
 	   return Result;
 	 }
@@ -351,7 +362,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	 {
 	   PointerType Result = *mPointBegin;                           //static_cast<PointerType>(NULL);
 	   rResultDistance    = static_cast<CoordinateType>(DBL_MAX);
-       SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
+         SearchStructureType Box( CalculateCell(ThisPoint), mN, mIndexCellBegin );
 	   SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
 	   return Result;
 	 }
@@ -363,7 +374,7 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	 {
 	   PointerType Result            = *mPointBegin;                           //static_cast<PointerType>(NULL);
 	   CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
-       Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
+         Box.Set( CalculateCell(ThisPoint), mN, mIndexCellBegin );
 	   SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
 	   return Result;
 	 }
@@ -405,6 +416,28 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 	   while(!Found){
 		 ++Box;
 		 SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
+	   }
+	 
+     }
+
+	 //************************************************************************
+	 //************************************************************************
+
+     // **** THREAD SAFE  -> The user pass the SearchStructure (BinBox)
+	 void SearchNearestPointLocalInner( PointerType& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box ) 
+	 {
+	   if( mPointBegin == mPointEnd )
+		 return;
+
+       bool Found;
+
+	   // initial search
+	   ++Box;
+	   SearchNearestInBoxInner( ThisPoint, rResult, rResultDistance, Box, Found );
+	   // increase mBox and try again
+	   while(!Found){
+		 ++Box;
+		 SearchNearestInBoxInner( ThisPoint, rResult, rResultDistance, Box, Found );
 	   }
 	 
      }
@@ -586,6 +619,54 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
      }
 
 	 //************************************************************************
+	 //************************************************************************
+
+     // Dimension = 1
+	 void SearchNearestInBoxInner( PointerType& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
+         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box, bool& Found )
+     {
+       Found = false;
+       SearchNearestInnerInRange( *(Box.RowBegin), *(Box.RowEnd), ThisPoint, ResultPoint, ResultDistance, Found );
+     }
+
+     // Dimension = 2
+	 void SearchNearestInBoxInner( PointerType& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
+         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box, bool& Found )
+     {
+       Found = false;
+       for(IndexType I = Box.Axis[1].Begin() ; I <= Box.Axis[1].End() ; I += Box.Axis[1].Block )
+         SearchNearestInnerInRange( Box.RowBegin[I], Box.RowEnd[I], ThisPoint, ResultPoint, ResultDistance, Found );
+     }
+	 
+     // Dimension = 3
+     void SearchNearestInBoxInner( PointerType& ThisPoint, PointerType& ResultPoint, CoordinateType& ResultDistance, 
+         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box, bool& Found )
+     {
+       Found = false;
+       for(IndexType II = Box.Axis[2].Begin() ; II <= Box.Axis[2].End() ; II += Box.Axis[2].Block )
+         for(IndexType I = II + Box.Axis[1].Begin() ; I <= II + Box.Axis[1].End() ; I += Box.Axis[1].Block )
+           SearchNearestInnerInRange( Box.RowBegin[I], Box.RowEnd[I], ThisPoint, ResultPoint, ResultDistance, Found );
+     }
+
+	 //************************************************************************
+	 //************************************************************************
+	 
+     void SearchNearestInnerInRange( const IteratorType& RangeBegin, const IteratorType& RangeEnd, PointerType& ThisPoint,
+         PointerType& Result, CoordinateType& Distance, bool& Found )
+     {
+       CoordinateType NewDistance;
+       for(IteratorType Point = RangeBegin ; Point != RangeEnd ; Point++){
+         NewDistance = TDistanceFunction()(**Point,*ThisPoint);
+         if( NewDistance < Distance && *Point != ThisPoint){
+           Result = *Point;
+           Distance = NewDistance;
+           Found = true;
+         }
+       }
+     }
+        
+       
+       //************************************************************************
 	 //************************************************************************
 	 
 	 SizeType SearchInBox( PointType const& SearchMinPoint, PointType const& SearchMaxPoint, IteratorType Results,
