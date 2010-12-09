@@ -353,7 +353,7 @@ void InterpolatedRecoveryGradients(const Variable<Matrix>& rVariable, ModelPart&
 
    	KRATOS_TRY  
 
-        ProcessInfo& CurrentProcessInfo    =  this_model_part.GetProcessInfo();  
+        
 	//ElementsArrayType& pElements       =  this_model_part.Elements(); 
         NodesArrayType& pNodes             =  this_model_part.Nodes(); 
         	
@@ -386,10 +386,10 @@ void InterpolatedRecoveryGradients(const Variable<Matrix>& rVariable, ModelPart&
         std::vector<int> work_array_elem;
         Matrix This_Node_Stress = ZeroMatrix(1,domain_size);
         
-        #pragma omp parallel for firstprivate(init) private(Output_Values,Coord_Point, This_Node_Stress, Coord_Node,  Polynomial,  Aux_b, Aux_Poly, a, work_array_elem)  shared(size_2,rVariable, this_model_part,CurrentProcessInfo)   
+        #pragma omp parallel for firstprivate(init) private(Output_Values,Coord_Point, This_Node_Stress, Coord_Node,  Polynomial,  Aux_b, Aux_Poly, a, work_array_elem)  shared(size_2,rVariable, this_model_part)   
         for(int k=0; k<number_of_threads; k++)
   	{
-     
+	  ProcessInfo& CurrentProcessInfo    =  this_model_part.GetProcessInfo();  
   	  //NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
   	  //NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
