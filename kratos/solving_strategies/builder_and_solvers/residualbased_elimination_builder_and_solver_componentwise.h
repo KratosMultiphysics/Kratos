@@ -666,7 +666,7 @@ namespace Kratos
 
                         vector<unsigned int> partition;
                         vector<unsigned int> local_sizes(number_of_threads);
-			for(unsigned int i=0; i<number_of_threads; i++)
+			for(int i=0; i<number_of_threads; i++)
                             local_sizes[i] = 0;
 
 			CreatePartition(number_of_threads, mActiveNodes.size(), partition);
@@ -715,7 +715,7 @@ namespace Kratos
 
                         //calculate the total size of the system
                         int total_size = 0.0;
-                        for(unsigned int i=0; i<number_of_threads; i++)
+                        for(int i=0; i<number_of_threads; i++)
                             total_size += local_sizes[i];
 
 			A.reserve(total_size,false);
@@ -782,7 +782,7 @@ namespace Kratos
 			int partition_size = number_of_rows / number_of_threads;
 			partitions[0] = 0;
 			partitions[number_of_threads] = number_of_rows;
-			for(int i = 1; i<number_of_threads; i++)
+			for(unsigned int i = 1; i<number_of_threads; i++)
 			   partitions[i] = partitions[i-1] + partition_size ;
 		}
 		
