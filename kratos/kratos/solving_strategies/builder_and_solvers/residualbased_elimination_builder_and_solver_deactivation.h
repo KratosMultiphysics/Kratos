@@ -225,7 +225,7 @@ namespace Kratos
 
                         //double StartTime = GetTickCount();
 
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+//             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             // assemble all elements
             #ifndef _OPENMP
             for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
@@ -1230,7 +1230,7 @@ std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
             int partition_size = number_of_rows / number_of_threads;
             partitions[0] = 0;
             partitions[number_of_threads] = number_of_rows;
-            for(int i = 1; i<number_of_threads; i++)
+            for(unsigned int i = 1; i<number_of_threads; i++)
                partitions[i] = partitions[i-1] + partition_size ;
         }
         
