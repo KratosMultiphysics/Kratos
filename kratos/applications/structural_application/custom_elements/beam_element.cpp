@@ -1000,7 +1000,6 @@ namespace Kratos
 
 
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( GeometryData::GI_GAUSS_3 );
-        const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( GeometryData::GI_GAUSS_3 );
 
 
         if ( Output.size() != integration_points.size() )
