@@ -1892,7 +1892,7 @@ namespace Kratos
                 int partition_size = number_of_rows / number_of_threads;
                 partitions[0] = 0;
                 partitions[number_of_threads] = number_of_rows;
-                for(int i = 1; i<number_of_threads; i++)
+                for(unsigned int i = 1; i<number_of_threads; i++)
                     partitions[i] = partitions[i-1] + partition_size ;
             }
 
