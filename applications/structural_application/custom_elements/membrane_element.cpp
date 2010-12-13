@@ -82,11 +82,6 @@ namespace Kratos
             : Element( NewId, pGeometry, pProperties )
 
     {
-        //initializing static variables
-        unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int dim = number_of_nodes * 3;
-//   B.resize(3,dim);
-//          DN_DX.resize(number_of_nodes,3);
     }
 
     //***********************************************************************************
