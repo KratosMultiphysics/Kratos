@@ -728,7 +728,7 @@ namespace Kratos
 	    }
 	}
 	
-	double nodal_area_factor = Area/static_cast<double>(TDim+1);
+	//double nodal_area_factor = Area/static_cast<double>(TDim+1);
 
 	//now calculate the distance of all the nodes from the elemental free surface
 	for(unsigned int i = 0; i<TDim+1; i++)

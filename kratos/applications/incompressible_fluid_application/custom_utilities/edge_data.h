@@ -518,12 +518,12 @@ namespace Kratos
 				//SIZE OF CSR VECTOR
 
 				//defining the number of nodes and edges
-				unsigned int n_nodes = model_part.Nodes().size();
+				int n_nodes = model_part.Nodes().size();
 				//remark: no colouring algorithm is used here (symmetry is neglected)
 				//        respectively edge ij is considered different from edge ji
 				mNumberEdges = 0;
 				//counter to assign and get global nodal index
-				unsigned int i_node = 0;
+				int i_node = 0;
 
 				//counting the edges connecting the nodes
 				for (typename ModelPart::NodesContainerType::iterator node_it=model_part.NodesBegin(); node_it!=model_part.NodesEnd(); node_it++)
@@ -849,7 +849,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
 				#pragma omp parallel for firstprivate(n_nodes, it_begin) 
@@ -881,7 +881,7 @@ namespace Kratos
 
 				//loop over all nodes
 
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
@@ -911,7 +911,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
@@ -941,7 +941,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
@@ -968,7 +968,7 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
 				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
@@ -996,7 +996,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
 				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
@@ -1025,7 +1025,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				//loop over all nodes
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
 				
 				unsigned int  var_pos = it_begin->pGetVariablesList()->Index(rVariable);
