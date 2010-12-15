@@ -196,14 +196,14 @@ namespace Kratos
 		double h = sqrt(2.00*Area);
 		double norm_u =norm_2(ms_vel_gauss);
 		double tau1=( h*h )/(c1 * conductivity + c2 * density * specific_heat * norm_u * h);
-		double alpha = conductivity/(density*specific_heat);
+// 		double alpha = conductivity/(density*specific_heat);
 
-		double g=0.0;
+// 		double g=0.0;
     		double p1= msDN_DX(0,0)*GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)+msDN_DX(1,0)*GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE)+ msDN_DX(2,0)*GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE); 
     		double p2 = msDN_DX(0,1)*GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)+msDN_DX(1,1)*GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE)+ msDN_DX(2,1)*GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE); 
     		grad_g[0] =p1;
     		grad_g[1] = p2;
-    		double norm_g =norm_2(grad_g);
+//     		double norm_g =norm_2(grad_g);
 
 		double res = density*specific_heat*(inner_prod(ms_vel_gauss,grad_g)) ;//+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
 		double norm_grad=norm_2(grad_g);
