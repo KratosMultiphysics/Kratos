@@ -166,11 +166,13 @@ namespace Kratos
             NodesArrayType::iterator i_begin = pNodes.ptr_begin();
             NodesArrayType::iterator i_end = pNodes.ptr_end();
 
+	    std::vector<unsigned int> aux(10000);
+	    
             for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
             {
                 int index_i = i->Id() - 1;
                 WeakPointerVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_NODES);
-                std::vector<unsigned int> aux(neighb_nodes.size());
+                
                 unsigned int active = 0;
                 for (WeakPointerVector< Node < 3 > >::iterator inode = neighb_nodes.begin();
                         inode != neighb_nodes.end(); inode++)
@@ -578,14 +580,14 @@ namespace Kratos
                     aux[10] = CreateCenterNode(geom, this_model_part);
 		    
 		    bool verified = false;
-		    for(unsigned int iii=0; iii<nel*4; iii++)
+		    for(int iii=0; iii<nel*4; iii++)
 		      if(t[iii] == 10)
 			verified = true;
 		      
 		    if(verified == false)
 		    {
 		      KRATOS_WATCH(nel);
-			for(unsigned int iii=0; iii<nel*4; iii++)
+			for(int iii=0; iii<nel*4; iii++)
 			  std::cout << t[iii] << std::endl;
 			
 		      KRATOS_ERROR(std::logic_error,"internal node is created but not used","");
