@@ -81,7 +81,7 @@ namespace Kratos
 	const PointerVector< Node<3> >::iterator it_begin = rNodes.begin();
 	array_1d<double,3> temp;
 	#pragma omp parallel for private(temp)
-	for(unsigned int i=0; i<rNodes.size(); i++)
+	for(int i=0; i<rNodes.size(); i++)
 	{
 	    
 	    PointerVector< Node<3> >::iterator it = it_begin + i;
