@@ -228,6 +228,7 @@ namespace Kratos
 //             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             // assemble all elements
             #ifndef _OPENMP
+            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
             for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
             {
                 if( ! (*it)->GetValue( IS_INACTIVE ) )
