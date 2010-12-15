@@ -57,10 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstddef>
 
 
-// External includes 
-#include <boost/serialization/base_object.hpp>
-
-
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
