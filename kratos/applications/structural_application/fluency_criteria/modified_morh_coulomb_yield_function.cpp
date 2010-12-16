@@ -78,7 +78,7 @@ namespace Kratos
 		    void Modified_Morh_Coulomb_Yield_Function::InitializeMaterial(const Properties& props) 
                    {
 			mprops = &props;
-			double maxfriction_angle  = (*mprops)[MAX_FRICTION_INTERNAL_ANGLE]*PI/180.00;
+			double maxfriction_angle  = (*mprops)[MAX_INTERNAL_FRICTION_ANGLE]*PI/180.00;
 			mEta = 2.00*tan(maxfriction_angle/2.00 + PI/4.00); 
                    }
  
@@ -110,7 +110,7 @@ namespace Kratos
                       
                       //KRATOS_WATCH(PrincipalStress) 
     
-                      double  frictional_internal = (*mprops)[MAX_FRICTION_INTERNAL_ANGLE]*PI/180.00;       
+                      double  frictional_internal = (*mprops)[MAX_INTERNAL_FRICTION_ANGLE]*PI/180.00;       
                       double  sin_fric_inter      = sin(frictional_internal);
                       double  cos_fric_inter      = cos(frictional_internal);
                        
@@ -195,7 +195,7 @@ const Vector& StressVector,double& Result)
       //PrincipalStress[1] = I[0]/3.00 + 2.00 * sqrt(J_des[1]/3.00) * (sin(tetha_Lode));
       //PrincipalStress[2] = I[0]/3.00 + sqrt(J_des[1]) * (-cos(tetha_Lode) - sin(tetha_Lode)/sqrt(3.00));
       //KRATOS_WATCH(PrincipalStress) 
-      frictional_internal = (*mprops)[MAX_FRICTION_INTERNAL_ANGLE]*PI/180.00;
+      frictional_internal = (*mprops)[MAX_INTERNAL_FRICTION_ANGLE]*PI/180.00;
 
 
       R_morh = tan(frictional_internal/2.00 + PI/4.00);
@@ -299,7 +299,7 @@ void Modified_Morh_Coulomb_Yield_Function::CalculateDerivateFluencyCriteriaMulti
       C[2].resize(3, false); C[2] = ZeroVector(3);
       C[3].resize(3, false); C[3] = ZeroVector(3);
 
-      frictional_internal = (*mprops)[MAX_FRICTION_INTERNAL_ANGLE]*PI/180.00;                                   
+      frictional_internal = (*mprops)[MAX_INTERNAL_FRICTION_ANGLE]*PI/180.00;                                   
 
       Vector I          = ZeroVector(3);
       Vector J          = ZeroVector(3);
@@ -569,7 +569,7 @@ DerivateFluencyCriteria[1].resize(6); DerivateFluencyCriteria[1] = ZeroVector(6)
 DerivateFluencyCriteria[2].resize(6); DerivateFluencyCriteria[2] = ZeroVector(6);
 DerivateFluencyCriteria[3].resize(6); DerivateFluencyCriteria[3] = ZeroVector(6);
 
-double  frictional_internal = (*mprops)[MAX_FRICTION_INTERNAL_ANGLE]*PI/180.00;      
+double  frictional_internal = (*mprops)[MAX_INTERNAL_FRICTION_ANGLE]*PI/180.00;      
 double  s = sin(frictional_internal);
 
 DerivateFluency[0](0) =  0.5 * ( s + 1.00);  

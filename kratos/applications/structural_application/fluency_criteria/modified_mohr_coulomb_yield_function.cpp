@@ -77,7 +77,7 @@ namespace Kratos
 
 		    void Modified_Mohr_Coulomb_Yield_Function::InitializeMaterial(const Properties& props) 
                    {mprops = &props;
-                   double maxfriction_angle  = (*mprops)[MAX_FRICTION_INTERNAL_ANGLE]*PI/180.00;
+                   double maxfriction_angle  = (*mprops)[MAX_INTERNAL_FRICTION_ANGLE]*PI/180.00;
 		   mEta = 2.00*tan(maxfriction_angle/2.00 + PI/4.00); 
                    }
 		     
@@ -138,7 +138,7 @@ namespace Kratos
 		        }
 
                         
-			frictional_internal = mfriction_angle; // (*mprops)[FRICTION_INTERNAL_ANGLE]*PI/180.00;
+			frictional_internal = mfriction_angle; // (*mprops)[INTERNAL_FRICTION_ANGLE]*PI/180.00;
                         cohesion = mcohesion;
 			
                        
@@ -230,7 +230,7 @@ namespace Kratos
 			tetha_Lode = asin(tetha_Lode)/3.00; 
 		        }
                         
-			//frictional_internal = mfriction_angle; // (*mprops)[FRICTION_INTERNAL_ANGLE]*PI/180.00;
+			//frictional_internal = mfriction_angle; // (*mprops)[INTERNAL_FRICTION_ANGLE]*PI/180.00;
 			
                        
                         R_morh = tan(frictional_internal/2.00 + PI/4.00);

@@ -108,7 +108,7 @@ namespace Kratos
 		      Matrix StressTensor     = ZeroMatrix(3,3);
 		      Vector PrincipalStress  = ZeroVector(3);
 
-                      frictional_internal = (*mprops)[FRICTION_INTERNAL_ANGLE]*PI/180.00;
+                      frictional_internal = (*mprops)[INTERNAL_FRICTION_ANGLE]*PI/180.00;
 			    
 		      double sin_phi = sin(frictional_internal);
                       double cos_phi = cos(frictional_internal);			
@@ -143,7 +143,7 @@ namespace Kratos
                             double Alfa   = 0.00;
         
 
-                            frictional_internal = (*mprops)[FRICTION_INTERNAL_ANGLE]*PI/180.00;
+                            frictional_internal = (*mprops)[INTERNAL_FRICTION_ANGLE]*PI/180.00;
 
 			    
 		            double sin_phi = sin(frictional_internal);
