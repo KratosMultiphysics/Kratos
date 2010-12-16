@@ -168,7 +168,7 @@ const Vector& ShapeFunctionsValues )
       mCtangent              = ZeroMatrix(6,6);
       mInSituStress          = ZeroVector(6);
       
-      double angle = PI*props[FRICTION_INTERNAL_ANGLE]/180.00;
+      double angle = PI*props[INTERNAL_FRICTION_ANGLE]/180.00;
 
       malfa      = 2.00*sin(angle)/(sqrt(3)*(3 + sin(angle))); 
       mFc        = props[FC];
