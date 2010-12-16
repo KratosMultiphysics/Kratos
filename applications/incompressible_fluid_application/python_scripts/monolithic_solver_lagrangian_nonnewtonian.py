@@ -40,7 +40,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_WATER);
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);   
     model_part.AddNodalSolutionStepVariable(AUX_INDEX);   
-    model_part.AddNodalSolutionStepVariable(YIELD_STRESS);   
+    model_part.AddNodalSolutionStepVariable(YIELD_STRESS);
+    model_part.AddNodalSolutionStepVariable(INTERNAL_FRICTION_ANGLE);
 
 
 
@@ -83,7 +84,10 @@ class MonolithicSolver:
 ##        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+##        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 1.0);
+
         self.max_iter = 20
+
                           
         #default settings
         self.echo_level = 1
@@ -156,17 +160,17 @@ class MonolithicSolver:
 ##        (self.node_erase_process).Execute();
 ##        self.Remesh()
 ##        self.OutputStep(time,gid_io)
-        print "143"
+##        print "143"
 
         self.Remesh()
 ##        (self.neigh_finder).Execute();
-        print "145"
+##        print "145"
         (self.solver).Solve()
-	print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
+##	print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
         (self.PfemUtils).MoveLonelyNodes(self.model_part)
-        print "a47"
+##        print "a47"
 	(self.solver).Clear()
-	print "149"
+##	print "149"
         self.OutputStep(time,gid_io)
 
     #######################################################################  
