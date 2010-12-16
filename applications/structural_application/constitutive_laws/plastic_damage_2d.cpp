@@ -123,7 +123,7 @@ namespace Kratos
              rValue = mFt[1]; // mcohesion;}
           else if(rThisVariable == DILATANCY_ANGLE)
              rValue = mdilatancy_angle*180.00/PI;
-          else if(rThisVariable == FRICTION_INTERNAL_ANGLE)
+          else if(rThisVariable == INTERNAL_FRICTION_ANGLE)
              rValue = mFt[2]; // mfriction_angle*180.00/PI;}
           return( rValue );
 	}   
