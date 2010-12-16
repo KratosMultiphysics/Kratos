@@ -7,6 +7,7 @@ VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
 VECTOR CONDITION MESH_VELOCITY     	point line surface volume free 0.0 0.0 0.0
 #VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
+SCALAR CONDITION INTERNAL_FRICTION_ANGLE point line surface volume free  1.0
 SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
 #SCALAR CONDITION VISCOSITY     	point line surface volume free  0.000001
 #SCALAR CONDITION DENSITY     		point line surface volume free  1.0
