@@ -1323,7 +1323,6 @@ KRATOS_WATCH(grad_sym_vel)*/
 // 	double yield;
 
 	double gamma_dot = 0.0;
-//         double friction_angle_tangent = 1; //supposing a 45º friction angle. TO DO --->It should be inserted as a nodal parameter and calculated element by element.
         double mcoef = 300;
 // 	double mcoef_inv = 1/mcoef;
 	
@@ -1333,23 +1332,34 @@ KRATOS_WATCH(grad_sym_vel)*/
 	 // The yield is variable: it decreases where water is present
 	  unsigned int nodes_number = 4;
 	  double yield = 0.0;
+	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
 	  
 	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
 		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
 	      }
-	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+// 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+	      }
 	  }
+	  
+	  friction_angle_tangent /= nodes_number;
 	  water_pressure /= nodes_number;
 	  yield /= nodes_number;
+	  
+
 	  //pay attention: negative yield stress meaningfull
-	  if(water_pressure < yield)
+	  if(water_pressure < yield){
 	      yield -= water_pressure;
+	      yield *= friction_angle_tangent;
+	  }
 	  else
 	      yield = 0.0;
 	  
-        if (gamma_dot > 0.00001) {
+        if (gamma_dot > 1e-10) {
             aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
 // 	    KRATOS_WATCH(aux_1)
 // 	    KRATOS_WATCH(gamma_dot)
@@ -1357,11 +1367,14 @@ KRATOS_WATCH(grad_sym_vel)*/
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
-        } else {
+	}
+        else {
             app_mu = mu + yield*mcoef ;
         }
 
-	
+// 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
+// 	else  gamma_dot_inv= 1.0/gamma_dot;
+// 	app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));	
 	
         KRATOS_CATCH("")
     }
