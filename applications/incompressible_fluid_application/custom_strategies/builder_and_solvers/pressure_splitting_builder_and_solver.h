@@ -249,7 +249,7 @@ namespace Kratos
             int TotalSize = BaseType::mEquationSystemSize;
             std::vector< omp_lock_t > lock_array(TotalSize);
 
-            for(unsigned int i = 0; i<TotalSize; i++)
+            for(int i = 0; i<TotalSize; i++)
                 omp_init_lock( &lock_array[i] );
 
             //create a partition of the element array
