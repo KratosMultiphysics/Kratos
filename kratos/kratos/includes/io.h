@@ -115,8 +115,13 @@ namespace Kratos
       typedef std::vector<std::vector<std::size_t> > ConnectivitiesContainerType;
 
       typedef std::vector<std::vector<std::size_t> > PartitionIndicesContainerType;
+      
+      typedef std::vector<std::size_t> PartitionIndicesType;
   
       typedef std::size_t SizeType;
+      
+      typedef matrix<int> GraphType;
+
   
       ///@}
       ///@name Life Cycle 
@@ -210,10 +215,13 @@ namespace Kratos
         KRATOS_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
       }
 
-      virtual void DivideInputToPartitions(SizeType NumberOfPartitions, 
-					    PartitionIndicesContainerType const& NodesPartitions, 
-					    PartitionIndicesContainerType const& ElementsPartitions, 
-					    PartitionIndicesContainerType const& ConditionsPartitions)
+      virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
+					    PartitionIndicesType const& NodesPartitions, 
+					    PartitionIndicesType const& ElementsPartitions, 
+					    PartitionIndicesType const& ConditionsPartitions,
+					    PartitionIndicesContainerType const& NodesAllPartitions, 
+					    PartitionIndicesContainerType const& ElementsAllPartitions, 
+					    PartitionIndicesContainerType const& ConditionsAllPartitions)
       {
         KRATOS_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
       }
