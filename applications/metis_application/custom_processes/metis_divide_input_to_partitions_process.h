@@ -120,7 +120,7 @@ namespace Kratos
 		///@{ 
 
 		/// Default constructor.
-	MetisDivideInputToPartitionsProcess(ModelPart& rModelPart, IO& rIO, SizeType NumberOfPartitions, int Dimension = 3)
+	MetisDivideInputToPartitionsProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3)
 	  :  mrIO(rIO), mNumberOfPartitions(NumberOfPartitions), mDimension(Dimension)
 		{
 		}
@@ -226,22 +226,6 @@ namespace Kratos
 			
 			
 			
-			
-			
-			// Adding properties to modelpart
-// 			mrIO.ReadProperties(mrModelPart.rProperties());
-
-			// Adding elements to each partition mesh
-// 			AddingElements(temp_nodes, npart, epart);
-
-
-			// Adding conditions to each partition mesh
-// 			ModelPart::ConditionsContainerType temp_conditions;
-// 			AddingConditions(temp_nodes, npart, epart, temp_conditions);
-
-
-
-// 			mrIO.ReadInitialValues(temp_nodes, mrModelPart.Elements(), temp_conditions);
 
 			KRATOS_CATCH("")
 		}
@@ -367,57 +351,6 @@ namespace Kratos
 		///@name Protected Operations
 		///@{ 
 
-/*
-		void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
-		{
-			// calculating total size of connectivity vector 
-			int connectivity_size = 0;
-			for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ;
-				i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-				connectivity_size += i_connectivities->size();
-
-			int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
-
-			int ne = NumberOfElements;
-			int nn = NumberOfNodes;
-
-
-
-			int etype; 
-			if(number_of_element_nodes == 3) // triangles
-				etype = 1;
-			else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
-			{
-				if(mDimension == 2) // quadilateral
-					etype = 4; 
-				else  // tetrahedra
-					etype = 2;
-			}
-			else if(number_of_element_nodes == 8) // hexahedra
-				etype = 3;
-			else
-				KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
-
-
-			int numflag = 0;
-			int number_of_partitions = static_cast<int>(mNumberOfPartitions);
-			int edgecut;
-
-			idxtype* elmnts = new idxtype[connectivity_size];
-
-			int i = 0;
-			// Creating the elmnts array for Metis
-			for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ; 
-				i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-				for(unsigned int j = 0 ; j < i_connectivities->size() ; j++)
-					elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
-
-			// Calling Metis to partition
-			METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
-
-			delete[] elmnts;
-
-		}*/
 			
 		void ConditionsPartitioning(IO::ConnectivitiesContainerType& ConditionsConnectivities, 
 					    MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions, 

@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/vector_python_interface.h"
 
 #include "custom_processes/metis_partitioning_process.h" 
+#include "custom_processes/metis_divide_input_to_partitions_process.h"
 #include "custom_processes/metis_contact_partitioning_process.h" 
 #include "custom_processes/metis_partitioning_process_quadratic.h"
 
@@ -94,6 +95,11 @@ namespace Python
 	  class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
 							    init<ModelPart&, IO&, unsigned int, unsigned int>())
 	    .def(init<ModelPart&, IO&, unsigned int>())
+		 ;
+
+	  class_<MetisDivideInputToPartitionsProcess, bases<Process> >("MetisDivideInputToPartitionsProcess",
+							    init<IO&, unsigned int, unsigned int>())
+	    .def(init<IO&, unsigned int>())
 		 ;
 
 	  class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
