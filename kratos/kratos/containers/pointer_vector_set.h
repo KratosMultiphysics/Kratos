@@ -465,7 +465,10 @@ namespace Kratos
 #ifndef _OPENMP
         std::sort(mData.begin(), mData.end(), CompareKey());
 #else
-        omptl::sort(mData.begin(), mData.end(), CompareKey());
+	if(mData.size() > 2000)
+	  omptl::sort(mData.begin(), mData.end(), CompareKey());
+	else
+	  std::sort(mData.begin(), mData.end(), CompareKey());
 #endif
         typename TContainerType::iterator new_end_it = std::unique(mData.begin(), mData.end(), EqualKeyTo());
         mData.erase(new_end_it, end_it);
@@ -522,6 +525,7 @@ namespace Kratos
       
       return buffer.str();
     }
+    
     
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
