@@ -409,6 +409,8 @@ namespace Kratos
 	      ReadElementalDataBlock(rThisModelPart.Elements());
 	    else if(word == "ConditionalData")
 	      ReadConditionalDataBlock(rThisModelPart.Conditions());
+	    else if(word == "CommunicatorData")
+	      ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
 	    
 	  }
 	std::cout << "lines read : " << mNumberOfLines;
@@ -427,10 +429,13 @@ namespace Kratos
 	WriteMesh(rThisModelPart.GetMesh());
       }
 
-    virtual void DivideInputToPartitions(SizeType NumberOfPartitions, 
-					 PartitionIndicesContainerType const& NodesPartitions, 
-					 PartitionIndicesContainerType const& ElementsPartitions, 
-					 PartitionIndicesContainerType const& ConditionsPartitions)
+      virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
+					    PartitionIndicesType const& NodesPartitions, 
+					    PartitionIndicesType const& ElementsPartitions, 
+					    PartitionIndicesType const& ConditionsPartitions,
+					    PartitionIndicesContainerType const& NodesAllPartitions, 
+					    PartitionIndicesContainerType const& ElementsAllPartitions, 
+					    PartitionIndicesContainerType const& ConditionsAllPartitions)
       {
 	KRATOS_TRY
 	ResetInput();
@@ -459,19 +464,21 @@ namespace Kratos
 	    else if(word == "Properties")
 	      DividePropertiesBlock(output_files);
 	    else if(word == "Nodes")
-	      DivideNodesBlock(output_files, NodesPartitions);
+	      DivideNodesBlock(output_files, NodesAllPartitions);
 	    else if(word == "Elements")
-	      DivideElementsBlock(output_files, ElementsPartitions);
+	      DivideElementsBlock(output_files, ElementsAllPartitions);
 	    else if(word == "Conditions")
-	      DivideConditionsBlock(output_files, ConditionsPartitions);
+	      DivideConditionsBlock(output_files, ConditionsAllPartitions);
 	    else if(word == "NodalData")
-	      SkipBlock("NodalData");
+	      DivideNodalDataBlock(output_files, NodesAllPartitions);
 	    else if(word == "ElementalData")
-	      SkipBlock("ElementalData");
+	      DivideElementalDataBlock(output_files, NodesAllPartitions);
 	    else if(word == "ConditionalData")
-	      SkipBlock("ConditionalData");
+	      DivideConditionalDataBlock(output_files, NodesAllPartitions);
 	    
 	  }
+	  
+	WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
 	std::cout << "lines read : " << mNumberOfLines;
 	std::cout << std::endl;
 
@@ -480,63 +487,7 @@ namespace Kratos
 	KRATOS_CATCH("")
       }
 
-    void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles, 
-			      PartitionIndicesContainerType const& NodesPartitions)
-{
-      KRATOS_TRY
-
-      std::string word;
-      
-      WriteInAllFiles(OutputFiles, "Begin NodalData \n");
-
-      SizeType id;
 	
-      while(!mInput.eof())
-      {
-	ReadWord(word);
-	if(CheckEndBlock("Nodes", word))
-	  break;
-
-	ExtractValue(word, id);
-
-	if(id > NodesPartitions.size())
-	{
-	  std::stringstream buffer;
-	  buffer << "Invalid node id : " << id;
-	  buffer << " [Line " << mNumberOfLines << " ]";
-	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
-	}
-
-	std::string node_data;
-	node_data += word + '\t'; // id
-	ReadWord(word);
-	node_data += word + '\t'; // x
-	ReadWord(word);
-	node_data += word + '\t'; // y
-	ReadWord(word);
-	node_data += word + '\n'; // z
-
-	for(SizeType i = 0 ; i < NodesPartitions[id-1].size() ; i++)
-	{
-	  SizeType partition_id = NodesPartitions[id-1][i];
-	  if(partition_id > OutputFiles.size())
-	  {
-	    std::stringstream buffer;
-	    buffer << "Invalid prtition id : " << partition_id;
-	    buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
-	    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
-	  }
-
-	  *(OutputFiles[partition_id]) << node_data;
-	}
-	  
-      }
-
-      WriteInAllFiles(OutputFiles, "End NodalData\n");
-
-      KRATOS_CATCH("")
-    }
-
       ///@}
       ///@name Access
       ///@{ 
@@ -1036,8 +987,6 @@ namespace Kratos
 
 	ReadWord(variable_name);
 
-	KratosComponents<Variable<double> > kratos_double_variables;
-
 	if(KratosComponents<Variable<double> >::Has(variable_name))
 	{
 	  ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
@@ -1082,6 +1031,7 @@ namespace Kratos
 	double nodal_value;
 
 	std::string value;
+
 
 	while(!mInput.eof())
 	{
@@ -1491,6 +1441,153 @@ namespace Kratos
       }
 
 
+    void ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
+      {
+	KRATOS_TRY
+	
+	std::string word;
+	while(true)
+	{
+	  ReadWord(word);
+	  if(mInput.eof())
+	    break;
+	  if(CheckEndBlock("CommunicatorData", word))
+	    break;
+	  if(word == "NEIGHBOURS_INDICES")
+	    ReadVectorialValue(rThisCommunicator.NeighbourIndices());
+	  else if(word == "NUMBER_OF_COLORS")
+	  {
+	    ReadWord(word);
+	    SizeType number_of_colors;
+	    ExtractValue(word, number_of_colors);
+	    rThisCommunicator.SetNumberOfColors(number_of_colors);
+	  }
+	  else
+	  {
+	    ReadBlockName(word);
+	    if(word == "LocalNodes")
+	      ReadCommunicatorLocalNodesBlock(rThisCommunicator, rThisNodes);
+	    else if(word == "GhostNodes")
+	      ReadCommunicatorGhostNodesBlock(rThisCommunicator, rThisNodes);
+	    else 
+	      SkipBlock(word);
+	  }
+	}
+	
+	return ;
+	
+	KRATOS_CATCH("")
+      }
+
+    void ReadCommunicatorLocalNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
+      {
+	KRATOS_TRY
+	
+	SizeType interface_id;
+	SizeType node_id;
+	
+
+	std::string word;
+	std::string condition_name;
+	  
+	ReadWord(word); // reading the interface id
+	ExtractValue(word,interface_id);
+	
+	
+	if(interface_id > rThisCommunicator.GetNumberOfColors())
+	{
+	  std::stringstream buffer;
+	  buffer << "Interface " << interface_id << " is not valid.";
+	  buffer << " The number of colors is " << rThisCommunicator.GetNumberOfColors() << " and the interface id must be les than or equal to number of colors" ; 
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	
+	Communicator::MeshType* p_local_mesh;
+	Communicator::MeshType* p_interface_mesh;
+	
+	if(interface_id == 0)
+	{
+	  p_local_mesh = &(rThisCommunicator.LocalMesh());
+	  p_interface_mesh = &(rThisCommunicator.InterfaceMesh());
+	}
+	else
+	{
+	  p_local_mesh = &(rThisCommunicator.LocalMesh(interface_id-1));
+	  p_interface_mesh = &(rThisCommunicator.InterfaceMesh(interface_id-1));
+	}
+	
+	while(!mInput.eof())
+	{
+	  ReadWord(word); // Reading the node id or End
+	  if(CheckEndBlock("LocalNodes", word))
+	    break;
+
+	  ExtractValue(word,node_id);
+	  NodesContainerType::iterator i_node = FindKey(rThisNodes, node_id, "Node");
+	  p_local_mesh->AddNode(*(i_node.base()));
+	  p_interface_mesh->AddNode(*(i_node.base()));
+	}
+	
+	KRATOS_WATCH(rThisCommunicator)
+	KRATOS_CATCH("")
+      }
+
+
+    void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
+      {
+	KRATOS_TRY
+	
+	SizeType interface_id;
+	SizeType node_id;
+	
+
+	std::string word;
+	std::string condition_name;
+	  
+	ReadWord(word); // reading the interface id
+	ExtractValue(word,interface_id);
+	
+	
+	if(interface_id > rThisCommunicator.GetNumberOfColors())
+	{
+	  std::stringstream buffer;
+	  buffer << "Interface " << interface_id << " is not valid.";
+	  buffer << " The number of colors is " << rThisCommunicator.GetNumberOfColors() << " and the interface id must be les than or equal to number of colors" ; 
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	
+	Communicator::MeshType* p_ghost_mesh;
+	Communicator::MeshType* p_interface_mesh;
+	
+	if(interface_id == 0)
+	{
+	  p_ghost_mesh = &(rThisCommunicator.GhostMesh());
+	  p_interface_mesh = &(rThisCommunicator.InterfaceMesh());
+	}
+	else
+	{
+	  p_ghost_mesh = &(rThisCommunicator.GhostMesh(interface_id-1));
+	  p_interface_mesh = &(rThisCommunicator.InterfaceMesh(interface_id-1));
+	}
+	
+	while(!mInput.eof())
+	{
+	  ReadWord(word); // Reading the node id or End
+	  if(CheckEndBlock("GhostNodes", word))
+	    break;
+
+	  ExtractValue(word,node_id);
+	  NodesContainerType::iterator i_node = FindKey(rThisNodes, node_id, "Node");
+	  p_ghost_mesh->AddNode(*(i_node.base()));
+	  p_interface_mesh->AddNode(*(i_node.base()));
+	}
+	
+	KRATOS_WATCH(rThisCommunicator)
+	KRATOS_CATCH("")
+      }
+
 
     void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles)
     {
@@ -1522,7 +1619,7 @@ namespace Kratos
     }
 
     void DivideNodesBlock(OutputFilesContainerType& OutputFiles, 
-			      PartitionIndicesContainerType const& NodesPartitions)
+			      PartitionIndicesContainerType const& NodesAllPartitions)
 {
       KRATOS_TRY
 
@@ -1540,7 +1637,7 @@ namespace Kratos
 
 	ExtractValue(word, id);
 
-	if(id > NodesPartitions.size())
+	if(id > NodesAllPartitions.size())
 	{
 	  std::stringstream buffer;
 	  buffer << "Invalid node id : " << id;
@@ -1557,9 +1654,9 @@ namespace Kratos
 	ReadWord(word);
 	node_data += word + '\n'; // z
 
-	for(SizeType i = 0 ; i < NodesPartitions[id-1].size() ; i++)
+	for(SizeType i = 0 ; i < NodesAllPartitions[id-1].size() ; i++)
 	{
-	  SizeType partition_id = NodesPartitions[id-1][i];
+	  SizeType partition_id = NodesAllPartitions[id-1][i];
 	  if(partition_id > OutputFiles.size())
 	  {
 	    std::stringstream buffer;
@@ -1579,7 +1676,7 @@ namespace Kratos
     }
 
     void DivideElementsBlock(OutputFilesContainerType& OutputFiles, 
-			      PartitionIndicesContainerType const& ElementsPartitions)
+			      PartitionIndicesContainerType const& ElementsAllPartitions)
       {
       KRATOS_TRY
 
@@ -1611,7 +1708,7 @@ namespace Kratos
 	    break;
 
 	  ExtractValue(word,id);
-	  if(id > ElementsPartitions.size())
+	  if(id > ElementsAllPartitions.size())
 	    {
 	      std::stringstream buffer;
 	      buffer << "Invalid element id : " << id;
@@ -1631,9 +1728,9 @@ namespace Kratos
 	  }
 	  
 
-	for(SizeType i = 0 ; i < ElementsPartitions[id-1].size() ; i++)
+	for(SizeType i = 0 ; i < ElementsAllPartitions[id-1].size() ; i++)
 	{
-	  SizeType partition_id = ElementsPartitions[id-1][i];
+	  SizeType partition_id = ElementsAllPartitions[id-1][i];
 	  if(partition_id > OutputFiles.size())
 	  {
 	    std::stringstream buffer;
@@ -1655,7 +1752,7 @@ namespace Kratos
 
 
     void DivideConditionsBlock(OutputFilesContainerType& OutputFiles, 
-			      PartitionIndicesContainerType const& ConditionsPartitions)
+			      PartitionIndicesContainerType const& ConditionsAllPartitions)
     {
       KRATOS_TRY
 
@@ -1679,15 +1776,19 @@ namespace Kratos
       WriteInAllFiles(OutputFiles, "Begin Conditions " +  condition_name);
 
       SizeType id;
+      SizeType index=0; // a consequtive index
 	
       while(!mInput.eof())
       {
 	  ReadWord(word); // Reading the condition id or End
 	  if(CheckEndBlock("Conditions", word))
 	    break;
+	
+	  index++;
 
 	  ExtractValue(word,id);
-	  if(id > ConditionsPartitions.size())
+	  id=index; // Here I'm ignoring the real condition id and assuming the ordered and no repetive conditions. Pooyan.
+	  if(id > ConditionsAllPartitions.size())
 	    {
 	      std::stringstream buffer;
 	      buffer << "Invalid condition id : " << id;
@@ -1707,9 +1808,9 @@ namespace Kratos
 	  }
 	  
 
-	for(SizeType i = 0 ; i < ConditionsPartitions[id-1].size() ; i++)
+	for(SizeType i = 0 ; i < ConditionsAllPartitions[id-1].size() ; i++)
 	{
-	  SizeType partition_id = ConditionsPartitions[id-1][i];
+	  SizeType partition_id = ConditionsAllPartitions[id-1][i];
 	  if(partition_id > OutputFiles.size())
 	  {
 	    std::stringstream buffer;
@@ -1729,6 +1830,461 @@ namespace Kratos
     }
 
 
+    void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles, 
+			      PartitionIndicesContainerType const& NodesAllPartitions)
+    {
+      KRATOS_TRY
+
+      typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+
+      std::string word;
+
+      WriteInAllFiles(OutputFiles, "Begin NodalData ");
+      
+      std::string variable_name;
+      
+      ReadWord(variable_name);
+ 
+      WriteInAllFiles(OutputFiles, variable_name);
+      WriteInAllFiles(OutputFiles, "\n");
+     
+	if(KratosComponents<Variable<double> >::Has(variable_name))
+	{
+	  DivideDofVariableData(OutputFiles, NodesAllPartitions);
+	}
+	else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+	{
+	  DivideDofVariableData(OutputFiles, NodesAllPartitions);
+	}
+	else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+	{
+	  DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData");
+	}
+	else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
+	{
+	  DivideVectorialVariableData(OutputFiles, NodesAllPartitions, "NodalData" );
+	}
+	else if(KratosComponents<VariableData>::Has(variable_name))
+	{
+	  std::stringstream buffer;
+	  buffer << variable_name << " is not supported to be read by this IO or the type of variable is not registered correctly" << std::endl;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	else
+	{
+	  std::stringstream buffer;
+	  buffer << variable_name << " is not a valid variable!!!" << std::endl;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+
+      WriteInAllFiles(OutputFiles, "End NodalData\n");
+
+      KRATOS_CATCH("")
+    }
+
+    void DivideDofVariableData(OutputFilesContainerType& OutputFiles, 
+			      PartitionIndicesContainerType const& NodesAllPartitions)
+    {
+      KRATOS_TRY
+      
+      SizeType id;
+      bool is_fixed;
+      double nodal_value;
+      
+      std::string word;
+      
+      
+      while(!mInput.eof())
+      {
+	ReadWord(word); // reading id
+	if(CheckEndBlock("NodalData", word))
+	  break;
+	
+	ExtractValue(word, id);
+	
+	if(id > NodesAllPartitions.size())
+	{
+	  std::stringstream buffer;
+	  buffer << "Invalid node id : " << id;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	
+	std::string node_data;
+	node_data += word + '\t'; // id
+	ReadWord(word);
+	node_data += word + '\t'; // is fixed
+	ReadWord(word);
+	node_data += word + '\n'; // value
+	
+	for(SizeType i = 0 ; i < NodesAllPartitions[id-1].size() ; i++)
+	{
+	  SizeType partition_id = NodesAllPartitions[id-1][i];
+	  if(partition_id > OutputFiles.size())
+	  {
+	    std::stringstream buffer;
+	    buffer << "Invalid prtition id : " << partition_id;
+	    buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+	    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	  }
+	  
+	  *(OutputFiles[partition_id]) << node_data;
+	}
+      }
+      
+	  
+      KRATOS_CATCH("")
+    }
+
+    void DivideVectorialVariableData(OutputFilesContainerType& OutputFiles, 
+			      PartitionIndicesContainerType const& EntitiesPartitions,
+			      std::string BlockName)
+    {
+      KRATOS_TRY
+    
+      SizeType id;
+      bool is_fixed;
+      double nodal_value;
+      
+      std::string word;
+      
+      
+      while(!mInput.eof())
+      {
+	ReadWord(word); // reading id
+	if(CheckEndBlock("NodalData", word))
+	  break;
+	
+	ExtractValue(word, id);
+	
+	if(id > EntitiesPartitions.size())
+	{
+	  std::stringstream buffer;
+	  buffer << "Invalid node id : " << id;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	
+	std::string entity_data;
+	entity_data += word + '\t'; // id
+	Vector temp_vector;
+	ReadVectorialValue(temp_vector);
+	
+	for(SizeType i = 0 ; i < EntitiesPartitions[id-1].size() ; i++)
+	{
+	  SizeType partition_id = EntitiesPartitions[id-1][i];
+	  if(partition_id > OutputFiles.size())
+	  {
+	    std::stringstream buffer;
+	    buffer << "Invalid prtition id : " << partition_id;
+	    buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+	    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	  }
+	  
+	  *(OutputFiles[partition_id]) << entity_data << temp_vector << std::endl;
+	}
+      }
+      
+
+      KRATOS_CATCH("")
+    }
+
+
+    void DivideConditionalDataBlock(OutputFilesContainerType& OutputFiles, 
+			      PartitionIndicesContainerType const& ElementsAllPartitions)
+    {
+      KRATOS_TRY
+
+      typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+
+      std::string word;
+
+      WriteInAllFiles(OutputFiles, "Begin ElementalData ");
+      
+      std::string variable_name;
+      
+      ReadWord(variable_name);
+ 
+      WriteInAllFiles(OutputFiles, variable_name);
+      WriteInAllFiles(OutputFiles, "\n");
+     
+	if(KratosComponents<Variable<double> >::Has(variable_name))
+	{
+	  DivideScalarVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+	}
+	else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+	{
+	  DivideScalarVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+	}
+	else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+	{
+	  DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+	}
+	else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
+	{
+	  DivideVectorialVariableData(OutputFiles, ElementsAllPartitions, "ElementalData");
+	}
+	else if(KratosComponents<VariableData>::Has(variable_name))
+	{
+	  std::stringstream buffer;
+	  buffer << variable_name << " is not supported to be read by this IO or the type of variable is not registered correctly" << std::endl;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	else
+	{
+	  std::stringstream buffer;
+	  buffer << variable_name << " is not a valid variable!!!" << std::endl;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+
+      WriteInAllFiles(OutputFiles, "End ElementalData\n");
+
+      KRATOS_CATCH("")
+    }
+
+    void DivideScalarVariableData(OutputFilesContainerType& OutputFiles, 
+			      PartitionIndicesContainerType const& EntitiesPartitions,
+			      std::string BlockName)
+    {
+      KRATOS_TRY
+      
+      SizeType id;
+      bool is_fixed;
+      double nodal_value;
+      
+      std::string word;
+      
+      
+      while(!mInput.eof())
+      {
+	ReadWord(word); // reading id
+	if(CheckEndBlock(BlockName, word))
+	  break;
+	
+	ExtractValue(word, id);
+	
+	if(id > EntitiesPartitions.size())
+	{
+	  std::stringstream buffer;
+	  buffer << "Invalid id : " << id;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	
+	std::string entity_data;
+	entity_data += word + '\t'; // id
+	ReadWord(word);
+	entity_data += word + '\n'; // value
+	
+	for(SizeType i = 0 ; i < EntitiesPartitions[id-1].size() ; i++)
+	{
+	  SizeType partition_id = EntitiesPartitions[id-1][i];
+	  if(partition_id > OutputFiles.size())
+	  {
+	    std::stringstream buffer;
+	    buffer << "Invalid prtition id : " << partition_id;
+	    buffer << " for entity " << id << " [Line " << mNumberOfLines << " ]";
+	    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	  }
+	  
+	  *(OutputFiles[partition_id]) << entity_data;
+	}
+      }
+      
+	  
+      KRATOS_CATCH("")
+    }
+
+
+    void DivideElementalDataBlock(OutputFilesContainerType& OutputFiles, 
+			      PartitionIndicesContainerType const& ConditionsAllPartitions)
+    {
+      KRATOS_TRY
+
+      typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+
+      std::string word;
+
+      WriteInAllFiles(OutputFiles, "Begin ConditionalData ");
+      
+      std::string variable_name;
+      
+      ReadWord(variable_name);
+ 
+      WriteInAllFiles(OutputFiles, variable_name);
+      WriteInAllFiles(OutputFiles, "\n");
+     
+	if(KratosComponents<Variable<double> >::Has(variable_name))
+	{
+	  DivideScalarVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+	}
+	else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+	{
+	  DivideScalarVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+	}
+	else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+	{
+	  DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+	}
+	else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
+	{
+	  DivideVectorialVariableData(OutputFiles, ConditionsAllPartitions, "ConditionalData");
+	}
+	else if(KratosComponents<VariableData>::Has(variable_name))
+	{
+	  std::stringstream buffer;
+	  buffer << variable_name << " is not supported to be read by this IO or the type of variable is not registered correctly" << std::endl;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+	else
+	{
+	  std::stringstream buffer;
+	  buffer << variable_name << " is not a valid variable!!!" << std::endl;
+	  buffer << " [Line " << mNumberOfLines << " ]";
+	  KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	}
+
+      WriteInAllFiles(OutputFiles, "End ConditionalData\n");
+
+      KRATOS_CATCH("")
+    }
+
+
+      void WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph, 
+					    PartitionIndicesType const& NodesPartitions, 
+					    PartitionIndicesType const& ElementsPartitions, 
+					    PartitionIndicesType const& ConditionsPartitions,
+					    PartitionIndicesContainerType const& NodesAllPartitions, 
+					    PartitionIndicesContainerType const& ElementsAllPartitions, 
+					    PartitionIndicesContainerType const& ConditionsAllPartitions)
+	{
+	   WriteInAllFiles(OutputFiles, "Begin CommunicatorData \n");
+	   
+	   
+	   // Writing the domains neighbours
+	   WriteInAllFiles(OutputFiles, "NEIGHBOURS_INDICES    ");
+	   for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
+	   {
+	     boost::numeric::ublas::vector<int> indices = row(DomainsColoredGraph, i_partition);
+	     *(OutputFiles[i_partition]) << indices << std::endl;
+	   }
+	   
+	   SizeType number_of_colors = 0;
+	   
+	   for(SizeType i_partition = 0 ; i_partition < DomainsColoredGraph.size1() ; i_partition++)
+	     for(SizeType i_interface = 0 ; i_interface < DomainsColoredGraph.size2() ; i_interface++)
+	       if(DomainsColoredGraph(i_partition, i_interface) >= 0)
+		 if(number_of_colors < i_interface)
+		   number_of_colors = i_interface;
+		 
+	    number_of_colors++; // I have to add one to it to get the correct number	 
+		 
+	   // Writing the max colors
+	   for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
+	   {
+	     boost::numeric::ublas::vector<int> indices = row(DomainsColoredGraph, i_partition);
+	     *(OutputFiles[i_partition]) << "NUMBER_OF_COLORS    " << number_of_colors << std::endl;
+	   }
+
+
+	   // Writing the all local nodes
+	   WriteInAllFiles(OutputFiles, "    Begin LocalNodes 0\n");
+	   
+	   for(SizeType i = 0 ; i < NodesPartitions.size() ; i++)
+	      *(OutputFiles[NodesPartitions[i]]) << "    " << i+1 << std::endl;
+ 
+	   WriteInAllFiles(OutputFiles, "    End LocalNodes \n");
+	   
+	   
+	   std::vector<PartitionIndicesContainerType> local_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(NumberOfPartitions));
+	   std::vector<PartitionIndicesContainerType> ghost_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(NumberOfPartitions));
+
+	   matrix<int> interface_indices = scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
+
+	   for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
+	   {
+	     vector<int> neighbours_indices = row(DomainsColoredGraph, i_partition);
+
+	     for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
+	       if(SizeType(neighbours_indices[i]) < NumberOfPartitions)
+		 interface_indices(i_partition,neighbours_indices[i]) = i;
+	   }
+	   
+
+
+	   for(SizeType i = 0 ; i < NodesPartitions.size() ; i++)
+	   {
+	     const SizeType node_partition = NodesPartitions[i];
+	     const SizeType node_id = i + 1;
+	     
+	     PartitionIndicesType const& node_all_partitions = NodesAllPartitions[i];
+	     
+	     for(SizeType j = 0 ; j < node_all_partitions.size() ; j++)
+	     {
+	       SizeType i_node_partition = node_all_partitions[j];
+	       if(node_partition != i_node_partition)
+	       {
+		 SizeType local_interface_index = interface_indices(node_partition, i_node_partition);
+		 SizeType ghost_interface_index = interface_indices(i_node_partition, node_partition);
+		 local_nodes_indices[node_partition][local_interface_index].push_back(node_id);
+		 ghost_nodes_indices[i_node_partition][ghost_interface_index].push_back(node_id);
+	       }
+	     }
+	     
+	   }
+	   
+	   for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
+	   {
+	     PartitionIndicesContainerType& partition_local_nodes_indices = local_nodes_indices[i_partition];
+	     
+	     for(SizeType i_interface = 0 ; i_interface < partition_local_nodes_indices.size() ; i_interface++)
+	     {
+	       if(partition_local_nodes_indices[i_interface].size() > 0)
+	       {
+		 *(OutputFiles[i_partition]) << "    Begin LocalNodes " << i_interface + 1 << std::endl;
+		 for(SizeType i_interface_node = 0 ; i_interface_node < partition_local_nodes_indices[i_interface].size() ; i_interface_node++)
+		   *(OutputFiles[i_partition]) << "    " << partition_local_nodes_indices[i_interface][i_interface_node] << std::endl;
+		 *(OutputFiles[i_partition]) << "    End LocalNodes " << std::endl;
+	       }
+	     }
+	     
+	     PartitionIndicesContainerType& partition_ghost_nodes_indices = ghost_nodes_indices[i_partition];
+	     
+	     for(SizeType i_interface = 0 ; i_interface < partition_ghost_nodes_indices.size() ; i_interface++)
+	     {
+	       if(partition_ghost_nodes_indices[i_interface].size() > 0)
+	       {
+		 *(OutputFiles[i_partition]) << "    Begin GhostNodes " << i_interface + 1 << std::endl;
+		 for(SizeType i_interface_node = 0 ; i_interface_node < partition_ghost_nodes_indices[i_interface].size() ; i_interface_node++)
+		   *(OutputFiles[i_partition]) << "    " << partition_ghost_nodes_indices[i_interface][i_interface_node] << std::endl;
+		 *(OutputFiles[i_partition]) << "    End GhostNodes "  << std::endl;
+	       }
+	     }
+       
+	   }
+	   
+	   WriteInAllFiles(OutputFiles, "End CommunicatorData \n");
+	}
+
+    void WriteCommunicatorLocalNodes(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, PartitionIndicesType const& NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
+    {
+	   WriteInAllFiles(OutputFiles, "    Begin LocalNodes 0\n");
+	   
+	   for(SizeType i = 0 ; i < NodesPartitions.size() ; i++)
+	      *(OutputFiles[NodesPartitions[i]]) << "    " << i+1 << std::endl;
+ 
+	   WriteInAllFiles(OutputFiles, "    End LocalNodes \n");
+	   
+	   PartitionIndicesContainerType local_nodes_indices(NumberOfPartitions);
+
+     
+    }
+     
     void WriteInAllFiles(OutputFilesContainerType& OutputFiles, std::string const& ThisWord)
     {
       for(SizeType i = 0 ; i < OutputFiles.size() ; i++)
