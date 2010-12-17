@@ -70,11 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-
- extern "C" { 
-   //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*); 
- extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*); 
- }; 
+#include "custom_processes/metis_graph_partitioning_process.h"
 
 
 
@@ -125,13 +121,13 @@ namespace Kratos
 
 		/// Default constructor.
 	MetisDivideInputToPartitionsProcess(ModelPart& rModelPart, IO& rIO, SizeType NumberOfPartitions, int Dimension = 3)
-	  : mrModelPart(rModelPart), mrIO(rIO), mNumberOfPartitions(NumberOfPartitions), mDimension(Dimension)
+	  :  mrIO(rIO), mNumberOfPartitions(NumberOfPartitions), mDimension(Dimension)
 		{
 		}
 
 		/// Copy constructor.
 		MetisDivideInputToPartitionsProcess(MetisDivideInputToPartitionsProcess const& rOther)
-		  : mrModelPart(rOther.mrModelPart), mrIO(rOther.mrIO), mNumberOfPartitions(rOther.mNumberOfPartitions), mDimension(rOther.mDimension)
+		  : mrIO(rOther.mrIO), mNumberOfPartitions(rOther.mNumberOfPartitions), mDimension(rOther.mDimension)
 		{
 		}
 
@@ -161,71 +157,96 @@ namespace Kratos
 
 			if(mNumberOfPartitions < 2) // There is no need to partition it and just reading the input
 			{
-				return;
+			  return;
 			}
-
-
+			
 			// Reading connectivities
 			IO::ConnectivitiesContainerType elements_connectivities;
+			IO::ConnectivitiesContainerType conditions_connectivities;
 			int number_of_elements =  mrIO.ReadElementsConnectivities(elements_connectivities);
-
-			int number_of_nodes = 0; 
-			// calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
-			for(IO::ConnectivitiesContainerType::iterator i_element = elements_connectivities.begin() ; i_element != elements_connectivities.end() ; i_element++)
-				for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
-					if(*i_node_id > number_of_nodes)
-						number_of_nodes = *i_node_id;
-
-			idxtype* epart = new idxtype[number_of_elements];
-			idxtype* npart = new idxtype[number_of_nodes];
+			mrIO.ReadConditionsConnectivities(conditions_connectivities);
+			
+			MetisGraphPartitioningProcess::PartitionIndicesType nodes_partitions;
+			MetisGraphPartitioningProcess::PartitionIndicesType elements_partitions;
+			MetisGraphPartitioningProcess::PartitionIndicesType conditions_partitions;
+			MetisGraphPartitioningProcess metis_graph_partitioning_process(elements_connectivities, nodes_partitions, elements_partitions, mNumberOfPartitions, mDimension);
+			metis_graph_partitioning_process.Execute();
+			
+			int number_of_nodes = nodes_partitions.size(); 
 
 			GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
 			GraphType domains_colored_graph;
 
 			int colors_number;
-			CallingMetis(number_of_nodes, number_of_elements, elements_connectivities, npart, epart);
-			CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, npart, epart);
+			
+			CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, nodes_partitions, elements_partitions);
 			GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
 			// 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
 			KRATOS_WATCH(colors_number);
 			KRATOS_WATCH(domains_colored_graph);
 
-			std::vector<DomainEntitiesIdContainer> domains_nodes;
+// 			std::vector<DomainEntitiesIdContainer> domains_nodes;
+			IO::PartitionIndicesContainerType nodes_all_partitions;
+			IO::PartitionIndicesContainerType elements_all_partitions;
+			IO::PartitionIndicesContainerType conditions_all_partitions;
+			
+			ConditionsPartitioning(conditions_connectivities, nodes_partitions, conditions_partitions);
 
-			// Dividing nodes and storing the ids in domains_nodes
-			DividingNodes(domains_nodes, number_of_elements, elements_connectivities, npart, epart, colors_number);
+			// Dividing nodes 
+ 			DividingNodes(nodes_all_partitions, elements_connectivities, conditions_connectivities, nodes_partitions, elements_partitions, conditions_partitions);
 
-			mLogFile << rank << " : Start reading Properties " << std::endl;
+			// Dividing elements
+ 			DividingElements(elements_all_partitions, elements_partitions);
 
+			// Dividing conditions
+ 			DividingConditions(conditions_all_partitions, conditions_partitions);
+
+			
+/*			for(SizeType i = 0 ; i < number_of_nodes ; i++)
+			{
+			  std::cout << "Node #" << i << "->";
+			  for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++)
+			    std::cout << *j << ",";
+			  std::cout << std::endl;
+			}*/
+
+			IO::PartitionIndicesType io_nodes_partitions(nodes_partitions.begin(), nodes_partitions.end());
+			IO::PartitionIndicesType io_elements_partitions(elements_partitions.begin(), elements_partitions.end());
+			IO::PartitionIndicesType io_conditions_partitions(conditions_partitions.begin(), conditions_partitions.end());
+			
+			// Now dividing the input file
+			mrIO.DivideInputToPartitions(mNumberOfPartitions, domains_colored_graph,
+						     io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
+						     nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
+
+			return;
+			
+			
+			
+			
+			
+			
+			
+			
 			// Adding properties to modelpart
-			mrIO.ReadProperties(mrModelPart.rProperties());
-
-			mLogFile << rank << " : End adding Properties " << std::endl;
+// 			mrIO.ReadProperties(mrModelPart.rProperties());
 
 			// Adding elements to each partition mesh
-			AddingElements(temp_nodes, npart, epart);
+// 			AddingElements(temp_nodes, npart, epart);
 
 
 			// Adding conditions to each partition mesh
-			ModelPart::ConditionsContainerType temp_conditions;
-			AddingConditions(temp_nodes, npart, epart, temp_conditions);
+// 			ModelPart::ConditionsContainerType temp_conditions;
+// 			AddingConditions(temp_nodes, npart, epart, temp_conditions);
 
 
 
-			mrIO.ReadInitialValues(temp_nodes, mrModelPart.Elements(), temp_conditions);
-
-			mLogFile << rank << " : start cleaning memory " << std::endl;
-
-
-			delete[] epart;
-			delete[] npart;
-
-			mLogFile << rank << " : cleaning memory Finished" << std::endl;
+// 			mrIO.ReadInitialValues(temp_nodes, mrModelPart.Elements(), temp_conditions);
 
 			KRATOS_CATCH("")
 		}
 
-		void CalculateDomainsGraph(GraphType& rDomainsGraph, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart )
+		void CalculateDomainsGraph(GraphType& rDomainsGraph, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, MetisGraphPartitioningProcess::PartitionIndicesType const& NPart, MetisGraphPartitioningProcess::PartitionIndicesType const&  EPart )
 		  {
 		    for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
 		      for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
@@ -239,7 +260,6 @@ namespace Kratos
 			    rDomainsGraph(element_rank, node_rank) = 1;
 			  }
 			}
-		    
 		  }
 
 
@@ -319,7 +339,7 @@ namespace Kratos
 			std::vector<std::vector<std::size_t> > mGhostsIds;
 			std::vector<std::vector<std::size_t> > mInterfacesIds;
 
-		}
+		};
 
 		///@name Protected static Member Variables 
 		///@{ 
@@ -329,7 +349,7 @@ namespace Kratos
 		///@name Protected member Variables 
 		///@{ 
 
-		ModelPart& mrModelPart;
+// 		ModelPart& mrModelPart;
 
 	        IO& mrIO;
 		
@@ -347,7 +367,7 @@ namespace Kratos
 		///@name Protected Operations
 		///@{ 
 
-
+/*
 		void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
 		{
 			// calculating total size of connectivity vector 
@@ -397,204 +417,146 @@ namespace Kratos
 
 			delete[] elmnts;
 
-		}
-
-
-		
-		
-		
-		
-		void DividingNodes(std::vector<DomainEntitiesIdContainer>& rDomainsNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart, SizeType ColorsNumber)
+		}*/
+			
+		void ConditionsPartitioning(IO::ConnectivitiesContainerType& ConditionsConnectivities, 
+					    MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions, 
+					    MetisGraphPartitioningProcess::PartitionIndicesType& ConditionsPartitions)
 		{
-			rDomainsNodes.resize(mNumberOfPartitions, DomainEntitiesIdContainer(ColorsNumber));
-
-			for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
+		  SizeType number_of_conditions = ConditionsConnectivities.size();
+		  
+		  ConditionsPartitions.resize(number_of_conditions);
+		  
+		  // getting the average of the partion indices of the condition nodes and take the nearest partition indices of the nodes to the average.
+		  for(SizeType i_condition = 0 ; i_condition < number_of_conditions ; i_condition++)
+		  {
+		    if(ConditionsConnectivities[i_condition].size() > 0)
+		    {
+		      double average_index = 0.00;
+		      for(IO::ConnectivitiesContainerType::value_type::iterator i_node = ConditionsConnectivities[i_condition].begin() ;  
+		      i_node != ConditionsConnectivities[i_condition].end() ; i_node++)
+		      {
+			//get global id. We assume that node ids are began with one
+			const int my_gid = *i_node-1;
+			
+			average_index += NodesPartitions[my_gid];
+			
+		      }
+		      average_index /= ConditionsConnectivities[i_condition].size();
+		      
+		      double difference = mNumberOfPartitions + 10; // Just to be sure! ;-)
+		      
+		      for(IO::ConnectivitiesContainerType::value_type::iterator i_node = ConditionsConnectivities[i_condition].begin() ;  
+		      i_node != ConditionsConnectivities[i_condition].end() ; i_node++)
+		      {
+			//get global id. We assume that node ids are began with one
+			const int my_gid = *i_node-1;
+			
+			//get the partition index for the node i am interested in
+			const int node_partition = NodesPartitions[my_gid];
+			
+			if(difference > fabs(average_index - node_partition))
 			{
-				const int element_partition = EPart[i_element];
-				DomainEntitiesIdContainer& r_entities_id = rDomainsNodes[element_partition];
-				//for each element in the model loop over its connectivities
-				for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
-					i_node != ElementsConnectivities[i_element].end() ; i_node++)
-				{
-					//get global id. We assume that node ids are began with one
-					const int my_gid = *i_node-1;
-
-					//get the partition index for the node i am interested in
-					const int node_partition = NPart[my_gid];
-
-					SizeType mesh_index = interface_indices[element_partition];
-
-					//add the node to the list of nodes of "rank"
-					r_entities_id.AllIds().push_back(my_gid);
-
-						if(node_partition != element_partition) //the node is not owned by "rank"
-						{
-							LocalNodes[node_partition][mesh_index].push_back(my_gid);
-							GhostNodes[mesh_index][node_partition].push_back(my_gid);
-						}
-				}
+			  difference = fabs(average_index - node_partition);
+			  ConditionsPartitions[i_condition] = node_partition;	
 			}
-
+		      }
+		      
+		    }
+		  }
 		}
+		
+ 		void DividingNodes(IO::PartitionIndicesContainerType& rNodesAllPartitions, 
+				   IO::ConnectivitiesContainerType& ElementsConnectivities, 
+				   IO::ConnectivitiesContainerType& ConditionsConnectivities, 
+				   MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions, 
+				   MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions, 
+				   MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
+ 		{
+		  SizeType number_of_nodes = NodesPartitions.size();
+		  SizeType number_of_elements = ElementsPartitions.size();
+		  SizeType number_of_conditions = ConditionsPartitions.size();
+ 		  
+		  rNodesAllPartitions.resize(number_of_nodes);
+		  
+		  for(SizeType i_element = 0 ; i_element < number_of_elements ; i_element++) 
+		  {
+		    const int element_partition = ElementsPartitions[i_element];
+		    
+		    //for each element in the model loop over its connectivities
+		    for(IO::ConnectivitiesContainerType::value_type::iterator i_node = ElementsConnectivities[i_element].begin() ;  
+		    i_node != ElementsConnectivities[i_element].end() ; i_node++)
+		    {
+		      //get global id. We assume that node ids are began with one
+		      const int my_gid = *i_node-1;
+		      
+		      //get the partition index for the node i am interested in
+		      const int node_partition = NodesPartitions[my_gid];
 
-		void AddingNodes(ModelPart::NodesContainerType& AllNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
+		      // adding the partition of the element to its nodes
+		      if(element_partition != node_partition) // we will add the node_partition once afterward
+			 rNodesAllPartitions[my_gid].push_back(element_partition);
+		    }
+		  }
+		  
+		  for(SizeType i_condition = 0 ; i_condition < number_of_conditions ; i_condition++) 
+		  {
+		    const int condition_partition = ConditionsPartitions[i_condition];
+		    
+		    //for each element in the model loop over its connectivities
+		    for(IO::ConnectivitiesContainerType::value_type::iterator i_node = ConditionsConnectivities[i_condition].begin() ;  
+		    i_node != ConditionsConnectivities[i_condition].end() ; i_node++)
+		    {
+		      //get global id. We assume that node ids are began with one
+		      const int my_gid = *i_node-1;
+		      
+		      //get the partition index for the node i am interested in
+		      const int node_partition = NodesPartitions[my_gid];
+
+		      // adding the partition of the element to its nodes
+		      if(condition_partition != node_partition) // we will add the node_partition once afterward
+			 rNodesAllPartitions[my_gid].push_back(condition_partition);
+		    }
+		  }
+		  
+		  // adding the nodes partition to their array of partitions and clear the repeated ones
+		  for(SizeType i_node = 0 ; i_node < number_of_nodes ; i_node++)
+		  {
+		    IO::PartitionIndicesContainerType::value_type& node_partitions = rNodesAllPartitions[i_node];
+		    node_partitions.push_back(NodesPartitions[i_node]);
+	    
+		    std::sort(node_partitions.begin(), node_partitions.end());
+		    IO::PartitionIndicesContainerType::value_type::iterator new_end=std::unique(node_partitions.begin(), node_partitions.end());
+		    node_partitions.resize(new_end - node_partitions.begin());
+		  }
+		}
+		
+ 		void DividingElements(IO::PartitionIndicesContainerType& rElementsAllPartitions, MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions)
+ 		{
+		  SizeType number_of_elements = ElementsPartitions.size();
+ 		  
+		  rElementsAllPartitions.resize(number_of_elements);
+		  
+		  // adding the elements partition to their array of partitions 
+		  for(SizeType i_element = 0 ; i_element < number_of_elements ; i_element++)
+		  {
+		    rElementsAllPartitions[i_element].push_back(ElementsPartitions[i_element]);
+		  }
+		}
+		
+		void DividingConditions(IO::PartitionIndicesContainerType& rConditionsAllPartitions, MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
 		{
-			Communicator& r_communicator = mrModelPart.GetCommunicator();
-
-			mLogFile << rank << " : Adding nodes to modelpart" << std::endl;
-			// first adding the partition's nodes
-			for(ModelPart::NodeIterator i_node = AllNodes.begin() ; 
-				i_node != AllNodes.end() ; i_node++)
-				if(NPart[i_node->Id()-1] == rank)
-				{
-					mrModelPart.AssignNode(*(i_node.base()));
-					r_communicator.LocalMesh().Nodes().push_back(*(i_node.base()));
-					//  			mrModelPart.AssignNode(*(i_node.base()), ModelPart::Kratos_Local);
-					i_node->GetSolutionStepValue(PARTITION_INDEX) = rank;
-				}
-
-				std::vector<int> interface_indices(mNumberOfPartitions, -1); 
-				vector<int>& neighbours_indices = r_communicator.NeighbourIndices();
-
-
-
-				for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
-					if(SizeType(neighbours_indices[i]) < interface_indices.size())
-						interface_indices[neighbours_indices[i]] = i;
-
-				//		  mLogFile << rank << " : Adding interface nodes to modelpart" << std::endl;
-				// now adding interface nodes which belongs to other partitions
-				for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++) 
-					if(EPart[i_element] == rank)
-					{ 
-						for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
-							i_node != ElementsConnectivities[i_element].end() ; i_node++)
-						{
-							int node_partition = NPart[*i_node-1];
-							if(node_partition != rank) 
-							{
-
-								ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
-								// Giving model part's variables list to the node
-								p_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
-
-								//set buffer size
-								p_node->SetBufferSize(mrModelPart.GetBufferSize());
-								mrModelPart.Nodes().push_back(p_node); 
-								r_communicator.GhostMesh().Nodes().push_back(p_node); 
-								if(SizeType(interface_indices[node_partition]) < neighbours_indices.size())
-								{
-									r_communicator.GhostMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
-									r_communicator.InterfaceMesh(interface_indices[node_partition]).Nodes().push_back(p_node); 
-								}
-								else
-								{
-									std::cout << rank << " : ERROR! Node #" << *i_node << " has not registered interface for partition #" << node_partition << std::endl;
-								}
-								r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
-								//   			   mrModelPart.AssignNode(AllNodes((*i_node)),  ModelPart::Kratos_Ghost); 
-								p_node->GetSolutionStepValue(PARTITION_INDEX) = NPart[*i_node-1];
-							}
-						}
-					}
-					else  // adding the owened interface nodes 
-					{
-						for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;  
-							i_node != ElementsConnectivities[i_element].end() ; i_node++) 
-							if(NPart[*i_node-1] == rank) 
-							{
-								SizeType mesh_index = interface_indices[EPart[i_element]];
-								if(mesh_index > neighbours_indices.size()) // Means the neighbour domain is not registered!!
-								{
-									//std::cout << rank << " : cannot find interface for element #" << i_element << " with rank " << EPart[i_element] << std::endl;
-									KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
-								} 			    
-
-								ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
-								r_communicator.LocalMesh().Nodes().push_back(p_node); 
-								r_communicator.LocalMesh(mesh_index).Nodes().push_back(p_node); 
-								r_communicator.InterfaceMesh(mesh_index).Nodes().push_back(p_node); 
-								r_communicator.InterfaceMesh().Nodes().push_back(p_node); 
-
-								// 			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
-								// 			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
-								// 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
-								//  			    mrModelPart.AssignNode(AllNodes((*i_node)), mesh_index); 
-								// // 		      mLogFile << rank << " : Adding interface node # " << *i_node << std::endl;
-								// 			    mLogFile << rank << " : Adding interface node # " << *i_node << " to mesh: " << mesh_index  << std::endl;
-								// 			AllNodes((*i_node))->GetSolutionStepValue(PARTITION_INDEX) = rank;
-								// // 			mLogFile << rank << " : Adding interface node # " << AllNodes[(*i_node)] << "with partition index " << AllNodes[(*i_node)].GetSolutionStepValue(PARTITION_INDEX)  << " in " <<  AllNodes((*i_node)) << std::endl;
-							}
-					}
-
-					// After making push_back to the nodes list now we need to make unique and sort for all meshes in communicator
-					mrModelPart.Nodes().Unique();
-					r_communicator.LocalMesh().Nodes().Unique();
-					r_communicator.GhostMesh().Nodes().Unique();
-					r_communicator.InterfaceMesh().Nodes().Unique();
-					for(SizeType i = 0 ; i < r_communicator.LocalMeshes().size() ; i++)
-						r_communicator.LocalMesh(i).Nodes().Unique();
-					for(SizeType i = 0 ; i < r_communicator.GhostMeshes().size() ; i++)
-						r_communicator.GhostMesh(i).Nodes().Unique();
-					for(SizeType i = 0 ; i < r_communicator.InterfaceMeshes().size() ; i++)
-						r_communicator.InterfaceMesh(i).Nodes().Unique();
-
-					mLogFile << rank << " : Nodes added to modelpart" << std::endl;
-
+		  SizeType number_of_conditions = ConditionsPartitions.size();
+		  
+		  rConditionsAllPartitions.resize(number_of_conditions);
+		  
+		  // adding the condition partition to their array of partitions 
+		  for(SizeType i_condition = 0 ; i_condition < number_of_conditions ; i_condition++)
+		  {
+		    rConditionsAllPartitions[i_condition].push_back(ConditionsPartitions[i_condition]);
+		  }
 		}
-
-
-	        void AddingElements(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart)
-	        {
-		  int rank = GetRank();
-
-		  mLogFile << rank << " : Reading elements" << std::endl;
-		  ModelPart::ElementsContainerType temp_elements;
-		  mrIO.ReadElements(AllNodes, mrModelPart.rProperties(), temp_elements);
-
-		  mLogFile << rank << " : Adding elements to modelpart" << std::endl;
-		  idxtype* epart_position = EPart;
-		  for(Kratos::ModelPart::ElementIterator i_element = temp_elements.begin() ;
-		      i_element != temp_elements.end() ; i_element++)
-		    {
-		      if(*epart_position == rank)
-			{
-			  mrModelPart.AddElement(*(i_element.base()));
- 			  mrModelPart.GetCommunicator().LocalMesh().AddElement(*(i_element.base()));
-//   			  mrModelPart.AddElement(*(i_element.base()),  ModelPart::Kratos_Local);
-			}
-		      epart_position++;
-		    }
-		  mLogFile << rank << " : Elements added" << std::endl;
-		}
-
-	  virtual void AddingConditions(ModelPart::NodesContainerType& AllNodes, idxtype* NPart, idxtype* EPart, ModelPart::ConditionsContainerType& AllConditions)
-	        {
-		  int rank = GetRank();
-
-		  mLogFile << rank << " : Reading conditions" << std::endl;
-		  mrIO.ReadConditions(AllNodes, mrModelPart.rProperties(), AllConditions);
-
-		  mLogFile << rank << " : Adding conditions to modelpart" << std::endl;
-		  for(Kratos::ModelPart::ConditionIterator i_condition = AllConditions.begin() ;
-		      i_condition != AllConditions.end() ; i_condition++)
-		    {
-		      bool is_local = 1;
-		      // See if all of the condition nodes are in this partition as a local or even as a ghost
-		      // TODO: THIS IS DANGEROUSE AND MAY FAILE DUE TO THE MESH!!! MUST BE CHANGED!!
-		      for(ModelPart::ConditionType::GeometryType::iterator i_node = i_condition->GetGeometry().begin() ;  
-			  i_node != i_condition->GetGeometry().end() ; i_node++) 
-			if(mrModelPart.Nodes().find(i_node->Id()) == mrModelPart.Nodes().end())
-			  is_local = 0;
-		      if(is_local)
-			{
-			  mrModelPart.AddCondition(*(i_condition.base()));
- 			  mrModelPart.GetCommunicator().LocalMesh().AddCondition(*(i_condition.base()));
-//   			  mrModelPart.AddCondition(*(i_condition.base()),  ModelPart::Kratos_Local);
-			}
-		    }
-		  mLogFile << rank << " : Conditions added" << std::endl;
-		}
+		
 	  
 
 		///@} 
