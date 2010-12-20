@@ -1890,8 +1890,6 @@ namespace Kratos
       KRATOS_TRY
       
       SizeType id;
-      bool is_fixed;
-      double nodal_value;
       
       std::string word;
       
@@ -1945,8 +1943,6 @@ namespace Kratos
       KRATOS_TRY
     
       SizeType id;
-      bool is_fixed;
-      double nodal_value;
       
       std::string word;
       
@@ -2053,8 +2049,6 @@ namespace Kratos
       KRATOS_TRY
       
       SizeType id;
-      bool is_fixed;
-      double nodal_value;
       
       std::string word;
       
