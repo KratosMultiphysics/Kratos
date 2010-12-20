@@ -478,6 +478,8 @@ namespace Kratos
 	    
 	  }
 	  
+	  WritePartitionIndices(output_files, NodesPartitions, NodesAllPartitions);
+	  
 	WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
 	std::cout << "lines read : " << mNumberOfLines;
 	std::cout << std::endl;
@@ -2148,6 +2150,33 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
+	  void WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
+	  {
+	   WriteInAllFiles(OutputFiles, "Begin NodalData PARTITION_INDEX\n");
+	   
+	   for(SizeType i_node = 0 ; i_node != NodesAllPartitions.size() ; i_node++)
+	   {
+	     for(SizeType i = 0 ; i < NodesAllPartitions[i_node].size() ; i++)
+	     {
+	       SizeType partition_id = NodesAllPartitions[i_node][i];
+	       if(partition_id > OutputFiles.size())
+	       {
+		 std::stringstream buffer;
+		 buffer << "Invalid prtition id : " << partition_id;
+		 buffer << " for node " << i_node+1 << " [Line " << mNumberOfLines << " ]";
+		 KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	       }
+	       
+	       const SizeType node_partition = NodesPartitions[i_node];
+	       *(OutputFiles[partition_id]) << i_node + 1 << "  0  " << node_partition << std::endl;
+	     }
+	   }
+	   
+	   
+	   WriteInAllFiles(OutputFiles, "End NodalData \n");
+	    
+	  }
+	  
 
       void WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph, 
 					    PartitionIndicesType const& NodesPartitions, 
