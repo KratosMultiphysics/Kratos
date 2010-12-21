@@ -674,7 +674,7 @@ namespace Kratos
 
             //Gets the array of elements from the modeler
             ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
-            ConditionsArrayType& pConditions = rModelPart.Conditions();
+            ConditionsArrayType& pConditions = rModelPart.GetCommunicator().LocalMesh().Conditions();
 
             DofsArrayType Doftemp;
             BaseType::mDofSet = DofsArrayType();
@@ -1007,7 +1007,7 @@ namespace Kratos
                 BaseType::mpReactionsVector == NULL)
             {
                 KRATOS_WATCH("System Vectors")
-                        int LocalDofNum = mLocalVelDofNum + mLocalPressDofNum;
+                int LocalDofNum = mLocalVelDofNum + mLocalPressDofNum;
 
                 int* LocalIndices = new int[LocalDofNum];
 
@@ -1369,7 +1369,7 @@ namespace Kratos
         /// Minimum solution tolerance: 0.5*NonLinearTol
         double mSmallTol;
         double mGamma;
-        
+
         /// Keeps track of the first iteration in each step
         bool mFirstIteration;
         double mPressTolFactor;
