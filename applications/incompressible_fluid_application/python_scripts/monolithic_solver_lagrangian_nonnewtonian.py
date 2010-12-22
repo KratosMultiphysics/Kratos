@@ -4,7 +4,7 @@ from KratosIncompressibleFluidApplication import *
 from KratosPFEMApplication import *
 from KratosMeshingApplication import *
 from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
+#from KratosMKLSolversApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -69,8 +69,8 @@ class MonolithicSolver:
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
-        self.linear_solver =SuperLUSolver()
-
+        self.linear_solver = SuperLUSolver()
+#        self.linear_solver = MKLPardisoSolver()
 
 ##        pPrecond = DiagonalPreconditioner()
 ####        pPrecond = ILU0Preconditioner()
@@ -138,7 +138,8 @@ class MonolithicSolver:
     #######################################################################
     def Initialize(self,output_time_increment):
         #creating the solution strategy
-        
+        print self.linear_solver
+
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
         
