@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
 #include "custom_processes/metis_contact_partitioning_process.h" 
 #include "custom_processes/metis_partitioning_process_quadratic.h"
+#include "custom_processes/set_mpi_communicator_process.h"
 
 
 namespace Kratos
@@ -113,6 +114,10 @@ namespace Python
          ;
 
 	  def("GetRank", GetRank);
+
+          class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
+                  init<ModelPart&>())
+          ;
 
   }
 	
