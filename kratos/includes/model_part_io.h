@@ -410,7 +410,12 @@ namespace Kratos
 	    else if(word == "ConditionalData")
 	      ReadConditionalDataBlock(rThisModelPart.Conditions());
 	    else if(word == "CommunicatorData")
+            {
 	      ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
+              //Adding the elements and conditions to the communicator
+              rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
+              rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
+            }
 	    
 	  }
 	std::cout << "lines read : " << mNumberOfLines;
