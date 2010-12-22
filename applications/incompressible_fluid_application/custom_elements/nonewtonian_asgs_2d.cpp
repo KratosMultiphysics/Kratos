@@ -136,7 +136,7 @@ namespace Kratos {
 
 // 	      //add projections
 	      if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
-	          AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
+		  AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
 
 
 	KRATOS_CATCH("")
@@ -1158,44 +1158,34 @@ namespace Kratos {
 
 
 ////////EXPONENCIAL FORM
-// 	if (gamma_dot > 1e-10) {
-// 	    aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
-// 	    app_mu = mu + (yield / gamma_dot) * aux_1;
-// // 			gamma_dot_inv = 1.0/gamma_dot;
-// 	    if (app_mu < mu) {
-// 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
-// 	    }
-// 	} else {
-// 	    app_mu = mu + yield*mcoef ;
-// // 			gamma_dot_inv = 0.0;
-// 	}
+	if (gamma_dot > 1e-10) {
+	    aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+	    app_mu = mu + (yield / gamma_dot) * aux_1;
+// 			gamma_dot_inv = 1.0/gamma_dot;
+	    if (app_mu < mu) {
+		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+	    }
+	} else {
+	    app_mu = mu + yield*mcoef ;
+// 			gamma_dot_inv = 0.0;
+	}
 	
-////////BILINEAR FORM
-      double mu_s = 1e7;
-      double gamma_dot_lim = yield/mu_s;
-      
-
-// KRATOS_WATCH("gamma_dot_lim")
-// KRATOS_WATCH(gamma_dot_lim) 
-// KRATOS_WATCH("gamma_dot")
-// KRATOS_WATCH(gamma_dot)
-//       if(gamma_dot < gamma_dot_lim ){
-// 		app_mu = mu_s;
+// ////////BILINEAR FORM
+//       double mu_s = 1e7;
+//       double gamma_dot_lim = yield/mu_s;
+//       
+//       if(gamma_dot >= gamma_dot_lim){
+// 	if (gamma_dot_lim <= 1e-16){
+// 	  app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+// 	}
+// 	else{
+// 	  app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+// 	}
 //       }
 //       else{
-// KRATOS_WATCH("entering")
-	    if(gamma_dot >= gamma_dot_lim){
-	      if (gamma_dot_lim <= 1e-16){
-		app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
-	      }
-	      else{
-		app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
-	      }
-	    }
-	    else{
-	       app_mu = mu_s ;
-	    }
+// 	app_mu = mu_s ;
 //       }
+
 	
 /*
 //Calculating nodal yield and nodal app_mu before the calculation of elemental apparent viscosity
@@ -1262,7 +1252,73 @@ namespace Kratos {
 	KRATOS_CATCH("")
     }
 
+    //************************************************************************************
+    //************************************************************************************
 
+    void NoNewtonianASGS2D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
+	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
+	    const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+	    const double & mu) {
+	KRATOS_TRY
+	app_mu = 0.0;
+
+	double mcoef = 3000;
+	
+	double aux_1;
+	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
+	
+	
+	  // The yield is variable: it decreases where water is present
+	  unsigned int nodes_number = 3;
+	  double yield = 0.0;
+	  double friction_angle_tangent = 0.0; 
+	  double water_pressure = 0.0;
+// 	  double gamma_dot_inv;
+	  double solid_pressure = 0.0;
+	  double seepage_drag_x = 0.0;
+	  
+	  
+
+	  
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
+	      }
+	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+	      }
+
+
+	  }
+	  friction_angle_tangent /= nodes_number;
+	  water_pressure /= nodes_number;
+	  yield /= nodes_number;
+ 
+	  if(water_pressure < yield){
+	      yield -= water_pressure;
+	      yield *= friction_angle_tangent;
+	  }
+	  else
+	      yield = 0.0;
+
+////////BILINEAR FORM
+	double mu_s = 1e7;
+	double gamma_dot_lim = yield/mu_s;
+	
+	if(gamma_dot >= gamma_dot_lim){
+	  if (gamma_dot_lim <= 1e-16){
+	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+	  }
+	  else{
+	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+	  }
+	}
+	else{
+	  app_mu = mu_s ;
+	}
+	KRATOS_CATCH("")
+    }
 
     //************************************************************************************
     //************************************************************************************
@@ -1442,7 +1498,8 @@ namespace Kratos {
 
   
 	//Bingham
-	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);	
+// 	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+	CalculateApparentViscosityStbl(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);//to consider the equivalent viscosity not the fluid viscosity in the fluid part 
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
 	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
 	
