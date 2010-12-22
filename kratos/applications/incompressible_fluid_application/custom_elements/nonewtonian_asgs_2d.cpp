@@ -135,8 +135,8 @@ namespace Kratos {
 
 
 // 	      //add projections
-// 	      if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
-// 	          AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
+	      if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+	          AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
 
 
 	KRATOS_CATCH("")
@@ -203,6 +203,7 @@ namespace Kratos {
 	CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 	CalculateMassContribution(rMassMatrix, delta_t, Area);
+/*20101216*/
 	/**Stablization*/
 	//add stablilization terms due to advective term (a)grad(V) * ro*Acce
 	CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Area);
@@ -250,7 +251,8 @@ namespace Kratos {
 	//compute projections
 	/**Stablization*/
 	//stabilization terms
-	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
+/*20101216*/
+	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);//tau 2
 	CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area);
 	CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
 	//KRATOS_WATCH(rRightHandSideVector);
@@ -296,11 +298,11 @@ namespace Kratos {
 	// Remember to modify CalculateResidualand CalculateTau.
 // 	app_mu = mu;
 	
-	C(0, 0) = 2.0;// - 2.0/3.0;
-	C(0, 1) = 0.0;//- 2.0/3.0;
+	C(0, 0) = 2.0 - 2.0/3.0;
+	C(0, 1) = 0.0- 2.0/3.0;
 	C(0, 2) = 0.0;
-	C(1, 0) = 0.0;//- 2.0/3.0;
-	C(1, 1) = 2.0;//- 2.0/3.0;
+	C(1, 0) = 0.0- 2.0/3.0;
+	C(1, 1) = 2.0- 2.0/3.0;
 	C(1, 2) = 0.0;
 	C(2, 0) = 0.0;
 	C(2, 1) = 0.0;
@@ -765,10 +767,10 @@ namespace Kratos {
 	    F[index + 1] += area * N[ii] * density * bdf[1];
 
 
-	    //arrhenius
-	    F[index + 2] += (area * N[ii] * mean_ar);
-	    F[index] += tautwo * area * mean_ar * div_opr(0, loc_index);
-	    F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
+// 	    //arrhenius
+// 	    F[index + 2] += (area * N[ii] * mean_ar);
+// 	    F[index] += tautwo * area * mean_ar * div_opr(0, loc_index);
+// 	    F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
 	}
 
 
@@ -1117,27 +1119,7 @@ namespace Kratos {
 	  double seepage_drag_x = 0.0;
 	  
 	  
-// 	  	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-// 	      
-// 		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
-// 	      
-// // 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
-// 	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
-// // 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
-// 		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
-// // 		    solid_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
-// // 	      }
-// //       	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
-// // 	      seepage_drag_x += GetGeometry()[ii].FastGetSolutionStepValue(SEEPAGE_DRAG_X);
-// 	      //CHECK NEGATIVE VALUES....
-// 
-// 	  }
-// 	  friction_angle_tangent /= nodes_number;
-// 	  water_pressure /= nodes_number;
-// 	  yield /= nodes_number;
-// 	  
-// 	  if(yield< 0.0)
-// 	    yield = 0.0;
+
 	  
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
@@ -1173,19 +1155,106 @@ namespace Kratos {
 	  else
 	      yield = 0.0;
 // KRATOS_WATCH(yield)
-	  
-	if (gamma_dot > 1e-10) {
-	    aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
-	    app_mu = mu + (yield / gamma_dot) * aux_1;
-// 			gamma_dot_inv = 1.0/gamma_dot;
-	    if (app_mu < mu) {
-		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+
+
+////////EXPONENCIAL FORM
+// 	if (gamma_dot > 1e-10) {
+// 	    aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+// 	    app_mu = mu + (yield / gamma_dot) * aux_1;
+// // 			gamma_dot_inv = 1.0/gamma_dot;
+// 	    if (app_mu < mu) {
+// 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+// 	    }
+// 	} else {
+// 	    app_mu = mu + yield*mcoef ;
+// // 			gamma_dot_inv = 0.0;
+// 	}
+	
+////////BILINEAR FORM
+      double mu_s = 1e7;
+      double gamma_dot_lim = yield/mu_s;
+      
+
+// KRATOS_WATCH("gamma_dot_lim")
+// KRATOS_WATCH(gamma_dot_lim) 
+// KRATOS_WATCH("gamma_dot")
+// KRATOS_WATCH(gamma_dot)
+//       if(gamma_dot < gamma_dot_lim ){
+// 		app_mu = mu_s;
+//       }
+//       else{
+// KRATOS_WATCH("entering")
+	    if(gamma_dot >= gamma_dot_lim){
+	      if (gamma_dot_lim <= 1e-16){
+		app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+	      }
+	      else{
+		app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+	      }
 	    }
-	} else {
-	    app_mu = mu + yield*mcoef ;
-// 			gamma_dot_inv = 0.0;
+	    else{
+	       app_mu = mu_s ;
+	    }
+//       }
+	
+/*
+//Calculating nodal yield and nodal app_mu before the calculation of elemental apparent viscosity
+	  // The yield is variable: it decreases where water is present
+	  unsigned int nodes_number = 3;
+	  array_1d<double, 3 > yield = ZeroVector(3);
+	  double friction_angle_tangent = 0.0;
+	  array_1d<double, 3 > water_pressure = ZeroVector(3);
+	  array_1d<double, 3 > nodal_app_mu = ZeroVector(3);
+
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+		    water_pressure[ii] =  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);    
+	      }
+	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+		    yield[ii] =  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+	      }
+	  }
+  
+	  friction_angle_tangent /= nodes_number;
+// 	  water_pressure /= nodes_number;
+// 	  yield /= nodes_number;
+
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	      if(water_pressure[ii] < yield[ii]){
+		      yield[ii] -= water_pressure[ii];
+	      }
+	      else{
+		yield[ii] = 0.0;
+	      }
+	}
+	yield *= friction_angle_tangent;
+
+
+
+//////////EXPONENCIAL FORM
+	if (gamma_dot > 1e-10) {
+		aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+		for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+		    nodal_app_mu[ii] = mu + (yield[ii] / gamma_dot) * aux_1;
+		}
+	}
+	else {
+	      for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+		nodal_app_mu[ii] = mu + yield[ii]*mcoef;
+	      }
 	}
 	
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	    app_mu += nodal_app_mu[ii];
+	}
+	app_mu /= nodes_number;
+*/	
+	
+// 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+// 	  if(GetGeometry()[ii].Y()> (-GetGeometry()[ii].X() + 3.0))
+// 	    app_mu = 150.0;
+// 	}
 // 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
 // 	else  gamma_dot_inv= 1.0/gamma_dot;
 // 	app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
@@ -1363,7 +1432,7 @@ namespace Kratos {
 
 /*provisional*/
 	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
-	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+	array_1d<double, 3 > grad_sym_vel = ZeroVector(3); 
 	double app_mu_derivative;
 
 	CalculateB(B, msDN_DX);
@@ -1381,20 +1450,15 @@ namespace Kratos {
 /*provisional*/	
 	const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 	tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
-	
-//         int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
-// 
-//         if (dyn_st_switch) {
-// 
-//             tauone = 1.0 / (1.0 / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-//         } else {
-// 
-//             tauone = 1.0 / (0.0 + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm * 1.0 / ele_length);
-//         }
 
-	tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
+// 	tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
+	tautwo = 0.0;
 
 
+
+	//beign lagrangian no advective velocity should be present!
+	if(advvel_norm> 1e-10)
+	  KRATOS_ERROR(std::logic_error,"MESH VEL DIFF VEL","");
 
 	KRATOS_CATCH("")
 
