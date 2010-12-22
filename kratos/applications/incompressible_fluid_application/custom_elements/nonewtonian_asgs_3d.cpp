@@ -284,23 +284,23 @@ namespace Kratos {
 	// Remember to modify CalculateResidualand CalculateTau.
 // 	app_mu = mu;
 // 	KRATOS_WATCH(app_mu)
-        C(0, 0) = 2.0;
-        C(0, 1) = 0.0;
-        C(0, 2) = 0.0;
+        C(0, 0) = 2.0 - 2.0/3.0;
+        C(0, 1) = 0.0 - 2.0/3.0;
+        C(0, 2) = 0.0 - 2.0/3.0;
 	C(0, 3) = 0.0;
 	C(0, 4) = 0.0;
 	C(0, 5) = 0.0;
 	
-        C(1, 0) = 0.0;
-        C(1, 1) = 2.0;
-        C(1, 2) = 0.0;
+        C(1, 0) = 0.0 - 2.0/3.0;
+        C(1, 1) = 2.0 - 2.0/3.0;
+        C(1, 2) = 0.0 - 2.0/3.0;
 	C(1, 3) = 0.0;
 	C(1, 4) = 0.0;
 	C(1, 5) = 0.0;
         
-	C(2, 0) = 0.0;
-        C(2, 1) = 0.0;
-        C(2, 2) = 2.0;
+	C(2, 0) = 0.0 - 2.0/3.0;
+        C(2, 1) = 0.0 - 2.0/3.0;
+        C(2, 2) = 2.0 - 2.0/3.0;
 	C(2, 3) = 0.0;
 	C(2, 4) = 0.0;
 	C(2, 5) = 0.0;
@@ -1323,7 +1323,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 // 	double yield;
 
 	double gamma_dot = 0.0;
-        double mcoef = 300;
+        double mcoef = 3000;
 // 	double mcoef_inv = 1/mcoef;
 	
 	double aux_1;
