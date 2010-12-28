@@ -194,7 +194,7 @@ namespace Kratos
 				//Setting to zero the whole model part
 				Clear(node_it,  step_data_size );
 			}
-			
+			boost::timer search_and_interpolation_time;
 			//loop over all of the elements in the "old" list to perform the interpolation
 			for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
 						el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
@@ -234,7 +234,7 @@ namespace Kratos
 				number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
  						ResultsDistances.begin(),  MaximumNumberOfResults);
 
-
+				
 				//check if inside 
 				for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
 				{	
@@ -269,8 +269,9 @@ namespace Kratos
 						        
 				        }
 				}
+				
  			}		
-			
+			std::cout << "search and interpolation time " << search_and_interpolation_time.elapsed() << std::endl;
 			KRATOS_CATCH("")
 		}
 
@@ -367,6 +368,7 @@ namespace Kratos
 			//int step_data_size = rDestination_ModelPart.GetNodalSolutionStepDataSize();
 			//unsigned int TDim = 3;
 // KRATOS_WATCH("line 359")
+			boost::timer search_and_interpolation_time;
 			//loop over all of the elements in the "old" list to perform the interpolation
 			for( ModelPart::ElementsContainerType::iterator el_it = rOrigin_ModelPart.ElementsBegin();
 						el_it != rOrigin_ModelPart.ElementsEnd(); el_it++)
@@ -405,7 +407,8 @@ namespace Kratos
 				//look between the new nodes which of them is inside the radius of the circumscribed cyrcle
 				number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
  						ResultsDistances.begin(),  MaximumNumberOfResults);
-
+						
+				
 				//check if inside 
 				for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
 				{	
@@ -443,8 +446,9 @@ namespace Kratos
 						
 					}
 				}
+				
  			}		
-			
+			std::cout << "search and interpolation time " << search_and_interpolation_time.elapsed() << std::endl;
 			KRATOS_CATCH("")
 		}
 			
