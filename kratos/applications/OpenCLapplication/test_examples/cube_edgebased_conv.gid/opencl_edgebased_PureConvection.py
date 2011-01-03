@@ -1,3 +1,6 @@
+import time as my_timer
+tenter = my_timer.time()
+
 import edgebased_var
 
 ##################################################################
@@ -128,11 +131,13 @@ for node in fluid_model_part.Nodes:
 ##    if(dist > 0.0):
 ##        dist = 0.0
     node.SetSolutionStepValue(DISTANCE,0,dist)
+
+t1 = my_timer.time()
     
 print "assigned dist dirts"
 #constructing the solver
 single_device_flag = True
-device_group = OpenCLDeviceGroup(cl_device_type.CL_DEVICE_TYPE_CPU,single_device_flag)
+device_group = OpenCLDeviceGroup(cl_device_type.CL_DEVICE_TYPE_GPU,single_device_flag)
 device_group.AddCLSearchPath('../../custom_utilities')
 
 matrix_container = OpenCLMatrixContainer3D(device_group)
@@ -140,10 +145,17 @@ matrix_container.ConstructCSRVector(fluid_model_part)
 matrix_container.BuildCSRData(fluid_model_part)
 print "contructed matrix_containers"
 
+##matrix_container.Clear()
+##matrix_container = OpenCLMatrixContainer3D(device_group)
+##matrix_container.ConstructCSRVector(fluid_model_part)
+##matrix_container.BuildCSRData(fluid_model_part)
+
 convection_solver = OpenCLPureConvectionEdgeBased3D(matrix_container, fluid_model_part)
 print "solver"
 convection_solver.Initialize()
 print "initizlized"
+
+t2 = my_timer.time()
 
 #settings to be changed
 max_Dt = edgebased_var.max_time_step 
@@ -187,7 +199,7 @@ while(time < final_time):
         convection_solver.Solve()
         
         ## Uncomment to get benchmarking data
-        ## BenchmarkCheck(time, fluid_model_part)
+##        BenchmarkCheck(time, fluid_model_part)
         
         if(time >=  next_output_time):
             
@@ -204,4 +216,7 @@ while(time < final_time):
 gid_io.Flush()      
 gid_io.FinalizeResults()    
         
-
+t3 = my_timer.time()
+print "initial time (reading, refinining etc) =", t1-tenter
+print "solver setup time                      =", t2-t1
+print "run time                               =", t3-t2

@@ -1,3 +1,6 @@
+import time as my_timer
+tenter = my_timer.time()
+
 import edgebased_var
 
 ##################################################################
@@ -87,7 +90,7 @@ neighbour_search = FindNodalNeighboursProcess(fluid_model_part,number_of_avg_ele
 
 #############################################
 ##perform refinement
-refinement_steps = 1
+refinement_steps = 2
 Refine = LocalRefineTetrahedraMesh(fluid_model_part)
 for i in range(0,refinement_steps):
     for elem in fluid_model_part.Elements:
@@ -126,7 +129,9 @@ for node in fluid_model_part.Nodes:
 ##    if(dist > 0.0):
 ##        dist = 0.0
     node.SetSolutionStepValue(DISTANCE,0,dist)
-    
+
+t1 = my_timer.time()
+
 print "assigned dist dirts"
 #constructing the solver
 matrix_container = MatrixContainer3D()
@@ -139,6 +144,9 @@ convection_solver = PureConvectionEdgeBased3D(matrix_container, fluid_model_part
 print "solver"
 convection_solver.Initialize()
 print "initizlized"
+
+t2 = my_timer.time()
+
 
 #settings to be changed
 max_Dt = edgebased_var.max_time_step 
@@ -198,5 +206,13 @@ while(time < final_time):
     step = step + 1
 gid_io.Flush()      
 gid_io.FinalizeResults()    
-        
+
+t3 = my_timer.time()
+
+print "OpenMP only"
+print "refinement level = ",refinement_steps
+print "initial time (reading, refinining etc) =", t1-tenter
+print "solver setup time                      =", t2-t1
+print "run time                               =", t3-t2
+    
 
