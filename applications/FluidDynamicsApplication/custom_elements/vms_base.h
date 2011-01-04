@@ -467,7 +467,31 @@ namespace Kratos
             double TauOne, TauTwo;
             this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
-            this->AddProjectionResidualContribution(AdvVel, Density, TauOne, TauTwo, rCurrentProcessInfo, N, DN_DX, Area);
+            // Output containers
+            array_1d< double,3 > ElementalMomRes(3,0.0);
+            double ElementalMassRes(0);
+
+            this->AddProjectionResidualContribution(AdvVel, Density, TauOne, TauTwo, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
+
+            if( rCurrentProcessInfo[OSS_SWITCH] == 1)
+            {
+                // Carefully write results to nodal variables, to avoid parallelism problems
+                for (unsigned int i = 0; i < TNumNodes; ++i)
+                {
+                    ///@TODO: Test using atomic
+                    this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+                    array_1d< double, 3 > & rAdvProj = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
+                    for (unsigned int d = 0; d < TDim; ++d)
+                        rAdvProj[d] += N[i] * ElementalMomRes[d];
+
+                    this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += N[i] * ElementalMassRes;
+                    this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
+                    this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+                }
+            }
+
+            /// Return output
+            rOutput = ElementalMomRes;
         }
 
         ///@}
@@ -831,6 +855,8 @@ namespace Kratos
                                                const double Density,
                                                const double TauOne,
                                                const double TauTwo,
+                                               array_1d< double,3 >& rElementalMomRes,
+                                               double& rElementalMassRes,
                                                const ProcessInfo& rCurrentProcessInfo,
                                                const array_1d< double, TNumNodes >& rShapeFunc,
                                                const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
@@ -839,10 +865,6 @@ namespace Kratos
             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
             array_1d<double, TNumNodes> AGradN;
             this->GetConvectionOperator(AGradN, rShapeFunc, rShapeDeriv); // Get a * grad(Ni)
-
-            // Initialize containers
-            array_1d<double, 3> ElementalMomRes(3,0.0);
-            double ElementalMassRes(0);
 
             const double WeightedMass = Weight * Density;
 
@@ -863,23 +885,9 @@ namespace Kratos
                 {
 //                    ElementalMomRes[d] += Weight * ( Density * ( /*rShapeFunc[i] * (rAcceleration[d]-rBodyForce[d])*/ + AGradN[i] * rVelocity[d] ) + rShapeDeriv(i,d) * rPressure);
                     ///@TODO: Body force or not Body force?
-                    ElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
-                    ElementalMassRes += WeightedMass * rShapeDeriv(i, d) * rVelocity[d];
+                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
+                    rElementalMassRes += WeightedMass * rShapeDeriv(i, d) * rVelocity[d];
                 }
-            }
-
-            // Carefully write results to nodal variables, to avoid parallelism problems
-            for (unsigned int i = 0; i < TNumNodes; ++i)
-            {
-                ///@TODO: Test using atomic
-                this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-                array_1d< double, 3 > & rAdvProj = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-                for (unsigned int d = 0; d < TDim; ++d)
-                    rAdvProj[d] += rShapeFunc[i] * ElementalMomRes[d];
-
-                this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += rShapeFunc[i] * ElementalMassRes;
-                this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Weight * rShapeFunc[i];
-                this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
             }
         }
 
@@ -891,7 +899,7 @@ namespace Kratos
          * @param rShapeFunc: Shape functions evaluated at the point of interest
          * @param Step: The time Step (Defaults to 0 = Current)
          */
-        void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
+        virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
                              const array_1d< double, TNumNodes >& rShapeFunc,
                              const std::size_t Step = 0)
         {
