@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosTestApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
@@ -48,41 +48,45 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-
+#include "custom_utilities/dynamic_smagorinsky_utilities.h"
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
-	
+
   void  AddCustomUtilitiesToPython()
   {
 	using namespace boost::python;
 
+        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
+        class_<DynamicSmagorinskyUtils>("DynamicSmagorinskyUtils", init<ModelPart&, ModelPart::ElementsContainerType&>())
+            .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
+            .def("SetCoarseVel",&DynamicSmagorinskyUtils::SetCoarseVel)
+            ;
 
   }
-	
+
 
 
 

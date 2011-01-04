@@ -69,7 +69,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fluid_dynamics_application_variables.h"
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms_2d.h"
+#include "custom_elements/vms_2d_smagorinsky.h"
 #include "custom_elements/vms_3d.h"
+#include "custom_elements/vms_3d_smagorinsky.h"
 
 namespace Kratos
 {
@@ -228,8 +230,10 @@ namespace Kratos
 		///@} 
 		///@name Member Variables 
 		///@{ 
- 		const VMS2D   mVMS2D; 
- 		const VMS3D   mVMS3D; 
+ 		const VMS2D mVMS2D;
+ 		const VMS2DSmagorinsky mVMS2DSmagorinsky;
+ 		const VMS3D mVMS3D;
+                const VMS3DSmagorinsky mVMS3DSmagorinsky;
 
 
 		///@} 
