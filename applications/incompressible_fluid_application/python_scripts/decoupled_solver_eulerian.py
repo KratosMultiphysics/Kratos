@@ -30,8 +30,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DIVPROJ);
     model_part.AddNodalSolutionStepVariable(THAWONE);
     model_part.AddNodalSolutionStepVariable(THAWTWO); 
-    model_part.AddNodalSolutionStepVariable(REACTION); 
+    model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(REACTION_AIR_PRESSURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
@@ -49,7 +50,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y,REACTION_Y);
         node.AddDof(VELOCITY_Z,REACTION_Z);
         node.AddDof(PRESSURE,REACTION_WATER_PRESSURE);
-	node.AddDof(AIR_PRESSURE,REACTION_AIR_PRESSURE);
+        node.AddDof(AIR_PRESSURE,REACTION_AIR_PRESSURE);
         
     print "dofs for the monolithic solver added correctly"
 
