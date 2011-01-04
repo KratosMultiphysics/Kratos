@@ -71,7 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_process_info_to_python.h"
 #include "add_constitutive_law_to_python.h"
 
-#include "add_sparse_vector_to_python.h"
+//#include "add_sparse_vector_to_python.h"
 #include "pointer_vector_set_python_interface.h"
 #include "solution_step_variable_indexing_python.h"
 
@@ -100,7 +100,7 @@ namespace Python
   BOOST_PYTHON_MODULE(Kratos)
   {
     AddVectorToPython();     
-    AddSparseVectorToPython();
+//    AddSparseVectorToPython();
     AddMatrixToPython();
     AddBandedMatrixToPython();
     AddTriangularMatrixToPython();

@@ -90,9 +90,9 @@ namespace Python
       .def(VectorVectorOperatorPython<IntegrationPoint<1>, unit_vector<double>, IntegrationPoint<1> >())
       .def(VectorVectorOperatorPython<IntegrationPoint<1>, scalar_vector<double>, IntegrationPoint<1> >())
       .def(VectorVectorOperatorPython<IntegrationPoint<1>, vector<double>, IntegrationPoint<1> >())
-      .def(VectorVectorOperatorPython<IntegrationPoint<1>, mapped_vector<double>, IntegrationPoint<1> >())
-      .def(VectorVectorOperatorPython<IntegrationPoint<1>, compressed_vector<double>, IntegrationPoint<1> >())
-      .def(VectorVectorOperatorPython<IntegrationPoint<1>, coordinate_vector<double>, IntegrationPoint<1> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<1>, mapped_vector<double>, IntegrationPoint<1> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<1>, compressed_vector<double>, IntegrationPoint<1> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<1>, coordinate_vector<double>, IntegrationPoint<1> >())
        ;
     
      BoundedVectorPythonInterface<IntegrationPoint<2>, 2>::CreateInterfaceWithBase("IntegrationPoint2D", Point<2>())
@@ -107,9 +107,9 @@ namespace Python
        .def(VectorVectorOperatorPython<IntegrationPoint<2>, unit_vector<double>, IntegrationPoint<2> >())
        .def(VectorVectorOperatorPython<IntegrationPoint<2>, scalar_vector<double>, IntegrationPoint<2> >())
        .def(VectorVectorOperatorPython<IntegrationPoint<2>, vector<double>, IntegrationPoint<2> >())
-       .def(VectorVectorOperatorPython<IntegrationPoint<2>, mapped_vector<double>, IntegrationPoint<2> >())
-       .def(VectorVectorOperatorPython<IntegrationPoint<2>, compressed_vector<double>, IntegrationPoint<2> >())
-       .def(VectorVectorOperatorPython<IntegrationPoint<2>, coordinate_vector<double>, IntegrationPoint<2> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<2>, mapped_vector<double>, IntegrationPoint<2> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<2>, compressed_vector<double>, IntegrationPoint<2> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<2>, coordinate_vector<double>, IntegrationPoint<2> >())
         ;
     
      BoundedVectorPythonInterface<IntegrationPoint<3>, 3>::CreateInterfaceWithBase("IntegrationPoint3D", Point<3>())
@@ -125,9 +125,9 @@ namespace Python
        .def(VectorVectorOperatorPython<IntegrationPoint<3>, unit_vector<double>, IntegrationPoint<3> >())
        .def(VectorVectorOperatorPython<IntegrationPoint<3>, scalar_vector<double>, IntegrationPoint<3> >())
        .def(VectorVectorOperatorPython<IntegrationPoint<3>, vector<double>, IntegrationPoint<3> >())
-       .def(VectorVectorOperatorPython<IntegrationPoint<3>, mapped_vector<double>, IntegrationPoint<3> >())
-       .def(VectorVectorOperatorPython<IntegrationPoint<3>, compressed_vector<double>, IntegrationPoint<3> >())
-       .def(VectorVectorOperatorPython<IntegrationPoint<3>, coordinate_vector<double>, IntegrationPoint<3> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<3>, mapped_vector<double>, IntegrationPoint<3> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<3>, compressed_vector<double>, IntegrationPoint<3> >())
+       //.def(VectorVectorOperatorPython<IntegrationPoint<3>, coordinate_vector<double>, IntegrationPoint<3> >())
         ;
   }
 	

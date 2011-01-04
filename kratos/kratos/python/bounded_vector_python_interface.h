@@ -286,14 +286,14 @@ namespace Kratos
 					.def("Size", &TContainerType::size)
 					.def(VectorVectorOperatorPython<TContainerType, TContainerType, TContainerType>())
  					.def(VectorScalarAssignmentOperatorPython<TContainerType, double>())
- 					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, zero_vector<double> >())
- 					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, unit_vector<double> >())
- 					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, scalar_vector<double> >())
+				  	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, zero_vector<double> >())
+				  	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, unit_vector<double> >())
+				  	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, scalar_vector<double> >())
  					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, vector<double> >())
- 					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, mapped_vector<double> >())
-					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, compressed_vector<double> >())
- 					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, coordinate_vector<double> >())
-					.def(self_ns::str(self))
+				  //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, mapped_vector<double> >())
+				  //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, compressed_vector<double> >())
+				  //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, coordinate_vector<double> >())
+				  //	.def(self_ns::str(self))
 					;
 			}
 
@@ -315,9 +315,9 @@ namespace Kratos
  					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, unit_vector<double> >())
  					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, scalar_vector<double> >())
  					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, vector<double> >())
- 					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, mapped_vector<double> >())
-					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, compressed_vector<double> >())
- 					.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, coordinate_vector<double> >())
+				  //.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, mapped_vector<double> >())
+				  //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, compressed_vector<double> >())
+				  //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, coordinate_vector<double> >())
 					.def(self_ns::str(self))
 					;
 			}

@@ -74,9 +74,9 @@ namespace Python
       .def(VectorVectorOperatorPython<Point<1>, unit_vector<double>, Point<1> >())
       .def(VectorVectorOperatorPython<Point<1>, scalar_vector<double>, Point<1> >())
       .def(VectorVectorOperatorPython<Point<1>, vector<double>, Point<1> >())
-      .def(VectorVectorOperatorPython<Point<1>, mapped_vector<double>, Point<1> >())
-      .def(VectorVectorOperatorPython<Point<1>, compressed_vector<double>, Point<1> >())
-      .def(VectorVectorOperatorPython<Point<1>, coordinate_vector<double>, Point<1> >())
+      //      .def(VectorVectorOperatorPython<Point<1>, mapped_vector<double>, Point<1> >())
+      //.def(VectorVectorOperatorPython<Point<1>, compressed_vector<double>, Point<1> >())
+      //.def(VectorVectorOperatorPython<Point<1>, coordinate_vector<double>, Point<1> >())
        ;
     
     BoundedVectorPythonInterface<Point<2>, 2>::CreateInterface("Point2D")
@@ -88,9 +88,9 @@ namespace Python
       .def(VectorVectorOperatorPython<Point<2>, unit_vector<double>, Point<2> >())
       .def(VectorVectorOperatorPython<Point<2>, scalar_vector<double>, Point<2> >())
       .def(VectorVectorOperatorPython<Point<2>, vector<double>, Point<2> >())
-      .def(VectorVectorOperatorPython<Point<2>, mapped_vector<double>, Point<2> >())
-      .def(VectorVectorOperatorPython<Point<2>, compressed_vector<double>, Point<2> >())
-      .def(VectorVectorOperatorPython<Point<2>, coordinate_vector<double>, Point<2> >())
+      //.def(VectorVectorOperatorPython<Point<2>, mapped_vector<double>, Point<2> >())
+      //.def(VectorVectorOperatorPython<Point<2>, compressed_vector<double>, Point<2> >())
+      //.def(VectorVectorOperatorPython<Point<2>, coordinate_vector<double>, Point<2> >())
        ;
     
     BoundedVectorPythonInterface<Point<3>, 3>::CreateInterface("Point3D")
@@ -103,9 +103,9 @@ namespace Python
       .def(VectorVectorOperatorPython<Point<3>, unit_vector<double>, Point<3> >())
       .def(VectorVectorOperatorPython<Point<3>, scalar_vector<double>, Point<3> >())
       .def(VectorVectorOperatorPython<Point<3>, vector<double>, Point<3> >())
-      .def(VectorVectorOperatorPython<Point<3>, mapped_vector<double>, Point<3> >())
-      .def(VectorVectorOperatorPython<Point<3>, compressed_vector<double>, Point<3> >())
-      .def(VectorVectorOperatorPython<Point<3>, coordinate_vector<double>, Point<3> >())
+      //.def(VectorVectorOperatorPython<Point<3>, mapped_vector<double>, Point<3> >())
+      //.def(VectorVectorOperatorPython<Point<3>, compressed_vector<double>, Point<3> >())
+      //.def(VectorVectorOperatorPython<Point<3>, coordinate_vector<double>, Point<3> >())
        ;
   }
 	
