@@ -102,6 +102,7 @@ namespace Python
   
   void  AddPointsToPython()
   {
+    /*
     BoundedVectorPythonInterface<Point<1>, 1>::CreateInterface("Point1D")
       .def(init<double>())
       .def(init<vector_expression<vector<double> > >())
@@ -131,7 +132,7 @@ namespace Python
        .def(VectorVectorOperatorPython<Point<2>, compressed_vector<double>, Point<2> >())
        .def(VectorVectorOperatorPython<Point<2>, coordinate_vector<double>, Point<2> >())
         ;
-    
+    */
      BoundedVectorPythonInterface<Point<3>, 3>::CreateInterface("Point3D")
        .def(init<double>())
        .def(init<double, double>())
@@ -145,9 +146,9 @@ namespace Python
        .def(VectorVectorOperatorPython<Point<3>, unit_vector<double>, Point<3> >())
        .def(VectorVectorOperatorPython<Point<3>, scalar_vector<double>, Point<3> >())
        .def(VectorVectorOperatorPython<Point<3>, vector<double>, Point<3> >())
-       .def(VectorVectorOperatorPython<Point<3>, mapped_vector<double>, Point<3> >())
-       .def(VectorVectorOperatorPython<Point<3>, compressed_vector<double>, Point<3> >())
-       .def(VectorVectorOperatorPython<Point<3>, coordinate_vector<double>, Point<3> >())
+       //.def(VectorVectorOperatorPython<Point<3>, mapped_vector<double>, Point<3> >())
+       //.def(VectorVectorOperatorPython<Point<3>, compressed_vector<double>, Point<3> >())
+       //       .def(VectorVectorOperatorPython<Point<3>, coordinate_vector<double>, Point<3> >())
         ;
   }
 	

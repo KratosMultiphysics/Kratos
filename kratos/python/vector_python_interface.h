@@ -314,9 +314,9 @@ namespace Kratos
 					.def(VectorVectorAssignmentOperatorPython<TContainerType, unit_vector<double> >())
 					.def(VectorVectorAssignmentOperatorPython<TContainerType, scalar_vector<double> >())
 					.def(VectorVectorAssignmentOperatorPython<TContainerType, vector<double> >())
-					.def(VectorVectorAssignmentOperatorPython<TContainerType, mapped_vector<double> >())
-					.def(VectorVectorAssignmentOperatorPython<TContainerType, compressed_vector<double> >())
-					.def(VectorVectorAssignmentOperatorPython<TContainerType, coordinate_vector<double> >())
+				  //.def(VectorVectorAssignmentOperatorPython<TContainerType, mapped_vector<double> >())
+				  //	.def(VectorVectorAssignmentOperatorPython<TContainerType, compressed_vector<double> >())
+				  //	.def(VectorVectorAssignmentOperatorPython<TContainerType, coordinate_vector<double> >())
 					.def(self_ns::str(self))
 					;
 			}

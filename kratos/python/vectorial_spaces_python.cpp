@@ -146,9 +146,9 @@ namespace Python
       .def(VectorVectorOperatorPython<zero_vector<double>, unit_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<zero_vector<double>, scalar_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<zero_vector<double>, vector<double>, vector<double> >())
-      .def(VectorVectorOperatorPython<zero_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-      .def(VectorVectorOperatorPython<zero_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<zero_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
+      //      .def(VectorVectorOperatorPython<zero_vector<double>, mapped_vector<double>, mapped_vector<double> >())
+      //.def(VectorVectorOperatorPython<zero_vector<double>, compressed_vector<double>, compressed_vector<double> >())
+      //.def(VectorVectorOperatorPython<zero_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
        ;
 
     ReadonlyVectorPythonInterface<unit_vector<double> >::CreateInterface("UnitVector")
@@ -157,9 +157,9 @@ namespace Python
       .def(VectorVectorOperatorPython<unit_vector<double>, zero_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<unit_vector<double>, scalar_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<unit_vector<double>, vector<double>, vector<double> >())
-      .def(VectorVectorOperatorPython<unit_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-      .def(VectorVectorOperatorPython<unit_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<unit_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
+      //.def(VectorVectorOperatorPython<unit_vector<double>, mapped_vector<double>, mapped_vector<double> >())
+      //.def(VectorVectorOperatorPython<unit_vector<double>, compressed_vector<double>, compressed_vector<double> >())
+      //.def(VectorVectorOperatorPython<unit_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
        ;
 
     ReadonlyVectorPythonInterface<scalar_vector<double> >::CreateInterface("ScalarVector")
@@ -168,9 +168,9 @@ namespace Python
       .def(VectorVectorOperatorPython<scalar_vector<double>, zero_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<scalar_vector<double>, unit_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<scalar_vector<double>, vector<double>, vector<double> >())
-      .def(VectorVectorOperatorPython<scalar_vector<double>, mapped_vector<double>, mapped_vector<double> >())
-      .def(VectorVectorOperatorPython<scalar_vector<double>, compressed_vector<double>, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<scalar_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
+      //.def(VectorVectorOperatorPython<scalar_vector<double>, mapped_vector<double>, mapped_vector<double> >())
+      //.def(VectorVectorOperatorPython<scalar_vector<double>, compressed_vector<double>, compressed_vector<double> >())
+      //.def(VectorVectorOperatorPython<scalar_vector<double>, coordinate_vector<double>, coordinate_vector<double> >())
        ;
 
     VectorPythonInterface<vector<double>, UblasVectorModifier<vector<double> > >::CreateInterface("Vector")
@@ -180,41 +180,41 @@ namespace Python
       .def(VectorVectorOperatorPython<vector<double>, zero_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<vector<double>, unit_vector<double>, vector<double> >())
       .def(VectorVectorOperatorPython<vector<double>, scalar_vector<double>, vector<double> >())
-      .def(VectorVectorOperatorPython<vector<double>, mapped_vector<double>, vector<double> >())
+      //.def(VectorVectorOperatorPython<vector<double>, mapped_vector<double>, vector<double> >())
        ;
 
 
-    VectorPythonInterface<mapped_vector<double>, UblasSparseVectorModifier<mapped_vector<double> > >::CreateInterface("SparseVector")
-      .def(init<mapped_vector<double>::size_type>())
-      .def("NonZeros", &mapped_vector<double>::nnz)
-      .def(VectorScalarOperatorPython<mapped_vector<double>, double, mapped_vector<double> >())
-      .def(VectorVectorOperatorPython<mapped_vector<double>, zero_vector<double>, mapped_vector<double> >())
-      .def(VectorVectorOperatorPython<mapped_vector<double>, unit_vector<double>, mapped_vector<double> >())
-      .def(VectorVectorOperatorPython<mapped_vector<double>, scalar_vector<double>, mapped_vector<double> >())
-      .def(VectorVectorOperatorPython<mapped_vector<double>, vector<double>, vector<double> >())
-      ;
+    //VectorPythonInterface<mapped_vector<double>, UblasSparseVectorModifier<mapped_vector<double> > >::CreateInterface("SparseVector")
+    //.def(init<mapped_vector<double>::size_type>())
+    //.def("NonZeros", &mapped_vector<double>::nnz)
+    //.def(VectorScalarOperatorPython<mapped_vector<double>, double, mapped_vector<double> >())
+    //.def(VectorVectorOperatorPython<mapped_vector<double>, zero_vector<double>, mapped_vector<double> >())
+    //.def(VectorVectorOperatorPython<mapped_vector<double>, unit_vector<double>, mapped_vector<double> >())
+    //.def(VectorVectorOperatorPython<mapped_vector<double>, scalar_vector<double>, mapped_vector<double> >())
+    //.def(VectorVectorOperatorPython<mapped_vector<double>, vector<double>, vector<double> >())
+    //;
 		
-    VectorPythonInterface<compressed_vector<double>, UblasSparseVectorModifier<compressed_vector<double> > >::CreateInterface("CompressedVector")
-      .def(init<compressed_vector<double>::size_type>())
-      .def("NonZeros", &compressed_vector<double>::nnz)
-      .def(VectorScalarOperatorPython<compressed_vector<double>, double, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<compressed_vector<double>, zero_vector<double>, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<compressed_vector<double>, unit_vector<double>, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<compressed_vector<double>, scalar_vector<double>, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<compressed_vector<double>, vector<double>, vector<double> >())
-      .def(VectorVectorOperatorPython<compressed_vector<double>, mapped_vector<double>, compressed_vector<double> >())
-      .def(VectorVectorOperatorPython<compressed_vector<double>, coordinate_vector<double>, compressed_vector<double> >())
-      ;
+    //VectorPythonInterface<compressed_vector<double>, UblasSparseVectorModifier<compressed_vector<double> > >::CreateInterface("CompressedVector")
+    //.def(init<compressed_vector<double>::size_type>())
+    //.def("NonZeros", &compressed_vector<double>::nnz)
+    //.def(VectorScalarOperatorPython<compressed_vector<double>, double, compressed_vector<double> >())
+    //.def(VectorVectorOperatorPython<compressed_vector<double>, zero_vector<double>, compressed_vector<double> >())
+    //.def(VectorVectorOperatorPython<compressed_vector<double>, unit_vector<double>, compressed_vector<double> >())
+    //.def(VectorVectorOperatorPython<compressed_vector<double>, scalar_vector<double>, compressed_vector<double> >())
+    //.def(VectorVectorOperatorPython<compressed_vector<double>, vector<double>, vector<double> >())
+    //.def(VectorVectorOperatorPython<compressed_vector<double>, mapped_vector<double>, compressed_vector<double> >())
+    //.def(VectorVectorOperatorPython<compressed_vector<double>, coordinate_vector<double>, compressed_vector<double> >())
+    //;
 		
-    VectorPythonInterface<coordinate_vector<double>, UblasSparseVectorModifier<coordinate_vector<double> > >::CreateInterface("CoordinateVector")
-      .def(init<coordinate_vector<double>::size_type>())
-      .def("NonZeros", &coordinate_vector<double>::nnz)
-      .def(VectorScalarOperatorPython<coordinate_vector<double>, double, coordinate_vector<double> >())
+    //    VectorPythonInterface<coordinate_vector<double>, UblasSparseVectorModifier<coordinate_vector<double> > >::CreateInterface("CoordinateVector")
+    //.def(init<coordinate_vector<double>::size_type>())
+    //.def("NonZeros", &coordinate_vector<double>::nnz)
+    //.def(VectorScalarOperatorPython<coordinate_vector<double>, double, coordinate_vector<double> >())
       //.def(VectorVectorOperatorPython<coordinate_vector<double>, zero_vector<double>, coordinate_vector<double> >())
       //.def(VectorVectorOperatorPython<coordinate_vector<double>, unit_vector<double>, coordinate_vector<double> >())
       //.def(VectorVectorOperatorPython<coordinate_vector<double>, scalar_vector<double>, coordinate_vector<double> >())
       //.def(VectorVectorOperatorPython<coordinate_vector<double>, vector<double>, vector<double> >())
-      ;
+      //;
 		
 
 
