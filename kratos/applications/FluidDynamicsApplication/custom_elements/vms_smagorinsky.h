@@ -720,7 +720,7 @@ namespace Kratos
             // Compute the weighted value of the advective velocity in the (Gauss) Point
             rAdvVel = rShapeFunc[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,Step) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY,Step));
             for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
-                rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY,Step) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY,Step) + this->GetGeometry()[iNode].FastGetSolutionStepValue(ADVPROJ,Step));
+                rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY,Step) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY,Step) );
         }
 
         ///@}
