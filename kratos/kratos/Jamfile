@@ -9,7 +9,7 @@ project kratos
 		       <include>kratos
     ;
 
-##lib intelomp  : : <name>guide  ; 
+
 
 #################################################################################
 #################################################################################
@@ -57,7 +57,7 @@ alias static_Kratos
 	add_hermitian_matrix_to_python.cpp	
 	add_sparse_matrix_to_python.cpp		
 	add_identity_matrix_to_python.cpp	
-	add_sparse_vector_to_python.cpp		
+##	add_sparse_vector_to_python.cpp		
 	add_integration_points_to_python.cpp 
 	add_symmetric_matrix_to_python.cpp	
 	add_io_to_python.cpp	
@@ -124,11 +124,12 @@ lib KratosStatic
 ##import python ;
 python-extension Kratos
 	: 	
+		#KratosStatic
 		static_Kratos
 	;
 
 #################################################################################
 #################################################################################
-install install : kratos_base_static KratosStatic Kratos : <location>$(TOP)/libs ;
+##install install : kratos_base_static KratosStatic Kratos : <location>$(TOP)/libs ;
 ##install install :  KratosStatic Kratos : <location>$(TOP)/libs ;
-
+install install :  Kratos : <location>$(TOP)/libs ;
