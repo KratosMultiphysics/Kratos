@@ -698,6 +698,9 @@ namespace Kratos
       {
 	array_1d<double,TDim> grad_d;
 	array_1d<double,3> coord_on_0;
+	coord_on_0[0] = -100000000000.0;
+	coord_on_0[1] = -100000000000.0;
+	coord_on_0[2] = -100000000000.0;
 	array_1d<double,3> temp;
 	
 	//compute the gradient of the distance and normalize it

@@ -693,7 +693,7 @@ namespace Kratos {
 		    const double& d_i = mD[i_node];
 // KRATOS_WATCH("before");
 // KRATOS_WATCH(d_i);
-		    const double& tau2_i = mTau2[i_node];
+		    //const double& tau2_i = mTau2[i_node];
 
 		    double edge_tau = mTauConvection[i_node];
 		    a_i /= eps_i;

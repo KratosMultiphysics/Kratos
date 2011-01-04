@@ -364,7 +364,8 @@ namespace Kratos
                             }
                             else
                             {
-                                std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
+			      KRATOS_ERROR(std::logic_error,"VARIABLE NOT DECLARED. See function  RecoveryGradients in file split_elements_utility.h ","");
+//                                 std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
                             }
 
                             Nodal_Area = Nodal_Area + fact * Area;
