@@ -177,7 +177,7 @@ class Segment : public Point<TDimension, double>
     return    0.50 * Length();
   }
   
- double Normalize(const double epsilon = 1E-9)
+ void Normalize(const double epsilon = 1E-9)
    {
      const double length = Length();
      VectorType result   = Direction(); 
@@ -803,112 +803,112 @@ class Segment : public Point<TDimension, double>
 // 	  }
 
           
-          /*
-          if (mrdimension==3)
-              {
-		std::cout<< "No printing mesh yet " << std::endl;
-	      }
-	      
-	  else
-	  {
-	  unsigned int sizecell =  1;	  
-	  for(unsigned int i = 0; i< dimension; i++ )
-	  {
-	    sizecell *= mybins.GetDivisions()[i]; 
-	  }
-	 
-	  std::vector< array_1d< array_1d<double,2 > ,2 > > Cell; 
-	  Cell.resize(sizecell);
-	  std::size_t& filas = mybins.GetDivisions()[0];  
-	  
-	  for (unsigned int y = 0; y< static_cast<unsigned int> (mybins.GetDivisions()[1]); y++)
-	  {
-	      for (unsigned int x = 0; x< static_cast<unsigned int>(mybins.GetDivisions()[0]); x++)
-	      {
-                double a =   static_cast<double>(mybins.GetCellSize()[0]);   
-                double b =   static_cast<double>(mybins.GetCellSize()[1]);   
-	        Cell[GetIndex(filas, x, y) ][0][0] = MinPoint[0] + x * a;
- 		Cell[GetIndex(filas, x, y) ][0][1] = MinPoint[1] + y * b;
-		Cell[GetIndex(filas, x, y) ][1][0] = MinPoint[0] + (x + 1.0) * a;
-		Cell[GetIndex(filas, x, y) ][1][1] = MinPoint[1] + (y + 1.0) * b;
-	      }
-	  }
-	  
-	  output_file << "MESH \"Cells\" dimension 2 ElemType Quadrilateral Nnode 4" << std::endl;
-	  output_file << "Coordinates" << std::endl;
-	  
-	  unsigned int nofn = 0;
-	  for (unsigned int i = 0; i<Cell.size(); i++ )
-	  {
-	  const double& xmin = Cell[i][0][0];
-	  const double& ymin = Cell[i][0][1];
-	  const double& xmax = Cell[i][1][0];
-	  const double& ymax = Cell[i][1][1];              
-	  
-	  output_file << nofn+1 << "  " <<  xmin << "  " <<  ymin <<  std::endl;
-	  output_file << nofn+2 << "  " <<  xmax << "  " <<  ymin <<  std::endl;
-	  output_file << nofn+3 << "  " <<  xmax << "  " <<  ymax <<  std::endl;
-	  output_file << nofn+4 << "  " <<  xmin << "  " <<  ymax <<  std::endl;
-
-	  nofn += 4;  
-	  }
-	  output_file << "end coordinates" << std::endl;  
-	  output_file << "Elements" << std::endl;
-	  unsigned int nofe =  0;   
-	  int material_id   = 0;   
-	  for (unsigned int i = 1; i<=sizecell; i++)
-	  {
-	  output_file << i << "  " << nofe + 1  << "  " <<  nofe + 2 << "  " <<  nofe + 3  << " " <<  nofe + 4 << "  " << material_id << std::endl;
-	  nofe+=4;  
-	  }   
-
-	  output_file << "end elements" << std::endl;
-	  
-	  }
-	  
-           
-// 	  int celda      = 1; 
-// 	  int intersect = false; 
-// 	  std::vector<std::pair<int,int> > Pair;
-	  //clock_t init, final;
-          //init=clock();
-	  
-//  	  for( CellContainerIterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
-// 	    {
-// 	      std::cout<< " celda = " << celda++  << std::endl; 
-// 	      for(ElementsArrayTypeIterator it_1 = icell->Begin(); it_1!= icell->End(); it_1++ )
-// 	        { 
-// 		  for(ElementsArrayTypeIterator it_2 = it_1 + 1 ; it_2!= icell->End(); it_2++ )
-// 		  {
-// 		    std::cout<< " Elem " << it_1->Id() << "  " << " with elem " << it_2->Id() << std::endl;     
-// 		    Element::GeometryType& geom_1 = it_1->GetGeometry();
-// 		    Element::GeometryType& geom_2 = it_2->GetGeometry();
+//           
+//           if (mrdimension==3)
+//               {
+// 		std::cout<< "No printing mesh yet " << std::endl;
+// 	      }
+// 	      
+// 	  else
+// 	  {
+// 	  unsigned int sizecell =  1;	  
+// 	  for(unsigned int i = 0; i< dimension; i++ )
+// 	  {
+// 	    sizecell *= mybins.GetDivisions()[i]; 
+// 	  }
+// 	 
+// 	  std::vector< array_1d< array_1d<double,2 > ,2 > > Cell; 
+// 	  Cell.resize(sizecell);
+// 	  std::size_t& filas = mybins.GetDivisions()[0];  
+// 	  
+// 	  for (unsigned int y = 0; y< static_cast<unsigned int> (mybins.GetDivisions()[1]); y++)
+// 	  {
+// 	      for (unsigned int x = 0; x< static_cast<unsigned int>(mybins.GetDivisions()[0]); x++)
+// 	      {
+//                 double a =   static_cast<double>(mybins.GetCellSize()[0]);   
+//                 double b =   static_cast<double>(mybins.GetCellSize()[1]);   
+// 	        Cell[GetIndex(filas, x, y) ][0][0] = MinPoint[0] + x * a;
+//  		Cell[GetIndex(filas, x, y) ][0][1] = MinPoint[1] + y * b;
+// 		Cell[GetIndex(filas, x, y) ][1][0] = MinPoint[0] + (x + 1.0) * a;
+// 		Cell[GetIndex(filas, x, y) ][1][1] = MinPoint[1] + (y + 1.0) * b;
+// 	      }
+// 	  }
+// 	  
+// 	  output_file << "MESH \"Cells\" dimension 2 ElemType Quadrilateral Nnode 4" << std::endl;
+// 	  output_file << "Coordinates" << std::endl;
+// 	  
+// 	  unsigned int nofn = 0;
+// 	  for (unsigned int i = 0; i<Cell.size(); i++ )
+// 	  {
+// 	  const double& xmin = Cell[i][0][0];
+// 	  const double& ymin = Cell[i][0][1];
+// 	  const double& xmax = Cell[i][1][0];
+// 	  const double& ymax = Cell[i][1][1];              
+// 	  
+// 	  output_file << nofn+1 << "  " <<  xmin << "  " <<  ymin <<  std::endl;
+// 	  output_file << nofn+2 << "  " <<  xmax << "  " <<  ymin <<  std::endl;
+// 	  output_file << nofn+3 << "  " <<  xmax << "  " <<  ymax <<  std::endl;
+// 	  output_file << nofn+4 << "  " <<  xmin << "  " <<  ymax <<  std::endl;
 // 
-// 		        bool intersect = geom_1.HasIntersection( geom_2 ) ;
-// 			if (intersect==true) {Pair.push_back(std::pair<int,int>(it_1->Id(),it_2->Id()));}
-// 		    
-// 		  }
-// 		}
-// 	    }
+// 	  nofn += 4;  
+// 	  }
+// 	  output_file << "end coordinates" << std::endl;  
+// 	  output_file << "Elements" << std::endl;
+// 	  unsigned int nofe =  0;   
+// 	  int material_id   = 0;   
+// 	  for (unsigned int i = 1; i<=sizecell; i++)
+// 	  {
+// 	  output_file << i << "  " << nofe + 1  << "  " <<  nofe + 2 << "  " <<  nofe + 3  << " " <<  nofe + 4 << "  " << material_id << std::endl;
+// 	  nofe+=4;  
+// 	  }   
+// 
+// 	  output_file << "end elements" << std::endl;
+// 	  
+// 	  }
+// 	  
+//            
+// // 	  int celda      = 1; 
+// // 	  int intersect = false; 
+// // 	  std::vector<std::pair<int,int> > Pair;
+// 	  //clock_t init, final;
+//           //init=clock();
+// 	  
+// //  	  for( CellContainerIterator icell= mybins.GetCellContainer().begin(); icell != mybins.GetCellContainer().end(); icell++)
+// // 	    {
+// // 	      std::cout<< " celda = " << celda++  << std::endl; 
+// // 	      for(ElementsArrayTypeIterator it_1 = icell->Begin(); it_1!= icell->End(); it_1++ )
+// // 	        { 
+// // 		  for(ElementsArrayTypeIterator it_2 = it_1 + 1 ; it_2!= icell->End(); it_2++ )
+// // 		  {
+// // 		    std::cout<< " Elem " << it_1->Id() << "  " << " with elem " << it_2->Id() << std::endl;     
+// // 		    Element::GeometryType& geom_1 = it_1->GetGeometry();
+// // 		    Element::GeometryType& geom_2 = it_2->GetGeometry();
+// // 
+// // 		        bool intersect = geom_1.HasIntersection( geom_2 ) ;
+// // 			if (intersect==true) {Pair.push_back(std::pair<int,int>(it_1->Id(),it_2->Id()));}
+// // 		    
+// // 		  }
+// // 		}
+// // 	    }
+// // 	    
+// // 	    for (unsigned int i = 0; i<Pair.size(); i++)
+// // 	     {
+// // 	       std::cout<< Pair[i].first << "  " <<  Pair[i].second << std::endl;
+// // 	     }
+// 	      
 // 	    
-// 	    for (unsigned int i = 0; i<Pair.size(); i++)
-// 	     {
-// 	       std::cout<< Pair[i].first << "  " <<  Pair[i].second << std::endl;
-// 	     }
-	      
-	    
- 	   //final=clock()-init;
-           //std::cout << "Time Looping =" << (double)final / ((double)CLOCKS_PER_SEC) << std::endl;
-
-      }
-      
-   
-   unsigned int GetIndex( const std::size_t filas, const unsigned int& x, const unsigned int y)
-   {
-      return   filas * y + x;
-   }
-
-      */  
+//  	   //final=clock()-init;
+//            //std::cout << "Time Looping =" << (double)final / ((double)CLOCKS_PER_SEC) << std::endl;
+// 
+//       }
+//       
+//    
+//    unsigned int GetIndex( const std::size_t filas, const unsigned int& x, const unsigned int y)
+//    {
+//       return   filas * y + x;
+//    }
+// 
+//       */  
 
        private:
        ModelPart mr_model_part; 
