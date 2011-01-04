@@ -1184,6 +1184,7 @@ namespace Kratos
 	//*********************************************************************************
 	//*********************************************************************************
 	KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, NEIGHBOUR_NODES)
+	KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, FATHER_NODES)
 
 //     namespace Globals
 //     {
