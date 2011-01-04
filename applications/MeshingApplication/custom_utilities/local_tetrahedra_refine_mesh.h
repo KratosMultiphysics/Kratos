@@ -329,6 +329,9 @@ namespace Kratos
                 it_node1 = this_model_part.NodesBegin() + pos1;
                 it_node2 = this_model_part.NodesBegin() + pos2;
 
+                pnode->GetValue(FATHER_NODES).resize(0);
+                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node1.base() ) );
+                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node2.base() ) );
 
                 pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
                 pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());

@@ -279,14 +279,18 @@ for(unsigned int i = 0; i < Position_Node.size(); i++ )
 
      Node<3>::Pointer  pnode = this_model_part.CreateNewNode(List_New_Nodes[i],Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2] );
      pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize() );
-     
+
      it_node1 = this_model_part.NodesBegin() + pos1;
      it_node2 = this_model_part.NodesBegin() + pos2;
 
+     pnode->GetValue(FATHER_NODES).resize(0);
+     pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node1.base() ) );
+     pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node2.base() ) );
+
      pnode->X0() = 0.5*(it_node1->X0() + it_node2->X0());
      pnode->Y0() = 0.5*(it_node1->Y0() + it_node2->Y0());
-     pnode->Z0() = 0.5*(it_node1->Z0() + it_node2->Z0()); 
-     
+     pnode->Z0() = 0.5*(it_node1->Z0() + it_node2->Z0());
+
      for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)  
       {
        Node<3>::DofType& rDof = *iii;
@@ -311,16 +315,18 @@ for(unsigned int i = 0; i < Position_Node.size(); i++ )
           new_step_data[j] = 0.5*(step_data1[j] + step_data2[j]);
         }						
      }
-    
+
       /// WARNING =  only for reactions;
       const double zero = 0.00;
       for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)  
        {          
           if(pnode->IsFixed(iii->GetVariable())==false) 
-                 { 
+                 {
+                       KRATOS_TRY
                     iii->GetSolutionStepReactionValue() = zero;
+                             KRATOS_CATCH("")
                   }       
-       }          
+       }
   }
 }
 
