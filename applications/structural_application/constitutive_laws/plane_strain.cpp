@@ -241,6 +241,6 @@ namespace Kratos
 
         rCauchy_StressVector[1] = aux( 1, 1 );
 
-        rCauchy_StressVector[2] = aux( 1, 2 );
+        rCauchy_StressVector[2] = aux( 0,1 );
     }
 } // Namespace Kratos

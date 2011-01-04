@@ -536,7 +536,7 @@ void PlasticDamage2D::CalculateCauchyStresses(
 		
 		rCauchy_StressVector[0] = aux(0,0);
 		rCauchy_StressVector[1] = aux(1,1);
-		rCauchy_StressVector[2] = aux(1,2);
+		rCauchy_StressVector[2] = aux(0,1);
 }
 
 

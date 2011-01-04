@@ -344,15 +344,15 @@ namespace Kratos
         Matrix S = MathUtils<double>::StressVectorToTensor( rPK2_StressVector );
         double J = MathUtils<double>::Det3( rF );
 
-        boost::numeric::ublas::bounded_matrix<double, 2, 2> temp;
-        boost::numeric::ublas::bounded_matrix<double, 2, 2> aux;
+        boost::numeric::ublas::bounded_matrix<double, 3,3> temp;
+        boost::numeric::ublas::bounded_matrix<double, 3,3> aux;
 
         noalias( temp ) = prod( rF, S );
         noalias( aux ) = prod( temp, trans( rF ) );
         aux *= J;
 
         if ( rCauchy_StressVector.size() != 6 )
-            rCauchy_StressVector.resize( 6 );
+	  rCauchy_StressVector.resize( 6,false );
 
         rCauchy_StressVector[0] = aux( 0, 0 );
 
@@ -360,11 +360,11 @@ namespace Kratos
 
         rCauchy_StressVector[2] = aux( 2, 2 );
 
-        rCauchy_StressVector[3] = aux( 1, 2 );
+        rCauchy_StressVector[3] = aux( 0,1 );
 
-        rCauchy_StressVector[4] = aux( 1, 3 );
+        rCauchy_StressVector[4] = aux( 0,2 );
 
-        rCauchy_StressVector[5] = aux( 2, 3 );
+        rCauchy_StressVector[5] = aux( 1,2 );
     }
 
     void VonMises3D::CalculateElasticMatrix( Matrix& C, const double E, const double NU )

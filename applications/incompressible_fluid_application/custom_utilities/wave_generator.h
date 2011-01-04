@@ -80,8 +80,9 @@ namespace Kratos
 	
 	const PointerVector< Node<3> >::iterator it_begin = rNodes.begin();
 	array_1d<double,3> temp;
+	
 	#pragma omp parallel for private(temp)
-	for(int i=0; i<rNodes.size(); i++)
+	for(int i=0; i<static_cast<int>(rNodes.size()); i++)
 	{
 	    
 	    PointerVector< Node<3> >::iterator it = it_begin + i;
@@ -213,10 +214,10 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      WaveGenerator& operator=(WaveGenerator const& rOther){}
+      WaveGenerator& operator=(WaveGenerator const& rOther){return *this;}
 
       /// Copy constructor.
-      WaveGenerator(WaveGenerator const& rOther){}
+      WaveGenerator(WaveGenerator const& rOther){};
 
         
       ///@}    

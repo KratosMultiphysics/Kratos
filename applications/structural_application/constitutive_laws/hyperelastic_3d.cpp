@@ -963,9 +963,9 @@ namespace Kratos
 		rCauchy_StressVector[0]=msaux(0,0);
 		rCauchy_StressVector[1]=msaux(1,1);
 		rCauchy_StressVector[2]=msaux(2,2);
-		rCauchy_StressVector[3]=msaux(1,2);
-		rCauchy_StressVector[4]=msaux(1,3);
-		rCauchy_StressVector[5]=msaux(2,3);
+		rCauchy_StressVector[3]=msaux(0,1);
+		rCauchy_StressVector[4]=msaux(0,2);
+		rCauchy_StressVector[5]=msaux(1,2);
 		//KRATOS_WATCH(rCauchy_StressVector);
 	}
 

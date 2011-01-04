@@ -392,13 +392,13 @@ namespace Kratos
         msaux *= J;
 
         if ( rCauchy_StressVector.size() != 3 )
-            rCauchy_StressVector.resize( 3 );
+	  rCauchy_StressVector.resize( 3,false );
 
         rCauchy_StressVector[0] = msaux( 0, 0 );
 
         rCauchy_StressVector[1] = msaux( 1, 1 );
 
-        rCauchy_StressVector[2] = msaux( 1, 2 );
+        rCauchy_StressVector[2] = msaux( 0,1 );
     }
 
 

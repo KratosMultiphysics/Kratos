@@ -140,6 +140,7 @@ lib KratosStructuralApplicationStatic
 import python ;
 python-extension KratosStructuralApplication 
 	: 
+		##KratosStructuralApplicationStatic
 		sources_KratosStructuralApplication 
 	;
 
@@ -147,4 +148,5 @@ python-extension KratosStructuralApplication
 #################################################################################
 #################################################################################
 ## rules to install ... and to remove the prefix "lib"
-install install : KratosStructuralApplicationStatic KratosStructuralApplication : <location>$(TOP)/libs ;
+#install install : KratosStructuralApplicationStatic KratosStructuralApplication : <location>$(TOP)/libs ;
+install install : KratosStructuralApplication : <location>$(TOP)/libs ;
