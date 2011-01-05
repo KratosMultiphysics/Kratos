@@ -23,6 +23,7 @@
 #include "linear_solvers/iterative_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "external_includes/superlu_solver.h"
+#include "external_includes/superlu_iterative_solver.h"
 #include "external_includes/gmres_solver.h"
 
 
@@ -43,6 +44,7 @@ namespace Python
         //typedef Reorderer<ParallelSpaceType,  ParallelLocalSpaceType > ParallelReordererType;
         //typedef DirectSolver<ParallelSpaceType,  ParallelLocalSpaceType, ParallelReordererType > ParallelDirectSolverType;
         typedef SuperLUSolver<SpaceType,  LocalSpaceType> SuperLUSolverType;
+	typedef SuperLUIterativeSolver<SpaceType,  LocalSpaceType> SuperLUIterativeSolverType;
         typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
         typedef GMRESSolver<SpaceType, LocalSpaceType> GMRESSolverType;
         typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
@@ -55,6 +57,11 @@ namespace Python
         class_<SuperLUSolverType, bases<DirectSolverType>, boost::noncopyable >
                 ( "SuperLUSolver",
                   init<>() );
+		
+	class_<SuperLUIterativeSolverType, bases<LinearSolverType>, boost::noncopyable >
+                ( "SuperLUIterativeSolver",init<>() )
+	  .def(init<double,int,int,double,double,double>())
+		;
         
         class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >
                 ( "GMRESSolver")
