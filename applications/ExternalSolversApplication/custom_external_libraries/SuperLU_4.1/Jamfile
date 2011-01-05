@@ -1,0 +1,189 @@
+
+
+project SuperLU_LIB
+	: 
+	  source-location
+	    .
+	    SRC
+	    EXAMPLE
+	:
+	  requirements <include>. 
+		    <include>SRC
+		    <include>EXAMPLE
+		    <link>static
+		    <warnings>off
+		    <define>USE_VENDOR_BLAS
+		    <define>NO_TIMER
+		    <define>_LONGINT
+		    <define>Add_
+	: 
+	     default-build release
+    ;
+
+
+###################################################################################
+##Compilation of the SuperLU library 
+
+obj dlamch_unoptimized : dlamch.c : <optimization>off ;
+obj timer_unoptimized  : superlu_timer.c : <optimization>off ;
+
+
+### LAPACK 
+alias LAAUX 
+    : 
+      lsame.c
+      ##xerbla.c
+    ;
+
+alias DLASRC	
+    :
+    dlacon.c
+    ;
+
+alias DZLAUX 
+    :
+    dlamch_unoptimized
+    ##dlamch.c
+    ;
+
+
+alias ALLAUX
+	  :
+	  timer_unoptimized
+
+	  util.c 
+	  memory.c 
+	  get_perm_c.c
+	  mmd.c 
+	  sp_coletree.c 
+	  sp_preorder.c 
+	  sp_ienv.c 
+	  relax_snode.c 
+	  heap_relax_snode.c 
+	  colamd.c
+	  ilu_relax_snode.c 
+	  ilu_heap_relax_snode.c
+	  mark_relax.c
+	  mc64ad.c
+	  qselect.c
+      ;
+
+alias DLUSRC
+      :
+	dgssv.c 
+	dgssvx.c 
+	dsp_blas2.c 
+	dsp_blas3.c 
+	dgscon.c 
+	dlangs.c 
+	dgsequ.c 
+	dlaqgs.c 
+	dpivotgrowth.c  
+	dgsrfs.c
+	dgstrf.c
+	dgstrs.c
+	dcopy_to_ucol.c
+	dsnode_dfs.c
+	dsnode_bmod.c
+	dpanel_dfs.c
+	dpanel_bmod.c
+	dreadhb.c
+	dreadrb.c
+	dreadtriple.c
+	dcolumn_dfs.c
+	dcolumn_bmod.c
+	dpivotL.c
+	dpruneL.c
+	dmemory.c
+	dutil.c
+	dmyblas2.c
+	dgsisx.c
+	dgsitrf.c 
+	dldperm.c 
+	ilu_ddrop_row.c 
+	ilu_dsnode_dfs.c 
+	ilu_dcolumn_dfs.c 
+	ilu_dpanel_dfs.c 
+	ilu_dcopy_to_ucol.c 
+	ilu_dpivotL.c 
+	ddiagonal.c 
+
+	dfgmr.c
+    ;
+
+
+lib superlu_prova
+    :
+    DLUSRC
+    ALLAUX
+    LAAUX
+    DLASRC
+    DZLAUX
+    ;
+
+
+ 
+###################################################################################
+#compile the double precision examples
+lib SUPERLULIB  : : <name>superlu_prova <search>.  ; 
+
+alias DLINEXM	: dlinsol.c ;
+alias DLINEXM1	: dlinsol1.c ;
+alias DLINXEXM 	: dlinsolx.c ;
+alias DLINXEXM1 : dlinsolx1.c ;
+alias DLINXEXM2 : dlinsolx2.c ;
+alias DITSOL    : ditersol.c  ;
+
+exe dlinsol
+    : 
+    /KratosProject//blaslibrary
+
+    DLINEXM
+    SUPERLULIB
+    ;
+
+exe dlinsol1
+    : 
+    /KratosProject//blaslibrary
+
+    DLINEXM
+    SUPERLULIB
+    ;
+
+exe dlinsolx
+    : 
+    /KratosProject//blaslibrary
+
+    DLINXEXM
+    SUPERLULIB
+    ;
+
+exe dlinsolx1
+    : 
+    /KratosProject//blaslibrary
+
+    DLINXEXM1
+    SUPERLULIB
+    ;
+
+exe dlinsolx2
+    : 
+    /KratosProject//blaslibrary
+
+    DLINXEXM2
+    SUPERLULIB
+    ;
+
+exe ditsol
+    :
+    /KratosProject//blaslibrary
+
+    DITSOL
+    SUPERLULIB
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+install install : superlu_prova dlinsol dlinsol1 dlinsolx dlinsolx1 dlinsolx2 ditsol : <location>. ;
+

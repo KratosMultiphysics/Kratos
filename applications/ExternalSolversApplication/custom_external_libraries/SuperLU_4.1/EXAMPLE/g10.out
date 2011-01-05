@@ -1,0 +1,88 @@
+==2847== Memcheck, a memory error detector.
+==2847== Copyright (C) 2002-2007, and GNU GPL'd, by Julian Seward et al.
+==2847== Using LibVEX rev 1804, a library for dynamic binary translation.
+==2847== Copyright (C) 2004-2007, and GNU GPL'd, by OpenWorks LLP.
+==2847== Using valgrind-3.3.0-Debian, a dynamic binary instrumentation framework.
+==2847== Copyright (C) 2000-2007, and GNU GPL'd, by Julian Seward et al.
+==2847== For more details, rerun with: -v
+==2847== 
+Input a Harwell-Boeing format matrix:
+10x10 grid, with COLMMD order                                                   
+Dimension 100x100; # nonzeros 559
+==2847== Use of uninitialised value of size 8
+==2847==    at 0x40F8E1: ilu_ddrop_row (ilu_ddrop_row.c:182)
+==2847==    by 0x40D30E: dgsitrf (dgsitrf.c:335)
+==2847==    by 0x40C25E: dgsisx (dgsisx.c:615)
+==2847==    by 0x401D93: main (ditersol.c:194)
+==2847== 
+==2847== Use of uninitialised value of size 8
+==2847==    at 0x40F8E1: ilu_ddrop_row (ilu_ddrop_row.c:182)
+==2847==    by 0x40E5AC: dgsitrf (dgsitrf.c:549)
+==2847==    by 0x40C25E: dgsisx (dgsisx.c:615)
+==2847==    by 0x401D93: main (ditersol.c:194)
+new quota = 10, iwork size for initilization = 9
+new quota = 10, iwork size for initilization = 8
+new quota = 7, iwork size for initilization = 6
+new quota = 10, iwork size for initilization = 8
+new quota = 4, iwork size for initilization = 4
+new quota = 14, iwork size for initilization = 14
+new quota = 5, iwork size for initilization = 12
+new quota = 5, iwork size for initilization = 12
+new quota = 4, iwork size for initilization = 15
+new quota = 6, iwork size for initilization = 9
+new quota = 4, iwork size for initilization = 15
+new quota = 5, iwork size for initilization = 7
+new quota = 2, iwork size for initilization = 4
+new quota = 4, iwork size for initilization = 14
+dgsisx(): info 0
+Recip. pivot growth = 2.557034e-01
+Recip. condition number = 1.254455e-04
+n(A) = 100, nnz(A) = 559
+No of nonzeros in factor L = 617
+No of nonzeros in factor U = 773
+No of nonzeros in L+U = 1290
+Fill ratio: nnz(F)/nnz(A) = 2.308
+L\U MB 0.016	total MB needed 0.040
+       0     1.57e+01
+       1     1.46e+01
+       2     6.79e+00
+       3     3.42e+00
+       4     2.18e+00
+       5     1.53e+00
+       6     1.29e+00
+       7     1.12e+00
+       8     7.69e-01
+       9     5.71e-01
+      10     3.73e-01
+      11     3.36e-01
+      12     3.35e-01
+      13     2.88e-01
+      14     2.53e-01
+      15     1.27e-01
+      16     6.49e-02
+      17     4.79e-02
+      18     2.00e-02
+      19     8.33e-03
+      20     3.59e-03
+      21     5.57e-04
+      22     1.16e-04
+      23     2.77e-05
+      24     4.25e-06
+      25     6.13e-07
+      26     4.05e-08
+||A||_F = 1.6e+01, ||B||_2 = 1.6e+01, ||B-A*X||_2 = 4.1e-08, relres = 2.6e-09
+iteration: 26
+residual: 2.6e-09
+GMRES time: 0.15 seconds.
+||X-X_true||_oo = 1.2e-06
+Factor time  =     0.40
+Factor flops = 2.263600e+04	Mflops =     0.06
+Solve time   =     0.13
+Solve flops = 2.580000e+03	Mflops =     0.02
+Number of memory expansions: 0
+==2847== 
+==2847== ERROR SUMMARY: 4 errors from 2 contexts (suppressed: 8 from 1)
+==2847== malloc/free: in use at exit: 0 bytes in 0 blocks.
+==2847== malloc/free: 234 allocs, 234 frees, 242,064 bytes allocated.
+==2847== For counts of detected errors, rerun with: -v
+==2847== All heap blocks were freed -- no leaks are possible.
