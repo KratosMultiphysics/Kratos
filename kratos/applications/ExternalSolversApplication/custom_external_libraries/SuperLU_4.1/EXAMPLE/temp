@@ -1,0 +1,13 @@
+10x10 grid, with COLMMD order                                                   
+Dimension 100x100; # nonzeros 460
+||X - Xtrue||/||X|| = 1.161293e-13
+No of nonzeros in factor L = 855
+No of nonzeros in factor U = 993
+No of nonzeros in L+U = 1748
+FILL ratio = 3.8
+L\U MB 0.020	total MB needed 0.043
+Factor time  =     0.28
+Factor flops = 1.676900e+04	Mflops =     0.06
+Solve time   =     0.13
+Solve flops = 3.496000e+03	Mflops =     0.03
+Number of memory expansions: 0
