@@ -239,7 +239,55 @@ namespace Kratos
             }
         }
 
-        /// Operators
+        // This is just for the bridge analysis problem, to correct the boundary flag after the refinement. Remember to run this AFTER EACH REFINEMENT STEP
+        // Possible values for the variable: 1.0 inlet, 2.0 bridge surface, 3.0 outlet, 0.0 otherwise
+        void CorrectFlagValues(Variable<double>& rThisVariable = FLAG_VARIABLE)
+        {
+            // Loop over coarse mesh to evaluate all terms that do not involve the fine mesh
+            const int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector NodePartition;
+            OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfNodes(),NumThreads,NodePartition);
+
+            #pragma omp parallel
+            {
+                int k = OpenMPUtils::ThisThread();
+                ModelPart::NodeIterator NodesBegin = mrModelPart.NodesBegin() + NodePartition[k];
+                ModelPart::NodeIterator NodesEnd = mrModelPart.NodesBegin() + NodePartition[k+1];
+
+                double Value0, Value1;
+
+                for( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
+                {
+                    if( itNode->GetValue(FATHER_NODES).size() == 2 ) // If the node is refined
+                    {
+                        Value0 = itNode->GetValue(FATHER_NODES)[0].FastGetSolutionStepValue(rThisVariable);
+                        Value1 = itNode->GetValue(FATHER_NODES)[1].FastGetSolutionStepValue(rThisVariable);
+
+                        if( Value0 != Value1 ) // If this node is problematic
+                        {
+                            if ( Value0 == 0.0 || Value1 == 0.0 )
+                            {
+                                // if either of the parents is not on the boundary, this node is not on the boundary
+                                itNode->FastGetSolutionStepValue(rThisVariable) = 0.0;
+                            } // All remaining cases are unlikely in well-posed problems, im arbitrarily giving priority to the outlet, so that the node is only bridge surface if both parents are
+                            else if( Value0 == 3.0 )
+                            {
+                                itNode->FastGetSolutionStepValue(rThisVariable) = Value0;
+                            }
+                            else if( Value1 == 3.0 )
+                            {
+                                // The node is only bridge surface if both parents are
+                                itNode->FastGetSolutionStepValue(rThisVariable) = Value1;
+                            }
+                            else // Default behaviour: Parent 0 takes precedence
+                            {
+                                itNode->FastGetSolutionStepValue(rThisVariable) = Value0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
     private:
 

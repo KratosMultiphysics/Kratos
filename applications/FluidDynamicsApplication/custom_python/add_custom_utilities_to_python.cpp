@@ -83,6 +83,7 @@ namespace Python
         class_<DynamicSmagorinskyUtils>("DynamicSmagorinskyUtils", init<ModelPart&, ModelPart::ElementsContainerType&>())
             .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
             .def("SetCoarseVel",&DynamicSmagorinskyUtils::SetCoarseVel)
+            .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
             ;
 
   }
