@@ -753,13 +753,13 @@ namespace Kratos {
 	const double ar_1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
 	const double ar_2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
 
-	double mean_ar = 0.333333333333333333 * (ar_0 + ar_1 + ar_2);
+// 	double mean_ar = 0.333333333333333333 * (ar_0 + ar_1 + ar_2);
 
 
 	//body  & momentum term force
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int index = ii * (dof + 1);
-	    int loc_index = ii * dof;
+// 	    int loc_index = ii * dof;
 	    const array_1d<double, 2 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
@@ -1115,8 +1115,8 @@ namespace Kratos {
 	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
 // 	  double gamma_dot_inv;
-	  double solid_pressure = 0.0;
-	  double seepage_drag_x = 0.0;
+// 	  double solid_pressure = 0.0;
+// 	  double seepage_drag_x = 0.0;
 	  
 	  
 
@@ -1262,9 +1262,8 @@ namespace Kratos {
 	KRATOS_TRY
 	app_mu = 0.0;
 
-	double mcoef = 3000;
 	
-	double aux_1;
+	
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
 	
@@ -1274,8 +1273,7 @@ namespace Kratos {
 	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
 // 	  double gamma_dot_inv;
-	  double solid_pressure = 0.0;
-	  double seepage_drag_x = 0.0;
+
 	  
 	  
 
@@ -1513,9 +1511,9 @@ namespace Kratos {
 
 
 
-	//beign lagrangian no advective velocity should be present!
-	if(advvel_norm> 1e-10)
-	  KRATOS_ERROR(std::logic_error,"MESH VEL DIFF VEL","");
+// 	//being lagrangian no advective velocity should be present!
+// 	if(advvel_norm> 1e-10)
+// 	  KRATOS_ERROR(std::logic_error,"LAGRANGIAN TEST: advective velocity is not zero!!!!!!","");
 
 	KRATOS_CATCH("")
 
