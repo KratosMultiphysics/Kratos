@@ -155,7 +155,44 @@ namespace Kratos
 
 	  
 
+    void CouetteNonNewtonianASGS2D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
+	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
+            const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+            const double & mu) {
+        KRATOS_TRY
+        app_mu = 0.0;
+// 	KRATOS_WATCH("COUETTE NON NEWTONIAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
+	unsigned int nodes_number = 3;
+	double yield = 0.0;
+	double gamma_dot_inv;
+        double mcoef = 300;
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+	}
+	yield /= nodes_number;
+	double aux_1;
+	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
+	
 
+////////BILINEAR FORM
+	double mu_s = 1e7;
+	double gamma_dot_lim = yield/mu_s;
+	
+	if(gamma_dot >= gamma_dot_lim){
+	  if (gamma_dot_lim <= 1e-16){
+	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+	  }
+	  else{
+	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+	  }
+	}
+	else{
+	  app_mu = mu_s ;
+	}
+	
+  	
+        KRATOS_CATCH("")
+    }
 
 
 } // Namespace Kratos
