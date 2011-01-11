@@ -728,7 +728,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillCoordinatesFromDatabase(CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
+			void FillCoordinatesFromDatabase(CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex, bool HostOnly = false)
 			{
 				KRATOS_TRY
 
@@ -752,7 +752,10 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				if (!HostOnly)
+				{
+					mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				}
 
 				KRATOS_CATCH("");
 			}
@@ -762,7 +765,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
+			void FillVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex, bool HostOnly = false)
 			{
 				KRATOS_TRY
 
@@ -796,7 +799,10 @@ namespace Kratos
 				std::cout << "transfer variables time " << t1 - t0 << std::endl;
 
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				if (!HostOnly)
+				{
+					mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				}
 
 				KRATOS_CATCH("");
 			}
@@ -806,7 +812,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillOldVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
+			void FillOldVectorFromDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex, bool HostOnly = false)
 			{
 				KRATOS_TRY
 
@@ -834,7 +840,10 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				if (!HostOnly)
+				{
+					mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				}
 
 				KRATOS_CATCH("");
 			}
@@ -844,7 +853,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
+			void FillScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex, bool HostOnly = false)
 			{
 				KRATOS_TRY
 
@@ -869,7 +878,10 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				if (!HostOnly)
+				{
+					mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				}
 
 				KRATOS_CATCH("");
 			}
@@ -879,7 +891,7 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void FillOldScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
+			void FillOldScalarFromDatabase(Variable <double> &rVariable, ValuesVectorType rDestination, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex, bool HostOnly = false)
 			{
 				KRATOS_TRY
 
@@ -904,7 +916,10 @@ namespace Kratos
 				}
 
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				if (!HostOnly)
+				{
+					mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::HostToDevice, OpenCL::VoidPList(1, rDestination));
+				}
 
 				KRATOS_CATCH("");
 			}
@@ -914,12 +929,15 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void WriteVectorToDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rOrigin, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
+			void WriteVectorToDatabase(Variable <array_1d <double, 3> > &rVariable, CalcVectorType rOrigin, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex, bool HostOnly = false)
 			{
 				KRATOS_TRY
 
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
+				if (!HostOnly)
+				{
+					mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
+				}
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
@@ -951,12 +969,15 @@ namespace Kratos
 			//
 			// Function to access database
 
-			void WriteScalarToDatabase(Variable <double> &rVariable, ValuesVectorType rOrigin, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex)
+			void WriteScalarToDatabase(Variable <double> &rVariable, ValuesVectorType rOrigin, ModelPart::NodesContainerType &rNodes, cl_uint _BufferIndex, bool HostOnly = false)
 			{
 				KRATOS_TRY
 
 				// TODO: Single device code
-				mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
+				if (!HostOnly)
+				{
+					mrDeviceGroup.CopyBuffer(_BufferIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1, rOrigin));
+				}
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
