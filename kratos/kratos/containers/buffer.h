@@ -53,6 +53,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream> 
+#include <iterator>
+#include <vector>
 
 
 // External includes 
@@ -60,6 +62,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/ublas_interface.h"
+#include "containers/array_1d.h"
 
 
 namespace Kratos
@@ -84,10 +88,9 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
+  /// Buffer holds the binary value of the data.
   /** Detail class definition.
   */
-  template<class TContainerType>
   class Buffer
     {
     public:
@@ -96,51 +99,52 @@ namespace Kratos
       
       /// Pointer definition of Buffer
       KRATOS_CLASS_POINTER_DEFINITION(Buffer);
-  
-      typedef typename TContainerType::value_type value_type;
-      typedef typename TContainerType::size_type size_type;
-      typedef value_type& reference;
-      typedef const value_type& const_reference;
-      typedef TContainerType ContainerType;
+      
 
-      typedef typename TContainerType::iterator                iterator;
-      typedef typename TContainerType::const_iterator          const_iterator;                
-      typedef typename TContainerType::reverse_iterator        reverse_iterator;
-      typedef typename TContainerType::const_reverse_iterator  const_reverse_iterator;    
+      typedef std::size_t IndexType;
+
+      typedef std::size_t SizeType;
+
+      typedef double BlockType;
+  
+      /// Type of the container used for storing values 
+      typedef BlockType* ContainerType;
+      
+      typedef BlockType* iterator;
+      typedef BlockType const* const_iterator;
+  
           
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      Buffer() : mData(), mCurrentIndex(0) {}
-    
-      template <class TInputIteratorType>
-      Buffer(TInputIteratorType First, TInputIteratorType Last) 
-	: mData(First, Last), mCurrentIndex(0)
+      Buffer(SizeType NewSize = 1) :  mpData(0) , mpBegin(mpData), mpEnd(mpData), mSize(0)
       {
-      }
-      
-      Buffer(const Buffer& rOther) :  mData(rOther.mData), mCurrentIndex(rOther.mCurrentIndex) {}
-    
-      Buffer(const TContainerType& rContainer) :  mData(rContainer) , mCurrentIndex(0)
-      {
-      }
+	resize(BlockCompatibleSize(NewSize));
 
-      Buffer(std::size_t NewSize) :  mData(NewSize) , mCurrentIndex(0)
-      {
-      }
-
-      template<class TOtherDataType>
-      Buffer(std::size_t NewSize, TOtherDataType const& Value) :  mData(NewSize), mCurrentIndex(0)
-      {
-	for(size_type i = 0 ; i < NewSize ; i++)
-	  mData[i] = pointer(new TOtherDataType(Value));
+	for(SizeType i = 0 ; i < mSize ; i++)
+	  mpData[i] = BlockType();
       }
     
+      Buffer(const Buffer& rOther) :  mpData(new BlockType[rOther.mSize]), mpBegin(0), mpEnd(0), mSize(rOther.mSize) 
+      {
+	      // Setting the current position with relative source container offset
+	      mpBegin = mpData + (rOther.mpBegin - rOther.mpData);
+	      mpEnd = mpData + (rOther.mpEnd - rOther.mpData);
+	      std::copy(rOther.mpBegin, rOther.mpEnd, mpBegin); 
+      }
+    
+      Buffer(const ContainerType& rContainer, SizeType NewSize) : mpData(new BlockType[BlockCompatibleSize(NewSize)]) , mpBegin(mpData), mpEnd(mpData+NewSize), mSize(BlockCompatibleSize(NewSize))
+      {
+ 	   std::copy(rContainer, rContainer + mSize, mpData); 
+      }
 
       /// Destructor.
-      virtual ~Buffer(){}
+      virtual ~Buffer()
+      {
+	free(mpData);
+      }
       
 
       ///@}
@@ -150,117 +154,241 @@ namespace Kratos
     
       Buffer& operator=(const Buffer& rOther)
       {
-	mData = rOther.mData;
-	mCurrentIndex = rOther.mCurrentIndex;
+	// here I'm just copying the active part of the buffer not the whole!
+	const SizeType other_size=rOther.mpEnd - rOther.mpBegin;
+	if(mSize < other_size)
+	{
+	  mSize=other_size;
+	  mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
+	}
+	std::copy(rOther.mpBegin, rOther.mpEnd, mpData); 
+	mpBegin = mpData;
+	mpEnd = mpData+mSize;
+
 	return *this;
       }
     
-      value_type& operator[](const size_type& i)
-      {
-	return mData[TransformIndex(i)];
-      }
-    
-      value_type const& operator[](const size_type& i) const
-      {
-	return mData[TransformIndex(i)];
-      }
     
       ///@}
       ///@name Operations
       ///@{
       
-      iterator                   begin()            { return mData.begin(); }
-      const_iterator             begin() const      { return mData.begin(); }
-      iterator                   end()              { return mData.end(); }
-      const_iterator             end() const        { return mData.end(); }
-      
-      reference        front()       /* nothrow */ { assert( !empty() ); return mData[TransformIndex(0)]; }
-      const_reference  front() const /* nothrow */ { assert( !empty() ); return mData[TransformIndex(0)]; }
-      reference        back()        /* nothrow */ { assert( !empty() ); return mData[TransformIndex(size() - 1)]; }
-      const_reference  back() const  /* nothrow */ { assert( !empty() ); return mData[TransformIndex(size() - 1)]; }
-
-      size_type size() const {return mData.size();}
+      SizeType size() const {return mSize * sizeof(BlockType);}
     
-      size_type max_size() const {return mData.max_size();}
-    
-      void swap(Buffer& rOther) {mData.swap(rOther.mData);}
-    
-      void push_back(value_type& x)                
+      void swap(Buffer& rOther) 
       {
-	std::size_t index = TransformIndex(size());
-	mData[index] = x;
-	mCurrentIndex = index;
+	 std::swap(mSize, rOther.mSize);
+	 std::swap(mpData, rOther.mpData);
+	 std::swap(mpBegin, rOther.mpBegin);
+	 std::swap(mpEnd, rOther.mpEnd);
+      }
+    
+      void push_back(std::string const& rValue)                
+      {
+	std::size_t string_size = rValue.size() + 1; // the one is for end string null character
+	SizeType data_size = BlockCompatibleSize(string_size*sizeof(char)); 
+	iterator new_end = mpEnd + data_size;
+	iterator max_end = mpData + mSize;
+	if(new_end > max_end)
+	{
+	  resize(mSize+data_size);
+	}
+	std::copy(rValue.c_str(), rValue.c_str() + string_size, (char*)mpEnd);
+	mpEnd+=data_size;
+      } 
+    
+      void push_back(bool rValue)                
+      {
+	int temp(rValue);
+	push_back(temp);
+      } 
+    
+      template<class TDataType>
+      void push_back(std::vector<TDataType> const& rValue)                
+      {
+	const SizeType size=rValue.size();
+	push_back(size);
+	push_back(rValue.begin(), rValue.end());
+      } 
+    
+      template<class TDataType>
+      void push_back(boost::numeric::ublas::vector<TDataType> const& rValue)                
+      {
+	push_back(rValue.size());
+	push_back(rValue.begin(), rValue.end());
+      } 
+    
+      template<class TDataType, std::size_t TDimenasion>
+      void push_back(array_1d<TDataType,TDimenasion> const& rValue)                
+      {
+	push_back(rValue.size());
+	push_back(rValue.begin(), rValue.end());
+      } 
+    
+      void push_back(Matrix const& rValue)                
+      {
+	push_back(rValue.size1());
+	push_back(rValue.size2());
+	push_back(rValue.data().begin(), rValue.data().end());
+      } 
+    
+      template<class TDataType>
+      void push_back(boost::shared_ptr<TDataType> const& rValue)                
+      {
+	KRATOS_ERROR(std::logic_error, "You cannot store a pointer in the buffer try the Serializer instead", "" );
+      } 
+    
+      template<class TDataType>
+      void push_back(TDataType const& rValue)                
+      {
+	SizeType data_size = BlockCompatibleSize(sizeof(TDataType));
+	iterator new_end = mpEnd + data_size;
+	iterator max_end = mpData + mSize;
+	if(new_end > max_end)
+	{
+	  resize(mSize+data_size);
+	}
+	
+	*((TDataType *)mpEnd) = rValue;
+	mpEnd+=data_size;
+      } 
+    
+      template<class TIteratorType>
+      void push_back(TIteratorType First, TIteratorType Last)                
+      {
+	for(;First != Last ; First++)
+	  push_back(*First);
+      } 
+    
+      std::string& pop_front(std::string& rValue)                
+      {
+	rValue= static_cast<char*>((void*)mpBegin);
+	const std::size_t string_size=rValue.size() + 1;;
+	SizeType data_size = BlockCompatibleSize(string_size);
+	
+	mpBegin += data_size;
+	return rValue;
       } 
         
-      void push_front(value_type const& x)                
+      void pop_front(bool& rValue)                
       {
-	std::size_t index = (mCurrentIndex == 0) ? size() - 1 :  mCurrentIndex - 1;
-// 	std::cout << "push_front..." << std::endl;
-// 	KRATOS_WATCH(mCurrentIndex)
-// 	KRATOS_WATCH(size())
-// 	KRATOS_WATCH(index)
-// /* 	KRATOS_WATCH(mData) */
-// 	KRATOS_WATCH(x)
-// 	KRATOS_WATCH(mData[index])
-
-	mData[index] = x;
-	mCurrentIndex = index;
+	int temp;
+	
+	pop_front(temp);
+	
+ 	rValue = temp << 1;
       } 
         
-      iterator insert(iterator Position, const value_type& Data)
+      template<class TDataType>
+      void pop_front(std::vector<TDataType>& rValue)                
       {
-	return mData.insert(Position, Data);
-      }
+	SizeType size;
+	
+	pop_front(size);
+	
+ 	rValue.resize(size);
+	
+	pop_front(rValue.begin(), rValue.end());
+      } 
+        
+      template<class TDataType>
+      void pop_front(boost::numeric::ublas::vector<TDataType>& rValue)                
+      {
+	SizeType size;
+	
+	pop_front(size);
+	
+ 	rValue.resize(size);
+	
+	pop_front(rValue.begin(), rValue.end());
+      } 
+        
+      template<class TDataType, std::size_t TDimenasion>
+      void pop_front(array_1d<TDataType, TDimenasion>& rValue)                
+      {
+	SizeType size;
+	
+	pop_front(size);
+	
+ 	rValue.resize(size);
+	
+	pop_front(rValue.begin(), rValue.end());
+      } 
+       
+      void pop_front(Matrix& rValue)                
+      {
+	SizeType size1;
+	SizeType size2;
+	
+	pop_front(size1);
+	pop_front(size2);
+	
+ 	rValue.resize(size1,size2);
+	
+	pop_front(rValue.data().begin(), rValue.data().end());
+      } 
+    
+      template<class TDataType>
+      TDataType& pop_front(TDataType& rValue)                
+      {
+	SizeType data_size = BlockCompatibleSize(sizeof(TDataType));
+	
+	rValue = *static_cast<TDataType*>((void*)mpBegin);
+	mpBegin += data_size;
+	return rValue;
+      } 
+        
+      template<class TIteratorType>
+      void pop_front(TIteratorType First, TIteratorType Last)                
+      {
+	for(;First != Last ; First++)
+	  pop_front(*First);
+      } 
+    
+       
 
-      template <class InputIterator>
-      void insert(InputIterator First, InputIterator Last)
+      void clear() 
       {
-	for(;First != Last; ++First)
-	  insert(*First);
+	mpBegin = mpData;
+	mpEnd = mpData;
       }
     
-                       
-      iterator erase(iterator pos) {return mData.erase(pos.base());}
-    
-      iterator erase( iterator first, iterator last )
+      void resize(SizeType NewSize)
       {
-	return mData.erase( first.base(), last.base());
+	if(mSize < NewSize)
+	{
+	  mSize=NewSize;
+	  
+	  SizeType begin_offset = mpBegin - mpData;
+	  SizeType end_offset = mpEnd - mpData;
+	  if(mpData)
+	    mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
+	  else
+	    mpData = (BlockType*)malloc(mSize * sizeof(BlockType));
+	    
+	  mpBegin = mpData + begin_offset;
+	  mpEnd = mpData + end_offset;
+	}
       }
 
-      void clear() {mData.clear();}
-    
-      void resize(std::size_t NewSize)
-      {
-	mData.resize(NewSize);
-      }
-
-      void resize(std::size_t NewSize, value_type& Data)
-      {
-	mData.resize(NewSize, Data);
-      }
     
       ///@}
       ///@name Access
       ///@{ 
       
-      /** Gives a reference to underly normal container. */
-      TContainerType& GetContainer()
-      {
-	return mData;
-      }
-      
-      /** Gives a constant reference to underly normal container. */
-      const TContainerType& GetContainer() const
-      {
-	return mData;
-      }
-    
+       iterator                   begin()            { return mpBegin; }
+       const_iterator             begin() const      { return mpBegin; }
+	
+       iterator                   end()              { return mpEnd; }
+       const_iterator             end()   const      { return mpEnd; }
+	
+     
       
       ///@}
       ///@name Inquiry
       ///@{
       
-      bool empty() const {return mData.empty();}
+      bool empty() const {return mpBegin==mpEnd;}
     
       
       ///@}      
@@ -285,7 +413,7 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const
       {
-	std::copy(begin(), end(), std::ostream_iterator<value_type>(rOStream, "\n "));
+	std::copy(begin(), end(), std::ostream_iterator<BlockType>(rOStream));
       }
       
             
@@ -342,24 +470,28 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 
         
-      TContainerType mData;
+      ContainerType mpData;
        
-      std::size_t mCurrentIndex;
+      iterator mpBegin;
+      
+      iterator mpEnd;
+      
+      SizeType mSize;
 
       ///@} 
       ///@name Private Operators
-      ///@{ 
+      ///@{
+      
+	inline SizeType BlockCompatibleSize(SizeType rSize)
+	{
+	  const SizeType block_size = sizeof(BlockType);
+	  return static_cast<SizeType>(((block_size - 1) + rSize) / block_size);	  
+	}
         
         
       ///@} 
       ///@name Private Operations
       ///@{ 
-        
-      inline std::size_t TransformIndex(std::size_t ThisIndex)
-      {
-	std::size_t index = ThisIndex + mCurrentIndex;
-	return (index < mData.size()) ? index : index - mData.size();
-      }
         
       ///@} 
       ///@name Private  Access 
@@ -392,14 +524,15 @@ namespace Kratos
         
  
   /// input stream function
-  template<class TContainerType>
   inline std::istream& operator >> (std::istream& rIStream, 
-				    Buffer<TContainerType>& rThis);
+				    Buffer& rThis)
+  {
+      return rIStream;
+  }
 
   /// output stream function
-  template<class TContainerType>
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Buffer<TContainerType>& rThis)
+				    const Buffer& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -407,9 +540,72 @@ namespace Kratos
 
       return rOStream;
     }
+   
   ///@} 
   
+  template<class TDataType>
+  inline Buffer& operator >> (Buffer& rThis, TDataType& rValue)
+  {
+    rThis.pop_front(rValue);
+    
+    return rThis;
+  }
+
   
+  template<class TDataType>
+  inline Buffer& operator << (Buffer& rThis, const TDataType& rValue)
+  {
+    rThis.push_back(rValue);
+    
+    return rThis;
+  }
+  
+  inline Buffer& operator >> (Buffer& rThis, void*& rValue)
+  {
+    rThis.pop_front<void*>(rValue);
+    
+    return rThis;
+  }
+
+  
+  inline Buffer& operator << (Buffer& rThis, void* rValue)
+  {
+    rThis.push_back<void*>(rValue);
+    
+    return rThis;
+  }
+  
+  inline Buffer& operator >> (Buffer& rThis, bool& rValue)
+  {
+    rThis.pop_front(rValue);
+    
+    return rThis;
+  }
+
+  
+  inline Buffer& operator << (Buffer& rThis, bool rValue)
+  {
+    rThis.push_back(rValue);
+    
+    return rThis;
+  }
+  
+  
+/*  inline Buffer& operator << (Buffer& rThis, int const& rValue)
+  {
+    rThis.push_back(static_cast<Buffer::BlockType>(rValue));
+    
+    return rThis;
+  }
+  
+  inline Buffer& operator << (Buffer& rThis, double const& rValue)
+  {
+    rThis.push_back(rValue);
+    
+    return rThis;
+  }*/
+  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_BUFFER_H_INCLUDED  defined 
