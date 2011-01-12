@@ -164,12 +164,12 @@ namespace Kratos
 // 	KRATOS_WATCH("COUETTE NON NEWTONIAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
 	unsigned int nodes_number = 3;
 	double yield = 0.0;
-	double gamma_dot_inv;
+// 	double gamma_dot_inv;
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
 	}
 	yield /= nodes_number;
-	double aux_1;
+// 	double aux_1;
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
 
