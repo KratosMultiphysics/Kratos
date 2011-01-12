@@ -24,6 +24,7 @@ lib libkratos
 	variables_list_data_value_container.cpp
 	mmio.c
 	timer.cpp
+	serializer.cpp
 
 	##gidpost library
 	/KratosProject//gidpost
