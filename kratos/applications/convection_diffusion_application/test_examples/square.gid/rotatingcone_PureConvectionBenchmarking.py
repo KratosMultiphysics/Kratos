@@ -54,14 +54,24 @@ def BenchmarkCheck(time, model_part):
 #defining a model part
 model_part = ModelPart("FluidPart");
 
-##importing the solver files and adding the variables
+##########################################################
+thermal_settings = ConvectionDiffusionSettings()
+thermal_settings.SetDensityVariable(DENSITY)
+thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
+thermal_settings.SetUnknownVariable(TEMPERATURE)
+thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
+thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+##########################################################
+
 import pure_convection_solver
-pure_convection_solver.AddVariables(model_part)
-model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
-model_part.AddNodalSolutionStepVariable(VELOCITY)
-model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
-model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+pure_convection_solver.AddVariables(model_part,thermal_settings)
+
+##model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+##model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+##model_part.AddNodalSolutionStepVariable(VELOCITY)
+##model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
+##model_part.AddNodalSolutionStepVariable(NODAL_AREA)
 
 
 ##...aqui lista variables para utilizar
@@ -81,6 +91,8 @@ print "line 79"
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
+#importing the solver files
+pure_convection_solver.AddDofs(model_part,thermal_settings)
 print "line 84"
 ##add Degrees of Freedom to all of the nodes
 for node in model_part.Nodes:
@@ -131,7 +143,7 @@ convection_order = 2 #order of the time scheme of the convection solver
 pConvPrecond = DiagonalPreconditioner()
 convection_linear_solver = linear_solver =  BICGSTABSolver(1e-9, 5000,pConvPrecond)
 ##convection_solver = PureConvectionUtilities2D();
-convection_solver = pure_convection_solver.PureConvectionSolver(model_part,domain_size)
+convection_solver = pure_convection_solver.PureConvectionSolver(model_part,domain_size,thermal_settings)
 
 ##computing the neighbours
 neighbour_finder = FindNodalNeighboursProcess(model_part,10,10);

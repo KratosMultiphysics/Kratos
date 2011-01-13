@@ -23,15 +23,33 @@ import applications_interface
 applications_interface.Import_ConvectionDiffusionApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
+
+#defining a model part
+model_part = ModelPart("FluidPart");  
+
+
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
 
 from KratosConvectionDiffusionApplication import *
 
+##########################################################
+thermal_settings = ConvectionDiffusionSettings()
+thermal_settings.SetDensityVariable(DENSITY)
+thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
+thermal_settings.SetUnknownVariable(TEMPERATURE)
+thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
+thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+##########################################################
 
-#defining a model part
-model_part = ModelPart("FluidPart");  
+#importing the solver files
+import convection_diffusion_solver
+convection_diffusion_solver.AddVariables(model_part,thermal_settings)
+
+
+
 
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
 #reading a model
@@ -53,12 +71,10 @@ print model_part
 model_part.SetBufferSize(3)
 
 #importing the solver files
-import convection_diffusion_solver
-convection_diffusion_solver.AddVariables(model_part)
-
+convection_diffusion_solver.AddDofs(model_part,thermal_settings)
     
 #creating a fluid solver object
-solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size)
+solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
 solver.time_order = 1
 solver.prediction_order = 2
 pDiagPrecond = DiagonalPreconditioner()

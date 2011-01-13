@@ -29,9 +29,21 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 from KratosConvectionDiffusionApplication import *
 
-
 #defining a model part
 model_part = ModelPart("FluidPart");  
+
+##########################################################
+thermal_settings = ConvectionDiffusionSettings()
+thermal_settings.SetDensityVariable(DENSITY)
+thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
+thermal_settings.SetUnknownVariable(TEMPERATURE)
+thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
+thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+##########################################################
+
+import convection_diffusion_solver
+convection_diffusion_solver.AddVariables(model_part,thermal_settings)
 
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
 
@@ -53,13 +65,13 @@ print model_part
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
-#importing the solver files
-import convection_diffusion_solver
-convection_diffusion_solver.AddVariables(model_part)
 
-    
+
+#importing the solver files
+convection_diffusion_solver.AddDofs(model_part,thermal_settings)
+
 #creating a fluid solver object
-solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size)
+solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
 solver.time_order = 1
 #pDiagPrecond = DiagonalPreconditioner()
 #solver.linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
