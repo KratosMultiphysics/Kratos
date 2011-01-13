@@ -26,7 +26,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "convection_diffusion_application.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
-
+#include "includes/convection_diffusion_settings.h"
 //#include "custom_utilities/convection_diffusion_settings.h"
 
 
@@ -139,6 +139,12 @@ namespace Kratos
 			mOldDt = 0.00;
 			mprediction_order = prediction_order;
 			
+			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+			ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+			const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+
+
+
 
 			//initializing fractional velocity solution step
 			typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
@@ -157,7 +163,7 @@ namespace Kratos
 
 			typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 
-			BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> > (pNewLinearSolver,TEMPERATURE) );
+			BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> > (pNewLinearSolver,rUnknownVar) );
 			mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver > 				(model_part,pscheme,pNewLinearSolver,componentwise_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 			mstep1->SetEchoLevel(2);
 
@@ -250,6 +256,9 @@ namespace Kratos
 			KRATOS_TRY;
 
 			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+
+			ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+			const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
 
 			//first of all set to zero the nodal variables to be updated nodally
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
