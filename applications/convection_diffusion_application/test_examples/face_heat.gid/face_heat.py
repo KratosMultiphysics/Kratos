@@ -39,8 +39,20 @@ from KratosConvectionDiffusionApplication import *
 model_part = ModelPart("FluidPart");  
 
 #adding of Variables to Model Part
+
+##########################################################
+thermal_settings = ConvectionDiffusionSettings()
+thermal_settings.SetDensityVariable(DENSITY)
+thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
+thermal_settings.SetUnknownVariable(TEMPERATURE)
+thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
+thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+##########################################################
+
+
 import nonlinear_convection_diffusion_solver
-nonlinear_convection_diffusion_solver.AddVariables(model_part)
+nonlinear_convection_diffusion_solver.AddVariables(model_part,thermal_settings)
 
 #reading a model
 #reading a model
@@ -61,11 +73,11 @@ print model_part
 model_part.SetBufferSize(3)
 
 #importing the solver files
-nonlinear_convection_diffusion_solver.AddDofs(model_part)
+nonlinear_convection_diffusion_solver.AddDofs(model_part,thermal_settings)
 
     
 #creating a fluid solver object
-solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size)
+solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
 solver.time_order = 1
 #pDiagPrecond = DiagonalPreconditioner()
 #solver.linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
