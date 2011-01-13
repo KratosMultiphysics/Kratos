@@ -229,7 +229,7 @@ namespace Kratos
             this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
 
             // Get Smagorinsky coefficient
-            const double Cs = rCurrentProcessInfo[C_SMAGORINSKY];
+            const double Cs = this->GetValue(C_SMAGORINSKY);
 
             this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, KinViscosity, TauOne, TauTwo, Cs, N, DN_DX, Area);
 
@@ -273,159 +273,6 @@ namespace Kratos
 
                 noalias(rRightHandSideVector) -= prod(MassStabilization,U);
             }
-        }
-
-        /// Implementation of Calculate to compute the local OSS projections
-        /**
-         * This function computes the OSS projection terms from last iteration's
-         * pressure and velocity values. The function signature is inherited from
-         * element.h to mantain compatibility.
-         * @param rVariable: Unused vector variable reference
-         * @param Output: Unused output array
-         * @param rCurrentProcessInfo: Process info instance
-         */
-        virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                               array_1d<double, 3 > & rOutput,
-                               const ProcessInfo& rCurrentProcessInfo)
-        {
-            VMSBase<TDim,TNumNodes>::Calculate(rVariable,rOutput,rCurrentProcessInfo);
-//            // Get the element's geometric parameters
-//            double Area;
-//            array_1d<double, TNumNodes> N;
-//            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-//            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-//
-//            // Calculate this element's fluid properties
-//            double Density, Viscosity;
-//            this->GetPointContribution(Density, DENSITY, N);
-//            this->GetPointContribution(Viscosity, VISCOSITY, N);
-//
-//            // Get Advective velocity
-//            array_1d<double, 3> AdvVel;
-//            this->GetAdvectiveVel(AdvVel, N);
-//
-//            // Calculate stabilization parameters
-//            double TauOne, TauTwo;
-//            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
-//
-//            // Output containers
-//            array_1d< double,3 > ElementalMomRes(3,0.0);
-//            double ElementalMassRes(0);
-//
-//            this->AddProjectionResidualContribution(AdvVel, Density, TauOne, TauTwo, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
-////            if (rVariable == COARSE_VELOCITY)
-////                this->AddCoarseResidualContribution(AdvVel, Density, TauOne, TauTwo, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
-////            else
-////                this->AddResidualContribution(AdvVel, Density, TauOne, TauTwo, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
-//
-//            // Checking on variable to ensure that we only write on nodal variables when callling from scheme (residual projection)
-//            if (rVariable == ADVPROJ) //if( rCurrentProcessInfo[OSS_SWITCH] == 1)
-//            {
-//                // Carefully write results to nodal variables, to avoid parallelism problems
-//                for (unsigned int i = 0; i < TNumNodes; ++i)
-//                {
-//                    ///@TODO: Test using atomic
-//                    this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-//                    array_1d< double, 3 > & rAdvProj = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-//                    for (unsigned int d = 0; d < TDim; ++d)
-//                        rAdvProj[d] += N[i] * ElementalMomRes[d];
-//
-//                    this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += N[i] * ElementalMassRes;
-//                    this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
-//                    this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-//                }
-//            }
-//
-//            /// Return output
-//            rOutput = ElementalMomRes;
-        }
-
-        virtual void Calculate( const Variable<Vector>& rVariable,
-                                Vector& rOutput,
-                                const ProcessInfo& rCurrentProcessInfo)
-        {
-            rOutput.resize(2,false);
-            rOutput = ZeroVector(2);
-
-            boost::numeric::ublas::bounded_matrix<double, TDim, TDim> GradUc = ZeroMatrix(TDim,TDim); // Grad(u) in coarse mesh
-            boost::numeric::ublas::bounded_matrix<double, TDim, TDim> GradUf = ZeroMatrix(TDim,TDim); // Grad(u) in fine mesh
-
-            // Get the element's geometric parameters
-            double Area;
-            array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            // Calculate residual on both meshes
-            array_1d< double,3 > FineRes(3,0.0), CoarseRes(3,0.0);
-            this->Calculate(VELOCITY,FineRes,rCurrentProcessInfo);
-            this->Calculate(COARSE_VELOCITY,CoarseRes,rCurrentProcessInfo);
-
-            // Compute Grad(u) on both meshes and u on coarse mesh
-            array_1d< double,3 > ElemCoarseVel(3,0.0);
-            for (unsigned int k = 0; k < TNumNodes; ++k)
-            {
-                const array_1d< double,3 >& rFineVel = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY);
-                const array_1d< double,3 >& rCoarseVel = this->GetGeometry()[k].GetValue(COARSE_VELOCITY);
-                for (unsigned int i = 0; i < TDim; ++i)
-                {
-                    ElemCoarseVel[i] += rCoarseVel[i] * N[k];
-                    for (unsigned int j = 0; j < TDim; ++j)
-                    {
-                        GradUc(i,j) += DN_DX(k,j) * rCoarseVel[i];
-                        GradUf(i,j) += DN_DX(k,j) * rFineVel[i];
-                    }
-                }
-            }
-
-            // Compute Norm[ Grad(u) ] on both meshes
-            double NormSc(0.0),NormSf(0.0);
-            for (unsigned int i = 0; i < TDim; ++i)
-                for (unsigned int j = 0; j < TDim; ++j)
-                {
-                    NormSc += 2.0 * pow(GradUc(i,j),2);
-                    NormSf += 2.0 * pow(GradUf(i,j),2);
-                }
-
-            NormSc = sqrt( NormSc );
-            NormSf = sqrt( NormSf );
-
-            // Calculate square of Filter Width for both meshes (h,H)
-            double sqh,sqH;
-            if( this->GetGeometry().WorkingSpaceDimension() == 2)
-            {
-                sqh = Area;
-                sqH = 16 * Area; // Area_coarse = 4 * Area_fine, by construction
-            }
-            else // Here the variable Area contains the elemental volume
-            {
-                sqh = pow(Area,1.0/3.0);
-                sqh = pow(sqh,2.0);
-                sqH = pow(8.0 * Area,1.0/3.0); // Vol_coarse = 8 * Vol_fine
-                sqH = pow(sqH,2.0);
-            }
-
-            double SmaC(0.0),SmaF(0.0);
-
-            // Calculate local contributions to Variational Germano identity
-            for(unsigned int i = 0; i < TDim; ++i)
-            {
-                rOutput[0] += ElemCoarseVel[i] * (CoarseRes[i] - FineRes[i]);
-                for(unsigned int j = 0; j < TDim; ++j)
-                {
-                    SmaC += 2.0 * GradUc(i,j) * GradUc(i,j);
-                    SmaF += 2.0 * fabs( GradUc(i,j) * GradUf(i,j) );
-                }
-            }
-            SmaC = sqH * NormSc * sqrt( SmaC );
-            SmaF = sqh * NormSf * sqrt( SmaF );
-
-            rOutput[1] = SmaC - SmaF;
-
-//            //loop on coarse mesh elements
-//            this->CalculateRHS();
-//            double output = 0.0;
-
         }
 
         ///@}
@@ -513,7 +360,10 @@ namespace Kratos
 
             // Get total viscosity (as given by Smagorinsky)
             double Viscosity;
-            this->GetEffectiveViscosity(KinViscosity,Cs,rShapeDeriv,Viscosity); // Smagorinsky viscosity (in "Kinematic" units, m^2/s)
+            if(Cs != 0.0)
+                this->GetEffectiveViscosity(KinViscosity,Cs,rShapeDeriv,Viscosity); // Smagorinsky viscosity (in "Kinematic" units, m^2/s)
+            else
+                Viscosity = KinViscosity;
 
             // Note that we iterate first over columns, then over rows to read the Body Force only once per node
             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
@@ -684,20 +534,26 @@ namespace Kratos
 
             TotalViscosity = MolecularViscosity;
 
-            // Compute Grad(u)
+            // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
             for (unsigned int k = 0; k < TNumNodes; ++k)
             {
                 const array_1d< double,3 >& rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY);
                 for (unsigned int i = 0; i < TDim; ++i)
-                    for (unsigned int j = 0; j < TDim; ++j)
-                        dv_dx(i,j) += rShapeDeriv(k,j) * rNodeVel[i];
+                {
+                    for (unsigned int j = 0; j < i; ++j) // Off-diagonal
+                        dv_dx(i,j) += 0.5 * ( rShapeDeriv(k,j) * rNodeVel[i] + rShapeDeriv(k,i) * rNodeVel[j] );
+                    dv_dx(i,i) += rShapeDeriv(k,i) * rNodeVel[i]; // Diagonal
+                }
             }
 
             // Norm[ Grad(u) ]
             double NormS(0.0);
             for (unsigned int i = 0; i < TDim; ++i)
-                for (unsigned int j = 0; j < TDim; ++j)
-                    NormS += dv_dx(i,j) * dv_dx(i,j);
+            {
+                for (unsigned int j = 0; j < i; ++j)
+                    NormS += 2.0 * dv_dx(i,j) * dv_dx(i,j); // Using symmetry, lower half terms of the matrix are added twice
+                NormS += dv_dx(i,i) * dv_dx(i,i); // Diagonal terms
+            }
 
             NormS = sqrt(NormS);
 

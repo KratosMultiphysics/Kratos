@@ -42,6 +42,7 @@ namespace Kratos
  		std::cout << "Initializing KratosFluidDynamicsApplication... " << std::endl;
  
 		// Register Variables (defined in fluid_dynamics_application_variables.h)
+                KRATOS_REGISTER_VARIABLE(PATCH_INDEX)
                 KRATOS_REGISTER_VARIABLE(TAUONE)
                 KRATOS_REGISTER_VARIABLE(TAUTWO)
                 KRATOS_REGISTER_VARIABLE(C_SMAGORINSKY)

@@ -45,6 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 // System includes
+#include <vector>
+#include <map>
 
 // External includes
 #include "boost/smart_ptr.hpp"
@@ -53,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
-#include "solving_strategies/schemes/scheme.h"
+#include "includes/element.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/geometry_utilities.h"
 
@@ -69,10 +71,77 @@ namespace Kratos
     public:
 
         /// Default Constructor
-        DynamicSmagorinskyUtils(ModelPart& rModelPart, ModelPart::ElementsContainerType& rCoarseMesh):
+        /** Remember to create the utilitiy before refining the element, otherwise the coarse mesh will be lost
+         */
+        DynamicSmagorinskyUtils(ModelPart& rModelPart, unsigned int DomainSize):
         mrModelPart(rModelPart),
-        mrCoarseMesh(rCoarseMesh)
-        {}
+        mDomainSize(DomainSize),
+        mCoarseMesh(),
+        mPatchIndices()
+        {
+            // Backup the mesh (the "original" coarse mesh is erased during refinement)
+            Element::Pointer pReferenceElement;
+
+            if( mDomainSize == 2)
+            {
+                Element::Pointer pNewElem( new Element( KratosComponents<Element>::Get("VMS2DSmagorinsky") ) );
+                pReferenceElement.swap(pNewElem);
+            }
+            else // 3D case
+            {
+                Element::Pointer pNewElem( new Element( KratosComponents<Element>::Get("VMS3DSmagorinsky") ) );
+                pReferenceElement.swap(pNewElem);
+            }
+
+            for( ModelPart::ElementsContainerType::ptr_iterator itpElem = rModelPart.Elements().ptr_begin();
+                 itpElem != rModelPart.Elements().ptr_end(); ++itpElem)
+            {
+//                Element::Pointer pNewElem = pReferenceElement->Create(itElem->Id(), itElem->GetGeometry(), itElem->pGetProperties());
+//                pNewElem->GetValue(PATCH_INDEX) = itElem->GetValue(PATCH_INDEX); // Copy the patch index variable, we will need it later
+////                pNewElem->Data() = itElem->Data();
+//                pNewElem->GetValue(C_SMAGORINSKY) = 0.0; // Set the Smagorinsky parameter to zero for the coarse mesh (do this once to reset any input values)
+//                pNewElem->Initialize();
+//                mCoarseMesh.push_back(pNewElem);
+                (*itpElem)->GetValue(C_SMAGORINSKY) = 0.0; // Set the Smagorinsky parameter to zero for the coarse mesh (do this once to reset any input values)
+                mCoarseMesh.push_back(*itpElem);
+            }
+
+            // Count the number of patches in the model (in parallel)
+            const int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector ElementPartition;
+            OpenMPUtils::DivideInPartitions(mCoarseMesh.size(),NumThreads,ElementPartition);
+
+            std::vector< std::vector<int> > LocalIndices(NumThreads);
+
+            #pragma omp parallel
+            {
+                int k = OpenMPUtils::ThisThread();
+                ModelPart::ElementsContainerType::iterator ElemBegin = mCoarseMesh.begin() + ElementPartition[k];
+                ModelPart::ElementsContainerType::iterator ElemEnd = mCoarseMesh.begin() + ElementPartition[k+1];
+
+                for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+                {
+                    this->AddNewIndex(LocalIndices[k],itElem->GetValue(PATCH_INDEX));
+                }
+            }
+
+            // Combine the partial lists and create a map for PATCH_INDEX -> Vector position
+            unsigned int Counter = 0;
+            std::pair<int, unsigned int> NewVal;
+            std::pair< std::map<int, unsigned int>::iterator, bool > Result;
+            for( std::vector< std::vector<int> >::iterator itList = LocalIndices.begin(); itList != LocalIndices.end(); ++itList )
+            {
+                for( std::vector<int>::iterator itIndex = itList->begin(); itIndex != itList->end(); ++itIndex)
+                {
+                    // Note that instering in map already sorts and checks for uniqueness
+                    NewVal.first = *itIndex;
+                    NewVal.second = Counter;
+                    Result = mPatchIndices.insert(NewVal);
+                    if (Result.second)
+                        ++Counter;
+                }
+            }
+        }
 
         /// Destructor
         ~DynamicSmagorinskyUtils()
@@ -83,31 +152,50 @@ namespace Kratos
         /// Provide a value for the Smagorinsky coefficient using the Variational Germano Identity
         void CalculateC()
         {
+            // Update the velocity values for the terms that belong to the coarse mesh
+            this->SetCoarseVel();
 
-            mrModelPart.GetProcessInfo()[C_SMAGORINSKY] = 0.0; // Disable Smagorinsky to calculate the residual terms
-
-            // Loop over coarse mesh to evaluate all terms that do not involve the fine mesh
+            // Partitioning
             const int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::PartitionVector ElementPartition;
-            OpenMPUtils::DivideInPartitions(mrCoarseMesh.size(),NumThreads,ElementPartition);
+            OpenMPUtils::PartitionVector CoarseElementPartition,FineElementPartition;
+            OpenMPUtils::DivideInPartitions(mCoarseMesh.size(),NumThreads,CoarseElementPartition);
+            OpenMPUtils::DivideInPartitions(mrModelPart.Elements().size(),NumThreads,FineElementPartition);
 
-            double ResC(0.0),ResF(0.0),SmaC(0.0),SmaF(0.0);
+            // Initialize temporary containers
+            unsigned int PatchNumber = mPatchIndices.size();
 
-            #pragma omp parallel reduction(+:ResC,SmaC)
+            std::vector< std::vector<double> > GlobalPatchNum(NumThreads); // Numerator on each patch
+            std::vector< std::vector<double> > GlobalPatchDen(NumThreads); // Denominator on each patch
+
+            const double EnergyTol = 0.05;
+            double TotalDissipation = 0;
+
+            #pragma omp parallel reduction(+:TotalDissipation)
             {
                 int k = OpenMPUtils::ThisThread();
-                ModelPart::ElementsContainerType::iterator ElemBegin = mrCoarseMesh.begin() + ElementPartition[k];
-                ModelPart::ElementsContainerType::iterator ElemEnd = mrCoarseMesh.begin() + ElementPartition[k+1];
 
+                // Initialize the iterator boundaries for this thread
+                ModelPart::ElementsContainerType::iterator CoarseElemBegin = mCoarseMesh.begin() + CoarseElementPartition[k];
+                ModelPart::ElementsContainerType::iterator CoarseElemEnd = mCoarseMesh.begin() + CoarseElementPartition[k+1];
+
+                ModelPart::ElementsContainerType::iterator FineElemBegin = mrModelPart.ElementsBegin() + FineElementPartition[k];
+                ModelPart::ElementsContainerType::iterator FineElemEnd = mrModelPart.ElementsBegin() + FineElementPartition[k+1];
+
+                // Initialize some thread-local variables
                 Vector LocalValues, LocalCoarseVel;
                 Matrix LocalMassMatrix;
                 ProcessInfo& rProcessInfo = mrModelPart.GetProcessInfo();
 
                 double Residual,Model;
+                unsigned int PatchPosition;
 
-                const unsigned int Dim = ElemBegin->GetGeometry().WorkingSpaceDimension();
+                // Thread-local containers for the values in each patch
+                std::vector<double>& rPatchNum = GlobalPatchNum[k];
+                std::vector<double>& rPatchDen = GlobalPatchDen[k];
+                rPatchNum.resize(PatchNumber,0.0);// Fill with zeros
+                rPatchDen.resize(PatchNumber,0.0);
 
-                if (Dim == 2)
+                if (mDomainSize == 2)
                 {
                     LocalValues.resize(9);
                     LocalCoarseVel.resize(9);
@@ -116,15 +204,31 @@ namespace Kratos
                     boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
                     boost::numeric::ublas::bounded_matrix<double,2,2> dv_dx;
 
-                    for( ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+                    // Evaluate the N-S and model terms in each coarse element
+                    for( ModelPart::ElementsContainerType::iterator itElem = CoarseElemBegin; itElem != CoarseElemEnd; ++itElem)
                     {
+                        PatchPosition = mPatchIndices[ itElem->GetValue(PATCH_INDEX) ];
                         this->GermanoTerms2D(*itElem,N,DN_DX,dv_dx,LocalValues,LocalCoarseVel,LocalMassMatrix,rProcessInfo,Residual,Model);
 
-                        ResC += Residual;
-                        SmaC += Model;
+                        rPatchNum[PatchPosition] += Residual;
+                        rPatchDen[PatchPosition] += Model;
+                        TotalDissipation += Residual;
+                    }
+
+                    // Now evaluate the corresponding terms in the fine mesh
+                    for( ModelPart::ElementsContainerType::iterator itElem = FineElemBegin; itElem != FineElemEnd; ++itElem)
+                    {
+                        // Deactivate Smagorinsky to compute the residual of galerkin+stabilization terms only
+                        itElem->GetValue(C_SMAGORINSKY) = 0.0;
+
+                        PatchPosition = mPatchIndices[ itElem->GetValue(PATCH_INDEX) ];
+                        this->GermanoTerms2D(*itElem,N,DN_DX,dv_dx,LocalValues,LocalCoarseVel,LocalMassMatrix,rProcessInfo,Residual,Model);
+
+                        rPatchNum[PatchPosition] -= Residual;
+                        rPatchDen[PatchPosition] -= Model;
                     }
                 }
-                else // Dim == 3
+                else // mDomainSize == 3
                 {
                     LocalValues.resize(16);
                     LocalCoarseVel.resize(16);
@@ -133,108 +237,71 @@ namespace Kratos
                     boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
                     boost::numeric::ublas::bounded_matrix<double,3,3> dv_dx;
 
-                    for( ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+                    // Evaluate the N-S and model terms in each coarse element
+                    for( ModelPart::ElementsContainerType::iterator itElem = CoarseElemBegin; itElem != CoarseElemEnd; ++itElem)
                     {
+                        PatchPosition = mPatchIndices[ itElem->GetValue(PATCH_INDEX) ];
                         this->GermanoTerms3D(*itElem,N,DN_DX,dv_dx,LocalValues,LocalCoarseVel,LocalMassMatrix,rProcessInfo,Residual,Model);
 
-                        ResC += Residual;
-                        SmaC += Model;
+                        rPatchNum[PatchPosition] += Residual;
+                        rPatchDen[PatchPosition] += Model;
+                        TotalDissipation += Residual;
+                    }
+
+                    // Now evaluate the corresponding terms in the fine mesh
+                    for( ModelPart::ElementsContainerType::iterator itElem = FineElemBegin; itElem != FineElemEnd; ++itElem)
+                    {
+                        // Deactivate Smagorinsky to compute the residual of galerkin+stabilization terms only
+                        itElem->GetValue(C_SMAGORINSKY) = 0.0;
+
+                        PatchPosition = mPatchIndices[ itElem->GetValue(PATCH_INDEX) ];
+                        this->GermanoTerms3D(*itElem,N,DN_DX,dv_dx,LocalValues,LocalCoarseVel,LocalMassMatrix,rProcessInfo,Residual,Model);
+
+                        rPatchNum[PatchPosition] -= Residual;
+                        rPatchDen[PatchPosition] -= Model;
                     }
                 }
             }
 
-            // Loop over fine mesh to evaluate remaining terms
-            OpenMPUtils::DivideInPartitions(mrModelPart.Elements().size(),NumThreads,ElementPartition);
-
-            #pragma omp parallel reduction(+:ResF,SmaF)
+            // Combine the results of each thread in position 0
+            for( std::vector< std::vector<double> >::iterator itNum = GlobalPatchNum.begin()+1, itDen = GlobalPatchDen.begin()+1;
+                 itNum != GlobalPatchNum.end(); ++itNum, ++itDen)
             {
-                int k = OpenMPUtils::ThisThread();
-                ModelPart::ElementsContainerType::iterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
-                ModelPart::ElementsContainerType::iterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
-
-                Vector LocalValues, LocalCoarseVel;
-                Matrix LocalMassMatrix;
-                ProcessInfo& rProcessInfo = mrModelPart.GetProcessInfo();
-
-                double Residual,Model;
-
-                const unsigned int Dim = ElemBegin->GetGeometry().WorkingSpaceDimension();
-
-                if (Dim == 2)
+                for( std::vector<double>::iterator TotalNum = GlobalPatchNum[0].begin(), LocalNum = itNum->begin(),
+                        TotalDen = GlobalPatchDen[0].begin(), LocalDen = itDen->begin();
+                     TotalNum != GlobalPatchNum[0].end(); ++TotalNum,++LocalNum,++TotalDen,++LocalDen)
                 {
-                    LocalValues.resize(9);
-                    LocalCoarseVel.resize(9);
-                    LocalMassMatrix.resize(9,9,false);
-                    array_1d<double,3> N;
-                    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-                    boost::numeric::ublas::bounded_matrix<double,2,2> dv_dx;
-
-                    for( ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-                    {
-                        this->GermanoTerms2D(*itElem,N,DN_DX,dv_dx,LocalValues,LocalCoarseVel,LocalMassMatrix,rProcessInfo,Residual,Model);
-
-                        ResC += Residual;
-                        SmaC += Model;
-                    }
-                }
-                else // Dim == 3
-                {
-                    LocalValues.resize(16);
-                    LocalCoarseVel.resize(16);
-                    LocalMassMatrix.resize(16,16,false);
-                    array_1d<double,4> N;
-                    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-                    boost::numeric::ublas::bounded_matrix<double,3,3> dv_dx;
-
-                    for( ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-                    {
-                        this->GermanoTerms3D(*itElem,N,DN_DX,dv_dx,LocalValues,LocalCoarseVel,LocalMassMatrix,rProcessInfo,Residual,Model);
-
-                        ResC += Residual;
-                        SmaC += Model;
-                    }
+                    *TotalNum += *LocalNum;
+                    *TotalDen += *LocalDen;
                 }
             }
 
-            double Num = ResC - ResF;
-            double Den = SmaC - SmaF;
-
-            // Once we have all terms, compute the new Smagorinsky coefficient
-            if (fabs(Den) < 1.0e-12) // If the result is infinity, disable Smagorinsky (set to zero)
-                mrModelPart.GetProcessInfo()[C_SMAGORINSKY] = 0.0;
-            else
-                mrModelPart.GetProcessInfo()[C_SMAGORINSKY] = sqrt(0.5 * fabs( Num / Den ) );
-            KRATOS_WATCH(mrModelPart.GetProcessInfo()[C_SMAGORINSKY])
-        }
-
-        /// Calculate the "Coarse Mesh" velocity
-        /**
-         The operations on the coarse mesh are evaluated on the fine mesh, but using an averaged velocity on the nodes that only exist on the fine mesh.
-         Velocity gradients calculated on the fine mesh using this average velocity will be equal to those that would be obtained using the coarse mesh.
-         This function assigns the "coarse" velocity value to all nodes
-         */
-        void SetCoarseVel()
-        {
-            /*
-             Note: This loop can't be parallelized, as we are relying on the fact that refined nodes are at the end of the list and their parents will be updated before the refined nodes
-             are reached. There is an alternative solution (always calculate the coarse mesh velocity from the historic database) which can be parallelized but won't work for multiple
-             levels of refinement
-             */
-            for( ModelPart::NodeIterator itNode = mrModelPart.NodesBegin(); itNode != mrModelPart.NodesEnd(); ++itNode)
+            // Compute the smagorinsky coefficient for each patch by combining the values from each thread
+            std::vector<double> PatchC(PatchNumber);
+            double NumTol = EnergyTol * fabs(TotalDissipation);
+            for( std::vector<double>::iterator itNum = GlobalPatchNum[0].begin(), itDen = GlobalPatchDen[0].begin(), itC = PatchC.begin();
+                 itC != PatchC.end(); ++itNum, ++itDen, ++itC)
             {
-                if( itNode->GetValue(FATHER_NODES).size() == 2 )
-                {
-//                    boost::shared_ptr< Node<3> > pParent1 = itNode->GetValue(FATHER_NODES)(0).lock();
-                    Node<3>& rParent1 = itNode->GetValue(FATHER_NODES)[0];
-//                    boost::shared_ptr< Node<3> > pParent2 = itNode->GetValue(FATHER_NODES)(1).lock();
-                    Node<3>& rParent2 = itNode->GetValue(FATHER_NODES)[1];
-
-//                   itNode->GetValue(COARSE_VELOCITY) = 0.5 * ( pParent1->FastGetSolutionStepValue(VELOCITY) + pParent2->FastGetSolutionStepValue(VELOCITY) );
-                    itNode->GetValue(COARSE_VELOCITY) = 0.5 * ( rParent1.FastGetSolutionStepValue(VELOCITY) + rParent2.FastGetSolutionStepValue(VELOCITY) );
-                }
+                // If the dissipation we are "missing" by not considering Smagorinsky is small, do not use Smagorinsky (this avoids a division by ~0, as the denominator should go to zero too)
+                if ( (fabs(*itNum) < NumTol) )//|| (fabs(*itDen) < 1.0e-12) )
+                    *itC = 0.0;
                 else
+                    *itC = sqrt( 0.5 * fabs( *itNum / *itDen ) );
+            }
+
+            // Finally, assign each element its new smagorinsky value
+            #pragma omp parallel
+            {
+                int k = OpenMPUtils::ThisThread();
+                ModelPart::ElementsContainerType::iterator ElemBegin = mrModelPart.ElementsBegin() + FineElementPartition[k];
+                ModelPart::ElementsContainerType::iterator ElemEnd = mrModelPart.ElementsBegin() + FineElementPartition[k+1];
+
+                unsigned int PatchPosition;
+
+                for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
                 {
-                    itNode->GetValue(COARSE_VELOCITY) = itNode->FastGetSolutionStepValue(VELOCITY);
+                    PatchPosition = mPatchIndices[ itElem->GetValue(PATCH_INDEX) ];
+                    itElem->GetValue(C_SMAGORINSKY) = PatchC[PatchPosition];
                 }
             }
         }
@@ -269,7 +336,11 @@ namespace Kratos
                             {
                                 // if either of the parents is not on the boundary, this node is not on the boundary
                                 itNode->FastGetSolutionStepValue(rThisVariable) = 0.0;
-                            } // All remaining cases are unlikely in well-posed problems, im arbitrarily giving priority to the outlet, so that the node is only bridge surface if both parents are
+                            }
+                            /* All remaining cases are unlikely in well-posed problems,
+                             I'm arbitrarily giving priority to the outlet,
+                             so that the node is only inlet or bridge surface if both parents are
+                             */
                             else if( Value0 == 3.0 )
                             {
                                 itNode->FastGetSolutionStepValue(rThisVariable) = Value0;
@@ -290,6 +361,35 @@ namespace Kratos
         }
 
     private:
+
+        /// Calculate the "Coarse Mesh" velocity
+        /**
+         The operations on the coarse mesh are evaluated on the fine mesh, but using an averaged velocity on the nodes that only exist on the fine mesh.
+         Velocity gradients calculated on the fine mesh using this average velocity will be equal to those that would be obtained using the coarse mesh.
+         This function assigns the "coarse" velocity value to all nodes
+         */
+        void SetCoarseVel()
+        {
+            /*
+             Note: This loop can't be parallelized, as we are relying on the fact that refined nodes are at the end of the list and their parents will be updated before the refined nodes
+             are reached. There is an alternative solution (always calculate the coarse mesh velocity from the historic database) which can be parallelized but won't work for multiple
+             levels of refinement
+             */
+            for( ModelPart::NodeIterator itNode = mrModelPart.NodesBegin(); itNode != mrModelPart.NodesEnd(); ++itNode)
+            {
+                if( itNode->GetValue(FATHER_NODES).size() == 2 )
+                {
+                    Node<3>& rParent1 = itNode->GetValue(FATHER_NODES)[0];
+                    Node<3>& rParent2 = itNode->GetValue(FATHER_NODES)[1];
+
+                    itNode->GetValue(COARSE_VELOCITY) = 0.5 * ( rParent1.FastGetSolutionStepValue(VELOCITY) + rParent2.FastGetSolutionStepValue(VELOCITY) );
+                }
+                else
+                {
+                    itNode->GetValue(COARSE_VELOCITY) = itNode->FastGetSolutionStepValue(VELOCITY);
+                }
+            }
+        }
 
         void GermanoTerms2D(Element& rElem,
                             array_1d<double,3>& rShapeFunc,
@@ -313,8 +413,6 @@ namespace Kratos
             rResidual = 0.0;
             rModel = 0.0;
 
-            double Gradij;
-
             // Calculate the residual
             this->CalculateResidual(rElem,rMassMatrix,rNodalVelocityContainer,rNodalResidualContainer,rProcessInfo); // We use rNodalVelocityContainer as an auxiliaty variable
             this->GetCoarseVelocity2D(rElem,rNodalVelocityContainer);
@@ -334,29 +432,32 @@ namespace Kratos
                 for (unsigned int i = 0; i < NumNodes; ++i) // Rows of <Grad(Ni),Grad(Nj)>
                 {
                     const array_1d< double,3 >& rNodeTest = rElem.GetGeometry()[i].GetValue(COARSE_VELOCITY); // Test function (particularized to coarse velocity)
-                    Gradij = 0.0;
 
                     for (unsigned int k = 0; k < Dim; ++k) // Space Dimensions
-                    {
-                        Gradij += rShapeDeriv(i,k) * rShapeDeriv(j,k);
-                    }
-                    rModel += rNodeTest[i] * Gradij * rNodeVel[j];
+                        rModel += rNodeTest[k] * rShapeDeriv(i,k) * rShapeDeriv(j,k) * rNodeVel[k];
                 }
 
-                for (unsigned int m = 0; m < Dim; ++m)
-                    for (unsigned int n = 0; n < Dim; ++n)
-                        rGradient(m,n) += rShapeDeriv(j,n) * rNodeVel[m]; // Grad(u)
+                for (unsigned int m = 0; m < Dim; ++m) // Calculate symmetric gradient
+                {
+                    for (unsigned int n = 0; n < m; ++n) // Off-diagonal
+                        rGradient(m,n) += 0.5 * (rShapeDeriv(j,n) * rNodeVel[m] + rShapeDeriv(j,m) * rNodeVel[n]); // Symmetric gradient, only lower half is written
+                    rGradient(m,m) += rShapeDeriv(j,m) * rNodeVel[m]; // Diagonal
+                }
             }
 
-            rModel *= Area;
+            rModel *= Area; // To this point, rModel contains the integral over the element of Grad(U_coarse):Grad(U)
 
             // Norm[ Grad(u) ]
             double SqNorm = 0.0;
             for (unsigned int i = 0; i < Dim; ++i)
-                for (unsigned int j = 0; j < Dim; ++j)
-                    SqNorm += rGradient(i,j) * rGradient(i,j);
+            {
+                for (unsigned int j = 0; j < i; ++j)
+                    SqNorm += 2.0 * rGradient(i,j) * rGradient(i,j); // Adding off-diagonal terms (twice, as matrix is symmetric)
+                SqNorm += rGradient(i,i) * rGradient(i,i); // Diagonal terms
+            }
 
-            rModel *= Density * /*pow(Area, 2.0/3.0)*/Area * sqrt(SqNorm);
+            // "Fixed" part of Smagorinsky viscosity: Density * FilterWidth^2 * Norm(SymmetricGrad(U)). 2*C^2 is accounted for in the caller function
+            rModel *= Density * Area * sqrt(SqNorm);
         }
 
         void GermanoTerms3D(Element& rElem,
@@ -381,8 +482,6 @@ namespace Kratos
             rResidual = 0.0;
             rModel = 0.0;
 
-            double Gradij;
-
             // Calculate the residual
             this->CalculateResidual(rElem,rMassMatrix,rNodalVelocityContainer,rNodalResidualContainer,rProcessInfo); // We use rNodalVelocityContainer as an auxiliaty variable
             this->GetCoarseVelocity3D(rElem,rNodalVelocityContainer);
@@ -402,27 +501,29 @@ namespace Kratos
                 for (unsigned int i = 0; i < NumNodes; ++i) // Rows of <Grad(Ni),Grad(Nj)>
                 {
                     const array_1d< double,3 >& rNodeTest = rElem.GetGeometry()[i].GetValue(COARSE_VELOCITY); // Test function (particularized to coarse velocity)
-                    Gradij = 0.0;
 
                     for (unsigned int k = 0; k < Dim; ++k) // Space Dimensions
-                    {
-                        Gradij += rShapeDeriv(i,k) * rShapeDeriv(j,k);
-                    }
-                    rModel += rNodeTest[i] * Gradij * rNodeVel[j];
+                        rModel += rNodeTest[k] * rShapeDeriv(i,k) * rShapeDeriv(j,k) * rNodeVel[k];
                 }
 
-                for (unsigned int m = 0; m < Dim; ++m)
-                    for (unsigned int n = 0; n < Dim; ++n)
-                        rGradient(m,n) += rShapeDeriv(j,n) * rNodeVel[m]; // Grad(u)
+                for (unsigned int m = 0; m < Dim; ++m) // Calculate symmetric gradient
+                {
+                    for (unsigned int n = 0; n < m; ++n) // Off-diagonal
+                        rGradient(m,n) += 0.5 * (rShapeDeriv(j,n) * rNodeVel[m] + rShapeDeriv(j,m) * rNodeVel[n]); // Symmetric gradient, only lower half is written
+                    rGradient(m,m) += rShapeDeriv(j,m) * rNodeVel[m]; // Diagonal
+                }
             }
 
-            rModel *= Volume;
+            rModel *= Volume; // To this point, rModel contains the integral over the element of Grad(U_coarse):Grad(U)
 
             // Norm[ Grad(u) ]
             double SqNorm = 0.0;
             for (unsigned int i = 0; i < Dim; ++i)
-                for (unsigned int j = 0; j < Dim; ++j)
-                    SqNorm += rGradient(i,j) * rGradient(i,j);
+            {
+                for (unsigned int j = 0; j < i; ++j)
+                    SqNorm += 2.0 * rGradient(i,j) * rGradient(i,j); // Adding off-diagonal terms (twice, as matrix is symmetric)
+                SqNorm += rGradient(i,i) * rGradient(i,i); // Diagonal terms
+            }
 
             rModel *= Density * pow(Volume, 2.0/3.0) * sqrt(SqNorm);
         }
@@ -436,8 +537,9 @@ namespace Kratos
 
             for (unsigned int itNode = 0; itNode < 3; ++itNode)
             {
-                rVar[LocalIndex++] = rGeom[itNode].GetValue(COARSE_VELOCITY_X);
-                rVar[LocalIndex++] = rGeom[itNode].GetValue(COARSE_VELOCITY_Y);
+                const array_1d< double,3>& rCoarseVel = rGeom[itNode].GetValue(COARSE_VELOCITY);
+                rVar[LocalIndex++] = rCoarseVel[0];
+                rVar[LocalIndex++] = rCoarseVel[1];
                 rVar[LocalIndex++] = 0.0; // Pressure Dof
             }
         }
@@ -451,9 +553,10 @@ namespace Kratos
 
             for (unsigned int itNode = 0; itNode < 4; ++itNode)
             {
-                rVar[LocalIndex++] = rGeom[itNode].GetValue(COARSE_VELOCITY_X);
-                rVar[LocalIndex++] = rGeom[itNode].GetValue(COARSE_VELOCITY_Y);
-                rVar[LocalIndex++] = rGeom[itNode].GetValue(COARSE_VELOCITY_Z);
+                const array_1d< double,3>& rCoarseVel = rGeom[itNode].GetValue(COARSE_VELOCITY);
+                rVar[LocalIndex++] = rCoarseVel[0];
+                rVar[LocalIndex++] = rCoarseVel[1];
+                rVar[LocalIndex++] = rCoarseVel[2];
                 rVar[LocalIndex++] = 0.0; // Pressure Dof
             }
         }
@@ -466,7 +569,7 @@ namespace Kratos
         {
             rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
-            // Dynamic stabiilzation terms
+            // Dynamic stabilization terms
             rElement.CalculateRightHandSide(rResidual,rCurrentProcessInfo);
 
             // Dynamic Terms
@@ -479,9 +582,29 @@ namespace Kratos
             rElement.CalculateLocalVelocityContribution(rMassMatrix,rResidual,rCurrentProcessInfo); // Note that once we are here, we no longer need the mass matrix
         }
 
+        /// Check if an index is known
+        void AddNewIndex( std::vector<int>& rIndices,
+                          int ThisIndex )
+        {
+            bool IsNew = true;
+            for( std::vector<int>::iterator itIndex = rIndices.begin(); itIndex != rIndices.end(); ++itIndex)
+            {
+                if( ThisIndex == *itIndex)
+                {
+                    IsNew = false;
+                    break;
+                }
+            }
+
+            if (IsNew)
+                rIndices.push_back(ThisIndex);
+        }
+
         /// Data members
         ModelPart& mrModelPart;
-        ModelPart::ElementsContainerType& mrCoarseMesh;
+        unsigned int mDomainSize;
+        ModelPart::ElementsContainerType mCoarseMesh;
+        std::map<int, unsigned int> mPatchIndices;
 
     };
 

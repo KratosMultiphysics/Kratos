@@ -290,90 +290,109 @@ namespace Kratos
             }
         }
 
-        /// Implementation of GetValueOnIntegrationPoints to obtain the vorticity
+        /// Implementation of GetValueOnIntegrationPoints to obtain vector variables
         /**
          * Computes the vorticity (rotational of the velocity) for the current velocity values
          * @param rVariable: Kratos vector variable to compute (only implemented for VORTICITY)
          * @param Output: Values of vorticity on integrartion points
          * @param rCurrentProcessInfo: Process info instance
          */
-//        virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, // Note: requires different implementations depending on space dimension
-//                                                  std::vector<array_1d<double,3> >& rOutput,
-//                                                  const ProcessInfo& rCurrentProcessInfo)
-//        {
-//            if (rVariable == VORTICITY)
-//            {
-//                // Set output vector (for a single integration point)
-//                rOutput.resize(1);
-//                array_1d<double, 3 > & rVorticity = rOutput[0];
-//                rVorticity.resize(3);
-//                rVorticity[0] = 0.0;
-//                rVorticity[1] = 0.0;
-//                rVorticity[2] = 0.0;
-//
-//                double Area;
-//                array_1d<double, NUMNODES> N;
-//                boost::numeric::ublas::bounded_matrix<double, NUMNODES, DIM> DN_DX;
-//                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-//
-//                for (unsigned int iNode = 0; iNode < NUMNODES; ++iNode)
-//                {
-//                    const array_1d<double, 3 > & rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-////                    rVorticity[0] += N[iNode] * ( DN_DX(iNode,1)*rVelocity[2] - DN_DX(iNode,2)*rVelocity[1] );
-////                    rVorticity[1] += N[iNode] * ( DN_DX(iNode,2)*rVelocity[0] - DN_DX(iNode,0)*rVelocity[2] );
-//                    rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
-//                }
-//                rVorticity *= 0.5; // vorticity = 1/2 (nabla x velocity)
-//            }
-//        }
-//
-//        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-//        virtual void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-//                                                  std::vector<double>& rValues,
-//                                                  const ProcessInfo& rCurrentProcessInfo)
-//        {
-//            double TauOne,TauTwo;
-//            double Area;
-//            array_1d<double, NUMNODES> N;
-//            boost::numeric::ublas::bounded_matrix<double, NUMNODES, DIM> DN_DX;
-//            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-//
-//            array_1d<double,3> AdvVel;
-//            GetAdvectiveVel(AdvVel,N);
-//
-//            double KinViscosity;
-//            GetPointContribution(KinViscosity,VISCOSITY,N);
-//
-//            CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
-//
-//            rValues.resize(1);
-//            if (rVariable == TAUONE)
-//            {
-//                rValues[0] = TauOne;
-//            }
-//            else if (rVariable == TAUTWO)
-//            {
-//                rValues[0] = TauTwo;
-//            }
-//        }
-//
-//        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-//        virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,6> >& rVariable,
-//                                                  std::vector<array_1d<double,6> >& rValues,
-//                                                  const ProcessInfo& rCurrentProcessInfo)
-//        {}
-//
-//        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-//        virtual void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-//                                                  std::vector<Vector>& rValues,
-//                                                  const ProcessInfo& rCurrentProcessInfo)
-//        {}
-//
-//        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-//        virtual void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-//                                                  std::vector<Matrix>& rValues,
-//                                                  const ProcessInfo& rCurrentProcessInfo)
-//        {}
+        virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, // Note: requires different implementations depending on space dimension
+                                                  std::vector<array_1d<double,3> >& rOutput,
+                                                  const ProcessInfo& rCurrentProcessInfo)
+        {
+            if (rVariable == VORTICITY)
+            {
+                // Set output vector (for a single integration point)
+                rOutput.resize(1);
+                array_1d<double, 3 > & rVorticity = rOutput[0];
+                rVorticity.resize(3);
+                rVorticity[0] = 0.0;
+                rVorticity[1] = 0.0;
+                rVorticity[2] = 0.0;
+
+                double Area;
+                array_1d<double, NUMNODES> N;
+                boost::numeric::ublas::bounded_matrix<double, NUMNODES, DIM> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+                for (unsigned int iNode = 0; iNode < NUMNODES; ++iNode)
+                {
+                    const array_1d<double, 3 > & rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
+//                    rVorticity[0] += N[iNode] * ( DN_DX(iNode,1)*rVelocity[2] - DN_DX(iNode,2)*rVelocity[1] );
+//                    rVorticity[1] += N[iNode] * ( DN_DX(iNode,2)*rVelocity[0] - DN_DX(iNode,0)*rVelocity[2] );
+                    rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
+                }
+                rVorticity *= 0.5; // vorticity = 1/2 (nabla x velocity)
+            }
+        }
+
+        /// Implementation of GetValueOnIntegrationPoints to obtain double variables
+        /**
+         * Computes the stabilition parameters TAUONE, TAUTWO or returns a variable stored in the element's Data
+         * @param rVariable: Kratos double variable to compute (Implemented for TAUONE, TAUTWO and C_SMAGORINSKY)
+         * @param Output: Values of the variable on integrartion points
+         * @param rCurrentProcessInfo: Process info instance
+         */
+        virtual void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+                                                  std::vector<double>& rValues,
+                                                  const ProcessInfo& rCurrentProcessInfo)
+        {
+            if (rVariable == TAUONE || rVariable == TAUTWO )
+            {
+                double TauOne,TauTwo;
+                double Area;
+                array_1d<double, NUMNODES> N;
+                boost::numeric::ublas::bounded_matrix<double, NUMNODES, DIM> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+                array_1d<double,3> AdvVel;
+                GetAdvectiveVel(AdvVel,N);
+
+                double KinViscosity;
+                GetPointContribution(KinViscosity,VISCOSITY,N);
+
+                CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
+
+                rValues.resize(1);
+                if (rVariable == TAUONE)
+                {
+                    rValues[0] = TauOne;
+                }
+                else if (rVariable == TAUTWO)
+                {
+                    rValues[0] = TauTwo;
+                }
+            }
+            else if (rVariable == C_SMAGORINSKY)
+            {
+                rValues.resize(1);
+                rValues[0] = this->GetValue(C_SMAGORINSKY);
+            }
+            else // Default behaviour (for elemental data)
+            {
+                rValues.resize(1);
+                rValues[0] = this->GetValue(rVariable);
+            }
+        }
+
+        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
+        virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,6> >& rVariable,
+                                                  std::vector<array_1d<double,6> >& rValues,
+                                                  const ProcessInfo& rCurrentProcessInfo)
+        {}
+
+        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
+        virtual void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
+                                                  std::vector<Vector>& rValues,
+                                                  const ProcessInfo& rCurrentProcessInfo)
+        {}
+
+        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
+        virtual void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
+                                                  std::vector<Matrix>& rValues,
+                                                  const ProcessInfo& rCurrentProcessInfo)
+        {}
 
         ///@}
         ///@name Access

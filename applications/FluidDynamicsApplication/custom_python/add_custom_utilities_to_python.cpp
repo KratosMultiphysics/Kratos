@@ -80,9 +80,8 @@ namespace Python
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
         typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-        class_<DynamicSmagorinskyUtils>("DynamicSmagorinskyUtils", init<ModelPart&, ModelPart::ElementsContainerType&>())
+        class_<DynamicSmagorinskyUtils>("DynamicSmagorinskyUtils", init<ModelPart&,unsigned int>())
             .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
-            .def("SetCoarseVel",&DynamicSmagorinskyUtils::SetCoarseVel)
             .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
             ;
 
