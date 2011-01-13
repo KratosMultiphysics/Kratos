@@ -52,7 +52,7 @@
 	}  
 
 #define KRATOS_SERIALIZATION_DIRECT_CREATE(type)                         \
-	void* create(std::string const & rTag, type* prototype)           \
+	void* create(std::string const & rTag, type* prototype)          \
 	{                                                                \
 	  type* p_new = new type;                                        \
 	  load(rTag, *p_new);                                            \
@@ -254,13 +254,7 @@ namespace Kratos
 	}
 
 	template<class TDataType>
-	void load(std::string const & rTag, const Variable<TDataType>* pVariable)
-	{
-	  std::string name;
-	  mBuffer >> name;
-	  
-	  pVariable = static_cast<const Variable<TDataType>*>(KratosComponents<VariableData>::pGet(name));
-	}
+	void load(std::string const & rTag, const Variable<TDataType>* pVariable);
 	
  	template<class TDataType>
 	void load(std::string const & rTag, std::vector<TDataType>& rObject)
