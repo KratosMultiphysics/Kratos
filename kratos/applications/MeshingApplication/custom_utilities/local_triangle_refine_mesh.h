@@ -319,7 +319,7 @@ for(unsigned int i = 0; i < Position_Node.size(); i++ )
       /// WARNING =  only for reactions;
       const double zero = 0.00;
       for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)  
-       {          
+       {
           if(pnode->IsFixed(iii->GetVariable())==false) 
                  {
                        KRATOS_TRY
@@ -482,9 +482,10 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
 		       /// setting the internal variables in the child elem
 		       if(interpolate_internal_variables == true)
 			  InterpolateInteralVariables(nel , *it.base(),p_element,rCurrentProcessInfo);
-		       
+
+                       // Transfer elemental variables
+                       p_element->Data() = it->Data();
 		       //const unsigned int& level = it->GetValue(REFINEMENT_LEVEL);
-		       p_element->GetValue(REFINEMENT_LEVEL) = it->GetValue(REFINEMENT_LEVEL);
                        p_element->GetValue(SPLIT_ELEMENT) = false;
 		       //p_element->SetValue(REFINEMENT_LEVEL, 1);	       
                        New_Elements.push_back(p_element);                         
@@ -636,7 +637,7 @@ void InterpolateInteralVariables(const int&  nel,
       child_elem->SetValueOnIntegrationPoints (INTERNAL_VARIABLES, values, rCurrentProcessInfo);
 
     }
-				 
+
  };
 
 }  // namespace Kratos.
