@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_elements/conv_diff_2d.h"
 #include "convection_diffusion_application.h"
+#include "includes/convection_diffusion_settings.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h" 
 
@@ -142,6 +143,8 @@ namespace Kratos
 		if(rRightHandSideVector.size() != number_of_points)
 			rRightHandSideVector.resize(number_of_points,false);
 		
+		//mThisIntegrationMethod= GeometryData::GI_GAUSS_1;
+
 		boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors = 1.0/3.0*IdentityMatrix(3,3);	
 		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
 		array_1d<double,3> msN;
@@ -159,28 +162,42 @@ namespace Kratos
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
 
+		ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+
+
 		//calculating viscosity
-		double conductivity = GetGeometry()[0].FastGetSolutionStepValue(CONDUCTIVITY);
-		double density = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+
+		const Variable<double>&  rDensityVar = my_settings->GetDensityVariable();
+		const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+		const Variable<double>& rDiffusionVar =my_settings->GetDiffusionVariable();
+		const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+        	const Variable<double>& rSourceVar =my_settings->GetVolumeSourceVariable();
+        	const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
+		const Variable<array_1d<double,3> >& rMeshVelocityVar =my_settings->GetMeshVelocityVariable();
+
+
+		double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
 		double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
-		double heat_flux = GetGeometry()[0].FastGetSolutionStepValue(HEAT_FLUX);
+		double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
+		double heat_flux = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
 		double proj = GetGeometry()[0].FastGetSolutionStepValue(TEMP_CONV_PROJ);
+		const array_1d<double,3>& v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); //VELOCITY
+		const array_1d<double,3>& w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar);//
+
 		
-		const array_1d<double,3>& v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-		const array_1d<double,3>& w = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
 		for(unsigned int j = 0; j<TDim; j++)
 			ms_vel_gauss[j] = v[j] - w[j];
 		
 		for(unsigned int i = 1; i<number_of_points; i++)
 		{
-			conductivity += GetGeometry()[i].FastGetSolutionStepValue(CONDUCTIVITY);
-			density += GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+			conductivity += GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
+			density += GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
 			specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
-			heat_flux += GetGeometry()[i].FastGetSolutionStepValue(HEAT_FLUX);
+			heat_flux += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 			proj += GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ);
 			
 			const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-			const array_1d<double,3>& w = GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+			const array_1d<double,3>& w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
 			for(unsigned int j = 0; j<TDim; j++)
 				ms_vel_gauss[j] += v[j] - w[j];
 			
@@ -199,8 +216,8 @@ namespace Kratos
 // 		double alpha = conductivity/(density*specific_heat);
 
 // 		double g=0.0;
-    		double p1= msDN_DX(0,0)*GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)+msDN_DX(1,0)*GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE)+ msDN_DX(2,0)*GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE); 
-    		double p2 = msDN_DX(0,1)*GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE)+msDN_DX(1,1)*GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE)+ msDN_DX(2,1)*GetGeometry()[2].FastGetSolutionStepValue(TEMPERATURE); 
+    		double p1= msDN_DX(0,0)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,0)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,0)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar); 
+    		double p2 = msDN_DX(0,1)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,1)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,1)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar); 
     		grad_g[0] =p1;
     		grad_g[1] = p2;
 //     		double norm_g =norm_2(grad_g);
@@ -251,18 +268,18 @@ namespace Kratos
 		// RHS += M*vhistory 
 		//calculating the historical velocity
 		for(unsigned int iii = 0; iii<number_of_points; iii++)
-			ms_temp_vec_np[iii] =  BDFcoeffs[1]*GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE,1);
+			ms_temp_vec_np[iii] =  BDFcoeffs[1]*GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar,1);
 		for(unsigned int step = 2; step<BDFcoeffs.size(); step++)
 		{
 			for(unsigned int iii = 0; iii<number_of_points; iii++)
-				ms_temp_vec_np[iii] += BDFcoeffs[step]*GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE,step);
+				ms_temp_vec_np[iii] += BDFcoeffs[step]*GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar,step);
 		}	
 		noalias(rRightHandSideVector) -= prod(msMassFactors,ms_temp_vec_np*density*specific_heat) ;
 
 		//subtracting the dirichlet term
 		// RHS -= LHS*temperatures
 		for(unsigned int iii = 0; iii<number_of_points; iii++)
-			ms_temp_vec_np[iii] = GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE);
+			ms_temp_vec_np[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
 		
 		
@@ -299,7 +316,12 @@ namespace Kratos
 		//getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);		
-		
+		ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+		const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+		const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+		const Variable<array_1d<double,3> >& rMeshVelocityVar =my_settings->GetMeshVelocityVariable();
+
+
 		if(FractionalStepNumber  == 2) //calculation of temperature convective projection
 		{
 			const unsigned int number_of_points = GetGeometry().size();
@@ -307,17 +329,17 @@ namespace Kratos
 			unsigned int TDim = 2;
 
 			//calculating viscosity
-			ms_temp_vec_np[0] = GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);			
+			ms_temp_vec_np[0] = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);			
 			const array_1d<double,3>& v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-			const array_1d<double,3>& w = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+			const array_1d<double,3>& w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar);
 			for(unsigned int j = 0; j<TDim; j++)
 				ms_vel_gauss[j] = v[j] - w[j];
 			
 			for(unsigned int i = 1; i<number_of_points; i++)
 			{
-				ms_temp_vec_np[i] = GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);				
+				ms_temp_vec_np[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);				
 				const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-				const array_1d<double,3>& w = GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY);
+				const array_1d<double,3>& w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
 				for(unsigned int j = 0; j<TDim; j++)
 					ms_vel_gauss[j] += v[j] - w[j];
 				
@@ -343,12 +365,14 @@ namespace Kratos
 	//************************************************************************************
 	void ConvDiff2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 	{
+		ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+		const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes)
 			rResult.resize(number_of_nodes,false);	
 
 		for (unsigned int i=0;i<number_of_nodes;i++)
-				rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
+				rResult[i] = GetGeometry()[i].GetDof(rUnknownVar).EquationId();
 	}
 
 	//************************************************************************************
@@ -356,11 +380,14 @@ namespace Kratos
 	  void ConvDiff2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
+		ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+		const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+		
 		if(ElementalDofList.size() != number_of_nodes)
 			ElementalDofList.resize(number_of_nodes);	
 
 		for (unsigned int i=0;i<number_of_nodes;i++)
-			ElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
+			ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
 
 	}
 
