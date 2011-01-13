@@ -45,6 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
 #include "includes/serializer.h"
+#include "containers/variable.h"
+#include "includes/kratos_components.h"
 
 
 namespace Kratos
@@ -52,6 +54,15 @@ namespace Kratos
 
   Serializer::RegisteredObjectsContainerType Serializer::msRegisteredObjects;
   
+
+  template<class TDataType>
+  void Serializer::load(std::string const & rTag, const Variable<TDataType>* pVariable)
+  {
+    std::string name;
+    mBuffer >> name;
+	  
+    pVariable = static_cast<const Variable<TDataType>*>(&KratosComponents<VariableData>::Get(name));
+  }
   
 
 }
