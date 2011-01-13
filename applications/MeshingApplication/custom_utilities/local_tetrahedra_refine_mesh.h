@@ -640,8 +640,8 @@ namespace Kratos
                         p_element = it->Create(current_id, geom, it->pGetProperties());
                         New_Elements.push_back(p_element);
 
-                        //pass the REFINEMENT_LEVEL and ensure that no further refinement is performed
-                        p_element->GetValue(REFINEMENT_LEVEL) = it->GetValue(REFINEMENT_LEVEL);
+                        // Transfer elemental variables
+                        p_element->Data() = it->Data();
                         p_element->GetValue(SPLIT_ELEMENT) = false;
 
                         current_id++;
