@@ -28,7 +28,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-
+#include "includes/convection_diffusion_settings.h"
 
 
 namespace Kratos
@@ -141,6 +141,9 @@ namespace Kratos
 			mtoll = toll;
 			mmax_iter = max_iter;
 			
+			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+			ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+			const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
 
 			//initializing fractional velocity solution step
 			typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
@@ -154,7 +157,7 @@ namespace Kratos
 
 			typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 
-			BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> > (pNewLinearSolver,TEMPERATURE) );
+			BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> > (pNewLinearSolver,rUnknownVar) );
 			mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver > 				(model_part,pscheme,pNewLinearSolver,componentwise_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 			mstep1->SetEchoLevel(2);
 
@@ -258,10 +261,15 @@ namespace Kratos
 
 			double norm = 0.00;
 
+			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+			ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+			const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+
+
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
 				i != BaseType::GetModelPart().NodesEnd() ; ++i)
 				{
-					norm += pow( i->FastGetSolutionStepValue(TEMPERATURE) , 2);
+					norm += pow( i->FastGetSolutionStepValue(rUnknownVar) , 2);
 				}
 
 			return sqrt(norm);
