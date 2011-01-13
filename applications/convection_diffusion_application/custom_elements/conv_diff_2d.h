@@ -99,6 +99,7 @@ namespace Kratos
       ///@{
       
       /// Counted pointer of ConvDiff2D
+     // typedef GeometryData::IntegrationMethod IntegrationMethod;
       KRATOS_CLASS_POINTER_DEFINITION(ConvDiff2D);
  
       ///@}
@@ -121,7 +122,7 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-
+	//IntegrationMethod GetIntegrationMethod();
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
       void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
@@ -204,6 +205,9 @@ namespace Kratos
       ///@}
       
     private:
+	//IntegrationMethod mThisIntegrationMethod;
+        //std::vector< Matrix > mInvJ0;
+        //Vector mDetJ0;
       ///@name Static Member Variables 
       ///@{ 
         
