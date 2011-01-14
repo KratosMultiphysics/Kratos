@@ -24,6 +24,6 @@ IF %write_python_file%==Copy_From (
 
 IF EXIST script.py (
 REM CALL C:\python25\python.exe script.py %1 %2 %KRATOS_PATH% > %2\%1.info 2> %2\%1.err
-python script.py %1 %2 %KRATOS_PATH% > %2\%1.info 2> %2\%1.err
-REM python analysis.py >> %2\%1.info 2> %2\%1.err
+REM python script.py %1 %2 %KRATOS_PATH% > %2\%1.info 2> %2\%1.err
+CMD /c %2\script.py %1 %2 %KRATOS_PATH% > %2\%1.info 2> %2\%1.err
 )
