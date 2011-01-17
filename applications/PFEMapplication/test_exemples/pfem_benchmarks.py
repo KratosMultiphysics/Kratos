@@ -57,7 +57,7 @@ def Run():
 	#slope 2D NON-NEWTONIAN COUPLED
 	
 	Text += "coupled_slope_2d_Non-Newtonian: "
-	os.chdir("Coupled_slope2dNonNewt_Y3000.gid")	
+	os.chdir("Coupled_slope2dNonNewt.gid")	
 	sys.path.append(os.getcwd())
 
 	print "running the CoupledNonNewtSlope benchmark test..."
