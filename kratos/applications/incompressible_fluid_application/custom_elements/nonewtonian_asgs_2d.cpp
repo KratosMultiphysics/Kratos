@@ -438,19 +438,19 @@ namespace Kratos {
 		K(column, row + 1) += area * density * N(jj) * DN_DX(ii, 1);
 	    }
 	}
-	// 	////compressibility term & assemble Lumped Mass Matrix
-	double c2_inv = 1e-3;
-	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
-
-	for (int ii = 0; ii < nodes_number; ii++) {
-	    int row = ii * (dof + 1) + dof;
-
-		//**************************************************************
-		//Elemental compressibility terms (continuity equation)
-		// int( q * rho * 1/(rho c^2)(p)
-		K(row, row) += compressibility_coef ;
-
-	 }
+// 	// 	////compressibility term & assemble Lumped Mass Matrix
+// 	double c2_inv = 1e-3;
+// 	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
+// 
+// 	for (int ii = 0; ii < nodes_number; ii++) {
+// 	    int row = ii * (dof + 1) + dof;
+// 
+// 		//**************************************************************
+// 		//Elemental compressibility terms (continuity equation)
+// 		// int( q * rho * 1/(rho c^2)(p)
+// 		K(row, row) += compressibility_coef ;
+// 
+// 	 }
 	
 ////compressibility term & assemble Consistent Mass Matrix (Attention: Rank zero matrix, it may couse problems!)	
 // 	double c2_inv = 1e-6;
@@ -811,20 +811,20 @@ namespace Kratos {
 // 	    F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
 	}
 // 	////compressibility term & assemble Lumped Mass Matrix
-	double c2_inv = 1e-3;
-	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
-// KRATOS_WATCH("time")
-// KRATOS_WATCH(time)
-// KRATOS_WATCH("compressibility_coef RHS")
-// KRATOS_WATCH(compressibility_coef)
-// KRATOS_WATCH("F before")
-// KRATOS_WATCH(F)
-//      // int( q * rho * 1/(rho c^2)(p)
-//      //already divided by density 
-	for (int ii = 0; ii < nodes_number; ++ii) {
-	    int index = ii * (dof + 1) + dof;
-	    F[index] += compressibility_coef * N(ii) * GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE,1);
-	}
+// 	double c2_inv = 1e-3;
+// 	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
+// // KRATOS_WATCH("time")
+// // KRATOS_WATCH(time)
+// // KRATOS_WATCH("compressibility_coef RHS")
+// // KRATOS_WATCH(compressibility_coef)
+// // KRATOS_WATCH("F before")
+// // KRATOS_WATCH(F)
+// //      // int( q * rho * 1/(rho c^2)(p)
+// //      //already divided by density 
+// 	for (int ii = 0; ii < nodes_number; ++ii) {
+// 	    int index = ii * (dof + 1) + dof;
+// 	    F[index] += compressibility_coef * N(ii) * GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE,1);
+// 	}
 	
 	////compressibility term & assemble Ml * 1/(k Dt) Pn+1 - Mc * 1/(k Dt) Pn
 // 	double pressure = 0.0;
