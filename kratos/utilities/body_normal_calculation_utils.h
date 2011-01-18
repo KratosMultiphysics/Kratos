@@ -146,15 +146,17 @@ namespace Kratos
 		//this function calculates the "area normal" (vector oriented as the normal 
 		//with a dimension proportional to the area. This is done basing on the volume discretization.
         void CalculateBodyNormals(
-			ElementsArrayType& rElements,
+			ModelPart& r_model_part,
 			int dimension)
         {
 			KRATOS_TRY
 
+			ModelPart::ElementsContainerType& rElements = r_model_part.Elements();
+
 			//resetting the normals - only for the nodes on which we will do the calculate
 			array_1d<double,3> zero = ZeroVector(3);
 				
-			for(ElementsArrayType::iterator it =  rElements.begin(); 
+			for(ModelPart::ElementsContainerType::iterator it =  rElements.begin(); 
 											it !=rElements.end(); it++)
 			{
 				Element::GeometryType& rNodes = it->GetGeometry();
@@ -170,7 +172,7 @@ namespace Kratos
 				boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
 				array_1d<double,3> N;
 				double Volume;
-				for(ElementsArrayType::iterator it =  rElements.begin(); it !=rElements.end(); it++)
+				for(ModelPart::ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); it++)
 				{				
 					Element::GeometryType& geom = it->GetGeometry();
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
@@ -190,7 +192,7 @@ namespace Kratos
 				boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
 				array_1d<double,4> N;
 				double Volume;
-				for(ElementsArrayType::iterator it =  rElements.begin(); it !=rElements.end(); it++)
+				for(ModelPart::ElementsContainerType::iterator it =  rElements.begin(); it !=rElements.end(); it++)
 				{
 					Element::GeometryType& geom = it->GetGeometry();
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
@@ -205,6 +207,8 @@ namespace Kratos
 					}
 				}
 			}
+			
+			r_model_part.GetCommunicator().AssembleCurrentData(NORMAL);
 
 
 			KRATOS_CATCH("")			
