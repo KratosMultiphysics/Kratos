@@ -144,7 +144,7 @@ class LevelSetSolver:
     def Initialize(self):
 
         #calculate the normals to the overall domain
-        self.normal_tools.CalculateBodyNormals(self.base_model_part.Elements,self.domain_size);
+        self.normal_tools.CalculateBodyNormals(self.base_model_part,self.domain_size);
         
         #look for neighbours on the base mesh
         (self.base_mesh_neighbour_search).Execute()
