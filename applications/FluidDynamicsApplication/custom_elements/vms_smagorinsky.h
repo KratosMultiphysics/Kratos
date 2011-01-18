@@ -519,14 +519,16 @@ namespace Kratos
                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                                    double& TotalViscosity)
         {
-            double FilterWidth;
+            double FilterWidth; // The filter width in Smagorinsky is typically the element size h. We will store the square of h, as the final formula involves the squared filter width
             if(TDim == 2)
             {
                 FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
+                FilterWidth *= 2; // assumes h = sqrt(2*Area)
             }
             else
             {
                 FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
+                FilterWidth *= 6; // assumes V = (1/6) * h^3
                 FilterWidth = pow(FilterWidth, 2.0/3.0);
             }
 
