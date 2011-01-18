@@ -457,7 +457,8 @@ namespace Kratos
             }
 
             // "Fixed" part of Smagorinsky viscosity: Density * FilterWidth^2 * Norm(SymmetricGrad(U)). 2*C^2 is accounted for in the caller function
-            rModel *= Density * Area * sqrt(SqNorm);
+            const double sqH = 2*Area;
+            rModel *= Density * sqH * sqrt(SqNorm);
         }
 
         void GermanoTerms3D(Element& rElem,
@@ -525,7 +526,8 @@ namespace Kratos
                 SqNorm += rGradient(i,i) * rGradient(i,i); // Diagonal terms
             }
 
-            rModel *= Density * pow(Volume, 2.0/3.0) * sqrt(SqNorm);
+            const double cubeH = 6*Volume;
+            rModel *= Density * pow(cubeH, 2.0/3.0) * sqrt(SqNorm);
         }
 
         /// 2D version
