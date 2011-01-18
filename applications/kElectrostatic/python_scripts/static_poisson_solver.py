@@ -27,7 +27,10 @@ class StaticPoissonSolver:
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         #definition of the solvers
-        self.poisson_linear_solver =  SkylineLUFactorizationSolver()
+        #self.poisson_linear_solver =  SkylineLUFactorizationSolver()
+
+        pDiagPrecond = DiagonalPreconditioner()
+        self.poisson_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
         
         #definition of the convergence criteria
         self.conv_criteria = DisplacementCriteria(1e-6,1e-9)

@@ -237,9 +237,14 @@ namespace Kratos
 //	void Electrostatic2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 //            Vector& rValues, const ProcessInfo& rCurrentProcessInfo)
 	{
+<<<<<<< .mine
+		KRATOS_WATCH("GiD Post Electrostatic - Electrostatic2D::CalculateOnIntegrationPoints");
+
+=======
 		KRATOS_WATCH("GiD Post Electrostatic - CalculateOnIntegrationPoints");
 
 
+>>>>>>> .r2461
 		IntegrationMethod mThisIntegrationMethod;
 
         mThisIntegrationMethod= GetGeometry().GetDefaultIntegrationMethod();
