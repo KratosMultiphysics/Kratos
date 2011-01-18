@@ -316,17 +316,17 @@ for(unsigned int i = 0; i < Position_Node.size(); i++ )
         }						
      }
 
-      /// WARNING =  only for reactions;
-      const double zero = 0.00;
-      for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)  
-       {
-          if(pnode->IsFixed(iii->GetVariable())==false) 
-                 {
-                       KRATOS_TRY
-                    iii->GetSolutionStepReactionValue() = zero;
-                             KRATOS_CATCH("")
-                  }       
-       }
+//      /// WARNING =  only for reactions;
+//      const double zero = 0.00;
+//      for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)
+//       {
+//          if(pnode->IsFixed(iii->GetVariable())==false)
+//                 {
+//                       KRATOS_TRY
+//                    iii->GetSolutionStepReactionValue() = zero;
+//                             KRATOS_CATCH("")
+//                  }
+//       }
   }
 }
 
@@ -395,15 +395,15 @@ for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	  }						
 	}
       
-	/// WARNING =  only for reactions;
-	const double zero = 0.00;
-	for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)  
-	  {          
-	    if(pnode->IsFixed(iii->GetVariable())==false) 
-		    { 
-		      iii->GetSolutionStepReactionValue() = zero;
-		    }       
-	  }
+//	/// WARNING =  only for reactions;
+//	const double zero = 0.00;
+//	for(Node<3>::DofsContainerType::iterator iii = pnode->GetDofs().begin();    iii != pnode->GetDofs().end(); iii++)
+//	  {
+//	    if(pnode->IsFixed(iii->GetVariable())==false)
+//		    {
+//		      iii->GetSolutionStepReactionValue() = zero;
+//		    }
+//	  }
 	  node_center.push_back(Id_Center);
 	  Id_Center++;
   }
