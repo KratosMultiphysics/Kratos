@@ -234,16 +234,17 @@ namespace Kratos
 */						}
 						else
 						{
-/*							msB(index_m,index_n)=
-								penalty*DNI[k]*DNJ[l]*msD(k,k)-
-								DNI[l]*DNJ[k]*msD(l,l);
 							msB(index_m,index_n)=
+								penalty*DNI[k]*DNJ[l]*msD(k,k)-
+//								DNI[l]*DNJ[k]*msD(l,l);
+								DNI[k]*DNJ[l]*msD(l,l);
+/*							msB(index_m,index_n)=
 								DNI[k]*DNJ[l]-
 								DNI[l]*DNJ[k];
-*/							msB(index_m,index_n)=0.0;
-//								penalty*DNI[k]*DNJ[l]-
-//								DNI[l]*DNJ[k];
-						}
+							msB(index_m,index_n)=//0.0;
+								penalty*DNI[k]*DNJ[l]-
+								DNI[l]*DNJ[k];
+*/						}
 					}
 				}
 			}
@@ -259,7 +260,7 @@ namespace Kratos
 
 		int dim = GetGeometry().WorkingSpaceDimension();
 
-		for(unsigned int iii = 0; iii<number_of_points; iii++)
+		for(unsigned int iii = 0; iii<number_of_nodes; iii++)
 		{
 			int index = iii*dim;
 
@@ -275,7 +276,7 @@ namespace Kratos
 		//subtracting the dirichlet term
 		// RHS -= LHS*Magnetostatic_POTENTIALs
 
-		for(unsigned int iii = 0; iii<number_of_points; iii++)
+		for(unsigned int iii = 0; iii<number_of_nodes; iii++)
 		{
 			int index = iii*dim;
 

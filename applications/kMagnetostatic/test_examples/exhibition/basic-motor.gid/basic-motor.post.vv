@@ -1,6 +1,12 @@
+<<<<<<< .mine
+BeginZE D:\Kratos2010\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.post.vv
+   x -0.10962 0.113309
+   y 0.0618484 -0.0647994
+=======
 BeginZE D:\kratos2009\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.post.vv
    x -0.110785 0.110785
    y 0.087178 -0.087178
+>>>>>>> .r2461
    z -0.261534 0.261534
    e 0.087178
    v 2.18557e-008 1.91069e-015 -8.74228e-008
@@ -15,5 +21,5 @@ BeginZE D:\kratos2009\kratos\applications\kMagnetostatic\test_examples\exhibitio
    NowUse 2
    DrawingType 3
    LightVector 74.53 48.0296 126.209 0
-EndZE D:\kratos2009\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.post.vv
+EndZE D:\Kratos2010\kratos\applications\kMagnetostatic\test_examples\exhibition\basic-motor.gid\basic-motor.post.vv
 
