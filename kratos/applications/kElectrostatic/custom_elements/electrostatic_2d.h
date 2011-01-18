@@ -134,11 +134,24 @@ namespace Kratos
 	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
 	  void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-                                           std::vector<array_1d<double,3> >& rValues, 
+                                           std::vector<array_1d<double,3> >& Output, 
                                            const ProcessInfo& rCurrentProcessInfo);
 
-      void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
-	
+      void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, 
+											std::vector<array_1d<double,3> >& rValues, 
+											const ProcessInfo& rCurrentProcessInfo);
+
+//	  void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+//											 std::vector<Vector>& Output,
+//											 const ProcessInfo& rCurrentProcessInfo);
+
+//	  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+//								             std::vector<Vector>& rValues, 
+//											 const ProcessInfo& rCurrentProcessInfo);
+
+
+
+
 
       ///@}
       ///@name Access

@@ -64,6 +64,7 @@ gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
+#gid_io = ElectrostaticGidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag,write_conditions)
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag,write_conditions)
 #gid_io.ReadModelPart(model_part)
 model_part_io_electrostatic = ModelPartIO(input_file_name)
