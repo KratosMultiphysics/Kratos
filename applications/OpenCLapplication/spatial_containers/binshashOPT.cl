@@ -23,33 +23,33 @@
 /////////////////////////////////////////////////////////
 
 double CalculateVol3(double x0, double y0,
-		     double x1, double y1,
-		     double x2, double y2
-		   )
-{
-    return 0.5*( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
-}
-
-double CalculateVol4(double x0, double y0, double z0,
-		     double x1, double y1, double z1,
-		     double x2, double y2, double z2,
-		     double x3, double y3, double z3
+                     double x1, double y1,
+                     double x2, double y2
                    )
 {
-    double x10 = x1 - x0;
-    double y10 = y1 - y0;
-    double z10 = z1 - z0;
-	    
-    double x20 = x2 - x0;
-    double y20 = y2 - y0;
-    double z20 = z2 - z0;
-	    
-    double x30 = x3 - x0;
-    double y30 = y3 - y0;
-    double z30 = z3 - z0;
-	    
+    return 0.5 * ( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
+}
+	
+double CalculateVol4(double x0, double y0, double z0,
+                     double x1, double y1, double z1,
+                     double x2, double y2, double z2,
+                     double x3, double y3, double z3
+                   )
+{
+    double x10 = x0 - x3;
+    double y10 = y0 - y3;
+    double z10 = z0 - z3;
+	           
+    double x20 = x1 - x3;
+    double y20 = y1 - y3;
+    double z20 = z1 - z3;
+	           
+    double x30 = x2 - x3;
+    double y30 = y2 - y3;
+    double z30 = z2 - z3;
+           
     double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-    return  detJ*0.1666666666666666666667;
+    return  detJ * 0.1666666666666666666667;
 }
 
 double4 calculatePositionT3(double4 a, double4 b, double4 c, double4 p)
@@ -57,10 +57,10 @@ double4 calculatePositionT3(double4 a, double4 b, double4 c, double4 p)
     double vol = CalculateVol3(a.x,a.y,b.x,b.y,c.x,c.y);
     double4 N = (double4)(-1,-1,-1,0);
 
-    if(vol == 0)
+    if(vol == 0.0)
       return N;
 
-    double inv_vol = 1 / vol;
+    double inv_vol = 1.0 / vol;
 
     N.x = CalculateVol3(b.x,b.y,c.x,c.y,p.x,p.y) * inv_vol;
     N.y = CalculateVol3(c.x,c.y,a.x,a.y,p.x,p.y) * inv_vol;
@@ -68,25 +68,24 @@ double4 calculatePositionT3(double4 a, double4 b, double4 c, double4 p)
 
     return N;
 }
-
+	
 double4 calculatePositionT4(double4 a, double4 b, double4 c, double4 d, double4 p)
 {
-    double vol = CalculateVol4(a.x,a.y,a.z,b.x,b.y,b.z,c.x,c.y,c.z,d.x,d.y,d.z);
     double4 N = (double4)(-1,-1,-1,0);
+    double vol = CalculateVol4(a.x,a.y,a.z,b.x,b.y,b.z,c.x,c.y,c.z,d.x,d.y,d.z);
+    double inv_vol = 1.0 / vol;
 
-    if(vol == 0)
-      return N;
+//     if(vol == 0.0)
+//       return N;
 
-    double inv_vol = 1 / vol;
+    N.x = CalculateVol4(b.x,b.y,b.z,d.x,d.y,d.z,c.x,c.y,c.z,p.x,p.y,p.z);
+    N.y = CalculateVol4(d.x,d.y,d.z,a.x,a.y,a.z,c.x,c.y,c.z,p.x,p.y,p.z);
+    N.z = CalculateVol4(d.x,d.y,d.z,b.x,b.y,b.z,a.x,a.y,a.z,p.x,p.y,p.z);
+    N.w = CalculateVol4(a.x,a.y,a.z,b.x,b.y,b.z,c.x,c.y,c.z,p.x,p.y,p.z);
 
-    N.x = CalculateVol4(b.x,b.y,b.z,d.x,d.y,d.z,c.x,c.y,c.z,p.x,p.y,p.z) * inv_vol;
-    N.y = CalculateVol4(d.x,d.y,d.z,a.x,a.y,a.z,c.x,c.y,c.z,p.x,p.y,p.z) * inv_vol;
-    N.z = CalculateVol4(d.x,d.y,d.z,b.x,b.y,b.z,a.x,a.y,a.z,p.x,p.y,p.z) * inv_vol;
-    N.w = CalculateVol4(a.x,a.y,a.z,b.x,b.y,b.z,c.x,c.y,c.z,p.x,p.y,p.z) * inv_vol;
-
-    return N;
-}  
-
+    return N * inv_vol;
+} 
+    
 double functionDistance(double4 a, double4 b) {
     double4 temp;
     temp = (a-b) * (a-b);
@@ -215,7 +214,7 @@ __kernel void GenerateBinsC(__global double4 * points,
     {	
 	int index = calculateIndex(points[t],N,MinPoint,InvCellSize);
 	BinsContainer[atom_dec(&IndexCellReference[index])-1] = points[t];
-//printf("Triangle: %f\n",points[t].w);
+// 	printf("BinsTriangle: %f\n",points[t].w);
     }
 }
 
@@ -329,7 +328,7 @@ __kernel void SearchNearestMultiple(__global int * IndexCellReference,
 }
 
 ///////////////////////////////////SearchTriangle///////////////////////////////////
-__kernel void SearchTriangle(__global int * IndexCellReference,
+__kernel void SearchTriangle2D(__global int * IndexCellReference,
 			     __global double4 * BinsContainer,
 			     __global double4 * PointsTriangle,
 			     __global int4 * Triangles,
@@ -340,69 +339,158 @@ __kernel void SearchTriangle(__global int * IndexCellReference,
 			     __global double4 * point,
 			     __global double4 * MinPoint,
 			     __global double * uVector,
-			     __global double4 * Nresults
+			     __global double4 * Nresults,
+			     __global int * pSize
 			    ) 
 {
     int ip = get_global_id(0);
 
-    __private bool F = false;;
-    __private int4 Triangle;
-    __private double4 a,b,c,d;
-
-    __private double4 pointIp = point[ip];
-
-    __private int4 cellBegin = calculateCell(pointIp,-radius[0],N,MinPoint,InvCellSize);
-    __private int4 cellEnd   = calculateCell(pointIp, radius[0],N,MinPoint,InvCellSize);
-
-    for(size_t i = cellBegin.x; !F && i <= cellEnd.x; i++) 
+    if(ip < pSize[0])
     {
-	for(size_t j = cellBegin.y; !F && j <= cellEnd.y; j++) 
+	__private bool F = false;;
+	__private int4 Triangle;
+
+	__private double4 pointIp = point[ip];
+	__private double4 fN;
+
+	int4 cellBegin = calculateCell(pointIp,-radius[0],N,MinPoint,InvCellSize);
+	int4 cellEnd   = calculateCell(pointIp, radius[0],N,MinPoint,InvCellSize);
+
+	for(size_t i = cellBegin.x; !F && (i <= cellEnd.x); i++) 
 	{
-	    for(size_t k = cellBegin.z; !F && k <= cellEnd.z; k++) 
+	    for(size_t j = cellBegin.y; !F && (j <= cellEnd.y); j++) 
 	    {
-		__private int index = calculateIndexForCell((double4)(i,j,k,-1),N);
-		
-		__private int loIndex = IndexCellReference[index];
-		__private int hiIndex = IndexCellReference[index+1];
-
-		for(size_t l = loIndex; !F && l < hiIndex; l++) 
+		for(size_t k = cellBegin.z; !F && (k <= cellEnd.z); k++) 
 		{
-		    if(isless(functionDistance(pointIp,BinsContainer[l]),radius2[0])) 
+		    int index = calculateIndexForCell((double4)(i,j,k,-1),N);
+		    
+		    int loIndex = IndexCellReference[index];
+		    int hiIndex = IndexCellReference[index+1];
+
+
+		    for(size_t l = loIndex; !F && (l < hiIndex); l++) 
 		    {
-			Triangle = Triangles[(int)BinsContainer[l].w];
-			double4 fN;
-
-			//Assuming coords X Y Z (w) as id of the triangle/(tetrahedre) vertices
-			a = PointsTriangle[(int)Triangle.x-1];
-			b = PointsTriangle[(int)Triangle.y-1];
-			c = PointsTriangle[(int)Triangle.z-1];
-
-			if((int)Triangle.w-1 >= 0)
+			if(functionDistance(pointIp,BinsContainer[l]) < radius2[0])
 			{
-			    d = PointsTriangle[(int)Triangle.w-1];
-			    fN = calculatePositionT4(a,b,c,d,pointIp);
-    
-			    F = fN.x >= 0 && fN.y >= 0 && fN.z >= 0 && fN.w >= 0 &&
-				fN.x <= 1 && fN.y <= 1 && fN.z <= 1 && fN.w <= 1; 
-			}
-			else
-			{
-			    fN = calculatePositionT3(a,b,c,pointIp);
+			    Triangle = Triangles[(int)BinsContainer[l].w];
 
-			    F = fN.x >= 0 && fN.y >= 0 && fN.z >= 0 &&
-				fN.x <= 1 && fN.y <= 1 && fN.z <= 1; 
-			}
+			    fN = calculatePositionT3(PointsTriangle[Triangle.x-1],
+						     PointsTriangle[Triangle.y-1],
+						     PointsTriangle[Triangle.z-1],
+					             pointIp);
 
-		 	if(F)
-			{
-			    Nresults[ip] = fN *= uVector[ip];
+			    F = fN.x > -0.00001 && 
+				fN.y > -0.00001 && 
+				fN.z > -0.00001 &&
+				fN.x <  1.00001 && 
+				fN.y <  1.00001 && 
+				fN.z <  1.00001 ; 
 			}
 		    }
 		}
 	    }
 	}
+
+	Nresults[ip] = F ? (fN * uVector[ip]) : - 1;
     }
 }
+
+///////////////////////////////////SearchTriangle///////////////////////////////////
+//Prefetch all index. si va se puede aprovechar con los demas kernels.
+// __kernel void SearchTriangle3DA(__global int * IndexCellReference,
+// 			        __global double * InvCellSize,
+// 			        __global double * N,
+// 			        __global double * radius,
+// 			        __global double4 * point,
+// 			        __global double4 * MinPoint,
+// 			        __global int2 * searchIndex,
+// 			        __global int * pSize
+// 			    ) 
+// {
+//     size_t ip = get_global_id(0);
+//     int results = 0;
+// 
+//     if(ip < pSize[0])
+//     {
+// 	int4 cellBegin = calculateCell(point[ip],-radius[0],N,MinPoint,InvCellSize);
+// 	int4 cellEnd   = calculateCell(point[ip], radius[0],N,MinPoint,InvCellSize);
+// 
+// 	for(int i = cellBegin.x; i <= cellEnd.x; i++) 
+// 	{
+// 	    for(int j = cellBegin.y; j <= cellEnd.y; j++) 
+// 	    {
+// 		for(int k = cellBegin.z; k <= cellEnd.z; k++) 
+// 		{
+// 		    int index = calculateIndexForCell((double4)(i,j,k,-1),N);
+// 
+// 		    searchIndex[ip*300+results].x = IndexCellReference[index];
+// 		    searchIndex[ip*300+results].y = IndexCellReference[index+1];
+// 		    results++;
+// 		}
+// 	    }
+// 	}
+// 
+//     searchIndex[ip*300+results].x = -1;
+//     searchIndex[ip*300+results].y = -1;
+// 
+// // 	searchIndex[ip].x = IndexCellReference[calculateIndexForCell((double4)(cellBegin.x,cellBegin.y,cellBegin.z,-1),N)];
+// // 	searchIndex[ip].y = IndexCellReference[calculateIndexForCell((double4)(cellEnd.x  ,cellEnd.y  ,cellEnd.z,  -1),N)];
+//     }
+// }
+
+// __kernel void SearchTriangle3DB(__global double4 * BinsContainer,
+// 			       __global double4 * PointsTriangle,
+// 			       __global int4 * Triangles,
+// 			       __global double * radius2,
+// 			       __global double4 * point,
+// 			       __global double * uVector,
+// 			       __global double4 * Nresults,
+// 			       __global int2 * searchIndex,
+// 			       __global int * pSize
+// 			    ) 
+// {
+//     size_t ip = get_global_id(0);
+// 
+//     if(ip < pSize[0])
+//     {
+// 	short F = 0;
+// 	double4 fN;
+// 
+// int i = 0;
+// int index = ip*300+i;
+// while(searchIndex[index].x != -1)
+// {
+// 	for(size_t l = searchIndex[index].x; !F && (l < searchIndex[index].y); l++) 
+// 	{
+// 	    if(functionDistance(point[ip],BinsContainer[l]) < radius2[0])
+// 	    {
+// 		int4 triangleIndex = Triangles[(int)BinsContainer[l].w];
+// 
+// 		fN = calculatePositionT4(PointsTriangle[triangleIndex.x-1],
+// 					 PointsTriangle[triangleIndex.y-1],
+// 					 PointsTriangle[triangleIndex.z-1],
+// 					 PointsTriangle[triangleIndex.w-1],
+// 					 point[ip]);
+// 
+// 		F = fN.x > -0.00001f && 
+// 		    fN.y > -0.00001f && 
+// 		    fN.z > -0.00001f &&
+// 		    fN.w > -0.00001f &&
+// 		    fN.x <  1.00001f && 
+// 		    fN.y <  1.00001f && 
+// 		    fN.z <  1.00001f && 
+// 		    fN.w <  1.00001f; 
+// 	    }
+// 	}
+// i++;
+// index = ip*300+i;
+// }
+// 
+//  	Nresults[ip] = F ? (fN * uVector[ip]) : -1;
+// // Nresults[ip].x = searchIndex[ip].x;
+// // Nresults[ip].y = searchIndex[ip].y;
+//     }
+// }
 
 /////////////////////////////////////////////////////////
 ////                      TEST                       ////
@@ -497,3 +585,141 @@ __kernel void SearchNearestMultipleCubic(__global int * IndexCellReference,
       cellcuberadius++;
     } //endl while cuberadius
 }
+
+//Triangle3D ORIGIANAL
+__kernel void SearchTriangle3D2(__global int * IndexCellReference,
+			       __global double4 * BinsContainer,
+			       __global double4 * PointsTriangle,
+			       __global int4 * Triangles,
+			       __global double * InvCellSize,
+			       __global double * N,
+			       __global double * radius,
+			       __global double * radius2,
+			       __global double4 * point,
+			       __global double4 * MinPoint,
+			       __global double * uVector,
+			       __global double4 * Nresults,
+			       __global int * pSize
+			    ) 
+{
+    size_t ip = get_global_id(0);
+
+    if(ip < pSize[0])
+    {
+	short F = 0;
+	double4 fN;
+
+	int4 cellBegin = calculateCell(point[ip],-radius[0],N,MinPoint,InvCellSize);
+	int4 cellEnd   = calculateCell(point[ip], radius[0],N,MinPoint,InvCellSize);
+
+	for(int i = cellBegin.x; !F && (i <= cellEnd.x); i++) 
+	{
+	    for(int j = cellBegin.y; !F && (j <= cellEnd.y); j++) 
+	    {
+		for(int k = cellBegin.z; !F && (k <= cellEnd.z); k++) 
+		{
+		    int index = calculateIndexForCell((double4)(i,j,k,-1),N);
+		    
+		    int loIndex = IndexCellReference[index];
+		    int hiIndex = IndexCellReference[index+1];
+
+		    for(size_t l = loIndex; !F && (l < hiIndex); l++) 
+		    {
+			if(functionDistance(point[ip],BinsContainer[l]) < radius2[0])
+			{
+			    int4 triangleIndex = Triangles[(int)BinsContainer[l].w];
+
+			    fN = calculatePositionT4(PointsTriangle[triangleIndex.x-1],
+						     PointsTriangle[triangleIndex.y-1],
+						     PointsTriangle[triangleIndex.z-1],
+						     PointsTriangle[triangleIndex.w-1],
+						     point[ip]);
+
+			    F = fN.x > -0.00001f && 
+				fN.y > -0.00001f && 
+				fN.z > -0.00001f &&
+				fN.w > -0.00001f &&
+				fN.x <  1.00001f && 
+				fN.y <  1.00001f && 
+				fN.z <  1.00001f && 
+				fN.w <  1.00001f; 
+			}
+		    }
+		}
+	    }
+	}
+
+	Nresults[ip] = F ? (fN * uVector[ip]) : -1;
+    }
+}
+
+//Triangle3D 
+__kernel void SearchTriangle3D(__global int * IndexCellReference,
+			       __global double4 * BinsContainer,
+			       __global double4 * PointsTriangle,
+			       __global int4 * Triangles,
+			       __global double * InvCellSize,
+			       __global double * N,
+			       __global double * radius,
+			       __global double * radius2,
+			       __global double4 * point,
+			       __global double4 * MinPoint,
+			       __global double * uVector,
+			       __global double4 * Nresults,
+			       __global int * pSize
+			       __local 
+			    ) 
+{
+    size_t ip = get_global_id(0);
+
+    if(ip < pSize[0])
+    {
+	short F = 0;
+	double4 fN;
+
+	int4 cellBegin = calculateCell(point[ip],-radius[0],N,MinPoint,InvCellSize);
+	int4 cellEnd   = calculateCell(point[ip], radius[0],N,MinPoint,InvCellSize);
+
+	for(int i = cellBegin.x; !F && (i <= cellEnd.x); i++) 
+	{
+	    for(int j = cellBegin.y; !F && (j <= cellEnd.y); j++) 
+	    {
+		for(int k = cellBegin.z; !F && (k <= cellEnd.z); k++) 
+		{
+		    int index = calculateIndexForCell((double4)(i,j,k,-1),N);
+		    
+		    int loIndex = IndexCellReference[index];
+		    int hiIndex = IndexCellReference[index+1];
+
+		    //if(hiIndex-loIndex > 15) hiIndex = loIndex + 5;
+
+		    for(size_t l = loIndex; !F && (l < hiIndex) ; l++) 
+		    {
+			if(functionDistance(point[ip],BinsContainer[l]) < radius2[0])
+			{
+			    int4 triangleIndex = Triangles[(int)BinsContainer[l].w]-1;
+
+			    fN = calculatePositionT4(PointsTriangle[triangleIndex.x],
+						     PointsTriangle[triangleIndex.y],
+						     PointsTriangle[triangleIndex.z],
+						     PointsTriangle[triangleIndex.w],
+						     point[ip]);
+
+			    F =  fN.x > -0.00001 && 
+				 fN.y > -0.00001 && 
+				 fN.z > -0.00001 &&
+				 fN.w > -0.00001 &&
+				 fN.x <  1.00001 && 
+				 fN.y <  1.00001 && 
+				 fN.z <  1.00001 && 
+				 fN.w <  1.00001; 
+			}
+		    }
+		}
+	    }
+	}
+
+	Nresults[ip] = F ? (fN * uVector[ip]) : -1;
+    }
+}
+

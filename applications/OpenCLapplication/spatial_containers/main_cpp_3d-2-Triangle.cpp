@@ -6,7 +6,7 @@
 #include <string>
 #include <cstdlib>
 
-#define KRATOS_INDEPENDENT
+//#define KRATOS_INDEPENDENT
 #include "spatial_containers/spatial_containers.h"
 #include "bins_static_OCL.h"
 #include "timer.h"
@@ -182,6 +182,7 @@ int main(int arg, char* argv[])
    int rep = 10;
    int block = 1000;
    int maxresults = 10;
+   int sampleSize = 1000;
   
    if(arg == 1){
       std::cout << " argument not founded " << std::endl;
@@ -208,6 +209,14 @@ int main(int arg, char* argv[])
       rep = atof(argv[3]);
       block = atof(argv[4]);
       maxresults = atof(argv[5]);
+   }
+   
+   else if(arg == 7){
+      radius = atof(argv[2]);
+      rep = atof(argv[3]);
+      block = atof(argv[4]);
+      maxresults = atof(argv[5]);
+      sampleSize = atof(argv[6]);
    }
    
    else {
@@ -241,10 +250,15 @@ int main(int arg, char* argv[])
   input >> buffer;
   for(int i = 1;buffer.find("End") == -1;i++)
   {
-     input >> pointdata.x;
-     input >> pointdata.y;
-     input >> pointdata.z;
-     pointdata.w = i;
+//      input >> pointdata.x;
+//      input >> pointdata.y;
+//      input >> pointdata.z;
+//      pointdata.w = i;
+     
+	input >> KRATOS_CL_4_X(pointdata);
+	input >> KRATOS_CL_4_Y(pointdata);
+	input >> KRATOS_CL_4_Z(pointdata);
+	KRATOS_CL_4_W(pointdata) = i;
      
      TPoints.push_back(pointdata);
      
@@ -276,10 +290,15 @@ int main(int arg, char* argv[])
 	  input >> buffer;
 	
 	  //Load data
-	  input >> indexdata.x;
-	  input >> indexdata.y;
-	  input >> indexdata.z;
-	  indexdata.w = -1;
+// 	  input >> indexdata.x;
+// 	  input >> indexdata.y;
+// 	  input >> indexdata.z;
+// 	  indexdata.w = -1;
+	  
+	  input >> KRATOS_CL_4_X(indexdata);
+	  input >> KRATOS_CL_4_Y(indexdata);
+	  input >> KRATOS_CL_4_Z(indexdata);
+	  KRATOS_CL_4_W(indexdata) = -1;
 	  
 	  //Tetrahedron 4th index
 	  //input >> pointdata.w;
@@ -299,10 +318,15 @@ int main(int arg, char* argv[])
 	  input >> buffer;
 	
 	  //Load data
-	  input >> indexdata.x;
-	  input >> indexdata.y;
-	  input >> indexdata.z;
-	  input >> indexdata.w;
+// 	  input >> indexdata.x;
+// 	  input >> indexdata.y;
+// 	  input >> indexdata.z;
+// 	  input >> indexdata.w;
+	  
+	  input >> KRATOS_CL_4_X(indexdata);
+	  input >> KRATOS_CL_4_Y(indexdata);
+	  input >> KRATOS_CL_4_Z(indexdata);
+	  input >> KRATOS_CL_4_W(indexdata);
 	  
 	  TTriangles.push_back(indexdata);
 	  
@@ -324,10 +348,15 @@ int main(int arg, char* argv[])
    {
       PointType auxPoint;
       cl_double4 pointdata = TPoints.front();
-      auxPoint[0] = pointdata.x;
-      auxPoint[1] = pointdata.y;
-      auxPoint[2] = pointdata.z;
-      auxPoint.id = pointdata.w;
+//       auxPoint[0] = pointdata.x;
+//       auxPoint[1] = pointdata.y;
+//       auxPoint[2] = pointdata.z;
+//       auxPoint.id = pointdata.w;
+      
+      auxPoint[0] = KRATOS_CL_4_X(pointdata);
+      auxPoint[1] = KRATOS_CL_4_Y(pointdata);
+      auxPoint[2] = KRATOS_CL_4_Z(pointdata);
+      auxPoint.id = KRATOS_CL_4_W(pointdata);
       PointsArray[i] = new PointType(auxPoint);
       TPoints.pop_front();
    }
@@ -349,19 +378,12 @@ int main(int arg, char* argv[])
    
    struct timespec begin;
    struct timespec end;
-   int sampleSize = 1000;
    
    clock_gettime( CLOCK_REALTIME, &begin );
-   StaticBinsOCL binOCL(PointsArray,PointsArray+npoints,IndexsArray,nTriangles);
+   StaticBinsOCL binOCL(PointsArray,PointsArray+npoints,IndexsArray,nTriangles,sampleSize);
    clock_gettime( CLOCK_REALTIME, &end );
    
    std::cout << "Init bins:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
-   
-   clock_gettime( CLOCK_REALTIME, &begin );
-   binOCL.GenerateSampleInput(sampleSize);
-   clock_gettime( CLOCK_REALTIME, &end );
-   
-   std::cout << "GenerateSample of: " << sampleSize * sampleSize << " elements:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
    
    clock_gettime( CLOCK_REALTIME, &begin );
    binOCL.generateBins();
@@ -376,8 +398,10 @@ int main(int arg, char* argv[])
    std::cout << "Allocate buffer:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
    
    clock_gettime( CLOCK_REALTIME, &begin );
-   for(int i = 0; i < rep; i++)
+   for(int i = 0; i < rep; i++) {
       binOCL.searchTriangles(radius3,block,maxresults);
+      std::cout << "Completed " << i+1 << " iterations" << std::endl;
+   }
    clock_gettime( CLOCK_REALTIME, &end );
    
    std::cout << "Perform Search:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
