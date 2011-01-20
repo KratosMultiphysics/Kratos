@@ -1443,21 +1443,17 @@ array_1d<double,3> conv_opr;
 	       unsigned int count = 0;
 	       for(unsigned int i=0; i< 3; i++)
 	       {
-		        count++;
-// 		        elemental_porosity += geom[i].FastGetSolutionStepValue(DENSITY);
-		        elemental_density += geom[i].FastGetSolutionStepValue(DENSITY); //* eps0;
+// 		        elemental_porosity += geom[i].FastGetSolutionStepValue(POROSITY);;
+		        elemental_density += geom[i].FastGetSolutionStepValue(DENSITY); 
 		        elemental_diameter += geom[i].FastGetSolutionStepValue(DIAMETER); 
-		        elemental_viscosity += geom[i].FastGetSolutionStepValue(VISCOSITY) * elemental_density;	//mu = nu * density //we assigne nu=1E-6 from Gid 
+		        elemental_viscosity += geom[i].FastGetSolutionStepValue(VISCOSITY); 
 	       }
-	       if (count == 0.0)
-		    { KRATOS_WATCH("*********************************************************ERROR-> Calculate Density Fluid_2d_split *******************")}
-	       else
- 		    { 
-// 		      elemental_porosity /= count;
-		      elemental_density /= count;
-		      elemental_diameter /= count;
-		      elemental_viscosity /= count;
-		    }
+	       
+// 	      elemental_porosity *= 0.333333333333333333333333;
+	      elemental_density *= 0.333333333333333333333333;
+	      elemental_diameter *= 0.333333333333333333333333;
+	      elemental_viscosity *= (0.333333333333333333333333 * elemental_density);	//mu = nu * density //we assigne nu=1E-6 from Gid;
+
 //*****end provisionary_comment to average porosity *************************
 //*****begin provisionary_comment to dominant porosity *************************
 		if(     geom[0].FastGetSolutionStepValue(POROSITY) == 1.0 )
