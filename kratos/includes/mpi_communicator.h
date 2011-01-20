@@ -603,11 +603,60 @@ namespace Kratos
       ///@name Private Operations
       ///@{ 
         
+	
+      void PrintNodesId()
+      {
+	NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+	
+	int nproc;
+	MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	
+ 	MPI_Barrier(MPI_COMM_WORLD);
+	for(unsigned int proc_id = 0; proc_id<nproc; proc_id++)
+	{
+	  if(proc_id == rank)
+	  {
+	
+	    for(unsigned int i_color = 0 ; i_color <  neighbours_indices.size() ; i_color++)
+	    {
+	      if((neighbours_indices[i_color]) >= 0)
+		{
+		  NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
+		  NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
+		  std::string tag = "Local nodes in rank ";
+		  PrintNodesId(r_local_nodes,tag,i_color);
+		  tag = "Ghost nodes in rank ";
+		  PrintNodesId(r_ghost_nodes,tag,i_color);
+		  tag = "Interface nodes in rank ";
+		  PrintNodesId(InterfaceMesh(i_color).Nodes(),tag,i_color);
+		  
+		}
+	    }
+	  }
+ 	  MPI_Barrier(MPI_COMM_WORLD);
+	}
+     }
+      
+      template<class TNodesArrayType>
+      void PrintNodesId(TNodesArrayType& rNodes, std::string Tag, int color)
+      {
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	std::cout << Tag << rank << " with color " << color << ":";
+	for(typename TNodesArrayType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
+	  std::cout  << i_node->Id() << ", " ;
+	
+	std::cout << std::endl;
+      }
+
+
 
       template<class TDataType>
       bool AssembleThisVariable(Variable<TDataType> const& ThisVariable)
       {
-
+// PrintNodesId();
 /*	KRATOS_WATCH("AssembleThisVariable")
 	KRATOS_WATCH(ThisVariable)*/
 	int rank;
@@ -619,6 +668,7 @@ namespace Kratos
 	std::vector<double*> receive_buffer(neighbours_indices.size());
 	std::vector<int> receive_buffer_size(neighbours_indices.size());
 
+	//first of all gather everything to the owner node
 	for(unsigned int i_color = 0 ; i_color <  neighbours_indices.size() ; i_color++)
 	  if((destination = neighbours_indices[i_color]) >= 0)
 	    {
@@ -685,13 +735,78 @@ namespace Kratos
 //MPI_Barrier(MPI_COMM_WORLD);
 
 
-  SynchronizeNodalSolutionStepsData();
+   //SynchronizeNodalSolutionStepsData();
+   SynchronizeVariable(ThisVariable);
 
 
 
 
 	return true;
       }
+      
+      
+      template<class TDataType>
+      bool SynchronizeVariable(Variable<TDataType> const& ThisVariable)
+      {
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	int destination=0;
+
+	NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+
+	for(unsigned int i_color = 0 ; i_color <  neighbours_indices.size() ; i_color++)
+	  if((destination = neighbours_indices[i_color]) >= 0)
+	    {
+	      NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
+	      NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
+	      
+	      unsigned int nodal_data_size = sizeof(TDataType) / sizeof(double);
+	      unsigned int local_nodes_size = r_local_nodes.size();
+	      unsigned int ghost_nodes_size = r_ghost_nodes.size();
+	      unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
+	      unsigned int receive_buffer_size = ghost_nodes_size * nodal_data_size;
+
+	      if((local_nodes_size == 0) && (ghost_nodes_size == 0))
+		  continue;  // nothing to transfer!
+
+	      unsigned int position = 0;
+	      double* send_buffer = new double[send_buffer_size];
+	      double* receive_buffer = new double[receive_buffer_size];
+
+	      // Filling the send buffer
+	      for(ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+	      {
+ 		*(TDataType*)(send_buffer + position) = i_node->FastGetSolutionStepValue(ThisVariable); 
+		position += nodal_data_size;
+	      }
+
+	      MPI_Status status;
+	      
+	      int send_tag = i_color;
+	      int receive_tag = i_color;
+
+	      MPI_Sendrecv (send_buffer, send_buffer_size, MPI_DOUBLE, destination, send_tag, receive_buffer, receive_buffer_size, MPI_DOUBLE, destination, receive_tag,
+			    MPI_COMM_WORLD, &status);
+			      
+	      position = 0;
+	      for(ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+	      {
+		i_node->FastGetSolutionStepValue(ThisVariable) = *reinterpret_cast<TDataType*>(receive_buffer + position);
+ 		position += nodal_data_size;
+	      }
+			
+	      if(position > receive_buffer_size)
+		std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+			
+	      delete [] send_buffer;
+	      delete [] receive_buffer;
+	    }
+
+	return true;
+      }
+
+
 
 //       friend class boost::serialization::access;
       

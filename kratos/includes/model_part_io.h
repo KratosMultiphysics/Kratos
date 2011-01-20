@@ -53,6 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <fstream> 
+#include <set>
 
 
 // External includes 
@@ -1535,6 +1536,9 @@ namespace Kratos
 	  p_local_mesh->AddNode(*(i_node.base()));
 	  p_interface_mesh->AddNode(*(i_node.base()));
 	}
+
+        p_local_mesh->Nodes().Sort();
+        p_interface_mesh->Nodes().Sort();
 	
 	KRATOS_WATCH(rThisCommunicator)
 	KRATOS_CATCH("")
@@ -1590,6 +1594,10 @@ namespace Kratos
 	  p_ghost_mesh->AddNode(*(i_node.base()));
 	  p_interface_mesh->AddNode(*(i_node.base()));
 	}
+
+        p_ghost_mesh->Nodes().Sort();
+        p_interface_mesh->Nodes().Sort();
+
 	
 	KRATOS_WATCH(rThisCommunicator)
 	KRATOS_CATCH("")
@@ -2283,17 +2291,29 @@ namespace Kratos
 	     
 	     PartitionIndicesContainerType& partition_ghost_nodes_indices = ghost_nodes_indices[i_partition];
 	     
+	     std::set<unsigned int> all_ghost_nodes_indices;
+	     
 	     for(SizeType i_interface = 0 ; i_interface < partition_ghost_nodes_indices.size() ; i_interface++)
 	     {
 	       if(partition_ghost_nodes_indices[i_interface].size() > 0)
 	       {
 		 *(OutputFiles[i_partition]) << "    Begin GhostNodes " << i_interface + 1 << std::endl;
 		 for(SizeType i_interface_node = 0 ; i_interface_node < partition_ghost_nodes_indices[i_interface].size() ; i_interface_node++)
+		 {
 		   *(OutputFiles[i_partition]) << "    " << partition_ghost_nodes_indices[i_interface][i_interface_node] << std::endl;
+		   all_ghost_nodes_indices.insert(partition_ghost_nodes_indices[i_interface][i_interface_node]);
+		 }
 		 *(OutputFiles[i_partition]) << "    End GhostNodes "  << std::endl;
 	       }
 	     }
        
+		 *(OutputFiles[i_partition]) << "    Begin GhostNodes " << 0 << std::endl;
+	     for(std::set<unsigned int>::iterator id = all_ghost_nodes_indices.begin() ; id != all_ghost_nodes_indices.end() ; id++)
+	     {
+		   *(OutputFiles[i_partition]) << "    " << *id << std::endl;
+	     }
+ 		 *(OutputFiles[i_partition]) << "    End GhostNodes "  << std::endl;
+      
 	   }
 	   
 	   WriteInAllFiles(OutputFiles, "End CommunicatorData \n");
