@@ -267,6 +267,20 @@ namespace Kratos
 
 KRATOS_WATCH(el_number);
 			int counter = 0;
+			//here I will assign a huge number of NODAL_H to the free surface nodes, so that there no nodes will be added
+			for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
+			{
+			if (i_node->FastGetSolutionStepValue(IS_FREE_SURFACE)!=0)
+				{
+				
+				double& val=i_node->FastGetSolutionStepValue(NODAL_H);
+				val*=2.0;								
+				//i_node->FastGetSolutionStepValue(NODAL_H,1)=val;								
+				//KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAA!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+				}
+			}
+
+
 			for (unsigned int el=0; el<el_number; el++)
 			{
 				if( preserved_list1[el] == true )
@@ -290,6 +304,16 @@ KRATOS_WATCH(el_number);
 				}
 			
 			}
+			//now I set back the nodal_h
+			for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
+			{
+			if (i_node->FastGetSolutionStepValue(IS_FREE_SURFACE)!=0)
+				{
+				double& nodal_h=i_node->FastGetSolutionStepValue(NODAL_H);
+				nodal_h/=2.0;			
+				}
+			}
+
 			
 			clean_triangulateio(out_mid);
 KRATOS_WATCH("ln420");
