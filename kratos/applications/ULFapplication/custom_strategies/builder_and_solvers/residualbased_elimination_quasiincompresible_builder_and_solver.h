@@ -21,9 +21,9 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "ULF_application.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/geometry_utilities.h" 
-
 
 namespace Kratos
 {
@@ -210,16 +210,19 @@ namespace Kratos
 			//fills the DofList
 			BaseType::mDofSet.clear();
 			BaseType::mDofSet.reserve( mnumber_of_active_nodes * TDim );
-			if(TDim == 2)
+			int FractionalStepNumber = r_model_part.GetProcessInfo()[FRACTIONAL_STEP];
+			KRATOS_WATCH(FractionalStepNumber);
+			if(TDim == 2)	
 			{
-				for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
-				{
-					if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
+			for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
 					{
-							BaseType::mDofSet.push_back( it->pGetDof(DISPLACEMENT_X) );
-							BaseType::mDofSet.push_back( it->pGetDof(DISPLACEMENT_Y) );
-					}		
-				}
+					if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
+						{
+						BaseType::mDofSet.push_back( it->pGetDof(DISPLACEMENT_X) );
+						BaseType::mDofSet.push_back( it->pGetDof(DISPLACEMENT_Y) );
+						}		
+					}			
+			
 			}
 			else if(TDim == 3)
 			{
@@ -742,6 +745,8 @@ namespace Kratos
 					indices.erase(indices.begin(),indices.end());
 				}
 			}
+			//KRATOS_WATCH("FSI D")
+			//KRATOS_WATCH(mD)
 			KRATOS_CATCH("")
 		
 		}
@@ -878,16 +883,22 @@ namespace Kratos
 				}
 				
 			}
-				
+			//KRATOS_WATCH(mMdiagInv)	
 			//inverting the mass matrix
 			for(unsigned int i = 0; i<TSparseSpace::Size(mMdiagInv); i++)
 			{
 				if (mMdiagInv[i]>1e-26)
 					mMdiagInv[i] = 1.0/mMdiagInv[i];
 				else{ //if (mMdiagInv[i]==0.0)
+
+					//KRATOS_WATCH(mMdiagInv[i])
+					//KRATOS_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")					
+					mMdiagInv[i] = 1000000000000.0;					
+
 					//KRATOS_WATCH(mMdiagInv[i])	
-					KRATOS_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")				
+					//KRATOS_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")				
 					//mMdiagInv[i] = 0.0;					
+
 					}
 			}
 
@@ -928,8 +939,8 @@ namespace Kratos
 					//			
 					//			and
 					//
-					//			2 1 1 1
-					//	V/20.0* 1 2 1 1		in 3D
+					//		    2 1 1 1
+					//	V/20.0*     1 2 1 1		in 3D
 					//		    1 1 2 1
 					//		    1 1 1 2
 				
@@ -945,8 +956,8 @@ namespace Kratos
 										//Mconsistent(row_index,col_index) += temp * 2.0;
 										if (TDim==2)
 												Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
-										if (TDim==3)
-												Mconsistent(row_index,col_index) += 0.2*temp * 2.0;
+										else if (TDim==3)
+												Mconsistent(row_index,col_index) += 0.2*temp * 2.0*2.5;
 										}
 									else
 										{
@@ -955,7 +966,7 @@ namespace Kratos
 										if (TDim==2)
 											Mconsistent(row_index,col_index) += 0.25*temp ;
 										else if (TDim==3)
-											Mconsistent(row_index,col_index) += 0.2*temp ;
+											Mconsistent(row_index,col_index) += 0.2*temp*0.0 ;
 									
 										}
 							}
@@ -995,31 +1006,7 @@ namespace Kratos
 			KRATOS_CATCH("");
 		}
 
-		/*
-
-		void calc_prod_vec_precond_vec( TSystemVectorType& vec,
-							 TSystemVectorType& precond,
-							 double& result) 
-		{
-			KRATOS_TRY
-
-			if ( precond.size()!=vec.size() ) 
-				KRATOS_ERROR(std::logic_error,"preconditioner size is wrong","")
-			if ( precond.size()!=result.size() ) 
-				KRATOS_ERROR(std::logic_error,"preconditioner size is wrong","")
-			
-			//typedef  unsigned int size_type;
-			//typedef  double value_type;
-			//KRATOS_WATCH(precond)
-			for (int i=0; i<precond.size();i++)
-			{
-			result[i]=precond[i]*vec[i];
-			}
-			result = TSparseSpace::Dot(
-			KRATOS_CATCH("");
-		}
-		*/
-		
+				
 		void calc_GMinvD_prod(TSystemMatrixType& mD,
 							 TSystemVectorType& Minv,
 							 TSystemVectorType& x,
@@ -1053,6 +1040,7 @@ namespace Kratos
 
 			KRATOS_CATCH("");
 		}
+		
 		
 		//*************************************************************************************************
 		//*************************************************************************************************
@@ -1128,7 +1116,7 @@ namespace Kratos
 					//preconditioner[i] = 1.00/preconditioner[i];
 					preconditioner[i] = 1.00/preconditioner[i];
 				else 
-					preconditioner[i] = 1.0;
+					preconditioner[i] = 10000000000000000000.0;
 				
 				if (preconditioner[i]<0.0)
 				{
@@ -1167,26 +1155,6 @@ namespace Kratos
 			}
 		
 		}
-
-		//*************************************************************************************************
-		//*************************************************************************************************
-		//   Additional functions for CG
-		/*
-		void UpdateX(TSystemVectorType& xi, const double& alpha, TSystemVectorType& di)
-		{
-		TSparseSpace::UnaliasedAdd(xi, alpha, di);
-		}
-		
-		void UpdateResidual()
-		{
-		
-		}
-
-		void UpdateSearchDirection()
-		{
-		
-		}
-		*/
 
 		//*************************************************************************************************
 		//*************************************************************************************************
@@ -1248,71 +1216,219 @@ namespace Kratos
 		
 		KRATOS_CATCH("");
 		}
-		/*
-		void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMdiagInv,ModelPart& r_model_part, double bulk_modulus, double density) 
-		{
-		KRATOS_TRY
-			//getting the dof position
-			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
-			
-			//!!!! LATER ON - CHANGE THE WAY TO COMPUTE BULK MODULUS INSTEAD OF PASSING IT AS A PARAMETER
-			//resetting  the pressures to zero
-			for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model_part.NodesEnd(); ++in)
-			{				
-			in->FastGetSolutionStepValue(PRESSURE)=0.0;				
-			}
-			//for pressure vectors
-			const int size = TSparseSpace::Size(mMdiagInv);
-			
-			TSystemVectorType p_n(size);
-			//TSystemVectorType p_n1(size);
-			TSystemVectorType history(size);
-			
-			//TSparseSpace::SetToZero(p_n1);
-			TSparseSpace::SetToZero(p_n);
-			TSparseSpace::SetToZero(history);
-			
-
-			//assuming that the bulk modulus is the same for all nodes in the model part
-			//p_n is the history, d_a - change_of_nodal_area/current_nodal_area
-			int i=0;
-			for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model_part.NodesEnd(); ++in)
-			{
-				if( (in->GetValue(NEIGHBOUR_NODES)).size() != 0 )// && in->FastGetSolutionStepValue(IS_FLUID)==1.0)
-				{
-				i=in->GetDof(DISPLACEMENT_X,dof_position).EquationId()/TDim;
-				p_n[i]=in->FastGetSolutionStepValue(PRESSURE,1);
-				
-				}
-
-			
-			} 
-			//KRATOS_WATCH(p_n)
-						
-			//history (multiplied by the consistent mass matrix) and then by the inverse lumped mass matrix
-			TSparseSpace::Mult(mMconsistent, p_n, history);			
-			
-			int aa=0;
-			
-			for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model_part.NodesEnd(); ++in)
+		
+void ComputePressureAtFreeSurface (ModelPart& r_model_part, double bulk_modulus, double density)  
+{
+for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model_part.NodesEnd(); ++in)
 			{	
 			if( (in->GetValue(NEIGHBOUR_NODES)).size() != 0)// && in->FastGetSolutionStepValue(IS_FLUID)==1.0)
 				{
-				aa=in->GetDof(DISPLACEMENT_X,dof_position).EquationId()/TDim;
-					if (in->FastGetSolutionStepValue(IS_FLUID)==1.0)
+				if (in->FastGetSolutionStepValue(IS_FLUID)==1.0 && in->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
 						{
-						in->FastGetSolutionStepValue(PRESSURE)=(mMdiagInv[aa]*history[aa])+bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));	
+						KRATOS_WATCH("Computing pressure at a free surface node")
+						in->FastGetSolutionStepValue(PRESSURE)=bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));				
+//=in->FastGetSolutionStepValue(PRESSURE,1)+bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));				
+							
 						}
 				}
 					
 			}
-		
-			
-			KRATOS_CATCH("");
+
+}
+	///////////////////////////////////////////////////////////////////////////
+	/*
+	void CalculateLupmedMass(ModelPart& model_part)
+	{
+	KRATOS_TRY
+	double dummy=0.0;
+	ProcessInfo& proc_info = model_part.GetProcessInfo();
+	for (typename ModelPart::ElementsContainerType::iterator im=model_part.ElementsBegin(); im!=model_part.ElementsEnd(); ++im)
+			{
+				im->Calculate(NODAL_MASS, dummy, proc_info);
+			}
+	KRATOS_CATCH("");
+	}
+	*/
+	void SavePressureIteration(ModelPart& model_part)
+	{
+	KRATOS_TRY
+	double pres=0.0;
+	for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+		{
+		pres=it->FastGetSolutionStepValue(PRESSURE);
+		it->FastGetSolutionStepValue(PRESSURE_OLD_IT)=pres;
 		}
-		*/
-//void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMdiagInv,ModelPart& r_model_part, double bulk_modulus, double density)
-void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMdiagInv,ModelPart& r_model_part, double bulk_modulus, double density)  
+	KRATOS_CATCH("");
+	}
+	///////////////// this is a function for performing the projection step of the ULF-FRAC method
+	void FractionalStepProjection(ModelPart& model_part, double alpha_bossak)
+	{
+	KRATOS_TRY
+	double aaa=0.0;
+	double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+	array_1d<double,3> N;
+	array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!		
+	
+	//reset the auxilliary vector
+	
+	for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+		{
+		it->FastGetSolutionStepValue(VAUX)=ZeroVector(3);
+		}	
+	
+	//calculate the velocity correction and store it in VAUX
+	
+	for (typename ModelPart::ElementsContainerType::iterator im=model_part.ElementsBegin(); im!=model_part.ElementsEnd(); ++im)
+		{
+		//get the list of nodes of the element
+		Geometry< Node<3> >& geom = im->GetGeometry();
+
+		double volume;
+		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
+						
+		array_1d<double,3> pres_inc;
+		//pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
+		//pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
+		//pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
+		
+
+		pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE_OLD_IT)-geom[0].FastGetSolutionStepValue(PRESSURE);
+		pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE_OLD_IT)-geom[1].FastGetSolutionStepValue(PRESSURE);
+		pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE_OLD_IT)-geom[2].FastGetSolutionStepValue(PRESSURE);	
+
+		//KRATOS_WATCH(pres_inc[0])
+		//KRATOS_WATCH(pres_inc[1])
+		//KRATOS_WATCH(pres_inc[2])
+
+		//Riccardo's modification: multiply the G(p_n+1-p_n) by 1/2
+		//pres_inc*=0.5;
+
+		//Gradient operator G:
+		boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+		boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
+		for (int ii = 0; ii< 3; ii++)
+		    {
+			int column = ii*2;				
+			shape_func(column,0) = N[ii];
+			shape_func(column + 1, 1) = shape_func(column,0);
+		    }
+		noalias(G)=prod(shape_func, trans(DN_DX));
+		G*=volume;
+
+		array_1d<double,6> aaa;
+		noalias(aaa) = prod(G,pres_inc);
+
+		array_1d<double,3> aux;
+
+		aux[0]=aaa[0];
+		aux[1]=aaa[1];			
+		//z-component is zero
+		aux[2]=0.0;
+		geom[0].FastGetSolutionStepValue(VAUX) += aux;
+
+		//reusing aux for the second node 
+		aux[0]=aaa[2];
+		aux[1]=aaa[3];			
+		//z-component is zero
+
+		geom[1].FastGetSolutionStepValue(VAUX) += aux;
+		//reusing aux for the third node
+		aux[0]=aaa[4];
+		aux[1]=aaa[5];			
+
+		geom[2].FastGetSolutionStepValue(VAUX) += aux;		
+		}
+		
+		//double beta_newm=0.25*(1.0-alpha_bossak)*(1.0-alpha_bossak);
+		alpha_bossak=-0.3;
+		double coef=0.25*(1.0-alpha_bossak);
+		
+		//double beta_newm=coef*(1.0-alpha_bossak);
+		
+		
+		for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+		{
+			if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0)
+				{
+				//VELOCITY = VELOCITY + dt * Minv * VAUX
+				if (it->FastGetSolutionStepValue(NODAL_MASS)>0.0000000001)
+					//KRATOS_ERROR(std::logic_error, "You have not computed the nodal mass!", "");
+					{
+			
+					double dt_sq_Minv =coef*dt*dt / it->FastGetSolutionStepValue(NODAL_MASS);
+		
+					array_1d<double,3>& temp = it->FastGetSolutionStepValue(VAUX);	
+	
+					if(!it->IsFixed(DISPLACEMENT_X))
+						{
+						it->FastGetSolutionStepValue(DISPLACEMENT_X)+=dt_sq_Minv*temp[0];
+						}
+					if(!it->IsFixed(DISPLACEMENT_Y))
+						{
+						it->FastGetSolutionStepValue(DISPLACEMENT_Y)+=dt_sq_Minv*temp[1];												
+						}
+					}
+				}
+		}
+		KRATOS_CATCH("");
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	void UpdateAfterProjection( ModelPart& model_part, double alpha_bossak) 
+	{
+	KRATOS_TRY			
+	//updating time derivatives (nodally for efficiency)
+	double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	array_1d<double,3> DeltaDisp;
+	double beta_newmark = 0.25*pow((1.00-alpha_bossak),2);
+	
+	double gamma_newmark = 0.5-alpha_bossak;
+
+	/*
+	ma0 = 1.0/(mBetaNewmark*pow(DeltaTime,2));
+	ma1 = mGammaNewmark / (mBetaNewmark*DeltaTime);
+	ma2 = 1.0/(mBetaNewmark*DeltaTime);
+	ma3 = 1.0/(2.0*mBetaNewmark) - 1.0;
+	ma4 = mGammaNewmark/mBetaNewmark - 1.0;	
+	*/
+
+	double ma0=1.0/(beta_newmark*pow(dt,2)); 
+	double ma1=gamma_newmark/(beta_newmark*dt); 
+	double ma2=1.0/(beta_newmark*dt); 
+	double ma3=(1.0/(2.0*beta_newmark))-1.0;
+	double ma4=(gamma_newmark/beta_newmark)-1.0;
+	double ma5=dt*0.5*((gamma_newmark/beta_newmark)-2.0);
+
+	for(ModelPart::NodeIterator i = model_part.NodesBegin() ; i != model_part.NodesEnd() ; ++i)
+		{
+		noalias(DeltaDisp) = (i)->FastGetSolutionStepValue(DISPLACEMENT)  - (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+		array_1d<double,3>& CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY,0);
+		array_1d<double,3>& OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
+
+		array_1d<double,3>& CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,0);
+		array_1d<double,3>& OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
+
+		UpdateVelocity(CurrentVelocity,DeltaDisp,OldVelocity,OldAcceleration, ma1, ma4, ma5);
+		UpdateAcceleration(CurrentAcceleration,DeltaDisp,OldVelocity,OldAcceleration, ma0, ma2, ma3);
+		}	
+	KRATOS_CATCH("");
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	inline void UpdateVelocity(array_1d<double, 3>& CurrentVelocity, const array_1d<double, 3>& DeltaDisp,
+									const array_1d<double, 3>& OldVelocity,
+									const array_1d<double, 3>& OldAcceleration, double& ma1, double& ma4, double & ma5)
+		{
+		noalias(CurrentVelocity) = ma1*DeltaDisp - ma4*OldVelocity - ma5*OldAcceleration;
+		}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
+	inline void UpdateAcceleration(array_1d<double, 3>& CurrentAcceleration, const array_1d<double, 3>& DeltaDisp,
+									const array_1d<double, 3>& OldVelocity,
+									const array_1d<double, 3>& OldAcceleration, double& ma0, double& ma2, double & ma3)
+		{
+		noalias(CurrentAcceleration) = ma0*DeltaDisp - ma2*OldVelocity - ma3*OldAcceleration;
+		}		
+	
+	void UpdatePressuresNew (TSystemMatrixType& mMconsistent, TSystemVectorType& mMdiagInv,ModelPart& r_model_part, double bulk_modulus, double density)  
 		{
 		KRATOS_TRY
 			//getting the dof position
