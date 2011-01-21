@@ -229,7 +229,7 @@ class ULFStrategyPythonInc:
         self.builder_and_solver.ModifyForDirichlet(self.A, self.b)
         
         #now we will use the CG algorith written here to solve the modified system: A+GMinvD=b
-        self.prec_CG_Solve(20000, 1e-4)
+        self.prec_CG_Solve(20000, 1e-8)
         
         #full output if needed
         if(echo_level >= 3):
