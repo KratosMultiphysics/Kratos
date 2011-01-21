@@ -106,6 +106,7 @@ namespace Python
 		.def("MoveInletNodes", &UlfUtils::MoveInletNodes)
 		.def("MarkNodesCloseToWall", &UlfUtils::MarkNodesCloseToWall)
 		.def("MarkNodesCloseToFS", &UlfUtils::MarkNodesCloseToFS)
+		.def ("MarkLonelyNodesForErasing", &UlfUtils::MarkLonelyNodesForErasing)
 		 ;
 	  
 	  class_<NistUtils>("NistUtils", init<>())

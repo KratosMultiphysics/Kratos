@@ -62,7 +62,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_processes/find_nodal_h_process.h" 
 //#include "custom_processes/node_erase_process.h" 
-#include "custom_processes/pressure_calculate_process.h" 
+#include "custom_processes/pressure_calculate_process.h"
+#include "custom_processes/mass_calculate_process.h"  
 #include "custom_processes/ulf_apply_bc_process.h" 
 #include "custom_processes/ulf_time_step_dec_process.h" 
 #include "custom_processes/mark_fluid_process.h"  
@@ -70,7 +71,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/mark_outer_nodes_process.h"  
 #include "custom_processes/save_structure_model_part_process.h" 
 #include "custom_processes/save_structure_conditions_process.h" 
-#include "custom_processes/merge_model_parts_process.h" 
+#include "custom_processes/merge_model_parts_process.h"
+#include "custom_processes/save_fluid_only_process.h"  
 
 #include "includes/node.h"
 
@@ -112,6 +114,9 @@ namespace Python
 	class_<PressureCalculateProcess, bases<Process> >("PressureCalculateProcess",
 		 init<ModelPart&, unsigned int>())
 		 ;
+	class_<MassCalculateProcess, bases<Process> >("MassCalculateProcess",
+		 init<ModelPart&>())
+		 ;
 
 		 class_<UlfApplyBCProcess, bases<Process> >("UlfApplyBCProcess",
 		 init<ModelPart&>())
@@ -136,6 +141,9 @@ namespace Python
 		 ;
 	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
 		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
+		 ;
+	 class_<SaveFluidOnlyProcess, bases<Process> >("SaveFluidOnlyProcess", init<> ())
+		   .def("SaveFluidOnly", &SaveFluidOnlyProcess::SaveFluidOnly)
 		 ;
   }
 	
