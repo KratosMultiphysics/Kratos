@@ -120,13 +120,13 @@ namespace Kratos
 					
 				}
 				
-				if(n_struct==im->GetGeometry().size() && n_fluid != im->GetGeometry().size())
+				if(n_struct==im->GetGeometry().size())// && n_fluid != im->GetGeometry().size())
 				{
 					structure_model_part.Elements().push_back(*(im.base()));					
 				}
 				
 				//3D problem involving membrane moving in fluid (only for this)
-				
+				/*
 				if (int(domain_size)==3)
 				{
 				//just to check FOR FLUID-MEMBRANE!!!! otherwise th eone above is correct
@@ -138,6 +138,7 @@ namespace Kratos
 				
 					}
 				}
+				*/
 				
 			}
 		KRATOS_CATCH("")
