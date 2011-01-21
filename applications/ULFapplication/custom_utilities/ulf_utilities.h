@@ -541,7 +541,7 @@ namespace Kratos
 
 
 					//if three nodes are at the wall, we check if the fourth node is close to it or not by passing the alpha-shape
-					if (geom.size()==4 && n_str==3 && n_fl==4)
+					if (geom.size()==4.0 && n_str==3.0 && n_fl==4.0)
 						{
 						//if alpha shape tells to preserve
 						if (AlphaShape3D(alpha_shape, geom)==false)
@@ -552,7 +552,7 @@ namespace Kratos
 									if (geom[iii].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
 										{
 										geom[iii].GetValue(ERASE_FLAG)=true;
-										//KRATOS_WATCH("NODE CLOSE TO THE WALL - WILL BE ERASED!!!!")
+										KRATOS_WATCH("NODE CLOSE TO THE WALL - WILL BE ERASED!!!!")
 										}
 									}
 							}
@@ -560,6 +560,24 @@ namespace Kratos
 
 				}
 			}
+			
+				
+
+		}
+		void MarkLonelyNodesForErasing(ModelPart& ThisModelPart, int domain_size)
+		{
+
+//delete lonely nodes //just to try: 19/07/2010
+			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
+				in!=ThisModelPart.NodesEnd(); in++)
+			{
+				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 )//&& in->FastGetSolutionStepValue(IS_FLUID)==1.0)
+					{
+					in->GetValue(ERASE_FLAG)=true;
+					KRATOS_WATCH("Marking lonelynodes!!!")
+					}
+
+			}		
 		}
 
 		bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
@@ -771,6 +789,7 @@ namespace Kratos
 
 					)
 				{
+					i->GetValue(ERASE_FLAG)=true;					
 					//set to zero the pressure
 					(i)->FastGetSolutionStepValue(PRESSURE) = 0;
 					
