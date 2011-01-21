@@ -66,6 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //builder_and_solvers
 #include "custom_strategies/builder_and_solvers/residualbased_elimination_quasiincompresible_builder_and_solver.h"
+#include "custom_strategies/strategies/modified_linear_strategy.h"
+#include "solving_strategies/strategies/solving_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -84,9 +86,10 @@ namespace Kratos
 
 			
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			
+						
 		
 			typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 //			typedef ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
 
 			//********************************************************************
@@ -94,7 +97,8 @@ namespace Kratos
 			//typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> //ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D;
 			
 			typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> ResidualBasedIncompressibleBuilderType2D;
-			
+
+		
 						
 			//class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D, boost::noncopyable>
 //("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver2D", init< LinearSolverType::Pointer>() )
@@ -110,6 +114,7 @@ namespace Kratos
 			.def("SetUpSystem", &ResidualBasedIncompressibleBuilderType2D::SetUpSystem)
 			.def("ResizeAndInitializeVectors", &ResidualBasedIncompressibleBuilderType2D::ResizeAndInitializeVectors)
 			.def("Build", &ResidualBasedIncompressibleBuilderType2D::Build)
+			.def("Solve", &ResidualBasedIncompressibleBuilderType2D::SystemSolve)
 			.def("ConstructMatrixStructure", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure)
 			.def("ConstructMatrixStructure_Mconsistent", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Mconsistent)
 			.def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_DivergenceMatrixD)
@@ -121,9 +126,16 @@ namespace Kratos
 			.def("ModifyForDirichlet", &ResidualBasedIncompressibleBuilderType2D::ModifyForDirichlet)   
  			.def("UpdatePressures", &ResidualBasedIncompressibleBuilderType2D::UpdatePressures)   
 			.def("ReturnDx", &ResidualBasedIncompressibleBuilderType2D::ReturnDx)   
- 			.def("UpdatePressuresNew", &ResidualBasedIncompressibleBuilderType2D::UpdatePressuresNew)   
+ 			.def("UpdatePressuresNew", &ResidualBasedIncompressibleBuilderType2D::UpdatePressuresNew)
+ 			.def("UpdateAfterProjection", &ResidualBasedIncompressibleBuilderType2D::UpdateAfterProjection)
+ 			.def("ComputePressureAtFreeSurface", &ResidualBasedIncompressibleBuilderType2D::ComputePressureAtFreeSurface)  
+		    	.def("SavePressureIteration", &ResidualBasedIncompressibleBuilderType2D::SavePressureIteration)
+			.def("FractionalStepProjection", &ResidualBasedIncompressibleBuilderType2D::FractionalStepProjection)
  			.def("CalculateNodalPressureForce", &ResidualBasedIncompressibleBuilderType2D::CalculateNodalPressureForce )	
- 			.def("ConvergenceCheck", &ResidualBasedIncompressibleBuilderType2D::ConvergenceCheck)   
+ 			.def("ConvergenceCheck", &ResidualBasedIncompressibleBuilderType2D::ConvergenceCheck)  
+			//.def("BuildAuxiliariesFSI", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliariesFSI)
+			//.def("ConstructMatrixStructure_Fluid_DivergenceMatrixD",&ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Fluid_DivergenceMatrixD)
+			
 			;
 
 			typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 3> ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D;
@@ -137,6 +149,7 @@ namespace Kratos
 			.def("SetUpSystem", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SetUpSystem)
 			.def("ResizeAndInitializeVectors", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ResizeAndInitializeVectors)
 			.def("Build", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::Build)
+			.def("Solve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SystemSolve)
 			.def("ConstructMatrixStructure", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure)
 			.def("ConstructMatrixStructure_Mconsistent", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_Mconsistent)
 			.def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_DivergenceMatrixD)
@@ -154,11 +167,45 @@ namespace Kratos
 			;
 			//********************************************************************
 			//********************************************************************
+			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+//strategy base class
+			class_< BaseSolvingStrategyType, boost::noncopyable >("SolvingStrategy", init< ModelPart&, bool >() )
+				.def("Predict", &BaseSolvingStrategyType::Predict )
+				.def("Solve", &BaseSolvingStrategyType::Solve )
+				.def("IsConverged", &BaseSolvingStrategyType::IsConverged )
+				.def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData )
+				.def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel )
+				.def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel )
+				.def("SetRebuildLevel", &BaseSolvingStrategyType::SetRebuildLevel )
+				.def("GetRebuildLevel", &BaseSolvingStrategyType::GetRebuildLevel )
+				.def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag )
+				.def("MoveMeshFlag", &BaseSolvingStrategyType::MoveMeshFlag )
+				.def("MoveMesh", &BaseSolvingStrategyType::MoveMesh )
+				.def("Clear", &BaseSolvingStrategyType::Clear )
+				//.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
+				; 
+			typedef LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy2D; 
+
+			class_< LapModifiedLinearStrategy2D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("LapModifiedLinearStrategy2D", 
+				init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+				.def("Solve", &LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
+				;
+
+
+						/*
+			class_< LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< ResidualBasedLinearStrategyType >,  boost::noncopyable >
+				("LapModifiedLinearStrategy2D", 
+				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,
+				bool, bool, bool, bool
+				>() )
+				  .def("Solve",&LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve);
 			
-			
+			*/
 		}
 
 	}  // namespace Python.
 
 } // Namespace Kratos
+
 
