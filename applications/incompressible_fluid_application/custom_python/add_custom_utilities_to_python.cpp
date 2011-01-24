@@ -73,7 +73,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/assign_no_slip_condition.h" 
 #include "custom_utilities/mark_for_refinement.h" 
 #include "custom_utilities/parallel_extrapolation_utilities.h" 
-#include "custom_utilities/wave_generator.h" 
+#include "custom_utilities/wave_generator.h"
+#include "custom_utilities/estimate_dt_utilities.h"
 
 
 //#include "custom_utilities/edgebased_levelset.h"
@@ -109,6 +110,7 @@ namespace Python
 
 	  class_<RefinementUtilities>("RefinementUtilities", init<>())
 		.def("MarkForRefinement",&RefinementUtilities::MarkForRefinement)
+                .def("SubscaleErrorEstimate",&RefinementUtilities::SubscaleErrorEstimate)
 		;
 		
 	  class_<AssignNoSlipCondition>("AssignNoSlipCondition", init<>())
@@ -280,6 +282,13 @@ namespace Python
                           .def("GenerateWaveXYPlane",&WaveGenerator::GenerateWaveXYPlane)
                         ;
 
+        class_< EstimateDtUtil< 2 >, boost::noncopyable > ("EstimateDt2D", init<ModelPart&>() )
+                          .def("EstimateDt", &EstimateDtUtil<2>::EstimateDt)
+                        ;
+
+        class_< EstimateDtUtil< 3 >, boost::noncopyable > ("EstimateDt3D", init<ModelPart&>() )
+                          .def("EstimateDt", &EstimateDtUtil<3>::EstimateDt)
+                        ;
 			
 // 	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
 //                           .def("ConstructSystemStructure",&ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>::ConstructSystemStructure)
