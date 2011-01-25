@@ -10,4 +10,4 @@ REM ErrorFile: %2\%1.err
 DEL %2\%1.info
 DEL %2\%1.err
 REM Run the python script
-python KratosOpenMP.py > %2\%1.info 2> %2\%1.err
+cmd /c KratosOpenMP.py > %2\%1.info 2> %2\%1.err
