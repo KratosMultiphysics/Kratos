@@ -11,12 +11,9 @@
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : modify the procedure WritePropertyAtNodes to use dict option => fast write option for big models
-#
-#    VERSION : 2.7
-#
 #    HISTORY:
 #
+#     2.8- 25/01/11-G. Socorro, correct a bug in the procedure WriteFluidBC (write duplicate node identifier and repeated the y values in the z values)
 #     2.7- 02/11/10-G. Socorro, modify the procedure WritePropertyAtNodes to use dict option => fast write option for big models
 #     2.6- 23/09/10-G. Socorro, add Start_time variable
 #     2.5- 08/09/10-G. Socorro, add "Distance" variable to the fluid application results
@@ -765,7 +762,7 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
 			    append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" [lindex $iGProps 3]]\n"
 			}
 			if {[lindex $iGProps 4]} {
-			    append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" [lindex $iGProps 5]]\n"
+			    append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" [lindex $iGProps 5]]\n"
 			}
 		    }
 		}
@@ -791,6 +788,9 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
 			write_calc_data puts ""
 		    }
 		}
+		
+		# Reset ixcomp, iycomp and zcomp
+		set ixcomp ""; set iycomp ""; set izcomp ""
 	    }
 	    
 	    # unset dictionary variable
@@ -841,6 +841,9 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
 			write_calc_data puts ""
 		    }
 		}
+		
+		# Reset xcomp, ycomp and zcomp
+		set xcomp ""; set ycomp ""; set zcomp ""
 	    }
 	}
     }
