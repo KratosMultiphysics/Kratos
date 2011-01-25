@@ -6,16 +6,14 @@
 #
 #	QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#	AUTHOR : G. Socorro
+#	AUTHOR : G. Socorro => GSM
 #
 #	CREATED AT: 09/06/2010
 #
-#	LAST MODIFICATION : 
-#
-#	VERSION : 0.2
-#
 #	HISTORY:
-#   0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
+#
+#       0.5- 25/01/11-GSM, show the warning/error message only when find some error
+#       0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
 #	0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
 #		se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
 #		y se valida que el path de Kratos exista en la computadora.
@@ -209,11 +207,11 @@ proc ::KMValid::CreateReportWindow {w} {
 		
 	set aviso ""
 	if { $::KMValid::Errors } {
-		set aviso "There are Errors in the model, do you want to continue anyway?"
+	    set aviso "There are Errors in the model, do you want to continue anyway?"
 	} elseif { $::KMValid::Warnings } {
-			set aviso "There are warnings in the model, do you want to continue anyway?"
+	   # set aviso "There are warnings in the model, do you want to continue anyway?"
 	} else {
-		destroy $w
+	    destroy $w
 	}
 	
 	if { $aviso != "" } {
