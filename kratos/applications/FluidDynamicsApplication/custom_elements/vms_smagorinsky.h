@@ -226,7 +226,7 @@ namespace Kratos
 
             // Calculate stabilization parameters
             double TauOne, TauTwo;
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo[DYNAMIC_TAU], rCurrentProcessInfo);
 
             // Get Smagorinsky coefficient
             const double Cs = this->GetValue(C_SMAGORINSKY);

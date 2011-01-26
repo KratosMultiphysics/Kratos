@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosTestApplication
+KratosFluiDynamicsApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
