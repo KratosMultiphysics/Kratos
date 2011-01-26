@@ -74,6 +74,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    ///@addtogroup FluidDynamicApplication
+    ///@{
+
     ///@name Kratos Globals
     ///@{
 
@@ -364,7 +367,7 @@ namespace Kratos
                 double KinViscosity;
                 GetPointContribution(KinViscosity,VISCOSITY,N);
 
-                CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
+                CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo[DYNAMIC_TAU],rCurrentProcessInfo);
 
                 rValues.resize(1);
                 if (rVariable == TAUONE)
@@ -376,10 +379,17 @@ namespace Kratos
                     rValues[0] = TauTwo;
                 }
             }
-            else if (rVariable == C_SMAGORINSKY)
+            else // Default behaviour (returns elemental data)
             {
                 rValues.resize(1);
-                rValues[0] = this->GetValue(C_SMAGORINSKY);
+                /*
+                 The cast is done to avoid modification of the element's data. Data modification
+                 would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+                 with associated value of 0.0). This is catastrophic if the variable referenced
+                 goes out of scope.
+                 */
+                const VMS3DSmagorinsky* const_this = static_cast< const VMS3DSmagorinsky* >(this);
+                rValues[0] = const_this->GetValue(rVariable);
             }
         }
 
@@ -555,8 +565,9 @@ namespace Kratos
 
         return rOStream;
     }
-    ///@}
+    ///@} Input and output
 
+    ///@} FluidDynamicsApplication group
 
 } // namespace Kratos.
 

@@ -67,6 +67,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
+    ///@addtogroup FluidDynamicsApplication
+    ///@{
+
     ///@name Kratos Globals
     ///@{
 
@@ -296,7 +300,7 @@ namespace Kratos
 
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
+                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo[DYNAMIC_TAU], rCurrentProcessInfo);
 
                 this->AddProjectionToRHS(rRightHandSideVector, TauOne, TauTwo, N, DN_DX, Area);
             }
@@ -345,7 +349,7 @@ namespace Kratos
 
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
+                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo[DYNAMIC_TAU], rCurrentProcessInfo);
 
                 // Add dynamic stabilization terms ( all terms involving a delta(u) )
                 this->AddMassStabTerms<MatrixType> (rMassMatrix, Density, TauOne, N, DN_DX, Area);
@@ -389,7 +393,7 @@ namespace Kratos
 
             // Calculate stabilization parameters
             double TauOne, TauTwo;
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo[DYNAMIC_TAU], rCurrentProcessInfo);
 
             this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, KinViscosity, TauOne, TauTwo, N, DN_DX, Area);
 
@@ -463,22 +467,18 @@ namespace Kratos
             array_1d<double, 3> AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-            // Calculate stabilization parameters
-            double TauOne, TauTwo;
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
-
             // Output containers
             array_1d< double,3 > ElementalMomRes(3,0.0);
             double ElementalMassRes(0);
 
-            this->AddProjectionResidualContribution(AdvVel, Density, TauOne, TauTwo, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
+            this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
 
             if( rCurrentProcessInfo[OSS_SWITCH] == 1)
             {
                 // Carefully write results to nodal variables, to avoid parallelism problems
                 for (unsigned int i = 0; i < TNumNodes; ++i)
                 {
-                    ///@TODO: Test using atomic
+                    ///@todo: Test using atomic
                     this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
                     array_1d< double, 3 > & rAdvProj = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
                     for (unsigned int d = 0; d < TDim; ++d)
@@ -492,6 +492,26 @@ namespace Kratos
 
             /// Return output
             rOutput = ElementalMomRes;
+
+            // For adaptive refinement: error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
+            double ErrorRatio(0.0), UNorm(0.0);
+            array_1d< double,3 > UGauss(3,0.0);
+            this->AddPointContribution(UGauss,VELOCITY,N,Area);
+
+            // Calculate stabilization parameters. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
+            double TauOne, TauTwo;
+            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, 0.0, rCurrentProcessInfo);
+
+            for (unsigned int i = 0; i < TDim ; ++i)
+            {
+                ErrorRatio += ElementalMomRes[i] * ElementalMomRes[i];
+                UNorm += UGauss[i] * UGauss[i];
+            }
+            ErrorRatio = sqrt(ErrorRatio / UNorm);
+            ErrorRatio *= TauOne;
+            ErrorRatio /= Density;
+            this->SetValue(ERROR_RATIO,ErrorRatio);
+
         }
 
         ///@}
@@ -555,12 +575,13 @@ namespace Kratos
         /// Calculate Stabilization parameters
         /**
          * Calculates both tau parameters based on a given advective velocity
-         * @param TauOne: First stabilization parameter (momentum equation)
-         * @param TauTwo: Second stabilization parameter (mass equation)
-         * @param rAdvVel: advection velocity
-         * @param Area: Elemental area
-         * @param KinViscosity: Elemental kinematic viscosity (nu)
-         * @param rCurrentProcessInfo: Process info instance
+         * @param TauOne First stabilization parameter (momentum equation)
+         * @param TauTwo Second stabilization parameter (mass equation)
+         * @param rAdvVel advection velocity
+         * @param Area Elemental area
+         * @param KinViscosity Elemental kinematic viscosity (nu)
+         * @param DynCoeff Coefficient that multiplies the dynamic term (1/Dt) in TauOne. Typically 0 or 1.
+         * @param rCurrentProcessInfo Process info instance
          */
 
         #ifndef KRATOS_VMS_ALT_TAU
@@ -569,6 +590,7 @@ namespace Kratos
                                   const array_1d< double, 3 > & rAdvVel,
                                   const double Area,
                                   const double KinViscosity,
+                                  const double DynCoeff,
                                   const ProcessInfo& rCurrentProcessInfo)
         {
            // Compute mean advective velocity norm
@@ -580,7 +602,7 @@ namespace Kratos
 
             const double Element_Size = this->ElementSize(Area);
 
-            TauOne = 1.0 / (rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
+            TauOne = 1.0 / (DynCoeff / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
             TauTwo = KinViscosity + 0.5 * Element_Size * AdvVelNorm;
         }
 
@@ -853,8 +875,6 @@ namespace Kratos
         /// Assemble the contribution from an integration point to the element's residual
         void AddProjectionResidualContribution(const array_1d< double, 3 > & rAdvVel,
                                                const double Density,
-                                               const double TauOne,
-                                               const double TauTwo,
                                                array_1d< double,3 >& rElementalMomRes,
                                                double& rElementalMassRes,
                                                const ProcessInfo& rCurrentProcessInfo,
@@ -1054,7 +1074,6 @@ namespace Kratos
         ///@{
 
         /// Set an array_1d to zero
-
         template< unsigned int TSize >
         inline void SetToZero(array_1d< double, TSize >& rArray)
         {
@@ -1136,6 +1155,7 @@ namespace Kratos
     }
     ///@}
 
+    ///@} // Fluid Dynamics Application group
 
 } // namespace Kratos.
 

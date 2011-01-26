@@ -22,16 +22,15 @@ class DynamicSmagorinsky:
         AvgElemNum = 10
         AvgNodeNum = 10
         self.nodal_neighbour_search = FindNodalNeighboursProcess(model_part,\
-                                                        AvgElemNum,AvgElemNum)
+                                                        AvgElemNum,AvgNodeNum)
+        # Find neighbours
+        self.nodal_neighbour_search.Execute()
 
     def Refine(self):
 
         # Mark all elements for refinement
         for element in self.model_part.Elements:
             element.SetValue(SPLIT_ELEMENT,True)
-
-        # Find neighbours
-        self.nodal_neighbour_search.Execute()
 
         # Refine
         refine_on_reference = True;

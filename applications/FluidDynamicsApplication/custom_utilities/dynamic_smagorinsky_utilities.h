@@ -66,12 +66,41 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    ///@addtogroup FluidDynamicsApplication
+    ///@{
+
+    ///@name Kratos Classes
+    ///@{
+
+    /// Helper class to dynamically determine a value for the Smagorinsly parameter.
+    /**
+     This class uses the Variational Germano Identity to determine a value for the
+     Smagorinsky parameter. This value is stored in the elemental variable C_SMAGORINSKY,
+     the element implementation is responsible for using it. The ability to assign
+     different values to different patches of elements (identified by the PATCH_INDEX
+     variable) is supported, although it tends to produce unreliable results due to
+     a 0/0 indetermination in patches with smooth velocity fields.
+
+     This class is based in Oberai, A.A. and Wanderer, J., Variational formulation
+     of the Germano identity for the Navier Stokes equations, Journal of Turbulence,
+     2005, vol 6. Note that the formulation described there requires a nested mesh. This
+     class takes the model part containing a coarse mesh as input and assumes that
+     all elements will be subdivided before CalculateC() is called.
+
+     For an element implementation that uses the Smagorinsky model: @see VMSSmagorinsky
+     For the element refinement process: @see Local_Refine_Triangle_Mesh,Local_Refine_Tetrahedra_Mesh
+     */
     class DynamicSmagorinskyUtils
     {
     public:
 
-        /// Default Constructor
+        ///@name Life Cycle
+        ///@{
+
+        /// Constructor
         /** Remember to create the utilitiy before refining the element, otherwise the coarse mesh will be lost
+         @param rModelPart Reference to the model part containing the coarse mesh
+         @param DomainSize Spatial dimension (2 or 3)
          */
         DynamicSmagorinskyUtils(ModelPart& rModelPart, unsigned int DomainSize):
         mrModelPart(rModelPart),
@@ -96,12 +125,6 @@ namespace Kratos
             for( ModelPart::ElementsContainerType::ptr_iterator itpElem = rModelPart.Elements().ptr_begin();
                  itpElem != rModelPart.Elements().ptr_end(); ++itpElem)
             {
-//                Element::Pointer pNewElem = pReferenceElement->Create(itElem->Id(), itElem->GetGeometry(), itElem->pGetProperties());
-//                pNewElem->GetValue(PATCH_INDEX) = itElem->GetValue(PATCH_INDEX); // Copy the patch index variable, we will need it later
-////                pNewElem->Data() = itElem->Data();
-//                pNewElem->GetValue(C_SMAGORINSKY) = 0.0; // Set the Smagorinsky parameter to zero for the coarse mesh (do this once to reset any input values)
-//                pNewElem->Initialize();
-//                mCoarseMesh.push_back(pNewElem);
                 (*itpElem)->GetValue(C_SMAGORINSKY) = 0.0; // Set the Smagorinsky parameter to zero for the coarse mesh (do this once to reset any input values)
                 mCoarseMesh.push_back(*itpElem);
             }
@@ -144,10 +167,11 @@ namespace Kratos
         }
 
         /// Destructor
-        ~DynamicSmagorinskyUtils()
-        {}
+        ~DynamicSmagorinskyUtils() {}
 
-        /// Operations
+        ///@}
+        ///@name Operations
+        ///@{
 
         /// Provide a value for the Smagorinsky coefficient using the Variational Germano Identity
         void CalculateC()
@@ -306,8 +330,12 @@ namespace Kratos
             }
         }
 
-        // This is just for the bridge analysis problem, to correct the boundary flag after the refinement. Remember to run this AFTER EACH REFINEMENT STEP
-        // Possible values for the variable: 1.0 inlet, 2.0 bridge surface, 3.0 outlet, 0.0 otherwise
+        /// For the bridge analysis problem, correct the boundary flag after the refinement.
+        /**
+         Remember to run this AFTER EACH REFINEMENT STEP
+         Possible values for the variable: 1.0 inlet, 2.0 bridge surface, 3.0 outlet, 0.0 otherwise
+         @param rThisVariable The Kratos variable used to identify the boundary
+         */
         void CorrectFlagValues(Variable<double>& rThisVariable = FLAG_VARIABLE)
         {
             // Loop over coarse mesh to evaluate all terms that do not involve the fine mesh
@@ -360,7 +388,24 @@ namespace Kratos
             }
         }
 
+        ///@}
+
     private:
+
+        ///@name Member Variables
+        ///@{
+
+        /// ModelPart of the fluid problem
+        ModelPart& mrModelPart;
+        /// Spatial dimenstion
+        unsigned int mDomainSize;
+        /// Container for the coarse mesh (the fine mesh is stored by the model part)
+        ModelPart::ElementsContainerType mCoarseMesh;
+        /// A map relating patch indices to positions in the internal storage arrays
+        std::map<int, unsigned int> mPatchIndices;
+
+        ///@name Private Operations
+        ///@{
 
         /// Calculate the "Coarse Mesh" velocity
         /**
@@ -391,6 +436,7 @@ namespace Kratos
             }
         }
 
+        /// Return the Galerkin (+stabilization) and Model terms for this element (2D version)
         void GermanoTerms2D(Element& rElem,
                             array_1d<double,3>& rShapeFunc,
                             boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
@@ -461,6 +507,7 @@ namespace Kratos
             rModel *= Density * sqH * sqrt(SqNorm);
         }
 
+        /// Return the Galerkin (+stabilization) and Model terms for this element (3D version)
         void GermanoTerms3D(Element& rElem,
                             array_1d<double,4>& rShapeFunc,
                             boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
@@ -530,7 +577,7 @@ namespace Kratos
             rModel *= Density * pow(cubeH, 2.0/3.0) * sqrt(SqNorm);
         }
 
-        /// 2D version
+        /// Equivalent to VMS2DSmagorinsky::GetFirstDerivativesVector(), using the velocity evaluated on the coarse mesh
         void GetCoarseVelocity2D(Element& rElement,
                                  Vector& rVar)
         {
@@ -546,7 +593,7 @@ namespace Kratos
             }
         }
 
-        /// 3D version
+        /// Equivalent to VMS3DSmagorinsky::GetFirstDerivativesVector(), using the velocity evaluated on the coarse mesh
         void GetCoarseVelocity3D(Element& rElement,
                                  Vector& rVar)
         {
@@ -563,8 +610,9 @@ namespace Kratos
             }
         }
 
+        /// Call the element's member functions to obtain its residual
         void CalculateResidual(Element& rElement,
-                               Matrix& rMassMatrix, ///@TODO This matrix and the next vector should be transformed to static members once we find a threadsafe way to do so
+                               Matrix& rMassMatrix, ///@todo This matrix and the next vector should be transformed to static members once we find a threadsafe way to do so
                                Vector& rAuxVector,
                                Vector& rResidual,
                                ProcessInfo& rCurrentProcessInfo)
@@ -584,7 +632,7 @@ namespace Kratos
             rElement.CalculateLocalVelocityContribution(rMassMatrix,rResidual,rCurrentProcessInfo); // Note that once we are here, we no longer need the mass matrix
         }
 
-        /// Check if an index is known
+        /// Check if a patch index is known
         void AddNewIndex( std::vector<int>& rIndices,
                           int ThisIndex )
         {
@@ -602,15 +650,15 @@ namespace Kratos
                 rIndices.push_back(ThisIndex);
         }
 
-        /// Data members
-        ModelPart& mrModelPart;
-        unsigned int mDomainSize;
-        ModelPart::ElementsContainerType mCoarseMesh;
-        std::map<int, unsigned int> mPatchIndices;
+        ///@} // Private operations
 
     };
 
-}
+    ///@} Kratos classes
+
+    ///@} Application group
+
+} // namespace Kratos
 
 #endif	/* KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED */
 

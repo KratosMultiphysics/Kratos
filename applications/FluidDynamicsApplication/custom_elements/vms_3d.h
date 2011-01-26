@@ -74,6 +74,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    ///@addtogroup FLuidDynamicsApplication
+    ///@{
+
     ///@name Kratos Globals
     ///@{
 
@@ -339,7 +342,12 @@ namespace Kratos
             }
         }
 
-        /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
+        /// Implementation of GetValueOnIntegrationPoints to obtain double variables (Implemented for TauOne and TauTwo)
+        /**
+         * @param rVariable: Kratos vector variable to compute
+         * @param Output: Values of the variable on integrartion points
+         * @param rCurrentProcessInfo: Process info instance
+         */
         virtual void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
                                                   std::vector<double>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo)
@@ -356,7 +364,7 @@ namespace Kratos
             double KinViscosity;
             GetPointContribution(KinViscosity,VISCOSITY,N);
 
-            CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
+            CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo[DYNAMIC_TAU],rCurrentProcessInfo);
 
             rValues.resize(1);
             if (rVariable == TAUONE)
@@ -525,7 +533,6 @@ namespace Kratos
 
 
     /// input stream function
-
     inline std::istream & operator >>(std::istream& rIStream,
                                       VMS3D& rThis)
     {
@@ -533,7 +540,6 @@ namespace Kratos
     }
 
     /// output stream function
-
     inline std::ostream & operator <<(std::ostream& rOStream,
                                       const VMS3D& rThis)
     {
@@ -543,7 +549,9 @@ namespace Kratos
 
         return rOStream;
     }
-    ///@}
+    ///@} // Input and output
+
+    ///@} // FluidDynamicsApplication Group
 
 
 } // namespace Kratos.
