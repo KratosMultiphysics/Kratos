@@ -156,7 +156,7 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
-        ///Constructors.
+        //Constructors.
 
         /**
          * Default constuctor.

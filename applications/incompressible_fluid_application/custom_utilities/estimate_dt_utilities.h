@@ -98,6 +98,7 @@ namespace Kratos {
         /**
          @param CFL The upper limit for the Courant number
          @param dt_max Maximum admissible time step (upper bound to be used for situations with very low velocity fields)
+         @return A time step value that satisfies the CFL condition for the current mesh and velocity field
          */
         double EstimateDt(double CFL, double dt_max)
         {
