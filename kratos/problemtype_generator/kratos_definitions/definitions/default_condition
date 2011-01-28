@@ -3,7 +3,7 @@ where	*# Nodal Variable blocks
 
 Begin NodalData <NAME>
 *loop nodes *OnlyInCond
-*format "%i%f"
+*format "%i%10.5e"
 *NodesNum 1 *cond(<NAME>)
 *end nodes
 End NodalData
