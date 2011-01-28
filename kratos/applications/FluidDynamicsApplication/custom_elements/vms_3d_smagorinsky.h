@@ -74,7 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    ///@addtogroup FluidDynamicApplication
+    ///@addtogroup FluidDynamicsApplication
     ///@{
 
     ///@name Kratos Globals

@@ -93,6 +93,8 @@ namespace Kratos
       \left( L - D S^{-1} G \right) \, \delta p = r_p - D {S}^{-1} \, r_u
      \f]
      where \f$ S^{-1} \f$ is approximated by \f$ \left( Diag \left( S \right) \right)^{-1} \f$
+     This class is intended to work with ASGS and VMS elements
+     @see ASGS2D, ASGS3D, VMSBase
      */
     template< class TSparseSpace,
 	class TDenseSpace , //= DenseSpace<double>,

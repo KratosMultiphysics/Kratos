@@ -50,6 +50,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED
 
+///@defgroup FluidDynamicsApplication Fluid Dynamics Application
+///@brief Basic set of CFD tools.
+/// The aim of the Fluid Dynamics Application is to implement a basic set of tools
+/// for the solution of Computational Fluid Dynamics (CFD) problems. This application
+/// contains the basics, stable and tested implementations of common CFD techniques that
+/// can be used as a base for extension in other applications.
 
 
 // System includes
@@ -75,6 +81,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+        ///@addtogroup FluidDynamicsApplication
+        ///@{
 
 	///@name Kratos Globals
 	///@{ 
@@ -95,9 +103,7 @@ namespace Kratos
 	///@name Kratos Classes
 	///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
+	/// Main class of the Fluid Dynamics Application
 	class KratosFluidDynamicsApplication : public KratosApplication
 	{
 	public:
@@ -229,10 +235,15 @@ namespace Kratos
 
 		///@} 
 		///@name Member Variables 
-		///@{ 
+		///@{
+
+                /// 2D implementation of the VMS formulation
  		const VMS2D mVMS2D;
+                /// 2D implementation of the VMS formulation with an additional Smagorinsky term
  		const VMS2DSmagorinsky mVMS2DSmagorinsky;
+                /// 3D implementation of the VMS formulation
  		const VMS3D mVMS3D;
+                /// 3D implementation of the VMS formulation with an additional Smagorinsky term
                 const VMS3DSmagorinsky mVMS3DSmagorinsky;
 
 
@@ -271,7 +282,7 @@ namespace Kratos
 
 	}; // Class KratosFluidDynamicsApplication 
 
-	///@} 
+	///@} Kratos classes
 
 
 	///@name Type Definitions       
@@ -282,8 +293,9 @@ namespace Kratos
 	///@name Input and output 
 	///@{ 
 
-	///@} 
+	///@}
 
+        ///@} FluidDynamicsApplication group
 
 }  // namespace Kratos.
 
