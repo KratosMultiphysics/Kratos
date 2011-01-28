@@ -1,5 +1,6 @@
 file	003_problemtype_var.py.bas
 where	# Declare Python Variables
 
+*format "%10.5e"
 <VAR_NAME> = *GenData(<NAME>)
 

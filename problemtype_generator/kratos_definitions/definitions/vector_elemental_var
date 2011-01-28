@@ -13,7 +13,7 @@ where	*# Elemental Variable blocks
 Begin ElementalData <NAME>_X
 *loop nodes *OnlyInCond
 *if(cond(<NAME>_X,int)==1)
-*format "%i%f"
+*format "%i%10.5e"
 *NodesNum *cond(X_Value)
 *endif
 *end nodes
@@ -32,7 +32,7 @@ End ElementalData
 Begin ElementalData <NAME>_Y
 *loop nodes *OnlyInCond
 *if(cond(<NAME>_Y,int)==1)
-*format "%i%f"
+*format "%i%10.5e"
 *NodesNum *cond(Y_Value)
 *endif
 *end nodes
@@ -51,7 +51,7 @@ End ElementalData
 Begin ElementalData <NAME>_Z
 *loop nodes *OnlyInCond
 *if(cond(<NAME>_Z,int)==1)
-*format "%i%f"
+*format "%i%10.5e"
 *NodesNum *cond(Z_Value)
 *endif
 *end nodes

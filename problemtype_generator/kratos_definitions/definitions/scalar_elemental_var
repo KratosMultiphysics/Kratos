@@ -4,7 +4,7 @@ where	*# Elemental Variable blocks
 *if(CondNumEntities > 0)
 Begin ElementalData <NAME>
 *loop elems *OnlyInCond
-*format "%i%f"
+*format "%i%10.5e"
 *ElemsNum *cond(<NAME>)
 *end nodes
 End ElementalData

@@ -13,7 +13,7 @@ where	*# Nodal Variable blocks
 Begin NodalData <NAME>_X
 *loop nodes *OnlyInCond
 *if(cond(<NAME>_X,int)==1)
-*format "%i%i%f"
+*format "%i%i%10.5e"
 *NodesNum *cond(Fix_X) *cond(X_Value)
 *endif
 *end nodes
@@ -32,7 +32,7 @@ End NodalData
 Begin NodalData <NAME>_Y
 *loop nodes *OnlyInCond
 *if(cond(<NAME>_Y,int)==1)
-*format "%i%i%f"
+*format "%i%i%10.5e"
 *NodesNum *cond(Fix_Y) *cond(Y_Value)
 *endif
 *end nodes
@@ -51,7 +51,7 @@ End NodalData
 Begin NodalData <NAME>_Z
 *loop nodes *OnlyInCond
 *if(cond(<NAME>_Z,int)==1)
-*format "%i%i%f"
+*format "%i%i%10.5e"
 *NodesNum *cond(Fix_Z) *cond(Z_Value)
 *endif
 *end nodes
