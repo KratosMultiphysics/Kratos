@@ -729,6 +729,10 @@ namespace Kratos
 	}
 		std::cout << number_of_nodes_read << " nodes read" << std::endl;
 
+	int numer_of_nodes_read = rThisNodes.size();
+	rThisNodes.Unique();
+	if(rThisNodes.size() != numer_of_nodes_read)
+	  std::cout << "attention! we read " << numer_of_nodes_read << " but there are only " << rThisNodes.size() << " non repeated nodes" << std::endl;
 
 	KRATOS_CATCH("")
       }
@@ -923,6 +927,7 @@ namespace Kratos
 
 	}
 	std::cout << number_of_read_elements << " " << element_name << " read" << std::endl;
+	rThisElements.Unique();
 
 	KRATOS_CATCH("")
       }
@@ -980,7 +985,8 @@ namespace Kratos
 	  
 	  rThisConditions.push_back(r_clone_condition.Create(id, temp_condition_nodes, p_temp_properties));
 	}
-
+	rThisConditions.Unique();
+	
 	KRATOS_CATCH("")
       }
 
@@ -1453,6 +1459,8 @@ namespace Kratos
       {
 	KRATOS_TRY
 	
+// 	KRATOS_WATCH("begin reading CommunicatorDataBlock")
+	
 	std::string word;
 	while(true)
 	{
@@ -1482,6 +1490,8 @@ namespace Kratos
 	  }
 	}
 	
+// 	KRATOS_WATCH("finished reading CommunicatorDataBlock")
+	
 	return ;
 	
 	KRATOS_CATCH("")
@@ -1490,6 +1500,8 @@ namespace Kratos
     void ReadCommunicatorLocalNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
       {
 	KRATOS_TRY
+	
+// 	KRATOS_WATCH("begin reading CommunicatorLocalNodesBlock")
 	
 	SizeType interface_id;
 	SizeType node_id;
@@ -1533,14 +1545,15 @@ namespace Kratos
 
 	  ExtractValue(word,node_id);
 	  NodesContainerType::iterator i_node = FindKey(rThisNodes, node_id, "Node");
-	  p_local_mesh->AddNode(*(i_node.base()));
-	  p_interface_mesh->AddNode(*(i_node.base()));
+	  p_local_mesh->Nodes().push_back(*(i_node.base()));
+	  p_interface_mesh->Nodes().push_back(*(i_node.base()));
 	}
 
         p_local_mesh->Nodes().Sort();
         p_interface_mesh->Nodes().Sort();
+// 	KRATOS_WATCH("finished reading CommunicatorLocalNodesBlock")
 	
-	KRATOS_WATCH(rThisCommunicator)
+// 	KRATOS_WATCH(rThisCommunicator)
 	KRATOS_CATCH("")
       }
 
@@ -1548,6 +1561,9 @@ namespace Kratos
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
       {
 	KRATOS_TRY
+	
+// 	KRATOS_WATCH("begin reading CommunicatorGhostNodesBlock")
+
 	
 	SizeType interface_id;
 	SizeType node_id;
@@ -1591,16 +1607,19 @@ namespace Kratos
 
 	  ExtractValue(word,node_id);
 	  NodesContainerType::iterator i_node = FindKey(rThisNodes, node_id, "Node");
-	  p_ghost_mesh->AddNode(*(i_node.base()));
-	  p_interface_mesh->AddNode(*(i_node.base()));
+	  p_ghost_mesh->Nodes().push_back(*(i_node.base()));
+	  p_interface_mesh->Nodes().push_back(*(i_node.base()));
 	}
 
         p_ghost_mesh->Nodes().Sort();
         p_interface_mesh->Nodes().Sort();
 
 	
-	KRATOS_WATCH(rThisCommunicator)
+// 	KRATOS_WATCH(rThisCommunicator)
 	KRATOS_CATCH("")
+	
+// 	KRATOS_WATCH("finished reading CommunicatorGhostNodesBlock")
+
       }
 
 
