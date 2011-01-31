@@ -86,9 +86,10 @@ namespace Kratos
             /**
              * Default constructor
              */
-            MultiLevelSolver(Teuchos::ParameterList& parameter_list, double tol, int nit_max)
+            MultiLevelSolver(Teuchos::ParameterList& aztec_parameter_list, Teuchos::ParameterList& ml_parameter_list, double tol, int nit_max)
 		{
-			mparameter_list = parameter_list;
+			mAztecParameterList = aztec_parameter_list;
+			mMLParameterList = ml_parameter_list;
 			mtol = tol;
 			mmax_iter = nit_max;
 		}
@@ -111,7 +112,7 @@ namespace Kratos
 		KRATOS_TRY
 		Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
 
-		Teuchos::ParameterList MLList;
+/*		Teuchos::ParameterList MLList;
 		ML_Epetra::SetDefaults("SA",MLList);
 		MLList.set("ML output", 10);
 		MLList.set("max levels",6);
@@ -124,15 +125,20 @@ namespace Kratos
 		MLList.set("smoother: pre or post", "both");
 		
 		// create the preconditioner
-		ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(rA, MLList, true);
+		ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(rA, MLList, true);*/
+
+		ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true);
 		
 		// create an AztecOO solver
-		AztecOO Solver(AztecProblem);
+		AztecOO aztec_solver(AztecProblem);
+		aztec_solver.SetParameters(mAztecParameterList);
+		
 		// set preconditioner and solve
-		Solver.SetPrecOperator(MLPrec);
-		Solver.SetAztecOption(AZ_solver, AZ_gmres);
-		Solver.SetAztecOption(AZ_kspace, 200);
-		Solver.Iterate(mmax_iter, 1e-12);
+		aztec_solver.SetPrecOperator(MLPrec);
+/*		Solver.SetAztecOption(AZ_solver, AZ_gmres);
+		Solver.SetAztecOption(AZ_kspace, 200);*/
+
+		aztec_solver.Iterate(mmax_iter, mtol);
 		delete MLPrec;
 
 
@@ -171,8 +177,8 @@ namespace Kratos
             }
         
         private:
-
-	    Teuchos::ParameterList mparameter_list;
+	    Teuchos::ParameterList mAztecParameterList;
+	    Teuchos::ParameterList mMLParameterList;
 	    double mtol;
 	    int mmax_iter;
             
