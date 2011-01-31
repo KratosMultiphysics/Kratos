@@ -71,7 +71,7 @@ alias sources_KratosTrilinosApplication
 
 		#includes for mpi  library
 		/KratosProject//mpilibrary
-		/KratosProject//mpilibrary_cpp
+##		/KratosProject//mpilibrary_cpp
 
 		#includes for trilinos
 		epetra_lib
@@ -84,13 +84,9 @@ alias sources_KratosTrilinosApplication
 #		blas_lib
 #		lapack_lib
 
-		#includes for boost
-		##boost_serialization_lib
-		##boost_mpi_lib
-
 		/KratosProject//libkratos_static
 
-        /KratosProject//libomp
+		/KratosProject//libomp
 
 		/KratosProject//pythonlib
 		/KratosProject//boost_python_lib
