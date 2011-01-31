@@ -172,7 +172,6 @@ int main(int arg, char* argv[])
   //std::cout << std::fixed;
   //std::cout << std::setprecision(5);
    
-   PointVector points;
    std::string filename;
    
    std::list<cl_double4> TPoints;
@@ -233,7 +232,6 @@ int main(int arg, char* argv[])
       return 0;
    }
    
-   PointType point;
    std::size_t npoints;
    std::size_t nTriangles;
    cl_double4 pointdata;
@@ -248,22 +246,16 @@ int main(int arg, char* argv[])
    
   //Load point data into a buffer
   input >> buffer;
-  for(int i = 1;buffer.find("End") == -1;i++)
-  {
-//      input >> pointdata.x;
-//      input >> pointdata.y;
-//      input >> pointdata.z;
-//      pointdata.w = i;
-     
-	input >> KRATOS_CL_4_X(pointdata);
-	input >> KRATOS_CL_4_Y(pointdata);
-	input >> KRATOS_CL_4_Z(pointdata);
-	KRATOS_CL_4_W(pointdata) = i;
-     
+  for(int i = 1;buffer.find("End") == (size_t)-1;i++)
+  {     
+	input >> KRATOS_OCL_4_X(pointdata);
+	input >> KRATOS_OCL_4_Y(pointdata);
+	input >> KRATOS_OCL_4_Z(pointdata);
+	KRATOS_OCL_4_W(pointdata) = i;
+	
      TPoints.push_back(pointdata);
      
      input >> buffer;
-     //std::cout << "Data: ("<< pointdata.w << ") " << pointdata.x << " " << pointdata.y << " " << pointdata.z << " " << std::endl;
    }
    
    npoints = TPoints.size();
@@ -284,54 +276,38 @@ int main(int arg, char* argv[])
    if(mesh2d != -1)
    {
       std::cout << "Loading 2D mesh: " << std::endl;
-      for(int i = 1;buffer.find("End") == -1;i++)
+      for(int i = 1;buffer.find("End") == (size_t)-1;i++)
       {
 	  //Skip 0 value
 	  input >> buffer;
-	
-	  //Load data
-// 	  input >> indexdata.x;
-// 	  input >> indexdata.y;
-// 	  input >> indexdata.z;
-// 	  indexdata.w = -1;
-	  
-	  input >> KRATOS_CL_4_X(indexdata);
-	  input >> KRATOS_CL_4_Y(indexdata);
-	  input >> KRATOS_CL_4_Z(indexdata);
-	  KRATOS_CL_4_W(indexdata) = -1;
-	  
-	  //Tetrahedron 4th index
-	  //input >> pointdata.w;
+
+	  input >> KRATOS_OCL_4_X(indexdata);
+	  input >> KRATOS_OCL_4_Y(indexdata);
+	  input >> KRATOS_OCL_4_Z(indexdata);
+	  KRATOS_OCL_4_W(indexdata) = -1;
 	  
 	  TTriangles.push_back(indexdata);
 	  
 	  input >> buffer;
-	  //std::cout << "TRIANGLE: ("<< pointdata.w << ") " << pointdata.x << " " << pointdata.y << " " << pointdata.z << " " << std::endl;
       }
    }
    else
    {
       std::cout << "Loading 3D mesh: " << std::endl;
-      for(int i = 1;buffer.find("End") == -1;i++)
+      for(int i = 1;buffer.find("End") == (size_t)-1;i++)
       {
 	  //Skip 0 value
 	  input >> buffer;
 	
 	  //Load data
-// 	  input >> indexdata.x;
-// 	  input >> indexdata.y;
-// 	  input >> indexdata.z;
-// 	  input >> indexdata.w;
-	  
-	  input >> KRATOS_CL_4_X(indexdata);
-	  input >> KRATOS_CL_4_Y(indexdata);
-	  input >> KRATOS_CL_4_Z(indexdata);
-	  input >> KRATOS_CL_4_W(indexdata);
+	  input >> KRATOS_OCL_4_X(indexdata);
+	  input >> KRATOS_OCL_4_Y(indexdata);
+	  input >> KRATOS_OCL_4_Z(indexdata);
+	  input >> KRATOS_OCL_4_W(indexdata);
 	  
 	  TTriangles.push_back(indexdata);
 	  
 	  input >> buffer;
-	  //std::cout << "TRIANGLE: " << indexdata.x << " " << indexdata.y << " " << indexdata.z << " " << indexdata.w << std::endl;
       }
    }
    
@@ -348,15 +324,11 @@ int main(int arg, char* argv[])
    {
       PointType auxPoint;
       cl_double4 pointdata = TPoints.front();
-//       auxPoint[0] = pointdata.x;
-//       auxPoint[1] = pointdata.y;
-//       auxPoint[2] = pointdata.z;
-//       auxPoint.id = pointdata.w;
       
-      auxPoint[0] = KRATOS_CL_4_X(pointdata);
-      auxPoint[1] = KRATOS_CL_4_Y(pointdata);
-      auxPoint[2] = KRATOS_CL_4_Z(pointdata);
-      auxPoint.id = KRATOS_CL_4_W(pointdata);
+      auxPoint[0] = KRATOS_OCL_4_X(pointdata);
+      auxPoint[1] = KRATOS_OCL_4_Y(pointdata);
+      auxPoint[2] = KRATOS_OCL_4_Z(pointdata);
+      auxPoint.id = KRATOS_OCL_4_W(pointdata);
       PointsArray[i] = new PointType(auxPoint);
       TPoints.pop_front();
    }
@@ -379,8 +351,15 @@ int main(int arg, char* argv[])
    struct timespec begin;
    struct timespec end;
    
+    Kratos::OpenCL::DeviceGroup OCLDeviceGroup(CL_DEVICE_TYPE_GPU,true,"");
+    std::cout << "Found " << OCLDeviceGroup.DeviceNo << " device(s)." << std::endl;
+    for (cl_uint i = 0; i < OCLDeviceGroup.DeviceNo; i++)
+    {
+	std::cout << "  Device " << i << ": " << Kratos::OpenCL::DeviceTypeString(OCLDeviceGroup.DeviceTypes[i]) << std::endl;
+    }
+   
    clock_gettime( CLOCK_REALTIME, &begin );
-   StaticBinsOCL binOCL(PointsArray,PointsArray+npoints,IndexsArray,nTriangles,sampleSize);
+   StaticBinsOCL binOCL(PointsArray,PointsArray+npoints,IndexsArray,nTriangles,sampleSize,OCLDeviceGroup);
    clock_gettime( CLOCK_REALTIME, &end );
    
    std::cout << "Init bins:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;

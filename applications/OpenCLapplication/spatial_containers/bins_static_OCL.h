@@ -9,29 +9,29 @@
 #if !defined(KRATOS_BINS_OCL_CONTAINER_H_INCLUDE)
 #define KRATOS_BINS_OCL_CONTAINER_H_INCLUDE
 
-#define WORKGROUP_SIZE 128
-
 #if defined( __GNUC__) && ! defined( __STRICT_ANSI__ )
-#define KRATOS_CL_4_ARRAY_X(Arr,p) (Arr[p].x)
-#define KRATOS_CL_4_ARRAY_Y(Arr,p) (Arr[p].y)
-#define KRATOS_CL_4_ARRAY_Z(Arr,p) (Arr[p].z)
-#define KRATOS_CL_4_ARRAY_W(Arr,p) (Arr[p].w)
+#define KRATOS_OCL_4_ARRAY_X(Arr,p) 	(Arr[p].x)
+#define KRATOS_OCL_4_ARRAY_Y(Arr,p) 	(Arr[p].y)
+#define KRATOS_OCL_4_ARRAY_Z(Arr,p) 	(Arr[p].z)
+#define KRATOS_OCL_4_ARRAY_W(Arr,p) 	(Arr[p].w)
 
-#define KRATOS_CL_4_X(Arr) (Arr.x)
-#define KRATOS_CL_4_Y(Arr) (Arr.y)
-#define KRATOS_CL_4_Z(Arr) (Arr.z)
-#define KRATOS_CL_4_W(Arr) (Arr.w)
+#define KRATOS_OCL_4_X(Arr) 		(Arr.x)
+#define KRATOS_OCL_4_Y(Arr)		(Arr.y)
+#define KRATOS_OCL_4_Z(Arr)		(Arr.z)
+#define KRATOS_OCL_4_W(Arr)		(Arr.w)
 #else
-#define KRATOS_CL_4_ARRAY_X(Arr,p) (Arr[p].s[0])
-#define KRATOS_CL_4_ARRAY_Y(Arr,p) (Arr[p].s[1])
-#define KRATOS_CL_4_ARRAY_Z(Arr,p) (Arr[p].s[2])
-#define KRATOS_CL_4_ARRAY_W(Arr,p) (Arr[p].s[3])
+#define KRATOS_OCL_4_ARRAY_X(Arr,p) 	(Arr[p].s[0])
+#define KRATOS_OCL_4_ARRAY_Y(Arr,p)	(Arr[p].s[1])
+#define KRATOS_OCL_4_ARRAY_Z(Arr,p) 	(Arr[p].s[2])
+#define KRATOS_OCL_4_ARRAY_W(Arr,p) 	(Arr[p].s[3])
 
-#define KRATOS_CL_4_X(Arr) (Arr.s[0])
-#define KRATOS_CL_4_Y(Arr) (Arr.s[1])
-#define KRATOS_CL_4_Z(Arr) (Arr.s[2])
-#define KRATOS_CL_4_W(Arr) (Arr.s[3])
+#define KRATOS_OCL_4_X(Arr) 		(Arr.s[0])
+#define KRATOS_OCL_4_Y(Arr) 		(Arr.s[1])
+#define KRATOS_OCL_4_Z(Arr) 		(Arr.s[2])
+#define KRATOS_OCL_4_W(Arr) 		(Arr.s[3])
 #endif
+
+#define WORKGROUP_SIZE 			 512
 
 #include "../../../kratos/spatial_containers/tree.h"
 #include "../custom_utilities/opencl_interface.h"
@@ -101,8 +101,8 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 
 	//************************************************************************
 
-	BinsOCL( IteratorType const& PointBegin, IteratorType const& PointEnd, SizeType BucketSize = 1 )
-	    : mPointBegin(PointBegin), mPointEnd(PointEnd)
+	BinsOCL( IteratorType const& PointBegin, IteratorType const& PointEnd, OpenCL::DeviceGroup &DeviceGroup, SizeType BucketSize = 1 )
+	    : OCLDeviceGroup(DeviceGroup), mPointBegin(PointBegin), mPointEnd(PointEnd)
 	{
 	    if(mPointBegin==mPointEnd)
 		return;
@@ -120,8 +120,8 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 
 	//************************************************************************
 	 
-	BinsOCL( IteratorType const& PointBegin, IteratorType const& PointEnd, cl_int4 * const& indexArray, int TSize, int sampleSize, SizeType BucketSize = 1 )
-	    : mPointBegin(PointBegin), mPointEnd(PointEnd)
+	BinsOCL( IteratorType const& PointBegin, IteratorType const& PointEnd, cl_int4 * const& indexArray, int TSize, int sampleSize, OpenCL::DeviceGroup &DeviceGroup, SizeType BucketSize = 1 )
+	    : OCLDeviceGroup(DeviceGroup), mPointBegin(PointBegin), mPointEnd(PointEnd)
 	{
 	    if(mPointBegin==mPointEnd)
 		return;
@@ -164,56 +164,54 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	{
 	    int numReps = 1;
 	    
-	    mProblemSize = newSize * newSize * numReps;
-	    pointsToSearch = new cl_double4[mProblemSize];
+	    mProblemSize = newSize * newSize * newSize;
+ 	    pointsToSearch = (cl_double4*)malloc(mProblemSize*sizeof(cl_double4));
+	    std::cout << pointsToSearch << std::endl;
 	    
-	    
-	    int index = 0;
+	    uint index = 0;
 	    for(int rep = 0; rep < numReps; rep++)
 	    {
-// 	      	double baseX = -0.98600;
-// 		double baseY = -0.98500;
-// 		double incX = (1.9940 + 0.99600) / newSize;
-// 		double incY = (0.99518 + 0.99500) / newSize;
-
-	      	double baseX = 0.01f;
-		double baseY = 0.01f;
-		double incX = (0.995f - 0.01f) / newSize;
-		double incY = (0.995f - 0.01f) / newSize;
+	      	double baseX = 0.0000025f;
+		double baseY = 0.000005f;
+		double baseZ = 0.0000025f;
+		double incX = (0.0009975f - 0.0000025f) / newSize;
+		double incY = (0.0009975f - 0.000005f) / newSize;
+		double incZ = (0.000995f - 0.0000025f) / newSize;
 
 		double X = baseX;
 		double Y = baseY;
-// 		for(int i = 0; X < 1.9940f; i++)
-		for(int i = 0; X < 0.995f; i++)
+		double Z = baseZ;
+
+		for(int k = 0; Z < 0.000995; k++)
 		{
-		    Y = baseY;
-// 		    for(int j = 0; Y < 0.99518f; j++)
-		    for(int j = 0; Y < 0.995f; j++)
+		    X = baseX;
+		    for(int i = 0; X < 0.0009975f; i++)
 		    {
-			//for(int k = 0; k < mProblemSize; k++)
-			//{
-			if(index == 0){
-
-			    KRATOS_CL_4_ARRAY_X(pointsToSearch,index) = baseX;
-			    KRATOS_CL_4_ARRAY_Y(pointsToSearch,index) = baseY;
-// 			    KRATOS_CL_4_ARRAY_Z(pointsToSearch,index) = 0.0003f;
-			    KRATOS_CL_4_ARRAY_Z(pointsToSearch,index) = 0;
-			    KRATOS_CL_4_ARRAY_W(pointsToSearch,index) = baseY; //Test pointsToSearch merged with uVector
-			    index++;
-			} else 
+			Y = baseY;
+			for(int j = 0; Y < 0.0009975f; j++)
 			{
-
-			    KRATOS_CL_4_ARRAY_X(pointsToSearch,index) = X;
-			    KRATOS_CL_4_ARRAY_Y(pointsToSearch,index) = Y;
-// 			    KRATOS_CL_4_ARRAY_Z(pointsToSearch,index) = 0.0003f;
-			    KRATOS_CL_4_ARRAY_Z(pointsToSearch,index) = 0;
-			    KRATOS_CL_4_ARRAY_W(pointsToSearch,index) = Y; //Test pointsToSearch merged with uVector
-			    index++;
+			    if(!(index < mProblemSize ))
+			      return;
+			    
+			    if(index == 0){
+				KRATOS_OCL_4_ARRAY_X(pointsToSearch,index) = baseX;
+				KRATOS_OCL_4_ARRAY_Y(pointsToSearch,index) = baseY;
+				KRATOS_OCL_4_ARRAY_Z(pointsToSearch,index) = baseZ;
+				KRATOS_OCL_4_ARRAY_W(pointsToSearch,index) = baseY;
+				index++;
+			    } else 
+			    {
+				KRATOS_OCL_4_ARRAY_X(pointsToSearch,index) = X;
+				KRATOS_OCL_4_ARRAY_Y(pointsToSearch,index) = Y;
+				KRATOS_OCL_4_ARRAY_Z(pointsToSearch,index) = Z;
+				KRATOS_OCL_4_ARRAY_W(pointsToSearch,index) = Y;
+				index++;
+			    }
+			    Y += incY;
 			}
-			Y += incY;
-			//}
+			X += incX;
 		    }
-		    X += incX;
+		    Z += incZ;
 		}
 	    }
 	    
@@ -229,21 +227,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
      
 	void InitOCL() 
 	{
-	   
-	   //"Advanced Micro Devices, Inc."
-	   //"NVIDIA Corporation"
-	   
-	    OCLDeviceGroup = new Kratos::OpenCL::DeviceGroup(CL_DEVICE_TYPE_GPU,true,"");
-	    std::cout << "Found " << OCLDeviceGroup->DeviceNo << " device(s)." << std::endl;
-	    for (cl_uint i = 0; i < OCLDeviceGroup->DeviceNo; i++)
-	    {
-		std::cout << "  Device " << i << ": " << Kratos::OpenCL::DeviceTypeString(OCLDeviceGroup->DeviceTypes[i]) << std::endl;
-	    }
-	    
-	    char params[512] = "";
-	    sprintf(params,"-D POINT_SIZE=%d -D TDIMENSION=%Zu -D CELL_SIZE=%d -D WORKGROUP_SIZE=%d",mTriangleSize ? mTriangleSize : mPointSize,TDimension,mCellSizeInt+1,WORKGROUP_SIZE);
-	      
-	    OCL_program = OCLDeviceGroup->BuildProgramFromFile("binshashOPT.cl",params);  
+	   OCL_program = OCLDeviceGroup.BuildProgramFromFile("binshashOPT.cl","-D WORKGROUP_SIZE=512"); 
 	}
 	 
 	//************************************************************************
@@ -254,20 +238,17 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	    IteratorType Point = mPointBegin;
 	    PointType a,b,c,d,r;
 
- 	    a = (**(Point = mPointBegin + KRATOS_CL_4_X(index4)-1));
- 	    b = (**(Point = mPointBegin + KRATOS_CL_4_Y(index4)-1));
- 	    c = (**(Point = mPointBegin + KRATOS_CL_4_Z(index4)-1));
+ 	    a = (**(Point = mPointBegin + KRATOS_OCL_4_X(index4)-1));
+ 	    b = (**(Point = mPointBegin + KRATOS_OCL_4_Y(index4)-1));
+ 	    c = (**(Point = mPointBegin + KRATOS_OCL_4_Z(index4)-1));
 	    
 	    //3D
-// 	    if(index4.w > 0)
-
-	    if(KRATOS_CL_4_W(index4) > 0)
+	    if(KRATOS_OCL_4_W(index4) > 0)
 	    {	
-// 		d = (**(Point = mPointBegin + index4.w-1));
 
-		d = (**(Point = mPointBegin + KRATOS_CL_4_W(index4)-1));
+		d = (**(Point = mPointBegin + KRATOS_OCL_4_W(index4)-1));
 		
-		for(int i = 0; i < TDimension; i++)
+		for(SizeType i = 0; i < TDimension; i++)
 		{
 		  r[i] = (a[i] + b[i] + c[i] + d[i]) / 4; // * 0.25f ? 
 		}
@@ -275,7 +256,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	    //2D
 	    else
 	    {
-		for(int i = 0; i < TDimension; i++)
+		for(SizeType i = 0; i < TDimension; i++)
 		{
 		    r[i] = (a[i] + b[i] + c[i]) / 3; // * 0.33333333333333334f ? 
 		}
@@ -335,7 +316,6 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 		    if( barycenter[i] < mMinPoint[i] ) mMinPoint[i] = barycenter[i];
 		    if( barycenter[i] > mMaxPoint[i] ) mMaxPoint[i] = barycenter[i];
 		}
-		//std::cout << "BarycenterPoint: " << barycenter << std::endl;
 		mBaryCenters[j] = barycenter;
 		mBaryCenters[j].id = j;
 		
@@ -448,41 +428,46 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	    clock_gettime( CLOCK_REALTIME, &end );
 	   
     	    clock_gettime( CLOCK_REALTIME, &begin );
-	    OCLGenerateBinsA      = OCLDeviceGroup->RegisterKernel(OCL_program,"GenerateBinsA");
-	    OCLGenerateBinsB1     = OCLDeviceGroup->RegisterKernel(OCL_program,"scanExclusiveLocal1");
-	    OCLGenerateBinsB2     = OCLDeviceGroup->RegisterKernel(OCL_program,"scanExclusiveLocal2");
-	    OCLGenerateBinsB3  	  = OCLDeviceGroup->RegisterKernel(OCL_program,"uniformUpdate");
-	    OCLGenerateBinsC      = OCLDeviceGroup->RegisterKernel(OCL_program,"GenerateBinsC");
-	    OCLSearchInRadius     = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchInRadiusMultiple");
-	    OCLSearchTriangles   = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchTriangle2D");
-// 	    OCLSearchTrianglesB   = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchTriangle3DB");
-	    OCLSearchNearest      = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchNearestMultiple");
-	    OCLSearchNearestCubic = OCLDeviceGroup->RegisterKernel(OCL_program,"SearchNearestMultipleCubic");
+	    OCLGenerateBinsA      = OCLDeviceGroup.RegisterKernel(OCL_program,"GenerateBinsA");
+	    OCLGenerateBinsB1     = OCLDeviceGroup.RegisterKernel(OCL_program,"scanExclusiveLocal1");
+	    OCLGenerateBinsB2     = OCLDeviceGroup.RegisterKernel(OCL_program,"scanExclusiveLocal2");
+	    OCLGenerateBinsB3  	  = OCLDeviceGroup.RegisterKernel(OCL_program,"uniformUpdate");
+	    OCLGenerateBinsC      = OCLDeviceGroup.RegisterKernel(OCL_program,"GenerateBinsC");
+	    OCLSearchInRadius     = OCLDeviceGroup.RegisterKernel(OCL_program,"SearchInRadiusMultiple");
+	    OCLSearchTriangles    = OCLDeviceGroup.RegisterKernel(OCL_program,"SearchTriangle3D");
+	    OCLSearchNearest      = OCLDeviceGroup.RegisterKernel(OCL_program,"SearchNearestMultiple");
+	    OCLSearchNearestCubic = OCLDeviceGroup.RegisterKernel(OCL_program,"SearchNearestMultipleCubic");
 	    clock_gettime( CLOCK_REALTIME, &end );
 	    
 	    std::cout << "Kernel Reg:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 	    
-	    int partialReduction = 0;
 	    int Offset = 0;
-	    int PowSize = 1;
+	    int ArrayLenght = 1;
 	    int pr = 0;
 	    
-	    while(PowSize < mCellSizeInt+1)
-		PowSize <<= 1;
-	    
-	    std::cout << "POW:\t\t" << PowSize << std::endl;
+	    while(ArrayLenght < mCellSizeInt+1)
+		ArrayLenght <<= 1;
 	    
 	    cl_double4 * BinsContainer;
 	    cl_double4 * PointsBins;
 	    cl_double4 * MinPoint      = new cl_double4();
 	    
-	    int * IndexCellReference   = (int *)malloc( (PowSize) * sizeof(int) );
-	    int * IndexCellReferenceO  = (int *)malloc( (PowSize) * sizeof(int) );
+	    uint * IndexCellReference   = (uint *)malloc(sizeof(uint) * ArrayLenght);
+	    uint * IndexCellReferenceO  = (uint *)malloc(sizeof(uint) * ArrayLenght);
 	    
 	    double InvCellSize[TDimension];
 	    double N[TDimension];
 	        	    
 	    clock_gettime( CLOCK_REALTIME, &begin );
+	    OCL_IndexCellReference = OCLDeviceGroup.CreateBuffer(sizeof(cl_uint4) * ArrayLenght / 4, CL_MEM_READ_WRITE); //Try to copy as int4
+	    OCL_IndexCellReferenceO= OCLDeviceGroup.CreateBuffer(sizeof(cl_uint4) * ArrayLenght / 4, CL_MEM_READ_WRITE); //Try to copy as int4
+	    OCL_InvCellSize        = OCLDeviceGroup.CreateBuffer(sizeof(double) * TDimension, CL_MEM_READ_ONLY);
+	    OCL_N                  = OCLDeviceGroup.CreateBuffer(sizeof(double) * TDimension, CL_MEM_READ_ONLY);
+	    OCL_MinPoint           = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4), CL_MEM_READ_ONLY);
+	    OCL_Offset             = OCLDeviceGroup.CreateBuffer(sizeof(int), CL_MEM_READ_ONLY);
+	    OCL_PartialReduction   = OCLDeviceGroup.CreateBuffer(sizeof(int), CL_MEM_READ_WRITE);   
+	    OCL_amount 	           = OCLDeviceGroup.CreateBuffer(sizeof(int), CL_MEM_READ_ONLY);
+	    OCL_Scan_Buffer	   = OCLDeviceGroup.CreateBuffer(sizeof(int) * (ArrayLenght * 64) / (4 * WORKGROUP_SIZE), CL_MEM_READ_WRITE);
 	    
 	    if(mTriangleSize)
 	    {
@@ -490,13 +475,15 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	        PointsBins    = (cl_double4 *)malloc(mTriangleSize * sizeof(cl_double4));
 		for(int i = 0; i < mTriangleSize; i++)
 		{ 
-		    KRATOS_CL_4_ARRAY_X(PointsBins,i) = mBaryCenters[i][0];
-		    KRATOS_CL_4_ARRAY_Y(PointsBins,i) = mBaryCenters[i][1];
-		    KRATOS_CL_4_ARRAY_Z(PointsBins,i) = mBaryCenters[i][2];
-		    KRATOS_CL_4_ARRAY_W(PointsBins,i) = mBaryCenters[i].id;
+		    KRATOS_OCL_4_ARRAY_X(PointsBins,i) = mBaryCenters[i][0];
+		    KRATOS_OCL_4_ARRAY_Y(PointsBins,i) = mBaryCenters[i][1];
+		    KRATOS_OCL_4_ARRAY_Z(PointsBins,i) = mBaryCenters[i][2];
+		    KRATOS_OCL_4_ARRAY_W(PointsBins,i) = mBaryCenters[i].id;
 		}
-		OCL_PointsBins         = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * mTriangleSize, CL_MEM_READ_ONLY);
-		OCL_BinsContainer      = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * mTriangleSize, CL_MEM_READ_WRITE);
+		OCL_PointsBins         = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mTriangleSize, CL_MEM_READ_ONLY);
+		OCL_BinsContainer      = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mTriangleSize, CL_MEM_READ_WRITE);
+		
+		OCLDeviceGroup.CopyBuffer(OCL_amount, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mTriangleSize));
 	    }
 	    else
 	    {
@@ -505,24 +492,26 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 		for( IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
 		{
 		    static int k = 0;	    
-		    KRATOS_CL_4_ARRAY_X(PointsBins,k) = (**Point)[0];
-		    KRATOS_CL_4_ARRAY_Y(PointsBins,k) = (**Point)[1];
-		    KRATOS_CL_4_ARRAY_Z(PointsBins,k) = (**Point)[2];
-		    KRATOS_CL_4_ARRAY_W(PointsBins,k) = (**Point).id;
+		    KRATOS_OCL_4_ARRAY_X(PointsBins,k) = (**Point)[0];
+		    KRATOS_OCL_4_ARRAY_Y(PointsBins,k) = (**Point)[1];
+		    KRATOS_OCL_4_ARRAY_Z(PointsBins,k) = (**Point)[2];
+		    KRATOS_OCL_4_ARRAY_W(PointsBins,k) = (**Point).id;
 		    k++;
 		}
-		OCL_PointsBins         = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * mPointSize, CL_MEM_READ_ONLY);
-		OCL_BinsContainer      = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * mPointSize, CL_MEM_READ_WRITE);
+		OCL_PointsBins         = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mPointSize, CL_MEM_READ_ONLY);
+		OCL_BinsContainer      = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mPointSize, CL_MEM_READ_WRITE);
+		
+		OCLDeviceGroup.CopyBuffer(OCL_amount, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mPointSize));
 	    }
 
-	    KRATOS_CL_4_X(MinPoint[0]) = mMinPoint[0];
-	    KRATOS_CL_4_Y(MinPoint[0]) = mMinPoint[1];
-	    KRATOS_CL_4_Z(MinPoint[0]) = mMinPoint[2];
+	    KRATOS_OCL_4_X(MinPoint[0]) = mMinPoint[0];
+	    KRATOS_OCL_4_Y(MinPoint[0]) = mMinPoint[1];
+	    KRATOS_OCL_4_Z(MinPoint[0]) = mMinPoint[2];
 	    
-	    for(int i = 0; i < PowSize; i++)
+	    for(int i = 0; i < ArrayLenght; i++)
 		IndexCellReference[i] = 0;
 	    
-	    for(int i = 0; i < TDimension; i++) 
+	    for(SizeType i = 0; i < TDimension; i++) 
 	    {
 		InvCellSize[i] = mInvCellSize[i];
 		N[i] = mN[i];
@@ -532,40 +521,32 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	    std::cout << "Var filling:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 	    
 	    std::cout << "mProblemSize: " << mProblemSize << std::endl;
-	    OCL_IndexCellReference = OCLDeviceGroup->CreateBuffer(sizeof(int) * PowSize, CL_MEM_READ_WRITE);
-	    OCL_IndexCellReferenceO= OCLDeviceGroup->CreateBuffer(sizeof(int) * PowSize, CL_MEM_READ_WRITE);
-	    OCL_IndexCellReferenceU= OCLDeviceGroup->CreateBuffer(sizeof(int) * PowSize, CL_MEM_READ_WRITE);
-	    OCL_InvCellSize        = OCLDeviceGroup->CreateBuffer(sizeof(double) * TDimension, CL_MEM_READ_ONLY);
-	    OCL_N                  = OCLDeviceGroup->CreateBuffer(sizeof(double) * TDimension, CL_MEM_READ_ONLY);
-	    OCL_MinPoint           = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4), CL_MEM_READ_ONLY);
-	    OCL_PowSize            = OCLDeviceGroup->CreateBuffer(sizeof(int), CL_MEM_READ_ONLY);
-	    OCL_Offset             = OCLDeviceGroup->CreateBuffer(sizeof(int), CL_MEM_READ_ONLY);
-	    OCL_PartialReduction   = OCLDeviceGroup->CreateBuffer(sizeof(int), CL_MEM_READ_WRITE);
+	    std::cout << "ArrayLenght: " << ArrayLenght << std::endl;
 	    
-	    OCLDeviceGroup->CopyBuffer(OCL_PointsBins        , OpenCL::HostToDevice, OpenCL::VoidPList(1,PointsBins));
-	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReference, OpenCL::HostToDevice, OpenCL::VoidPList(1,IndexCellReference));
-	    OCLDeviceGroup->CopyBuffer(OCL_InvCellSize	     , OpenCL::HostToDevice, OpenCL::VoidPList(1,InvCellSize));
-	    OCLDeviceGroup->CopyBuffer(OCL_N                 , OpenCL::HostToDevice, OpenCL::VoidPList(1,N));
-	    OCLDeviceGroup->CopyBuffer(OCL_MinPoint          , OpenCL::HostToDevice, OpenCL::VoidPList(1,MinPoint));
-// 	    OCLDeviceGroup->CopyBuffer(OCL_PowSize           , OpenCL::HostToDevice, OpenCL::VoidPList(1,&wiz));
-	    OCLDeviceGroup->CopyBuffer(OCL_Offset            , OpenCL::HostToDevice, OpenCL::VoidPList(1,&Offset));
-	    OCLDeviceGroup->CopyBuffer(OCL_PartialReduction  , OpenCL::HostToDevice, OpenCL::VoidPList(1,&pr));
+	    OCLDeviceGroup.CopyBuffer(OCL_PointsBins        , OpenCL::HostToDevice, OpenCL::VoidPList(1,PointsBins));
+	    OCLDeviceGroup.CopyBuffer(OCL_IndexCellReference, OpenCL::HostToDevice, OpenCL::VoidPList(1,IndexCellReference));
+	    OCLDeviceGroup.CopyBuffer(OCL_InvCellSize	    , OpenCL::HostToDevice, OpenCL::VoidPList(1,InvCellSize));
+	    OCLDeviceGroup.CopyBuffer(OCL_N                 , OpenCL::HostToDevice, OpenCL::VoidPList(1,N));
+	    OCLDeviceGroup.CopyBuffer(OCL_MinPoint          , OpenCL::HostToDevice, OpenCL::VoidPList(1,MinPoint));
+	    OCLDeviceGroup.CopyBuffer(OCL_Offset            , OpenCL::HostToDevice, OpenCL::VoidPList(1,&Offset));
+	    OCLDeviceGroup.CopyBuffer(OCL_PartialReduction  , OpenCL::HostToDevice, OpenCL::VoidPList(1,&pr));
 	
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsA, 0,  OCL_PointsBins);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsA, 1,  OCL_IndexCellReference);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsA, 2,  OCL_InvCellSize);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsA, 3,  OCL_N);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsA, 4,  OCL_MinPoint);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsA, 0,  OCL_PointsBins);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsA, 1,  OCL_IndexCellReference);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsA, 2,  OCL_InvCellSize);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsA, 3,  OCL_N);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsA, 4,  OCL_MinPoint);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsA, 5,  OCL_amount);
 	    
 	    clock_gettime( CLOCK_REALTIME, &begin );
-	    OCLDeviceGroup->ExecuteKernel(OCLGenerateBinsA, mTriangleSize ? mTriangleSize : mPointSize);
+	    OCLDeviceGroup.ExecuteKernel(OCLGenerateBinsA, mTriangleSize ? mTriangleSize : mPointSize);
 	    clock_gettime( CLOCK_REALTIME, &end );
 	    
 	    std::cout << "KERNEL A EXECUTED:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 	    
-	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReference, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReference));
+	    OCLDeviceGroup.CopyBuffer(OCL_IndexCellReference, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReference));
 	    /*
-	    for(int i = 0; i < PowSize; i++) 
+	    for(int i = 0; i < ArrayLenght; i++) 
 	    {
 	      std::cout << "IndexCellRe " << i << "  " << IndexCellReference[i] << std::endl;
 	    }
@@ -573,93 +554,82 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	    */
 	    
 	     //SERIAL VERSION
-	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReference, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
-	    for(int i = 1; i < mCellSizeInt+1; i++)
-	    {
-	        IndexCellReferenceO[i]+=IndexCellReferenceO[i-1];
-	    }
-	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReferenceO, OpenCL::HostToDevice, OpenCL::VoidPList(1,IndexCellReferenceO));
+// 	    OCLDeviceGroup.CopyBuffer(OCL_IndexCellReference, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
+// 	    for(int i = 1; i < mCellSizeInt+1; i++)
+// 	    {
+// 	        IndexCellReferenceO[i]+=IndexCellReferenceO[i-1];
+// 	    }
+// 	    OCLDeviceGroup.CopyBuffer(OCL_IndexCellReferenceO, OpenCL::HostToDevice, OpenCL::VoidPList(1,IndexCellReferenceO));
 	    
 	    //PARALLEL VERSION
 	    
-// 	    int aux = 4 * WORKGROUP_SIZE;
-// 	    OCLDeviceGroup->CopyBuffer(OCL_PowSize, OpenCL::HostToDevice, OpenCL::VoidPList(1,&aux));
-// 	        	    
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB1, 0, OCL_IndexCellReferenceO);
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB1, 1, OCL_IndexCellReference);
-// 	    OCLDeviceGroup->SetLocalMemAsKernelArg(OCLGenerateBinsB1, 2, 2 * WORKGROUP_SIZE * sizeof(int));
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB1, 3, OCL_PowSize);
-// 	    
-// 	    clock_gettime( CLOCK_REALTIME, &begin );
-// 	    
-// 	    OCLDeviceGroup->ExecuteKernel(OCLGenerateBinsB1, PowSize / 4);
-// 	    std::cout << "KERNEL B1 EXECUTED:\t\t" << std::endl;
-// 	     
-// 	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReferenceO, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
-// // 	    for(int i = 0; i < PowSize; i++) {
-// // 	      std::cout << "IndexCellReB1 " << i << "  " << IndexCellReferenceO[i] << std::endl;
-// // 	    } 
-// // 	    std::cout << "------------------" << std::endl;
-// 	    
-// 	    aux = (8 * WORKGROUP_SIZE) / (4 * WORKGROUP_SIZE);
-// 	    OCLDeviceGroup->CopyBuffer(OCL_PowSize, OpenCL::HostToDevice, OpenCL::VoidPList(1,&aux));
-// 	    
-// 	    aux = (PowSize / (8 * WORKGROUP_SIZE)) * ((8 * WORKGROUP_SIZE) / (4 * WORKGROUP_SIZE));
-// 	    OCLDeviceGroup->CopyBuffer(OCL_Offset, OpenCL::HostToDevice, OpenCL::VoidPList(1,&aux));
-// 	    
-//             OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB2, 0, OCL_IndexCellReferenceU);
-//     	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB2, 1, OCL_IndexCellReferenceO);
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB2, 2, OCL_IndexCellReference);
-// 	    OCLDeviceGroup->SetLocalMemAsKernelArg(OCLGenerateBinsB2, 3, 2 * WORKGROUP_SIZE * sizeof(int));
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB2, 4, OCL_Offset);
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB2, 5, OCL_PowSize);
-// 	    
-// 	    aux = ((aux % WORKGROUP_SIZE) == 0) ? aux : (aux - aux % WORKGROUP_SIZE + WORKGROUP_SIZE);
-// 	    
-// 	    OCLDeviceGroup->ExecuteKernel(OCLGenerateBinsB2, aux);
-// 	    std::cout << "KERNEL B2 EXECUTED:\t\t" << std::endl;
-// 	    
-// 	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReferenceO, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
-// // 	    for(int i = 0; i < PowSize; i++) {
-// // 	      std::cout << "IndexCellReB2 " << i << "  " << IndexCellReferenceO[i] << std::endl;
-// // 	    } 
-// // 	    std::cout << "------------------" << std::endl;
-// 	    
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB3, 0, OCL_IndexCellReferenceO);
-// 	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsB3, 1, OCL_IndexCellReferenceU);
-// 	    
-// 	    OCLDeviceGroup->ExecuteKernel(OCLGenerateBinsB3, (PowSize / (4 * WORKGROUP_SIZE)) * WORKGROUP_SIZE);
-// 	    std::cout << "KERNEL B3 EXECUTED:\t\t" << std::endl;
-// 	    
-// 	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReferenceO, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
-// // 	    for(int i = 0; i < PowSize; i++) {
-// // 	      std::cout << "IndexCellReB3 " << i << "  " << IndexCellReferenceO[i] << std::endl;
-// // 	    }
-// // 	    std::cout << "------------------" << std::endl;
-// 	    
-// 	    clock_gettime( CLOCK_REALTIME, &end );
-	    
-	    
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsC, 0,  OCL_PointsBins);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsC, 1,  OCL_IndexCellReferenceO);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsC, 2,  OCL_InvCellSize);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsC, 3,  OCL_N);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsC, 4,  OCL_MinPoint);
-	    OCLDeviceGroup->SetBufferAsKernelArg(OCLGenerateBinsC, 5,  OCL_BinsContainer);   
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsB1, 0, OCL_IndexCellReferenceO); 		//Dest
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsB1, 1, OCL_IndexCellReference);  		//Src
+	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLGenerateBinsB1, 2, sizeof(uint) * WORKGROUP_SIZE * 2);		//Local mem
+	    OCLDeviceGroup.SetKernelArg(OCLGenerateBinsB1, 3, 4 * WORKGROUP_SIZE);
 	    
 	    clock_gettime( CLOCK_REALTIME, &begin );
-	    OCLDeviceGroup->ExecuteKernel(OCLGenerateBinsC, mTriangleSize ? mTriangleSize : mPointSize);
+	    OCLDeviceGroup.ExecuteKernel(OCLGenerateBinsB1, ArrayLenght / 4);
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    std::cout << "KERNEL B1 EXECUTED:\t\t" << std::endl;
+	    
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsB2, 0, OCL_Scan_Buffer); 			//This buffer stores the total sum of each block.
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsB2, 1, OCL_IndexCellReferenceO); 		//Dest
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsB2, 2, OCL_IndexCellReference);  		//Src
+	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLGenerateBinsB2, 3, sizeof(uint) * WORKGROUP_SIZE * 2);	        //Local mem
+	    OCLDeviceGroup.SetKernelArg(OCLGenerateBinsB2, 4, ArrayLenght / (4 * WORKGROUP_SIZE) );		//Size of each block (must be < 512)
+	    OCLDeviceGroup.SetKernelArg(OCLGenerateBinsB2, 5, (WORKGROUP_SIZE*WORKGROUP_SIZE) / (4 * WORKGROUP_SIZE ));	//Size of array to reduce
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
+	    OCLDeviceGroup.ExecuteKernel(OCLGenerateBinsB2, ArrayLenght / (4 * WORKGROUP_SIZE) );		//Size of the array / 4 (int4)
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    std::cout << "KERNEL B2 EXECUTED:\t\t" << std::endl; 
+
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsB3, 0, OCL_IndexCellReferenceO);			//The array with N blocks reduced
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsB3, 1, OCL_Scan_Buffer);				//The array with total sums of each block
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
+	    OCLDeviceGroup.ExecuteKernel(OCLGenerateBinsB3, ArrayLenght / 4);
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    std::cout << "KERNEL B3 EXECUTED:\t\t" << std::endl;
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    
+// 	    int * buff = (int *)malloc(sizeof(int) * (ArrayLenght * 64) / (4 * WORKGROUP_SIZE));
+// 	    
+// 	    OCLDeviceGroup.CopyBuffer(OCL_Scan_Buffer, OpenCL::DeviceToHost, OpenCL::VoidPList(1,buff));
+// 	    for(int i = 0; i < (ArrayLenght * 64) / (4 * WORKGROUP_SIZE); i++)
+// 	    {
+// 	      std::cout << "BuffI " << i << "  " << buff[i] << std::endl;
+// 	    }
+// 	    
+// 	    OCLDeviceGroup.CopyBuffer(OCL_IndexCellReferenceO, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
+// 	    for(int i = 0; i < ArrayLenght; i++) {
+// 	      std::cout << "IndexCellReB3 " << i << "  " << IndexCellReferenceO[i] << std::endl;
+// 	    }
+// 	    std::cout << "------------------" << std::endl;
+// 	    abort();	
+	    
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsC, 0,  OCL_PointsBins);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsC, 1,  OCL_IndexCellReferenceO);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsC, 2,  OCL_InvCellSize);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsC, 3,  OCL_N);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsC, 4,  OCL_MinPoint);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsC, 5,  OCL_BinsContainer);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLGenerateBinsC, 6,  OCL_amount);
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
+	    OCLDeviceGroup.ExecuteKernel(OCLGenerateBinsC, mTriangleSize ? mTriangleSize : mPointSize);
 	    clock_gettime( CLOCK_REALTIME, &end );
 	    
 	    std::cout << "KernelC Ex:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 	    
 	    clock_gettime( CLOCK_REALTIME, &begin );
-	    OCLDeviceGroup->CopyBuffer(OCL_BinsContainer, OpenCL::DeviceToHost, OpenCL::VoidPList(1,BinsContainer));
+	    OCLDeviceGroup.CopyBuffer(OCL_BinsContainer, OpenCL::DeviceToHost, OpenCL::VoidPList(1,BinsContainer));
 	    clock_gettime( CLOCK_REALTIME, &end );
 	    
 	    std::cout << "Kernel Copy:\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 	    
-	    OCLDeviceGroup->CopyBuffer(OCL_IndexCellReferenceO, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
+	    OCLDeviceGroup.CopyBuffer(OCL_IndexCellReferenceO, OpenCL::DeviceToHost, OpenCL::VoidPList(1,IndexCellReferenceO));
 	    
 	    
 // 	    for(int i = 0; i < mCellSizeInt+1; i++) {
@@ -752,9 +722,9 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	{
 	    static int index = 0;
 	    
-	    KRATOS_CL_4_ARRAY_X(pointsToSearch,index) = ThisPoint[0];
-	    KRATOS_CL_4_ARRAY_Y(pointsToSearch,index) = ThisPoint[1];
-	    KRATOS_CL_4_ARRAY_Z(pointsToSearch,index) = ThisPoint[2];
+	    KRATOS_OCL_4_ARRAY_X(pointsToSearch,index) = ThisPoint[0];
+	    KRATOS_OCL_4_ARRAY_Y(pointsToSearch,index) = ThisPoint[1];
+	    KRATOS_OCL_4_ARRAY_Z(pointsToSearch,index) = ThisPoint[2];
 	  
 	    index++;
 	    if (index == mProblemSize) 
@@ -763,72 +733,70 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
   
 	//************************************************************************
 	  
-	void allocateOCLBuffers(int ConcurrentPoints, int maxResults)
+	void allocateOCLBuffers(uint ConcurrentPoints, uint maxResults)
 	{
-	    int ConcurrentPointsReal = ConcurrentPoints;
+	    uint ConcurrentPointsReal = ConcurrentPoints;
 	    
 	    if(ConcurrentPoints > mProblemSize) 
 	      ConcurrentPointsReal = mProblemSize;
 
-	    OCL_Radius         = OCLDeviceGroup->CreateBuffer(sizeof(double) * 2, CL_MEM_READ_ONLY);
-	    OCL_maxResults     = OCLDeviceGroup->CreateBuffer(sizeof(int), CL_MEM_READ_ONLY);
-	    OCL_amount 	       = OCLDeviceGroup->CreateBuffer(sizeof(int), CL_MEM_READ_ONLY);
-	    OCL_PointsToSearch = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
-	    OCL_uVector	       = OCLDeviceGroup->CreateBuffer(sizeof(double) * ConcurrentPointsReal, CL_MEM_READ_ONLY);
-	    OCL_results        = OCLDeviceGroup->CreateBuffer(sizeof(int) * ConcurrentPointsReal, CL_MEM_WRITE_ONLY);
-	    OCL_outData        = OCLDeviceGroup->CreateBuffer(sizeof(int) * ConcurrentPointsReal * maxResults, CL_MEM_WRITE_ONLY);
-	    OCL_distance       = OCLDeviceGroup->CreateBuffer(sizeof(double) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
-	    OCL_NFunction      = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
-	    OCL_PointsTriangle = OCLDeviceGroup->CreateBuffer(sizeof(cl_double4) * mPointSize, CL_MEM_READ_ONLY);
-	    OCL_TriangleList   = OCLDeviceGroup->CreateBuffer(sizeof(cl_int4) * mTriangleSize, CL_MEM_READ_ONLY);
-	    OCL_searchIndex    = OCLDeviceGroup->CreateBuffer(sizeof(cl_int4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
+	    OCL_Radius         = OCLDeviceGroup.CreateBuffer(sizeof(double) * 2, CL_MEM_READ_ONLY);
+	    OCL_maxResults     = OCLDeviceGroup.CreateBuffer(sizeof(int), CL_MEM_READ_ONLY);
+	    OCL_PointsToSearch = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
+	    OCL_uVector	       = OCLDeviceGroup.CreateBuffer(sizeof(double) * ConcurrentPointsReal, CL_MEM_READ_ONLY);
+	    OCL_results        = OCLDeviceGroup.CreateBuffer(sizeof(int) * ConcurrentPointsReal, CL_MEM_WRITE_ONLY);
+	    OCL_outData        = OCLDeviceGroup.CreateBuffer(sizeof(int) * ConcurrentPointsReal * maxResults, CL_MEM_WRITE_ONLY);
+	    OCL_distance       = OCLDeviceGroup.CreateBuffer(sizeof(double) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
+	    OCL_NFunction      = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
+	    OCL_PointsTriangle = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mPointSize, CL_MEM_READ_ONLY);
+	    OCL_TriangleList   = OCLDeviceGroup.CreateBuffer(sizeof(cl_int4) * mTriangleSize, CL_MEM_READ_ONLY);
+	    OCL_searchIndex    = OCLDeviceGroup.CreateBuffer(sizeof(cl_int4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
 	}
          
-	void searchInRadiusOCL(double Radius, int ConcurrentPoints, int maxResults) 
+	void searchInRadiusOCL(double Radius, uint ConcurrentPoints, uint maxResults) 
 	{
-	    int processed = 0;
+	    uint processed = 0;
 	    
 	    int result = 0;
 	    
 	    double HOST_memRadius  = Radius;
 	    double HOST_memRadius2 = Radius * Radius;
 	    
-	    int amount;
+	    uint amount;
 	
 	    while (processed < mProblemSize)
 	    {	  
 		amount = (ConcurrentPoints > mProblemSize) ? mProblemSize : (processed + ConcurrentPoints) < mProblemSize ? ConcurrentPoints : mProblemSize - processed;
 		
-		int HOST_w_size = amount;
 		int * results;
 		int * resultPoints;
 		
 		results      = (int *)malloc(sizeof(int) * amount);
 		resultPoints = (int *)malloc(sizeof(int) * amount * maxResults);
 
-		OCLDeviceGroup->CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
-		OCLDeviceGroup->CopyBuffer(OCL_Radius2       , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
-		OCLDeviceGroup->CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
-		OCLDeviceGroup->CopyBuffer(OCL_maxResults    , OpenCL::HostToDevice, OpenCL::VoidPList(1,&maxResults));
+		OCLDeviceGroup.CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
+		OCLDeviceGroup.CopyBuffer(OCL_Radius2       , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
+		OCLDeviceGroup.CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_maxResults    , OpenCL::HostToDevice, OpenCL::VoidPList(1,&maxResults));
 				
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 0,  OCL_IndexCellReferenceO);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 1,  OCL_BinsContainer);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 2 , OCL_InvCellSize);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 3 , OCL_N);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 4,  OCL_Radius);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 5,  OCL_Radius2);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 6,  OCL_PointsToSearch);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 7,  OCL_MinPoint);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 8,  OCL_outData);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 9,  OCL_results);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchInRadius, 10, OCL_maxResults);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 0,  OCL_IndexCellReferenceO);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 1,  OCL_BinsContainer);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 2 , OCL_InvCellSize);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 3 , OCL_N);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 4,  OCL_Radius);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 5,  OCL_Radius2);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 6,  OCL_PointsToSearch);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 7,  OCL_MinPoint);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 8,  OCL_outData);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 9,  OCL_results);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchInRadius, 10, OCL_maxResults);
 
-		OCLDeviceGroup->ExecuteKernel(OCLSearchInRadius, amount);
+		OCLDeviceGroup.ExecuteKernel(OCLSearchInRadius, amount);
 		
-		OCLDeviceGroup->CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,results));
-		OCLDeviceGroup->CopyBuffer(OCL_outData, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
+		OCLDeviceGroup.CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,results));
+		OCLDeviceGroup.CopyBuffer(OCL_outData, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
 		
-		for(int j = 0; j < amount; j++)
+		for(size_t j = 0; j < amount; j++)
 		    result += results[j];
 		
 		free(results);
@@ -842,9 +810,8 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	}
 	
 	void searchTriangles(double Radius, int ConcurrentPoints, int maxResults) 
-	{
-// 	    std::cout << "SearchTriangle start" << std::endl;
-	    
+	{  
+	    int amount = 0;
 	    int processed = 0;
 	    int result = 0;
 	    
@@ -853,50 +820,33 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	    HOST_memRadius[0] = Radius;
 	    HOST_memRadius[1] = Radius * Radius;;
 	    
-	    int amount;
-	    
-// 	    std::cout << "Normal var declared" << std::endl;
-	    
 	    cl_double4 * PointsTriangles = (cl_double4 *)malloc(sizeof(cl_double4) * mPointSize);
 	    cl_double4 * uVector = (cl_double4 *)malloc(sizeof(cl_double4) * mProblemSize);
-	    
-// 	    std::cout << "Dynamic Var declared and allocated" << std::endl;
 	    
 	    int k = 0;
 	    for( IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
 	    {
-		KRATOS_CL_4_ARRAY_X(PointsTriangles,k) = (**Point)[0];
-		KRATOS_CL_4_ARRAY_Y(PointsTriangles,k) = (**Point)[1];
-		KRATOS_CL_4_ARRAY_Z(PointsTriangles,k) = (**Point)[2];
-		KRATOS_CL_4_ARRAY_W(PointsTriangles,k) = (**Point).id;
+		KRATOS_OCL_4_ARRAY_X(PointsTriangles,k) = (**Point)[0];
+		KRATOS_OCL_4_ARRAY_Y(PointsTriangles,k) = (**Point)[1];
+		KRATOS_OCL_4_ARRAY_Z(PointsTriangles,k) = (**Point)[2];
+		KRATOS_OCL_4_ARRAY_W(PointsTriangles,k) = (**Point).id;
 		k++;
 	    }
 	    
-// 	    std::cout << "PointsTriangles filled" << std::endl;
-// 	    std::cout << "Problem size " <<  mProblemSize << std::endl;
 	    for(int i = 0; i < mProblemSize; i++)
 	    {
-// 	      	uVector[i] = pointsToSearch[i].x;
-
-		KRATOS_CL_4_ARRAY_X(uVector,i) = KRATOS_CL_4_ARRAY_W(pointsToSearch,i);
+		KRATOS_OCL_4_ARRAY_X(uVector,i) = KRATOS_OCL_4_ARRAY_W(pointsToSearch,i);
 	    }
 	    
-// 	    std::cout << "uVector filled" << std::endl;
-	    
-	    OCLDeviceGroup->CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
-	    OCLDeviceGroup->CopyBuffer(OCL_PointsTriangle, OpenCL::HostToDevice, OpenCL::VoidPList(1,PointsTriangles));
-	    OCLDeviceGroup->CopyBuffer(OCL_TriangleList  , OpenCL::HostToDevice, OpenCL::VoidPList(1,mTriangles));
-	
-// 	    std::cout << "OCL buffers filled" << std::endl;
+	    OCLDeviceGroup.CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
+	    OCLDeviceGroup.CopyBuffer(OCL_PointsTriangle, OpenCL::HostToDevice, OpenCL::VoidPList(1,PointsTriangles));
+	    OCLDeviceGroup.CopyBuffer(OCL_TriangleList  , OpenCL::HostToDevice, OpenCL::VoidPList(1,mTriangles));
 	    
 	    while (processed < mProblemSize)
 	    {	 
 		amount = (ConcurrentPoints > mProblemSize) ? mProblemSize : (processed + ConcurrentPoints) < mProblemSize ? ConcurrentPoints : mProblemSize - processed;
-
-		cl_double4 * testResults = (cl_double4 *)malloc(sizeof(cl_double4) * amount);
-	
 		
-		//Prevent from copying elements out of bounds
+		cl_double4 * testResults = (cl_double4 *)malloc(sizeof(cl_double4) * ConcurrentPoints);
 		cl_double4 * pointBuffer = (cl_double4 *)malloc(sizeof(cl_double4) * ConcurrentPoints);
 		
 		int pointCounter = 0;
@@ -906,121 +856,113 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 		  pointCounter++;
 		}
 	
-		OCLDeviceGroup->CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointBuffer[0]));
-		OCLDeviceGroup->CopyBuffer(OCL_amount        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&amount));
+		OCLDeviceGroup.CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointBuffer[0]));
+		OCLDeviceGroup.CopyBuffer(OCL_amount        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&amount));
 
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 0,  OCL_IndexCellReferenceO);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 1,  OCL_BinsContainer);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 2,  OCL_PointsTriangle);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 3,  OCL_TriangleList);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 4,  OCL_InvCellSize);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 5 , OCL_N);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 6,  OCL_Radius);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 7,  OCL_PointsToSearch);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 8,  OCL_MinPoint);		
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 9,  OCL_NFunction);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchTriangles, 10, OCL_amount);
-		OCLDeviceGroup->SetLocalMemAsKernelArg(OCLSearchTriangles, 11, sizeof(cl_int4) * OCLDeviceGroup->WorkGroupSizes[OCLSearchTriangles][0]);
-		OCLDeviceGroup->SetLocalMemAsKernelArg(OCLSearchTriangles, 12, sizeof(cl_int4) * OCLDeviceGroup->WorkGroupSizes[OCLSearchTriangles][0]);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 0,  OCL_IndexCellReferenceO);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 1,  OCL_BinsContainer);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 2,  OCL_PointsTriangle);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 3,  OCL_TriangleList);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 4,  OCL_InvCellSize);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 5 , OCL_N);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 6,  OCL_Radius);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 7,  OCL_PointsToSearch);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 8,  OCL_MinPoint);		
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 9,  OCL_NFunction);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchTriangles, 10, OCL_amount);
+		OCLDeviceGroup.SetLocalMemAsKernelArg(OCLSearchTriangles, 11, sizeof(cl_int4) * OCLDeviceGroup.WorkGroupSizes[OCLSearchTriangles][0]);
+		OCLDeviceGroup.SetLocalMemAsKernelArg(OCLSearchTriangles, 12, sizeof(cl_int4) * OCLDeviceGroup.WorkGroupSizes[OCLSearchTriangles][0]);
 		
-   struct timespec begin;
-   struct timespec end;
+		struct timespec begin;
+		struct timespec end;
    
-   clock_gettime( CLOCK_REALTIME, &begin );
+		clock_gettime( CLOCK_REALTIME, &begin );
 		
-		OCLDeviceGroup->ExecuteKernel(OCLSearchTriangles, amount);
+		OCLDeviceGroup.ExecuteKernel(OCLSearchTriangles, amount);
 		
-   clock_gettime( CLOCK_REALTIME, &end );
+		clock_gettime( CLOCK_REALTIME, &end );
 		
-		OCLDeviceGroup->CopyBuffer(OCL_NFunction, OpenCL::DeviceToHost, OpenCL::VoidPList(1,testResults));
+		OCLDeviceGroup.CopyBuffer(OCL_NFunction, OpenCL::DeviceToHost, OpenCL::VoidPList(1,testResults));
 
-// 		std::cout << "Check results..." << std::endl;
+		//Check for errors
  		int errors = 0;
  		for(int j = 0; j < amount; j++)
 		{
-		    double diff = KRATOS_CL_4_ARRAY_X(uVector,j+processed) - (testResults[j].x + testResults[j].y + testResults[j].z /*+ testResults[j].w*/);
+		    double diff = KRATOS_OCL_4_ARRAY_X(uVector,j+processed) - 
+				  (KRATOS_OCL_4_ARRAY_X(testResults,j) + 
+				   KRATOS_OCL_4_ARRAY_Y(testResults,j) + 
+				   KRATOS_OCL_4_ARRAY_Z(testResults,j) + 
+				   KRATOS_OCL_4_ARRAY_W(testResults,j));
+		    
 		    if((diff > 0.001 || diff < -0.001))
 		    {
-// 			std::cout << "(" <<pointsToSearch[j+processed].w << " " << pointsToSearch[j+processed].x << " " << pointsToSearch[j+processed].y << " " << pointsToSearch[j+processed].z << ") " << 
-// 				     "Expected:\t" << " " /*<< uVector[j+processed]*/ << "\t" << (testResults[j].x + testResults[j].y + testResults[j].z + testResults[j].w ) << "\t\tResutl  - (" << 
-// 				     testResults[j].x << " " << testResults[j].y << " " << testResults[j].z << " " << testResults[j].w << ") " << std::endl;
+// 			std::cout << "(" << KRATOS_OCL_4_ARRAY_W(pointsToSearch,j+processed) << " " << 
+// 					    KRATOS_OCL_4_ARRAY_X(pointsToSearch,j+processed) << " " << 
+// 					    KRATOS_OCL_4_ARRAY_Y(pointsToSearch,j+processed) << " " << 
+// 					    KRATOS_OCL_4_ARRAY_Z(pointsToSearch,j+processed) << ") " << 
+// 					    "Expected:\t" << " " /*<< uVector[j+processed]*/ << "\t" << 
+// 					      (KRATOS_OCL_4_ARRAY_X(testResults,j) + 
+// 					       KRATOS_OCL_4_ARRAY_Y(testResults,j) + 
+// 					       KRATOS_OCL_4_ARRAY_Z(testResults,j) + 
+// 					       KRATOS_OCL_4_ARRAY_W(testResults,j) ) << 
+// 					    "\t\tResutl  - (" << 
+// 					       KRATOS_OCL_4_ARRAY_X(testResults,j) << " " << 
+// 					       KRATOS_OCL_4_ARRAY_Y(testResults,j) << " " << 
+// 					       KRATOS_OCL_4_ARRAY_Z(testResults,j) << " " << 
+// 					       KRATOS_OCL_4_ARRAY_W(testResults,j) << ") " << std::endl;
   		    	errors++;
 		    }
 		}
-		std::cout << "Processed: " << amount << " Errors: " << errors << "  ";// <<  std::endl;
-		 std::cout << "\t\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 		
-		//std::cout << "Processed: " << processed << " Amount: " << amount << std::endl;
-
+		std::cout << "Processed: " << amount << " Errors: " << errors << "  ";// <<  std::endl;
+		std::cout << "\t\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+	
 		processed += amount;
 		
-		//std::cout << processed << " points processed" << std::endl;
-		
 		free(testResults);
-
-		//std::cout << "Total Results while " << processed << " points done: " << result << std::endl;
-	    }
-	    
-	    k = 0;
-	    for( IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
-	    {
-// 		PointsTriangles[k].x = NULL;
-// 		PointsTriangles[k].y = NULL;
-// 		PointsTriangles[k].z = NULL;
-// 		PointsTriangles[k].w = NULL;
-		
-		KRATOS_CL_4_ARRAY_X(PointsTriangles,k) = NULL;
-		KRATOS_CL_4_ARRAY_Y(PointsTriangles,k) = NULL;
-		KRATOS_CL_4_ARRAY_Z(PointsTriangles,k) = NULL;
-		KRATOS_CL_4_ARRAY_W(PointsTriangles,k) = NULL;
-		
-		k++;
+		free(pointBuffer);
 	    }
 	    
 	    free(PointsTriangles);
-	    //free(uVector);
-	    
-	    //std::cout << "Total Results: " << result << " (" << maxResults * SearchUtils::PointerDistance(mPointBegin, mPointEnd) << " stored)"<< std::endl;
 	}
          
-	void searchNearestOCL(double Radius, int ConcurrentPoints) 
+	void searchNearestOCL(double Radius, uint ConcurrentPoints) 
 	{
-	    int processed = 0;
+	    uint processed = 0;
 	    
 	    int result = 0;
 	    
 	    double HOST_memRadius  = Radius;
 	    double HOST_memRadius2 = Radius * Radius;
 	    
-	    int amount;
+	    uint amount;
 	
 	    while (processed < mProblemSize)
 	    {	  
 		amount = (ConcurrentPoints > mProblemSize) ? mProblemSize : ((processed + ConcurrentPoints) < mProblemSize) ? ConcurrentPoints : mProblemSize - processed;
 		
-		int HOST_w_size = amount;
 		int * resultPoints;
 		
 		resultPoints = (int *)malloc(sizeof(int) * amount);
 
-		OCLDeviceGroup->CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
-		OCLDeviceGroup->CopyBuffer(OCL_Radius2       , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
-		OCLDeviceGroup->CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
+		OCLDeviceGroup.CopyBuffer(OCL_Radius2       , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
+		OCLDeviceGroup.CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
 
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 0,  OCL_IndexCellReferenceO);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 1,  OCL_BinsContainer);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 2 , OCL_InvCellSize);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 3 , OCL_N);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 4,  OCL_Radius);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 5,  OCL_Radius2);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 6,  OCL_PointsToSearch);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 7,  OCL_MinPoint);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 8,  OCL_distance);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearest, 9,  OCL_results);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 0,  OCL_IndexCellReferenceO);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 1,  OCL_BinsContainer);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 2 , OCL_InvCellSize);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 3 , OCL_N);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 4,  OCL_Radius);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 5,  OCL_Radius2);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 6,  OCL_PointsToSearch);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 7,  OCL_MinPoint);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 8,  OCL_distance);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearest, 9,  OCL_results);
 
-		OCLDeviceGroup->ExecuteKernel(OCLSearchNearest, amount);
+		OCLDeviceGroup.ExecuteKernel(OCLSearchNearest, amount);
 	
-		OCLDeviceGroup->CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
+		OCLDeviceGroup.CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
 
 		result = resultPoints[amount-1];
 
@@ -1033,44 +975,43 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	}
          
          
-	void searchNearestOCLCubic(double Radius, int ConcurrentPoints) 
+	void searchNearestOCLCubic(double Radius, uint ConcurrentPoints) 
 	{
-	    int processed = 0;
+	    uint processed = 0;
 	    
 	    int result = 0;
 	    
 	    double HOST_memRadius  = Radius;
 	    double HOST_memRadius2 = Radius * Radius;
 	    
-	    int amount;
+	    uint amount;
 
 	    while (processed < mProblemSize)
 	    {	  
 		amount = (ConcurrentPoints > mProblemSize) ? mProblemSize : (processed + ConcurrentPoints) < mProblemSize ? ConcurrentPoints : mProblemSize - processed;
 		
-		int HOST_w_size = amount;
 		int * resultPoints;
 		
 		resultPoints = (int *)malloc(sizeof(int) * amount);
 
-		OCLDeviceGroup->CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
-		OCLDeviceGroup->CopyBuffer(OCL_Radius2       , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
-		OCLDeviceGroup->CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
+		OCLDeviceGroup.CopyBuffer(OCL_Radius2       , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius2));
+		OCLDeviceGroup.CopyBuffer(OCL_PointsToSearch, OpenCL::HostToDevice, OpenCL::VoidPList(1,&pointsToSearch[processed]));
 
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 0,  OCL_IndexCellReferenceO);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 1,  OCL_BinsContainer);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 2 , OCL_InvCellSize);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 3 , OCL_N);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 4,  OCL_Radius);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 5,  OCL_Radius2);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 6,  OCL_PointsToSearch);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 7,  OCL_MinPoint);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 8,  OCL_distance);
-		OCLDeviceGroup->SetBufferAsKernelArg(OCLSearchNearestCubic, 9,  OCL_results);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 0,  OCL_IndexCellReferenceO);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 1,  OCL_BinsContainer);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 2 , OCL_InvCellSize);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 3 , OCL_N);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 4,  OCL_Radius);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 5,  OCL_Radius2);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 6,  OCL_PointsToSearch);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 7,  OCL_MinPoint);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 8,  OCL_distance);
+		OCLDeviceGroup.SetBufferAsKernelArg(OCLSearchNearestCubic, 9,  OCL_results);
 
-		OCLDeviceGroup->ExecuteKernel(OCLSearchNearestCubic, amount);
+		OCLDeviceGroup.ExecuteKernel(OCLSearchNearestCubic, amount);
 
-		OCLDeviceGroup->CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
+		OCLDeviceGroup.CopyBuffer(OCL_results, OpenCL::DeviceToHost, OpenCL::VoidPList(1,resultPoints));
 
 		result = resultPoints[amount-1];
 
@@ -1152,7 +1093,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
     private:
       
     // OCL mem and auxiliars
-	Kratos::OpenCL::DeviceGroup *OCLDeviceGroup;
+	OpenCL::DeviceGroup &OCLDeviceGroup;
 	
 	cl_int Err;
 	
@@ -1171,19 +1112,21 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	cl_uint OCLSearchNearest;
 	cl_uint OCLSearchNearestCubic;
 	      
+	//Kernel mem
 	cl_uint OCL_PointsBins;
 	cl_uint OCL_IndexCell;
 	cl_uint OCL_IndexCellReference; 
 	cl_uint OCL_IndexCellReferenceO;
+	cl_uint OCL_Scan_Buffer;
 	cl_uint OCL_InvCellSize;
 	cl_uint OCL_N;
 	cl_uint OCL_MinPoint; 
 	cl_uint OCL_BinsContainer; 
-	cl_uint OCL_IndexCellReferenceU;
-	cl_uint OCL_PowSize;
+	cl_uint OCL_ArrayLenght;
+	cl_uint OCL_Scan_Blocks;
+	cl_uint OCL_WGS4;
 	cl_uint OCL_Offset;
 	cl_uint OCL_PartialReduction;
-      
 	cl_uint OCL_Radius; 
 	cl_uint OCL_Radius2; 
 	cl_uint OCL_PointsToSearch;
@@ -1205,13 +1148,13 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	int mCellSizeInt;
 	int mPointSize;
 	int mTriangleSize;
-	int mProblemSize;
+	uint mProblemSize;
     
-    // Point and Barycenter Access Iterators (vector reordered!!)
+        // Point and Barycenter Access Iterators (vector reordered!!)
 	IteratorType    mPointBegin;
 	IteratorType	mPointEnd;
 
-    // Bin Parameters (Sizes,BoundingBox,...)
+        // Bin Parameters (Sizes,BoundingBox,...)
 	PointType  mMinPoint;
 	PointType  mMaxPoint;
 	PointType  mCellSize;
@@ -1222,7 +1165,7 @@ class BinsOCL : public TreeNode<TDimension,TPointType, TPointerType, TIteratorTy
 	
 	Tvector<SizeType,TDimension>  mN;
 
-    // Bins Access Vector ( vector<Iterator> )
+        // Bins Access Vector ( vector<Iterator> )
 	IteratorVector           mIndexCell;
 	IteratorVector           mIndexCellOCL;
 	IteratorIterator         mIndexCellBegin;
