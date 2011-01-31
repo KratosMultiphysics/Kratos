@@ -52,10 +52,6 @@ inline double4 calculatePositionT3(double4 a, double4 b, double4 c, double4 p)
 
     double inv_vol = native_divide(1.0f,(float)CalculateVol3(a,b,c)); //Fast
 //     double inv_vol = 1.0 / CalculateVol3(a,b,c);
-
-//     if(vol == 0.0)
-//       return N;
-
     N = (double4)(CalculateVol3(b,c,p),CalculateVol3(c,a,p),CalculateVol3(a,b,p),0);
 
     return N * inv_vol;
@@ -67,10 +63,6 @@ inline double4 calculatePositionT4(double4 a, double4 b, double4 c, double4 d, d
 
     double inv_vol = native_divide(1.0f,(float)CalculateVol4(a,b,c,d)); //Fast
 //     double inv_vol = 1.0 / CalculateVol4(a,b,c,d);
-
-//     if(vol == 0.0)
-//       return N;
-
     N = (double4)(CalculateVol4(b,d,c,p),CalculateVol4(d,a,c,p),CalculateVol4(d,b,a,p),CalculateVol4(a,b,c,p));
 
     return N * inv_vol;
@@ -164,15 +156,14 @@ __kernel void GenerateBinsA(__global double4 * points,
 			    __global int * IndexCellReference,
 			    __global double * InvCellSize,
 			    __constant double * N,
-			    __global double4 * MinPoint
+			    __global double4 * MinPoint,
+			    __constant int * amount
 			  ) 
 {
-    //GenerateBins
     int t = get_global_id(0);
 
-    if(t < POINT_SIZE) 
+    if(t < amount[0]) 
     {	
-      //Update storage counter, storing ahead
       int index = calculateIndex(points[t],N,MinPoint,InvCellSize);
       atom_inc(&IndexCellReference[index]);
     }
@@ -183,16 +174,16 @@ __kernel void GenerateBinsC(__global double4 * points,
 			    __global double * InvCellSize,
 			    __constant double * N,
 			    __global double4 * MinPoint,
-			    __global double4 * BinsContainer
+			    __global double4 * BinsContainer,
+			    __constant int * amount
 			  ) 
 {
     int t = get_global_id(0);
 
-    if(t < POINT_SIZE) 
+    if(t < amount[0]) 
     {	
 	int index = calculateIndex(points[t],N,MinPoint,InvCellSize);
-	BinsContainer[atom_dec(&IndexCellReference[index])-1] = points[t];
-// 	printf("BinsTriangle: %f\n",points[t].w);
+	BinsContainer[atom_dec(&IndexCellReference[index+1])-1] = points[t];
     }
 }
 
@@ -326,7 +317,7 @@ __kernel void SearchTriangle2D(__global int * IndexCellReference,
 
     if(ip < pSize[0])
     {
-	int F = 0;;
+	int Found = 0;;
 	double4 fN;
 
 	cellBegin[il] = calculateCell(point[ip],-radius[0],N,MinPoint,InvCellSize);
@@ -334,18 +325,18 @@ __kernel void SearchTriangle2D(__global int * IndexCellReference,
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	for(int k = cellBegin[il].z; !F && (k <= cellEnd[il].z); k++) 
+	for(int k = cellBegin[il].z; !Found && (k <= cellEnd[il].z); k++) 
 	{
-	    for(int j = cellBegin[il].y; !F && (j <= cellEnd[il].y); j++) 
+	    for(int j = cellBegin[il].y; !Found && (j <= cellEnd[il].y); j++) 
 	    {
-		for(int i = cellBegin[il].x; !F && (i <= cellEnd[il].x); i++) 
+		for(int i = cellBegin[il].x; !Found && (i <= cellEnd[il].x); i++) 
 		{
 		    int index = calculateIndexForCell((double4)(i,j,k,-1),N);
 		    
 		    int loIndex = IndexCellReference[index];
 		    int hiIndex = IndexCellReference[index+1];
 
-		    for(size_t l = loIndex; !F && (l < hiIndex); l++) 
+		    for(int l = loIndex; !Found && (l < hiIndex); l++) 
 		    {
 			if(functionDistance(point[ip],BinsContainer[l]) < radius[1])
 			{
@@ -356,12 +347,8 @@ __kernel void SearchTriangle2D(__global int * IndexCellReference,
 						     PointsTriangle[triangleIndex.z-1],
 					             point[ip]);
 
-			    F = fN.x >= 0.0 && 
-				fN.y >= 0.0 && 
-				fN.z >= 0.0 &&
-				fN.x <= 1.0 && 
-				fN.y <= 1.0 && 
-				fN.z <= 1.0; 
+			    Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 &&
+				    fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0; 
 			}
 		    }
 		}
@@ -370,11 +357,10 @@ __kernel void SearchTriangle2D(__global int * IndexCellReference,
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	Nresults[ip] = F ? (fN * point[ip].w) : - 1;
+	Nresults[ip] = Found ? (fN * point[ip].w) : - 1;
     }
 }
 
-//Triangle3D 
 __kernel void SearchTriangle3D(__global int * IndexCellReference,
 			       __global double4 * BinsContainer,
 			       __global double4 * PointsTriangle,
@@ -395,7 +381,7 @@ __kernel void SearchTriangle3D(__global int * IndexCellReference,
 
     if(ip < pSize[0])
     {
-	int F = 0;
+	int Found = 0;
 	double4 fN;
 
 	cellBegin[il] = calculateCell(point[ip],-radius[0],N,MinPoint,InvCellSize);
@@ -403,18 +389,18 @@ __kernel void SearchTriangle3D(__global int * IndexCellReference,
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	for(int k = cellBegin[il].z; !F && (k <= cellEnd[il].z); k++) 
+	for(int k = cellBegin[il].z; !Found && (k <= cellEnd[il].z); k++) 
 	{
-	    for(int j = cellBegin[il].y; !F && (j <= cellEnd[il].y); j++) 
+	    for(int j = cellBegin[il].y; !Found && (j <= cellEnd[il].y); j++) 
 	    {
-		for(int i = cellBegin[il].x; !F && (i <= cellEnd[il].x); i++) 
+		for(int i = cellBegin[il].x; !Found && (i <= cellEnd[il].x); i++) 
 		{
 		    int index = calculateIndexForCell((double4)(i,j,k,-1),N);
 		    
-		    int loIndex = IndexCellReference[index];
-		    int hiIndex = IndexCellReference[index+1];
+		    int loIndex = IndexCellReference[index+1];
+		    int hiIndex = IndexCellReference[index+2];
 
-		    for(size_t l = loIndex; !F && (l < hiIndex); l++) 
+		    for(size_t l = loIndex; !Found && (l < hiIndex); l++) 
 		    {
 			if(functionDistance(point[ip],BinsContainer[l]) < radius[1])
 			{
@@ -426,14 +412,8 @@ __kernel void SearchTriangle3D(__global int * IndexCellReference,
 						     PointsTriangle[triangleIndex.w-1],
 						     point[ip]);
 
-			    F =  fN.x >= 0.0 && 
-				 fN.y >= 0.0 && 
-				 fN.z >= 0.0 &&
-				 fN.w >= 0.0 &&
-				 fN.x <= 1.0 && 
-				 fN.y <= 1.0 && 
-				 fN.z <= 1.0 && 
-				 fN.w <= 1.0; 
+			    Found =  fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 && fN.w >= 0.0 &&
+				     fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 && fN.w <= 1.0; 
 			}
 		    }
 		}
@@ -442,7 +422,7 @@ __kernel void SearchTriangle3D(__global int * IndexCellReference,
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	Nresults[ip] = F ? (fN * point[ip].w) : -1;
+	Nresults[ip] = Found ? (fN * point[ip].w) : -1;
     }
 }
 
