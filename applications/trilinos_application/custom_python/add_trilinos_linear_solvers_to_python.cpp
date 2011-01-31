@@ -68,6 +68,7 @@
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
 
+#include "external_includes/epetra_default_utility.h"
 #include "external_includes/aztec_solver.h"
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
@@ -94,6 +95,9 @@ namespace Kratos {
         typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
 	class_<TrilinosLinearSolverType, TrilinosLinearSolverType::Pointer > ("TrilinosLinearSolver");
+	
+	    class_<EpetraDefaultSetter, boost::noncopyable>("EpetraDefaultSetter",init<>())
+	      .def("SetDefaults", &EpetraDefaultSetter::SetDefaults);
 
             typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
             class_<AztecSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
@@ -110,7 +114,7 @@ namespace Kratos {
             typedef MultiLevelSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > MLSolverType;
             class_<MLSolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
                     ("MultiLevelSolver",
-                    init<Teuchos::ParameterList&, double, int >());
+                    init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >());
 		    
 	    enum_<AztecScalingType>("AztecScalingType")
                     .value("NoScaling", NoScaling)

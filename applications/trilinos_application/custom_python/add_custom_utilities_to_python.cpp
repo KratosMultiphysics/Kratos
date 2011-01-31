@@ -55,6 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
 {
@@ -72,6 +73,13 @@ namespace Kratos
                     .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
                     .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
                     .def("Initialize", &TrilinosDeactivationUtility::Initialize )
+                    ;
+		    
+            class_<ParallelFillCommunicator, boost::noncopyable >
+                    ("ParallelFillCommunicator",
+                     init<ModelPart& >() )
+                    .def("Execute", &ParallelFillCommunicator::Execute )
+
                     ;
         }	
     }  // namespace Python.
