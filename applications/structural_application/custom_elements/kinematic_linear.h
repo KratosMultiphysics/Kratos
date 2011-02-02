@@ -269,6 +269,8 @@ namespace Kratos
             Vector mDetJ0;
 
             bool mfirst_time_step;
+            
+            bool mIsInitialized;
 
             Matrix mInitialDisp;
             ///@}
