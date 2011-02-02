@@ -68,6 +68,7 @@ namespace Kratos
                                       GeometryType::Pointer pGeometry )
             : Element( NewId, pGeometry )
     {
+        mIsInitialized = false;
         //DO NOT ADD DOFS HERE!!!
         //THIS IS THE DEFAULT CONSTRUCTOR
     }
@@ -83,6 +84,7 @@ namespace Kratos
                                       GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
             : Element( NewId, pGeometry, pProperties )
     {
+        mIsInitialized = false;
         //DEFINE HERE THE INTEGRATION METHOD (the number of integration points to be used)
         //see /kratos/source/integration_rules.cpp for further details
         mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//default method
@@ -118,6 +120,10 @@ namespace Kratos
     */
     void KinematicLinear::Initialize()
     {
+        KRATOS_WATCH("in InitializeElement")
+        if( mIsInitialized )
+            return;
+        KRATOS_WATCH("INITIALIZING ELEMENT")
         KRATOS_TRY//EXCEPTION HANDLING (see corresponing KRATOS_CATCH("") )
 
         //dimension of the problem
@@ -172,8 +178,10 @@ namespace Kratos
         {
             mConstitutiveLawVector.resize( integration_points.size() );
         }
-
         InitializeMaterial();
+        
+        mIsInitialized = true;
+        
 
         KRATOS_CATCH( "" )
     }
