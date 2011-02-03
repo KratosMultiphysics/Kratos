@@ -47,8 +47,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
-//#define GRADPN_FORM
-//#define STOKES
+
+#define EXPONENCIAL_MODEL // if not -> BILINEAR_MODEL is calculated
+// #define COMPRESSIBLE_MODEL_ML(PN1_PN)
+// #define COMPRESSIBLE_MODEL_MLPN1_MCPN
 
 // System includes 
 
@@ -298,11 +300,11 @@ namespace Kratos {
 	// Remember to modify CalculateResidualand CalculateTau.
 // 	app_mu = mu;
 	
-	C(0, 0) = 2.0 - 2.0/3.0;
-	C(0, 1) = 0.0- 2.0/3.0;
+	C(0, 0) = 2.0;// - 2.0/3.0;
+	C(0, 1) = 0.0;//- 2.0/3.0;
 	C(0, 2) = 0.0;
-	C(1, 0) = 0.0- 2.0/3.0;
-	C(1, 1) = 2.0- 2.0/3.0;
+	C(1, 0) = 0.0;//- 2.0/3.0;
+	C(1, 1) = 2.0;//- 2.0/3.0;
 	C(1, 2) = 0.0;
 	C(2, 0) = 0.0;
 	C(2, 1) = 0.0;
@@ -438,20 +440,36 @@ namespace Kratos {
 		K(column, row + 1) += area * density * N(jj) * DN_DX(ii, 1);
 	    }
 	}
-// 	// 	////compressibility term & assemble Lumped Mass Matrix
-// 	double c2_inv = 1e-3;
-// 	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
-// 
-// 	for (int ii = 0; ii < nodes_number; ii++) {
-// 	    int row = ii * (dof + 1) + dof;
-// 
-// 		//**************************************************************
-// 		//Elemental compressibility terms (continuity equation)
-// 		// int( q * rho * 1/(rho c^2)(p)
-// 		K(row, row) += compressibility_coef ;
-// 
-// 	 }
-	
+#ifdef COMPRESSIBLE_MODEL_ML(PN1_PN)
+	// 	////compressibility term & assemble Lumped Mass Matrix
+	double c2_inv = 1e-5;
+	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
+
+	for (int ii = 0; ii < nodes_number; ii++) {
+	    int row = ii * (dof + 1) + dof;
+
+		//**************************************************************
+		//Elemental compressibility terms (continuity equation)
+		// int( q * rho * 1/(rho c^2)(p)
+		K(row, row) += compressibility_coef ;
+
+	 }
+#endif	
+#ifdef COMPRESSIBLE_MODEL_MLPN1_MCPN
+	// 	////compressibility term & assemble Lumped Mass Matrix
+	double c2_inv = 1e-5;
+	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
+
+	for (int ii = 0; ii < nodes_number; ii++) {
+	    int row = ii * (dof + 1) + dof;
+
+		//**************************************************************
+		//Elemental compressibility terms (continuity equation)
+		// int( q * rho * 1/(rho c^2)(p)
+		K(row, row) += compressibility_coef ;
+
+	 }
+#endif
 ////compressibility term & assemble Consistent Mass Matrix (Attention: Rank zero matrix, it may couse problems!)	
 // 	double c2_inv = 1e-6;
 // 	double compressibility_coef = area * c2_inv /time;
@@ -485,7 +503,7 @@ namespace Kratos {
 
     void NoNewtonianASGS2D::CalculateDivStblTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tautwo, const double area) {
 	KRATOS_TRY
-		int nodes_number = 3;
+	int nodes_number = 3;
 	int dof = 2;
 	int matsize = dof*nodes_number;
 
@@ -810,48 +828,50 @@ namespace Kratos {
 // 	    F[index] += tautwo * area * mean_ar * div_opr(0, loc_index);
 // 	    F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
 	}
-// 	////compressibility term & assemble Lumped Mass Matrix
-// 	double c2_inv = 1e-3;
-// 	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
-// // KRATOS_WATCH("time")
-// // KRATOS_WATCH(time)
-// // KRATOS_WATCH("compressibility_coef RHS")
-// // KRATOS_WATCH(compressibility_coef)
-// // KRATOS_WATCH("F before")
-// // KRATOS_WATCH(F)
-// //      // int( q * rho * 1/(rho c^2)(p)
-// //      //already divided by density 
-// 	for (int ii = 0; ii < nodes_number; ++ii) {
-// 	    int index = ii * (dof + 1) + dof;
-// 	    F[index] += compressibility_coef * N(ii) * GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE,1);
-// 	}
+#ifdef COMPRESSIBLE_MODEL_ML(PN1_PN)
+	////compressibility term & assemble Lumped Mass Matrix
+	double c2_inv = 1e-5;
+	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
+// KRATOS_WATCH("time")
+// KRATOS_WATCH(time)
+// KRATOS_WATCH("compressibility_coef RHS")
+// KRATOS_WATCH(compressibility_coef)
+// KRATOS_WATCH("F before")
+// KRATOS_WATCH(F)
+//      // int( q * rho * 1/(rho c^2)(p)
+//      //already divided by density 
+	for (int ii = 0; ii < nodes_number; ++ii) {
+	    int index = ii * (dof + 1) + dof;
+	    F[index] += compressibility_coef * N(ii) * GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE,1);
+	}
+#endif
+#ifdef COMPRESSIBLE_MODEL_MLPN1_MCPN
+	//compressibility term & assemble Ml * 1/(k Dt) Pn+1 - Mc * 1/(k Dt) Pn
+	double pressure = 0.0;
+	const double pressure0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
+	const double pressure1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
+	const double pressure2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
 	
-	////compressibility term & assemble Ml * 1/(k Dt) Pn+1 - Mc * 1/(k Dt) Pn
-// 	double pressure = 0.0;
-// 	const double pressure0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
-// 	const double pressure1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
-// 	const double pressure2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
-// 	
-// 	double c2_inv = 1e-6;
-// 	double compressibility_coef = 0.08333333333333333333333 * area * c2_inv /time;
-// // KRATOS_WATCH("time")
-// // KRATOS_WATCH(time)
-// // KRATOS_WATCH("compressibility_coef RHS")
-// // KRATOS_WATCH(compressibility_coef)
-// // KRATOS_WATCH("F before")
-// // KRATOS_WATCH(F)
-// //      // int( q * rho * 1/(rho c^2)(p)
-// //      //already divided by density 
-// 	array_1d<double, 3 > aux_F = ZeroVector(3);
-// 
-// 	aux_F[0] = 2.0 * pressure0 + 1.0 * pressure1 + 1.0 * pressure2;
-// 	aux_F[1] = 1.0 * pressure0 + 2.0 * pressure1 + 1.0 * pressure2;
-// 	aux_F[2] = 1.0 * pressure0 + 1.0 * pressure1 + 2.0 * pressure2;
-// 	for (int ii = 0; ii < nodes_number; ++ii) {
-// 	    int index = ii * (dof + 1) + dof;
-// 	    F[index] += aux_F[ii] * compressibility_coef;
-// 	}
+	double c2_inv = 1e-5;
+	double compressibility_coef = 0.08333333333333333333333 * area * c2_inv /time;
+// KRATOS_WATCH("time")
+// KRATOS_WATCH(time)
+// KRATOS_WATCH("compressibility_coef RHS")
+// KRATOS_WATCH(compressibility_coef)
+// KRATOS_WATCH("F before")
+// KRATOS_WATCH(F)
+//      // int( q * rho * 1/(rho c^2)(p)
+//      //already divided by density 
+	array_1d<double, 3 > aux_F = ZeroVector(3);
 
+	aux_F[0] = 2.0 * pressure0 + 1.0 * pressure1 + 1.0 * pressure2;
+	aux_F[1] = 1.0 * pressure0 + 2.0 * pressure1 + 1.0 * pressure2;
+	aux_F[2] = 1.0 * pressure0 + 1.0 * pressure1 + 2.0 * pressure2;
+	for (int ii = 0; ii < nodes_number; ++ii) {
+	    int index = ii * (dof + 1) + dof;
+	    F[index] += aux_F[ii] * compressibility_coef;
+	}
+#endif
 
 // 	////compressibility term & assemble Consistent Mass Matrix (Attention: Rank zero matrix, it may couse problems!)
 // 	double pressure = 0.0;
@@ -1037,9 +1057,9 @@ namespace Kratos {
 	double mu;
 	calculatedensity(GetGeometry(), density, mu);
 
-	const array_1d<double, 3 > advproj_0 = GetGeometry()[0].FastGetSolutionStepValue(ADVPROJ);
-	const array_1d<double, 3 > advproj_1 = GetGeometry()[1].FastGetSolutionStepValue(ADVPROJ);
-	const array_1d<double, 3 > advproj_2 = GetGeometry()[2].FastGetSolutionStepValue(ADVPROJ);
+	const array_1d<double, 3 >& advproj_0 = GetGeometry()[0].FastGetSolutionStepValue(ADVPROJ);
+	const array_1d<double, 3 >& advproj_1 = GetGeometry()[1].FastGetSolutionStepValue(ADVPROJ);
+	const array_1d<double, 3 >& advproj_2 = GetGeometry()[2].FastGetSolutionStepValue(ADVPROJ);
 
 	const double div_proj_0 = GetGeometry()[0].FastGetSolutionStepValue(DIVPROJ);
 	const double div_proj_1 = GetGeometry()[1].FastGetSolutionStepValue(DIVPROJ);
@@ -1257,8 +1277,8 @@ namespace Kratos {
 	      yield = 0.0;
 // KRATOS_WATCH(yield)
 
-
-////////EXPONENCIAL FORM
+#ifdef EXPONENCIAL_MODEL
+////////EXPONENCIAL MODEL
 	if (gamma_dot > 1e-10) {
 	    aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
 	    app_mu = mu + (yield / gamma_dot) * aux_1;
@@ -1270,23 +1290,23 @@ namespace Kratos {
 	    app_mu = mu + yield*mcoef ;
 // 			gamma_dot_inv = 0.0;
 	}
-	
-// ////////BILINEAR FORM
-//       double mu_s = 1e7;
-//       double gamma_dot_lim = yield/mu_s;
-//       
-//       if(gamma_dot >= gamma_dot_lim){
-// 	if (gamma_dot_lim <= 1e-16){
-// 	  app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
-// 	}
-// 	else{
-// 	  app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
-// 	}
-//       }
-//       else{
-// 	app_mu = mu_s ;
-//       }
-
+#else	
+// ////////BILINEAR MODEL
+      double mu_s = 1e7;
+      double gamma_dot_lim = yield/mu_s;
+      
+      if(gamma_dot >= gamma_dot_lim){
+	if (gamma_dot_lim <= 1e-16){
+	  app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+	}
+	else{
+	  app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+	}
+      }
+      else{
+	app_mu = mu_s ;
+      }
+#endif
 	
 /*
 //Calculating nodal yield and nodal app_mu before the calculation of elemental apparent viscosity
@@ -1597,8 +1617,8 @@ namespace Kratos {
 
   
 	//Bingham
-// 	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
-	CalculateApparentViscosityStbl(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);//to consider the equivalent viscosity not the fluid viscosity in the fluid part 
+	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+// 	CalculateApparentViscosityStbl(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);//to consider the equivalent viscosity not the fluid viscosity in the fluid part 
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
 	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
 	

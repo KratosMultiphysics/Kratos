@@ -129,8 +129,8 @@ namespace Kratos {
 
 
         //       //add projections
-        //       if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
-        //           AddProjectionForces(rRightHandSideVector, DN_DX, Volume, tauone, tautwo);
+              if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+                  AddProjectionForces(rRightHandSideVector, DN_DX, Volume, tauone, tautwo);
 
 
         KRATOS_CATCH("")
@@ -217,13 +217,12 @@ namespace Kratos {
         if (rDampMatrix.size1() != matsize)
             rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
 
-
+	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        array_1d<double, 4 > N; 
+	
         noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
-
-	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
-        array_1d<double, 4 > N; 
 	
         //getting data for the given geometry
         double Volume;
@@ -271,7 +270,9 @@ namespace Kratos {
         boost::numeric::ublas::bounded_matrix<double, 6, 6 > C = ZeroMatrix(6, 6);
         boost::numeric::ublas::bounded_matrix<double, 12, 12 > temp = ZeroMatrix(12, 12);
 	
-        double app_mu;
+	double app_mu;
+	double app_mu_derivative;
+	double gamma_dot;
 	array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
 		
         //calculating operator B
@@ -279,7 +280,7 @@ namespace Kratos {
 //         KRATOS_WATCH(B)
 	
 	//Bingham Fluid
-       CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
+       CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
 	//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
 	// Remember to modify CalculateResidualand CalculateTau.
 // 	app_mu = mu;
@@ -961,11 +962,12 @@ namespace Kratos {
 		calculatedensity(GetGeometry(), density, mu);
 
 		boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
-		boost::numeric::ublas::bounded_matrix<double, 6, 6 > C = ZeroMatrix(6, 6);
+// 		boost::numeric::ublas::bounded_matrix<double, 6, 6 > C = ZeroMatrix(6, 6);
 		array_1d<double, 12 > auxDevStressVector = ZeroVector(12);
 		array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
 		double app_mu;
-
+		double app_mu_derivative;
+		double gamma_dot;
 		array_1d<double, 6 > aux_1 = ZeroVector(6);
 
 		//calculating operator B
@@ -978,7 +980,7 @@ namespace Kratos {
 		//sigma dev intern
 
 	// 	Bingham Fluid:
-		CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
+		CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
 	// 	Newtonian Fluid: Leave Decommented the CalculateApparentviscosity (we need grad_sym_vel) and decomment the following line
 	//	Remember to modify CalculateViscousTerm and CalculateTau
 	// 	app_mu = mu;
@@ -1274,7 +1276,7 @@ namespace Kratos {
     void NoNewtonianASGS3D::CalculateGradSymVel(array_1d<double, 6 > & grad_sym_vel, double & gamma_dot,
             const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B) {
         KRATOS_TRY
-                unsigned int dim = 3;
+        unsigned int dim = 3;
         unsigned int nodes_number = dim + 1;
 
         array_1d<double, 12 > U = ZeroVector(12);
@@ -1312,17 +1314,17 @@ KRATOS_WATCH(grad_sym_vel)*/
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS3D::CalculateApparentViscosity(double & app_mu,
-	    array_1d<double, 6 >&  grad_sym_vel,
+    void NoNewtonianASGS3D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
+	    array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
             const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
-            const double & mu) {
+            const double & mu){
         KRATOS_TRY
         // 	        unsigned int dim = 2;
         // 		unsigned int nodes_number = dim + 1;
         app_mu = 0.0;
 // 	double yield;
 
-	double gamma_dot = 0.0;
+// 	double gamma_dot = 0.0;
         double mcoef = 3000;
 // 	double mcoef_inv = 1/mcoef;
 	
@@ -1372,13 +1374,75 @@ KRATOS_WATCH(grad_sym_vel)*/
             app_mu = mu + yield*mcoef ;
         }
 
-// 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
-// 	else  gamma_dot_inv= 1.0/gamma_dot;
-// 	app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));	
-	
+
         KRATOS_CATCH("")
     }
 
+    //************************************************************************************
+    //************************************************************************************
+
+    void NoNewtonianASGS3D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
+	    array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
+	    const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
+	    const double & mu) {
+	KRATOS_TRY
+	app_mu = 0.0;
+
+	
+	
+	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
+	
+	
+	  // The yield is variable: it decreases where water is present
+	  unsigned int nodes_number = 4;
+	  double yield = 0.0;
+	  double friction_angle_tangent = 0.0; 
+	  double water_pressure = 0.0;
+// 	  double gamma_dot_inv;
+
+	  
+	  
+
+	  
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
+	      }
+	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+	      }
+
+
+	  }
+	  friction_angle_tangent /= nodes_number;
+	  water_pressure /= nodes_number;
+	  yield /= nodes_number;
+ 
+	  if(water_pressure < yield){
+	      yield -= water_pressure;
+	      yield *= friction_angle_tangent;
+	  }
+	  else
+	      yield = 0.0;
+
+////////BILINEAR FORM
+	double mu_s = 1e7;
+	double gamma_dot_lim = yield/mu_s;
+	
+	if(gamma_dot >= gamma_dot_lim){
+	  if (gamma_dot_lim <= 1e-16){
+	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+	  }
+	  else{
+	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+	  }
+	}
+	else{
+	  app_mu = mu_s ;
+	}
+	KRATOS_CATCH("")
+    }
 
 
     //************************************************************************************
@@ -1532,7 +1596,8 @@ KRATOS_WATCH(grad_sym_vel)*/
         ele_length = 2.0/3.0 * ele_length * sqrt(3.00);
 
         double mu;
-        ///*const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+	double gamma_dot;
+        //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
         //const double mu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
         //const double mu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
         //mu = 0.333333333333333333333333*(mu0 + mu1 + mu2);
@@ -1543,8 +1608,8 @@ KRATOS_WATCH(grad_sym_vel)*/
 
 	boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
 	array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
-
-
+	double app_mu_derivative;
+	
 	CalculateB(B, DN_DX);
 //         for (int ii = 0; ii < nodes_number; ++ii) {
 //             yield += GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
@@ -1552,7 +1617,8 @@ KRATOS_WATCH(grad_sym_vel)*/
 
   
 	//Bingham
-        CalculateApparentViscosity(mu, grad_sym_vel, B, mu);	
+	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);	
+//         CalculateApparentViscosityStbl(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);	
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
 	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
 	
@@ -1560,8 +1626,8 @@ KRATOS_WATCH(grad_sym_vel)*/
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
 
-
-        tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
+	tautwo = 0.0;
+//         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
 
 
 
@@ -1672,7 +1738,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 // // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);*/
 // 	  calculatedensity(GetGeometry(), density, mu);
 // 	  CalculateB(B, DN_DX);    
-// // 	  CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
+// // 	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
 // 	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 // 	     
 //             for (unsigned int PointNumber = 0;
@@ -1688,11 +1754,13 @@ KRATOS_WATCH(grad_sym_vel)*/
 	  double mu;
 	  double density;
           double app_mu;
+	  double app_mu_derivative;
+	  double gamma_dot;
 // 	  double Volume;
 // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 	  calculatedensity(GetGeometry(), density, mu);
 	  CalculateB(B, DN_DX);    
-	  CalculateApparentViscosity(app_mu, grad_sym_vel, B, mu);
+	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
 	     
             for (unsigned int PointNumber = 0;
                     PointNumber < 1; PointNumber++) {
