@@ -192,36 +192,28 @@ namespace Python
                           .def("Clear",&MatrixContainer< 3, SparseSpaceType >::Clear)
                         ;
 
-	  class_< FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("FluidSolver2D", init<MatrixContainer< 2, SparseSpaceType>&, ModelPart&, bool, bool >() )
+			
+	  class_< FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("FluidSolver2D", init<MatrixContainer< 2, SparseSpaceType>&, ModelPart& ,const double ,const double,const Vector, bool,double ,double ,double ,double ,bool  >() )
                           .def("Initialize",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
-                          .def("SetFreeFlowConditions",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetFreeFlowConditions)
                           .def("ComputeTimeStep",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
                           .def("SolveStep1",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
                           .def("SolveStep2",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
                           .def("SolveStep3",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
-                          .def("SolveStep4",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep4)
                           .def("ComputeTimeStep",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
                           .def("CalculateNormals",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateNormals)
-                          .def("CalculateCoefficients",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateCoefficients)
-                          .def("SetSpeedOfSound",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetSpeedOfSound)
-                          .def("SetDissipationLength",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetDissipationLength)
-			  .def("CalculateForces",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
+                          .def("UpdateFixedVelocityValues",&FluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
                         ;
 
-	  class_< FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("FluidSolver3D", init<MatrixContainer< 3, SparseSpaceType>&, ModelPart&, bool, bool >() )
+	  class_< FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("FluidSolver3D", init<MatrixContainer< 3, SparseSpaceType>&, ModelPart& ,const double ,const double,const Vector, bool,double ,double ,double ,double ,bool  >() )
                           .def("Initialize",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
-                          .def("SetFreeFlowConditions",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetFreeFlowConditions)
                           .def("ComputeTimeStep",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
                           .def("SolveStep1",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
                           .def("SolveStep2",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
                           .def("SolveStep3",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
-                          .def("SolveStep4",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep4)
+                          .def("ComputeTimeStep",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
                           .def("CalculateNormals",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateNormals)
-                          .def("CalculateCoefficients",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateCoefficients)
-                          .def("SetSpeedOfSound",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetSpeedOfSound)
-                          .def("SetDissipationLength",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetDissipationLength)
-			  .def("CalculateForces",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
-                        ;
+                          .def("UpdateFixedVelocityValues",&FluidSolver< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
+			  ;
 	  
 	  
 	  class_< LevelSetFluidSolver< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("LevelSetFluidSolver2D", init<MatrixContainer< 2, SparseSpaceType>&, ModelPart&, bool, bool >() )
