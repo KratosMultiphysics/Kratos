@@ -120,10 +120,8 @@ namespace Kratos
     */
     void KinematicLinear::Initialize()
     {
-        KRATOS_WATCH("in InitializeElement")
         if( mIsInitialized )
             return;
-        KRATOS_WATCH("INITIALIZING ELEMENT")
         KRATOS_TRY//EXCEPTION HANDLING (see corresponing KRATOS_CATCH("") )
 
         //dimension of the problem

@@ -154,7 +154,7 @@ namespace Kratos
 
     {
         KRATOS_TRY
-
+KRATOS_WATCH("INITIALIZE ELEMENT");
         //getting all "Actual" info from the geometry
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
 
@@ -182,6 +182,8 @@ namespace Kratos
         // Initialize Variables
         mdensity = GetProperties()[DENSITY];
         mThickness0 = GetProperties()[THICKNESS];
+        KRATOS_WATCH(mdensity);
+        KRATOS_WATCH(mThickness0);
         mThickness.resize( integration_points.size(), 0.00 );
 
         // Initialize Material
