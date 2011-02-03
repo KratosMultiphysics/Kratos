@@ -1,0 +1,33 @@
+BeginZE /home/rrossi/esempi/cavity3d_edgebased.gid/cavity3d_edgebased.vv
+   x -1.59543 1.59543
+   y 0.866026 -0.866026
+   z -2.59808 2.59808
+   e 0.866025
+   v -0.374636 0.130484 0.242873
+   r -0.885231
+   m 0.847973 0.332229 -0.412996 0 -0.527766 0.601321 -0.599897 0 0.0490399 0.726662 0.685243 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector -21.2479 70.2726 129.025 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 8192
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.08
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/rrossi/esempi/cavity3d_edgebased.gid/cavity3d_edgebased.vv
+
