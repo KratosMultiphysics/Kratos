@@ -38,15 +38,18 @@ namespace Kratos
 */
 	//KRATOS_CREATE_VARIABLE(double, IS_LAGRANGIAN_INLET)
 
+	
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-//	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 KratosULFApplication::KratosULFApplication():
 	mUpdatedLagrangianFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 	mUpdatedLagrangianFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 	mUpdatedLagrangianFluid2Dinc(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-	mUpdatedLagrangianFluid3Dinc(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+	mUpdatedLagrangianFluid3Dinc(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+	//new one - mis of frac step and ulf_inc	
+	mUlfFrac2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
 	{}
 	
 
@@ -68,13 +71,15 @@ KratosULFApplication::KratosULFApplication():
 	//	KRATOS_REGISTER_VARIABLE(IS_LAGRANGIAN_INLET)
 
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-//		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 		
 		KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2D", mUpdatedLagrangianFluid2D);
 		KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid3D", mUpdatedLagrangianFluid3D);
 		KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid2Dinc", mUpdatedLagrangianFluid2Dinc);
 		KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid3Dinc", mUpdatedLagrangianFluid3Dinc);
+		//
+		KRATOS_REGISTER_ELEMENT("UlfFrac2D", mUlfFrac2D);
 		
 	}
 

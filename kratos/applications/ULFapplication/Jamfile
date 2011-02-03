@@ -31,6 +31,7 @@ python-extension KratosULFApplication
 	updated_lagrangian_fluid3D.cpp 
 	updated_lagrangian_fluid_inc.cpp 
 	updated_lagrangian_fluid3D_inc.cpp 
+	ulf_frac2d.cpp
 
     	/KratosProject//libkratos_static
 	/KratosProject//libomp
