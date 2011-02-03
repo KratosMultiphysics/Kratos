@@ -30,6 +30,7 @@
 #include "custom_elements/updated_lagrangian_fluid3D.h"
 #include "custom_elements/updated_lagrangian_fluid_inc.h"
 #include "custom_elements/updated_lagrangian_fluid3D_inc.h"
+#include "custom_elements/ulf_frac2d.h"
 namespace Kratos
 {
 
@@ -47,9 +48,11 @@ namespace Kratos
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_TO_WALL)
 */
 	//KRATOS_DEFINE_VARIABLE(double, IS_LAGRANGIAN_INLET)
+//	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
 
+	
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-//	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 	///@} 
@@ -204,6 +207,8 @@ namespace Kratos
 		const UpdatedLagrangianFluid3D mUpdatedLagrangianFluid3D;
 		const UpdatedLagrangianFluidInc mUpdatedLagrangianFluid2Dinc;
 		const UpdatedLagrangianFluid3Dinc mUpdatedLagrangianFluid3Dinc;
+		//
+		const UlfFrac2D mUlfFrac2D;
 		
 		///@} 
 		///@name Private Operators
