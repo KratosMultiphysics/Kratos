@@ -7,12 +7,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(AUX_INDEX)
-    model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
-    model_part.AddNodalSolutionStepVariable(POROSITY)
-
-#    model_part.AddNodalSolutionStepVariable(ACCELERATION)
-    model_part.AddNodalSolutionStepVariable(DIAMETER)
 
     print "variables for the edgebased incompressible fluid solver added correctly"
 
@@ -28,7 +23,7 @@ class EdgeBasedLevelSetSolver:
     
     def __init__(self,model_part,domain_size,body_force,viscosity,density):
 
-        print "entered in EdgeBasedLevelSetSolver python constructor"
+        print "entered in EdgeBasedEulerianSolver python constructor"
         #data of the problem
         self.model_part = model_part
         self.domain_size = domain_size
@@ -63,7 +58,7 @@ class EdgeBasedLevelSetSolver:
 
 
     def Initialize(self):
-        print "entered in EdgeBasedLevelSetSolver python constructor"
+        print "entered in EdgeBasedEulerianSolver Initialize"
         #build the edge data structure
         if(self.domain_size == 2):
             self.matrix_container = MatrixContainer2D()
@@ -79,21 +74,16 @@ class EdgeBasedLevelSetSolver:
             self.condition_neighbours_finder.Execute()
 
         ##constructing the solver
+        print "ln82"
         if(self.domain_size == 2):
-            self.fluid_solver = EdgeBasedLevelSet2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
+            self.fluid_solver = FluidSolver2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
         else:
-            self.fluid_solver = EdgeBasedLevelSet3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
-
-        
-
-#TO BE DELETED SOON
-##        print "ASSIGNING DIAMETER FROM SOLVER: TO BE REMOVED SOOOOOON!!!!!!!!!!!!!!!!!!!!"
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(DIAMETER,0, 0.01)
-            node.SetSolutionStepValue(POROSITY,0, 1.0)
-            node.SetSolutionStepValue(DISTANCE,0, -1.0)
+            print "ln83"
+            self.fluid_solver = FluidSolver3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
+            print "ln84"
 
         self.fluid_solver.Initialize()
+        print "ln91"
 
 
 
@@ -105,7 +95,7 @@ class EdgeBasedLevelSetSolver:
     ################################################################
     ################################################################
     def Solve(self):
-        (self.fluid_solver).UpdateFixedVelocityValues()
+##        (self.fluid_solver).UpdateFixedVelocityValues()
         (self.fluid_solver).SolveStep1();
         (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
         (self.fluid_solver).SolveStep3();
