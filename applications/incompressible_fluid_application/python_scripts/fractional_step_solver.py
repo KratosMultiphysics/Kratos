@@ -150,7 +150,8 @@ class IncompressibleFluidSolver:
         refinement_utils.MarkForRefinement(ERROR_RATIO,self.model_part,admissible_ratio,max_levels)
         self.Clear()
         refine_on_reference = False;
-        Refine.LocalRefineMesh(refine_on_reference)
+        interpolate_internal_variables = False;
+        Refine.LocalRefineMesh(refine_on_reference,interpolate_internal_variables)
         
         (self.neighbour_search).Execute()
         self.slip_conditions_initialized = False
