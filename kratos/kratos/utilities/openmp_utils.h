@@ -66,14 +66,16 @@ namespace Kratos
     {
     public:
 
-        /// Vector type for the output of DivideInPartitions
-        /** Vector type for the output of the DivideInPartitions method
+        /// Vector type for the output of DivideInPartitions method
+        /**
          *  @see OpenMPUtils::DivideInPartitions
          */
         typedef std::vector<int> PartitionVector;
 
+        /// Wrapper for omp_get_max_threads().
         /**
-         Wrapper for omp_get_max_threads()
+         This returns the maximum number of OpenMP threads that will be used in
+         parallel regions.
          */
         static inline int GetNumThreads()
         {
@@ -84,8 +86,10 @@ namespace Kratos
             #endif
         }
 
+        /// Wrapper for omp_get_thread_num().
         /**
-         Wrapper for omp_get_thread_num()
+         This returns the number of the current thread.
+         @param The thread number for this thread, 0 if scalar run.
          */
         static inline int ThisThread()
         {
@@ -96,8 +100,11 @@ namespace Kratos
             #endif
         }
 
+        /// Timing routine.
         /**
-         Timing routine
+         This returns the current time by calling an appropiate
+         (scalar or parallel) timer class.
+         @return The current time
          */
         static double GetCurrentTime()
 	{
@@ -108,12 +115,16 @@ namespace Kratos
 	    #endif
 	}
 
+        /// Divide an array of length NumTerms between NumThreads threads.
         /**
-         Divide an array of length NumTerms between NumThreads threads.
          Creates a std::vector containing NumThreads + 1 terms, where term k
          is the first and position of the array that corresponds to thread k.
          The k+1 term is the end of the array, so that the vector can be used
          to iterate the array between 'k' and 'k+1' in each thread.
+         @param NumTerms Number of objects to be divided between the threads.
+         @param NumThreads The number of parallel threads that will be used.
+         @param Partitions This object will contain the begin and end positions
+         for each thread.
          */
         static inline void DivideInPartitions(
                 const int NumTerms,
