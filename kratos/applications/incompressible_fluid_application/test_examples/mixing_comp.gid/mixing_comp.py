@@ -32,6 +32,15 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 from KratosIncompressibleFluidApplication import *
 from KratosConvectionDiffusionApplication import *
+###########################################################
+thermal_settings = ConvectionDiffusionSettings()
+thermal_settings.SetDensityVariable(DENSITY)
+thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
+thermal_settings.SetUnknownVariable(TEMPERATURE)
+thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
+thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+##########################################################
 from KratosPFEMApplication import *
 
 #defining a model part
@@ -48,7 +57,7 @@ model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
 model_part.AddNodalSolutionStepVariable(TEMPERATURE)
 
 import nonlinear_convection_diffusion_solver
-nonlinear_convection_diffusion_solver.AddVariables(model_part) #the nodes are the same 
+nonlinear_convection_diffusion_solver.AddVariables(model_part, thermal_settings) #the nodes are the same 
 
 
 #reading a model
@@ -77,7 +86,7 @@ model_part.SetBufferSize(3)
 
 ##add Degrees of Freedom to all of the nodes
 runge_kutta_frac_step_comp_solver.AddDofs(model_part)
-nonlinear_convection_diffusion_solver.AddDofs(model_part)
+nonlinear_convection_diffusion_solver.AddDofs(model_part, thermal_settings)
 
 NISTTools = NistUtils()
 
@@ -89,7 +98,7 @@ for node in model_part.Nodes:
     node.Free(PRESSURE)
     
 for node in model_part.Nodes:
-    if (node.Y>0.999 and node.X>0.999):
+    if (node.Y<0.0001 and node.X<0.0001):
         node.SetSolutionStepValue(PRESSURE,0,0.0)
         node.Fix(PRESSURE)
     
@@ -112,7 +121,7 @@ fluid_solver = runge_kutta_frac_step_comp_solver.RungeKuttaFracStepCompSolver(mo
 fluid_solver.Initialize()
 
 #convection diffusion solver
-temperature_solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(temperature_model_part,domain_size)
+temperature_solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(temperature_model_part,domain_size, thermal_settings)
 temperature_solver.time_order = 1
 temperature_solver.ReformDofAtEachIteration = False
 temperature_solver.echo_level = 0
@@ -166,10 +175,10 @@ for node in model_part.Nodes:
         node.Fix(TEMPERATURE)
 
 #now we compute the delta time using CFL law
-CFL_time_estimate_process=CFLProcess(model_part)
+CFL_time_estimate_process=CFLProcess2D(model_part)
 CFL=0.8;
 
-dt_max = 0.05
+dt_max = 0.01
 Dt=0.1
 out = 0
 time=0.0
