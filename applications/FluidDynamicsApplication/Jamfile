@@ -38,6 +38,7 @@ python-extension KratosFluidDynamicsApplication
 	add_custom_strategies_to_python.cpp 
 	add_custom_utilities_to_python.cpp 
 	fluid_dynamics_python_application.cpp 
+	vms.cpp
 
 
 	#kratos library

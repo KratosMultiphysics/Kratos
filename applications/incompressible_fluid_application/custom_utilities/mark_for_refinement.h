@@ -266,7 +266,7 @@ namespace Kratos
          estimation and adaptivity, Computer Methods in Applied Mechanics and Engineering,
          Volume 195, Issues 13-16, 2006
          @param rModelPart The model part containing the elements
-         @see VMSBase
+         @see VMS for the calculation of the error ratio at the elemental level
          */
         void SubscaleErrorEstimate(ModelPart& rModelPart)
         {
@@ -288,12 +288,12 @@ namespace Kratos
                 ModelPart::ElementsContainerType::iterator ElemEnd = rModelPart.ElementsBegin() + ElementPartition[k+1];
 
                 ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
-                array_1d<double,3> MomError;
+                double Error;
 
                 // Ask each element to calculate its Error ratio
                 for( ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
                 {
-                    itElem->Calculate(ADVPROJ,MomError,rProcessInfo);
+                    itElem->Calculate(ERROR_RATIO,Error,rProcessInfo);
                 }
             }
         }

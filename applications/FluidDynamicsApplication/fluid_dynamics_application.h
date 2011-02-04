@@ -74,10 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
-#include "custom_elements/vms_2d.h"
-#include "custom_elements/vms_2d_smagorinsky.h"
-#include "custom_elements/vms_3d.h"
-#include "custom_elements/vms_3d_smagorinsky.h"
+#include "custom_elements/vms.h"
 
 namespace Kratos
 {
@@ -237,14 +234,10 @@ namespace Kratos
 		///@name Member Variables 
 		///@{
 
-                /// 2D implementation of the VMS formulation
- 		const VMS2D mVMS2D;
-                /// 2D implementation of the VMS formulation with an additional Smagorinsky term
- 		const VMS2DSmagorinsky mVMS2DSmagorinsky;
-                /// 3D implementation of the VMS formulation
- 		const VMS3D mVMS3D;
-                /// 3D implementation of the VMS formulation with an additional Smagorinsky term
-                const VMS3DSmagorinsky mVMS3DSmagorinsky;
+                /// 2D instance of the VMS element
+ 		const VMS<2> mVMS2D;
+                /// 3D instance of the VMS element
+ 		const VMS<3> mVMS3D;
 
 
 		///@} 
