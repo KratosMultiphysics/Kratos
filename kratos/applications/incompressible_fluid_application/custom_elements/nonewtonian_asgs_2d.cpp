@@ -239,19 +239,19 @@ namespace Kratos {
 	GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
 
-	/**         LHS           */
-	/**Advective term*/
+	/*         LHS           */
+	/*Advective term*/
 	double tauone;
 	double tautwo;
 	CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 	CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
 
-	/**Calculate Pressure term + divergence term of pressure equation*/
+	/*Calculate Pressure term + divergence term of pressure equation*/
 	CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area);
 
 	//compute projections
-	/**Stablization*/
+	/*Stablization*/
 	//stabilization terms
 /*20101216*/
 	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);//tau 2
@@ -259,12 +259,12 @@ namespace Kratos {
 	CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
 	//KRATOS_WATCH(rRightHandSideVector);
 
-	/**         RHS           */
-	/**Internal Forces*/
+	/*         RHS           */
+	/*Internal Forces*/
 	CalculateResidual(rDampMatrix, rRightHandSideVector,DN_DX, Area);
 
-	/**         LHS           */
-	/**Viscous term*/
+	/*         LHS           */
+	/*Viscous term*/
 	CalculateViscousTerm(rDampMatrix, DN_DX, Area);
 
 	KRATOS_CATCH("")
@@ -312,7 +312,10 @@ namespace Kratos {
 	
 	C *= app_mu;
 	
-//  	if(gamma_dot > 1e-10){
+	
+/*	app_mu_derivative *= -1;*/
+	
+// //  	if(gamma_dot > 1e-3){
 // 		C(0, 0) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
 // 		C(0, 1) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
 // 		C(0, 2) +=  2.0 *  grad_sym_vel[0] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
@@ -322,7 +325,7 @@ namespace Kratos {
 // 		C(2, 0) +=  2.0 *  grad_sym_vel[2] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
 // 		C(2, 1) +=  2.0*  grad_sym_vel[2] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
 // 		C(2, 2) +=       grad_sym_vel[2] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
-//  	}
+// //  	}
 
 	// KRATOS_WATCH(C)
 	//Calculating the viscous contribution to the LHS int(Btrans C B)dA
@@ -470,7 +473,7 @@ namespace Kratos {
 
 	 }
 #endif
-////compressibility term & assemble Consistent Mass Matrix (Attention: Rank zero matrix, it may couse problems!)	
+// //compressibility term & assemble Consistent Mass Matrix (Attention: Rank zero matrix, it may couse problems!)	
 // 	double c2_inv = 1e-6;
 // 	double compressibility_coef = area * c2_inv /time;
 // // KRATOS_WATCH("time")
@@ -943,7 +946,7 @@ namespace Kratos {
 //	Remember to modify CalculateViscousTerm and CalculateTau
 // 	app_mu = mu;
 	
-	aux_1 = 2 * app_mu * grad_sym_vel;
+	aux_1 = 2.0 * app_mu * grad_sym_vel;
 	aux_1[2] *= 0.5; //considering Voigt notation for the gradient of velocity (alternative to the C matrix of the viscous term.
 
 	auxDevStressVector = prod(trans(B), aux_1);
@@ -1187,8 +1190,7 @@ namespace Kratos {
 	unsigned int dim = 2;
 	unsigned int nodes_number = dim + 1;
 
-	array_1d<double, 6 > U = ZeroVector(6);
-	//		array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
+	array_1d<double, 6 > U;
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	    int index = ii * (dim);
 	    const array_1d<double,3>& vel =  GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
@@ -1202,12 +1204,11 @@ namespace Kratos {
 //         gamma_dot = grad_sym_vel[0] * grad_sym_vel[0] + grad_sym_vel[1] * grad_sym_vel[1] + 0.5 * grad_sym_vel[2] * grad_sym_vel[2];
 // Gamma dot found in literature!!!:
 	gamma_dot = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
+	gamma_dot = sqrt(gamma_dot);
 
-	if (gamma_dot > 0.00001) {
-	    gamma_dot = sqrt(gamma_dot);
-	} else
-	    gamma_dot = 0.0;
-	
+	if(gamma_dot < 1e-5){
+	  gamma_dot=1e-5;
+	}
 	
 	KRATOS_CATCH("")
     }
@@ -1235,7 +1236,7 @@ namespace Kratos {
 	  double yield = 0.0;
 	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
-// 	  double gamma_dot_inv;
+	  double gamma_dot_inv;
 // 	  double solid_pressure = 0.0;
 // 	  double seepage_drag_x = 0.0;
 	  
@@ -1279,17 +1280,17 @@ namespace Kratos {
 
 #ifdef EXPONENCIAL_MODEL
 ////////EXPONENCIAL MODEL
-	if (gamma_dot > 1e-10) {
+// 	if (gamma_dot > 1e-10) {
 	    aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
 	    app_mu = mu + (yield / gamma_dot) * aux_1;
 // 			gamma_dot_inv = 1.0/gamma_dot;
 	    if (app_mu < mu) {
 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
 	    }
-	} else {
-	    app_mu = mu + yield*mcoef ;
-// 			gamma_dot_inv = 0.0;
-	}
+// 	} else {
+// 	    app_mu = mu + yield*mcoef ;
+// // 			gamma_dot_inv = 0.0;
+// 	}
 #else	
 // ////////BILINEAR MODEL
       double mu_s = 1e7;
@@ -1307,7 +1308,10 @@ namespace Kratos {
 	app_mu = mu_s ;
       }
 #endif
-	
+// 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
+// 	else  
+	gamma_dot_inv= 1.0 / gamma_dot;
+	app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
 /*
 //Calculating nodal yield and nodal app_mu before the calculation of elemental apparent viscosity
 	  // The yield is variable: it decreases where water is present
