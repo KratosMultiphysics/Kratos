@@ -265,15 +265,7 @@ namespace Kratos
 		//calculate convective term	
 		int nodes_number = 3;
 		int dof = 2;
-		
-		boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp;
-		boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc;
-		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat;
-		boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1;
-		boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2;
-		array_1d<double,6> msAuxVec; 
-		array_1d<double,6> msStabMomRes; 
-	
+					
 		for (int ii = 0; ii< nodes_number; ii++)
 		    {
 			int column = ii*dof;
