@@ -65,6 +65,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+    ///@name Kratos classes
+    ///@{
+
     /// A builder and solver scheme based on separating pressure and velocity Dofs
     /**
      The PressureSplittingBuilderAndSolver class is intended to solve the
@@ -94,7 +97,7 @@ namespace Kratos
      \f]
      where \f$ S^{-1} \f$ is approximated by \f$ \left( Diag \left( S \right) \right)^{-1} \f$
      This class is intended to work with ASGS and VMS elements
-     @see ASGS2D, ASGS3D, VMSBase
+     @see ASGS2D, ASGS3D, VMS
      */
     template< class TSparseSpace,
 	class TDenseSpace , //= DenseSpace<double>,
@@ -109,6 +112,9 @@ namespace Kratos
          * solvers) is used here to store the matrix of the pressure equation.
          */
     public:
+
+        ///@name Type Definitions
+        ///@{
 
         KRATOS_CLASS_POINTER_DEFINITION( PressureSplittingBuilderAndSolver );
 
@@ -150,9 +156,20 @@ namespace Kratos
         typedef typename TSystemMatrixType::iterator2 InnerIt;
         typedef typename boost::numeric::ublas::matrix_row< TSystemMatrixType > RowType;
 
-        // Life Cycle
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
         /// Constructor
+        /**
+         @param pNewVelLinearSystemSolver pointer to the solver for the velocity system(s).
+         @param pNewPressLinearSystemSolver pointer to the solver for the pressure system.
+         @param VelocityCorrection If > 0, explicitly solve the velocity to be divergence-free at each step.
+         @param UseInexactNewton If true, dynamically set the linear iterative solver tolerance for the pressure system.
+         @param NonLinearTol Only used if InexactNewton == true, otherwise the solver will use it's own tolerance.
+         @param MaxTolFactor Inexact Newton parameter
+         @param Gamma Inexact Newton parameter
+         */
         PressureSplittingBuilderAndSolver(
                 typename TLinearSolver::Pointer pNewVelLinearSystemSolver, // Velocity solver, stored internally
                 typename TLinearSolver::Pointer pNewPressLinearSystemSolver, // Pressure solver, stored by the base class
@@ -180,9 +197,17 @@ namespace Kratos
         /// Destructor
         virtual ~PressureSplittingBuilderAndSolver() {}
 
-        // Operations
+        ///@}
+        ///@name Operations
+        ///@{
 
         /// Build System
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param A Reference to the space reserved for the (pressure) system matrix.
+         @param b Reference to the space reserved for the RHS vector.
+         */
         void Build(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -336,6 +361,11 @@ namespace Kratos
         }
 
         /// Build Left Hand Side only
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param A Reference to the space reserved for the (pressure) system matrix.
+         */
         void BuildLHS(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -405,7 +435,12 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /// Build Left Hand Side with extra columns, including fixed Dofs
+        /// Build Left Hand Side with extra columns, including fixed Dofs.
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param A Reference to the space reserved for the (pressure) system matrix.
+         */
         void BuildLHS_CompleteOnFreeRows(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -476,6 +511,13 @@ namespace Kratos
         }
 
         /// Solve one iteration
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param A Reference to the space reserved for the (pressure) system matrix.
+         @param Dx Reference to the space reserved for the vector of unknowns.
+         @param b Reference to the space reserved for the RHS vector.
+         */
         void SystemSolve(
                 TSystemMatrixType& A,
                 TSystemVectorType& Dx,
@@ -598,6 +640,13 @@ namespace Kratos
         }
 
         /// Build and Solve system
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param A Reference to the space reserved for the (pressure) system matrix.
+         @param Dx Reference to the space reserved for the vector of unknowns.
+         @param b Reference to the space reserved for the RHS vector.
+         */
         void BuildAndSolve(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -637,6 +686,13 @@ namespace Kratos
         }
 
         /// Solve System for updated Right Hand Side
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param A Reference to the space reserved for the (pressure) system matrix.
+         @param Dx Reference to the space reserved for the vector of unknowns.
+         @param b Reference to the space reserved for the RHS vector.
+         */
         void BuildRHSAndSolve(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -653,6 +709,11 @@ namespace Kratos
         }
 
         /// Build Right Hand Side only
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param b Reference to the space reserved for the RHS vector.
+         */
         void BuildRHS(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -747,6 +808,10 @@ namespace Kratos
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart)
         {
+            /* Scalar implementation. There is a working OpenMP version
+             after this, which has been commented out because Getting the list of
+             Dofs is not thread-safe. (See find() in pointer_vector_set.h)
+             */
             KRATOS_TRY;
 
             std::cout << "Setting up degrees of freedom" << std::endl;
@@ -757,55 +822,34 @@ namespace Kratos
             BaseType::mDofSet = DofsArrayType();
 
             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+            Element::DofsVectorType ElementalDofList;
 
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            PartitionVector ElemPartition;
-            PartitionVector CondPartition;
-
-            OpenMPUtils::DivideInPartitions(pElements.size(),NumThreads,ElemPartition);
-            OpenMPUtils::DivideInPartitions(pConditions.size(),NumThreads,CondPartition);
-
-            std::vector< DofsArrayType > DofContainer(NumThreads);
-
-            #pragma omp parallel
+            for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin();
+                        it != pElements.ptr_end(); ++it)
             {
-                int k = OpenMPUtils::ThisThread();
-                Element::DofsVectorType ElementalDofList;
+                // gets list of Dof involved on every element
+                pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
 
-                for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin() + ElemPartition[k];
-                        it != pElements.ptr_begin() + ElemPartition[k+1]; ++it) {
-                    // gets list of Dof involved on every element
-                    pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
-
-                    for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
-                            i != ElementalDofList.end(); ++i) {
-                        DofContainer[k].push_back(*i);
-                    }
+                for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
+                     i != ElementalDofList.end(); ++i)
+                {
+                    BaseType::mDofSet.push_back(*i);
                 }
-
-                //taking into account conditions
-                for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin() + CondPartition[k];
-                        it != pConditions.ptr_begin() + CondPartition[k+1]; ++it) {
-                    // gets list of Dof involved on every element
-                    pScheme->GetConditionDofList(*it, ElementalDofList, CurrentProcessInfo);
-
-                    for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
-                            i != ElementalDofList.end(); ++i) {
-                        DofContainer[k].push_back(*i);
-                    }
-                }
-
-                // Remove duplicates in the partial list
-                // (try to do as much work as possible in the parallel region)
-                DofContainer[k].Unique();
             }
 
-            // Generate a single list
-            for (int k = 0; k < NumThreads ; k++)
-                for( typename DofsArrayType::ptr_iterator itDof = DofContainer[k].ptr_begin();
-                        itDof != DofContainer[k].ptr_end(); itDof++) {
-                    BaseType::mDofSet.push_back(*itDof);
+            //taking into account conditions
+            for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin();
+                 it != pConditions.ptr_end(); ++it)
+            {
+                // gets list of Dof involved on every element
+                pScheme->GetConditionDofList(*it, ElementalDofList, CurrentProcessInfo);
+
+                for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
+                     i != ElementalDofList.end(); ++i)
+                {
+                    BaseType::mDofSet.push_back(*i);
                 }
+            }
 
             BaseType::mDofSet.Unique();
 
@@ -818,8 +862,80 @@ namespace Kratos
 
             KRATOS_CATCH("");
         }
+//        {
+//            KRATOS_TRY;
+//
+//            std::cout << "Setting up degrees of freedom" << std::endl;
+//            //Gets the array of elements from the modeler
+//            ElementsArrayType& pElements = rModelPart.Elements();
+//            ConditionsArrayType& pConditions = rModelPart.Conditions();
+//
+//            BaseType::mDofSet = DofsArrayType();
+//
+//            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+//
+//            int NumThreads = OpenMPUtils::GetNumThreads();
+//            PartitionVector ElemPartition;
+//            PartitionVector CondPartition;
+//
+//            OpenMPUtils::DivideInPartitions(pElements.size(),NumThreads,ElemPartition);
+//            OpenMPUtils::DivideInPartitions(pConditions.size(),NumThreads,CondPartition);
+//
+//            std::vector< DofsArrayType > DofContainer(NumThreads);
+//
+//            #pragma omp parallel
+//            {
+//                int k = OpenMPUtils::ThisThread();
+//                Element::DofsVectorType ElementalDofList;
+//
+//                for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin() + ElemPartition[k];
+//                        it != pElements.ptr_begin() + ElemPartition[k+1]; ++it) {
+//                    // gets list of Dof involved on every element
+//                    pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
+//
+//                    for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
+//                            i != ElementalDofList.end(); ++i) {
+//                        DofContainer[k].push_back(*i);
+//                    }
+//                }
+//
+//                //taking into account conditions
+//                for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin() + CondPartition[k];
+//                        it != pConditions.ptr_begin() + CondPartition[k+1]; ++it) {
+//                    // gets list of Dof involved on every element
+//                    pScheme->GetConditionDofList(*it, ElementalDofList, CurrentProcessInfo);
+//
+//                    for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin();
+//                            i != ElementalDofList.end(); ++i) {
+//                        DofContainer[k].push_back(*i);
+//                    }
+//                }
+//
+//                // Remove duplicates in the partial list
+//                // (try to do as much work as possible in the parallel region)
+//                DofContainer[k].Unique();
+//                }
+//
+//            // Generate a single list
+//            for (int k = 0; k < NumThreads ; k++)
+//                for( typename DofsArrayType::ptr_iterator itDof = DofContainer[k].ptr_begin();
+//                        itDof != DofContainer[k].ptr_end(); itDof++) {
+//                    BaseType::mDofSet.push_back(*itDof);
+//                }
+//
+//            BaseType::mDofSet.Unique();
+//
+//            //throws an execption if there are no Degrees of freedom involved in the analysis
+//            if (BaseType::mDofSet.size() == 0)
+//                KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+//
+//            BaseType::mDofSetIsInitialized = true;
+//            mDofSetChanged = true;
+//
+//            KRATOS_CATCH("");
+//        }
 
-        /// Organise Dofs, separating fixed and free nodes
+        /// Organise Dofs, separating fixed and free nodes.
         /**
          * This function orders the degrees of freedom of the system.
          * To prepare for uncoupled solution, the numeration is assigned as follows:
@@ -880,10 +996,16 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /// Initialize pointers to system vectors and matrices, check sizes
+        /// Initialize pointers to system vectors and matrices, check sizes.
         /**
-         *  Initialize pointers to the different vectors involved, check that they
-         * have the correct size
+         * Initialize pointers to the different vectors involved, check that they
+         * have the correct size.
+         * @param pA Pointer to the space reserved for the (pressure) system matrix.
+         * @param pDx Pointer to the space reserved for the vector of unknowns.
+         * @param pb Pointer to the space reserved for the RHS vector.
+         * @param rElements Reference to the container of the model's elements.
+         * @param rConditions Reference to the container of the model's conditions.
+         * @param rCurrentProcessInfo Reference to the ProcessInfo of the ModelPart.
          */
         void ResizeAndInitializeVectors(
                 TSystemMatrixPointerType& pA,
@@ -891,7 +1013,7 @@ namespace Kratos
                 TSystemVectorPointerType& pb,
                 ElementsArrayType& rElements,
                 ConditionsArrayType& rConditions,
-                ProcessInfo& CurrentProcessInfo)
+                ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY;
 
@@ -966,7 +1088,7 @@ namespace Kratos
                 D.resize(mPressFreeDofs, mVelFreeDofs, false);
                 L.resize(mPressFreeDofs, mPressFreeDofs, false);
 
-                ConstructMatrixStructure(S, D, G, L, rElements, rConditions, CurrentProcessInfo);
+                ConstructMatrixStructure(S, D, G, L, rElements, rConditions, rCurrentProcessInfo);
 
                 A.resize(mPressFreeDofs, mPressFreeDofs, false);
                 IDiagS.resize(mVelFreeDofs);
@@ -1027,6 +1149,13 @@ namespace Kratos
         {}
 
         /// Calculate Reactions
+        /**
+         @param pScheme Pointer to the time Scheme.
+         @param rModelPart Reference to the ModelPart that contains the problem.
+         @param A Reference to the space reserved for the (pressure) system matrix.
+         @param Dx Reference to the space reserved for the vector of unknowns.
+         @param b Reference to the space reserved for the RHS vector.
+         */
         void CalculateReactions(
                 typename TSchemeType::Pointer pScheme,
                 ModelPart& rModelPart,
@@ -1079,10 +1208,10 @@ namespace Kratos
                 TSystemVectorType& b)
         {}
 
-        /// Free memory used by class members once no longer needed
+        /// Free memory used by class members once no longer needed.
         /**
          * this function is intended to be called at the end of the solution
-         * step to clean up memory storage not needed
+         * step to clean up memory storage not needed.
          */
         void Clear()
         {
@@ -1118,12 +1247,15 @@ namespace Kratos
          * the matrix will be filled. If the DofSet changes between time steps, the
          * system matrix will be reformed internally, so this function should only be used
          * if the system matrix structure changes inside the time step.
+         * @param A Reference to the space reserved for the (pressure) system matrix.
          */
         inline void ReshapeSystemMatrix(TSystemMatrixType& A)
         {
             AllocateSystemMatrix(A);
             ConstructSystemMatrix(A);
         }
+
+        ///@} Operations
 
     protected:
 
@@ -1990,6 +2122,8 @@ namespace Kratos
         /// Inexact Newton pressure tolerance factor
         double mLastPressRHSNorm;
     };
+
+    ///@} // Kratos classes
 }
 
 #endif	/* KRATOS_PRESSURE_SPLITTING_BUILDER_AND_SOLVER_H */
