@@ -153,6 +153,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, CONCRETE_YOUNG_MODULUS_T )
     KRATOS_CREATE_VARIABLE( double, FRACTURE_ENERGY )
     KRATOS_CREATE_VARIABLE( double, CRUSHING_ENERGY )
+    KRATOS_CREATE_VARIABLE( double, ELASTIC_ENERGY)
+    KRATOS_CREATE_VARIABLE( double, PLASTIC_ENERGY)
 //     KRATOS_CREATE_VARIABLE( double, YIELD_STRESS )
     KRATOS_CREATE_VARIABLE( double, PLASTIC_MODULUS )
     KRATOS_CREATE_VARIABLE( double, PLASTICITY_INDICATOR )
@@ -175,8 +177,15 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
     KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRESS )
     KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRAIN )
+    KRATOS_CREATE_VARIABLE( Matrix, CONSTRAINT_MATRIX)
+    KRATOS_CREATE_VARIABLE( Vector, CONSTRAINT_VECTOR)
     KRATOS_CREATE_VARIABLE( int,  NODAL_VALUES )
     KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE )
+    
+
+    
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
 
 
 //  KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
@@ -362,9 +371,14 @@ namespace Kratos
 
             mPointForce3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
             mPointForce2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+            mPointMoment3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
             mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-            mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
-    {}
+            mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+   
+            mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+            mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+             
+   {}
 
     void KratosStructuralApplication::Register()
     {
@@ -428,6 +442,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( CONCRETE_YOUNG_MODULUS_T )
         KRATOS_REGISTER_VARIABLE( FRACTURE_ENERGY )
         KRATOS_REGISTER_VARIABLE( CRUSHING_ENERGY )
+        KRATOS_REGISTER_VARIABLE( PLASTIC_ENERGY  )
+        KRATOS_REGISTER_VARIABLE( ELASTIC_ENERGY  )
 //         KRATOS_REGISTER_VARIABLE( YIELD_STRESS )
         KRATOS_REGISTER_VARIABLE( PLASTIC_MODULUS )
         KRATOS_REGISTER_VARIABLE( PLASTICITY_INDICATOR )
@@ -452,7 +468,10 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( NODAL_STRAIN )
         KRATOS_REGISTER_VARIABLE( NODAL_VALUES )
         KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE )
-
+        KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX)
+        KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
 
         //KRATOS_REGISTER_VARIABLE(ERASE_FLAG )
 //   KRATOS_REGISTER_VARIABLE(CONTACT_RAMP )
@@ -626,10 +645,15 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "SlaveContactFace3D8Newmark", mSlaveContactFace3D8Newmark )
         KRATOS_REGISTER_CONDITION( "SlaveContactFace3D9Newmark", mSlaveContactFace3D9Newmark )
         KRATOS_REGISTER_CONDITION( "PointForce3D", mPointForce3D )
+        KRATOS_REGISTER_CONDITION( "PointMoment3D", mPointMoment3D )
         KRATOS_REGISTER_CONDITION( "NodeTyingLagrange", mNodeTyingLagrange )
         KRATOS_REGISTER_CONDITION( "NodeTyingLagrangeZ", mNodeTyingLagrangeZ )
 //         KRATOS_REGISTER_ELEMENT("UPCTestElement3D20N", mUPCTestElement3D20N)
         KRATOS_REGISTER_CONDITION( "PointForce2D", mPointForce2D )
+
+
+	KRATOS_REGISTER_CONDITION( "SlaveContactPoint2D", mSlaveContactPoint2D )
+	KRATOS_REGISTER_CONDITION( "MasterContactFace2D", mMasterContactFace2D )
 
     }
 
