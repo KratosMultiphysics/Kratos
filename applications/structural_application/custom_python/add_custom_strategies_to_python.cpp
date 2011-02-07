@@ -186,9 +186,9 @@ namespace Kratos
 
            class_< ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
                    (
-                    "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, double, double, double,  bool, bool  >())
+                    "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, int, double, double, double,  bool, bool, bool  >())
                  .def("Initialize", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)      
-                 .def("ComputeCriticalTime", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Compute_Critical_Time)         
+                 .def("ComputeCriticalTime", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime)         
                   ;
 
 
