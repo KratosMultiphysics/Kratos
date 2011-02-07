@@ -122,9 +122,9 @@ namespace Kratos
 
       typedef std::vector<std::size_t> EquationIdVectorType;
 
-	  typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+      typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
-	  typedef PointerVectorSet<Dof<double> , IndexedObject> DofsArrayType;
+      typedef PointerVectorSet<Dof<double> , IndexedObject> DofsArrayType;
 
       typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
       
@@ -285,6 +285,11 @@ namespace Kratos
 	virtual void GetValuesVector(Vector& values, int Step = 0){}
 	virtual void GetFirstDerivativesVector(Vector& values, int Step = 0){}
 	virtual void GetSecondDerivativesVector(Vector& values, int Step = 0){}
+
+  
+        virtual void Calculate( const Variable<double >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo){}  
+        virtual void Calculate( const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
+        virtual void Calculate( const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
 
 	//calculate on gauss points
 	virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
