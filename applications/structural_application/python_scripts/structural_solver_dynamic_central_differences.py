@@ -41,31 +41,31 @@ class DynamicStructuralSolver:
     #######################################################################
     def __init__(self,model_part,domain_size):
 
-        self.model_part           = model_part  
-        self.alpha_damp           = 0.00;
-        self.max_delta_time       = 0.01;
-        self.fraction_delta_time  = 0.90;
+        self.model_part               = model_part  
+        self.domain_size              = domain_size
+        self.alpha_damp               = 0.00;
+        self.max_delta_time           = 0.05;
+        self.fraction_delta_time      = 0.90;
+        self.CalculateReactionFlag    = True
+        self.MoveMeshFlag             = True
+        self.ComputeContactConditions = True
         #self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
         #self.structure_linear_solver =  SkylineLUFactorizationSolver()
                
     #######################################################################
   
     def CriticalTime(self):
-         print "Calculating Time Step " 
-         self.solver.Initialize();
-         self.solver.ComputeCriticalTime()  
+         (self.solver).Initialize();
+         print "Calculating Time Step "
+         (self.solver).ComputeCriticalTime()  
 
 
     def Initialize(self):
-
-        CalculateReactionFlag  = True
-        MoveMeshFlag           = True
-        #ReformDofSetAtEachStep = False
         
-
+        #ReformDofSetAtEachStep = False
 ##      #creating the solution strategy
-        self.solver = ResidualBasedCentralDiferencesStrategy(self.model_part,                                                                                self.alpha_damp, self.fraction_delta_time, self.max_delta_time,   CalculateReactionFlag, MoveMeshFlag)
-        self.CriticalTime()
+        self.solver = ResidualBasedCentralDiferencesStrategy(self.model_part,  self.domain_size,  self.alpha_damp, self.fraction_delta_time, self.max_delta_time, self.CalculateReactionFlag, self.ComputeContactConditions, self.MoveMeshFlag)
+        #self.CriticalTime()
         
     #######################################################################   
     def Solve(self):
