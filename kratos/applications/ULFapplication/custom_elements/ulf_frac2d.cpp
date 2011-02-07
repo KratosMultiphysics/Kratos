@@ -164,7 +164,8 @@ namespace Kratos
 			PressureStep(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 		}
 
-		
+
+		
 		KRATOS_CATCH("")
 	}
 	
@@ -511,7 +512,8 @@ namespace Kratos
 		rRightHandSideVector[4] += msDN_DX(2,0)*pavg;
 		rRightHandSideVector[5] += msDN_DX(2,1)*pavg;
 
-		
+
+		
 		KRATOS_CATCH("")
 	}
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -683,11 +685,11 @@ namespace Kratos
 		
 		//first we identify the interface elements (if such exist)
 		
-		int n_interf0=GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
-		int n_interf1=GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
-		int n_interf2=GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+		//int n_interf0=GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+		//int n_interf1=GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+		//int n_interf2=GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
 		//this is just to try
-		double dens_str=1000.0;
+		//double dens_str=1000.0;
 		//if (n_interf>=3)			
 		//	KRATOS_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");	
 
