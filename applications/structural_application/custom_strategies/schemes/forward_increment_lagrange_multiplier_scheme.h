@@ -96,7 +96,7 @@ namespace Kratos
 	  ProcessInfo& CurrentProcessInfo      =  mr_model_part.GetProcessInfo();
 	  //ConditionsContainerType& pConditions =  mr_model_part.ConditionsArray();   
 	  //const double current_delta_time      =  CurrentProcessInfo[DELTA_TIME]; 
-	  const unsigned int   max             =  100;  
+	  const unsigned int   max             =  500;  
 	  unsigned int   iter                  =  0;  
 	  
 
@@ -141,7 +141,7 @@ namespace Kratos
 	      }
 	      
 	      is_converged = IsConverged(EPS, Rigth_Term, Left_Term);
-	      std::cout << "         Contact Residual =  " << Left_Term  << std::endl;
+	      //std::cout << "         Contact Residual =  " << Left_Term  << std::endl;
 	      
           }
           
