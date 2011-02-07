@@ -14,6 +14,7 @@ project StructuralApplication
        custom_external_libraries/tensor-cpp
        fluency_criteria
        soft_hard_behavior
+       section_properties
     :
     requirements <include>. 
 		<define>KRATOS_PYTHON
@@ -44,6 +45,7 @@ alias sources_KratosStructuralApplication
 	node_tying_lagrange.cpp   
 	node_tying_lagrange_z.cpp
 	pointforce2D.cpp
+        pointmoment3D.cpp
 	linear_element.cpp
 	Hypoelastic_element.cpp
 	total_lagrangian.cpp
@@ -99,7 +101,7 @@ alias sources_KratosStructuralApplication
 	crisfield_truss_element.cpp
 	ebst.cpp
         ebst_vel.cpp
-#	orthotropic_3d.cpp
+	orthotropic_3d.cpp
         add_fluency_criteria_to_python.cpp
 #       compose_material.cpp
 #       plane_stress_damage_orthotropic_2d.cpp
@@ -120,6 +122,10 @@ alias sources_KratosStructuralApplication
         plastic_damage_2d.cpp
         mohr_coulomb_plane_strain.cpp
         plane_stress_J2.cpp
+        rectangular_section.cpp
+        master_contact_face_2d.cpp 
+	slave_contact_point_2d.cpp 
+        point_segment_contact_link.cpp
 
 
 	#####################kratos library as defined in the jamroot
