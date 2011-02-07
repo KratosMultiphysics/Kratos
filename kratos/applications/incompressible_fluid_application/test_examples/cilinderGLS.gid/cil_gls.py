@@ -69,9 +69,9 @@ def BenchmarkCheck(time, model_part, section_nodes, center):
     
     DragLift=CalculateDragLift(time,section_nodes,center)
                
-    benchmarking.Output(time, "Time", 0.000001)
-    benchmarking.Output(DragLift[0], "drag", 0.00001)
-    benchmarking.Output(DragLift[1], "lift", 0.00001)
+    benchmarking.Output(time, "Time", 0.0001)
+    benchmarking.Output(DragLift[0], "drag", 0.5, 0.01)
+    #benchmarking.Output(DragLift[1], "lift", 0.5, 0.01)
 
 
 ##add Degrees of Freedom to all of the nodes
@@ -200,6 +200,7 @@ for step in range(0,nsteps):
         Forces = CalculateCenterForces(time,section_nodes,center)
         #printing forces on section in the output file
         PrintOutputFile(outputfile,time,Forces)
+        #BenchmarkCheck(time, model_part, section_nodes, center)
         if (benchmarking.InBuildReferenceMode()):
             BenchmarkCheck(time, model_part, section_nodes, center)
         else:
