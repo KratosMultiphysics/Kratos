@@ -131,7 +131,7 @@ namespace Kratos
 		  JacobiIteration(*it, CurrentProcessInfo);  
 		}
 		
-		UpadateDisplacementAndMoveMesh();
+		UpadateDisplacement();
 		
 	        for (ConditionsContainerIterator it= it_begin; it!=it_end; ++it)
 		  { 
@@ -145,6 +145,7 @@ namespace Kratos
 	      
           }
           
+              MoveMeshAgain();
               std::cout << "         Contact Residual =  " << Left_Term  << std::endl;
 	      std::cout << "         Tolerance        =  " << EPS  << std::endl;
 	      std::cout << "         Iteration Number =  " << iter       << std::endl; 
@@ -261,9 +262,13 @@ namespace Kratos
 	unsigned int count                  = 0;
 	for(unsigned int i = 0; i<geom.size(); i++){
 	   //array_1d<double,3>& actual_displacement   = geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-	   Displ[count]   = geom[i].X();    // actual_displacement[0];
-	   Displ[count+1] = geom[i].Y();   // actual_displacement[1];
+	   Displ[count]   =  geom[i].X0() + geom[i].GetSolutionStepValue(DISPLACEMENT_X);   // geom[i].X();    // actual_displacement[0];
+	   Displ[count+1] =  geom[i].Y0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Y);   // geom[i].Y();   // actual_displacement[1];
 	   count = count + 2;
+	   if(dim2==3){
+	        Displ[count+2]  =  geom[i].Z0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Z);
+		count +=3;
+	        }
 	}
 	return;
       }
@@ -315,7 +320,7 @@ namespace Kratos
       }
       
        
-      void UpadateDisplacementAndMoveMesh()
+      void UpadateDisplacement()
       
       {
 	KRATOS_TRY
@@ -328,13 +333,11 @@ namespace Kratos
 	 if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
 	    { 
 	      actual_displacement[0]+=Contact_Displ[0];
-	      (i)->X() = (i)->X0() + i->GetSolutionStepValue(DISPLACEMENT_X);
 	    }
 	 
 	 if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false )
 	    { 
 	      actual_displacement[1]+=Contact_Displ[1];
-	      (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(DISPLACEMENT_Y);
 	    }
 	 
 	 if (mrdimension==3)
@@ -342,7 +345,6 @@ namespace Kratos
 	       if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false )
 	        { 
 	           actual_displacement[2]+=Contact_Displ[2];
-	           (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(DISPLACEMENT_Z);
 	        }
 	     }
 	         
@@ -353,6 +355,39 @@ namespace Kratos
 
 	}
       
+      
+       void MoveMeshAgain()
+      
+      {
+	KRATOS_TRY
+	
+	for(ModelPart::NodeIterator i = mr_model_part.NodesBegin() ; 
+	i != mr_model_part.NodesEnd() ; ++i)
+        {
+	 array_1d<double,3>&  actual_displacement   =  i->FastGetSolutionStepValue(DISPLACEMENT);
+	 if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
+	    { 
+	      (i)->X() = (i)->X0() + i->GetSolutionStepValue(DISPLACEMENT_X);
+	    }
+	 
+	 if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false )
+	    { 
+	      (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(DISPLACEMENT_Y);
+	    }
+	 
+	 if (mrdimension==3)
+	     {  
+	       if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false )
+	        { 
+	           (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(DISPLACEMENT_Z);
+	        }
+	     }
+	         
+        }
+
+        KRATOS_CATCH("")
+
+	}
     
 
       ///@}
