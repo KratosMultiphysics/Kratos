@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/parallel_fill_communicator.h"
+#include "custom_utilities/trilinos_refine_mesh.h"
 
 namespace Kratos
 {
@@ -79,8 +80,16 @@ namespace Kratos
                     ("ParallelFillCommunicator",
                      init<ModelPart& >() )
                     .def("Execute", &ParallelFillCommunicator::Execute )
-
                     ;
+		    
+            class_<MPIRefineSimplexMesh, boost::noncopyable >
+                    ("MPIRefineSimplexMesh",
+                     init<ModelPart& >() )
+                    .def("Local_Refine_Mesh", &MPIRefineSimplexMesh::Local_Refine_Mesh )
+                    ;		    
+		    
+		    
+		    
         }	
     }  // namespace Python.
 
