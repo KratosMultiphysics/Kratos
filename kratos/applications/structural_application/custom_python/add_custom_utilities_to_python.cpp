@@ -87,6 +87,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/intra_fracture_triangle_utility.h"
 #include "custom_utilities/inter_fracture_triangle_utility.h"
 #include "custom_utilities/inter_fracture_tetrahedra_utility.h"
+#include "custom_utilities/mark_element_for_refinement.h"
 
 
 namespace Kratos
@@ -303,7 +304,12 @@ namespace Kratos
 		    .def("DetectAndSplitElements",              &Inter_Fracture_Tetrahedra::Detect_And_Split_Elements)
                     ;  
 
+              class_<RefinementElementsUtilities, boost::noncopyable >
+                     ("RefinementElementsUtilities", init<>() )
+ 		    .def("MarkForRefinement",      &RefinementElementsUtilities::MarkForRefinement)
+                     ;  
 
+		    
     
         }
     }  // namespace Python.
