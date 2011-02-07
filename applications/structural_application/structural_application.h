@@ -105,9 +105,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/slave_contact_face_3D_newmark.h"
 #include "custom_conditions/pointforce3D.h"
 #include "custom_conditions/pointforce2D.h"
+#include "custom_conditions/pointmoment3D.h"
+#include "custom_conditions/master_contact_face_2d.h"
+#include "custom_conditions/slave_contact_point_2d.h"
+
 
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
+
 
 
 
@@ -172,6 +177,8 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(double, CONCRETE_YOUNG_MODULUS_T)
       KRATOS_DEFINE_VARIABLE(double, FRACTURE_ENERGY)
       KRATOS_DEFINE_VARIABLE(double, CRUSHING_ENERGY)
+      KRATOS_DEFINE_VARIABLE(double, ELASTIC_ENERGY)
+      KRATOS_DEFINE_VARIABLE(double, PLASTIC_ENERGY)
 //       KRATOS_DEFINE_VARIABLE(double, YIELD_STRESS)
       KRATOS_DEFINE_VARIABLE(double, PLASTIC_MODULUS)
       KRATOS_DEFINE_VARIABLE(double, PLASTICITY_INDICATOR)
@@ -193,10 +200,13 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
       KRATOS_DEFINE_VARIABLE(Matrix, NODAL_STRESS)
       KRATOS_DEFINE_VARIABLE(Matrix, NODAL_STRAIN)
+      KRATOS_DEFINE_VARIABLE(Matrix, CONSTRAINT_MATRIX)
+      KRATOS_DEFINE_VARIABLE(Vector, CONSTRAINT_VECTOR)
       KRATOS_DEFINE_VARIABLE(double, DISIPATION)
       KRATOS_DEFINE_VARIABLE(int,  NODAL_VALUES)
       KRATOS_DEFINE_VARIABLE(double, NODAL_DAMAGE)
-
+      KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
+      KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
 
 
     // 	KRATOS_DEFINE_VARIABLE(double, DP_EPSILON )
@@ -495,9 +505,14 @@ namespace Kratos
             const SlaveContactFace3DNewmark mSlaveContactFace3D9Newmark;
             const PointForce3D  mPointForce3D;
             const PointForce2D  mPointForce2D;
+	    const PointMoment3D mPointMoment3D;
             const NodeTyingLagrange mNodeTyingLagrange;
             const NodeTyingLagrangeZ mNodeTyingLagrangeZ;
 
+	    const SlaveContactPoint2D mSlaveContactPoint2D; 
+ 	    const MasterContactFace2D mMasterContactFace2D;
+ 	    
+	    
 //             const UPCTestElement mUPCTestElement3D20N;
             ///@} 
             ///@name Private Operators
