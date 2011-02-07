@@ -122,7 +122,6 @@ alias sources_KratosStructuralApplication
         plastic_damage_2d.cpp
         mohr_coulomb_plane_strain.cpp
         plane_stress_J2.cpp
-        rectangular_section.cpp
         master_contact_face_2d.cpp 
 	slave_contact_point_2d.cpp 
         point_segment_contact_link.cpp
