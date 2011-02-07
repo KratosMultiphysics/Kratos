@@ -317,7 +317,8 @@ while(Time < final_time):
         print "starting solving fluid edgebased~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         fluid_solver.Solve();
         print "finished solving fluid edgebased"
-        
+        if(Time < 2.4):
+          BenchmarkCheck(Time, back_node)        
         
         
         print "start checking the time stepping"        
@@ -346,9 +347,8 @@ while(Time < final_time):
 
             fluid_solver.fluid_solver.ReduceTimeStep(fixed_model_part,Time) ##this is to set the database to the value at the beginning of the step
             fluid_solver.Solve()
-            if(Time < 2.4):
-               BenchmarkCheck(Time, back_node)
 
+               
         print "finished checking the time stepping"
         print fixed_model_part
 
