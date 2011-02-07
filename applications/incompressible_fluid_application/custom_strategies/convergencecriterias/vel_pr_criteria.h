@@ -53,13 +53,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    ///@name Kratos classes
+    ///@{
+
+    /// Convergence criteria for fluid problems.
+    /**
+     This class implements a convergence control based on nodal velocity and
+     pressure values. The error is evaluated separately for each of them, and
+     relative and absolute tolerances for both must be specified.
+     */
     template<   class TSparseSpace,
                 class TDenseSpace >
     class VelPrCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
     {
     public:
-        /**@name Type Definitions */
-        /*@{ */
+
+        ///@name Type Definitions
+        ///@{
 
         KRATOS_CLASS_POINTER_DEFINITION( VelPrCriteria );
 
@@ -77,11 +87,17 @@ namespace Kratos
 
         typedef OpenMPUtils::PartitionVector PartitionVector;
 
-        /*@} */
-        /**@name Life Cycle */
-        /*@{ */
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-        /** Constructor. */
+        /// Constructor.
+        /**
+         @param VelRatioTolerance Relative tolerance for velocity error
+         @param VelAbsTolerance Absolute tolerance for velocity error
+         @param PrsRatioTolerance Relative tolerance for presssure error
+         @param PrsAbsTolerance Absolute tolerance for presssure error
+         */
         VelPrCriteria(  TDataType VelRatioTolerance,
                         TDataType VelAbsTolerance,
 			TDataType PrsRatioTolerance,
@@ -95,14 +111,22 @@ namespace Kratos
             mPrAbsTolerance = PrsAbsTolerance;
         }
 
-        /** Destructor. */
+        /// Destructor.
         virtual ~VelPrCriteria(){}
 
-        /*@} */
-        /**@name Operators */
-        /*@{ */
+        ///@}
+        ///@name Operators
+        ///@{
 
-        /* Pre Criteria: Before solution, store old solution values */
+        /// Call before the solution to store old solution values.
+        /**
+         @param rModelPart Reference to the ModelPart containing the fluid problem.
+         @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+         @param A System matrix (unused)
+         @param Dx Vector of results (variations on nodal variables)
+         @param b RHS vector (residual, unused)
+         @return Always true (Convergence check is done in PostCriteria)
+         */
         bool PreCriteria(   ModelPart& rModelPart,
                             DofsArrayType& rDofSet,
                             const TSystemMatrixType& A,
@@ -137,7 +161,15 @@ namespace Kratos
             }
         }
 
-        /* Post Criteria: Compute relative and absoute error */
+        /// Compute relative and absoute error.
+        /**
+         @param rModelPart Reference to the ModelPart containing the fluid problem.
+         @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+         @param A System matrix (unused)
+         @param Dx Vector of results (variations on nodal variables)
+         @param b RHS vector (residual)
+         @return true if convergence is achieved, false otherwise
+         */
         bool PostCriteria(  ModelPart& rModelPart,
                             DofsArrayType& rDofSet,
                             const TSystemMatrixType& A,
@@ -196,9 +228,9 @@ namespace Kratos
                     }
                 }
                 
-                if(VelSolutionNorm ==0.0)
+                if(VelSolutionNorm == 0.0)
                     VelSolutionNorm = 1.0;
-                if(PrSolutionNorm ==0.0)
+                if(PrSolutionNorm == 0.0)
                     PrSolutionNorm = 1.0;
 
                 double VelRatio = sqrt(VelIncreaseNorm/VelSolutionNorm);
@@ -227,7 +259,11 @@ namespace Kratos
                 return true;
             }
         }
-        
+
+        /// Initialize this class before using it
+        /**
+         @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
+         */
         void Initialize( ModelPart& rModelPart	)
         {
             BaseType::mConvergenceCriteriaIsInitialized = true;
@@ -247,6 +283,8 @@ namespace Kratos
                                     const TSystemVectorType& b )
         {}
 
+        ///@} // Operations
+
     private:
 
         double mVelRatioTolerance;
@@ -255,6 +293,8 @@ namespace Kratos
         double mPrRatioTolerance;
         double mPrAbsTolerance;
     };
+
+    ///@} // Kratos classes
 }
 
 #define	KRATOS_VEL_PR_CRITERIA_H
