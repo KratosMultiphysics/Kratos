@@ -73,13 +73,13 @@ namespace Kratos
     namespace Orthotropic3DAuxiliaries
     {
         boost::numeric::ublas::bounded_matrix<double,3,3> mstemp;
-#ifdef _OPENMP
-#pragma omp threadprivate(mstemp)
-#endif
+// #ifdef _OPENMP
+// #pragma omp threadprivate(mstemp)
+// #endif
         boost::numeric::ublas::bounded_matrix<double,3,3> msaux;
-#ifdef _OPENMP
-#pragma omp threadprivate(msaux)
-#endif
+// #ifdef _OPENMP
+// #pragma omp threadprivate(msaux)
+// #endif
     }
     using namespace Orthotropic3DAuxiliaries;
 
