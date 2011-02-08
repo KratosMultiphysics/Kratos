@@ -49,7 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #define EXPONENCIAL_MODEL // if not -> BILINEAR_MODEL is calculated
-// #define COMPRESSIBLE_MODEL_ML(PN1_PN)
+// #define COMPRESSIBLE_MODEL_ML__PN1_PN__
 // #define COMPRESSIBLE_MODEL_MLPN1_MCPN
 
 // System includes 
@@ -206,7 +206,7 @@ namespace Kratos {
 
 	CalculateMassContribution(rMassMatrix, delta_t, Area);
 /*20101216*/
-	/**Stablization*/
+	/*Stablization*/
 	//add stablilization terms due to advective term (a)grad(V) * ro*Acce
 	CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Area);
 	//add stablilization terms due to grad term grad(q) * ro*Acce
@@ -311,11 +311,30 @@ namespace Kratos {
 	C(2, 2) = 1.0;
 	
 	C *= app_mu;
+
+// 	//PAY ATTENTION : 3rd component of B*u divided by two in order to recover eps12 or eps21 that is the same.!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// 	grad_sym_vel[2] *= 0.5;
+// 	double aux_coeff = 4.0 * app_mu_derivative / gamma_dot;
+// 	for(unsigned int i=0 ; i < nodes_number; i++){
+// 	  for(unsigned int j=0; j<nodes_number; j++){
+// 	    C(i,j) -= grad_sym_vel[i] * grad_sym_vel[j] * aux_coeff;
+// 	  }
+// 	}
+	  
+
 	
-	
-/*	app_mu_derivative *= -1;*/
-	
-// //  	if(gamma_dot > 1e-3){
+//  	if(gamma_dot > 1e-3){
+// 	double aux_coeff = 4.0 * app_mu_derivative / gamma_dot;
+// 	C(0, 0) +=  grad_sym_vel[0] * grad_sym_vel[0] * aux_coeff;
+// 	C(0, 1) +=  grad_sym_vel[0] * grad_sym_vel[1] * aux_coeff;
+// 	C(0, 2) +=  grad_sym_vel[0] * grad_sym_vel[2] * aux_coeff * 0.5;
+// 	C(1, 0) +=  grad_sym_vel[1] * grad_sym_vel[0] * aux_coeff;
+// 	C(1, 1) +=  grad_sym_vel[1] * grad_sym_vel[1] * aux_coeff;
+// 	C(1, 2) +=  grad_sym_vel[1] * grad_sym_vel[2] * aux_coeff * 0.5;
+// 	C(2, 0) +=  grad_sym_vel[2] * grad_sym_vel[0] * aux_coeff * 0.5;
+// 	C(2, 1) +=  grad_sym_vel[2] * grad_sym_vel[1] * aux_coeff * 0.5;
+// 	C(2, 2) +=  grad_sym_vel[2] * grad_sym_vel[2] * aux_coeff * 0.25;
 // 		C(0, 0) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
 // 		C(0, 1) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
 // 		C(0, 2) +=  2.0 *  grad_sym_vel[0] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
@@ -325,7 +344,7 @@ namespace Kratos {
 // 		C(2, 0) +=  2.0 *  grad_sym_vel[2] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
 // 		C(2, 1) +=  2.0*  grad_sym_vel[2] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
 // 		C(2, 2) +=       grad_sym_vel[2] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
-// //  	}
+//  	}
 
 	// KRATOS_WATCH(C)
 	//Calculating the viscous contribution to the LHS int(Btrans C B)dA
@@ -443,7 +462,7 @@ namespace Kratos {
 		K(column, row + 1) += area * density * N(jj) * DN_DX(ii, 1);
 	    }
 	}
-#ifdef COMPRESSIBLE_MODEL_ML(PN1_PN)
+#ifdef COMPRESSIBLE_MODEL_ML__PN1_PN__
 	// 	////compressibility term & assemble Lumped Mass Matrix
 	double c2_inv = 1e-5;
 	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
@@ -831,7 +850,7 @@ namespace Kratos {
 // 	    F[index] += tautwo * area * mean_ar * div_opr(0, loc_index);
 // 	    F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
 	}
-#ifdef COMPRESSIBLE_MODEL_ML(PN1_PN)
+#ifdef COMPRESSIBLE_MODEL_ML__PN1_PN__
 	////compressibility term & assemble Lumped Mass Matrix
 	double c2_inv = 1e-5;
 	double compressibility_coef = 0.33333333333333333333333 * area * c2_inv /time;
@@ -1311,8 +1330,11 @@ namespace Kratos {
 // 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
 // 	else  
 	gamma_dot_inv= 1.0 / gamma_dot;
-	app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
-/*
+	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(mcoef * gamma_dot)) - mcoef * gamma_dot);
+// 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
+
+	/*
+
 //Calculating nodal yield and nodal app_mu before the calculation of elemental apparent viscosity
 	  // The yield is variable: it decreases where water is present
 	  unsigned int nodes_number = 3;
