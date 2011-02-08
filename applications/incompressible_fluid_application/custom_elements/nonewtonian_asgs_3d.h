@@ -41,7 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: kazem $
+//   Last Modified by:    $Author: antonia $
 //   Date:                $Date: 2009-01-21 14:14:49 $
 //   Revision:            $Revision: 1.4 $
 //
@@ -88,8 +88,17 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// This class allows the calculation of a Non-Newtonian fluid using a visco rigid constitutive model.
+  /** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
+  * 
+  *  This class implements a 2D linear triangular element. A non-newtonian constituve law is developed using a visco-rigid model.
+  * The solutions system is solved via a monolithic approach. 
+  * The dofs per node: velocity and pressure. 
+  * Time integration scheme: Bossak residualbased predictor-corrector @see residualbased_predictorcorrector_velocity_bossak_scheme
+  * Strategy: @see residualbased_newton_raphson_strategy
+  * Stabilization technique: ASGS (optionally OSS can be used activating the OSS_SWITCH parameter)
+  * Python solvers that can use this elelement: @see monolithic_solver_lagrangian_nonnewtonian,  monolithic_solver_eulerian
+  * 
   */
   class NoNewtonianASGS3D
 	  : public Element
@@ -122,16 +131,45 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+      /// Create a new element of this type
+      /**
+	* Returns a pointer to a new NoNewtonianASGS2D element, created using given input
+	* @param NewId: the ID of the new element
+	* @param ThisNodes: the nodes of the new element
+	* @param pProperties: the properties assigned to the new element
+	* @return a Pointer to the new element
+	*/
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
-
+      
+      ///Calculate the local external force vector and resize local sistem matrices
       void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       
+      ///Calulate the residual (RHS) of the solution system
       void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
       
+      /// Provides the global indices for each one of this element's local rows
+	/**
+	* this determines the elemental equation ID vector for all elemental
+	* DOFs
+	* @param rResult: A vector containing the global Id of each row
+	* @param rCurrentProcessInfo: the current process info object
+	*/
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
+      
+	/// Returns a list of the element's Dofs
+	/**
+	* @param ElementalDofList: the list of DOFs
+	* @param rCurrentProcessInfo: the current process info instance
+	*/
 	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+	  
+	/// Returns the values on the integration points
+	/**
+	* @param rVariable: Kratos vector variable to compute (implemented for the variable viscosity variable and for the rate of strain variable)
+	* @param Output: Values of variable on integration points
+	* @param rCurrentProcessInfo: Process info instance
+	*/
 	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 //	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
@@ -143,6 +181,7 @@ namespace Kratos
        void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
  //      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+      ///Calculate all the lhs contributions multiplied by velocity: i.e. the convective, pressure, viscous, darcy contributions
        void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 
@@ -191,12 +230,55 @@ namespace Kratos
       ///@} 
       ///@name Protected member Variables 
       ///@{ 
-       virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
-       virtual void CalculateResidual(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const MatrixType& K, VectorType& F, const double volume);
-       virtual void ComputeProjections(array_1d<double,12>& adv_proj , array_1d<double,4>& div_proj, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,4>& N,const double volume, const double time); 
+      ///Evaluates the elemental density, and (fluid) viscosity
+      virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
+      ///Evaluates the residual of the solution system including the viscous contribution \f$ rhs = -lhs  u - B^{T} \tau  \f$
+      virtual void CalculateResidual(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const MatrixType& K, VectorType& F, const double volume);
+      ///Compute the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);
+      virtual void ComputeProjections(array_1d<double,12>& adv_proj , array_1d<double,4>& div_proj, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,4>& N,const double volume, const double time); 
+      ///Evaluates the following stabilization terms:  \f$  (a \cdot \nabla w, \frac{\partial_{t} u) \f$ 
        virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume);
-       virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double thawone,const double volume);
-      ///@} 
+      ///Evaluates the following stabilization terms:  \f$  (\nabla q, \partial_{t} u) \f$ 
+      virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double thawone,const double volume);
+      ///Calculate the mass contribution to the K global matrix
+        virtual void CalculateMassContribution(MatrixType& K,const double time,const double volume); 
+      ///Calculate the linearized viscous contribution ONLY to the LHS @todo Make linearization works quadratically
+	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume);
+      ///Calculate the advective contribution to the lhs
+	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double thawone, const double thawtwo, const double time,const double volume);
+	///Calculate the pressure contribution to the lhs and divergence term as well
+	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
+	///Calculate the following stabilization terms:  \f$  (a \nabla w, \nabla \cdot u) \f$ 
+	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double thawtwo,const double volume);
+	///Calculate the following stabilization terms:  \f$  (a \nabla w, a \nabla w \nabla p + f) \f$  and \f$  (\nabla q, a \nabla u ) \f$
+	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double thawone,const double time,const double volume);
+	///Calculate the following stabilization terms:  \f$  (\nabla q, \nabla p + f) \f$ 	
+	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double thawone,const double volume);
+	///Add body forces to the lhs
+    virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
+	///Calculate stabilization parameter
+	virtual void CalculateTau(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
+    ///Add the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);	
+	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
+    ///Calcualte the mass contributions
+    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+	///Calculate the shape function derivatives matrix
+	virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX);
+	///Calculate the symmetric gradient of velocity
+	virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & gamma_dot,const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B);
+// 	virtual void CalculateApparentViscosity(double & ApparentViscosity, const double & grad_sym_vel_norm, const double & mu, const double & YeldStress, const double mcoef);
+      ///Evaluates the viscosity of the nodes variable in function of the rate of strain
+	/**
+	* @param ApparentViscosity: \f$ \tilde{\nu} \f$ non-newtonian variable viscosity
+	* @param ApparentViscosityDerivative: \f$ \frac{\partial \tilde{\nu}}{\partial \gamma } \f$
+	* @param grad_sym_vel: Simmetric gradient of velocity \f$ \nabla^{s} u = \varepsilon \f$
+	* @param gamma_dot: rate of strain \f$ \gamma = \sqrt{2 \varepsilon:\varepsilon }    \f$
+	* @param B: Matrix 3x6 of the shape function derivatives
+	* @param mu: fluid minimum viscosity possible
+	*/
+       virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12  > & B, const double & mu);
+       virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu);
+       ///@} 
       ///@name Protected Operators
       ///@{ 
         
@@ -234,26 +316,26 @@ namespace Kratos
       ///@} 
       ///@name Private Operators
       ///@{ 
-        virtual void CalculateMassContribution(MatrixType& K,const double time,const double volume); 
-	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume);
-	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double thawone, const double thawtwo, const double time,const double volume);
-	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
-
-	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double thawtwo,const double volume);
-	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double thawone,const double time,const double volume);
-	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double thawone,const double volume);
-        virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
-
-	virtual void CalculateTau(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
-	
-	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
-        virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-	virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX);
-	virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & gamma_dot,const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B);
-// 	virtual void CalculateApparentViscosity(double & ApparentViscosity, const double & grad_sym_vel_norm, const double & mu, const double & YeldStress, const double mcoef);
-       virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12  > & B, const double & mu);
-       virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu);
- 
+//         virtual void CalculateMassContribution(MatrixType& K,const double time,const double volume); 
+// 	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume);
+// 	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double thawone, const double thawtwo, const double time,const double volume);
+// 	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
+// 
+// 	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double thawtwo,const double volume);
+// 	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double thawone,const double time,const double volume);
+// 	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double thawone,const double volume);
+//         virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
+// 
+// 	virtual void CalculateTau(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
+// 	
+// 	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
+//         virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+// 	virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX);
+// 	virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & gamma_dot,const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B);
+// // 	virtual void CalculateApparentViscosity(double & ApparentViscosity, const double & grad_sym_vel_norm, const double & mu, const double & YeldStress, const double mcoef);
+//        virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12  > & B, const double & mu);
+//        virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu);
+//  
 	    private:
       ///@} 
       ///@name Private Operations
@@ -275,15 +357,15 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      //NoNewtonianASGS& operator=(const NoNewtonianDASGS& rOther);
+      //NoNewtonianASGS3D& operator=(const NoNewtonianDASGS& rOther);
 
       /// Copy constructor.
-      //NoNewtonianASGS(const NoNewtonianASGS& rOther);
+      //NoNewtonianASGS3D(const NoNewtonianASGS& rOther);
 
         
       ///@}    
         
-    }; // Class NoNewtonianASGS 
+    }; // Class NoNewtonianASGS3D 
 
   ///@} 
   
