@@ -119,13 +119,20 @@ namespace Kratos
              rValue = mlocal_fail_factor;  //mplastic_damage ;}
 	  }
           else if(rThisVariable == COHESION)
-	  
-             rValue = mFt[1]; // mcohesion;}
+	      rValue = mFt[1]; // mcohesion;}
+          
           else if(rThisVariable == DILATANCY_ANGLE)
              rValue = mdilatancy_angle*180.00/PI;
-          else if(rThisVariable == INTERNAL_FRICTION_ANGLE)
+          
+	  else if(rThisVariable == INTERNAL_FRICTION_ANGLE)
              rValue = mFt[2]; // mfriction_angle*180.00/PI;}
-          return( rValue );
+	  
+	  else if(rThisVariable==DELTA_TIME)
+             rValue = sqrt(mE/mDE);
+           
+       
+       return rValue; 
+	  
 	}   
 	
 
@@ -165,7 +172,6 @@ namespace Kratos
                                     double& Output, 
                                     const ProcessInfo& rCurrentProcessInfo)
    {
-     Output = sqrt(mE/mDE);
    }
 
 //***********************************************************************************************
@@ -176,6 +182,8 @@ namespace Kratos
 	const Vector& ShapeFunctionsValues )
 	
 	{
+	  
+	  
 	  
 	  mE                       = (*mpProperties)[YOUNG_MODULUS];
 	  mNU                      = (*mpProperties)[POISSON_RATIO];
@@ -200,8 +208,6 @@ namespace Kratos
           if (length_limit<mlength) {std::cout<<"Element length greater than permitted"<<std::endl;}  
           
           mpFluencyCriteria->InitializeMaterial(*mpProperties);
-
-
 	}
 
 		
@@ -320,7 +326,7 @@ void PlasticDamage2D::CalculateMaterialResponse( const Vector& StrainVector,
   
     UpdateMaterial(StrainVector, props, geom,ShapeFunctionsValues, CurrentProcessInfo);
     if (CalculateStresses==true) { CalculateStress(StrainVector, StressVector);}
-    if (CalculateTangent==true){CalculateStressAndTangentMatrix(StressVector,StrainVector, AlgorithmicTangent);}
+    if (CalculateTangent==1){CalculateStressAndTangentMatrix(StressVector,StrainVector, AlgorithmicTangent);}
 }
 
 
@@ -365,8 +371,7 @@ void PlasticDamage2D::CalculateStress(const Vector& StrainVector,
 	noalias(ElasticStrain) = StrainVector - mcurrent_plastic_strain;
 
 	///*calculating elastic stress trial
-	CalculateElasticStress(ElasticStrain, ElasticStress);
-         
+	CalculateElasticStress(ElasticStrain, ElasticStress); 
 
         ///* Comprobado criterio de fluencia   
         mpFluencyCriteria->CalculateEquivalentUniaxialStress(ElasticStress, ElasticDomain_1);     
