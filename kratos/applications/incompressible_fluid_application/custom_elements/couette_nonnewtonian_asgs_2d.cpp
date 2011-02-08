@@ -132,8 +132,10 @@ namespace Kratos
 //        else 
 	gamma_dot_inv= 1.0/gamma_dot;
         
-        app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
-	
+//         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
+ 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(mcoef * gamma_dot)) - mcoef * gamma_dot);
+//	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
+
         KRATOS_CATCH("")
     }
 	
