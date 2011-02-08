@@ -17,6 +17,12 @@
 #include <iostream> 
 #include <cmath>
 
+
+/* External includes */
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 // External includes 
 #include "boost/smart_ptr.hpp"
 
@@ -96,7 +102,7 @@ namespace Kratos
 	  ProcessInfo& CurrentProcessInfo      =  mr_model_part.GetProcessInfo();
 	  //ConditionsContainerType& pConditions =  mr_model_part.ConditionsArray();   
 	  //const double current_delta_time      =  CurrentProcessInfo[DELTA_TIME]; 
-	  const unsigned int   max             =  500;  
+	  const unsigned int   max             =  200;  
 	  unsigned int   iter                  =  0;  
 	  
 
@@ -112,15 +118,19 @@ namespace Kratos
 	  CreatePartition(number_of_threads, distance, condition_partition);
 	  
 	  double Rigth_Term, Left_Term;
-	  bool   is_converged = false;
-	  const double EPS   = 1E-7;
-	  while(is_converged ==false &&   iter++ < max )
-	  { 
-	      Rigth_Term = 0.00; 
-	      Left_Term  = 0.00;
-                   
- 	      /// WARNING = STEP1
-	      #pragma omp parallel for shared(CurrentProcessInfo, Rigth_Term, Left_Term)
+	  double Old_Left_Term, Old_Rigth_Term;
+	  double relative_error, relative_error1, relative_error2 ;
+	  
+	  bool   is_converged   = false;
+	  bool   is_converged_1 = false;
+	  bool   is_converged_2 = false;
+	  const double EPS      = 1E-4;
+	  Rigth_Term            = 0.00; 
+	  Left_Term             = 0.00;
+	  while(is_converged ==false &&   ++iter < max )
+	  {                    
+ 	      ///STEP1
+	      #pragma omp parallel for
 	      for(int k=0; k<number_of_threads; k++)
 	      {
 		ConditionsContainerType::iterator it_begin=end_previos + condition_partition[k];
@@ -131,28 +141,59 @@ namespace Kratos
 		  JacobiIteration(*it, CurrentProcessInfo);  
 		}
 		
-		UpadateDisplacement();
+	      }
+	      
+	      ///STEP2 
+	      UpadateDisplacement();
 		
-	        for (ConditionsContainerIterator it= it_begin; it!=it_end; ++it)
-		  { 
+	      ///STEP3
+	      Old_Left_Term       = Left_Term;  
+	      Old_Rigth_Term      = Rigth_Term;
+	      Rigth_Term          = 0.00; 
+	      Left_Term           = 0.00;
+	      #pragma omp parallel for reduction(+:Rigth_Term)  reduction(+:Left_Term)
+	      for(int k=0; k<number_of_threads; k++)
+	          {
+		   ConditionsContainerType::iterator it_begin=end_previos + condition_partition[k];
+		   ConditionsContainerType::iterator it_end=end_previos+condition_partition[k+1];
+		
+	            for (ConditionsContainerIterator it= it_begin; it!=it_end; ++it)
+		    { 
 		    CkeckConvergence(*it, Rigth_Term, Left_Term);
-		  }
+		    }
 
 	      }
 	      
-	      is_converged = IsConverged(EPS, Rigth_Term, Left_Term);
-	      //std::cout << "         Contact Residual =  " << Left_Term  << std::endl;
+
+	      Rigth_Term     = std::sqrt(Rigth_Term);
+	      Left_Term      = std::sqrt(Left_Term);
+	      
+	      
+	     
+	      relative_error1 =  std::fabs((Left_Term -  Old_Left_Term) / ( Left_Term)); 
+	      relative_error2 =  std::fabs((Rigth_Term -  Old_Rigth_Term) / ( Rigth_Term) ) ;
+	      relative_error  =  relative_error1 + relative_error2;
+	      
+	      is_converged_1  = IsConverged(EPS, Rigth_Term, Left_Term);
+	      is_converged_2  = (relative_error < EPS);     
+	       
+	      if( is_converged_1==true || is_converged_2==true)
+		  is_converged    =  true;
+	      
 	      
           }
           
               MoveMeshAgain();
-              std::cout << "         Contact Residual =  " << Left_Term  << std::endl;
-	      std::cout << "         Tolerance        =  " << EPS  << std::endl;
-	      std::cout << "         Iteration Number =  " << iter       << std::endl; 
+	      std::cout << "         Number of Iterations  =  " << iter            << std::endl;
+	      std::cout << "         Tolerance ( EPS )     =  " << EPS             << std::endl;
+	      std::cout << "         Required  Tolerance   =  " << EPS*Rigth_Term  << std::endl;
+	      std::cout << "         Achieved  Tolerance   =  " << Left_Term       << std::endl;
+	      std::cout << "         Relative Error        =  " << relative_error  << std::endl;
+	       
 	     
-              if (iter>max) 
+              if (iter==max) 
 	      {
-		KRATOS_WATCH(" NOT CONVERGENCE FOR CONTACT!!!!!!!!")
+		std::cout<< "         NOT CONVERGENCE FOR CONTACT!!!!!!!!" << std::endl;
 	        //KRATOS_ERROR( std::logic_error,  " NOT CONVERGENCE FOR CONTACT!!!!!!!!" , "" );
 	      }
               
@@ -232,7 +273,7 @@ namespace Kratos
       bool IsConverged(const double& EPS, const double& Rigth_Term,  const double& Left_Term)
       {
 	
-	return (Left_Term < EPS);
+	return (Left_Term < EPS*Rigth_Term);
       }
       
       void InvertDiagonalMatrix(const Matrix& rMatrix   ,Matrix& rResult)
@@ -364,7 +405,7 @@ namespace Kratos
 	for(ModelPart::NodeIterator i = mr_model_part.NodesBegin() ; 
 	i != mr_model_part.NodesEnd() ; ++i)
         {
-	 array_1d<double,3>&  actual_displacement   =  i->FastGetSolutionStepValue(DISPLACEMENT);
+	 //array_1d<double,3>&  actual_displacement   =  i->FastGetSolutionStepValue(DISPLACEMENT);
 	 if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
 	    { 
 	      (i)->X() = (i)->X0() + i->GetSolutionStepValue(DISPLACEMENT_X);
