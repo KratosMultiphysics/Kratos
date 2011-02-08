@@ -224,7 +224,7 @@ double Solve()
 	/// verifico si hay condiciones de contacto y corrijo el desplazamiento
 	if(mComputeContactConditions==true )
 	  { 
-            CheckConditionsStatus(minitial_conditions_size);             /// Borra las antiguas condiciones de conatcto
+                         /// Borra las antiguas condiciones de conatcto
 	    mpBCCU_Pointer->CreateBoundariesAndLinkingConditions();      /// Crea las nuevas condiciones de contacto
 	    double dist = CheckObjectContact(minitial_conditions_size);  /// crea los iteradores del contacto
 	    
@@ -239,6 +239,7 @@ double Solve()
 	///Computing The new internal and external forces  for n+1 step
 	GetForce();
 	FinalizeSolutionStep();
+	CheckConditionsStatus(minitial_conditions_size);
 
 
 	      
@@ -313,7 +314,7 @@ void ComputeIntermedialVelocityAndNewDisplacement()
     array_1d<double,3> mid_pos_velocity; /// V(n+1/2)
     array_1d<double,3> new_displacement; /// V(n+1/2)
     
-    #pragma omp parallel for private (new_displacement,mid_pos_velocity, mid_neg_velocity) shared(current_delta_time, mid_delta_time)
+    #pragma omp parallel for private (new_displacement,mid_pos_velocity, mid_neg_velocity) //shared(current_delta_time, mid_delta_time)
     for(int k=0; k<number_of_threads; k++)
       {
 	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -648,7 +649,7 @@ void ComputeInitialConditions()
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
       array_1d<double,3> OldDisplacement;
-      #pragma omp parallel for private(OldDisplacement) shared(DeltaTime)
+      #pragma omp parallel for private(OldDisplacement) //shared(DeltaTime)
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -898,7 +899,7 @@ void ComputeOldVelocitiesAndAccelerations()
     array_1d<double,3> mid_neg_velocity; /// V(n-1/2)
     array_1d<double,3> mid_pos_velocity; /// V(n+1/2)
     
-    #pragma omp parallel for private (mid_pos_velocity, mid_neg_velocity) shared(current_delta_time, mid_delta_time, inv_sum_delta_time)
+    #pragma omp parallel for private (mid_pos_velocity, mid_neg_velocity) //shared(current_delta_time, mid_delta_time, inv_sum_delta_time)
     for(int k=0; k<number_of_threads; k++)
       {
 	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
