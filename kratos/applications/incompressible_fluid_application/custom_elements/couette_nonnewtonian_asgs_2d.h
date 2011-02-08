@@ -88,8 +88,15 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// This class allows the calculation of a Non-Newtonian  fluid using a BINGHAM constitutive model.
+  /** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
+  * 
+  * This class implements a 2D linear triangular element. A non-newtonian constituve law is developed using a BINGHAM model.
+  * It is a derived class @see NoNewtonianASGS2D
+  * The only difference between the two approaches is in the calculation of the variable viscosity. In the present element a 
+  * Bingham plastic is used with the help of an exponencial variation of the viscosity in function of the strain rate
+  * Reference Papanastasiou, T. C. Flows of materials with yield. Journal of Rheology, 1987, 31, 385-404
+
   */
   class CouetteNonNewtonianASGS2D
 	  : public NoNewtonianASGS2D
