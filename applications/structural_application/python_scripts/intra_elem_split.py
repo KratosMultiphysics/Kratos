@@ -22,8 +22,8 @@ class Split_Triangle_Elem:
     
 
     def Intra_Fracture(self):
-        #self.smoothing.SettingNodalValues(self.model_part, self.domain_size)  
-        #self.smoothing.DoubleWeightedRecoveryGradients(DAMAGE, self.model_part, self.domain_size)
+        self.smoothing.SettingNodalValues(self.model_part, self.domain_size)  
+        self.smoothing.DoubleWeightedRecoveryGradients(DAMAGE, self.model_part, self.domain_size)
         #self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR, self.model_part, self.domain_size)
         #self.smoothing.Finalize() 
 
