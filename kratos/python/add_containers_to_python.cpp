@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/vector_vector_operator_python.h"
 
 #include "includes/convection_diffusion_settings.h"
-
+#include "includes/radiation_settings.h"
 
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
@@ -153,6 +153,9 @@ namespace Kratos
 	    .def( self_ns::str( self ) )
             ;
 
+	    class_<Variable<RadiationSettings::Pointer > , bases<VariableData>, boost::noncopyable >("RadiationSettingsVariable", no_init)
+	    .def( self_ns::str( self ) )
+            ;
             class_<VariableComponent<VectorComponentAdaptor<vector<double> > >, bases<VariableData>, boost::noncopyable >( "VectorComponentVariable", no_init )
             .def( self_ns::str( self ) )
             ;
@@ -170,6 +173,7 @@ namespace Kratos
             .def( VariableIndexingPython<DataValueContainer, Variable<vector<double> > >() )
             .def( VariableIndexingPython<DataValueContainer, Variable<matrix<double> > >() )
             .def( VariableIndexingPython<DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer > >() )
+	    .def( VariableIndexingPython<DataValueContainer, Variable<RadiationSettings::Pointer > >() )
             .def( VariableIndexingPython<DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
             .def( self_ns::str( self ) )
             ;
@@ -342,12 +346,12 @@ namespace Kratos
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSUREAUX)
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_MAUX)
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_PAUX)
-	    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(FACE_HEAT_FLUX)
-	    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(HEAT_FLUX)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(FACE_HEAT_FLUX)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(HEAT_FLUX)
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TC)
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_BURN )
-	    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONDUCTIVITY)
-	    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(SPECIFIC_HEAT)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONDUCTIVITY)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SPECIFIC_HEAT)
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_DRIPPING )
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_PERMANENT)
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MATERIAL_VARIABLE)
@@ -359,9 +363,82 @@ namespace Kratos
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(M)
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(Y1)
 	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(Y2)
-	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(YP)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(YP) 
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_1)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_2)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_3)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_4)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_5)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_6)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_7)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_8)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_9)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_10)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_11)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_12)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_13)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_14)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_15)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_16)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_17)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_18)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_19)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_20)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_21)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_22)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_23)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATIVE_INTENSITY_24)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(EMISSIVITY)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ENTHALPY)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(MIXTURE_FRACTION)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(rhoD)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(Yfuel)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(Yox)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(Ypr)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(Hfuel)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(Hpr)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(Hpr1)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(Hox)
+
+
+
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(INCIDENT_RADIATION_FUNCTION)
+
+
+	    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY1 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY2 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY3 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY4 )
+	    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY5 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY6 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY7 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY8 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY9 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY10 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY11 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY12 )
+	    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY13 )
+	    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY14 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY15 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY16 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY17 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY18 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY19 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY20 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY21 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY22 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY23 )
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MESH_VELOCITY24 )
+
+
+
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ABSORPTION_COEFFICIENT)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE(STEFAN_BOLTZMANN_CONSTANT)
+            KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DIRECTION )
             KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_SWITCH)
 	    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(Y)
+	    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SWITCH_TEMPERATURE )
 
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( REFINEMENT_LEVEL )
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_INACTIVE )
@@ -387,7 +464,27 @@ namespace Kratos
 			  .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_internal_reference<>() )
 			  .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, return_internal_reference<>() )
 			  ;	
+ 		class_< RadiationSettings, RadiationSettings::Pointer, boost::noncopyable >	("RadiationSettings", init<	>() )
+ 			  .def("SetDensityVariable",&RadiationSettings::SetDensityVariable)
+			  .def("SetDiffusionVariable",&RadiationSettings::SetDiffusionVariable)
+			  .def("SetUnknownVariable",&RadiationSettings::SetUnknownVariable)
+			  .def("SetVolumeSourceVariable",&RadiationSettings::SetVolumeSourceVariable)
+			  .def("SetSurfaceSourceVariable",&RadiationSettings::SetSurfaceSourceVariable)
+			  .def("SetProjectionVariable",&RadiationSettings::SetConvectionVariable)
+			  .def("SetMeshVelocityVariable",&RadiationSettings::SetMeshVelocityVariable)
+ 			  .def("GetDensityVariable",&RadiationSettings::GetDensityVariable, return_internal_reference<>() )
+			  .def("GetDiffusionVariable",&RadiationSettings::GetDiffusionVariable, return_internal_reference<>() )
+			  .def("GetUnknownVariable",&RadiationSettings::GetUnknownVariable, return_internal_reference<>() )
+			  .def("GetVolumeSourceVariable",&RadiationSettings::GetVolumeSourceVariable, return_internal_reference<>() )
+			  .def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
+			  .def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
+			  .def("GetProjectionVariable",&RadiationSettings::GetConvectionVariable, return_internal_reference<>() )
+			  .def("GetMeshVelocityVariable",&RadiationSettings::GetMeshVelocityVariable, return_internal_reference<>() )
+			  ;	
            KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONVECTION_DIFFUSION_SETTINGS)
+	   KRATOS_REGISTER_IN_PYTHON_VARIABLE(RADIATION_SETTINGS)
+
+	     // KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONVECTION_DIFFUSION_SETTINGS)
 
         }
     }  // namespace Python.
