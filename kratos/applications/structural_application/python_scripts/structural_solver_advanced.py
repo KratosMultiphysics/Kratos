@@ -54,6 +54,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(LAGRANGE_WATER_PRESSURE);
     #model_part.AddNodalSolutionStepVariable(INTERNAL_VARIABLES);
     model_part.AddNodalSolutionStepVariable(MOMENTUM);
+    model_part.AddNodalSolutionStepVariable(ROTATION);
     model_part.AddNodalSolutionStepVariable(PRESSURE);        
     model_part.AddNodalSolutionStepVariable(ERROR_RATIO);
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -70,6 +71,9 @@ def AddDofs(model_part):
         node.AddDof(LAGRANGE_DISPLACEMENT_X);
         node.AddDof(LAGRANGE_DISPLACEMENT_Y);
         node.AddDof(LAGRANGE_DISPLACEMENT_Z);
+        #node.AddDof(ROTATION_X);
+        #node.AddDof(ROTATION_Y);
+        #node.AddDof(ROTATION_Z);
         #node.AddDof(LAGRANGE_AIR_PRESSURE);
         #node.AddDof(LAGRANGE_WATER_PRESSURE);
     print "dofs for the dynamic structural solution added correctly"
@@ -99,7 +103,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         if( self.time_steps == 1 ):
             self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
             #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
-            self.MoveMeshFlag = False
+            self.MoveMeshFlag = True
         else:
             print "using newmark scheme"
             self.time_scheme = ResidualBasedNewmarkScheme(self.damp_factor)
