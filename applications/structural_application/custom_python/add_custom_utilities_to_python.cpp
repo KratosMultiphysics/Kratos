@@ -279,8 +279,8 @@ namespace Kratos
 */
             class_<Smoothing_Utility, boost::noncopyable >
                     ("SmoothingUtility", init<ModelPart&, int >() )
-                    .def("WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients) // for matrices
-                    .def("DoubleWeightedRecoveryGradients", &Smoothing_Utility::DoubleWeightedRecoveryGradients) // for doubles
+                    .def("WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<double>)
+                    .def("WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<Matrix>) // for matrices
                     .def("InterpolatedRecoveryGradients", &Smoothing_Utility::InterpolatedRecoveryGradients)
                     .def("SettingNodalValues", &Smoothing_Utility::SettingNodalValues) 
                     .def("RecomputeValuesForNewMesh", &Smoothing_Utility::Recompute_Values_For_New_Mesh)
