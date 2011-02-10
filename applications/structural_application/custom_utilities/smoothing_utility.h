@@ -130,122 +130,148 @@ namespace Kratos
 
 
 
-// NO necesito Vecinos
-            void WeightedRecoveryGradients( const Variable<Matrix>& rVariable, ModelPart& this_model_part,  const unsigned int domain_size )
+           // it computes  the triburary volume or area of each nodes.
+	   // only its valid for triangle and tetrahedra
+           void CalculatetributaryFactor ( ModelPart& this_model_part,  const unsigned int& domain_size )
+           {
+	     
+	        ElementsArrayType& pElements =  this_model_part.Elements();                         
+                
+                #ifdef _OPENMP
+                int number_of_threads = omp_get_max_threads();
+                #else
+                int number_of_threads = 1;
+                #endif
+
+		vector<unsigned int> element_partition;
+                CreatePartition( number_of_threads, pElements.size(), element_partition );
+                
+		switch(domain_size)
+		{
+		  case 2:
+		  {
+		    const double fact = 1.00/3.00; 
+                    #pragma omp parallel for
+                    for ( int k = 0; k < number_of_threads; k++ )
+                     {
+
+		      ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+		      ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k+1];
+
+		      for ( ElementsArrayType::iterator it = it_begin; it != it_end; ++it )
+		      {
+			  Element::GeometryType& geom = it->GetGeometry(); 
+			  for ( unsigned int i = 0; i < geom.size(); i++ )
+			  {
+			      geom[i].SetLock();
+			      double&  Nodal_Area   = geom[i].FastGetSolutionStepValue(NODAL_AREA);
+			      Nodal_Area += fact  *  geom.Area();
+			      geom[i].UnSetLock();
+			}
+	     
+	              }
+		   }
+		  }
+		   ///********************************************************************************************
+		  case 3: 
+		  {           
+		    /*
+		    const double fact = 0.25;    
+		    #pragma omp parallel for
+                    for ( int k = 0; k < number_of_threads; k++ )
+                     {
+
+		      ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+		      ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k+1];
+
+		      for ( ElementsArrayType::iterator it = it_begin; it != it_end; ++it )
+		      {
+			  Element::GeometryType& geom = it->GetGeometry();   
+			  for ( unsigned int i = 0; i < geom.size(); i++ )
+			  {
+			      geom[i].SetLock();
+			      double&  Nodal_Volume   = geom[i].FastGetSolutionStepValue(NODAL_VOLUME);
+			      Nodal_Volume += fact  * geom.Volume(); 
+			      geom[i].UnSetLock();
+			}
+	     
+	              }
+		   }
+		    */
+		  }
+	      }
+	   }
+	   
+
+            template<class TVariableType>
+            void WeightedRecoveryGradients(const Variable<TVariableType>& rVariable, Variable<TVariableType>& rVariable_Smooth,
+            ModelPart& this_model_part, const unsigned int& domain_size )
             {
 
-                KRATOS_TRY
+	        if (minitialize_Setting_Variables == false ){
+		     CalculatetributaryFactor(this_model_part, domain_size); 
+		     minitialize_Setting_Variables = true;
+		} 
+		
+		switch(domain_size)
+		{
+		  case 2:  
+		    WeightedRecoveryGradients2D(rVariable, rVariable_Smooth, this_model_part);    
+		  
+		  case 3:
+		    WeightedRecoveryGradients3D(rVariable, rVariable_Smooth, this_model_part);
+		  
+		}
+	    }
+		
+		
+		/// Only valid for triangle elements
+		template<class TVariableType>
+		void WeightedRecoveryGradients2D(const Variable<TVariableType>& rVariable, const Variable<TVariableType>& rVariable_Smooth, ModelPart& this_model_part)
+		{
+		  
+		KRATOS_TRY
+		
                 ProcessInfo& CurrentProcessInfo    =  this_model_part.GetProcessInfo();
                 ElementsArrayType& pElements       =  this_model_part.Elements();
                 NodesArrayType& pNodes             =  this_model_part.Nodes();
-
-
-                // Setting to Zero
-                SettingNodalValues( this_model_part, domain_size );
-                minitialize_Setting_Variables = true;
-
-
-#ifdef _OPENMP
+                
+                #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
-#else
+                #else
                 int number_of_threads = 1;
-#endif
+                #endif
 
                 vector<unsigned int> element_partition;
                 CreatePartition( number_of_threads, pElements.size(), element_partition );
 
-                std::vector<Matrix> Stress;
-                //std::vector<Matrix> Strain;
-                double Area = 0.00;
-                double fact = 0.3333333333333333333333;
-                unsigned int size = 3;
 
-                if ( domain_size == 3 )
-                {
-                    fact = 0.25;
-                    size = 6;
-                }
-
-                Matrix  Nodal_Values = ZeroMatrix( 3, 3 );
-
-#pragma omp parallel for firstprivate(Nodal_Values) private(Area, Stress) shared(fact, size)
-
+                const double fact   = 1.00/3.00;
+                std::vector<TVariableType>   Variable_Value;
+                #pragma omp parallel for private(Variable_Value) 
                 for ( int k = 0; k < number_of_threads; k++ )
                 {
-
+  
                     ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-                    ElementsArrayType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+                    ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k+1];
 
                     for ( ElementsArrayType::iterator it = it_begin; it != it_end; ++it )
                     {
-                        Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
-                        unsigned int dim = geom.WorkingSpaceDimension();
-                        unsigned int integration_points = geom.IntegrationPointsNumber();
-
-                        ///* Una sola vez por cada paso calculo el area
-                        Area = geom.Area();
-
-                        if ( dim == 3 )
-                        {
-                            Area = geom.Volume();    // WARNING = tetrahedro;
-                        }
-
-
-                        it->GetValueOnIntegrationPoints( rVariable, Stress, CurrentProcessInfo );
-
-                        //it->GetValueOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, Strain, CurrentProcessInfo);
-
+                        Element::GeometryType& geom     = it->GetGeometry();
+                        it->GetValueOnIntegrationPoints(rVariable, Variable_Value, CurrentProcessInfo );
                         for ( unsigned int i = 0; i < geom.size(); i++ )
                         {
                             geom[i].SetLock();
-                            double&  Nodal_Area   = geom[i].FastGetSolutionStepValue( NODAL_AREA );
-
-                            if ( rVariable == PK2_STRESS_TENSOR )
-                            {
-                                Nodal_Values = geom[i].GetValue( NODAL_STRESS );
-                            }
-                            else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-                            {
-                                Nodal_Values = geom[i].GetValue( NODAL_STRAIN );
-                            }
-                            else
-                            {
-                                std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                            }
-
-                            Nodal_Area = Nodal_Area + fact * Area;
-
-                            geom[i].FastGetSolutionStepValue( NODAL_AREA ) = Nodal_Area;
-
-                            for ( unsigned int k = 0; k < integration_points; k++ )
-                            {
-                                noalias( Nodal_Values ) = Nodal_Values + fact * Area * Stress[k];
-                            }
-
-                            if ( rVariable == PK2_STRESS_TENSOR )
-                            {
-                                geom[i].GetValue( NODAL_STRESS ) = Nodal_Values;
-                            }
-                            else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-                            {
-                                geom[i].GetValue( NODAL_STRAIN ) = Nodal_Values;
-                            }
-                            else
-                            {
-                                std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                            }
-
+                            geom[i].GetValue(rVariable_Smooth) += fact * geom.Area() * Variable_Value[0];         
                             geom[i].UnSetLock();
                         }
                     }
                 }
-
+                
                 vector<unsigned int> node_partition;
-
                 CreatePartition( number_of_threads, pNodes.size(), node_partition );
 
-#pragma omp parallel for private(Nodal_Values)
-
+                #pragma omp parallel for
                 for ( int k = 0; k < number_of_threads; k++ )
                 {
                     NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
@@ -253,147 +279,67 @@ namespace Kratos
 
                     for ( ModelPart::NodeIterator i = i_begin; i != i_end; ++i )
                     {
-                        //KRATOS_WATCH(i->Id())
-                        double& Area_Total =  i->FastGetSolutionStepValue( NODAL_AREA );
+                        double& Area_Total          =  i->FastGetSolutionStepValue(NODAL_AREA );
+			TVariableType& Nodal_Values  =  i->GetValue(rVariable_Smooth);
+                        Nodal_Values                = (1.00 / Area_Total) * Nodal_Values;
 
-                        if ( rVariable == PK2_STRESS_TENSOR )
-                        {
-                            Nodal_Values =  i->GetValue( NODAL_STRESS );
-                        }
-                        else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-                        {
-                            Nodal_Values  =  i->GetValue( NODAL_STRAIN );
-                        }
-                        else
-                        {
-                            std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                        }
-
-                        noalias( Nodal_Values )  =  Nodal_Values / Area_Total;
-
-                        //KRATOS_WATCH(Nodal_Values)
-
-                        if ( rVariable == PK2_STRESS_TENSOR )
-                        {
-                            i->GetValue( NODAL_STRESS ) =  Nodal_Values;
-                        }
-                        else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
-                        {
-                            i->GetValue( NODAL_STRAIN ) =  Nodal_Values;
-                        }
-                        else
-                        {
-                            std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                        }
-                    }
-                }
-
+		     }
+		   
+          	   }
                 KRATOS_CATCH( "" )
+                
             }
 
 
+		/// Only valid for tetrahedra elements
+		/// WARNING = NODAL_AREA SHOULD BE NODAL_VOLUME
+		template<class TVariableType>
+		void WeightedRecoveryGradients3D(const Variable<TVariableType>& rVariable, const Variable<TVariableType>& rVariable_Smooth, ModelPart& this_model_part)
+		{
 
-
-
-            void DoubleWeightedRecoveryGradients( const Variable<double>& rVariable, ModelPart& this_model_part,  const unsigned int domain_size )
-            {
-
-                KRATOS_TRY
+		
+		KRATOS_TRY
+		/*
                 ProcessInfo& CurrentProcessInfo    =  this_model_part.GetProcessInfo();
                 ElementsArrayType& pElements       =  this_model_part.Elements();
                 NodesArrayType& pNodes             =  this_model_part.Nodes();
-
-
-                // Setting to Zero
-                SettingNodalValues( this_model_part, domain_size );
-                minitialize_Setting_Variables = true;
-
-
-#ifdef _OPENMP
+                
+                #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
-#else
+                #else
                 int number_of_threads = 1;
-#endif
+                #endif
 
                 vector<unsigned int> element_partition;
                 CreatePartition( number_of_threads, pElements.size(), element_partition );
 
-                std::vector<double> Var;
-                double Area;
-                double fact = 0.3333333333333333333333;
-                unsigned int size = 3;
 
-                if ( domain_size == 3 )
-                {
-                    fact = 0.25;
-                    size = 6;
-                }
-
-                double  Nodal_Values = 0.00;
-
-#pragma omp parallel for  firstprivate(Nodal_Values) private(Area, Var) shared(fact, size)
-
+                const double fact   = 0.25;
+                std::vector<TVariableType>   Variable_Value;
+                #pragma omp parallel for private(Variable_Value) 
                 for ( int k = 0; k < number_of_threads; k++ )
                 {
-
+  
                     ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-                    ElementsArrayType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+                    ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k+1];
 
                     for ( ElementsArrayType::iterator it = it_begin; it != it_end; ++it )
                     {
-                        Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
-                        unsigned int dim = geom.WorkingSpaceDimension();
-                        //unsigned int integration_points = geom.IntegrationPointsNumber();
-                        Area = geom.Area();
-
-                        if ( dim == 3 )
-                        {
-                            Area = geom.Volume();    // WARNING = tetrahedro;
-                        }
-
-                        it->GetValueOnIntegrationPoints( rVariable, Var, CurrentProcessInfo );
-
+                        Element::GeometryType& geom     = it->GetGeometry();
+                        it->GetValueOnIntegrationPoints(rVariable, Variable_Value, CurrentProcessInfo );
                         for ( unsigned int i = 0; i < geom.size(); i++ )
                         {
                             geom[i].SetLock();
-                            double&  Nodal_Area   = geom[i].FastGetSolutionStepValue( NODAL_AREA );
-
-                            if ( rVariable == DAMAGE )
-                            {
-                                Nodal_Values       = geom[i].FastGetSolutionStepValue( NODAL_DAMAGE );
-                            }
-                            else
-                            {
-			      KRATOS_ERROR(std::logic_error,"VARIABLE NOT DECLARED. See function  RecoveryGradients in file split_elements_utility.h ","");
-//                                 std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                            }
-
-                            Nodal_Area = Nodal_Area + fact * Area;
-
-                            geom[i].FastGetSolutionStepValue( NODAL_AREA ) = Nodal_Area;
-
-                            Nodal_Values = Nodal_Values + fact * Area * Var[0];  //WARNING = Solo un punto de gauss
-
-                            if ( rVariable == DAMAGE )
-                            {
-                                geom[i].FastGetSolutionStepValue( NODAL_DAMAGE ) = Nodal_Values;
-                            }
-                            else
-                            {
-                                std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                            }
-
+                            geom[i].GetValue(rVariable_Smooth) += fact * geom.Volume() * Variable_Value[0];         
                             geom[i].UnSetLock();
                         }
                     }
                 }
-
+                
                 vector<unsigned int> node_partition;
-
                 CreatePartition( number_of_threads, pNodes.size(), node_partition );
 
-#pragma omp parallel for private(Nodal_Values)
-
+                #pragma omp parallel for
                 for ( int k = 0; k < number_of_threads; k++ )
                 {
                     NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
@@ -401,36 +347,18 @@ namespace Kratos
 
                     for ( ModelPart::NodeIterator i = i_begin; i != i_end; ++i )
                     {
-                        //KRATOS_WATCH(i->Id())
-                        //KRATOS_WATCH(i->FastGetSolutionStepValue(NODAL_DAMAGE))
-                        double& Area_Total =  i->FastGetSolutionStepValue( NODAL_AREA );
+                        double& Vol_Total    =  i->FastGetSolutionStepValue(NODAL_VOLUME);
+			TVariableType& Nodal_Values  =  i->GetValue(rVariable_Smooth);
+                        Nodal_Values          = (1.00 / Vol_Total) * Nodal_Values;
 
-                        if ( rVariable == DAMAGE )
-                        {
-                            Nodal_Values =  i->FastGetSolutionStepValue( NODAL_DAMAGE );
-                        }
-                        else
-                        {
-                            std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                        }
-
-                        Nodal_Values  =  Nodal_Values / Area_Total;
-
-                        if ( rVariable == DAMAGE )
-                        {
-                            i->FastGetSolutionStepValue( NODAL_DAMAGE ) =  Nodal_Values;  ///*WARNING fast get for doubles
-                        }
-                        else
-                        {
-                            std::cout << "VARIABLE NO DECLARADA. See function  RecoveryGradients in file split_elements_utility.h " << std::endl;
-                        }
-                    }
-                }
-
+		     }
+		   
+          	   }
+          	   
+          	   */
                 KRATOS_CATCH( "" )
+		  
             }
-
-
 
 
             void InterpolatedRecoveryGradients( const Variable<Matrix>& rVariable, ModelPart& this_model_part,  const unsigned int domain_size )
@@ -819,52 +747,76 @@ namespace Kratos
 
 
 
-//Tested!!!
-            void SettingNodalValues( ModelPart& this_model_part, const unsigned int domain_size )
+           ///Tested!!!
+            void SettingNodalValues( ModelPart& this_model_part, const unsigned int& domain_size )
             {
-                // Setting to Zero
                 NodesArrayType& pNodes       =  this_model_part.Nodes();
-
-
-                unsigned int size   = 3;
-
-                if ( domain_size == 3 )
-                {
+                
+		unsigned int size   = 3;
+                if (domain_size == 3 )
                     size  = 6;
-                }
-
-                Matrix Nodal_Values;
-
-                Nodal_Values = ZeroMatrix( 1, size );
-
-#ifdef _OPENMP
+                
+                const Matrix Nodal_Values   = ZeroMatrix(1, size );
+                
+                #ifdef _OPENMP
                 int number_of_threads = omp_get_max_threads();
-#else
+                #else
                 int number_of_threads = 1;
-#endif
+                #endif
+                
                 vector<unsigned int> node_partition;
                 CreatePartition( number_of_threads, pNodes.size(), node_partition );
-#pragma omp parallel for shared(size)
-
-                for ( int k = 0; k < number_of_threads; k++ )
-                {
+                
+		switch(domain_size)
+		{
+		  case 2:
+		  {
+		  #pragma omp parallel for 
+                  for ( int k = 0; k < number_of_threads; k++ )
+                   {
                     NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
                     NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k+1];
 
                     for ( ModelPart::NodeIterator i = i_begin; i != i_end; ++i )
                     {
-                        i->FastGetSolutionStepValue( NODAL_AREA )     = 0.00;
-
-                        if ( minitialize_Setting_Variables == false )
                         {
+			    i->FastGetSolutionStepValue( NODAL_AREA   )   = 0.00;
+                            i->FastGetSolutionStepValue( NODAL_DAMAGE )   = 0.00;
+                            i->FastGetSolutionStepValue( NODAL_VALUES )   = 0;
+                            i->FastGetSolutionStepValue( SPLIT_NODAL  )   = false;
+                            i->GetValue( NODAL_STRESS )                   = Nodal_Values;
+                            i->GetValue( NODAL_STRAIN )                   = Nodal_Values;
+                        }
+                      }
+		    }
+		  }
+		  
+		  case 3:
+		  {
+		   /* 
+		  #pragma omp parallel for 
+                  for ( int k = 0; k < number_of_threads; k++ )
+                   {
+                    NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
+                    NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k+1];
+
+                    for ( ModelPart::NodeIterator i = i_begin; i != i_end; ++i )
+                    {
+                        {
+			    i->FastGetSolutionStepValue( NODAL_VOLUME)    = 0.00;
                             i->FastGetSolutionStepValue( NODAL_DAMAGE )   = 0.00;
                             i->FastGetSolutionStepValue( NODAL_VALUES )   = 0;
                             i->FastGetSolutionStepValue( SPLIT_NODAL )    = false;
-                            i ->GetValue( NODAL_STRESS ) = Nodal_Values;
-                            i->GetValue( NODAL_STRAIN ) = Nodal_Values;
+                            i->GetValue( NODAL_STRESS )                   = Nodal_Values;
+                            i->GetValue( NODAL_STRAIN )                   = Nodal_Values;
                         }
-                    }
+                      }
+		    }
+		    */
+		  }
+		  
                 }
+                
 
             }
 
