@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/add_process_info_to_python.h"
 #include "containers/data_value_container.h"
 #include "includes/convection_diffusion_settings.h"
-
+#include "includes/radiation_settings.h"
 namespace Kratos
 {
 	
