@@ -122,7 +122,6 @@ namespace Kratos
           Inter_Fracture_Triangle(ModelPart& model_part, int domain_size) : mr_model_part(model_part)
           {
              mdomain_size = domain_size;
-             //mInitialize  = false;  
           }
           
           ~Inter_Fracture_Triangle(){}
@@ -140,84 +139,58 @@ void Detect_And_Split_Elements(ModelPart& this_model_part)
    FindNodalNeighboursProcess        NodosVecinos(this_model_part, 2, 10);
    FindConditionsNeighboursProcess   CondicionesVecinas(this_model_part, 2, 10);
    
-   Detect_Node_To_Be_Splitted(this_model_part);
-   Failure_Maps = ZeroVector(3);
-
-  
-   NodesArrayType::iterator i_begin = pNodes.ptr_begin();
-   NodesArrayType::iterator i_end   = pNodes.ptr_end();
-
-   for(ModelPart::NodeIterator inode=i_begin; inode!= i_end; ++inode)     
+   WeakPointerVector< Node<3> > Nodes_To_Be_Dupplicated; 
+   unsigned int detect = Detect_Node_To_Be_Splitted(this_model_part, Nodes_To_Be_Dupplicated);
+   
+   if(detect!=0)
+   {   
+   WeakPointerVector< Node<3> >::iterator i_begin = Nodes_To_Be_Dupplicated.ptr_begin();
+   WeakPointerVector< Node<3> >::iterator i_end   = Nodes_To_Be_Dupplicated.ptr_end();
+      
+   for(WeakPointerVector< Node<3> >::iterator inode=i_begin; inode!= i_end; ++inode)     
     {      
-           
-            bool& split = inode->FastGetSolutionStepValue(SPLIT_NODAL);   
-           if(split == true) 
-          {
-              Node<3>::Pointer pNode = *(inode.base());   
-
-             Calculate_Map_Failure(pNode,  Failure_Maps);
-             Split_Node(this_model_part, pNode, Failure_Maps);   
-
-	     ElementosVecinos.ClearNeighbours();
-             NodosVecinos.ClearNeighbours();
-	     CondicionesVecinas.ClearNeighbours();
-	          
-             ElementosVecinos.Execute();
-             NodosVecinos.Execute();
-	     CondicionesVecinas.Execute();
-	     Failure_Maps = ZeroVector(3);    
-                   
+             Node<3>::Pointer pNode =  (*(inode.base())).lock();              
+             Split_Node(this_model_part, pNode);       
+	    
+	     //ElementosVecinos.ClearNeighbours();
+             //NodosVecinos.ClearNeighbours();
+	     //CondicionesVecinas.ClearNeighbours();     
+             //ElementosVecinos.Execute();
+             //NodosVecinos.Execute();
+	     //CondicionesVecinas.Execute();         
           }                
     
     }
     
-   
          
-   Finalize(this_model_part);
-
-  
+  Finalize(this_model_part);
   KRATOS_CATCH("")
 }
 
+
 ///************************************************************************************************          
 ///************************************************************************************************      
-void Detect_Node_To_Be_Splitted(ModelPart& this_model_part)
+unsigned int Detect_Node_To_Be_Splitted(ModelPart& this_model_part,  WeakPointerVector< Node<3> >& Nodes_To_Be_Dupplicated)
 {
 KRATOS_TRY  
 
 NodesArrayType& pNodes = this_model_part.Nodes();
+NodesArrayType::iterator i_begin = pNodes.ptr_begin();
+NodesArrayType::iterator i_end   = pNodes.ptr_end();
 
-#ifdef _OPENMP
-int number_of_threads = omp_get_max_threads();
-#else
-int number_of_threads = 1;
-#endif
-
-//mfail_node.reserve(1000);
-
-vector<unsigned int> node_partition;
-CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
-#pragma omp parallel for  
-for(int k=0; k<number_of_threads; k++)
-{
-NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-
-  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)     
-  {
-    double& Condition = i->FastGetSolutionStepValue(NODAL_DAMAGE);
-    /// WARNING = Condition to be reformulated
-    if(Condition >=0.60)
-	  {  
-	      i->FastGetSolutionStepValue(SPLIT_NODAL) = true;   
-              //mfail_node.push_back(*(i.base()) );  
-	  }
-  }
-
-}
+for(ModelPart::NodeIterator inode=i_begin; inode!= i_end; ++inode)  
+   { 
+      double& Condition = inode->FastGetSolutionStepValue(NODAL_DAMAGE);
+       /// WARNING = Condition to be reformulated
+       if(Condition >=0.60)  
+	      Nodes_To_Be_Dupplicated.push_back(*(inode.base()));
+	      //i->FastGetSolutionStepValue(SPLIT_NODAL) = true;      
+    }
+    
+return Nodes_To_Be_Dupplicated.size();
   
 KRATOS_CATCH("")
+
 }
 
 ///************************************************************************************************          
@@ -279,26 +252,64 @@ Failure_Maps[2] =  EigenVector[pos][2];
 ///************************************************************************************************  
 
                  
-void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer& pNode, const array_1d<double,3>&  failure_map)
+void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer& pNode)
 {
     KRATOS_TRY 
+    
+    array_1d<double,3>  failure_map;
+    Calculate_Map_Failure(pNode, failure_map);
+    
+    WeakPointerVector< Element > Negative_Elements;
+    WeakPointerVector< Element > Positive_Elements;
+    
     
     Node<3>::Pointer child_node; 
     bool node_created = false;
     
     /// Crea el nuevo nodo y lo inserta al elemento
     //std::cout<<"INSERTING THE NEW NODE"<<std::endl;
-    node_created = CalculateElements(this_model_part, pNode, child_node, failure_map );
+    node_created = CalculateElements(this_model_part, pNode, child_node, failure_map, Negative_Elements, Positive_Elements );
     
-    /// En caso de que el nodo creado modifique la condicion de contorno
     
-    //std::cout<<"UPDATING CONDITIONS"<<std::endl;
     if (node_created==true)
+    {
+        ///UPDATING CONDITIONS
+	/// En caso de que el nodo creado modifique la condicion de contorno
         CalculateConditions(this_model_part, pNode, child_node, failure_map );
-     
+   
+        /// Updating vecinos    
+        RecomputeLocalneighbourgs(pNode,      Positive_Elements);
+        RecomputeLocalneighbourgs(child_node, Negative_Elements);
+	
+    }
     KRATOS_CATCH("")
 
 }
+
+
+void RecomputeLocalneighbourgs(Node<3>::Pointer& pNode, WeakPointerVector< Element>& Elements)
+{
+      WeakPointerVector< Element >& neighb_elems  = pNode->GetValue(NEIGHBOUR_ELEMENTS); 
+      WeakPointerVector< Node<3> >& neighb_nodes  = pNode->GetValue(NEIGHBOUR_NODES); 
+      neighb_elems.clear();
+      neighb_nodes.clear();
+      
+      for(WeakPointerVector<Element>::iterator elem = Elements.begin(); elem!= Elements.end(); ++elem){
+	    neighb_elems.push_back(*elem.base());
+	    Element::GeometryType& geom = elem->GetGeometry(); 
+	        for( unsigned int i = 0; i < geom.size(); i++ )
+                   { 
+		     WeakPointerVector< Node<3> >::iterator repeated_object =  std::find(neighb_nodes.begin(), neighb_nodes.end(), geom[i]);
+		      if(repeated_object == (neighb_nodes.end())) 
+ 			  {
+			    neighb_nodes.push_back(geom(i));
+			  }
+			  
+		   }    
+      }
+
+}
+
 
 ///************************************************************************************************          
 ///************************************************************************************************
@@ -307,7 +318,10 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer& pNode, const arra
 bool CalculateElements(ModelPart& this_model_part, 
 		       Node<3>::Pointer& pNode, // Nodo Padre 
 		       Node<3>::Pointer& pnode, // Nodo Hijo
-		       const array_1d<double,3>&  failure_map )
+		       const array_1d<double,3>&  failure_map,
+		       WeakPointerVector< Element >& Negative_Elements, 
+		       WeakPointerVector< Element >& Positive_Elements 
+		       )
 {
   KRATOS_TRY
   
@@ -317,11 +331,8 @@ bool CalculateElements(ModelPart& this_model_part,
     array_1d<double, 3> Coord_Point_2;
     array_1d<double, 3> normal;
     array_1d<double, 3> Unit; 
-    
-    WeakPointerVector< Element > Negative_Elements;
-    WeakPointerVector< Element > Positive_Elements;
-    
-    
+
+      
     Positive_Elements.reserve(10); 
     Negative_Elements.reserve(10); 
      
