@@ -10,7 +10,11 @@
 #if !defined(KRATOS_KRATOS_APPLICATIONNAME_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_APPLICATIONNAME_APPLICATION_H_INCLUDED
 
+// Doxygen description for this application
 
+///@defgroup ApplicationNameApplication Kratos ApplicationName Application
+///@brief Short description of the application.
+/// Detailed description of the application.
 
 // System includes
 #include <string>
@@ -27,6 +31,8 @@
 
 namespace Kratos
 {
+  ///@addtogroup ApplicationNameApplication
+  ///@{
 
   ///@name Kratos Globals
   ///@{ 
@@ -223,7 +229,9 @@ namespace Kratos
   ///@name Input and output 
   ///@{ 
         
-  ///@} 
+  ///@}
+
+  ///@} addtogroup block
   
   
 }  // namespace Kratos.
