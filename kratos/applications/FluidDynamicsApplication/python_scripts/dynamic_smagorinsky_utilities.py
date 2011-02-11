@@ -26,20 +26,33 @@ class DynamicSmagorinsky:
         # Find neighbours
         self.nodal_neighbour_search.Execute()
 
-    def Refine(self):
+    def Refine(self, num_refinements = 1):
 
-        # Mark all elements for refinement
-        for element in self.model_part.Elements:
-            element.SetValue(SPLIT_ELEMENT,True)
-
-        # Refine
         refine_on_reference = True;
         interpolate_internal_variables = False;
-        self.refinement_tool.LocalRefineMesh(refine_on_reference, \
-                                             interpolate_internal_variables)
 
-        # Update neighbours
-        self.nodal_neighbour_search.Execute()
+        refinement_step = 0
+
+        while refinement_step < num_refinements:
+
+            #update refinement counter
+            refinement_step += 1
+
+            # Mark all elements for refinement
+            for element in self.model_part.Elements:
+                element.SetValue(SPLIT_ELEMENT,True)
+
+            # Store the mesh before the last refinement step
+            # Will be used as coarse mesh in the variational Germano identity
+            if refinement_step == num_refinements:
+                self.smagorinsky_util.StoreCoarseMesh()
+
+            # Refine
+            self.refinement_tool.LocalRefineMesh(refine_on_reference, \
+                                                 interpolate_internal_variables)
+
+            # Update neighbours
+            self.nodal_neighbour_search.Execute()
 
     def CorrectBoundary(self,boundary_var = FLAG_VARIABLE):
 

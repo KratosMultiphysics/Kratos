@@ -83,12 +83,14 @@ namespace Kratos
 
      This class is based in Oberai, A.A. and Wanderer, J., Variational formulation
      of the Germano identity for the Navier Stokes equations, Journal of Turbulence,
-     2005, vol 6. Note that the formulation described there requires a nested mesh. This
-     class takes the model part containing a coarse mesh as input and assumes that
+     2005, vol 6. Note that the formulation described there requires a nested mesh.
+     It takes the model part containing a coarse mesh as input and assumes that
      all elements will be subdivided before CalculateC() is called.
 
-     For an element implementation that uses the Smagorinsky model: @see VMSSmagorinsky
-     For the element refinement process: @see Local_Refine_Triangle_Mesh,Local_Refine_Tetrahedra_Mesh
+     Remember to call StoreCoarseMesh before refining the element, otherwise the coarse mesh will be lost.
+
+     @see VMS for an element implementation that uses the Smagorinsky model.
+     @see Local_Refine_Triangle_Mesh,Local_Refine_Tetrahedra_Mesh for the element refinement process.
      */
     class DynamicSmagorinskyUtils
     {
@@ -98,34 +100,38 @@ namespace Kratos
         ///@{
 
         /// Constructor
-        /** Remember to create the utilitiy before refining the element, otherwise the coarse mesh will be lost
+        /**
          @param rModelPart Reference to the model part containing the coarse mesh
          @param DomainSize Spatial dimension (2 or 3)
          */
         DynamicSmagorinskyUtils(ModelPart& rModelPart, unsigned int DomainSize):
-        mrModelPart(rModelPart),
-        mDomainSize(DomainSize),
-        mCoarseMesh(),
-        mPatchIndices()
+            mrModelPart(rModelPart),
+            mDomainSize(DomainSize),
+            mCoarseMesh(),
+            mPatchIndices()
+        {}
+
+        /// Destructor
+        ~DynamicSmagorinskyUtils() {}
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        /// Store current mesh as coarse mesh. Call before refining.
+        /**
+         If you are refining more than once, this only has to be called before last refinement.
+         */
+        void StoreCoarseMesh()
         {
-            // Backup the mesh (the "original" coarse mesh is erased during refinement)
-            Element::Pointer pReferenceElement;
+            // Clear existing mesh (if any)
+            mCoarseMesh.clear();
 
-            if( mDomainSize == 2)
+            // Store current mesh
+            for( ModelPart::ElementsContainerType::ptr_iterator itpElem = mrModelPart.Elements().ptr_begin();
+                 itpElem != mrModelPart.Elements().ptr_end(); ++itpElem)
             {
-                Element::Pointer pNewElem( new Element( KratosComponents<Element>::Get("VMS2DSmagorinsky") ) );
-                pReferenceElement.swap(pNewElem);
-            }
-            else // 3D case
-            {
-                Element::Pointer pNewElem( new Element( KratosComponents<Element>::Get("VMS3DSmagorinsky") ) );
-                pReferenceElement.swap(pNewElem);
-            }
-
-            for( ModelPart::ElementsContainerType::ptr_iterator itpElem = rModelPart.Elements().ptr_begin();
-                 itpElem != rModelPart.Elements().ptr_end(); ++itpElem)
-            {
-                (*itpElem)->GetValue(C_SMAGORINSKY) = 0.0; // Set the Smagorinsky parameter to zero for the coarse mesh (do this once to reset any input values)
+//                (*itpElem)->GetValue(C_SMAGORINSKY) = 0.0; // Set the Smagorinsky parameter to zero for the coarse mesh (do this once to reset any input values)
                 mCoarseMesh.push_back(*itpElem);
             }
 
@@ -165,13 +171,6 @@ namespace Kratos
                 }
             }
         }
-
-        /// Destructor
-        ~DynamicSmagorinskyUtils() {}
-
-        ///@}
-        ///@name Operations
-        ///@{
 
         /// Provide a value for the Smagorinsky coefficient using the Variational Germano Identity
         void CalculateC()
@@ -661,4 +660,3 @@ namespace Kratos
 } // namespace Kratos
 
 #endif	/* KRATOS_DYNAMIC_SMAGORINSKY_UTILITIES_H_INCLUDED */
-

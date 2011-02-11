@@ -164,7 +164,6 @@ namespace Kratos
             // Set output vector (for a single integration point)
             rOutput.resize(1);
             array_1d<double, 3 > & rVorticity = rOutput[0];
-            rVorticity.resize(3);
             rVorticity[0] = 0.0;
             rVorticity[1] = 0.0;
             rVorticity[2] = 0.0;
@@ -206,7 +205,6 @@ namespace Kratos
             // Set output vector (for a single integration point)
             rOutput.resize(1);
             array_1d<double, 3 > & rVorticity = rOutput[0];
-            rVorticity.resize(3);
             rVorticity[0] = 0.0;
             rVorticity[1] = 0.0;
             rVorticity[2] = 0.0;

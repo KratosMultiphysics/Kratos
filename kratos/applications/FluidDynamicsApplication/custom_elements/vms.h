@@ -274,7 +274,7 @@ namespace Kratos
             const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
             if (rLeftHandSideMatrix.size1() != LocalSize)
-                rLeftHandSideMatrix.resize(LocalSize, LocalSize);
+                rLeftHandSideMatrix.resize(LocalSize, LocalSize,false);
 
             noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
         }
@@ -660,7 +660,7 @@ namespace Kratos
 
                 this->CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
 
-                rValues.resize(1);
+                rValues.resize(1,false);
                 if (rVariable == TAUONE)
                 {
                     rValues[0] = TauOne;
@@ -672,7 +672,7 @@ namespace Kratos
             }
             else // Default behaviour (returns elemental data)
             {
-                rValues.resize(1);
+                rValues.resize(1,false);
                 /*
                  The cast is done to avoid modification of the element's data. Data modification
                  would happen if rVariable is not stored now (would initialize a pointer to &rVariable
@@ -728,7 +728,7 @@ namespace Kratos
         /// Print information about this object.
         virtual void PrintInfo(std::ostream& rOStream) const
         {
-            rOStream << "VMS #" << Id();
+            rOStream << "VMS" << TDim << "D";
         }
 
 //        /// Print object's data.
