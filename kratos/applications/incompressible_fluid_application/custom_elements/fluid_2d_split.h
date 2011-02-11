@@ -68,7 +68,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
+  ///@addtogroup IncompressibleFluidApplication
+  ///@{
+	
   ///@name Kratos Globals
   ///@{ 
   
@@ -366,6 +368,8 @@ namespace Kratos
       return rOStream;
     }*/
   ///@} 
+
+  ///@} IncompressibleFluidApplication group
 
 }  // namespace Kratos.
 
