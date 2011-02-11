@@ -312,9 +312,9 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 
     array_1d<double,3> mid_neg_velocity; /// V(n-1/2)
     array_1d<double,3> mid_pos_velocity; /// V(n+1/2)
-    array_1d<double,3> new_displacement; /// V(n+1/2)
+    //array_1d<double,3> new_displacement; /// V(n+1/2)
     
-    #pragma omp parallel for private (new_displacement,mid_pos_velocity, mid_neg_velocity) //shared(current_delta_time, mid_delta_time)
+    #pragma omp parallel for private(mid_pos_velocity, mid_neg_velocity) 
     for(int k=0; k<number_of_threads; k++)
       {
 	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -343,26 +343,17 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	  ///current_displacement = current_displacement + mid_pos_velocity * current_delta_time;
 	  /// Una aproximacion de la velocidad
 	  if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
-	  {
-	    new_displacement[0]      = current_displacement[0] + mid_pos_velocity[0] * current_delta_time;
-	    actual_displacement[0]   = new_displacement[0];
-	  }
+	    actual_displacement[0]  = current_displacement[0] + mid_pos_velocity[0] * current_delta_time;
 
+	  
 	  if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
-	  {
-	    new_displacement[1]      = current_displacement[1] + mid_pos_velocity[1] * current_delta_time;
-	    actual_displacement[1]   = new_displacement[1];    
-	  }
-
+	    actual_displacement[1]     = current_displacement[1] + mid_pos_velocity[1] * current_delta_time;
 
 	  if( i->HasDofFor(DISPLACEMENT_Z)){
-	  if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
-	  {
-	    new_displacement[2]      = current_displacement[2] + mid_pos_velocity[2] * current_delta_time;
-	    actual_displacement[2]   = new_displacement[2];
-	  }  
+	    if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
+	       actual_displacement[2]     = current_displacement[2] + mid_pos_velocity[2] * current_delta_time; 
 	}
-	//ComputeOldVelocitiesAndAccelerations(i, mid_pos_velocity, mid_neg_velocity);
+
       }   
     }
     
@@ -634,7 +625,6 @@ void ComputeInitialConditions()
       NodesArrayType& pNodes          = r_model_part.Nodes(); 
 
       const double DeltaTime          = CurrentProcessInfo[DELTA_TIME]; 
-      //double steps         = CurrentProcessInfo[TIME_STEPS];
       
       if(DeltaTime == 0)
 	  KRATOS_ERROR(std::logic_error,"Detected delta_time = 0. Please check if the time step is created correctly for the current model part","");
@@ -648,8 +638,8 @@ void ComputeInitialConditions()
 
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
-      array_1d<double,3> OldDisplacement;
-      #pragma omp parallel for private(OldDisplacement) //shared(DeltaTime)
+      //array_1d<double,3> OldDisplacement;
+      #pragma omp parallel for //private(OldDisplacement) 
       for(int k=0; k<number_of_threads; k++)
 	{
 	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -662,16 +652,11 @@ void ComputeInitialConditions()
 	  const array_1d<double,3>& CurrentDisplacement  =  (i->FastGetSolutionStepValue(DISPLACEMENT));
 	  const array_1d<double,3>& CurrentVelocity      =  (i->FastGetSolutionStepValue(VELOCITY));
 	  const array_1d<double,3>& CurrentAcceleration  =  (i->FastGetSolutionStepValue(ACCELERATION));
+	  array_1d<double,3>&       OldDisplacement      =  (i->FastGetSolutionStepValue(DISPLACEMENT,2));
 	  
 	  /// D_1 7.145 Libro de ""Estructuras Sometiadas a Acciones Sismicas"   
 	  noalias(OldDisplacement) =  0.5*DeltaTime*DeltaTime*CurrentAcceleration - DeltaTime*CurrentVelocity + CurrentDisplacement;
-	  i->FastGetSolutionStepValue(DISPLACEMENT,2) = OldDisplacement; /// corresponde al time step = 0
-	  
-// 	  if(i->Id()==371)
-// 	    {
-// 	      KRATOS_WATCH(OldDisplacement)
-// 	    }
-	  
+	  //i->FastGetSolutionStepValue(DISPLACEMENT,2) = OldDisplacement; /// corresponde al time step = -1  
 	  }
 	}
 
@@ -898,8 +883,10 @@ void ComputeOldVelocitiesAndAccelerations()
 
     array_1d<double,3> mid_neg_velocity; /// V(n-1/2)
     array_1d<double,3> mid_pos_velocity; /// V(n+1/2)
+    array_1d<double,3> mid_neg_velocity_old; /// V(n-1/2)
+    array_1d<double,3> mid_pos_velocity_old; /// V(n+1/2)
     
-    #pragma omp parallel for private (mid_pos_velocity, mid_neg_velocity) //shared(current_delta_time, mid_delta_time, inv_sum_delta_time)
+    #pragma omp parallel for private (mid_pos_velocity, mid_neg_velocity,  mid_neg_velocity_old,  mid_pos_velocity_old) 
     for(int k=0; k<number_of_threads; k++)
       {
 	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -912,19 +899,14 @@ void ComputeOldVelocitiesAndAccelerations()
 	  array_1d<double,3>& displacement          = i->FastGetSolutionStepValue(DISPLACEMENT);   /// Estamos en paso  T(n+1)
 	  array_1d<double,3>& current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT,1);   /// U(n)
 	  array_1d<double,3>& olddisplacement       = i->FastGetSolutionStepValue(DISPLACEMENT,2);   /// U(n-1)
+	  array_1d<double,3>& veryolddisplacement   = i->FastGetSolutionStepValue(DISPLACEMENT,3);   /// U(n-1)
 	  
-	  noalias(mid_neg_velocity)   = (1.00/molddelta_time) *     (current_displacement - olddisplacement);
-	  noalias(mid_pos_velocity)   = (1.00/current_delta_time) * (displacement   -current_displacement);
+	  noalias(mid_neg_velocity)       = (1.00/molddelta_time)     * (current_displacement   - olddisplacement);
+	  noalias(mid_pos_velocity)       = (1.00/current_delta_time) * (displacement           - current_displacement);
+	  noalias(mid_neg_velocity_old)   = (1.00/molddelta_time)     * (olddisplacement        - veryolddisplacement);
+	  noalias(mid_pos_velocity_old)   = (1.00/current_delta_time) * (current_displacement   - olddisplacement);
+
             
-//             ModelPart& r_model_part                = BaseType::GetModelPart();  
-//             ProcessInfo& CurrentProcessInfo        = r_model_part.GetProcessInfo();
-// 	    const double  delta_time               = CurrentProcessInfo[DELTA_TIME]; 
-	    
-//            const double inv_sum_delta_time        = 1.00 / (molddelta_time + delta_time);
-// 	    const double mid_delta_time            = 0.50 * (molddelta_time + delta_time);
-// 
-//             array_1d<double,3>& displacement       = (i->FastGetSolutionStepValue(DISPLACEMENT));
-//             array_1d<double,3>& olddisplacement    = (i->FastGetSolutionStepValue(DISPLACEMENT,2));
 	    array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));  
  	    array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));   
 	    
@@ -935,42 +917,40 @@ void ComputeOldVelocitiesAndAccelerations()
 	       velocity[0]      =  inv_sum_delta_time * (displacement[0] - olddisplacement[0]);
 	       acceleration[0]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[0] - mid_neg_velocity[0]);  
 	       
-	    }
+	   }
             else
 	    {
-	       velocity[0]         =  0.00; 
-	       acceleration[0]     =  0.00;
+	       velocity[0]         =  inv_sum_delta_time * (current_displacement[0] - veryolddisplacement[0]);
+	       acceleration[0]     =  (1.00 / mid_delta_time ) * (mid_pos_velocity_old[0] - mid_neg_velocity_old[0]);  
 	    }
             
             /// Y
-	    if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
-	    {
+ 	    if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
+ 	    {
 	       velocity[1]      =  inv_sum_delta_time * (displacement[1] - olddisplacement[1]);
 	       acceleration[1]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[1] - mid_neg_velocity[1]);  
-	    }
-            else
-	    {
-	       velocity[1]         =  inv_sum_delta_time * (displacement[0] - olddisplacement[0]); //0.00; 
-	       acceleration[1]     =  0.00;
-	      
-	    }
+ 	    }
+             else
+ 	    {
+ 	       velocity[1]         =  inv_sum_delta_time * (current_displacement[1] - veryolddisplacement[1]);
+ 	       acceleration[1]     =  (1.00 / mid_delta_time ) * (mid_pos_velocity_old[1] - mid_neg_velocity_old[1]);  
+      
+ 	    }
 
             /// Z 
 	    if( i->HasDofFor(DISPLACEMENT_Z)){
-	    if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
-	    {
-
+ 	    if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
+ 	    {
 	      velocity[2]      =  inv_sum_delta_time * (displacement[2] - olddisplacement[2]);
 	      acceleration[2]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[2] - mid_neg_velocity[2]);  
-	    }
-	    else
-	    {
-	       velocity[2]         =  0.00; 
-	       acceleration[2]     =  0.00;
-	      
-	    }  
-	  }
-	  
+ 	    }
+ 	    else
+ 	    {
+ 	       velocity[2]         =  inv_sum_delta_time * (current_displacement[2] - veryolddisplacement[2]);
+ 	       acceleration[2]     =  (1.00 / mid_delta_time ) * (mid_pos_velocity_old[2] - mid_neg_velocity_old[2]);  
+ 	      
+ 	    }  
+	  }  
       }    
   }
 }
