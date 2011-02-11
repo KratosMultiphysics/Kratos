@@ -219,7 +219,7 @@ namespace Kratos {
 
     void NoNewtonianASGS2D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
 	KRATOS_TRY
-		int nodes_number = 3;
+	int nodes_number = 3;
 	int dim = 2;
 	unsigned int matsize = nodes_number * (dim + 1);
 

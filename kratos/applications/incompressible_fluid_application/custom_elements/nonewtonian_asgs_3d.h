@@ -68,7 +68,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
+  ///@addtogroup IncompressibleFluidApplication
+  ///@{
+	
   ///@name Kratos Globals
   ///@{ 
   
@@ -236,7 +238,7 @@ namespace Kratos
       virtual void CalculateResidual(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const MatrixType& K, VectorType& F, const double volume);
       ///Compute the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);
       virtual void ComputeProjections(array_1d<double,12>& adv_proj , array_1d<double,4>& div_proj, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,4>& N,const double volume, const double time); 
-      ///Evaluates the following stabilization terms:  \f$  (a \cdot \nabla w, \frac{\partial_{t} u) \f$ 
+      ///Evaluates the following stabilization terms:  \f$  (a \cdot \nabla w, \partial_{t} u) \f$ 
        virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume);
       ///Evaluates the following stabilization terms:  \f$  (\nabla q, \partial_{t} u) \f$ 
       virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double thawone,const double volume);
@@ -394,6 +396,7 @@ namespace Kratos
     }*/
   ///@} 
 
+  ///@} IncompressibleFluidApplication group
 }  // namespace Kratos.
 
 #endif // KRATOS_NONEWTONIAN_ASGS_3D_H_INCLUDED  defined 
