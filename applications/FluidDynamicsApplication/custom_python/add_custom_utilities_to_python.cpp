@@ -81,6 +81,7 @@ namespace Python
         typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
         class_<DynamicSmagorinskyUtils>("DynamicSmagorinskyUtils", init<ModelPart&,unsigned int>())
+            .def("StoreCoarseMesh",&DynamicSmagorinskyUtils::StoreCoarseMesh)
             .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
             .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
             ;
