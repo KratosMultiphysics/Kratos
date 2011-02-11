@@ -84,6 +84,9 @@ namespace Kratos
     {
     public:
 
+        ///@addtogroup IncompressibleFluidApplication
+        ///@{
+
         ///@name Life Cycle
         ///@{
 
@@ -305,6 +308,8 @@ namespace Kratos
 	};
 
         ///@} //Kratos Classes
+
+        ///@}
 
 }  // namespace Kratos.
 
