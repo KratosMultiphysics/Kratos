@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
+#include "utilities/openmp_utils.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
@@ -165,6 +166,11 @@ namespace Python
 
 
 // 	  def("PrintTimingInformation",Timer::PrintTimingInformation);
+
+          class_<OpenMPUtils>("OpenMPUtils", init<>() )
+                  .def("SetNumThreads", &OpenMPUtils::SetNumThreads)
+                  .staticmethod("SetNumThreads")
+                  ;
 
   }
 	

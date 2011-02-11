@@ -46,6 +46,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef KRATOS_OPENMP_UTILS_H
 #define	KRATOS_OPENMP_UTILS_H
 
+#include <stdio.h>
 #ifdef _OPENMP
 #include <omp.h>
 #else
@@ -54,6 +55,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    ///@addtogroup KratosCore
+    ///@{
+
+    ///@name Kratos Classes
+    ///@{
+
     /// Implements basic tasks for OpenMP parallelism and suitable scalar alternatives
     /**
      This class defines utility functions that implement some basic OpenMP
@@ -66,11 +73,18 @@ namespace Kratos
     {
     public:
 
+        ///@name Type definitions
+        ///@{
+
         /// Vector type for the output of DivideInPartitions method
         /**
          *  @see OpenMPUtils::DivideInPartitions
          */
         typedef std::vector<int> PartitionVector;
+
+        ///@}
+        ///@name Operations
+        ///@{
 
         /// Wrapper for omp_get_max_threads().
         /**
@@ -144,7 +158,29 @@ namespace Kratos
             Partitions[1] = NumTerms;
             #endif
         }
+
+        /// A function to set the number of threads from Python.
+        /**
+         This is an auxiliary mainly intended for test purposes, to help with the
+         detection of race conditions.
+         @param NumThreads Number of threads to use in parallel regions. Note
+         that values greater than the environment variable OMP_NUM_THREADS
+         will be ignored.
+         */
+        static inline void SetNumThreads(int NumThreads)
+        {
+            #ifdef _OPENMP
+            omp_set_num_threads(NumThreads);
+            std::cout << "Maximum number of threads is now " << omp_get_max_threads() << std::endl;
+            #endif
+        }
+
+        ///@} //Operations
     };
+
+    ///@} //Kratos classes
+
+    ///@} addtogroup block
 }
 
 #endif	/* KRATOS_OPENMP_UTILS_H */
