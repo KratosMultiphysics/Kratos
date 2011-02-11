@@ -26,6 +26,8 @@
 
 namespace Kratos
 {
+  ///@addtogroup ApplicationNameApplication
+  ///@{
 
   ///@name Kratos Globals
   ///@{ 
@@ -217,9 +219,10 @@ namespace Kratos
 
       return rOStream;
     }
-  ///@} 
-  
-  
+  ///@}
+
+  ///@} addtogroup block
+
 }  // namespace Kratos.
 
 #endif // KRATOS_FILENAME_H_INCLUDED  defined 

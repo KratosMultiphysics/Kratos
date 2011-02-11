@@ -48,7 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_KRATOS_H_INCLUDED )
 #define  KRATOS_KRATOS_H_INCLUDED
 
-
+///@defgroup KratosCore Kratos Core
+///@brief The Kratos core comprises a basic set of classes used by all applications.
 
 // System includes 
 
