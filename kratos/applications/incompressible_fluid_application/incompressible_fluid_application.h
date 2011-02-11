@@ -10,6 +10,8 @@
 #if !defined(KRATOS_KRATOS_RICCARDOS_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_RICCARDOS_APPLICATION_H_INCLUDED
 
+///@defgroup IncompressibleFluidApplication Incompressible Fluid Application
+
 
 
 // System includes
@@ -76,7 +78,9 @@
 
 namespace Kratos
 {
-
+        ///@addtogroup IncompressibleFluidApplication
+        ///@{
+	
 	///@name Kratos Globals
 	///@{ 
 
@@ -364,6 +368,7 @@ namespace Kratos
 
 	///@} 
 
+        ///@} IncompressibleFluidApplication group
 
 }  // namespace Kratos.
 
