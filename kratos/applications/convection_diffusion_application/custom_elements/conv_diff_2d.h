@@ -89,8 +89,11 @@ namespace Kratos
   ///@{
   
   /// Short class definition.
-  /** Detail class definition.
+  
+   /** A stabilized element for solving the convection diffusion equations in 2D.
   */
+
+
   class ConvDiff2D
 	  : public Element
     {
