@@ -66,10 +66,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+        ///this function provides basic routines for working with simplicial meshes. 
+        ///It is faster than using Geometry as it is more specialized
 	class GeometryUtils
 	{
 	public:
 
+		/**this function is designed to compute the shape function derivatives, shape functions and volume in 3D
+		 * @param geom it is the array of nodes. It is expected to be a tetrahedra
+		 * @param a stack matrix of size 4*3 to store the shape function's derivatives
+		 * @param an array_1d to store the shape functions at the barycenter
+		 * @param the volume of the element
+		 */
 		static inline void CalculateGeometryData(
 			Element::GeometryType& geom,
 			boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, 
@@ -113,7 +121,9 @@ namespace Kratos
 			Volume = detJ*0.1666666666666666666667;
 		}
 
-
+		/**this function computes the element's volume (with sign)
+		 * @param geom it is the array of nodes. It expects a tetrahedra
+		 */
 		static inline double CalculateVolume3D(
 			Element::GeometryType& geom)
 		{
@@ -135,6 +145,12 @@ namespace Kratos
 
 		//********************************************************************************
 		//********************************************************************************
+		/**this function is designed to compute the shape function derivatives, shape functions and volume in 3D
+		 * @param geom it is the array of nodes. It is expected to be a triangle
+		 * @param a stack matrix of size 3*2 to store the shape function's derivatives
+		 * @param an array_1d to store the shape functions at the barycenter
+		 * @param the volume of the element
+		 */
 		static inline void CalculateGeometryData(
 			Element::GeometryType& geom,
 			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, 
@@ -170,6 +186,9 @@ namespace Kratos
 
 		//********************************************************************************
 		//********************************************************************************
+		/**this function computes the element's volume (with sign)
+		 * @param geom it is the array of nodes. It expects a triangle
+		 */
 		static inline double CalculateVolume2D(
 			Element::GeometryType& geom)
 		{
@@ -185,6 +204,7 @@ namespace Kratos
 
 		//********************************************************************************
 		//********************************************************************************
+		/** this function compute the maximum and minimum edge lenghts */
 		static inline void SideLenghts2D(
 			Element::GeometryType& geom,
 			double& hmin, double& hmax)
