@@ -143,8 +143,16 @@ namespace Kratos
 		
 		//***********************************************************************
 		//***********************************************************************
-		//this function calculates the "area normal" (vector oriented as the normal 
-		//with a dimension proportional to the area. This is done basing on the volume discretization.
+		///this function calculates the "area normal" (vector oriented as the normal 
+		///with a dimension proportional to the area. This is done basing on the volume discretization.
+		/**the concept is to consider the volume as filled by a fluid at constant pressure. The effect of the 
+		 * pressure cancels on the internal nodes, but results in a net force being applied 
+		 * on the boundary nodes. Such net force is proportional to the area of boundary
+		 * and oriented outwards, and we take it as definition of normal.
+		 * NOTE: this works only for simplex meshes, that is triangles and tetras.
+		 * @param ModelPart the model part with the discretization of the volume
+		 * @param dimension the working space dimension
+		 */
         void CalculateBodyNormals(
 			ModelPart& r_model_part,
 			int dimension)
