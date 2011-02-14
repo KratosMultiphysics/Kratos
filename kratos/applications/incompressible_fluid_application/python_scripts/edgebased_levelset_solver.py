@@ -114,6 +114,8 @@ class EdgeBasedLevelSetSolver:
         self.max_edge_size = self.distance_utils.FindMaximumEdgeSize(self.model_part)
         self.distance_size = self.max_edge_size * 3.0;
         print "###################### max distance = ",self.distance_size;
+
+        self.fluid_solver.SetShockCapturingCoefficient(0.0)
         
 #        self.reorder = True
 #        self.distance_tools = BodyDistanceCalculationUtils()
