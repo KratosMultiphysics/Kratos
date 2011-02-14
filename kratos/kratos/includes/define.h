@@ -374,6 +374,10 @@ namespace Kratos
 
 }  /* namespace Kratos.*/
 
+#define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType)
+
+#define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType)
+
   
 #endif /* KRATOS_DEFINE  defined */
 

@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
 // Application includes
@@ -307,8 +308,8 @@ namespace Kratos
 
             // Calculate this element's fluid properties
             double Density, KinViscosity;
-            this->GetPointContribution(Density, DENSITY, N);
-            this->GetPointContribution(KinViscosity, VISCOSITY, N);
+            this->EvaluateInPoint(Density, DENSITY, N);
+            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
             // Calculate Momentum RHS contribution
             this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
@@ -353,7 +354,7 @@ namespace Kratos
 
             // Calculate this element's fluid properties
             double Density;
-            this->GetPointContribution(Density, DENSITY, N);
+            this->EvaluateInPoint(Density, DENSITY, N);
 
             // Add 'classical' mass matrix (lumped)
             double Coeff = Density * Area / TNumNodes; ///@TODO:Optimize
@@ -364,7 +365,7 @@ namespace Kratos
             if (rCurrentProcessInfo[OSS_SWITCH] != 1)
             {
                 double KinViscosity;
-                this->GetPointContribution(KinViscosity, VISCOSITY, N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
                 // Get Advective velocity
                 array_1d<double, 3> AdvVel;
@@ -409,8 +410,8 @@ namespace Kratos
 
             // Calculate this element's fluid properties
             double Density, KinViscosity;
-            this->GetPointContribution(Density, DENSITY, N);
-            this->GetPointContribution(KinViscosity, VISCOSITY, N);
+            this->EvaluateInPoint(Density, DENSITY, N);
+            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
             // Get Advective velocity
             array_1d<double, 3> AdvVel;
@@ -489,8 +490,8 @@ namespace Kratos
 
                 // Calculate this element's fluid properties
                 double Density, Viscosity;
-                this->GetPointContribution(Density, DENSITY, N);
-                this->GetPointContribution(Viscosity, VISCOSITY, N);
+                this->EvaluateInPoint(Density, DENSITY, N);
+                this->EvaluateInPoint(Viscosity, VISCOSITY, N);
 
                 // Get Advective velocity
                 array_1d<double, 3> AdvVel;
@@ -547,8 +548,8 @@ namespace Kratos
 
                 // Calculate this element's fluid properties
                 double Density, Viscosity;
-                this->GetPointContribution(Density, DENSITY, N);
-                this->GetPointContribution(Viscosity, VISCOSITY, N);
+                this->EvaluateInPoint(Density, DENSITY, N);
+                this->EvaluateInPoint(Viscosity, VISCOSITY, N);
 
                 // Get Advective velocity
                 array_1d<double, 3> AdvVel;
@@ -656,7 +657,7 @@ namespace Kratos
                 this->GetAdvectiveVel(AdvVel,N);
 
                 double KinViscosity;
-                this->GetPointContribution(KinViscosity,VISCOSITY,N);
+                this->EvaluateInPoint(KinViscosity,VISCOSITY,N);
 
                 this->CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
 
@@ -764,7 +765,7 @@ namespace Kratos
         /**
          * Calculates both tau parameters based on a given advective velocity.
          * Takes time step and dynamic coefficient from given ProcessInfo instance.
-         * Process info variables DELTA_TIME and DYNAMIC_TAU will be used.
+         * ProcessInfo variables DELTA_TIME and DYNAMIC_TAU will be used.
          * @param TauOne First stabilization parameter (momentum equation)
          * @param TauTwo Second stabilization parameter (mass equation)
          * @param rAdvVel advection velocity
@@ -1170,17 +1171,18 @@ namespace Kratos
                                    const array_1d< double, TNumNodes>& rShapeFunc,
                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
         {
-            // Initialize result
-            this->SetToZero<TNumNodes > (rResult);
-
             // Evaluate the convective velocity at the integration point
             array_1d< double, 3> AGauss;
             this->GetAdvectiveVel(AGauss, rShapeFunc);
 
             // Evaluate (and weight) the a * Grad(Ni) operator in the integration point, for each node i
             for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) // Loop over nodes
-                for (unsigned int d = 0; d < TDim; ++d) // loop over components
+            {
+                // Initialize result
+                rResult[iNode] = AGauss[0] * rShapeDeriv(iNode, 0);
+                for (unsigned int d = 1; d < TDim; ++d) // loop over components
                     rResult[iNode] += AGauss[d] * rShapeDeriv(iNode, d);
+            }
         }
 
         /// Add the weighted value of a variable at a point inside the element to a double
@@ -1216,10 +1218,10 @@ namespace Kratos
          * @param rShapeFunc: The values of the form functions in the point
          * @param Step: The time Step (Defaults to 0 = Current)
          */
-        void GetPointContribution(double& rResult,
-                                  const Variable< double >& rVariable,
-                                  const array_1d< double, TNumNodes >& rShapeFunc,
-                                  const std::size_t Step = 0)
+        void EvaluateInPoint(double& rResult,
+                             const Variable< double >& rVariable,
+                             const array_1d< double, TNumNodes >& rShapeFunc,
+                             const std::size_t Step = 0)
         {
             // Compute the weighted value of the nodal variable in the (Gauss) Point
             rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable,Step);
@@ -1257,15 +1259,25 @@ namespace Kratos
          * @param rVariable: The nodal variable to be read
          * @param rShapeFunc: The values of the form functions in the point
          */
-        void GetPointContribution(array_1d< double, 3 > & rResult,
-                                  const Variable< array_1d< double, 3 > >& rVariable,
-                                  const array_1d< double, TNumNodes >& rShapeFunc)
+        void EvaluateInPoint(array_1d< double, 3 > & rResult,
+                             const Variable< array_1d< double, 3 > >& rVariable,
+                             const array_1d< double, TNumNodes >& rShapeFunc)
         {
             // Compute the weighted value of the nodal variable in the (Gauss) Point
             rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
             for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
                 rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
         }
+
+        /// Return an estimate for the element size h, used to calculate the stabilization parameters
+        /**
+         * Estimate the element size from its area or volume, required to calculate stabilization parameters.
+         * Note that its implementation is different for 2D or 3D elements.
+         * @see VMS2D, VMS3D for actual implementation
+         * @param Volume (in 3D) or Area (in 2D) of the element
+         * @return Element size h
+         */
+        virtual double ElementSize(const double);
 
         ///@}
         ///@name Protected  Access
@@ -1293,6 +1305,22 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
+        ///@}
+        ///@name Serialization
+        ///@{
+
+        friend class Serializer;
+
+        /// A private default constructor necessary for serialization
+        VMS() : Element()
+        {}
+
+        virtual void save(Serializer& rSerializer) const;
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+        }
 
         ///@}
         ///@name Private Operators
@@ -1303,23 +1331,6 @@ namespace Kratos
         ///@name Private Operations
         ///@{
 
-        /// Set an array_1d to zero
-        template< unsigned int TSize >
-        inline void SetToZero(array_1d< double, TSize >& rArray)
-        {
-            for (typename array_1d< double, TSize>::iterator itArray = rArray.begin(); itArray != rArray.end(); ++itArray)
-                *itArray = 0.0;
-        }
-
-        /// Return an estimate for the element size h, used to calculate the stabilization parameters
-        /**
-         * Estimate the element size from its area or volume, required to calculate stabilization parameters.
-         * Note that its implementation is different for 2D or 3D elements.
-         * @see VMS2D, VMS3D for actual implementation
-         * @param Volume (in 3D) or Area (in 2D) of the element
-         * @return Element size h
-         */
-        virtual double ElementSize(const double);
 
         ///@}
         ///@name Private  Access
@@ -1386,4 +1397,3 @@ namespace Kratos
 } // namespace Kratos.
 
 #endif // KRATOS_VMS_H_INCLUDED  defined
-
