@@ -88,7 +88,7 @@ namespace Kratos
 
         /// Wrapper for omp_get_max_threads().
         /**
-         This returns the maximum number of OpenMP threads that will be used in
+         @return Maximum number of OpenMP threads that will be used in
          parallel regions.
          */
         static inline int GetNumThreads()
@@ -102,8 +102,7 @@ namespace Kratos
 
         /// Wrapper for omp_get_thread_num().
         /**
-         This returns the number of the current thread.
-         @param The thread number for this thread, 0 if scalar run.
+         @return The thread number for this thread, 0 if scalar run.
          */
         static inline int ThisThread()
         {
@@ -116,9 +115,9 @@ namespace Kratos
 
         /// Timing routine.
         /**
-         This returns the current time by calling an appropiate
+         Determine the current time by calling an appropiate
          (scalar or parallel) timer class.
-         @return The current time
+         @return Current time
          */
         static double GetCurrentTime()
 	{
