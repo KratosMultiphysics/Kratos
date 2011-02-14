@@ -82,10 +82,10 @@ namespace Kratos
                     .def("Execute", &ParallelFillCommunicator::Execute )
                     ;
 		    
-            class_<MPIRefineSimplexMesh, boost::noncopyable >
-                    ("MPIRefineSimplexMesh",
-                     init<ModelPart& >() )
-                    .def("Local_Refine_Mesh", &MPIRefineSimplexMesh::Local_Refine_Mesh )
+            class_<TrilinosRefineMesh, boost::noncopyable >
+                    ("TrilinosRefineMesh",
+                     init<ModelPart& , Epetra_MpiComm& >() )
+                    .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
                     ;		    
 		    
 		    
