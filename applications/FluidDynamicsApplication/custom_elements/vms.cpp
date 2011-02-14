@@ -238,6 +238,20 @@ namespace Kratos
     }
 
     template <>
+    void VMS<2>::save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Name","VMS2D");
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+    }
+
+    template <>
+    void VMS<3>::save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Name","VMS3D");
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+    }
+
+    template <>
     double VMS<2>::ElementSize(const double Area)
     {
 //        const double Element_Size = 2.0 * sqrt(Area / 3.14); // This is the element's diameter, 3.14 approximates Pi
