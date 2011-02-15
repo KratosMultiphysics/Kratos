@@ -600,7 +600,7 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
 	  air_rho = base->FastGetSolutionStepValue(DENSITY_AIR );
 	  air_pr = base->FastGetSolutionStepValue(AIR_PRESSURE);
 
-	if(air_rho == 0.0)
+	if(air_rho == 0.0 || air_pr == 0.0)
 		base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY) = 340.0;
 	else
 	  base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY) = sqrt(1.4*air_pr/air_rho);
@@ -633,6 +633,8 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
 
 	  		base->FastGetSolutionStepValue(WATER_SOUND_VELOCITY) = sqrt(alpha*pow((rho_w/old_rho_w), (K2-1.0)));
 		}
+// KRATOS_WATCH(base->FastGetSolutionStepValue(WATER_SOUND_VELOCITY));
+// KRATOS_WATCH(base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY));
 
 	}
 	//************************************************************************************************
