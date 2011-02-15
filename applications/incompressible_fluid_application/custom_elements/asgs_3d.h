@@ -163,7 +163,7 @@ namespace Kratos
 		/// Turn back information as a string.
 		virtual std::string Info() const
 		{
-			return "ASGS2D #" ;
+			return "ASGS3D #" ;
 		}
 
       /// Print information about this object.
@@ -236,13 +236,13 @@ namespace Kratos
       ///@{ 
         virtual void CalculateMassContribution(MatrixType& K,const double time,const double volume); 
 	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double area);
-	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double thawone, const double thawtwo, const double time,const double volume);
+	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone, const double thawtwo, const double time,const double volume);
 	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
 
 	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double thawtwo,const double volume);
 	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double thawone,const double time,const double volume);
 	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double thawone,const double volume);
-        virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
+    virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
 
 	virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
 	
