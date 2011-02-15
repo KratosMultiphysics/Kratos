@@ -59,10 +59,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-//#include "custom_processes/save_structure_conditions_process.h" 
-//#include "custom_processes/merge_model_parts_process.h" 
-//#include "custom_processes/merge_in_one_model_parts_process.h"
-//#include "custom_processes/save_structure_model_part_process.h"  
+#include "custom_processes/save_structure_conditions_process.h" 
+#include "custom_processes/merge_model_parts_process.h" 
+#include "custom_processes/merge_in_one_model_parts_process.h"
+#include "custom_processes/save_structure_model_part_process.h"  
 
 #include "custom_processes/choose_element_process.h" 
 
@@ -77,7 +77,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/generate_slip_condition_process.h" 
 #include "custom_processes/subscale_error_estimate_process.h" 
 #include "custom_processes/save_element_by_flag_process.h" 
-
+#include "custom_processes/explicit_dt.h"
+ 
 #include "includes/node.h"
 
 namespace Kratos
@@ -89,7 +90,7 @@ namespace Python
   {
 	using namespace boost::python;
 
-	/* 
+	
   	class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
 		   .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
 		 ;
@@ -103,7 +104,7 @@ namespace Python
 		   .def("MergeParts", &MergeInOneModelPartsProcess::MergeParts)
 		   .def("ResetId", &MergeInOneModelPartsProcess::ResetId)
 		 ;
-	*/
+	
 	class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int,char*, char* >())
 		 ;
 
@@ -145,7 +146,8 @@ namespace Python
 		 ;
 	class_<SaveElementByFlagProcess, bases<Process> >("SaveElementByFlagProcess",init<ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&,Kratos::Variable<int>& , int >())
 		 ;
-
+	class_<ExplicitDtProcess, bases<Process>  >("ExplicitDtProcess",init<double,double,double,ModelPart&  >())
+                 ;
 	
   }
 	
