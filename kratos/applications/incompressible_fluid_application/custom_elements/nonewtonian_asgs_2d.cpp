@@ -52,8 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #define COMPRESSIBLE_MODEL_ML__PN1_PN__
 // #define COMPRESSIBLE_MODEL_MLPN1_MCPN
 
-// System includes 
+#define K0 //fixed tangent method
+// #define Kvisc0 //fixed tangent method only for viscous terms
 
+// System includes 
 
 // External includes 
 
@@ -265,8 +267,23 @@ namespace Kratos {
 
 	/*         LHS           */
 	/*Viscous term*/
-	CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+	CalculateViscousTerm(rDampMatrix,  DN_DX, Area, it_num);
 
+#ifdef K0 //Fixed tangent method 
+KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	mlhs0.resize(matsize,matsize);
+// 	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+// KRATOS_WATCH(it_num);
+// KRATOS_WATCH(rDampMatrix);
+
+	if(it_num == 1)	
+	  noalias(mlhs0) = rDampMatrix;
+	else
+	  rDampMatrix = mlhs0;
+// KRATOS_WATCH(rDampMatrix);
+// KRATOS_WATCH(mlhs0);
+#endif	
 	KRATOS_CATCH("")
     }
 
@@ -274,7 +291,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area) {
+    void NoNewtonianASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area, const int it_num) {
 	KRATOS_TRY
 	double mu;
 	int nodes_number = 3;
@@ -283,81 +300,97 @@ namespace Kratos {
 	calculatedensity(GetGeometry(), density, mu);
 	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 	boost::numeric::ublas::bounded_matrix<double, 3, 3 > C = ZeroMatrix(3, 3);
-	boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp = ZeroMatrix(6, 6);
+	boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp; 
 	
-	double app_mu;
-	double app_mu_derivative;
-	double gamma_dot;
-	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+// 	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+// 	if(it_num == 1){
+		temp = ZeroMatrix(6, 6);
+		double app_mu;
+		double app_mu_derivative;
+		double gamma_dot;
+		array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+			
+		//calculating operator B
+		CalculateB(B, DN_DX);
+		// KRATOS_WATCH(B)
 		
-	//calculating operator B
-	CalculateB(B, DN_DX);
-	// KRATOS_WATCH(B)
-	
-	//Bingham Fluid
-      CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
-	//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
-	// Remember to modify CalculateResidualand CalculateTau.
-// 	app_mu = mu;
-	
-	C(0, 0) = 2.0;// - 2.0/3.0;
-	C(0, 1) = 0.0;//- 2.0/3.0;
-	C(0, 2) = 0.0;
-	C(1, 0) = 0.0;//- 2.0/3.0;
-	C(1, 1) = 2.0;//- 2.0/3.0;
-	C(1, 2) = 0.0;
-	C(2, 0) = 0.0;
-	C(2, 1) = 0.0;
-	C(2, 2) = 1.0;
-	
-	C *= app_mu;
+		//Bingham Fluid
+	      CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+		//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
+		// Remember to modify CalculateResidualand CalculateTau.
+	// 	app_mu = mu;
+		
+		C(0, 0) = 2.0;// - 2.0/3.0;
+		C(0, 1) = 0.0;//- 2.0/3.0;
+		C(0, 2) = 0.0;
+		C(1, 0) = 0.0;//- 2.0/3.0;
+		C(1, 1) = 2.0;//- 2.0/3.0;
+		C(1, 2) = 0.0;
+		C(2, 0) = 0.0;
+		C(2, 1) = 0.0;
+		C(2, 2) = 1.0;
+		
+		C *= app_mu;
 
-// 	//PAY ATTENTION : 3rd component of B*u divided by two in order to recover eps12 or eps21 that is the same.!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// 	grad_sym_vel[2] *= 0.5;
-// 	double aux_coeff = 4.0 * app_mu_derivative / gamma_dot;
-// 	for(unsigned int i=0 ; i < nodes_number; i++){
-// 	  for(unsigned int j=0; j<nodes_number; j++){
-// 	    C(i,j) -= grad_sym_vel[i] * grad_sym_vel[j] * aux_coeff;
-// 	  }
-// 	}
-	  
+	// 	//PAY ATTENTION : 3rd component of B*u divided by two in order to recover eps12 or eps21 that is the same.!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// 		grad_sym_vel[2] *= 0.5;
+// 		double aux_coeff = 4.0 * app_mu_derivative / gamma_dot;
+// 		for(unsigned int i=0 ; i < nodes_number; i++){
+// 		  for(unsigned int j=0; j<nodes_number; j++){
+// 		    C(i,j) += grad_sym_vel[i] * grad_sym_vel[j] * aux_coeff;
+// 		  }
+// 		}
+		  
 
-	
-//  	if(gamma_dot > 1e-3){
-// 	double aux_coeff = 4.0 * app_mu_derivative / gamma_dot;
-// 	C(0, 0) +=  grad_sym_vel[0] * grad_sym_vel[0] * aux_coeff;
-// 	C(0, 1) +=  grad_sym_vel[0] * grad_sym_vel[1] * aux_coeff;
-// 	C(0, 2) +=  grad_sym_vel[0] * grad_sym_vel[2] * aux_coeff * 0.5;
-// 	C(1, 0) +=  grad_sym_vel[1] * grad_sym_vel[0] * aux_coeff;
-// 	C(1, 1) +=  grad_sym_vel[1] * grad_sym_vel[1] * aux_coeff;
-// 	C(1, 2) +=  grad_sym_vel[1] * grad_sym_vel[2] * aux_coeff * 0.5;
-// 	C(2, 0) +=  grad_sym_vel[2] * grad_sym_vel[0] * aux_coeff * 0.5;
-// 	C(2, 1) +=  grad_sym_vel[2] * grad_sym_vel[1] * aux_coeff * 0.5;
-// 	C(2, 2) +=  grad_sym_vel[2] * grad_sym_vel[2] * aux_coeff * 0.25;
-// 		C(0, 0) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
-// 		C(0, 1) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
-// 		C(0, 2) +=  2.0 *  grad_sym_vel[0] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
-// 		C(1, 0) +=  4.0 *  grad_sym_vel[1] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
-// 		C(1, 1) +=  4.0 *  grad_sym_vel[1] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
-// 		C(1, 2) +=  2.0 *  grad_sym_vel[1] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
-// 		C(2, 0) +=  2.0 *  grad_sym_vel[2] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
-// 		C(2, 1) +=  2.0*  grad_sym_vel[2] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
-// 		C(2, 2) +=       grad_sym_vel[2] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
-//  	}
+		
+	//  	if(gamma_dot > 1e-3){
+	// 	double aux_coeff = 4.0 * app_mu_derivative / gamma_dot;
+	// 	C(0, 0) +=  grad_sym_vel[0] * grad_sym_vel[0] * aux_coeff;
+	// 	C(0, 1) +=  grad_sym_vel[0] * grad_sym_vel[1] * aux_coeff;
+	// 	C(0, 2) +=  grad_sym_vel[0] * grad_sym_vel[2] * aux_coeff * 0.5;
+	// 	C(1, 0) +=  grad_sym_vel[1] * grad_sym_vel[0] * aux_coeff;
+	// 	C(1, 1) +=  grad_sym_vel[1] * grad_sym_vel[1] * aux_coeff;
+	// 	C(1, 2) +=  grad_sym_vel[1] * grad_sym_vel[2] * aux_coeff * 0.5;
+	// 	C(2, 0) +=  grad_sym_vel[2] * grad_sym_vel[0] * aux_coeff * 0.5;
+	// 	C(2, 1) +=  grad_sym_vel[2] * grad_sym_vel[1] * aux_coeff * 0.5;
+	// 	C(2, 2) +=  grad_sym_vel[2] * grad_sym_vel[2] * aux_coeff * 0.25;
+	// 		C(0, 0) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
+	// 		C(0, 1) +=  4.0 *  grad_sym_vel[0] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
+	// 		C(0, 2) +=  2.0 *  grad_sym_vel[0] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
+	// 		C(1, 0) +=  4.0 *  grad_sym_vel[1] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
+	// 		C(1, 1) +=  4.0 *  grad_sym_vel[1] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
+	// 		C(1, 2) +=  2.0 *  grad_sym_vel[1] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
+	// 		C(2, 0) +=  2.0 *  grad_sym_vel[2] * grad_sym_vel[0] *app_mu_derivative / gamma_dot;
+	// 		C(2, 1) +=  2.0*  grad_sym_vel[2] * grad_sym_vel[1] *app_mu_derivative / gamma_dot;
+	// 		C(2, 2) +=       grad_sym_vel[2] * grad_sym_vel[2] *app_mu_derivative / gamma_dot;
+	//  	}
 
-	// KRATOS_WATCH(C)
-	//Calculating the viscous contribution to the LHS int(Btrans C B)dA
-	//         temp = prod(trans(B),prod(C,B));
-	for (unsigned int i = 0; i < B.size2(); i++) {
-	    for (unsigned int j = 0; j < B.size2(); j++) {
-		for (unsigned int l = 0; l < C.size1(); l++) {
-		    for (unsigned int k = 0; k < C.size1(); k++) {
-			temp(i, j) += B(l, i) * C(l, k) * B(k, j);
+		// KRATOS_WATCH(C)
+		//Calculating the viscous contribution to the LHS int(Btrans C B)dA
+		//         temp = prod(trans(B),prod(C,B));
+		for (unsigned int i = 0; i < B.size2(); i++) {
+		    for (unsigned int j = 0; j < B.size2(); j++) {
+			for (unsigned int l = 0; l < C.size1(); l++) {
+			    for (unsigned int k = 0; k < C.size1(); k++) {
+				temp(i, j) += B(l, i) * C(l, k) * B(k, j);
+			    }
+			}
 		    }
 		}
-	    }
-	}
+// 	}
+
+#ifdef Kvisc0 //fixed tangent method only for viscous contribution
+// 	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+// KRATOS_WATCH(it_num);
+// KRATOS_WATCH(temp);
+	if(it_num == 1)	
+	  mKvisc0 = temp;
+	else
+	  temp = mKvisc0;
+// KRATOS_WATCH(temp);
+#endif
 	// KRATOS_WATCH(temp)
 	temp *= area;
 	for (int ii = 0; ii < nodes_number; ii++) {
@@ -1330,8 +1363,9 @@ namespace Kratos {
 // 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
 // 	else  
 	gamma_dot_inv= 1.0 / gamma_dot;
-	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(mcoef * gamma_dot)) - mcoef * gamma_dot);
-// 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
+//         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
+ 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(mcoef * gamma_dot))*(1 - mcoef * gamma_dot));
+//	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
 
 	/*
 
