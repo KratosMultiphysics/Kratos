@@ -78,6 +78,12 @@ python-extension KratosIncompressibleFluidApplication
 
 	nonewtonian_asgs_3d.cpp
 
+	explicit_asgs_compressible_2d.cpp
+	explicit_asgs_comp_pr_dc_2d.cpp
+
+	explicit_asgs_compressible_3d.cpp
+	explicit_asgs_comp_pr_dc_3d.cpp
+
 	#kratos library
     #/kratos-prj/kratos//libkratos/<link>static
     /KratosProject//libkratos_static
