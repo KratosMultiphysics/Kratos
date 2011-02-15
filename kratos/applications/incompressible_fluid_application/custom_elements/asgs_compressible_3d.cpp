@@ -65,6 +65,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+
+
 	//************************************************************************************
 	//************************************************************************************
 	ASGSCompressible3D::ASGSCompressible3D(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -133,7 +135,7 @@ namespace Kratos
 	      double tautwo;
 	      CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
- 	      CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Volume);
+              CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
 
 
 	      //calculate pressure term
@@ -143,7 +145,10 @@ namespace Kratos
 	      
 	      //stabilization terms
 	      //KRATOS_WATCH("ñññññññññ calculate stabilizing terms ñññññññññ");
-	      CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
+	 double VC2;
+	 CalculateSoundVelocity(GetGeometry(), VC2);
+     double tau_div = tautwo*VC2;
+	      CalculateDivStblTerm(rDampMatrix, DN_DX, tau_div, Volume);
 			    
 	      CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Volume);
 		
@@ -192,8 +197,6 @@ namespace Kratos
 	calculatedensity(GetGeometry(), density, mu);
 
 	//update density and calculate sound velocity
-	double VC2;
-	CalculateSoundVelocity(GetGeometry(), VC2);
 
 	int nodes_number = 4;
 	int dof = 3;
@@ -201,10 +204,10 @@ namespace Kratos
 	    {
 		int row = nd*(dof + 1);
 		for( int jj=0; jj< dof; jj++)
-			K(row + jj, row + jj) += density/1.0*lump_mass_fac;
+			K(row + jj, row + jj) += density*lump_mass_fac;
 
 		//add pressure mass
-			K(row + dof , row + dof ) += lump_mass_fac/VC2;
+			K(row + dof , row + dof ) += lump_mass_fac;
 	    }
 	
 	
@@ -255,6 +258,39 @@ namespace Kratos
 	
 		KRATOS_CATCH("")
 	}
+    //************************************************************************************
+    //************************************************************************************
+    void ASGSCompressible3D::CalculatePressureTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double time, const double volume) {
+        KRATOS_TRY
+                int nodes_number = 4;
+        int dof = 3;
+
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1) + dof;
+
+                K(row, column) += -1 * volume * N(jj) * DN_DX(ii, 0);
+                K(column, row) += VC2 * volume * density * N(jj) * DN_DX(ii, 0);
+
+                K(row + 1, column) += -1 * volume * N(jj) * DN_DX(ii, 1);
+                K(column, row + 1) += VC2 * volume * density * N(jj) * DN_DX(ii, 1);
+
+                K(row + 2, column) += -1 * volume * N(jj) * DN_DX(ii, 2);
+                K(column, row + 2) += VC2 * volume * density * N(jj) * DN_DX(ii, 2);
+            }
+        }
+
+
+        KRATOS_CATCH("")
+    }
 
 	//*************************************************************************************
 	//*************************************************************************************
@@ -343,9 +379,9 @@ namespace Kratos
 	void ASGSCompressible3D::CalculateCompressibleStblTerms(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,array_1d<double,4> N,const double tautwo,const double volume)
 	{
 
-	  double VC2;
-	  CalculateSoundVelocity(GetGeometry(), VC2);
-	  double stbl_fac = tautwo/VC2 * volume;
+	 // double VC2;
+	  //CalculateSoundVelocity(GetGeometry(), VC2);
+	  double stbl_fac = tautwo * volume;
 	int nodes_number = 4;
 	int dof = 3;
 	for ( int ii = 0; ii < nodes_number; ii++)
@@ -442,8 +478,7 @@ namespace Kratos
 	const double visc2 = geom[2].FastGetSolutionStepValue(VISCOSITY_AIR);
 	const double visc3 = geom[3].FastGetSolutionStepValue(VISCOSITY_AIR);
 	 viscosity = 0.25*(visc0 + visc1 + visc2 + visc3);
-
-     
+    
 
 /*
 	double first = geom[0].FastGetSolutionStepValue(IS_WATER);
@@ -601,7 +636,8 @@ namespace Kratos
 
         tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
 
-
+        //tauone = time;
+	//tautwo = time;
 
         KRATOS_CATCH("")
 
