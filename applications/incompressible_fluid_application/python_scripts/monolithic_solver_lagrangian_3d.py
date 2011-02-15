@@ -13,17 +13,26 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(IS_FLUID);
+    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE_DT);
+    model_part.AddNodalSolutionStepVariable(IS_FLUID);   
+    model_part.AddNodalSolutionStepVariable(IS_WATER);
+    model_part.AddNodalSolutionStepVariable(IS_VISITED);    
     model_part.AddNodalSolutionStepVariable(IS_POROUS);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
+    model_part.AddNodalSolutionStepVariable(ERASE_FLAG);    
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
+    model_part.AddNodalSolutionStepVariable(VISCOSITY_AIR);
+    model_part.AddNodalSolutionStepVariable(VISCOSITY_WATER);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(DENSITY_AIR);
+    model_part.AddNodalSolutionStepVariable(DENSITY_WATER);
     model_part.AddNodalSolutionStepVariable(AIR_SOUND_VELOCITY);
+    model_part.AddNodalSolutionStepVariable(WATER_SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
@@ -35,6 +44,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION); 
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);  
     model_part.AddNodalSolutionStepVariable(IS_WATER);   
@@ -66,7 +76,7 @@ class MonolithicSolver:
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
 ##        self.linear_solver =SuperLUSolver()
 
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+        #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
 
         pPrecond = DiagonalPreconditioner()
@@ -79,6 +89,8 @@ class MonolithicSolver:
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
         self.max_iter = 10
+        self.dynamic_tau = 0.0
+        self.oss_swith  = 0.0
                             
         #default settings
         self.echo_level = 1
@@ -95,8 +107,8 @@ class MonolithicSolver:
                                        
         self.node_erase_process = NodeEraseProcess(model_part);
         
-        #self.Mesher = TetGenPfemModeler()
-        self.Mesher = TetGenPfemRefineFace()
+        self.Mesher = TetGenPfemModeler()
+        #self.Mesher = TetGenPfemRefineFace()
 
         self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
 
@@ -130,6 +142,9 @@ class MonolithicSolver:
         
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
+
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_swith );
         
         #time increment for output 
         self.output_time_increment = output_time_increment
