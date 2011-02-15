@@ -105,9 +105,11 @@ namespace Kratos
 			for(ModelPart::ElementsContainerType::iterator Belem = mr_elements.begin(); Belem != mr_elements.end(); ++Belem)
 			{
 			      if(Belem->GetValue(m_flag) != m_val)
+				      {
+					Belem->GetValue(IS_WATER_ELEMENT) = -10.0;
 					mr_fluid_elements.push_back( *(Belem.base()) )  ;
 
-
+				      }
 				
 			}
 // 			KRATOS_WATCH("ALL ELEMENTS");
