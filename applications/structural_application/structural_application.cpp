@@ -328,6 +328,9 @@ namespace Kratos
             mUnsaturatedSoilsElement3PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
             mEbst3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
             mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+	mPfemContactElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+	mPfemContactElement3DVel(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+
 
             mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
             mFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -365,9 +368,11 @@ namespace Kratos
             mSlaveContactFace3D6Newmark( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
             mSlaveContactFace3D8Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
             mSlaveContactFace3D9Newmark( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
+            mFaceVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
 //  mUPCTestElement3D20N(0,Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >(Element::GeometryType::PointsArrayType(20, Node<3>()))))
             //mPointForce3D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
             //mPointForce2D(0, Element::GeometryType::Pointer(new Geometry <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+
 
             mPointForce3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
             mPointForce2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
@@ -570,6 +575,9 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D8N", mMixedLagrangian3D8N )
         KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D20N", mMixedLagrangian3D20N )
         KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D27N", mMixedLagrangian3D27N )
+        KRATOS_REGISTER_ELEMENT("PfemContactElement3D", mPfemContactElement3D)
+        KRATOS_REGISTER_ELEMENT("PfemContactElement3DVel", mPfemContactElement3DVel)
+
 
         KRATOS_REGISTER_ELEMENT( "KinematicLinear3D4N", mKinematicLinear3D4N )
         KRATOS_REGISTER_ELEMENT( "KinematicLinear3D10N", mKinematicLinear3D10N )
@@ -648,6 +656,9 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "PointMoment3D", mPointMoment3D )
         KRATOS_REGISTER_CONDITION( "NodeTyingLagrange", mNodeTyingLagrange )
         KRATOS_REGISTER_CONDITION( "NodeTyingLagrangeZ", mNodeTyingLagrangeZ )
+        KRATOS_REGISTER_CONDITION( "FaceVel3D3N", mFaceVel3D3N )
+
+
 //         KRATOS_REGISTER_ELEMENT("UPCTestElement3D20N", mUPCTestElement3D20N)
         KRATOS_REGISTER_CONDITION( "PointForce2D", mPointForce2D )
 
