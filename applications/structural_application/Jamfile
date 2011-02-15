@@ -123,8 +123,11 @@ alias sources_KratosStructuralApplication
         mohr_coulomb_plane_strain.cpp
         plane_stress_J2.cpp
         master_contact_face_2d.cpp 
-	slave_contact_point_2d.cpp 
+	   slave_contact_point_2d.cpp 
         point_segment_contact_link.cpp
+	    pfem_contact_element3D.cpp
+        pfem_contact_element3D_vel.cpp
+	    face_vel_3D.cpp 
 
 
 	#####################kratos library as defined in the jamroot
