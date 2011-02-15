@@ -87,6 +87,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/Hypoelastic_element.h"
 #include "custom_elements/ebst.h"
 #include "custom_elements/ebst_vel.h"
+#include "custom_elements/pfem_contact_element3D.h"
+#include "custom_elements/pfem_contact_element3D_vel.h"
 
 
 #include "custom_conditions/pointforce3D.h"
@@ -108,6 +110,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/pointmoment3D.h"
 #include "custom_conditions/master_contact_face_2d.h"
 #include "custom_conditions/slave_contact_point_2d.h"
+#include "custom_conditions/face_vel_3D.h"
 
 
 #include "includes/variables.h"
@@ -466,9 +469,12 @@ namespace Kratos
                     mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
             const Ebst mEbst3D3N;
             const EbstVel mEbstVel3D3N;
+            const PfemContactElement3D mPfemContactElement3D;
+            const PfemContactElement3DVel mPfemContactElement3DVel;
             
             const Face2D  mFace2D;
             const Face3D  mFace3D3N;
+            const FaceVel3D  mFaceVel3D3N;
             const Face3D  mFace3D6N;
             const Face3D  mFace3D4N;
             const Face3D  mFace3D8N;
