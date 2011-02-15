@@ -184,6 +184,8 @@ namespace Kratos
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
 	virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
+       	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
+
       ///@} 
       ///@name Protected Operators
       ///@{ 
