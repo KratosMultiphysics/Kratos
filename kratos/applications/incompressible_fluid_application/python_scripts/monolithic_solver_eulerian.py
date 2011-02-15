@@ -81,7 +81,7 @@ class MonolithicSolver:
         #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
         self.dynamic_tau = 0.0
-        self.oss_swith  = 0.0
+        self.oss_swith  = 0
 
         self.max_iter = 30
                             
