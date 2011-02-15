@@ -204,7 +204,7 @@ namespace Kratos
 	const double visc1 = geom[1].FastGetSolutionStepValue(VISCOSITY_WATER);
 	const double visc2 = geom[2].FastGetSolutionStepValue(VISCOSITY_WATER);
 	 viscosity = 0.3333333333333333333333*(visc0 + visc1 + visc2 );
-
+//density = 1000.0;
 /*
 	double first = geom[0].FastGetSolutionStepValue(IS_WATER);
 	double second = geom[1].FastGetSolutionStepValue(IS_WATER);
@@ -292,7 +292,7 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.333333333333333333333333;
 
-
+//vc2 = 10.0;
 
 	}
 	//*************************************************************************************
@@ -318,8 +318,81 @@ namespace Kratos
 
 	    KRATOS_CATCH("")
 	}
+
+
 	//************************************************************************************
 	//************************************************************************************
+        void ASGSCOMPPRDC2D::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+       {
+
+	   Output = 100.0;
+	   double Area = 0.0;
+	  
+	  boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
+	  array_1d<double, 3 > N = ZeroVector(3); //dimension = number of nodes
+	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+	double calc_t = 0.0;
+        for (unsigned int ii = 0; ii < 3; ii++)
+        {
+            double inv_max_h = DN_DX(ii,0)*DN_DX(ii,0) + DN_DX(ii,1)*DN_DX(ii,1);
+            double VC = GetGeometry()[ii].FastGetSolutionStepValue(WATER_SOUND_VELOCITY ) ;
+
+	    inv_max_h = sqrt(inv_max_h);
+	    calc_t = 1.0/(inv_max_h * VC );
+   
+	    if( calc_t < Output)
+		  Output = calc_t;
+              
+        }
+
+
+        }
+	//*************************************************************************************
+	//*************************************************************************************
+	void ASGSCOMPPRDC2D::CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double time,const double tautwo,const double area)
+	  {
+	    KRATOS_TRY
+	//tau*div(V).P_dot
+	  double stbl_fac = tautwo * area;
+          int nodes_number = 3;
+          int dof = 2;
+
+	  //N1=N2=N3=0.33333333333333333333333333333333333
+         double mean_pressure_rate = GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE_DT);
+	 for( int ii=1; ii < nodes_number; ++ii)
+            mean_pressure_rate += GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE_DT);
+
+         mean_pressure_rate *= 0.33333333333333333333333333333333333333333333333;
+	 mean_pressure_rate *= stbl_fac;
+
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1);
+            F[index] -=  DN_DX(ii,0) * mean_pressure_rate;
+            F[index+1] -=  DN_DX(ii,1) * mean_pressure_rate;
+        }
+// 	  double VC2;
+// 	  CalculateSoundVelocity(GetGeometry(), VC2);
+// 	  double stbl_fac = tautwo/VC2 * volume;
+// 	int nodes_number = 4;
+// 	int dof = 3;
+// 	for ( int ii = 0; ii < nodes_number; ii++)
+// 	    {
+// 		//LHS contribution
+// 		int row = ii*(dof+1);
+// 		for( int jj=0; jj < nodes_number; jj++)
+// 		   {
+// 			int column = jj*(dof+1) + dof;
+// 
+// 			K(row,column) +=  stbl_fac* N(jj) * DN_DX(ii,0);
+// 			K(row + 1,column) +=  stbl_fac* N(jj) * DN_DX(ii,1);
+// 			K(row + 2,column) +=  stbl_fac* N(jj) * DN_DX(ii,2);
+// 
+// 		   }
+// 	    }
+
+        KRATOS_CATCH("")
+	  }
 
 } // Namespace Kratos
 
