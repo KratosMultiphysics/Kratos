@@ -78,9 +78,12 @@ class MonolithicSolver:
         self.abs_pres_tol = 1e-7
 
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+        #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
-        self.max_iter = 100
+        self.dynamic_tau = 0.0
+        self.oss_swith  = 0.0
+
+        self.max_iter = 30
                             
         #default settings
         self.echo_level = 0
@@ -100,6 +103,10 @@ class MonolithicSolver:
         
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
+
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_swith );
+
 ##        print "Initialization monolithic solver finished"
 	                     
     #######################################################################   
