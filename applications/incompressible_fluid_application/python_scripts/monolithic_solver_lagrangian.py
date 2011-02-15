@@ -108,7 +108,7 @@ class MonolithicSolver:
 
 
         
-        self.alpha_shape = 1.4
+        self.alpha_shape = 1.2
 	self.h_factor = 0.4
 	
         #assign IS_FLUID to all nodes
