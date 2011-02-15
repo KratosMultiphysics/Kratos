@@ -79,8 +79,9 @@ class MonolithicSolver:
         self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
+        self.dynamic_tau = 0.0
+        self.oss_swith  = 0.0
         self.max_iter = 10
                           
         #default settings
@@ -136,6 +137,9 @@ class MonolithicSolver:
         
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
+
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_swith );	
         
         #time increment for output 
         self.output_time_increment = output_time_increment
@@ -219,9 +223,9 @@ class MonolithicSolver:
              #calculating fluid neighbours before applying boundary conditions
             (self.neigh_finder).Execute();
 
-            (self.PfemUtils).ApplyBoundaryConditions(self.model_part,2);
+            #(self.PfemUtils).ApplyBoundaryConditions(self.model_part,2);
             (self.PfemUtils).IdentifyFluidNodes(self.model_part);
-            (self.PfemUtils).ApplyMinimalPressureConditions(self.model_part);
+            #(self.PfemUtils).ApplyMinimalPressureConditions(self.model_part);
 
         
 ##            for node in self.model_part.Nodes:
@@ -262,7 +266,59 @@ class MonolithicSolver:
             gid_io.WriteNodalResults(IS_FLUID, (self.model_part).Nodes, time, 0);
 
             gid_io.Flush()
-            gid_io.FinalizeResults()        
+            gid_io.FinalizeResults()  
+    ######################################################################
+    def ReadRestartFile(self,FileName,nodes):
+        NODES = nodes
+        aaa = open(FileName)
+
+        for line in aaa:
+            print line
+            exec(line)      
+ 
+    ######################################################################
+    def WriteRestartFile(self,FileName):
+        backupfile = open(FileName+".py",'w')
+        
+        import restart_utilities
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(PRESSURE,"PRESSURE",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(DENSITY,"DENSITY",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VISCOSITY,"VISCOSITY",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(NODAL_H,"NODAL_H",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(IS_STRUCTURE,"IS_STRUCTURE",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(IS_BOUNDARY,"IS_BOUNDARY",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(IS_WATER,"IS_WATER",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(IS_INTERFACE,"IS_INTERFACE",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(DISTANCE,"DISTANCE",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(DISPLACEMENT_X,"DISPLACEMENT_X",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(DISPLACEMENT_Y,"DISPLACEMENT_Y",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(DISPLACEMENT_Z,"DISPLACEMENT_Z",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(DISTANCE,"DISTANCE",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(ACCELERATION_X,"ACCELERATION_X",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(ACCELERATION_Y,"ACCELERATION_Y",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(ACCELERATION_Z,"ACCELERATION_Z",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(MESH_VELOCITY_X,"MESH_VELOCITY_X",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(MESH_VELOCITY_Y,"MESH_VELOCITY_Y",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(MESH_VELOCITY_Z,"MESH_VELOCITY_Z",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(BODY_FORCE_X,"BODY_FORCE_X",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(BODY_FORCE_Y,"BODY_FORCE_Y",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestart_ScalarVariable_PyFormat(BODY_FORCE_Z,"BODY_FORCE_Z",self.model_part.Nodes,backupfile)
+
+
+
+        restart_utilities.PrintRestartFixity_PyFormat(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestartFixity_PyFormat(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestartFixity_PyFormat(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,backupfile)
+        restart_utilities.PrintRestartFixity_PyFormat(PRESSURE,"PRESSURE",self.model_part.Nodes,backupfile)
+
+        #restart_utilities.PrintRestart_Position_PyFormat(self.model_part.Nodes,backupfile)
+        
+        backupfile.close()
+    ######################################################################
+
         
 
 
