@@ -164,6 +164,9 @@ namespace Kratos
 			.def("UpdatePressuresNew", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdatePressuresNew)	
 			.def("CalculateNodalPressureForce", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::CalculateNodalPressureForce )	
 			.def("ConvergenceCheck", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConvergenceCheck)	
+			.def("UpdateAfterProjection", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdateAfterProjection)
+ 			.def("ComputePressureAtFreeSurface", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ComputePressureAtFreeSurface)  
+		    	.def("SavePressureIteration", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SavePressureIteration)
 			;
 			//********************************************************************
 			//********************************************************************
