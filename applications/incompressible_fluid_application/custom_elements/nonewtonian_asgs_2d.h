@@ -245,7 +245,7 @@ namespace Kratos
       ///Calculate the mass contribution to the K global matrix	
       virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 
       ///Calculate the linearized viscous contribution ONLY to the LHS @todo Make linearization works quadratically
-      virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,  const double area);
+      virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,  const double area, const int it_num);
       ///Calculate the advective contribution to the lhs
       virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double, 3 >& N, const double thawone, const double thawtwo, const double time,const double area);
 	///Calculate the pressure contribution to the lhs and divergence term as well
@@ -307,35 +307,20 @@ namespace Kratos
       
 	    
       ///@}
-      
+    private:
+     
       ///@name Static Member Variables 
       ///@{ 
 	
       ///@} 
       ///@name Member Variables 
       ///@{ 
-	
+	  MatrixType mlhs0;
+	  MatrixType mKvisc0;	
       ///@} 
       ///@name Private Operators
       ///@{ 
-// 	virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 
-// 	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,  const double area);
-// 	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double, 3 >& N, const double thawone, const double thawtwo, const double time,const double area);
-// 	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
-// 
-// 	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
-// 	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
-// 	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);
-// 	virtual void AddBodyForceAndMomentum(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
-// 
-// 	virtual void CalculateTau(const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const array_1d<double,3>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
-// 	
-// 	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
-// 	virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-// //         virtual void CalculateInternalForces(VectorType& rRightHandSideVector, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double area); 
-// 	virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX);
-// 	virtual void CalculateGradSymVel(array_1d<double,3> & grad_sym_vel, double & gamma_dot,const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B);
-  private:
+
       ///@} 
       ///@name Private Operations
       ///@{ 
