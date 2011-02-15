@@ -83,7 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_comp_strategy.h"
 #include "custom_strategies/strategies/newton_raphson_strategy.h"
-
+//#include "custom_strategies/convergencecriterias/UP_criteria_particle.h"
 //builder and solvers
 #include "custom_strategies/builder_and_solvers/pressure_splitting_builder_and_solver.h"
 
@@ -94,6 +94,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/strategies/solver_configuration.h"
 #include "custom_strategies/strategies/fractionalstep_configuration.h"
 #include "custom_strategies/strategies/fractional_step_strategy.h"
+//#include "custom_strategies/strategies/residualbased_newton_raphson_strategy_particle.h"
+//#include "custom_strategies/strategies/residualbased_linear_scheme_particle.h"
+#include "custom_strategies/strategies/explicit_residualbased_predictorcorrector_velocity_bossak_scheme_compressible.h"
+#include "custom_strategies/strategies/explicit_residualbased_newton_raphson_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "custom_strategies/builder_and_solvers/explicit_residualbased_builder.h"
+#include "custom_strategies/strategies/explicit_residualbased_predictorcorrector_velocity_bossak_scheme.h"
+//#include "custom_strategies/strategies/residualbased_linear_scheme_particle_move_back.h"
 
 // #include "custom_strategies/strategies/fractionalstep_configuration_slip.h"
 // #include "custom_strategies/strategies/fractional_step_strategy_slip.h"
@@ -119,11 +127,21 @@ namespace Kratos
 			typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
 
 			typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType;
+			typedef ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible< SparseSpaceType, LocalSpaceType >                              ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType;
+			typedef ExplicitResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType >                              ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeType;
 
 			typedef ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressible< SparseSpaceType, LocalSpaceType > 					  ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType;
 
                         typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
                         typedef PressureSplittingBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > PressureSplittingBuilderAndSolverType;
+
+			typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
+			typedef ExplicitResidualBasedBuilder< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitResidualBasedBuilderType;
+         
+
+                         typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >      ResidualBasedNewtonRaphsonStrategyType;
+                        typedef ExplicitResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitResidualBasedNewtonRaphsonStrategyType;
+
 
 			//********************************************************************
 			//********************************************************************
@@ -231,6 +249,11 @@ namespace Kratos
 			         boost::noncopyable >
 			        ("VelPrCriteria", init< double, double, double, double>() );
 
+			/*class_< UPCriteriaParticle<SparseSpaceType, LocalSpaceType >,
+			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+			         boost::noncopyable >
+			        ("UPCriteriaParticle", init< double, double, double, double>() );*/
+
         		   class_< ResidualBasedLagrangianMonolithicScheme<SparseSpaceType,LocalSpaceType>,
         			   bases< ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType,LocalSpaceType> >,  boost::noncopyable >
              			      (
@@ -250,6 +273,11 @@ namespace Kratos
 					"ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible", init< double, double >()
 					);
 
+			class_< ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType,
+				bases< ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible<SparseSpaceType,LocalSpaceType> >,  boost::noncopyable >
+					(
+					"ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible", init< double, double >()
+					);
 
 			class_< ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType,
 				bases< BaseSchemeType >,  boost::noncopyable >
@@ -369,7 +397,6 @@ namespace Kratos
 				  .def("SetSlipProcess",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetSlipProcess)
 				  .def("ApplyFractionalVelocityFixity",&FractionalStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ApplyFractionalVelocityFixity)				;
 
-
 //                         //********************************************************************************************
 // 			class_< FractionalStepStrategySlip< SparseSpaceType, LocalSpaceType, LinearSolverType >,
 // 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
@@ -400,6 +427,39 @@ namespace Kratos
 // 				  .def("SetSlipProcess",&FractionalStepStrategySlip< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetSlipProcess)
 // 				  .def("ApplyFractionalVelocityFixity",&FractionalStepStrategySlip< SparseSpaceType, LocalSpaceType, LinearSolverType >::ApplyFractionalVelocityFixity)				;
 
+                        //********************************************************************************************
+   
+           class_< ExplicitResidualBasedBuilderType, bases<ResidualBasedEliminationBuilderAndSolverType>, boost::noncopyable> ("ExplicitResidualBasedBuilder", init< LinearSolverType::Pointer>() );
+                        //********************************************************************************************
+			//class_< ResidualBasedNewtonRaphsonStrategyParticle< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+			//	("ResidualBasedNewtonRaphsonStrategyParticle", 
+			//	init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
+			//	>() );
+                        //********************************************************************************************
+			class_< ExplicitResidualBasedNewtonRaphsonStrategyType,
+				    bases< ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > >,  boost::noncopyable >
+				("ExplicitResidualBasedNewtonRaphsonStrategy", 
+				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, int, bool, bool, bool
+				>() );
+				
+                        //*******************************************************************************************
+			//class_< ResidualBasedLinearSchemeParticle< SparseSpaceType, LocalSpaceType>,	
+			//		bases< BaseSchemeType >,  boost::noncopyable >
+			//	(
+			//		"ResidualBasedLinearSchemeParticle", init< >() 
+			//	);
+                         //*******************************************************************************************
+			class_< ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeType,
+				bases< ResidualBasedPredictorCorrectorVelocityBossakScheme<SparseSpaceType,LocalSpaceType> >,  boost::noncopyable >
+					(
+					"ExplicitResidualBasedPredictorCorrectorVelocityBossakScheme", init< double, double >()
+					);
+			  //*******************************************************************************************
+			//class_< ResidualBasedLinearSchemeParticleMoveBack< SparseSpaceType, LocalSpaceType>,	
+			//		bases< BaseSchemeType >,  boost::noncopyable >
+			//	(
+			//		"ResidualBasedLinearSchemeParticleMoveBack", init< >() 
+			//	);
 
 
 		}
