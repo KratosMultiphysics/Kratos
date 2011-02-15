@@ -170,7 +170,7 @@ namespace Kratos
 		 * @return Output: returns the min value   
 	         * @param rCurrentProcessInfo: the current process info instance
 		 */		       
-                 void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+                // void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
 		 /// Returns vx, vy, p for each node
                  void GetFirstDerivativesVector(Vector& values, int Step = 0);
