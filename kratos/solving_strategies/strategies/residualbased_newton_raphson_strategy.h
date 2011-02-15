@@ -810,7 +810,7 @@ namespace Kratos
 
 		//**********************************************************************
 		//**********************************************************************
-		void InitializeSolutionStep()
+		 void InitializeSolutionStep()
 		{
 			KRATOS_TRY
 
@@ -871,7 +871,7 @@ namespace Kratos
 
 		/** Copy constructor.
 		*/
-		ResidualBasedNewtonRaphsonStrategy(const ResidualBasedNewtonRaphsonStrategy& Other);
+		ResidualBasedNewtonRaphsonStrategy(const ResidualBasedNewtonRaphsonStrategy& Other){};
 
 
 		/*@} */   
