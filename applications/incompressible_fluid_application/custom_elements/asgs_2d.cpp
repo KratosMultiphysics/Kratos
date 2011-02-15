@@ -136,8 +136,8 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-    //***********************************************************************************++
-    //**************************************************************************************++
+    //***********************************************************************************
+    //**************************************************************************************
 
     void ASGS2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
@@ -240,7 +240,7 @@ namespace Kratos {
         double tautwo;
         CalculateTau(N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
-        CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Area);
+        CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
 
         //calculate pressure term
         CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area);
@@ -293,15 +293,11 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void ASGS2D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double tauone, const double tautwo, const double time, const double area) {
+    void ASGS2D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double tautwo, const double time, const double area) {
         KRATOS_TRY
 
-        array_1d<double, 3 > N; 
 	array_1d<double, 2 > ms_adv_vel;
 	
-	N[0] = 0.33333333333333333333333333333333;
-	N[1] = 0.33333333333333333333333333333333;
-	N[2] = 0.33333333333333333333333333333333;
 
                 //calculate mean advective velocity and taus
                 const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
@@ -409,7 +405,6 @@ namespace Kratos {
         double density;
         double mu;
         calculatedensity(GetGeometry(), density, mu);
-
 
         boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_div = ZeroMatrix(matsize, matsize);
         temp_div = tautwo * prod(trans(div_opr), div_opr);
@@ -824,10 +819,7 @@ namespace Kratos {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
-	array_1d<double,3> N;
-	N[0] = 0.33333333333333333333333333333333;
-	N[1] = 0.33333333333333333333333333333333;
-	N[2] = 0.33333333333333333333333333333333;
+
 
         double density;
         double mu;
@@ -896,6 +888,7 @@ namespace Kratos {
             F[index + 2] += (area * N[ii] * mean_ar);
             F[index] += tautwo * area * mean_ar * div_opr(0, loc_index);
             F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
+// KRATOS_WATCH(density);
         }
 
 
@@ -1167,7 +1160,7 @@ namespace Kratos {
         CalculateTau(N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
         ComputeProjections(adv_proj, div_proj, DN_DX, tauone, tautwo, N, Area, delta_t);
-
+        
 
     }
 
