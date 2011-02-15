@@ -99,7 +99,7 @@ namespace Kratos
 		void  SaveStructure(ModelPart& fluid_model_part, ModelPart& structure_model_part,  int domain_size)
 		{
 			KRATOS_TRY
-				
+			structure_model_part.Elements().clear();	
 			//number of structure nodes
 // 			KRATOS_WATCH("SAVING STRUCTURE**********")
 		    for(ModelPart::ElementsContainerType::iterator im = fluid_model_part.ElementsBegin() ; 
