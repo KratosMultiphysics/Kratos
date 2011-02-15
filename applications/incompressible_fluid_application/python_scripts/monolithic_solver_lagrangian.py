@@ -81,7 +81,7 @@ class MonolithicSolver:
 
 
         self.dynamic_tau = 0.0
-        self.oss_swith  = 0.0
+        self.oss_swith  = 0
         self.max_iter = 10
                           
         #default settings
