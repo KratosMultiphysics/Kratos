@@ -48,8 +48,9 @@ KratosULFApplication::KratosULFApplication():
 	mUpdatedLagrangianFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 	mUpdatedLagrangianFluid2Dinc(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 	mUpdatedLagrangianFluid3Dinc(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-	//new one - mis of frac step and ulf_inc	
-	mUlfFrac2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+	//new one - mix of frac step and ulf_inc	
+	mUlfFrac2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+	mUlfFrac3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 	{}
 	
 
@@ -80,7 +81,7 @@ KratosULFApplication::KratosULFApplication():
 		KRATOS_REGISTER_ELEMENT("UpdatedLagrangianFluid3Dinc", mUpdatedLagrangianFluid3Dinc);
 		//
 		KRATOS_REGISTER_ELEMENT("UlfFrac2D", mUlfFrac2D);
-		
+		KRATOS_REGISTER_ELEMENT("UlfFrac3D", mUlfFrac3D);
 	}
 
 

@@ -31,6 +31,7 @@
 #include "custom_elements/updated_lagrangian_fluid_inc.h"
 #include "custom_elements/updated_lagrangian_fluid3D_inc.h"
 #include "custom_elements/ulf_frac2d.h"
+#include "custom_elements/ulf_frac3d.h"
 namespace Kratos
 {
 
@@ -209,6 +210,7 @@ namespace Kratos
 		const UpdatedLagrangianFluid3Dinc mUpdatedLagrangianFluid3Dinc;
 		//
 		const UlfFrac2D mUlfFrac2D;
+		const UlfFrac3D mUlfFrac3D;
 		
 		///@} 
 		///@name Private Operators
@@ -262,5 +264,6 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_KRATOS_ULF_APPLICATION_H_INCLUDED  defined 
+
 
 
