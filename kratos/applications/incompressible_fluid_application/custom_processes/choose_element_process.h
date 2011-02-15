@@ -92,103 +92,43 @@ namespace Kratos
 		 {
 			KRATOS_WATCH("++++++++++++++++++++BEGIN OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 			ModelPart::ElementsContainerType ElemPart;
-			//KRATOS_WATCH(mr_model_part.Elements().size());
-			ElemPart.reserve(mr_model_part.Elements().size());
+			//KRATOS_WATCH(mr_model_part.Elements().size())
 
-								
-//			Element const& rEl1 = KratosComponents<Element>::Get("Fluid2DASGS");
-//			Element const& rEl2 = KratosComponents<Element>::Get("ASGSPRDC");
+                        ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+	                unsigned int n_elems = mr_model_part.Elements().size();	
 
-			//Element const& rEl1 = KratosComponents<Element>::Get("ASGSCOMPPRDC2D"); //water element
-			//Element const& rEl2 = KratosComponents<Element>::Get("ASGSCompressible2D"); // air element
-				int water_num = 0;
-				int air_num = 0;
-			for(ModelPart::ElementsContainerType::iterator Belem = mr_model_part.ElementsBegin(); Belem != mr_model_part.ElementsEnd(); ++Belem)
-			{
+			ElemPart.reserve(n_elems);		
+			int water_num = 0;
+			int air_num = 0;
+
+			for(unsigned int ii = 0; ii< n_elems; ++ii)
+			  {
+                                ModelPart::ElementsContainerType::iterator Belem = el_begin + ii;
 				Geometry< Node<3> >& geom = Belem->GetGeometry();
-
-				//choose type:
-				// everywhere El1 is chosen unless 3 nodes have IS_PROUS = 0.0 or when the node with IS_WATER = 1.0 is on the boundary
-				double chooseflag = 0.0;
-		/*	
-				double first = geom[0].FastGetSolutionStepValue(IS_WATER);
-				double second = geom[1].FastGetSolutionStepValue(IS_WATER);
-				double third = geom[2].FastGetSolutionStepValue(IS_WATER);
-
-				//three node of the same kind
-			 	if(first == second && second==third)
-					chooseflag = first;
-				//IS_WATER = 1 is on the boundary
-				else
-				  {
-					//KRATOS_WATCH("***********INSIDE NOT SIMILAR POINTS ******************");
-				     for(int ii=0;ii<3;++ii)
-					 if(geom[ii].GetSolutionStepValue(IS_WATER) == 1.0 //&& geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0//)
-					    {
-						chooseflag = 1.0;
-						
-				        	//KRATOS_WATCH("***********ASGSPRDC IS CHOSEN ******************");
-					    }	
-				    
-						
-				   }
-
-
-				//take components to create element
-				unsigned int ele_id = Belem->Id();
 				
-				
-		*/		
+				Element::Pointer p_elem; 
 
 				if(Belem->GetValue(IS_WATER_ELEMENT) == 1.0)
-					chooseflag = 1.0;
-				else
-					chooseflag = 0.0;					
-
-
-				if(chooseflag)
 				  {
-					Element::Pointer p_elem = rElWater.Create(Belem->Id(),geom, Belem->pGetProperties());
-					ElemPart.push_back(p_elem);
+					p_elem = rElWater.Create(Belem->Id(),geom, Belem->pGetProperties());
 					p_elem->GetValue(IS_WATER_ELEMENT) = 1.0;
 					water_num++;						
-					//copy element of other type to consider two elements in divided element
-						/*if(Belem->GetValue(IS_DIVIDED) == 1.0)
-							{
-								Element::Pointer p_elem_second = rEl2.Create(ele_id,geom, Belem->pGetProperties());
-								p_elem_second->GetValue(IS_DIVIDED) = 1.0;
-								ElemPart.push_back(p_elem_second);
-								
-				  			}*/
+
 				  }
 			        else
 				  {
-					Element::Pointer p_elem = rElAir.Create(Belem->Id(), geom, Belem->pGetProperties() );
-					ElemPart.push_back(p_elem);
+					p_elem = rElAir.Create(Belem->Id(), geom, Belem->pGetProperties() );
 					p_elem->GetValue(IS_WATER_ELEMENT) = 0.0;
 					air_num++;
-					//copy element of other type to consider two elements in divided element
-						/*if(Belem->GetValue(IS_DIVIDED) == 1.0)
-							{
-								Element::Pointer p_elem_second = rEl1.Create(ele_id,geom, Belem->pGetProperties());
-								p_elem_second->GetValue(IS_DIVIDED) = 1.0;
-								ElemPart.push_back(p_elem_second);
-	
-				  			}*/
+
 //KRATOS_WATCH("***********ASGSCompressible2D IS CHOSEN ******************");
 				  }
-
+                        ElemPart.push_back(p_elem);
 				
 			}
-// 			KRATOS_WATCH(ElemPart.size());
-// 			KRATOS_WATCH((mr_model_part.Elements()).size());
-// 			KRATOS_WATCH(water_num);
-// 			KRATOS_WATCH(air_num);
 
 			mr_model_part.Elements() = ElemPart;
 
-// 			KRATOS_WATCH(mr_model_part.Elements().size());
-// 			KRATOS_WATCH("++++++++++++++++++++END OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
 		 }
 
 		private:
