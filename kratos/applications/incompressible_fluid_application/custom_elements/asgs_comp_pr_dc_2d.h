@@ -127,7 +127,13 @@ namespace Kratos
        void GetFirstDerivativesVector(Vector& values, int Step = 0);
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
       void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+//       void Calculate( const Variable<array_1d<double,3> >& rVariable, 
+// 		      array_1d<double,3>& Output, 
+// 		      const ProcessInfo& rCurrentProcessInfo);
 
+	void Calculate( const Variable<double>& rVariable, 
+			      double& Output, 
+			      const ProcessInfo& rCurrentProcessInfo);
       ///@}
       ///@name Access
       ///@{ 
@@ -177,6 +183,8 @@ namespace Kratos
 	virtual void CalculateSoundVelocity(Geometry< Node<3> > geom, double& vc);
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
+	virtual void CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double volume);
+
       ///@} 
       ///@name Protected Operators
       ///@{ 
