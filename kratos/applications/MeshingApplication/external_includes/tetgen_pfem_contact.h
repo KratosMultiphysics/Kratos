@@ -230,6 +230,7 @@ KRATOS_WATCH(">>>>>>> INSIDE MESHER <<<<<<<<<");
 //KRATOS_WATCH("AFTER GEOM");
 				Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
 				p_element->GetValue(IS_CONTACT_MASTER) = 10;
+				p_element->GetValue(IS_WATER_ELEMENT) = -10.0;
 					//KRATOS_WATCH("inside 12");
 							      
 				(ThisModelPart.Elements()).push_back(p_element);
