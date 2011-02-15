@@ -59,8 +59,17 @@ namespace Kratos
 	/**@name Kratos Classes */
 	/*@{ */
 
-	/// Short class definition.
+	/// This strategy is employed to solve for the nonlinear boundary conditions.
 	/**   Detail class definition.
+		The convection-diffusion problem is completed with the standard boundary conditions of prescribed temperature and prescribed normal
+	      heat flux in the thermal problem. For surfaces exposed to fire conditions, energy losses
+	      due to radiation and convection must be taken into account, and the thermal boundary condition is 
+
+              \f$ \kappa \frac{\partial T}{\partial n} + \overline{q_n} = 0 \f$
+	      where
+
+              \f$ \overline{q_n} = q_n + \varepsilon \sigma (T^4 - T_0^4) + \alpha_c (T - T_0)\f$ 
+
 
 	\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
