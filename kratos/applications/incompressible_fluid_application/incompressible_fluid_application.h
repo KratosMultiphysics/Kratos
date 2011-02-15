@@ -76,6 +76,12 @@
 
 //#include "custom_elements/asgs_2d_particle.h"
 
+#include "custom_elements/explicit_asgs_compressible_2d.h"
+#include "custom_elements/explicit_asgs_comp_pr_dc_2d.h"
+
+#include "custom_elements/explicit_asgs_compressible_3d.h"
+#include "custom_elements/explicit_asgs_comp_pr_dc_3d.h"
+
 namespace Kratos
 {
         ///@addtogroup IncompressibleFluidApplication
@@ -322,6 +328,12 @@ namespace Kratos
 
 		const NoSlipCondition2D mNoSlipCondition2D;
 // 		const NoSlipFractStep mNoSlipFractStep;
+
+		const ExplicitASGSCompressible2D  mExplicitASGSCompressible2D; 
+		const ExplicitASGSCOMPPRDC2D mExplicitASGSCOMPPRDC2D;	
+		
+		const ExplicitASGSCOMPPRDC3D mExplicitASGSCOMPPRDC3D;
+		const ExplicitASGSCompressible3D  mExplicitASGSCompressible3D; 
 
 		//const ABC2D mABC2D;
 
