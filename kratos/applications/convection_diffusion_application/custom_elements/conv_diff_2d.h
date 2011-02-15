@@ -88,10 +88,11 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
+  /// A stabilized element for solving the convection diffusion equations in 2D.
   
-   /** A stabilized element for solving the convection diffusion equations in 2D.
-	<math> \rho C M \frac{\partial T}{\partial t} + \rho C S T  = - \kappa L T </math>
+   /** 
+	The problem can be written in matrix form as 
+     \f$ \rho C M \frac{\partial T}{\partial t} + \rho C S T  = - \kappa L T \f$
 
 
   */
