@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "PFEM_application.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -1452,10 +1453,10 @@ KRATOS_WATCH(factor*hnode2 );
 				//KRATOS_WATCH("INSIDE TOCHING INTERFACE");
 			//	KRATOS_WATCH(ThisModelPart.GetProperties(0));
 						//get H
-						//double hnode2 = (ThisModelPart.GetProperties(0))[THICKNESS];
+						double hnode2 = (ThisModelPart.GetProperties(0))[THICKNESS];
 //KRATOS_WATCH("indside pfem utilities");
 //KRATOS_WATCH(hnode2);
-						double hnode2 = geom[non_interface_id].FastGetSolutionStepValue(NODAL_H);
+						//double hnode2 = geom[non_interface_id].FastGetSolutionStepValue(NODAL_H);
                                                 //hnode2*=hnode2;
 								
 						//mark node to delete
@@ -1772,8 +1773,11 @@ KRATOS_WATCH(factor*hnode2 );
 					//calculating shape functions values
 					Geometry< Node<3> >& geom = i->GetGeometry();
 					
-					Ael = GeometryUtils::CalculateVolume3D(geom);
-					Atot += Ael;
+					if(geom.size() == 4)
+					{
+					   Ael = GeometryUtils::CalculateVolume3D(geom);
+					   Atot += Ael;
+					}   
 					if(Ael <0) inverted_elements = true;
 				}
 			}
@@ -1792,30 +1796,36 @@ KRATOS_WATCH(factor*hnode2 );
 		{
 		KRATOS_TRY;
 KRATOS_WATCH("INSSSSSSSSSIDE COLOUR");
-				for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin(); 
-					elem!=ThisModelPart.ElementsEnd(); elem++)
-				{
-					Geometry< Node<3> >& geom = elem->GetGeometry();
-					int same_colour= 0 ;
+		  ModelPart::ElementsContainerType::iterator elem_bg = ThisModelPart.ElementsBegin();
+		  const unsigned int n_elems = ThisModelPart.Elements().size();
 
-					//count air flag
-					for(int ii= 0; ii<= domain_size; ++ii)
-						if(geom[ii].FastGetSolutionStepValue(IS_WATER) == 0.0)
-							same_colour++;
-                                       
-					if(same_colour == (domain_size + 1))
-					      {
-						elem->GetValue(IS_WATER_ELEMENT) = 0.0;
+		    //#pragma omp parallel for firstprivate(n_elems, elem_bg)
+			for(unsigned int jj=0; jj<n_elems; ++jj)
+			    {
+				ModelPart::ElementsContainerType::iterator elem = elem_bg + jj;
 
-                                              }
-					else
-                                             {
-						elem->GetValue(IS_WATER_ELEMENT) = 1.0;
-                                              
+				Geometry< Node<3> >& geom = elem->GetGeometry();
+				int same_colour= 0 ;
 
-                                              }
-											
-				}
+				//count air flag
+				for(int ii= 0; ii<= domain_size; ++ii)
+					if(geom[ii].FastGetSolutionStepValue(IS_WATER) == 0.0)
+						same_colour++;
+				
+				if(same_colour == (domain_size + 1))
+				      {
+					elem->GetValue(IS_WATER_ELEMENT) = 0.0;
+
+				      }
+				else
+				      {
+					elem->GetValue(IS_WATER_ELEMENT) = 1.0;
+				      
+
+				      }
+										
+			    }
+			//#pragma omp barrier
 				//detecting interface nodes
 
 				//PfemUtils::InterfaceDetecting(ThisModelPart, domain_size, 5.0);
@@ -1877,7 +1887,93 @@ KRATOS_WATCH("INSSSSSSSSSIDE COLOUR");
 
 			KRATOS_CATCH("");
 		}
+              //**********************************************************************************************
+		//**********************************************************************************************
+		double ExplicitDeltaT(double CFL,double min_dt,double max_dt, ModelPart& ThisModelPart)
+		{
+                 KRATOS_TRY
+               
+                 int NumThreads = OpenMPUtils::GetNumThreads();
+		  std::vector< double > Threads_dt(NumThreads,10.0);
 
+		  ModelPart::ElementsContainerType::iterator elem_bg = ThisModelPart.ElementsBegin();
+		  unsigned int n_elems = ThisModelPart.Elements().size();	
+
+		  #pragma omp parallel for firstprivate(n_elems, elem_bg)
+		  for(unsigned int ii=0; ii<n_elems; ++ii)
+		      {
+			//calculate min_dt
+			ModelPart::ElementsContainerType::iterator elem = elem_bg + ii;
+
+			double calc_dt = 1.0;
+			elem->Calculate(DELTA_TIME, calc_dt, ThisModelPart.GetProcessInfo());
+
+			int k = OpenMPUtils::ThisThread();
+			if(calc_dt < Threads_dt[k])
+			    Threads_dt[k] = calc_dt;
+
+		      }
+		  #pragma omp barrier
+
+//KRATOS_WATCH(omp_get_thread_num());
+KRATOS_WATCH(NumThreads);
+
+		   double DT = max_dt;
+		   for(int kk=0; kk<NumThreads; ++kk)
+			if( Threads_dt[kk] < DT)
+			      DT = Threads_dt[kk];
+
+
+		    if(DT < min_dt) DT = min_dt;	
+
+// double DT = 0.00000001;
+		    DT*=CFL;
+		    ThisModelPart.GetProcessInfo()[DELTA_TIME] = DT;
+KRATOS_WATCH("ExplicitDeltaT");
+KRATOS_WATCH(DT);
+		 return DT;
+
+
+/*
+
+		    double& DeltaTime = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+		    double DT = 10.0;
+
+		    ModelPart::ElementsContainerType::iterator elem_bg = ThisModelPart.ElementsBegin();
+	            unsigned int n_elems = ThisModelPart.Elements().size();	
+
+                   #pragma omp parallel for firstprivate(n_elems, elem_bg)
+	            for(unsigned int ii=0; ii<n_elems; ++ii)
+			{
+		 	  //calculate min_dt
+			  ModelPart::ElementsContainerType::iterator elem = elem_bg + ii;
+
+			  double calc_dt = 1.0;
+			  elem->Calculate(DELTA_TIME, calc_dt, ThisModelPart.GetProcessInfo());
+
+			  if(calc_dt < DT)
+			      {
+				#pragma omp critical
+				DT = CFL*calc_dt;
+
+			      }
+
+			}
+
+KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@  BEFORE @@@@@@@@@@");
+KRATOS_WATCH(DeltaTime);
+		     if(DT> max_dt)
+			DT = max_dt;
+		     else if(DT < min_dt)
+			DT = min_dt;	    
+KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@  DELTA T EXPLICIT@@@@@@@@@@");
+		    DeltaTime = DT;
+KRATOS_WATCH(DeltaTime);
+
+
+		 return DeltaTime;*/
+		 KRATOS_CATCH("");
+		}
 
 
 
