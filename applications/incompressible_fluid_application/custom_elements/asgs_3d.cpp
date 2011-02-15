@@ -244,7 +244,7 @@ namespace Kratos {
         double tautwo;
         CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
-        CalculateAdvectiveTerm(rDampMatrix, DN_DX, tauone, tautwo, delta_t, Volume);
+        CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
 
         //calculate pressure term
         CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Volume);
@@ -299,7 +299,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void ASGS3D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double tauone, const double tautwo, const double time, const double volume) {
+    void ASGS3D::CalculateAdvectiveTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const array_1d<double, 4 > & N, const double tauone, const double tautwo, const double time, const double volume) {
         KRATOS_TRY
                 //calculate mean advective velocity and taus
                 const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
@@ -331,8 +331,7 @@ namespace Kratos {
 
         boost::numeric::ublas::bounded_matrix<double, 3, 12 > conv_opr = ZeroMatrix(dof, matsize);
         boost::numeric::ublas::bounded_matrix<double, 12, 3 > shape_func = ZeroMatrix(matsize, dof);
-	array_1d<double,4> N;
-	N[0] = 0.25; N[1] = 0.25; N[2] = 0.25; N[3] = 0.25;
+
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int column = ii*dof;
