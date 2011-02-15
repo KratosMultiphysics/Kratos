@@ -141,11 +141,11 @@ namespace Kratos
 
 		//calculating viscosity
 		const Variable<double>&  rDensityVar = my_settings->GetDensityVariable();
-		const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+		//const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
 		const Variable<double>& rDiffusionVar =my_settings->GetDiffusionVariable();
 		const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
         	const Variable<double>& rSourceVar =my_settings->GetVolumeSourceVariable();
-        	const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
+        	//const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
 		const Variable<array_1d<double,3> >& rMeshVelocityVar =my_settings->GetMeshVelocityVariable();
 
 
@@ -270,7 +270,7 @@ namespace Kratos
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);		
 		ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 		const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
-		const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+		//const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
 		const Variable<array_1d<double,3> >& rMeshVelocityVar =my_settings->GetMeshVelocityVariable();
 
 
