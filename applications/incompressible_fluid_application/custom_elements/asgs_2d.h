@@ -88,8 +88,16 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// ASGS, Incompressible fluid, Variational multi scale method, Quasi-static subscales, Implicit method.
+  /** 
+  ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
+  Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
+  to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales´ estimation.
+  The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
+  This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
+  The detailed description of the formulation could be fined in
+     "Stabilized finite element approximation of transient incompressible flows using orthogonal subscales, Comput. Methods Appl. Mech. Engrg. 191 (2002) 4295?4321"
+  
   */
   class ASGS2D
 	  : public Element
@@ -131,16 +139,44 @@ namespace Kratos
       
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-	void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+      	        /// The DOF´s are VELOCITY_X, VELOCITY_Y and PRESSURE
+	        /**
+	         * @param ElementalDofList: the list of DOFs
+	         * @param rCurrentProcessInfo: the current process info instance
+		 */
+	         void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+	  
+	         /// To print a scalar value on Gausse points
+	        /**
+	         * @param rVariable: The "rVariable" must be either "TAUONE" or "TAUTWO"
+	         * @param rCurrentProcessInfo: the current process info instance
+		 */
+	         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 //	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-       void Calculate( const Variable<array_1d<double,3> >& rVariable, 
+	         /// To calculate NODAL_MASS or The OSS projections
+	        /**
+	         * @param rVariable: If the variable is "NODAL_MASS" it returns the nodal mass vector which is "lumped mass" for first component and the rest zero,
+		                     else it calulates the Orthogonal projections
+		 * @return Output:  Has value just in the case of NODAL_MASS   
+	         * @param rCurrentProcessInfo: the current process info instance
+		 */
+                 void Calculate( const Variable<array_1d<double,3> >& rVariable, 
                        array_1d<double,3>& Output, 
                        const ProcessInfo& rCurrentProcessInfo);
+	         /// To calculate minimum length inside element 
+	        /**
+	         * @param rVariable: Is not used
+		 * @return Output: returns the min value   
+	         * @param rCurrentProcessInfo: the current process info instance
+		 */		       
+                 void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
-       void GetFirstDerivativesVector(Vector& values, int Step = 0);
-       void GetSecondDerivativesVector(Vector& values, int Step = 0);
+		 /// Returns vx, vy, p for each node
+                 void GetFirstDerivativesVector(Vector& values, int Step = 0);
+
+		 /// Returns ax, ay, 0 for each node
+                 void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
  //      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
        void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
@@ -193,10 +229,27 @@ namespace Kratos
       ///@{ 
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
-       virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time); 
-       virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone,const double area);
-       virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area);
-      ///@} 
+
+ 	         /// To compute projections for OSS 
+	        /**
+	         * @return adv_proj: projection due to advection
+		 * @return adv_proj: projection due to divergence 
+	         * @param rCurrentProcessInfo: the current process info instance
+		 */      
+                 virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time); 
+
+ 	         /// To Calculate stabilization of the form (a.grad(U) , U_dot) 
+	        /**
+		    It is assembeled directly to LHS and RHS
+		 */   		 
+		 virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone,const double area);
+
+ 	         /// To Calculate stabilization of the form (grad(q) , U_dot) 
+	        /**
+		    It is assembeled directly to LHS and RHS
+		 */  		 
+		 virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area);
+
       ///@name Protected Operators
       ///@{ 
         
@@ -234,20 +287,71 @@ namespace Kratos
       ///@} 
       ///@name Private Operators
       ///@{ 
-        virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 
-	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
-	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawone, const double thawtwo, const double time,const double area);
-	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
+       	         /// To Calculate Lumped mass matrix 
+	        /**
+		    It is assembeled directly to LHS
+		 */
+                virtual void CalculateMassContribution(MatrixType& K,const double time,const double area);
+		
+       	         /// To Calculate viscouse term  
+	        /**
+		    It is assembeled directly to LHS
+		 */		
+	         virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
+		 
+       	         /// To Calculate advective term  
+	        /**
+		    It is assembeled directly to LHS
+		 */			 
+	         virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N, const double thawone, const double thawtwo, const double time,const double area);
 
-	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
-	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
-	virtual void CalculateGradStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double time, const double tauone, const double area);
-       virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
 
-	virtual void CalculateTau(const array_1d<double,3>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
-	
-	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
-        virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+       	         /// To Calculate Pressure term, (Div(V), p) and (q, Div(U))  
+	        /**
+		    It is assembeled directly to LHS
+		 */			 
+		 virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
+
+
+
+ 	         /// To Calculate stabilization of the form ( Div(u) , Div(v) ) 
+	        /**
+		    It is assembeled directly to LHS and is scaled by Tau2
+		 */  			 
+	         virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
+
+ 	         /// To Calculate stabilization of the form ( a.grad(V) , a.grad(U) ) 
+	        /**
+		    It is assembeled directly to LHS and is scaled by Tau1
+		 */ 		 
+		 virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
+
+ 	         /// To Calculate stabilization of the form ( grad(q),grad(p) ) 
+	        /**
+		    It is assembeled directly to LHS and is scaled by Tau1
+		 */ 		 
+		 virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);
+
+ 	         /// To add body force 
+	        /**
+		    It is assembeled directly to RHS and is scaled by Tau1
+		 */
+		 virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
+
+ 	         /// To Calculate tau1 & tau2 
+	        /**
+	         * @return tau1: multiplied by Residual of the momentum equation
+	         * @return tau2: multiplied by Residual of the constrain equation		    
+		 */		 
+	         virtual void CalculateTau(const array_1d<double,3>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
+
+ 	         /// To add projection forces 
+	        /**
+                  This function is called by Calculate and assemble explicitly the projection forces to the RHS
+		 */  		 
+	         virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
+
+		 virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 	    private:
       ///@} 
       ///@name Private Operations
