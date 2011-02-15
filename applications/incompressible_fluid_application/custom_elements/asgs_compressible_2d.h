@@ -132,6 +132,17 @@ namespace Kratos
       void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
        void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+//        void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+       void Calculate( const Variable<array_1d<double,3> >& rVariable, 
+		      array_1d<double,3>& Output, 
+		      const ProcessInfo& rCurrentProcessInfo);
+
+	void Calculate( const Variable<double>& rVariable, 
+			      double& Output, 
+			      const ProcessInfo& rCurrentProcessInfo);
+
+      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       ///@}
       ///@name Access
       ///@{ 
@@ -183,10 +194,13 @@ namespace Kratos
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
        virtual void CalculateTau(const array_1d<double,3>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
        	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
-       virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const array_1d<double,3>& N, const double time,const double thawone,const double area);
+       virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);
        virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area);
+
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
-        //virtual void AddBodyForceAndMomentum(VectorType& F,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
+        virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double area,const double thawone,const double thawtwo);
+	virtual void CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double volume);
+      
       ///@} 
       ///@name Protected Operators
       ///@{ 
