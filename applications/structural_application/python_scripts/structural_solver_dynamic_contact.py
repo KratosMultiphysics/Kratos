@@ -23,6 +23,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
     model_part.AddNodalSolutionStepVariable(INSITU_STRESS);
     model_part.AddNodalSolutionStepVariable(FACE_LOAD);
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
+    model_part.AddNodalSolutionStepVariable(IS_FLUID);
 
     print "variables for the dynamic structural solution added correctly"
         
@@ -71,9 +73,12 @@ class DynamicStructuralSolver:
         self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
         
         #added for contact
-	self.contact_model_part = ModelPart("Contact_model_part");
+	self.shell_model_part = ModelPart("shell_model_part");
+	self.contact_model_part = ModelPart("contact_model_part");
+	self.contact_model_part.Properties = self.model_part.Properties
+
         self.save_structure_model_part_process = SaveStructureModelPartProcess();
-        #self.save_structure_conditions_process = SaveStructureConditionsProcess();
+        self.save_structure_conditions_process = SaveStructureConditionsProcess();
         self.merge_in_one_model_parts_process = MergeInOneModelPartsProcess();  
         self.domain_size = domain_size
         self.Mesher =TetGenPfemContact()
@@ -90,17 +95,22 @@ class DynamicStructuralSolver:
 
         #creating the solution strategy
         CalculateReactionFlag = False
-        ReformDofSetAtEachStep = False
+        ReformDofSetAtEachStep = True
         MoveMeshFlag = True
         import strategy_python
         self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
        
 
-       # (self.save_structure_model_part_process).SaveStructureModelPart(self.model_part, self.contact_model_part, self.domain_size);   
-	shell_elements = ElementsArray()
-	(SaveElementBySizeProcess((self.model_part).Elements, shell_elements, 3)).Execute()
+	#flags necessary for save_structure
+	for node in (self.model_part).Nodes:
+	    node.SetSolutionStepValue(IS_STRUCTURE, 0 , 1.0) 
+	    node.SetSolutionStepValue(IS_FLUID, 0 , 0.0) 
+
+        (self.save_structure_model_part_process).SaveStructureModelPart(self.model_part, self.shell_model_part, self.domain_size); 
+	#shell_elements = ElementsArray()
+	#(SaveElementBySizeProcess((self.model_part).Elements, shell_elements, 3)).Execute()
                   
-	(self.contact_model_part).Elements = shell_elements      
+	#(self.shell_model_part).Elements = shell_elements      
            #creating the solution strategy
          #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,False,True)
 #        print "self.echo_level = " , self.echo_level
@@ -124,17 +134,27 @@ class DynamicStructuralSolver:
     #######################################################################   
     def ContactMesh(self):
 	#print (self.model_part).Elements
-	#(self.contact_model_part).Elements = (self.model_part).Elements
-	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<inside contact mesh"
-	print self.contact_model_part	 
-	(self.Mesher).ReGenerateMesh("LinearElement3D4N",self.contact_model_part)	
+	#(self.shell_model_part).Elements = (self.model_part).Elements
+	shell_elements = ElementsArray()
+	(SaveElementBySizeProcess((self.model_part).Elements, shell_elements, 3)).Execute()
+                  
+	(self.contact_model_part).Elements = shell_elements   
 
-	#print (self.contact_model_part).Elements
+	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<inside contact mesh"
+	#print self.contact_model_part
+	print "After print"
+	(self.Mesher).ReGenerateMesh("PfemContactElement3D","Face3D3N",self.contact_model_part)	
+
+	(self.model_part).Elements = ElementsArray()
+	#print self.model_part
+	#print self.shell_model_part
+	#print self.contact_model_part
 
 	print "before merge"
+        (self.merge_in_one_model_parts_process).MergeParts(self.model_part, self.shell_model_part)
         (self.merge_in_one_model_parts_process).MergeParts(self.model_part, self.contact_model_part)
 	print "after Merge"
-	print self.model_part
+	#print self.model_part
 
 
 
