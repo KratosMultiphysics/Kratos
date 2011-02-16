@@ -16,21 +16,146 @@
 // You should have received a copy of the GNU Lesser General Public
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-	
 
-//edges are enumerated as 01 02 03 12 13 23
-//input parametrs:
-//edges --> int c array of size 6
-//t     --> int c array of size 56 (=14*4) -- the first nel*4 positions will be occupied
-//nel = number of elements in the subdivision
-//output parameters: true->splitting needed    false-->no splitting needed
+///this class performs the splitting of a tetrahedra.
+/** The class contains three helper functions to ease the splitting:
+ * TriangleSplitMode, Split_Triangle, and TriangleGetNewConnectivityGID
+ * EXAMPLE: imagine that an user would like to split a triangle formed
+ * by the ids 3 9 7 12 by introducing a new node 15 on the edge between 9 and 7
+ * he should define
+ * int aux[11];
+ * int edge_ids[6];
+ * int t[54];
+ * then initialize
+ * aux[0] = 3; aux[1] = 9; aux[2] = 7; aux[3] = 12;
+ * aux[4] = -1; //edge 01 --> edge to be refined
+ * aux[5] = 15; //edge 02 -->edge not to be refined
+ * aux[6] = -1; //edge 03 -->edge not to be refined
+ * aux[7] = -1; //edge 12 -->edge not to be refined
+ * aux[8] = -1; //edge 13 -->edge not to be refined
+ * aux[9] = -1; //edge 23 -->edge not to be refined
+ * aux[10] = -1; //center node (set it to -1 for the moment)
+ *
+ * then call
+ *
+ * TetrahedraSplitMode(edge_ids,aux)
+ * int nel; //number of nodes generated
+ * int number_splitted_edges; //number of splitted edges
+ * int nint; //number of internal nodes
+ * bools split_needed = Split(edge_ids,t, &nel, &number_splitted_edges, &nint)
+ *
+ * if( nint==1) // we need to generate a new internal node
+ * {
+ *   //generate new node for the center
+ *   aux[10] = new node id
+ * }
+ *
+ *
+ * the new tetrahedra ids can be then inspected by
+ * for(int i=0; i<nel; i++)
+ * {
+ *     int i0,i1,i2,i3;
+ *     TetrahedraGetNewConnectivityGID(i, t, aux, &i0,&i1,&i2,&i3);
+ * }
+ */
 
-bool Split(const int* edges, int* t, int* nel, int* splitted_edges, int* nint) {
+
+/**this function computes the splitting mode for the triangle. It is designed to fill edge_ids
+ *@param (input) aux_ids contains a vector with the input Ids, organized as follows:
+ *		aux_ids[0] = id of FIRST node of the original triangle
+ *		aux_ids[1] = id of SECOND node of the original triangle
+ *		aux_ids[2] = id of THIRD node of the original triangle
+ *              aux_ids[3] = id of FOURTH node of the original triangle
+ *		aux_ids[4] = id of new node to be used for the edge 01 (-1 if edge not to be splitted)
+ *		aux_ids[5] = id of new node to be used for the edge 02 (-1 if edge not to be splitted)
+ *		aux_ids[6] = id of new node to be used for the edge 03 (-1 if edge not to be splitted)
+ *		aux_ids[7] = id of new node to be used for the edge 12 (-1 if edge not to be splitted) 
+ *		aux_ids[8] = id of new node to be used for the edge 13 (-1 if edge not to be splitted) 
+ *		aux_ids[9] = id of new node to be used for the edge 23 (-1 if edge not to be splitted)
+ *              aux_ids[10] = id of new internal nodes (to be setted by the user only if needed, that is, if nint=1)
+ *		given this data it fills an auxiliary vector of size 3 that will be used in the splitting
+ *@param (output) edge_ids this is an auxiliary array with the local numbering. It is necessary for
+ * 		the split_triangle function
+ */
+void TetrahedraSplitMode(const int aux_ids[11], int edge_ids[6]) {
+    //edge 01
+    if (aux_ids[4] < 0)
+        if (aux_ids[0] > aux_ids[1])  edge_ids[0] = 0;
+        else edge_ids[0] = 1;
+    else
+        edge_ids[0] = 4;
+
+    //edge 02
+    if (aux_ids[5] < 0)
+        if (aux_ids[0] > aux_ids[2]) edge_ids[1] = 0;
+        else edge_ids[1] = 2;
+    else
+        edge_ids[1] = 5;
+
+    //edge 03
+    if (aux_ids[6] < 0)
+        if (aux_ids[0] > aux_ids[3]) edge_ids[2] = 0;
+        else edge_ids[2] = 3;
+    else
+        edge_ids[2] = 6;
+
+    //edge 12
+    if (aux_ids[7] < 0)
+        if (aux_ids[1] > aux_ids[2]) edge_ids[3] = 1;
+        else edge_ids[3] = 2;
+    else
+        edge_ids[3] = 7;
+
+    //edge 13
+    if (aux_ids[8] < 0)
+        if (aux_ids[1] > aux_ids[3]) edge_ids[4] = 1;
+        else edge_ids[4] = 3;
+    else
+        edge_ids[4] = 8;
+
+    //edge 23
+    if (aux_ids[9] < 0)
+        if (aux_ids[2] > aux_ids[3]) edge_ids[5] = 2;
+        else edge_ids[5] = 3;
+    else
+        edge_ids[5] = 9;
+}
+
+/**utility function to get the global ids for the new triangles to be generated
+ *@param triangle_index --> the index of the new triangle to be generated
+ *		(Should be less than the number nel provided by Split_Triangle)
+ *@param t --> integer array provided by Split_Triangle
+ *@param aux_ids --> array used in constructing the edge_ids (contains the Global Ids of the new nodes)
+ *@param id0 --> Global ID of node0 of the new triangle
+ *@param id1 --> Global ID of node1 of the new triangle
+ *@param id2 --> Global ID of node2 of the new triangle
+ */
+inline void TetrahedraGetNewConnectivityGID(const int triangle_index,
+        const int t[56],
+        const int aux_ids[11],
+        int* id0, int* id1, int* id2, int* id3) {
+    unsigned int base = triangle_index * 3;
+    *id0 = aux_ids[t[base]];
+    *id1 = aux_ids[t[base + 1]];
+    *id2 = aux_ids[t[base + 2]];
+    *id3 = aux_ids[t[base + 3]];
+}
+
+/**
+ * function to split a tetrahedra
+ * @param edges --> (input) array of size 6. edges are enumerated as 01 02 03 12 13 23
+ * @param t --> (output)int c array of size 56 (=14*4)
+ * @param --> nel number of elements generated
+ * @param splitted_edges --> number of edges splitted
+ * @param nint //internal node
+ * @return true->splitting needed    false-->no splitting needed
+ */
+bool Split_Tetrahedra(const int edges[6], int t[56], int* nel, int* splitted_edges, int* nint) {
     *(splitted_edges) = 0;
     for (unsigned int i = 0; i < 6; i++)
         if (edges[i] > 3)
             *splitted_edges = *splitted_edges + 1;
-	
+
     //the internal node is normally not needed so by default we set to false
     (*nint) = 0;
 
