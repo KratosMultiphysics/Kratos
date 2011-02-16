@@ -38,6 +38,7 @@
 #include "geometries/geometry.h"
 #include "geometries/geometry_data.h"
 
+
 // #include "containers/array_1d.h"
 // #include "processes/find_nodal_neighbours_process.h"
 // #include "processes/find_elements_neighbours_process.h"
@@ -46,7 +47,10 @@
 #include "utilities/math_utils.h"
 //#include "utilities/split_triangle.h"
 #include "utilities/split_triangle.c"
+#include "utilities/split_tetrahedra.c"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_3d_3.h"
 #include "processes/node_erase_process.h" 
 // #include "spatial_containers/spatial_containers.h"
 
@@ -104,7 +108,8 @@ namespace Kratos
          * NOTE: the refinement is performed with the ONLY AIM of delivering a conformant mesh,
          * that is, no step is performed to ensure the quality of the resultign mesh.
          * The user is expected to select the elements to be refined so to guarantee that some
-         * quality level is retained
+         * quality level is retained. No effort is made to keep the resulting mesh balanced, consequently
+         * a load balancing step should be performed after the refinement step.
          * @param refine_on_reference --> it controls if the interpolation of data (both internal and nodal)
          *        should be performed on the initial domain (if set it to true) OR on the deformed one.
          *        this is very important for example for refining correctly total lagrangian elements.
@@ -121,18 +126,8 @@ namespace Kratos
                 if (!(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)))
                     KRATOS_ERROR(std::logic_error, "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true", "");
 
-cout << "******************************** cpu " << mrComm.MyPID() << endl;
-cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
-for (ModelPart::ElementsContainerType::iterator it = mr_model_part.Elements().begin();
-        it != mr_model_part.Elements().end(); ++it)
-{
-    cout << it->Id() << " ";
-    cout << it->GetGeometry()[0].Id() << " ";
-    cout << it->GetGeometry()[1].Id() << " ";
-    cout << it->GetGeometry()[2].Id() << " ";
-    cout << endl;
-}
-cout << "end" << mrComm.MyPID() << endl;
+            if (!(mr_model_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
+                    KRATOS_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part -- mpi not possible", "");
 
             boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids; //helper matrix to assign ids to the edges to be  refined
             boost::shared_ptr<Epetra_FECrsMatrix> p_partition_ids; //helper matrix to assign a partition to the edges
@@ -180,6 +175,25 @@ cout << "end" << mrComm.MyPID() << endl;
 
             KRATOS_CATCH("")
         }
+        ///************************************************************************************************
+        ///************************************************************************************************
+        ///function to print DETAILED mesh information. WARNING: to be used for debugging only as many informations
+        ///are plotted
+        void PrintDebugInfo()
+        {
+            KRATOS_TRY
+
+            //print ghost mesh
+            cout << "proc = " << mrComm.MyPID() << "ghost mesh nodes" << endl;
+            for(ModelPart::NodesContainerType::iterator it = mr_model_part.GetCommunicator().GhostMesh().NodesBegin();
+                                                        it!= mr_model_part.GetCommunicator().GhostMesh().NodesEnd();
+                                                        it++)
+                cout << it->Id() << " " << it->Coordinates() << endl;
+
+            KRATOS_CATCH("");
+
+        }
+
 
 
         ///************************************************************************************************
@@ -196,13 +210,10 @@ cout << "end" << mrComm.MyPID() << endl;
             int nlocal_nodes = this_model_part.GetCommunicator().LocalMesh().Nodes().size();
             int *local_ids = new int[nlocal_nodes];
             int k = 0;
-//            cout << "Local Mesh ids for proc " << mrComm.MyPID() << "--> " ;
             for (ModelPart::NodesContainerType::iterator it = this_model_part.GetCommunicator().LocalMesh().NodesBegin(); it != this_model_part.GetCommunicator().LocalMesh().NodesEnd(); it++)
             {
                 local_ids[k++] = it->Id()-1;
-//                cout << local_ids[k-1] << " ";
             }
-//            cout << endl;
 
             boost::shared_ptr<Epetra_Map>  pmy_map = boost::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nlocal_nodes, local_ids, 0, mrComm) );
             mp_non_overlapping_map.swap(pmy_map);
@@ -210,23 +221,17 @@ cout << "end" << mrComm.MyPID() << endl;
 
                         //now create a matrix that has overlapping elements ... that is both local and ghosts
             //generate a map with the ids of the nodes
-//            cout << "All Mesh ids for proc " << mrComm.MyPID() << "--> " ;
            int nnodes = this_model_part.Nodes().size();
             int *ids = new int[nnodes];
             k = 0;
             for (ModelPart::NodesContainerType::iterator it = this_model_part.NodesBegin(); it != this_model_part.NodesEnd(); it++)
             {
                 ids[k++] = it->Id()-1;
-//            cout << ids[k-1] << " ";
             }
-//            cout << endl;
  
             boost::shared_ptr<Epetra_Map>  pmy_ov_map = boost::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nnodes, ids, 0, mrComm) );
             mp_overlapping_map.swap(pmy_ov_map);
             delete [] ids;
-
-//            cout << "non overlapping map" << *mp_non_overlapping_map << endl;
-//            cout << "overlapping map" << *mp_overlapping_map << endl;
 
             //generate the graph
             int guess_row_size = 20;
@@ -295,7 +300,6 @@ cout << "end" << mrComm.MyPID() << endl;
                 //unsigned int level = it->GetValue(REFINEMENT_LEVEL);
                 if (it->GetValue(SPLIT_ELEMENT) == true)
                 {
-                    cout << "############################################################################################ SPLITTING ELEM " << it->Id() << endl;
                     Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
                     for (unsigned int i = 0; i < geom.size(); i++)
                     {
@@ -344,8 +348,6 @@ cout << "end" << mrComm.MyPID() << endl;
             pAoverlap.swap(p_edge_ids);
             paux.swap(p_partition_ids);
 
-//            cout << *p_edge_ids;
-
             //sace the overlapping graph
             boost::shared_ptr<Epetra_CrsGraph > pg  =  boost::shared_ptr<Epetra_CrsGraph > (new Epetra_CrsGraph(p_edge_ids->Graph()));
             mp_overlapping_graph.swap(pg);
@@ -365,8 +367,6 @@ cout << "end" << mrComm.MyPID() << endl;
                 boost::numeric::ublas::vector<array_1d<int, 2 > >& father_node_ids)
         {
             KRATOS_TRY
-            unsigned int number_of_new_nodes = 0;
-
             //here we count the new nodes on the local mesh
             int NumMyRows = p_edge_ids->NumMyRows();
             int Row; // iterator on rows
@@ -382,8 +382,6 @@ cout << "end" << mrComm.MyPID() << endl;
             int n_new_nonzeros = 0; //this are the nonzeros owned or not, but that must be known
             double this_partition_index = mrComm.MyPID();
 
-//            cout << p_partition_ids << endl;
-
             for (Row = 0; Row < NumMyRows; ++Row)
             {
                 GlobalRow = p_edge_ids->GRID(Row);
@@ -393,10 +391,8 @@ cout << "end" << mrComm.MyPID() << endl;
                 ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
                 if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
 
-                cout << GlobalRow << "->";
                 for (Col = 0; Col != NumEntries; Col++)
                 {
-                    cout  << " " << Indices[Col] << " " << partition_values[Col] << " " <<  mp_overlapping_map->MyGID(Indices[Col])  ;
                     if (Indices[Col] > Row)
                         if (id_values[Col] < -1.5 && mp_overlapping_map->MyGID(Indices[Col])==true)
                         {
@@ -406,9 +402,7 @@ cout << "end" << mrComm.MyPID() << endl;
                         }
 
                 }
-                cout << endl;
             }
-            cout << "CPU " << mrComm.MyPID() << " ln 380" << endl;
             //use the scan sum
             int nodes_before = -1;
             mrComm.ScanSum(&n_owned_nonzeros, &nodes_before, 1);
@@ -459,7 +453,6 @@ cout << "end" << mrComm.MyPID() << endl;
                 }
             }
             plocal_ids->GlobalAssemble(true, Insert);
-cout << "CPU " << mrComm.MyPID() << " ln 431" << endl;
 
             if (id != end_id) KRATOS_ERROR(std::logic_error, "the own node count is not verified...some error occurred", "");
             //now import the non local elements
@@ -473,8 +466,7 @@ cout << "CPU " << mrComm.MyPID() << " ln 431" << endl;
             p_edge_ids->FillComplete();
             if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
 //            paux.swap(p_edge_ids);
-            
-cout << "CPU " << mrComm.MyPID() << " ln 446" << endl;
+
  
             ///* New Id de los Nodos
             List_New_Nodes.resize(n_new_nonzeros);
@@ -493,15 +485,10 @@ cout << "CPU " << mrComm.MyPID() << " ln 446" << endl;
 
                 ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
                 if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure ->ln423", "");
-//                KRATOS_WATCH(GlobalRow);
-//                KRATOS_WATCH(num_id_entries);
-//                KRATOS_WATCH(NumEntries);
+
                 if(NumEntries != num_id_entries) KRATOS_ERROR(std::logic_error,"we should have the same number of new_ids and of partition_values","")
                 for (Col = 0; Col < NumEntries; ++Col)
                 {
-//KRATOS_WATCH(id_values[Col]);
-//KRATOS_WATCH(Indices[Col]);
-//KRATOS_WATCH(partition_values[Col]);
                     if (Indices[Col] > Row)
                     {
                         //nodes are to be created only if they are identified by a positive ID
@@ -522,28 +509,6 @@ cout << "CPU " << mrComm.MyPID() << " ln 446" << endl;
                 }
             }
             if(k!=int(n_new_nonzeros)) KRATOS_ERROR(std::logic_error,"number of new nodes check failed","")
-
-            KRATOS_WATCH(number_of_new_nodes);
-            for(unsigned int k=0; k<List_New_Nodes.size(); k++)
-                cout << List_New_Nodes[k] << " ";
-            cout << endl;
-
-            ///* setting edges -2 to the new id of the new node
-            ///* WARNING = it is can be optimizase
-            /*
-            father_node_ids.resize(number_of_new_nodes);
-            unsigned int index = 0;
-            for (i1_t i1 = Coord.begin1(); i1 != Coord.end1(); ++i1) {
-                for (i2_t i2 = i1.begin(); i2 != i1.end(); ++i2)
-                  { if( Coord( i2.index1(), i2.index2() )==-2)
-                       {
-                         Coord(i2.index1(), i2.index2()) =  List_New_Nodes[index];
-                         father_node_ids[index][0] = i2.index1()+1;
-                         father_node_ids[index][1] = i2.index2()+1;
-                         index++;
-                       }
-                   }
-            }*/
 
  
             delete [] Indices;
@@ -571,11 +536,19 @@ cout << "CPU " << mrComm.MyPID() << " ln 446" << endl;
             unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
             Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 
-cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
+            //check that all of the nodes have the same number of dofs
+            for(ModelPart::NodesContainerType::iterator it=this_model_part.NodesBegin(); it!=this_model_part.NodesEnd(); it++)
+                if( (it->GetDofs()).size() != reference_dofs.size())
+                {
+                    cout << "reference_dof_list" << *(this_model_part.NodesBegin()) << endl;
+                    cout << "inconsistent dof list found" << *it << endl;
+                    KRATOS_ERROR(std::logic_error,"list of dofs is not the same on all of the nodes!","")
+                }
+
+
 
             for (unsigned int i = 0; i < father_node_ids.size(); i++)
             {
-                cout << "proc" << mrComm.MyPID() << " ln555" << endl;
                 /// calculating the coordinate of the news nodes
 
                 //getting father node 1
@@ -604,18 +577,11 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
                 noalias(Coordinate_New_Node[i]) = 0.50 * (Coord_Node_1 + Coord_Node_2);
                 /// inserting the news node in the model part
 
-                cout << *it_node1 << endl;
-                cout << *it_node2 << endl;
-
-                cout << "proc" << mrComm.MyPID() << " new node id = "<< List_New_Nodes[i] << " coord = " << Coordinate_New_Node[i] << endl;
                 Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
                 pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 
                 it_node1 = this_model_part.NodesBegin() + pos1;
                 it_node2 = this_model_part.NodesBegin() + pos2;
-
-
-                cout << "proc" << mrComm.MyPID() << " ln596" << endl;
 
                 pnode->GetValue(FATHER_NODES).resize(0);
                 pnode->GetValue(FATHER_NODES).push_back(Node < 3 > ::WeakPointer(*it_node1.base()));
@@ -624,7 +590,7 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
                 pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
                 pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());
                 pnode->Z0() = 0.5 * (it_node1->Z0() + it_node2->Z0());
-                cout << "proc" << mrComm.MyPID() << *pnode << endl;
+
 
                 for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
                 {
@@ -639,8 +605,6 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
 
                 }
 
-                cout << "ln 620" << endl;
-
                 ///* intepolating the data
                 unsigned int buffer_size = pnode->GetBufferSize();
                 for (unsigned int step = 0; step < buffer_size; step++)
@@ -654,7 +618,6 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
                         new_step_data[j] = 0.5 * (step_data1[j] + step_data2[j]);
                     }
                 }
-                cout << "ln 635" << endl;
 
                 pnode->FastGetSolutionStepValue(PARTITION_INDEX) = partition_new_nodes[i];
 
@@ -670,8 +633,6 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
 //
 //                    }
 //                }
-
-                cout << "ln 649" << endl;
 
             }
             KRATOS_CATCH("")
@@ -691,26 +652,20 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
             KRATOS_TRY
             boost::numeric::ublas::matrix<int> new_conectivity;
 
+            int total_existing_elements = -1;
+            int local_existing_elements = this_model_part.Elements().size();
+            mrComm.SumAll(&local_existing_elements,&total_existing_elements,1);
+
             Element const rReferenceElement;
             unsigned int to_be_deleted = 0;
-            unsigned int large_id = mtotal_number_of_existing_nodes * 15;
+            unsigned int large_id = total_existing_elements * 15;
             bool create_element = false;
             int edge_ids[3];
             int t[12];
             int nel = 0;
             int splitted_edges = 0;
             int nint = 0;
-            array_1d<int, 6 > aux;
-
-
-            cout << "******************************** cpu " << mrComm.MyPID() << endl;
-            for (ModelPart::ElementsContainerType::iterator it = this_model_part.Elements().begin();
-                    it != this_model_part.Elements().end(); ++it)
-                cout << it->Id() << " ";
-            cout << endl;
-
-            cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
-
+            int aux[6];
 
             ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
             PointerVector< Element > Old_Elements;
@@ -719,53 +674,24 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
             for (ModelPart::ElementsContainerType::iterator it = this_model_part.Elements().begin();
                     it != this_model_part.Elements().end(); ++it)
             {
-                 cout << "el id -->" << it->Id() << endl;
                 for (unsigned int i = 0; i < 12; i++)
                 {
                     t[i] = -1;
                 }
                 Element::GeometryType& geom = it->GetGeometry();
-                Calculate_Edges(geom, p_edge_ids, edge_ids, aux);
-
-//                KRATOS_WATCH(aux);
-//                for(unsigned int k=0;k<3; k++)
-//                    cout << edge_ids[k] << " " ;
-//                cout << endl;
+                Calculate_Triangle_Edges(geom, p_edge_ids, edge_ids, aux);
 
                 ///* crea las nuevas conectividades
                 create_element = Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint);
 
-
-//                cout << "el id -->" << it->Id() << endl;
-
-
-
                 ///* crea los nuevos elementos
                 if (create_element == true)
                 {
-            cout << "el ids" << endl;
-            cout << geom[0].Id() - 1 << endl;
-            cout << geom[1].Id() - 1 << endl;
-            cout << geom[2].Id() - 1 << endl;
-            cout << "nel " << nel << endl;
-
                     to_be_deleted++;
                     for (int i = 0; i < nel; i++)
                     {
-
-                        unsigned int base = i * 3;
-                        unsigned int i0 = aux[t[base]];
-                        unsigned int i1 = aux[t[base + 1]];
-                        unsigned int i2 = aux[t[base + 2]];
-
-//                        cout << " i0 " << i0 << endl;
-//                        cout << this_model_part.Nodes()(i0) << endl;
-//                        cout << " i1 " << i1 << endl;
-//                        cout << this_model_part.Nodes()(i1) << endl;
-//                        cout << " i2 " << i2 << endl;
-//                        cout << this_model_part.Nodes()(i2) << endl;
-
-
+                        int i0,i1,i2;
+			TriangleGetNewConnectivityGID(i, t, aux, &i0,&i1,&i2);
 
                         Triangle2D3<Node < 3 > > geom(
                                 this_model_part.Nodes()(i0),
@@ -782,7 +708,7 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
 
                         /// setting the internal variables in the child elem
                         if (interpolate_internal_variables == true)
-                            InterpolateInteralVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
+                            InterpolateInternalVariables(nel, *it.base(), p_element, rCurrentProcessInfo);
 
                         // Transfer elemental variables
                         p_element->Data() = it->Data();
@@ -797,28 +723,19 @@ cout << "cpu " << mrComm.MyPID() << *(mr_model_part.NodesBegin()) << endl;
                     large_id++;
                 }
 
-                               cout << "finished el id -->" << it->Id() << endl;
-
-
             }
- KRATOS_WATCH("ln716");
-
- if(New_Elements.begin() != New_Elements.end())
-     cout << "new elements were created" << endl;
-
+            
             ///* adding news elements to the model part
             for (PointerVector< Element >::iterator it_new = New_Elements.begin(); it_new != New_Elements.end(); it_new++)
             {
                 this_model_part.Elements().push_back(*(it_new.base()));
             }
- cout << "ln728" << endl;
+ 
             ///* all of the elements to be erased are at the end
             this_model_part.Elements().Sort();
-cout << "ln731" << endl;
+
             ///*now remove all of the "old" elements
             this_model_part.Elements().erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
-
-            cout << "here we need to assign the ids to the elements" << endl;
 
             int number_of_elements_before = -1;
             int number_of_own_elements = this_model_part.Elements().size() ;
@@ -842,7 +759,6 @@ cout << "ln731" << endl;
 //            int total_number_of_nodes = -1;
 //            mrComm.SumAll(&number_of_local_nodes, &total_number_of_nodes, 1);
 
-cout << "ln735" << endl;
 
             KRATOS_CATCH("")
         }
@@ -850,10 +766,10 @@ cout << "ln735" << endl;
         /// ************************************************************************************************
         /// ************************************************************************************************
 
-        void Calculate_Edges(Element::GeometryType& geom,
+        void Calculate_Triangle_Edges(Element::GeometryType& geom,
                 const boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
                 int* edge_ids,
-                array_1d<int, 6 > & aux
+                int aux[6]
                 )
         {
             KRATOS_TRY
@@ -865,85 +781,17 @@ cout << "ln735" << endl;
             aux[1] = geom[1].Id();
             aux[2] = geom[2].Id();
 
-
-
-
             //here we count the new nodes on the local mesh
             int MaxNumEntries = p_edge_ids->MaxNumEntries();
             double * id_values = new double[MaxNumEntries];
             int * Indices = new int[MaxNumEntries];
             int NumEntries;
  
-            //------------------------------------------------------------------------- 
-            if (index_0 > index_1)
-            {
-                int ierr = p_edge_ids->ExtractGlobalRowCopy(index_1, MaxNumEntries, NumEntries, id_values, Indices); //Coord(index_1, index_0);
-                if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-                aux[3] = this->GetValueFromRow(index_1,index_0, NumEntries, Indices, id_values);
-            } else
-            {
-                int ierr = p_edge_ids->ExtractGlobalRowCopy(index_0, MaxNumEntries, NumEntries, id_values, Indices);
-                aux[3] = this->GetValueFromRow(index_0,index_1, NumEntries, Indices, id_values); //Coord(index_0, index_1);
-                if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-            }
+	    aux[3] = GetUpperTriangularMatrixValue(p_edge_ids,index_0, index_1, MaxNumEntries, NumEntries, Indices, id_values);
+	    aux[4] = GetUpperTriangularMatrixValue(p_edge_ids,index_1, index_2, MaxNumEntries, NumEntries, Indices, id_values);
+	    aux[5] = GetUpperTriangularMatrixValue(p_edge_ids,index_2, index_0, MaxNumEntries, NumEntries, Indices, id_values);
 
-            if (index_1 > index_2)
-            {
-                int ierr = p_edge_ids->ExtractGlobalRowCopy(index_2, MaxNumEntries, NumEntries, id_values, Indices); //Coord(index_1, index_0);
-                if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-                aux[4] = this->GetValueFromRow(index_2,index_1, NumEntries, Indices, id_values);
-            } else
-            {
-                int ierr = p_edge_ids->ExtractGlobalRowCopy(index_1, MaxNumEntries, NumEntries, id_values, Indices);
-                aux[4] = this->GetValueFromRow(index_1,index_2, NumEntries, Indices, id_values); //Coord(index_0, index_1);
-                if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-            }
-
-            if (index_2 > index_0)
-            {
-                int ierr = p_edge_ids->ExtractGlobalRowCopy(index_0, MaxNumEntries, NumEntries, id_values, Indices); //Coord(index_1, index_0);
-                if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-                aux[5] = this->GetValueFromRow(index_0,index_2, NumEntries, Indices, id_values);
-            } else
-            {
-                int ierr = p_edge_ids->ExtractGlobalRowCopy(index_2, MaxNumEntries, NumEntries, id_values, Indices);
-                aux[5] = this->GetValueFromRow(index_2,index_0, NumEntries, Indices, id_values); //Coord(index_0, index_1);
-                if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-            }
-
-            /*          if (index_1 > index_2)
-                          aux[4] = Coord(index_2, index_1);
-                      else
-                          aux[4] = Coord(index_1, index_2);
-
-
-                      if (index_2 > index_0)
-                          aux[5] = Coord(index_0, index_2);
-                      else
-                          aux[5] = Coord(index_2, index_0);
-             */
-            //-------------------------------------------------------------------------
-
-            //edge 01
-            if (aux[3] < 0)
-                if (index_0 > index_1) edge_ids[0] = 0;
-                else edge_ids[0] = 1;
-            else
-                edge_ids[0] = 3;
-
-            //edge 12
-            if (aux[4] < 0)
-                if (index_1 > index_2) edge_ids[1] = 1;
-                else edge_ids[1] = 2;
-            else
-                edge_ids[1] = 4;
-
-            //edge 20
-            if (aux[5] < 0)
-                if (index_2 > index_0) edge_ids[2] = 2;
-                else edge_ids[2] = 0;
-            else
-                edge_ids[2] = 5;
+            TriangleSplitMode(aux, edge_ids);
 
 
             KRATOS_CATCH("")
@@ -976,6 +824,24 @@ cout << "ln735" << endl;
                 id_elem++;
             }
 
+            //verify that the nodes are numbered consecutively
+            int local_max_id = (mr_model_part.GetCommunicator().LocalMesh().NodesEnd()-1)->Id();
+            int local_number_of_nodes = mr_model_part.GetCommunicator().LocalMesh().Nodes().size();
+            int max_id=-1;
+            int tot_nnodes = -1;
+            mrComm.MaxAll(&local_max_id,&max_id,1);
+            mrComm.SumAll(&local_number_of_nodes,&tot_nnodes,1);
+            if(max_id != tot_nnodes)
+                KRATOS_ERROR(std::logic_error,"node ids are not consecutive","");
+
+            int tot_elements;
+            int local_max_elem_id = (mr_model_part.Elements().end() -1)->Id();
+            int local_number_of_elem = mr_model_part.Elements().size();
+            mrComm.MaxAll(&local_max_elem_id,&max_id,1);
+            mrComm.SumAll(&local_number_of_elem,&tot_elements,1);
+            if(max_id != tot_elements)
+                KRATOS_ERROR(std::logic_error,"element ids are not consecutive","");
+
             KRATOS_CATCH("")
 
         }
@@ -994,7 +860,7 @@ cout << "ln735" << endl;
         ///this function transfers the Constitutive Law internal variables from the father to the child.
         ///note that this is done through the vector Variable INTERNAL_VARIABLES which should
         ///also contain the geometric data needed for this.
-        void InterpolateInteralVariables(const int& nel,
+        void InterpolateInternalVariables(const int& nel,
                 const Element::Pointer father_elem,
                 Element::Pointer child_elem,
                 ProcessInfo& rCurrentProcessInfo)
@@ -1022,19 +888,296 @@ cout << "ln735" << endl;
                 }
             }
 
-//            cout << "looking for" << row << " " << j << endl;
-//            cout <<"indices ";
-//            for (int i = 0; i < row_size; i++)
-//               cout << indices[i] << " ";
-//            cout <<endl;
-//            cout << "values";
-//            for (int i = 0; i < row_size; i++)
-//               cout << values[i] << " ";
-//            cout <<endl;
             KRATOS_ERROR(std::logic_error, "expected index not found", "")
         }
+        
+        double GetUpperTriangularMatrixValue(const boost::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids, int index_0, int index_1, int& MaxNumEntries, int& NumEntries, int* Indices, double* values)
+        {
+	  double value;
+	  if (index_0 > index_1)
+            {
+                p_edge_ids->ExtractGlobalRowCopy(index_1, MaxNumEntries, NumEntries, values, Indices); //Coord(index_1, index_0);
+                value = this->GetValueFromRow(index_1,index_0, NumEntries, Indices, values);
+            } 
+            else
+            {
+                p_edge_ids->ExtractGlobalRowCopy(index_0, MaxNumEntries, NumEntries, values, Indices);
+                value = this->GetValueFromRow(index_0,index_1, NumEntries, Indices, values); 
+            }
+            return value;
+	  
+	}
+
+               void Erase_Old_Element_And_Create_New_Tetra_Element(
+                ModelPart& this_model_part,
+                const boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
+                PointerVector< Element >& New_Elements
+                )
+        {
+	    if(this_model_part.Elements().size() > 0)
+	    {
+//		  boost::numeric::ublas::matrix<int> new_conectivity;
+
+//		  Element const rReferenceElement;
+		  unsigned int to_be_deleted = 0;
+
+                  int total_existing_elements = -1;
+                    int local_existing_elements = this_model_part.Elements().size();
+                    mrComm.SumAll(&local_existing_elements,&total_existing_elements,1);
+
+		  unsigned int large_id = total_existing_elements * 15;
+		  unsigned int current_id = local_existing_elements + 1;
+		  bool create_element = false;
+
+		  ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+		  int edge_ids[6];
+		  int t[56];
+		  for (unsigned int i = 0; i < 56; i++)
+		  {
+		      t[i] = -1;
+		  }
+		  int nel = 0;
+		  int splitted_edges = 0;
+		  int internal_node = 0;
+
+		  ModelPart::NodesContainerType center_nodes;
+
+		  for (ModelPart::ElementsContainerType::iterator it = this_model_part.ElementsBegin(); it != this_model_part.ElementsEnd(); ++it)
+		  {
+		      //KRATOS_WATCH(it->Id())
+		      Element::GeometryType& geom = it->GetGeometry();
+
+		      int index_0 = geom[0].Id() - 1;
+		      int index_1 = geom[1].Id() - 1;
+		      int index_2 = geom[2].Id() - 1;
+		      int index_3 = geom[3].Id() - 1;
+
+		      //put the global ids in aux
+		      int aux[11];
+		      aux[0] = geom[0].Id();
+		      aux[1] = geom[1].Id();
+		      aux[2] = geom[2].Id();
+		      aux[3] = geom[3].Id();
+
+		      //here we count the new nodes on the local mesh
+		      int MaxNumEntries = p_edge_ids->MaxNumEntries();
+		      double * id_values = new double[MaxNumEntries];
+		      int * Indices = new int[MaxNumEntries];
+		      int NumEntries;
+
+		      aux[4] = GetUpperTriangularMatrixValue(p_edge_ids,index_0, index_1, MaxNumEntries, NumEntries, Indices, id_values);
+		      aux[5] = GetUpperTriangularMatrixValue(p_edge_ids,index_0, index_2, MaxNumEntries, NumEntries, Indices, id_values);
+		      aux[6] = GetUpperTriangularMatrixValue(p_edge_ids,index_0, index_3, MaxNumEntries, NumEntries, Indices, id_values);
+		      aux[7] = GetUpperTriangularMatrixValue(p_edge_ids,index_1, index_2, MaxNumEntries, NumEntries, Indices, id_values);
+		      aux[8] = GetUpperTriangularMatrixValue(p_edge_ids,index_1, index_3, MaxNumEntries, NumEntries, Indices, id_values);
+		      aux[9] = GetUpperTriangularMatrixValue(p_edge_ids,index_2, index_3, MaxNumEntries, NumEntries, Indices, id_values);
+
+		      TetrahedraSplitMode(aux, edge_ids);
+
+		      create_element = Split_Tetrahedra(edge_ids, t, &nel, &splitted_edges, &internal_node);
+
+
+
+		      if (create_element == true)
+		      {
+			  if (internal_node == 1)
+			  {
+			      aux[10] = CreateCenterNode(geom, this_model_part,center_nodes);
+			  }
+
+			  to_be_deleted++;
+			  //create the new connectivity
+			  for (int i = 0; i < nel; i++)
+			  {
+
+			      unsigned int base = i * 4;
+			      unsigned int i0 = aux[t[base]];
+			      unsigned int i1 = aux[t[base + 1]];
+			      unsigned int i2 = aux[t[base + 2]];
+			      unsigned int i3 = aux[t[base + 3]];
+			      // KRATOS_WATCH(i0)
+			      // KRATOS_WATCH(i1)
+			      // KRATOS_WATCH(i2)
+			      // KRATOS_WATCH(i3)
+			      // KRATOS_WATCH("-------------------------------------------" )
+
+
+			      Tetrahedra3D4<Node < 3 > > geom(
+				      this_model_part.Nodes()(i0),
+				      this_model_part.Nodes()(i1),
+				      this_model_part.Nodes()(i2),
+				      this_model_part.Nodes()(i3)
+				      );
+
+			      //generate new element by cloning the base one
+			      Element::Pointer p_element = it->Create(current_id, geom, it->pGetProperties());
+                              p_element->Initialize();
+                              p_element->InitializeSolutionStep(rCurrentProcessInfo);
+                              p_element->FinalizeSolutionStep(rCurrentProcessInfo);
+			      New_Elements.push_back(p_element);
+
+			      // Transfer elemental variables
+			      p_element->Data() = it->Data();
+			      p_element->GetValue(SPLIT_ELEMENT) = false;
+
+			      current_id++;
+
+			  }
+			  it->SetId(large_id);
+			  large_id++;
+		      }
+
+		      for (unsigned int i = 0; i < 32; i++)
+		      {
+			  t[i] = -1;
+		      }
+		  }
+
+		  ///* all of the elements to be erased are at the end
+		  this_model_part.Elements().Sort();
+
+		  ///*now remove all of the "old" elements
+		  this_model_part.Elements().erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
+
+		  unsigned int total_size = this_model_part.Elements().size()+ New_Elements.size();
+		  this_model_part.Elements().reserve(total_size);
+
+		  ///* adding news elements to the model part
+		  for (PointerVector< Element >::iterator it_new = New_Elements.begin(); it_new != New_Elements.end(); it_new++)
+		  {
+
+		      this_model_part.Elements().push_back(*(it_new.base()));
+		  }
+
+		  	    int number_of_elements_before = -1;
+		  int number_of_own_elements = this_model_part.Elements().size() ;
+		  mrComm.ScanSum(&number_of_own_elements, &number_of_elements_before, 1);
+		  number_of_elements_before = number_of_elements_before - number_of_own_elements;
+		  if (number_of_elements_before < 0)
+		      KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
+
+		  int start_elem_id = number_of_elements_before + 1;
+
+		  int id_counter = start_elem_id;
+		  for (ModelPart::ElementsContainerType::iterator it = this_model_part.Elements().begin();
+			  it != this_model_part.Elements().end(); ++it)
+		  {
+		      it->SetId(id_counter++);
+		  }
+
+                  AssignIdToCenterNode(center_nodes);
+
+
+
+
+
+	    }
+
+
+
+        }
+
+        unsigned int CreateCenterNode(Geometry<Node < 3 > >& geom, ModelPart& model_part, ModelPart::NodesContainerType& center_nodes)
+        {
+            //determine a new unique id
+            unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
+
+            //determine the coordinates of the new node
+            double X = (geom[0].X() + geom[1].X() + geom[2].X() + geom[3].X()) / 4.0;
+            double Y = (geom[0].Y() + geom[1].Y() + geom[2].Y() + geom[3].Y()) / 4.0;
+            double Z = (geom[0].Z() + geom[1].Z() + geom[2].Z() + geom[3].Z()) / 4.0;
+
+            double X0 = (geom[0].X0() + geom[1].X0() + geom[2].X0() + geom[3].X0()) / 4.0;
+            double Y0 = (geom[0].Y0() + geom[1].Y0() + geom[2].Y0() + geom[3].Y0()) / 4.0;
+            double Z0 = (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0()) / 4.0;
+
+            //generate the new node
+            Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
+
+            unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
+            pnode->SetBufferSize(buffer_size);
+
+            pnode->X0() = X0;
+            pnode->Y0() = Y0;
+            pnode->Z0() = Z0;
+
+            //add the dofs
+            Node < 3 > ::DofsContainerType& reference_dofs = (model_part.NodesBegin())->GetDofs();
+            unsigned int step_data_size = model_part.GetNodalSolutionStepDataSize();
+
+            for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+            {
+                Node < 3 > ::DofType& rDof = *iii;
+                Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
+
+                //the variables are left as free for the internal node
+                (p_new_dof)->FreeDof();
+
+                /*       if(it_node1->IsFixed(iii->GetVariable()) == true && it_node2->IsFixed(iii->GetVariable()) == true)
+                         (p_new_dof)->FixDof();
+                       else
+                          { (p_new_dof)->FreeDof();}       */
+
+            }
+
+            ///* intepolating the data
+
+            for (unsigned int step = 0; step < buffer_size; step++)
+            {
+                double* new_step_data = pnode->SolutionStepData().Data(step);
+                double* step_data1 = geom[0].SolutionStepData().Data(step);
+                double* step_data2 = geom[1].SolutionStepData().Data(step);
+                double* step_data3 = geom[2].SolutionStepData().Data(step);
+                double* step_data4 = geom[3].SolutionStepData().Data(step);
+                ///*copying this data in the position of the vector we are interested in
+                for (unsigned int j = 0; j < step_data_size; j++)
+                {
+                    new_step_data[j] = 0.25 * (step_data1[j] + step_data2[j] + step_data3[j] + step_data4[j]);
+                }
+            }
+
+            pnode->FastGetSolutionStepValue(PARTITION_INDEX) = mrComm.MyPID();
+
+	    center_nodes.push_back(pnode);
+
+            return new_id;
+        }
+
+        void AssignIdToCenterNode(ModelPart::NodesContainerType& center_nodes)
+        {
+            int total_number_of_nodes_nocenter = 1;
+            int local_number_of_center_nodes = center_nodes.size();
+
+            int rank = mrComm.MyPID();
+
+            int number_of_nodes_before = -1;
+            mrComm.ScanSum(&local_number_of_center_nodes, &number_of_nodes_before, 1);
+            number_of_nodes_before = number_of_nodes_before - local_number_of_center_nodes;
+            if (number_of_nodes_before < 0)
+		      KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
+
+            //find our the total number of nodes (excluding center nodes)
+            int number_of_own_nodes_nocenter = 0;
+            for(ModelPart::NodesContainerType::iterator it=mr_model_part.NodesBegin(); it!=mr_model_part.NodesEnd(); it++)
+                if(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
+                    number_of_own_nodes_nocenter++;
+            number_of_own_nodes_nocenter -= local_number_of_center_nodes;
+            mrComm.SumAll(&number_of_own_nodes_nocenter, &total_number_of_nodes_nocenter, 1);
+
+            int counter = number_of_nodes_before+1;
+            for(ModelPart::NodesContainerType::iterator it=center_nodes.begin(); it!=center_nodes.end(); it++)
+                it->SetId(counter++);
+
+	}
+        
+	
 
     };
+
+
+
+ 
+
 
 
 
