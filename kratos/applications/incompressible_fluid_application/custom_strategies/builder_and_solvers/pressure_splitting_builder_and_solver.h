@@ -64,6 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    ///@addtogroup IncompressibleFluidApplication
+    ///@{
 
     ///@name Kratos classes
     ///@{
@@ -95,8 +97,14 @@ namespace Kratos
      \f[
       \left( L - D S^{-1} G \right) \, \delta p = r_p - D {S}^{-1} \, r_u
      \f]
-     where \f$ S^{-1} \f$ is approximated by \f$ \left( Diag \left( S \right) \right)^{-1} \f$
-     This class is intended to work with ASGS and VMS elements
+     where \f$ S^{-1} \f$ is approximated by \f$ \left( Diag \left( S \right) \right)^{-1} \f$.
+
+     The method implemented by this class is described in J. Cotela, R. Rossi, E. Onate and
+     P. Dadvand A Comparison of Different Parallel Techinques Applied to the Solution of
+     the Navier-Stokes Equations. Second International Conference on Parallel, Grid and
+     Cloud Computing in Engineering, 2011.
+
+     This class is intended to work with ASGS and VMS elements.
      @see ASGS2D, ASGS3D, VMS
      */
     template< class TSparseSpace,
@@ -510,10 +518,12 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        /// Solve one iteration
+        /// Solve one iteration.
         /**
-         @param pScheme Pointer to the time Scheme.
-         @param rModelPart Reference to the ModelPart that contains the problem.
+         The solution is done in several steps, similar to fractional step methods.
+         \n 1- Compute an intermediate velocity.
+         \n 2- Compute the end-of-step pressure.
+         \n 3- Obtain end-of-step velocity.
          @param A Reference to the space reserved for the (pressure) system matrix.
          @param Dx Reference to the space reserved for the vector of unknowns.
          @param b Reference to the space reserved for the RHS vector.
@@ -574,7 +584,6 @@ namespace Kratos
 //                }
 
                 mpVelLinearSystemSolver->Solve(rS, rDVel, rVelRHS);
-// std::cout << "velocity solution" << *(BaseType::mpLinearSystemSolver) << std::endl;
 
                 // 2. Compute Pressure Variation
 #ifndef _OPENMP
@@ -593,10 +602,8 @@ namespace Kratos
                     }
                     mLastPressRHSNorm = PressRHSNorm;
                 }
-/*for(unsigned int i=0; i<A.size1(); i++)
-	std::cout << i << " " << A(i,i) << std::endl;*/
+
                 BaseType::mpLinearSystemSolver->Solve(A, rDPress, rPressRHS);
-// std::cout << "pressure solution" << *(BaseType::mpLinearSystemSolver) << std::endl;
 
                 // 3. Determine End of Step velocity
                 if ( mVelocityCorrection > 0)
@@ -612,7 +619,6 @@ namespace Kratos
                         for (unsigned int i = 0; i < mVelFreeDofs; i++) rVelUpdate[i] = 0.0;
 
                         mpVelLinearSystemSolver->Solve(rS, rVelUpdate, rVelRHS);
-// std::cout << "second velocity solution" << *(BaseType::mpLinearSystemSolver) << std::endl;
                         noalias(rDVel) -= rVelUpdate;
                     }
                 }
@@ -2124,6 +2130,8 @@ namespace Kratos
     };
 
     ///@} // Kratos classes
+
+    ///@} group
 }
 
 #endif	/* KRATOS_PRESSURE_SPLITTING_BUILDER_AND_SOLVER_H */

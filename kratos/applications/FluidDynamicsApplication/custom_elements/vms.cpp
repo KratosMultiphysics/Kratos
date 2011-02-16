@@ -5,43 +5,52 @@ namespace Kratos
     ///@name Specialized implementation of VMS for functions that depend on TDim
     ///@{
 
+    /**
+     @see VMS::EquationIdVector
+     */
     template <>
     void VMS<2>::EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo)
     {
-       const unsigned int NumNodes(3),LocalSize(9);
-       unsigned int LocalIndex = 0;
+        const unsigned int NumNodes(3),LocalSize(9);
+        unsigned int LocalIndex = 0;
 
-       if (rResult.size() != LocalSize)
-           rResult.resize(LocalSize, false);
+        if (rResult.size() != LocalSize)
+            rResult.resize(LocalSize, false);
 
-       for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-       {
-           rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
-           rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
-           rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
-       }
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+        }
     }
 
+    /**
+     @see VMS::EquationIdVector
+     */
     template <>
     void VMS<3>::EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo)
     {
-       const unsigned int NumNodes(4),LocalSize(16);
-       unsigned int LocalIndex = 0;
+        const unsigned int NumNodes(4),LocalSize(16);
+        unsigned int LocalIndex = 0;
 
-       if (rResult.size() != LocalSize)
-           rResult.resize(LocalSize, false);
+        if (rResult.size() != LocalSize)
+            rResult.resize(LocalSize, false);
 
-       for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-       {
-           rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
-           rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
-           rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
-           rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
-       }
+        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+        {
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
+            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+        }
     }
 
+    /**
+     @see VMS::GetDofList
+     */
     template <>
     void VMS<2>::GetDofList(DofsVectorType& rElementalDofList,
                             ProcessInfo& rCurrentProcessInfo)
@@ -60,6 +69,9 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::GetDofList
+     */
     template <>
     void VMS<3>::GetDofList(DofsVectorType& rElementalDofList,
                             ProcessInfo& rCurrentProcessInfo)
@@ -79,6 +91,9 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::GetFirstDerivativesVector
+     */
     template <>
     void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
     {
@@ -97,6 +112,9 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::GetFirstDerivativesVector
+     */
     template <>
     void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
     {
@@ -116,6 +134,9 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::GetSecondDerivativesVector
+     */
     template <>
     void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
     {
@@ -134,6 +155,9 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::GetSecondDerivativesVector
+     */
     template <>
     void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step)
     {
@@ -153,6 +177,9 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::GetValueOnIntegrationPoints
+     */
     template <>
     void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
                                               std::vector<array_1d<double,3> >& rOutput,
@@ -194,6 +221,9 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::GetValueOnIntegrationPoints
+     */
     template <>
     void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
                                               std::vector<array_1d<double,3> >& rOutput,
@@ -237,6 +267,26 @@ namespace Kratos
         }
     }
 
+    /**
+     @see VMS::ElementSize
+     */
+    template <>
+    double VMS<2>::ElementSize(const double Area)
+    {
+//        const double Element_Size = 2.0 * sqrt(Area / 3.14); // This is the element's diameter, 3.14 approximates Pi
+        return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
+    }
+
+    /**
+     @see VMS::ElementSize
+     */
+    template <>
+    double VMS<3>::ElementSize(const double Volume)
+    {
+        return 0.60046878 * pow(Volume,0.333333333333333333333); // Diameter of sphere circumscribed to regular tetrahedron of given volume
+    }
+
+
     template <>
     void VMS<2>::save(Serializer& rSerializer) const
     {
@@ -249,19 +299,6 @@ namespace Kratos
     {
         rSerializer.save("Name","VMS3D");
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
-    }
-
-    template <>
-    double VMS<2>::ElementSize(const double Area)
-    {
-//        const double Element_Size = 2.0 * sqrt(Area / 3.14); // This is the element's diameter, 3.14 approximates Pi
-        return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
-    }
-
-    template <>
-    double VMS<3>::ElementSize(const double Volume)
-    {
-        return 0.60046878 * pow(Volume,0.333333333333333333333); // Diameter of sphere circumscribed to regular tetrahedron of given volume
     }
 
     ///@} // Specialized implementations
