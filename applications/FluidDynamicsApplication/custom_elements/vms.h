@@ -307,9 +307,8 @@ namespace Kratos
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
-            double Density, KinViscosity;
+            double Density;
             this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
             // Calculate Momentum RHS contribution
             this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
@@ -320,11 +319,14 @@ namespace Kratos
                 array_1d<double, 3> AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
 
+                double KinViscosity;
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
 
-                this->AddProjectionToRHS(rRightHandSideVector, TauOne, TauTwo, N, DN_DX, Area);
+                this->AddProjectionToRHS(rRightHandSideVector, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
             }
         }
 
@@ -376,7 +378,7 @@ namespace Kratos
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
 
                 // Add dynamic stabilization terms ( all terms involving a delta(u) )
-                this->AddMassStabTerms<MatrixType> (rMassMatrix, Density, TauOne, N, DN_DX, Area);
+                this->AddMassStabTerms<MatrixType> (rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
             }
         }
 
@@ -421,7 +423,7 @@ namespace Kratos
             double TauOne, TauTwo;
             this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
 
-            this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, KinViscosity, TauOne, TauTwo, N, DN_DX, Area);
+            this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, KinViscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
 
             // Now calculate an additional contribution to the residual: r -= rDampMatrix * (u,p)
             VectorType U = ZeroVector(LocalSize);
@@ -447,7 +449,7 @@ namespace Kratos
                 LocalIndex = 0;
                 boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize> MassStabilization = ZeroMatrix(LocalSize, LocalSize);
 
-                this->AddMassStabTerms<boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize> > (MassStabilization, Density, TauOne, N, DN_DX, Area);
+                this->AddMassStabTerms<boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize> > (MassStabilization, Density, AdvVel, TauOne, N, DN_DX, Area);
 
                 for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
                 {
@@ -849,6 +851,7 @@ namespace Kratos
 
         /// Add OSS projection terms to the RHS
         void AddProjectionToRHS(VectorType& RHS,
+                                const array_1d<double,3>& rAdvVel,
                                 const double TauOne,
                                 const double TauTwo,
                                 const array_1d<double, TNumNodes>& rShapeFunc,
@@ -858,7 +861,7 @@ namespace Kratos
             const unsigned int BlockSize = TDim+1;
 
             array_1d<double, TNumNodes> AGradN;
-            this->GetConvectionOperator(AGradN, rShapeFunc, rShapeDeriv); // Get a * grad(Ni)
+            this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
             // Add to the ouptut vector
             unsigned int FirstRow(0); // Position of the term we want to add to
@@ -915,7 +918,9 @@ namespace Kratos
         /// Add mass-like stabilization terms to LHS
         template < class TMatrixType >
         void AddMassStabTerms(TMatrixType& rLHSMatrix,
-                              const double Density, const double TauOne,
+                              const double Density,
+                              const array_1d<double,3>& rAdvVel,
+                              const double TauOne,
                               const array_1d<double, TNumNodes>& rShapeFunc,
                               const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
                               const double Weight)
@@ -928,7 +933,7 @@ namespace Kratos
 
             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
             array_1d<double, TNumNodes> AGradN;
-            this->GetConvectionOperator(AGradN, rShapeFunc, rShapeDeriv); // Get a * grad(Ni)
+            this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
             // Note: Dof order is (vx,vy,[vz,]p) for each node
             for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -959,6 +964,7 @@ namespace Kratos
                                                      VectorType& rDampRHS,
                                                      const double Density,
                                                      const double KinViscosity,
+                                                     const array_1d< double,3 >& rAdvVel,
                                                      const double TauOne,
                                                      const double TauTwo,
                                                      const array_1d< double, TNumNodes >& rShapeFunc,
@@ -969,7 +975,7 @@ namespace Kratos
 
             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
             array_1d<double, TNumNodes> AGradN;
-            this->GetConvectionOperator(AGradN, rShapeFunc, rShapeDeriv); // Get a * grad(Ni)
+            this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
             // Get total viscosity (as given by Smagorinsky)
             double Viscosity;
@@ -1067,7 +1073,7 @@ namespace Kratos
         {
             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
             array_1d<double, TNumNodes> AGradN;
-            this->GetConvectionOperator(AGradN, rShapeFunc, rShapeDeriv); // Get a * grad(Ni)
+            this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
             const double WeightedMass = Weight * Density;
 
@@ -1151,8 +1157,8 @@ namespace Kratos
          * @param Step: The time Step (Defaults to 0 = Current)
          */
         virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
-                             const array_1d< double, TNumNodes >& rShapeFunc,
-                             const std::size_t Step = 0)
+                                     const array_1d< double, TNumNodes >& rShapeFunc,
+                                     const std::size_t Step = 0)
         {
             // Compute the weighted value of the advective velocity in the (Gauss) Point
             rAdvVel = rShapeFunc[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,Step) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY,Step));
@@ -1164,24 +1170,21 @@ namespace Kratos
         /**
          * Evaluate the convective operator for each node's shape function at an arbitrary point
          * @param rResult: Output vector
-         * @param rShapeFunc: Shape functions evaluated at the integration point
+         * @param rVelocity: Velocity evaluated at the integration point
          * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
+         * @see GetAdvectiveVel provides rVelocity
          */
         void GetConvectionOperator(array_1d< double, TNumNodes >& rResult,
-                                   const array_1d< double, TNumNodes>& rShapeFunc,
+                                   const array_1d< double, 3>& rVelocity,
                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
         {
-            // Evaluate the convective velocity at the integration point
-            array_1d< double, 3> AGauss;
-            this->GetAdvectiveVel(AGauss, rShapeFunc);
-
             // Evaluate (and weight) the a * Grad(Ni) operator in the integration point, for each node i
             for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) // Loop over nodes
             {
                 // Initialize result
-                rResult[iNode] = AGauss[0] * rShapeDeriv(iNode, 0);
+                rResult[iNode] = rVelocity[0] * rShapeDeriv(iNode, 0);
                 for (unsigned int d = 1; d < TDim; ++d) // loop over components
-                    rResult[iNode] += AGauss[d] * rShapeDeriv(iNode, d);
+                    rResult[iNode] += rVelocity[d] * rShapeDeriv(iNode, d);
             }
         }
 
