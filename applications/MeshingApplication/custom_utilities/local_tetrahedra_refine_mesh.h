@@ -444,243 +444,244 @@ namespace Kratos
                 PointerVector< Element >& New_Elements
                 )
         {
+	    if(this_model_part.Elements().size() > 0)
+	    {
+		  boost::numeric::ublas::matrix<int> new_conectivity;
+		  ElementsArrayType& rElements = this_model_part.Elements();
+		  ElementsArrayType::iterator it_begin = rElements.ptr_begin();
+		  ElementsArrayType::iterator it_end = rElements.ptr_end();
+		  Element const rReferenceElement;
+		  unsigned int to_be_deleted = 0;
+		  unsigned int large_id = (rElements.end() - 1)->Id() * 15;
+		  unsigned int current_id = (rElements.end() - 1)->Id() + 1;
+		  bool create_element = false;
 
-            boost::numeric::ublas::matrix<int> new_conectivity;
-            ElementsArrayType& rElements = this_model_part.Elements();
-            ElementsArrayType::iterator it_begin = rElements.ptr_begin();
-            ElementsArrayType::iterator it_end = rElements.ptr_end();
-            Element const rReferenceElement;
-            unsigned int to_be_deleted = 0;
-            unsigned int large_id = (rElements.end() - 1)->Id() * 15;
-            unsigned int current_id = (rElements.end() - 1)->Id() + 1;
-            bool create_element = false;
+		  ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+		  int edge_ids[6];
+		  int t[56];
+		  for (unsigned int i = 0; i < 56; i++)
+		  {
+		      t[i] = -1;
+		  }
+		  int nel = 0;
+		  int splitted_edges = 0;
+		  int internal_node = 0;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
-            int edge_ids[6];
-            int t[56];
-            for (unsigned int i = 0; i < 56; i++)
-            {
-                t[i] = -1;
-            }
-            int nel = 0;
-            int splitted_edges = 0;
-            int internal_node = 0;
+		  for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+		  {
+		      //KRATOS_WATCH(it->Id())
+		      Element::GeometryType& geom = it->GetGeometry();
 
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-            {
-                //KRATOS_WATCH(it->Id())
-                Element::GeometryType& geom = it->GetGeometry();
+		      int index_0 = geom[0].Id() - 1;
+		      int index_1 = geom[1].Id() - 1;
+		      int index_2 = geom[2].Id() - 1;
+		      int index_3 = geom[3].Id() - 1;
 
-                int index_0 = geom[0].Id() - 1;
-                int index_1 = geom[1].Id() - 1;
-                int index_2 = geom[2].Id() - 1;
-                int index_3 = geom[3].Id() - 1;
+		      //put the global ids in aux
+		      array_1d<int, 11 > aux;
+		      aux[0] = geom[0].Id();
+		      aux[1] = geom[1].Id();
+		      aux[2] = geom[2].Id();
+		      aux[3] = geom[3].Id();
 
-                //put the global ids in aux
-                array_1d<int, 11 > aux;
-                aux[0] = geom[0].Id();
-                aux[1] = geom[1].Id();
-                aux[2] = geom[2].Id();
-                aux[3] = geom[3].Id();
-
-                if (index_0 > index_1)
-                    aux[4] = Coord(index_1, index_0);
-                else
-                    aux[4] = Coord(index_0, index_1);
-
-
-                if (index_0 > index_2)
-                    aux[5] = Coord(index_2, index_0);
-                else
-                    aux[5] = Coord(index_0, index_2);
+		      if (index_0 > index_1)
+			  aux[4] = Coord(index_1, index_0);
+		      else
+			  aux[4] = Coord(index_0, index_1);
 
 
-                if (index_0 > index_3)
-                    aux[6] = Coord(index_3, index_0);
-                else
-                    aux[6] = Coord(index_0, index_3);
+		      if (index_0 > index_2)
+			  aux[5] = Coord(index_2, index_0);
+		      else
+			  aux[5] = Coord(index_0, index_2);
 
 
-                if (index_1 > index_2)
-                    aux[7] = Coord(index_2, index_1);
-                else
-                    aux[7] = Coord(index_1, index_2);
+		      if (index_0 > index_3)
+			  aux[6] = Coord(index_3, index_0);
+		      else
+			  aux[6] = Coord(index_0, index_3);
 
 
-                if (index_1 > index_3)
-                    aux[8] = Coord(index_3, index_1);
-                else
-                    aux[8] = Coord(index_1, index_3);
+		      if (index_1 > index_2)
+			  aux[7] = Coord(index_2, index_1);
+		      else
+			  aux[7] = Coord(index_1, index_2);
 
 
-                if (index_2 > index_3)
-                    aux[9] = Coord(index_3, index_2);
-                else
-                    aux[9] = Coord(index_2, index_3);
-
-                // KRATOS_WATCH(   it->Id() );
-                // KRATOS_WATCH(index_0);
-                // KRATOS_WATCH(index_1);
-                // KRATOS_WATCH(index_2);
-                // KRATOS_WATCH(index_3);
-                // KRATOS_WATCH(   aux );
-
-                ///**************************************************
-
-                //edge 01
-                if (aux[4] < 0)
-                    if (index_0 > index_1) edge_ids[0] = 0;
-                    else edge_ids[0] = 1;
-                else
-                    edge_ids[0] = 4;
-
-                //edge 02
-                if (aux[5] < 0)
-                    if (index_0 > index_2) edge_ids[1] = 0;
-                    else edge_ids[1] = 2;
-                else
-                    edge_ids[1] = 5;
-
-                //edge 03
-                if (aux[6] < 0)
-                    if (index_0 > index_3) edge_ids[2] = 0;
-                    else edge_ids[2] = 3;
-                else
-                    edge_ids[2] = 6;
-
-                //edge 12
-                if (aux[7] < 0)
-                    if (index_1 > index_2) edge_ids[3] = 1;
-                    else edge_ids[3] = 2;
-                else
-                    edge_ids[3] = 7;
-
-                //edge 13
-                if (aux[8] < 0)
-                    if (index_1 > index_3) edge_ids[4] = 1;
-                    else edge_ids[4] = 3;
-                else
-                    edge_ids[4] = 8;
-
-                //edge 23
-                if (aux[9] < 0)
-                    if (index_2 > index_3) edge_ids[5] = 2;
-                    else edge_ids[5] = 3;
-                else
-                    edge_ids[5] = 9;
-
-                //do the split
-                //           for (unsigned int i = 0; i<6; i++) { std::cout<< "edges[" << i << "] = " << edge_ids[i] << std::endl;}
-                //           KRATOS_WATCH("-------------------------------------------" )
+		      if (index_1 > index_3)
+			  aux[8] = Coord(index_3, index_1);
+		      else
+			  aux[8] = Coord(index_1, index_3);
 
 
-                create_element = Split(edge_ids, t, &nel, &splitted_edges, &internal_node);
+		      if (index_2 > index_3)
+			  aux[9] = Coord(index_3, index_2);
+		      else
+			  aux[9] = Coord(index_2, index_3);
 
-                if (internal_node == 1)
-                {
-                    // 	    std::cout << "creating internal node" << std::endl;
-                    //generate new internal node
-                    aux[10] = CreateCenterNode(geom, this_model_part);
-		    
-		    bool verified = false;
-		    for(int iii=0; iii<nel*4; iii++)
-		      if(t[iii] == 10)
-			verified = true;
-		      
-		    if(verified == false)
-		    {
-		      KRATOS_WATCH(nel);
-			for(int iii=0; iii<nel*4; iii++)
-			  std::cout << t[iii] << std::endl;
-			
-		      KRATOS_ERROR(std::logic_error,"internal node is created but not used","");
-		    }
-		    
-                }
+		      // KRATOS_WATCH(   it->Id() );
+		      // KRATOS_WATCH(index_0);
+		      // KRATOS_WATCH(index_1);
+		      // KRATOS_WATCH(index_2);
+		      // KRATOS_WATCH(index_3);
+		      // KRATOS_WATCH(   aux );
 
-                /*		KRATOS_ERROR(std::logic_error,"case not handled","");   */
-                /*KRATOS_WATCH(splitted_edges);
-                KRATOS_WATCH(internal_node);*/
-                //           KRATOS_WATCH(aux)
-                //KRATOS_WATCH(splitted_edges)
+		      ///**************************************************
 
-                //           for (unsigned int i = 0; i<56; i++) { std::cout<< "t[" << i << "] = " << t[i] << std::endl;}
-                //           KRATOS_WATCH("-------------------------------------------" )
+		      //edge 01
+		      if (aux[4] < 0)
+			  if (index_0 > index_1) edge_ids[0] = 0;
+			  else edge_ids[0] = 1;
+		      else
+			  edge_ids[0] = 4;
+
+		      //edge 02
+		      if (aux[5] < 0)
+			  if (index_0 > index_2) edge_ids[1] = 0;
+			  else edge_ids[1] = 2;
+		      else
+			  edge_ids[1] = 5;
+
+		      //edge 03
+		      if (aux[6] < 0)
+			  if (index_0 > index_3) edge_ids[2] = 0;
+			  else edge_ids[2] = 3;
+		      else
+			  edge_ids[2] = 6;
+
+		      //edge 12
+		      if (aux[7] < 0)
+			  if (index_1 > index_2) edge_ids[3] = 1;
+			  else edge_ids[3] = 2;
+		      else
+			  edge_ids[3] = 7;
+
+		      //edge 13
+		      if (aux[8] < 0)
+			  if (index_1 > index_3) edge_ids[4] = 1;
+			  else edge_ids[4] = 3;
+		      else
+			  edge_ids[4] = 8;
+
+		      //edge 23
+		      if (aux[9] < 0)
+			  if (index_2 > index_3) edge_ids[5] = 2;
+			  else edge_ids[5] = 3;
+		      else
+			  edge_ids[5] = 9;
+
+		      //do the split
+		      //           for (unsigned int i = 0; i<6; i++) { std::cout<< "edges[" << i << "] = " << edge_ids[i] << std::endl;}
+		      //           KRATOS_WATCH("-------------------------------------------" )
 
 
-                if (create_element == true)
-                {
+		      create_element = Split_Tetrahedra(edge_ids, t, &nel, &splitted_edges, &internal_node);
 
-                    to_be_deleted++;
-                    //create the new connectivity
-                    for (int i = 0; i < nel; i++)
-                    {
+		      if (internal_node == 1)
+		      {
+			  // 	    std::cout << "creating internal node" << std::endl;
+			  //generate new internal node
+			  aux[10] = CreateCenterNode(geom, this_model_part);
+			  
+			  bool verified = false;
+			  for(int iii=0; iii<nel*4; iii++)
+			    if(t[iii] == 10)
+			      verified = true;
+			    
+			  if(verified == false)
+			  {
+			    KRATOS_WATCH(nel);
+			      for(int iii=0; iii<nel*4; iii++)
+				std::cout << t[iii] << std::endl;
+			      
+			    KRATOS_ERROR(std::logic_error,"internal node is created but not used","");
+			  }
+			  
+		      }
 
-                        unsigned int base = i * 4;
-                        unsigned int i0 = aux[t[base]];
-                        unsigned int i1 = aux[t[base + 1]];
-                        unsigned int i2 = aux[t[base + 2]];
-                        unsigned int i3 = aux[t[base + 3]];
-                        // KRATOS_WATCH(i0)
-                        // KRATOS_WATCH(i1)
-                        // KRATOS_WATCH(i2)
-                        // KRATOS_WATCH(i3)
-                        // KRATOS_WATCH("-------------------------------------------" )
+		      /*		KRATOS_ERROR(std::logic_error,"case not handled","");   */
+		      /*KRATOS_WATCH(splitted_edges);
+		      KRATOS_WATCH(internal_node);*/
+		      //           KRATOS_WATCH(aux)
+		      //KRATOS_WATCH(splitted_edges)
+
+		      //           for (unsigned int i = 0; i<56; i++) { std::cout<< "t[" << i << "] = " << t[i] << std::endl;}
+		      //           KRATOS_WATCH("-------------------------------------------" )
 
 
-                        Tetrahedra3D4<Node < 3 > > geom(
-                                this_model_part.Nodes()(i0),
-                                this_model_part.Nodes()(i1),
-                                this_model_part.Nodes()(i2),
-                                this_model_part.Nodes()(i3)
-                                );
+		      if (create_element == true)
+		      {
 
-                        //generate new element by cloning the base one
-                        Element::Pointer p_element;
-                        p_element = it->Create(current_id, geom, it->pGetProperties());
-                        New_Elements.push_back(p_element);
+			  to_be_deleted++;
+			  //create the new connectivity
+			  for (int i = 0; i < nel; i++)
+			  {
 
-                        // Transfer elemental variables
-                        p_element->Data() = it->Data();
-                        p_element->GetValue(SPLIT_ELEMENT) = false;
+			      unsigned int base = i * 4;
+			      unsigned int i0 = aux[t[base]];
+			      unsigned int i1 = aux[t[base + 1]];
+			      unsigned int i2 = aux[t[base + 2]];
+			      unsigned int i3 = aux[t[base + 3]];
+			      // KRATOS_WATCH(i0)
+			      // KRATOS_WATCH(i1)
+			      // KRATOS_WATCH(i2)
+			      // KRATOS_WATCH(i3)
+			      // KRATOS_WATCH("-------------------------------------------" )
 
-                        current_id++;
 
-                    }
-                    it->SetId(large_id);
-                    large_id++;
-                }
+			      Tetrahedra3D4<Node < 3 > > geom(
+				      this_model_part.Nodes()(i0),
+				      this_model_part.Nodes()(i1),
+				      this_model_part.Nodes()(i2),
+				      this_model_part.Nodes()(i3)
+				      );
 
-                for (unsigned int i = 0; i < 32; i++)
-                {
-                    t[i] = -1;
-                }
-            }
-            
-            ///* all of the elements to be erased are at the end
-            rElements.Sort();
+			      //generate new element by cloning the base one
+			      Element::Pointer p_element;
+			      p_element = it->Create(current_id, geom, it->pGetProperties());
+			      New_Elements.push_back(p_element);
 
-            ///*now remove all of the "old" elements
-            rElements.erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
-	    
-	    unsigned int total_size = this_model_part.Elements().size()+ New_Elements.size();
-	    this_model_part.Elements().reserve(total_size);
+			      // Transfer elemental variables
+			      p_element->Data() = it->Data();
+			      p_element->GetValue(SPLIT_ELEMENT) = false;
 
-            ///* adding news elements to the model part
-            for (PointerVector< Element >::iterator it_new = New_Elements.begin(); it_new != New_Elements.end(); it_new++)
-            {
-                it_new->Initialize();
-                it_new->InitializeSolutionStep(rCurrentProcessInfo);
-                it_new->FinalizeSolutionStep(rCurrentProcessInfo);
-                rElements.push_back(*(it_new.base()));
-            }
-            
-//             //renumber
-// 	    unsigned int my_index = 1;
-// 	    for(ModelPart::ElementsContainerType::iterator it=this_model_part.ElementsBegin(); it!=this_model_part.ElementsEnd(); it++)
-// 	      it->SetId(my_index++);
+			      current_id++;
 
-            
+			  }
+			  it->SetId(large_id);
+			  large_id++;
+		      }
+
+		      for (unsigned int i = 0; i < 32; i++)
+		      {
+			  t[i] = -1;
+		      }
+		  }
+		  
+		  ///* all of the elements to be erased are at the end
+		  rElements.Sort();
+
+		  ///*now remove all of the "old" elements
+		  rElements.erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
+		  
+		  unsigned int total_size = this_model_part.Elements().size()+ New_Elements.size();
+		  this_model_part.Elements().reserve(total_size);
+
+		  ///* adding news elements to the model part
+		  for (PointerVector< Element >::iterator it_new = New_Elements.begin(); it_new != New_Elements.end(); it_new++)
+		  {
+		      it_new->Initialize();
+		      it_new->InitializeSolutionStep(rCurrentProcessInfo);
+		      it_new->FinalizeSolutionStep(rCurrentProcessInfo);
+		      rElements.push_back(*(it_new.base()));
+		  }
+		  
+      //             //renumber
+      // 	    unsigned int my_index = 1;
+      // 	    for(ModelPart::ElementsContainerType::iterator it=this_model_part.ElementsBegin(); it!=this_model_part.ElementsEnd(); it++)
+      // 	      it->SetId(my_index++);
+
+	    }
 
         }
 
@@ -765,97 +766,101 @@ namespace Kratos
                 ModelPart& this_model_part,
                 const compressed_matrix<int>& Coord
                 )
-
         {
             PointerVector< Condition > New_Conditions;
 
 	    ConditionsArrayType& rConditions = this_model_part.Conditions();
-            ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
-            ConditionsArrayType::iterator it_end = rConditions.ptr_end();
-            unsigned int to_be_deleted = 0;
-            unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
-            int  edge_ids[3];       
-	    int  t[12];       
-	    int  nel             = 0;
-	    int  splitted_edges  = 0; 
-	    int  nint            = 0;
-	    array_1d<int,6> aux;
+	    
+	    if(rConditions.size() > 0)
+	    {
+		ConditionsArrayType::iterator it_begin = rConditions.ptr_begin();
+		ConditionsArrayType::iterator it_end = rConditions.ptr_end();
+		unsigned int to_be_deleted = 0;
+		unsigned int large_id = (rConditions.end() - 1)->Id() * 7;
+		int  edge_ids[3];       
+		int  t[12];       
+		int  nel             = 0;
+		int  splitted_edges  = 0; 
+		int  nint            = 0;
+		array_1d<int,6> aux;
 
-            ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+		ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
 
-            unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
-            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
-            {
+		unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
+		for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
+		{
 
-                Condition::GeometryType& geom = it->GetGeometry();
+		    Condition::GeometryType& geom = it->GetGeometry();
 
-                if (geom.size() == 3)
-                {
-		    Calculate_Edges(geom, Coord, edge_ids, aux);
-		    
-                    ///* crea las nuevas conectividades
-		    bool create_condition =  Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint); 
-
-		    ///* crea los nuevos elementos           
-		    if(create_condition==true)
+		    if (geom.size() == 3)
 		    {
-		      to_be_deleted++;  
-		      for(int i=0; i<nel; i++)
+			Calculate_Edges(geom, Coord, edge_ids, aux);
+			
+			///* crea las nuevas conectividades
+			bool create_condition =  Split_Triangle(edge_ids, t, &nel, &splitted_edges, &nint); 
+
+			///* crea los nuevos elementos           
+			if(create_condition==true)
 			{
-			  
-			  unsigned int base = i * 3;
-			  unsigned int i0   = aux[t[base]];
-			  unsigned int i1   = aux[t[base+1]];
-			  unsigned int i2   = aux[t[base+2]];
-
-			  Triangle3D3<Node<3> > newgeom(
-							this_model_part.Nodes()(i0),
-							this_model_part.Nodes()(i1),
-							this_model_part.Nodes()(i2) 
-							);
-
+			  to_be_deleted++;  
+			  for(int i=0; i<nel; i++)
+			    {
 			      
-			      Condition::Pointer pcond = it->Create(current_id, newgeom, it->pGetProperties());
-			      
-			      const int is_slip = it->GetValue(IS_STRUCTURE);
-			      pcond->GetValue(IS_STRUCTURE) = is_slip;
-		
-			      New_Conditions.push_back(pcond);
-			      current_id++; 
-						
-		      }
-			it->SetId(large_id);   
-			large_id++;
+			      unsigned int base = i * 3;
+			      unsigned int i0   = aux[t[base]];
+			      unsigned int i1   = aux[t[base+1]];
+			      unsigned int i2   = aux[t[base+2]];
+
+			      Triangle3D3<Node<3> > newgeom(
+							    this_model_part.Nodes()(i0),
+							    this_model_part.Nodes()(i1),
+							    this_model_part.Nodes()(i2) 
+							    );
+
+				  
+				  Condition::Pointer pcond = it->Create(current_id, newgeom, it->pGetProperties());
+				  
+				  const int is_slip = it->GetValue(IS_STRUCTURE);
+				  pcond->GetValue(IS_STRUCTURE) = is_slip;
+		    
+				  New_Conditions.push_back(pcond);
+				  current_id++; 
+						    
+			  }
+			    it->SetId(large_id);   
+			    large_id++;
+			}
 		    }
 		}
-	    }
-            	    
-            ///* all of the elements to be erased are at the end
-            this_model_part.Conditions().Sort();
+			
+		///* all of the elements to be erased are at the end
+		this_model_part.Conditions().Sort();
 
-            ///*now remove all of the "old" elements
-            this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
+		///*now remove all of the "old" elements
+		this_model_part.Conditions().erase(this_model_part.Conditions().end() - to_be_deleted, this_model_part.Conditions().end());
 
-	    unsigned int total_size = this_model_part.Conditions().size()+ New_Conditions.size();
-	    this_model_part.Conditions().reserve(total_size);
-	    
+		unsigned int total_size = this_model_part.Conditions().size()+ New_Conditions.size();
+		this_model_part.Conditions().reserve(total_size);
+		
 
-            ///* adding news elements to the model part
-            //Vector temp;
-            for (PointerVector< Condition >::iterator it_new = New_Conditions.begin(); it_new != New_Conditions.end(); it_new++)
-            {
+		///* adding news elements to the model part
+		//Vector temp;
+		for (PointerVector< Condition >::iterator it_new = New_Conditions.begin(); it_new != New_Conditions.end(); it_new++)
+		{
 
-                it_new->Initialize();
-                it_new->InitializeSolutionStep(rCurrentProcessInfo);
-                 it_new->FinalizeSolutionStep(rCurrentProcessInfo);
-                this_model_part.Conditions().push_back(*(it_new.base()));
-            }
-            
-            //renumber
-	    unsigned int my_index = 1;
-	    for(ModelPart::ConditionsContainerType::iterator it=this_model_part.ConditionsBegin(); it!=this_model_part.ConditionsEnd(); it++)
+		    it_new->Initialize();
+		    it_new->InitializeSolutionStep(rCurrentProcessInfo);
+		    it_new->FinalizeSolutionStep(rCurrentProcessInfo);
+		    this_model_part.Conditions().push_back(*(it_new.base()));
+		}
+		
+		//renumber
+		unsigned int my_index = 1;
+		for(ModelPart::ConditionsContainerType::iterator it=this_model_part.ConditionsBegin(); it!=this_model_part.ConditionsEnd(); it++)
 	      it->SetId(my_index++);
+	    
+	    }
 
         }
 
