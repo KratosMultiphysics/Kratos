@@ -131,16 +131,22 @@ namespace Kratos
       ///@{
 	//IntegrationMethod GetIntegrationMethod();
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+      
+      ///Evaluates  \f$ L h s = \frac{\rho C}{\Delta t} (W, N) + (W, v. \nabla N) + \kappa (\nabla W, \nabla N)  \f$ and \f$R h s = \rho (W, Q) + \frac{\rho C}{\Delta t} (W, T^n) - L h s \ast T \f$
+
+
 
       void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       
       void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
       //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
+
+      ///Provides the global indices for each one of this element's local rows. @see NoNewtonianASGS2D 
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
+      ///Returns a list of the element's Dofs. @see NoNewtonianASGS2D 
 	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-
+	/// Calculates the temperature convective projection 
 	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
       ///@}
