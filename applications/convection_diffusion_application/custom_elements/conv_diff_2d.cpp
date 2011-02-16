@@ -363,6 +363,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
+
 	void ConvDiff2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 	{
 		ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
