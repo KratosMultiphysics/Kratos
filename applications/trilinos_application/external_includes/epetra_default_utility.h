@@ -199,7 +199,7 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      EpetraDefaultSetter& operator=(EpetraDefaultSetter const& rOther){}
+      EpetraDefaultSetter& operator=(EpetraDefaultSetter const& rOther){return *this;}
 
       /// Copy constructor.
       EpetraDefaultSetter(EpetraDefaultSetter const& rOther){}
