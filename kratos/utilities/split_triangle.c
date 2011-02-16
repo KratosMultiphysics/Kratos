@@ -17,47 +17,48 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-///this class performs the splitting of a triangle.
-/** The class contains three helper functions to ease the splitting:
- * TriangleSplitMode, Split_Triangle, and TriangleGetNewConnectivityGID
- * EXAMPLE: imagine that an user would like to split a triangle formed
- * by the ids 3 9 7 by introducing a new node 15 on the edge between 3 and 9
- * he should define
- * int aux[6]
- * int edge_ids[3]
- * int t[12]
- * then initialize
- * aux[0] = 3; aux[1] = 9; aux[2] = 7;
- * aux[3] = 15; //node on edge 01 --> edge to be refined
- * aux[4] = -1; //node on edge 12 -->edge not to be refined
- * aux[5] = -1; //node on edge 20 -->edge not to be refined
- * then call
+/** @file split_triangle.c
+ * @brief The class contains three helper functions to ease the splitting: \n
+ * TriangleSplitMode, Split_Triangle, and TriangleGetNewConnectivityGID\n
+ * EXAMPLE: imagine that an user would like to split a triangle formed\n
+ * by the ids 3 9 7 by introducing a new node 15 on the edge between 3 and 9\n
+ * he should define\n
+ * int aux[6]\n
+ * int edge_ids[3]\n
+ * int t[12]\n
+ * then initialize\n
+ * aux[0] = 3; aux[1] = 9; aux[2] = 7;\n
+ * aux[3] = 15; //node on edge 01 --> edge to be refined\n
+ * aux[4] = -1; //node on edge 12 -->edge not to be refined\n
+ * aux[5] = -1; //node on edge 20 -->edge not to be refined\n
+ * then call\n
  *
- * TriangleSplitMode(edge_ids,aux)
- * int nel; //number of nodes generated
- * int number_splitted_edges; //number of splitted edges
- * int nint; //number of internal nodes
- * bools split_needed = Split_Triangle(edge_ids,t, &nel, &number_splitted_edges, &nint)
+ * TriangleSplitMode(edge_ids,aux)\n
+ * int nel; //number of nodes generated\n
+ * int number_splitted_edges; //number of splitted edges\n
+ * int nint; //number of internal nodes\n
+ * bools split_needed = Split_Triangle(edge_ids,t, &nel, &number_splitted_edges, &nint)\n
  *
- * the new triangles ids can be then inspected by
- * for(int i=0; i<nel; i++)
- * {
- *     int i0,i1,i2;
- *     TriangleGetNewConnectivityGID(i, t, aux, &i0,&i1,&i2);
- * }
+ * the new triangles ids can be then inspected by\n
+ * for(int i=0; i<nel; i++)\n
+ * {\n
+ *     int i0,i1,i2;\n
+ *     TriangleGetNewConnectivityGID(i, t, aux, &i0,&i1,&i2);\n
+ * }\n
  */
 
-/**this function computes the splitting mode for the triangle
- *@param aux_ids contains a vector with the input Ids, organized as follows:
- *		aux_ids[0] = id of FIRST node of the original triangle
- *		aux_ids[1] = id of SECOND node of the original triangle
- *		aux_ids[2] = id of THIRD node of the original triangle
- *		aux_ids[4] = id of new node to be used for the edge 01 (-1 if edge not to be splitted)
- *		aux_ids[5] = id of new node to be used for the edge 12 (-1 if edge not to be splitted)
- *		aux_ids[6] = id of new node to be used for the edge 20 (-1 if edge not to be splitted)
- *		given this data it fills an auxiliary vector of size 3 that will be used in the splitting
- *@param edge_ids this is an auxiliary array with the local numbering. It is necessary for
- * 		the split_triangle function
+/**
+ * this function computes the splitting mode for the triangle\n
+ *@param aux_ids contains a vector with the input Ids, organized as follows:\n
+ *		aux_ids[0] = id of FIRST node of the original triangle\n
+ *		aux_ids[1] = id of SECOND node of the original triangle\n
+ *		aux_ids[2] = id of THIRD node of the original triangle\n
+ *		aux_ids[4] = id of new node to be used for the edge 01 (-1 if edge not to be splitted)\n
+ *		aux_ids[5] = id of new node to be used for the edge 12 (-1 if edge not to be splitted)\n
+ *		aux_ids[6] = id of new node to be used for the edge 20 (-1 if edge not to be splitted)\n
+ *		given this data it fills an auxiliary vector of size 3 that will be used in the splitting\n
+ *@param edge_ids this is an auxiliary array with the local numbering. It is necessary for\n
+ * 		the split_triangle function\n
  */
 void TriangleSplitMode(const int aux_ids[6], int edge_ids[3]) {
     //edge 01
@@ -82,14 +83,14 @@ void TriangleSplitMode(const int aux_ids[6], int edge_ids[3]) {
         edge_ids[2] = 5;
 }
 
-/**utility function to get the global ids for the new triangles to be generated
- *@param triangle_index --> the index of the new triangle to be generated
- *		(Should be less than the number nel provided by Split_Triangle)
- *@param t --> integer array provided by Split_Triangle
- *@param aux_ids --> array used in constructing the edge_ids (contains the Global Ids of the new nodes)
- *@param id0 --> Global ID of node0 of the new triangle
- *@param id1 --> Global ID of node1 of the new triangle
- *@param id2 --> Global ID of node2 of the new triangle
+/**utility function to get the global ids for the new triangles to be generated\n
+ *@param triangle_index --> the index of the new triangle to be generated\n
+ *		(Should be less than the number nel provided by Split_Triangle)\n
+ *@param t --> integer array provided by Split_Triangle\n
+ *@param aux_ids --> array used in constructing the edge_ids (contains the Global Ids of the new nodes)\n
+ *@param id0 --> Global ID of node0 of the new triangle\n
+ *@param id1 --> Global ID of node1 of the new triangle\n
+ *@param id2 --> Global ID of node2 of the new triangle\n
  */
 inline void TriangleGetNewConnectivityGID(const int triangle_index,
         const int t[12],
@@ -105,12 +106,12 @@ inline void TriangleGetNewConnectivityGID(const int triangle_index,
 ///Utility to split triangles
 
 /**
- * @param edges --> (input) int c array of size 3
- * @param t  --> (output) int c array of size 12 (3*4)
- * @param nel --> (output) number of elements in the subdivision
- * @param splitted_edges --> (output) provides the number of splitted edges
- * @param nint --> (output)  internal node (not needed for triangles)
- * @return true->splitting needed    false-->no splitting needed
+ * @param edges --> (input) int c array of size 3\n
+ * @param t  --> (output) int c array of size 12 (3*4)\n
+ * @param nel --> (output) number of elements in the subdivision\n
+ * @param splitted_edges --> (output) provides the number of splitted edges\n
+ * @param nint --> (output)  internal node (not needed for triangles)\n
+ * @return true->splitting needed    false-->no splitting needed\n
  */
 bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, int* nint) {
     *splitted_edges = 0;

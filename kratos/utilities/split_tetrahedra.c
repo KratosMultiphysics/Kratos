@@ -17,65 +17,69 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-///this class performs the splitting of a tetrahedra.
-/** The class contains three helper functions to ease the splitting:
- * TriangleSplitMode, Split_Triangle, and TriangleGetNewConnectivityGID
- * EXAMPLE: imagine that an user would like to split a triangle formed
- * by the ids 3 9 7 12 by introducing a new node 15 on the edge between 9 and 7
- * he should define
- * int aux[11];
- * int edge_ids[6];
- * int t[54];
- * then initialize
- * aux[0] = 3; aux[1] = 9; aux[2] = 7; aux[3] = 12;
- * aux[4] = -1; //edge 01 --> edge to be refined
- * aux[5] = 15; //edge 02 -->edge not to be refined
- * aux[6] = -1; //edge 03 -->edge not to be refined
- * aux[7] = -1; //edge 12 -->edge not to be refined
- * aux[8] = -1; //edge 13 -->edge not to be refined
- * aux[9] = -1; //edge 23 -->edge not to be refined
- * aux[10] = -1; //center node (set it to -1 for the moment)
- *
- * then call
- *
- * TetrahedraSplitMode(edge_ids,aux)
- * int nel; //number of nodes generated
- * int number_splitted_edges; //number of splitted edges
- * int nint; //number of internal nodes
- * bools split_needed = Split(edge_ids,t, &nel, &number_splitted_edges, &nint)
- *
- * if( nint==1) // we need to generate a new internal node
- * {
- *   //generate new node for the center
- *   aux[10] = new node id
- * }
+/** @file split_tetrahedra.c
+ * @brief this class performs the splitting of a tetrahedra.\n
+ * It contains three helper functions to ease the splitting:\n
+ * TetrahedraSplitMode, Split_Tetrahedra, and TetrahedraGetNewConnectivityGID\n
  *
  *
- * the new tetrahedra ids can be then inspected by
- * for(int i=0; i<nel; i++)
- * {
- *     int i0,i1,i2,i3;
- *     TetrahedraGetNewConnectivityGID(i, t, aux, &i0,&i1,&i2,&i3);
- * }
+ * EXAMPLE: imagine that an user would like to split a triangle formed\n
+ * by the ids 3 9 7 12 by introducing a new node 15 on the edge between 9 and 7\n
+ * he should define\n
+ * int aux[11];\n
+ * int edge_ids[6];\n
+ * int t[54];\n
+ * then initialize\n
+ * aux[0] = 3; aux[1] = 9; aux[2] = 7; aux[3] = 12;\n
+ * aux[4] = -1; //edge 01 --> edge to be refined\n
+ * aux[5] = 15; //edge 02 (this is the only edge on which we want to add a node)\n
+ * aux[6] = -1; //edge 03 -->edge not to be refined\n
+ * aux[7] = -1; //edge 12 -->edge not to be refined\n
+ * aux[8] = -1; //edge 13 -->edge not to be refined\n
+ * aux[9] = -1; //edge 23 -->edge not to be refined\n
+ * aux[10] = -1; //center node (set it to -1 for the moment)\n
+ *\n
+ * then call\n
+ *
+ * TetrahedraSplitMode(edge_ids,aux)\n
+ * int nel; //number of nodes generated\n
+ * int number_splitted_edges; //number of splitted edges\n
+ * int nint; //number of internal nodes\n
+ * bools split_needed = Split(edge_ids,t, &nel, &number_splitted_edges, &nint)\n
+ *\n
+ * if( nint==1) // we need to generate a new internal node\n
+ * {\n
+ *   //generate new node for the center\n
+ *   aux[10] = new node id\n
+ * }\n
+ *\n
+ *
+ * the new tetrahedra ids can be then inspected by\n
+ * for(int i=0; i<nel; i++)\n
+ * {\n
+ *     int i0,i1,i2,i3;\n
+ *     TetrahedraGetNewConnectivityGID(i, t, aux, &i0,&i1,&i2,&i3);\n
+ * }\n
  */
 
 
-/**this function computes the splitting mode for the triangle. It is designed to fill edge_ids
- *@param (input) aux_ids contains a vector with the input Ids, organized as follows:
- *		aux_ids[0] = id of FIRST node of the original triangle
- *		aux_ids[1] = id of SECOND node of the original triangle
- *		aux_ids[2] = id of THIRD node of the original triangle
- *              aux_ids[3] = id of FOURTH node of the original triangle
- *		aux_ids[4] = id of new node to be used for the edge 01 (-1 if edge not to be splitted)
- *		aux_ids[5] = id of new node to be used for the edge 02 (-1 if edge not to be splitted)
- *		aux_ids[6] = id of new node to be used for the edge 03 (-1 if edge not to be splitted)
- *		aux_ids[7] = id of new node to be used for the edge 12 (-1 if edge not to be splitted) 
- *		aux_ids[8] = id of new node to be used for the edge 13 (-1 if edge not to be splitted) 
- *		aux_ids[9] = id of new node to be used for the edge 23 (-1 if edge not to be splitted)
- *              aux_ids[10] = id of new internal nodes (to be setted by the user only if needed, that is, if nint=1)
- *		given this data it fills an auxiliary vector of size 3 that will be used in the splitting
- *@param (output) edge_ids this is an auxiliary array with the local numbering. It is necessary for
- * 		the split_triangle function
+/**
+ * this function computes the splitting mode for the triangle. It is designed to fill edge_ids\n
+ *@param (input) aux_ids contains a vector with the input Ids, organized as follows:\n
+ *		aux_ids[0] = id of FIRST node of the original tetra\n
+ *		aux_ids[1] = id of SECOND node of the original tetra\n
+ *		aux_ids[2] = id of THIRD node of the original tetra\n
+ *              aux_ids[3] = id of FOURTH node of the original tetra\n
+ *		aux_ids[4] = id of new node to be used for the edge 01 (-1 if edge not to be splitted)\n
+ *		aux_ids[5] = id of new node to be used for the edge 02 (-1 if edge not to be splitted)\n
+ *		aux_ids[6] = id of new node to be used for the edge 03 (-1 if edge not to be splitted)\n
+ *		aux_ids[7] = id of new node to be used for the edge 12 (-1 if edge not to be splitted) \n
+ *		aux_ids[8] = id of new node to be used for the edge 13 (-1 if edge not to be splitted) \n
+ *		aux_ids[9] = id of new node to be used for the edge 23 (-1 if edge not to be splitted)\n
+ *              aux_ids[10] = id of new internal nodes (to be setted by the user only if needed, that is, if nint=1)\n
+ *		given this data it fills an auxiliary vector of size 3 that will be used in the splitting\n
+ *@param (output) edge_ids this is an auxiliary array with the local numbering. It is necessary for\n
+ * 		the split_triangle function\n
  */
 void TetrahedraSplitMode(const int aux_ids[11], int edge_ids[6]) {
     //edge 01
@@ -121,14 +125,14 @@ void TetrahedraSplitMode(const int aux_ids[11], int edge_ids[6]) {
         edge_ids[5] = 9;
 }
 
-/**utility function to get the global ids for the new triangles to be generated
- *@param triangle_index --> the index of the new triangle to be generated
- *		(Should be less than the number nel provided by Split_Triangle)
- *@param t --> integer array provided by Split_Triangle
- *@param aux_ids --> array used in constructing the edge_ids (contains the Global Ids of the new nodes)
- *@param id0 --> Global ID of node0 of the new triangle
- *@param id1 --> Global ID of node1 of the new triangle
- *@param id2 --> Global ID of node2 of the new triangle
+/**utility function to get the global ids for the new triangles to be generated\n
+ *@param triangle_index --> the index of the new triangle to be generated\n
+ *		(Should be less than the number nel provided by Split_Triangle)\n
+ *@param t --> integer array provided by Split_Triangle\n
+ *@param aux_ids --> array used in constructing the edge_ids (contains the Global Ids of the new nodes)\n
+ *@param id0 --> Global ID of node0 of the new triangle\n
+ *@param id1 --> Global ID of node1 of the new triangle\n
+ *@param id2 --> Global ID of node2 of the new triangle\n
  */
 inline void TetrahedraGetNewConnectivityGID(const int triangle_index,
         const int t[56],
@@ -142,13 +146,13 @@ inline void TetrahedraGetNewConnectivityGID(const int triangle_index,
 }
 
 /**
- * function to split a tetrahedra
- * @param edges --> (input) array of size 6. edges are enumerated as 01 02 03 12 13 23
- * @param t --> (output)int c array of size 56 (=14*4)
- * @param --> nel number of elements generated
- * @param splitted_edges --> number of edges splitted
- * @param nint //internal node
- * @return true->splitting needed    false-->no splitting needed
+ * function to split a tetrahedra\n
+ * @param edges --> (input) array of size 6. edges are enumerated as 01 02 03 12 13 23\n
+ * @param t --> (output)int c array of size 56 (=14*4)\n
+ * @param --> nel number of elements generated\n
+ * @param splitted_edges --> number of edges splitted\n
+ * @param nint //internal node\n
+ * @return true->splitting needed    false-->no splitting needed\n
  */
 bool Split_Tetrahedra(const int edges[6], int t[56], int* nel, int* splitted_edges, int* nint) {
     *(splitted_edges) = 0;
