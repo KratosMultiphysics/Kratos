@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
 from KratosULFApplication import *
@@ -57,7 +58,7 @@ class ULF_FSISolver:
         #time integration scheme
         damp_factor = -0.3
         self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(damp_factor)
-
+        
         #definition of the solvers
         #self.model_linear_solver =  SkylineLUFactorizationSolver()
         pDiagPrecond = DiagonalPreconditioner()
@@ -182,13 +183,14 @@ class ULF_FSISolver:
         return [inverted_elements,volume]
                          
     #######################################################################
-    def Solve(self):
+    def Solve(self):        
         #next lines serve only in case of lagrangian inlet
-        #for node in self.fluid_model_part.Nodes:
-        #    if (node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1 and (node.GetSolutionStepValue(IS_STRUCTURE)!=1)):
-        #        node.Free(DISPLACEMENT_X)
-        #        node.Free(DISPLACEMENT_Y)
-        #        node.Free(DISPLACEMENT_Z)
+##        for node in self.fluid_model_part.Nodes:
+##            if (node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1 and (node.GetSolutionStepValue(IS_STRUCTURE)!=1)):
+##                node.Free(DISPLACEMENT_X)
+##                node.Free(DISPLACEMENT_Y)
+##                node.Free(DISPLACEMENT_Z)
+        
 
         print "solving the fluid problem"
         inverted_elements = (self.solver).Solve(self.domain_size,self.UlfUtils)
@@ -256,12 +258,15 @@ class ULF_FSISolver:
                             
         #print "pressure contribution process" - to be executed using exclusively fluid elements
         #and neighbouring relationships
+        #self.lagrangian_inlet_process.Execute()
         (self.fluid_neigh_finder).Execute();
         #print "injecting lagrangian inlet nodes - if given"
-        #(self.UlfUtils).InjectNodesAtInlet(self.fluid_model_part, self.lagrangian_inlet_model_part, 10.0, 0.0, 0.0, 0.06)
+        #(self.UlfUtils).InjectNodesAtInlet(self.fluid_model_part, self.lagrangian_inlet_model_part, 0.50, 0.0, 0.0, 0.01)
         #moving the nodes
-        #(self.UlfUtils).MoveInletNodes(self.fluid_model_part, 1.0, 0.0, 0.0)
+        #(self.UlfUtils).MoveInletNodes(self.fluid_model_part, 0.50, 0.0, 0.0)
+        
         self.Remesh();
+       
 
 
    ######################################################################
@@ -270,6 +275,7 @@ class ULF_FSISolver:
    #  This is done to make switching off/on of remeshing easier
     def Remesh(self):                 
         ##erase all conditions and elements prior to remeshing
+        self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 1.45)
         if (self.remeshing_flag==1.0):
             ((self.combined_model_part).Elements).clear();
             ((self.combined_model_part).Conditions).clear();
@@ -277,14 +283,13 @@ class ULF_FSISolver:
             ((self.fluid_model_part).Elements).clear();
             ((self.fluid_model_part).Conditions).clear();
             
-
         #mark outer nodes for erasing
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         #adaptivity=True
-        h_factor=0.25 #0.5
+        h_factor=0.2#5 #0.5
         if (self.remeshing_flag==1.0):
             if (self.domain_size == 2):
-                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
+                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
             elif (self.domain_size == 3):
                 (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
        
