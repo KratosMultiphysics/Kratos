@@ -1,22 +1,24 @@
 #if !defined(KRATOS_SPLIT_TRIANGLE)
 #define  KRATOS_SPLIT_TRIANGLE
 
-// Copyright (C) 2010 Riccardo Rossi, Pooyan Dadvand, Nelson Maireni
-// Email contact: rrossi@cimne.upc.edu
-// The current tetrahedra splitting library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+/*VERSION 1.0 17 Feb 2011*/
 
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
+/* Copyright (C) 2010 Riccardo Rossi, Pooyan Dadvand, Nelson Maireni
+ Email contact: rrossi@cimne.upc.edu
+ The current triangle splitting library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
 
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 /** @file split_triangle.c
  * @brief The class contains three helper functions to ease the splitting: \n
  * TriangleSplitMode, Split_Triangle, and TriangleGetNewConnectivityGID\n
@@ -113,7 +115,7 @@ inline void TriangleGetNewConnectivityGID(const int triangle_index,
  * @param nint --> (output)  internal node (not needed for triangles)\n
  * @return true->splitting needed    false-->no splitting needed\n
  */
-bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, int* nint) {
+bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edges, int* nint) {
     *splitted_edges = 0;
     bool topology[3];
     topology[0] = false;
@@ -134,7 +136,7 @@ bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, 
         t[2] = 2;
         return false;
     }
-        ///WARNING = Caso de un nodo central dentro del elemento
+   //WARNING = case new central node needed
     else if (*splitted_edges == 0 && *nint == 1) {
         *nel = 3;
 
@@ -154,7 +156,7 @@ bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, 
 
     else if (*splitted_edges == 1) {
         *nel = 2;
-        /// caso 1
+        // caso 1
         if (topology[0] == true) {
             t[0] = 3;
             t[1] = 2;
@@ -165,7 +167,7 @@ bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, 
             t[5] = 2;
         }
 
-            /// caso 2
+            // caso 2
         else if (topology[1] == true) {
             t[0] = 4;
             t[1] = 0;
@@ -175,7 +177,7 @@ bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, 
             t[4] = 2;
             t[5] = 0;
         }
-            /// caso 3
+            // caso 3
         else if (topology[2] == true) {
             t[0] = 5;
             t[1] = 1;
@@ -192,7 +194,7 @@ bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, 
 
     else if (*splitted_edges == 2) {
         *nel = 3;
-        /// caso 4
+        // caso 4
         if (topology[0] == true && topology[1] == true) {
             if (edges[2] == 0) // si colapso al nodo 0 local
             {
@@ -224,7 +226,7 @@ bool Split_Triangle(const int  edges[3], int* t, int* nel, int* splitted_edges, 
             }
 
         }
-            /// caso 5
+            // caso 5
         else if (topology[1] == true && topology[2] == true) {
             if (edges[0] == 0) // si colapso al nodo 0 local
             {
