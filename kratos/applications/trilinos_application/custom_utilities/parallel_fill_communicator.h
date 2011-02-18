@@ -437,7 +437,7 @@ namespace Kratos
 
             //here send an array of size max_color_found
             MPI_Scatter(aux, 1, MPI_INT, &max_color_found, 1, MPI_INT, root_id, MPI_COMM_WORLD);
-            KRATOS_WATCH(max_color_found);
+//            KRATOS_WATCH(max_color_found);
             if (my_rank == root_id)
                 delete [] aux;
 
@@ -646,13 +646,13 @@ namespace Kratos
                 ModelPart::NodesContainerType& r_local_nodes = mrModelPart.GetCommunicator().LocalMesh(color).Nodes();
                 r_local_nodes.clear();
 
-                KRATOS_WATCH("ln111111");
+//                KRATOS_WATCH("ln111111");
                 //fill the list of nodes to be sent
                 for (int i = 0; i < nnodes_to_send; i++)
                 {
                     r_local_nodes.push_back(mrModelPart.Nodes()(ids_to_send[i]));
                 }
-                KRATOS_WATCH("ln222222");
+//                KRATOS_WATCH("ln222222");
                 r_local_nodes.Unique();
 
                 //add local and ghost to the interface mesh
