@@ -49,7 +49,7 @@ trilinos_fs_fluid_solver.AddVariables(model_part)
 gid_mode_flag = GiDPostMode.GiD_PostBinary
 use_multifile = MultiFileFlag.MultipleFiles
 deformed_print_flag = WriteDeformedMeshFlag.WriteUndeformed
-write_conditions = WriteConditionsFlag.WriteElementsOnly
+write_conditions = WriteConditionsFlag.WriteConditions
 gid_io = GidIO("cavity3D", gid_mode_flag, use_multifile, deformed_print_flag, write_conditions)
 
 
@@ -60,10 +60,6 @@ partitioner.Execute()
 print "GetRank()",GetRank()
 
 
-mesh_name = mpi.rank
-gid_io.InitializeMesh( mesh_name );
-gid_io.WriteMesh((model_part).GetMesh());
-gid_io.FinalizeMesh()
 
 print model_part
 
@@ -93,6 +89,10 @@ fluid_solver.echo_level = 0
 ##    if(node.X < 0.001 and node.Y<0.001):
 ##        node.Fix(PRESSURE)
 
+import PressureMultiLevelSolver
+fluid_solver.pressure_linear_solver =  PressureMultiLevelSolver.MultilevelLinearSolver(1e-4,1000)
+
+
 fluid_solver.Initialize()
 
 #settings to be changed
@@ -107,6 +107,46 @@ out = 0
 for node in model_part.Nodes:
     node.SetSolutionStepValue(DENSITY,0,1.0)
     node.SetSolutionStepValue(VISCOSITY,0,1.0/Re)
+
+import time
+
+repeat = 3;
+for i in range(0,repeat):
+    start_time = time.clock()
+
+    nelements = len(model_part.Elements)
+    
+    for elem in model_part.Elements:
+        if (elem.Id < 20000000):
+            elem.SetValue(SPLIT_ELEMENT,True)
+
+##    print "*******************************************************************"
+
+    Comm = CreateCommunicator()
+    mesh_utility = TrilinosRefineMesh(model_part,Comm)
+    refine_on_reference = False
+    interpolate_internal_variables = False
+    mesh_utility.Local_Refine_Mesh(refine_on_reference,interpolate_internal_variables,domain_size)
+
+    stop_time = time.clock()
+
+    print "elements to split", nelements , " time = ", stop_time-start_time
+
+##    print "-----------------------------------------------------------------"
+##    ccc= ParallelFillCommunicator(model_part)
+##    ccc.Execute()
+
+
+
+
+
+
+
+mesh_name = mpi.rank
+gid_io.InitializeMesh( mesh_name );
+gid_io.WriteMesh((model_part).GetMesh());
+gid_io.FinalizeMesh()
+
 
 ##zero = Vector(3);
 ##zero[0] = 0.0;
