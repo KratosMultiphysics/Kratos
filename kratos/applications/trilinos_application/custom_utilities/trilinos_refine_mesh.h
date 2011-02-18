@@ -204,7 +204,7 @@ namespace Kratos
             if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
 
             //clean up the data
-            Clear()
+            Clear();
 
             KRATOS_CATCH("")
         }
