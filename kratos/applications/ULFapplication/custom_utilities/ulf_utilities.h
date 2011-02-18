@@ -531,17 +531,20 @@ namespace Kratos
 				{	
 					int n_str=0;
 					int n_fl=0;
+					int n_interf=0;
 					//counting number on nodes at the wall
 					Geometry< Node<3> >& geom = i->GetGeometry();
 					for (unsigned int iii=0;iii<geom.size();iii++)
 					{
 					n_str += int(geom[iii].FastGetSolutionStepValue(IS_STRUCTURE));
 					n_fl += int(geom[iii].FastGetSolutionStepValue(IS_FLUID));
+					n_interf += int(geom[iii].FastGetSolutionStepValue(IS_INTERFACE));
 					}
 
 
 					//if three nodes are at the wall, we check if the fourth node is close to it or not by passing the alpha-shape
-					if (geom.size()==4.0 && n_str==3.0 && n_fl==4.0)
+					//if (geom.size()==4.0 && n_str==3.0 && n_fl==4.0)
+					if (geom.size()==4.0 && n_interf==3)
 						{
 						//if alpha shape tells to preserve
 						if (AlphaShape3D(alpha_shape, geom)==false)
@@ -909,9 +912,9 @@ namespace Kratos
 					//i_node->FastGetSolutionStepValue(PRESSURE)=0.0;
 					//i_node->FastGetSolutionStepValue(VELOCITY_Z)=i_node->FastGetSolutionStepValue(VELOCITY_Z,1);
 					//i_node->FastGetSolutionStepValue(VELOCITY_X,1)=vel_x;
-					i_node->FastGetSolutionStepValue(VELOCITY_X)=vel_x;
-					i_node->FastGetSolutionStepValue(VELOCITY_Y)=vel_y;
-					i_node->FastGetSolutionStepValue(VELOCITY_Z)=vel_z;
+					//i_node->FastGetSolutionStepValue(VELOCITY_X)=vel_x;
+					//i_node->FastGetSolutionStepValue(VELOCITY_Y)=vel_y;
+					//i_node->FastGetSolutionStepValue(VELOCITY_Z)=vel_z;
 					}
 				
 				}
@@ -950,10 +953,13 @@ namespace Kratos
 			if (i_node->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==1)
 				{
 				i_node->FastGetSolutionStepValue(DISPLACEMENT_X)=i_node->FastGetSolutionStepValue(DISPLACEMENT_X, 1)+vel_x*dt;
+				i_node->FastGetSolutionStepValue(VELOCITY_X)=vel_x;
 				i_node->Fix(DISPLACEMENT_X);
 				i_node->FastGetSolutionStepValue(DISPLACEMENT_Y)=i_node->FastGetSolutionStepValue(DISPLACEMENT_Y, 1)+vel_y*dt;
+				i_node->FastGetSolutionStepValue(VELOCITY_Y)=vel_y;
 				i_node->Fix(DISPLACEMENT_Y);
 				i_node->FastGetSolutionStepValue(DISPLACEMENT_Z)=i_node->FastGetSolutionStepValue(DISPLACEMENT_Z, 1)+vel_z*dt;
+				i_node->FastGetSolutionStepValue(VELOCITY_Z)=vel_z;
 				i_node->Fix(DISPLACEMENT_Z);
 				}
 			//if its not a node of lag inolet - make sure that its free
