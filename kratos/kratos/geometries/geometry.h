@@ -1501,7 +1501,7 @@ namespace Kratos
 	  @see ShapeFunctionValue
 	  @see ShapeFunctionsLocalGradients
       */ 
-      Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex)  const
+      const Matrix& ShapeFunctionLocalGradient(IndexType IntegrationPointIndex)  const
 	{return mpGeometryData->ShapeFunctionLocalGradient(IntegrationPointIndex);} 
 
       /** This method gives gradient of given shape function evaluated
