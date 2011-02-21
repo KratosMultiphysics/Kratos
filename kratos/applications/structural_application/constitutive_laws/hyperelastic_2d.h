@@ -44,13 +44,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* *********************************************************   
 *          
 *   Last Modified by:    $Author: virginia $
-*   Date:                $Date: 2009-01-23 14:39:59 $
+*   Date:                $Date: 2008-12-04 16:14:58 $
 *   Revision:            $Revision: 1.1 $
 *
 * ***********************************************************/
 
-#if !defined(KRATOS_HYPERELASTIC_2D_H_INCLUDED )  // OLD: 3D
-#define  KRATOS_HYPERELASTIC_2D_H_INCLUDED  // OLD: 3D
+#if !defined(KRATOS_HYPERELASTIC_2D_H_INCLUDED )
+#define  KRATOS_HYPERELASTIC_2D_H_INCLUDED
 
 // System includes 
 
@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 	/**
-	 * Defines a hyperelastic constitutive law in 2D space.
+	 * Defines a hyperelastic constitutive law in 2D space for Membrane and EBST elements.
 	 * This material law, also called Green-elastic material
 	 * postulates the existance of a Helmholtz free-energy
 	 * function (psi), which is defined per unit reference volume.
@@ -81,18 +81,22 @@ namespace Kratos
 
 	// First attempt: ISOTROPIC Hyperelastic Material
 
-	class Hyperelastic2D : public ConstitutiveLaw // OLD: 3D and 
+
+	class Hyperelastic2D : public ConstitutiveLaw
+
 	{
 		public:
 
 				/**
 			 * Type Definitions
 			 */
-			typedef ConstitutiveLaw BaseType;  // OLD: 3
+
+			typedef ConstitutiveLaw BaseType;
+
 			/**
 			 * Counted pointer of Hyperelastic3D
 			 */
-			typedef boost::shared_ptr<Hyperelastic2D> Pointer; //  // OLD: 3D
+			typedef boost::shared_ptr<Hyperelastic2D> Pointer; // 
 			
 			/**
 			 * Life Cycle 
@@ -100,19 +104,23 @@ namespace Kratos
 			/**
 			 * Default constructor.
 			 */
-			Hyperelastic2D();  // OLD: 3D
+			Hyperelastic2D();
 			
 
-			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const  // OLD: 3D
+
+			virtual boost::shared_ptr<ConstitutiveLaw > Clone() const
+
 			{
-				boost::shared_ptr<ConstitutiveLaw> p_clone(new Hyperelastic2D()); // OLD: 3 and 3D
+
+				boost::shared_ptr<ConstitutiveLaw > p_clone(new Hyperelastic2D());
+
 				return p_clone;
 			}
 
 			/**
 			 * Destructor.
 			 */
-			virtual ~Hyperelastic2D(); // OLD: 3D
+			virtual ~Hyperelastic2D();
 			
 
 
@@ -126,20 +134,37 @@ namespace Kratos
 			bool Has( const Variable<double>& rThisVariable );
 			bool Has( const Variable<Vector>& rThisVariable );
 			bool Has( const Variable<Matrix>& rThisVariable );
-			
-			double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+
+// NEW
+			double GetValue( const Variable<double>& rThisVariable );
 			Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-			Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rMatrix );
+			Matrix GetValue( const Variable<Matrix>& rThisVariable );
+// NEW
 			
-			void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
-							  const ProcessInfo& rCurrentProcessInfo );
-			void SetValue( const Variable<array_1d<double, 3> >& rThisVariable, // OLD: 3
-							  const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );// OLD: 3
-			void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-							  const ProcessInfo& rCurrentProcessInfo );
-			void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-							  const ProcessInfo& rCurrentProcessInfo );
-			
+// 			double GetValue( const Variable<double>& rThisVariable );
+// 			Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+// 			Matrix GetValue( const Variable<Matrix>& rThisVariable  );
+// 			
+// 			void SetValue( const Variable<double>& rThisVariable, const double& rValue, 
+// 							  const ProcessInfo& rCurrentProcessInfo );
+// 			void SetValue( const Variable<array_1d<double, 3> >& rThisVariable, 
+// 							  const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo );
+// 			void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+// 							  const ProcessInfo& rCurrentProcessInfo );
+// 			void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+// 							  const ProcessInfo& rCurrentProcessInfo );
+	
+			void SetValue( const Variable<double>& rVariable, 
+				      const double& Value, 
+				      const ProcessInfo& rCurrentProcessInfo );
+			void SetValue( const Variable<Vector>& rThisVariable, 
+				      const Vector& rValue, 
+				      const ProcessInfo& rCurrentProcessInfo );
+			void SetValue( const Variable<Matrix>& rThisVariable, 
+				      const Matrix& rValue, 
+				      const ProcessInfo& rCurrentProcessInfo );
+
+		
 			/**
 			 * Material parameters are inizialized
 			 */ 
@@ -160,8 +185,16 @@ namespace Kratos
 			 * @param StrainVector the current vector of strains
 			 * @param rResult the stress vector corresponding to the given strains
 			 */
+
+
 			void CalculateStress(const Vector& StrainVector, Vector& rResult);
 			
+
+			void CalculateStressVector(const Vector& StrainVector, Vector& rResult);
+                        //void CalculateStressVector(const Vector& StrainVector, array_1d<double, 6>& rResult);
+ 
+
+			void CalculateEnergy(const Vector& StrainVector, Vector& Energy);
 
 			//******************************************
 
@@ -174,11 +207,9 @@ namespace Kratos
 					const Vector& ShapeFunctionsValues ,
 					const ProcessInfo& CurrentProcessInfo);
 			
-            void UpdateMaterial( const Vector& StrainVector,
-                                 const Properties& props,
+            void ResetMaterial(  const Properties& props,
                                  const GeometryType& geom, //this is just to give the array of nodes
-                                 const Vector& ShapeFunctionsValues ,
-                                 const ProcessInfo& CurrentProcessInfo);
+                                 const Vector& ShapeFunctionsValues);
             
             void FinalizeSolutionStep( const Properties& props,
 					const GeometryType& geom, //this is just to give the array of nodes
@@ -193,11 +224,41 @@ namespace Kratos
 			 * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
 			 * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
 			 */
-			void CalculateCauchyStresses( Vector& Cauchy_StressVector,
+	    void CalculateCauchyStresses( Vector& Cauchy_StressVector,
 					const Matrix& F,
 					const Vector& PK2_StressVector,
 					const Vector& GreenLagrangeStrainVector);
 			
+
+           void CalculateStressAndTangentMatrix( Vector& StressVector,
+                                 const Vector& StrainVector,
+				 Matrix& algorithmicTangent);
+
+          
+            void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, 
+                           const ProcessInfo& rCurrentProcessInfo);
+            
+            void Calculate( const Variable<double>& rVariable, 
+                                    double& Output, 
+                                    const ProcessInfo& rCurrentProcessInfo);
+
+
+//  void Calculate( const Variable<double>& rVariable,
+//                                  double& Output,
+//                                  const ProcessInfo& rCurrentProcessInfo);
+
+           void CalculateMaterialResponse( const Vector& StrainVector,
+                                 const Matrix& DeformationGradient,
+				 Vector& StressVector,
+				 Matrix& AlgorithmicTangent,
+				 const ProcessInfo& CurrentProcessInfo,
+				 const Properties& props,
+                                 const GeometryType& geom, //this is just to give the array of nodes
+                                 const Vector& ShapeFunctionsValues ,
+				 bool CalculateStresses = true,
+				 int CalculateTangent = true,
+				 bool SaveInternalVariables = true);
+
 			
 			/**
 			 * converts a strain vector styled variable into its form, which the
@@ -247,8 +308,27 @@ namespace Kratos
 				 Vector mCurrentStress;*/
 
 			double mMU;
+			double mThickness; //shell thickness
+			double mcurrentThickness; // updated shell thickenss
+			double mA0; //initial area
+			double mA; // current area
+			double mAlpha; // angle used for retraction in E0 // RETRACTION
+			double mRetractionTime; // time at which retraction starts to act  // RETRACTION
+			double mRetraction;  // RETRACTION
+
+			void CalculateElasticMatrix(Matrix& C, const double E, const double NU); //ISOTROPIC
+			double mK; //ISOTROPIC
+			double mE,mNU; //ISOTROPIC
+			Matrix mCtangent;	 //ISOTROPIC
+			Vector mMaterialParameters;	 
 			Vector mInSituStress;
+			Vector auxStressVector;
+			//array_1d<double,6> auxStressVector; // member of the class  mauxStressVector; 
+			Matrix Ctang;
+			Matrix c;
 			Matrix CC;
+			
+				 
 			 /**
 			  * Un accessible methods 
 			  */
@@ -264,4 +344,4 @@ namespace Kratos
 
 	}; // Class Hyperelastic3D 
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_3D_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_2D_H_INCLUDED  defined 
