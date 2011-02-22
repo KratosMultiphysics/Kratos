@@ -275,7 +275,8 @@ class ULF_FSISolver:
    #  This is done to make switching off/on of remeshing easier
     def Remesh(self):                 
         ##erase all conditions and elements prior to remeshing
-        self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 1.45)
+        self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 2.50)
+        
         if (self.remeshing_flag==1.0):
             ((self.combined_model_part).Elements).clear();
             ((self.combined_model_part).Conditions).clear();
@@ -292,7 +293,8 @@ class ULF_FSISolver:
                 (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
             elif (self.domain_size == 3):
                 (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
-       
+
+        
             #remesh CHECK for 3D or 2D
 
         ##calculating fluid neighbours before applying boundary conditions
@@ -313,7 +315,10 @@ class ULF_FSISolver:
         #calculating the neighbours for the overall model
         (self.combined_neigh_finder).Execute();
         (self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
-        
+        ##########################################################################################################################################
+        #only for the bladder example, remove next 2 lines otherwise (there I delete lonely nodes)
+        #self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part, self.domain_size)
+        #self.node_erase_process.Execute()
         print "end of remesh fucntion"
 
        
