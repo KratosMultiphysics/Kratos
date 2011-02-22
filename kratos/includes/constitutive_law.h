@@ -504,7 +504,14 @@ namespace Kratos
             {
                 KRATOS_ERROR( std::logic_error, "Calling virtual function for ResetMaterial", "" );
             }
-
+           // VM 
+            virtual void CalculateCauchyStresses( Vector& Cauchy_StressVector,
+                    const Matrix& F,
+                    const Vector& PK2_StressVector,
+                    const Vector& GreenLagrangeStrainVector)
+            {
+            }
+	    //VM
 
         protected:
 

@@ -167,6 +167,7 @@ KRATOS_WATCH("INITIALIZE ELEMENT");
 
         mStrainsVector.resize( integration_points.size() );
         mStressesVector.resize( integration_points.size() );
+	mCauchyStressesVector.resize( integration_points.size() ); //VM
 
         mV1.resize( integration_points.size() );
         mV2.resize( integration_points.size() );
@@ -382,6 +383,27 @@ KRATOS_WATCH("INITIALIZE ELEMENT");
                 for ( unsigned int ii = 0; ii < 6; ii++ )
                     Output[PointNumber]( 0, ii ) = mStressesVector[PointNumber][ii];
             }
+            // VM
+            else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress  
+	    {
+		  if(Output[PointNumber].size2() != 6)
+		      Output[PointNumber].resize(1,6);
+		  
+                boost::numeric::ublas::bounded_matrix<double, 2, 2> msF;
+	      	noalias(msF) = ZeroMatrix(2,2); //VM
+		noalias(msF)=tmp; //VM
+		Vector CauchyStressVector( 3 );
+		  
+	      mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, msF, StressVector, StrainVector); // VM para calculo cauchy	
+	      noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
+	      Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
+		
+		   for(unsigned int ii = 0; ii<6; ii++)
+					Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
+				 ////KRATOS_WATCH(Output[PointNumber]);
+	     }
+        // VM
+        
         }
 
     }
@@ -1211,6 +1233,12 @@ KRATOS_WATCH("INITIALIZE ELEMENT");
         {
             CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
         }
+        // VM
+        if(rVariable==CAUCHY_STRESS_TENSOR)
+	{
+	    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+	}
+	// VM
     }
 
     //***********************************************************************************
