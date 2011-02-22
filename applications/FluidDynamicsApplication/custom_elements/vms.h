@@ -115,11 +115,19 @@ namespace Kratos
      * model of turbulence. This turbulent term is only activated if the elemental
      * value C_SMAGORINSKY is set to something other than zero.
      *
-     * @see ResidualBasedEliminationBuilderAndSolver for a compatible monolithic solution strategy.
-     * @see PressureSplittingBuilderAndSolver for a compatible segregated solution strategy.
-     * @see TrilinosPressureSplittingBuilderAndSolver for a compatible mpi strategy.
+     * This class requires at least the following variables:\n
+     * On each Node, as solution step variables VELOCITY, PRESSURE, ACCELERATION, MESH_VELOCITY.\n
+     * On ProcessInfo OSS_SWITCH, DYNAMIC_TAU, DELTA_TIME.\n
+     * If OSS is used, the nodes also require NODAL_AREA, ADVPROJ and DIVPROJ as solution step variables.\n
+     * If Smagorinsky is used, C_SMAGORINSKY has to be defined on the elements.\n
+     * Error estimation stores ERROR_RATIO on the elements.\n
+     * Some additional variables can be used to print results on the element: TAUONE, TAUTWO, VORTICITY.
+     *
+     * @see ResidualBasedEliminationBuilderAndSolver compatible monolithic solution strategy.
+     * @see PressureSplittingBuilderAndSolver compatible segregated solution strategy.
+     * @see TrilinosPressureSplittingBuilderAndSolver compatible mpi strategy.
      * @see DynamicSmagorinskyUtils to set the Smagorinsky parameter dynamically.
-     * @see ResidualBasedPredictorCorrectorVelocityBossakScheme a time scheme that can use
+     * @see ResidualBasedPredictorCorrectorVelocityBossakScheme time scheme that can use
      * OSS stabilization.
      */
     template< unsigned int TDim,
@@ -286,8 +294,9 @@ namespace Kratos
          * system that are either constant or computed explicitly (from the 'old'
          * iteration variables). In this case this means the body force terms and the
          * OSS projections, that are treated explicitly.
-         * @param rRightHandSideVector: the elemental right hand side
-         * @param rCurrentProcessInfo: the current process info
+         * @param rRightHandSideVector Will be filled with the elemental right hand side
+         * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
+         * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
          */
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                             ProcessInfo& rCurrentProcessInfo)
@@ -335,8 +344,8 @@ namespace Kratos
          * Provides the local contributions to the mass matrix, which is defined here
          * as the matrix associated to velocity derivatives. Note that the mass
          * matrix implemented here is lumped.
-         * @param rMassMatrix: the elemental mass matrix
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param rMassMatrix Will be filled with the elemental mass matrix
+         * @param rCurrentProcessInfo the current process info instance
          */
         virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
         {
@@ -359,11 +368,13 @@ namespace Kratos
             this->EvaluateInPoint(Density, DENSITY, N);
 
             // Add 'classical' mass matrix (lumped)
-            double Coeff = Density * Area / TNumNodes; ///@TODO:Optimize
+            double Coeff = Density * Area / TNumNodes; //Optimize!
             this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
 
-            // For ASGS: add dynamic stabilization terms
-            // in OSS we treat them explicitly, see CalculateLocalVelocityContribution
+            /* For ASGS: add dynamic stabilization terms.
+             These terms are not used in OSS, as they belong to the finite element
+             space and cancel out with their projections.
+             */
             if (rCurrentProcessInfo[OSS_SWITCH] != 1)
             {
                 double KinViscosity;
@@ -387,9 +398,9 @@ namespace Kratos
          * Provides local contributions to the system associated to the velocity and
          * pressure terms (convection, diffusion, pressure gradient/velocity divergence
          * and stabilization).
-         * @param rDampMatrix: the velocity-proportional "damping" matrix
-         * @param rRightHandSideVector: the elemental right hand side vector
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param rDampMatrix Will be filled with the velocity-proportional "damping" matrix
+         * @param rRightHandSideVector the elemental right hand side vector
+         * @param rCurrentProcessInfo the current process info instance
          */
         virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
                                                         VectorType& rRightHandSideVector,
@@ -442,29 +453,6 @@ namespace Kratos
             }
 
             noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
-
-            // The following is only needed for OSS
-            if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-            {
-                LocalIndex = 0;
-                boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize> MassStabilization = ZeroMatrix(LocalSize, LocalSize);
-
-                this->AddMassStabTerms<boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize> > (MassStabilization, Density, AdvVel, TauOne, N, DN_DX, Area);
-
-                for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-                {
-                    const array_1d<double, 3 > & rAcceleration = this->GetGeometry()[iNode].FastGetSolutionStepValue(ACCELERATION);
-                    for (unsigned int d = 0; d < TDim; ++d) // Acceleration Dofs
-                    {
-                        U[LocalIndex] = rAcceleration[d];
-                        ++LocalIndex;
-                    }
-                    U[LocalIndex] = 0.0; // Pressure Dof
-                    ++LocalIndex;
-                }
-
-                noalias(rRightHandSideVector) -= prod(MassStabilization,U);
-            }
         }
 
         /// Implementation of Calculate to compute an error estimate.
@@ -475,7 +463,7 @@ namespace Kratos
          The error is then saved as the ERROR_RATIO variable and returned in rOutput
          @param rVariable Use ERROR_RATIO
          @param rOutput Returns the error estimate
-         @param rCurrentProcessInfo: Process info instance (unused)
+         @param rCurrentProcessInfo Process info instance (unused)
          @see MarkForRefinement for a use of the error ratio
          */
         virtual void Calculate( const Variable<double>& rVariable,
@@ -499,20 +487,19 @@ namespace Kratos
                 array_1d<double, 3> AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
 
-                // Output containers
+                // Output container
                 array_1d< double,3 > ElementalMomRes(3,0.0);
-                double ElementalMassRes(0);
 
-                this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
+                // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
+                double TauOne;
+                this->CalculateStaticTau(TauOne, AdvVel, Area, Viscosity);
+
+                this->AddSubscaleEstimate(ElementalMomRes, AdvVel, Density, TauOne, N, DN_DX, Area);
 
                 // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
                 double ErrorRatio(0.0), UNorm(0.0);
                 array_1d< double,3 > UGauss(3,0.0);
                 this->AddPointContribution(UGauss,VELOCITY,N,Area);
-
-                // Calculate stabilization parameters. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
-                double TauOne, TauTwo;
-                this->CalculateStaticTau(TauOne, TauTwo, AdvVel, Area, Viscosity);
 
                 for (unsigned int i = 0; i < TDim ; ++i)
                 {
@@ -526,12 +513,14 @@ namespace Kratos
             }
         }
 
-        /// Implementation of Calculate to compute the local OSS projections or an error estimate.
+        /// Implementation of Calculate to compute the local OSS projections.
         /**
          If rVariable == ADVPROJ, This function computes the OSS projection
          terms using pressure and velocity values from the previous iteration. The
          projections are then added to the nodal variables ADVPROJ (Momentum residual)
          and DIVPROJ (Mass continuity residual). It is assumed that the scheme will
+         divide the result by the assembled NODAL_AREA, which is equivalent to a
+         nodal interpolation using a lumped mass matrix.
          * @param rVariable Use ADVPROJ
          * @param Output Will be overwritten with the elemental momentum error
          * @param rCurrentProcessInfo Process info instance (unused)
@@ -561,7 +550,7 @@ namespace Kratos
                 array_1d< double,3 > ElementalMomRes(3,0.0);
                 double ElementalMassRes(0);
 
-                this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes,ElementalMassRes, rCurrentProcessInfo, N, DN_DX, Area);
+                this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes,ElementalMassRes, N, DN_DX, Area);
 
                 if( rCurrentProcessInfo[OSS_SWITCH] == 1)
                 {
@@ -591,16 +580,16 @@ namespace Kratos
         /**
          * this determines the elemental equation ID vector for all elemental
          * DOFs
-         * @param rResult: A vector containing the global Id of each row
-         * @param rCurrentProcessInfo: the current process info object (unused)
+         * @param rResult A vector containing the global Id of each row
+         * @param rCurrentProcessInfo the current process info object (unused)
          */
         virtual void EquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo);
 
         /// Returns a list of the element's Dofs
         /**
-         * @param ElementalDofList: the list of DOFs
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param ElementalDofList the list of DOFs
+         * @param rCurrentProcessInfo the current process info instance
          */
         virtual void GetDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo);
@@ -619,29 +608,29 @@ namespace Kratos
          */
         virtual void GetSecondDerivativesVector(Vector& Values, int Step = 0);
 
-        /// Obtain a double elemental variable, evaluated on gauss points.
-        /**
-         * If the variable is VORTICITY, computes the vorticity (rotational of the velocity)
-         * based on the current velocity values. Otherwise, it assumes that the input
-         * variable is an elemental value and retrieves it. Implemented for a
-         * single gauss point only.
-         * @param rVariable: Kratos vector variable to get
-         * @param Output: Will be filled with the values of the variable on integrartion points
-         * @param rCurrentProcessInfo: Process info instance
-         */
-        virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-                                                  std::vector<array_1d<double,3> >& rOutput,
-                                                  const ProcessInfo& rCurrentProcessInfo);
-
         /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
         /**
          * If the variable is TAUONE or TAUTWO, calculates the corresponding stabilization
          * parameter for the element, based on rCurrentProcessInfo's DELTA_TIME and
          * DYNAMIC_TAU. Otherwise, it assumes that the input variable is an
          * elemental value and retrieves it. Implemented for a single gauss point only.
-         * @param rVariable: Kratos vector variable to compute
-         * @param Output: Will be filled with the values of the variable on integrartion points
-         * @param rCurrentProcessInfo: Process info instance
+         * @param rVariable Kratos vector variable to compute
+         * @param Output Will be filled with the values of the variable on integrartion points
+         * @param rCurrentProcessInfo Process info instance
+         */
+        virtual void GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+                                                  std::vector<array_1d<double,3> >& rOutput,
+                                                  const ProcessInfo& rCurrentProcessInfo);
+
+        /// Obtain a double elemental variable, evaluated on gauss points.
+        /**
+         * If the variable is VORTICITY, computes the vorticity (rotational of the velocity)
+         * based on the current velocity values. Otherwise, it assumes that the input
+         * variable is an elemental value and retrieves it. Implemented for a
+         * single gauss point only.
+         * @param rVariable Kratos vector variable to get
+         * @param Output Will be filled with the values of the variable on integrartion points
+         * @param rCurrentProcessInfo Process info instance
          */
         virtual void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
                                                   std::vector<double>& rValues,
@@ -795,19 +784,17 @@ namespace Kratos
             TauTwo = KinViscosity + 0.5 * Element_Size * AdvVelNorm;
         }
 
-        /// Calculate Stabilization parameters (without time term).
+        /// Calculate momentum stabilization parameter (without time term).
         /**
-         * Calculates both tau parameters based on a given advective velocity. The
-         * dynamic term in the momentum Tau is not taken into account. This function
+         * Calculates the momentum tau parameter based on a given advective velocity.
+         * The dynamic term is not taken into account. This function
          * is intended for error estimation only. In other cases use CalculateTau
          * @param TauOne First stabilization parameter (momentum equation)
-         * @param TauTwo Second stabilization parameter (mass equation)
          * @param rAdvVel advection velocity
          * @param Area Elemental area
          * @param KinViscosity Elemental kinematic viscosity (nu)
          */
         virtual void CalculateStaticTau(double& TauOne,
-                                        double& TauTwo,
                                         const array_1d< double, 3 > & rAdvVel,
                                         const double Area,
                                         const double KinViscosity)
@@ -822,7 +809,6 @@ namespace Kratos
             const double Element_Size = this->ElementSize(Area);
 
             TauOne = 1.0 / ( 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
-            TauTwo = KinViscosity + 0.5 * Element_Size * AdvVelNorm;
         }
 
         /// Add the momentum equation contribution to the RHS (body forces)
@@ -1061,12 +1047,15 @@ namespace Kratos
             }
         }
 
-        /// Assemble the contribution from an integration point to the element's residual
+        /// Assemble the contribution from an integration point to the element's residual.
+        /** Note that the dynamic term is not included in the momentum equation.
+         *  If OSS_SWITCH = 1, we don't take into account the 'dynamic' stabilization
+         *  terms, as it they belong to the finite element space.
+         */
         void AddProjectionResidualContribution(const array_1d< double, 3 > & rAdvVel,
                                                const double Density,
                                                array_1d< double,3 >& rElementalMomRes,
                                                double& rElementalMassRes,
-                                               const ProcessInfo& rCurrentProcessInfo,
                                                const array_1d< double, TNumNodes >& rShapeFunc,
                                                const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                                                const double Weight)
@@ -1083,17 +1072,50 @@ namespace Kratos
 
                 // Variable references
                 const array_1d< double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-                const array_1d< double, 3 > & rAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
                 const array_1d< double, 3 > & rBodyForce = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
                 const double& rPressure = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
 
                 // Compute this node's contribution to the residual (evaluated at inegration point)
-                // Pressure contribution to the momentum residual is done separately because it is not computed from array_1d variables
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-//                    ElementalMomRes[d] += Weight * ( Density * ( /*rShapeFunc[i] * (rAcceleration[d]-rBodyForce[d])*/ + AGradN[i] * rVelocity[d] ) + rShapeDeriv(i,d) * rPressure);
-                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
+                    rElementalMomRes[d] += Weight * (Density * (AGradN[i] * rVelocity[d] - rShapeFunc[i] * rBodyForce[d]) + rShapeDeriv(i, d) * rPressure);
                     rElementalMassRes += WeightedMass * rShapeDeriv(i, d) * rVelocity[d];
+                }
+            }
+        }
+
+        /// A-posteriori evaluation of the elemental momentum residual (for error estimation).
+        /** Note that this function adds the result to the rMomentumRes parameter, to allow
+         * the use of multiple integration points. This means that the initialization of
+         * the rMomentumRes parameter is left to the caller function.
+         */
+        void AddSubscaleEstimate(array_1d< double,3 >& rMomentumRes,
+                                 const array_1d< double,3 >& rAdvVel,
+                                 const double Density,
+                                 const double Tau,
+                                 const array_1d< double, TNumNodes >& rShapeFunc,
+                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                 const double Weight)
+        {
+            GeometryType& rGeom =  this->GetGeometry();
+            // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+            array_1d<double, TNumNodes> AGradN;
+            this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+
+            // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v)Node_j (column vector)
+            for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
+            {
+
+                // Variable references
+                const array_1d< double,3 >& rVelocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                const array_1d< double,3 >& rAcceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
+                const array_1d< double,3 >& rBodyForce = rGeom[i].FastGetSolutionStepValue(BODY_FORCE);
+                const double& rPressure = rGeom[i].FastGetSolutionStepValue(PRESSURE);
+
+                // Compute this node's contribution to the residual (evaluated at inegration point)
+                for (unsigned int d = 0; d < TDim; ++d)
+                {
+                    rMomentumRes[d] += Weight * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
                 }
             }
         }
