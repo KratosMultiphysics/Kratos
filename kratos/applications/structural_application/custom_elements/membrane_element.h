@@ -186,6 +186,7 @@ class MembraneElement
 		Vector mThickness;									//container of thickness
 		std::vector< array_1d<double,3> > mStrainsVector;	//container of Strain
 		std::vector< array_1d<double,6> > mStressesVector;	//container of Stress
+		std::vector< array_1d<double,6> > mCauchyStressesVector;	//container of Stress
 //		std::vector<Vector> mCauchyStressesVector;			//container of CauchyVector
 
 
