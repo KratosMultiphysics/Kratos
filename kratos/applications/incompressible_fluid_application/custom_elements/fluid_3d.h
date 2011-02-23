@@ -37,8 +37,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 //   
 //   Project Name:        Kratos       
 //   Last Modified by:    $Author: rrossi $
@@ -65,241 +65,271 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "includes/serializer.h"
 
 
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class Fluid3D
-	  : public Element
+    ///@name Kratos Globals
+    ///@{
+
+    ///@}
+    ///@name Type Definitions
+    ///@{
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    ///@}
+    ///@name  Functions
+    ///@{
+
+    ///@}
+    ///@name Kratos Classes
+    ///@{
+
+    /// Short class definition.
+
+    /** Detail class definition.
+     */
+    class Fluid3D
+    : public Element
     {
     public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of Fluid3D
-      KRATOS_CLASS_POINTER_DEFINITION(Fluid3D);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+        ///@name Type Definitions
+        ///@{
 
-      /// Destructor.
-      virtual ~Fluid3D();
-      
+        /// Counted pointer of Fluid3D
+        KRATOS_CLASS_POINTER_DEFINITION(Fluid3D);
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+        /// Default constructor.
+        Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry);
+        Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+        /// Destructor.
+        virtual ~Fluid3D();
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
-	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-	  
-	  void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+        ///@}
+        ///@name Operators
+        ///@{
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
-      /// Turn back information as a string.
-//      virtual String Info() const;
-      
-      /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+        ///@}
+        ///@name Operations
+        ///@{
 
-      /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-            
-      ///@}
-      
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+        //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+        void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+        void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+
+        void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+        void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+
+        ///@}
+        ///@name Access
+        ///@{
+
+
+        ///@}
+        ///@name Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+        /// Turn back information as a string.
+        //      virtual String Info() const;
+
+        /// Print information about this object.
+        //      virtual void PrintInfo(std::ostream& rOStream) const;
+
+        /// Print object's data.
+        //      virtual void PrintData(std::ostream& rOStream) const;
+
+
+        ///@}
+        ///@name Friends
+        ///@{
+
+
+        ///@}
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
+        ///@name Protected static Member Variables
+        ///@{
+
+
+        ///@}
+        ///@name Protected member Variables
+        ///@{
+
+
+        ///@}
+        ///@name Protected Operators
+        ///@{
+
+
+        ///@}
+        ///@name Protected Operations
+        ///@{
+
+
+        ///@}
+        ///@name Protected  Access
+        ///@{
+
+
+        ///@}
+        ///@name Protected Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Protected LifeCycle
+        ///@{
+
+
+        ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-/*		static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
-		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; //cartesian coords
-		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_De; //local coords
-		static boost::numeric::ublas::bounded_matrix<double,3,3> msJ; //local jacobian
-		static boost::numeric::ublas::bounded_matrix<double,3,3> msJinv; //inverse jacobian
-  		static array_1d<double,4> msN; //dimension = number of nodes
-		static array_1d<double,3> ms_aux; //dimesion coincides with space dimension
-		static array_1d<double,3> ms_vel_gauss; //dimesion coincides with space dimension
-  		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
-		static array_1d<double,4> ms_u_DN;
+        ///@name Static Member Variables
+        ///@{
+        /*		static boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors;
+                        static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; //cartesian coords
+                        static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_De; //local coords
+                        static boost::numeric::ublas::bounded_matrix<double,3,3> msJ; //local jacobian
+                        static boost::numeric::ublas::bounded_matrix<double,3,3> msJinv; //inverse jacobian
+                        static array_1d<double,4> msN; //dimension = number of nodes
+                        static array_1d<double,3> ms_aux; //dimesion coincides with space dimension
+                        static array_1d<double,3> ms_vel_gauss; //dimesion coincides with space dimension
+                        static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes
+                        static array_1d<double,4> ms_u_DN;
 
-		void InitializeAuxiliaries();
-*/
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-      void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
-      void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+                        void InitializeAuxiliaries();
+         */
 
-	  inline double CalculateH(double Volume);
-      inline double CalculateTau(const double h, const double nu, const double norm_u,  const ProcessInfo& CurrentProcessInfo);
-       
-   
-	  //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Volume)
-	  //inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Volume);
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-         
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //Fluid3D& operator=(const Fluid3D& rOther);
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-      /// Copy constructor.
-      //Fluid3D(const Fluid3D& rOther);
 
-        
-      ///@}    
-        
+
+        ///@}
+        ///@name Private Operators
+        ///@{
+        void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
+        void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+        inline double CalculateH(double Volume);
+        inline double CalculateTau(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & msDN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
+
+        double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 4,3 >& msDN_DX,
+                const double& h,
+                const double& C,
+                const double nu
+                );
+
+        //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Volume)
+        //inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Volume);
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+        ///@}
+        ///@name Serialization
+        ///@{
+
+        friend class Serializer;
+
+        // A private default constructor necessary for serialization
+
+        Fluid3D() : Element()
+        {
+        }
+
+        virtual void save(Serializer& rSerializer)
+        {
+            rSerializer.save("Name", "Fluid3D");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+        }
+
+
+        ///@}
+        ///@name Private  Access
+        ///@{
+
+
+        ///@}
+        ///@name Private Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Un accessible methods
+        ///@{
+
+        /// Assignment operator.
+        //Fluid3D& operator=(const Fluid3D& rOther);
+
+        /// Copy constructor.
+        //Fluid3D(const Fluid3D& rOther);
+
+
+        ///@}
+
     }; // Class Fluid3D 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
-				    Fluid3D& rThis);
-*/
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Fluid3D& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+    ///@}
 
-      return rOStream;
-    }*/
-  ///@} 
+    ///@name Type Definitions
+    ///@{
 
-}  // namespace Kratos.
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    /// input stream function
+    /*  inline std::istream& operator >> (std::istream& rIStream,
+                                        Fluid3D& rThis);
+     */
+    /// output stream function
+    /*  inline std::ostream& operator << (std::ostream& rOStream,
+                                        const Fluid3D& rThis)
+        {
+          rThis.PrintInfo(rOStream);
+          rOStream << std::endl;
+          rThis.PrintData(rOStream);
+
+          return rOStream;
+        }*/
+    ///@}
+
+} // namespace Kratos.
 
 #endif // KRATOS_FLUID_3D_H_INCLUDED  defined 
 

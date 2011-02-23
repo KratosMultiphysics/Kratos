@@ -205,7 +205,13 @@ namespace Kratos
 		//double h = pow(6.00*Volume,0.3333333);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
 		norm_u = sqrt(norm_u);
-		double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
+		double tau = CalculateTau(msDN_DX,ms_vel_gauss,h,nu,norm_u,rCurrentProcessInfo);
+
+                //compute turbulent viscosity
+                const double Cs = this->GetValue(C_SMAGORINSKY);
+                double nu_turbulent=0.0;
+                if(Cs != 0.0)
+                    nu_turbulent=ComputeSmagorinskyViscosity(msDN_DX,h,Cs,nu);
 
                 //adjusting the stablization by a constant factor
 		//double stab_factor = GetProperties()[STABILIZATION_FACTOR];
@@ -222,7 +228,7 @@ namespace Kratos
  
 		//VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
 		// rLeftHandSideMatrix += Laplacian * nu;
-		noalias(rLeftHandSideMatrix) += nu * prod(msDN_DX,trans(msDN_DX));
+		noalias(rLeftHandSideMatrix) += (nu + nu_turbulent) * prod(msDN_DX,trans(msDN_DX));
 
 		//INERTIA CONTRIBUTION
 		//  rLeftHandSideMatrix += M*BDFcoeffs[0]
@@ -386,7 +392,7 @@ namespace Kratos
 		double h = CalculateH(Volume);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
 		norm_u = sqrt(norm_u);
-		double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
+		double tau = CalculateTau(msDN_DX,ms_vel_gauss,h,nu,norm_u,rCurrentProcessInfo);
 		
 		//getting the BDF2 coefficients (not fixed to allow variable time step)
 		//the coefficients INCLUDE the time step
@@ -869,18 +875,58 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	inline double Fluid3D::CalculateTau(const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
+	inline double Fluid3D::CalculateTau(boost::numeric::ublas::bounded_matrix<double,4,3>& msDN_DX, array_1d<double,3>& vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
 	{
-              const double c1 = 4.00;
+/*              const double c1 = 4.00;
               const double c2 = 2.00;
               
                 const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
+              const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];*/
+//                double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+
+// 	      boost::numeric::ublas::bounded_matrix<double,4,3> aux;
+// 	      for(unsigned int i=0; i<4; i++)
+// 	      {
+// 		array_1d<double,3>& vv = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+// 		aux(i,0) = vv[0];
+// 		aux(i,1) = vv[1];
+//  		aux(i,2) = vv[2];
+// 	      }
+// 	      boost::numeric::ublas::bounded_matrix<double,3,3> grad_u = prod(trans(msDN_DX),aux);
+// 	      array_1d<double,3> uDu = prod(grad_u, vel_gauss);
+// 	      double uDu_norm = norm_2(uDu);
+// 	      	      
+// 	      double nn = 0;
+// 	      for(unsigned int i=0; i<3; i++)
+// 		for(unsigned int j=0; j<3; j++)
+// 		  nn += grad_u(i,j)*grad_u(i,j); 
+// 		
+// 	      double tau = norm_u*norm_u/(dyn_st_beta*inv_dt_coeff*norm_u*norm_u + c1*nu*(nn) + c2*norm_u*uDu_norm + 1e-10);
+
+	      const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
               const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
-              double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
+	      double viscous_part = 0.0;
+	      double convective_part=0.0;
+ 	      for(unsigned int i=0; i<4; i++)
+	      {
+		  double aaa = 0.0;
+		  for(unsigned int j=0; j<3; j++)
+		  {
+		      viscous_part    += msDN_DX(i,j)*msDN_DX(i,j); 
+		      aaa += /*fabs*/(vel_gauss[j]*msDN_DX(i,j));
+		  }
+		  convective_part += fabs(aaa);
+	      }
+/*	      viscous_part *= 4.0;
+	      convective_part *= 0.5;*/
+	      viscous_part *= 16.0;
+// 	      convective_part = fabs(convective_part);	      
+	      double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  nu*viscous_part +  convective_part);
+	      
+	      
+		  
 
-
-
-                return tau;
+                 return tau;
 
 	}
 	
@@ -963,7 +1009,7 @@ namespace Kratos
 	      double h = CalculateH(Volume);
 	      double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
 	      norm_u = sqrt(norm_u);
-	      double tau = CalculateTau(h,nu,norm_u,rCurrentProcessInfo);
+	      double tau = CalculateTau(msDN_DX,ms_vel_gauss,h,nu,norm_u,rCurrentProcessInfo);
 
 	      //calculating the subscale velocity assuming that it is governed by the convection part
 	      array_1d<double,4> ms_u_DN; 
@@ -1002,6 +1048,44 @@ namespace Kratos
 	KRATOS_CATCH("");
 
     }
+
+    	//************************************************************************************
+	//************************************************************************************
+         double Fluid3D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double,4,3>& msDN_DX,
+                                                  const double& h,
+                                                  const double& C,
+                                                  const double nu
+                                                  )
+        {
+            boost::numeric::ublas::bounded_matrix<double,3,3> dv_dx = ZeroMatrix(3,3);
+
+            const unsigned int nnodes = 4;
+            // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
+            for (unsigned int k = 0; k < nnodes; ++k)
+            {
+                const array_1d< double,3 >& rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(FRACT_VEL);
+                for (unsigned int i = 0; i < 3; ++i)
+                {
+                    for (unsigned int j = 0; j < i; ++j) // Off-diagonal
+                        dv_dx(i,j) += 0.5 * ( msDN_DX(k,j) * rNodeVel[i] + msDN_DX(k,i) * rNodeVel[j] );
+                    dv_dx(i,i) += msDN_DX(k,i) * rNodeVel[i]; // Diagonal
+                }
+            }
+
+            // Norm[ Grad(u) ]
+            double NormS(0.0);
+            for (unsigned int i = 0; i < 3; ++i)
+            {
+                for (unsigned int j = 0; j < i; ++j)
+                    NormS += 2.0 * dv_dx(i,j) * dv_dx(i,j); // Using symmetry, lower half terms of the matrix are added twice
+                NormS += dv_dx(i,i) * dv_dx(i,i); // Diagonal terms
+            }
+
+            NormS = sqrt(NormS);
+
+            // Total Viscosity
+            return 2.0 * C * C * h * NormS;
+        }
 
 } // Namespace Kratos
 
