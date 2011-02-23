@@ -189,16 +189,23 @@ namespace Kratos
 		
 		//====================================================================
 		//calculating viscosity
-		double nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
-		double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+		const double nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+		const double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+                const double h = sqrt(2.00*Area/3.0);
 
 		//getting the BDF2 coefficients (not fixed to allow variable time step)
 		//the coefficients INCLUDE the time step
 		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+                //compute turbulent viscosity
+                const double Cs = this->GetValue(C_SMAGORINSKY);
+                double nu_turbulent=0.0;
+                if(Cs != 0.0)
+                    nu_turbulent=ComputeSmagorinskyViscosity(msDN_DX,h,Cs,nu);
 		
 		//VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
 		// rLeftHandSideMatrix += Laplacian * nu; --> ONE GAUSS POINT
-		noalias(rLeftHandSideMatrix) = nu * prod(msDN_DX,trans(msDN_DX));
+		noalias(rLeftHandSideMatrix) = (nu + nu_turbulent) * prod(msDN_DX,trans(msDN_DX));
 
 		//INERTIA CONTRIBUTION
                 		//filling the mass factors
@@ -255,7 +262,7 @@ namespace Kratos
 		//====================================================================
 		//calculation of convective and stabilizing terms ... using 3 gauss points (on the sides)
 //		double c1 = 4.00; double c2 = 2.00;
-		double h = sqrt(2.00*Area/3.0);
+		
 		double norm_u = 0.0; double tau=0.0;
 		double area_density_third = Area * density * 0.33333333333333333333;
 		
@@ -805,6 +812,45 @@ namespace Kratos
                 return tau;
 
 	}
+
+	//************************************************************************************
+	//************************************************************************************
+         double Fluid2D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,
+                                                  const double& h,
+                                                  const double& C,
+                                                  const double nu
+                                                  )
+        {
+            boost::numeric::ublas::bounded_matrix<double,2,2> dv_dx = ZeroMatrix(2,2);
+
+            // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
+            for (unsigned int k = 0; k < 3; ++k)
+            {
+                const array_1d< double,3 >& rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(FRACT_VEL);
+                for (unsigned int i = 0; i < 2; ++i)
+                {
+                    for (unsigned int j = 0; j < i; ++j) // Off-diagonal
+                        dv_dx(i,j) += 0.5 * ( msDN_DX(k,j) * rNodeVel[i] + msDN_DX(k,i) * rNodeVel[j] );
+                    dv_dx(i,i) += msDN_DX(k,i) * rNodeVel[i]; // Diagonal
+                }
+            }
+
+            // Norm[ Grad(u) ]
+            double NormS(0.0);
+            for (unsigned int i = 0; i < 2; ++i)
+            {
+                for (unsigned int j = 0; j < i; ++j)
+                    NormS += 2.0 * dv_dx(i,j) * dv_dx(i,j); // Using symmetry, lower half terms of the matrix are added twice
+                NormS += dv_dx(i,i) * dv_dx(i,i); // Diagonal terms
+            }
+
+            NormS = sqrt(NormS);
+
+            // Total Viscosity
+            return 2.0 * C * C * h * NormS;
+        }
+
+
 
 
 //#undef GRADPN_FORM
