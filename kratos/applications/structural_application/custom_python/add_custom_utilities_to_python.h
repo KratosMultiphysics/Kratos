@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/variable_transfer_utility.h"
 #include "custom_utilities/restart_utility.h"
 #include "custom_utilities/contact_utility.h"
+#include "custom_utilities/volume_utility.h"  // VM
 
 namespace Kratos
 {
