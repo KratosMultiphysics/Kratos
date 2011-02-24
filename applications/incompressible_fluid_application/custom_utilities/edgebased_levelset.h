@@ -2592,8 +2592,8 @@ void ActivateWallResistance(double Ywall)
 			    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
 			    //convection operator
-//                            edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, phi_i, a_j, phi_j); //esto funciona
-			    edge_ij.Sub_D_v(rhs_i, a_i*phi_i, a_i*phi_j);
+                            edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, phi_i, a_j, phi_j); //esto funciona
+//			    edge_ij.Sub_D_v(rhs_i, a_i*phi_i, a_i*phi_j);
 
 
 			    //calculate stabilization part
