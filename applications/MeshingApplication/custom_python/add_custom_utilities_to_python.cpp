@@ -23,6 +23,7 @@
 #include "custom_utilities/connectivity_preserve_modeler.h"
 #include "custom_utilities/local_triangle_refine_mesh.h"
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
+#include "custom_utilities/tetgen_volume_mesher.h"
 
 
 namespace Kratos
@@ -85,7 +86,11 @@ namespace Kratos
                     .def("LocalRefineMesh", &Local_Refine_Tetrahedra_Mesh::Local_Refine_Mesh)
                     ;
 
-
+            class_<TetgenVolumeMesher, boost::noncopyable >
+                    ("TetgenVolumeMesher", init<ModelPart&>())
+                    .def("AddHole", &TetgenVolumeMesher::AddHole)
+                    .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
+                    ;
 
         }
 
