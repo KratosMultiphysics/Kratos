@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/contact_utility.h"
+#include "custom_utilities/volume_utility.h" // VM
 #include "custom_utilities/restart_utility.h"
 #include "custom_utilities/node_snapping_utility.h"
 #include "custom_elements/rigid_body_3D.h"
@@ -228,7 +229,14 @@ namespace Kratos
                     .def("IsConverged", &ContactUtility::IsConverged )
                     .def("Clean", &ContactUtility::Clean )
                     ;
-
+// VM
+            class_<VolumeUtility, boost::noncopyable >
+                    ("VolumeUtility",
+                     init<int>() )
+		    .def("Calculate_this_Volume", &VolumeUtility::CalculateVolume ) // VM
+                    ;
+//VM		    
+		    
             class_<RestartUtility, boost::noncopyable >
                     ("RestartUtility",
                      init< std::string const& >() )
