@@ -14,6 +14,9 @@ SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
 SCALAR CONDITION VISCOSITY     		point line surface volume free  0.000001
 SCALAR CONDITION DENSITY     		point line surface volume free  1.0
 SCALAR CONDITION DENSITY_AIR     	point line surface volume free  1.0
+SCALAR CONDITION DENSITY_WATER     	point line surface volume free  1.0
+SCALAR CONDITION VISCOSITY_AIR     	point line surface volume free  1.0
+SCALAR CONDITION VISCOSITY_WATER     	point line surface volume free  1.0
 SCALAR CONDITION POROSITY     		point line surface volume free  1.0
 SCALAR CONDITION YIELD_STRESS  		point line surface volume free  100.0
 
@@ -21,6 +24,7 @@ FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0
 FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
 FLAG CONDITION IS_BOUNDARY    		point line surface volume free 1.0 2.0 3.0 4.0 5.0
 FLAG CONDITION IS_SLIP    		point line surface volume free 1.0 0.0
+FLAG CONDITION IS_WATER    		point line surface volume free 1.0 0.0
 
 FACE CONDITION Condition2D line
 FACE CONDITION Condition3D surface 
@@ -33,30 +37,40 @@ FACE CONDITION Monolithic3DNeumann surface
 FLAG FACE VALUE IS_STRUCTURE line surface 0.0 1.0
 
 ELEMENT Fluid2D surface
+ELEMENT EbstVel3D3N surface
 ELEMENT Fluid3D volume 
 ELEMENT Fluid2DCoupled surface
 ELEMENT Fluid3DCoupled volume 
 ELEMENT ASGS2D surface 
 ELEMENT ASGS3D volume 
+ELEMENT ASGSCompressible3D volume 
+ELEMENT ASGSCOMPPRDC3D volume 
 ELEMENT ASGSCompressible2D surface 
+ELEMENT ASGSCOMPPRDC2D surface
 ELEMENT NoNewtonianASGS2D surface 
 ELEMENT CouetteNonNewtonianASGS2D surface 
 
+
+
 OPTION 2D_Boundary_Condition line Condition2D Fluid2DNeumann Monolithic2DNeumann
 OPTION 3D_Boundary_Condition surface Condition3D Fluid3DNeumann Monolithic3DNeumann
-OPTION 2D_Body_Element surface Fluid2D Fluid2DCoupled ASGS2D ASGSCompressible2D NoNewtonianASGS2D CouetteNonNewtonianASGS2D
-OPTION 3D_Body_Element volume Fluid3D Fluid3DCoupled ASGS3D
+OPTION 2D_Body_Element surface Fluid2D Fluid2DCoupled ASGS2D ASGSCompressible2D NoNewtonianASGS2D CouetteNonNewtonianASGS2D ASGSCOMPPRDC2D EbstVel3D3N
+OPTION 3D_Body_Element volume Fluid3D Fluid3DCoupled ASGS3D ASGSCompressible3D ASGSCOMPPRDC3D
+
 
 
 PROPERTY Time_step 0.01 Dt
 PROPERTY max_time 1.0 max_time
-TEXT FLAG PROPERTY SolverType fractional_step pressure_splitting monolithic_solver_eulerian SolverType
+TEXT FLAG PROPERTY SolverType fractional_step pressure_splitting monolithic_solver_eulerian monolithic_solver_lagrangian_compressible_two_fluids_3d SolverTypeSolverType
 PROPERTY laplacian_form 1 laplacian_form
 PROPERTY output_step 1 output_step
 PROPERTY predictor_corrector False predictor_corrector
 PROPERTY max_press_its 3 max_press_its
 PROPERTY use_oss 0 use_oss
 PROPERTY dynamic_tau 1.0 dynamic_tau
+
+DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR 
+ADD MATERIAL Steel     76972.86 1.999E11   0.3  (0.0,-76.972.86,0.0) 1.0  #do not put spaces in the definition of the vector
 
 DEFINE MODEL PART VelocityInlet point line surface LOWER
 ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
