@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -299,19 +300,40 @@ namespace Kratos
             
       ///@}
       
-   // private:
+   private:
       ///@name Static Member Variables 
       ///@{ 
         
       ///@} 
       ///@name Member Variables 
-      ///@{ 
-        
+      ///@{ 	
+       
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      Fluid2DSplit() : Element()
+      {
+      }
+
+      virtual void save(Serializer& rSerializer)
+      {
+	  rSerializer.save("Name", "Fluid2DSplit");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+      }	
+      
       ///@} 
       ///@name Private Operators
       ///@{ 
 
-	    private:
       ///@} 
       ///@name Private Operations
       ///@{ 

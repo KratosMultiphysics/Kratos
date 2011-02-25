@@ -66,6 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "custom_elements/nonewtonian_asgs_2d.h"
 
+#include "includes/serializer.h"
+
 namespace Kratos
 {
   ///@addtogroup IncompressibleFluidApplication
@@ -207,21 +209,42 @@ namespace Kratos
             
       ///@}
       
-   // private:
+   private:
       ///@name Static Member Variables 
       ///@{ 
         
       ///@} 
       ///@name Member Variables 
       ///@{ 
-        
+ 		
+       
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      CouetteNonNewtonianASGS2D() : NoNewtonianASGS2D()
+      {
+      }
+
+      virtual void save(Serializer& rSerializer)
+      {
+	  rSerializer.save("Name", "CouetteNonNewtonianASGS2D");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, NoNewtonianASGS2D);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, NoNewtonianASGS2D);
+      }	
+      
       ///@} 
       ///@name Private Operators
       ///@{ 
 
 
-
-	    private:
       ///@} 
       ///@name Private Operations
       ///@{ 

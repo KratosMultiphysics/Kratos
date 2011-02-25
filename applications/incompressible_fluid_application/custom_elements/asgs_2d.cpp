@@ -130,7 +130,7 @@ namespace Kratos {
 
 
         //add projections
-        if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+        if (rCurrentProcessInfo[OSS_SWITCH] == 1)
             AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
 
 

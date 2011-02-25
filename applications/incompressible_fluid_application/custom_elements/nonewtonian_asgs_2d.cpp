@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #define COMPRESSIBLE_MODEL_ML__PN1_PN__
 // #define COMPRESSIBLE_MODEL_MLPN1_MCPN
 
-#define K0 //fixed tangent method
+// #define K0 //fixed tangent method
 // #define Kvisc0 //fixed tangent method only for viscous terms
 
 // System includes 
@@ -136,10 +136,10 @@ namespace Kratos {
 	//add body force and momentum
 	AddBodyForceAndMomentum(rRightHandSideVector,DN_DX, N, delta_t, Area, tauone, tautwo);
 
-
+// KRATOS_WATCH(rCurrentProcessInfo[OSS_SWITCH])
 
 // 	      //add projections
-	      if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+// 	      if (rCurrentProcessInfo[OSS_SWITCH] == 1)
 		  AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
 
 
@@ -320,11 +320,11 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// Remember to modify CalculateResidualand CalculateTau.
 	// 	app_mu = mu;
 		
-		C(0, 0) = 2.0;// - 2.0/3.0;
-		C(0, 1) = 0.0;//- 2.0/3.0;
+		C(0, 0) = 2.0- 2.0/3.0;
+		C(0, 1) = 0.0- 2.0/3.0;
 		C(0, 2) = 0.0;
-		C(1, 0) = 0.0;//- 2.0/3.0;
-		C(1, 1) = 2.0;//- 2.0/3.0;
+		C(1, 0) = 0.0- 2.0/3.0;
+		C(1, 1) = 2.0- 2.0/3.0;
 		C(1, 2) = 0.0;
 		C(2, 0) = 0.0;
 		C(2, 1) = 0.0;
@@ -692,6 +692,37 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 	    F[index] += area * fbd_stblterm[loc_index];
 	    F[index + 1] += area * fbd_stblterm[loc_index + 1];
 	}
+	
+// 	//build (a.grad V)(ro*grad nu.grad U) stabilization term & assemble
+// 	boost::numeric::ublas::bounded_matrix<double, 2, 6 > visc_opr = ZeroMatrix(dof, matsize);
+// 
+// 	for (int ii = 0; ii < nodes_number; ii++) {
+// 	    int column = ii*dof;
+// 	    visc_opr(0, column) = DN_DX(ii, 0) * ms_adv_vel[0] + DN_DX(ii, 1) * ms_adv_vel[1];
+// 	    visc_opr(1, column + 1) = visc_opr(0, column);
+// 
+// 	}
+// 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > visc_stblterm = ZeroMatrix(matsize, matsize);
+// 	visc_stblterm = tauone * prod(trans(conv_opr), visc_opr);
+// 
+// 
+// 	double density;
+// 	double mu;
+// 	calculatedensity(GetGeometry(), density, mu);
+// 
+// 	for (int ii = 0; ii < nodes_number; ii++) {
+// 	    int row = ii * (dof + 1);
+// 	    int loc_row = ii*dof;
+// 	    for (int jj = 0; jj < nodes_number; jj++) {
+// 		int column = jj * (dof + 1);
+// 		int loc_column = jj*dof;
+// 
+// 		K(row, column) += area * density * adv_stblterm(loc_row, loc_column);
+// 		K(row, column + 1) += area * density * adv_stblterm(loc_row, loc_column + 1);
+// 		K(row + 1, column) += area * density * adv_stblterm(loc_row + 1, loc_column);
+// 		K(row + 1, column + 1) += area * density * adv_stblterm(loc_row + 1, loc_column + 1);
+// 	    }
+// 	}
 	KRATOS_CATCH("")
     }
     //************************************************************************************
@@ -1001,6 +1032,12 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 	aux_1 = 2.0 * app_mu * grad_sym_vel;
 	aux_1[2] *= 0.5; //considering Voigt notation for the gradient of velocity (alternative to the C matrix of the viscous term.
 
+	mDevStress = 0.5 * aux_1[0] * aux_1[0] + 0.5 * aux_1[1] * aux_1[1] + aux_1[2] * aux_1[2];
+// 	mDevStress =  aux_1[0] * aux_1[0] +  aux_1[1] * aux_1[1] + 2 * aux_1[2] * aux_1[2];
+
+	mDevStress = sqrt(mDevStress);
+	
+	
 	auxDevStressVector = prod(trans(B), aux_1);
 	/*TO DECOMMENT*/
 
@@ -1107,7 +1144,6 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
     void NoNewtonianASGS2D::AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area, const double tauone, const double tautwo) {
 	unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	unsigned int dim = 2;
-
 	double density;
 	double mu;
 	calculatedensity(GetGeometry(), density, mu);
@@ -1606,8 +1642,20 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 
 	    }
 	}
+	if (rVariable == TAU) {//SQRT(0.5 DEVSTRESS:DEVSTRESS)
+	    
+	    for (unsigned int PointNumber = 0;
+		    PointNumber < 1; PointNumber++) {
+		rValues[PointNumber] = mDevStress;
+
+	    }
+	}	
+	
 //PROVISIONALend---only for debugging
     }
+
+      
+    
     //*************************************************************************************
     //*************************************************************************************
 
