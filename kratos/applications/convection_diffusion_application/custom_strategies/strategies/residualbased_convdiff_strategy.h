@@ -59,25 +59,28 @@ namespace Kratos
 	/**@name Kratos Classes */
 	/*@{ */
 
-	/// Short class definition.
+	/// This strategy is used to solve convection-diffusion problem.
 	/**   Detail class definition.
 
-	\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+	The convection-diffusion problem 
+		\f$ \rho C M \frac{\partial T}{\partial t} + \rho C S T  = - \kappa L T \f$ (1)
 
-	\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+	      is completed with the standard boundary conditions of prescribed temperature and prescribed normal
+	      heat flux in the thermal problem. For surfaces exposed to fire conditions, energy losses
+	      due to radiation and convection must be taken into account, and the thermal boundary condition is 
 
-	\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+              \f$ \kappa \frac{\partial T}{\partial n} + \overline{q_n} = 0 \f$ (2)
+	      where
 
-	\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+              \f$ \overline{q_n} = q_n - \varepsilon \sigma (T^4 - T_0^4) - \alpha_c (T - T_0)\f$ (3) 
+
+	Then, this strategy is employed to solve the following equation
 
 
-	\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-	\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-	\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-	\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+    	Evaluates  \f$ L h s = \frac{\rho C}{\Delta t} (W, N) + (W, v. \nabla N) + \kappa (\nabla W, \nabla N) + 4 \epsilon \sigma T^3 \left\langle W, N \right\rangle + \alpha \left\langle
+   W, N \right\rangle \f$ and \f$R h s = \rho (W, Q) + \frac{\rho C}{\Delta t} (W, T^n)- \left\langle W, q \left\rangle - \epsilon \sigma \left\langle W, T^4 -
+   T_0^4 \left\rangle - \left\langle W, \alpha (T - T_0) \left\rangle \right.
+   \right. \right. \right. \right. \right - L h s \ast T \f$
 
 
 	*/
@@ -120,7 +123,12 @@ namespace Kratos
 		*/    
 		/*@{ */
 
-		/** Constructor.
+		/** 
+ 	@param model_part Reference to the ModelPart that contains the problem.
+         @param pNewLinearSolver pointer to the solver for the temperature system.
+         @paramReformDofAtEachIteration=true.
+         @param time_order=2.
+         @param prediction_order == 2.
 		*/
 
 
