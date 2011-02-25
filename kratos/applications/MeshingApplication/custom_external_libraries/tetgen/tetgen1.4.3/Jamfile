@@ -13,6 +13,10 @@ project tetgen_compilation
 
 			<toolset>msvc:<define>CPU86
 			<toolset>gcc:<define>LINUX
+			<toolset>intel:<define>LINUX
+			<toolset>clang:<define>LINUX
+
+<cxxflags>"-fPIC -ansi"
 	: 
 			default-build release 
     ;
