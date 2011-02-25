@@ -197,8 +197,8 @@ namespace Kratos {
 	    mr_matrix_container.SetToZero(mdiv_error);
 
 
-	    ValuesVectorType external_pressure;
-	    external_pressure.resize(n_nodes);
+//	    ValuesVectorType external_pressure;
+//	    external_pressure.resize(n_nodes);
 
 	    //read velocity and pressure data from Kratos
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
@@ -228,7 +228,7 @@ namespace Kratos {
 
 		if (inode->IsFixed(PRESSURE)) {
 		    mPressureOutletList.push_back(index);
-		    mPressureOutlet.push_back(external_pressure[index]);
+//		    mPressureOutlet.push_back(external_pressure[index]);
 		}
 	    }
 
@@ -1920,7 +1920,7 @@ namespace Kratos {
 	    mFixedVelocities.clear();
 	    mFixedVelocitiesValues.clear();
 	    mPressureOutletList.clear();
-	    mPressureOutlet.clear();
+//	    mPressureOutlet.clear();
 	    mSlipBoundaryList.clear();
 	    mL.clear();
 	    mTauPressure.clear();
@@ -2328,7 +2328,7 @@ void ActivateWallResistance(double Ywall)
 	//lists of nodes with different types of boundary conditions
 	IndicesVectorType mSlipBoundaryList, mPressureOutletList, mFixedVelocities;
 	CalcVectorType mFixedVelocitiesValues;
-	ValuesVectorType mPressureOutlet;
+//	ValuesVectorType mPressureOutlet;
 
 	//intrinsic time step size
 	ValuesVectorType mTauPressure;
