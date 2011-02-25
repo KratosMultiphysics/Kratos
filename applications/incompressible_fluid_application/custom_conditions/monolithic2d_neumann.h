@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -108,7 +109,7 @@ namespace Kratos
       
       /// Default constructor.
       Monolithic2DNeumann(){};
-	  Monolithic2DNeumann(IndexType NewId, GeometryType::Pointer pGeometry);
+      Monolithic2DNeumann(IndexType NewId, GeometryType::Pointer pGeometry);
       Monolithic2DNeumann(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
       /// Destructor.
@@ -215,6 +216,27 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 
 		
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+//       Monolithic2DNeumann() : Condition()
+//       {
+//       }
+
+      virtual void save(Serializer& rSerializer)
+      {
+	  rSerializer.save("Name", "Monolithic2DNeumann");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+      }	        
         
         
       ///@} 

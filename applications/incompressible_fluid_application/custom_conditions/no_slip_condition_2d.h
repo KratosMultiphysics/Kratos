@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "includes/serializer.h"
 
 namespace Kratos															////cosa sarebbe?
 {
@@ -215,7 +216,30 @@ namespace Kratos															////cosa sarebbe?
       ///@name Member Variables 
       ///@{ 
 		
-        
+       
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+//       NoSlipCondition2D() : Condition()
+//       {
+//       }
+
+      virtual void save(Serializer& rSerializer)
+      {
+	  rSerializer.save("Name", "NoSlipCondition2D");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+      }	        
+
+         
         
       ///@} 
       ///@name Private Operators
