@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -307,43 +308,48 @@ namespace Kratos
             
       ///@}
       
-   // private:
+   private:
       ///@name Static Member Variables 
       ///@{ 
         
       ///@} 
       ///@name Member Variables 
       ///@{ 
-        
+// 	  MatrixType mlhs0;
+// 	  MatrixType mKvisc0;
+	  
+       
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      NoNewtonianASGS3D() : Element()
+      {
+      }
+
+      virtual void save(Serializer& rSerializer)
+      {
+	  rSerializer.save("Name", "NoNewtonianASGS3D");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+      }	
+	
+	                
       ///@} 
       ///@name Private Operators
       ///@{ 
-//         virtual void CalculateMassContribution(MatrixType& K,const double time,const double volume); 
-// 	virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume);
-// 	virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double thawone, const double thawtwo, const double time,const double volume);
-// 	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,const double time ,const double volume);
-// 
-// 	virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double thawtwo,const double volume);
-// 	virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,const array_1d<double,4>& N, const double thawone,const double time,const double volume);
-// 	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double thawone,const double volume);
-//         virtual void AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double time,const double volume,const double thawone,const double thawtwo);
-// 
-// 	virtual void CalculateTau(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N,double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
-// 	
-// 	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
-//         virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-// 	virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX);
-// 	virtual void CalculateGradSymVel(array_1d<double, 6> & grad_sym_vel, double & gamma_dot,const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B);
-// // 	virtual void CalculateApparentViscosity(double & ApparentViscosity, const double & grad_sym_vel_norm, const double & mu, const double & YeldStress, const double mcoef);
-//        virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12  > & B, const double & mu);
-//        virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu);
-//  
-	    private:
+
       ///@} 
       ///@name Private Operations
       ///@{ 
-        
-        
+
       ///@} 
       ///@name Private  Access 
       ///@{ 

@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -285,6 +286,15 @@ namespace Kratos
       ///@name Protected Operators
       ///@{ 
 	
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      // A private default constructor necessary for serialization
+      NoNewtonianASGS2D() : Element()
+      {
+      }
+
 	
       ///@} 
       ///@name Protected Operations
@@ -315,8 +325,28 @@ namespace Kratos
       ///@} 
       ///@name Member Variables 
       ///@{ 
+      
 	  MatrixType mlhs0;
 	  MatrixType mKvisc0;	
+          double mDevStress;
+	  
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      virtual void save(Serializer& rSerializer)
+      {
+	  rSerializer.save("Name", "NoNewtonianASGS2D");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+      }	
+	
       ///@} 
       ///@name Private Operators
       ///@{ 

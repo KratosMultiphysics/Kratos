@@ -109,7 +109,7 @@ namespace Kratos
 	unsigned int nodes_number = 3;
 	double yield = 0.0;
 	double gamma_dot_inv;
-        double mcoef = 300;
+        double mcoef = 1000;
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
 	}
@@ -133,7 +133,7 @@ namespace Kratos
 	gamma_dot_inv= 1.0/gamma_dot;
         
 //         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
- 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(mcoef * gamma_dot))*(1 - mcoef * gamma_dot));
+ 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1.0 - exp(-(mcoef * gamma_dot))*(1.0 - mcoef * gamma_dot));
 //	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
 
         KRATOS_CATCH("")
