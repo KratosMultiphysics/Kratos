@@ -13,7 +13,7 @@ project MeshingApplication
        external_includes
     :
     requirements <include>. 
-		<include>custom_external_libraries/tetgen/tetgen1.4.0
+		<include>custom_external_libraries/tetgen/tetgen1.4.3
 		<include>custom_external_libraries/triangle
 
 		<include>custom_external_libraries/msuite/src/
@@ -22,14 +22,16 @@ project MeshingApplication
 		<include>custom_external_libraries/msuite/src/malla/
 
 		<define>KRATOS_PYTHON
+		<define>TETGEN143
+		<define>TETLIBRARY
 		<link>shared
     ;
 
 #################################################################################
 #################################################################################
 ##definition of "dependencies for the project"
-lib libtetgen_win 		: : <name>libtet <search>custom_external_libraries/tetgen/tetgen1.4.0/ <link>static ;
-lib libtetgen_linux		: : <name>tet <search>custom_external_libraries/tetgen/tetgen1.4.0/ <link>static ;
+lib libtetgen_win 		: : <name>libtet <search>custom_external_libraries/tetgen/tetgen1.4.3/ <link>static ;
+lib libtetgen_linux		: : <name>tet <search>custom_external_libraries/tetgen/tetgen1.4.3/ <link>static ;
 alias libtetgen : libtetgen_win : <toolset>msvc ;
 alias libtetgen : libtetgen_linux : <toolset>gcc ;
 alias libtetgen : libtetgen_linux : <toolset>intel ;
@@ -54,7 +56,7 @@ alias libmsuite : libmsuite_linux : <toolset>clang ;
 
 
 #compilation of additional libraries
-use-project /kratos-prj/meshapp_tetgen_compilation   : custom_external_libraries/tetgen/tetgen1.4.0 ;
+use-project /kratos-prj/meshapp_tetgen_compilation   : custom_external_libraries/tetgen/tetgen1.4.3 ;
 use-project /kratos-prj/meshapp_triangle_compilation : custom_external_libraries/triangle ;
 use-project /kratos-prj/msuite               : custom_external_libraries/msuite ;
 
