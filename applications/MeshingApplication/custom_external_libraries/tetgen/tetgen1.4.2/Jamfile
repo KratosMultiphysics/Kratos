@@ -24,11 +24,14 @@ project meshapp_tetgen_compilation
 
 lib libtet
     :  
-	tetgen.cxx
+	tetgen_obj
 	unoptimized_predicates
+
     ;
 
-obj unoptimized_predicates : predicates.cxx : <optimization>off ;
+obj tetgen_obj : tetgen.cxx : <optimization>off <cxxflags>"-O2 -fno-fast-math"  ;
+
+obj unoptimized_predicates : predicates.cxx : <optimization>off <cxxflags>"-fno-fast-math" ;
 
 
 install install : libtet : <location>. ;
