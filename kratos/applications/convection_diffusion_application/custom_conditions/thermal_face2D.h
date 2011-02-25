@@ -88,7 +88,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
+  /// Evaluates the term  \f$ \overline{q_n} = q_n - \varepsilon \sigma (T^4 - T_0^4) - \alpha_c (T - T_0)\f$ .
   /** Detail class definition.
   */
   class ThermalFace2D
@@ -215,6 +215,8 @@ namespace Kratos
       ///@} 
       ///@name Private Operators
       ///@{ 
+
+///Evaluates  \f$ L h s =  4 \epsilon \sigma T^3 \left\langle W, N \right\rangle + \alpha \left\langle W, N \right\rangle \f$ and \f$R h s = \left\langle W, q \left\rangle - \epsilon \sigma \left\langle W, T^4 - T_0^4 \left\rangle - \left\langle W, \alpha (T - T_0) \left\rangle \right.\right. \right. \right. \right. \right \f$
 		void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
 										ProcessInfo& rCurrentProcessInfo,
 										bool CalculateStiffnessMatrixFlag,
