@@ -25,6 +25,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -66,9 +67,9 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
-	  ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeometry);
+      ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeometry);
       ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
-ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> point1, array_1d<double,3> point2, array_1d<double,3> vel1, array_1d<double,3> vel2);
+      ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> point1, array_1d<double,3> point2, array_1d<double,3> vel1, array_1d<double,3> vel2);
 
       /// Destructor.
       virtual ~ProjDirichletCond();
@@ -175,6 +176,29 @@ ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesT
         
         array_1d<double,3> mVel1;
 	array_1d<double,3> mVel2;	
+       
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      ProjDirichletCond() : Condition()
+      {
+      }
+
+      virtual void save(Serializer& rSerializer)
+      {
+	  rSerializer.save("Name", "ProjDirichletCond");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+      }	        
+
       ///@} 
       ///@name Private Operators
       ///@{ 
