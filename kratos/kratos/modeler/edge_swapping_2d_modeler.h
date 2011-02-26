@@ -71,27 +71,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// Optimizes a 2D mesh by swapping the edges between elements.
+  /** This class can be used to optimized a 2D mesh modifying the connectivities of the elements.
+      This modeler also collapses the nodes which are marked to be deleted. Nodes must be marked
+	  by setting the ERASE_FLAG in data value container (using Node::SetValue) to true. 
+	  The algorithm consist of doing iteration over following steps:
+		- Marking the pair of elements to be swapped by checking the Delaunay criteria
+		- Swapping all marked pair of elements
+		- Collapsing the mark nodes for erasing with ERASE_FLAG set to true.
+
+	  @see Remesh
   */
 	class EdgeSwapping2DModeler : public Modeler
     {
@@ -157,14 +149,23 @@ namespace Kratos
       /// Pointer definition of EdgeSwapping2DModeler
       KRATOS_CLASS_POINTER_DEFINITION(EdgeSwapping2DModeler);
 
+	  /** Definition of the Modeler class as BaseType of EdgeSwapping2DModeler
+	  */
 	  typedef Modeler BaseType;
 
 	  typedef Point<3> PointType;
 	
+	  /** Defining 3D Node class as nodes of the mesh
+	  */
 	  typedef Node<3> NodeType;
 
+	  /** Defining Geometry of 3D Node class as geometry type
+	  */
 	  typedef Geometry<NodeType> GeometryType;
 
+
+	  /** A PointerVector of 3D Node class as array of nodes. 
+	  */
 	  typedef PointerVector<NodeType> NodesVectorType;
 
 	  typedef std::size_t SizeType;
@@ -173,19 +174,15 @@ namespace Kratos
       ///@name Life Cycle 
       ///@{ 
       
-      /// constructor.
+      /// Empty default constructor.
 	  EdgeSwapping2DModeler()
 	  {
 	  }
 
-      /// Destructor.
+      /// Empty destructor.
 	  virtual ~EdgeSwapping2DModeler(){}
       
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
       
       ///@}
       ///@name Operations
@@ -193,6 +190,14 @@ namespace Kratos
       
 
 
+	  /** Remesh is the main method of this class and perform all the swapping and collapsing process.
+	      It accepts a ModelPart as its inputs and performs the remeshing process over its current mesh.
+		  The iterative process of finding pair of swapping elements and swap them is limited to
+		  maximum_repeat_number which is set to 10.
+
+		  @param rThisModelPart The model part containing the mesh to be remeshed
+
+	  */
 	  void Remesh(ModelPart& rThisModelPart)
 	  {
 		  Timer::Start("Edge Swapping");
@@ -315,6 +320,8 @@ namespace Kratos
 		  Timer::Stop("Edge Swapping");
 	  }
 
+	  /** An auxiliary method for writing the mesh for GiD for debugging purpose
+	  */
 	  void WriteMesh(ModelPart& rThisModelPart, std::string Filename)
 	  {
 	    std::ofstream temp_file(Filename.c_str());
@@ -339,6 +346,70 @@ namespace Kratos
 
 	    
 	  }
+
+	  
+
+
+	  ///@}
+      ///@name Access
+      ///@{ 
+      
+      
+      ///@}
+      ///@name Inquiry
+      ///@{
+      
+      
+      ///@}      
+      ///@name Input and output
+      ///@{
+
+      /// Turn back information as a string.
+      virtual std::string Info() const
+	  {
+		  return "EdgeSwapping2DModeler";
+	  }
+      
+      /// Print information about this object.
+      virtual void PrintInfo(std::ostream& rOStream) const
+	  {
+		  rOStream << Info();
+	  }
+
+      /// Print object's data.
+      virtual void PrintData(std::ostream& rOStream) const
+	  {
+	  }
+      
+            
+      
+            
+      ///@}
+      
+    private:
+
+
+      ///@name Static Member Variables 
+      ///@{ 
+        
+        
+      ///@} 
+      ///@name Member Variables 
+      ///@{ 
+        
+      std::vector<int> mBadQuality;
+      std::vector<std::vector<int> > mNodalNeighbourElements;
+	  std::vector<CollapsingData> mCollapsingData;
+      std::vector<SwappingData > mSwappingData;
+        
+      ///@} 
+      ///@name Private Operators
+      ///@{ 
+        
+        
+      ///@} 
+      ///@name Private Operations
+      ///@{ 
 
 	  void CollapseNodes(ModelPart& rThisModelPart)
 	  {
@@ -711,108 +782,6 @@ namespace Kratos
 	    return ( ( a11*(a22*a33-a23*a32) + a12*(a23*a31-a21*a33) + a13*(a21*a32-a22*a31) ) > 0.0 );
 	  }
 
-
-	  ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	  {
-		  return "EdgeSwapping2DModeler";
-	  }
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	  {
-		  rOStream << Info();
-	  }
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	  {
-	  }
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-
-
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-      std::vector<int> mBadQuality;
-      std::vector<std::vector<int> > mNodalNeighbourElements;
-	  std::vector<CollapsingData> mCollapsingData;
-      std::vector<SwappingData > mSwappingData;
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
 
       ///@} 
       ///@name Private  Access 
