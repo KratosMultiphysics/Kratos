@@ -67,27 +67,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+	/// Getting a graph of connectivities (of domains) and performs a coloring procedure.
+  /** This class takes a graph of connectivites in form of a dense matrix and 
+      calculates a coloring schem where no neighbours with the same color are
+	  allowed.
+	  This process uses a very simple algorithm that for each domain make a loop over its
+	  neighbours and finds the first unused color for this pair of domain. The cost of this
+	  procedure is quadratic and make it in efficient for large number of domains.
+
+	  @see Execute
   */
   class GraphColoringProcess : public Process
     {
@@ -99,6 +90,9 @@ namespace Kratos
       KRATOS_CLASS_POINTER_DEFINITION(GraphColoringProcess);
       typedef std::size_t SizeType;
       typedef std::size_t IndexType;
+
+	  /** Defining a dense matrix of integer as graph type
+	  */
       typedef matrix<int> GraphType;
   
       ///@}
@@ -106,6 +100,21 @@ namespace Kratos
       ///@{ 
       
       /// Constructor.
+	  /** This constructor takes all necessary data to perform the coloring.
+
+	      @param NumberOfPartitions Number of partitions (or domains)
+
+		  @param rDomainsGraph The graph of domains with their neighbours presented as a matrix where any connection between
+		         two domains is presented by putting 1 in corresponding row and columns
+
+		  @param rDomainsColoredGraph The result of the process. Each column represents a color and the neighbour domain id for each color
+		         is stored in this matrix. The rest of the values are set to -1 which shows no neighbour
+				 for the color.
+
+		  @param rMaxColor After executing the process, the maximum number of colors will be stored in this variable
+
+	      @see GraphType
+	  */
       GraphColoringProcess(int NumberOfPartitions, GraphType& rDomainsGraph, GraphType& rDomainsColoredGraph, int& rMaxColor):
 	mNumberOfPartitions(NumberOfPartitions), mrMaxColor(rMaxColor), mrDomainsGraph(rDomainsGraph), mrDomainsColoredGraph(rDomainsColoredGraph)
 	{}
@@ -151,15 +160,6 @@ namespace Kratos
       }
       
       
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
       
       ///@}      
       ///@name Input and output
@@ -190,42 +190,6 @@ namespace Kratos
             
       ///@}
       
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
       
     private:
       ///@name Static Member Variables 
@@ -241,29 +205,6 @@ namespace Kratos
       GraphType& mrDomainsGraph;
       GraphType& mrDomainsColoredGraph;
         
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
       
       /// Assignment operator.
       GraphColoringProcess& operator=(GraphColoringProcess const& rOther);
