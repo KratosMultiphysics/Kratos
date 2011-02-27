@@ -69,27 +69,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
   ///@name Kratos Classes
   ///@{
   
   /// Buffer holds the binary value of the data.
-  /** Detail class definition.
+  /** This buffer is desinged to be used via push_back and pop_front methods.
+      By using push_back the binary representation of the class will be added
+	  to the buffer. If the buffer size exceed an automatic realocation will
+	  be performed. The stored values can be extracted using pop_front method.
+	  The part of the buffer which is exctracted cannot be used again until the
+	  clear method is called.
   */
   class Buffer
     {
@@ -101,16 +90,26 @@ namespace Kratos
       KRATOS_CLASS_POINTER_DEFINITION(Buffer);
       
 
+	  /// Type used for indexing in the buffer
       typedef std::size_t IndexType;
 
+	  /// Type used for returning the size of the buffer.
       typedef std::size_t SizeType;
 
+	  /** The building block of the buffer which is a double.
+	      This means that even a char will be stored in place of a double.
+		  Note that the extracted values are in their original type independent
+		  of this type. The reason of using double is compatibility with memory arrangment.
+	  */
       typedef double BlockType;
   
-      /// Type of the container used for storing values 
+      /// Type of the container used for storing values which is a raw pointer to BlockType
       typedef BlockType* ContainerType;
       
+	  /// The iterator is defined as a raw pointer to BlockType
       typedef BlockType* iterator;
+
+	  /// The constant iterator is defined as a raw pointer to constant BlockType
       typedef BlockType const* const_iterator;
   
           
@@ -118,15 +117,23 @@ namespace Kratos
       ///@name Life Cycle 
       ///@{ 
       
-      /// Default constructor.
-      Buffer(SizeType NewSize = 1) :  mpData(0) , mpBegin(mpData), mpEnd(mpData), mSize(0)
-      {
-	resize(BlockCompatibleSize(NewSize));
+      /** Constructor with buffer size. 
+	  
+		  @param NewSize This size is for reserving the memory and by default
+	      is equal to 1.
+	  */
+	  Buffer(SizeType NewSize = 1) :  mpData(0) , mpBegin(mpData), mpEnd(mpData), mSize(0)
+	  {
+		  resize(BlockCompatibleSize(NewSize));
 
-	for(SizeType i = 0 ; i < mSize ; i++)
-	  mpData[i] = BlockType();
-      }
-    
+		  for(SizeType i = 0 ; i < mSize ; i++)
+			  mpData[i] = BlockType();
+	  }
+
+	  /** Copy constructor which does a deep copy of other buffer.
+	      
+		  @param rOther The other buffer to be copied
+	  */
       Buffer(const Buffer& rOther) :  mpData(new BlockType[rOther.mSize]), mpBegin(0), mpEnd(0), mSize(rOther.mSize) 
       {
 	      // Setting the current position with relative source container offset
@@ -135,251 +142,313 @@ namespace Kratos
 	      std::copy(rOther.mpBegin, rOther.mpEnd, mpBegin); 
       }
     
+	  /** Constructor which does a deep copy of data given as a memory block.
+	      
+		  @param rContainer A pointer to the constant memory block containing the data.
+		  @param NewSize The size of the memory block
+	  */
       Buffer(const ContainerType& rContainer, SizeType NewSize) : mpData(new BlockType[BlockCompatibleSize(NewSize)]) , mpBegin(mpData), mpEnd(mpData+NewSize), mSize(BlockCompatibleSize(NewSize))
       {
  	   std::copy(rContainer, rContainer + mSize, mpData); 
       }
 
-      /// Destructor.
-      virtual ~Buffer()
-      {
-	free(mpData);
-      }
+	  /// Destructor releases the memory allocated for buffer.
+	  virtual ~Buffer()
+	  {
+		  free(mpData);
+	  }
       
 
       ///@}
       ///@name Operators 
       ///@{
       
-    
-      Buffer& operator=(const Buffer& rOther)
-      {
-	// here I'm just copying the active part of the buffer not the whole!
-	const SizeType other_size=rOther.mpEnd - rOther.mpBegin;
-	if(mSize < other_size)
-	{
-	  mSize=other_size;
-	  mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
-	}
-	std::copy(rOther.mpBegin, rOther.mpEnd, mpData); 
-	mpBegin = mpData;
-	mpEnd = mpData+mSize;
+      /** The assignment operator makes a deep copy of other Buffer.
+	      @param rOther The other buffer to be copied.
+	  */
+	  Buffer& operator=(const Buffer& rOther)
+	  {
+		  // here I'm just copying the active part of the buffer not the whole!
+		  const SizeType other_size=rOther.mpEnd - rOther.mpBegin;
+		  if(mSize < other_size)
+		  {
+			  mSize=other_size;
+			  mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
+		  }
+		  std::copy(rOther.mpBegin, rOther.mpEnd, mpData); 
+		  mpBegin = mpData;
+		  mpEnd = mpData+mSize;
 
-	return *this;
-      }
-    
+		  return *this;
+	  }
+
     
       ///@}
       ///@name Operations
       ///@{
       
+	  /** Returns the size of the buffer.
+	  */
       SizeType size() const {return mSize * sizeof(BlockType);}
     
-      void swap(Buffer& rOther) 
-      {
-	 std::swap(mSize, rOther.mSize);
-	 std::swap(mpData, rOther.mpData);
-	 std::swap(mpBegin, rOther.mpBegin);
-	 std::swap(mpEnd, rOther.mpEnd);
-      }
-    
-      void push_back(std::string const& rValue)                
-      {
-	std::size_t string_size = rValue.size() + 1; // the one is for end string null character
-	SizeType data_size = BlockCompatibleSize(string_size*sizeof(char)); 
-	iterator new_end = mpEnd + data_size;
-	iterator max_end = mpData + mSize;
-	if(new_end > max_end)
-	{
-	  resize(mSize+data_size);
-	}
-	std::copy(rValue.c_str(), rValue.c_str() + string_size, (char*)mpEnd);
-	mpEnd+=data_size;
-      } 
-    
-      void push_back(bool rValue)                
-      {
-	int temp(rValue);
-	push_back(temp);
-      } 
-    
-      template<class TDataType>
-      void push_back(std::vector<TDataType> const& rValue)                
-      {
-	const SizeType size=rValue.size();
-	push_back(size);
-	push_back(rValue.begin(), rValue.end());
-      } 
-    
-      template<class TDataType>
-      void push_back(boost::numeric::ublas::vector<TDataType> const& rValue)                
-      {
-	push_back(rValue.size());
-	push_back(rValue.begin(), rValue.end());
-      } 
-    
-      template<class TDataType, std::size_t TDimenasion>
-      void push_back(array_1d<TDataType,TDimenasion> const& rValue)                
-      {
-	push_back(rValue.size());
-	push_back(rValue.begin(), rValue.end());
-      } 
-    
-      void push_back(Matrix const& rValue)                
-      {
-	push_back(rValue.size1());
-	push_back(rValue.size2());
-	push_back(rValue.data().begin(), rValue.data().end());
-      } 
-    
-      template<class TDataType>
-      void push_back(boost::shared_ptr<TDataType> const& rValue)                
-      {
-	KRATOS_ERROR(std::logic_error, "You cannot store a pointer in the buffer try the Serializer instead", "" );
-      } 
-    
-      template<class TDataType>
-      void push_back(TDataType const& rValue)                
-      {
-	SizeType data_size = BlockCompatibleSize(sizeof(TDataType));
-	iterator new_end = mpEnd + data_size;
-	iterator max_end = mpData + mSize;
-	if(new_end > max_end)
-	{
-	  resize(mSize+data_size);
-	}
-	
-	*((TDataType *)mpEnd) = rValue;
-	mpEnd+=data_size;
-      } 
-    
-      template<class TIteratorType>
-      void push_back(TIteratorType First, TIteratorType Last)                
-      {
-	for(;First != Last ; First++)
-	  push_back(*First);
-      } 
-    
-      std::string& pop_front(std::string& rValue)                
-      {
-	rValue= static_cast<char*>((void*)mpBegin);
-	const std::size_t string_size=rValue.size() + 1;;
-	SizeType data_size = BlockCompatibleSize(string_size);
-	
-	mpBegin += data_size;
-	return rValue;
-      } 
-        
-      void pop_front(bool& rValue)                
-      {
-	int temp;
-	
-	pop_front(temp);
-	
- 	rValue = temp << 1;
-      } 
-        
-      template<class TDataType>
-      void pop_front(std::vector<TDataType>& rValue)                
-      {
-	SizeType size;
-	
-	pop_front(size);
-	
- 	rValue.resize(size);
-	
-	pop_front(rValue.begin(), rValue.end());
-      } 
-        
-      template<class TDataType>
-      void pop_front(boost::numeric::ublas::vector<TDataType>& rValue)                
-      {
-	SizeType size;
-	
-	pop_front(size);
-	
- 	rValue.resize(size);
-	
-	pop_front(rValue.begin(), rValue.end());
-      } 
-        
-      template<class TDataType, std::size_t TDimenasion>
-      void pop_front(array_1d<TDataType, TDimenasion>& rValue)                
-      {
-	SizeType size;
-	
-	pop_front(size);
-	
- 	rValue.resize(size);
-	
-	pop_front(rValue.begin(), rValue.end());
-      } 
-       
-      void pop_front(Matrix& rValue)                
-      {
-	SizeType size1;
-	SizeType size2;
-	
-	pop_front(size1);
-	pop_front(size2);
-	
- 	rValue.resize(size1,size2);
-	
-	pop_front(rValue.data().begin(), rValue.data().end());
-      } 
-    
-      template<class TDataType>
-      TDataType& pop_front(TDataType& rValue)                
-      {
-	SizeType data_size = BlockCompatibleSize(sizeof(TDataType));
-	
-	rValue = *static_cast<TDataType*>((void*)mpBegin);
-	mpBegin += data_size;
-	return rValue;
-      } 
-        
-      template<class TIteratorType>
-      void pop_front(TIteratorType First, TIteratorType Last)                
-      {
-	for(;First != Last ; First++)
-	  pop_front(*First);
-      } 
-    
-       
+	  /** Swaps this buffer by another one by swapping the pointer 
+	      to data which make it efficient.
+	  */
+	  void swap(Buffer& rOther) 
+	  {
+		  std::swap(mSize, rOther.mSize);
+		  std::swap(mpData, rOther.mpData);
+		  std::swap(mpBegin, rOther.mpBegin);
+		  std::swap(mpEnd, rOther.mpEnd);
+	  }
 
-      void clear() 
-      {
-	mpBegin = mpData;
-	mpEnd = mpData;
-      }
+	  /// Adds a string to the end of the buffer.
+	  void push_back(std::string const& rValue)                
+	  {
+		  std::size_t string_size = rValue.size() + 1; // the one is for end string null character
+		  SizeType data_size = BlockCompatibleSize(string_size*sizeof(char)); 
+		  iterator new_end = mpEnd + data_size;
+		  iterator max_end = mpData + mSize;
+		  if(new_end > max_end)
+		  {
+			  resize(mSize+data_size);
+		  }
+		  std::copy(rValue.c_str(), rValue.c_str() + string_size, (char*)mpEnd);
+		  mpEnd+=data_size;
+	  } 
+
+	  /// Adds a bool to the end of the buffer.
+	  void push_back(bool rValue)                
+	  {
+		  int temp(rValue);
+		  push_back(temp);
+	  } 
     
-      void resize(SizeType NewSize)
-      {
-	if(mSize < NewSize)
-	{
-	  mSize=NewSize;
-	  
-	  SizeType begin_offset = mpBegin - mpData;
-	  SizeType end_offset = mpEnd - mpData;
-	  if(mpData)
-	    mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
-	  else
-	    mpData = (BlockType*)malloc(mSize * sizeof(BlockType));
-	    
-	  mpBegin = mpData + begin_offset;
-	  mpEnd = mpData + end_offset;
-	}
-      }
+	  /** Adds a std::vector to the end of the buffer. This method stores the size and all elements of the vector.
+	  */
+	  template<class TDataType>
+	  void push_back(std::vector<TDataType> const& rValue)                
+	  {
+		  const SizeType size=rValue.size();
+		  push_back(size);
+		  push_back(rValue.begin(), rValue.end());
+	  } 
+
+	  /** Adds a ublas::vector to the end of the buffer. This method stores the size and all elements of the vector.
+	  */
+	  template<class TDataType>
+	  void push_back(boost::numeric::ublas::vector<TDataType> const& rValue)                
+	  {
+		  push_back(rValue.size());
+		  push_back(rValue.begin(), rValue.end());
+	  } 
+
+	  /** Adds an array_1d to the end of the buffer. This method stores the size and all elements of the array.
+	      The size is stored for compatibility with other vectors but can be omitted.
+	  */
+	  template<class TDataType, std::size_t TDimenasion>
+	  void push_back(array_1d<TDataType,TDimenasion> const& rValue)                
+	  {
+		  push_back(rValue.size());
+		  push_back(rValue.begin(), rValue.end());
+	  } 
+
+	  /** Adds a Matrix to the end of the buffer. This method stores the number of 
+	      rows and columns and then all elements of the Matrix.
+	  */
+	  void push_back(Matrix const& rValue)                
+	  {
+		  push_back(rValue.size1());
+		  push_back(rValue.size2());
+		  push_back(rValue.data().begin(), rValue.data().end());
+	  } 
+
+	  /** This buffer is not prepared for storing pointers. So a logical error 
+	      will be sent to notify the developers to use the serialization which
+		  is in charge of storing pointers correctly.
+	  */
+	  template<class TDataType>
+	  void push_back(boost::shared_ptr<TDataType> const& rValue)                
+	  {
+		  KRATOS_ERROR(std::logic_error, "You cannot store a pointer in the buffer try the Serializer instead", "" );
+	  } 
+
+	  /** A generic push back to cover all other type of data wich are not specified before.
+	  */
+	  template<class TDataType>
+	  void push_back(TDataType const& rValue)                
+	  {
+		  SizeType data_size = BlockCompatibleSize(sizeof(TDataType));
+		  iterator new_end = mpEnd + data_size;
+		  iterator max_end = mpData + mSize;
+		  if(new_end > max_end)
+		  {
+			  resize(mSize+data_size);
+		  }
+
+		  *((TDataType *)mpEnd) = rValue;
+		  mpEnd+=data_size;
+	  } 
+
+	  /** Adds elements of a container specified by its iterators.
+	  */
+	  template<class TIteratorType>
+	  void push_back(TIteratorType First, TIteratorType Last)                
+	  {
+		  for(;First != Last ; First++)
+			  push_back(*First);
+	  } 
+
+	  /// Extracts a string from the beginning of the buffer.
+	  std::string& pop_front(std::string& rValue)                
+	  {
+		  rValue= static_cast<char*>((void*)mpBegin);
+		  const std::size_t string_size=rValue.size() + 1;;
+		  SizeType data_size = BlockCompatibleSize(string_size);
+
+		  mpBegin += data_size;
+		  return rValue;
+	  } 
+
+	  /// Extracts a boolian from the beginning of the buffer.
+	  void pop_front(bool& rValue)                
+	  {
+		  int temp;
+
+		  pop_front(temp);
+
+		  rValue = temp << 1;
+	  } 
+
+
+	  /** Extracts a std::vector from the beginning of the buffer.
+	      It reads the size and resizes the vector. Then it fills the vector element by element.
+	  */
+	  template<class TDataType>
+	  void pop_front(std::vector<TDataType>& rValue)                
+	  {
+		  SizeType size;
+
+		  pop_front(size);
+
+		  rValue.resize(size);
+
+		  pop_front(rValue.begin(), rValue.end());
+	  } 
+
+	  /** Extracts a ublas::vector from the beginning of the buffer.
+	      It reads the size and resizes the vector. Then it fills the vector element by element.
+	  */
+	  template<class TDataType>
+	  void pop_front(boost::numeric::ublas::vector<TDataType>& rValue)                
+	  {
+		  SizeType size;
+
+		  pop_front(size);
+
+		  rValue.resize(size);
+
+		  pop_front(rValue.begin(), rValue.end());
+	  } 
+
+	  /** Extracts a array_1d from the beginning of the buffer.
+	  */
+	  template<class TDataType, std::size_t TDimenasion>
+	  void pop_front(array_1d<TDataType, TDimenasion>& rValue)                
+	  {
+		  /// TODO: I have to take out the resize. Pooyan.
+		  SizeType size;
+
+		  pop_front(size);
+
+		  rValue.resize(size);
+
+		  pop_front(rValue.begin(), rValue.end());
+	  } 
+
+	  /** Extracts a Matrix from the beginning of the buffer.
+	      It reads the sizes and resizes the Matrix. Then it fills the Matrix element by element.
+	  */
+	  void pop_front(Matrix& rValue)                
+	  {
+		  SizeType size1;
+		  SizeType size2;
+
+		  pop_front(size1);
+		  pop_front(size2);
+
+		  rValue.resize(size1,size2);
+
+		  pop_front(rValue.data().begin(), rValue.data().end());
+	  } 
+
+	  /** A generic pop front to cover all other type of data wich are not specified before.
+	  */
+	  template<class TDataType>
+	  TDataType& pop_front(TDataType& rValue)                
+	  {
+		  SizeType data_size = BlockCompatibleSize(sizeof(TDataType));
+
+		  rValue = *static_cast<TDataType*>((void*)mpBegin);
+		  mpBegin += data_size;
+		  return rValue;
+	  } 
+
+	  /** Extracts elements of a container specified by its iterators.
+	  */
+	  template<class TIteratorType>
+	  void pop_front(TIteratorType First, TIteratorType Last)                
+	  {
+		  for(;First != Last ; First++)
+			  pop_front(*First);
+	  } 
+
+
+
+	  /** Clears the buffer by reseting the begin and end iterators.
+	      The memory won't be freed by this method.
+	  */
+	  void clear() 
+	  {
+		  mpBegin = mpData;
+		  mpEnd = mpData;
+	  }
+
+	  /** Resizes the buffer to a larger size keeping the current data if is not empty.
+	      This method does nothing in case of smaller new size than the current size.
+		  @param NewSize The new size of the buffer.
+	  */
+	  void resize(SizeType NewSize)
+	  {
+		  if(mSize < NewSize)
+		  {
+			  mSize=NewSize;
+
+			  SizeType begin_offset = mpBegin - mpData;
+			  SizeType end_offset = mpEnd - mpData;
+			  if(mpData)
+				  mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
+			  else
+				  mpData = (BlockType*)malloc(mSize * sizeof(BlockType));
+
+			  mpBegin = mpData + begin_offset;
+			  mpEnd = mpData + end_offset;
+		  }
+	  }
 
     
       ///@}
       ///@name Access
       ///@{ 
       
+	  /// Returns an iterator to the beginning of the buffer.
        iterator                   begin()            { return mpBegin; }
+	  /// Returns a constant iterator to the beginning of the buffer.
        const_iterator             begin() const      { return mpBegin; }
 	
+	  /// Returns an iterator to the end of the buffer.
        iterator                   end()              { return mpEnd; }
+	  /// Returns a constant iterator to the end of the buffer.
        const_iterator             end()   const      { return mpEnd; }
 	
      
@@ -388,6 +457,7 @@ namespace Kratos
       ///@name Inquiry
       ///@{
       
+	   /// Returns true if the buffer is empty and false if not.
       bool empty() const {return mpBegin==mpEnd;}
     
       
@@ -424,42 +494,6 @@ namespace Kratos
             
       ///@}
       
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
       
     private:
       ///@name Static Member Variables 
@@ -489,23 +523,6 @@ namespace Kratos
 	}
         
         
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
       
         
       ///@}    
