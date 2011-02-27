@@ -65,27 +65,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// The base class for all processes in Kratos.
+  /** The process is the base class for all processes and defines a simple interface for them.
+      Execute method is used to execute the Process algorithms. While the parameters of this method 
+	  can be very different from one Process to other there is no way to create enough overridden 
+	  versions of it. For this reason this method takes no argument and all Process parameters must
+	  be passed at construction time. The reason is that each constructor can take different set of 
+	  argument without any dependency to other processes or the base Process class.
   */
   class Process
     {
@@ -111,6 +100,7 @@ namespace Kratos
       ///@name Operators 
       ///@{
 
+	  /// This operator is provided to call the process as a function and simply calls the Execute method.
       void operator()()
 	{
 	  Execute();
@@ -121,6 +111,8 @@ namespace Kratos
       ///@name Operations
       ///@{
 
+
+	  /// Execute method is used to execute the Process algorithms.
       virtual void Execute(){}
       
       
@@ -163,71 +155,12 @@ namespace Kratos
             
       ///@}
       
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
       
     private:
       ///@name Static Member Variables 
       ///@{ 
         
         
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
         
         
       ///@}    
