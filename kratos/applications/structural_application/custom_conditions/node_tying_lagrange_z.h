@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -179,7 +180,22 @@ CurrentProcessInfo);
       ///@{ 
 		
         
-        
+	friend class Serializer;
+
+	// A private default constructor necessary for serialization 
+	NodeTyingLagrangeZ(){}; 
+
+	virtual void save(Serializer& rSerializer)
+	{
+	rSerializer.save("Name","NodeTyingLagrangeZ");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+	}
+	
       ///@} 
       ///@name Private Operators
       ///@{ 

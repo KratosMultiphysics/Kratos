@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -149,6 +150,21 @@ CurrentProcessInfo);
       ///@name Protected Operations
       ///@{ 
         
+	friend class Serializer;
+
+	// A private default constructor necessary for serialization 
+	PointForce3D(){}; 
+
+	virtual void save(Serializer& rSerializer)
+	{
+	rSerializer.save("Name"," PointForce3D");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+	}
         
       ///@} 
       ///@name Protected  Access 

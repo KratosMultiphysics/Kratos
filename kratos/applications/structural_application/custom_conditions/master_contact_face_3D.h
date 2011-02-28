@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -256,6 +257,26 @@ namespace Kratos
              */
             //MasterContactFace3D& operator=(const MasterContactFace3D& rOther);
             
+	    
+	    ///@}
+	    ///@name Serialization
+	    ///@{	
+	    friend class Serializer;
+
+	    // A private default constructor necessary for serialization 
+	    MasterContactFace3D(){}; 
+
+	    virtual void save(Serializer& rSerializer)
+	    {
+	    rSerializer.save("Name","MasterContactFace3D");
+	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+	    }
+
+	    virtual void load(Serializer& rSerializer)
+	    {
+	    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+	    }
+	    
             /**
              * Copy constructor.
              * (DEACTIVATED)

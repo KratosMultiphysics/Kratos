@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -193,6 +194,23 @@ class FacePressure3D
 			double weight,
 			const ProcessInfo& rCurrentProcessInfo);
 
+			
+		///@}
+		///@name Serialization
+		///@{	
+		friend class Serializer;
+
+		virtual void save(Serializer& rSerializer)
+		{
+		rSerializer.save("Name","FacePressure3D");
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+		}
+
+		virtual void load(Serializer& rSerializer)
+		{
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+		}
+			
 	};	// class FacePressure3D.
 
 }	// namespace Kratos.
