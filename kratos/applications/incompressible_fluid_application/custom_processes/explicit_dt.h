@@ -98,10 +98,10 @@ namespace Kratos
 		      std::vector< double > Threads_dt(NumThreads,10.0);
 
 		      ModelPart::ElementsContainerType::iterator elem_bg = mr_model_part.ElementsBegin();
-		      unsigned int n_elems = mr_model_part.Elements().size();	
+		      int n_elems = mr_model_part.Elements().size();	
 
 		      #pragma omp parallel for firstprivate(n_elems, elem_bg)
-		      for(unsigned int ii=0; ii<n_elems; ++ii)
+		      for(int ii=0; ii<n_elems; ++ii)
 			  {
 			    //calculate min_dt
 			    ModelPart::ElementsContainerType::iterator elem = elem_bg + ii;
