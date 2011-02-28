@@ -472,11 +472,9 @@ namespace Kratos
             const Ebst mEbst3D3N;
             const EbstVel mEbstVel3D3N;
             const PfemContactElement3D mPfemContactElement3D;
-            const PfemContactElement3DVel mPfemContactElement3DVel;
-            
+            const PfemContactElement3DVel mPfemContactElement3DVel;            
             const Face2D  mFace2D;
             const Face3D  mFace3D3N;
-            const FaceVel3D  mFaceVel3D3N;
             const Face3D  mFace3D6N;
             const Face3D  mFace3D4N;
             const Face3D  mFace3D8N;
@@ -511,6 +509,7 @@ namespace Kratos
             const SlaveContactFace3DNewmark mSlaveContactFace3D6Newmark;
             const SlaveContactFace3DNewmark mSlaveContactFace3D8Newmark;
             const SlaveContactFace3DNewmark mSlaveContactFace3D9Newmark;
+	    const FaceVel3D  mFaceVel3D3N;
             const PointForce3D  mPointForce3D;
             const PointForce2D  mPointForce2D;
 	    const PointMoment3D mPointMoment3D;
