@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/constitutive_law.h"
 #include "spaces/ublas_space.h"
 
@@ -189,6 +190,25 @@ namespace Kratos
                                       int CalculateTangent = true,
                                       bool SaveInternalVariables = true );
             
+				      
+				      
+		  private:
+
+		  ///@}
+		  ///@name Serialization
+		  ///@{	
+		  friend class Serializer;
+
+		  virtual void save(Serializer& rSerializer)
+		  {
+		     rSerializer.save("Name","DruckerPragerLaw");
+		     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw  );
+		  }
+
+		  virtual void load(Serializer& rSerializer)
+		  {
+		     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw );
+		  }
             /**
              * Input and output
              */

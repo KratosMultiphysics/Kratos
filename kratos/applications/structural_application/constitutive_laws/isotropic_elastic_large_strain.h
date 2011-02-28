@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/constitutive_law.h"
 
 
@@ -177,7 +178,23 @@ namespace Kratos
              */
         
         
-        private:
+	  private:
+
+	  ///@}
+	  ///@name Serialization
+	  ///@{	
+	  friend class Serializer;
+
+	  virtual void save(Serializer& rSerializer)
+	  {
+	  rSerializer.save("Name","IsotropicElasticLargeStrain");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw<Node<3> >);
+	  }
+
+	  virtual void load(Serializer& rSerializer)
+	  {
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw<Node<3> >);
+	  }
             
             /**
              * Static Member Variables 
