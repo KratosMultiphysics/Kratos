@@ -600,8 +600,8 @@ namespace Kratos
         //tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
         tauone = 1.0 / (dyn_st_beta / int_time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
 
-            tauone = time/10.0;
-            tautwo = time/10.0;
+            tauone = time;
+            tautwo = time;
 
             KRATOS_CATCH("")
 
@@ -700,7 +700,7 @@ namespace Kratos
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
-            int loc_index = ii * dof;
+            //int loc_index = ii * dof;
             const array_1d<double, 2 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
