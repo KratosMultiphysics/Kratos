@@ -71,6 +71,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+    ///@addtogroup IncompressibleFluidApplication
+    ///@{
+
     ///@name Kratos Classes
     ///@{
 
@@ -83,10 +86,6 @@ namespace Kratos
     class RefinementUtilities
     {
     public:
-
-        ///@addtogroup IncompressibleFluidApplication
-        ///@{
-
         ///@name Life Cycle
         ///@{
 
