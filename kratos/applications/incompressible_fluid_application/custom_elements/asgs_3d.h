@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "includes/serializer.h"
 
 
 namespace Kratos
@@ -200,6 +201,7 @@ namespace Kratos
       ///@name Protected Operators
       ///@{ 
         
+         ASGS3D() : Element(){}
         
       ///@} 
       ///@name Protected Operations
@@ -223,7 +225,7 @@ namespace Kratos
             
       ///@}
       
-   // private:
+
       ///@name Static Member Variables 
       ///@{ 
         
@@ -250,6 +252,8 @@ namespace Kratos
         virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 	    private:
       ///@} 
+      
+    private:      
       ///@name Private Operations
       ///@{ 
         
@@ -259,7 +263,25 @@ namespace Kratos
       ///@{ 
         
         
-      ///@}    
+      ///@} 
+       ///@name Serialization
+     ///@{	
+        friend class Serializer;
+
+        
+        virtual void save(Serializer& rSerializer)
+        {
+            rSerializer.save("Name", "ASGS3D");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+        }
+        
+      ///@}     
+      
       ///@name Private Inquiry 
       ///@{ 
         
