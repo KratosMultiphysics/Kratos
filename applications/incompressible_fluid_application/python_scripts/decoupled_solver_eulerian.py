@@ -9,36 +9,36 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
-    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(IS_FLUID);
-    model_part.AddNodalSolutionStepVariable(IS_POROUS);
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
-    model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
+##    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
+##    model_part.AddNodalSolutionStepVariable(IS_FLUID);
+##    model_part.AddNodalSolutionStepVariable(IS_POROUS);
+##    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
+##    model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
-    model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
+##    model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
     model_part.AddNodalSolutionStepVariable(DENSITY);
-    model_part.AddNodalSolutionStepVariable(POROSITY);
-    model_part.AddNodalSolutionStepVariable(DENSITY_AIR);
-    model_part.AddNodalSolutionStepVariable(AIR_SOUND_VELOCITY);
-    model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
+##    model_part.AddNodalSolutionStepVariable(POROSITY);
+##    model_part.AddNodalSolutionStepVariable(DENSITY_AIR);
+##    model_part.AddNodalSolutionStepVariable(AIR_SOUND_VELOCITY);
+##    model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-    model_part.AddNodalSolutionStepVariable(NODAL_H);
+##    model_part.AddNodalSolutionStepVariable(NODAL_H);
     model_part.AddNodalSolutionStepVariable(ADVPROJ);
     model_part.AddNodalSolutionStepVariable(DIVPROJ);
-    model_part.AddNodalSolutionStepVariable(THAWONE);
-    model_part.AddNodalSolutionStepVariable(THAWTWO); 
+##    model_part.AddNodalSolutionStepVariable(THAWONE);
+##    model_part.AddNodalSolutionStepVariable(THAWTWO); 
     model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(REACTION_AIR_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
-    model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
+##    model_part.AddNodalSolutionStepVariable(REACTION_AIR_PRESSURE);
+##    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+##    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+##    model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
+##    model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
-    model_part.AddNodalSolutionStepVariable(NORMAL);
+##    model_part.AddNodalSolutionStepVariable(NORMAL);
 
 
     print "variables for the dynamic structural solution added correctly"
@@ -50,7 +50,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y,REACTION_Y);
         node.AddDof(VELOCITY_Z,REACTION_Z);
         node.AddDof(PRESSURE,REACTION_WATER_PRESSURE);
-        node.AddDof(AIR_PRESSURE,REACTION_AIR_PRESSURE);
+##        node.AddDof(AIR_PRESSURE,REACTION_AIR_PRESSURE);
         
     print "dofs for the monolithic solver added correctly"
 
@@ -88,6 +88,9 @@ class DecoupledSolver:
         self.abs_pres_tol = 1e-7
 
         self.max_iter = 10
+
+        self.dynamic_tau = 0.0
+        self.oss_switch  = 0
                             
         #default settings
         self.echo_level = 0
@@ -111,9 +114,6 @@ class DecoupledSolver:
     def Initialize(self):
         #creating the solution strategy
 
-        self.conv_criteria = VelPrCriteria(self.rel_vel_tol,self.abs_vel_tol,\
-                                        self.rel_pres_tol,self.abs_pres_tol)
-
         self.builder_and_solver = PressureSplittingBuilderAndSolver\
                                   (self.velocity_linear_solver,\
                                    self.pressure_linear_solver,\
@@ -122,6 +122,12 @@ class DecoupledSolver:
                                    self.IN_min_tol,\
                                    self.IN_max_tol,\
                                    self.IN_gamma)
+
+        self.conv_criteria = VelPrCriteria(self.rel_vel_tol,self.abs_vel_tol,\
+                                        self.rel_pres_tol,self.abs_pres_tol)
+##        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
+##                                        self.rel_pres_tol,self.abs_pres_tol)
+
 
         # Note that the strategy asks for a solver but doesn't use it (when
         # called using this constructor). This is good, as this builder and
@@ -139,10 +145,14 @@ class DecoupledSolver:
                        self.MoveMeshFlag)
         
         (self.solver).SetEchoLevel(self.echo_level)
+
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
 	                     
     #######################################################################   
     def Solve(self):
-        (self.solver).Solve()
+        self.solver.Solve()
+##        self.builder_and_solver.SetUpDofSet(self.time_scheme,self.model_part)
        
 
     #######################################################################   

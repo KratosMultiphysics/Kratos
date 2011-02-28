@@ -107,8 +107,6 @@ if(SolverType == "fractional_step"):
 elif(SolverType == "pressure_splitting"):
     fluid_solver = decoupled_solver_eulerian.\
 		  DecoupledSolver(fluid_model_part,domain_size)
-    oss_switch = fluid_only_var.use_oss
-    dynamic_tau = fluid_only_var.dynamic_tau
 ##    pPrecond = ILU0Preconditioner()
     pPrecond = DiagonalPreconditioner()
     fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pPrecond)
@@ -118,22 +116,18 @@ elif(SolverType == "pressure_splitting"):
     fluid_solver.rel_pres_tol = 1e-4
     fluid_solver.abs_pres_tol = 1e-6
     fluid_solver.use_inexact_newton = False
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch)
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau)
+    fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
+    fluid_solver.oss_switch  = fluid_only_var.use_oss
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
-    oss_switch = fluid_only_var.use_oss
-    dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);				
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
+    fluid_solver.oss_switch  = fluid_only_var.use_oss
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
-    oss_switch = fluid_only_var.use_oss
-    dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);				
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
+    fluid_solver.oss_switch  = fluid_only_var.use_oss
     fluid_solver.Initialize()
 
 

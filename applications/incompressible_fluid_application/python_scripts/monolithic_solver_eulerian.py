@@ -81,10 +81,10 @@ class MonolithicSolver:
         #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
         self.dynamic_tau = 0.0
-        self.oss_swith  = 0
+        self.oss_switch  = 0
 
         self.max_iter = 30
-                            
+
         #default settings
         self.echo_level = 0
         self.CalculateReactionFlag = True
@@ -97,15 +97,15 @@ class MonolithicSolver:
     #######################################################################
     def Initialize(self):
         #creating the solution strategy
-
-        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
-                                        self.rel_pres_tol,self.abs_pres_tol)
-        
+        self.conv_criteria = VelPrCriteria(self.rel_vel_tol,self.abs_vel_tol,\
+                                           self.rel_pres_tol,self.abs_pres_tol)
+##        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
+##                                        self.rel_pres_tol,self.abs_pres_tol)
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
-        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_swith );
+        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
 
 ##        print "Initialization monolithic solver finished"
 	                     
