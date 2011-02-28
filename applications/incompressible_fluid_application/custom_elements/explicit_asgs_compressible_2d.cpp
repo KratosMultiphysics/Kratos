@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "incompressible_fluid_application.h"
 #include "utilities/geometry_utilities.h" 
-
+#include "utilities/math_utils.h" 
 namespace Kratos
 {
 
@@ -163,8 +163,8 @@ namespace Kratos
 	
 
 	//viscous term	
-	CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-// 	CalcualteDCOperatior(rDampMatrix, DN_DX, Area);
+	//CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+ 	CalcualteDCOperatior(rDampMatrix, DN_DX, Area);
 	//Advective term
 	double tauone;
 	double tautwo;
@@ -189,6 +189,7 @@ namespace Kratos
 	CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX,N, delta_t, tauone, Area);
 
 	CalculateDivPdotStblTerms(rDampMatrix,rRightHandSideVector, DN_DX,N,  delta_t, tautwo, Area);
+	CalculateNonlinearStblTerm(rRightHandSideVector, DN_DX,N,  delta_t, tautwo, Area);
 
 
 	CalculateResidual(rDampMatrix, rRightHandSideVector);
@@ -217,7 +218,7 @@ namespace Kratos
 			K(row + jj, row + jj) += density*lump_mass_fac;
 
 		//add pressure mass
-			K(row + dof , row + dof ) += lump_mass_fac;
+			K(row + dof , row + dof ) += 1.5*lump_mass_fac;
 	    }
 	
 	
@@ -283,10 +284,10 @@ namespace Kratos
                 int column = jj * (dof + 1) + dof;
 
                 K(row, column) -=  area * N(jj) * DN_DX(ii, 0);
-                K(column, row) += VC2 * area * density * N(jj) * DN_DX(ii, 0);
+                K(column, row) += 1.5*VC2 * area * density * N(jj) * DN_DX(ii, 0);
 
                 K(row + 1, column) -=  area * N(jj) * DN_DX(ii, 1);
-                K(column, row + 1) += VC2 * area * density * N(jj) * DN_DX(ii, 1);
+                K(column, row + 1) += 1.5*VC2 * area * density * N(jj) * DN_DX(ii, 1);
             }
         }
 
@@ -320,7 +321,7 @@ namespace Kratos
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += area * tauone * gard_opr(ii, jj);
+                K(row, column) += 1.5*area * tauone * gard_opr(ii, jj);
 
             }
         }
@@ -342,7 +343,7 @@ namespace Kratos
 
 
         array_1d<double, 3 > fbd_stblterm = ZeroVector(nodes_number);
-        fbd_stblterm = tauone * prod(DN_DX, bdf);
+        fbd_stblterm = 1.5*tauone * prod(DN_DX, bdf);
 
 
         for (int ii = 0; ii < nodes_number; ++ii) {
@@ -395,6 +396,45 @@ namespace Kratos
 
         KRATOS_CATCH("")
 	  }
+    	//*************************************************************************************
+	//*************************************************************************************	  	  
+      void ExplicitASGSCompressible2D::CalculateNonlinearStblTerm(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double time,const double tautwo,const double area)
+	{
+	double lump_mass_fac = area * 0.333333333333333333333333;
+	int nodes_number = 3;
+        int dof = 2;	
+	
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+	
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+	
+         double mean_pressure_rate = N(0) * (GetGeometry()[0].FastGetSolutionStepValue(AIR_PRESSURE_DT));
+	 for( int ii=1; ii < nodes_number; ++ii)
+            mean_pressure_rate +=  N(ii) * (GetGeometry()[ii].FastGetSolutionStepValue(AIR_PRESSURE_DT));
+	 
+	 
+
+	 double div_vel = 0.0;
+         for( int ii=0; ii < nodes_number; ++ii)
+	 {
+	    const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+	    div_vel += (vel[0]*DN_DX(ii,0) + vel[1]*DN_DX(ii,1));
+	    
+	 }
+	 
+	 double nonlinear_term = div_vel *(mean_pressure_rate + density*VC2*div_vel);
+						
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1) + dof;	    
+            F[index] -= tautwo * lump_mass_fac * nonlinear_term;
+        }	 
+	 
+	 
+	  
+	}  
     	//*************************************************************************************
 	//*************************************************************************************
 	  void ExplicitASGSCompressible2D::GetFirstDerivativesVector(Vector& values, int Step)
@@ -470,7 +510,7 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.333333333333333333333333;
 
-vc2 = 10.0;
+//vc2 = 5.0/9.0;;
 	}
 
 
@@ -550,13 +590,13 @@ vc2 = 10.0;
 	CalculateSoundVelocity(GetGeometry(), VC2);
 	double vc = sqrt(VC2);
 
-	double int_time = ele_length/vc;
+	//double int_time = ele_length/vc;
 
-        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+      //  const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         //tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
        // tauone = 1.0 / (dyn_st_beta / int_time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
-         //tauone = time*VC2;
-            tauone = time;
+         tauone = time*VC2;
+            //tauone = time;
             tautwo = time;
 	    
 	    
@@ -656,7 +696,7 @@ vc2 = 10.0;
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
-            int loc_index = ii * dof;
+//             int loc_index = ii * dof;
             const array_1d<double, 2 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
@@ -738,7 +778,7 @@ vc2 = 10.0;
             double VC = GetGeometry()[ii].FastGetSolutionStepValue(AIR_SOUND_VELOCITY ) ;
 	    inv_max_h = sqrt(inv_max_h);
 	    
-VC = 10.0;	    
+//VC = sqrt(5.0)/3.0;	    
 	    calc_t = 1.0/(inv_max_h * VC );
 
 
@@ -751,63 +791,89 @@ VC = 10.0;
         }
         //************************************************************************************
     //************************************************************************************
-//      void ExplicitASGSCompressible2D::CalcualteDCOperatior(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area)
-//       {
-//         KRATOS_TRY 
-//         
-// 	double art_visc = 0.0;
-// 	CalculateArtifitialViscosity(art_visc,DN_DX);
-// 	
-//         double mu;
-//         double density;
-//         calculatedensity(GetGeometry(), density, mu);
-// 
-//        double fac = art_visc * density * area;
-//         //nu = nu/density;
-// 
-//         int nodes_number = 3;
-//         int dof = 2;
-// 
-//         for (int ii = 0; ii < nodes_number; ii++) {
-//             int row = ii * (dof + 1);
-//             for (int jj = 0; jj < nodes_number; jj++) {
-//                 int column = jj * (dof + 1);
-//                 K(row, column) +=  fac * (DN_DX(ii, 0) * DN_DX(jj, 0) + 0.5 * DN_DX(ii, 1) * DN_DX(jj, 1));
-//                 K(row, column + 1) +=  fac * 0.5 * DN_DX(ii, 1) * DN_DX(jj, 0);		
-// 		K(row + 1, column ) +=  fac * 0.5 * DN_DX(ii, 0) * DN_DX(jj, 1);	
-//                 K(row + 1, column + 1) +=  fac * (DN_DX(ii, 1) * DN_DX(jj, 1) + 0.5*DN_DX(ii, 0) * DN_DX(jj, 0));
-//             }
-//         }
-// 	    KRATOS_CATCH("")
-//       }
+     void ExplicitASGSCompressible2D::CalcualteDCOperatior(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area)
+      {
+        KRATOS_TRY 
+        int nodes_number = 3;
+        int dof = 2;
+
+	double Vel_art_visc = 0.0;
+        double Pr_art_visc = 0.0;
+	CalculateArtifitialViscosity(Vel_art_visc,Pr_art_visc,DN_DX);
+	
+        double mu;
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+
+       double Vel_fac = Vel_art_visc * density * area;
+       double Pr_fac = Pr_art_visc*area;
+       
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
+        gard_opr =  prod(DN_DX, trans(DN_DX));
+
+        //nu = nu/density;
+
+
+        for (int ii = 0; ii < nodes_number; ii++) {
+            int row = ii * (dof + 1);
+	    int grad_row = row+dof;
+            for (int jj = 0; jj < nodes_number; jj++) {
+                int column = jj * (dof + 1);
+		int gard_column = column + dof;
+                K(row, column) +=  Vel_fac * (DN_DX(ii, 0) * DN_DX(jj, 0) + 0.5 * DN_DX(ii, 1) * DN_DX(jj, 1));
+                K(row, column + 1) +=  Vel_fac * 0.5 * DN_DX(ii, 1) * DN_DX(jj, 0);		
+		K(row + 1, column ) +=  Vel_fac * 0.5 * DN_DX(ii, 0) * DN_DX(jj, 1);	
+                K(row + 1, column + 1) +=  Vel_fac * (DN_DX(ii, 1) * DN_DX(jj, 1) + 0.5*DN_DX(ii, 0) * DN_DX(jj, 0));
+		
+		K(grad_row, gard_column) += Pr_fac * gard_opr(ii, jj);
+		
+            }
+        }
+                    
+	    KRATOS_CATCH("")
+      }
     //************************************************************************************
     //************************************************************************************
-//      void ExplicitASGSCompressible2D::CalculateArtifitialViscosity(double& art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
-//  	{
-// 	    KRATOS_TRY    
-// 	  
-//          int nodes_number = 3;
-//          for( int ii=1; ii < nodes_number; ++ii)
-// 	 {
-// 	    const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
-// 	    
-// 	 }  
-// 	  double div_vel = DN_DX(0,0) + 
-// 
-// 
-// 	  double H=0.0;
-//           CalculateCharectristicLength(H);
-// 	  
-// 
-// 	  
-// 	  
-//      
-// 	    KRATOS_CATCH("")
-// 	}  
+     void ExplicitASGSCompressible2D::CalculateArtifitialViscosity(double& Vel_art_visc ,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
+ 	{
+	    KRATOS_TRY    
+	  
+	 Vel_art_visc = 0.0; 
+	 Pr_art_visc = 0.0;
+         int nodes_number = 3;
+	 double div_vel = 0.0;
+         for( int ii=0; ii < nodes_number; ++ii)
+	 {
+	    const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+	    div_vel += (vel[0]*DN_DX(ii,0) + vel[1]*DN_DX(ii,1));
+	    
+	 }  
+	 
+	 double H=0.0;
+	 double norm_grad_p = 0.0;
+	 
+	double mu;
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+	 
+	 if( div_vel < 0.0)
+	    {
+             CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
+             Vel_art_visc = 1.5* abs(div_vel) * pow(H,2);
+
+	     Pr_art_visc = 1.0*sqrt(norm_grad_p/density) * pow(H,1.5);
+	    } 
+	   
+	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
+	   this->GetValue(PR_ART_VISC)=Pr_art_visc;
+	    
+	    
+	    KRATOS_CATCH("")
+	} 
 	
     //************************************************************************************
     //************************************************************************************
-/*     void ExplicitASGSCompressible2D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX )
+     void ExplicitASGSCompressible2D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,double& norm_grad )
  	{
 	    KRATOS_TRY 
 	    
@@ -835,15 +901,84 @@ VC = 10.0;
 	  CC(1,1) = det*zarf;
 	  CC(0,1) = -CC(0,1)*det;
 	  CC(1,0) = -CC(1,0)*det;
-	  KRATOS_WATCH( prod(DD,CC));	  
+	  //KRATOS_WATCH( prod(DD,CC));	  
 
-	  nodes_number = 3;
-	  array_1d<double,3>& mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
-          for (int ii = 0; ii < nodes_number; ii++) {	  
-	         const array_1d<double,3>& acce0 = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);  
+	  int nodes_number = 3;
+	  array_1d<double,3> mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
+	  double pp = GetGeometry()[0].FastGetSolutionStepValue(AIR_PRESSURE);
+	  array_1d<double,3> grad_p;
+	  grad_p[0] = DN_DX(0,0)*pp;
+	  grad_p[1] = DN_DX(0,1)*pp;
+		  
+          for (int ii = 1; ii < nodes_number; ii++) {	  
+	        mean_acc += GetGeometry()[ii].FastGetSolutionStepValue(ACCELERATION);  
+		pp = GetGeometry()[ii].FastGetSolutionStepValue(AIR_PRESSURE);
+		grad_p[0] += DN_DX(ii,0)*pp;
+		grad_p[1] += DN_DX(ii,1)*pp;		
 	  }
+	  mean_acc *= 0.33333333333333333333333333333333333;
+	  grad_p *= 0.33333333333333333333333333333333333;
+	  grad_p[2] = 0.0;
+	  
+	  double norm_acc =  MathUtils<double>::Norm3(mean_acc);
+	  norm_grad =  MathUtils<double>::Norm3(grad_p);
+
+	  array_1d<double,3>  n_dir= ZeroVector(3);
+	  if(norm_acc != 0.0)
+	             n_dir = 0.75/norm_acc*mean_acc;
+	  if(norm_grad != 0.0)
+	             n_dir +=  0.25/norm_grad*grad_p;
+	  
+	  double norm_n_dir =  MathUtils<double>::Norm3(n_dir);	
+ 	  
+	  if(norm_n_dir != 0.0)
+	    {
+	      n_dir/=norm_n_dir;	  
+	      array_1d<double,3>  CC_n;	  
+	      CC_n = prod(CC,n_dir);	  
+	      double denom = n_dir[0]*CC_n[0] + n_dir[1]*CC_n[1] + n_dir[2]*CC_n[2];
+
+	      if(denom <= 0.0)
+		    KRATOS_ERROR(std::logic_error,"CalculateCharectristicLength zero or negative denominator ",denom)	
+	      else
+		    ch_length = 2.0/sqrt(denom);
+	    }
+	   else
+	         ch_length = 0.0;
+	  
 	    KRATOS_CATCH("")
-	}*/	  	    
+	}
+	
+    //************************************************************************************
+    //************************************************************************************
+
+    void ExplicitASGSCompressible2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
+
+        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+        array_1d<double, 3 > N;
+	
+        //getting data for the given geometry
+        double Area;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+        if (rVariable == VEL_ART_VISC) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+
+                rValues[PointNumber] = this->GetValue(VEL_ART_VISC);
+            }
+        }
+        if (rVariable == PR_ART_VISC) {
+            for (unsigned int PointNumber = 0;
+                    PointNumber < 1; PointNumber++) {
+	//	KRATOS_WATCH(this->GetValue(IS_WATER));
+	//	KRATOS_WATCH(this->Info());
+                rValues[PointNumber] = this->GetValue(PR_ART_VISC);
+            }
+        }
+
+    }
 } // Namespace Kratos
 
 
