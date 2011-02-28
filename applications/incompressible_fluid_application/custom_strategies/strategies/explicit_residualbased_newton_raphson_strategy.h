@@ -267,7 +267,7 @@ KRATOS_WATCH("AFTER PREDICt");
 			BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;	
 // //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
  			bool is_converged = false;
-			bool ResidualIsUpdated = false;
+			//bool ResidualIsUpdated = false;
 			pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
 			is_converged = NewtonBaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
