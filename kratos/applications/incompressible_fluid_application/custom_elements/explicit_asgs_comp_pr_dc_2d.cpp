@@ -292,7 +292,6 @@ namespace Kratos
 	 vc2 =mean_vc2*0.333333333333333333333333;
 
 
-
 	}
 	//*************************************************************************************
 	//*************************************************************************************
@@ -392,6 +391,120 @@ namespace Kratos
 
         KRATOS_CATCH("")
 	  }
+    //************************************************************************************
+    //************************************************************************************
+     void ExplicitASGSCOMPPRDC2D::CalculateArtifitialViscosity(double& Vel_art_visc ,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
+ 	{
+	    KRATOS_TRY    
+	  
+	 Vel_art_visc = 0.0; 
+	 Pr_art_visc = 0.0;
+         int nodes_number = 3;
+	 double div_vel = 0.0;
+         for( int ii=0; ii < nodes_number; ++ii)
+	 {
+	    const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+	    div_vel += (vel[0]*DN_DX(ii,0) + vel[1]*DN_DX(ii,1));
+	    
+	 }  
+	 
+	 double H=0.0;
+	 double norm_grad_p = 0.0;
+	 
+	double mu;
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+	 
+	 if( div_vel < 0.0)
+	    {
+             CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
+             Vel_art_visc = 1.5 * abs(div_vel) * pow(H,2);
+
+	     Pr_art_visc = 10.5*sqrt(norm_grad_p/density) * pow(H,1.5);
+	    } 
+	   
+	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
+	   this->GetValue(PR_ART_VISC)=Pr_art_visc;
+	    
+	    
+	    KRATOS_CATCH("")
+	} 	  
+	 //************************************************************************************
+         //************************************************************************************
+        void ExplicitASGSCOMPPRDC2D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,double& norm_grad )
+ 	{
+	    KRATOS_TRY 
+	  GeometryType::JacobiansType J;
+	  GetGeometry().Jacobian(J); 
+
+	  Matrix CC;
+	  CC.resize(2,2,false);	  	
+	  
+	  Matrix DD;
+	  DD.resize(2,2,false);	  	  
+
+	  noalias(CC) = prod(J[0],trans(J[0]));	 
+	  DD=CC;
+	  
+	  double det = CC(1,1)*CC(0,0) - CC(0,1)*CC(1,0);
+	  
+	  if(det == 0.0)
+	      	KRATOS_ERROR(std::logic_error,"ZERO DETERMINANT IN ARTIFICIAL VISCOSITY ",det)
+	  else 
+	     det = 1.0/det;
+	  
+          double zarf = CC(0,0);	  
+	  CC(0,0) = det*CC(1,1);
+	  CC(1,1) = det*zarf;
+	  CC(0,1) = -CC(0,1)*det;
+	  CC(1,0) = -CC(1,0)*det;
+	  //KRATOS_WATCH( prod(DD,CC));	  
+
+	  int nodes_number = 3;
+	  array_1d<double,3> mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
+	  double pp = GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE);
+	  array_1d<double,3> grad_p;
+	  grad_p[0] = DN_DX(0,0)*pp;
+	  grad_p[1] = DN_DX(0,1)*pp;
+		  
+          for (int ii = 1; ii < nodes_number; ii++) {	  
+	        mean_acc += GetGeometry()[ii].FastGetSolutionStepValue(ACCELERATION);  
+		pp = GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
+		grad_p[0] += DN_DX(ii,0)*pp;
+		grad_p[1] += DN_DX(ii,1)*pp;		
+	  }
+	  mean_acc *= 0.33333333333333333333333333333333333;
+	  grad_p *= 0.33333333333333333333333333333333333;
+	  grad_p[2] = 0.0;
+	  
+	  double norm_acc =  MathUtils<double>::Norm3(mean_acc);
+	  norm_grad =  MathUtils<double>::Norm3(grad_p);
+
+	  array_1d<double,3>  n_dir= ZeroVector(3);
+	  if(norm_acc != 0.0)
+	             n_dir = 0.75/norm_acc*mean_acc;
+	  if(norm_grad != 0.0)
+	             n_dir +=  0.25/norm_grad*grad_p;
+	  
+	  double norm_n_dir =  MathUtils<double>::Norm3(n_dir);	
+ 	  
+	  if(norm_n_dir != 0.0)
+	    {
+	      n_dir/=norm_n_dir;	  
+	      array_1d<double,3>  CC_n;	  
+	      CC_n = prod(CC,n_dir);	  
+	      double denom = n_dir[0]*CC_n[0] + n_dir[1]*CC_n[1] + n_dir[2]*CC_n[2];
+
+	      if(denom <= 0.0)
+		    KRATOS_ERROR(std::logic_error,"CalculateCharectristicLength zero or negative denominator ",denom)	
+	      else
+		    ch_length = 2.0/sqrt(denom);
+	    }
+	   else
+	         ch_length = 0.0;
+	  
+	    KRATOS_CATCH("")
+	}
 
 } // Namespace Kratos
 
