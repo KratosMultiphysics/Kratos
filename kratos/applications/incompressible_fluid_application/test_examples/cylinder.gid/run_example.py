@@ -115,10 +115,8 @@ if(SolverType == "FractionalStep"):
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
-    oss_swith = fluid_only_var.use_oss
-    dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
+    fluid_solver.oss_switch  = fluid_only_var.use_oss
     fluid_solver.Initialize()
 
 
