@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "custom_elements/asgs_2d.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -139,6 +140,8 @@ namespace Kratos
 	void Calculate( const Variable<double>& rVariable, 
 			      double& Output, 
 			      const ProcessInfo& rCurrentProcessInfo);
+       void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
       ///@}
       ///@name Access
       ///@{ 
@@ -193,8 +196,11 @@ namespace Kratos
 	virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);	
 	virtual void CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);
        	virtual void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);      
-// 	virtual void CalcualteDCOperatior(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
-// 	virtual void CalculateArtifitialViscosity(double& art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>&DN_DX);
+ 	virtual void CalcualteDCOperatior(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
+ 	virtual void CalculateArtifitialViscosity(double& art_visc,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>&DN_DX);
+	virtual void CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,double& norm_grad );
+        virtual void CalculateNonlinearStblTerm(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double time,const double tauone,const double area);
+
 	///@}  
       ///@name Protected Operators
       ///@{ 
@@ -203,6 +209,7 @@ namespace Kratos
       ///@} 
       ///@name Protected Operations
       ///@{ 
+         ExplicitASGSCompressible2D() : ASGS2D() {}
         
         
       ///@} 
@@ -240,15 +247,31 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
-         std::vector< Matrix > mInvJ0;
-         Vector mDetJ0;
         
       ///@} 
       ///@name Private  Access 
       ///@{ 
         
         
-      ///@}    
+      ///@}   
+      ///@name Serialization
+     ///@{	
+        friend class Serializer;
+
+        
+        virtual void save(Serializer& rSerializer)
+        {
+            rSerializer.save("Name", "ExplicitASGSCompressible2D");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ASGS2D);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ASGS2D);
+        }
+        
+      ///@}       
+      
       ///@name Private Inquiry 
       ///@{ 
         
