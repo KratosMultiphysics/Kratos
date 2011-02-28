@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -498,6 +499,26 @@ namespace Kratos
             ///@name Private  Access
             ///@{
 
+	      
+
+	    ///@}
+	    ///@name Serialization
+	    ///@{	
+	    friend class Serializer; 
+
+	    // A private default constructor necessary for serialization 
+	    UnsaturatedSoilsElement_2phase_SmallStrain(){}
+
+	    virtual void save(Serializer& rSerializer)
+	    {
+	    rSerializer.save("Name","UnsaturatedSoilsElement_2phase_SmallStrain");
+	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+	    }
+
+	    virtual void load(Serializer& rSerializer)
+	    {
+	    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+	    }
 
             ///@}
             ///@name Private Inquiry

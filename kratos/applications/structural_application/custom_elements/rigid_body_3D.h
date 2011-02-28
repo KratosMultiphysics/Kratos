@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
@@ -211,6 +212,27 @@ namespace Kratos
       ///@name Private Operations
       ///@{ 
         
+	
+	private:
+
+	///@}
+	///@name Serialization
+	///@{	
+	friend class Serializer; 
+
+	// A private default constructor necessary for serialization 
+	RigidBody3D(){}
+
+	virtual void save(Serializer& rSerializer)
+	{
+	  rSerializer.save("Name","RigidBody3D");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+	}
         
       ///@} 
       ///@name Private  Access 

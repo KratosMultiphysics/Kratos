@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "custom_elements/ebst.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -81,9 +82,6 @@ namespace Kratos {
         // Counted pointer of EbstVel
         KRATOS_CLASS_POINTER_DEFINITION(EbstVel);
 
-
-        // Constructor void
-        EbstVel();
 
         // Constructor using an array of nodes
         EbstVel(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -113,8 +111,27 @@ namespace Kratos {
     protected:
 
 
-    private:
+      private:
 
+      ///@}
+      ///@name Serialization
+      ///@{	
+      friend class Serializer; 
+      // A private default constructor necessary for serialization 
+       EbstVel(){}
+
+      virtual void save(Serializer& rSerializer)
+      {
+         rSerializer.save("Name","EbstVel");
+         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+      }
+      
+      
     }; // class KRATOS_EbstVel_H_INCLUDED.
 
 } // namespace Kratos.

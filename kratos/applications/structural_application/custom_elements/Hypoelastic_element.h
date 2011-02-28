@@ -12,6 +12,7 @@
 // Project includes
 
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h" //for vec & mat manipulation
 #include "includes/variables.h" //insert kratos varibles
@@ -148,7 +149,26 @@ namespace Kratos
 		void CalculateRotatedStress(Vector& StressVector,Matrix& F,const ProcessInfo& rCurrentProcessInfo);
 		void ResizeAndInitializeAuxiliaries();
 
-        
+		
+	///@}
+	///@name Serialization
+	///@{	
+	friend class Serializer; 
+	// A private default constructor necessary for serialization 
+	HypoelasticElement(){}
+
+	virtual void save(Serializer& rSerializer)
+	{
+	   rSerializer.save("Name","HypoelasticElement");
+	   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+	}
+		
+		
 
 	}; // Class HypoelasticElement 
 

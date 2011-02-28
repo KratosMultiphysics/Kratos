@@ -77,12 +77,6 @@ namespace Kratos
 
     // Constructor
 
-    EbstVel::EbstVel()
-    {
-    }
-
-    // Constructor
-
     EbstVel::EbstVel(IndexType NewId, GeometryType::Pointer pGeometry)
     : Ebst(NewId, pGeometry)
     {

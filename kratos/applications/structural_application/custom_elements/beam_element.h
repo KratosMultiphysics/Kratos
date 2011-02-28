@@ -22,6 +22,7 @@
 // Project includes
 #include "structural_application.h"
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -124,7 +125,27 @@ namespace Kratos
              IntegrationMethod GetIntegrationMethod();
              
 
-		
+	    ///@}
+	    ///@name Serialization
+	    ///@{	
+	    friend class Serializer;
+
+	     
+	    // A private default constructor necessary for serialization 
+            BeamElement(){}; 
+
+	    
+	    virtual void save(Serializer& rSerializer)
+	    {
+	       rSerializer.save("Name","BeamElement");
+	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+	    }
+
+	    virtual void load(Serializer& rSerializer)
+	    {
+	      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+	    }
+
 	      
 	      
 
