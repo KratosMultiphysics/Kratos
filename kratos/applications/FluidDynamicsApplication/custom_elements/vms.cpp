@@ -268,24 +268,47 @@ namespace Kratos
     }
 
     /**
+     The size of the 2D element is estimated as the diameter of a circle of the same area.
+     Area = Pi * (h/2)^2
      @see VMS::ElementSize
      */
     template <>
     double VMS<2>::ElementSize(const double Area)
     {
-//        const double Element_Size = 2.0 * sqrt(Area / 3.14); // This is the element's diameter, 3.14 approximates Pi
         return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
     }
 
     /**
+     The size of the 3D element is estimated as the diameter of the sphere
+     circumscribed to a regular tetrahedron with the same volume.
      @see VMS::ElementSize
      */
     template <>
     double VMS<3>::ElementSize(const double Volume)
     {
-        return 0.60046878 * pow(Volume,0.333333333333333333333); // Diameter of sphere circumscribed to regular tetrahedron of given volume
+        return 0.60046878 * pow(Volume,0.333333333333333333333);
     }
 
+    /**
+     Returns the squared element size, estimated as h^2 = 2*Area
+     @see VMS::FilterWidth
+     */
+    inline double VMS<2>::FilterWidth()
+    {
+        double FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
+        return 2 * FilterWidth;
+    }
+
+    /**
+     Returns the squared element size, estimated from the assumption V = (1/6) * h^3
+     @see VMS::FilterWidth
+     */
+    inline double VMS<3>::FilterWidth()
+    {
+        double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
+        FilterWidth *= 6;
+        return pow(FilterWidth, 2.0/3.0);
+    }
 
     template <>
     void VMS<2>::save(Serializer& rSerializer) const
