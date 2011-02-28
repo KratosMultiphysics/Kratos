@@ -216,12 +216,12 @@ namespace Kratos
 			KRATOS_TRY		
 
 			ModelPart::ElementsContainerType::iterator elem_bg = r_model_part.ElementsBegin();
-			unsigned int n_elems = r_model_part.Elements().size();	
+			 int n_elems = r_model_part.Elements().size();	
 			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
 			// assemble all elements
 		  #pragma omp parallel for firstprivate(n_elems, elem_bg)
-		  for(unsigned int ii=0; ii<n_elems; ++ii)
+		  for( int ii=0; ii<n_elems; ++ii)
 		      {
 			//calculate min_dt
 			ModelPart::ElementsContainerType::iterator it = elem_bg + ii;
@@ -387,7 +387,7 @@ KRATOS_WATCH("INSIDE EXPLICIT RESIDUALBASED BUILDER FILLING AFTER ADDING ELEMENT
 
 			if(RHS_Contribution.size() != 0){
 			    Condition::GeometryType& geom = (*it)->GetGeometry();
-			    unsigned int nodes_num = geom.size();
+			    //unsigned int nodes_num = geom.size();
 			    unsigned int dim = (*it)->GetGeometry().WorkingSpaceDimension();
 
 				for (unsigned int i = 0; i <geom.size(); i++)
