@@ -862,5 +862,3 @@ namespace Kratos {
 
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME  defined */
 
-
-
