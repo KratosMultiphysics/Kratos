@@ -65,6 +65,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "custom_elements/explicit_asgs_compressible_2d.h"
+#include "includes/serializer.h"
+
 
 namespace Kratos
 {
@@ -184,6 +186,8 @@ namespace Kratos
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
 	virtual void CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double volume);
+	virtual void CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,double& norm_grad );
+ 	virtual void CalculateArtifitialViscosity(double& art_visc,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>&DN_DX);
 
       ///@} 
       ///@name Protected Operators
@@ -250,7 +254,27 @@ namespace Kratos
       ///@{ 
         
         
-      ///@}    
+      ///@} 
+     ///@name Serialization
+     ///@{	
+        friend class Serializer;
+        ExplicitASGSCOMPPRDC2D() : ExplicitASGSCompressible2D()
+        {
+        }
+        
+        virtual void save(Serializer& rSerializer)
+        {
+            rSerializer.save("Name", "ExplicitASGSCOMPPRDC2D");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ExplicitASGSCompressible2D);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ExplicitASGSCompressible2D);
+        }
+        
+      ///@}       
+      
       ///@name Private Inquiry 
       ///@{ 
         
