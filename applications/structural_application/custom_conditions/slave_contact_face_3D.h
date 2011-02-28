@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -234,6 +235,26 @@ namespace Kratos
 
     		Matrix TangentialVectors_inOrigin( const GeometryType::CoordinatesArrayType& rPoint );
             
+	      ///@} 
+	      ///@name Member Variables 
+	      ///@{ 
+
+	      friend class Serializer;
+
+	      // A private default constructor necessary for serialization 
+	      SlaveContactFace3D(){}; 
+
+	      virtual void save(Serializer& rSerializer)
+	      {
+	      rSerializer.save("Name","SlaveContactFace3D");
+	      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+	      }
+
+	      virtual void load(Serializer& rSerializer)
+	      {
+	      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+	      }
+		
             /**
              * Assignment operator.
              * (DEACTIVATED)

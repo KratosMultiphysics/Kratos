@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -116,7 +117,23 @@ class FaceVel3D
 	private:
 		///@name Static Member Variables 
 
-		/// privat vari
+	///@}
+	///@name Serialization
+	///@{	
+	friend class Serializer;
+
+	virtual void save(Serializer& rSerializer)
+	{
+	rSerializer.save("Name","FaceVel3D");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Face3D );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Face3D );
+	}
+		
+		
 
 	};	// class Face3D.
 
