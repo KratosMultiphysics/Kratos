@@ -198,8 +198,8 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCOMPPRDC2D", mExplicitASGSCOMPPRDC2D);
 
 		
- 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCOMPPRDC3D", mExplicitASGSCOMPPRDC3D);
 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCompressible3D", mExplicitASGSCompressible3D);
+ 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCOMPPRDC3D", mExplicitASGSCOMPPRDC3D);		
 		
 		std::cout << "Initializing KratosIncompressibleFluidApplication...elements succesfully registered " << std::endl;
 	
