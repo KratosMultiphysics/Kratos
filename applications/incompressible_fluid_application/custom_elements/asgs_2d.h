@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "includes/serializer.h"
 
 
 namespace Kratos
@@ -114,6 +115,7 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
+
 	  ASGS2D(IndexType NewId, GeometryType::Pointer pGeometry);
       ASGS2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
@@ -252,7 +254,7 @@ namespace Kratos
 
       ///@name Protected Operators
       ///@{ 
-        
+       ASGS2D() : Element(){}
         
       ///@} 
       ///@name Protected Operations
@@ -277,16 +279,6 @@ namespace Kratos
       ///@}
       
    // private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
        	         /// To Calculate Lumped mass matrix 
 	        /**
 		    It is assembeled directly to LHS
@@ -353,7 +345,34 @@ namespace Kratos
 
 		 virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 	    private:
+      ///@name Static Member Variables 
+      ///@{ 
+        
       ///@} 
+      ///@name Member Variables 
+      ///@{ 
+      
+     ///@}
+     ///@name Serialization
+     ///@{	
+        friend class Serializer;
+//         ASGS2D() : Element()
+//         {
+//         }
+        
+        virtual void save(Serializer& rSerializer)
+        {
+            rSerializer.save("Name", "ASGS2D");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+        }
+        
+      ///@} 
+
       ///@name Private Operations
       ///@{ 
         
@@ -372,6 +391,7 @@ namespace Kratos
       ///@name Un accessible methods 
       ///@{ 
       
+	
       /// Assignment operator.
       //Fluid2DASGS& operator=(const Fluid2DASGS& rOther);
 
