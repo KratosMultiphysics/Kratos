@@ -293,20 +293,22 @@ namespace Kratos
      Returns the squared element size, estimated as h^2 = 2*Area
      @see VMS::FilterWidth
      */
-    inline double VMS<2>::FilterWidth()
+    template <>
+    double VMS<2>::FilterWidth()
     {
         double FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
-        return 2 * FilterWidth;
+        return 2.0 * FilterWidth;
     }
 
     /**
      Returns the squared element size, estimated from the assumption V = (1/6) * h^3
      @see VMS::FilterWidth
      */
-    inline double VMS<3>::FilterWidth()
+    template <>
+    double VMS<3>::FilterWidth()
     {
         double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
-        FilterWidth *= 6;
+        FilterWidth *= 6.0;
         return pow(FilterWidth, 2.0/3.0);
     }
 
