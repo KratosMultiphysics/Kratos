@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "custom_elements/asgs_compressible_3d.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -181,7 +182,8 @@ namespace Kratos
       ///@} 
       ///@name Protected Operators
       ///@{ 
-        
+        ASGSCOMPPRDC3D() : ASGSCompressible3D() {}
+      
         
       ///@} 
       ///@name Protected Operations
@@ -243,7 +245,25 @@ namespace Kratos
       ///@{ 
         
         
-      ///@}    
+      ///@}  
+      
+                   ///@name Serialization
+     ///@{	
+        friend class Serializer;
+
+        
+        virtual void save(Serializer& rSerializer)
+        {
+            rSerializer.save("Name", "ASGSCOMPPRDC3D");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ASGSCompressible3D);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ASGSCompressible3D);
+        }
+        
+      ///@} 
       ///@name Private Inquiry 
       ///@{ 
         
