@@ -729,7 +729,7 @@ namespace Kratos
 	}
 		std::cout << number_of_nodes_read << " nodes read" << std::endl;
 
-	int numer_of_nodes_read = rThisNodes.size();
+	unsigned int numer_of_nodes_read = rThisNodes.size();
 	rThisNodes.Unique();
 	if(rThisNodes.size() != numer_of_nodes_read)
 	  std::cout << "attention! we read " << numer_of_nodes_read << " but there are only " << rThisNodes.size() << " non repeated nodes" << std::endl;
@@ -1634,6 +1634,7 @@ namespace Kratos
       WriteInAllFiles(OutputFiles, block);
 
       WriteInAllFiles(OutputFiles, "End ModelPartData\n");
+      KRATOS_WATCH("DivideModelPartDataBlock completed");
       KRATOS_CATCH("")
     }
 
@@ -1649,6 +1650,7 @@ namespace Kratos
       WriteInAllFiles(OutputFiles, block);
 
       WriteInAllFiles(OutputFiles, "End Properties\n");
+      KRATOS_WATCH("DividePropertiesBlock completed");
       KRATOS_CATCH("")
     }
 
@@ -1705,6 +1707,7 @@ namespace Kratos
       }
 
       WriteInAllFiles(OutputFiles, "End Nodes\n");
+      KRATOS_WATCH("DivideNodesBlock completed");
 
       KRATOS_CATCH("")
     }
@@ -1713,6 +1716,8 @@ namespace Kratos
 			      PartitionIndicesContainerType const& ElementsAllPartitions)
       {
       KRATOS_TRY
+      
+      KRATOS_WATCH("DivideElementsBlock started");
 
       std::string word;
       std::string element_name;
@@ -1779,6 +1784,8 @@ namespace Kratos
       }
 
       WriteInAllFiles(OutputFiles, "\nEnd Elements\n");
+      
+      KRATOS_WATCH("DivideElementsBlock completed");
 
       KRATOS_CATCH("")
     }
@@ -1859,6 +1866,8 @@ namespace Kratos
       }
 
       WriteInAllFiles(OutputFiles, "\nEnd Conditions\n");
+      
+      KRATOS_WATCH("DivideConditionsBlock completed");
 
       KRATOS_CATCH("")
     }
@@ -1914,6 +1923,8 @@ namespace Kratos
 	}
 
       WriteInAllFiles(OutputFiles, "End NodalData\n");
+      
+      KRATOS_WATCH("DivideNodalDataBlock completed");
 
       KRATOS_CATCH("")
     }
@@ -2132,6 +2143,8 @@ namespace Kratos
 			      PartitionIndicesContainerType const& ConditionsAllPartitions)
     {
       KRATOS_TRY
+      
+      KRATOS_WATCH("DivideElementalDataBlock start")
 
       typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
@@ -2178,6 +2191,8 @@ namespace Kratos
 	}
 
       WriteInAllFiles(OutputFiles, "End ConditionalData\n");
+      
+      KRATOS_WATCH("DivideElementalDataBlock completed")
 
       KRATOS_CATCH("")
     }
