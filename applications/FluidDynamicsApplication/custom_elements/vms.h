@@ -331,9 +331,12 @@ namespace Kratos
                 double KinViscosity;
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
+                double Viscosity;
+                this->GetEffectiveViscosity(KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
+
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
+                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
                 this->AddProjectionToRHS(rRightHandSideVector, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
             }
@@ -380,13 +383,16 @@ namespace Kratos
                 double KinViscosity;
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
+                double Viscosity;
+                this->GetEffectiveViscosity(KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
+
                 // Get Advective velocity
                 array_1d<double, 3> AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
 
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
+                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
                 // Add dynamic stabilization terms ( all terms involving a delta(u) )
                 this->AddMassStabTerms<MatrixType> (rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
@@ -426,15 +432,18 @@ namespace Kratos
             this->EvaluateInPoint(Density, DENSITY, N);
             this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
+            double Viscosity;
+            this->GetEffectiveViscosity(KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
+
             // Get Advective velocity
             array_1d<double, 3> AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
             // Calculate stabilization parameters
             double TauOne, TauTwo;
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, KinViscosity, rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
-            this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, KinViscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+            this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
 
             // Now calculate an additional contribution to the residual: r -= rDampMatrix * (u,p)
             VectorType U = ZeroVector(LocalSize);
@@ -479,9 +488,12 @@ namespace Kratos
                 GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
                 // Calculate this element's fluid properties
-                double Density, Viscosity;
+                double Density, KinViscosity;
                 this->EvaluateInPoint(Density, DENSITY, N);
-                this->EvaluateInPoint(Viscosity, VISCOSITY, N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
+                double Viscosity;
+                this->GetEffectiveViscosity(KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
 
                 // Get Advective velocity
                 array_1d<double, 3> AdvVel;
@@ -538,9 +550,12 @@ namespace Kratos
                 GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
                 // Calculate this element's fluid properties
-                double Density, Viscosity;
+                double Density, KinViscosity;
                 this->EvaluateInPoint(Density, DENSITY, N);
-                this->EvaluateInPoint(Viscosity, VISCOSITY, N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
+                double Viscosity;
+                this->GetEffectiveViscosity(KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
 
                 // Get Advective velocity
                 array_1d<double, 3> AdvVel;
@@ -648,9 +663,12 @@ namespace Kratos
                 this->GetAdvectiveVel(AdvVel,N);
 
                 double KinViscosity;
-                this->EvaluateInPoint(KinViscosity,VISCOSITY,N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
-                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,KinViscosity,rCurrentProcessInfo);
+                double Viscosity;
+                this->GetEffectiveViscosity(KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
+
+                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
 
                 rValues.resize(1,false);
                 if (rVariable == TAUONE)
@@ -949,7 +967,7 @@ namespace Kratos
         void AddIntegrationPointVelocityContribution(MatrixType& rDampMatrix,
                                                      VectorType& rDampRHS,
                                                      const double Density,
-                                                     const double KinViscosity,
+                                                     const double Viscosity,
                                                      const array_1d< double,3 >& rAdvVel,
                                                      const double TauOne,
                                                      const double TauTwo,
@@ -962,15 +980,7 @@ namespace Kratos
             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
             array_1d<double, TNumNodes> AGradN;
             this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
-            // Get total viscosity (as given by Smagorinsky)
-            double Viscosity;
-            double Cs = this->GetValue(C_SMAGORINSKY);
-            if(Cs != 0.0)
-                this->GetEffectiveViscosity(KinViscosity,Cs,rShapeDeriv,Viscosity); // Smagorinsky viscosity (in "Kinematic" units, m^2/s)
-            else
-                Viscosity = KinViscosity;
-
+            
             // Build the local matrix and RHS
             unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
             double K, G, PDivV, L; // Temporary results
@@ -1122,42 +1132,53 @@ namespace Kratos
 
         /// Add the contribution from Smagorinsky model to the (kinematic) viscosity
         void GetEffectiveViscosity(const double MolecularViscosity,
-                                   const double C,
+                                   array_1d<double,TNumNodes>& rShapeFunc,
                                    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-                                   double& TotalViscosity)
+                                   double& TotalViscosity,
+                                   const ProcessInfo& rCurrentProcessInfo)
         {
-            // The filter width in Smagorinsky is typically the element size h. We will store the square of h, as the final formula involves the squared filter width
-            const double FilterWidth = this->FilterWidth();
-
-            boost::numeric::ublas::bounded_matrix<double,TDim,TDim> dv_dx = ZeroMatrix(TDim,TDim);
-
+            const double C = this->GetValue(C_SMAGORINSKY);
+            const double yield = rCurrentProcessInfo.GetValue(YIELD_STRESS);
+            
             TotalViscosity = MolecularViscosity;
-
-            // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
-            for (unsigned int k = 0; k < TNumNodes; ++k)
+            if(C != 0.0 || yield != 0)
             {
-                const array_1d< double,3 >& rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY);
+                // The filter width in Smagorinsky is typically the element size h. We will store the square of h, as the final formula involves the squared filter width
+                const double FilterWidth = this->FilterWidth();
+
+                boost::numeric::ublas::bounded_matrix<double,TDim,TDim> dv_dx = ZeroMatrix(TDim,TDim);
+
+                // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
+                for (unsigned int k = 0; k < TNumNodes; ++k)
+                {
+                    const array_1d< double,3 >& rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY);
+                    for (unsigned int i = 0; i < TDim; ++i)
+                    {
+                        for (unsigned int j = 0; j < i; ++j) // Off-diagonal
+                            dv_dx(i,j) += 0.5 * ( rShapeDeriv(k,j) * rNodeVel[i] + rShapeDeriv(k,i) * rNodeVel[j] );
+                        dv_dx(i,i) += rShapeDeriv(k,i) * rNodeVel[i]; // Diagonal
+                    }
+                }
+
+                // Norm[ Grad(u) ]
+                double NormS(0.0);
                 for (unsigned int i = 0; i < TDim; ++i)
                 {
-                    for (unsigned int j = 0; j < i; ++j) // Off-diagonal
-                        dv_dx(i,j) += 0.5 * ( rShapeDeriv(k,j) * rNodeVel[i] + rShapeDeriv(k,i) * rNodeVel[j] );
-                    dv_dx(i,i) += rShapeDeriv(k,i) * rNodeVel[i]; // Diagonal
+                    for (unsigned int j = 0; j < i; ++j)
+                        NormS += 2.0 * dv_dx(i,j) * dv_dx(i,j); // Using symmetry, lower half terms of the matrix are added twice
+                    NormS += dv_dx(i,i) * dv_dx(i,i); // Diagonal terms
                 }
+
+                NormS = sqrt(NormS);
+
+                //non newtonian case
+                const double mcoef = 10.0;
+                double aux_1 = 1.0 - exp(-(mcoef * NormS));
+                TotalViscosity += (yield /(NormS + 1e-10)) * aux_1;
+
+                // Total Viscosity
+                TotalViscosity += 2.0 * C * C * FilterWidth * NormS;
             }
-
-            // Norm[ Grad(u) ]
-            double NormS(0.0);
-            for (unsigned int i = 0; i < TDim; ++i)
-            {
-                for (unsigned int j = 0; j < i; ++j)
-                    NormS += 2.0 * dv_dx(i,j) * dv_dx(i,j); // Using symmetry, lower half terms of the matrix are added twice
-                NormS += dv_dx(i,i) * dv_dx(i,i); // Diagonal terms
-            }
-
-            NormS = sqrt(NormS);
-
-            // Total Viscosity
-            TotalViscosity += 2.0 * C * C * FilterWidth * NormS;
         }
 
         /// Write the advective velocity evaluated at this point to an array
@@ -1292,12 +1313,12 @@ namespace Kratos
          * @param Volume (in 3D) or Area (in 2D) of the element
          * @return Element size h
          */
-        virtual double ElementSize(const double);
+        double ElementSize(const double);
 
         /// Return the filter width for the smagorinsky model (Delta squared)
         /** @param The element size (area/volume)
          */
-        virtual inline double FilterWidth();
+        double FilterWidth();
 
         ///@}
         ///@name Protected  Access
@@ -1330,10 +1351,6 @@ namespace Kratos
         ///@{
 
         friend class Serializer;
-
-        /// A private default constructor necessary for serialization
-        VMS() : Element()
-        {}
 
         virtual void save(Serializer& rSerializer) const;
 
