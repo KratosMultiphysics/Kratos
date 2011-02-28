@@ -59,10 +59,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/save_structure_conditions_process.h" 
+#include "custom_processes/save_conditions_process.h" 
 //#include "custom_processes/merge_model_parts_process.h" 
 #include "custom_processes/merge_in_one_model_parts_process.h"
-#include "custom_processes/save_structure_model_part_process.h"  
+#include "custom_processes/save_shell_model_part_process.h"  
 
 #include "custom_processes/choose_element_process.h" 
 
@@ -91,11 +91,11 @@ namespace Python
 	using namespace boost::python;
 
 	
-  	class_<SaveStructureConditionsProcess, bases<Process> >("SaveConditionsProcess", init<>())
-		   .def("SaveConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
+  	class_<SaveConditionsProcess, bases<Process> >("SaveConditionsProcess", init<>())
+		   .def("SaveConditions", &SaveConditionsProcess::SaveStructureConditions)
 		 ;
-  	class_<SaveStructureModelPartProcess, bases<Process> >("SaveShellModelPartProcess", init<>())
-		   .def("SaveShellModelPart", &SaveStructureModelPartProcess::SaveStructure)
+  	class_<SaveShellModelPartProcess, bases<Process> >("SaveShellModelPartProcess", init<>())
+		   .def("SaveShellModelPart", &SaveShellModelPartProcess::SaveStructure)
 		 ;
 //	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
 //		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
