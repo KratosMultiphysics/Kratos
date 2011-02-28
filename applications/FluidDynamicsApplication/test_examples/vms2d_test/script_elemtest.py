@@ -284,8 +284,8 @@ if(SolverType == "FractionalStep"):
     fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
     fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector
     fluid_solver.use_dt_in_stabilization = False
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales             
+    fluid_solver.dynamic_tau = ProjectParameters.use_dt_in_stabilization
     fluid_solver.vel_toll = ProjectParameters.velocity_relative_tolerance
     fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
     fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
@@ -295,8 +295,8 @@ if(SolverType == "FractionalStep"):
     fluid_solver.Initialize()
 if(SolverType == "pressure_splitting"):
     fluid_solver = decoupled_solver_eulerian.DecoupledSolver(fluid_model_part,domain_size)
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales             
+    fluid_solver.dynamic_tau = ProjectParameters.use_dt_in_stabilization
     # Set the Bossak alpha here
     #alpha = -0.1
     #move_mesh_strategy = 0
@@ -315,8 +315,8 @@ if(SolverType == "pressure_splitting"):
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales             
+    fluid_solver.dynamic_tau = ProjectParameters.use_dt_in_stabilization
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
     fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
     fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
@@ -329,8 +329,8 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.oss_switch = ProjectParameters.use_orthogonal_subscales             
+    fluid_solver.dynamic_tau = ProjectParameters.use_dt_in_stabilization
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
     fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
     fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
