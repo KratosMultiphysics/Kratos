@@ -331,9 +331,10 @@ namespace Kratos
 
 		const ExplicitASGSCompressible2D  mExplicitASGSCompressible2D; 
 		const ExplicitASGSCOMPPRDC2D mExplicitASGSCOMPPRDC2D;	
-		
+
+		const ExplicitASGSCompressible3D  mExplicitASGSCompressible3D; 		
 		const ExplicitASGSCOMPPRDC3D mExplicitASGSCOMPPRDC3D;
-		const ExplicitASGSCompressible3D  mExplicitASGSCompressible3D; 
+
 
 		//const ABC2D mABC2D;
 
