@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
@@ -77,11 +78,14 @@ namespace Kratos {
     : public Element {
     public:
 
+      
+      
+      
         // Counted pointer of Ebst
         KRATOS_CLASS_POINTER_DEFINITION(PfemContactElement3D);
 
         // Constructor void
-   //     PfemContactElement3D();
+	 PfemContactElement3D(){}
 
         // Constructor using an array of nodes
         PfemContactElement3D(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -191,6 +195,23 @@ namespace Kratos {
           void DetectContact(Geometry< Node<3> >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, const unsigned int single_node_index, array_1d<double,3>& n, double& h);
           void CheckIsContactMaster(int& flag);
      private:
+       
+       
+	    ///@}
+	    ///@name Serialization
+	    ///@{	
+	    friend class Serializer; 
+
+	    virtual void save(Serializer& rSerializer)
+	    {
+	    rSerializer.save("Name","PfemContactElement3D");
+	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+	    }
+
+	    virtual void load(Serializer& rSerializer)
+	    {
+	    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+	    }
        
 			
     }; // class KRATOS_EBST_H_INCLUDED.

@@ -73,11 +73,6 @@ namespace Kratos
     //  PUBLIC  //
     // -------- //
 
-    // Constructor
-
-    Ebst::Ebst()
-    {
-    }
 
     // Constructor
 

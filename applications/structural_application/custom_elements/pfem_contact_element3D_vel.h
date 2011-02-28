@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -133,10 +134,27 @@ namespace Kratos {
 
     protected:
 		
-
-
     private:
 
+    ///@}
+    ///@name Serialization
+    ///@{	
+    friend class Serializer; 
+
+    // A private default constructor necessary for serialization 
+    PfemContactElement3DVel(){}
+
+    virtual void save(Serializer& rSerializer)
+    {
+       rSerializer.save("Name","PfemContactElement3DVel");
+       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+    }
+      
         
     }; // class KRATOS_EBST_H_INCLUDED.
 

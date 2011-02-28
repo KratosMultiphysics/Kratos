@@ -66,10 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    // Constructor
-    MembraneElement::MembraneElement()
-    {
-    }
+
 
     // Constructor
     MembraneElement::MembraneElement( IndexType NewId, GeometryType::Pointer pGeometry )
