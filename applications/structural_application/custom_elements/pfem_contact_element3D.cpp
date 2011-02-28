@@ -580,7 +580,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 		      double lump_mass_fac = Volume * 0.25;
 		     // double density=geom[0].FastGetSolutionStepValue(DENSITY);
 		      const double density=GetProperties()[DENSITY];
-		      const double E = GetProperties()[YOUNG_MODULUS];
+// 		      const double E = GetProperties()[YOUNG_MODULUS];
 
 		      int nodes_number = 4;
 		      int dof = 3;
@@ -1047,7 +1047,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 
 		const unsigned int number_of_nodes = GetGeometry().size();
 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-		unsigned int MatSize=number_of_nodes*dim;
+// 		unsigned int MatSize=number_of_nodes*dim;
 		
 		const double l0 = GetProperties()[THICKNESS];
 
