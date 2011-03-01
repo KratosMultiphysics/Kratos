@@ -100,9 +100,9 @@ alias sources_KratosStructuralApplication
 	orthotropic_3d.cpp
         add_fluency_criteria_to_python.cpp
         energy_yield_function.cpp
-        rankine_yield_function.cpp
+        #rankine_yield_function.cpp
         isotropic_rankine_yield_function.cpp
-        tresca_yield_function.cpp
+        #tresca_yield_function.cpp
         von_mises_yield_function.cpp
         modified_mohr_coulomb_yield_function.cpp
         drucker_prager_yield_function.cpp
