@@ -300,6 +300,59 @@ namespace Kratos
         return 2.0 * FilterWidth;
     }
 
+    template <>
+    void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
+                               const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
+    {
+        KRATOS_TRY
+
+	for (unsigned int i = 0; i < 3; i++)
+        {
+	    unsigned int index = 2 * i;
+
+	    rB(0, index) = rShapeDeriv(i, 0);
+	    rB(0, index + 1) = 0.0;
+	    rB(1, index) = 0.0;
+	    rB(1, index + 1) = rShapeDeriv(i, 1);
+	    rB(2, index) = rShapeDeriv(i, 1);
+	    rB(2, index + 1) = rShapeDeriv(i, 0);
+	}
+	KRATOS_CATCH("")
+    }
+
+    template <>
+    void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
+                               const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR(std::logic_error,"Not implemented","")
+
+	KRATOS_CATCH("")
+    }
+
+    template <>
+    void VMS < 2, 3 > ::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rC,
+            const double Viscosity)
+    {
+        rC(0, 0) =  Viscosity*(1.3333333333333333333333333333333);
+        rC(0, 1) = -Viscosity*(0.666666666666666666666666666667);
+        rC(0, 2) = 0.0;
+        rC(1, 0) = -Viscosity*(0.666666666666666666666666666667);
+        rC(1, 1) =  Viscosity*(1.3333333333333333333333333333);
+        rC(1, 2) = 0.0;
+        rC(2, 0) = 0.0;
+        rC(2, 1) = 0.0;
+        rC(2, 2) = Viscosity;
+    }
+
+    template <>
+    void VMS < 3,4 > ::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & rC,
+            const double Viscosity)
+    {KRATOS_ERROR(std::logic_error,"Not implemented","")
+
+    }
+
     /**
      Returns the squared element size, estimated from the assumption V = (1/6) * h^3
      @see VMS::FilterWidth
