@@ -432,7 +432,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(bool, SPLIT_NODAL)
     KRATOS_CREATE_VARIABLE(double, MIN_DT)
     KRATOS_CREATE_VARIABLE(double, MAX_DT)
-
+    KRATOS_CREATE_VARIABLE(double,  VEL_ART_VISC)
+    KRATOS_CREATE_VARIABLE(double,  PR_ART_VISC)
 
 
     KratosApplication::KratosApplication() :
@@ -816,6 +817,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(SPLIT_ELEMENT)
 	KRATOS_REGISTER_VARIABLE(MIN_DT)
 	KRATOS_REGISTER_VARIABLE(MAX_DT)
+        KRATOS_REGISTER_VARIABLE(VEL_ART_VISC)
+        KRATOS_REGISTER_VARIABLE(PR_ART_VISC)	
     }
 
     // Specialize array of compenents for VariableData
