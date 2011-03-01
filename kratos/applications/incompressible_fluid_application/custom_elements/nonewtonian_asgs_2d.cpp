@@ -41,13 +41,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author: kazem $
+//   Last modified by:    $Author: antonia $
 //   Date:                $Date: 2009-01-21 14:15:02 $
 //   Revision:            $Revision: 1.6 $
 //
 //
 
-
+#define NAVIERSTOKES //if not STOKES is solved
 #define EXPONENCIAL_MODEL // if not -> BILINEAR_MODEL is calculated
 // #define COMPRESSIBLE_MODEL_ML__PN1_PN__
 // #define COMPRESSIBLE_MODEL_MLPN1_MCPN
@@ -210,7 +210,9 @@ namespace Kratos {
 /*20101216*/
 	/*Stablization*/
 	//add stablilization terms due to advective term (a)grad(V) * ro*Acce
+#ifdef NAVIERSTOKES
 	CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Area);
+#endif
 	//add stablilization terms due to grad term grad(q) * ro*Acce
 	CalculateGradMassStblTerms(rMassMatrix, DN_DX,N, tauone, Area);
 
@@ -235,7 +237,9 @@ namespace Kratos {
 	noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
 
 	double delta_t = rCurrentProcessInfo[DELTA_TIME];
-
+	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+	const double m_coef = rCurrentProcessInfo[M];
+	
 	//getting data for the given geometry
 	double Area;
 	GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
@@ -246,9 +250,9 @@ namespace Kratos {
 	double tauone;
 	double tautwo;
 	CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-
+#ifdef NAVIERSTOKES
 	CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
-
+#endif
 	/*Calculate Pressure term + divergence term of pressure equation*/
 	CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area);
 
@@ -257,18 +261,20 @@ namespace Kratos {
 	//stabilization terms
 /*20101216*/
 	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);//tau 2
+#ifdef NAVIERSTOKES
 	CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area);
+#endif
 	CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
 	//KRATOS_WATCH(rRightHandSideVector);
 
 	/*         RHS           */
 	/*Internal Forces*/
-	CalculateResidual(rDampMatrix, rRightHandSideVector,DN_DX, Area);
+	CalculateResidual(rDampMatrix, rRightHandSideVector,DN_DX, m_coef, Area);
 
 	/*         LHS           */
 	/*Viscous term*/
-	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
-	CalculateViscousTerm(rDampMatrix,  DN_DX, Area, it_num);
+
+	CalculateViscousTerm(rDampMatrix,  DN_DX, it_num, m_coef, Area);
 
 #ifdef K0 //Fixed tangent method 
 KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -291,7 +297,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double area, const int it_num) {
+    void NoNewtonianASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,  const int it_num, const double m_coef, const double area) {
 	KRATOS_TRY
 	double mu;
 	int nodes_number = 3;
@@ -315,7 +321,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// KRATOS_WATCH(B)
 		
 		//Bingham Fluid
-	      CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+	      CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 		//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
 		// Remember to modify CalculateResidualand CalculateTau.
 	// 	app_mu = mu;
@@ -382,7 +388,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #ifdef Kvisc0 //fixed tangent method only for viscous contribution
 // 	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
-KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+//KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 // KRATOS_WATCH(it_num);
 // KRATOS_WATCH(temp);
 	if(it_num == 1)	
@@ -629,7 +635,6 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 	    shape_func(column, 0) = N[ii];
 	    shape_func(column + 1, 1) = shape_func(column, 0);
 	}
-
 	//build (a.grad V)(ro*a.grad U) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > adv_stblterm = ZeroMatrix(matsize, matsize);
 	adv_stblterm = tauone * prod(trans(conv_opr), conv_opr);
@@ -652,7 +657,6 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 		K(row + 1, column + 1) += area * density * adv_stblterm(loc_row + 1, loc_column + 1);
 	    }
 	}
-
 	//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
 	boost::numeric::ublas::bounded_matrix<double, 6, 3 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
 	grad_stblterm = tauone * prod(trans(conv_opr), trans(DN_DX));
@@ -986,7 +990,7 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateResidual(const MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area) {
+    void NoNewtonianASGS2D::CalculateResidual(const MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double m_coef, const double area) {
 	KRATOS_TRY
 
 	int nodes_number = 3;
@@ -1024,7 +1028,7 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 	//sigma dev intern
 
 // 	Bingham Fluid:
-	CalculateApparentViscosity(app_mu, app_mu_derivative,  grad_sym_vel, gamma_dot, B, mu);
+	CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 // 	Newtonian Fluid: Leave Decommented the CalculateApparentviscosity (we need grad_sym_vel) and decomment the following line
 //	Remember to modify CalculateViscousTerm and CalculateTau
 // 	app_mu = mu;
@@ -1309,11 +1313,11 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
     void NoNewtonianASGS2D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
 	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
 	    const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
-	    const double & mu) {
+	    const double & mu, const double & m_coef) {
 	KRATOS_TRY
 	app_mu = 0.0;
 
-	double mcoef = 3000;
+// 	double m_coef = 3000;
 	
 	double aux_1;
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
@@ -1369,14 +1373,14 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 #ifdef EXPONENCIAL_MODEL
 ////////EXPONENCIAL MODEL
 // 	if (gamma_dot > 1e-10) {
-	    aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 	    app_mu = mu + (yield / gamma_dot) * aux_1;
 // 			gamma_dot_inv = 1.0/gamma_dot;
 	    if (app_mu < mu) {
 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
 	    }
 // 	} else {
-// 	    app_mu = mu + yield*mcoef ;
+// 	    app_mu = mu + yield*m_coef ;
 // // 			gamma_dot_inv = 0.0;
 // 	}
 #else	
@@ -1399,8 +1403,8 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 // 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
 // 	else  
 	gamma_dot_inv= 1.0 / gamma_dot;
-//         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
- 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(mcoef * gamma_dot))*(1 - mcoef * gamma_dot));
+//         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(m_coef * gamma_dot))*(gamma_dot_inv + m_coef));
+ 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(m_coef * gamma_dot))*(1 - m_coef * gamma_dot));
 //	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
 
 	/*
@@ -1441,14 +1445,14 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 
 //////////EXPONENCIAL FORM
 	if (gamma_dot > 1e-10) {
-		aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+		aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 		for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 		    nodal_app_mu[ii] = mu + (yield[ii] / gamma_dot) * aux_1;
 		}
 	}
 	else {
 	      for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-		nodal_app_mu[ii] = mu + yield[ii]*mcoef;
+		nodal_app_mu[ii] = mu + yield[ii]*m_coef;
 	      }
 	}
 	
@@ -1464,7 +1468,7 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 // 	}
 // 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
 // 	else  gamma_dot_inv= 1.0/gamma_dot;
-// 	app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
+// 	app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(m_coef * gamma_dot))*(gamma_dot_inv + m_coef));
 
 	KRATOS_CATCH("")
     }
@@ -1475,7 +1479,7 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
     void NoNewtonianASGS2D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
 	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
 	    const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
-	    const double & mu) {
+	    const double & mu ) {
 	KRATOS_TRY
 	app_mu = 0.0;
 
@@ -1570,6 +1574,7 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
     void NoNewtonianASGS2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
 
 	double delta_t = rCurrentProcessInfo[DELTA_TIME];
+	const double m_coef = rCurrentProcessInfo[M];
 	
 	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
 	array_1d<double, 3 > N;
@@ -1621,7 +1626,7 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 
 	    }
 	}
-	if (rVariable == AUX_INDEX) {//app mu
+	if (rVariable == MU) {//app mu
 	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 // 	  double gamma_dot = 0.0;
@@ -1634,7 +1639,7 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 	  calculatedensity(GetGeometry(), density, mu);
 	  CalculateB(B, DN_DX);    
-	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 	    
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
@@ -1725,7 +1730,8 @@ KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~
 
   
 	//Bingham
-	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+	const double m_coef = rCurrentProcessInfo[M];
+	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 // 	CalculateApparentViscosityStbl(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);//to consider the equivalent viscosity not the fluid viscosity in the fluid part 
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
 	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
