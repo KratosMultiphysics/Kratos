@@ -42,42 +42,57 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-#if !defined(MODIFIED_MORH_COULOMB_FUNCTION_UTILS)
-#define MODIFIED_MORH_COULOMB_FUNCTION_UTILS
+#if !defined(MODIFIED_MORH_COULOMB_FUNCTION)
+#define MODIFIED_MORH_COULOMB_FUNCTION
 
 
 #include "custom_utilities/tensor_utils.h"
 #include "includes/ublas_interface.h"
 #include "fluency_criteria/fluency_criteria.h"
+#include "fluency_criteria/morh_coulomb_yield_function.h"
+#include "fluency_criteria/isotropic_rankine_yield_function.h"
+#include "fluency_criteria/fluency_criteria.h"
 #include <cmath>
+#include <math.h>
 
 
 
 namespace Kratos
   {
 
-    	
-      class Modified_Morh_Coulomb_Yield_Function: public FluencyCriteria    
+      /*! Explicit elastic predictor/ return mapping algorithm for the associative and non-associative, isotropic
+       softening Morh Coulomb with isotropic non-hardening Rankine Tension Cutt Off. */
+            
+      class Modified_Morh_Coulomb_Yield_Function:  public virtual FluencyCriteria 
+          
       { 
     
-        public:
+	public:
+	  
+	    typedef  FluencyCriteria::Pointer                       FluencyPointerType;      
+	    typedef  Morh_Coulomb_Yield_Function::Pointer           MorhCoulombPointerType;
+	    typedef  Isotropic_Rankine_Yield_Function::Pointer      RankinePointerType;
 
-            //array_1d<double,4> mMorh_Coulomb_Yield;   
-
-	    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
-	    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
-			  
-            typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
-			  
-	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz
-
+            
+	    Modified_Morh_Coulomb_Yield_Function();  
+	    Modified_Morh_Coulomb_Yield_Function(
+	    myState State, 
+	    const MorhCoulombPointerType MorhCoulomb, 
+	    const RankinePointerType RanKine);
+	    
+	    
+	      
             virtual boost::shared_ptr<FluencyCriteria> Clone() const
 	        {
-		      boost::shared_ptr<FluencyCriteria> p_clone(new Modified_Morh_Coulomb_Yield_Function(mState,mPotencialPlastic));
+		      boost::shared_ptr<FluencyCriteria> p_clone(new Modified_Morh_Coulomb_Yield_Function(
+		      mState, 
+		      mMorhCoulomb,
+		      mRankine 
+		      ));
 		      return p_clone;
 		}
-  
-            Modified_Morh_Coulomb_Yield_Function(myState State, myPotencialPlastic PotencialPlastic);
+   
+            
 	   
             ~Modified_Morh_Coulomb_Yield_Function();
 
@@ -85,49 +100,52 @@ namespace Kratos
 
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
+   
 
-
-		     void InitializeMaterial(const Properties& props);
-		     
-
-		    void  CalculateEquivalentUniaxialStress(
-		    const Vector& StressVector,double& Result); 
-
-
-		    void CalculateEquivalentUniaxialStressViaPrincipalStress(
-		    const Vector& StressVector,double& Result);
-
-
-
-		    void CalculateEquivalentUniaxialStressViaInvariants(
-		    const Vector& StressVector,double& Result);
-
-
-		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
-		    const Vector& StressVector,double& Result);
-
-                    void UpdateVariables(const Vector& Variables);
-
-		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
-
-                    void CalculateDerivatePotencialFlowCriteria(const Vector& StressVector, Vector& DerivatePotencialFlow);
-
-                    void CalculateDerivateFluencyCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivateFluencyCriteria);
-
-                    void CalculateDerivatePotencialFlowCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivatePotencialFlow);
-		    
+      
+      void InitializeMaterial(const Properties& props);  
+      void ReturnMapping(const Vector& StrainVector, Vector& StressVector);
+      void FinalizeSolutionStep();
+      void UpdateMaterial();
+      void GetValue(double Result);
+      void GetValue(const Variable<Matrix>& rVariable, Matrix& Result);
+      void GetValue(const Variable<double>& rVariable, double& Result);
+   
 
       private:
- 
-    void CalculateDerivatePrincipalStress_Fluency(const Vector& StressVector, vector<Vector>& DerivateFluencyCriteria);  
-    void CalculateDerivatePrincipalStress_Flow(const Vector& StressVector, vector<Vector>& DerivatePotencialFlow);    
- 
-    double mcohesion;
-    double mfriction_angle;
-    double mdilatancy_angle;  
-    double mEta; // Valore N
+	
+	
+      bool Return_Mapping_Intersection_Main_Plane_And_Sigma1_Tesile_Plane(const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma);  
+      bool Return_Mapping_Intersection_Main_Plane_Corner_And_Sigma1_Tesile_Plane(const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma); 
+      bool Return_Mapping_Intersection_Main_Plane_Corner_And_Sigma1_And_Sigma_2_Tesile_Plane(const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma); 
+      void CalculatePlasticDamage(const array_1d<double,3>& Sigma);
+      
+      MorhCoulombPointerType mMorhCoulomb;
+      RankinePointerType     mRankine; 
+      array_1d<double, 3>    mPrincipalPlasticStrain_current;
+      array_1d<double, 3>    mPrincipalPlasticStrain_old;
+      
+      double m_modified_morh_coulomb_maccumulated_plastic_strain_old; 
+      double m_modified_morh_coulomb_maccumulated_plastic_strain_current;
+      //double mfracture_strain;
+      double  mlength;
+      double  mpastic_damage_old;
+      double  mpastic_damage_current;
+      
+	  
+	inline double cint(double x){
+	  double intpart;
+	if (modf(x,&intpart)>=0.5)
+	   return  (x>=0)?  ceil(x):floor(x);
+	else
+	   return (x<0)?  ceil(x):floor(x);
+	}
+
+	inline double round(double r,unsigned places){
+	double off=pow(10,places);
+	return cint(r*off)/off;
+        }
+	
 
   
 
