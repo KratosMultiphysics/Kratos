@@ -132,7 +132,7 @@ void Detect_And_Split_Elements(ModelPart& this_model_part)
 { 
    KRATOS_TRY      
    
-   NodesArrayType& pNodes = this_model_part.Nodes();  
+   //NodesArrayType& pNodes = this_model_part.Nodes();  
    array_1d<double,3> Failure_Maps; 
    
    FindElementalNeighboursProcess    ElementosVecinos(this_model_part, 2, 10);
@@ -141,6 +141,8 @@ void Detect_And_Split_Elements(ModelPart& this_model_part)
    
    WeakPointerVector< Node<3> > Nodes_To_Be_Dupplicated; 
    unsigned int detect = Detect_Node_To_Be_Splitted(this_model_part, Nodes_To_Be_Dupplicated);
+   KRATOS_WATCH(detect)
+   
    
    if(detect!=0)
    {   
@@ -180,11 +182,10 @@ NodesArrayType::iterator i_end   = pNodes.ptr_end();
 
 for(ModelPart::NodeIterator inode=i_begin; inode!= i_end; ++inode)  
    { 
-      double& Condition = inode->FastGetSolutionStepValue(NODAL_DAMAGE);
-       /// WARNING = Condition to be reformulated
-       if(Condition >=0.60)  
-	      Nodes_To_Be_Dupplicated.push_back(*(inode.base()));
-	      //i->FastGetSolutionStepValue(SPLIT_NODAL) = true;      
+      double& Condition = inode->GetValue(NODAL_DAMAGE);
+       if(Condition >=0.01){
+	       Nodes_To_Be_Dupplicated.push_back(*(inode.base()));     
+            }
     }
     
 return Nodes_To_Be_Dupplicated.size();
@@ -387,7 +388,7 @@ bool CalculateElements(ModelPart& this_model_part,
 
 
     ///* Si el nodo no mas tiene un solo elemtno vecino
-    bool& duplicated_pNode = pNode->FastGetSolutionStepValue(IS_DUPLICATED);
+    bool& duplicated_pNode = pNode->GetValue(IS_DUPLICATED);
     if( (Positive_Elements.size()==0 && Negative_Elements.size()==0)  ||  (Positive_Elements.size()==1 && Negative_Elements.size()==0) || (Positive_Elements.size()==0 && Negative_Elements.size()==1) || duplicated_pNode==true)
     {
      //std::cout<<"NO INSERTED NODE"<<std::endl;
@@ -407,7 +408,7 @@ bool CalculateElements(ModelPart& this_model_part,
 	//pNode->FastGetSolutionStepValue(IS_DUPLICATED)=true;
 	unsigned int New_Id = this_model_part.Nodes().size() + 1; 
 	//Node<3>::Pointer pnode; // the new node   
-	bool& duplicated_pnode = pNode->FastGetSolutionStepValue(IS_DUPLICATED);
+	bool& duplicated_pnode = pNode->GetValue(IS_DUPLICATED);
 	duplicated_pnode = true;
 	Create_New_Node(this_model_part, pnode, New_Id, pNode);
 
@@ -635,8 +636,9 @@ for(int k=0; k<number_of_threads; k++)
 
    for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)     
     {   
-       //KRATOS_WATCH(i->Id()) 
-       i->FastGetSolutionStepValue(SPLIT_NODAL) = false; 
+       //i->FastGetSolutionStepValue(NODAL_DAMAGE) = i->GetValue(NODAL_DAMAGE) ;
+       //i->FastGetSolutionStepValue(NODAL_AREA)   = i->GetValue(NODAL_AREA) ;
+       i->GetValue(SPLIT_NODAL)  = false; 
     }
   }
 }
