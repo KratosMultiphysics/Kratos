@@ -405,6 +405,9 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(bool, SPLIT_ELEMENT)
     KRATOS_DEFINE_VARIABLE(double,  MIN_DT)
     KRATOS_DEFINE_VARIABLE(double,  MAX_DT)
+    
+    KRATOS_DEFINE_VARIABLE(double,  VEL_ART_VISC)
+    KRATOS_DEFINE_VARIABLE(double,  PR_ART_VISC)
 
 }  // namespace Kratos.
 #endif // KRATOS_VARIABLES_H_INCLUDED  defined 
