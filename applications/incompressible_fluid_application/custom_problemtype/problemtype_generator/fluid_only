@@ -61,13 +61,14 @@ OPTION 3D_Body_Element volume Fluid3D Fluid3DCoupled ASGS3D ASGSCompressible3D A
 
 PROPERTY Time_step 0.01 Dt
 PROPERTY max_time 1.0 max_time
-TEXT FLAG PROPERTY SolverType fractional_step pressure_splitting monolithic_solver_eulerian monolithic_solver_lagrangian_compressible_two_fluids_3d SolverTypeSolverType
+TEXT FLAG PROPERTY SolverType fractional_step pressure_splitting monolithic_solver_eulerian monolithic_solver_lagrangian_compressible_two_fluids_3d SolverType
 PROPERTY laplacian_form 1 laplacian_form
 PROPERTY output_step 1 output_step
 PROPERTY predictor_corrector False predictor_corrector
 PROPERTY max_press_its 3 max_press_its
 PROPERTY use_oss 0 use_oss
 PROPERTY dynamic_tau 1.0 dynamic_tau
+PROPERTY m_coef 1000.0 m_coef
 
 DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR 
 ADD MATERIAL Steel     76972.86 1.999E11   0.3  (0.0,-76.972.86,0.0) 1.0  #do not put spaces in the definition of the vector
