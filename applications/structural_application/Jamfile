@@ -102,9 +102,10 @@ alias sources_KratosStructuralApplication
         energy_yield_function.cpp
         #rankine_yield_function.cpp
         isotropic_rankine_yield_function.cpp
+        morh_coulomb_yield_function.cpp
         #tresca_yield_function.cpp
         von_mises_yield_function.cpp
-        modified_mohr_coulomb_yield_function.cpp
+        modified_morh_coulomb_yield_function.cpp
         drucker_prager_yield_function.cpp
         exponencial_softening.cpp
         linear_softening.cpp
@@ -116,7 +117,9 @@ alias sources_KratosStructuralApplication
         point_segment_contact_link.cpp
 	pfem_contact_element3D.cpp
         pfem_contact_element3D_vel.cpp
-	face_vel_3D.cpp 
+	brittle_material_2d.cpp 
+        face_vel_3D.cpp 
+
 
 
 	#####################kratos library as defined in the jamroot
