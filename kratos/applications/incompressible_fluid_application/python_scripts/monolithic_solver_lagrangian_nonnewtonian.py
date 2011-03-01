@@ -38,10 +38,11 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);  
     model_part.AddNodalSolutionStepVariable(IS_WATER);
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE);   
-    model_part.AddNodalSolutionStepVariable(AUX_INDEX);   
+##    model_part.AddNodalSolutionStepVariable(TEMPERATURE);   
+##    model_part.AddNodalSolutionStepVariable(AUX_INDEX);
+    model_part.AddNodalSolutionStepVariable(MU);   
     model_part.AddNodalSolutionStepVariable(YIELD_STRESS);
-    model_part.AddNodalSolutionStepVariable(INTERNAL_FRICTION_ANGLE);
+    model_part.AddNodalSolutionStepVariable(EQ_STRAIN_RATE);
 
 
 
@@ -90,6 +91,9 @@ class MonolithicSolver:
 
                           
         #default settings
+        self.dynamic_tau = 0.0
+        self.oss_swith  = 0
+        self.regularization_coef = 3000 #m_coeff in exponencial viscosity model
         self.echo_level = 1
         self.CalculateReactionFlag = False
         self.ReformDofSetAtEachStep = True
@@ -113,16 +117,10 @@ class MonolithicSolver:
         self.alpha_shape = 1.4
 	self.h_factor = 0.4
 	
-        #assign IS_FLUID to all nodes
-##	for node in self.model_part.Nodes:
-##            node.SetSolutionStepValue(IS_FLUID,0,1.0)
-
         #detecting free_surface to all nodes
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
-
-##        self.ActOnWalls  = ActOnWallsNodalProcess(model_part);                               
 
 
         #U NEED IT FOR ALPHA-shape
@@ -133,7 +131,7 @@ class MonolithicSolver:
         #runtime box
         self.box_corner1 = box_corner1
         self.box_corner2 = box_corner2
-    
+
         
     #######################################################################
     def Initialize(self,output_time_increment):
@@ -142,7 +140,12 @@ class MonolithicSolver:
 
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
-        
+ 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_swith );
+        self.model_part.ProcessInfo.SetValue(M, self.regularization_coef );
+
+       
         #time increment for output 
         self.output_time_increment = output_time_increment
         self.next_output_time = self.output_time_increment
