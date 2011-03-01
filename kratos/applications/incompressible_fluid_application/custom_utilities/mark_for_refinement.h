@@ -281,6 +281,35 @@ namespace Kratos
             for( ModelPart::ElementIterator itElem = rModelPart.ElementsBegin(); itElem != rModelPart.ElementsEnd(); ++itElem)
                 itElem->SetValue(ERROR_RATIO,0.0);
 
+            //Compute average kinetic energy
+            double Atot = 0.0;
+            double avg_vel = 0.0;
+            array_1d<double,3> vgauss;
+
+            const double NodeFactor = 1.0 / static_cast<double>(rModelPart.ElementsBegin()->GetGeometry().size());
+            const int ElementsEnd = static_cast<unsigned int>(rModelPart.Elements().size());
+            
+            #pragma omp parallel for reduction(+:Atot,avg_vel)
+            for(int k=0; k< ElementsEnd; k++)
+            {
+                ModelPart::ElementsContainerType::iterator itElem = rModelPart.ElementsBegin()+k;
+
+                Geometry<Node<3> >& geom = itElem->GetGeometry();
+                double Area = geom.Area();
+
+                noalias(vgauss) = geom[0].FastGetSolutionStepValue(VELOCITY);
+                for(unsigned int i=1; i<geom.size(); i++)
+                    noalias(vgauss) += geom[i].FastGetSolutionStepValue(VELOCITY);
+                double norm_v = norm_2(vgauss) * NodeFactor;
+
+                avg_vel += Area*norm_v;
+                Atot += Area;
+            }
+            avg_vel/=Atot;
+
+            if(Atot < 1e-10)
+                KRATOS_ERROR(std::logic_error,"area can not be zero!!","")
+
             #pragma omp parallel
             {
                 int k = OpenMPUtils::ThisThread();
@@ -296,6 +325,9 @@ namespace Kratos
                 for( ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
                 {
                     itElem->Calculate(ERROR_RATIO,Error,rProcessInfo);
+
+                    Error/=avg_vel;
+                    itElem->SetValue(ERROR_RATIO,Error);
                 }
             }
         }
