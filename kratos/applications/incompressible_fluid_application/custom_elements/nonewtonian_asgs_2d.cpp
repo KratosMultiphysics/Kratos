@@ -1609,7 +1609,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    }
 	}
 //PROVISIONALbegin---only for debugging
-	if (rVariable == TEMPERATURE) {//gamma dot
+	if (rVariable == EQ_STRAIN_RATE) {//gamma dot
 	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 	  double gamma_dot;
