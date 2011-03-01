@@ -490,7 +490,7 @@ namespace Kratos
          The error is then saved as the ERROR_RATIO variable and returned in rOutput
          @param rVariable Use ERROR_RATIO
          @param rOutput Returns the error estimate
-         @param rCurrentProcessInfo Process info instance (unused)
+         @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
          @see MarkForRefinement for a use of the error ratio
          */
         virtual void Calculate(const Variable<double>& rVariable,
@@ -524,22 +524,36 @@ namespace Kratos
                 double TauOne;
                 this->CalculateStaticTau(TauOne, AdvVel, Area, Viscosity);
 
-                this->AddSubscaleEstimate(ElementalMomRes, AdvVel, Density, TauOne, N, DN_DX, Area);
+                if ( rCurrentProcessInfo[OSS_SWITCH] != 1 ) // ASGS
+                {
+                    this->AddSubscaleEstimate(ElementalMomRes, AdvVel, Density, TauOne, N, DN_DX, 1.0);
+                }
+                else // OSS
+                {
+                    double ElementalMassRes;
+                    this->AddProjectionResidualContribution(AdvVel,Density,ElementalMomRes,ElementalMassRes,N,DN_DX,1.0);
+                    for (unsigned int i = 0; i < TNumNodes; ++i)
+                    {
+                        ElementalMomRes -= N[i] * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ,0);
+                    }
+                    ElementalMomRes *= TauOne;
+                }
 
                 // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
-                double ErrorRatio(0.0), UNorm(0.0);
-                array_1d< double, 3 > UGauss(3, 0.0);
-                this->AddPointContribution(UGauss, VELOCITY, N, Area);
+                double ErrorRatio(0.0);//, UNorm(0.0);
+//                array_1d< double, 3 > UGauss(3, 0.0);
+//                this->AddPointContribution(UGauss, VELOCITY, N);
 
                 for (unsigned int i = 0; i < TDim; ++i)
                 {
                     ErrorRatio += ElementalMomRes[i] * ElementalMomRes[i];
-                    UNorm += UGauss[i] * UGauss[i];
+//                    UNorm += UGauss[i] * UGauss[i];
                 }
-                ErrorRatio = sqrt(ErrorRatio / UNorm);
-                ErrorRatio *= TauOne;
+                ErrorRatio = sqrt(ErrorRatio); // / UNorm);
+//                ErrorRatio *= TauOne;
                 ErrorRatio /= Density;
                 this->SetValue(ERROR_RATIO, ErrorRatio);
+                rOutput = ErrorRatio;
             }
         }
 
@@ -1154,6 +1168,7 @@ namespace Kratos
                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                 const double Weight)
         {
+            const double Coef = Weight * Tau;
             GeometryType& rGeom = this->GetGeometry();
             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
             array_1d<double, TNumNodes> AGradN;
@@ -1172,14 +1187,14 @@ namespace Kratos
                 // Compute this node's contribution to the residual (evaluated at inegration point)
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    rMomentumRes[d] += Weight * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
+                    rMomentumRes[d] += Coef * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
                 }
             }
         }
 
         /// Add the contribution from Smagorinsky model to the (kinematic) viscosity
 
-        void GetEffectiveViscosity(const double MolecularViscosity,
+        virtual void GetEffectiveViscosity(const double MolecularViscosity,
                 array_1d<double, TNumNodes>& rShapeFunc,
                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                 double& TotalViscosity,
