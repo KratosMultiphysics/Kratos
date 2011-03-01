@@ -123,6 +123,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
     fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
     fluid_solver.oss_switch  = fluid_only_var.use_oss
+	fluid_solver.regularization_coef = fluid_only_var.m_coef
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
@@ -194,8 +195,10 @@ while(time < final_time):
             gid_io.WriteNodalResults(AIR_SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(EXTERNAL_PRESSURE,fluid_model_part.Nodes,time,0)
             gid_io.PrintOnGaussPoints(TEMPERATURE,fluid_model_part,time)
-            gid_io.PrintOnGaussPoints(AUX_INDEX,fluid_model_part,time)
-
+##            gid_io.PrintOnGaussPoints(AUX_INDEX,fluid_model_part,time)
+			gid_io.WriteNodalResults(YIELD_STRESS,fluid_model_part.Nodes,time,0)
+			gid_io.PrintOnGaussPoints(MU,fluid_model_part,time)
+            gid_io.PrintOnGaussPoints(TAU,fluid_model_part,time)
         out = 0
 
     out = out + 1
