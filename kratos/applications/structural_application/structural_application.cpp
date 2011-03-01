@@ -59,6 +59,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
+
+
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/triangle_2d_3.h"
@@ -181,8 +184,9 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRAIN )
     KRATOS_CREATE_VARIABLE( Matrix, CONSTRAINT_MATRIX)
     KRATOS_CREATE_VARIABLE( Vector, CONSTRAINT_VECTOR)
-    KRATOS_CREATE_VARIABLE( int,  NODAL_VALUES )
+    KRATOS_CREATE_VARIABLE( int,    NODAL_VALUES )
     KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE )
+    KRATOS_CREATE_VARIABLE( double, NODAL_VOLUME )
     
 
     
@@ -477,6 +481,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( NODAL_STRAIN )
         KRATOS_REGISTER_VARIABLE( NODAL_VALUES )
         KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE )
+        KRATOS_REGISTER_VARIABLE( NODAL_VOLUME )
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX)
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
@@ -669,6 +674,10 @@ namespace Kratos
 
 	KRATOS_REGISTER_CONDITION( "SlaveContactPoint2D", mSlaveContactPoint2D )
 	KRATOS_REGISTER_CONDITION( "MasterContactFace2D", mMasterContactFace2D )
+	
+	
+	 //Serializer::Register("PointForce2D", mPointForce2D)
+
 
     }
 
