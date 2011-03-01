@@ -510,7 +510,7 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.333333333333333333333333;
 
-//vc2 = 5.0/9.0;;
+vc2 = 5.0/9.0;;
 	}
 
 
@@ -575,7 +575,7 @@ namespace Kratos
         double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1];
         advvel_norm = sqrt(advvel_norm);
 
-        double ele_length = 2.0 * sqrt(area / 3.00);
+//         double ele_length = 2.0 * sqrt(area / 3.00);
 
         double mu;
         //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -588,7 +588,7 @@ namespace Kratos
 
         double VC2;
 	CalculateSoundVelocity(GetGeometry(), VC2);
-	double vc = sqrt(VC2);
+// 	double vc = sqrt(VC2);
 
 	//double int_time = ele_length/vc;
 
@@ -778,7 +778,7 @@ namespace Kratos
             double VC = GetGeometry()[ii].FastGetSolutionStepValue(AIR_SOUND_VELOCITY ) ;
 	    inv_max_h = sqrt(inv_max_h);
 	    
-//VC = sqrt(5.0)/3.0;	    
+VC = sqrt(5.0)/3.0;	    
 	    calc_t = 1.0/(inv_max_h * VC );
 
 
@@ -859,9 +859,9 @@ namespace Kratos
 	 if( div_vel < 0.0)
 	    {
              CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
-             Vel_art_visc = 1.5* abs(div_vel) * pow(H,2);
+             Vel_art_visc = .5* abs(div_vel) * pow(H,2);
 
-	     Pr_art_visc = 1.0*sqrt(norm_grad_p/density) * pow(H,1.5);
+	     Pr_art_visc = .5*sqrt(norm_grad_p/density) * pow(H,1.5);
 	    } 
 	   
 	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
@@ -905,29 +905,29 @@ namespace Kratos
 
 	  int nodes_number = 3;
 	  array_1d<double,3> mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
-	  double pp = GetGeometry()[0].FastGetSolutionStepValue(AIR_PRESSURE);
-	  array_1d<double,3> grad_p;
-	  grad_p[0] = DN_DX(0,0)*pp;
-	  grad_p[1] = DN_DX(0,1)*pp;
+	  double rho = GetGeometry()[0].FastGetSolutionStepValue(DENSITY_AIR);
+	  array_1d<double,3> grad_rho;
+	  grad_rho[0] = DN_DX(0,0)*rho;
+	  grad_rho[1] = DN_DX(0,1)*rho;
 		  
           for (int ii = 1; ii < nodes_number; ii++) {	  
 	        mean_acc += GetGeometry()[ii].FastGetSolutionStepValue(ACCELERATION);  
-		pp = GetGeometry()[ii].FastGetSolutionStepValue(AIR_PRESSURE);
-		grad_p[0] += DN_DX(ii,0)*pp;
-		grad_p[1] += DN_DX(ii,1)*pp;		
+		rho = GetGeometry()[ii].FastGetSolutionStepValue(DENSITY_AIR);
+		grad_rho[0] += DN_DX(ii,0)*rho;
+		grad_rho[1] += DN_DX(ii,1)*rho;		
 	  }
 	  mean_acc *= 0.33333333333333333333333333333333333;
-	  grad_p *= 0.33333333333333333333333333333333333;
-	  grad_p[2] = 0.0;
+	  grad_rho *= 0.33333333333333333333333333333333333;
+	  grad_rho[2] = 0.0;
 	  
 	  double norm_acc =  MathUtils<double>::Norm3(mean_acc);
-	  norm_grad =  MathUtils<double>::Norm3(grad_p);
+	  norm_grad =  MathUtils<double>::Norm3(grad_rho);
 
 	  array_1d<double,3>  n_dir= ZeroVector(3);
 	  if(norm_acc != 0.0)
 	             n_dir = 0.75/norm_acc*mean_acc;
 	  if(norm_grad != 0.0)
-	             n_dir +=  0.25/norm_grad*grad_p;
+	             n_dir +=  0.25/norm_grad*grad_rho;
 	  
 	  double norm_n_dir =  MathUtils<double>::Norm3(n_dir);	
  	  
@@ -954,7 +954,7 @@ namespace Kratos
 
     void ExplicitASGSCompressible2D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
 
-        double delta_t = rCurrentProcessInfo[DELTA_TIME];
+/*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
 	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
 	
