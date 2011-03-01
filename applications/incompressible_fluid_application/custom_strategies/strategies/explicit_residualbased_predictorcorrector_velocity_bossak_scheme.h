@@ -223,7 +223,7 @@ namespace Kratos
 
 			Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
-                        double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+                        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 // 			double calc_dt = 1.0;
 // 			double& DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
@@ -345,7 +345,7 @@ KRATOS_WATCH("inside update of ExplicitResidualBasedPredictorCorrectorVelocityBo
 			  ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 			// double GammaNewmark = 0.5 - NewAlphaBossak;
 			 double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-			 double time_fac = 1.0 / (mGamma * DeltaTime);
+			// double time_fac = 1.0 / (mGamma * DeltaTime);
 
 			//update of Acceleration (by DOF)
 			for(ModelPart::NodeIterator ind = r_model_part.NodesBegin() ; 
@@ -382,9 +382,9 @@ KRATOS_WATCH("inside update of ExplicitResidualBasedPredictorCorrectorVelocityBo
 KRATOS_WATCH("AFTER update vel and pr");
 
 			//updating time derivatives (nodally for efficiency)
-			array_1d<double,3> DeltaVel;
-			double DeltaWaterPressure = 0.0;
-			double DeltaAirPressure = 0.0;
+			//array_1d<double,3> DeltaVel;
+			//double DeltaWaterPressure = 0.0;
+			//double DeltaAirPressure = 0.0;
 			for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; 
 				i != r_model_part.NodesEnd() ; ++i)
 			{
