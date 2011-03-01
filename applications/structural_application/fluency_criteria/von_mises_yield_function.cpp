@@ -49,6 +49,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fluency_criteria/von_mises_yield_function.h"
 #include <cmath>
 
+/***********************************************************************
+C STATE UPDATE PROCEDURE FOR THE VON MISES ELASTO-PLASTIC MATERIAL MODEL
+C WITH NON-LINEAR (PIECEWISE LINEAR) ISOTROPIC HARDENING:
+C IMPLICIT ELASTIC PREDICTOR/RETURN MAPPING ALGORITHM (BOXES 7.3-4).
+C PLANE STRAIN AND AXISYMMETRIC IMPLEMENTATIONS.
+C***********************************************************************
+*/
 
 
 namespace Kratos
@@ -73,95 +80,129 @@ namespace Kratos
     //***********************************************************************
     void Von_Mises_Yield_Function::InitializeMaterial(const Properties& props) 
     { 
-        mprops = &props;
-        mSigma_y = (*mprops)[YIELD_STRESS];
+        mprops   = &props;
+	maccumulated_plastic_strain_current = 0.00;   
+        maccumulated_plastic_strain_old     = 0.00;
+        mSigma_y                            = (*mprops)[YIELD_STRESS];
+	melastic_strain                     = ZeroVector(4);
+        mcurrent_elastic_strain             = ZeroVector(4);
+        mplastic_strain                     = ZeroVector(4);
+        mcurrent_plastic_strain             = ZeroVector(4);
+	
     }
     
-    // Resistencia de comparacion Sigma_Y
-    void Von_Mises_Yield_Function::CalculateEquivalentUniaxialStress(
-            const Vector& StressVector,double& Result)
+    void Von_Mises_Yield_Function::ReturnMapping(const Vector& StrainVector, Vector& StressVector)
     {
-        Matrix StressTensor    = ZeroMatrix(3,3);
-        this->State_Tensor(StressVector,StressTensor);
-        Result = ((StressTensor(0,0)-StressTensor(1,1))*(StressTensor(0,0)-StressTensor(1,1)) + (StressTensor(1,1)-StressTensor(2,2))*(StressTensor(1,1)-StressTensor(2,2)) + (StressTensor(2,2)-StressTensor(0,0))*(StressTensor(2,2)-StressTensor(0,0)) + 6.00*((StressTensor(0,1)*StressTensor(0,1)) + (StressTensor(1,2)*StressTensor(1,2)) + (StressTensor(0,2)*StressTensor(0,2))));
-        Result = sqrt(Result/2.00); 
-        mSigma_e = Result;
-        Result  -= mSigma_y;  
-        mElasticDomain = Result; 
+      
+	const double& Young   = (*mprops)[YOUNG_MODULUS];
+	const double& Poisson = (*mprops)[POISSON_RATIO];
+	const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
+	const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
+	
+	///Elastic predictor: Compute elastic trial state
+	/// volumetric Strain and pressure stress
+	array_1d<double,4> Delta_Strain;
+	Delta_Strain[0] = StrainVector[0] - melastic_strain[0];
+	Delta_Strain[1] = StrainVector[1] - melastic_strain[1];
+	Delta_Strain[2] = StrainVector[2] - melastic_strain[2];
+	Delta_Strain[3] = melastic_strain[3];
+	
+	noalias(mcurrent_elastic_strain) = melastic_strain+ Delta_Strain;
+	double volumstrain               = mcurrent_elastic_strain[0] + mcurrent_elastic_strain[1] + mcurrent_elastic_strain[3]; 
+	double Pressurstress             = Bulk * volumstrain;
+	
+	/// desviatoric strain
+	array_1d<double,4> Desviatoric_Strain;
+	const double  vold3   = volumstrain/3.00; 
+	Desviatoric_Strain[0] = mcurrent_elastic_strain[0] - vold3; //tau_xx
+	Desviatoric_Strain[1] = mcurrent_elastic_strain[1] - vold3; //tau_yy
+	Desviatoric_Strain[2] = 0.50 * mcurrent_elastic_strain[2];  //tau_xy
+	Desviatoric_Strain[3] = - vold3;                            //tau_zz
+	
+	
+	/// compute the trial effective stress
+	const double Gmodu2  = 2.00 * Gmodu;
+	const double Toler   = 1E-6;
+        double J2 = Gmodu2 * Gmodu2 * (1.00 *   Desviatoric_Strain[2] * Desviatoric_Strain[2] +
+                                       0.50 * ( Desviatoric_Strain[0] * Desviatoric_Strain[0] +
+                                                Desviatoric_Strain[1] * Desviatoric_Strain[1] + 
+                                                Desviatoric_Strain[3] * Desviatoric_Strain[3]) );
+
+
+        double Qtrial = std::sqrt(3.00 * J2);
+	double Phi    = Qtrial - mSigma_y;
+	if( Phi/mSigma_y < Toler)
+	{  
+	  mcompute_tangent_matrix = false;
+	  StressVector[0] = Gmodu2 * Desviatoric_Strain[0] + Pressurstress;
+	  StressVector[1] = Gmodu2 * Desviatoric_Strain[1] + Pressurstress;
+	  StressVector[2] = Gmodu2 * Desviatoric_Strain[2];  
+	}
+
+        else
+	{    
+          const unsigned int max_iter =  100;
+          unsigned int iter           =  1;
+	  double ElasticDomain        =  1.00;
+	  double lamda                =  0.00;
+	  double d                    =  0.00;
+	  double H                    = (*mprops)[ISOTROPIC_HARDENING_MODULUS];
+	  mcompute_tangent_matrix     = false;
+          while(ElasticDomain>Toler && iter<=max_iter)
+	  {
+	    d      = -3.00 * Gmodu - H;
+	    lamda  = lamda - Phi/d;
+	    
+	    ///Check for convergence
+	    Phi                                  =  Qtrial - 3.00 * Gmodu * lamda - mSigma_y;
+	    maccumulated_plastic_strain_current  =  maccumulated_plastic_strain_old + lamda;
+	  
+	    /// Actualiza los valores sigma_y por lamnda
+	    Update();
+	    
+	    ElasticDomain =  std::fabs(Phi/mSigma_y); 
+	   
+	    
+	    if(iter==max_iter){  KRATOS_ERROR(std::logic_error, "WARNING = No Convergence Return Mapping Von Mises", " ") ;}
+	  }
+	  
+
+	   double factor = 2.00 * Gmodu  * (1.00 - (3.00  * Gmodu * lamda) / Qtrial);
+           StressVector[0] = factor * Desviatoric_Strain[0] + Pressurstress;
+	   StressVector[1] = factor * Desviatoric_Strain[1] + Pressurstress;
+	   StressVector[2] = factor * Desviatoric_Strain[2];
+	 
+	   
+	   factor = (1.00 - (3.00  * Gmodu * lamda) / Qtrial);
+	   mcurrent_elastic_strain[0] = factor * Desviatoric_Strain[0] + vold3;
+	   mcurrent_elastic_strain[1] = factor * Desviatoric_Strain[1] + vold3;
+	   mcurrent_elastic_strain[2] = 2.00 * factor * Desviatoric_Strain[2];
+	   mcurrent_elastic_strain[2] = factor * Desviatoric_Strain[2] + vold3;
+        }   
+      
+      
+      
     }
     
-    // Resistencia de comparacion Sigma_Y
-    void Von_Mises_Yield_Function::CalculateEquivalentUniaxialStressViaPrincipalStress(
-            const Vector& StressVector,double& Result)
+    
+    void Von_Mises_Yield_Function::Update()
     {
-        double crit  = 1E-10;
-        double zero  = 1E-10;  
-        double norma = 0.00;
-        unsigned int dim  = 3;
-        
-        Matrix StressTensor    = ZeroMatrix(dim,dim);
-        Vector PrincipalStress = ZeroVector(dim);
-        this->State_Tensor(StressVector,StressTensor);
-        this->Comprobate_State_Tensor(StressTensor, StressVector);
-        norma =SD_MathUtils<double>::normTensor(StressTensor);
-        if(norma>1E-6)
-        {PrincipalStress = SD_MathUtils<double>::EigenValues(StressTensor,crit, zero);}
-        Result =  (1.00/2.00)*((PrincipalStress(0)-PrincipalStress(1))*(PrincipalStress(0)-PrincipalStress(1)) +
-		      (PrincipalStress(1)-PrincipalStress(2))*(PrincipalStress(1)-PrincipalStress(2)) +
-                      (PrincipalStress(2)-PrincipalStress(0))*(PrincipalStress(2)-PrincipalStress(0)));
-        Result = sqrt(Result);
-        mSigma_e = Result;
-        Result  -= mSigma_y;  
-        mElasticDomain = Result; 
-    }
+      
+      mSigma_y  =  (*mprops)[YIELD_STRESS] + (*mprops)[ISOTROPIC_HARDENING_MODULUS] * maccumulated_plastic_strain_current;  
+      
+    }    
     
-    // Resistencia de comparacion Sigma_Y
-    void Von_Mises_Yield_Function::CalculateEquivalentUniaxialStressViaInvariants( 
-		    const Vector& StressVector,double& Result)
+    void Von_Mises_Yield_Function::FinalizeSolutionStep()
     {
-        unsigned int dim  = 3;
-        Vector I          = ZeroVector(3);
-        Vector J          = ZeroVector(3);
-        Vector J_des      = ZeroVector(3);  
-        Matrix StressTensor     = ZeroMatrix(dim,dim);
-        Vector PrincipalStress  = ZeroVector(dim);
-        this->State_Tensor(StressVector,StressTensor);
-        this->Comprobate_State_Tensor(StressTensor, StressVector); // funcion definida en clase base;
-        Tensor_Utils<double>::TensorialInvariants(StressTensor, I, J, J_des);
-        Result =  sqrt(3.00*J_des(1)); 
-        mSigma_e = Result;
-        Result  -= mSigma_y;  
-        mElasticDomain = Result;
-        //std::cout<<"______________"<<std::endl;
-    }
+     
+	noalias(melastic_strain)        =  mcurrent_elastic_strain;
+	maccumulated_plastic_strain_old =  maccumulated_plastic_strain_current;
+      
+      
+    }     
     
-    void Von_Mises_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate( 
-            const Vector& StressVector,double& Result){}
     
-    void Von_Mises_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
-    {
-        Second_Order_Tensor a;  
-        Vector C = ZeroVector(3);
-        DerivateFluencyCriteria = ZeroVector(6);
-        //double Result = 0.00;
-        
-        C(0) =  0.00; 
-        C(1) =  1.7320508075689; //sqrt(3.00);
-        C(2) =  0.00;
-        
-        this->CalculateVectorFlowDerivate(StressVector, a);
-        for(unsigned  int i=0; i<3; i++)
-        {
-            noalias(DerivateFluencyCriteria) = DerivateFluencyCriteria + a[i]*C(i); 
-        }
-    }
-    
-    void Von_Mises_Yield_Function::UpdateVariables(const Vector& Variables)
-    { 
-        //KRATOS_WATCH((*mprops)[PLASTIC_MODULUS])
-        mSigma_y = (*mprops)[YIELD_STRESS] + (*mprops)[PLASTIC_MODULUS]*Variables[0];
-        //KRATOS_WATCH(mSigma_y)
-    }
+
 }
 
 
