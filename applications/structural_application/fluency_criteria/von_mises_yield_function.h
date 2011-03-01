@@ -83,37 +83,26 @@ namespace Kratos
 
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
 
 
 		     void InitializeMaterial(const Properties& props);
 		     
-
-		    void  CalculateEquivalentUniaxialStress(  
-		    const Vector& StressVector,double& Result); 
-
-
-		    void CalculateEquivalentUniaxialStressViaPrincipalStress(  
-		    const Vector& StressVector,double& Result);
-
-
-
-		    void CalculateEquivalentUniaxialStressViaInvariants( 
-		    const Vector& StressVector,double& Result);
-
-
-		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate( 
-		    const Vector& StressVector,double& Result);
-
-
-
-		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
-
-                    void UpdateVariables(const Vector& Variables);
+		     void ReturnMapping(const Vector& StrainVector, Vector& StressVector);
+		     
+		     void FinalizeSolutionStep();
+		     
+                     
 		    
 
       private:
+	
+      void Update();
+	
+      array_1d<double,4>  melastic_strain;
+      array_1d<double,4>  mcurrent_elastic_strain;
+      array_1d<double,4>  mplastic_strain;
+      array_1d<double,4>  mcurrent_plastic_strain;
+
 
 
 
