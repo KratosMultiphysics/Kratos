@@ -65,6 +65,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+ #include "includes/serializer.h"
+
 #include "includes/kratos_application.h"
 #include "includes/constitutive_law.h"
 
@@ -208,8 +210,9 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(Matrix, CONSTRAINT_MATRIX)
       KRATOS_DEFINE_VARIABLE(Vector, CONSTRAINT_VECTOR)
       KRATOS_DEFINE_VARIABLE(double, DISIPATION)
-      KRATOS_DEFINE_VARIABLE(int,  NODAL_VALUES)
-      KRATOS_DEFINE_VARIABLE(double, NODAL_DAMAGE)
+      KRATOS_DEFINE_VARIABLE(int,     NODAL_VALUES)
+      KRATOS_DEFINE_VARIABLE(double,  NODAL_DAMAGE)
+       KRATOS_DEFINE_VARIABLE(double, NODAL_VOLUME)
       KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
       KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
 
