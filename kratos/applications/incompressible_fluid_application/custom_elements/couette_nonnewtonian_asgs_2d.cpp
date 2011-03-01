@@ -102,14 +102,14 @@ namespace Kratos
     void CouetteNonNewtonianASGS2D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
 	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
             const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
-            const double & mu) {
+            const double & mu, const double & m_coef) {
         KRATOS_TRY
         app_mu = 0.0;
 // 	KRATOS_WATCH("COUETTE NON NEWTONIAAAAAAANNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
 	unsigned int nodes_number = 3;
 	double yield = 0.0;
 	double gamma_dot_inv;
-        double mcoef = 100;
+//         double m_coef = 100;
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
 	}
@@ -118,13 +118,13 @@ namespace Kratos
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
 //         if (gamma_dot > 1e-10) {
-            aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+            aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
             app_mu = mu + (yield / gamma_dot) * aux_1;
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
 //         } else {
-//             app_mu = mu + yield*mcoef ;
+//             app_mu = mu + yield*m_coef ;
 //         }
 /*        
         if (gamma_dot <= 1e-10) */
@@ -132,8 +132,8 @@ namespace Kratos
 //        else 
 	gamma_dot_inv= 1.0/gamma_dot;
         
-//         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(mcoef * gamma_dot))*(gamma_dot_inv + mcoef));
- 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1.0 - exp(-(mcoef * gamma_dot))*(1.0 - mcoef * gamma_dot));
+//         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(m_coef * gamma_dot))*(gamma_dot_inv + m_coef));
+ 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1.0 - exp(-(m_coef * gamma_dot))*(1.0 - m_coef * gamma_dot));
 //	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
 
         KRATOS_CATCH("")
