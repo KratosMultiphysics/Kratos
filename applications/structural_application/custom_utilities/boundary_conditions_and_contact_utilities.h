@@ -169,8 +169,9 @@ namespace Kratos
 		  //if (minitialize==false) 
 		  CalculateBoundaryContour(mMasterConditionsArray);
   
-		  if(SearchContactsPairs())  
+		  if(SearchContactsPairs())  {
 		     CreateLinkingConditions(); 
+		  }
 		  
 		  Clear();
 		
@@ -221,8 +222,12 @@ namespace Kratos
 	 
 	 void Clear()
 	 {
-	   mPairContacts.clear();
+            mBoundaryElements.clear();
+            mPairContacts.clear();
+            mpair.clear();
+            mMasterConditionsArray.clear();
 	 }
+	  
 	  
 	 //************************************************************************************
 	 //************************************************************************************  
@@ -250,6 +255,7 @@ namespace Kratos
 
 	    int  master     = 0;
 	    bool initialize = false;
+	    
 	    for(IteratorContainerContactPair it_pair = mPairContacts.begin(); it_pair!= mPairContacts.end(); it_pair++)
 	        {
 		   /// Vericando los nodos que caen en el elemento.
@@ -263,8 +269,8 @@ namespace Kratos
 		   
 		   //std::cout<< "     MASTER  = "<< (*it_pair)[master]->Id() << "     MASTER  = " << master <<   std::endl; 
 		   //std::cout<< "     PAIRS 1 = "<< (*it_pair)[0]->Id() <<  "  " <<  "PAIRS 2 = " <<  (*it_pair)[1]->Id() <<  std::endl; 
-		   /// WARNING = Puede que en un tiempo determinado caigan dos nodos a la vez en un  elemento
-		   /// Un nodo dentro del elemento
+		   // WARNING = Puede que en un tiempo determinado caigan dos nodos a la vez en un  elemento
+		   // Un nodo dentro del elemento
 		   here:
 		   for(unsigned int in = 0; in<InsideNodes.size(); in++)
 		     {
@@ -279,7 +285,7 @@ namespace Kratos
 			  if(initialize==true)
 			      repeated_object =  std::find(TotalInsideNodes.begin(), TotalInsideNodes.end(), InsideNodes[in]); 
 			   
-                                  
+                                
 			  ///WARNING = No necesariamente para otros contenedores la comparacion se hace con end -1 
  			  if( repeated_object == (TotalInsideNodes.end())) 
  			  {          
@@ -287,22 +293,28 @@ namespace Kratos
 			      if(initialize==true)
                                   TotalInsideNodes.push_back(InsideNodes[in]);  
 			     
+			      
  			      //std::cout<< "     Node Inside =  "<< InsideNodes[in] << std::endl;
  		              //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[0]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[1]->Id() << std::endl;
 			     
-			       /// Slave Node
+			     
+			      // Slave Node
 			      Point2D<Node<3> >::Pointer point_geom    =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(InsideNodes[in]) ) );
 			      Condition::Pointer SlaveNode             =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
 			     
 			      WeakPointerVector<Condition> neighb_cond =  (*it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS); 			      
-			      Condition::Pointer MasterFace            =  (neighb_cond(0).lock());   /// me devuelve el puntero
-			     
-			      /// creando geometria trinagular para el link
+			      Condition::Pointer MasterFace            =  (neighb_cond(0).lock());   // me devuelve el puntero
+			           
+			      // creando geometria trinagular para el link
 			      Condition::GeometryType& Mgeom = MasterFace->GetGeometry();
 			      Condition::GeometryType& Sgeom = SlaveNode->GetGeometry();   
+			      
+			      
 			      Triangle2D3<Node<3> >::Pointer Lgeom    =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
 			      
-			      Condition::Pointer newLink    = Condition::Pointer( new PointSegmentContactLink(Id,
+			      
+			       
+			      Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
 				  Lgeom,
 				  tempProperties,
 				  MasterFace, 
@@ -310,6 +322,8 @@ namespace Kratos
 				  
                               LinkingConditions.push_back( newLink );    
 			      Id++;
+			      
+			       
 			      
 			  }
 			  
@@ -356,14 +370,14 @@ namespace Kratos
 	  //************************************************************************************ 
 	 void CalculateBoundaryContour(ConditionsArrayType& MasterConditions)
 	 {   
-	      typedef WeakPointerVector< Element >::iterator  ElementIteratorType;  	   
+	      typedef WeakPointerVector< Element >::iterator  ElementIteratorType; 
 	      ContainerType& rElements           =  mr_model_part.ElementsArray();
 	      IteratorType it_begin              =  rElements.begin();
 	      IteratorType it_end                =  rElements.end(); 
 	      
 	      array_1d<unsigned int,2>  Pair;
    
-	      vector<unsigned int> node_boundary;
+	      //vector<unsigned int> node_boundary;
 	      bool is_boundary   = false;
 	      
 	      unsigned int face     = 0; 
@@ -372,10 +386,14 @@ namespace Kratos
 	      {
 		   Element::GeometryType& geom_1 = (*elem)->GetGeometry();
 		   WeakPointerVector< Element >& neighb_elems  = (*elem)->GetValue(NEIGHBOUR_ELEMENTS); 
-		   node_boundary.resize(neighb_elems.size(), false);
-		   /// Puede incluir como vecnino el mismo en caso de que hayan menos de 3 elemtos veninos.  
-		   /// ckeck si se repited elmento
-		   /// ElementIteratorType no necesita especificarse el * 
+		   WeakPointerVector< Condition >& neighb_cond   = (*elem)->GetValue(NEIGHBOUR_CONDITIONS);
+		   neighb_cond.clear();
+		   
+		   
+		   //node_boundary.resize(neighb_elems.size(), false);
+		   // Puede incluir como vecnino el mismo en caso de que hayan menos de 3 elemtos veninos.  
+		   // ckeck si se repited elmento
+		   // ElementIteratorType no necesita especificarse el * 
 		   for( ElementIteratorType neighb_elem  = neighb_elems.begin(); neighb_elem!= neighb_elems.end(); neighb_elem++)
  		            {
 			       
