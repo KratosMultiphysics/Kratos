@@ -289,7 +289,7 @@ namespace Kratos
                     ("SmoothingUtility", init<ModelPart&, int >() )
                     .def("WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<double>)
                     .def("WeightedRecoveryGradients", &Smoothing_Utility::WeightedRecoveryGradients<Matrix>) // for matrices
-                    .def("InterpolatedRecoveryGradients", &Smoothing_Utility::InterpolatedRecoveryGradients)
+                    .def("InterpolatedRecoveryGradients", &Smoothing_Utility::InterpolatedRecoveryGradients<Matrix>)
                     .def("SettingNodalValues", &Smoothing_Utility::SettingNodalValues) 
                     .def("RecomputeValuesForNewMesh", &Smoothing_Utility::Recompute_Values_For_New_Mesh)
                     .def("Finalize", &Smoothing_Utility::Finalize)
@@ -305,6 +305,7 @@ namespace Kratos
             class_<Inter_Fracture_Triangle, boost::noncopyable >
                     ("InterFractureTriangle", init<ModelPart&, int >() )
 		    .def("DetectAndSplitElements",              &Inter_Fracture_Triangle::Detect_And_Split_Elements)
+		    .def("Finalize",                            &Inter_Fracture_Triangle::Finalize)
                     ;
 
              class_<Inter_Fracture_Tetrahedra, boost::noncopyable >
