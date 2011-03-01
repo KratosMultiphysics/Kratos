@@ -166,8 +166,8 @@ namespace Kratos
 		  
 		  
 		  /// Crea las conciones de contacto
-		  if (minitialize==false) 
-		     CalculateBoundaryContour(mMasterConditionsArray);
+		  //if (minitialize==false) 
+		  CalculateBoundaryContour(mMasterConditionsArray);
   
 		  if(SearchContactsPairs())  
 		     CreateLinkingConditions(); 
@@ -366,7 +366,7 @@ namespace Kratos
 	      vector<unsigned int> node_boundary;
 	      bool is_boundary   = false;
 	      
-	      unsigned int  face    = 0; 
+	      unsigned int face     = 0; 
 	      unsigned int Id       = rElements.size() + 1 ;
 	      for(IteratorType elem = it_begin; elem!=it_end; elem++)
 	      {
