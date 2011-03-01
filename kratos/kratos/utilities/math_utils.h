@@ -309,6 +309,13 @@ namespace Kratos
                 temp = sqrt(temp);
                 return temp;
             }
+            
+            static inline double Norm3(const array_1d<double, 3>& a)
+            {
+                double temp = pow(a[0],2) + pow(a[1],2) + pow(a[2],2);
+                temp = sqrt(temp);
+                return temp;
+            }
 
 		//***********************************************************************
 		/* 
