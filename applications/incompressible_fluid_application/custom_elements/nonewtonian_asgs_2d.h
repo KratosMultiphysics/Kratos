@@ -236,7 +236,7 @@ namespace Kratos
       ///Evaluates the elemental density, and (fluid) viscosity
       virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
       ///Evaluates the residual of the solution system including the viscous contribution \f$ rhs = -lhs  u - B^{T} \tau  \f$
-      virtual void CalculateResidual(const MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
+      virtual void CalculateResidual(const MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double m, const double area);
       ///Compute the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);
       virtual void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double thawone,const double thawtwo,const array_1d<double,3>& N,const double area, const double time); 
       ///Evaluates the following stabilization terms:  \f$  (a \cdot \nabla w, \partial_{t} u) \f$ 
@@ -246,7 +246,7 @@ namespace Kratos
       ///Calculate the mass contribution to the K global matrix	
       virtual void CalculateMassContribution(MatrixType& K,const double time,const double area); 
       ///Calculate the linearized viscous contribution ONLY to the LHS @todo Make linearization works quadratically
-      virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,  const double area, const int it_num);
+      virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const int it_num, const double m,  const double area);
       ///Calculate the advective contribution to the lhs
       virtual void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double, 3 >& N, const double thawone, const double thawtwo, const double time,const double area);
 	///Calculate the pressure contribution to the lhs and divergence term as well
@@ -280,7 +280,7 @@ namespace Kratos
 	* @param B: Matrix 3x6 of the shape function derivatives
 	* @param mu: fluid minimum viscosity possible
 	*/
-      virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,3> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B, const double & mu);
+      virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,3> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B, const double & mu, const double & m_coef);
       virtual void CalculateApparentViscosityStbl(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,3> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B, const double & mu);
 
       ///@name Protected Operators
