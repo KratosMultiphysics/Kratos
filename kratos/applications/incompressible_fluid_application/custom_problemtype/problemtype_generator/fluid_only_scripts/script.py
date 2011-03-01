@@ -48,6 +48,9 @@ elif(SolverType == "monolithic_solver_eulerian"):
     import monolithic_solver_eulerian
     monolithic_solver_eulerian.AddVariables(fluid_model_part)
     fluid_model_part.AddNodalSolutionStepVariable(YIELD_STRESS)
+    fluid_model_part.AddNodalSolutionStepVariable(TAU)
+    fluid_model_part.AddNodalSolutionStepVariable(MU)
+    fluid_model_part.AddNodalSolutionStepVariable(EQ_STRAIN_RATE)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible
     monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
@@ -105,8 +108,7 @@ if(SolverType == "fractional_step"):
     fluid_solver.max_press_its = fluid_only_var.max_press_its
     fluid_solver.Initialize()
 elif(SolverType == "pressure_splitting"):
-    fluid_solver = decoupled_solver_eulerian.\
-		  DecoupledSolver(fluid_model_part,domain_size)
+    fluid_solver = decoupled_solver_eulerian.DecoupledSolver(fluid_model_part,domain_size)
 ##    pPrecond = ILU0Preconditioner()
     pPrecond = DiagonalPreconditioner()
     fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pPrecond)
@@ -123,7 +125,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
     fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
     fluid_solver.oss_switch  = fluid_only_var.use_oss
-	fluid_solver.regularization_coef = fluid_only_var.m_coef
+    fluid_solver.regularization_coef = fluid_only_var.m_coef
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
@@ -194,10 +196,11 @@ while(time < final_time):
             gid_io.WriteNodalResults(SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(AIR_SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(EXTERNAL_PRESSURE,fluid_model_part.Nodes,time,0)
-            gid_io.PrintOnGaussPoints(TEMPERATURE,fluid_model_part,time)
+##            gid_io.PrintOnGaussPoints(TEMPERATURE,fluid_model_part,time)
 ##            gid_io.PrintOnGaussPoints(AUX_INDEX,fluid_model_part,time)
-			gid_io.WriteNodalResults(YIELD_STRESS,fluid_model_part.Nodes,time,0)
-			gid_io.PrintOnGaussPoints(MU,fluid_model_part,time)
+            gid_io.PrintOnGaussPoints(EQ_STRAIN_RATE,fluid_model_part,time)
+	    gid_io.WriteNodalResults(YIELD_STRESS,fluid_model_part.Nodes,time,0)
+	    gid_io.PrintOnGaussPoints(MU,fluid_model_part,time)
             gid_io.PrintOnGaussPoints(TAU,fluid_model_part,time)
         out = 0
 
