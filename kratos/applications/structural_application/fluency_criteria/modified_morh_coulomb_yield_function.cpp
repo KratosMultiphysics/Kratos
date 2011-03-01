@@ -422,7 +422,7 @@ namespace Kratos
 		const double& NU             =   (*mprops)[POISSON_RATIO];
 		const double G               =   0.5 * E / (1.00 + NU);
 		const double K               =   E / (3.00 * (1.00-2.00 * NU) );
-		const double toler           =  1E-9;
+		const double toler           =  1E-8;
 		const unsigned max           =  100;
 		
 		array_1d<double, 3> dgama    = ZeroVector(3);     
@@ -726,7 +726,7 @@ namespace Kratos
 	const double& NU             =   (*mprops)[POISSON_RATIO];
 	const double G               =   0.5 * E / (1.00 + NU);
 	const double K               =   E / (3.00 * (1.00-2.00 * NU) );
-	const double toler           =   1E-9;
+	const double toler           =   1E-8;
 	const unsigned max           =   100;
 
 	array_1d<double, 4> dgama    =   ZeroVector(4);     
