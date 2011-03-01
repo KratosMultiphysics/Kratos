@@ -42,11 +42,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-#if !defined(ISOTROPIC_RANKINE_FUNCTION_UTILS)
-#define ISOTROPIC_RANKINE_FUNCTION_UTILS
+#if !defined(ISOTROPIC_RANKINE_FUNCTION)
+#define ISOTROPIC_RANKINE_FUNCTION
 
-
-#include "custom_utilities/tensor_utils.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include <cmath>
 
@@ -55,18 +53,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
   {
 
-    	
-      class Isotropic_Rankine_Yield_Function: public FluencyCriteria    
+      
+      /*! 
+      STATE UPDATE PROCEDURE FOR ISOTROPIC RANKINE TYPE ELASTO-PLASTIC MATERIAL
+      WITH ASSOCIATIVE FLOW RULE AND PIECE-WISE LINEAR
+      ISOTROPIC SOFTENING
+      IMPLICIT ELASTIC PREDICTOR/RETURN MAPPING ALGORITHM 
+      PLANE STRAIN AND AXISYMMETRIC IMPLMENTATIONS
+      */
+      
+      class Isotropic_Rankine_Yield_Function: public virtual FluencyCriteria    
       { 
     
         public:
-
-	    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
-	    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
-			  
-            typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
-			  
-	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz
 
             virtual boost::shared_ptr<FluencyCriteria> Clone() const
 	        {
@@ -74,6 +73,8 @@ namespace Kratos
 		      return p_clone;
 		}
   
+            Isotropic_Rankine_Yield_Function();              
+   
             Isotropic_Rankine_Yield_Function(myState State);
 	   
             ~Isotropic_Rankine_Yield_Function();
@@ -82,62 +83,37 @@ namespace Kratos
 
 //***********************************************************************
 //***********************************************************************
-// Energy_Criteria
-// Diferent limits in traccion and compresion
-
-
-		     void InitializeMaterial(const Properties& props);
-		     
-
-		    void CalculateEquivalentUniaxialStress(  
-		    const Vector& StressVector,double& Result); 
-
-
-		    void CalculateEquivalentUniaxialStressViaPrincipalStress(
-		    const Vector& StressVector,double& Result);
 
 
 
-		    void CalculateEquivalentUniaxialStressViaInvariants(
-		    const Vector& StressVector,double& Result);
-
-
-		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
-		    const Vector& StressVector,double& Result);
-
-
-		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
-
-                    void UpdateVariables(const Vector& Variables); 
-                    //void UpdateVariables(const double Variables);
-
-                    void ReturnMapping(const Vector& StressVector,
-                    const Vector& StrainVector,  
-                    Vector& delta_lamda,
-                    array_1d<double,3>& Result);
-
-                    void GetValue(double Result);
-                    void GetValue(Vector& Result); 
-                     
-                    void Finalize();  
-		    
+	void InitializeMaterial(const Properties& props);  
+	bool CheckPlasticAdmisibility(const Vector& Stress); 
+	void ReturnMapping(const Vector& StrainVector, Vector& StressVector);
+	void FinalizeSolutionStep();
+	void UpdateMaterial();
+	bool CheckValidity( array_1d<double,3>&  Sigma); 
+        void GetValue(const Variable<Matrix>& rVariable, Matrix& Result);
 
       
-	protected:
+	public:
 
-	  double mFt;
-          double mcurrent_Ft;
-          double mH; 
-          bool   minitialize;     
-          enum   Cases {right, left};
-          Cases  mCases; 
+	double  mrankine_accumulated_plastic_strain_current;   
+        double  mrankine_accumulated_plastic_strain_old;    
+	double mFt;
+	double mcurrent_Ft;
+	double mH; 
+	bool   minitialize;     
+	array_1d<double, 3>    mPrincipalPlasticStrain_current;
+	array_1d<double, 3>    mPrincipalPlasticStrain_old;  
+	
         
-       private:
-        
-        void One_Vector_Return_Mapping_To_Main_Plane(const Vector& StressVector, Vector& delta_lamda,  array_1d<double,3>& Result); 
-        void Two_Vector_Return_Mapping_To_Corner (const Vector& StressVector, Vector& delta_lamda ,array_1d<double,3>& Result);        
-        void Three_Vector_Return_Mapping_To_Apex (const Vector& StressVector, Vector& delta_lamda ,array_1d<double,3>& Result);  
-        bool CheckValidity( array_1d<double,3>&  Sigma); 
+        private:
+        bool One_Vector_Return_Mapping_To_Main_Plane(const array_1d<double,3>& PrincipalStress, Vector& delta_lamda,    array_1d<double,3>& Sigma); 
+        bool Two_Vector_Return_Mapping_To_Corner (   const array_1d<double,3>& PrincipalStress, Vector& delta_lamda ,    array_1d<double,3>& Sigma);        
+        void Three_Vector_Return_Mapping_To_Apex (   const array_1d<double,3>& PrincipalStress, Vector& delta_lamda ,array_1d<double,3>& Sigma);
+	
+	enum   Cases {right, left};
+	Cases  mCases; 
    
            
 
