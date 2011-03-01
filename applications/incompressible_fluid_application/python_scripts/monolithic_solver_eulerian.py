@@ -3,7 +3,7 @@ from Kratos import *
 from KratosIncompressibleFluidApplication import *
 ##from KratosExternalSolversApplication import *
 #from KratosStructuralApplication import *
-
+##from KratosMKLSolversApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -66,6 +66,7 @@ class MonolithicSolver:
         #definition of the solvers
         self.linear_solver =  SkylineLUFactorizationSolver()
 ##        self.linear_solver =SuperLUSolver()
+##        self.linear_solver = MKLPardisoSolver()
 
         #pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
@@ -83,8 +84,11 @@ class MonolithicSolver:
         self.dynamic_tau = 0.0
         self.oss_switch  = 0
 
+        #non newtonian setting
+        self.regularization_coef = 1000
+        
         self.max_iter = 30
-
+                            
         #default settings
         self.echo_level = 0
         self.CalculateReactionFlag = True
@@ -106,6 +110,7 @@ class MonolithicSolver:
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
+        self.model_part.ProcessInfo.SetValue(M, self.regularization_coef );
 
 ##        print "Initialization monolithic solver finished"
 	                     
