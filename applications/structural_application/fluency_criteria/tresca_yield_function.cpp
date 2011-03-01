@@ -107,11 +107,7 @@ namespace Kratos
 
  	  array_1d<double,3> Trial_Stress_Vector = ZeroVector(3);
           CalculatePrincipalStressVector(StressVector, Trial_Stress_Vector);  
-          //double p = (Trial_Stress_Vector[0] + Trial_Stress_Vector[1] + Trial_Stress_Vector[2])/3.00;
-          //Trial_Stress_Vector[0]-= p;  
-          //Trial_Stress_Vector[1]-= p;
-          //Trial_Stress_Vector[2]-= p;         
-  
+       
           mMultisurface_Platicity_Sigma       = ZeroVector(3);
           mMultisurface_Platicity_Yield       = ZeroVector(3);
  
