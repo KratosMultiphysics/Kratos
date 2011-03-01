@@ -83,16 +83,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/isotropic_planestress_wrinkling.h"
 #include "constitutive_laws/isotropic_damage_2d.h"
 #include "constitutive_laws/isotropic_damage_3d.h"
-#include "constitutive_laws/plastic_damage_2d.h"
-#include "constitutive_laws/plastic_damage_3d.h"
 #include "constitutive_laws/plasticity_2d.h"
 #include "constitutive_laws/plane_stress_J2.h"
 #include "constitutive_laws/brittle_material_2d.h"
 #include "constitutive_laws/orthotropic_3d.h"
-//#include "constitutive_laws/plane_stress_damage_orthotropic_2d.h"
-//#include "constitutive_laws/tension_compression_damage_model.h"
-//#include "constitutive_laws/tension_compression_damage_model_2d.h"
-//#include "constitutive_laws/compose_material.h"
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "includes/mesh.h"
@@ -116,7 +110,6 @@ namespace Kratos
         
         typedef ConstitutiveLaw ConstitutiveLawBaseType;
         typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-        //typedef FluencyCriteria FluencyCriteriaType;  
         typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
         typedef SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;  
         typedef Properties::Pointer PropertiesPointer;
@@ -186,40 +179,11 @@ namespace Kratos
 //                  ;
 
             
-            class_<PlasticDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-                    ("PlasticDamage2D",
-                     init<>() )
-                    //.def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-                    .def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
-                    ;
             
             class_<BrittleMaterial2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
                     ("BrittleMaterial2D",
                      init<>() )
                      .def(init<FluencyCriteriaPointer, PropertiesPointer>())
-                    ;
-		    
-            class_<PlasticDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-                    ("PlasticDamage3D",
-                     init<>() )
-                    .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
-                    //.def(init<FluencyCriteriaPointer,FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>())
-                    ;
-            
-// 			class_< Tension_Compression_Damage_Model, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-// 			("TensionCompressionDamageModel3D",
-// 			init<>() )
-//                         ;
-
-// 			class_< Tension_Compression_Damage_Model_2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-// 			("TensionCompressionDamageModel2D",
-// 			init<>() )
-//                         ;
-
-            class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-                    ("IsotropicDamage3D",
-                     init<>() )
-                    .def(init<FluencyCriteriaPointer,SofteningHardeningCriteriaPointer, PropertiesPointer>())
                     ;
             
             class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
@@ -279,20 +243,7 @@ namespace Kratos
                     ("Hyperelastic2D",
                      init<>() )
                     ;
-    
-// 			class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >, boost::noncopyable >
-// 			("PlaneStressDamageOrthotropic2D",
-// 			init<>() )
-// 			//.def(init<FluencyCriteriaType const&>())
-//                         .def(init<FluencyCriteriaPointer>())
-// 			;
-/*
-			class_<ComposeMaterial , bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("ComposeMaterial",
-			init<>() )
-                        .def(init<MaterialsContainer>())
-			;*/
-
+		    
         
         }
     }  // namespace Python.
