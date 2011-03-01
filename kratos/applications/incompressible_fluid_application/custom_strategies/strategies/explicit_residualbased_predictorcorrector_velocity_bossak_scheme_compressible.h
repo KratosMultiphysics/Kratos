@@ -413,7 +413,7 @@ KRATOS_WATCH("inside update");
 		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 		  // double GammaNewmark = 0.5 - NewAlphaBossak;
 		    double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-		    double time_fac = 1.0 / (mGamma * DeltaTime);
+// 		    double time_fac = 1.0 / (mGamma * DeltaTime);
 
 		    #pragma omp parallel for firstprivate(n_nodes, it_begin)
 		    for( int kkk = 0; kkk < n_nodes; kkk++)
@@ -613,10 +613,10 @@ KRATOS_WATCH("AFTER update vel and pr");
 
 	                //loop over nodes to update density and sound velocity
 			//*********update density DENSITY_AIR 
-			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
-
-			double pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
-			 double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
+// 			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
+// 
+// 			double pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
+// 			 double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
 			double alpha = 1.0;
 			
 // UNCOMMENT FOR IMPLOSION
