@@ -715,7 +715,7 @@ namespace Kratos
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
-            int loc_index = ii * dof ;
+//             int loc_index = ii * dof ;
             const array_1d<double, 3 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
