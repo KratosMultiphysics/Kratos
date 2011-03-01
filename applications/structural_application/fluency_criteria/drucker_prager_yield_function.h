@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(DRUCKER_PRAGER_FUNCTION_UTILS)
 #define DRUCKER_PRAGER_FUNCTION_UTILS
 
-
+#include "includes/variables.h"
 #include "custom_utilities/tensor_utils.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include <cmath>
