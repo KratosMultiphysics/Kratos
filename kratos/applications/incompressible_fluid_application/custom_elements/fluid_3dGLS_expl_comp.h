@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -231,7 +231,26 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 
 		
-        
+        ///@}
+        ///@name Serialization
+        ///@{
+	friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        Fluid3DGLS_expl_comp() : Element()
+	{
+	}
+	
+        virtual void save(Serializer& rSerializer) const
+	{
+	rSerializer.save("Name", "Fluid3DGLS_expl_comp");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	}
+	
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	}	     
         
       ///@} 
       ///@name Private Operators
