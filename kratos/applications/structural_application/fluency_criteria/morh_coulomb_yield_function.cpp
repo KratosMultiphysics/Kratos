@@ -152,7 +152,7 @@ const double& NU        =   (*mprops)[POISSON_RATIO];
 
 const double G          = 0.5 * E / (1.00 + NU);
 const double K          = E / (3.00 * (1.00-2.00 * NU) );
-const double toler      = 1E-10;
+const double toler      = 1E-6;
 const unsigned max      = 1000;
 
 double   dgama    = 0.00;
@@ -235,8 +235,7 @@ while(fabs(res)>toler && iter++ < max )
 
   if(iter>=max)
   {
-   KRATOS_ERROR(std::logic_error,  "RETURN MAPPING ONE" , ""); 
-   return false;
+    KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED" , "");
   }
     
   // Check validity of 1-vector return (check sextant of converged stress)
@@ -267,8 +266,8 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
   const double& NU        =   (*mprops)[POISSON_RATIO];
   const double G          = 0.5 * E / (1.00 + NU);
   const double K          = E / (3.00 * (1.00-2.00 * NU) );
-  const double toler      = 1E-10;
-  const unsigned max      = 10;
+  const double toler      = 1E-6;
+  const unsigned max      = 1000;
   unsigned int iter       = 0;
 
  
@@ -442,8 +441,7 @@ if(sum!=0) {norma = norma / sum;}
 
 if(iter>=max)
 {
-   KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TWO" , ""); 
-   return false; 
+   KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" , "");
 }
 
 
@@ -498,7 +496,7 @@ const double& E         =   (*mprops)[YOUNG_MODULUS];
 const double& NU        =   (*mprops)[POISSON_RATIO];
 const double K          =   E / (3.00 * (1.00-2.00 * NU) );
 const double G          =   0.5 * E / (1.00 + NU);
-const double toler      =   1E-8;
+const double toler      =   1E-6;
 const unsigned max      =   1000;
 unsigned int iter       =   0;  
 
@@ -573,9 +571,11 @@ while(std::fabs(r) > toler && iter++<max )
 }
 
 if(iter>=max)
-{
-   std::cout<< "RESIDUAL = " << r << std::endl; 
-   //KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED" , "");
+{ 
+   std::cout<< "Norma = " << r << std::endl; 
+   KRATOS_WATCH(PrincipalStress)
+   KRATOS_WATCH("RETURN MAPPING TO APEX  NOT CONVERGED");
+   KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED" , "");
 }
 
    
