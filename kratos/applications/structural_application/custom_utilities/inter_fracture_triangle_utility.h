@@ -128,44 +128,47 @@ namespace Kratos
     
 
 ///************************************************************************************************          
-void Detect_And_Split_Elements(ModelPart& this_model_part)
+bool Detect_And_Split_Elements(ModelPart& this_model_part)
 { 
    KRATOS_TRY      
    
-   //NodesArrayType& pNodes = this_model_part.Nodes();  
+   bool is_split = false;  
    array_1d<double,3> Failure_Maps; 
+   
+   /*
    
    FindElementalNeighboursProcess    ElementosVecinos(this_model_part, 2, 10);
    FindNodalNeighboursProcess        NodosVecinos(this_model_part, 2, 10);
    FindConditionsNeighboursProcess   CondicionesVecinas(this_model_part, 2, 10);
    
+   ElementosVecinos.ClearNeighbours();
+   NodosVecinos.ClearNeighbours();
+   CondicionesVecinas.ClearNeighbours();     
+   ElementosVecinos.Execute();
+   NodosVecinos.Execute();
+   CondicionesVecinas.Execute(); 
+   */
+   
    WeakPointerVector< Node<3> > Nodes_To_Be_Dupplicated; 
    unsigned int detect = Detect_Node_To_Be_Splitted(this_model_part, Nodes_To_Be_Dupplicated);
-   KRATOS_WATCH(detect)
-   
-   
+
+      
    if(detect!=0)
    {   
-   WeakPointerVector< Node<3> >::iterator i_begin = Nodes_To_Be_Dupplicated.ptr_begin();
-   WeakPointerVector< Node<3> >::iterator i_end   = Nodes_To_Be_Dupplicated.ptr_end();
+    is_split = true; 
+    WeakPointerVector< Node<3> >::iterator i_begin = Nodes_To_Be_Dupplicated.ptr_begin();
+    WeakPointerVector< Node<3> >::iterator i_end   = Nodes_To_Be_Dupplicated.ptr_end();
       
-   for(WeakPointerVector< Node<3> >::iterator inode=i_begin; inode!= i_end; ++inode)     
+    for(WeakPointerVector< Node<3> >::iterator inode=i_begin; inode!= i_end; ++inode)     
     {      
              Node<3>::Pointer pNode =  (*(inode.base())).lock();              
-             Split_Node(this_model_part, pNode);       
-	    
-	     //ElementosVecinos.ClearNeighbours();
-             //NodosVecinos.ClearNeighbours();
-	     //CondicionesVecinas.ClearNeighbours();     
-             //ElementosVecinos.Execute();
-             //NodosVecinos.Execute();
-	     //CondicionesVecinas.Execute();         
+             Split_Node(this_model_part, pNode);               
           }                
     
     }
-    
-         
+           
   Finalize(this_model_part);
+  return is_split;
   KRATOS_CATCH("")
 }
 
