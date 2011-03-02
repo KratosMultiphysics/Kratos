@@ -228,7 +228,7 @@ namespace Kratos															////cosa sarebbe?
 //       {
 //       }
 
-      virtual void save(Serializer& rSerializer)
+      virtual void save(Serializer& rSerializer) const
       {
 	  rSerializer.save("Name", "NoSlipCondition2D");
 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
