@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
+#include "includes/serializer.h"
 
 namespace Kratos 
 {
@@ -257,6 +257,27 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 	
 		double mA0; //stores area at the beginning of time-step
+
+///@}
+        ///@name Serialization
+        ///@{
+	friend class Serializer;
+
+        // A private default constructor necessary for serialization
+         UpdatedLagrangianFluid3Dinc() : Element()
+	{
+	}
+	
+        virtual void save(Serializer& rSerializer) const
+	{
+	rSerializer.save("Name", " UpdatedLagrangianFluid3Dinc");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	}
+	
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	}
 		
         
         
@@ -269,7 +290,7 @@ namespace Kratos
 	  void MeshMovingStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
    
 	  //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
-	  inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
+	  //inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Area);
         
       ///@} 
       ///@name Private Operations
