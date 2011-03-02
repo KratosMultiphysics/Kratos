@@ -202,6 +202,8 @@ namespace Kratos
 	    IteratorType it_begin     =  mBoundaryElements.begin();
 	    IteratorType it_end       =  mBoundaryElements.end(); 
 
+	    
+	    
 	    BinsObjectDynamic<Configure>  rBinsObjectDynamic(it_begin, it_end ); 
 	    rBinsObjectDynamic.SearchContact(mPairContacts);
 	    FiltratePairContacts(mPairContacts);
@@ -370,14 +372,14 @@ namespace Kratos
 	  //************************************************************************************ 
 	 void CalculateBoundaryContour(ConditionsArrayType& MasterConditions)
 	 {   
+	      std::cout<<"     CALCULATING CONTOURS " <<  std::endl; 
+	     
 	      typedef WeakPointerVector< Element >::iterator  ElementIteratorType; 
 	      ContainerType& rElements           =  mr_model_part.ElementsArray();
 	      IteratorType it_begin              =  rElements.begin();
 	      IteratorType it_end                =  rElements.end(); 
 	      
-	      array_1d<unsigned int,2>  Pair;
-   
-	      //vector<unsigned int> node_boundary;
+	      array_1d<unsigned int,2>  Pair; 
 	      bool is_boundary   = false;
 	      
 	      unsigned int face     = 0; 
@@ -399,25 +401,31 @@ namespace Kratos
 			       
 			       if ( neighb_elem->Id() ==  (*elem)->Id() )
 			           {     
-				     if(face == 0) /// edge 1-2
+				     if(face == 0) // edge 1-2
 				      {
 					Pair[0]   =  geom_1[1].Id();
 					Pair[1]   =  geom_1[2].Id();
 					CreateMasterConditions(Pair, elem, Id, MasterConditions);
+		                        geom_1[1].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					geom_1[2].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 			              }
 			              
-				      if (face==1)  /// edge 2-0
+				      if (face==1)  // edge 2-0
 				      {
 					 Pair[0] =   geom_1[2].Id();
 					 Pair[1] =   geom_1[0].Id();
 					 CreateMasterConditions(Pair, elem, Id, MasterConditions);
+					 geom_1[2].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					 geom_1[0].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 
 				      }
-				      if (face==2) /// edge 0-1
+				      if (face==2) // edge 0-1
 				      {
 					 Pair[0] =   geom_1[0].Id();
 					 Pair[1] =   geom_1[1].Id();
 					 CreateMasterConditions(Pair, elem, Id, MasterConditions);
+					 geom_1[0].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					 geom_1[1].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 				      }
 				      
 				       if (is_boundary==false)   
