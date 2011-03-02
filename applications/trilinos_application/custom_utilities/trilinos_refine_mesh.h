@@ -235,7 +235,7 @@ namespace Kratos
             boost::shared_ptr<Epetra_Map> empty_map;
             empty_map.swap(mp_non_overlapping_map);
 
-            int mtotal_number_of_existing_nodes = 0;
+            mtotal_number_of_existing_nodes = 0;
 
             boost::shared_ptr<Epetra_FECrsGraph> empty1;
             mp_non_overlapping_graph.swap(empty1);
