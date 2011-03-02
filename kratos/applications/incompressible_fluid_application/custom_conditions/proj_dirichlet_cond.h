@@ -24,7 +24,6 @@
 #include "includes/condition.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
 #include "includes/serializer.h"
 
 namespace Kratos
@@ -176,6 +175,7 @@ namespace Kratos
         
         array_1d<double,3> mVel1;
 	array_1d<double,3> mVel2;	
+
        
       ///@}
       ///@name Serialization
