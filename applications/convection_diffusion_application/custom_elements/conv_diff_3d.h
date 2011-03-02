@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -219,7 +220,29 @@ void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo
       ///@name Member Variables 
       ///@{ 
 		
-        
+  	///@}
+        ///@name Serialization
+        ///@{	
+	friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        ConvDiff3D() : Element()
+	{
+	}
+	
+        virtual void save(Serializer& rSerializer)
+	{
+	rSerializer.save("Name", "ConvDiff3D");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	}
+	
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	}
+
+
+
         
       ///@} 
       ///@name Private Operators
