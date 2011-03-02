@@ -229,19 +229,19 @@ namespace Kratos
 	friend class Serializer;
 
         // A private default constructor necessary for serialization
-        ThermalFace3D() : Element()
+        ThermalFace3D() : Condition()
 	{
 	}
 	
         virtual void save(Serializer& rSerializer)
 	{
 	rSerializer.save("Name", "ThermalFace3D");
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
 	}
 	
 	virtual void load(Serializer& rSerializer)
 	{
-	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
 	}
 
 
