@@ -107,7 +107,7 @@ namespace Kratos
           bool Isotropic_Rankine_Yield_Function::CheckPlasticAdmisibility(const Vector& Stress)
           { 
 	     array_1d<double, 3> check;
-	     double toler = 1E-8;
+	     double toler = 1E-6;
 	     check[0] = Stress[0] - mcurrent_Ft;
 	     check[1] = Stress[1] - mcurrent_Ft;
 	     check[2] = Stress[2] - mcurrent_Ft;
@@ -182,6 +182,7 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
 	      double d             = 0.00;  
 	      double residual      = 0.00;
               const double toler   = 1E-6; 
+	      unsigned int max     = 1000;
      
 
               mcurrent_Ft = mFt;
@@ -189,7 +190,7 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
 	      norma =  PrincipalStress[0] - mcurrent_Ft;
               norma =  norma/mcurrent_Ft;
 	      
-              while(iter++<=100 && norma>= toler) 
+              while(iter++<=max && norma>= toler) 
 	          {  
                     d = 4.00 * G /3.00 + K - H;
                     delta_lamda[0]  +=  (PrincipalStress[0] - mcurrent_Ft) / d;; 
@@ -220,6 +221,11 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
                     
                     }
                   }   
+                  
+		  if(iter>=max)  
+		     KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE RANKINE  NOT CONVERGED" , "");
+		  
+                  
                      ///* Updating Stress  
 		    if(mcurrent_Ft <=toler) 
                     {
@@ -256,16 +262,18 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
 	 
 	      
               unsigned int iter    = 0;    
+	      unsigned int max     = 1000; 
               int singular         = 0;  
               double norma         = 1.00;   
 	      double delta_lamda_a = 0.00; 
               double delta_lamda_b = 0.00; 
-              const  double toler  = 1E-6;
+              const  double toler  = 1E-4;
 	      double E             = (*mprops)[YOUNG_MODULUS];
 	      double NU            = (*mprops)[POISSON_RATIO];             
               double G             = 0.5*E / (1.00 + NU);
               double K             =  E / (3.00 * (1.00-2.00*NU));
               double H             =  mH;
+	      
 	      Matrix d             = ZeroMatrix(2,2);  
               Matrix d_inv         = ZeroMatrix(2,2); 
 	      Vector residual      = ZeroVector(2);
@@ -283,7 +291,7 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
 	      d(1,0) = 2.00 * G / 3.00 - K  + H;  d(1,1)   = -4.00 * G / 3.00 - K  + H; 
               singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);    
                
-              while(iter++<=100 && norma>= toler) 
+              while(iter++<=max && norma>= toler) 
 		  {
 		      delta_lamda =  delta_lamda - Vector(prod(d_inv, residual)); 
 		      delta_lamda_a = delta_lamda[0];
@@ -320,6 +328,8 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
                         }
                       }
 
+		  if(iter>=max)  
+		     KRATOS_ERROR(std::logic_error,  "RETURN MAPPING SIGMA 1 AND 2 RANKINE  NOT CONVERGED" , "");
 
 
                      if(mcurrent_Ft <= 0.00) 
@@ -355,7 +365,8 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
       {
           
 	      
-              unsigned int iter    = 0;    
+              unsigned int iter    = 0;   
+	      unsigned int max     = 1000;
               int singular         = 0;  
               double norma         = 1.00;   
 	      double delta_lamda_a = 0.00; 
@@ -389,9 +400,8 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
               singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);    
 
 
-              while(iter++<=100 && norma>= toler) 
+              while(iter++<=max && norma>= toler) 
 		  {
-                      if(iter>=100){ KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED IN RANKINE" , "")};
 		      noalias(delta_lamda) =  delta_lamda - Vector(prod(d_inv, residual)); 
 		
                         
@@ -434,6 +444,8 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
                         }
                       }
 
+                   if(iter>=max)  
+		      KRATOS_ERROR(std::logic_error,  "RETURN MAPPING APEX RANKINE  NOT CONVERGED" , "");
 
                      if(mcurrent_Ft <= 0.00) 
                         {
