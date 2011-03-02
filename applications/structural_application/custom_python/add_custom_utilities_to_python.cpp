@@ -313,10 +313,7 @@ namespace Kratos
 		    .def("DetectAndSplitElements",              &Inter_Fracture_Tetrahedra::Detect_And_Split_Elements)
                     ;  
 
-//               class_<RefinementElementsUtilities, boost::noncopyable >
-//                      ("RefinementElementsUtilities", init<>() )
-//  		    .def("MarkForRefinement",      &RefinementElementsUtilities::MarkForRefinement)
-//                      ;  
+
 
 		    
     
