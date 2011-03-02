@@ -229,7 +229,7 @@ namespace Kratos
       {
       }
 
-      virtual void save(Serializer& rSerializer)
+      virtual void save(Serializer& rSerializer) const
       {
 	  rSerializer.save("Name", "CouetteNonNewtonianASGS2D");
 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, NoNewtonianASGS2D);
