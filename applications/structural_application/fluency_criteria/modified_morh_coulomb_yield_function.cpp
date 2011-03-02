@@ -224,7 +224,7 @@ namespace Kratos
 		const double& NU        =   (*mprops)[POISSON_RATIO];
 		const double G          =   0.5 * E / (1.00 + NU);
 		const double K          =   E / (3.00 * (1.00-2.00 * NU) );
-		const double toler      =   1E-8;
+		const double toler      =   1E-5;
 		const unsigned max      =   1000;
 		unsigned int  iter      = 0;
 
@@ -379,9 +379,9 @@ namespace Kratos
 		 
 		
 		if(iter>=max){  
-		  KRATOS_WATCH(norma)
-		  KRATOS_WATCH(residual)
-		  KRATOS_WATCH(dgama) 
+		  //KRATOS_WATCH(norma)
+		  //KRATOS_WATCH(residual)
+		  //KRATOS_WATCH(dgama) 
 		  KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , " "); 
 		 }
 		}
@@ -422,8 +422,8 @@ namespace Kratos
 		const double& NU             =   (*mprops)[POISSON_RATIO];
 		const double G               =   0.5 * E / (1.00 + NU);
 		const double K               =   E / (3.00 * (1.00-2.00 * NU) );
-		const double toler           =  1E-8;
-		const unsigned max           =  100;
+		const double toler           =  1E-5;
+		const unsigned max           =  1000;
 		
 		array_1d<double, 3> dgama    = ZeroVector(3);     
 		array_1d<double, 3> ddgama   = ZeroVector(3); 
@@ -687,10 +687,9 @@ namespace Kratos
 		  norma         = norm_2(residual); 
 		
 		if(iter>=max){  
-		  KRATOS_WATCH(d)
-		  KRATOS_WATCH(residual)
-		  KRATOS_WATCH(dgama) 
-		  KRATOS_WATCH("RETURN MAPPING OF MAIN PLANE, CORNER AND SIGMA 1 NOT CONVERGED")
+		  //KRATOS_WATCH(d)
+		  //KRATOS_WATCH(residual)
+		  //KRATOS_WATCH(dgama) 
 		  KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , ""); 
 		 }
 		}
@@ -726,8 +725,8 @@ namespace Kratos
 	const double& NU             =   (*mprops)[POISSON_RATIO];
 	const double G               =   0.5 * E / (1.00 + NU);
 	const double K               =   E / (3.00 * (1.00-2.00 * NU) );
-	const double toler           =   1E-8;
-	const unsigned max           =   100;
+	const double toler           =   1E-5;
+	const unsigned max           =   1000;
 
 	array_1d<double, 4> dgama    =   ZeroVector(4);     
 	array_1d<double, 4> ddgama   =   ZeroVector(4); 
@@ -1076,9 +1075,6 @@ namespace Kratos
 		  norma = norm_2(residual);
 	          
 		if(iter>=max){
-		  KRATOS_WATCH(dgama)
-		  KRATOS_WATCH(norma)
-		  KRATOS_WATCH("RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 NOT CONVERGED") 
 		  KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 NOT CONVERGED" , ""); 
 		 }
 		}
