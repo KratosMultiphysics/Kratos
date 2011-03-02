@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
-
+#include "includes/serializer.h"
 namespace Kratos
 {
 
@@ -235,6 +235,29 @@ namespace Kratos
 	double k(double a);
         
 	double g(double T); 
+	
+	///@}
+        ///@name Serialization
+        ///@{
+	friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        ConvDiffChangeOfPhase2D() : Element()
+	{
+	}
+	
+        virtual void save(Serializer& rSerializer)
+	{
+	rSerializer.save("Name", "ConvDiffChangeOfPhase2D");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	}
+	
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	}
+
+
       ///@} 
       ///@name Member Variables 
       ///@{ 
