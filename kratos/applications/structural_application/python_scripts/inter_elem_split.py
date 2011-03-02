@@ -32,15 +32,16 @@ class Nodal_Split_Elem:
         self.smoothing.WeightedRecoveryGradients(PK2_STRESS_TENSOR,             NODAL_STRESS,  self.model_part, self.domain_size)
         self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR,  NODAL_STRAIN , self.model_part, self.domain_size)
         #self.smoothing.InterpolatedRecoveryGradients(PK2_STRESS_TENSOR,         NODAL_STRESS,  self.model_part, self.domain_size)
-        
-        
+               
         #print "DETECTING AND SPLIT ELEMENTS "
-        self.split.DetectAndSplitElements(self.model_part)   
+        is_split = self.split.DetectAndSplitElements(self.model_part)   
 	#self.split.Finalize(self.model_part)
 	
 	#self.smoothing.RecomputeValuesForNewMesh(self.model_part, self.domain_size)
 	#self.Smoothing();
 	self.smoothing.Finalize()           
+	return is_split;
+	
 				  
     #################################################################
     #def Smoothing(self):
