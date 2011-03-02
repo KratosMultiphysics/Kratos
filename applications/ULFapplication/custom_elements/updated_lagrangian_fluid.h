@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -242,6 +242,28 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 	
 		double mA0; //stores area at the beginning of time-step
+
+	///@}
+        ///@name Serialization
+        ///@{
+	friend class Serializer;
+
+        // A private default constructor necessary for serialization
+        UpdatedLagrangianFluid() : Element()
+	{
+	}
+	
+        virtual void save(Serializer& rSerializer) const
+	{
+	rSerializer.save("Name", "UpdatedLagrangianFluid");
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	}
+	
+	virtual void load(Serializer& rSerializer)
+	{
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	}
+	
 		
         
         
