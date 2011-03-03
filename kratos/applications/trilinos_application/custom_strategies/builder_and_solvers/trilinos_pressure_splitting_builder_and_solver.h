@@ -855,10 +855,10 @@ namespace Kratos
                 int* ColVelIndices = new int[mVelFreeDofs];
                 int* ColPressIndices = new int[mPressFreeDofs];
 
-                for (int i = 0; i < mVelFreeDofs; i++)
+                for (unsigned int i = 0; i < mVelFreeDofs; i++)
                     ColVelIndices[i] = i;
 
-                for (int i = 0; i < mPressFreeDofs; i++)
+                for (unsigned int i = 0; i < mPressFreeDofs; i++)
                     ColPressIndices[i] = i;
 
                 Epetra_Map ColUMap(mVelFreeDofs, mVelFreeDofs, ColVelIndices, 0, mrComm);

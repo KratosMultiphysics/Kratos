@@ -305,7 +305,7 @@ namespace Kratos
 				// computation of the nullspace
 				int numdf; // dofs per node
 				int dimns; // dimension of the null space
-				int lrows =  A.NumMyRows(); //number of rows for calling processor
+//				int lrows =  A.NumMyRows(); //number of rows for calling processor
 
 				//Teuchos::RCP<vector<double> >  ns;
 				boost::shared_ptr<vector<double> > ns;
@@ -463,9 +463,9 @@ namespace Kratos
 						
 							ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find( dof_it->Id() );
 
-							double xx = inode->X();
-							double yy = inode->Y();
-							double zz = inode->Z();
+//							double xx = inode->X();
+//							double yy = inode->Y();
+//							double zz = inode->Z();
 
 
 							(*ns)[k]=0.0;
@@ -566,9 +566,9 @@ namespace Kratos
 						
 							ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find( dof_it->Id() );
 
-							double xx = inode->X();
-							double yy = inode->Y();
-							double zz = inode->Z();
+//							double xx = inode->X();
+//							double yy = inode->Y();
+//							double zz = inode->Z();
 						
 							(*ns)[k]=1.0;
 							(*ns)[k+1]=0.0;
