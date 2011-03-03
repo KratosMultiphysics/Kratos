@@ -713,19 +713,20 @@ namespace Kratos
 			
 			
 			if(mpA != NULL) {
-			  TSystemMatrixType& mA = *mpA;
+//			  TSystemMatrixType& mA = *mpA;
 			  SparseSpaceType::Clear(mpA);
-			  SparseSpaceType::Resize(mA,0,0);
+//			  SparseSpaceType::Resize(mA,0,0);
 			}			  
 			if(mpDx != NULL) {
-			  TSystemVectorType& mDx = *mpDx;
+//			  TSystemVectorType& mDx = *mpDx;
 			  SparseSpaceType::Clear(mpDx);
-			  SparseSpaceType::Resize(mDx,0);
+//			  SparseSpaceType::Resize(mDx,0);
 			}
 			if(mpb != NULL) {
-			  TSystemVectorType& mb = *mpb;
+//			  TSystemVectorType& mb = *mpb;
 			  SparseSpaceType::Clear(mpb);
-			  SparseSpaceType::Resize(mb,0);}
+//			  SparseSpaceType::Resize(mb,0);
+                        }
 			
 			//setting to zero the internal flag to ensure that the dof sets are recalculated
 			GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
