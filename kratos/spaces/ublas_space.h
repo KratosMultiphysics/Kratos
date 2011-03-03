@@ -443,10 +443,12 @@ namespace Kratos {
 
         static void Clear(MatrixPointerType& pA) {
             pA->clear();
+            pA->resize(0,0,false);
         }
 
         static void Clear(VectorPointerType& pX) {
             pX->clear();
+            pX->resize(0,false);
         }
 
                 /*	static void Clear(MatrixType& rA)
