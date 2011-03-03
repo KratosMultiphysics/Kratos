@@ -90,8 +90,13 @@ namespace Kratos
     /**@name Kratos Classes */
     /*@{ */
 
-    /** Short class definition.
-    Detail class definition.
+    /** This class computes the (positive) distance from a set of node. The origin nodes
+     * should be marked by setting GetValue(IS_VISITED)=1, while IS_VISITED should be set
+     * to zero on all of the other nodes.
+     * The computation is performed layer by layer as described in the paper
+     * "Simple finite element-based computation of distance functions in unstructured grids"
+     * IJNME, 2007; 72:1095–1110
+    
 	
   \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 	  
@@ -112,6 +117,8 @@ namespace Kratos
 					  
 						
      */
+
+
     class BodyDistanceCalculationUtils
     {
     public:
@@ -145,9 +152,14 @@ namespace Kratos
 
         //***********************************************************************
         //***********************************************************************
-        //this function calculates the "area normal" (vector oriented as the normal
-        //with a dimension proportional to the area. This is done basing on the volume discretization.
-
+        ///this function calculates the "area normal" (vector oriented as the normal
+        ///with a dimension proportional to the area. This is done basing on the volume discretization.
+        ///@param rElements is the array of elements
+        ///@param rDistanceVar is the variable on which the distance will be written
+        ///@param max_distance the computation will be stopped if this distance is exceeded. This allows
+        ///       faster calculations. Set it to a large number to perform the distance over the whole volume
+        ///NOTE: the distance is computed from the nodes marked by IS_VISITED=1. User should ensure that all of the other
+        ///nodes should be marked by IS_VISITED=0.
         template< unsigned int TDim>
         void CalculateDistances(
                 ElementsArrayType& rElements,

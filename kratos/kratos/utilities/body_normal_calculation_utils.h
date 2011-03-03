@@ -217,6 +217,7 @@ namespace Kratos
 			}
 			
 			r_model_part.GetCommunicator().AssembleCurrentData(NORMAL);
+// 			r_model_part.GetCommunicator().AssembleCurrentData(PRESSURE);
 
 
 			KRATOS_CATCH("")			
