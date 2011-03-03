@@ -559,12 +559,12 @@ namespace Kratos
 			KRATOS_TRY
 
 			  //Gets the array of elements from the modeler
- 			  ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+// 			  ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 /*  			  ElementsArrayType& pElements = r_model_part.Elements(ModelPart::Kratos_Local); */
 
 			  Element::DofsVectorType ElementalDofList;
 
-			  ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+//			  ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
 			  DofsArrayType Doftemp;
 			  BaseType::mDofSet = DofsArrayType();
@@ -834,6 +834,7 @@ namespace Kratos
 						    if(num_active_indices != 0)
 						    {
 							    int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
+                                                            if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 837","");
 						    }						
 					    }
 	    
@@ -855,6 +856,7 @@ namespace Kratos
 						    if(num_active_indices != 0)
 						    {
 							    int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
+                                                            if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 859","");
 						    }
 					    }
 					}

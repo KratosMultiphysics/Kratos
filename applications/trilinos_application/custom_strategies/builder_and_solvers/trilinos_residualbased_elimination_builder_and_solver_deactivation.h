@@ -1012,7 +1012,7 @@ KRATOS_WATCH(norm_b);
 //                                                        for(unsigned aaa=0; aaa<num_active_indices; aaa++)
 //                                                            std::cout << assembling_temp[aaa] << " ";
 //                                                        std::cout << std::endl;
-//							if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
+							if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
 						}						
                                             }
 					}
@@ -1038,7 +1038,7 @@ KRATOS_WATCH(norm_b);
 						if(num_active_indices != 0)
 						{
 							int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
-//							if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
+							if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
 						}
                                              }
 					}
