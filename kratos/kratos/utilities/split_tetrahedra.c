@@ -85,42 +85,42 @@
  * 		the split_triangle function\n
  */
 void TetrahedraSplitMode(const int aux_ids[11], int edge_ids[6]) {
-    //edge 01
+    /*edge 01*/
     if (aux_ids[4] < 0)
         if (aux_ids[0] > aux_ids[1])  edge_ids[0] = 0;
         else edge_ids[0] = 1;
     else
         edge_ids[0] = 4;
 
-    //edge 02
+    /*edge 02*/
     if (aux_ids[5] < 0)
         if (aux_ids[0] > aux_ids[2]) edge_ids[1] = 0;
         else edge_ids[1] = 2;
     else
         edge_ids[1] = 5;
 
-    //edge 03
+    /*edge 03*/
     if (aux_ids[6] < 0)
         if (aux_ids[0] > aux_ids[3]) edge_ids[2] = 0;
         else edge_ids[2] = 3;
     else
         edge_ids[2] = 6;
 
-    //edge 12
+    /*edge 12*/
     if (aux_ids[7] < 0)
         if (aux_ids[1] > aux_ids[2]) edge_ids[3] = 1;
         else edge_ids[3] = 2;
     else
         edge_ids[3] = 7;
 
-    //edge 13
+    /*edge 13*/
     if (aux_ids[8] < 0)
         if (aux_ids[1] > aux_ids[3]) edge_ids[4] = 1;
         else edge_ids[4] = 3;
     else
         edge_ids[4] = 8;
 
-    //edge 23
+    /*edge 23*/
     if (aux_ids[9] < 0)
         if (aux_ids[2] > aux_ids[3]) edge_ids[5] = 2;
         else edge_ids[5] = 3;
@@ -155,25 +155,25 @@ inline void TetrahedraGetNewConnectivityGID(const int triangle_index,
  * @param --> nel number of elements generated\n
  * @param splitted_edges --> number of edges splitted\n
  * @param nint //internal node\n
- * @return true->splitting needed    false-->no splitting needed\n
+ * @return 1->splitting needed    0-->no splitting needed\n
  */
-bool Split_Tetrahedra(const int edges[6], int t[56], int* nel, int* splitted_edges, int* nint) {
+int Split_Tetrahedra(const int edges[6], int t[56], int* nel, int* splitted_edges, int* nint) {
     *(splitted_edges) = 0;
     for (unsigned int i = 0; i < 6; i++)
         if (edges[i] > 3)
             *splitted_edges = *splitted_edges + 1;
 
-    //the internal node is normally not needed so by default we set to false
+    /*the internal node is normally not needed so by default we set to false*/
     (*nint) = 0;
 
     if (*splitted_edges == 0) {
-        //no splitting needed
+        /*no splitting needed*/
         *nel = 1;
         t[0] = 0;
         t[1] = 1;
         t[2] = 2;
         t[3] = 3;
-        return false;
+        return 0; /*false*/
     }
 
 
@@ -13468,7 +13468,7 @@ bool Split_Tetrahedra(const int edges[6], int t[56], int* nel, int* splitted_edg
             }
         }
     }
-    return true;
+    return 1; /*true*/
 }
 
-#endif // KRATOS_SPLIT_TETRAHEDRA  defined 
+#endif /* KRATOS_SPLIT_TETRAHEDRA  defined */
