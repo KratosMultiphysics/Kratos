@@ -80,13 +80,15 @@ namespace Kratos
                     ("ParallelFillCommunicator",
                      init<ModelPart& >() )
                     .def("Execute", &ParallelFillCommunicator::Execute )
+                    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
                     ;
 		    
             class_<TrilinosRefineMesh, boost::noncopyable >
                     ("TrilinosRefineMesh",
                      init<ModelPart& , Epetra_MpiComm& >() )
                     .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
-                    ;		    
+                    .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
+            ;
 		    
 		    
 		    
