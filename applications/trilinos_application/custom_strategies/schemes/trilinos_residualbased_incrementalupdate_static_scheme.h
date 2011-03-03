@@ -180,7 +180,8 @@ namespace Kratos
 			  int system_size = TSparseSpace::Size1(A);
 			int number_of_dofs = rDofSet.size();
 			int* index_array = new int[number_of_dofs];
-			
+
+
 			//filling the array with the global ids
 			int counter = 0;
 			for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
@@ -192,7 +193,15 @@ namespace Kratos
 					counter += 1;
 				}
 			}
-			double tot_update_dofs = counter;
+			int tot_update_dofs = counter;
+
+                        int check_size = -1;
+                        b.Comm().SumAll(&tot_update_dofs,&check_size,1);
+                        if(check_size < system_size)
+                        {
+                            cout << "expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
+                            KRATOS_ERROR(std::logic_error,"dof count is not correct. There are less dofs then expected","")
+                        }
 
 			//defining a map as needed
 			Epetra_Map dof_update_map(-1,tot_update_dofs,index_array,0,b.Comm() );
