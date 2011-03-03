@@ -39,7 +39,7 @@
  * int nel; //number of nodes generated\n
  * int number_splitted_edges; //number of splitted edges\n
  * int nint; //number of internal nodes\n
- * bools split_needed = Split_Triangle(edge_ids,t, &nel, &number_splitted_edges, &nint)\n
+ * int split_needed = Split_Triangle(edge_ids,t, &nel, &number_splitted_edges, &nint)\n
  *
  * the new triangles ids can be then inspected by\n
  * for(int i=0; i<nel; i++)\n
@@ -63,21 +63,21 @@
  * 		the split_triangle function\n
  */
 void TriangleSplitMode(const int aux_ids[6], int edge_ids[3]) {
-    //edge 01
+    /*edge 01*/
     if (aux_ids[3] < 0)
         if (aux_ids[0] > aux_ids[1]) edge_ids[0] = 0;
         else edge_ids[0] = 1;
     else
         edge_ids[0] = 3;
 
-    //edge 12
+    /*edge 12*/
     if (aux_ids[4] < 0)
         if (aux_ids[1] > aux_ids[2]) edge_ids[1] = 1;
         else edge_ids[1] = 2;
     else
         edge_ids[1] = 4;
 
-    //edge 20
+    /*edge 20*/
     if (aux_ids[5] < 0)
         if (aux_ids[2] > aux_ids[0]) edge_ids[2] = 2;
         else edge_ids[2] = 0;
@@ -113,30 +113,30 @@ inline void TriangleGetNewConnectivityGID(const int triangle_index,
  * @param nel --> (output) number of elements in the subdivision\n
  * @param splitted_edges --> (output) provides the number of splitted edges\n
  * @param nint --> (output)  internal node (not needed for triangles)\n
- * @return true->splitting needed    false-->no splitting needed\n
+ * @return 1->splitting needed    0-->no splitting needed\n
  */
-bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edges, int* nint) {
+int Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edges, int* nint) {
     *splitted_edges = 0;
-    bool topology[3];
-    topology[0] = false;
-    topology[1] = false;
-    topology[2] = false;
+    int topology[3];
+    topology[0] = 0;
+    topology[1] = 0;
+    topology[2] = 0;
     for (unsigned int i = 0; i < 3; i++) {
         if (edges[i] > 2) {
-            topology[i] = true;
+            topology[i] = 1;
             *splitted_edges = *splitted_edges + 1;
         }
     }
 
     if (*splitted_edges == 0 && *nint == 0) {
-        //no splitting needed
+        /*no splitting needed*/
         *nel = 1;
         t[0] = 0;
         t[1] = 1;
         t[2] = 2;
-        return false;
+        return 0;
     }
-   //WARNING = case new central node needed
+   /*WARNING = case new central node needed*/
     else if (*splitted_edges == 0 && *nint == 1) {
         *nel = 3;
 
@@ -151,13 +151,13 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
         t[5] = 3;
         t[5] = 2;
         t[5] = 0;
-        return true;
+        return 1;
     }
 
     else if (*splitted_edges == 1) {
         *nel = 2;
-        // caso 1
-        if (topology[0] == true) {
+        /* caso 1*/
+        if (topology[0] == 1) {
             t[0] = 3;
             t[1] = 2;
             t[2] = 0;
@@ -167,8 +167,8 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
             t[5] = 2;
         }
 
-            // caso 2
-        else if (topology[1] == true) {
+            /* caso 2*/
+        else if (topology[1] == 1) {
             t[0] = 4;
             t[1] = 0;
             t[2] = 1;
@@ -177,8 +177,8 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
             t[4] = 2;
             t[5] = 0;
         }
-            // caso 3
-        else if (topology[2] == true) {
+            /* caso 3*/
+        else if (topology[2] == 1) {
             t[0] = 5;
             t[1] = 1;
             t[2] = 2;
@@ -188,14 +188,14 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
             t[5] = 1;
         }
 
-        return true;
+        return 1;
 
     }
 
     else if (*splitted_edges == 2) {
         *nel = 3;
-        // caso 4
-        if (topology[0] == true && topology[1] == true) {
+        /* caso 4*/
+        if (topology[0] == 1 && topology[1] == 1) {
             if (edges[2] == 0) // si colapso al nodo 0 local
             {
                 t[0] = 4;
@@ -226,8 +226,8 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
             }
 
         }
-            // caso 5
-        else if (topology[1] == true && topology[2] == true) {
+            /* caso 5*/
+        else if (topology[1] == 1 && topology[2] == 1) {
             if (edges[0] == 0) // si colapso al nodo 0 local
             {
                 t[0] = 5;
@@ -242,7 +242,7 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
                 t[7] = 0;
                 t[8] = 1;
             }
-            else if (edges[0] == 1) // si colapso al nodo 2 local
+            else if (edges[0] == 1) 
             {
                 t[0] = 5;
                 t[1] = 4;
@@ -259,9 +259,9 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
         }
 
 
-            /// caso 3
-        else if (topology[0] == true && topology[2] == true) {
-            if (edges[1] == 1) // si colapso al nodo 0 local
+            /* caso 3*/
+        else if (topology[0] == 1 && topology[2] == 1) {
+            if (edges[1] == 1) 
             {
                 t[0] = 5;
                 t[1] = 0;
@@ -275,7 +275,7 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
                 t[7] = 1;
                 t[8] = 2;
             }
-            else if (edges[1] == 2) // si colapso al nodo 2 local
+            else if (edges[1] == 2) 
             {
                 t[0] = 5;
                 t[1] = 0;
@@ -292,7 +292,7 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
 
         }
 
-        return true;
+        return 1;
     }
     else if (*splitted_edges == 3) {
         *nel = 4;
@@ -312,12 +312,12 @@ bool Split_Triangle(const int  edges[3], int t[12], int* nel, int* splitted_edge
         t[10] = 4;
         t[11] = 2;
 
-        return true;
+        return 1;
     } else {
-        return false;
+        return 0;
     }
 
 }
 
-#endif // KRATOS_SPLIT_TRIANGLE  defined 
+#endif /* KRATOS_SPLIT_TRIANGLE  defined */
 
