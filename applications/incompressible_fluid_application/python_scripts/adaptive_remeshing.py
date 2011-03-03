@@ -14,16 +14,18 @@ class AdaptiveRemeshing:
         variable (in that case, call RefineOnErrorRatio instead).
     """
 
-    def __init__(self,model_part,domain_size,solver):
+    def __init__(self,model_part,domain_size,solver,do_swap=True):
         """ Constructor for AdaptiveRemeshing.
             model_part ModelPart containing the mesh to be refined
             domain_size Spatial dimension (2 or 3)
             solver The fluid solver, to ensure that the Dofs are regenerated
             after remeshing
+            do_swap if true, swapping is performed in 2D, otherwise no swapping done
         """
         self.model_part = model_part
         self.domain_size = domain_size
         self.fluid_solver = solver
+        self.do_swap = do_swap
 
         # Error estimation tools
         self.refinement_utilities = RefinementUtilities()
@@ -87,7 +89,7 @@ class AdaptiveRemeshing:
                                                 interpolate_internal_variables)
 
         # In 2D, swap edges to improve mesh quality
-        if (self.domain_size == 2):
+        if (self.domain_size == 2 and self.do_swap==True):
             self.swapping_process.ReGenerateMesh(self.model_part)
 
         # Update neigbours
