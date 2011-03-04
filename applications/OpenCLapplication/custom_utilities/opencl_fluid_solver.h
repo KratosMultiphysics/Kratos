@@ -97,6 +97,8 @@ namespace Kratos
 			//typedef std::vector <cl_double3> CalcSTDVectorType;  // TODO: Is this OK?
 			//typedef std::vector <double> ValuesSTDVectorType;  // TODO: Is this OK?
 
+			// TODO: Remove mHmin and friends
+
 			//
 			// OpenCLFluidSolver3D
 			//
@@ -130,12 +132,17 @@ namespace Kratos
 				mRho = density;
 
 				mdelta_t_avg = 1000.00;
-
 				max_dt = 1.00;
 
 				muse_mass_correction = use_mass_correction;
 
 				mWallLawIsActive = false;
+
+				// Loading OpenCL program
+				mpOpenCLFluidSolver = mrDeviceGroup.BuildProgramFromFile("opencl_fluid_solver.cl", "-cl-fast-relaxed-math");
+
+				// Register kernels
+				mkSolveStep1_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_1");
 			}
 
 			//
@@ -516,7 +523,6 @@ namespace Kratos
 							}
 						}
 					}
-
 				}
 
 				// Fill the list of slip nodes
@@ -584,7 +590,9 @@ namespace Kratos
 
 			// OpenCL stuff
 			OpenCL::DeviceGroup &mrDeviceGroup;
-			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbrhs;  // TODO: Fix this!
+			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbrhs;
+
+			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1;
 
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
@@ -721,8 +729,7 @@ namespace Kratos
 					unsigned int i_node = static_cast <unsigned int> (node_it -> FastGetSolutionStepValue(AUX_INDEX));
 
 					// Save its coordinates locally
-					//noalias(position[i_node]) = node_it -> Coordinates();
-					position[i_node] = node_it -> Coordinates();  // TODO: Is this OK?
+					noalias(position[i_node]) = node_it -> Coordinates();
 
 					// Initialize minimum edge length with relatively big values
 					mHmin[i_node] = 1e10;
@@ -913,10 +920,10 @@ namespace Kratos
 				}
 
 				// TODO: Fix this when needed
-				//for (unsigned int i = 0; i < mcorner_nodesListLength; i++)
-				//{
-				//	KRATOS_WATCH(mcorner_nodes[i]);
-				//}
+				for (unsigned int i = 0; i < mcorner_nodesListLength; i++)
+				{
+					KRATOS_WATCH(mcorner_nodesList[i]);
+				}
 
 				KRATOS_CATCH("")
 			}

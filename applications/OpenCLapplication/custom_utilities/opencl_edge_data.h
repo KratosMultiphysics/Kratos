@@ -257,7 +257,6 @@ namespace Kratos
 			OpenCLMatrixContainer(OpenCL::DeviceGroup &device_group): mrDeviceGroup(device_group)
 			{
 				// Loading OpenCL program
-				// TODO: Add optimization flags here
 				mpOpenCLEdgeData = mrDeviceGroup.BuildProgramFromFile("opencl_edge_data.cl", "-cl-fast-relaxed-math");
 
 				// Register kernels
