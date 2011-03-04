@@ -466,6 +466,40 @@ namespace Kratos
 
 				// TODO: Call kernels here!
 
+				mr_matrix_container.AssignVectorToVector(mbvel_n, mbWork);  // mWork = mvel_n
+
+				// First step of Runge Kutta
+				mr_matrix_container.AssignVectorToVector(mbvel_n, mbvel_n1);  // mvel_n1 = mvel_n
+
+				mr_matrix_container.SetToZero(mbrhs);
+				//CalculateRHS(mvel_n1, mPn, mvel_n1, mrhs);  // TODO: Fix the arguments!
+				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 6.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+
+				// Second step
+				mr_matrix_container.SetToZero(mbrhs);
+				//CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);  // TODO: Fix the arguments!
+				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 3.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+
+				// Third step
+				mr_matrix_container.SetToZero(mbrhs);
+				//CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);  // TODO: Fix the arguments!
+				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 3.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+
+				// Fourth step
+				mr_matrix_container.SetToZero(mbrhs);
+				//CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);  // TODO: Fix the arguments!
+				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 6.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
+
+				// Compute right-hand side
+				mr_matrix_container.AssignVectorToVector(mbWork, mbvel_n1);
+				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+
 				KRATOS_CATCH("")
             }
 
