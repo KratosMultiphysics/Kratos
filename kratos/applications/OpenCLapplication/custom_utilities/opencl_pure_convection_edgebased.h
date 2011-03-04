@@ -104,7 +104,6 @@ namespace Kratos
 			OpenCLPureConvectionEdgeBased3D(OpenCLMatrixContainer &matrix_container, ModelPart &model_part): mr_matrix_container(matrix_container), mrDeviceGroup(mr_matrix_container.GetDeviceGroup()), mr_model_part(model_part)
 			{
 				// Loading OpenCL program
-				// TODO: Add optimization flags here
 				mpOpenCLPureConvectionEdgeBased = mrDeviceGroup.BuildProgramFromFile("opencl_pure_convection_edgebased.cl", "-cl-fast-relaxed-math");
 
 				// Register kernels
