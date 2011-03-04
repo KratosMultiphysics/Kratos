@@ -116,7 +116,7 @@ elif(SolverType == "pressure_splitting"):
     dynamic_tau = fluid_only_var.dynamic_tau
 ##    pPrecond = ILU0Preconditioner()
     pPrecond = DiagonalPreconditioner()
-    fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pPrecond)
+    fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 ##    fluid_solver.linear_solver =  SuperLUSolver()
     fluid_solver.rel_vel_tol = 1e-4
     fluid_solver.abs_vel_tol = 1e-6
@@ -192,6 +192,10 @@ while(time < final_time):
 
     if(step >= 3):
         fluid_solver.Solve()
+
+        if(step < 6):
+            for node in fluid_model_part.Nodes:
+                node.SetSolutionStepValue(PRESSURE,0,0.0)
 
         #plotting benchmarking data
         BenchmarkCheck(time, fluid_model_part)
