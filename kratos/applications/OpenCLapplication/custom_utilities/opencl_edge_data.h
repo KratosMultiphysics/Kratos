@@ -96,6 +96,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_OCL_COMP_2(a)			(a.s[2])
 #define KRATOS_OCL_COMP_3(a)			(a.s[3])
 
+#define KRATOS_OCL_COMP(a, n)           (a.s[n])
+
 #define KRATOS_OCL_ZERO_VECTOR(a)		{ a.s[0] = 0.00; a.s[1] = 0.00; a.s[2] = 0.00; a.s[3] = 0.00; }
 
 
