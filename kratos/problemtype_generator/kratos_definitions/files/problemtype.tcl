@@ -1,10 +1,72 @@
+namespace eval ::kaux:: {
+    variable kratos_path ""
+    variable pt_path ""
+}
+
+
 proc InitGIDProject {dir} {
+	# Initialize global variables
+	InitKratosPT $dir
+
+	# Splash image
 	if { [file exists [file join $dir "kratos_splash.png"] ] } then {
 		kratos_splash $dir 1
 	}
 	# Custom Menu
 }
 
+# Pass the path to kratos and the name of the problem to the Python script
+proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args } {
+
+    set filename [file join $dir "${basename}-3.dat"]
+
+    set varfile [open $filename a]
+    puts $varfile "problem_name = '${basename}'"
+    puts $varfile "problem_path = '${dir}'"
+    puts $varfile "kratos_path = '${::kaux::kratos_path}'"
+    puts $varfile ""
+    close $varfile
+}
+
+proc InitKratosPT { ptdir } {
+    # Store path to problemtype folder
+    set ::kaux::pt_path $ptdir
+
+    # Set path to kratos
+    set knownpath 0
+    set setupfile [file join $ptdir "kratos_setup"]
+    if { [file exists $setupfile] } {
+	set setupdata [open $setupfile r]
+	if { [gets $setupdata line] >= 0 } {
+	    if { [file isdirectory $line] } {
+		set ::kaux::kratos_path $line
+		set knownpath 1
+	    }
+	}
+    }
+
+    # If path to kratos is unknown, ask it to user
+    if { $knownpath == 0 } {
+	GetKratosPath
+    }
+}
+
+proc GetKratosPath { } {
+    # Ask the path to Kratos, store it in an auxiliary variable
+    set title "Select the path to your Kratos folder"
+    set ::kaux::kratos_path [tk_chooseDirectory \
+				 -mustexist 1 \
+				 -title $title ]
+
+    # Also store the path in a file, to remember it next time we open GiD
+    set filepath [file join $::kaux::pt_path "kratos_setup"]
+
+    set setupfile [open $filepath w]
+    puts $setupfile $::kaux::kratos_path
+    close $setupfile
+}
+
+# Main condition assignation procedure
 proc BeforeMeshGeneration {elementsize} {
 
 	global surf_elemtype_check

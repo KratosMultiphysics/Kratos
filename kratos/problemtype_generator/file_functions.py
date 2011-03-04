@@ -158,6 +158,7 @@ def check_books(projectname,templates_path):
     menucode=menucode+\
               	'\tGiDMenu::InsertOption "'+menuname+'" [list "---"] '+str(menuindex)+' PRE "" "" ""\n'+\
               	'\tGiDMenu::InsertOption "'+menuname+'" [list "Model Status"] '+str(menuindex+1)+' PRE "cond_report" "" ""\n'+\
+              	'\tGiDMenu::InsertOption "'+menuname+'" [list "Change Kratos Path"] '+str(menuindex+2)+' PRE "GetKratosPath" "" ""\n'+\
               	'\tGiDMenu::UpdateMenus\n'
 
     return menucode
