@@ -107,7 +107,6 @@ namespace Kratos
 				ModelPart &model_part,
 				const double viscosity,
 				const double density,
-				// TODO: What?! Vector?
 				const Vector body_force,
 				bool use_mass_correction,
 				double edge_detection_angle,
@@ -270,7 +269,7 @@ namespace Kratos
 
 				// Compute slip normals and fill SlipList
 				CalculateNormals(mr_model_part.Conditions());
-				mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes(), mbSlipNormal);  // TODO: Fix this!
+				mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes(), mbSlipNormal);
 
 				DetectEdges3D(mr_model_part.Conditions());
 
@@ -373,8 +372,8 @@ namespace Kratos
 						double v_diff_norm = 0.00;
 						for (unsigned int l_comp = 0; l_comp < 3; l_comp++)
 						{
-                            double temp = KRATOS_OCL_COMP(mvel_n1[i_node], l_comp) - KRATOS_OCL_COMP(mvel_n1[j_neighbour], l_comp);
-                            v_diff_norm += temp * temp;
+							double temp = KRATOS_OCL_COMP(mvel_n1[i_node], l_comp) - KRATOS_OCL_COMP(mvel_n1[j_neighbour], l_comp);
+							v_diff_norm += temp * temp;
 						}
 
 						v_diff_norm = sqrt(v_diff_norm);
@@ -418,9 +417,7 @@ namespace Kratos
                 for (unsigned int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
                 {
                     unsigned int i_node = mFixedVelocitiesList[i_velocity];
-
-                    for (unsigned int comp = 0; comp < 3; comp++)
-                        KRATOS_OCL_COMP(mFixedVelocitiesValuesList[i_velocity], comp) = KRATOS_OCL_COMP(mvel_n1[i_node], comp);
+                    mFixedVelocitiesValuesList[i_velocity] = mvel_n1[i_node];
                 }
 
                 // TODO: Should we update anything on GPU?
@@ -441,8 +438,6 @@ namespace Kratos
 
 				// Variables for node based data handling
 				ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
-
-				//rhs.resize(n_nodes);  // TODO: Fix this! Why not allocate at Initialize()? -> Done
 
 				// Read velocity and pressure data from Kratos
 				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
@@ -758,10 +753,10 @@ namespace Kratos
 						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
 						array_1d <double, 3> &pos_j = position[j_neighbour];
 
-						for (unsigned int comp = 0; comp < 3; comp++)
-						{
-							KRATOS_OCL_COMP(mEdgeDimensions[csr_index], comp) = pos_i[comp] - pos_j[comp];
-						}
+						KRATOS_OCL_COMP_0(mEdgeDimensions[csr_index]) = pos_i[0] - pos_j[0];
+						KRATOS_OCL_COMP_1(mEdgeDimensions[csr_index]) = pos_i[1] - pos_j[1];
+						KRATOS_OCL_COMP_2(mEdgeDimensions[csr_index]) = pos_i[2] - pos_j[2];
+						KRATOS_OCL_COMP_3(mEdgeDimensions[csr_index]) = 0.00;
 					}
 				}
 
