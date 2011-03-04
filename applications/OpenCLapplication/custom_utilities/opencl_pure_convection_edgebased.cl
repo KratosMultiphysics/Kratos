@@ -49,7 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 //
-// opencl_edge_data.cl
+// opencl_pure_convection_edgebased.cl
 //
 // OpenCL kernels and functions used in opencl_pure_convection_edgebased.h
 
