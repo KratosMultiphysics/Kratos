@@ -112,8 +112,6 @@ __kernel void CalculateRHS1(__global VectorType *Pi, __global ValueType *phi, __
 		Bounds[0] = RowStartIndex[i_node];
 	}
 
-	//barrier(CLK_LOCAL_MEM_FENCE);
-
 	if (i_node < n_nodes)
 	{
 		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
@@ -160,8 +158,6 @@ __kernel void CalculateRHS2(__global VectorType *Pi, __global ValueType *phi, __
 	{
 		Bounds[0] = RowStartIndex[i_node];
 	}
-
-	//barrier(CLK_LOCAL_MEM_FENCE);
 
 	if (i_node < n_nodes)
 	{
@@ -219,8 +215,6 @@ __kernel void CalculateRHS3(__global VectorType *Pi, __global ValueType *phi, __
 	{
 		Bounds[0] = RowStartIndex[i_node];
 	}
-
-	//barrier(CLK_LOCAL_MEM_FENCE);
 
 	if (i_node < n_nodes)
 	{
