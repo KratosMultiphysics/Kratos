@@ -433,6 +433,155 @@ namespace Kratos
             }
 
             //
+            // CalculateRHS
+            //
+            // Function to calculate right-hand side of fractional momentum equation
+
+			void CalculateRHS(cl_uint vel_buffer, cl_uint pressure_buffer, cl_uint convective_velocity_buffer, cl_uint rhs_buffer)
+			{
+/*				KRATOS_TRY
+
+				// TODO: Is this OK?
+				//int n_nodes = vel.size();
+
+				// Calculating the RHS
+				array_1d<double, TDim> stab_low;
+				array_1d<double, TDim> stab_high;
+				const double nu_i = mViscosity;
+				const double nu_j = mViscosity;
+				double inverse_rho = 1.0 / mRho;
+				#pragma omp parallel for private(stab_low,stab_high)
+				for (int i_node = 0; i_node < n_nodes; i_node++) {
+					array_1d<double, TDim>& rhs_i = rhs[i_node];
+					const array_1d<double, TDim>& f_i = mBodyForce;
+					array_1d<double, TDim> a_i = convective_velocity[i_node];
+
+					const array_1d<double, TDim>& U_i = vel[i_node];
+					const array_1d<double, TDim>& pi_i = mPi[i_node];
+					const double& p_i = pressure[i_node];
+
+					double edge_tau = mTauConvection[i_node];
+
+					//initializing with the external forces (e.g. gravity)
+					double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+					for (unsigned int comp = 0; comp < TDim; comp++)
+					rhs_i[comp] = m_i  * f_i[comp] ;
+
+					//convective term
+					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+						array_1d<double, TDim> a_j = convective_velocity[j_neighbour];
+						const array_1d<double, TDim>& U_j = vel[j_neighbour];
+						const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
+						const double& p_j = pressure[j_neighbour];
+
+						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+						edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
+						edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
+						edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
+
+						//add stabilization
+						edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
+						edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
+					}
+				}
+
+				//apply wall resistance
+			  if(mWallLawIsActive == true)
+				  ComputeWallResistance(vel,rhs);
+
+				ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+				mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
+				KRATOS_CATCH("")
+*/
+			}
+
+			//
+			// ApplyVelocityBC
+			//
+
+			void ApplyVelocityBC(cl_uint VelArray_buffer)
+			{
+/*
+				KRATOS_TRY
+
+				if(mWallLawIsActive == false)
+				{
+				//apply conditions on corner edges
+				int edge_size = medge_nodes_direction.size();
+				#pragma omp parallel for firstprivate(edge_size)
+				for (int i = 0; i < edge_size; i++)
+				{
+					int i_node = medge_nodes[i];
+					const array_1d<double, TDim>& direction = medge_nodes_direction[i];
+					array_1d<double, TDim>& U_i = VelArray[i_node];
+					double temp=0.0;
+					for (unsigned int comp = 0; comp < TDim; comp++)
+						temp += U_i[comp] * direction[comp];
+
+					for (unsigned int comp = 0; comp < TDim; comp++)
+						U_i[comp] = direction[comp]*temp;
+
+				}
+
+				//apply conditions on corners
+				int corner_size = mcorner_nodes.size();
+				for (int i = 0; i < corner_size; i++)
+				{
+					int i_node = mcorner_nodes[i];
+
+					array_1d<double, TDim>& U_i = VelArray[i_node];
+					for (unsigned int comp = 0; comp < TDim; comp++)
+						U_i[comp] = 0.0;
+				}
+				}
+
+
+				//slip condition
+				int slip_size = mSlipBoundaryList.size();
+				#pragma omp parallel for firstprivate(slip_size)
+				for (int i_slip = 0; i_slip < slip_size; i_slip++)
+				{
+				unsigned int i_node = mSlipBoundaryList[i_slip];
+					array_1d<double, TDim>& U_i = VelArray[i_node];
+					array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+					double projection_length = 0.0;
+					double normalization = 0.0;
+					for (unsigned int comp = 0; comp < TDim; comp++) {
+					projection_length += U_i[comp] * an_i[comp];
+					normalization += an_i[comp] * an_i[comp];
+					}
+					projection_length /= normalization;
+					//tangential momentum as difference between original and normal momentum
+					for (unsigned int comp = 0; comp < TDim; comp++)
+					U_i[comp] -= projection_length * an_i[comp];
+
+				}
+
+				//fixed condition
+				int fixed_size = mFixedVelocities.size();
+				#pragma omp parallel for firstprivate(fixed_size)
+				for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
+				{
+				unsigned int i_node = mFixedVelocities[i_velocity];
+
+					const array_1d<double, TDim>& u_i_fix = mFixedVelocitiesValues[i_velocity];
+					array_1d<double, TDim>& u_i = VelArray[i_node];
+
+					for (unsigned int comp = 0; comp < TDim; comp++)
+					u_i[comp] = u_i_fix[comp];
+
+				}
+
+
+
+				KRATOS_CATCH("")
+
+*/
+			}
+
+            //
             // SolveStep1
             //
             // Function to solve fluid equations - fractional step 1: compute fractional momentum
@@ -472,36 +621,399 @@ namespace Kratos
 				mr_matrix_container.AssignVectorToVector(mbvel_n, mbvel_n1);  // mvel_n1 = mvel_n
 
 				mr_matrix_container.SetToZero(mbrhs);
-				//CalculateRHS(mvel_n1, mPn, mvel_n1, mrhs);  // TODO: Fix the arguments!
+				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 6.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
-				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+				ApplyVelocityBC(mbvel_n1);
 
 				// Second step
 				mr_matrix_container.SetToZero(mbrhs);
-				//CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);  // TODO: Fix the arguments!
+				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 3.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
-				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+				ApplyVelocityBC(mbvel_n1);
 
 				// Third step
 				mr_matrix_container.SetToZero(mbrhs);
-				//CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);  // TODO: Fix the arguments!
+				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 3.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
-				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+				ApplyVelocityBC(mbvel_n1);
 
 				// Fourth step
 				mr_matrix_container.SetToZero(mbrhs);
-				//CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);  // TODO: Fix the arguments!
+				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 6.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 
 				// Compute right-hand side
 				mr_matrix_container.AssignVectorToVector(mbWork, mbvel_n1);
-				//ApplyVelocityBC(mvel_n1);  // TODO: Fix the arguments!
+				ApplyVelocityBC(mbvel_n1);
 
 				KRATOS_CATCH("")
             }
+
+            //
+            // SolveStep2
+            //
+            // Function to solve fluid equations - fractional step 2: calculate pressure
+
+			void SolveStep2()  // TODO: Fix this! (typename TLinearSolver::Pointer pLinearSolver)
+			{
+/*
+				KRATOS_TRY
+
+				// Prerequisites
+
+				//allocate memory for variables
+				ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+				int n_nodes = rNodes.size();
+				//unknown and right-hand side vector
+				TSystemVectorType dp, rhs;
+				dp.resize(n_nodes);
+				rhs.resize(n_nodes);
+				array_1d<double, TDim> dU_i, dU_j, work_array;
+				//read time step size from Kratos
+				ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+				double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+		#ifdef _OPENMP
+				double time_inv = 0.0; //1.0/delta_t;
+
+				//read the pressure projection from the database
+		#endif
+				mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
+				mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes);
+				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+
+				#pragma omp parallel for firstprivate(time_inv)
+				for (int i_node = 0; i_node < n_nodes; i_node++) {
+
+				double& rhs_i = rhs[i_node];
+				rhs_i = 0.0;
+				const double& p_i = mPn1[i_node];
+				const double& p_old_i = mPn[i_node];
+				const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
+
+				array_1d<double, TDim>& xi_i = mXi[i_node];
+
+				double l_ii = 0.0;
+
+				//loop over all neighbours
+				for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+					const double& p_j = mPn1[j_neighbour];
+					const double& p_old_j = mPn[j_neighbour];
+					const array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
+					const array_1d<double, TDim>& xi_j = mXi[j_neighbour];
+
+					CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+		#ifdef SYMM_PRESS
+					double edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
+		#else
+					double edge_tau = mTauPressure[i_node];
+		#endif
+
+
+
+					//compute laplacian operator
+					double sum_l_ikjk;
+					edge_ij.CalculateScalarLaplacian(sum_l_ikjk);
+					double sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
+					sum_l_ikjk *= (delta_t + edge_tau);
+
+					//assemble right-hand side
+					//pressure contribution
+					rhs_i -= sum_l_ikjk * (p_j - p_i);
+					rhs_i += sum_l_ikjk_onlydt * (p_old_j - p_old_i);
+
+
+					//calculating the divergence of the fract vel
+					edge_ij.Sub_D_v(rhs_i, U_i_curr*mRho, U_j_curr * mRho);
+
+					//high order stabilizing term
+					double temp = 0.0;
+					edge_ij.Add_div_v(temp, xi_i, xi_j);
+					rhs_i += edge_tau * temp;
+
+					//assemble laplacian matrix
+					mL(i_node, j_neighbour) = sum_l_ikjk;
+					l_ii -= sum_l_ikjk;
+				}
+
+				mL(i_node, i_node) = l_ii;
+				}
+
+				if(muse_mass_correction == true)
+				{
+				#pragma omp parallel for
+				for (int i_node = 0; i_node < n_nodes; i_node++)
+				{
+					double& rhs_i = rhs[i_node];
+					rhs_i -= mdiv_error[i_node];
+				}
+				}
+
+				//find the max diagonal term
+				double max_diag = 0.0;
+				for (int i_node = 0; i_node < n_nodes; i_node++) {
+				double L_diag = mL(i_node, i_node);
+				if (fabs(L_diag) > fabs(max_diag)) max_diag = L_diag;
+				}
+
+
+
+
+				//respect pressure boundary conditions by penalization
+		//            double huge = max_diag * 1e6;
+		//            for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
+		//                unsigned int i_node = mPressureOutletList[i_pressure];
+		//                mL(i_node, i_node) = huge;
+		//                rhs[i_node] = 0.0;
+		//            }
+				for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
+				unsigned int i_node = mPressureOutletList[i_pressure];
+				mL(i_node, i_node) = max_diag;
+				rhs[i_node] = 0.0;
+				for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+				{
+					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+					mL(i_node, j_neighbour) = 0.0;
+				}
+				}
+
+				//set starting vector for iterative solvers
+				for (int i_node = 0; i_node < n_nodes; i_node++)
+				dp[i_node] = 0.0;
+
+				pLinearSolver->Solve(mL, dp, rhs);
+				KRATOS_WATCH(*pLinearSolver)
+
+
+				//update pressure
+				for (int i_node = 0; i_node < n_nodes; i_node++)
+				mPn1[i_node] += dp[i_node];
+
+				//write pressure and density to Kratos
+				mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes);
+
+
+				//compute pressure proj for the next step
+
+				#pragma omp parallel for firstprivate(time_inv), private(work_array)
+				for (int i_node = 0; i_node < n_nodes; i_node++) {
+				array_1d<double, TDim>& xi_i = mXi[i_node];
+				for (unsigned int comp = 0; comp < TDim; comp++)
+					xi_i[comp] = 0.0;
+
+
+					const double& p_i = mPn1[i_node];
+
+					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+					//get global index of neighbouring node j
+					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+
+						const double& p_j = mPn1[j_neighbour];
+
+						//projection of pressure gradients
+						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+						edge_ij.Add_grad_p(xi_i, p_i, p_j);
+					}
+
+					const double& m_inv = mr_matrix_container.GetInvertedMass()[i_node];
+					for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+					xi_i[l_comp] *= m_inv;
+
+
+				}
+
+				mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes);
+
+				KRATOS_CATCH("")
+*/
+			}
+
+			//
+			// SolveStep3
+			//
+			// Function to solve fluid equations - fractional step 3: correct fractional momentum
+
+			void SolveStep3()
+			{
+/*
+				KRATOS_TRY
+
+				//get number of nodes
+				ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+
+				// TODO: Is this OK?
+				//int n_nodes = rNodes.size();
+
+				//define work array
+				array_1d<double, TDim> correction;
+				//read time step size from Kratos
+				ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+				double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+				double factor = 0.5;
+				if(massume_constant_dp == true)
+				factor = 1.0;
+
+				//compute end of step momentum
+				double rho_inv = 1.0 / mRho;
+				#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv,factor)
+				for (int i_node = 0; i_node < n_nodes; i_node++) {
+
+					array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
+					double delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv*factor;
+					const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
+
+					//setting to zero
+					for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+					correction[l_comp] = 0.0;
+
+					//compute edge contributions dt*M^(-1)Gp
+					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+					double delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv*factor;
+
+					CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+					edge_ij.Sub_grad_p(correction, delta_p_i, delta_p_j);
+					}
+					//compute prefactor
+					double coefficient = delta_t * m_inv;
+
+					//correct fractional momentum
+					for (unsigned int comp = 0; comp < TDim; comp++)
+					U_i_curr[comp] += coefficient * correction[comp];
+
+				}
+
+				ApplyVelocityBC(mvel_n1);
+
+				//write velocity of time step n+1 to Kratos
+				mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
+
+
+
+				//calculate the error on the divergence
+				if(muse_mass_correction == true)
+				{
+				#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
+				for (int i_node = 0; i_node < n_nodes; i_node++)
+				{
+					double& div_i_err = mdiv_error[i_node];
+					div_i_err = 0.0;
+
+					const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
+
+					//compute edge contributions dt*M^(-1)Gp
+					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+					{
+						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+						array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
+
+						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+						edge_ij.Add_D_v(div_i_err, U_i_curr*mRho, U_j_curr * mRho);
+					}
+
+				}
+				}
+
+				KRATOS_CATCH("")
+*/
+			}
+
+			//
+			//
+			//
+
+			void ComputeWallResistance(cl_uint vel_buffer, cl_uint rhs_buffer)
+			{
+/*
+				//parameters:
+				double k = 0.41;
+				double B = 5.1;
+				double density = mRho;
+				double mu = mViscosity;
+				double toll = 1e-6;
+				double ym = mY_wall; //0.0825877; //0.0093823
+				double y_plus_incercept = 10.9931899;
+				unsigned int itmax = 100;
+
+				if (mu == 0)
+				KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+
+				//slip condition
+				int slip_size = mSlipBoundaryList.size();
+		#pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
+				for (int i_slip = 0; i_slip < slip_size; i_slip++)
+				{
+				unsigned int i_node = mSlipBoundaryList[i_slip];
+
+					array_1d<double, TDim>& rhs_i = rhs[i_node];
+					const array_1d<double, TDim>& U_i = vel[i_node];
+					const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+
+					//compute the modulus of the velocity
+					double mod_vel = 0.0;
+					double area = 0.0;
+					for (unsigned int comp = 0; comp < TDim; comp++)
+					{
+					mod_vel += U_i[comp] * U_i[comp];
+					area += an_i[comp] * an_i[comp];
+					}
+					mod_vel = sqrt(mod_vel);
+					area = sqrt(area);
+
+					//now compute the skin friction
+					double mod_uthaw = sqrt(mod_vel * mu / ym);
+					const double y_plus = ym * mod_uthaw / mu;
+
+					if (y_plus > y_plus_incercept)
+					{
+					//begin cicle to calculate the real u_thaw's module:
+					unsigned int it = 0;
+					double dx = 1e10;
+					//                        KRATOS_WATCH(fabs(dx));
+					while (fabs(dx) > toll * mod_uthaw && it < itmax)
+					{
+						double a = 1.0 / k;
+						double temp = a * log(ym * mod_uthaw / mu) + B;
+						double y = mod_uthaw * (temp) - mod_vel;
+						double y1 = temp + a;
+						dx = y / y1;
+						mod_uthaw -= dx;
+						it = it + 1;
+					}
+
+					//                         KRATOS_WATCH(toll*mod_uthaw);
+					//                         KRATOS_WATCH(area);
+					//                        KRATOS_WATCH(it);
+					if (it == itmax)
+						std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
+
+
+					}
+					//                    else
+					//                    {
+					//                        for (unsigned int comp = 0; comp < TDim; comp++)
+					//                            rhs_i[comp] -= U_i[comp] * area * mu  / (density*ym) ;
+					//                    }
+
+					if (mod_vel > 1e-12)
+					for (unsigned int comp = 0; comp < TDim; comp++)
+						rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+
+
+
+
+				}
+*/
+			}
 
             //
             // CalculateNormals
