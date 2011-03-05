@@ -143,6 +143,7 @@ namespace Kratos
 
 				// Register kernels
 				mkSolveStep1_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_1");
+				mkSolveStep1_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_2");
 			}
 
 			//
@@ -609,11 +610,23 @@ namespace Kratos
 				// Compute intrinsic time
 				double time_inv_avg = 1.00 / mdelta_t_avg;
 
-				double stabdt_pressure_factor = mstabdt_pressure_factor;
-				double stabdt_convection_factor = mstabdt_convection_factor;
-				double tau2_factor = mtau2_factor;
+				// Calling Solve1 OpenCL kernel
 
-				// TODO: Call kernels here!
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 0, mbHavg);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 1, mbvel_n1);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 2, mbTauPressure);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 3, mbTauConvection);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 4, mbTau2);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 5, mViscosity);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 6, time_inv_avg);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 7, mstabdt_pressure_factor);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 8, mstabdt_convection_factor);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 9, mtau2_factor);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 10, n_nodes);
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkSolveStep1_1, n_nodes);
 
 				mr_matrix_container.AssignVectorToVector(mbvel_n, mbWork);  // mWork = mvel_n
 
@@ -1138,7 +1151,7 @@ namespace Kratos
 			OpenCL::DeviceGroup &mrDeviceGroup;
 			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbrhs;
 
-			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1;
+			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1, mkSolveStep1_2;
 
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
