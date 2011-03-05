@@ -84,7 +84,7 @@ __kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_
 //
 // Part of SolveStep1
 
-__kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, double m_inv, const IndexType n_nodes, __local IndexType *Bounds)
+__kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -110,25 +110,19 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 		VectorType pi_i = 0.00;
 
 		VectorType a_i = mvel_n1[i_node];
-		// TODO: U_i == a_i?!
-		//const array_1d<double, TDim>& U_i = mvel_n1[i_node];
 
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
-		    //unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
 		    VectorType a_j = mvel_n1[j_neighbour];
-		    // TODO: U_j = a_j?!
-		    //const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
 
-			//CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
 			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
 
-		    Add_ConvectiveContribution(Ni_DNj, &pi_i, a_i, a_i, a_j);  // U_i == a_i, U_j == a_j
+		    Add_ConvectiveContribution(Ni_DNj, &pi_i, a_i, a_i, a_j);  // U_i = a_i, U_j = a_j
 		}
 
-		mPi[i_node] = m_inv * pi_i;
+		mPi[i_node] = InvertedMass[i_node] * pi_i;
 	}
 }
 
