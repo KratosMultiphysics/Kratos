@@ -634,7 +634,7 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 2, mr_matrix_container.GetRowStartIndexBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 3, mr_matrix_container.GetColumnIndexBuffer());
 				mrDeviceGroup.SetImageAsKernelArg(mkSolveStep1_2, 4, mr_matrix_container.GetEdgeValuesBuffer());
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 5, m_inv);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 5, mr_matrix_container.GetInvertedMassBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 6, n_nodes);
 				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep1_2, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
 
