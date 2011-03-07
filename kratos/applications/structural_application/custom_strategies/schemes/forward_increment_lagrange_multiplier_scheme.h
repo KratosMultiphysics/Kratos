@@ -98,7 +98,7 @@ namespace Kratos
       )
       {
       
-	  std::cout<< "      Simultaneous Jacobi Iteration Method" << std::endl; 
+	  std::cout<< "         Simultaneous Jacobi Iteration Method" << std::endl; 
 	  ProcessInfo& CurrentProcessInfo      =  mr_model_part.GetProcessInfo();
 	  //ConditionsContainerType& pConditions =  mr_model_part.ConditionsArray();   
 	  //const double current_delta_time      =  CurrentProcessInfo[DELTA_TIME]; 
@@ -127,14 +127,16 @@ namespace Kratos
 	  const double EPS      = 1E-4;
 	  Rigth_Term            = 0.00; 
 	  Left_Term             = 0.00;
+	  
+	  
 	  while(is_converged ==false &&   ++iter < max )
 	  {                    
  	      ///STEP1
 	      #pragma omp parallel for
 	      for(int k=0; k<number_of_threads; k++)
 	      {
-		ConditionsContainerType::iterator it_begin=end_previos + condition_partition[k];
-		ConditionsContainerType::iterator it_end=end_previos+condition_partition[k+1];
+		ConditionsContainerType::iterator it_begin = end_previos + condition_partition[k];
+		ConditionsContainerType::iterator it_end   = end_previos+condition_partition[k+1];
 
 		for (ConditionsContainerIterator it= it_begin; it!=it_end; ++it)
 		{
@@ -169,9 +171,16 @@ namespace Kratos
 	      Left_Term      = std::sqrt(Left_Term);
 	      
 	      
-	     
-	      relative_error1 =  std::fabs((Left_Term -  Old_Left_Term) / ( Left_Term)); 
-	      relative_error2 =  std::fabs((Rigth_Term -  Old_Rigth_Term) / ( Rigth_Term) ) ;
+	      if(Left_Term!=0.00)
+	         relative_error1 =  std::fabs((Left_Term  -  Old_Left_Term ) / ( Left_Term)); 
+	      else
+	         relative_error1 = 0.00;
+	      
+	      if(Rigth_Term!=0.00)
+	         relative_error2 =  std::fabs((Rigth_Term -  Old_Rigth_Term) / ( Rigth_Term));
+	      else
+	         relative_error2 = 0.00;
+	      
 	      relative_error  =  relative_error1 + relative_error2;
 	      
 	      is_converged_1  = IsConverged(EPS, Rigth_Term, Left_Term);
@@ -184,11 +193,11 @@ namespace Kratos
           }
           
               MoveMeshAgain();
-	      std::cout << "         Number of Iterations  =  " << iter            << std::endl;
-	      std::cout << "         Tolerance ( EPS )     =  " << EPS             << std::endl;
-	      std::cout << "         Required  Tolerance   =  " << EPS*Rigth_Term  << std::endl;
-	      std::cout << "         Achieved  Tolerance   =  " << Left_Term       << std::endl;
-	      std::cout << "         Relative Error        =  " << relative_error  << std::endl;
+	      std::cout << "            Number of Iterations  =  " << iter            << std::endl;
+	      std::cout << "            Tolerance ( EPS )     =  " << EPS             << std::endl;
+	      std::cout << "            Required  Tolerance   =  " << EPS*Rigth_Term  << std::endl;
+	      std::cout << "            Achieved  Tolerance   =  " << Left_Term       << std::endl;
+	      std::cout << "            Relative Error        =  " << relative_error  << std::endl;
 	       
 	     
               if (iter==max) 
@@ -272,8 +281,7 @@ namespace Kratos
       
       bool IsConverged(const double& EPS, const double& Rigth_Term,  const double& Left_Term)
       {
-	
-	return (Left_Term < EPS*Rigth_Term);
+	return (Left_Term <= EPS*Rigth_Term);
       }
       
       void InvertDiagonalMatrix(const Matrix& rMatrix   ,Matrix& rResult)
@@ -302,11 +310,10 @@ namespace Kratos
 	Displ                               = ZeroVector(dim2);
 	unsigned int count                  = 0;
 	for(unsigned int i = 0; i<geom.size(); i++){
-	   //array_1d<double,3>& actual_displacement   = geom[i].FastGetSolutionStepValue(DISPLACEMENT);
 	   Displ[count]   =  geom[i].X0() + geom[i].GetSolutionStepValue(DISPLACEMENT_X);   // geom[i].X();    // actual_displacement[0];
 	   Displ[count+1] =  geom[i].Y0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Y);   // geom[i].Y();   // actual_displacement[1];
 	   count = count + 2;
-	   if(dim2==3){
+	   if(dimension==3){
 	        Displ[count+2]  =  geom[i].Z0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Z);
 		count +=3;
 	        }
