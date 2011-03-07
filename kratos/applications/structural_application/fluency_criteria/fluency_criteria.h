@@ -682,7 +682,7 @@ void CalculatePlasticStrain(const Vector& StrainVector, Vector& StressVector)
 	double sigma_z = 0.00; 
 	sigma_z = (*mprops)[POISSON_RATIO]*(StressVector[0]+StressVector[1]);
 	p                =  (1.00/3.00) * (StressVector[0]+StressVector[1] +sigma_z);
-	eevd3            =  p/(3.00 * K);
+	eevd3            =  p/(3.00*K);
 	
         array_1d<double,4> ElasticStrain;
         mplastic_strain.resize(4, false);
@@ -712,6 +712,9 @@ void CalculatePlasticStrain(const Vector& StrainVector, Vector& StressVector)
         mplastic_strain = ZeroVector(6);
         ElasticStrain   = ZeroVector(6);
     
+	p                =  (1.00/3.00) * (StressVector[0]+StressVector[1]+StressVector[2]);
+	eevd3            =  p/(3.00*K);
+	
         ElasticStrain[0] = (StressVector[0] - p) / (2.00 * G)  + eevd3;      
         ElasticStrain[1] = (StressVector[1] - p) / (2.00 * G)  + eevd3;       
         ElasticStrain[2] = (StressVector[2] - p) / (2.00 * G)  + eevd3;       
