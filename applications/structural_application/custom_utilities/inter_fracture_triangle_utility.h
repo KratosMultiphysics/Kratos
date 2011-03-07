@@ -376,7 +376,7 @@ bool CalculateElements(ModelPart& this_model_part,
             prod   = 0.00;  
         }
 
-    ///* Esquinas o superficie extrena donde no hay elementos negativos o positivos
+    //* Esquinas o superficie extrena donde no hay elementos negativos o positivos
     if (Positive_Elements.size()==0  || Negative_Elements.size()==0)
         {
           Positive_Elements.clear(); 
@@ -384,15 +384,15 @@ bool CalculateElements(ModelPart& this_model_part,
           for(WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
           neighb_elem != neighb_elems.end(); neighb_elem++)
             { 
-               if( inner_prod(failure_map, Unit)>=0.00){ Positive_Elements.push_back(*(neighb_elem.base() ) );}
+               if(inner_prod(failure_map, Unit)>=0.00){Positive_Elements.push_back(*(neighb_elem.base() ) );}
                else { Negative_Elements.push_back(*(neighb_elem.base() )); }    
             }
          }
 
 
-    ///* Si el nodo no mas tiene un solo elemtno vecino
+    //* Si el nodo no mas tiene un solo elemtno vecino
     bool& duplicated_pNode = pNode->GetValue(IS_DUPLICATED);
-    if( (Positive_Elements.size()==0 && Negative_Elements.size()==0)  ||  (Positive_Elements.size()==1 && Negative_Elements.size()==0) || (Positive_Elements.size()==0 && Negative_Elements.size()==1) || duplicated_pNode==true)
+    if( (Positive_Elements.size()==0 || Negative_Elements.size()==0)  ||  (Positive_Elements.size()==1 && Negative_Elements.size()==0) || (Positive_Elements.size()==0 && Negative_Elements.size()==1) || duplicated_pNode==true)
     {
      //std::cout<<"NO INSERTED NODE"<<std::endl;
         return false; 
@@ -400,22 +400,20 @@ bool CalculateElements(ModelPart& this_model_part,
     else
     {
 
-	///* reseting internal variables
+	//* reseting internal variables
 	for(WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
 	neighb_elem != neighb_elems.end(); neighb_elem++)
 	  {
 	    neighb_elem->Initialize();
 	  }
 
-	// creating new nodes
-	//pNode->FastGetSolutionStepValue(IS_DUPLICATED)=true;
 	unsigned int New_Id = this_model_part.Nodes().size() + 1; 
 	//Node<3>::Pointer pnode; // the new node   
 	bool& duplicated_pnode = pNode->GetValue(IS_DUPLICATED);
 	duplicated_pnode = true;
-	Create_New_Node(this_model_part, pnode, New_Id, pNode);
+	Create_New_Node(this_model_part, failure_map, pnode, New_Id, pNode);
 
-	///* putting de new node to the negative element  
+	//* putting de new node to the negative element  
 	for(WeakPointerVector< Element >::iterator neg_elem = Negative_Elements.begin();
 	neg_elem != Negative_Elements.end(); neg_elem++)
 	{
@@ -433,13 +431,17 @@ bool CalculateElements(ModelPart& this_model_part,
 ///************************************************************************************************
 ///************************************************************************************************
 
-void Create_New_Node(ModelPart& this_model_part, Node<3>::Pointer& pnode, unsigned int& New_Id, Node<3>::Pointer& pNode)
+void Create_New_Node(ModelPart& this_model_part, const array_1d<double,3>&  failure_map, Node<3>::Pointer& pnode, unsigned int& New_Id, const Node<3>::Pointer& pNode)
 {
   
   
 //node to get the DOFs from	
-int step_data_size         = this_model_part.GetNodalSolutionStepDataSize();
-array_1d<double, 3>& Coord = pNode->Coordinates();				
+int step_data_size        = this_model_part.GetNodalSolutionStepDataSize();
+const double ancho_w      = 1E-9;  
+array_1d<double, 3>  Aux  = -1.00 * (ancho_w * failure_map); 
+
+array_1d<double, 3>& Coord = pNode->Coordinates();
+noalias(Coord) += Aux;  
 Node<3>::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
 
 pnode = this_model_part.CreateNewNode(New_Id,Coord[0],Coord[1],Coord[2]);
@@ -639,8 +641,6 @@ for(int k=0; k<number_of_threads; k++)
 
    for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)     
     {   
-       //i->FastGetSolutionStepValue(NODAL_DAMAGE) = i->GetValue(NODAL_DAMAGE) ;
-       //i->FastGetSolutionStepValue(NODAL_AREA)   = i->GetValue(NODAL_AREA) ;
        i->GetValue(SPLIT_NODAL)  = false; 
     }
   }
