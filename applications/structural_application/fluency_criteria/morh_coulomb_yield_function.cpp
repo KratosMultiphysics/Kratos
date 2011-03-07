@@ -235,6 +235,7 @@ while(fabs(res)>toler && iter++ < max )
 
   if(iter>=max)
   {
+    std::cout<<"RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED"<< std::endl;
     KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED" , "");
   }
     
@@ -441,6 +442,7 @@ if(sum!=0) {norma = norma / sum;}
 
 if(iter>=max)
 {
+   std::cout<< "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" << std::endl;
    KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" , "");
 }
 
@@ -572,9 +574,7 @@ while(std::fabs(r) > toler && iter++<max )
 
 if(iter>=max)
 { 
-   std::cout<< "Norma = " << r << std::endl; 
-   KRATOS_WATCH(PrincipalStress)
-   KRATOS_WATCH("RETURN MAPPING TO APEX  NOT CONVERGED");
+   std::cout<< "RETURN MAPPING TO APEX  NOT CONVERGED"<< std::endl;
    KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED" , "");
 }
 
