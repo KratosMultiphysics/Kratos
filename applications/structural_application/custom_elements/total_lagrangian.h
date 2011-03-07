@@ -341,28 +341,30 @@ namespace Kratos
             ///@name Private  Access
             ///@{
             ///@}
-	    
-	    ///@}
-	    ///@name Serialization
-	    ///@{	
-	    friend class Serializer;
-	    
-	    // A private default constructor necessary for serialization 
-            TotalLagrangian(){}; 
-	    
-	    virtual void save(Serializer& rSerializer)
-	    {
-	      rSerializer.save("Name","TotalLagrangian");
-	      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
-	    }
+        
+        ///@}
+        ///@name Serialization
+        ///@{   
+        friend class Serializer;
+        
+        // A private default constructor necessary for serialization 
+        TotalLagrangian() : Element()
+        {
+        }
+        
+        virtual void save(Serializer& rSerializer)
+        {
+          rSerializer.save("Name","TotalLagrangian");
+          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+        }
 
-	    virtual void load(Serializer& rSerializer)
-	    {
-	      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
-	    }
+        virtual void load(Serializer& rSerializer)
+        {
+          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+        }
 
-	      
-	      
+          
+          
             ///@name Private Inquiry
             ///@{
             ///@}
