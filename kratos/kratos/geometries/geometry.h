@@ -1200,7 +1200,7 @@ namespace Kratos
 	  @see DeterminantOfJacobian
 	  @see InverseOfJacobian
       */
-      virtual double DeterminantOfJacobian(const Point<3>& rPoint) const
+      virtual double DeterminantOfJacobian(const CoordinatesArrayType& rPoint) const
 	{
 	  KRATOS_ERROR(std::logic_error,
 		       "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
