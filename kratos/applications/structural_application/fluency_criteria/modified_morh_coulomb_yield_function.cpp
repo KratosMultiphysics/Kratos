@@ -379,9 +379,8 @@ namespace Kratos
 		 
 		
 		if(iter>=max){  
-		  //KRATOS_WATCH(norma)
-		  //KRATOS_WATCH(residual)
-		  //KRATOS_WATCH(dgama) 
+
+		  std::cout<< "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED"<< std::endl;
 		  KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , " "); 
 		 }
 		}
@@ -687,9 +686,8 @@ namespace Kratos
 		  norma         = norm_2(residual); 
 		
 		if(iter>=max){  
-		  //KRATOS_WATCH(d)
-		  //KRATOS_WATCH(residual)
-		  //KRATOS_WATCH(dgama) 
+
+		  std::cout<< "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" << std::endl; 
 		  KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , ""); 
 		 }
 		}
@@ -1075,6 +1073,7 @@ namespace Kratos
 		  norma = norm_2(residual);
 	          
 		if(iter>=max){
+		  std::cout<< "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 NOT CONVERGED" << std::endl;
 		  KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 NOT CONVERGED" , ""); 
 		 }
 		}
