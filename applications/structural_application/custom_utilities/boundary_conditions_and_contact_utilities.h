@@ -169,7 +169,7 @@ namespace Kratos
 		  //if (minitialize==false) 
 		  CalculateBoundaryContour(mMasterConditionsArray);
   
-		  if(SearchContactsPairs())  {
+		  if(SearchContactsPairs()){
 		     CreateLinkingConditions(); 
 		  }
 		  
@@ -248,8 +248,8 @@ namespace Kratos
 	       
 	    PropertiesType::Pointer pProperties = mr_model_part.pGetProperties(1);
 	    
-	    unsigned int Id = rElements.size() + rConditions.size() + 1;
-    
+	    unsigned int Id = (rElements.size() + rConditions.size())*10 + 1;
+	    
 	    /// Aux variables for contact links
 	    int properties_index                   = mr_model_part.NumberOfProperties();
 	    PropertiesType::Pointer tempProperties = PropertiesType::Pointer(new PropertiesType(properties_index+1) );
@@ -269,8 +269,8 @@ namespace Kratos
 		     NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);
 		   }
 		   
-		   //std::cout<< "     MASTER  = "<< (*it_pair)[master]->Id() << "     MASTER  = " << master <<   std::endl; 
-		   //std::cout<< "     PAIRS 1 = "<< (*it_pair)[0]->Id() <<  "  " <<  "PAIRS 2 = " <<  (*it_pair)[1]->Id() <<  std::endl; 
+		   //std::cout<< "     MASTER ELEM  = "<< (*it_pair)[master]->Id() << "     MASTER  = " << master <<   std::endl; 
+		   //std::cout<< "     PAIRS 1      = "<< (*it_pair)[0]->Id() <<  "  " <<  "PAIRS 2 = " <<  (*it_pair)[1]->Id() <<  std::endl; 
 		   // WARNING = Puede que en un tiempo determinado caigan dos nodos a la vez en un  elemento
 		   // Un nodo dentro del elemento
 		   here:
@@ -338,7 +338,6 @@ namespace Kratos
 		            NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);
 			    if(InsideNodes.size()!=0) {
 			       master = 1;
-			       //std::cout<< "     Second Searching "<<std::endl;  
 			       goto here;
 			    }
 			}
@@ -348,8 +347,8 @@ namespace Kratos
 		       }
 		       
 		     
+		     std::cout<<"     NUMBER OF INITIAL CONDITIONS    = " << rConditions.size() <<  std::endl; 
 		      
-		     std::cout<<"     NUMBER OF CALCULATED CONDITIONS = " << LinkingConditions.size() <<  std::endl;  
 		     
 		    ///adding linking to model_part
                     for(ConditionsArrayType::ptr_iterator it=LinkingConditions.ptr_begin();
@@ -357,9 +356,11 @@ namespace Kratos
                     {
                         mr_model_part.Conditions().push_back( *it );
                     }
-                    LinkingConditions.clear();
+                   
+		    std::cout<<"     NUMBER OF CALCULATED CONDITIONS = " << LinkingConditions.size() <<  std::endl; 
+		    std::cout<<"     NUMBER OF FINAL CONDITIONS      = " << rConditions.size() <<  std::endl; 
 		    
-		           
+		    LinkingConditions.clear();
           }
 	 
  	
