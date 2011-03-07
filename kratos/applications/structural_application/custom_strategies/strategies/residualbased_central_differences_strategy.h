@@ -238,9 +238,10 @@ double Solve()
 	
 	///Computing The new internal and external forces  for n+1 step
 	GetForce();
+	
 	FinalizeSolutionStep();
+	
 	CheckConditionsStatus(minitial_conditions_size);
-
 
 	      
 	#ifdef _OPENMP
@@ -253,26 +254,23 @@ double Solve()
 
 
 
-/// Borra las condiciones de contacto anteriores sin borrar las otras condiciones de las estructura
+// Borra las condiciones de contacto anteriores sin borrar las otras condiciones de las estructura
 void CheckConditionsStatus(const unsigned int& initial_conditions_size)
 {
       
       ModelPart& r_model_part              = BaseType::GetModelPart();
       ConditionsContainerType& pConditions = r_model_part.ConditionsArray();
    
-      ///WARNING = SOLO BORRAR LAS CONDIIONES DE CONTACTO 
+      //WARNING = SOLO BORRAR LAS CONDIIONES DE CONTACTO 
       if(initial_conditions_size==0){
-      /// No bounday conditions in model part
-      pConditions.clear();
+      // No bounday conditions in model part
+      pConditions.clear();  
       }
       else{
-      //unsigned int actual_size                  = pConditions.size();
-      //unsigned int conditions                   = actual_size - initial_conditions_size;
       ConditionsContainerIterator  end_previos  = pConditions.begin() + initial_conditions_size; //- conditions;  
       ConditionsContainerIterator  end_actual   = pConditions.end();
-
-      for(ConditionsContainerIterator icond = end_previos; icond!=end_actual; icond ++) 
-         r_model_part.RemoveCondition(*icond);
+      pConditions.erase(end_previos, end_actual);
+      
       }
 }
 
@@ -282,8 +280,6 @@ double CheckObjectContact(const unsigned int& initial_conditions_size)
   
       ModelPart& r_model_part                     = BaseType::GetModelPart();
       ConditionsContainerType& pConditions        = r_model_part.ConditionsArray();
-      //unsigned int actual_size                    = pConditions.size();
-      //unsigned int conditions                     = actual_size - initial_conditions_size;
       m_end_previos  = pConditions.begin() + initial_conditions_size;  
       m_end_actual   = pConditions.end();      
       return (std::distance(m_end_previos, m_end_actual)); 
