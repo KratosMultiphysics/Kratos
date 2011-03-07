@@ -222,9 +222,10 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
                     }
                   }   
                   
-		  if(iter>=max)  
+		  if(iter>=max) {  
+		     std::cout<<  "RETURN MAPPING TO MAIN PLANE RANKINE  NOT CONVERGED" << std::endl;
 		     KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE RANKINE  NOT CONVERGED" , "");
-		  
+		  }
                   
                      ///* Updating Stress  
 		    if(mcurrent_Ft <=toler) 
@@ -328,8 +329,10 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
                         }
                       }
 
-		  if(iter>=max)  
+		  if(iter>=max) {
+		     std::cout<< "RETURN MAPPING SIGMA 1 AND 2 RANKINE  NOT CONVERGED" << std::endl;
 		     KRATOS_ERROR(std::logic_error,  "RETURN MAPPING SIGMA 1 AND 2 RANKINE  NOT CONVERGED" , "");
+		  }
 
 
                      if(mcurrent_Ft <= 0.00) 
@@ -444,8 +447,10 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
                         }
                       }
 
-                   if(iter>=max)  
+                   if(iter>=max){
+		      std::cout<< "RETURN MAPPING APEX RANKINE  NOT CONVERGED" << std::endl;
 		      KRATOS_ERROR(std::logic_error,  "RETURN MAPPING APEX RANKINE  NOT CONVERGED" , "");
+		   }
 
                      if(mcurrent_Ft <= 0.00) 
                         {
