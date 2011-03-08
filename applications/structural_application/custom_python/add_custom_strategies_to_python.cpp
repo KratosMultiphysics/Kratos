@@ -188,7 +188,8 @@ namespace Kratos
                    (
                     "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, int, double, double, double,  bool, bool, bool  >())
                  .def("Initialize", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)      
-                 .def("ComputeCriticalTime", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime)         
+                 .def("ComputeCriticalTime",  &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime) 
+                 .def("SetFractionDeltaTime", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeFractionDeltaTime)     
                   ;
 
 
