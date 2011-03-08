@@ -208,6 +208,7 @@ namespace Kratos
 	    rBinsObjectDynamic.SearchContact(mPairContacts);
 	    FiltratePairContacts(mPairContacts);
 	    
+	    
 	    if(mPairContacts.size()!=0)
 	    {
 	      std::cout<< "     NUMBER OF CONTACT PAIRS         = " <<mPairContacts.size()<<std::endl; 
@@ -259,7 +260,7 @@ namespace Kratos
 	    bool initialize = false;
 	    
 	    for(IteratorContainerContactPair it_pair = mPairContacts.begin(); it_pair!= mPairContacts.end(); it_pair++)
-	        {
+	        { 
 		   /// Vericando los nodos que caen en el elemento.
 		   master = 0;
 		   NodeInside( (*it_pair)[0], (*it_pair)[1], InsideNodes);
@@ -268,11 +269,13 @@ namespace Kratos
 		     InsideNodes.clear();
 		     NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);
 		   }
-		   
+		 
+		 
 		   //std::cout<< "     MASTER ELEM  = "<< (*it_pair)[master]->Id() << "     MASTER  = " << master <<   std::endl; 
 		   //std::cout<< "     PAIRS 1      = "<< (*it_pair)[0]->Id() <<  "  " <<  "PAIRS 2 = " <<  (*it_pair)[1]->Id() <<  std::endl; 
 		   // WARNING = Puede que en un tiempo determinado caigan dos nodos a la vez en un  elemento
 		   // Un nodo dentro del elemento
+ 		   
 		   here:
 		   for(unsigned int in = 0; in<InsideNodes.size(); in++)
 		     {
@@ -323,14 +326,12 @@ namespace Kratos
 				  SlaveNode) );
 				  
                               LinkingConditions.push_back( newLink );    
-			      Id++;
-			      
-			       
+			      Id++;    
 			      
 			  }
 			  
-			  if(initialize==false) {initialize=true;}
-                              InsideNodes.clear();
+			  if(initialize==false) 
+			        initialize=true;
 		        }
 		        
 		        if(master==0){ 
