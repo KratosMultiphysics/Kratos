@@ -291,8 +291,18 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer& pNode)
 }
 
 
+void CkeckElementNeighbourgs()
+{
+  
+  
+}
+
+
+
 void RecomputeLocalneighbourgs(Node<3>::Pointer& pNode, WeakPointerVector< Element>& Elements)
 {
+      KRATOS_TRY 
+   
       WeakPointerVector< Element >& neighb_elems  = pNode->GetValue(NEIGHBOUR_ELEMENTS); 
       WeakPointerVector< Node<3> >& neighb_nodes  = pNode->GetValue(NEIGHBOUR_NODES); 
       neighb_elems.clear();
@@ -311,6 +321,8 @@ void RecomputeLocalneighbourgs(Node<3>::Pointer& pNode, WeakPointerVector< Eleme
 			  
 		   }    
       }
+      
+      KRATOS_CATCH("")
 
 }
 
@@ -644,6 +656,19 @@ for(int k=0; k<number_of_threads; k++)
        i->GetValue(SPLIT_NODAL)  = false; 
     }
   }
+  
+   
+   FindElementalNeighboursProcess    ElementosVecinos(this_model_part, 2, 10);
+   FindNodalNeighboursProcess        NodosVecinos(this_model_part, 2, 10);
+   FindConditionsNeighboursProcess   CondicionesVecinas(this_model_part, 2, 10);
+   
+   ElementosVecinos.ClearNeighbours();
+   NodosVecinos.ClearNeighbours();
+   CondicionesVecinas.ClearNeighbours();     
+   ElementosVecinos.Execute();
+   NodosVecinos.Execute();
+   CondicionesVecinas.Execute(); 
+ 
 }
 
 
