@@ -72,3 +72,8 @@ class DynamicStructuralSolver:
     #######################################################################   
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
+        
+    def SetFractionDeltaTime(self, fraction):
+      (self.solver).SetFractionDeltaTime(fraction)
+      
+      
