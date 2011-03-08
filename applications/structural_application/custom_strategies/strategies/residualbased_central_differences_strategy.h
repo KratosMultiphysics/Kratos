@@ -1015,6 +1015,11 @@ void FinalizeSolutionStep()
 
 
 
+void ChangeFractionDeltaTime(const double& new_fraction_delta_time)
+{
+   mfraction_delta_time = new_fraction_delta_time;
+}
+
 ///* WARNING = check with rossi
 void CalculateReaction() 
 {
