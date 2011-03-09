@@ -6,7 +6,7 @@ namespace Kratos
     ///@{
 
     /**
-     @see VMS::EquationIdVector
+     * @see VMS::EquationIdVector
      */
     template <>
     void VMS<2>::EquationIdVector(EquationIdVectorType& rResult,
@@ -27,7 +27,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::EquationIdVector
+     * @see VMS::EquationIdVector
      */
     template <>
     void VMS<3>::EquationIdVector(EquationIdVectorType& rResult,
@@ -49,7 +49,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetDofList
+     * @see VMS::GetDofList
      */
     template <>
     void VMS<2>::GetDofList(DofsVectorType& rElementalDofList,
@@ -70,7 +70,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetDofList
+     * @see VMS::GetDofList
      */
     template <>
     void VMS<3>::GetDofList(DofsVectorType& rElementalDofList,
@@ -92,7 +92,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetFirstDerivativesVector
+     * @see VMS::GetFirstDerivativesVector
      */
     template <>
     void VMS<2>::GetFirstDerivativesVector(Vector& Values, int Step)
@@ -113,7 +113,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetFirstDerivativesVector
+     * @see VMS::GetFirstDerivativesVector
      */
     template <>
     void VMS<3>::GetFirstDerivativesVector(Vector& Values, int Step)
@@ -135,7 +135,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetSecondDerivativesVector
+     * @see VMS::GetSecondDerivativesVector
      */
     template <>
     void VMS<2>::GetSecondDerivativesVector(Vector& Values, int Step)
@@ -156,7 +156,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetSecondDerivativesVector
+     * @see VMS::GetSecondDerivativesVector
      */
     template <>
     void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step)
@@ -178,7 +178,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetValueOnIntegrationPoints
+     * @see VMS::GetValueOnIntegrationPoints
      */
     template <>
     void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
@@ -222,7 +222,7 @@ namespace Kratos
     }
 
     /**
-     @see VMS::GetValueOnIntegrationPoints
+     * @see VMS::GetValueOnIntegrationPoints
      */
     template <>
     void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
@@ -268,38 +268,54 @@ namespace Kratos
     }
 
     /**
-     The size of the 2D element is estimated as the diameter of a circle of the same area.
-     Area = Pi * (h/2)^2
-     @see VMS::ElementSize
+     * The size of the 2D element is estimated as the diameter of a circle of the same area.
+     * Area = Pi * (h/2)^2
+     * @see VMS::ElementSize
      */
     template <>
-    double VMS<2>::ElementSize(const double Area)
+    double VMS<2,3>::ElementSize(const double Area)
     {
         return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
     }
 
     /**
-     The size of the 3D element is estimated as the diameter of the sphere
-     circumscribed to a regular tetrahedron with the same volume.
-     @see VMS::ElementSize
+     * The size of the 3D element is estimated as the diameter of the sphere
+     * circumscribed to a regular tetrahedron with the same volume.
+     * @see VMS::ElementSize
      */
     template <>
-    double VMS<3>::ElementSize(const double Volume)
+    double VMS<3,4>::ElementSize(const double Volume)
     {
         return 0.60046878 * pow(Volume,0.333333333333333333333);
     }
 
     /**
-     Returns the squared element size, estimated as h^2 = 2*Area
-     @see VMS::FilterWidth
+     * Returns the squared element size, estimated as h^2 = 2*Area
+     * @see VMS::FilterWidth
      */
     template <>
-    double VMS<2>::FilterWidth()
+    double VMS<2,3>::FilterWidth()
     {
         double FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
         return 2.0 * FilterWidth;
     }
 
+    /**
+     * Returns the squared element size, estimated from the assumption V = (1/6) * h^3
+     * @see VMS::FilterWidth
+     */
+    template <>
+    double VMS<3,4>::FilterWidth()
+    {
+        const double TwoThirds = 2.0 / 3.0;
+        double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
+        FilterWidth *= 6.0;
+        return pow(FilterWidth, TwoThirds);
+    }
+
+    /**
+     * See VMS::CalculateB
+     */
     template <>
     void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
                                const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
@@ -320,6 +336,9 @@ namespace Kratos
 	KRATOS_CATCH("")
     }
 
+    /**
+     * See VMS::CalculateB
+     */
     template <>
     void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
                                const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
@@ -331,9 +350,12 @@ namespace Kratos
 	KRATOS_CATCH("")
     }
 
+    /**
+     * See VMS::CalculateC
+     */
     template <>
-    void VMS < 2, 3 > ::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rC,
-            const double Viscosity)
+    void VMS<2,3>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & rC,
+                              const double Viscosity)
     {
         rC(0, 0) =  Viscosity*(1.3333333333333333333333333333333);
         rC(0, 1) = -Viscosity*(0.666666666666666666666666666667);
@@ -346,23 +368,109 @@ namespace Kratos
         rC(2, 2) = Viscosity;
     }
 
+    /**
+     * See VMS::CalculateC
+     */
     template <>
-    void VMS < 3,4 > ::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & rC,
-            const double Viscosity)
-    {KRATOS_ERROR(std::logic_error,"Not implemented","")
+    void VMS<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix<double, 6,6 > & rC,
+                              const double Viscosity)
+    {
+        noalias(rC) = ZeroMatrix(6,6);
+        // First row
+        rC(0, 0) =  Viscosity*(1.3333333333333333333333333333333);
+        rC(0, 1) = -Viscosity*(0.666666666666666666666666666667);
+        rC(0, 2) = -Viscosity*(0.666666666666666666666666666667);
+
+        // Second row
+        rC(1, 0) = -Viscosity*(0.666666666666666666666666666667);
+        rC(1, 1) =  Viscosity*(1.3333333333333333333333333333);
+        rC(1, 2) = -Viscosity*(0.666666666666666666666666666667);
+
+        // Third row
+        rC(2, 0) = -Viscosity*(0.666666666666666666666666666667);
+        rC(2, 1) = -Viscosity*(0.666666666666666666666666666667);
+        rC(2, 2) =  Viscosity*(1.3333333333333333333333333333);
+
+        // Fourth row
+        rC(3, 3) = Viscosity;
+
+        // Fifth row
+        rC(4, 4) = Viscosity;
+
+        // Sixth row
+        rC(5, 5) = Viscosity;
 
     }
 
-    /**
-     Returns the squared element size, estimated from the assumption V = (1/6) * h^3
-     @see VMS::FilterWidth
-     */
     template <>
-    double VMS<3>::FilterWidth()
+    void VMS<2,3>::AddViscousTerm(MatrixType& rDampMatrix,
+                                  const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
+                                  const double Weight)
     {
-        double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
-        FilterWidth *= 6.0;
-        return pow(FilterWidth, 2.0/3.0);
+        const unsigned int NumNodes = 3;
+
+        const double FourThirds = 4.0 / 3.0;
+        const double nTwoThirds = -2.0 / 3.0;
+
+        unsigned int FirstRow(0),FirstCol(0);
+
+        for (unsigned int j = 0; j < NumNodes; ++j)
+        {
+            for (unsigned int i = 0; i < NumNodes; ++i)
+            {
+                // First Row
+                rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+                rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+
+                // Second Row
+                rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+                rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+
+                // Update Counter
+                FirstRow += 3;
+            }
+            FirstRow = 0;
+            FirstCol += 3;
+        }
+    }
+
+    template <>
+    void VMS<3,4>::AddViscousTerm(MatrixType& rDampMatrix,
+                                  const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
+                                  const double Weight)
+    {
+        const unsigned int NumNodes = 4;
+
+        const double SevenThirds = 7.0 / 3.0;
+        const double nTwoThirds = -2.0 / 3.0;
+
+        unsigned int FirstRow(0),FirstCol(0);
+
+        for (unsigned int j = 0; j < NumNodes; ++j)
+        {
+            for (unsigned int i = 0; i < NumNodes; ++i)
+            {
+                // First Row
+                rDampMatrix(FirstRow,FirstCol) += Weight * ( SevenThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+                rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,2) );
+                rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,2) + rShapeDeriv(i,1) * rShapeDeriv(j,2) );
+
+                // Second Row
+                rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,2) * rShapeDeriv(j,0) );
+                rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( SevenThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,2) * rShapeDeriv(j,2) );
+                rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,2) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+
+                // Third Row
+                rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,0) + rShapeDeriv(i,2) * rShapeDeriv(j,1) );
+                rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+                rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( SevenThirds * rShapeDeriv(i,2) * rShapeDeriv(j,2) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+
+                // Update Counter
+                FirstRow += 4;
+            }
+            FirstRow = 0;
+            FirstCol += 4;
+        }
     }
 
     template <>
