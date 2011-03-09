@@ -222,7 +222,7 @@ namespace Kratos
         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                                 PropertiesType::Pointer pProperties) const
         {
-            return Element::Pointer(new BinghamVMS(NewId, GetGeometry().Create(ThisNodes), pProperties));
+            return Element::Pointer(new BinghamVMS(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
         }
 
         /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
@@ -344,7 +344,7 @@ namespace Kratos
         virtual std::string Info() const
         {
             std::stringstream buffer;
-            buffer << "BinghamVMS #" << Id();
+            buffer << "BinghamVMS #" << this->Id();
             return buffer.str();
         }
 

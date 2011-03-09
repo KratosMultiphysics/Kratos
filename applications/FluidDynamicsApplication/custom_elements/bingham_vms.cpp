@@ -6,7 +6,7 @@ namespace Kratos
     ///@{
 
     template <>
-    void VMS<2,3>::save(Serializer& rSerializer) const
+    void BinghamVMS<2,3>::save(Serializer& rSerializer) const
     {
         typedef VMS<2,3> BaseClassType;
         rSerializer.save("Name","BinghamVMS2D");
@@ -14,7 +14,7 @@ namespace Kratos
     }
 
     template <>
-    void VMS<3,4>::save(Serializer& rSerializer) const
+    void BinghamVMS<3,4>::save(Serializer& rSerializer) const
     {
         typedef VMS<3,4> BaseClassType;
         rSerializer.save("Name","BinghamVMS3D");
