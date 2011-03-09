@@ -240,9 +240,9 @@ namespace Kratos
                 /// 3D instance of the VMS element
  		const VMS<3> mVMS3D;
                 /// 2D instance of the BinghamVMS element
- 		const VMS<2> mBinghamVMS2D;
+ 		const BinghamVMS<2> mBinghamVMS2D;
                 /// 3D instance of the BinghamVMS element
- 		const VMS<3> mBinghamVMS3D;
+ 		const BinghamVMS<3> mBinghamVMS3D;
 
 
 		///@} 

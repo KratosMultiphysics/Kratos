@@ -635,11 +635,11 @@ namespace Kratos
 
         /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
         /**
-         * If the variable is TAUONE or TAUTWO, calculates the corresponding stabilization
-         * parameter for the element, based on rCurrentProcessInfo's DELTA_TIME and
-         * DYNAMIC_TAU. Otherwise, it assumes that the input variable is an
-         * elemental value and retrieves it. Implemented for a single gauss point only.
-         * @param rVariable Kratos vector variable to compute
+         * If the variable is VORTICITY, computes the vorticity (rotational of the velocity)
+         * based on the current velocity values. Otherwise, it assumes that the input
+         * variable is an elemental value and retrieves it. Implemented for a
+         * single gauss point only.
+         * @param rVariable Kratos vector variable to get
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
@@ -649,11 +649,11 @@ namespace Kratos
 
         /// Obtain a double elemental variable, evaluated on gauss points.
         /**
-         * If the variable is VORTICITY, computes the vorticity (rotational of the velocity)
-         * based on the current velocity values. Otherwise, it assumes that the input
-         * variable is an elemental value and retrieves it. Implemented for a
-         * single gauss point only.
-         * @param rVariable Kratos vector variable to get
+         * If the variable is TAUONE or TAUTWO, calculates the corresponding stabilization
+         * parameter for the element, based on rCurrentProcessInfo's DELTA_TIME and
+         * DYNAMIC_TAU. Otherwise, it assumes that the input variable is an
+         * elemental value and retrieves it. Implemented for a single gauss point only.
+         * @param rVariable Kratos vector variable to compute
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
@@ -1353,10 +1353,10 @@ namespace Kratos
                 for (unsigned int j = 0; j < i; ++j)
                 {
                     NormS += 2.0 * GradientVector[Index] * GradientVector[Index]; // Using symmetry, lower half terms of the matrix are added twice
-                    Index++;
+                    ++Index;
                 }
-                NormS += GradientVector[Index] * GradientVector[Index];
-                Index++;// Diagonal terms
+                NormS += GradientVector[Index] * GradientVector[Index]; // Diagonal terms
+                ++Index; // Diagonal terms
             }
 
             NormS = sqrt(NormS);
