@@ -531,9 +531,10 @@ void ComputeCriticalTime()
     
     delta_time_computed = ComputeTime();
     delta_time_computed = Truncar_Delta_Time(delta_time_computed);
+    
     if(delta_time_computed>mmax_delta_time) {delta_time_computed = mmax_delta_time;}
     delta_time_used = mfraction_delta_time * delta_time_computed;
-    CurrentProcessInfo[DELTA_TIME] = delta_time_used; // reduzco el valor critico del tiempo en 75%
+    CurrentProcessInfo[DELTA_TIME] = delta_time_used; 
     
     mtimestep += delta_time_used; 
     r_model_part.CloneTimeStep(mtimestep);
@@ -565,9 +566,9 @@ double ComputeTime()
     ElementsArrayType& pElements     = r_model_part.Elements(); 
     
     int number_of_threads  =  0;
-    //int thread_id          =  0;
-    double delta_time_a    =  1.00;
-    //double step            =  CurrentProcessInfo[TIME_STEPS];  
+    //int thread_id        =  0;
+    double delta_time_a    =  0.00;
+    //double step          =  CurrentProcessInfo[TIME_STEPS];  
 
     #ifdef _OPENMP
        number_of_threads = omp_get_max_threads();
@@ -582,10 +583,9 @@ double ComputeTime()
     CreatePartition(number_of_threads, pElements.size(), element_partition);
 
     Vector dts(number_of_threads);
-    for(int i = 0; i < number_of_threads; ++i)
-    {
-       dts[i] = 1.00;
-    } 
+    for(int i = 0; i < number_of_threads; i++){
+       dts[i] = mmax_delta_time;}
+
 
     #pragma omp parallel for private(delta_time_a, values) shared(dts) 
     for(int k=0; k<number_of_threads; k++)
@@ -598,8 +598,9 @@ double ComputeTime()
 	  it-> Calculate(DELTA_TIME, delta_time_a, CurrentProcessInfo);
 	  
 	  // WARNING = Los threads Id siempre empiezan por cero. 
-	  if(delta_time_a < dts[k])
-	  dts[k] = delta_time_a;
+	  if(delta_time_a!=0.00) 
+	     if(delta_time_a < dts[k])
+	       dts[k] = delta_time_a;
         
        }
     }
