@@ -248,7 +248,7 @@ namespace Kratos
 			  */
 			 void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
 
-		         double mE,mNU;
+		         double mE,mNU, mDE;
 
 
 
