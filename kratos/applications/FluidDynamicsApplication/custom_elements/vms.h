@@ -1346,12 +1346,17 @@ namespace Kratos
             }
 
             // Norm[ Grad(u) ]
+            Index = 0;
             double NormS(0.0);
             for (unsigned int i = 0; i < TDim; ++i)
             {
                 for (unsigned int j = 0; j < i; ++j)
-                    NormS += 2.0 * GradientVector[Index] * GradientVector[Index++]; // Using symmetry, lower half terms of the matrix are added twice
-                NormS += GradientVector[Index] * GradientVector[Index++]; // Diagonal terms
+                {
+                    NormS += 2.0 * GradientVector[Index] * GradientVector[Index]; // Using symmetry, lower half terms of the matrix are added twice
+                    Index++;
+                }
+                NormS += GradientVector[Index] * GradientVector[Index];
+                Index++;// Diagonal terms
             }
 
             NormS = sqrt(NormS);
