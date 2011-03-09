@@ -104,7 +104,11 @@ namespace Kratos
 
     double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rValue )
     {
-        return( rValue );
+      if(rThisVariable==DELTA_TIME)
+	   rValue = sqrt(mE/mDE);
+       
+       
+       return rValue; 
     }
 
     Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -160,11 +164,10 @@ namespace Kratos
                                           const GeometryType& geom,
                                           const Vector& ShapeFunctionsValues )
     {
-        mE = props[YOUNG_MODULUS];
+        mE  = props[YOUNG_MODULUS];
         mNU = props[POISSON_RATIO];
-// KRATOS_WATCH("INSIDE THE CONS LAW")
-//  KRATOS_WATCH(mE)
-//   KRATOS_WATCH(mNU)
+        mDE = props[DENSITY];
+
     }
 
     /**
