@@ -122,15 +122,12 @@ namespace Kratos
 		/** Constructor.
 		*/
 		ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver(
-			typename TLinearSolver::Pointer pNewLinearSystemSolver, int estimated_number_of_second_neighb = 125,
-			bool use_dt_in_stabilization = false
+			typename TLinearSolver::Pointer pNewLinearSystemSolver, int estimated_number_of_second_neighb = 125
 			)
 			: BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
 		{
 			mestimated_number_of_second_neighb = estimated_number_of_second_neighb;
 			
-			muse_dt_in_stabilization = use_dt_in_stabilization;
-
 		}
 
 
@@ -390,6 +387,8 @@ namespace Kratos
 			ConstructG_Structure(G);
 
 			double aaa = 1.0/(TDim+1.0);
+
+                        double dynamic_tau = r_model_part.GetProcessInfo()[DYNAMIC_TAU];
 			
 			array_1d<double,3> vg;
 			for(ModelPart::ElementsContainerType::iterator i = r_model_part.ElementsBegin(); 
@@ -453,9 +452,9 @@ namespace Kratos
 				//*******************************************************************************************
 				double h;
 
-				double dt_contrib_to_tau = 0.0;
-				if( muse_dt_in_stabilization == true)
-					dt_contrib_to_tau = 1.0/BDFcoeffs[0];
+//				double dt_contrib_to_tau = 0.0;
+//				if( muse_dt_in_stabilization == true)
+//					dt_contrib_to_tau = 1.0/BDFcoeffs[0];
 
 				if(TDim == 2)
 					h = sqrt(2.0*Volume);
@@ -464,7 +463,7 @@ namespace Kratos
 				double c1 = 4.00;
 				double c2 = 2.00;
 				double norm_u = norm_2(vg);
-				double tau = 1.00 / (dt_contrib_to_tau + c1*nu/(h*h) + c2*norm_u/h );
+				double tau = 1.00 / (dynamic_tau*BDFcoeffs[0] + c1*nu/(h*h) + c2*norm_u/h );
 				
 
 
