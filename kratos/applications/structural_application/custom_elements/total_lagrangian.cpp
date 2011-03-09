@@ -964,28 +964,32 @@ namespace Kratos
     void TotalLagrangian::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
     {
 
-        double lamda = 1.00; // parametro que depende del tipo de problema y del elemento pag 308 libro dinamica de Barbat
-        double c     = 0.00; //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]);
+        double lamda = 1.00;  // parametro que depende del tipo de problema y del elemento pag 308 libro dinamica de Barbat
+        double c1    = 0.00;  //sqrt(GetProperties()[YOUNG_MODULUS]/GetProperties()[DENSITY]); velocidad del sonido en el medio
+        double c2    = 0.00;  // norma de la velocidad actual dentro del elemento
+        double c     = 0.00; 
         double wmax  = 0.00;
         Vector Values( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() );
-        //KRATOS_WATCH(Values.size())
-        //KRATOS_WATCH(GetGeometry().IntegrationPoints(mThisIntegrationMethod).size())
-
+        Vector Velocities;
+	
+	GetFirstDerivativesVector(Velocities, 0);
         if ( rVariable == DELTA_TIME )
         {
             for ( unsigned int PointNumber = 0;
                     PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size();
                     PointNumber++ )
             {
-                mConstitutiveLawVector[PointNumber]-> GetValue( DELTA_TIME, c );
-                Values[PointNumber] = c;
+                mConstitutiveLawVector[PointNumber]-> GetValue( DELTA_TIME, c1 );
+                Values[PointNumber] = c1;
             }
         }
 
-        c = ( *std::max_element( Values.begin(), Values.end() ) );
-
-        //KRATOS_WATCH(Id())
-        //KRATOS_WATCH(c)
+        c1 = ( *std::max_element( Values.begin(), Values.end() ) );
+	c2 = norm_2(Velocities);
+        
+	c = ( c1 > c2) ? c1 : c2 ;   
+	
+	
         double le =  GetGeometry().Length();
         //KRATOS_WATCH(le)
 
