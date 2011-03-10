@@ -107,7 +107,7 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		VectorType pi_i = 0.00;
+		VectorType Temp_Pi_i_node = 0.00;
 
 		VectorType a_i = mvel_n1[i_node];
 
@@ -119,107 +119,88 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
 			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
 
-		    Add_ConvectiveContribution(Ni_DNj, &pi_i, a_i, a_i, a_j);  // U_i = a_i, U_j = a_j
+		    Add_ConvectiveContribution(Ni_DNj, &Temp_Pi_i_node, a_i, a_i, a_j);  // U_i = a_i, U_j = a_j
 		}
 
-		mPi[i_node] = InvertedMass[i_node] * pi_i;
+		mPi[i_node] = InvertedMass[i_node] * Temp_Pi_i_node;
 	}
 }
 
-	//*********************************************************************
-	//function to calculate right-hand side of fractional momentum equation
-/*
-	void CalculateRHS(
-		const CalcVectorType& vel,
-		const ValuesVectorType& pressure,
-		const CalcVectorType& convective_velocity,
-		CalcVectorType& rhs)
+//
+// CalculateRHS
+//
+// Part of CalculateRHS
+// Note: Will replace double3 with 3 doubles if problem occures
+
+__kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_buffer, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *LumpedMass, __global VectorType *convective_velocity, __global ValueType *pressure, __global VectorType *rhs_buffer, __global ValueType *mTauConvection, double3 mBodyForce, double inverse_rho, double mViscosity, const IndexType n_nodes, __local IndexType *Bounds)
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
 	{
-	    KRATOS_TRY
-
-	    int n_nodes = vel.size();
-
-	    //calculating the RHS
-	    array_1d<double, TDim> stab_low;
-	    array_1d<double, TDim> stab_high;
-	    const double nu_i = mViscosity;
-	    const double nu_j = mViscosity;
-	    double inverse_rho = 1.0 / mRho;
-	    #pragma omp parallel for private(stab_low,stab_high)
-	    for (int i_node = 0; i_node < n_nodes; i_node++) {
-		    array_1d<double, TDim>& rhs_i = rhs[i_node];
-		    const array_1d<double, TDim>& f_i = mBodyForce;
-		    array_1d<double, TDim> a_i = convective_velocity[i_node];
-
-		    const array_1d<double, TDim>& U_i = vel[i_node];
-		    const array_1d<double, TDim>& pi_i = mPi[i_node];
-		    const double& p_i = pressure[i_node];
-
-		    double edge_tau = mTauConvection[i_node];
-
-		    //initializing with the external forces (e.g. gravity)
-		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
-		    for (unsigned int comp = 0; comp < TDim; comp++)
-			rhs_i[comp] = m_i  * f_i[comp] ;
-
-		    //convective term
-		    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-			unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-			    array_1d<double, TDim> a_j = convective_velocity[j_neighbour];
-			    const array_1d<double, TDim>& U_j = vel[j_neighbour];
-			    const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
-			    const double& p_j = pressure[j_neighbour];
-
-			    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-			    edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
-			    edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
-			    edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
-
-			    //add stabilization
-			    edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
-			    edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
-
-//                            double beta = 1.0;
-//                             double beta = beta_i;
-//                             if(beta_j > beta)
-//                                 beta = beta_j;
-//                            beta = 1.0;
-
-//                            edge_ij.Sub_StabContribution(rhs_i, edge_tau*beta, 1.0, stab_low, stab_high);
-//                             edge_ij.Sub_StabContribution(rhs_i, edge_tau, (1.0-beta), stab_low, stab_high);
-			    edge_ij.Sub_StabContribution(rhs_i, edge_tau, 1.0, stab_low, stab_high);
-
-
-			    //add tau2 term
-//                             boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& LL = edge_ij.LaplacianIJ;
-//                             for (unsigned int k_comp = 0; k_comp < TDim; k_comp++)
-//                             {
-//                                 double aaa = 0.0;
-//                                 for (unsigned int m_comp = 0; m_comp < TDim; m_comp++)
-//                                     aaa +=  LL(k_comp,m_comp) * (U_j[m_comp] - U_i[m_comp]);
-//                                 rhs_i[k_comp] -= tau2_i*aaa;
-//                             }
-
-
-		    }
-
-
-
-	    }
-
-	    //apply wall resistance
-	  if(mWallLawIsActive == true)
-		  ComputeWallResistance(vel,rhs);
-
-	    ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-	    mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
-	    KRATOS_CATCH("")
+		Bounds[0] = RowStartIndex[i_node];
 	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		VectorType Temp_rhs_i_node = LumpedMass[i_node] * mBodyForce;
+
+		VectorType a_i = convective_velocity[i_node];
+		VectorType U_i = vel_buffer[i_node];
+		VectorType pi_i = mPi[i_node];
+		ValueType p_i = pressure[i_node];
+		ValueType edge_tau = mTauConvection[i_node];
+
+		// Convective term
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			IndexType j_neighbour = ColumnIndex[csr_index];
+
+			VectorType U_j = vel_buffer[j_neighbour];
+			VectorType pi_j = mPi[j_neighbour];
+			ValueType p_j = pressure[j_neighbour];
+
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
+			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
+
+			Sub_ConvectiveContribution(Ni_DNj, &Temp_rhs_i_node, a_i, U_i, U_j);
+			Sub_grad_p(Ni_DNj, &Temp_rhs_i_node, p_i * inverse_rho, p_j * inverse_rho);
+
+			VectorType Lij0 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_2(CurrentEdge));
+			VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge));
+			VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge));
+
+			Sub_ViscousContribution(Lij0.x, Lij1.y, Lij2.z, &Temp_rhs_i_node, U_i, mViscosity, U_j, mViscosity);
+
+			// Add stabilization
+			VectorType stab_low;
+			VectorType stab_high;
+
+			CalculateConvectionStabilization_LOW(Lij0, Lij1, Lij2, &stab_low, a_i, U_i, U_j);
+			CalculateConvectionStabilization_HIGH(Ni_DNj, &stab_high, a_i, pi_i, pi_j);  // TODO: Move this upward to use less registers!
+
+			Sub_StabContribution(&Temp_rhs_i_node, edge_tau, 1.00, stab_low, stab_high);
+		}
+
+		rhs_buffer[i_node] = Temp_rhs_i_node;
+	}
+}
 
 	//*************************************************************************
 	//function to solve fluid equations - fractional step 2: calculate pressure
-
+/*
 	void SolveStep2(typename TLinearSolver::Pointer pLinearSolver) {
 	    KRATOS_TRY
 

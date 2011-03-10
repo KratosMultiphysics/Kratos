@@ -387,7 +387,7 @@ inline void Sub_ConvectiveContribution2(const VectorType Ni_DNj, ValueType *dest
 	*destination -= dot(a_i, Ni_DNj) * (phi_j - phi_i);
 }
 
-inline void CalculateConvectionStabilization_LOW(const VectorType LaplacianIJ_0, const VectorType LaplacianIJ_1, const VectorType LaplacianIJ_2, VectorType *stab_low, const VectorType a_i, const VectorType U_i, const VectorType a_j, const VectorType U_j)
+inline void CalculateConvectionStabilization_LOW(const VectorType LaplacianIJ_0, const VectorType LaplacianIJ_1, const VectorType LaplacianIJ_2, VectorType *stab_low, const VectorType a_i, const VectorType U_i, const VectorType U_j)
 {
 	// conv_stab += a_i[k_comp] * a_i[m_comp] * LaplacianIJ(k_comp,m_comp)
 	// stab_low[l_comp] = conv_stab * (U_j[l_comp] - U_i[l_comp])
@@ -435,9 +435,16 @@ inline void Sub_StabContribution2(ValueType *destination, const ValueType tau, c
 	*destination -= tau * (stab_low - beta * stab_high);
 }
 
-inline void Add_ViscousContribution(const ValueType LaplacianIJ_0_0, const ValueType LaplacianIJ_1_1, const ValueType LaplacianIJ_2_2, __global VectorType *destination, const VectorType U_i, const ValueType nu_i, const VectorType U_j, const ValueType nu_j)
+inline void Add_ViscousContribution(const ValueType LaplacianIJ_0_0, const ValueType LaplacianIJ_1_1, const ValueType LaplacianIJ_2_2, VectorType *destination, const VectorType U_i, const ValueType nu_i, const VectorType U_j, const ValueType nu_j)
 {
 	// L += LaplacianIJ(l_comp, l_comp)
 	// destination[l_comp] += nu_i * L * (U_j[l_comp] - U_i[l_comp])
 	*destination += nu_i * (LaplacianIJ_0_0 + LaplacianIJ_1_1 + LaplacianIJ_2_2) * (U_j - U_i);
+}
+
+inline void Sub_ViscousContribution(const ValueType LaplacianIJ_0_0, const ValueType LaplacianIJ_1_1, const ValueType LaplacianIJ_2_2, VectorType *destination, const VectorType U_i, const ValueType nu_i, const VectorType U_j, const ValueType nu_j)
+{
+	// L += LaplacianIJ(l_comp, l_comp)
+	// destination[l_comp] -= nu_i * L * (U_j[l_comp] - U_i[l_comp])
+	*destination -= nu_i * (LaplacianIJ_0_0 + LaplacianIJ_1_1 + LaplacianIJ_2_2) * (U_j - U_i);
 }
