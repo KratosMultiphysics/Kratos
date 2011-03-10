@@ -117,17 +117,17 @@ namespace Kratos
 	double aux_1;
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
-//         if (gamma_dot > 1e-10) {
+        if (gamma_dot > 1e-10) {
             aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
             app_mu = mu + (yield / gamma_dot) * aux_1;
             if (app_mu < mu) {
                 KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
             }
-//         } else {
-//             app_mu = mu + yield*m_coef ;
-//         }
-/*        
-        if (gamma_dot <= 1e-10) */
+        } else {
+            app_mu = mu + yield * m_coef ;
+        }
+//        
+//         if (gamma_dot <= 1e-10) 
 // 	  gamma_dot_inv=1e10;
 //        else 
 	gamma_dot_inv= 1.0/gamma_dot;
