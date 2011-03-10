@@ -119,18 +119,18 @@ elif(SolverType == "pressure_splitting"):
     fluid_solver.abs_pres_tol = 1e-6
     fluid_solver.use_inexact_newton = False
     fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_solver.oss_switch  = fluid_only_var.use_oss
+    fluid_solver.oss_switch  = int(fluid_only_var.use_oss)
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
     fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_solver.oss_switch  = fluid_only_var.use_oss
+    fluid_solver.oss_switch  = int(fluid_only_var.use_oss)
     fluid_solver.regularization_coef = fluid_only_var.m_coef
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
     fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_solver.oss_switch  = fluid_only_var.use_oss
+    fluid_solver.oss_switch  = int(fluid_only_var.use_oss)
     fluid_solver.Initialize()
 
 
