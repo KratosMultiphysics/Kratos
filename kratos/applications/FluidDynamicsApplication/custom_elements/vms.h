@@ -1077,8 +1077,8 @@ namespace Kratos
                 FirstCol += BlockSize;
             }
 
-//            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
-            this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+//            this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Coef);
         }
 
         /// Assemble the contribution from an integration point to the element's residual.
