@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/model_part.h"
+#include "viennacl/compressed_matrix.hpp"
 
 // TODO: Remove unneeded ones
 //#include "includes/node.h"
@@ -93,9 +94,7 @@ namespace Kratos
 			typedef cl_uint *IndicesVectorType;
 			typedef cl_double3 *CalcVectorType;
 			typedef cl_double *ValuesVectorType;
-			//typedef std::vector <unsigned int> IndicesSTDVectorType;  // TODO: Is this OK?
-			//typedef std::vector <cl_double3> CalcSTDVectorType;  // TODO: Is this OK?
-			//typedef std::vector <double> ValuesSTDVectorType;  // TODO: Is this OK?
+			typedef CompressedMatrix SystemMatrixType;
 
 			// TODO: Remove mHmin and friends
 
@@ -287,7 +286,7 @@ namespace Kratos
 				unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
 
 				// Allocate memory for variables
-				//mL.resize(n_nodes, n_nodes, n_nonzero_entries);  // TODO: Fix this!
+				mL.resize(n_nodes, n_nodes, n_nonzero_entries);
 
 				// Loop over all nodes
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -308,19 +307,23 @@ namespace Kratos
 						if ((j_neighbour > i_node) && (flag == 0))
 						{
 							// Add diagonal/nodal contribution
-							//mL.push_back(i_node, i_node, 0.00);  // TODO: Fix this!
+							mL.push_back(i_node, i_node, 0.00);
 							flag = 1;
 						}
 
 						// Add non-diagonal/edge contribution
-						//mL.push_back(i_node, j_neighbour, 0.00);  // TODO: Fix this!
+						mL.push_back(i_node, j_neighbour, 0.00);
 					}
 
 					// If diagonal element is the last non-zero element of the row
 					if (flag == 0)
-						//mL.push_back(i_node, i_node, 0.0);  // TODO: Fix this!
-						;
+					{
+						mL.push_back(i_node, i_node, 0.0);
+					}
 				}
+
+				// Copy mL to GPU
+				copy(mL, mL_GPU);
 
 				// Compute minimum length of the surrounding edges
 				CalculateEdgeLengths(mr_model_part.Nodes());
@@ -1111,6 +1114,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				// TODO: Fix these! Copy from Initialize
+				// TODO: mL and GPU counterpart
 
 				/*mWork.clear();
 				mvel_n.clear();
@@ -1224,7 +1228,8 @@ namespace Kratos
 			// Variables for resolving pressure equation
 
 			// Laplacian matrix
-			//TSystemMatrixType mL;  // TODO: Fix this! Should we use ViennaCL types?
+			SystemMatrixType mL;
+			viennacl::compressed_matrix<double> mL_GPU;
 
 			// Constant variables
 			double mRho;
