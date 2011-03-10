@@ -144,6 +144,8 @@ namespace Kratos
 				// Register kernels
 				mkSolveStep1_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_1");
 				mkSolveStep1_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_2");
+
+				mkCalculateRHS = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "CalculateRHS");
 			}
 
 			//
@@ -440,62 +442,48 @@ namespace Kratos
 
 			void CalculateRHS(cl_uint vel_buffer, cl_uint pressure_buffer, cl_uint convective_velocity_buffer, cl_uint rhs_buffer)
 			{
-/*				KRATOS_TRY
+				KRATOS_TRY
 
 				// TODO: Is this OK?
 				//int n_nodes = vel.size();
 
-				// Calculating the RHS
-				array_1d<double, TDim> stab_low;
-				array_1d<double, TDim> stab_high;
-				const double nu_i = mViscosity;
-				const double nu_j = mViscosity;
 				double inverse_rho = 1.0 / mRho;
-				#pragma omp parallel for private(stab_low,stab_high)
-				for (int i_node = 0; i_node < n_nodes; i_node++) {
-					array_1d<double, TDim>& rhs_i = rhs[i_node];
-					const array_1d<double, TDim>& f_i = mBodyForce;
-					array_1d<double, TDim> a_i = convective_velocity[i_node];
+				cl_double3 body_force;
 
-					const array_1d<double, TDim>& U_i = vel[i_node];
-					const array_1d<double, TDim>& pi_i = mPi[i_node];
-					const double& p_i = pressure[i_node];
+				KRATOS_OCL_COMP_0(body_force) = mBodyForce[0];
+				KRATOS_OCL_COMP_1(body_force) = mBodyForce[1];
+				KRATOS_OCL_COMP_2(body_force) = mBodyForce[2];
+				KRATOS_OCL_COMP_3(body_force) = 0.00;
 
-					double edge_tau = mTauConvection[i_node];
+				// Setting arguments
 
-					//initializing with the external forces (e.g. gravity)
-					double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
-					for (unsigned int comp = 0; comp < TDim; comp++)
-					rhs_i[comp] = m_i  * f_i[comp] ;
+				// Execute OpenCL kernel
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 0, mbPi);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 1, vel_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 2, mr_matrix_container.GetRowStartIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 3, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetImageAsKernelArg(mkCalculateRHS, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 5, mr_matrix_container.GetLumpedMassBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 6, convective_velocity_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 7, pressure_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 8, rhs_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 9, mbTauConvection);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 10, body_force);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 11, inverse_rho);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 12, mViscosity);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 13, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS, 14, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
 
-					//convective term
-					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-						array_1d<double, TDim> a_j = convective_velocity[j_neighbour];
-						const array_1d<double, TDim>& U_j = vel[j_neighbour];
-						const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
-						const double& p_j = pressure[j_neighbour];
-
-						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-						edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
-						edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
-						edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
-
-						//add stabilization
-						edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
-						edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
-					}
+				// Apply wall resistance
+				if (mWallLawIsActive == true)
+				{
+					ComputeWallResistance(vel_buffer, rhs_buffer);
 				}
 
-				//apply wall resistance
-			  if(mWallLawIsActive == true)
-				  ComputeWallResistance(vel,rhs);
-
 				ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-				mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
+				mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+
 				KRATOS_CATCH("")
-*/
 			}
 
 			//
@@ -618,12 +606,12 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 2, mbTauPressure);
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 3, mbTauConvection);
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 4, mbTau2);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 5, mViscosity);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 6, time_inv_avg);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 7, mstabdt_pressure_factor);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 8, mstabdt_convection_factor);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 9, mtau2_factor);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 10, n_nodes);
+				mrDeviceGroup.SetKernelArg(mkSolveStep1_1, 5, mViscosity);
+				mrDeviceGroup.SetKernelArg(mkSolveStep1_1, 6, time_inv_avg);
+				mrDeviceGroup.SetKernelArg(mkSolveStep1_1, 7, mstabdt_pressure_factor);
+				mrDeviceGroup.SetKernelArg(mkSolveStep1_1, 8, mstabdt_convection_factor);
+				mrDeviceGroup.SetKernelArg(mkSolveStep1_1, 9, mtau2_factor);
+				mrDeviceGroup.SetKernelArg(mkSolveStep1_1, 10, n_nodes);
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep1_1, n_nodes);
@@ -635,7 +623,7 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 3, mr_matrix_container.GetColumnIndexBuffer());
 				mrDeviceGroup.SetImageAsKernelArg(mkSolveStep1_2, 4, mr_matrix_container.GetEdgeValuesBuffer());
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 5, mr_matrix_container.GetInvertedMassBuffer());
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 6, n_nodes);
+				mrDeviceGroup.SetKernelArg(mkSolveStep1_2, 6, n_nodes);
 				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep1_2, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
 
 				// Execute OpenCL kernel
@@ -1165,7 +1153,7 @@ namespace Kratos
 			OpenCL::DeviceGroup &mrDeviceGroup;
 			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbrhs;
 
-			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1, mkSolveStep1_2;
+			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1, mkSolveStep1_2, mkCalculateRHS;
 
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
