@@ -425,8 +425,9 @@ namespace Kratos
         Output[3] = -MasterShapeFunctionValues[0]*Normal[1];
 	Output[4] = -MasterShapeFunctionValues[1]*Normal[0];
 	Output[5] = -MasterShapeFunctionValues[1]*Normal[1];
-	
       }
+      
+      
     }
     
     
