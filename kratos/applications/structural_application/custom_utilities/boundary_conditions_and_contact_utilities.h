@@ -102,9 +102,49 @@ namespace Kratos
 ///******************************************************************************************************************
  
  
- class BoundaryConditionsAndContactUtilities
+
+  class BoundaryConditionsAndContactUtilities
 	{
 	public:
+	  
+	  
+	enum Intersect{IT_POINT = 0, IT_SEGMENT, IT_EMPTY}; 
+	
+	class Segment2D
+	{
+
+	  public:
+	  Segment2D(){}
+	  Segment2D(array_1d<double,2 >& P0, array_1d<double,2 >& P1)
+	  {
+	  mP0 = P0;
+	  mP1 = P1;
+	  }
+
+	  ~Segment2D(){}
+
+	  double mExtent;
+	  array_1d<double,2 > mP0;
+	  array_1d<double,2 > mP1;
+	  array_1d<double,2 > mCenter;
+	  array_1d<double,2 > mDirection;
+
+	  //--------------------------------------------------------------------------->
+	  void ComputeCenterDirectionExtent ()
+	  {
+	  noalias(mCenter)    = (0.5)*(mP0 + mP1);
+	  noalias(mDirection) = mP1 - mP0;
+	  mExtent             =  0.5 * inner_prod(mDirection, mDirection);
+	  }
+
+	  //--------------------------------------------------------------------------->
+	  inline double DotPerp (const array_1d<double,2 >& vec)
+	  {
+	  return mDirection[0]*vec[1] - mDirection[1]*vec[0];
+	  }
+
+	};
+	  
 	  
 	    KRATOS_CLASS_POINTER_DEFINITION(BoundaryConditionsAndContactUtilities);
 	    
@@ -228,7 +268,13 @@ namespace Kratos
             mBoundaryElements.clear();
             mPairContacts.clear();
             mpair.clear();
-            mMasterConditionsArray.clear();
+            mMasterConditionsArray.clear();  
+	    
+	   NodesArrayType& pNodes = mr_model_part.Nodes(); 
+	   for(ModelPart::NodeIterator i=pNodes.begin(); i!= pNodes.end(); ++i)      
+	       if(i->FastGetSolutionStepValue(IS_BOUNDARY) == 1.00)
+		   i->GetValue(NEIGHBOUR_CONDITIONS).clear();
+
 	 }
 	  
 	  
@@ -257,6 +303,7 @@ namespace Kratos
 	    mr_model_part.AddProperties( tempProperties );
 
 	    int  master     = 0;
+	    int  segment    = 0;
 	    bool initialize = false;
 	    
 	    for(IteratorContainerContactPair it_pair = mPairContacts.begin(); it_pair!= mPairContacts.end(); it_pair++)
@@ -269,7 +316,6 @@ namespace Kratos
 		     InsideNodes.clear();
 		     NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);
 		   }
-		 
 		 
 		   //std::cout<< "     MASTER ELEM  = "<< (*it_pair)[master]->Id() << "     MASTER  = " << master <<   std::endl; 
 		   //std::cout<< "     PAIRS 1      = "<< (*it_pair)[0]->Id() <<  "  " <<  "PAIRS 2 = " <<  (*it_pair)[1]->Id() <<  std::endl; 
@@ -303,12 +349,20 @@ namespace Kratos
  		              //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[0]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[1]->Id() << std::endl;
 			     
 			     
+			      //Computa el segmento activo cuando un elemento tiene mas de 1;
+			      if(master==0)
+			         segment = LocateMasterSegement(mr_model_part.Nodes()(InsideNodes[in]), (*it_pair)[0]);
+			      else
+			         segment = LocateMasterSegement(mr_model_part.Nodes()(InsideNodes[in]), (*it_pair)[1]);
+			      
+			      
+			      
 			      // Slave Node
 			      Point2D<Node<3> >::Pointer point_geom    =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(InsideNodes[in]) ) );
 			      Condition::Pointer SlaveNode             =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
 			     
 			      WeakPointerVector<Condition> neighb_cond =  (*it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS); 			      
-			      Condition::Pointer MasterFace            =  (neighb_cond(0).lock());   // me devuelve el puntero
+			      Condition::Pointer MasterFace            =  (neighb_cond(segment).lock());   // me devuelve el puntero
 			           
 			      // creando geometria trinagular para el link
 			      Condition::GeometryType& Mgeom = MasterFace->GetGeometry();
@@ -365,8 +419,47 @@ namespace Kratos
           }
 	 
  	
- 	 void LocateMasterSegement(PointerType& MasterObject)
+ 	 unsigned int LocateMasterSegement(NodePointerType& SlaveNode, PointerType& MasterObject)
  	 {   
+	    ProcessInfo& CurrentProcessInfo                   = mr_model_part.GetProcessInfo();
+	    WeakPointerVector< Condition >& neighb_cond       = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
+	   
+	    KRATOS_WATCH(neighb_cond.size()) 
+            
+	    unsigned int segment = 0;
+             
+	    if(neighb_cond.size()==1) // element has only one segment in the boundary
+	      return 0;
+	    else
+	    {
+	      WeakPointerVector< Condition >& neighb_cond_slave = SlaveNode->GetValue(NEIGHBOUR_CONDITIONS);
+	      Condition::GeometryType& geom = (neighb_cond(0).lock())->GetGeometry();
+	      vector<array_1d<double, 2> > Points0; Points0.resize(2, false); 
+              vector<array_1d<double, 2> > Points1; Points1.resize(2, false);
+
+	      Points0(0)[0] = geom[0].X(); 
+	      Points0(0)[1] = geom[0].Y();
+	      Points0(1)[0] = geom[1].X();
+	      Points0(1)[1] = geom[1].Y(); 
+	      KRATOS_WATCH(Points0)
+	      
+	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond){
+	          Condition::GeometryType& geom_2 = cond->GetGeometry();
+		  Points1(0)[0] = geom_2[0].X(); 
+	          Points1(0)[1] = geom_2[0].Y();
+	          Points1(1)[0] = geom_2[1].X();
+	          Points1(1)[1] = geom_2[1].Y();
+		 
+		  KRATOS_WATCH(Points1)
+		  if( IntersectSegment(Points0, Points1)==false)
+		     segment++;
+	      }  
+	
+	      }
+	
+	   KRATOS_WATCH(segment)
+	   KRATOS_ERROR(std::logic_error,  "CheckPlasticAdmisibility" , "");
+	   return segment;
 	 }
 	
 	
@@ -389,7 +482,7 @@ namespace Kratos
 	      for(IteratorType elem = it_begin; elem!=it_end; elem++)
 	      {
 		   Element::GeometryType& geom_1 = (*elem)->GetGeometry();
-		   WeakPointerVector< Element >& neighb_elems  = (*elem)->GetValue(NEIGHBOUR_ELEMENTS); 
+		   WeakPointerVector< Element >& neighb_elems    = (*elem)->GetValue(NEIGHBOUR_ELEMENTS); 
 		   WeakPointerVector< Condition >& neighb_cond   = (*elem)->GetValue(NEIGHBOUR_CONDITIONS);
 		   neighb_cond.clear();
 		   
@@ -453,6 +546,10 @@ namespace Kratos
 	    Line2D2<Node<3> >::Pointer pgeom =  Line2D2<Node<3> >::Pointer (new Line2D2<Node<3> >(mr_model_part.Nodes()((rPair)[0]), mr_model_part.Nodes()((rPair)[1]) ) ) ;  
 	    Condition::Pointer MasterSegment = Condition::Pointer(new MasterContactFaceType(Id, pgeom ) ) ;
 	    MasterSegment->GetValue(NEIGHBOUR_ELEMENTS).push_back(*elem);
+	    
+	    mr_model_part.Nodes()((rPair)[0])->GetValue(NEIGHBOUR_CONDITIONS).push_back(MasterSegment); 
+	    mr_model_part.Nodes()((rPair)[1])->GetValue(NEIGHBOUR_CONDITIONS).push_back(MasterSegment); 
+	    
 	    (*elem)->GetValue(NEIGHBOUR_CONDITIONS).push_back(MasterSegment); 
 	    MasterConditions.push_back(MasterSegment);
 	    Id++;
@@ -553,11 +650,92 @@ namespace Kratos
        ContainerContactPair      mPairContacts;
        std::vector<unsigned int> mpair;
        ConditionsArrayType       mMasterConditionsArray;
-       
-       
+        
+       bool IntersectSegment(vector<array_1d<double, 2> > Points0,
+       vector<array_1d<double, 2> > Points1)
+      {
+	
+	array_1d<double, 2> parameter;
+	array_1d<double, 2> Point;
+	
+	Segment2D Segment0(Points0[0], Points0[1]);
+	Segment2D Segment1(Points1[0], Points1[1]);
 
-       
-       
+	Intersect IntersectionType = Classify(parameter, Segment0,  Segment1);
+
+	if (IntersectionType == IT_POINT)
+	{
+	   // Test whether the line-line intersection is on the segments.
+	   if ( std::fabs(parameter[0]) <= Segment0.mExtent
+	    &&  std::fabs(parameter[1])  <= Segment1.mExtent)
+	    {
+	      Point    = Segment0.mCenter + parameter[0]*Segment0.mDirection;
+	    }
+	    else
+	    {
+	     IntersectionType = IT_EMPTY;
+	   }
+	 }
+	 
+	return IntersectionType != IT_EMPTY;
+
+      }
+          
+          
+      Intersect Classify(
+      array_1d<double, 2> s,
+      Segment2D& Segment0,
+      Segment2D& Segment1
+      )
+      
+      {
+     
+	// The intersection of two lines is a solution to P0+s0*D0 = P1+s1*D1.
+	// Rewrite this as s0*D0 - s1*D1 = P1 - P0 = Q.  If D0.Dot(Perp(D1)) = 0,
+	// the lines are parallel.  Additionally, if Q.Dot(Perp(D1)) = 0, the
+	// lines are the same.  If D0.Dot(Perp(D1)) is not zero, then
+	// s0 = Q.Dot(Perp(D1))/D0.Dot(Perp(D1))
+	// produces the point of intersection.  Also,
+	// s1 = Q.Dot(Perp(D0))/D0.Dot(Perp(D1))
+
+        double toler = 1E-9;   
+	array_1d<double, 2> originDiff = Segment1.mCenter - Segment0.mCenter;
+	array_1d<double, 2> diff = originDiff;
+	
+	double D0DotPerpD1 = Segment0.DotPerp(Segment1.mDirection);
+
+	if ( std::fabs(D0DotPerpD1) > toler)
+	{
+	  // Lines intersect in a single point.
+	  double invD0DotPerpD1 = 1.00/D0DotPerpD1;
+	  double diffDotPerpD0  = originDiff[0]*Segment0.mDirection[1] - originDiff[1]*Segment0.mDirection[0]; 
+	  double diffDotPerpD1  = originDiff[0]*Segment1.mDirection[1] - originDiff[1]*Segment1.mDirection[0]; 
+	  s[0] = diffDotPerpD1*invD0DotPerpD1;
+	  s[1] = diffDotPerpD0*invD0DotPerpD1;
+	  
+	  return IT_POINT;
+	}
+
+
+	// Lines are parallel.
+	originDiff = originDiff * (1.00 / ( inner_prod(originDiff, originDiff) ) );    
+	array_1d<double, 2> diffN = originDiff;
+	
+
+	double diffNDotPerpD1 = originDiff[0]*Segment1.mDirection[1] - originDiff[1]*Segment1.mDirection[0]; 
+	if (std::fabs(diffNDotPerpD1) <= toler)
+	{
+	// Lines are colinear.
+	return IT_SEGMENT;
+	}
+
+	// Lines are parallel, but distinct.
+	return IT_EMPTY;
+      }
+
+ 
+
+ 
 	};
 	
 	
