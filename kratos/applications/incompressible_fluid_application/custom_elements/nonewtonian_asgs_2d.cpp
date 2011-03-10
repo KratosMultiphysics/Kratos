@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
-#define NAVIERSTOKES //if not STOKES is solved
+// #define NAVIERSTOKES //if not STOKES is solved
 #define EXPONENCIAL_MODEL // if not -> BILINEAR_MODEL is calculated
 // #define COMPRESSIBLE_MODEL_ML__PN1_PN__
 // #define COMPRESSIBLE_MODEL_MLPN1_MCPN
@@ -139,7 +139,7 @@ namespace Kratos {
 // KRATOS_WATCH(rCurrentProcessInfo[OSS_SWITCH])
 
 // 	      //add projections
-// 	      if (rCurrentProcessInfo[OSS_SWITCH] == 1)
+ 	      if (rCurrentProcessInfo[OSS_SWITCH] == 1)
 		  AddProjectionForces(rRightHandSideVector, DN_DX, Area, tauone, tautwo);
 
 
@@ -210,9 +210,9 @@ namespace Kratos {
 /*20101216*/
 	/*Stablization*/
 	//add stablilization terms due to advective term (a)grad(V) * ro*Acce
-#ifdef NAVIERSTOKES
+// #ifdef NAVIERSTOKES
 	CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Area);
-#endif
+// #endif
 	//add stablilization terms due to grad term grad(q) * ro*Acce
 	CalculateGradMassStblTerms(rMassMatrix, DN_DX,N, tauone, Area);
 
@@ -250,9 +250,9 @@ namespace Kratos {
 	double tauone;
 	double tautwo;
 	CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
-#ifdef NAVIERSTOKES
+// #ifdef NAVIERSTOKES
 	CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
-#endif
+// #endif
 	/*Calculate Pressure term + divergence term of pressure equation*/
 	CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area);
 
@@ -261,9 +261,9 @@ namespace Kratos {
 	//stabilization terms
 /*20101216*/
 	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);//tau 2
-#ifdef NAVIERSTOKES
+// #ifdef NAVIERSTOKES
 	CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area);
-#endif
+// #endif
 	CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
 	//KRATOS_WATCH(rRightHandSideVector);
 
@@ -1298,9 +1298,9 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	gamma_dot = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2];
 	gamma_dot = sqrt(gamma_dot);
 
-	if(gamma_dot < 1e-5){
-	  gamma_dot=1e-5;
-	}
+// 	if(gamma_dot < 1e-5){
+// 	  gamma_dot=1e-5;
+// 	}
 	
 	KRATOS_CATCH("")
     }
@@ -1318,7 +1318,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	app_mu = 0.0;
 
 // 	double m_coef = 3000;
-	
+// KRATOS_WATCH(m_coef)	
 	double aux_1;
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
@@ -1353,7 +1353,8 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  friction_angle_tangent /= nodes_number;
 	  water_pressure /= nodes_number;
 	  yield /= nodes_number;
-
+// KRATOS_WATCH(friction_angle_tangent)
+// KRATOS_WATCH(yield)
 // 	  solid_pressure /= nodes_number;
 // 	  seepage_drag_x /= nodes_number;
 // 	  pay attention: negative yield stress meaningful
@@ -1372,17 +1373,17 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #ifdef EXPONENCIAL_MODEL
 ////////EXPONENCIAL MODEL
-// 	if (gamma_dot > 1e-10) {
+	if (gamma_dot > 1e-10) {
 	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 	    app_mu = mu + (yield / gamma_dot) * aux_1;
 // 			gamma_dot_inv = 1.0/gamma_dot;
 	    if (app_mu < mu) {
 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
 	    }
-// 	} else {
-// 	    app_mu = mu + yield*m_coef ;
+	} else {
+	    app_mu = mu + yield * m_coef ;
 // // 			gamma_dot_inv = 0.0;
-// 	}
+	}
 #else	
 // ////////BILINEAR MODEL
       double mu_s = 1e7;
