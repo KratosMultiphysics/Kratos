@@ -327,11 +327,44 @@ namespace Kratos
                Result[2] = T(0,0)*T(1,1)-T(0,1)*T(1,0);
                SD_MathUtils<double>::Normalize( Result );
                
-	       KRATOS_WATCH(Result)
+	       //KRATOS_WATCH(Result)
                rValues[PointNumber][0] = Result[0];
                rValues[PointNumber][1] = Result[1];
                rValues[PointNumber][2] = Result[2];
            }
-       }     
+       }  
    }
+   
+   
+     Vector MasterContactFace2D::NormalVector()
+     {
+       
+       array_1d<double, 3> e3      =   ZeroVector(3);
+       array_1d<double, 3> Result  =   ZeroVector(3);
+       
+       e3[0] = 0.00; e3[1] = 0.00; e3[2] = 1.00; 
+       
+       /// El primer nodo es el slave
+       Condition::GeometryType& geom = this->GetGeometry();
+       /// tener normal positiva    
+       array_1d<double, 3> t         =  geom[0] - geom[1];
+       t = (1.00 / std::sqrt(inner_prod(t,t))) * t;   
+       MathUtils<double>::CrossProduct(Result,e3,t);
+            
+       return Result;
+       
+     }
+   
+   void MasterContactFace2D::Calculate( const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output,  const ProcessInfo& rCurrentProcessInfo)
+   {
+    if(rVariable == NORMAL)
+    {
+      Output = NormalVector(); 
+    }
+      
+      return;
+   }
+   
+   
+   
 } // Namespace Kratos
