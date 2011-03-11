@@ -136,6 +136,7 @@ namespace Kratos
 	  noalias(mCenter)    = (0.50) * (mP0 + mP1);
 	  noalias(mDirection) = mP1 - mP0;
 	  mExtent             = (0.50) * (std::sqrt(inner_prod(mDirection, mDirection) ) ) ;
+	  mDirection          =  (1.00/(2.00 * mExtent)) * mDirection;
 	  }
 
 	  //--------------------------------------------------------------------------->
@@ -444,6 +445,7 @@ namespace Kratos
 	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond){
 	          Condition::GeometryType& geom_2 = cond->GetGeometry();
 		  
+
 		  
 		  Points1(0)[0] = geom_2[0].X(); 
 	          Points1(0)[1] = geom_2[0].Y();
@@ -454,13 +456,10 @@ namespace Kratos
 		     segment++;
 		  else
 		    break;
-		  
-		  KRATOS_ERROR(std::logic_error,  " " , "");
+		     
+		  }
 	      }  
-	
-	      }
-	  
-	   KRATOS_WATCH(segment)	   
+	   
 	   return segment;
 	 }
 	
@@ -662,12 +661,8 @@ namespace Kratos
 	
 	Segment2D Segment0(Points0[0], Points0[1]);
 	Segment2D Segment1(Points1[0], Points1[1]);
-
 	Intersect IntersectionType = Classify(parameter, Segment0,  Segment1);
-	KRATOS_WATCH(parameter)
-	KRATOS_WATCH(Segment0.mExtent)
-	KRATOS_WATCH(Segment1.mExtent)
-        Point    = Segment0.mCenter + parameter[0]*Segment0.mDirection;
+
 	
 	if (IntersectionType == IT_POINT)
 	{
