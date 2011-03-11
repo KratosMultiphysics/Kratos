@@ -318,9 +318,7 @@ namespace Kratos
 		     InsideNodes.clear();
 		     NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);
 		   }
-		 
-		   //std::cout<< "     MASTER ELEM  = "<< (*it_pair)[master]->Id() << "     MASTER  = " << master <<   std::endl; 
-		   //std::cout<< "     PAIRS 1      = "<< (*it_pair)[0]->Id() <<  "  " <<  "PAIRS 2 = " <<  (*it_pair)[1]->Id() <<  std::endl; 
+		    
 		   // WARNING = Puede que en un tiempo determinado caigan dos nodos a la vez en un  elemento
 		   // Un nodo dentro del elemento
  		   
@@ -333,6 +331,8 @@ namespace Kratos
 			  repeated_object = TotalInsideNodes.end();
 		       }
 		          
+		          
+		          KRATOS_WATCH(InsideNodes.size())
 		          
 			  /// verifcando que no se repitan los slaves nodes 
 			  if(initialize==true)
@@ -347,9 +347,11 @@ namespace Kratos
                                   TotalInsideNodes.push_back(InsideNodes[in]);  
 			     
 			      
- 			      //std::cout<< "     Node Inside =  "<< InsideNodes[in] << std::endl;
- 		              //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[0]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[1]->Id() << std::endl;
-			     
+ 			      std::cout<< "     Node Inside =  "<< InsideNodes[in] << std::endl;
+			      if(master==0 )
+ 		                 std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[0]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[1]->Id() << std::endl;
+			      else
+				 std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[1]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[0]->Id() << std::endl;
 			     
 			      //Computa el segmento activo cuando un elemento tiene mas de 1;
 			      if(master==0)
@@ -436,16 +438,15 @@ namespace Kratos
 	      Condition::GeometryType& geom = (neighb_cond_slave(0).lock())->GetGeometry();
 	      vector<array_1d<double, 2> > Points0; Points0.resize(2, false); 
               vector<array_1d<double, 2> > Points1; Points1.resize(2, false);
-
+	      
 	      Points0(0)[0] = geom[0].X(); 
 	      Points0(0)[1] = geom[0].Y();
 	      Points0(1)[0] = geom[1].X();
 	      Points0(1)[1] = geom[1].Y(); 
 	      
+	      int a = 1000;
 	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond){
 	          Condition::GeometryType& geom_2 = cond->GetGeometry();
-		  
-
 		  
 		  Points1(0)[0] = geom_2[0].X(); 
 	          Points1(0)[1] = geom_2[0].Y();
@@ -453,7 +454,8 @@ namespace Kratos
 	          Points1(1)[1] = geom_2[1].Y();
 		 
 		  if(IntersectSegment(Points0, Points1)==false)
-		     segment++;
+		  {segment++;
+		     a++;}
 		  else
 		    break;
 		     
@@ -634,10 +636,34 @@ namespace Kratos
 	   
 	   Element::GeometryType& geom_master = MasterObject->GetGeometry();
 	   Element::GeometryType& geom_slave  = SlaveObject->GetGeometry();
+	   std::vector<unsigned> Nodes;
+	   
+	   /// buscando el nodo comun
+	   bool commun = false;
+	  for(unsigned int i = 0; i<geom_slave.size(); i++){
+	     commun = false;
+	     for(unsigned int j = 0; j<geom_master.size(); j++) {
+	         if(geom_slave[i].Id()==geom_master[j].Id()) 
+		 {
+		   commun = true;
+		 }
+	      }
+	          if(commun==false)
+		     Nodes.push_back(geom_slave[i].Id());
+	     }
+	     
 	   array_1d<double, 3> result;
-	   for (unsigned int i = 0; i<geom_master.size(); i++ )
-	       if(geom_master.IsInside(geom_slave[i], result)) {InsideNodes.push_back(geom_slave[i].Id());}      
-	  
+	   KRATOS_WATCH(Nodes.size()) 
+	   for (unsigned int i = 0; i<Nodes.size(); i++ ){
+	       std::cout<< "Nodes = " << Nodes[i] << std::endl;
+	       if(geom_master.IsInside(geom_slave[Nodes[i]], result)){
+		      InsideNodes.push_back(geom_slave[Nodes[i]].Id()); }   
+	   }
+	   
+	   KRATOS_WATCH(InsideNodes.size())    
+	   for(unsigned int i = 0; i<InsideNodes.size(); i++ )
+	       std::cout<< "Inside" << InsideNodes[i] << std::endl;  
+	   std::cout<< "------------" << std::endl;    
 	 }
 
 
@@ -656,21 +682,23 @@ namespace Kratos
        vector<array_1d<double, 2> >& Points1)
       {
 	
-	array_1d<double, 2> parameter;
-	array_1d<double, 2> Point = ZeroVector(2);
+	double toler = 1E-9;
+	array_1d<double, 2> parameter = ZeroVector(2);
+	array_1d<double, 2> Point     = ZeroVector(2);
 	
 	Segment2D Segment0(Points0[0], Points0[1]);
 	Segment2D Segment1(Points1[0], Points1[1]);
 	Intersect IntersectionType = Classify(parameter, Segment0,  Segment1);
-
 	
 	if (IntersectionType == IT_POINT)
 	{
 	   // Test whether the line-line intersection is on the segments.
-	   if ( std::fabs(parameter[0]) <= Segment0.mExtent
-	    &&  std::fabs(parameter[1]) <= Segment1.mExtent)
+	   double a = std::fabs(parameter[0]) - Segment0.mExtent;
+	   double b = std::fabs(parameter[1]) - Segment1.mExtent;
+	   if (a<=toler && b<=toler)
 	    {
 	      Point    = Segment0.mCenter + parameter[0]*Segment0.mDirection;
+	      
 	    }
 	    else
 	    {
@@ -725,9 +753,10 @@ namespace Kratos
 	double diffNDotPerpD1 = originDiff[0]*Segment1.mDirection[1] - originDiff[1]*Segment1.mDirection[0]; 
 	if (std::fabs(diffNDotPerpD1) <= toler)
 	{
-	// Lines are colinear.
+	// Lines are colinear.	
 	return IT_SEGMENT;
 	}
+
 
 	// Lines are parallel, but distinct.
 	return IT_EMPTY;
