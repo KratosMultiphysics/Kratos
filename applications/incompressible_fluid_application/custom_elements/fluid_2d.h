@@ -92,9 +92,20 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
-    /// Short class definition.
+    /// This element implements a Multi-stage element (2D case) to be used in conjuntion with @see FractionalStepStrategy
 
-    /** Detail class definition.
+    /** The element is designed for the solution of the Navier-Stokes equations. Velocity components are considered to be uncoupled, and
+     * laplacian formulation is used for the viscous term.
+     * OSS (Orthogonal Sub-grid Scale) stabilization is used for both the incompressibility constraint and for the convective term.
+     * smagorinsky turbulence model is optionally implemented and controlled by the value of the C_SMAGORINSKY constant, which is passed thorugh the
+     * Processinfo.
+     * The computation of the "tau" used in the stabilization allows the user to take in account a term depending on 1/Dt
+     * this option is controlled by the variable ProcessInfo[DYNAMIC_TAU]. Setting it to 0.0 implies NOT considering a dependence
+     * of tau on Dt.
+     * The class is organized mainly in 3 stages
+     * Stage1 - computes the velocity (designed for non-linear iteration)
+     * Stage2 - computes the pressure
+     * Stage3 - corrects the velocity taking in account the pressure variation computed in the second step
      */
     class Fluid2D
     : public Element
@@ -132,13 +143,14 @@ namespace Kratos
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
         void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-        //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
         void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
 
         void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+        void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
         ///@}
         ///@name Access
@@ -219,14 +231,6 @@ namespace Kratos
     private:
         ///@name Static Member Variables
         ///@{
-        //		static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-        //		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-        //  		static array_1d<double,3> msN; //dimension = number of nodes
-        //static Matrix msDN_DX;
-        //static Matrix msMassFactors;
-        //		static array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
-        //		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
-        //		static array_1d<double,3> ms_u_DN;
 
         ///@}
         ///@name Member Variables
@@ -239,16 +243,12 @@ namespace Kratos
         ///@{
         void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
         void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-        double CalculateTau(const double h, const double nu, const double norm_u, ProcessInfo& CurrentProcessInfo);
-        double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& msDN_DX,
+        double CalculateTau(const double& h, const double& nu, const double& norm_u, const ProcessInfo& CurrentProcessInfo);
+        double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,
                 const double& h,
                 const double& C,
                 const double nu
                 );
-
-
-        //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
-        //	  inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
 
         ///@}
         ///@name Private Operations
@@ -271,6 +271,7 @@ namespace Kratos
         friend class Serializer;
 
         // A private default constructor necessary for serialization
+
         Fluid2D() : Element()
         {
         }
