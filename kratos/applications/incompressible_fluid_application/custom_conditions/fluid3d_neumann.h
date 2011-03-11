@@ -239,11 +239,7 @@ namespace Kratos
       ///@} 
       ///@name Private Operators
       ///@{ 
-		void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-										ProcessInfo& rCurrentProcessInfo,
-										bool CalculateStiffnessMatrixFlag,
-										bool CalculateResidualVectorFlag);
-        
+      
       
       ///@} 
       ///@name Private Operations
