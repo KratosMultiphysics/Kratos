@@ -1,7 +1,7 @@
 domain_size = 3
 
 Dt = 0.02
-max_time = 1.5
+max_time = 2.0
 SolverType = "fractional_step"
 laplacian_form = 1
 output_step = 10
