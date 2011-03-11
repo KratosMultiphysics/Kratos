@@ -117,8 +117,9 @@ namespace Kratos
 	  Segment2D(){}
 	  Segment2D(array_1d<double,2 >& P0, array_1d<double,2 >& P1)
 	  {
-	  mP0 = P0;
-	  mP1 = P1;
+	  noalias(mP0) = P0;
+	  noalias(mP1) = P1;
+	  ComputeCenterDirectionExtent();
 	  }
 
 	  ~Segment2D(){}
@@ -132,9 +133,9 @@ namespace Kratos
 	  //--------------------------------------------------------------------------->
 	  void ComputeCenterDirectionExtent ()
 	  {
-	  noalias(mCenter)    = (0.5)*(mP0 + mP1);
+	  noalias(mCenter)    = (0.50) * (mP0 + mP1);
 	  noalias(mDirection) = mP1 - mP0;
-	  mExtent             =  0.5 * inner_prod(mDirection, mDirection);
+	  mExtent             = (0.50) * (std::sqrt(inner_prod(mDirection, mDirection) ) ) ;
 	  }
 
 	  //--------------------------------------------------------------------------->
@@ -423,9 +424,7 @@ namespace Kratos
  	 {   
 	    ProcessInfo& CurrentProcessInfo                   = mr_model_part.GetProcessInfo();
 	    WeakPointerVector< Condition >& neighb_cond       = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
-	   
-	    KRATOS_WATCH(neighb_cond.size()) 
-            
+	               
 	    unsigned int segment = 0;
              
 	    if(neighb_cond.size()==1) // element has only one segment in the boundary
@@ -433,7 +432,7 @@ namespace Kratos
 	    else
 	    {
 	      WeakPointerVector< Condition >& neighb_cond_slave = SlaveNode->GetValue(NEIGHBOUR_CONDITIONS);
-	      Condition::GeometryType& geom = (neighb_cond(0).lock())->GetGeometry();
+	      Condition::GeometryType& geom = (neighb_cond_slave(0).lock())->GetGeometry();
 	      vector<array_1d<double, 2> > Points0; Points0.resize(2, false); 
               vector<array_1d<double, 2> > Points1; Points1.resize(2, false);
 
@@ -441,24 +440,27 @@ namespace Kratos
 	      Points0(0)[1] = geom[0].Y();
 	      Points0(1)[0] = geom[1].X();
 	      Points0(1)[1] = geom[1].Y(); 
-	      KRATOS_WATCH(Points0)
 	      
 	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond){
 	          Condition::GeometryType& geom_2 = cond->GetGeometry();
+		  
+		  
 		  Points1(0)[0] = geom_2[0].X(); 
 	          Points1(0)[1] = geom_2[0].Y();
 	          Points1(1)[0] = geom_2[1].X();
 	          Points1(1)[1] = geom_2[1].Y();
 		 
-		  KRATOS_WATCH(Points1)
-		  if( IntersectSegment(Points0, Points1)==false)
+		  if(IntersectSegment(Points0, Points1)==false)
 		     segment++;
+		  else
+		    break;
+		  
+		  KRATOS_ERROR(std::logic_error,  " " , "");
 	      }  
 	
 	      }
-	
-	   KRATOS_WATCH(segment)
-	   KRATOS_ERROR(std::logic_error,  "CheckPlasticAdmisibility" , "");
+	  
+	   KRATOS_WATCH(segment)	   
 	   return segment;
 	 }
 	
@@ -651,23 +653,27 @@ namespace Kratos
        std::vector<unsigned int> mpair;
        ConditionsArrayType       mMasterConditionsArray;
         
-       bool IntersectSegment(vector<array_1d<double, 2> > Points0,
-       vector<array_1d<double, 2> > Points1)
+       bool IntersectSegment(vector<array_1d<double, 2> >& Points0,
+       vector<array_1d<double, 2> >& Points1)
       {
 	
 	array_1d<double, 2> parameter;
-	array_1d<double, 2> Point;
+	array_1d<double, 2> Point = ZeroVector(2);
 	
 	Segment2D Segment0(Points0[0], Points0[1]);
 	Segment2D Segment1(Points1[0], Points1[1]);
 
 	Intersect IntersectionType = Classify(parameter, Segment0,  Segment1);
-
+	KRATOS_WATCH(parameter)
+	KRATOS_WATCH(Segment0.mExtent)
+	KRATOS_WATCH(Segment1.mExtent)
+        Point    = Segment0.mCenter + parameter[0]*Segment0.mDirection;
+	
 	if (IntersectionType == IT_POINT)
 	{
 	   // Test whether the line-line intersection is on the segments.
 	   if ( std::fabs(parameter[0]) <= Segment0.mExtent
-	    &&  std::fabs(parameter[1])  <= Segment1.mExtent)
+	    &&  std::fabs(parameter[1]) <= Segment1.mExtent)
 	    {
 	      Point    = Segment0.mCenter + parameter[0]*Segment0.mDirection;
 	    }
@@ -683,7 +689,7 @@ namespace Kratos
           
           
       Intersect Classify(
-      array_1d<double, 2> s,
+      array_1d<double, 2>& s,
       Segment2D& Segment0,
       Segment2D& Segment1
       )
@@ -698,11 +704,10 @@ namespace Kratos
 	// produces the point of intersection.  Also,
 	// s1 = Q.Dot(Perp(D0))/D0.Dot(Perp(D1))
 
-        double toler = 1E-9;   
+        double toler                   = 1E-9;   
 	array_1d<double, 2> originDiff = Segment1.mCenter - Segment0.mCenter;
-	array_1d<double, 2> diff = originDiff;
-	
-	double D0DotPerpD1 = Segment0.DotPerp(Segment1.mDirection);
+	array_1d<double, 2> diff       = originDiff;
+	double D0DotPerpD1             = Segment0.DotPerp(Segment1.mDirection);
 
 	if ( std::fabs(D0DotPerpD1) > toler)
 	{
@@ -712,13 +717,13 @@ namespace Kratos
 	  double diffDotPerpD1  = originDiff[0]*Segment1.mDirection[1] - originDiff[1]*Segment1.mDirection[0]; 
 	  s[0] = diffDotPerpD1*invD0DotPerpD1;
 	  s[1] = diffDotPerpD0*invD0DotPerpD1;
-	  
+
 	  return IT_POINT;
 	}
 
 
 	// Lines are parallel.
-	originDiff = originDiff * (1.00 / ( inner_prod(originDiff, originDiff) ) );    
+	originDiff = originDiff * (1.00 / ( std::sqrt(inner_prod(originDiff, originDiff) ) ) );    
 	array_1d<double, 2> diffN = originDiff;
 	
 
