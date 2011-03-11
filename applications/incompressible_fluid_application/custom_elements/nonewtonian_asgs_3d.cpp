@@ -47,8 +47,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
-//#define GRADPN_FORM
-//#define STOKES
+
+#define EXPONENCIAL_MODEL // if not -> BILINEAR_MODEL is calculated
+
+
+// #define K0 //fixed tangent method
+// #define Kvisc0 //fixed tangent method only for viscous terms
+
 
 // System includes 
 
@@ -129,7 +134,7 @@ namespace Kratos {
 
 
         //       //add projections
-              if (rCurrentProcessInfo[OSS_SWITCH] == 1.0)
+              if (rCurrentProcessInfo[OSS_SWITCH] == 1)
                   AddProjectionForces(rRightHandSideVector, DN_DX, Volume, tauone, tautwo);
 
 
@@ -223,6 +228,8 @@ namespace Kratos {
         noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
+	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+	const double m_coef = rCurrentProcessInfo[M];
 	
         //getting data for the given geometry
         double Volume;
@@ -247,11 +254,27 @@ namespace Kratos {
         //KRATOS_WATCH(rRightHandSideVector);
         /**         RHS           */
         /**Internal Forces*/
-        CalculateResidual(DN_DX,rDampMatrix, rRightHandSideVector, Volume);
+        CalculateResidual(DN_DX,rDampMatrix, rRightHandSideVector, m_coef, Volume);
         /**         LHS           */
         /**Viscous term*/
-        CalculateViscousTerm(rDampMatrix, DN_DX, Volume);
+        CalculateViscousTerm(rDampMatrix, DN_DX,  it_num, m_coef, Volume);
 // KRATOS_WATCH("LINE 267")
+#ifdef K0 //Fixed tangent method 
+KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	mlhs0.resize(matsize,matsize);
+// 	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+// KRATOS_WATCH(it_num);
+// KRATOS_WATCH(rDampMatrix);
+
+	if(it_num == 1)	
+	  noalias(mlhs0) = rDampMatrix;
+	else
+	  rDampMatrix = mlhs0;
+// KRATOS_WATCH(rDampMatrix);
+// KRATOS_WATCH(mlhs0);
+#endif	
+
+
         KRATOS_CATCH("")
     }
 
@@ -259,7 +282,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS3D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const double volume) {
+    void NoNewtonianASGS3D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, const int it_num, const double m_coef, const double volume) {
         KRATOS_TRY
         double mu;
         int nodes_number = 4;
@@ -280,7 +303,7 @@ namespace Kratos {
 //         KRATOS_WATCH(B)
 	
 	//Bingham Fluid
-       CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+       CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 	//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
 	// Remember to modify CalculateResidualand CalculateTau.
 // 	app_mu = mu;
@@ -341,6 +364,19 @@ namespace Kratos {
                 }
             }
         }
+        
+#ifdef Kvisc0 //fixed tangent method only for viscous contribution
+// 	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
+//KRATOS_WATCH("Fixed tangent method only for viscous term~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+// KRATOS_WATCH(it_num);
+// KRATOS_WATCH(temp);
+	if(it_num == 1)	
+	  mKvisc0 = temp;
+	else
+	  temp = mKvisc0;
+// KRATOS_WATCH(temp);
+#endif
+
 //         KRATOS_WATCH(temp)
         temp *= volume;
         for (int ii = 0; ii < nodes_number; ii++) {
@@ -941,7 +977,7 @@ namespace Kratos {
     }
     //************************************************************************************
     //************************************************************************************
-	void NoNewtonianASGS3D::CalculateResidual(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const MatrixType& K, VectorType& F, const double volume) {
+	void NoNewtonianASGS3D::CalculateResidual(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const MatrixType& K, VectorType& F, const double m_coef, const double volume) {
 		KRATOS_TRY
 
 		int nodes_number = 4;
@@ -980,7 +1016,7 @@ namespace Kratos {
 		//sigma dev intern
 
 	// 	Bingham Fluid:
-		CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+		CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 	// 	Newtonian Fluid: Leave Decommented the CalculateApparentviscosity (we need grad_sym_vel) and decomment the following line
 	//	Remember to modify CalculateViscousTerm and CalculateTau
 	// 	app_mu = mu;
@@ -989,6 +1025,10 @@ namespace Kratos {
 		aux_1[3] *= 0.5; //considering Voigt notation for the gradient of velocity (alternative to the C matrix of the viscous term.
 		aux_1[4] *= 0.5;
 		aux_1[5] *= 0.5;
+		
+		mDevStress = 0.5 * (aux_1[0] * aux_1[0]  + aux_1[1] * aux_1[1] +  aux_1[2] * aux_1[2]) + aux_1[3] * aux_1[3] + aux_1[4] * aux_1[4] + aux_1[5] * aux_1[5];
+		mDevStress = sqrt(mDevStress);
+		
 		auxDevStressVector = prod(trans(B), aux_1);
 		/*TO DECOMMENT*/
 
@@ -1296,15 +1336,13 @@ namespace Kratos {
 //         grad_sym_vel_norm = grad_sym_vel[0] * grad_sym_vel[0] + grad_sym_vel[1] * grad_sym_vel[1] + 0.5 * grad_sym_vel[2] * grad_sym_vel[2];
 // Gamma dot found in literature!!!:
         gamma_dot = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] + 2.0 * grad_sym_vel[2] * grad_sym_vel[2] + grad_sym_vel[3] * grad_sym_vel[3] + grad_sym_vel[4] * grad_sym_vel[4] + grad_sym_vel[5] * grad_sym_vel[5];
+	gamma_dot = sqrt(gamma_dot);
 
-        if (gamma_dot > 0.00001) {
-            gamma_dot = sqrt(gamma_dot);
-        } else
-            gamma_dot = 0.0;
+// 	if(gamma_dot < 1e-5){
+// 	  gamma_dot=1e-5;
+// 	}
 	
-	//print on gauss point the gamma dot as TEMPERATURE
-/*KRATOS_WATCH(gamma_dot)
-KRATOS_WATCH(grad_sym_vel)*/	
+
 	
         KRATOS_CATCH("")
     }
@@ -1317,7 +1355,7 @@ KRATOS_WATCH(grad_sym_vel)*/
     void NoNewtonianASGS3D::CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
 	    array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
             const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
-            const double & mu){
+            const double & mu, const double & m_coef){
         KRATOS_TRY
         // 	        unsigned int dim = 2;
         // 		unsigned int nodes_number = dim + 1;
@@ -1325,7 +1363,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 // 	double yield;
 
 // 	double gamma_dot = 0.0;
-        double mcoef = 3000;
+//         double mcoef = 3000;
 // 	double mcoef_inv = 1/mcoef;
 	
 	double aux_1;
@@ -1336,6 +1374,8 @@ KRATOS_WATCH(grad_sym_vel)*/
 	  double yield = 0.0;
 	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
+	  double gamma_dot_inv;
+
 	  
 	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
@@ -1360,9 +1400,9 @@ KRATOS_WATCH(grad_sym_vel)*/
 	  }
 	  else
 	      yield = 0.0;
-	  
+#ifdef EXPONENCIAL_MODEL	  
         if (gamma_dot > 1e-10) {
-            aux_1 = 1.0 - exp(-(mcoef * gamma_dot));
+            aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 // 	    KRATOS_WATCH(aux_1)
 // 	    KRATOS_WATCH(gamma_dot)
             app_mu = mu + (yield / gamma_dot) * aux_1;
@@ -1371,9 +1411,25 @@ KRATOS_WATCH(grad_sym_vel)*/
             }
 	}
         else {
-            app_mu = mu + yield*mcoef ;
+            app_mu = mu + yield * m_coef ;
         }
-
+#else
+// ////////BILINEAR MODEL
+      double mu_s = 1e7;
+      double gamma_dot_lim = yield/mu_s;
+      
+      if(gamma_dot >= gamma_dot_lim){
+	if (gamma_dot_lim <= 1e-16){
+	  app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+	}
+	else{
+	  app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+	}
+      }
+      else{
+	app_mu = mu_s ;
+      }
+#endif
 
         KRATOS_CATCH("")
     }
@@ -1617,7 +1673,8 @@ KRATOS_WATCH(grad_sym_vel)*/
 
   
 	//Bingham
-	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);	
+	const double m_coef = rCurrentProcessInfo[M];
+	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);	
 //         CalculateApparentViscosityStbl(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);	
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
 	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
@@ -1678,6 +1735,8 @@ KRATOS_WATCH(grad_sym_vel)*/
     void NoNewtonianASGS3D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) {
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
+	const double m_coef = rCurrentProcessInfo[M];
+
 	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
         array_1d<double, 4 > N; 
 	
@@ -1709,16 +1768,13 @@ KRATOS_WATCH(grad_sym_vel)*/
                 rValues[PointNumber] = this->GetValue(IS_WATER_ELEMENT);
             }
         }
-//PROVISIONALbegin---only for debugging
-	if (rVariable == TEMPERATURE) {//gamma dot
+	if (rVariable == EQ_STRAIN_RATE) {//gamma dot
 	  boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
 	  double gamma_dot = 0.0;
-// 	  double Volume;
-// 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
+
 
 	  CalculateB(B, DN_DX);      
-
 	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	     
             for (unsigned int PointNumber = 0;
@@ -1727,6 +1783,32 @@ KRATOS_WATCH(grad_sym_vel)*/
 
             }
         }
+	if (rVariable == MU) {//app mu
+	  boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
+	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
+	  double mu;
+	  double density;
+	  double app_mu;
+	  double app_mu_derivative;
+	  double gamma_dot;
+	  calculatedensity(GetGeometry(), density, mu);
+	  CalculateB(B, DN_DX);    
+	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+	    
+	    for (unsigned int PointNumber = 0;
+		    PointNumber < 1; PointNumber++) {
+		rValues[PointNumber] = app_mu;
+
+	    }
+	}
+	if (rVariable == TAU) {//SQRT(0.5 DEVSTRESS:DEVSTRESS)
+	    
+	    for (unsigned int PointNumber = 0;
+		    PointNumber < 1; PointNumber++) {
+		rValues[PointNumber] = mDevStress;
+
+	    }
+	}
 // 	if (rVariable == TEMPERATURE) {//1st component of 2*app_mu*grad_sym_vel
 // 	  boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
 // 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
@@ -1738,7 +1820,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 // // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);*/
 // 	  calculatedensity(GetGeometry(), density, mu);
 // 	  CalculateB(B, DN_DX);    
-// // 	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+// // 	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 // 	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 // 	     
 //             for (unsigned int PointNumber = 0;
@@ -1747,7 +1829,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 // 
 //             }
 //         }
-	if (rVariable == AUX_INDEX) {//app mu
+	if (rVariable == MU) {//app mu
 	  boost::numeric::ublas::bounded_matrix<double, 6, 12 > B = ZeroMatrix(6, 12);
 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
 // 	  double gamma_dot = 0.0;
@@ -1760,7 +1842,7 @@ KRATOS_WATCH(grad_sym_vel)*/
 // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 	  calculatedensity(GetGeometry(), density, mu);
 	  CalculateB(B, DN_DX);    
-	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);
+	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 	     
             for (unsigned int PointNumber = 0;
                     PointNumber < 1; PointNumber++) {
