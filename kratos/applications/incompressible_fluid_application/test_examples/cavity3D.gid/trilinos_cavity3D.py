@@ -110,7 +110,7 @@ for node in model_part.Nodes:
 
 import time
 
-repeat = 3;
+repeat = 2;
 for i in range(0,repeat):
     start_time = time.clock()
 
