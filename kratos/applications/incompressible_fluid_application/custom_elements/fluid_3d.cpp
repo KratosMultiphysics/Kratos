@@ -37,8 +37,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    $Author: rrossi $
@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes 
 //#define GRADPN_FORM //the grad(pn) is used instead of the G(pn) in doing the splitting
- 
+
 // External includes 
 
 
@@ -61,1031 +61,960 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h" 
 #include "utilities/geometry_utilities.h" 
 
-namespace Kratos 
+namespace Kratos
 {
-	//************************************************************************************
-	//************************************************************************************
-	Fluid3D::Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry)
-		: Element(NewId, pGeometry)
-	{		
-		//DO NOT ADD DOFS HERE!!!
-	}
+    //************************************************************************************
+    //************************************************************************************
 
-	//************************************************************************************
-	//************************************************************************************
-	Fluid3D::Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-		: Element(NewId, pGeometry, pProperties)
-	{
-	}
+    Fluid3D::Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry)
+    {
+        //DO NOT ADD DOFS HERE!!!
+    }
 
-	Element::Pointer Fluid3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
-	{
-		KRATOS_TRY
-		return Element::Pointer(new Fluid3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
-		KRATOS_CATCH("");
-	}
+    //************************************************************************************
+    //************************************************************************************
 
-	Fluid3D::~Fluid3D()
-	{
-	}
+    Fluid3D::Fluid3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
+    {
+    }
 
-	//************************************************************************************
-	//************************************************************************************
-	void Fluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
+    Element::Pointer Fluid3D::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    {
+        KRATOS_TRY
+        return Element::Pointer(new Fluid3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        KRATOS_CATCH("");
+    }
 
-		int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
+    Fluid3D::~Fluid3D()
+    {
+    }
 
-		if(FractionalStepNumber <= 3) //first step of the fractional step solution
-		{
-			int ComponentIndex = FractionalStepNumber - 1;
-			Stage1(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo, ComponentIndex);
-		}
-		else if (FractionalStepNumber == 4)//second step of the fractional step solution
-		{
-			Stage2(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-		}
+    //************************************************************************************
+    //************************************************************************************
 
-		KRATOS_CATCH("")
-	}
+    void Fluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
 
-	//************************************************************************************
-	//************************************************************************************
-	void Fluid3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
-	}
+                int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 
-	//************************************************************************************
-	//************************************************************************************
-	//calculation by component of the fractional step velocity corresponding to the first stage
-	void Fluid3D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-										   ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex)
-	{
-		KRATOS_TRY;
+        if (FractionalStepNumber <= 3) //first step of the fractional step solution
+        {
+            int ComponentIndex = FractionalStepNumber - 1;
+            Stage1(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, ComponentIndex);
+        } else if (FractionalStepNumber == 4)//second step of the fractional step solution
+        {
+            Stage2(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        }
 
-		unsigned int number_of_points = 4;
+        KRATOS_CATCH("")
+    }
 
-		if(rLeftHandSideMatrix.size1() != number_of_points)
-			rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
+    //************************************************************************************
+    //************************************************************************************
 
-		if(rRightHandSideVector.size() != number_of_points)
-			rRightHandSideVector.resize(number_of_points,false);
+    void Fluid3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR(std::logic_error, "method not implemented", "");
+    }
 
-		//getting data for the given geometry
-		double Volume;
-		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-		array_1d<double,4> msN;
-		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
-		//CalculateGeometryData(msDN_DX,msN,Volume);
+    //************************************************************************************
+    //************************************************************************************
+    //calculation by component of the fractional step velocity corresponding to the first stage
 
-		//getting the velocity vector on the nodes
+    void Fluid3D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex)
+    {
+        KRATOS_TRY;
 
-		//getting the velocity on the nodes
-		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL,0);
-		const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
-		const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-		const double fcomp0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
+        unsigned int number_of_points = 4;
 
-		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
-		const double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-		const double fcomp1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
+        if (rLeftHandSideMatrix.size1() != number_of_points)
+            rLeftHandSideMatrix.resize(number_of_points, number_of_points, false);
 
-		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
-		const double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-		const double fcomp2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
+        if (rRightHandSideVector.size() != number_of_points)
+            rRightHandSideVector.resize(number_of_points, false);
 
-		const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
-		const double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
-		const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
-		const double fcomp3 = GetGeometry()[3].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
+        //getting data for the given geometry
+        double Volume;
+        boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        array_1d<double, 4 > N;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
+        //CalculateGeometryData(DN_DX,N,Volume);
 
-		// vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
-		array_1d<double,3> ms_aux;
-		array_1d<double,3> ms_vel_gauss;
-		noalias(ms_aux) = fv0;	noalias(ms_aux) -= w0;	
-		noalias(ms_vel_gauss) = msN[0]*ms_aux;
+        //getting the velocity vector on the nodes
 
-		noalias(ms_aux) = fv1;	noalias(ms_aux) -= w1;	
-		noalias(ms_vel_gauss) += msN[1]*ms_aux;
+        //getting the velocity on the nodes
+        const array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL, 0);
+        const array_1d<double, 3 > & w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
+        const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+        const double fcomp0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
 
-		noalias(ms_aux) = fv2;	noalias(ms_aux) -= w2;	
-		noalias(ms_vel_gauss) += msN[2]*ms_aux;
+        const array_1d<double, 3 > & fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
+        const array_1d<double, 3 > & w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
+        const double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+        const double fcomp1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
 
-		noalias(ms_aux) = fv3;	noalias(ms_aux) -= w3;	
-		noalias(ms_vel_gauss) += msN[3]*ms_aux;
+        const array_1d<double, 3 > & fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
+        const array_1d<double, 3 > & w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
+        const double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+        const double fcomp2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
 
-		//calculating viscosity
-		double nu = 0.25*(nu0 + nu1 + nu2 + nu3);
- 		double density = 0.25*(rho0 + rho1 + rho2 + rho3);
+        const array_1d<double, 3 > & fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
+        const array_1d<double, 3 > & w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
+        const double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
+        const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+        const double fcomp3 = GetGeometry()[3].FastGetSolutionStepValue(BODY_FORCE)[ComponentIndex];
 
-		//getting the BDF2 coefficients (not fixed to allow variable time step)
-		//the coefficients INCLUDE the time step
-		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+        array_1d<double, 3 > aux;
+        array_1d<double, 3 > vel_gauss;
+        noalias(aux) = fv0;
+        noalias(aux) -= w0;
+        noalias(vel_gauss) = N[0] * aux;
 
-		//calculating parameter tau (saved internally to each element)
-//		double c1 = 4.00;
-//		double c2 = 2.00;
-		double h = CalculateH(Volume);
-		//double h = pow(6.00*Volume,0.3333333);
-		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
-		norm_u = sqrt(norm_u);
-		double tau = CalculateTau(msDN_DX,ms_vel_gauss,h,nu,norm_u,rCurrentProcessInfo);
+        noalias(aux) = fv1;
+        noalias(aux) -= w1;
+        noalias(vel_gauss) += N[1] * aux;
 
-                //compute turbulent viscosity
-                const double Cs = this->GetValue(C_SMAGORINSKY);
-                double nu_turbulent=0.0;
-                if(Cs != 0.0)
-                    nu_turbulent=ComputeSmagorinskyViscosity(msDN_DX,h,Cs,nu);
+        noalias(aux) = fv2;
+        noalias(aux) -= w2;
+        noalias(vel_gauss) += N[2] * aux;
 
-                //adjusting the stablization by a constant factor
-		//double stab_factor = GetProperties()[STABILIZATION_FACTOR];
-		//if(stab_factor != 0.0)
-		//	tau *= GetProperties()[STABILIZATION_FACTOR];
+        noalias(aux) = fv3;
+        noalias(aux) -= w3;
+        noalias(vel_gauss) += N[3] * aux;
 
-		//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
-		array_1d<double,4> ms_u_DN; 
-		noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
-		noalias(rLeftHandSideMatrix) = outer_prod(msN,ms_u_DN);
+        //calculating viscosity
+        double nu = 0.25 * (nu0 + nu1 + nu2 + nu3);
+        double density = 0.25 * (rho0 + rho1 + rho2 + rho3);
 
-		//CONVECTION STABILIZING CONTRIBUTION (Suu)
-		noalias(rLeftHandSideMatrix) += tau * outer_prod(ms_u_DN,ms_u_DN);
- 
-		//VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
-		// rLeftHandSideMatrix += Laplacian * nu;
-		noalias(rLeftHandSideMatrix) += (nu + nu_turbulent) * prod(msDN_DX,trans(msDN_DX));
+        //getting the BDF2 coefficients (not fixed to allow variable time step)
+        //the coefficients INCLUDE the time step
+        const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
-		//INERTIA CONTRIBUTION
-		//  rLeftHandSideMatrix += M*BDFcoeffs[0]
-		boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
-		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMassFactors;
+        //calculating parameter tau (saved internally to each element)
+        //		double c1 = 4.00;
+        //		double c2 = 2.00;
+        double h = CalculateH(Volume);
+        //double h = pow(6.00*Volume,0.3333333);
+        double norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1] + vel_gauss[2] * vel_gauss[2];
+        norm_u = sqrt(norm_u);
+        double tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
 
-		//multiplication by the Volume
-		rLeftHandSideMatrix *= (Volume * density);
+        //compute turbulent viscosity
+        const double Cs = this->GetValue(C_SMAGORINSKY);
+        double nu_turbulent = 0.0;
+        if (Cs != 0.0)
+            nu_turbulent = ComputeSmagorinskyViscosity(DN_DX, h, Cs, nu);
 
-		// *****************************************
-		//CALCULATION OF THE RHS
+        //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
+        array_1d<double, 4 > u_DN;
+        noalias(u_DN) = prod(DN_DX, vel_gauss);
+        noalias(rLeftHandSideMatrix) = outer_prod(N, u_DN);
 
-		//external forces (component)
-		double force_component = 0.25*(fcomp0 + fcomp1 + fcomp2 + fcomp3);
+        //CONVECTION STABILIZING CONTRIBUTION (Suu)
+        noalias(rLeftHandSideMatrix) += tau * outer_prod(u_DN, u_DN);
+
+        //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
+        // rLeftHandSideMatrix += Laplacian * nu;
+        noalias(rLeftHandSideMatrix) += (nu + nu_turbulent) * prod(DN_DX, trans(DN_DX));
+
+        //INERTIA CONTRIBUTION
+        //  rLeftHandSideMatrix += M*BDFcoeffs[0]
+        boost::numeric::ublas::bounded_matrix<double, 4, 4 > MassFactors = 0.25 * IdentityMatrix(4, 4);
+        noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * MassFactors;
+
+        //multiplication by the Volume
+        rLeftHandSideMatrix *= (Volume * density);
+
+        // *****************************************
+        //CALCULATION OF THE RHS
+
+        //external forces (component)
+        double force_component = 0.25 * (fcomp0 + fcomp1 + fcomp2 + fcomp3);
 
 
 #if defined(GRADPN_FORM)
-		//std::cout << "grad pn form " << std::endl;
-		//calculating pressure grad (component)
-		double p_grad   = msDN_DX(0,ComponentIndex)*p0old 
-						+ msDN_DX(1,ComponentIndex)*p1old 
-						+ msDN_DX(2,ComponentIndex)*p2old
-						+ msDN_DX(3,ComponentIndex)*p3old;
-		p_grad /= density;
-		// RHS = Fext - grad*pn
-		noalias(rRightHandSideVector) = (force_component - p_grad)*msN;
+        //std::cout << "grad pn form " << std::endl;
+        //calculating pressure grad (component)
+        double p_grad = DN_DX(0, ComponentIndex) * p0old
+                + DN_DX(1, ComponentIndex) * p1old
+                + DN_DX(2, ComponentIndex) * p2old
+                + DN_DX(3, ComponentIndex) * p3old;
+        p_grad /= density;
+        // RHS = Fext - grad*pn
+        noalias(rRightHandSideVector) = (force_component - p_grad) * N;
 #else 
-		//adding pressure gradient (integrated by parts)
-		noalias(rRightHandSideVector) = (force_component )*msN;
-		double p_avg = p0old + p1old + p2old + p3old;
-		p_avg *= 0.25 / density;
-		rRightHandSideVector[0] += msDN_DX(0,ComponentIndex)*p_avg; 
-		rRightHandSideVector[1] += msDN_DX(1,ComponentIndex)*p_avg; 
-		rRightHandSideVector[2] += msDN_DX(2,ComponentIndex)*p_avg;
-		rRightHandSideVector[3] += msDN_DX(3,ComponentIndex)*p_avg;
+        //adding pressure gradient (integrated by parts)
+        noalias(rRightHandSideVector) = (force_component) * N;
+        double p_avg = p0old + p1old + p2old + p3old;
+        p_avg *= 0.25 / density;
+        rRightHandSideVector[0] += DN_DX(0, ComponentIndex) * p_avg;
+        rRightHandSideVector[1] += DN_DX(1, ComponentIndex) * p_avg;
+        rRightHandSideVector[2] += DN_DX(2, ComponentIndex) * p_avg;
+        rRightHandSideVector[3] += DN_DX(3, ComponentIndex) * p_avg;
 #endif
 
-		//adding the inertia terms
-		// RHS += M*vhistory 
-		//calculating the historical velocity
-		array_1d<double,4> ms_temp_vec_np = ZeroVector(4); 
-		for(unsigned int step = 1; step<BDFcoeffs.size(); step++)
-		{ 
-			for(int iii = 0; iii<4; iii++)
-			{
-				const array_1d<double,3>& v = (GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY,step) );
-				ms_temp_vec_np[iii] -= BDFcoeffs[step]*v[ComponentIndex];
-			}
-			
-		}	
-		noalias(rRightHandSideVector) += prod(msMassFactors,ms_temp_vec_np) ;
+        //adding the inertia terms
+        // RHS += M*vhistory
+        //calculating the historical velocity
+        array_1d<double, 4 > temp_vec_np = ZeroVector(4);
+        for (unsigned int step = 1; step < BDFcoeffs.size(); step++)
+        {
+            for (int iii = 0; iii < 4; iii++)
+            {
+                const array_1d<double, 3 > & v = (GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY, step));
+                temp_vec_np[iii] -= BDFcoeffs[step] * v[ComponentIndex];
+            }
 
-		//RHS += Suy * proj[component] 
-		double proj_component = msN[0]*proj0[ComponentIndex] 
-							  + msN[1]*proj1[ComponentIndex] 
-							  + msN[2]*proj2[ComponentIndex]
-							  + msN[3]*proj3[ComponentIndex];
-		noalias(rRightHandSideVector) += (tau*proj_component)*ms_u_DN;   
+        }
+        noalias(rRightHandSideVector) += prod(MassFactors, temp_vec_np);
 
-		//multiplying by Volume
-		rRightHandSideVector *= (Volume * density);
+        //RHS += Suy * proj[component]
+        double proj_component = N[0] * proj0[ComponentIndex]
+                + N[1] * proj1[ComponentIndex]
+                + N[2] * proj2[ComponentIndex]
+                + N[3] * proj3[ComponentIndex];
+        noalias(rRightHandSideVector) += (tau * proj_component) * u_DN;
 
-		//suubtracting the dirichlet term
-		// RHS -= LHS*FracVel
-		ms_temp_vec_np[0] = fv0[ComponentIndex]; 
-		ms_temp_vec_np[1] = fv1[ComponentIndex]; 
-		ms_temp_vec_np[2] = fv2[ComponentIndex]; 
-		ms_temp_vec_np[3] = fv3[ComponentIndex]; 
-		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
+        //multiplying by Volume
+        rRightHandSideVector *= (Volume * density);
 
-
-		KRATOS_CATCH("");
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	//calculation by component of the fractional step velocity corresponding to the first stage
-	void Fluid3D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-										   ProcessInfo& rCurrentProcessInfo)
-	{
-	  //KRATOS_TRY;
-
-		unsigned int number_of_points = 4;
-
-		if(rLeftHandSideMatrix.size1() != number_of_points)
-			rLeftHandSideMatrix.resize(number_of_points,number_of_points);
-
-		if(rRightHandSideVector.size() != number_of_points)
-			rRightHandSideVector.resize(number_of_points);
-		
-		array_1d<double,3> ms_vel_gauss;
-		array_1d<double,3> ms_aux;
-		array_1d<double,4> ms_temp_vec_np;		
-		
-		//getting data for the given geometry
-		double Volume;
-		array_1d<double,4> msN;
-		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
-		//CalculateGeometryData(msDN_DX,msN,Volume);
-
-		
-		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
-		const double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-		const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-		
-		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
-		const double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-		const double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-		
-		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
-		const double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-		const double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-
-		const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
-		const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
-		const array_1d<double,3>& proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
-		const double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
-		const double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-		const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
-		const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
-
-		// vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
-
-		noalias(ms_aux) = fv0;		
-		ms_aux[0] -= w0[0]; ms_aux[1] -= w0[1]; ms_aux[2] -= w0[2];
-		noalias(ms_vel_gauss) = msN[0]*ms_aux;
-
-		noalias(ms_aux) = fv1;	
-		ms_aux[0] -= w1[0]; ms_aux[1] -= w1[1]; ms_aux[2] -= w1[2];
-		noalias(ms_vel_gauss) += msN[1]*ms_aux;
-
-		noalias(ms_aux) = fv2;		
-		ms_aux[0] -= w2[0]; ms_aux[1] -= w2[1]; ms_aux[2] -= w2[2];
-		noalias(ms_vel_gauss) += msN[2]*ms_aux;
-
-		noalias(ms_aux) = fv3;	
-		ms_aux[0] -= w3[0]; ms_aux[1] -= w3[1]; ms_aux[2] -= w3[2];
-		noalias(ms_vel_gauss) += msN[3]*ms_aux;
-
-		//calculating avergage density and viscosity
-		double nu = 0.25*(nu0 + nu1 + nu2 + nu3);
- 		double density = 0.25*(rho0 + rho1 + rho2 + rho3);
-
-		//calculating parameter tau (saved internally to each element)
-//		double c1 = 4.00;
-//		double c2 = 2.00;
-		//double h = pow(6.00*Volume,0.3333333333);
-		double h = CalculateH(Volume);
-		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
-		norm_u = sqrt(norm_u);
-		double tau = CalculateTau(msDN_DX,ms_vel_gauss,h,nu,norm_u,rCurrentProcessInfo);
-		
-		//getting the BDF2 coefficients (not fixed to allow variable time step)
-		//the coefficients INCLUDE the time step
-		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-
-		//CALCULATION OF THE LEFT HAND SIDE
-		//laplacian term	       L = Dt * gradN * trans(gradN);
-		//stabilization term       Spp = tau * gradN * trans(gradN);
-		noalias(rLeftHandSideMatrix) = ((1.00/BDFcoeffs[0] + tau)/density) * prod(msDN_DX,trans(msDN_DX));
-
-		//calculation of the RHS
-		// RHS = -G*vfrac
-		double Gaux;
-		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1] + msDN_DX(0,2)*fv0[2];
-		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1] + msDN_DX(1,2)*fv1[2];
-		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1] + msDN_DX(2,2)*fv2[2];
-		Gaux += msDN_DX(3,0)*fv3[0] + msDN_DX(3,1)*fv3[1] + msDN_DX(3,2)*fv3[2];
-
-                //**************************** EXPERIMENTAL *****************************
-                //**************************** EXPERIMENTAL *****************************
-                //try ... should conserve the mass much better!
-// 		const array_1d<double,3>& v0old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-// 		const array_1d<double,3>& v1old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-// 		const array_1d<double,3>& v2old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-// 		const array_1d<double,3>& v3old = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY,1);
-// 		Gaux +=  msDN_DX(0,0)*v0old[0] + msDN_DX(0,1)*v0old[1] + msDN_DX(0,2)*v0old[2];
-// 		Gaux += msDN_DX(1,0)*v1old[0] + msDN_DX(1,1)*v1old[1] + msDN_DX(1,2)*v1old[2];
-// 		Gaux += msDN_DX(2,0)*v2old[0] + msDN_DX(2,1)*v2old[1] + msDN_DX(2,2)*v2old[2];
-// 		Gaux += msDN_DX(3,0)*v3old[0] + msDN_DX(3,1)*v3old[1] + msDN_DX(3,2)*v3old[2];
-                //**************************** EXPERIMENTAL *****************************
-                //**************************** EXPERIMENTAL *****************************
-
-		rRightHandSideVector[0] = - Gaux * msN[0]; 
-		rRightHandSideVector[1] = - Gaux * msN[1]; 
-		rRightHandSideVector[2] = - Gaux * msN[2]; 
-		rRightHandSideVector[3] = - Gaux * msN[3]; 
-		//std::cout << Id() << " Gtrans fv " << rRightHandSideVector << std::endl;
-
-		//attention!! changing the meaning of ms_vel_gauss
-		// RHS += Sz * proj 
-		//contrib of Spy*proj
-		noalias(ms_vel_gauss) = msN[0]*proj0;
-		noalias(ms_vel_gauss) += msN[1]*proj1;
-		noalias(ms_vel_gauss) += msN[2]*proj2;
-		noalias(ms_vel_gauss) += msN[3]*proj3;
-		ms_vel_gauss *= tau;
-		noalias(rRightHandSideVector) += prod(msDN_DX , ms_vel_gauss);   
-		//std::cout << Id() << " proj " << prod(msDN_DX , ms_vel_gauss) << std::endl;
-
-		//dirichlet contribution
-		ms_temp_vec_np[0] = p0; 
-		ms_temp_vec_np[1] = p1; 
-		ms_temp_vec_np[2] = p2; 
-		ms_temp_vec_np[3] = p3; 
-		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
-
-		// RHS += dt * L * pold 
-		ms_temp_vec_np[0] = p0old; 
-		ms_temp_vec_np[1] = p1old; 
-		ms_temp_vec_np[2] = p2old; 
-		ms_temp_vec_np[3] = p3old; 
-		noalias(ms_vel_gauss) = prod(trans(msDN_DX),ms_temp_vec_np);
-		noalias(rRightHandSideVector) += (1.00/(BDFcoeffs[0]*density) ) * prod(msDN_DX,ms_vel_gauss); 
-
-		//multiplicating by the Volume
-		rLeftHandSideMatrix *= Volume;
-		rRightHandSideVector *= Volume;
-
-		//adding contributions to nodal Volumes following the corresponding lumping term
-		double nodal_contrib = 0.25 * Volume * density;
-
-//                GetGeometry()[0].SetLock();
-//                GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-//                GetGeometry()[0].UnSetLock();
-//
-//                GetGeometry()[1].SetLock();
-//                GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-//                GetGeometry()[1].UnSetLock();
-//
-//                GetGeometry()[2].SetLock();
-//                GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-//                GetGeometry()[2].UnSetLock();
-//
-//                GetGeometry()[3].SetLock();
-//                GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
-//                GetGeometry()[3].UnSetLock();
-
-                double& m0 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-                #pragma omp atomic
-                m0 +=  nodal_contrib;
-
-                double& m1 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS);
-                #pragma omp atomic
-                m1 +=  nodal_contrib;
-
-                double& m2 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS);
-                #pragma omp atomic
-                m2 +=  nodal_contrib;
-                
-                double& m3 = GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS);
-                #pragma omp atomic
-                m3 +=  nodal_contrib;
+        //suubtracting the dirichlet term
+        // RHS -= LHS*FracVel
+        temp_vec_np[0] = fv0[ComponentIndex];
+        temp_vec_np[1] = fv1[ComponentIndex];
+        temp_vec_np[2] = fv2[ComponentIndex];
+        temp_vec_np[3] = fv3[ComponentIndex];
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
 
 
-		//KRATOS_CATCH("");
-	}
-	  
-	//************************************************************************************
-	//************************************************************************************
-	// this subroutine calculates the nodal contributions for the explicit steps of the 
-	// fractional step procedure
-	void Fluid3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
-	{
-		KRATOS_TRY
-		int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
- 
-		//getting data for the given geometry
-		double Volume;
-		array_1d<double,4> msN;
-		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
-		//CalculateGeometryData(msDN_DX,msN,Volume);
-		
-		if(FractionalStepNumber  == 5) //calculation of stabilization terms
-		{
+        KRATOS_CATCH("");
+    }
 
-			const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
-			const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-			array_1d<double,3>& press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
-			array_1d<double,3>& conv_proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
-			double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-			const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-			
-			const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-			const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-			array_1d<double,3>& press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
-			array_1d<double,3>& conv_proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
-			double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-			const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+    //************************************************************************************
+    //************************************************************************************
+    //calculation by component of the fractional step velocity corresponding to the first stage
 
-			const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-			const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-			array_1d<double,3>& press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
-			array_1d<double,3>& conv_proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
-			double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-			const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+    void Fluid3D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo)
+    {
+        //KRATOS_TRY;
 
-			const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
-			const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
-			array_1d<double,3>& press_proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
-			array_1d<double,3>& conv_proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
-			double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
-			const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+        unsigned int number_of_points = 4;
 
-			double density = 0.25*(rho0 + rho1 + rho2 + rho3);
+        if (rLeftHandSideMatrix.size1() != number_of_points)
+            rLeftHandSideMatrix.resize(number_of_points, number_of_points);
 
-			//calculation of the pressure gradient (saved in ms_vel_gauss)
-			array_1d<double,3> ms_temp;
-			array_1d<double,4> ms_temp_vec_np;
-			ms_temp_vec_np[0] = p0;
-			ms_temp_vec_np[1] = p1;
-			ms_temp_vec_np[2] = p2;
-			ms_temp_vec_np[3] = p3;
-			noalias(ms_temp) = prod(trans(msDN_DX),ms_temp_vec_np);
-// 			ms_vel_gauss *= Volume/density;
-			ms_temp *= Volume * 0.25;
+        if (rRightHandSideVector.size() != number_of_points)
+            rRightHandSideVector.resize(number_of_points);
 
-			//press_proj += G*p
-//			noalias(press_proj0) += msN[0]*ms_vel_gauss;
-//			noalias(press_proj1) += msN[1]*ms_vel_gauss;
-//			noalias(press_proj2) += msN[2]*ms_vel_gauss;
-//			noalias(press_proj3) += msN[3]*ms_vel_gauss;
+        array_1d<double, 3 > vel_gauss;
+        array_1d<double, 3 > aux;
+        array_1d<double, 4 > temp_vec_np;
 
-////                        GetGeometry()[0].SetLock();
-////                        noalias(press_proj0) += msN[0]*ms_vel_gauss;
-////                        GetGeometry()[0].UnSetLock();
-////
-////                        GetGeometry()[1].SetLock();
-////                        noalias(press_proj1) += msN[1]*ms_vel_gauss;
-////                        GetGeometry()[1].UnSetLock();
-////
-////                        GetGeometry()[2].SetLock();
-////                        noalias(press_proj2) += msN[2]*ms_vel_gauss;
-////                        GetGeometry()[2].UnSetLock();
-////
-////                        GetGeometry()[3].SetLock();
-////                        noalias(press_proj3) += msN[3]*ms_vel_gauss;
-////                        GetGeometry()[3].UnSetLock();
+        //getting data for the given geometry
+        double Volume;
+        array_1d<double, 4 > N;
+        boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
-//                        #pragma omp atomic
-//                        press_proj0[0] += msN[0]*ms_vel_gauss[0];
-//                        #pragma omp atomic
-//                        press_proj0[1] += msN[0]*ms_vel_gauss[1];
-//                        #pragma omp atomic
-//                        press_proj0[2] += msN[0]*ms_vel_gauss[2];
-//
-//                        #pragma omp atomic
-//                        press_proj1[0] += msN[1]*ms_vel_gauss[0];
-//                        #pragma omp atomic
-//                        press_proj1[1] += msN[1]*ms_vel_gauss[1];
-//                        #pragma omp atomic
-//                        press_proj1[2] += msN[1]*ms_vel_gauss[2];
-//
-//                        #pragma omp atomic
-//                        press_proj2[0] += msN[2]*ms_vel_gauss[0];
-//                        #pragma omp atomic
-//                        press_proj2[1] += msN[2]*ms_vel_gauss[1];
-//                        #pragma omp atomic
-//                        press_proj2[2] += msN[2]*ms_vel_gauss[2];
-//
-//                        #pragma omp atomic
-//                        press_proj3[0] += msN[3]*ms_vel_gauss[0];
-//                        #pragma omp atomic
-//                        press_proj3[1] += msN[3]*ms_vel_gauss[1];
-//                        #pragma omp atomic
-//                        press_proj3[2] += msN[3]*ms_vel_gauss[2];
-                        
-			// vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
-			array_1d<double,3> ms_vel_gauss;
-			array_1d<double,3> ms_aux;
-			noalias(ms_aux) = fv0;		
-			ms_aux[0] -= w0[0]; ms_aux[1] -= w0[1]; ms_aux[2] -= w0[2];
-			noalias(ms_vel_gauss) = msN[0]*ms_aux;
+        const array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
+        const array_1d<double, 3 > & w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
+        const double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+        const double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 
-			noalias(ms_aux) = fv1;	
-			ms_aux[0] -= w1[0]; ms_aux[1] -= w1[1]; ms_aux[2] -= w1[2];
-			noalias(ms_vel_gauss) += msN[1]*ms_aux;
+        const array_1d<double, 3 > & fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
+        const array_1d<double, 3 > & w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
+        const double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+        const double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 
-			noalias(ms_aux) = fv2;		
-			ms_aux[0] -= w2[0]; ms_aux[1] -= w2[1]; ms_aux[2] -= w2[2];
-			noalias(ms_vel_gauss) += msN[2]*ms_aux;
+        const array_1d<double, 3 > & fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
+        const array_1d<double, 3 > & w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
+        const double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+        const double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 
-			noalias(ms_aux) = fv3;	
-			ms_aux[0] -= w3[0]; ms_aux[1] -= w3[1]; ms_aux[2] -= w3[2]; 
-			noalias(ms_vel_gauss) += msN[3]*ms_aux;
+        const array_1d<double, 3 > & fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
+        const array_1d<double, 3 > & w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+        const array_1d<double, 3 > & proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
+        const double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
+        const double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+        const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
+        const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+
+        // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+
+        noalias(aux) = fv0;
+        aux[0] -= w0[0];
+        aux[1] -= w0[1];
+        aux[2] -= w0[2];
+        noalias(vel_gauss) = N[0] * aux;
+
+        noalias(aux) = fv1;
+        aux[0] -= w1[0];
+        aux[1] -= w1[1];
+        aux[2] -= w1[2];
+        noalias(vel_gauss) += N[1] * aux;
+
+        noalias(aux) = fv2;
+        aux[0] -= w2[0];
+        aux[1] -= w2[1];
+        aux[2] -= w2[2];
+        noalias(vel_gauss) += N[2] * aux;
+
+        noalias(aux) = fv3;
+        aux[0] -= w3[0];
+        aux[1] -= w3[1];
+        aux[2] -= w3[2];
+        noalias(vel_gauss) += N[3] * aux;
+
+        //calculating avergage density and viscosity
+        double nu = 0.25 * (nu0 + nu1 + nu2 + nu3);
+        double density = 0.25 * (rho0 + rho1 + rho2 + rho3);
+
+        //calculating parameter tau
+        double h = CalculateH(Volume);
+        double norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1] + vel_gauss[2] * vel_gauss[2];
+        norm_u = sqrt(norm_u);
+        double tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
+
+        //getting the BDF2 coefficients (not fixed to allow variable time step)
+        //the coefficients INCLUDE the time step
+        const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+        //CALCULATION OF THE LEFT HAND SIDE
+        //laplacian term	       L = Dt * gradN * trans(gradN);
+        //stabilization term       Spp = tau * gradN * trans(gradN);
+        noalias(rLeftHandSideMatrix) = ((1.00 / BDFcoeffs[0] + tau) / density) * prod(DN_DX, trans(DN_DX));
+
+        //calculation of the RHS
+        // RHS = -G*vfrac
+        double Gaux;
+        Gaux = DN_DX(0, 0) * fv0[0] + DN_DX(0, 1) * fv0[1] + DN_DX(0, 2) * fv0[2];
+        Gaux += DN_DX(1, 0) * fv1[0] + DN_DX(1, 1) * fv1[1] + DN_DX(1, 2) * fv1[2];
+        Gaux += DN_DX(2, 0) * fv2[0] + DN_DX(2, 1) * fv2[1] + DN_DX(2, 2) * fv2[2];
+        Gaux += DN_DX(3, 0) * fv3[0] + DN_DX(3, 1) * fv3[1] + DN_DX(3, 2) * fv3[2];
+
+        //**************************** EXPERIMENTAL *****************************
+        //**************************** EXPERIMENTAL *****************************
+        //try ... should conserve the mass much better!
+        // 		const array_1d<double,3>& v0old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+        // 		const array_1d<double,3>& v1old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+        // 		const array_1d<double,3>& v2old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+        // 		const array_1d<double,3>& v3old = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY,1);
+        // 		Gaux +=  DN_DX(0,0)*v0old[0] + DN_DX(0,1)*v0old[1] + DN_DX(0,2)*v0old[2];
+        // 		Gaux += DN_DX(1,0)*v1old[0] + DN_DX(1,1)*v1old[1] + DN_DX(1,2)*v1old[2];
+        // 		Gaux += DN_DX(2,0)*v2old[0] + DN_DX(2,1)*v2old[1] + DN_DX(2,2)*v2old[2];
+        // 		Gaux += DN_DX(3,0)*v3old[0] + DN_DX(3,1)*v3old[1] + DN_DX(3,2)*v3old[2];
+        //**************************** EXPERIMENTAL *****************************
+        //**************************** EXPERIMENTAL *****************************
+
+        rRightHandSideVector[0] = -Gaux * N[0];
+        rRightHandSideVector[1] = -Gaux * N[1];
+        rRightHandSideVector[2] = -Gaux * N[2];
+        rRightHandSideVector[3] = -Gaux * N[3];
+        //std::cout << Id() << " Gtrans fv " << rRightHandSideVector << std::endl;
+
+        //attention!! changing the meaning of vel_gauss
+        // RHS += Sz * proj
+        //contrib of Spy*proj
+        noalias(vel_gauss) = N[0] * proj0;
+        noalias(vel_gauss) += N[1] * proj1;
+        noalias(vel_gauss) += N[2] * proj2;
+        noalias(vel_gauss) += N[3] * proj3;
+        vel_gauss *= tau;
+        noalias(rRightHandSideVector) += prod(DN_DX, vel_gauss);
+
+        //dirichlet contribution
+        temp_vec_np[0] = p0;
+        temp_vec_np[1] = p1;
+        temp_vec_np[2] = p2;
+        temp_vec_np[3] = p3;
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
+
+        // RHS += dt * L * pold
+        temp_vec_np[0] = p0old;
+        temp_vec_np[1] = p1old;
+        temp_vec_np[2] = p2old;
+        temp_vec_np[3] = p3old;
+        noalias(vel_gauss) = prod(trans(DN_DX), temp_vec_np);
+        noalias(rRightHandSideVector) += (1.00 / (BDFcoeffs[0] * density)) * prod(DN_DX, vel_gauss);
+
+        //multiplicating by the Volume
+        rLeftHandSideMatrix *= Volume;
+        rRightHandSideVector *= Volume;
+
+        //adding contributions to nodal Volumes following the corresponding lumping term
+        double nodal_contrib = 0.25 * Volume * density;
+
+        //                GetGeometry()[0].SetLock();
+        //                GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+        //                GetGeometry()[0].UnSetLock();
+        //
+        //                GetGeometry()[1].SetLock();
+        //                GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+        //                GetGeometry()[1].UnSetLock();
+        //
+        //                GetGeometry()[2].SetLock();
+        //                GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+        //                GetGeometry()[2].UnSetLock();
+        //
+        //                GetGeometry()[3].SetLock();
+        //                GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+        //                GetGeometry()[3].UnSetLock();
+
+        double& m0 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+#pragma omp atomic
+        m0 += nodal_contrib;
+
+        double& m1 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS);
+#pragma omp atomic
+        m1 += nodal_contrib;
+
+        double& m2 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS);
+#pragma omp atomic
+        m2 += nodal_contrib;
+
+        double& m3 = GetGeometry()[3].FastGetSolutionStepValue(NODAL_MASS);
+#pragma omp atomic
+        m3 += nodal_contrib;
 
 
-			//calculating convective auxiliary vector
-			array_1d<double,4> ms_u_DN; 
-			noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
+        //KRATOS_CATCH("");
+    }
 
-			//attention changing the meaning of ms_vel_gauss!!
-			noalias(ms_vel_gauss) = ms_u_DN[0] * fv0;
-			noalias(ms_vel_gauss) += ms_u_DN[1] * fv1;
-			noalias(ms_vel_gauss) += ms_u_DN[2] * fv2;
-			noalias(ms_vel_gauss) += ms_u_DN[3] * fv3;
-// 			ms_vel_gauss *= Volume;
-			ms_vel_gauss *= Volume * density;
+    //************************************************************************************
+    //************************************************************************************
+    // this subroutine calculates the nodal contributions for the explicit steps of the
+    // fractional step procedure
 
-			// conv_proj += C*u
-                        GetGeometry()[0].SetLock();
-                        noalias(conv_proj0) += msN[0]*ms_vel_gauss;
-                        noalias(press_proj0) += ms_temp;
-                        GetGeometry()[0].UnSetLock();
+    void Fluid3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+                int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
-                        GetGeometry()[1].SetLock();
-                        noalias(conv_proj1) += msN[1]*ms_vel_gauss;
-                        noalias(press_proj1) += ms_temp;
-                        GetGeometry()[1].UnSetLock();
+        //getting data for the given geometry
+        double Volume;
+        array_1d<double, 4 > N;
+        boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
+        //CalculateGeometryData(DN_DX,N,Volume);
 
-                        GetGeometry()[2].SetLock();
-                        noalias(conv_proj2) += msN[2]*ms_vel_gauss;
-                        noalias(press_proj2) += ms_temp;
-                        GetGeometry()[2].UnSetLock();
+        if (FractionalStepNumber == 5) //calculation of stabilization terms
+        {
 
-                        GetGeometry()[3].SetLock();
-                        noalias(conv_proj3) += msN[3]*ms_vel_gauss;
-                        noalias(press_proj3) += ms_temp;
-                        GetGeometry()[3].UnSetLock();
+            const array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
+            const array_1d<double, 3 > & w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+            array_1d<double, 3 > & press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
+            array_1d<double, 3 > & conv_proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
+            double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+            const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 
-                        
+            const array_1d<double, 3 > & fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
+            const array_1d<double, 3 > & w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+            array_1d<double, 3 > & press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
+            array_1d<double, 3 > & conv_proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
+            double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+            const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+
+            const array_1d<double, 3 > & fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
+            const array_1d<double, 3 > & w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+            array_1d<double, 3 > & press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
+            array_1d<double, 3 > & conv_proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
+            double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+            const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+
+            const array_1d<double, 3 > & fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
+            const array_1d<double, 3 > & w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+            array_1d<double, 3 > & press_proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
+            array_1d<double, 3 > & conv_proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
+            double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
+            const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+
+            double density = 0.25 * (rho0 + rho1 + rho2 + rho3);
+
+            //calculation of the pressure gradient (saved in vel_gauss)
+            array_1d<double, 3 > temp;
+            array_1d<double, 4 > temp_vec_np;
+            temp_vec_np[0] = p0;
+            temp_vec_np[1] = p1;
+            temp_vec_np[2] = p2;
+            temp_vec_np[3] = p3;
+            noalias(temp) = prod(trans(DN_DX), temp_vec_np);
+            // 			vel_gauss *= Volume/density;
+            temp *= Volume * 0.25;
+
+            //press_proj += G*p
+            //			noalias(press_proj0) += N[0]*vel_gauss;
+            //			noalias(press_proj1) += N[1]*vel_gauss;
+            //			noalias(press_proj2) += N[2]*vel_gauss;
+            //			noalias(press_proj3) += N[3]*vel_gauss;
+
+            ////                        GetGeometry()[0].SetLock();
+            ////                        noalias(press_proj0) += N[0]*vel_gauss;
+            ////                        GetGeometry()[0].UnSetLock();
+            ////
+            ////                        GetGeometry()[1].SetLock();
+            ////                        noalias(press_proj1) += N[1]*vel_gauss;
+            ////                        GetGeometry()[1].UnSetLock();
+            ////
+            ////                        GetGeometry()[2].SetLock();
+            ////                        noalias(press_proj2) += N[2]*vel_gauss;
+            ////                        GetGeometry()[2].UnSetLock();
+            ////
+            ////                        GetGeometry()[3].SetLock();
+            ////                        noalias(press_proj3) += N[3]*vel_gauss;
+            ////                        GetGeometry()[3].UnSetLock();
+
+            //                        #pragma omp atomic
+            //                        press_proj0[0] += N[0]*vel_gauss[0];
+            //                        #pragma omp atomic
+            //                        press_proj0[1] += N[0]*vel_gauss[1];
+            //                        #pragma omp atomic
+            //                        press_proj0[2] += N[0]*vel_gauss[2];
+            //
+            //                        #pragma omp atomic
+            //                        press_proj1[0] += N[1]*vel_gauss[0];
+            //                        #pragma omp atomic
+            //                        press_proj1[1] += N[1]*vel_gauss[1];
+            //                        #pragma omp atomic
+            //                        press_proj1[2] += N[1]*vel_gauss[2];
+            //
+            //                        #pragma omp atomic
+            //                        press_proj2[0] += N[2]*vel_gauss[0];
+            //                        #pragma omp atomic
+            //                        press_proj2[1] += N[2]*vel_gauss[1];
+            //                        #pragma omp atomic
+            //                        press_proj2[2] += N[2]*vel_gauss[2];
+            //
+            //                        #pragma omp atomic
+            //                        press_proj3[0] += N[3]*vel_gauss[0];
+            //                        #pragma omp atomic
+            //                        press_proj3[1] += N[3]*vel_gauss[1];
+            //                        #pragma omp atomic
+            //                        press_proj3[2] += N[3]*vel_gauss[2];
+
+            // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+            array_1d<double, 3 > vel_gauss;
+            array_1d<double, 3 > aux;
+            noalias(aux) = fv0;
+            aux[0] -= w0[0];
+            aux[1] -= w0[1];
+            aux[2] -= w0[2];
+            noalias(vel_gauss) = N[0] * aux;
+
+            noalias(aux) = fv1;
+            aux[0] -= w1[0];
+            aux[1] -= w1[1];
+            aux[2] -= w1[2];
+            noalias(vel_gauss) += N[1] * aux;
+
+            noalias(aux) = fv2;
+            aux[0] -= w2[0];
+            aux[1] -= w2[1];
+            aux[2] -= w2[2];
+            noalias(vel_gauss) += N[2] * aux;
+
+            noalias(aux) = fv3;
+            aux[0] -= w3[0];
+            aux[1] -= w3[1];
+            aux[2] -= w3[2];
+            noalias(vel_gauss) += N[3] * aux;
 
 
-		}		
-		else if(FractionalStepNumber == 6) //calculation of velocities
-		{
-			//outside of the element it is performed a loop on the elements in which it is considered nodally
-			//v = vfrac - Dt/Mnodal * G*(p-pold)
-			// the term G*(p-pold) needs to be assembled by element. the contribution is thus directly added to the nodal contrib
+            //calculating convective auxiliary vector
+            array_1d<double, 4 > u_DN;
+            noalias(u_DN) = prod(DN_DX, vel_gauss);
 
-			double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-			double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-			array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
-			//const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+            //attention changing the meaning of vel_gauss!!
+            noalias(vel_gauss) = u_DN[0] * fv0;
+            noalias(vel_gauss) += u_DN[1] * fv1;
+            noalias(vel_gauss) += u_DN[2] * fv2;
+            noalias(vel_gauss) += u_DN[3] * fv3;
+            // 			vel_gauss *= Volume;
+            vel_gauss *= Volume * density;
 
-			double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-			double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-			array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-			//const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+            // conv_proj += C*u
+            GetGeometry()[0].SetLock();
+            noalias(conv_proj0) += N[0] * vel_gauss;
+            noalias(press_proj0) += temp;
+            GetGeometry()[0].UnSetLock();
 
-			double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-			double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-			array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-			//const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+            GetGeometry()[1].SetLock();
+            noalias(conv_proj1) += N[1] * vel_gauss;
+            noalias(press_proj1) += temp;
+            GetGeometry()[1].UnSetLock();
 
-			double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
-			double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
-			array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
-			//const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+            GetGeometry()[2].SetLock();
+            noalias(conv_proj2) += N[2] * vel_gauss;
+            noalias(press_proj2) += temp;
+            GetGeometry()[2].UnSetLock();
 
-			//double density = 0.25*(rho0 + rho1 + rho2 + rho3);
+            GetGeometry()[3].SetLock();
+            noalias(conv_proj3) += N[3] * vel_gauss;
+            noalias(press_proj3) += temp;
+            GetGeometry()[3].UnSetLock();
 
+
+
+
+        }
+        else if (FractionalStepNumber == 6) //calculation of velocities
+        {
+            //outside of the element it is performed a loop on the elements in which it is considered nodally
+            //v = vfrac - Dt/Mnodal * G*(p-pold)
+            // the term G*(p-pold) needs to be assembled by element. the contribution is thus directly added to the nodal contrib
+
+            double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+            double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+            array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
+
+            double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+            double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+            array_1d<double, 3 > & fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
+
+            double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+            double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+            array_1d<double, 3 > & fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
+
+            double p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
+            double p3old = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+            array_1d<double, 3 > & fv3 = GetGeometry()[3].FastGetSolutionStepValue(FRACT_VEL);
 
 #if defined(GRADPN_FORM)
-			//adding pressure gradient integrated by parts
-			// fv += G*p(n+1) - grad p(n)
-			double p_avg =  msN[0]*p0 + msN[1]*p1 + msN[2]*p2 + msN[3]*p3;
-// 			p_avg *= Volume/density;
- 			p_avg *= Volume;
-			noalias(fv0)  += msDN_DX.row(0)*p_avg;  
-			noalias(fv1)  += msDN_DX.row(1)*p_avg; 
-			noalias(fv2)  += msDN_DX.row(2)*p_avg; 
-			noalias(fv3)  += msDN_DX.row(3)*p_avg; 
-			//fv -= grad_pn
-			ms_temp_vec_np[0] = p0old;
-			ms_temp_vec_np[1] = p1old;
-			ms_temp_vec_np[2] = p2old;
-			ms_temp_vec_np[3] = p3old;
-			noalias(ms_vel_gauss) = prod(trans(msDN_DX),ms_temp_vec_np);
-// 			ms_vel_gauss *= (Volume/density);
-			ms_vel_gauss *= (Volume);
-			noalias(fv0) += (msN[0])*ms_vel_gauss;
-			noalias(fv1) += (msN[1])*ms_vel_gauss;
-			noalias(fv2) += (msN[2])*ms_vel_gauss; 
-			noalias(fv3) += (msN[3])*ms_vel_gauss;
+            //adding pressure gradient integrated by parts
+            // fv += G*p(n+1) - grad p(n)
+            double p_avg = N[0] * p0 + N[1] * p1 + N[2] * p2 + N[3] * p3;
+            // 			p_avg *= Volume/density;
+            p_avg *= Volume;
+            noalias(fv0) += DN_DX.row(0) * p_avg;
+            noalias(fv1) += DN_DX.row(1) * p_avg;
+            noalias(fv2) += DN_DX.row(2) * p_avg;
+            noalias(fv3) += DN_DX.row(3) * p_avg;
+            //fv -= grad_pn
+            temp_vec_np[0] = p0old;
+            temp_vec_np[1] = p1old;
+            temp_vec_np[2] = p2old;
+            temp_vec_np[3] = p3old;
+            noalias(vel_gauss) = prod(trans(DN_DX), temp_vec_np);
+            // 			vel_gauss *= (Volume/density);
+            vel_gauss *= (Volume);
+            noalias(fv0) += (N[0]) * vel_gauss;
+            noalias(fv1) += (N[1]) * vel_gauss;
+            noalias(fv2) += (N[2]) * vel_gauss;
+            noalias(fv3) += (N[3]) * vel_gauss;
 #else //G pn form
 
-			double p_avg =	msN[0]*(p0 - p0old) 
-					+ msN[1]*(p1 - p1old)
-					+ msN[2]*(p2 - p2old) 
-					+ msN[3]*(p3 - p3old);
-// 			p_avg *= Volume/density;
-			p_avg *= Volume;
-			noalias(fv0)  += p_avg * row(msDN_DX,0);  
-			noalias(fv1)  += p_avg * row(msDN_DX,1); 
-			noalias(fv2)  += p_avg * row(msDN_DX,2); 
-			noalias(fv3)  += p_avg * row(msDN_DX,3); 
+            double p_avg = N[0]*(p0 - p0old)
+                    + N[1]*(p1 - p1old)
+                    + N[2]*(p2 - p2old)
+                    + N[3]*(p3 - p3old);
+            // 			p_avg *= Volume/density;
+            p_avg *= Volume;
+            noalias(fv0) += p_avg * row(DN_DX, 0);
+            noalias(fv1) += p_avg * row(DN_DX, 1);
+            noalias(fv2) += p_avg * row(DN_DX, 2);
+            noalias(fv3) += p_avg * row(DN_DX, 3);
 #endif
-		}
+        }
 
 
-		KRATOS_CATCH("");
-	}
+        KRATOS_CATCH("");
+    }
 
-	//************************************************************************************
-	//************************************************************************************
-	void Fluid3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-	{
-		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		if(rResult.size() != number_of_nodes)
-			rResult.resize(number_of_nodes);	
-
-		int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-
-		if(FractionalStepNumber == 1) //step 1
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				rResult[i] = GetGeometry()[i].GetDof(FRACT_VEL_X).EquationId();
-		else if(FractionalStepNumber == 2) //step 2
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				rResult[i] = GetGeometry()[i].GetDof(FRACT_VEL_Y).EquationId();
-		else if(FractionalStepNumber == 3) //step 3
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				rResult[i] = GetGeometry()[i].GetDof(FRACT_VEL_Z).EquationId();
-
-		else if(FractionalStepNumber == 4) // pressure correction step
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				rResult[i] = GetGeometry()[i].GetDof(PRESSURE).EquationId();
-		}
-
-	//************************************************************************************
-	//************************************************************************************
-	  void Fluid3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
-	{
-		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		if(ElementalDofList.size() != number_of_nodes)
-			ElementalDofList.resize(number_of_nodes);	
-
-		unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-
-		if(FractionalStepNumber == 1) //step 1
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				ElementalDofList[i] = GetGeometry()[i].pGetDof(FRACT_VEL_X);
-		else if(FractionalStepNumber == 2) //step 2
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				ElementalDofList[i] = GetGeometry()[i].pGetDof(FRACT_VEL_Y);
-		else if(FractionalStepNumber == 3) //step 2
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				ElementalDofList[i] = GetGeometry()[i].pGetDof(FRACT_VEL_Z);
-		else if(FractionalStepNumber == 4) // pressure correction step
-			for (unsigned int i=0;i<number_of_nodes;i++)
-				ElementalDofList[i] = GetGeometry()[i].pGetDof(PRESSURE);
-
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-/*	inline void Fluid3D::CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Volume)
-	{
-		double x0 = GetGeometry()[0].X();
-		double x1 = GetGeometry()[1].X();
-		double x2 = GetGeometry()[2].X();
-		double x3 = GetGeometry()[3].X();
-
-		double y0 = GetGeometry()[0].Y();
-		double y1 = GetGeometry()[1].Y();
-		double y2 = GetGeometry()[2].Y();
-		double y3 = GetGeometry()[3].Y();
-
-		double z0 = GetGeometry()[0].Z();
-		double z1 = GetGeometry()[1].Z();
-		double z2 = GetGeometry()[2].Z();
-		double z3 = GetGeometry()[3].Z();
-
-		//local derivatives
-		msDN_De(0,0) = -1; msDN_De(0,1) = -1; msDN_De(0,2) = -1; //(0,0,0)
-		msDN_De(1,0) = 1;  msDN_De(1,1) = 0;  msDN_De(1,2) = 0; //(1,0,0)
-		msDN_De(2,0) = 0;  msDN_De(2,1) = 1;  msDN_De(2,2) = 0; //(0,1,0)
-		msDN_De(3,0) = 0;  msDN_De(3,1) = 0;  msDN_De(3,2) = 1; //(0,0,1)
- 
-		//calculation of the jacobian
-		msJ(0,0) = x1-x0; msJ(0,1) = x2-x0; msJ(0,2) = x3-x0;
-		msJ(1,0) = y1-y0; msJ(1,1) = y2-y0; msJ(1,2) = y3-y0;
-		msJ(2,0) = z1-z0; msJ(2,1) = z2-z0; msJ(2,2) = z3-z0;
-
-		//inverse of the jacobian
-		//first column
-		msJinv(0,0) = msJ(1,1)*msJ(2,2) - msJ(1,2)*msJ(2,1);
-		msJinv(1,0) = -msJ(1,0)*msJ(2,2) + msJ(1,2)*msJ(2,0);
-		msJinv(2,0) = msJ(1,0)*msJ(2,1) - msJ(1,1)*msJ(2,0);		
-		//second column
-		msJinv(0,1) = -msJ(0,1)*msJ(2,2) + msJ(0,2)*msJ(2,1);
-		msJinv(1,1) = msJ(0,0)*msJ(2,2) - msJ(0,2)*msJ(2,0);
-		msJinv(2,1) = -msJ(0,0)*msJ(2,1) + msJ(0,1)*msJ(2,0);
-		//third column
-		msJinv(0,2) = msJ(0,1)*msJ(1,2) - msJ(0,2)*msJ(1,1);
-		msJinv(1,2) = -msJ(0,0)*msJ(1,2) + msJ(0,2)*msJ(1,0);
-		msJinv(2,2) = msJ(0,0)*msJ(1,1) - msJ(0,1)*msJ(1,0);
-		//calculation of determinant (of the input matrix)
- 
-		double detJ = msJ(0,0)*msJinv(0,0) + msJ(0,1)*msJinv(1,0) + msJ(0,2)*msJinv(2,0);	
-		//finalizing the calculation of the inverted matrix
-		msJinv /= detJ;
-
-		Volume = detJ*0.1666666666666666666667;
-
-		//cartesian derivatives
-		noalias(msDN_DX) = prod(msDN_De,msJinv);
-
-		//shape function values
-		N[0] = 0.25; //(0,0,0)
-		N[1] = 0.25;  //(1,0,0)
-		N[2] = 0.25;   //(0,1,0)
-		N[3] = 0.25;  //(0,0,1)
-
-
-	}
-*/
-	
-	inline double Fluid3D::CalculateH(double Volume)
-	{
-		double h = pow(6.00*Volume,0.3333333);
-
-		//double h = 0.0;
-		//for(int j=0; j<3; j++)
-		//{
-		//	for(int i = j+1; i<4; i++)
-		//	{ 
-		//		double l;
-		//		l =  pow(GetGeometry()[i].X() - GetGeometry()[j].X()   ,2);
-		//		l += pow(GetGeometry()[i].Y() - GetGeometry()[j].Y()   ,2);
-		//		l += pow(GetGeometry()[i].Z() - GetGeometry()[j].Z()   ,2);
-
-		//		if(l > h) h = l;
-		//	}
-		//}
-		//h = sqrt(h);
-		
-		return h;
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	inline double Fluid3D::CalculateTau(boost::numeric::ublas::bounded_matrix<double,4,3>& msDN_DX, array_1d<double,3>& vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
-	{
-/*              const double c1 = 4.00;
-              const double c2 = 2.00;
-              
-                const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
-              const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];*/
-//                double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  c1*nu/(h*h) + c2*norm_u/h );
-
-// 	      boost::numeric::ublas::bounded_matrix<double,4,3> aux;
-// 	      for(unsigned int i=0; i<4; i++)
-// 	      {
-// 		array_1d<double,3>& vv = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-// 		aux(i,0) = vv[0];
-// 		aux(i,1) = vv[1];
-//  		aux(i,2) = vv[2];
-// 	      }
-// 	      boost::numeric::ublas::bounded_matrix<double,3,3> grad_u = prod(trans(msDN_DX),aux);
-// 	      array_1d<double,3> uDu = prod(grad_u, vel_gauss);
-// 	      double uDu_norm = norm_2(uDu);
-// 	      	      
-// 	      double nn = 0;
-// 	      for(unsigned int i=0; i<3; i++)
-// 		for(unsigned int j=0; j<3; j++)
-// 		  nn += grad_u(i,j)*grad_u(i,j); 
-// 		
-// 	      double tau = norm_u*norm_u/(dyn_st_beta*inv_dt_coeff*norm_u*norm_u + c1*nu*(nn) + c2*norm_u*uDu_norm + 1e-10);
-
-	      const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
-              const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
-	      double viscous_part = 0.0;
-	      double convective_part=0.0;
- 	      for(unsigned int i=0; i<4; i++)
-	      {
-		  double aaa = 0.0;
-		  for(unsigned int j=0; j<3; j++)
-		  {
-		      viscous_part    += msDN_DX(i,j)*msDN_DX(i,j); 
-		      aaa += /*fabs*/(vel_gauss[j]*msDN_DX(i,j));
-		  }
-		  convective_part += fabs(aaa);
-	      }
-/*	      viscous_part *= 4.0;
-	      convective_part *= 0.5;*/
-	      viscous_part *= 16.0;
-// 	      convective_part = fabs(convective_part);	      
-	      double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  nu*viscous_part +  convective_part);
-	      
-	      
-		  
-
-                 return tau;
-
-	}
-	
     //************************************************************************************
     //************************************************************************************
 
-    void Fluid3D::Calculate(const Variable<double >& rVariable,
-            double& Output,
-            const ProcessInfo& rCurrentProcessInfo) 
+    void Fluid3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
     {
-	KRATOS_TRY
-	
-	if(rVariable == ERROR_RATIO)
-	{
-	      double Volume;
-	      array_1d<double,4> msN;
-	      boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-	      GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Volume);
-	      //CalculateGeometryData(msDN_DX,msN,Volume);
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        if (rResult.size() != number_of_nodes)
+            rResult.resize(number_of_nodes);
 
-	      //getting the velocity vector on the nodes
+        int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
-	      //getting the velocity on the nodes
-	      const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-	      const array_1d<double,3>& w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-	      const array_1d<double,3>& proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
-	      const double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-	      const array_1d<double,3>& press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
-	      const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-	      const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+        if (FractionalStepNumber == 1) //step 1
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                rResult[i] = GetGeometry()[i].GetDof(FRACT_VEL_X).EquationId();
+        else if (FractionalStepNumber == 2) //step 2
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                rResult[i] = GetGeometry()[i].GetDof(FRACT_VEL_Y).EquationId();
+        else if (FractionalStepNumber == 3) //step 3
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                rResult[i] = GetGeometry()[i].GetDof(FRACT_VEL_Z).EquationId();
 
-	      const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
-	      const array_1d<double,3>& w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-	      const array_1d<double,3>& proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
-	      const double& p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-	      const array_1d<double,3>& press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
-	      const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-	      const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+        else if (FractionalStepNumber == 4) // pressure correction step
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                rResult[i] = GetGeometry()[i].GetDof(PRESSURE).EquationId();
+    }
 
-	      const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
-	      const array_1d<double,3>& w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-	      const array_1d<double,3>& proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
-	      const double& p2 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-	      const array_1d<double,3>& press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
-	      const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-	      const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+    //************************************************************************************
+    //************************************************************************************
 
-	      const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
-	      const array_1d<double,3>& w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
-	      const array_1d<double,3>& proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
-	      const double& p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
-	      const array_1d<double,3>& press_proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
-	      const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
-	      const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+    void Fluid3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+    {
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+        if (ElementalDofList.size() != number_of_nodes)
+            ElementalDofList.resize(number_of_nodes);
 
-	      // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
-	      array_1d<double,3> ms_vel_gauss;
-	      array_1d<double,3> ms_aux;
-	      noalias(ms_aux) = fv0;	noalias(ms_aux) -= w0;	
-	      noalias(ms_vel_gauss) = msN[0]*ms_aux;
+        unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
-	      noalias(ms_aux) = fv1;	noalias(ms_aux) -= w1;	
-	      noalias(ms_vel_gauss) += msN[1]*ms_aux;
-
-	      noalias(ms_aux) = fv2;	noalias(ms_aux) -= w2;	
-	      noalias(ms_vel_gauss) += msN[2]*ms_aux;
-
-	      noalias(ms_aux) = fv3;	noalias(ms_aux) -= w3;	
-	      noalias(ms_vel_gauss) += msN[3]*ms_aux;
-
-	      //calculating viscosity
-	      double nu = 0.25*(nu0 + nu1 + nu2 + nu3);
-	      double density = 0.25*(rho0 + rho1 + rho2 + rho3);
-
-	      //getting the BDF2 coefficients (not fixed to allow variable time step)
-	      //the coefficients INCLUDE the time step
-	      //const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-
-	      //calculating parameter tau (saved internally to each element)
-	      double h = CalculateH(Volume);
-	      double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1] + ms_vel_gauss[2]*ms_vel_gauss[2];
-	      norm_u = sqrt(norm_u);
-	      double tau = CalculateTau(msDN_DX,ms_vel_gauss,h,nu,norm_u,rCurrentProcessInfo);
-
-	      //calculating the subscale velocity assuming that it is governed by the convection part
-	      array_1d<double,4> ms_u_DN; 
-	      noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
-	      
-	      array_1d<double,3> vel_subscale = ms_u_DN[0]*fv0;
-	      noalias(vel_subscale) += ms_u_DN[1]*fv1;
-	      noalias(vel_subscale) += ms_u_DN[2]*fv2;
-	      noalias(vel_subscale) += ms_u_DN[3]*fv3;
-	      vel_subscale*=density;
-	      
-	      vel_subscale[0] -= 0.25*(proj0[0]+proj1[0]+proj2[0]+proj3[0]);
-	      vel_subscale[1] -= 0.25*(proj0[1]+proj1[1]+proj2[1]+proj3[1]);
-	      vel_subscale[2] -= 0.25*(proj0[2]+proj1[2]+proj2[2]+proj3[2]);
-	      
-	      //pressure gradient contributions
-	      vel_subscale[0] += (msDN_DX(0,0)*p0 + msDN_DX(1,0)*p1 + msDN_DX(2,0)*p2 + msDN_DX(3,0)*p3);
-	      vel_subscale[1] += (msDN_DX(0,1)*p0 + msDN_DX(1,1)*p1 + msDN_DX(2,1)*p2 + msDN_DX(3,1)*p3);
-	      vel_subscale[2] += (msDN_DX(0,2)*p0 + msDN_DX(1,2)*p1 + msDN_DX(2,2)*p2 + msDN_DX(3,2)*p3);
-	      vel_subscale[0] -= 0.25*(press_proj0[0]+press_proj1[0]+press_proj2[0]+press_proj3[0]);
-	      vel_subscale[1] -= 0.25*(press_proj0[1]+press_proj1[1]+press_proj2[1]+press_proj3[1]);
-	      vel_subscale[2] -= 0.25*(press_proj0[2]+press_proj1[2]+press_proj2[2]+press_proj3[2]);
-	      
-// 	      noalias(vel_subscale) -= 0.25*proj0;
-// 	      noalias(vel_subscale) -= 0.25*proj1;
-// 	      noalias(vel_subscale) -= 0.25*proj2;
-// 	      noalias(vel_subscale) -= 0.25*proj3;
-	      
-	      vel_subscale *= (tau/density);
-	      
-	      double subscale_kin_energy = 0.5*inner_prod(vel_subscale,vel_subscale);
-	      
-	      Output = subscale_kin_energy; ///(norm_u*norm_u + 1e-6);
-
-	}
-	KRATOS_CATCH("");
+        if (FractionalStepNumber == 1) //step 1
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                ElementalDofList[i] = GetGeometry()[i].pGetDof(FRACT_VEL_X);
+        else if (FractionalStepNumber == 2) //step 2
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                ElementalDofList[i] = GetGeometry()[i].pGetDof(FRACT_VEL_Y);
+        else if (FractionalStepNumber == 3) //step 2
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                ElementalDofList[i] = GetGeometry()[i].pGetDof(FRACT_VEL_Z);
+        else if (FractionalStepNumber == 4) // pressure correction step
+            for (unsigned int i = 0; i < number_of_nodes; i++)
+                ElementalDofList[i] = GetGeometry()[i].pGetDof(PRESSURE);
 
     }
 
-    	//************************************************************************************
-	//************************************************************************************
-         double Fluid3D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double,4,3>& msDN_DX,
-                                                  const double& h,
-                                                  const double& C,
-                                                  const double nu
-                                                  )
+    inline double Fluid3D::CalculateH(double Volume)
+    {
+        double h = pow(6.00 * Volume, 0.3333333);
+
+        return h;
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    inline double Fluid3D::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
+    {
+        const double c1 = 4.00;
+        const double c2 = 2.00;
+
+        const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
+        const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+        double tau = 1.00 / (dyn_st_beta * inv_dt_coeff + c1 * nu / (h * h) + c2 * norm_u / h);
+
+        // 	      boost::numeric::ublas::bounded_matrix<double,4,3> aux;
+        // 	      for(unsigned int i=0; i<4; i++)
+        // 	      {
+        // 		array_1d<double,3>& vv = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+        // 		aux(i,0) = vv[0];
+        // 		aux(i,1) = vv[1];
+        //  		aux(i,2) = vv[2];
+        // 	      }
+        // 	      boost::numeric::ublas::bounded_matrix<double,3,3> grad_u = prod(trans(DN_DX),aux);
+        // 	      array_1d<double,3> uDu = prod(grad_u, vel_gauss);
+        // 	      double uDu_norm = norm_2(uDu);
+        //
+        // 	      double nn = 0;
+        // 	      for(unsigned int i=0; i<3; i++)
+        // 		for(unsigned int j=0; j<3; j++)
+        // 		  nn += grad_u(i,j)*grad_u(i,j);
+        //
+        // 	      double tau = norm_u*norm_u/(dyn_st_beta*inv_dt_coeff*norm_u*norm_u + c1*nu*(nn) + c2*norm_u*uDu_norm + 1e-10);
+
+        //	      const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
+        //              const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
+        //	      double viscous_part = 0.0;
+        //	      double convective_part=0.0;
+        // 	      for(unsigned int i=0; i<4; i++)
+        //	      {
+        //		  double aaa = 0.0;
+        //		  for(unsigned int j=0; j<3; j++)
+        //		  {
+        //		      viscous_part    += DN_DX(i,j)*DN_DX(i,j);
+        //		      aaa += /*fabs*/(vel_gauss[j]*DN_DX(i,j));
+        //		  }
+        //		  convective_part += fabs(aaa);
+        //	      }
+        ///*	      viscous_part *= 4.0;
+        //	      convective_part *= 0.5;*/
+        //	      viscous_part *= 16.0;
+        //// 	      convective_part = fabs(convective_part);
+        //	      double tau = 1.00 / (dyn_st_beta*inv_dt_coeff +  nu*viscous_part +  convective_part);
+
+
+
+
+        return tau;
+
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+    void Fluid3D::Calculate(const Variable<double >& rVariable,
+            double& Output,
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        //the variable error_ratio is here the norm of the subscale velocity as computed at the level of the gauss point
+        if (rVariable == ERROR_RATIO)
         {
-            boost::numeric::ublas::bounded_matrix<double,3,3> dv_dx = ZeroMatrix(3,3);
+            double Volume;
+            array_1d<double, 4 > N;
+            boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+            GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
+ 
+            //getting the velocity vector on the nodes
 
-            const unsigned int nnodes = 4;
-            // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
-            for (unsigned int k = 0; k < nnodes; ++k)
-            {
-                const array_1d< double,3 >& rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(FRACT_VEL);
-                for (unsigned int i = 0; i < 3; ++i)
-                {
-                    for (unsigned int j = 0; j < i; ++j) // Off-diagonal
-                        dv_dx(i,j) += 0.5 * ( msDN_DX(k,j) * rNodeVel[i] + msDN_DX(k,i) * rNodeVel[j] );
-                    dv_dx(i,i) += msDN_DX(k,i) * rNodeVel[i]; // Diagonal
-                }
-            }
+            //getting the velocity on the nodes
+            const array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
+            const array_1d<double, 3 > & proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
+            const double& p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+            const array_1d<double, 3 > & press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
+            const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+            const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 
-            // Norm[ Grad(u) ]
-            double NormS(0.0);
+            const array_1d<double, 3 > & fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
+            const array_1d<double, 3 > & proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
+            const double& p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+            const array_1d<double, 3 > & press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
+            const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+            const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+
+            const array_1d<double, 3 > & fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
+            const array_1d<double, 3 > & proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
+            const double& p2 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+            const array_1d<double, 3 > & press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
+            const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+            const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+
+            const array_1d<double, 3 > & fv3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & w3 = GetGeometry()[3].FastGetSolutionStepValue(MESH_VELOCITY);
+            const array_1d<double, 3 > & proj3 = GetGeometry()[3].FastGetSolutionStepValue(CONV_PROJ);
+            const double& p3 = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
+            const array_1d<double, 3 > & press_proj3 = GetGeometry()[3].FastGetSolutionStepValue(PRESS_PROJ);
+            const double nu3 = GetGeometry()[3].FastGetSolutionStepValue(VISCOSITY);
+            const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
+
+            // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
+            array_1d<double, 3 > vel_gauss;
+            array_1d<double, 3 > aux;
+            noalias(aux) = fv0;
+            noalias(aux) -= w0;
+            noalias(vel_gauss) = N[0] * aux;
+
+            noalias(aux) = fv1;
+            noalias(aux) -= w1;
+            noalias(vel_gauss) += N[1] * aux;
+
+            noalias(aux) = fv2;
+            noalias(aux) -= w2;
+            noalias(vel_gauss) += N[2] * aux;
+
+            noalias(aux) = fv3;
+            noalias(aux) -= w3;
+            noalias(vel_gauss) += N[3] * aux;
+
+            //calculating viscosity
+            double nu = 0.25 * (nu0 + nu1 + nu2 + nu3);
+            double density = 0.25 * (rho0 + rho1 + rho2 + rho3);
+
+            //getting the BDF2 coefficients (not fixed to allow variable time step)
+            //the coefficients INCLUDE the time step
+            //const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+            //calculating parameter tau (saved internally to each element)
+            double h = CalculateH(Volume);
+            double norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1] + vel_gauss[2] * vel_gauss[2];
+            norm_u = sqrt(norm_u);
+            double tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
+
+            //calculating the subscale velocity assuming that it is governed by the convection part
+            array_1d<double, 4 > u_DN;
+            noalias(u_DN) = prod(DN_DX, vel_gauss);
+
+            array_1d<double, 3 > vel_subscale = u_DN[0] * fv0;
+            noalias(vel_subscale) += u_DN[1] * fv1;
+            noalias(vel_subscale) += u_DN[2] * fv2;
+            noalias(vel_subscale) += u_DN[3] * fv3;
+            vel_subscale *= density;
+
+            vel_subscale[0] -= 0.25 * (proj0[0] + proj1[0] + proj2[0] + proj3[0]);
+            vel_subscale[1] -= 0.25 * (proj0[1] + proj1[1] + proj2[1] + proj3[1]);
+            vel_subscale[2] -= 0.25 * (proj0[2] + proj1[2] + proj2[2] + proj3[2]);
+
+            //pressure gradient contributions
+            vel_subscale[0] += (DN_DX(0, 0) * p0 + DN_DX(1, 0) * p1 + DN_DX(2, 0) * p2 + DN_DX(3, 0) * p3);
+            vel_subscale[1] += (DN_DX(0, 1) * p0 + DN_DX(1, 1) * p1 + DN_DX(2, 1) * p2 + DN_DX(3, 1) * p3);
+            vel_subscale[2] += (DN_DX(0, 2) * p0 + DN_DX(1, 2) * p1 + DN_DX(2, 2) * p2 + DN_DX(3, 2) * p3);
+            vel_subscale[0] -= 0.25 * (press_proj0[0] + press_proj1[0] + press_proj2[0] + press_proj3[0]);
+            vel_subscale[1] -= 0.25 * (press_proj0[1] + press_proj1[1] + press_proj2[1] + press_proj3[1]);
+            vel_subscale[2] -= 0.25 * (press_proj0[2] + press_proj1[2] + press_proj2[2] + press_proj3[2]);
+
+            vel_subscale *= (tau / density);
+
+            Output = norm_2(vel_subscale);
+
+        }
+        KRATOS_CATCH("");
+
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    double Fluid3D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,
+            const double& h,
+            const double& C,
+            const double nu
+            )
+    {
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > dv_dx = ZeroMatrix(3, 3);
+
+        const unsigned int nnodes = 4;
+        // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
+        for (unsigned int k = 0; k < nnodes; ++k)
+        {
+            const array_1d< double, 3 > & rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(FRACT_VEL);
             for (unsigned int i = 0; i < 3; ++i)
             {
-                for (unsigned int j = 0; j < i; ++j)
-                    NormS += 2.0 * dv_dx(i,j) * dv_dx(i,j); // Using symmetry, lower half terms of the matrix are added twice
-                NormS += dv_dx(i,i) * dv_dx(i,i); // Diagonal terms
+                for (unsigned int j = 0; j < i; ++j) // Off-diagonal
+                    dv_dx(i, j) += 0.5 * (DN_DX(k, j) * rNodeVel[i] + DN_DX(k, i) * rNodeVel[j]);
+                dv_dx(i, i) += DN_DX(k, i) * rNodeVel[i]; // Diagonal
             }
-
-            NormS = sqrt(NormS);
-
-            // Total Viscosity
-            return 2.0 * C * C * h * NormS;
         }
+
+        // Norm[ Grad(u) ]
+        double NormS(0.0);
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            for (unsigned int j = 0; j < i; ++j)
+                NormS += 2.0 * dv_dx(i, j) * dv_dx(i, j); // Using symmetry, lower half terms of the matrix are added twice
+            NormS += dv_dx(i, i) * dv_dx(i, i); // Diagonal terms
+        }
+
+        NormS = sqrt(NormS);
+
+        // Total Viscosity
+        return 2.0 * C * C * h * NormS;
+    }
 
 } // Namespace Kratos
 
