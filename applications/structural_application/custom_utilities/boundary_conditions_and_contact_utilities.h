@@ -289,6 +289,8 @@ namespace Kratos
 	    ConditionsArrayType& rConditions = mr_model_part.Conditions();
 	    ElementsArrayType& rElements   = mr_model_part.Elements();
 	    ConditionsArrayType LinkingConditions;
+	    enum exist_node {no_nodes = 0, yes_nodes};
+	    exist_node exist;
 	     
 	    std::vector<unsigned int>              InsideNodes;
 	    std::vector<unsigned int>              TotalInsideNodes;
@@ -319,108 +321,133 @@ namespace Kratos
 		     NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);   
 		   }
 		   
+		   if(InsideNodes.size()!=0)
+		      exist = yes_nodes;
+		   else
+		      exist = no_nodes;
+		     
 
 		   // WARNING = Puede que en un tiempo determinado caigan dos nodos a la vez en un  elemento
 		   // Un nodo dentro del elemento
-		   here:
-		   for(unsigned int in = 0; in<InsideNodes.size(); in++)
+		   switch(exist)
+		   {
+		   case(yes_nodes):
 		     {
-		       
-		       if(TotalInsideNodes.size()==0){   
-		          TotalInsideNodes.push_back(InsideNodes[in] ); 
-			  repeated_object = TotalInsideNodes.end();
-		       }
-		          
-		          
-		        
-			  // verifcando que no se repitan los slaves nodes 
-			  if(initialize==true)
-			      repeated_object =  std::find(TotalInsideNodes.begin(), TotalInsideNodes.end(), InsideNodes[in]); 
-			   
-                                
-			  //WARNING = No necesariamente para otros contenedores la comparacion se hace con end -1 
- 			  if( repeated_object == (TotalInsideNodes.end())) 
- 			  {          
-			       
-			      if(initialize==true)
-                                  TotalInsideNodes.push_back(InsideNodes[in]);  
-			     
-			      
- 			      std::cout<< "     Node Inside =  "<< InsideNodes[in] << std::endl;
-			      if(master==0 )
- 		                 std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[0]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[1]->Id() << std::endl;
-			      else
-				 std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[1]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[0]->Id() << std::endl;
-			      
-			      
-			      //Computa el segmento activo cuando un elemento tiene mas de 1;
-			      if(master==0)
-			         segment = LocateMasterSegement(mr_model_part.Nodes()(InsideNodes[in]), (*it_pair)[0]);
-			      else
-			         segment = LocateMasterSegement(mr_model_part.Nodes()(InsideNodes[in]), (*it_pair)[1]);
-			      
-			      
-			      
-			      // Slave Node
-			      Point2D<Node<3> >::Pointer point_geom    =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(InsideNodes[in]) ) );
-			      Condition::Pointer SlaveNode             =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
-			     
-			      WeakPointerVector<Condition> neighb_cond =  (*it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS); 			      
-			      Condition::Pointer MasterFace            =  (neighb_cond(segment).lock());   // me devuelve el puntero
-			           
-			      // creando geometria trinagular para el link
-			      Condition::GeometryType& Mgeom = MasterFace->GetGeometry();
-			      Condition::GeometryType& Sgeom = SlaveNode->GetGeometry();   
-			      
-			      
-			      Triangle2D3<Node<3> >::Pointer Lgeom    =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
-			      
-			      
-			       
-			      Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
-				  Lgeom,
-				  tempProperties,
-				  MasterFace, 
-				  SlaveNode) );
+		     
+		    here:
+		    for(unsigned int in = 0; in<InsideNodes.size(); in++)
+		      {
+			
+			if(TotalInsideNodes.size()==0){   
+			    TotalInsideNodes.push_back(InsideNodes[in] ); 
+			    repeated_object = TotalInsideNodes.end();
+			}
+			    
+			    
+			  
+			    // verifcando que no se repitan los slaves nodes 
+			    if(initialize==true)
+				repeated_object =  std::find(TotalInsideNodes.begin(), TotalInsideNodes.end(), InsideNodes[in]); 
+			    
 				  
-                              LinkingConditions.push_back( newLink );    
-			      Id++;    
+			    //WARNING = No necesariamente para otros contenedores la comparacion se hace con end -1 
+			    if( repeated_object == (TotalInsideNodes.end())) 
+			    {          
+				
+				if(initialize==true)
+				    TotalInsideNodes.push_back(InsideNodes[in]);  
 			      
+				
+				std::cout<< "     Node Inside =  "<< InsideNodes[in] << std::endl;
+				if(master==0 )
+				  std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[0]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[1]->Id() << std::endl;
+				else
+				  std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[1]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[0]->Id() << std::endl;
+				
+				
+				//Computa el segmento activo cuando un elemento tiene mas de 1;
+				if(master==0)
+				  segment = LocateMasterSegement(mr_model_part.Nodes()(InsideNodes[in]), (*it_pair)[0]);
+				else
+				  segment = LocateMasterSegement(mr_model_part.Nodes()(InsideNodes[in]), (*it_pair)[1]);
+				
+				
+				
+				// Slave Node
+				Point2D<Node<3> >::Pointer point_geom    =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(InsideNodes[in]) ) );
+				Condition::Pointer SlaveNode             =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
+			      
+				WeakPointerVector<Condition> neighb_cond =  (*it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS); 			      
+				Condition::Pointer MasterFace            =  (neighb_cond(segment).lock());   // me devuelve el puntero
+				    
+				// creando geometria trinagular para el link
+				Condition::GeometryType& Mgeom = MasterFace->GetGeometry();
+				Condition::GeometryType& Sgeom = SlaveNode->GetGeometry();   
+				
+				
+				Triangle2D3<Node<3> >::Pointer Lgeom    =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
+				
+				
+				
+				Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
+				    Lgeom,
+				    tempProperties,
+				    MasterFace, 
+				    SlaveNode) );
+				    
+				LinkingConditions.push_back( newLink );    
+				Id++;    
+				
+			    }
+			    
+			    if(initialize==false) 
+				  initialize=true;
 			  }
 			  
-			  if(initialize==false) 
-			        initialize=true;
-		        }
-		        
-		        if(master==0){ 
-                         InsideNodes.clear();
-		            NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);
-			    if(InsideNodes.size()!=0) {
-			       master = 1;
-			       goto here;
-			    }
-			}
-		            
-		        
-		        
-		       }
-		       
-		     
-		     std::cout<<"     NUMBER OF INITIAL CONDITIONS    = " << rConditions.size() <<  std::endl; 
+			  if(master==0){ 
+			  InsideNodes.clear();
+			      NodeInside( (*it_pair)[1], (*it_pair)[0], InsideNodes);
+			      if(InsideNodes.size()!=0) {
+				master = 1;
+				goto here;
+			      }
+			  }
+			   
+			   break;
+		     }
+			  
+	             ///********************************************************************************************************  
+		     ///********************************************************************************************************  
+			
+		    // Caso en que los triangulos se intersecten pero no hay nodo dentro de los elemtos
+		    case(no_nodes):
+		    {
+		      std::cout<< std::endl;
+		      break;
 		      
-		     
-		    //adding linking to model_part
-                    for(ConditionsArrayType::ptr_iterator it=LinkingConditions.ptr_begin();
-                          it != LinkingConditions.ptr_end(); ++it )
-                    {
-                        mr_model_part.Conditions().push_back( *it );
-                    }
-                   
-		    std::cout<<"     NUMBER OF CALCULATED CONDITIONS = " << LinkingConditions.size() <<  std::endl; 
-		    std::cout<<"     NUMBER OF FINAL CONDITIONS      = " << rConditions.size() <<  std::endl; 
+		    }
+			
+	           }
+	
+		}
+			
+		 
+		 
+		      std::cout<<"     NUMBER OF INITIAL CONDITIONS    = " << rConditions.size() <<  std::endl; 
+			
+		      
+		      //adding linking to model_part
+		      for(ConditionsArrayType::ptr_iterator it=LinkingConditions.ptr_begin();
+			    it != LinkingConditions.ptr_end(); ++it )
+		      {
+			  mr_model_part.Conditions().push_back( *it );
+		      }
 		    
-		    LinkingConditions.clear();
-          }
+		      std::cout<<"     NUMBER OF CALCULATED CONDITIONS = " << LinkingConditions.size() <<  std::endl; 
+		      std::cout<<"     NUMBER OF FINAL CONDITIONS      = " << rConditions.size() <<  std::endl; 
+		      
+		      LinkingConditions.clear();
+	    }
 	 
  	
  	 unsigned int LocateMasterSegement(NodePointerType& SlaveNode, PointerType& MasterObject)
@@ -455,8 +482,10 @@ namespace Kratos
 	      Points0(1)[0] = SlaveNode->X();  // + current_pos[0];
 	      Points0(1)[1] = SlaveNode->Y();  // + current_pos[1];
 	      
-	      //KRATOS_WATCH(Points0[0])
-	      //KRATOS_WATCH(Points0[1])
+	      KRATOS_WATCH(Points0[0])
+	      KRATOS_WATCH(Points0[1])
+	      
+	      KRATOS_WATCH(Points0[0]-Points0[1]) 
               KRATOS_WATCH(SlaveNode->Coordinates())
 	      
 	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond){
