@@ -94,7 +94,14 @@ namespace Kratos
 			typedef cl_uint *IndicesVectorType;
 			typedef cl_double3 *CalcVectorType;
 			typedef cl_double *ValuesVectorType;
-			typedef CompressedMatrix SystemMatrixType;
+
+			// TODO: Check for effect of alignment in GPU types
+
+			typedef CompressedMatrix HostMatrixType;
+			typedef viennacl::compressed_matrix <double> DeviceMatrixType;
+
+			typedef Vector HostVectorType;
+			typedef viennacl::vector <double> DeviceVectorType;
 
 			// TODO: Remove mHmin and friends
 
@@ -143,6 +150,7 @@ namespace Kratos
 				// Register kernels
 				mkSolveStep1_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_1");
 				mkSolveStep1_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_2");
+				mkSolveStep2_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep2_1");
 
 				mkCalculateRHS = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "CalculateRHS");
 			}
@@ -169,6 +177,8 @@ namespace Kratos
 				// Get no. of nodes
 				n_nodes = mr_model_part.Nodes().size();
 				n_edges = mr_matrix_container.GetNumberEdges();
+
+				// TODO: Initialize the lists and their lengths here
 
 				// TODO: Check if these are all needed
 
@@ -287,6 +297,8 @@ namespace Kratos
 
 				// Allocate memory for variables
 				mL.resize(n_nodes, n_nodes, n_nonzero_entries);
+
+				// TODO: May we assume that the graph of mL is the same as the graph of mr_matrix_container? What does the flag do?
 
 				// Loop over all nodes
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -424,7 +436,7 @@ namespace Kratos
                 ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
                 mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
-                unsigned int fixed_size = mFixedVelocitiesListLength; // TODO: Is this OK? //mFixedVelocities.size();
+                unsigned int fixed_size = mFixedVelocitiesListLength; // TODO: Is this OK? Why firstprivate? //mFixedVelocities.size();
 
                 #pragma omp parallel for firstprivate(fixed_size)
                 for (unsigned int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
@@ -601,7 +613,7 @@ namespace Kratos
 				// Compute intrinsic time
 				double time_inv_avg = 1.00 / mdelta_t_avg;
 
-				// Calling Solve1 OpenCL kernel
+				// Calling Solve1_1 OpenCL kernel
 
 				// Setting arguments
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_1, 0, mbHavg);
@@ -618,6 +630,8 @@ namespace Kratos
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep1_1, n_nodes);
+
+				// Calling Solve1_2 OpenCL kernel
 
 				// Setting arguments
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep1_2, 0, mbPi);
@@ -677,32 +691,58 @@ namespace Kratos
 
 			void SolveStep2()  // TODO: Fix this! (typename TLinearSolver::Pointer pLinearSolver)
 			{
-/*
+
 				KRATOS_TRY
 
 				// Prerequisites
 
-				//allocate memory for variables
+				// Allocate memory for variables
 				ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-				int n_nodes = rNodes.size();
+				//int n_nodes = rNodes.size();
 				//unknown and right-hand side vector
-				TSystemVectorType dp, rhs;
-				dp.resize(n_nodes);
-				rhs.resize(n_nodes);
-				array_1d<double, TDim> dU_i, dU_j, work_array;
+				//TSystemVectorType dp, rhs;
+				// TODO: Do the resize inside the Initialize
+				//dp.resize(n_nodes);
+				//rhs.resize(n_nodes);
+				//array_1d<double, TDim> dU_i, dU_j, work_array;
 				//read time step size from Kratos
-				ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 				double delta_t = CurrentProcessInfo[DELTA_TIME];
 
-		#ifdef _OPENMP
-				double time_inv = 0.0; //1.0/delta_t;
+				// TODO: It seems that this is not used anymore
 
-				//read the pressure projection from the database
-		#endif
-				mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
-				mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes);
-				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+		//#ifdef _OPENMP
+				//double time_inv = 0.0; //1.0/delta_t;
 
+		//#endif
+
+				// Read the pressure projection from the database
+				mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes, mbPn1);  // TODO: Is this OK? //mr_model_part.Nodes()
+				mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
+				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+
+				// Calling Solve2_1 OpenCL kernel
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 0, mbvel_n1);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 1, mbXi);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 2, mbTauPressure);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 3, mbPn);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 4, mbPn1);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 5, mr_matrix_container.GetRowStartIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 6, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetImageAsKernelArg(mkSolveStep2_1, 7, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 8, rhs_GPU.handle());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 9, mL_GPU.handle());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 10, mRho);
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 11, delta_t);
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 12, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep2_1, 13, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkSolveStep2_1, n_nodes);
+
+/*
 				#pragma omp parallel for firstprivate(time_inv)
 				for (int i_node = 0; i_node < n_nodes; i_node++) {
 
@@ -847,9 +887,8 @@ namespace Kratos
 				}
 
 				mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes);
-
-				KRATOS_CATCH("")
 */
+				KRATOS_CATCH("")
 			}
 
 			//
@@ -1157,7 +1196,7 @@ namespace Kratos
 			OpenCL::DeviceGroup &mrDeviceGroup;
 			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbrhs;
 
-			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1, mkSolveStep1_2, mkCalculateRHS;
+			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkCalculateRHS;
 
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
@@ -1228,8 +1267,11 @@ namespace Kratos
 			// Variables for resolving pressure equation
 
 			// Laplacian matrix
-			SystemMatrixType mL;
-			viennacl::compressed_matrix<double> mL_GPU;
+			HostMatrixType mL;
+			DeviceMatrixType mL_GPU;
+
+			// Vectors on GPU
+			DeviceVectorType dp_GPU, rhs_GPU;
 
 			// Constant variables
 			double mRho;

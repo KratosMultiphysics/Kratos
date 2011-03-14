@@ -198,8 +198,127 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 	}
 }
 
-	//*************************************************************************
-	//function to solve fluid equations - fractional step 2: calculate pressure
+//
+// SolveStep2_1
+//
+// Part of SolveStep2
+
+__kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mXi, __global ValueType *mTauPressure, __global ValueType *mPn, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *rhs_buffer, __global ValueType *mL_Values, ValueType mRho, ValueType delta_t, const IndexType n_nodes, __local IndexType *Bounds)
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		ValueType Temp_rhs_i_node = 0.00;
+
+		ValueType p_i = mPn1[i_node];
+		ValueType p_old_i = mPn[i_node];
+
+		VectorType U_i_curr = mvel_n1[i_node];
+		VectorType xi_i = mXi[i_node];
+
+		ValueType l_ii = 0.00;
+
+		// TODO: Get this flag dynamically from host if needed
+
+#ifndef SYMM_PRESS
+
+			ValueType edge_tau = mTauPressure[i_node];
+
+#endif
+
+		IndexType DiagonalIndex;
+
+		// Loop over all neighbours
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			IndexType j_neighbour = ColumnIndex[csr_index];
+
+			// Remember the index of diagonal element to avoid a search
+			if (j_neighbour == i_node)
+			{
+				DiagonalIndex = csr_index;
+			}
+
+			ValueType p_j = mPn1[j_neighbour];
+			ValueType p_old_j = mPn[j_neighbour];
+
+			VectorType U_j_curr = mvel_n1[j_neighbour];
+			VectorType xi_j = mXi[j_neighbour];
+
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
+			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
+			VectorType DNi_Nj = KRATOS_OCL_VECTOR3(KRATOS_OCL_DNI_NJ_0(CurrentEdge), KRATOS_OCL_DNI_NJ_1(CurrentEdge), KRATOS_OCL_DNI_NJ_2(CurrentEdge));
+
+			VectorType Lij0 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_2(CurrentEdge));
+			VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge));
+			VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge));
+
+			// TODO: Get this flag dynamically from host if needed
+
+#ifdef SYMM_PRESS
+
+			ValueType edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
+
+#endif
+
+			// Compute laplacian operator
+			ValueType sum_l_ikjk;
+			CalculateScalarLaplacian(Lij0.x, Lij1.y, Lij2.z, &sum_l_ikjk);
+
+			ValueType sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
+			sum_l_ikjk *= (delta_t + edge_tau);
+
+			// Assemble right-hand side
+
+			// Pressure contribution
+			Temp_rhs_i_node -= sum_l_ikjk * (p_j - p_i);
+			Temp_rhs_i_node += sum_l_ikjk_onlydt * (p_old_j - p_old_i);  // TODO: Optimize this a bit!
+
+			// Calculating the divergence of the fract vel
+			Sub_D_v(Ni_DNj, &Temp_rhs_i_node, U_i_curr * mRho, U_j_curr * mRho);
+
+			// High order stabilizing term
+			ValueType Temp = 0.00;
+
+			Add_div_v(Ni_DNj, DNi_Nj, &Temp, xi_i, xi_j);
+
+			Temp_rhs_i_node += edge_tau * Temp;
+
+			// Assemble laplacian matrix
+			mL_Values[csr_index] = sum_l_ikjk;  // TODO: Check this! I assume that the graph of mL is EXACTLY as mr_matrix_container!
+
+			l_ii -= sum_l_ikjk;
+		}
+
+		mL_Values[DiagonalIndex] = l_ii;  // TODO: Check this! I assume that the graph of mL is EXACTLY as mr_matrix_container!
+
+		rhs_buffer[i_node] = Temp_rhs_i_node;
+	}
+}
+
+//
+// SolveStep2_2
+//
+// Part of SolveStep2
+
 /*
 	void SolveStep2(typename TLinearSolver::Pointer pLinearSolver) {
 	    KRATOS_TRY
@@ -230,61 +349,7 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 	    #pragma omp parallel for firstprivate(time_inv)
 	    for (int i_node = 0; i_node < n_nodes; i_node++) {
 
-		double& rhs_i = rhs[i_node];
-		rhs_i = 0.0;
-		const double& p_i = mPn1[i_node];
-		const double& p_old_i = mPn[i_node];
-		const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-
-		array_1d<double, TDim>& xi_i = mXi[i_node];
-
-		double l_ii = 0.0;
-
-		//loop over all neighbours
-		for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-		    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-		    const double& p_j = mPn1[j_neighbour];
-		    const double& p_old_j = mPn[j_neighbour];
-		    const array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
-		    const array_1d<double, TDim>& xi_j = mXi[j_neighbour];
-
-		    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-#ifdef SYMM_PRESS
-		    double edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
-#else
-		    double edge_tau = mTauPressure[i_node];
-#endif
-
-
-
-		    //compute laplacian operator
-		    double sum_l_ikjk;
-		    edge_ij.CalculateScalarLaplacian(sum_l_ikjk);
-		    double sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
-		    sum_l_ikjk *= (delta_t + edge_tau);
-
-		    //assemble right-hand side
-		    //pressure contribution
-		    rhs_i -= sum_l_ikjk * (p_j - p_i);
-		    rhs_i += sum_l_ikjk_onlydt * (p_old_j - p_old_i);
-
-
-		    //calculating the divergence of the fract vel
-		    edge_ij.Sub_D_v(rhs_i, U_i_curr*mRho, U_j_curr * mRho);
-
-		    //high order stabilizing term
-		    double temp = 0.0;
-		    edge_ij.Add_div_v(temp, xi_i, xi_j);
-		    rhs_i += edge_tau * temp;
-
-		    //assemble laplacian matrix
-		    mL(i_node, j_neighbour) = sum_l_ikjk;
-		    l_ii -= sum_l_ikjk;
-		}
-
-		mL(i_node, i_node) = l_ii;
-	    }
+		// First loop was here!
 
 	    if(muse_mass_correction == true)
 	    {
@@ -303,16 +368,6 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 		if (fabs(L_diag) > fabs(max_diag)) max_diag = L_diag;
 	    }
 
-
-
-
-	    //respect pressure boundary conditions by penalization
-//            double huge = max_diag * 1e6;
-//            for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
-//                unsigned int i_node = mPressureOutletList[i_pressure];
-//                mL(i_node, i_node) = huge;
-//                rhs[i_node] = 0.0;
-//            }
 	    for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
 		unsigned int i_node = mPressureOutletList[i_pressure];
 		mL(i_node, i_node) = max_diag;
