@@ -2,7 +2,7 @@
 from Kratos import *
 from KratosStructuralApplication import *
 from KratosExternalSolversApplication import *
-from KratosMKLSolversApplication import *
+#from KratosMKLSolversApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
