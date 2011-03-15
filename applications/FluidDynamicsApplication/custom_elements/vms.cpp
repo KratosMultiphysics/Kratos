@@ -345,7 +345,20 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        KRATOS_ERROR(std::logic_error,"Not implemented","")
+        const unsigned int Dim = 3;
+        const unsigned int NumNodes = 4;
+
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            unsigned int index = Dim*i;
+
+            rB(0, index) = rShapeDeriv(i, 0); rB(0, index + 1) = 0.0;               rB(0, index + 2) = 0.0;
+            rB(1, index) = 0.0;               rB(1, index + 1) = rShapeDeriv(i, 1); rB(1, index + 2) =0.0;
+            rB(2, index) = 0.0;               rB(2, index + 1) = 0.0;               rB(2, index + 2) = rShapeDeriv(i, 2);
+	    rB(3, index) = rShapeDeriv(i, 1); rB(3, index + 1) = rShapeDeriv(i, 0); rB(3, index + 2) = 0.0;
+	    rB(4, index) = 0.0;               rB(4, index + 1) = rShapeDeriv(i, 2); rB(4, index + 2) = rShapeDeriv(i, 1);
+	    rB(5, index) = rShapeDeriv(i, 2); rB(5, index + 1) = 0.0;               rB(5, index + 2) = rShapeDeriv(i, 0);
+        }
 
 	KRATOS_CATCH("")
     }
@@ -402,6 +415,9 @@ namespace Kratos
 
     }
 
+    /**
+     * @see VMS::AddViscousTerm
+     */
     template <>
     void VMS<2,3>::AddViscousTerm(MatrixType& rDampMatrix,
                                   const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
@@ -420,10 +436,10 @@ namespace Kratos
             {
                 // First Row
                 rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-                rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+                rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
 
                 // Second Row
-                rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+                rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
                 rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
 
                 // Update Counter
@@ -434,6 +450,9 @@ namespace Kratos
         }
     }
 
+    /**
+     * @see VMS::AddViscousTerm
+     */
     template <>
     void VMS<3,4>::AddViscousTerm(MatrixType& rDampMatrix,
                                   const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,

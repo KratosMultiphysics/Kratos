@@ -121,7 +121,7 @@ namespace Kratos
      * If OSS is used, the nodes also require NODAL_AREA, ADVPROJ and DIVPROJ as solution step variables.\n
      * If Smagorinsky is used, C_SMAGORINSKY has to be defined on the elements.\n
      * Error estimation stores ERROR_RATIO on the elements.\n
-     * Some additional variables can be used to print results on the element: TAUONE, TAUTWO, VORTICITY.
+     * Some additional variables can be used to print results on the element: TAUONE, TAUTWO, MU, VORTICITY.
      *
      * @see ResidualBasedEliminationBuilderAndSolver compatible monolithic solution strategy.
      * @see PressureSplittingBuilderAndSolver compatible segregated solution strategy.
@@ -331,7 +331,7 @@ namespace Kratos
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
                 double Viscosity;
-                this->GetEffectiveViscosity(KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
@@ -383,7 +383,7 @@ namespace Kratos
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
                 double Viscosity;
-                this->GetEffectiveViscosity(KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
                 // Get Advective velocity
                 array_1d<double, 3 > AdvVel;
@@ -432,7 +432,7 @@ namespace Kratos
             this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
             double Viscosity;
-            this->GetEffectiveViscosity(KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
@@ -465,10 +465,11 @@ namespace Kratos
 
         /// Implementation of Calculate to compute an error estimate.
         /**
-         * If rVariable == ERROR_RATIO, this function will estimate the local error commited
-         * in the solution of the NS equations as the ratio between the subscale and the
-         * nodal velocity norms. The subscale is estimated as TauOne*||MomResidual||.
-         * The error is then saved as the ERROR_RATIO variable and returned in rOutput
+         * If rVariable == ERROR_RATIO, this function will provide an a posteriori
+         * estimate of the norm of the subscale velocity, calculated as TauOne*||MomentumResidual||.
+         * Note that the residual of the momentum equation is evaluated at the element center
+         * and that the result has units of velocity (L/T).
+         * The error estimate both saved as the elemental ERROR_RATIO variable and returned as rOutput.
          * @param rVariable Use ERROR_RATIO
          * @param rOutput Returns the error estimate
          * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
@@ -492,7 +493,7 @@ namespace Kratos
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
                 double Viscosity;
-                this->GetEffectiveViscosity(KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
                 // Get Advective velocity
                 array_1d<double, 3 > AdvVel;
@@ -567,7 +568,7 @@ namespace Kratos
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
                 double Viscosity;
-                this->GetEffectiveViscosity(KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
                 // Get Advective velocity
                 array_1d<double, 3 > AdvVel;
@@ -651,8 +652,10 @@ namespace Kratos
         /**
          * If the variable is TAUONE or TAUTWO, calculates the corresponding stabilization
          * parameter for the element, based on rCurrentProcessInfo's DELTA_TIME and
-         * DYNAMIC_TAU. Otherwise, it assumes that the input variable is an
-         * elemental value and retrieves it. Implemented for a single gauss point only.
+         * DYNAMIC_TAU. If the variable is MU, calculates the effective viscosity at the
+         * element center due to Smagorinsky (in 'dynamic' units). Otherwise, it assumes
+         * that the input variable is an elemental value and retrieves it.
+         * Implemented for a single gauss point only.
          * @param rVariable Kratos vector variable to compute
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
@@ -661,7 +664,7 @@ namespace Kratos
                                                  std::vector<double>& rValues,
                                                  const ProcessInfo& rCurrentProcessInfo)
         {
-            if (rVariable == TAUONE || rVariable == TAUTWO )
+            if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU)
             {
                 double TauOne, TauTwo;
                 double Area;
@@ -672,11 +675,12 @@ namespace Kratos
                 array_1d<double, 3 > AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
 
-                double KinViscosity;
+                double Density,KinViscosity;
+                this->EvaluateInPoint(Density, DENSITY, N);
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
                 double Viscosity;
-                this->GetEffectiveViscosity(KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
@@ -688,6 +692,10 @@ namespace Kratos
                 else if (rVariable == TAUTWO)
                 {
                     rValues[0] = TauTwo;
+                }
+                else if (rVariable == MU)
+                {
+                    rValues[0] = Density * Viscosity;
                 }
             }
             else // Default behaviour (returns elemental data)
@@ -1077,8 +1085,8 @@ namespace Kratos
                 FirstCol += BlockSize;
             }
 
-            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
-//            this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+//            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+            this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Coef);
         }
 
         /// Assemble the contribution from an integration point to the element's residual.
@@ -1157,13 +1165,15 @@ namespace Kratos
 
         /// Add the contribution from Smagorinsky model to the (kinematic) viscosity
         /**
+         * @param Denstity Density evaluated at the integration point (unused)
          * @param MolecularViscosity Viscosity of the fluid, in kinematic units (m2/s)
          * @param rShapeFunc Elemental shape functions, evaluated on the integration point
          * @param rShapeDeriv Shape function derivatives, evaluated on the integration point
          * @param TotalViscosity Effective viscosity (output)
          * @param rCurrentProcessInfo ProcessInfo instance (unused)
          */
-        virtual void GetEffectiveViscosity(const double MolecularViscosity,
+        virtual void GetEffectiveViscosity(const double Density,
+                                           const double MolecularViscosity,
                                            array_1d<double, TNumNodes>& rShapeFunc,
                                            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            double& TotalViscosity,
