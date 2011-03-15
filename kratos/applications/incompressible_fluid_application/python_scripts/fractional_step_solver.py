@@ -107,6 +107,8 @@ class IncompressibleFluidSolver:
         solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form, )
         self.solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
+        self.solver.ApplyFractionalVelocityFixity()
+
         ##generating the slip conditions
         self.create_slip_conditions.Execute()
         (self.solver).SetSlipProcess(self.create_slip_conditions);
@@ -118,6 +120,7 @@ class IncompressibleFluidSolver:
    
     def Solve(self):
         if(self.ReformDofAtEachIteration == True):
+            self.solver.ApplyFractionalVelocityFixity()
             (self.neighbour_search).Execute()
             self.slip_conditions_initialized = False
 
