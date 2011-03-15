@@ -389,13 +389,14 @@ namespace Kratos
 
         /// Calculate the viscosity, as given by the Bingham model.
         /**
+         * @param Density Fluid density evaluated at the integration point
          * @param MolecularViscosity Viscosity of the fluid, in kinematic units (m2/s)
          * @param rShapeFunc Elemental shape functions, evaluated on the integration point
          * @param rShapeDeriv Shape function derivatives, evaluated on the integration point
          * @param TotalViscosity Effective viscosity (output)
          * @param rCurrentProcessInfo ProcessInfo instance (Checked for YIELD_STRESS)
          */
-        virtual void GetEffectiveViscosity(const double density,
+        virtual void GetEffectiveViscosity(const double Density,
                                            const double MolecularViscosity,
                                            array_1d<double, TNumNodes>& rShapeFunc,
                                            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
@@ -417,7 +418,7 @@ namespace Kratos
                 else
                     TotalViscosity += (yield / (1.414213562 * NormS)) * aux_1;
 
-                TotalViscosity/=density;
+                TotalViscosity/=Density;
             }
         }
 
