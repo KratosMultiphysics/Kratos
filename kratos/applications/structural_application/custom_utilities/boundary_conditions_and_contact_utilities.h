@@ -459,6 +459,8 @@ namespace Kratos
 		    {
 		      
 		      //busco el nodo mas cercano
+		      
+		     KRATOS_WATCH("NO NODESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
 		     std::vector<double> Distance;
 		     
 		     array_1d<double, 3> vector;
@@ -610,6 +612,8 @@ namespace Kratos
 		   segment.push_back(I);
 		  }
 		  I++;
+		  if(I>neighb_cond.size())
+		        break;
 	      }
 	       
 	       if (Points.size()!=0)
