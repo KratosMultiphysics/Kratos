@@ -458,8 +458,7 @@ namespace Kratos
 		    case(no_nodes):
 		    {
 		      
-		      //busco el nodo mas cercano
-		      
+		      //busco el nodo mas cercano      
 		     KRATOS_WATCH("NO NODESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
 		     std::vector<double> Distance;
 		     
@@ -487,12 +486,31 @@ namespace Kratos
 		      else
 			k = 2;
 
+
+		    if(TotalInsideNodes.size()==0){   
+		    TotalInsideNodes.push_back(geom_0[k].Id()); 
+		    repeated_object = TotalInsideNodes.end();
+		    }
+
+		    // verifcando que no se repitan los slaves nodes 
+		    if(initialize==true)
+		        repeated_object =  std::find(TotalInsideNodes.begin(), TotalInsideNodes.end(), geom_0[k].Id()); 
+
+
+		    //WARNING = No necesariamente para otros contenedores la comparacion se hace con end -1 
+		    if( repeated_object == (TotalInsideNodes.end())) 
+		      {          
+
+		        if(initialize==true)
+		          TotalInsideNodes.push_back(geom_0[k].Id());  
+
+
 		      bool exist_segment =  LocateMasterSegement(segment, geom_0(k), (*it_pair)[1]);
 		      
 		      if(exist_segment==true)
 			{
 			// Slave Node
-			Point2D<Node<3> >::Pointer point_geom    =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(k) ) );
+			Point2D<Node<3> >::Pointer point_geom    =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(geom_0[k].Id()) ) );
 			Condition::Pointer SlaveNode             =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
 		      
 			WeakPointerVector<Condition> neighb_cond =  (*it_pair)[1]->GetValue(NEIGHBOUR_CONDITIONS); 			      
@@ -517,6 +535,7 @@ namespace Kratos
 			Id++;    
 		    
 			}
+		}
 		      break;
 		      
 		    }
@@ -596,7 +615,8 @@ namespace Kratos
 	      
 	      //KRATOS_WATCH(Points0[0]-Points0[1]) 
               //KRATOS_WATCH(SlaveNode->Coordinates())
-	      */      
+	      */   
+	      unsigned int JJ = 1; 
 	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); cond++){
 	          Condition::GeometryType& geom_2 = cond->GetGeometry();
 		    		  
@@ -612,7 +632,8 @@ namespace Kratos
 		   segment.push_back(I);
 		  }
 		  I++;
-		  if(I>neighb_cond.size())
+		  JJ++;
+		  if(JJ>neighb_cond.size())
 		        break;
 	      }
 	       
