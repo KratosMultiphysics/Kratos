@@ -269,11 +269,12 @@ namespace Kratos
                 array_1d<double, 3 > AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
 
-                double KinViscosity;
+                double Density, KinViscosity;
+                this->EvaluateInPoint(Density, DENSITY, N);
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
                 double Viscosity;
-                this->GetEffectiveViscosity(KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
@@ -293,7 +294,7 @@ namespace Kratos
                 else if (rVariable == TAU)
                 {
                     double NormS = this->SymmetricGradientNorm(DN_DX);
-                    rValues[0] = Viscosity*NormS*1.414213562;
+                    rValues[0] = Density*Viscosity*NormS*1.414213562;
                 }
             }
             else // Default behaviour (returns elemental data)
@@ -394,7 +395,8 @@ namespace Kratos
          * @param TotalViscosity Effective viscosity (output)
          * @param rCurrentProcessInfo ProcessInfo instance (Checked for YIELD_STRESS)
          */
-        virtual void GetEffectiveViscosity(const double MolecularViscosity,
+        virtual void GetEffectiveViscosity(const double density,
+                                           const double MolecularViscosity,
                                            array_1d<double, TNumNodes>& rShapeFunc,
                                            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            double& TotalViscosity,
@@ -414,6 +416,8 @@ namespace Kratos
                     TotalViscosity += yield*mcoef;
                 else
                     TotalViscosity += (yield / (1.414213562 * NormS)) * aux_1;
+
+                TotalViscosity/=density;
             }
         }
 
