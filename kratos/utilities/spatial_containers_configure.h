@@ -116,13 +116,15 @@ class SpatialContainersConfigure
       ///@{
          
       enum { Dimension = TDimension };
-      typedef Point<Dimension, double>                        PointType;
-      typedef std::vector<double>::iterator                   DistanceIteratorType;
-      typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
-      typedef ContainerType::value_type                       PointerType;
-      typedef ContainerType::iterator                         IteratorType; 
-      typedef ModelPart::ElementsContainerType::ContainerType ResultContainerType;    
-      typedef ContainerType::iterator                         ResultIteratorType; 
+      typedef Point<Dimension, double>                            PointType;
+      typedef std::vector<double>::iterator                       DistanceIteratorType;
+      typedef ModelPart::ElementsContainerType::ContainerType     ContainerType;
+      //typedef ModelPart::ConditionsContainerType::ContainerType   ContainerType;
+      typedef ContainerType::value_type                           PointerType;
+      typedef ContainerType::iterator                             IteratorType; 
+      typedef ModelPart::ElementsContainerType::ContainerType     ResultContainerType;
+     // typedef ModelPart::ConditionsContainerType::ContainerType   ResultContainerType;    
+      typedef ContainerType::iterator                             ResultIteratorType; 
       
       /// Contact Pairs
 //       typedef std::pair<PointerType, PointerType>            ContactPairType;
