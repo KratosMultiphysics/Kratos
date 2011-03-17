@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-/* 
+/*
  * File:   vel_pr_criteria.h
  * Author: jcotela
  *
@@ -44,6 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #ifndef KRATOS_VEL_PR_CRITERIA_H
+#define	KRATOS_VEL_PR_CRITERIA_H
 
 /* Project includes */
 #include "utilities/openmp_utils.h"
@@ -87,6 +88,8 @@ namespace Kratos
 
         typedef OpenMPUtils::PartitionVector PartitionVector;
 
+        typedef std::size_t KeyType;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -118,49 +121,6 @@ namespace Kratos
         ///@name Operators
         ///@{
 
-        /// Call before the solution to store old solution values.
-        /**
-         @param rModelPart Reference to the ModelPart containing the fluid problem.
-         @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-         @param A System matrix (unused)
-         @param Dx Vector of results (variations on nodal variables)
-         @param b RHS vector (residual, unused)
-         @return Always true (Convergence check is done in PostCriteria)
-         */
-        bool PreCriteria(   ModelPart& rModelPart,
-                            DofsArrayType& rDofSet,
-                            const TSystemMatrixType& A,
-                            const TSystemVectorType& Dx,
-                            const TSystemVectorType& b)
-        {
-            if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
-            {
-                int NodeNum = rModelPart.Nodes().size();
-                PartitionVector NodeDivision;
-                int NumThreads = OpenMPUtils::GetNumThreads();
-                OpenMPUtils::DivideInPartitions(NodeNum,NumThreads,NodeDivision);
-                
-                #pragma omp parallel
-                {
-                    int k = OpenMPUtils::ThisThread();
-                    typename ModelPart::NodesContainerType::iterator NodeBegin = rModelPart.NodesBegin() + NodeDivision[k];
-                    typename ModelPart::NodesContainerType::iterator NodeEnd = rModelPart.NodesBegin() + NodeDivision[k+1];
-                    
-                    for(typename ModelPart::NodesContainerType::iterator itNode = NodeBegin; itNode != NodeEnd; itNode++)
-                    {
-                        itNode->GetValue(VELOCITY) = itNode->FastGetSolutionStepValue(VELOCITY);
-                        itNode->GetValue(PRESSURE) = itNode->FastGetSolutionStepValue(PRESSURE);
-                    }
-                }
-                return true;
-
-            }
-            else //in this case all the displacements are imposed!
-            {
-                return true;
-            }
-        }
-
         /// Compute relative and absoute error.
         /**
          @param rModelPart Reference to the ModelPart containing the fluid problem.
@@ -179,70 +139,69 @@ namespace Kratos
             if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
             {
                 // Initialize
-                double VelSolutionNorm = 0.0;
-                double PrSolutionNorm = 0.0;
-                double VelIncreaseNorm = 0.0;
-                double PrIncreaseNorm = 0.0;
+                TDataType VelSolutionNorm = 0.0;
+                TDataType PrSolutionNorm = 0.0;
+                TDataType VelIncreaseNorm = 0.0;
+                TDataType PrIncreaseNorm = 0.0;
+                unsigned int VelDofNum(0),PrDofNum(0);
 
-                // Get spatial dimensions
-                double Dimension = ( rModelPart.ElementsBegin()->GetGeometry() ).WorkingSpaceDimension();
-                
                 // Set a partition for OpenMP
-                int NodeNum = rModelPart.Nodes().size();
-                PartitionVector NodeDivision;
+                int NumDofs = rDofSet.size();
+                PartitionVector DofPartition;
                 int NumThreads = OpenMPUtils::GetNumThreads();
-                OpenMPUtils::DivideInPartitions(NodeNum,NumThreads,NodeDivision);
-                
-                // Loop over nodes
-                #pragma omp parallel reduction(+:VelSolutionNorm,PrSolutionNorm,VelIncreaseNorm,PrIncreaseNorm)
+                OpenMPUtils::DivideInPartitions(NumDofs,NumThreads,DofPartition);
+
+                // Loop over Dofs
+                #pragma omp parallel reduction(+:VelSolutionNorm,PrSolutionNorm,VelIncreaseNorm,PrIncreaseNorm,VelDofNum,PrDofNum)
                 {
                     int k = OpenMPUtils::ThisThread();
-                    typename ModelPart::NodesContainerType::iterator NodeBegin = rModelPart.NodesBegin() + NodeDivision[k];
-                    typename ModelPart::NodesContainerType::iterator NodeEnd = rModelPart.NodesBegin() + NodeDivision[k+1];
-                    
-                    array_1d<double,3> NewNodeVel;
-                    array_1d<double,3> OldNodeVel;
-                    array_1d<double,3> NodeVelDiff;
-                    
-                    double NewNodePress;
-                    double OldNodePress;
-                    double NodePressDiff;
-                    
-                    // Nodal contribution to each norm (all nodes are counted, irregardless of fixity)
-                    for(typename ModelPart::NodesContainerType::iterator itNode = NodeBegin; itNode != NodeEnd; itNode++)
+                    typename DofsArrayType::iterator DofBegin = rDofSet.begin() + DofPartition[k];
+                    typename DofsArrayType::iterator DofEnd = rDofSet.begin() + DofPartition[k+1];
+
+                    std::size_t DofId;
+                    TDataType DofValue;
+                    TDataType DofIncr;
+
+                    for (typename DofsArrayType::iterator itDof = DofBegin; itDof != DofEnd; ++itDof)
                     {
-                        // Velocity error contribution
-                        NewNodeVel = itNode->FastGetSolutionStepValue(VELOCITY);
-                        OldNodeVel = itNode->GetValue(VELOCITY);
-                        NodeVelDiff = NewNodeVel - OldNodeVel;
+                        if (itDof->IsFree())
+                        {
+                            DofId = itDof->EquationId();
+                            DofValue = itDof->GetSolutionStepValue(0);
+                            DofIncr = Dx[DofId];
 
-                        NewNodePress = itNode->FastGetSolutionStepValue(PRESSURE);
-                        OldNodePress = itNode->GetValue(PRESSURE);
-                        NodePressDiff = NewNodePress - OldNodePress;
-
-                        VelSolutionNorm += NewNodeVel[0]*NewNodeVel[0] + NewNodeVel[1]*NewNodeVel[1] + NewNodeVel[2]*NewNodeVel[2];
-                        VelIncreaseNorm += NodeVelDiff[0]*NodeVelDiff[0] + NodeVelDiff[1]*NodeVelDiff[1] + NodeVelDiff[2]*NodeVelDiff[2];
-
-                        PrSolutionNorm += NewNodePress * NewNodePress;
-                        PrIncreaseNorm += NodePressDiff * NodePressDiff;
+                            KeyType CurrVar = itDof->GetVariable().Key();
+                            if ((CurrVar == VELOCITY_X) || (CurrVar == VELOCITY_Y) || (CurrVar == VELOCITY_Z))
+                            {
+                                VelSolutionNorm += DofValue * DofValue;
+                                VelIncreaseNorm += DofIncr * DofIncr;
+                                ++VelDofNum;
+                            }
+                            else
+                            {
+                                PrSolutionNorm += DofValue * DofValue;
+                                PrIncreaseNorm += DofIncr * DofIncr;
+                                ++PrDofNum;
+                            }
+                        }
                     }
                 }
-                
+
                 if(VelSolutionNorm == 0.0)
                     VelSolutionNorm = 1.0;
                 if(PrSolutionNorm == 0.0)
                     PrSolutionNorm = 1.0;
 
-                double VelRatio = sqrt(VelIncreaseNorm/VelSolutionNorm);
-                double PrRatio = sqrt(PrIncreaseNorm/PrSolutionNorm);
+                TDataType VelRatio = sqrt(VelIncreaseNorm/VelSolutionNorm);
+                TDataType PrRatio = sqrt(PrIncreaseNorm/PrSolutionNorm);
 
-                double VelAbs = sqrt(VelIncreaseNorm)/(Dimension*NodeNum);
-                double PrAbs = sqrt(PrIncreaseNorm)/NodeNum;
+                TDataType VelAbs = sqrt(VelIncreaseNorm)/ static_cast<TDataType>(VelDofNum);
+                TDataType PrAbs = sqrt(PrIncreaseNorm)/ static_cast<TDataType>(PrDofNum);
 
                 std::cout << "CONVERGENCE CHECK:" << std::endl;
                 std::cout << " VELOCITY: ratio = " << VelRatio <<"; expected ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " expected abs = " << mVelAbsTolerance << std::endl;
                 std::cout << " PRESSURE: ratio = " << PrRatio <<"; expected ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " expected abs = " << mPrAbsTolerance << std::endl;
-                
+
                 if (    (VelRatio <= mVelRatioTolerance || VelAbs <= mVelAbsTolerance) &&
                         (PrRatio <= mPrRatioTolerance || PrAbs <= mPrAbsTolerance) )
                 {
@@ -268,14 +227,14 @@ namespace Kratos
         {
             BaseType::mConvergenceCriteriaIsInitialized = true;
         }
-        
+
         void InitializeSolutionStep(    ModelPart& rModelPart,
                                         DofsArrayType& rDofSet,
                                         const TSystemMatrixType& A,
                                         const TSystemVectorType& Dx,
                                         const TSystemVectorType& b )
         {}
-        
+
         void FinalizeSolutionStep(  ModelPart& rModelPart,
                                     DofsArrayType& rDofSet,
                                     const TSystemMatrixType& A,
@@ -287,19 +246,15 @@ namespace Kratos
 
     private:
 
-        double mVelRatioTolerance;
-        double mVelAbsTolerance;
+        TDataType mVelRatioTolerance;
+        TDataType mVelAbsTolerance;
 
-        double mPrRatioTolerance;
-        double mPrAbsTolerance;
+        TDataType mPrRatioTolerance;
+        TDataType mPrAbsTolerance;
     };
 
     ///@} // Kratos classes
 }
-
-#define	KRATOS_VEL_PR_CRITERIA_H
-
-
 
 #endif	/* _VEL_PR_CRITERIA_H */
 
