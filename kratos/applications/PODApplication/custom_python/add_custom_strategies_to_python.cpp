@@ -69,8 +69,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/residualbased_elimination_builder_and_solver_pod.h"
+#include "custom_strategies/residualbased_elimination_builder_and_solver_pod_WithPressure.h"
 #include "custom_strategies/residualbased_elimination_builder_and_solver_standard.h"
 #include "custom_strategies/residualbased_elimination_builder_and_solver_standard_biggerlocalM.h"
+#include "custom_strategies/residualbased_elimination_builder_and_solver_standard_biggerlocalM_NoP.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -111,7 +113,12 @@ namespace Kratos
 			
 			typedef ResidualBasedEliminationBuilderAndSolverPOD< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverPODType;
 			class_< ResidualBasedEliminationBuilderAndSolverPODType, bases<BuilderAndSolverType>, boost::noncopyable> ("ResidualBasedEliminationBuilderAndSolverPOD", init< LinearSolverType::Pointer>() );
-
+			
+			typedef ResidualBasedEliminationBuilderAndSolverPOD_WithPressure< SparseSpaceType, LocalSpaceType, LinearSolverType >    ResidualBasedEliminationBuilderAndSolverPOD_WithPressureType;
+			class_< ResidualBasedEliminationBuilderAndSolverPOD_WithPressureType, bases<BuilderAndSolverType>, boost::noncopyable> ("ResidualBasedEliminationBuilderAndSolverPOD_WithPressure", init< LinearSolverType::Pointer>() );
+																		 
+			typedef ResidualBasedEliminationBuilderAndSolverStandard_biggerlocalM_NoP< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverStandard_biggerlocalM_NoPType;
+			class_< ResidualBasedEliminationBuilderAndSolverStandard_biggerlocalM_NoPType, bases<BuilderAndSolverType>, boost::noncopyable> ("ResidualBasedEliminationBuilderAndSolverStandard_biggerlocalM_NoP", init< LinearSolverType::Pointer>() );
 		}
 
 	}  // namespace Python.
