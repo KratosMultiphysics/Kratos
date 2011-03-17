@@ -326,6 +326,10 @@ namespace Kratos
         {
         }
 
+        virtual void Calculate(const Variable< array_1d<double,3> >& rVariable, array_1d<double,3>& Output, const ProcessInfo& rCurrentProcessInfo)
+        {
+        }
+
         virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
         {
         }
