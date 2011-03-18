@@ -131,8 +131,9 @@ class SolverAdvanced:
             self.time_scheme = TrilinosResidualBasedIncrementalUpdateStaticScheme()
             self.MoveMeshFlag = False
         else:
-            print "using newmark scheme"
-            self.time_scheme = TrilinosResidualBasedNewmarkScheme(self.damp_factor)
+            print "ATTENTION!!! not using newmark scheme"
+            self.time_scheme = TrilinosResidualBasedIncrementalUpdateStaticScheme()
+            #self.time_scheme = TrilinosResidualBasedNewmarkScheme(self.damp_factor)
             self.MoveMeshFlag = True
         #definition of the convergence criteria
         self.conv_criteria = TrilinosDisplacementCriteria(1e-6,1e-9,self.Comm)
