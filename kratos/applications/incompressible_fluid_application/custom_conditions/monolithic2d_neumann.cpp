@@ -81,7 +81,6 @@ namespace Kratos
 	Condition::Pointer Monolithic2DNeumann::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
 		return Condition::Pointer(new Monolithic2DNeumann(NewId, GetGeometry().Create(ThisNodes), pProperties));
-KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	}
 
 	Monolithic2DNeumann::~Monolithic2DNeumann()
@@ -103,10 +102,6 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	//************************************************************************************
 	void Monolithic2DNeumann::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
-		//calculation flags
-	  //		bool CalculateStiffnessMatrixFlag = true;
-	  //bool CalculateResidualVectorFlag = true;
-		//KRATOS_WATCH("@@@@@@@@ INSIDE CONDITION@@@@@@@@@@@@@@@@@@@");
 
 			if(rLeftHandSideMatrix.size1() != 4)
 			{
@@ -126,7 +121,7 @@ KRATOS_WATCH("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			double norm = edge[0]*edge[0] + edge[1]*edge[1];
 			norm = pow(norm,0.5);
 
-			An[0] = -1.0*edge[1];
+			An[0] = -edge[1];
 			An[1] = edge[0];
 			//An /= norm; this is then simplified by length of element in integration so is not divided.
 
