@@ -1016,6 +1016,74 @@ namespace Kratos
         return 2.0 * C * C * h * NormS;
     }
 
+    int Fluid3D::Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        int check_result = Element::Check(rCurrentProcessInfo);
+        if(check_result != 0)
+            return 1;
+
+        if(VELOCITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered","");
+        if(FRACT_VEL.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"FRACT_VEL has Key zero! (check if the application is correctly registered","");
+        if(MESH_VELOCITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY has Key zero! (check if the application is correctly registered","");
+        if(PRESSURE.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"PRESSURE has Key zero! (check if the application is correctly registered","");
+        if(DENSITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
+        if(VISCOSITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"VISCOSITY has Key zero! (check if the application is correctly registered","");
+        if(CONV_PROJ.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"CONV_PROJ has Key zero! (check if the application is correctly registered","");
+        if(PRESS_PROJ.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"PRESS_PROJ has Key zero! (check if the application is correctly registered","");
+        if(BODY_FORCE.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
+
+
+
+
+        for(unsigned int i=0; i<this->GetGeometry().size(); i++)
+        {
+            
+            if(GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable VELOCITY","");
+            if(GetGeometry()[i].HasDofFor(VELOCITY_X) == false || GetGeometry()[i].HasDofFor(VELOCITY_Y) == false || GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing dof VELOCITY","");
+
+            if(GetGeometry()[i].SolutionStepsDataHas(FRACT_VEL) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable FRACT_VEL","");
+            if(GetGeometry()[i].HasDofFor(FRACT_VEL_X) == false || GetGeometry()[i].HasDofFor(FRACT_VEL_Y) == false || GetGeometry()[i].HasDofFor(FRACT_VEL_Z) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing dof FRACT_VEL","");
+            
+            if(GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable PRESSURE","");
+            if(GetGeometry()[i].HasDofFor(PRESSURE) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing dof PRESSURE","");
+
+            if(GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable DENSITY","");
+            if(GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable VISCOSITY","");
+            if(GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable FRACT_VEL","");
+            if(GetGeometry()[i].SolutionStepsDataHas(FRACT_VEL) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable FRACT_VEL","");
+            if(GetGeometry()[i].SolutionStepsDataHas(PRESS_PROJ) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable PRESS_PROJ","")
+            if(GetGeometry()[i].SolutionStepsDataHas(CONV_PROJ) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable CONV_PROJ","")
+            if(GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable CONV_PROJ","")
+        }
+
+        return 0;
+        KRATOS_CATCH("");
+    }
+
 } // Namespace Kratos
 
 
