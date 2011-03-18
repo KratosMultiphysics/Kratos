@@ -344,7 +344,7 @@ KRATOS_WATCH("inside update of ExplicitResidualBasedPredictorCorrectorVelocityBo
 			//dt factor
 			  ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 			// double GammaNewmark = 0.5 - NewAlphaBossak;
-			 double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+//			 double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 			// double time_fac = 1.0 / (mGamma * DeltaTime);
 
 			//update of Acceleration (by DOF)

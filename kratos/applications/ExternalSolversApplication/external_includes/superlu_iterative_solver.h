@@ -76,7 +76,8 @@ namespace Kratos
     {
 	SuperMatrix *A = GLOBAL_A;
 
-	sp_dgemv("N", alpha, A, x, 1, beta, y, 1);
+        char flag[] = "N";
+	sp_dgemv(flag, alpha, A, x, 1, beta, y, 1);
     }
 
     void dpsolve(int n, double x[], double y[])
@@ -369,7 +370,9 @@ namespace Kratos
 		    nrmA = dnrm2_(&(((NRformat *)Aslu.Store)->nnz), (double *)((DNformat *)Aslu.Store)->nzval,
 			    &i_1);
 		    nrmB = dnrm2_(&m, b, &i_1);
-		    sp_dgemv("N", -1.0, &Aslu, x, 1, 1.0, b, 1);
+
+                    char flag[] = "N";
+		    sp_dgemv(flag, -1.0, &Aslu, x, 1, 1.0, b, 1);
 		    res = dnrm2_(&m, b, &i_1);
 		    resid = res / nrmB;
 		    printf("||A||_F = %.1e, ||B||_2 = %.1e, ||B-A*X||_2 = %.1e, "

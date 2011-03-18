@@ -20,6 +20,7 @@ Import_DamApplication = False
 Import_TestApplication = False
 Import_OpenCLApplication = False
 Import_PodApplication = False
+Import_LevelSetApplication = False
 Import_FluidDynamicsApplication = False
 
 print "Applications Available:"
@@ -41,7 +42,9 @@ print "Import_DamApplication: False"
 print "Import_TestApplication: False"
 print "Import_OpenCLApplication: False"
 print "Import_PodApplication: False"
+print "Import_LevelSetApplication: False"
 print "Import_FluidDynamicsApplication: False"
+
 
 def ImportApplications(kernel, applications_path):
     ##########################################################################
@@ -64,6 +67,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_TestApplication: "+str(Import_TestApplication)
     print "Import_OpenCLApplication: "+str(Import_OpenCLApplication)
     print "Import_PodApplication: "+str(Import_PodApplication)
+    print "Import_LevelSetApplication:"+str(Import_LevelSetApplication)
     print "Import_FluidDynamicsApplication: "+str(Import_FluidDynamicsApplication)
 
     if(Import_ALEApplication == True):
@@ -227,7 +231,13 @@ def ImportApplications(kernel, applications_path):
         pod_application = KratosPodApplication()
         kernel.AddApplication(pod_application)
         print "KratosPodApplication sucessfully imported"
-
+    if(Import_LevelSetApplication == True):
+        print "importing KratosPodApplication ..."
+        sys.path.append(applications_path + '/LevelSetApplication/python_scripts')
+        from KratosLevelSetApplication import *
+        levelset_application = KratosLevelSetApplication()
+        kernel.AddApplication(levelset_application)
+        print "KratosLevelSetApplication sucessfully imported"
     if(Import_FluidDynamicsApplication == True):
         print "importing KratosFluidDynamicsApplication ..."
         sys.path.append(applications_path + '/FluidDynamicsApplication/python_scripts')
@@ -277,5 +287,7 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(opencl_application);
     if(Import_PodApplication == True):
         kernel.InitializeApplication(pod_application);
+    if(Import_LevelSetApplication == True):
+        kernel.InitializeApplication(levelset_application);
     if(Import_FluidDynamicsApplication == True):
         kernel.InitializeApplication(fluid_dynamics_application);

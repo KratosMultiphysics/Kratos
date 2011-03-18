@@ -258,7 +258,7 @@ namespace Kratos
                                                  std::vector<double>& rValues,
                                                  const ProcessInfo& rCurrentProcessInfo)
         {
-            if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable==TAU)
+            if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable==TAU || rVariable==EQ_STRAIN_RATE)
             {
                 double TauOne, TauTwo;
                 double Area;
@@ -296,6 +296,12 @@ namespace Kratos
                     double NormS = this->SymmetricGradientNorm(DN_DX);
                     rValues[0] = Density*Viscosity*NormS*1.414213562;
                 }
+                else if (rVariable == EQ_STRAIN_RATE)
+                {
+                    double NormS = this->SymmetricGradientNorm(DN_DX);
+                    rValues[0] = NormS*1.414213562;
+                }
+
             }
             else // Default behaviour (returns elemental data)
             {

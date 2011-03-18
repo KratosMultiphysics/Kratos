@@ -306,7 +306,7 @@ namespace Kratos
 				return class_<TContainerType> (Name.c_str())
 					.def(init<TContainerType>())
 					.def(indexing_suite<TContainerType, VectorPythonInterface>())
-					.def("Resize", &TContainerType::resize)
+				  //.def("Resize", &TContainerType::resize)
 					.def("Size", &TContainerType::size)
 					.def(VectorVectorOperatorPython<TContainerType, TContainerType, TContainerType>())
 					.def(VectorScalarAssignmentOperatorPython<TContainerType, double>())

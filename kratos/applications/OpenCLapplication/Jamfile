@@ -14,14 +14,14 @@ project KratosOpenCLApplication
        external_includes
     :
     requirements <include>.
-                <include>/home/rrossi/Libraries/ati-stream-sdk-v2.2-lnx64/include
+                <include>/home/rrossi/Libraries/ati-stream-sdk-v2.3-lnx64/include
 		<include>custom_external_libraries
 		<define>KRATOS_PYTHON
                 <define>VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK
 		<link>shared
     ;
 
-lib libOCL 		: : <name>OpenCL <search>/home/rrossi/Libraries/ati-stream-sdk-v2.2-lnx64/lib/x86_64/ ;
+lib libOCL 		: : <name>OpenCL <search>/home/rrossi/Libraries/ati-stream-sdk-v2.3-lnx64/lib/x86_64/ ;
 
 ##lib libviennaCL_win 		: : <name>libviennaCL <search>custom_external_libraries/viennaCL/ <link>static ;
 ####lib libviennaCL_linux		: : <name>viennaCL <search>custom_external_libraries/viennaCL/ <link>static ;
