@@ -942,23 +942,40 @@ namespace Kratos
 
             vel_subscale[0] -= one_third * (proj0[0] + proj1[0] + proj2[0] );
             vel_subscale[1] -= one_third * (proj0[1] + proj1[1] + proj2[1] );
-            vel_subscale[2] -= one_third * (proj0[2] + proj1[2] + proj2[2] );
 
             //pressure gradient contributions
             vel_subscale[0] += (DN_DX(0, 0) * p0 + DN_DX(1, 0) * p1 + DN_DX(2, 0) * p2 );
             vel_subscale[1] += (DN_DX(0, 1) * p0 + DN_DX(1, 1) * p1 + DN_DX(2, 1) * p2 );
-            vel_subscale[2] += (DN_DX(0, 2) * p0 + DN_DX(1, 2) * p1 + DN_DX(2, 2) * p2 );
+
             vel_subscale[0] -= 0.25 * (press_proj0[0] + press_proj1[0] + press_proj2[0] );
             vel_subscale[1] -= 0.25 * (press_proj0[1] + press_proj1[1] + press_proj2[1] );
-            vel_subscale[2] -= 0.25 * (press_proj0[2] + press_proj1[2] + press_proj2[2] );
 
             vel_subscale *= (tau / density);
+
+            vel_subscale[2] = 0.0;
 
             Output = norm_2(vel_subscale);
 
         }
         KRATOS_CATCH("");
 
+    }
+
+    int Fluid2D::Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        //check the area
+
+        //check if if is in the XY plane
+
+        //check that no variable has zero key
+
+
+        return 0;
+
+
+        KRATOS_CATCH("");
     }
 
 

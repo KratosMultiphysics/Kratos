@@ -142,7 +142,6 @@ namespace Kratos
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
         void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-        //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
@@ -151,6 +150,8 @@ namespace Kratos
         void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
         void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+
+        int Check(const ProcessInfo& rCurrentProcessInfo);
 
         ///@}
         ///@name Access
