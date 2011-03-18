@@ -189,6 +189,7 @@ namespace Kratos
 
         //*********************************************************************************
         //**********************************************************************
+
         /**
          * This function performs the compound solve of the problem, that is devolves a solution
          * ready to be advanced in time
@@ -233,6 +234,7 @@ namespace Kratos
 
         //*********************************************************************************
         //**********************************************************************
+
         /**
          * internal function that implements predictor corrector strategy
          * @return  the norm of the pressure correction vector
@@ -272,6 +274,7 @@ namespace Kratos
 
         //*********************************************************************************
         //**********************************************************************
+
         /**
          * utility to activate an auxiliary process for the computation of the slip condition
          * @param pSlipProcess
@@ -284,6 +287,7 @@ namespace Kratos
 
         //*********************************************************************************
         //**********************************************************************
+
         /**
          * copies PRESSURE->PRESSURE_OLD_IT
          * @return the norm of the pressure vector
@@ -316,6 +320,7 @@ namespace Kratos
         //******************************************************************************************************
         //******************************************************************************************************
         //explicit correction for velocities and eventually stabilization terms
+
         /**
          * routine that implements the complete solution step
          *          * @return  returns the norm of the pressure correction vector
@@ -363,6 +368,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * Implements the third step of the FractionalStep scheme, in which the velocity is corrected
          * according to the pressure correction derived from the second step
@@ -463,6 +469,7 @@ namespace Kratos
         //******************************************************************************************************
         //******************************************************************************************************
         //sets the BDF coefficients to the correct value
+
         /**
          * computes the time coefficients
          * @param step number (the first time the system is solved this is 1)
@@ -505,6 +512,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * helper function that initialized the pressure projection to the body force
          * this is important at the first step, since the pressure does not yet have a sensible
@@ -584,6 +592,7 @@ namespace Kratos
         }
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * this function performs the iterative solution of the non-linear velocity problem in the first step
          * of the fractional step procedure
@@ -635,6 +644,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * solution of the pressure. Implements the second step of the fractional step
          * @return norm of the pressure variation vector
@@ -649,6 +659,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * calculation of the projections. Needed for OSS
          */
@@ -908,6 +919,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * Utility to apply correctly the fractional velocity fixity, following variation of the fixity of velocity
          */
@@ -950,6 +962,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * implements the convergence check for the velocities
          * convergence is considered achieved when normDx/norm(v) is less than tol
@@ -999,6 +1012,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * solves one single iteration of the step1 of the FractionalStep algorithm
          * @param normDx
@@ -1018,6 +1032,7 @@ namespace Kratos
 
         //******************************************************************************************************
         //******************************************************************************************************
+
         /**
          * 
          * @param Level
@@ -1053,7 +1068,7 @@ namespace Kratos
         /**
          * This function checks the input extensively to verify that no common error is present
          */
-        virtual void Check()
+        virtual int Check()
         {
             KRATOS_TRY
 
@@ -1148,6 +1163,7 @@ namespace Kratos
 
             }
 
+            return 0;
 
             //verify
             KRATOS_CATCH("")
