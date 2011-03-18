@@ -32,7 +32,18 @@ def PrintElements(element_type,Elements,outfile):
         outfile.write( outstring )
     outfile.write( "End Elements\n" )
     
-
+def PrintConditions(element_type,Conditions,outfile):
+    outfile.write( "\n" )
+    outstring = "Begin Conditions " + element_type + "\n"
+    outfile.write( outstring )
+    for elem in Conditions:
+        outstring = str(elem.Id) + " " + "0" # str(elem.Properties.Id())
+        for node in elem.GetNodes():
+            outstring += " " + str(node.Id)
+        outstring += "\n"
+        outfile.write( outstring )
+    outfile.write( "End Conditions\n" )
+    
 def PrintRestart_ScalarVariable(variable,varname,Nodes,outfile):
     outfile.write( "\n" )
     outstring = "Begin NodalData " + varname + "\n"
