@@ -640,7 +640,7 @@ namespace Kratos
          * or that no common error is found.
          * @param rCurrentProcessInfo
          */
-        virtual void Check(const ProcessInfo& rCurrentProcessInfo)
+        virtual int Check(const ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY
             if (this->Id() < 1)
@@ -652,6 +652,7 @@ namespace Kratos
                 std::cout << "error on element -> " << this->Id() << std::endl;
                 KRATOS_ERROR(std::logic_error, "Area can not be lesser than 0","")
             }
+            return 0;
 
             KRATOS_CATCH("");
         }

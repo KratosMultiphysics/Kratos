@@ -8,12 +8,14 @@ Monolithic_Iterative_Tolerance = 1E-6
 Monolithic_Solver_Max_Iteration = 5000
 Monolithic_Preconditioner_type = "Diagonal"
 # Velocity solver
+#Velocity_Linear_Solver = "Super LU"
 Velocity_Linear_Solver = "BiConjugate gradient stabilized"
 Velocity_Iterative_Tolerance = 1E-6
 Velocity_Solver_Max_Iteration = 5000
 Velocity_Preconditioner_type = "Diagonal"
 
 # Pressure solver
+#Pressure_Linear_Solver = "Super LU"
 Pressure_Linear_Solver = "BiConjugate gradient stabilized"
 Pressure_Iterative_Tolerance = 1E-6
 Pressure_Solver_Max_Iteration = 5000

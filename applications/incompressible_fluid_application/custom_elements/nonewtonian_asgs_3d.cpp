@@ -1374,7 +1374,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  double yield = 0.0;
 	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
-	  double gamma_dot_inv;
+//	  double gamma_dot_inv;
 
 	  
 	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {

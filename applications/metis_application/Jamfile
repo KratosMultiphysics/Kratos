@@ -37,7 +37,7 @@ alias sources_KratosMetisApplication
 	/kratos-prj/kratos//libkratos/<link>static
 
 	/KratosProject//mpilibrary
-	/KratosProject//mpilibrary_cpp
+#	/KratosProject//mpilibrary_cpp
 
 	libmetis
 

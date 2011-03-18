@@ -191,16 +191,16 @@ namespace Kratos
 			IO::PartitionIndicesContainerType conditions_all_partitions;
 			
 			ConditionsPartitioning(conditions_connectivities, nodes_partitions, conditions_partitions);
-
+KRATOS_WATCH("ConditionsPartitioning finished")
 			// Dividing nodes 
  			DividingNodes(nodes_all_partitions, elements_connectivities, conditions_connectivities, nodes_partitions, elements_partitions, conditions_partitions);
-
+KRATOS_WATCH("DividingNodes finished")
 			// Dividing elements
  			DividingElements(elements_all_partitions, elements_partitions);
-
+KRATOS_WATCH("DividingElements finished")
 			// Dividing conditions
  			DividingConditions(conditions_all_partitions, conditions_partitions);
-
+KRATOS_WATCH("DividingConditions finished")
 			
 /*			for(SizeType i = 0 ; i < number_of_nodes ; i++)
 			{
@@ -218,7 +218,7 @@ namespace Kratos
 			mrIO.DivideInputToPartitions(mNumberOfPartitions, domains_colored_graph,
 						     io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
 						     nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
-
+KRATOS_WATCH("DivideInputToPartitions finished")
 			return;
 			
 			

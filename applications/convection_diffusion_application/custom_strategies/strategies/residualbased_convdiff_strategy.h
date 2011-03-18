@@ -266,7 +266,7 @@ namespace Kratos
 			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
 			ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-			const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+//			const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
 
 			//first of all set to zero the nodal variables to be updated nodally
 			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 

@@ -1440,7 +1440,7 @@ array_1d<double,3> conv_opr;
 	       elemental_density = 0.0;
 	       elemental_diameter = 0.0;
 	       elemental_viscosity = 0.0;
-	       unsigned int count = 0;
+//	       unsigned int count = 0;
 	       for(unsigned int i=0; i< 3; i++)
 	       {
 // 		        elemental_porosity += geom[i].FastGetSolutionStepValue(POROSITY);;

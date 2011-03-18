@@ -92,7 +92,7 @@ neighbour_search = FindNodalNeighboursProcess(fluid_model_part,number_of_avg_ele
 
 #############################################
 ##perform refinement
-refinement_steps = 1
+refinement_steps = 2
 Refine = LocalRefineTetrahedraMesh(fluid_model_part)
 for i in range(0,refinement_steps):
     for elem in fluid_model_part.Elements:
