@@ -101,7 +101,7 @@ namespace Kratos
 			mpreconditioner_parameter_list = preconditioner_parameter_list;
 			moverlap_level = overlap_level;
 			
-			mscaling_type = SymmetricScaling;
+			mscaling_type = LeftScaling;
 
 /*			if(overlap_level == 0)
 				KRATOS_ERROR(std::logic_error,"the overlap level for the Aztecsolver with IFPackshould be greater than 0","");*/
