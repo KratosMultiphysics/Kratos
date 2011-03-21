@@ -318,6 +318,7 @@ namespace Kratos
        
      }
    
+   
    void MasterContactFace2D::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
    {
        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -367,6 +368,7 @@ namespace Kratos
    }
    
    
+    /*
      Vector MasterContactFace2D::NormalVector()
      {
        
@@ -385,17 +387,8 @@ namespace Kratos
        return Result;
        
      }
-   
-   void MasterContactFace2D::Calculate( const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output,  const ProcessInfo& rCurrentProcessInfo)
-   {
-    if(rVariable == NORMAL)
-    {
-      Output = NormalVector(); 
-    }
-      
-      return;
-   }
-   
+     */
+    
    
    
 } // Namespace Kratos
