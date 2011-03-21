@@ -201,8 +201,7 @@ namespace Kratos
             
             void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
             
-	    
-	    void Calculate( const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output,  const ProcessInfo& rCurrentProcessInfo);
+	    void Calculate( const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output, const ProcessInfo& rCurrentProcessInfo);
 	    
             /**
              * Turn back information as a string.
@@ -226,9 +225,6 @@ namespace Kratos
         
         
         private:
-	  
-	    Vector NormalVector();
-	  
             void CalculateAll( MatrixType& rLeftHandSideMatrix, 
                                VectorType& rRightHandSideVector,
                                ProcessInfo& rCurrentProcessInfo,
@@ -250,6 +246,9 @@ namespace Kratos
                     double weight,
                     double DetJ ); 
             
+        array_1d<double, 3 > NormalVector();
+		    
+		    
 		///@}
 		///@name Serialization
 		///@{	
