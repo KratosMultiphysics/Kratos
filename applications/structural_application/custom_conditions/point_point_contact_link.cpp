@@ -371,13 +371,11 @@ namespace Kratos
     void PointPointContactLink::Calculate( const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
     {
       if(rVariable==CONSTRAINT_VECTOR)
-      {
-	
+      {	
 	// La dimension esta dada desde afuera
 	Output.resize(4, false);
+	Output            = ZeroVector(4);
 	Vector Normal     = NormalVector();
-	//Vector Tangential = TangentialVector();
-
 
 	Output[0] =   Normal[0]; // slave
 	Output[1] =   Normal[1];
