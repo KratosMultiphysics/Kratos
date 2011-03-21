@@ -93,8 +93,8 @@ namespace Kratos
       
       
       void CalculateContactForceAndDisplacementCorrections(
-         ConditionsContainerIterator const& end_previos,   
-         ConditionsContainerIterator const& end_actual 
+         const ConditionsContainerIterator& end_previos,   
+         const ConditionsContainerIterator& end_actual 
       )
       {
       
@@ -102,7 +102,7 @@ namespace Kratos
 	  ProcessInfo& CurrentProcessInfo      =  mr_model_part.GetProcessInfo();
 	  //ConditionsContainerType& pConditions =  mr_model_part.ConditionsArray();   
 	  //const double current_delta_time      =  CurrentProcessInfo[DELTA_TIME]; 
-	  const unsigned int   max             =  200;  
+	  const unsigned int   max             =  300;  
 	  unsigned int   iter                  =  0;  
 	  
 
@@ -124,31 +124,38 @@ namespace Kratos
 	  bool   is_converged   = false;
 	  bool   is_converged_1 = false;
 	  bool   is_converged_2 = false;
-	  const double EPS      = 1E-4;
-	  Rigth_Term            = 0.00; 
-	  Left_Term             = 0.00;
+	  const double EPS      = 1E-5;
+	  
+	  Rigth_Term      = 0.00; 
+	  Left_Term       = 0.00;
+	  Old_Left_Term   = 0.00;
+	  Old_Rigth_Term  = 0.00;
+	  relative_error  = 0.00; 
+	  relative_error1 = 0.00; 
+	  relative_error2 = 0.00;
 	  
 	  
+	  //std::cout<< "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
 	  while(is_converged ==false &&   ++iter < max )
 	  {                    
- 	      ///STEP1
+ 	      //STEP1
 	      #pragma omp parallel for
 	      for(int k=0; k<number_of_threads; k++)
 	      {
 		ConditionsContainerType::iterator it_begin = end_previos + condition_partition[k];
 		ConditionsContainerType::iterator it_end   = end_previos+condition_partition[k+1];
 
-		for (ConditionsContainerIterator it= it_begin; it!=it_end; ++it)
+		for(ConditionsContainerType::iterator it= it_begin; it!=it_end; ++it)
 		{
 		  JacobiIteration(*it, CurrentProcessInfo);  
 		}
 		
 	      }
 	      
-	      ///STEP2 
+	      //STEP2 
 	      UpadateDisplacement();
 		
-	      ///STEP3
+	      //STEP3
 	      Old_Left_Term       = Left_Term;  
 	      Old_Rigth_Term      = Rigth_Term;
 	      Rigth_Term          = 0.00; 
@@ -159,7 +166,7 @@ namespace Kratos
 		   ConditionsContainerType::iterator it_begin=end_previos + condition_partition[k];
 		   ConditionsContainerType::iterator it_end=end_previos+condition_partition[k+1];
 		
-	            for (ConditionsContainerIterator it= it_begin; it!=it_end; ++it)
+	            for (ConditionsContainerType::iterator it= it_begin; it!=it_end; ++it)
 		    { 
 		    CkeckConvergence(*it, Rigth_Term, Left_Term);
 		    }
@@ -192,6 +199,7 @@ namespace Kratos
 	      
           }
           
+              //std::cout<< "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl; 
               MoveMeshAgain();
 	      std::cout << "            Number of Iterations  =  " << iter            << std::endl;
 	      std::cout << "            Tolerance ( EPS )     =  " << EPS             << std::endl;
@@ -203,7 +211,6 @@ namespace Kratos
               if (iter==max) 
 	      {
 		std::cout<< "         NOT CONVERGENCE FOR CONTACT!!!!!!!!" << std::endl;
-	        //KRATOS_ERROR( std::logic_error,  " NOT CONVERGENCE FOR CONTACT!!!!!!!!" , "" );
 	      }
               
       }
@@ -231,13 +238,10 @@ namespace Kratos
 		
 		ComputeConstraintVector(rCond,  Constraint);
 		Constraint_Matrix = ZeroMatrix(1, Constraint.size());
+                for(unsigned int i = 0; i<Constraint.size(); i++ )
+		   Constraint_Matrix(0,i) = Constraint[i];
+ 
 		
-		Constraint_Matrix(0,0) = Constraint[0]; 
-		Constraint_Matrix(0,1) = Constraint[1];
-		Constraint_Matrix(0,2) = Constraint[2];
-		Constraint_Matrix(0,3) = Constraint[3];
-		Constraint_Matrix(0,4) = Constraint[4];
-		Constraint_Matrix(0,5) = Constraint[5];
 	
 		rCond->MassMatrix(Mass, CurrentProcessInfo);
 		InvertDiagonalMatrix(Mass , InvMass);
