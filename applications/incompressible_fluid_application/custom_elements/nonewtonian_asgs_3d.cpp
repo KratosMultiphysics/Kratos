@@ -41,15 +41,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author: kazem $
-//   Date:                $Date: 2009-01-21 14:15:02 $
+//   Last modified by:    $Author: antonia $
+//   Date:                $Date: 2011-01-21 14:15:02 $
 //   Revision:            $Revision: 1.6 $
 //
 //
 
 
 #define EXPONENCIAL_MODEL // if not -> BILINEAR_MODEL is calculated
-
+// #define TAU_CONST
 
 // #define K0 //fixed tangent method
 // #define Kvisc0 //fixed tangent method only for viscous terms
@@ -202,7 +202,7 @@ namespace Kratos {
         CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
         CalculateMassContribution(rMassMatrix, delta_t, Volume);
-        /**Stablization*/
+        /*Stablization*/
         //add stablilization terms due to advective term (a)grad(V) * ro*Acce
         CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N, tauone, Volume);
         //add stablilization terms due to grad term grad(q) * ro*Acce
@@ -235,28 +235,28 @@ namespace Kratos {
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
 
-        /**         LHS           */
-        /**Advective term*/
+        /*         LHS           */
+        /*Advective term*/
         double tauone;
         double tautwo;
         CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
         CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
-        /**Calculate Pressure term + divergence term of pressure equation*/
+        /*Calculate Pressure term + divergence term of pressure equation*/
         CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Volume);
 
         //compute projections
-        /**Stablization*/
+        /*Stablization*/
         //stabilization terms
         CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
         CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Volume);
         CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Volume);
         //KRATOS_WATCH(rRightHandSideVector);
-        /**         RHS           */
-        /**Internal Forces*/
+        /*         RHS           */
+        /*Internal Forces*/
         CalculateResidual(DN_DX,rDampMatrix, rRightHandSideVector, m_coef, Volume);
-        /**         LHS           */
-        /**Viscous term*/
+        /*         LHS           */
+        /*Viscous term*/
         CalculateViscousTerm(rDampMatrix, DN_DX,  it_num, m_coef, Volume);
 // KRATOS_WATCH("LINE 267")
 #ifdef K0 //Fixed tangent method 
@@ -926,7 +926,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     void NoNewtonianASGS3D::AddBodyForceAndMomentum(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double, 4 > & N, const double time, const double volume, const double tauone, const double tautwo) {
         KRATOS_TRY
-                int nodes_number = 4;
+        int nodes_number = 4;
         int dof = 3;
 
 
@@ -935,23 +935,6 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         double density;
         double mu;
         calculatedensity(GetGeometry(), density, mu);
-
-        //for Arhenious
-        int matsize = dof*nodes_number;
-        boost::numeric::ublas::bounded_matrix<double, 1, 12 > div_opr = ZeroMatrix(1, matsize);
-        for (int ii = 0; ii < nodes_number; ii++) {
-            int index = dof*ii;
-            div_opr(0, index) = DN_DX(ii, 0);
-            div_opr(0, index + 1) = DN_DX(ii, 1);
-            div_opr(0, index + 2) = DN_DX(ii, 2);
-        }
-        const double ar_0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
-        const double ar_1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
-        const double ar_2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
-        const double ar_3 = GetGeometry()[3].FastGetSolutionStepValue(ARRHENIUS);
-
-        double mean_ar = 0.25 * (ar_0 + ar_1 + ar_2 + ar_3);
-
 
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
@@ -963,13 +946,6 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             F[index] += volume * N[ii] * density * bdf[0];
             F[index + 1] += volume * N[ii] * density * bdf[1];
             F[index + 2] += volume * N[ii] * density * bdf[2];
-
-
-            //arrhenius
-            F[index + 3] += (volume * N[ii] * mean_ar);
-            F[index] += tautwo * volume * mean_ar * div_opr(0, loc_index);
-            F[index + 1] += tautwo * volume * mean_ar * div_opr(0, loc_index + 1);
-            F[index + 2] += tautwo * volume * mean_ar * div_opr(0, loc_index + 2);
         }
 
 
@@ -1009,10 +985,10 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		//calculating operator B
 		CalculateB(B, DN_DX);
 		// KRATOS_WATCH(B)
-		/**Calculating residual vector */
+		/*Calculating residual vector */
 		F -= prod(K, UP);
 
-		/**Add Bt*sigma_dev (Viscous Forces)*/
+		/*Add Bt*sigma_dev (Viscous Forces)*/
 		//sigma dev intern
 
 	// 	Bingham Fluid:
@@ -1026,7 +1002,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		aux_1[4] *= 0.5;
 		aux_1[5] *= 0.5;
 		
-		mDevStress = 0.5 * (aux_1[0] * aux_1[0]  + aux_1[1] * aux_1[1] +  aux_1[2] * aux_1[2]) + aux_1[3] * aux_1[3] + aux_1[4] * aux_1[4] + aux_1[5] * aux_1[5];
+		mDevStress = 0.5 * (aux_1[0] * aux_1[0] + aux_1[1] * aux_1[1] + aux_1[2] * aux_1[2]) + aux_1[3] * aux_1[3] + aux_1[4] * aux_1[4] + aux_1[5] * aux_1[5];
 		mDevStress = sqrt(mDevStress);
 		
 		auxDevStressVector = prod(trans(B), aux_1);
@@ -1297,12 +1273,20 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 	    KRATOS_WATCH(DN_DX)
 // 	    KRATOS_WATCH(B)
 	    
+//             B(0, index) = DN_DX(i, 0);            B(0, index + 1) = 0.0;	    B(0, index + 2) = 0.0;
+//             B(1, index) = 0.0;            B(1, index + 1) = DN_DX(i, 1);	    B(1, index + 2) =0.0;
+//             B(2, index) = 0.0;            B(2, index + 1) = 0.0;	    B(2, index + 2) = DN_DX(i, 2);
+// 	    B(3, index) = DN_DX(i, 1);            B(3, index + 1) = DN_DX(i, 0);	    B(3, index + 2) = 0.0;
+// 	    B(4, index) = 0.0;            B(4, index + 1) = DN_DX(i, 2);	    B(4, index + 2) = DN_DX(i, 1);
+// 	    B(5, index) = DN_DX(i, 2);            B(5, index + 1) = 0.0;	    B(5, index + 2) = DN_DX(i, 0);
+
+//Belytschko Voigt notation
             B(0, index) = DN_DX(i, 0);            B(0, index + 1) = 0.0;	    B(0, index + 2) = 0.0;
             B(1, index) = 0.0;            B(1, index + 1) = DN_DX(i, 1);	    B(1, index + 2) =0.0;
             B(2, index) = 0.0;            B(2, index + 1) = 0.0;	    B(2, index + 2) = DN_DX(i, 2);
-	    B(3, index) = DN_DX(i, 1);            B(3, index + 1) = DN_DX(i, 0);	    B(3, index + 2) = 0.0;
-	    B(4, index) = 0.0;            B(4, index + 1) = DN_DX(i, 2);	    B(4, index + 2) = DN_DX(i, 1);
-	    B(5, index) = DN_DX(i, 2);            B(5, index + 1) = 0.0;	    B(5, index + 2) = DN_DX(i, 0);
+	    B(3, index) = 0.0;            B(4, index + 1) = DN_DX(i, 2);	    B(4, index + 2) = DN_DX(i, 1);
+	    B(4, index) =  DN_DX(i, 2);            B(5, index + 1) = 0.0;	    B(5, index + 2) = DN_DX(i, 0);
+	    B(5, index) = DN_DX(i, 1);            B(3, index + 1) = DN_DX(i, 0);	    B(3, index + 2) = 0.0;
 // 	    KRATOS_WATCH(B)
             //CalculateBi(Bi,F,DN_DX,i);
             //MathUtils<double>::WriteMatrix(B,Bi,0,index);
@@ -1335,7 +1319,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Norm of the gradient of velocity:
 //         grad_sym_vel_norm = grad_sym_vel[0] * grad_sym_vel[0] + grad_sym_vel[1] * grad_sym_vel[1] + 0.5 * grad_sym_vel[2] * grad_sym_vel[2];
 // Gamma dot found in literature!!!:
-        gamma_dot = 2.0 * grad_sym_vel[0] * grad_sym_vel[0] + 2.0 * grad_sym_vel[1] * grad_sym_vel[1] + 2.0 * grad_sym_vel[2] * grad_sym_vel[2] + grad_sym_vel[3] * grad_sym_vel[3] + grad_sym_vel[4] * grad_sym_vel[4] + grad_sym_vel[5] * grad_sym_vel[5];
+        gamma_dot = 2.0 * (grad_sym_vel[0] * grad_sym_vel[0] +  grad_sym_vel[1] * grad_sym_vel[1] +  grad_sym_vel[2] * grad_sym_vel[2]) + grad_sym_vel[3] * grad_sym_vel[3] + grad_sym_vel[4] * grad_sym_vel[4] + grad_sym_vel[5] * grad_sym_vel[5];
 	gamma_dot = sqrt(gamma_dot);
 
 // 	if(gamma_dot < 1e-5){
@@ -1374,9 +1358,15 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  double yield = 0.0;
 	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
-//	  double gamma_dot_inv;
-
+// 	  double gamma_dot_inv;
 	  
+#ifdef TAU_CONST
+//         double m_coef = 100;
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+	}
+	yield /= nodes_number;
+#else		  
 	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
 		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
@@ -1400,6 +1390,8 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  }
 	  else
 	      yield = 0.0;
+#endif
+	  
 #ifdef EXPONENCIAL_MODEL	  
         if (gamma_dot > 1e-10) {
             aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
@@ -1437,68 +1429,68 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS3D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
-	    array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
-	    const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
-	    const double & mu) {
-	KRATOS_TRY
-	app_mu = 0.0;
-
-	
-	
-	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
-	
-	
-	  // The yield is variable: it decreases where water is present
-	  unsigned int nodes_number = 4;
-	  double yield = 0.0;
-	  double friction_angle_tangent = 0.0; 
-	  double water_pressure = 0.0;
-// 	  double gamma_dot_inv;
-
-	  
-	  
-
-	  
-	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
-		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
-	      }
-	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
-	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
-		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
-	      }
-
-
-	  }
-	  friction_angle_tangent /= nodes_number;
-	  water_pressure /= nodes_number;
-	  yield /= nodes_number;
- 
-	  if(water_pressure < yield){
-	      yield -= water_pressure;
-	      yield *= friction_angle_tangent;
-	  }
-	  else
-	      yield = 0.0;
-
-////////BILINEAR FORM
-	double mu_s = 1e7;
-	double gamma_dot_lim = yield/mu_s;
-	
-	if(gamma_dot >= gamma_dot_lim){
-	  if (gamma_dot_lim <= 1e-16){
-	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
-	  }
-	  else{
-	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
-	  }
-	}
-	else{
-	  app_mu = mu_s ;
-	}
-	KRATOS_CATCH("")
-    }
+//     void NoNewtonianASGS3D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
+// 	    array_1d<double, 6 >&  grad_sym_vel, double & gamma_dot,
+// 	    const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,
+// 	    const double & mu) {
+// 	KRATOS_TRY
+// 	app_mu = 0.0;
+// 
+// 	
+// 	
+// 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
+// 	
+// 	
+// 	  // The yield is variable: it decreases where water is present
+// 	  unsigned int nodes_number = 4;
+// 	  double yield = 0.0;
+// 	  double friction_angle_tangent = 0.0; 
+// 	  double water_pressure = 0.0;
+// // 	  double gamma_dot_inv;
+// 
+// 	  
+// 	  
+// 
+// 	  
+// 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+// 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+// 		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
+// 	      }
+// 	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+// 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+// 		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+// 	      }
+// 
+// 
+// 	  }
+// 	  friction_angle_tangent /= nodes_number;
+// 	  water_pressure /= nodes_number;
+// 	  yield /= nodes_number;
+//  
+// 	  if(water_pressure < yield){
+// 	      yield -= water_pressure;
+// 	      yield *= friction_angle_tangent;
+// 	  }
+// 	  else
+// 	      yield = 0.0;
+// 
+// ////////BILINEAR FORM
+// 	double mu_s = 1e7;
+// 	double gamma_dot_lim = yield/mu_s;
+// 	
+// 	if(gamma_dot >= gamma_dot_lim){
+// 	  if (gamma_dot_lim <= 1e-16){
+// 	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+// 	  }
+// 	  else{
+// 	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+// 	  }
+// 	}
+// 	else{
+// 	  app_mu = mu_s ;
+// 	}
+// 	KRATOS_CATCH("")
+//     }
 
 
     //************************************************************************************
