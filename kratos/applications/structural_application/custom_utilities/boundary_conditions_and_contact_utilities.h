@@ -314,14 +314,12 @@ namespace Kratos
 	    ConditionsArrayType& rConditions = mr_model_part.Conditions();
 	    ConditionsArrayType LinkingConditions;
 	        
-	    Exist_Node Exist;
-	    Near_Node  Near;
+	    Exist_Node Exist =  no_nodes;
+	    Near_Node  Near  =  no_near;
 	    
 	    unsigned int  master      = 0;
 	    unsigned int  slave       = 1;
-	    unsigned int  segment     = 0;
 	    bool initialize           = false;
-	    bool exist_segment        = false;
 	    
 	    std::vector<unsigned int>              InsideNodes;
 	    std::vector<unsigned int>              TotalInsideNodes;
@@ -332,7 +330,6 @@ namespace Kratos
 	    unsigned int Id               = rConditions.size() + 1;
 	    unsigned int properties_index = mr_model_part.NumberOfProperties();
 	    
-	    //PropertiesType::Pointer pProperties    = mr_model_part.pGetProperties(1);
 	    PropertiesType::Pointer tempProperties = PropertiesType::Pointer(new PropertiesType(properties_index+1) );
 	    mr_model_part.AddProperties( tempProperties );
 
@@ -355,23 +352,25 @@ namespace Kratos
 		   
 		   if(InsideNodes.size()!=0)
 		      Exist = yes_nodes;
-		   else
-		      Exist = no_nodes;
 		   
-		   std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl; 
+		   //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl; 
 		   switch(Exist)
 		   {
+		     //std::cout<< "exist " << std::endl; 
 		     case(yes_nodes):
 		     {
+		       //std::cout<< "yes nodes " << std::endl; 
 		       for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			 unsigned int& id  = InsideNodes[in]; 
 		         Near = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);
 			 if(Near==yes_near){
+			   //std::cout<< "near" << std::endl;
 			    // contact node - to - node  
 			   CreatePointLinkingConditions(master, slave,  InsideNodes[in], Ids, it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
 			 }
 			 
-			 if(Near==no_near){  
+			 if(Near==no_near){ 
+			     //std::cout<< "no near " << std::endl;
 			     // contact node - to - segment
 			     CreateLinkingConditions(master, InsideNodes[in], it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
 			    }
@@ -382,11 +381,13 @@ namespace Kratos
 			    InsideNodes.clear();
 			    master = 1;
 			    slave  = 0; 
+			    if(Near==no_near){ 
 			    NodeInside( (*it_pair)[master], (*it_pair)[slave], InsideNodes);
 			    for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			    unsigned int& id  = InsideNodes[in]; 
 			    // contact node - to - segment
-			    CreateLinkingConditions(master, InsideNodes[in], it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
+			    CreateLinkingConditions(master, id, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
+			    }
 			   }
 			 }
 		       
@@ -395,74 +396,25 @@ namespace Kratos
 		     
 		     // Caso en que los triangulos se intersecten pero no hay nodo dentro de los elemetos
 		     case(no_nodes):
-		     {
-		       break;
-		     }
-		   }
-		      
-        
-			   /* 
-			// Caso en que los triangulos se intersecten pero no hay nodo dentro de los elemetos
-			  case(no_nodes):
-		          {   
-			    
-			    unsigned int& k = local_node;
-			    const Element::GeometryType& geom_0 =  (*it_pair)[master]->GetGeometry();
-	                    const Element::GeometryType& geom_1 =  (*it_pair)[slave]->GetGeometry();
-		   
-			    
-			    if(TotalInsideNodes.size()==0){   
-		               TotalInsideNodes.push_back(geom_1[k].Id()); 
-		               repeated_object = TotalInsideNodes.end();
-		              }
-
-			      // verifcando que no se repitan los slaves nodes 
-			      if(initialize==true)
-				  repeated_object =  std::find(TotalInsideNodes.begin(), TotalInsideNodes.end(), geom_1[k].Id()); 
-
-
-			    //WARNING = No necesariamente para otros contenedores la comparacion se hace con end -1 
-			    if( repeated_object == (TotalInsideNodes.end())) 
-			      {          
-
-		                if(initialize==true)
-		                   TotalInsideNodes.push_back(geom_0[k].Id());  
-
-		                 bool exist_segment =  LocateMasterSegment(segment, geom_1(k), (*it_pair)[master]);
-		      
-				 if(exist_segment==true)
-				    {
-				    // Slave Node
-				    Point2D<Node<3> >::Pointer point_geom    =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(geom_1[k].Id()) ) );
-				    Condition::Pointer SlaveNode             =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
-				  
-				    WeakPointerVector<Condition>& neighb_cond =  (*it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS); 			      
-				    Condition::Pointer MasterFace            =  (neighb_cond(segment).lock());   // me devuelve el puntero
-					
-				    // creando geometria trinagular para el link
-				    Condition::GeometryType& Mgeom = MasterFace->GetGeometry();
-				    Condition::GeometryType& Sgeom = SlaveNode->GetGeometry();   
-			
-			            Triangle2D3<Node<3> >::Pointer Lgeom    =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
-			            
-				    Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
-			            Lgeom,
-			            tempProperties,
-			            MasterFace, 
-			            SlaveNode) ); 
-			             
-				    LinkingConditions.push_back( newLink );    
-			            Id++;  
-		                   }
-		                 }
-		             break;
-		           }
-		      }
-		      
-		    break;
-		   }
-		   */
+		     {    
+		        //std::cout<< "no nodes " << std::endl;
+		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids);
+		        if(Near==yes_near){
+			  //std::cout<< "yes_near " << std::endl;
+			    // contact node - to - node  
+			   CreatePointLinkingConditions(master, slave, Ids[slave], Ids, it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
+			 }
+			 
+			 if(Near==no_near){  
+			     //std::cout<< "no_near " << std::endl;
+			     // contact node - to - segment
+			     CreateLinkingConditions(master, Ids[slave], it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
+			    }
+		        break;
+		       }
+		    }
 		} 
+		
 		      std::cout<<"     NUMBER OF INITIAL CONDITIONS    = " << rConditions.size() <<  std::endl; 
 		      //adding linking to model_part
 		      for(ConditionsArrayType::ptr_iterator it=LinkingConditions.ptr_begin(); it != LinkingConditions.ptr_end(); ++it )
@@ -499,8 +451,6 @@ void CreatePointLinkingConditions(
 	  KRATOS_TRY
 	  
 	  const unsigned int& id              =  InsideNodes;
-	  const Element::GeometryType& geom_0 =  (*it_pair)[master]->GetGeometry();
-	  const Element::GeometryType& geom_1 =  (*it_pair)[slave]->GetGeometry();
 	  std::vector<unsigned int>::iterator    repeated_object;  
 
 	  
@@ -562,7 +512,6 @@ void CreatePointLinkingConditions(
 	 )
 	 {   
 	   
-	    unsigned int               Id_master;
 	    std::vector<double>        Distance;
 	    array_1d<double, 3>        vector;
 	    const Element::GeometryType& geom_0    =  MasterObject->GetGeometry();
@@ -690,7 +639,6 @@ void CreatePointLinkingConditions(
 	    if(initialize==true)
 	        TotalInsideNodes.push_back(InsideNodes);  
 	    
-	    KRATOS_WATCH(InsideNodes)
 	    bool exist_segment =  LocateMasterSegment(segment, mr_model_part.Nodes()(InsideNodes), (*it_pair)[master]);
 
 	    if(exist_segment==true)
@@ -1024,7 +972,7 @@ void CalculateBoundaryContour(ConditionsArrayType& MasterConditions)
 
 //*****************************************************************************************************
 //*****************************************************************************************************
-void CreateMasterConditions(const array_1d<double, 3>& rPair, const IteratorType& elem, unsigned int& Id, ConditionsArrayType& MasterConditions)
+void CreateMasterConditions(array_1d<unsigned int,2>&  rPair, const IteratorType& elem, unsigned int& Id, ConditionsArrayType& MasterConditions)
 	 {
 	    KRATOS_TRY
 	   
