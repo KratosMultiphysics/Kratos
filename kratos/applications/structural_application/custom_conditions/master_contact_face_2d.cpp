@@ -287,6 +287,37 @@ namespace Kratos
      
    }
    
+   
+   void MasterContactFace2D::Calculate( const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output, const ProcessInfo& rCurrentProcessInfo)
+   {
+      if( rVariable == NORMAL )
+       {
+	 Output = NormalVector();
+       }
+       
+       return;
+   }
+   
+   
+     array_1d<double,3> MasterContactFace2D::NormalVector()
+     {
+       
+       array_1d<double, 3> e3      =   ZeroVector(3);
+       array_1d<double, 3> Result  =   ZeroVector(3);
+       
+       e3[0] = 0.00; e3[1] = 0.00; e3[2] = 1.00; 
+       
+       /// El primer nodo es el slave
+       Condition::GeometryType& geom = this->GetGeometry();
+       /// tener normal positiva    
+       array_1d<double, 3> t         =  geom[0] - geom[1];
+       t = (1.00 / std::sqrt(inner_prod(t,t))) * t;   
+       MathUtils<double>::CrossProduct(Result,e3,t);
+            
+       return Result;
+       
+     }
+   
    void MasterContactFace2D::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
    {
        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
