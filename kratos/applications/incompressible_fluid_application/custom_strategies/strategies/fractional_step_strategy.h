@@ -942,17 +942,28 @@ namespace Kratos
                 for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
                 {
                     if (i->IsFixed(VELOCITY_X))
+                    {
+                        (i)->FastGetSolutionStepValue(FRACT_VEL_X) = (i)->FastGetSolutionStepValue(VELOCITY_X);
                         (i)->Fix(FRACT_VEL_X);
+                    }
                     else
+                    {
                         (i)->Free(FRACT_VEL_X);
+                    }
 
                     if (i->IsFixed(VELOCITY_Y))
+                    {
+                        (i)->FastGetSolutionStepValue(FRACT_VEL_Y) = (i)->FastGetSolutionStepValue(VELOCITY_Y);
                         (i)->Fix(FRACT_VEL_Y);
+                    }
                     else
                         (i)->Free(FRACT_VEL_Y);
 
                     if (i->IsFixed(VELOCITY_Z))
+                    {
+                        (i)->FastGetSolutionStepValue(FRACT_VEL_Z) = (i)->FastGetSolutionStepValue(VELOCITY_Z);
                         (i)->Fix(FRACT_VEL_Z);
+                    }
                     else
                         (i)->Free(FRACT_VEL_Z);
                 }
