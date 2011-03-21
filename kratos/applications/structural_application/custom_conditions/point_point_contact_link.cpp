@@ -176,7 +176,6 @@ namespace Kratos
        
        // sacando la normal promedio
        Result = (1.00 / std::sqrt(inner_prod(Result,Result))) * Result;  
-       KRATOS_WATCH(Result)
        return Result;
        
      }
