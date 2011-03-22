@@ -198,8 +198,7 @@ namespace Kratos
 	      
 	      
           }
-          
-              //std::cout<< "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl; 
+           
               MoveMeshAgain();
 	      std::cout << "            Number of Iterations  =  " << iter            << std::endl;
 	      std::cout << "            Tolerance ( EPS )     =  " << EPS             << std::endl;
