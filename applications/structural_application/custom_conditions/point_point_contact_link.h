@@ -185,7 +185,7 @@ namespace Kratos
 	     
 	     Vector NormalVector();
 	     Vector TangentialVector();
-              
+	     
 	     void CalculateNormalImpenetrabilityConstraint( Vector& rCn);
              void CalculateTangentialImpenetrabilityConstraint( Vector& rCt);
              void CalculateNormalContactForce(Vector& rNormalForce);
