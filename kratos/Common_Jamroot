@@ -75,7 +75,7 @@ project KratosProject
 
 			#msvc settings
 			<toolset>msvc:<linkflags>"/NODEFAULTLIB:libcmt"
-			<toolset>msvc:<cxxflags>"/D_SCL_SECURE_NO_DEPRECATE  /wd4335"
+			<toolset>msvc:<cxxflags>"/D_SCL_SECURE_NO_DEPRECATE  /wd4335  /openmp"
 
 			#intel settings
 		##	<toolset>intel:<cxxflags>"-fPIC -ansi -funroll-loops -ffast-math" 
