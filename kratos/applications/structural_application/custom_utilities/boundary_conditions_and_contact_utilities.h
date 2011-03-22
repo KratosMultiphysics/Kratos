@@ -315,17 +315,15 @@ namespace Kratos
 	    ConditionsArrayType LinkingConditions;
 	        
 	    Exist_Node Exist =  no_nodes;
-	    Near_Node  Near  =  no_near;
 	    
 	    unsigned int  master      = 0;
 	    unsigned int  slave       = 1;
 	    bool initialize           = false;
 	    
-	    std::vector<unsigned int>              InsideNodes;
-	    std::vector<unsigned int>              TotalInsideNodes;
-	    PointsArrayType                        Slaves;
-	    std::vector<unsigned int>::iterator    repeated_object;  
-	    array_1d<unsigned int, 2 >             Ids;
+	    std::vector<unsigned int>                InsideNodes;
+	    std::vector<unsigned int>                TotalInsideNodes;
+	    PointsArrayType                          Slaves;
+	    std::vector<unsigned int>::iterator      repeated_object;  
 	    
 	    unsigned int Id               = rConditions.size() + 1;
 	    unsigned int properties_index = mr_model_part.NumberOfProperties();
@@ -353,19 +351,20 @@ namespace Kratos
 		   if(InsideNodes.size()!=0)
 		      Exist = yes_nodes;
 		   
-		   //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl; 
+		   std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl; 
 		   switch(Exist)
 		   {
-		     //std::cout<< "exist " << std::endl; 
+		     std::cout<< "exist " << std::endl; 
 		     case(yes_nodes):
 		     {
-		       //std::cout<< "yes nodes " << std::endl; 
+		       array_1d<unsigned int, 2 >  Ids;       
+		       Near_Node  Near  =  no_near;
+		       
 		       for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			 unsigned int& id  = InsideNodes[in]; 
 		         Near = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);
 			 if(Near==yes_near){
-			   //std::cout<< "near" << std::endl;
-			    // contact node - to - node  
+			   // contact node - to - node  
 			   CreatePointLinkingConditions(master, slave,  InsideNodes[in], Ids, it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
 			 }
 			 
@@ -397,19 +396,26 @@ namespace Kratos
 		     // Caso en que los triangulos se intersecten pero no hay nodo dentro de los elemetos
 		     case(no_nodes):
 		     {    
-		        //std::cout<< "no nodes " << std::endl;
-		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids);
-		        if(Near==yes_near){
-			  //std::cout<< "yes_near " << std::endl;
+		        std::cout<< "no nodes " << std::endl;
+			std::vector<array_1d<unsigned int, 2 > > Ids;
+			std::vector<Near_Node> Is_Near;
+			
+		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids, Is_Near);
+		        for(unsigned int i = 0; i<Ids.size(); i++){   
+			if(Is_Near[i]==yes_near){
+			  std::cout<< "yes_near " << std::endl;
 			    // contact node - to - node  
-			   CreatePointLinkingConditions(master, slave, Ids[slave], Ids, it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
+			   CreatePointLinkingConditions(master, slave, Ids[i][slave], Ids[i], it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
 			 }
 			 
-			 if(Near==no_near){  
-			     //std::cout<< "no_near " << std::endl;
+			 
+			 if(Is_Near[i]==no_near){  
+			     std::cout<< "no_near " << std::endl;
 			     // contact node - to - segment
-			     CreateLinkingConditions(master, Ids[slave], it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
+			     CreateLinkingConditions(master, Ids[i][slave], it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
 			    }
+			}
+			
 		        break;
 		       }
 		    }
@@ -503,51 +509,68 @@ void CreatePointLinkingConditions(
 //*****************************************************************************************************
 	 
 	
-	Near_Node CheckNearNodes( 
+	void CheckNearNodes( 
 	   const unsigned int&  master,
 	   const unsigned int&  slave,   
 	   const PointerType&   SlaveObject,
 	   const PointerType&   MasterObject,
-	   array_1d<unsigned int, 2 >&  Ids
+	   std::vector<array_1d<unsigned int, 2 > >&  Ids,
+	   std::vector<Near_Node>& Is_Near
 	 )
 	 {   
 	   
+	     
 	    std::vector<double>        Distance;
+	    array_1d<unsigned int, 2 > Id;
 	    array_1d<double, 3>        vector;
 	    const Element::GeometryType& geom_0    =  MasterObject->GetGeometry();
 	    const Element::GeometryType& geom_1    =  SlaveObject->GetGeometry();
 	    double distance                        =  0.00;
-	    double distance2                       =  1E10;;
-
+	       
+	    array_1d<unsigned int, 9 > M;
+	    array_1d<unsigned int, 9 > S;
 	    
-
+	    M[0] = 0;  M[1] = 0;  M[2] = 0;
+	    M[3] = 1;  M[4] = 1;  M[5] = 1;
+	    M[6] = 2;  M[7] = 2;  M[8] = 2;
+	    
+            S[0] = 0;  S[1] = 1;  S[2] = 2;
+	    S[3] = 0;  S[4] = 1;  S[5] = 2;
+	    S[6] = 0;  S[7] = 1;  S[8] = 2;
+	      
+	    
 	    // busco la distancia menor
 	    for(unsigned int i = 0; i<geom_0.size(); i++){
 	       for(unsigned int j = 0; j<geom_1.size(); j++){
 	          noalias(vector) = ( geom_0[i]-geom_1[j]) ;
-	          distance = std::sqrt(inner_prod(vector, vector) );
-	          if(distance<distance2){
-	             distance2    =  distance;
-	             Ids[master]  =  geom_0[i].Id();
-		     Ids[slave]   =  geom_1[j].Id();
-	           }
-	         }
-	        Distance.push_back(distance2);
-	        distance2 = 1E10;
+	          distance = std::sqrt(inner_prod(vector, vector));
+	          Distance.push_back(distance);
+	       }
 	    }
 
 
-            double max   = (*std::max_element(Distance.begin(), Distance.end() ) );  
-	    double min   = (*std::min_element(Distance.begin(), Distance.end() ) );
-	    double ratio = std::fabs(min/max); 
-
-	    if(ratio < 1E-4)
-	       return yes_near;
-
-	    return no_near; 
-	   
+            double ratio       = 0.00;
+            const double max   = (*std::max_element(Distance.begin(), Distance.end() ) );  
+	    for(unsigned int i = 0; i<Distance.size(); i++){
+	       ratio =  std::fabs(Distance[i]/max);
+	       if(ratio < 1E-4){
+		  Id[master] = geom_0[M[i]].Id();   
+		  Id[slave]  = geom_1[S[i]].Id();
+		  Ids.push_back(Id); 
+	          Is_Near.push_back(yes_near);
+	       }
+	       
+	       if ( ratio>= 1E-4  && ratio<0.01)
+	       {
+		 Id[master] = geom_0[M[i]].Id();   
+		 Id[slave]  = geom_1[S[i]].Id();
+		 Ids.push_back(Id); 
+	         Is_Near.push_back(no_near); 
+	       }
+	    }
 	    
-	   
+	       if(Ids.size()==0)
+		  KRATOS_ERROR(std::logic_error,  " RATIO HA SUPERADO EL LIMITE CHECK" , "");
 	 }
 	 
 	
@@ -592,7 +615,6 @@ void CreatePointLinkingConditions(
             double max   = (*std::max_element(Distance.begin(), Distance.end() ) );  
 	    double min   = (*std::min_element(Distance.begin(), Distance.end() ) );
 	    double ratio = std::fabs(min/max); 
-	    
 	    
 	    if(ratio < 1E-4)
                 return yes_near;
@@ -654,7 +676,7 @@ void CreatePointLinkingConditions(
 		// creando geometria trinagular para el link
 		Condition::GeometryType& Mgeom = MasterFace->GetGeometry();
 		Condition::GeometryType& Sgeom = SlaveNode->GetGeometry();   
-
+		
 		Triangle2D3<Node<3> >::Pointer Lgeom    =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
 
 		Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
