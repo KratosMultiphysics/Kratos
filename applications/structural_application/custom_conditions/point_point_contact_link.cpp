@@ -148,17 +148,35 @@ namespace Kratos
      Vector PointPointContactLink::NormalVector()
      {
        
-       std::vector<array_1d<double, 3 > >    normales;
-       array_1d<double, 3> e3            =   ZeroVector(3);
-       array_1d<double, 3> t             =   ZeroVector(3);
+       //std::vector<array_1d<double, 3 > >    normales;
+       //array_1d<double, 3> e3            =   ZeroVector(3);
+       //array_1d<double, 3> t             =   ZeroVector(3);
        array_1d<double, 3> Result        =   ZeroVector(3);
        
-       e3[0] = 0.00; 
-       e3[1] = 0.00; 
-       e3[2] = 1.00;
-      
+       //e3[0] = 0.00; 
+       //e3[1] = 0.00; 
+       //e3[2] = 1.00;
        
-       Condition::GeometryType& geom_master      = (GetValue(CONTACT_LINK_MASTER))->GetGeometry();
+       //Condition::GeometryType& geom_master      = (GetValue(CONTACT_LINK_MASTER))->GetGeometry();
+       Condition::GeometryType& geom_slave       = (GetValue(CONTACT_LINK_SLAVE))->GetGeometry();
+       if (geom_slave[0].IsFixed(DISPLACEMENT_X) == true && geom_slave[0].IsFixed(DISPLACEMENT_Y) == true) 
+              geom_slave       = (GetValue(CONTACT_LINK_MASTER))->GetGeometry();
+	 
+       
+       array_1d<double, 3>       Points0;
+       array_1d<double, 3>       Points1;
+       array_1d<double,3>& old_pos = geom_slave[0].FastGetSolutionStepValue(DISPLACEMENT,3);    
+       Points0[0]                  = geom_slave[0].X0() + old_pos[0];
+       Points0[1]                  = geom_slave[0].Y0() + old_pos[1];
+       Points1[0]                  = geom_slave[0].X();  
+       Points1[1]                  = geom_slave[0].Y();  
+       
+       Points0[2] = 0.00;  
+       Points1[2] = 0.00;  
+       
+       
+       
+       /*
        WeakPointerVector<Condition>& neighb_cond = geom_master[0].GetValue(NEIGHBOUR_CONDITIONS);
        
        for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); cond++){
@@ -169,13 +187,15 @@ namespace Kratos
 	    normales.push_back(Result);
        }      
        
-       Result        =   ZeroVector(3);
+       Result             =   ZeroVector(3);
        for(unsigned int i = 0; i<normales.size(); i++)
 	  noalias(Result) += normales[i];
-       
+       */
        
        // sacando la normal promedio
-       Result = (1.00 / std::sqrt(inner_prod(Result,Result))) * Result;  
+       noalias(Result) = Points0 - Points1;
+       const double inner = std::sqrt(inner_prod(Result,Result));
+       Result = (1.00 /inner)  * Result;            
        return Result;
        
      }
