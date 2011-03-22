@@ -54,11 +54,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream> 
 #include <cstddef>
+#include <numeric>
 
 #ifdef _OPENMP
-#include "omptl"
-#include "omptl_algorithm"
-#include "omptl_numeric"
+#include "omp.h"
+//#include "omptl"
+//#include "omptl_algorithm"
+//#include "omptl_numeric"
 #endif
 
 
@@ -230,7 +232,14 @@ namespace Kratos {
 #ifndef _OPENMP
             rY.assign(rX);
 #else
-            omptl::copy(rX.begin(), rX.end(), rY.begin());
+            //omptl::copy(rX.begin(), rX.end(), rY.begin());
+			const int size = rX.size();
+			if(rY.size() != size)
+				rY.resize(size,false);
+			int i;
+#pragma omp parallel for default(shared) private(i)
+			for(i = 0 ; i < size ; i++)
+				rY[i]=rX[i];
 #endif
         }
 
@@ -330,14 +339,25 @@ namespace Kratos {
 
                 }
 #else
-                omptl::transform(rX.begin(), rX.end(), rX.begin(), std::negate<double>());
+                //omptl::transform(rX.begin(), rX.end(), rX.begin(), std::negate<double>());
+				const int size = rX.size();
+			int i;
+#pragma omp parallel for default(shared) private(i)
+			for(i = 0 ; i < size ; i++)
+				rX[i]=-rX[i];
+
 #endif
             } else {
 #ifndef _OPENMP
                 rX *= A;
 #else
 //                 rX *= A;
-                omptl::transform(rX.begin(), rX.end(), rX.begin(), MultValueNoAdd<double>(A));
+                //omptl::transform(rX.begin(), rX.end(), rX.begin(), MultValueNoAdd<double>(A));
+				const int size = rX.size();
+			int i;
+#pragma omp parallel for default(shared) private(i)
+			for(i = 0 ; i < size ; i++)
+				rX[i]*=A;
 #endif
             }
         }
@@ -356,13 +376,33 @@ namespace Kratos {
             else
                 noalias(rX) = A*rY;
 #else
+			const int size = rY.size();
+			if(rX.size() != size)
+				rX.resize(size,false);
+			int i;
+
             if (A == 1.00)
-                omptl::copy(rY.begin(), rY.end(), rX.begin());
+			{
+                //omptl::copy(rY.begin(), rY.end(), rX.begin());
+#pragma omp parallel for default(shared) private(i)
+				for(i = 0 ; i < size ; i++)
+					rX[i]=rY[i];
+			}
             else if (A == -1.00)
-                omptl::transform(rY.begin(), rY.end(), rX.begin(), std::negate<double>());
+			{
+                //omptl::transform(rY.begin(), rY.end(), rX.begin(), std::negate<double>());
+#pragma omp parallel for default(shared) private(i)
+				for(i = 0 ; i < size ; i++)
+					rX[i]=-rY[i];
+			}
             else
+			{
 //                noalias(rX) = A*rY;
-                omptl::transform(rY.begin(), rY.end(), rX.begin(), MultValueNoAdd<double>(A)); //todo
+                //omptl::transform(rY.begin(), rY.end(), rX.begin(), MultValueNoAdd<double>(A)); //todo
+#pragma omp parallel for default(shared) private(i)
+				for(i = 0 ; i < size ; i++)
+					rX[i]=A*rY[i];
+			}
 #endif
         }
 
@@ -380,25 +420,32 @@ namespace Kratos {
             else
                 noalias(rX) += A*rY;
 #else
+			const int size = rY.size();
+			if(rX.size() != size)
+				rX.resize(size,false);
+			int i;
+
             if (A == 1.00)
-                omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::plus<double>());
+			{
+                //omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::plus<double>());
+#pragma omp parallel for default(shared) private(i)
+				for(i = 0 ; i < size ; i++)
+					rX[i]+=rY[i];
+			}
             else if (A == -1.00)
-                omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::minus<double>());
+			{
+                //omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::minus<double>());
+#pragma omp parallel for default(shared) private(i)
+				for(i = 0 ; i < size ; i++)
+					rX[i]-=rY[i];
+			}
             else
-	      {
-                omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), MultAndAddValue<double>(A));
-
-
-//                noalias(rX) += A*rY; //TODO!!
-//
-//            int vsize = rX.size();
-//            double* X_begin = &(*(rX.data().begin()));
-//            const double* Y_begin = &(*(rY.data().begin()));
-//            #pragma omp parallel for private(vsize)
-//            for(int i=0; i<vsize; i++)
-//                *(X_begin+i) += A * (*(Y_begin+i));
-	      }
-
+			{
+                //omptl::transform(rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), MultAndAddValue<double>(A));
+#pragma omp parallel for default(shared) private(i)
+				for(i = 0 ; i < size ; i++)
+					rX[i]+=A*rY[i];
+			}
 
 
 #endif
@@ -478,7 +525,9 @@ namespace Kratos {
 #ifndef _OPENMP
             std::fill(rA.begin(), rA.end(), TDataType());
 #else
-            omptl::fill(rA.begin(), rA.end(), TDataType());
+            //omptl::fill(rA.begin(), rA.end(), TDataType());
+			ParallelFill(rA.begin(), rA.end(), TDataType());
+
 #endif
         }
 
@@ -487,7 +536,8 @@ namespace Kratos {
 #ifndef _OPENMP
             std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-            omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+            //omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+            ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #endif
         }
 
@@ -496,7 +546,8 @@ namespace Kratos {
 #ifndef _OPENMP
             std::fill(rX.begin(), rX.end(), TDataType());
 #else
-            omptl::fill(rX.begin(), rX.end(), TDataType());
+            //omptl::fill(rX.begin(), rX.end(), TDataType());
+            ParallelFill(rX.begin(), rX.end(), TDataType());
 #endif
         }
 
@@ -505,7 +556,8 @@ namespace Kratos {
 #ifndef _OPENMP
             std::fill(rA.begin(), rA.end(), TDataType());
 #else
-            omptl::fill(rA.begin(), rA.end(), TDataType());
+            //omptl::fill(rA.begin(), rA.end(), TDataType());
+            ParallelFill(rA.begin(), rA.end(), TDataType());
 #endif
         }
 
@@ -513,7 +565,8 @@ namespace Kratos {
 #ifndef _OPENMP
             std::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #else
-            omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+            //omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+            ParallelFill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 #endif
         }
 
@@ -521,7 +574,8 @@ namespace Kratos {
 #ifndef _OPENMP
             std::fill(rX.begin(), rX.end(), TDataType());
 #else
-            omptl::fill(rX.begin(), rX.end(), TDataType());
+            //omptl::fill(rX.begin(), rX.end(), TDataType());
+            ParallelFill(rX.begin(), rX.end(), TDataType());
 #endif
         }
 
@@ -705,6 +759,25 @@ namespace Kratos {
             for(unsigned int i = 1; i<number_of_threads; i++)
                partitions[i] = partitions[i-1] + partition_size ;
         }
+
+		template <class TIterartorType>
+		static void ParallelFill(TIterartorType Begin, TIterartorType End, TDataType const& Value)
+		{
+#ifndef _OPENMP
+            std::fill(Begin, End, Value);
+#else
+            vector<unsigned int> partition;
+            int number_of_threads = omp_get_max_threads();
+            CreatePartition(number_of_threads, std::distance(Begin,End), partition);
+
+            int i;
+//#pragma omp parallel for default(shared) private(i)
+            for (i = 0; i < number_of_threads; i++) {
+                std::fill(Begin + partition[i], End + partition[i + 1], Value);
+            }
+#endif
+			
+		}
 
 	/**
 	 * calculates partial product resetting to Zero the output before

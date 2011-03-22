@@ -54,9 +54,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream> 
 #include <cstddef>
-#include "omptl"
-#include "omptl_algorithm"
-#include "omptl_numeric"
+
+//#include "omptl"
+//#include "omptl_algorithm"
+//#include "omptl_numeric"
 
 // External includes 
 
@@ -64,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -129,6 +131,8 @@ namespace Kratos
   
       typedef std::size_t SizeType;
 
+	  typedef UblasSpace<TDataType, TMatrixType, TVectorType> UblasSpaceType;
+
 	typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
 	typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
   
@@ -181,7 +185,8 @@ namespace Kratos
       static void Copy(VectorType const& rX, VectorType& rY)
         {
 //             rY.assign(rX);
-            omptl::copy( rX.begin(), rX.end(), rY.begin() );
+            //omptl::copy( rX.begin(), rX.end(), rY.begin() );
+			UblasSpaceType::Copy(rX,rY);
         } 
 
       /// rX * rY
@@ -273,26 +278,29 @@ namespace Kratos
 	static void InplaceMult(VectorType& rX, const double A)
 	{
 
-	  if( A == 1.00)
-	  {}
-	  else if( A == -1.00)
-	  {
-         omptl::transform( rX.begin(), rX.end(), rX.begin(), std::negate<double>() );
-		  //rX *= A;
-// 		  typename VectorType::iterator x_iterator = rX.begin();
-// 		  typename VectorType::iterator end_iterator = rX.end();
-// 		  while(x_iterator != end_iterator)
-// 		  {
-// 			  *x_iterator = -*x_iterator;
-// 			  x_iterator++;
-// 
-// 		  }
-	  }
-	  else
-	  {
-// 		  rX *= A;
-         omptl::transform( rX.begin(), rX.end(), rX.begin(), MultValue<double>( A ) );
-	  }
+//	  if( A == 1.00)
+//	  {}
+//	  else if( A == -1.00)
+//	  {
+//         omptl::transform( rX.begin(), rX.end(), rX.begin(), std::negate<double>() );
+//		  //rX *= A;
+//// 		  typename VectorType::iterator x_iterator = rX.begin();
+//// 		  typename VectorType::iterator end_iterator = rX.end();
+//// 		  while(x_iterator != end_iterator)
+//// 		  {
+//// 			  *x_iterator = -*x_iterator;
+//// 			  x_iterator++;
+//// 
+//// 		  }
+//	  }
+//	  else
+//	  {
+//// 		  rX *= A;
+//         omptl::transform( rX.begin(), rX.end(), rX.begin(), MultValue<double>( A ) );
+//	  }
+
+					UblasSpaceType::InplaceMult(rX,A);
+
 	}
 
 
@@ -302,20 +310,23 @@ namespace Kratos
 	// X = A*y;
 	static void Assign(VectorType& rX, const double A, const VectorType& rY)
 	{
-	  if( A == 1.00) 
-        omptl::copy( rY.begin(), rY.end(), rX.begin() ); 
-// 		  noalias(rX) = rY;
-	  else if( A == -1.00)
-      {
-        omptl::transform( rY.begin(), rY.end(), rX.begin(), std::negate<double>() );
-      }
-// 		  noalias(rX) = -rY;
-	  else
-      {
-         omptl::transform( rY.begin(), rY.end(), rX.begin(), MultValue<double>( A ) );
-//TODO .. parallelize
-// 		  noalias(rX) = A*rY;
-      }
+//	  if( A == 1.00) 
+//        omptl::copy( rY.begin(), rY.end(), rX.begin() ); 
+//// 		  noalias(rX) = rY;
+//	  else if( A == -1.00)
+//      {
+//        omptl::transform( rY.begin(), rY.end(), rX.begin(), std::negate<double>() );
+//      }
+//// 		  noalias(rX) = -rY;
+//	  else
+//      {
+//         omptl::transform( rY.begin(), rY.end(), rX.begin(), MultValue<double>( A ) );
+////TODO .. parallelize
+//// 		  noalias(rX) = A*rY;
+//      }
+
+		UblasSpaceType::Assign(rX,A,rY);
+
 	}
 
 	//********************************************************************
@@ -324,22 +335,23 @@ namespace Kratos
 	// X += A*y;
 	static void UnaliasedAdd(VectorType& rX, const double A, const VectorType& rY)
 	{
-	  if( A == 1.00) 
-      {
-// 		  noalias(rX) += rY;
-            omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::plus<double>() );
-      }
-	  else if( A == -1.00)
-      {
-// 		  noalias(rX) -= rY;
-            omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::minus<double>() );
-//        omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), std::minus<double>() );
-      }
-	  else
-      {
-//TODO: parallelize!!!
-		  noalias(rX) += A*rY;
-      }
+//	  if( A == 1.00) 
+//      {
+//// 		  noalias(rX) += rY;
+//            omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::plus<double>() );
+//      }
+//	  else if( A == -1.00)
+//      {
+//// 		  noalias(rX) -= rY;
+//            omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), rX.data().begin(), std::minus<double>() );
+////        omptl::transform( rY.data().begin(), rY.data().end(), rX.data().begin(), std::minus<double>() );
+//      }
+//	  else
+//      {
+////TODO: parallelize!!!
+//		  noalias(rX) += A*rY;
+//      }
+		UblasSpaceType::UnaliasedAdd(rX, A, rY);
 	}
 
  	//********************************************************************
@@ -389,8 +401,9 @@ namespace Kratos
       /// rX = A
       static void Set(VectorType& rX, TDataType A)
       {
-          //std::fill(rX.begin(), rX.end(), A);
-          omptl::fill(rX.begin(), rX.end(), A );
+          //omptl::fill(rX.begin(), rX.end(), A );
+		  	UblasSpaceType::set(rX, A);
+
       } 
 
       static void Resize(MatrixType& rA, SizeType m, SizeType n){rA.resize(m,n,false);}
@@ -410,7 +423,9 @@ namespace Kratos
       inline static void ClearData(compressed_matrix<TDataType>& rA)
       {
 	        //rA.clear();
-            omptl::fill( rA.value_data().begin(), rA.value_data().end(), 0.0 );
+            //omptl::fill( rA.value_data().begin(), rA.value_data().end(), 0.0 );
+	  		UblasSpaceType::ClearData(rA);
+
       }
 
       inline static void ClearData(VectorType& rX) {rX = VectorType();}
@@ -419,11 +434,21 @@ namespace Kratos
   //    inline static void ResizeData(TOtherMatrixType& rA, SizeType m){rA.resize(m,false);
     //  std::fill(rA.begin(), rA.end(), TDataType());}
 
-      inline static void ResizeData(compressed_matrix<TDataType>& rA, SizeType m) {rA.value_data().resize(m);
-      omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());}
+      inline static void ResizeData(compressed_matrix<TDataType>& rA, SizeType m) 
+	  {
+		 // rA.value_data().resize(m);
+			//omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+		  UblasSpaceType::ResizeData(rA,m);
 
-      inline static void ResizeData(VectorType& rX, SizeType m) {rX.resize(m);
-      omptl::fill(rX.begin(), rX.end(), TDataType());}
+	  }
+
+      inline static void ResizeData(VectorType& rX, SizeType m) 
+	  {
+		  //rX.resize(m);
+    //  omptl::fill(rX.begin(), rX.end(), TDataType());
+		  		  UblasSpaceType::ResizeData(rX,m);
+
+	  }
       
       template<class TOtherMatrixType>
       inline static void SetToZero(TOtherMatrixType& rA)
@@ -432,7 +457,8 @@ namespace Kratos
       inline static void SetToZero(compressed_matrix<TDataType>& rA)
 	{
 		KRATOS_TRY
-	omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
+		  UblasSpaceType::SetToZero(rA);
+	//omptl::fill(rA.value_data().begin(), rA.value_data().end(), TDataType());
 /*		typedef  unsigned int size_type;
 		typedef  double value_type;
 
@@ -446,7 +472,12 @@ namespace Kratos
 		KRATOS_CATCH("");		
 	}
 
-      inline static void SetToZero(VectorType& rX) {omptl::fill(rX.begin(), rX.end(), TDataType());}
+      inline static void SetToZero(VectorType& rX) 
+	  {
+		  UblasSpaceType::SetToZero(rX);
+
+		  //omptl::fill(rX.begin(), rX.end(), TDataType());
+	  }
 
         //***********************************************************************
         inline static bool IsDistributed() {
