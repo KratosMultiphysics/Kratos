@@ -76,63 +76,49 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 	
-	/**@name Kratos Globals */
-	/*@{ */
+	///@name Kratos Globals 
+	///@{
 	
 	
-	/*@} */
-	/**@name Type Definitions */       
-	/*@{ */
+	///@} 
+	///@name Type Definitions       
+	///@{
 	
 	
-	/*@} */
+	///@}
 	
 	
-	/**@name  Enum's */       
-	/*@{ */
+	///@name  Enum's */       
+	///@{
 	
 	
-	/*@} */
-	/**@name  Functions */       
-	/*@{ */
+	///@}
+	///@name  Functions */       
+	///@{
 	
 	
+	///@}
+	///@name Kratos Classes */
+	///@{
 	
-	/*@} */
-	/**@name Kratos Classes */
-	/*@{ */
-	
-	/** Short class definition.
-	Detail class definition.
-	
-      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-	  
-		\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-		
-		  \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-		  
-			\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-			
-			  
-				\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-				
-				  \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-				  
-					\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-					
-					  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-					  
-						
-	*/
+	/// This class allows the calculation of the seepage drag that the fluid transmits to the solid porous matrix.
+	  /** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
+	  * 
+	  * This class includes some usefull utilities for the calculation of the drag that water
+	  * makes on the solid porous matrix in a coupled problem.
+	  * This utilities are used in the pfem_nonnewtonian_coupled gid problem type 
+	  * where an edgebased model is used for the calculation of evolution of the fluid @see edgebased_levelset.h
+	  * and it is coupled with a pfem non newtonian visco rigid model is used to avaluate the structural response  @see nonewtonian_asgs_2d.h, nonewtonian_asgs_3d.h
+	  */
 	
 	class DragUtils
          {
           public:
-		/**@name Type Definitions */       
-		/*@{ */
+		///@name Type Definitions      
+		///@{ 
 		typedef ModelPart::NodesContainerType NodesArrayType; 
 		typedef ModelPart::ElementsContainerType ElementsArrayType;
-		/*@} */
+		///@} 
 		/**@name Life Cycle 
 		*/    
 		/*@{ */
@@ -156,7 +142,14 @@ namespace Kratos
 
 		
 		
-		
+		/// Provides the global indices for each one of this element's local rows
+		/**
+		* Seepage drag is evaluated in the fluid edgebased model part. Ready to be projected to the structural pfem mesh.
+		* 
+		* @param rFluid_ModelPart: The fluid model part where Seepage drag has been evaluated for the current time step @see nonewtonian_asgs_2d.h, nonewtonian_asgs_3d.h
+		* @param rSeepageDragVar: The seepage drag vector that is evaluated in the fluid model part
+		* @param mu: Fluid viscosity
+		*/
 		void CalculateFluidDrag(
 			ModelPart& rFluid_ModelPart,
 			Variable< array_1d<double,3> >& rSeepageDragVar,
@@ -195,7 +188,16 @@ namespace Kratos
 
 		}
 
-
+		/// Adds the drag to the body force vector of the structural model
+		/**
+		* After projecting the seepage drag on the structural pfem mesh
+		* body force vector of the structural model part is constructed with the gravity  and the seepage_drag contributions 
+		* 
+		* @param rStructural_ModelPart: The structural model part
+		* @param rSeepageDragVar: the seepage drag nodal vector
+		* @param rBodyForce: the body force vector that will be reset and calculated as the sum of the gravity contribution and the seepage drag contribution	
+		* @param rGravityAcc: the gravity acceleration vector
+		*/
 		void AddDrag(
 			ModelPart& rStructural_ModelPart,
 			const Variable< array_1d<double,3> >& rSeepageDragVar,
@@ -253,46 +255,42 @@ namespace Kratos
 		///@{ 
 			
 
-		/*@} */
-		/**@name Private Operators*/
-		/*@{ */
-		
-		
-		/*@} */
-		/**@name Private Operations*/
-		/*@{ */
-		
-		
-		/*@} */
-		/**@name Private  Acces */
-		/*@{ */
-		
-		
-		/*@} */     
-		/**@name Private Inquiry */
-		/*@{ */
-		
-		
-		/*@} */   
-		/**@name Un accessible methods */
-		/*@{ */
-		
-        //DragUtils(void);
-		
-        //DragUtils(DragUtils& rSource);
-		
-		
-		/*@} */   
+		///@} 
+		///@name Private Operators*/
+		///@{ 
+			
+
+		///@} 
+		///@name Private Operations*/
+		///@{ 
+			
+
+		///@} 
+		///@name Private  Acces */
+		///@{ 
+			
+
+		///@}     
+		///@name Private Inquiry */
+		///@{ 
+			
+
+		///@}   
+		///@name Un accessible methods */
+		///@{ 
+			
+
+		///@}   
 		
     }; /* Class ClassName */
 	
-	/*@} */
+	///@} 
 	
 	/**@name Type Definitions */       
-	/*@{ */
+	///@{ 
 	
 	
-	/*@} */
+	///@}
 	
 }  /* namespace Kratos.*/
 
