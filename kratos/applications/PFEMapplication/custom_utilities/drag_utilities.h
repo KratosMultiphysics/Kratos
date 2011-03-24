@@ -175,8 +175,9 @@ namespace Kratos
 // 				  KRATOS_WATCH(vel)
 // 				  KRATOS_WATCH(vel_norm)
 				  
-				  double lin_coeff = 150 * mu * (1-porosity)*(1-porosity)/(porosity*porosity*diameter*diameter);
-				  double non_lin_coeff = 1.75 * (1-porosity)/(porosity*porosity*diameter);
+				  //dimensionally accelerations. A, B not multiplied by porosity like in the fluid momentum equation
+				  double lin_coeff = 150 * mu * (1-porosity)*(1-porosity)/(porosity*porosity*porosity*diameter*diameter);
+				  double non_lin_coeff = 1.75 * (1-porosity)/(porosity*porosity*porosity*diameter);
 				  noalias(darcy_term) = (lin_coeff + non_lin_coeff * vel_norm) * vel;
 // 				  KRATOS_WATCH(darcy_term);
 			      }
