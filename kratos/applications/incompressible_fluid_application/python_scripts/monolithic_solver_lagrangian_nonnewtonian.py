@@ -5,6 +5,7 @@ from KratosPFEMApplication import *
 from KratosMeshingApplication import *
 from KratosExternalSolversApplication import *
 from KratosMKLSolversApplication import *
+import math
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -43,7 +44,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MU);   
     model_part.AddNodalSolutionStepVariable(YIELD_STRESS);
     model_part.AddNodalSolutionStepVariable(EQ_STRAIN_RATE);
-
+    model_part.AddNodalSolutionStepVariable(EFFECTIVE_VISCOSITY);
 
 
     print "variables for the dynamic structural solution added correctly"
@@ -80,12 +81,12 @@ class MonolithicSolver:
         
         #definition of the convergence criteria
 ##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
-        self.conv_criteria = UPCriteria(1e-4,1e-7,1e-3,1e-7)
+        self.conv_criteria = UPCriteria(5e-4,1e-5,5e-3,1e-5)
 ##        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-4,1e-7)
 ##        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
-        self.max_iter = 20
+        self.max_iter = 10
 
                           
         #default settings
@@ -168,9 +169,13 @@ class MonolithicSolver:
 ##        (self.neigh_finder).Execute();
 ##        print "145"
         (self.solver).Solve()
+##        self.RestoreOldPosition()
+
 ##	print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
         (self.PfemUtils).MoveLonelyNodes(self.model_part)
 ##        print "a47"
+
+        
 	(self.solver).Clear()
 ##	print "149"
         self.OutputStep(time,gid_io)
@@ -249,6 +254,18 @@ class MonolithicSolver:
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
 
+    def RestoreOldPosition(self):
+        for node in self.model_part.Nodes:
+            displ0 = node.GetSolutionStepValue(DISPLACEMENT_X)
+            displ1 = node.GetSolutionStepValue(DISPLACEMENT_Y)
+            displ2 = node.GetSolutionStepValue(DISPLACEMENT_Z)
+            displ = math.sqrt(displ0*displ0 + displ1*displ1 + displ2*displ2)
+            
+            if(node.GetSolutionStepValue(EFFECTIVE_VISCOSITY) >= 1e4 and displ < 0.01):
+                node.SetSolutionStepValue(DISPLACEMENT_X,0,0.0)
+                node.SetSolutionStepValue(DISPLACEMENT_Y,0,0.0)
+                node.SetSolutionStepValue(DISPLACEMENT_Z,0,0.0)
+
     ######################################################################
     def OutputStep(self,time,gid_io):
         if(time >= self.next_output_time):
@@ -276,7 +293,7 @@ class MonolithicSolver:
             gid_io.PrintOnGaussPoints(EQ_STRAIN_RATE,self.model_part,time)
             gid_io.PrintOnGaussPoints(MU,self.model_part,time)
             gid_io.PrintOnGaussPoints(TAU,self.model_part,time)
-
+            gid_io.WriteNodalResults(EFFECTIVE_VISCOSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(IS_FLUID, (self.model_part).Nodes, time, 0);
 
             gid_io.Flush()
