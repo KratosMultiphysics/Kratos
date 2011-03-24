@@ -322,6 +322,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		
 		//Bingham Fluid
 	      CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+// 	      CalculateNodalApparentViscosity(grad_sym_vel, gamma_dot, B, mu, m_coef);
 		//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
 		// Remember to modify CalculateResidualand CalculateTau.
 	// 	app_mu = mu;
@@ -415,7 +416,78 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	KRATOS_CATCH("")
     }
-
+//     void NoNewtonianASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,  const int it_num, const double m_coef, const double area) {
+// 	KRATOS_TRY
+// 	double mu;
+// 	int nodes_number = 3;
+// 	int dof = 2;
+// 	double density;
+// 	calculatedensity(GetGeometry(), density, mu);
+// 	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+// 	boost::numeric::ublas::bounded_matrix<double, 3, 3 > C = ZeroMatrix(3, 3);
+// 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp; 
+// 	
+// 
+// 		temp = ZeroMatrix(6, 6);
+// 		array_1d<double, 3 >  app_mu = = ZeroVector(3);
+// 		double app_mu_derivative;
+// 		double gamma_dot;
+// 		array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+// 			
+// 		//calculating operator B
+// 		CalculateB(B, DN_DX);
+// 		// KRATOS_WATCH(B)
+// 		
+// 		//Bingham Fluid
+// 	      CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+// 		//Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
+// 		// Remember to modify CalculateResidualand CalculateTau.
+// 	// 	app_mu = mu;
+// 		for(unsigned int ii = 0.0, ii < nodes_number, ii++){
+// 		  C(0, 0) = 2.0- 2.0/3.0;
+// 		  C(0, 1) = 0.0- 2.0/3.0;
+// 		  C(0, 2) = 0.0;
+// 		  C(1, 0) = 0.0- 2.0/3.0;
+// 		  C(1, 1) = 2.0- 2.0/3.0;
+// 		  C(1, 2) = 0.0;
+// 		  C(2, 0) = 0.0;
+// 		  C(2, 1) = 0.0;
+// 		  C(2, 2) = 1.0;
+// 		
+// 		  C *= app_mu[ii];
+// 
+// 		  // KRATOS_WATCH(C)
+// 		  //Calculating the viscous contribution to the LHS int(Btrans C B)dA
+// 		  //         temp = prod(trans(B),prod(C,B));
+// 		  for (unsigned int i = 0; i < B.size2(); i++) {
+// 		      for (unsigned int j = 0; j < B.size2(); j++) {
+// 			  for (unsigned int l = 0; l < C.size1(); l++) {
+// 			      for (unsigned int k = 0; k < C.size1(); k++) {
+// 				  temp(i, j) += B(l, i) * C(l, k) * B(k, j);
+// 			      }
+// 			  }
+// 		      }
+// 		  }
+// 		}
+// 
+// 	// KRATOS_WATCH(temp)
+// 	temp *= area * 0.33333333333333333333333;
+// 	for (int ii = 0; ii < nodes_number; ii++) {
+// 	    int row = ii * (dof + 1);
+// 	    int loc_row = ii*dof;
+// 	    for (int jj = 0; jj < nodes_number; jj++) {
+// 		int column = jj * (dof + 1);
+// 		int loc_column = jj*dof;
+// 
+// 		K(row, column) += temp(loc_row, loc_column);
+// 		K(row, column + 1) += temp(loc_row, loc_column + 1);
+// 		K(row + 1, column + 1) += temp(loc_row + 1, loc_column + 1);
+// 		K(row + 1, column) += temp(loc_row + 1, loc_column);
+// 	    }
+// 	}
+// 
+// 	KRATOS_CATCH("")
+//     }
     //************************************************************************************
     //************************************************************************************
 
@@ -886,21 +958,6 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	double mu;
 	calculatedensity(GetGeometry(), density, mu);
 
-	//for Arhenious
-	int matsize = dof*nodes_number;
-	boost::numeric::ublas::bounded_matrix<double, 1, 6 > div_opr = ZeroMatrix(1, matsize);
-	for (int ii = 0; ii < nodes_number; ii++) {
-	    int index = dof*ii;
-	    div_opr(0, index) = DN_DX(ii, 0);
-	    div_opr(0, index + 1) = DN_DX(ii, 1);
-	}
-// 	const double ar_0 = GetGeometry()[0].FastGetSolutionStepValue(ARRHENIUS);
-// 	const double ar_1 = GetGeometry()[1].FastGetSolutionStepValue(ARRHENIUS);
-// 	const double ar_2 = GetGeometry()[2].FastGetSolutionStepValue(ARRHENIUS);
-
-// 	double mean_ar = 0.333333333333333333 * (ar_0 + ar_1 + ar_2);
-
-
 	//body  & momentum term force
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int index = ii * (dof + 1);
@@ -913,10 +970,6 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
-// 	    //arrhenius
-// 	    F[index + 2] += (area * N[ii] * mean_ar);
-// 	    F[index] += tautwo * area * mean_ar * div_opr(0, loc_index);
-// 	    F[index + 1] += tautwo * area * mean_ar * div_opr(0, loc_index + 1);
 	}
 #ifdef COMPRESSIBLE_MODEL_ML__PN1_PN__
 	////compressibility term & assemble Lumped Mass Matrix
@@ -1057,6 +1110,80 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	KRATOS_CATCH("")
     }
+    //************************************************************************************
+    //************************************************************************************
+
+//     void NoNewtonianASGS2D::CalculateResidual(const MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double m_coef, const double area) {
+// 	KRATOS_TRY
+// 
+// 	int nodes_number = 3;
+// 	int dof = 2;
+// 
+// 	array_1d<double, 9 > UP = ZeroVector(9);
+// 	for (int ii = 0; ii < nodes_number; ++ii) {
+// 	    int index = ii * (dof + 1);
+// 	    UP[index] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY)[0];
+// 	    UP[index + 1] = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY)[1];
+// 	    UP[index + 2] = GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+// 	}
+// 
+// 	/*Rest Viscous Forces from dampmatrix*/
+// 	double mu;
+// 	double density;
+// 	calculatedensity(GetGeometry(), density, mu);
+// 
+// 	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+// //         boost::numeric::ublas::bounded_matrix<double, 3, 3 > C = ZeroMatrix(3, 3);
+// 	array_1d<double, 6 > auxDevStressVector = ZeroVector(6);
+// 	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+// 	array_1d<double, 3 > app_mu = ZeroVector(3);
+// 	double app_mu_derivative;
+// 	double gamma_dot;
+// 	array_1d<double, 3 > aux_1 = ZeroVector(3);
+// 
+// 	//calculating operator B
+// 	CalculateB(B, DN_DX);
+// 	// KRATOS_WATCH(B)
+// 	/*Calculating residual vector */
+// 	F -= prod(K, UP);
+// 
+// 	/*Add Bt*sigma_dev (Viscous Forces)*/
+// 	//sigma dev intern
+// 
+// // 	Bingham Fluid:
+// 	CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+// // 	Newtonian Fluid: Leave Decommented the CalculateApparentviscosity (we need grad_sym_vel) and decomment the following line
+// //	Remember to modify CalculateViscousTerm and CalculateTau
+// // 	app_mu = mu;
+// 	double average_app_mu = 0.0;
+// 	for(unsigned int ii=0.0, ii> nodes_number, ii++){
+// 	    average_app_mu += app_mu[ii];
+// 	}
+// 	average_app_mu *= 0.3333333333333333333333333333;
+// 	aux_1 = 2.0 * average_app_mu * grad_sym_vel;	
+// 	aux_1[2] *= 0.5; //considering Voigt notation for the gradient of velocity (alternative to the C matrix of the viscous term.
+// 
+// 	mDevStress = 0.5 * aux_1[0] * aux_1[0] + 0.5 * aux_1[1] * aux_1[1] + aux_1[2] * aux_1[2];
+// // 	mDevStress =  aux_1[0] * aux_1[0] +  aux_1[1] * aux_1[1] + 2 * aux_1[2] * aux_1[2];
+// 
+// 	mDevStress = sqrt(mDevStress);
+// 	
+// 	
+// 	auxDevStressVector = prod(trans(B), aux_1);
+// 	/*TO DECOMMENT*/
+// 	double fac = area * 0.3333333333333333333333333333;
+// 	for (int ii = 0; ii < nodes_number; ii++) {
+// 	    int row = ii * (dof + 1);
+// 	    int loc_row = ii * dof;
+// 
+// 	    F[row] -= auxDevStressVector[loc_row] * fac;
+// 	    F[row + 1] -= auxDevStressVector[loc_row + 1] * fac;
+// 
+// 	}
+// 
+// 
+// 	KRATOS_CATCH("")
+//     }
     //************************************************************************************
     //************************************************************************************
 
@@ -1345,7 +1472,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
 // 		    solid_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
 	      }
-//       	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
+       	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);//this is the COHESION of Mohr Coulomb failure criteria!!!
 // 	      seepage_drag_x += GetGeometry()[ii].FastGetSolutionStepValue(SEEPAGE_DRAG_X);
 	      //CHECK NEGATIVE VALUES....
 
@@ -1369,11 +1496,17 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  }
 	  else
 	      yield = 0.0;
+	  
+// 	  if(yield < 100.0)
+//A sort of COHESION!!!!! not present at a micro level but possibly present at a macro level
+// 	    yield += 100.0;
+	  
+	  
 // KRATOS_WATCH(yield)
 
 #ifdef EXPONENCIAL_MODEL
 ////////EXPONENCIAL MODEL
-	if (gamma_dot > 1e-10) {
+	if (gamma_dot > 1e-3) {
 	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 	    app_mu = mu + (yield / gamma_dot) * aux_1;
 // 			gamma_dot_inv = 1.0/gamma_dot;
@@ -1401,12 +1534,19 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	app_mu = mu_s ;
       }
 #endif
-// 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
-// 	else  
-	gamma_dot_inv= 1.0 / gamma_dot;
-//         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(m_coef * gamma_dot))*(gamma_dot_inv + m_coef));
- 	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(m_coef * gamma_dot))*(1 - m_coef * gamma_dot));
-//	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
+
+/////// UPPERBOUND IN APPARENT VISCOSITY /////////
+//       if(app_mu > 1e4){
+// 	app_mu = 1e4;
+//       }
+
+
+// // // // 	if (gamma_dot <= 1e-10) gamma_dot_inv=1e10;
+// // // // 	else  
+// 	gamma_dot_inv= 1.0 / gamma_dot;
+// // // //         app_mu_derivative = yield * gamma_dot_inv*(- gamma_dot_inv + exp(-(m_coef * gamma_dot))*(gamma_dot_inv + m_coef));
+//  	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv * (1 - exp(-(m_coef * gamma_dot))*(1 - m_coef * gamma_dot));
+// // // //	app_mu_derivative = - yield * gamma_dot_inv * gamma_dot_inv;
 
 	/*
 
@@ -1474,69 +1614,96 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	KRATOS_CATCH("")
     }
 
-    //************************************************************************************
+   //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateApparentViscosityStbl(double & app_mu, double & app_mu_derivative,
+    void NoNewtonianASGS2D::CalculateNodalApparentViscosity(
 	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
 	    const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
-	    const double & mu ) {
+	    const double & mu, const double & m_coef) {
 	KRATOS_TRY
-	app_mu = 0.0;
+// 	app_mu = ZeroVector(3);
 
-	
-	
+	double aux_1;
 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	
 	
 	  // The yield is variable: it decreases where water is present
 	  unsigned int nodes_number = 3;
-	  double yield = 0.0;
+	  array_1d<double, 3 > yield = ZeroVector(3); //nodal yield
+	  array_1d<double, 3 > water_pressure = ZeroVector(3); //nodal_water_pressure
 	  double friction_angle_tangent = 0.0; 
-	  double water_pressure = 0.0;
-// 	  double gamma_dot_inv;
-
-	  
-	  
-
 	  
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
-		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
+		    water_pressure[ii] +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
 	      }
 	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
-		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+		    yield[ii] +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
 	      }
-
-
 	  }
 	  friction_angle_tangent /= nodes_number;
-	  water_pressure /= nodes_number;
-	  yield /= nodes_number;
- 
-	  if(water_pressure < yield){
-	      yield -= water_pressure;
-	      yield *= friction_angle_tangent;
+
+	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+	  if(water_pressure[ii] < yield[ii]){
+	      yield[ii] -= water_pressure[ii];
+	      yield[ii] *= friction_angle_tangent;
 	  }
 	  else
-	      yield = 0.0;
-
-////////BILINEAR FORM
-	double mu_s = 1e7;
-	double gamma_dot_lim = yield/mu_s;
-	
+	      yield[ii] = 0.0;
+	}
+#ifdef EXPONENCIAL_MODEL
+////////EXPONENCIAL MODEL
+      for(unsigned int ii = 0; ii < nodes_number; ++ii) {
+	double & app_mu = GetGeometry()[ii].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
+	if (gamma_dot > 1e-3) {
+	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
+	    app_mu = mu + (yield[ii] / gamma_dot) * aux_1;
+// 	    if (app_mu < mu) {
+// 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+// 	    }
+	} else {
+	    app_mu = mu + yield[ii] * m_coef ;
+// // 			gamma_dot_inv = 0.0;
+	}
+	 /////// UPPERBOUND IN APPARENT VISCOSITY /////////
+// 	if(app_mu > 1e4){
+// 	  app_mu = 1e4;
+// 	}
+      }
+#else	
+// ////////BILINEAR MODEL
+      double mu_s = 1e7;
+      double average_yield = 0.0;
+      for(unsigned int ii=0, ii<nodes_number; i++){
+	average_yield += yield[ii];
+      }
+      averaged_yield /= nodes_number;
+      double gamma_dot_lim = averaged_yield/mu_s;
+      
+      
+      for(unsigned int ii = 0; ii < nodes_number; ++ii) { 
+	double & app_mu = GetGeometry()[ii].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
 	if(gamma_dot >= gamma_dot_lim){
-	  if (gamma_dot_lim <= 1e-16){
+	  if (gamma_dot_lim <= 1e-10){
 	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
 	  }
 	  else{
-	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield)/gamma_dot ;
+	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield[ii])/gamma_dot ;
 	  }
 	}
 	else{
 	  app_mu = mu_s ;
 	}
+// 	  /////// UPPERBOUND IN APPARENT VISCOSITY /////////
+// 	if(app_mu > 1e5){
+// 	  app_mu = 1e5;
+// 	}
+      }
+#endif
+
+
 	KRATOS_CATCH("")
     }
 
@@ -1578,6 +1745,8 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	const double m_coef = rCurrentProcessInfo[M];
 	
 	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
+	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 	array_1d<double, 3 > N;
 //         array_1d<double, 2 > ms_adv_vel;
 
@@ -1586,7 +1755,20 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 	double tauone;
 	double tautwo;
+	
+	double app_mu;
+	double mu;
+	double density;
+      //  double average_app_mu;
+	double app_mu_derivative;
+	double gamma_dot;
+
+	calculatedensity(GetGeometry(), density, mu);
+	CalculateB(B, DN_DX);    
+	CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+// 	  average_app_mu = (app_mu[0]+app_mu[1]+app_mu[2])*0.333333333333333333333333;
 	CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+	
 	if (rVariable == THAWONE) {
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1;
@@ -1611,15 +1793,15 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	}
 //PROVISIONALbegin---only for debugging
 	if (rVariable == EQ_STRAIN_RATE) {//gamma dot
-	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
-	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
-	  double gamma_dot;
-// 	  double Area;
-// 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
-	  CalculateB(B, DN_DX);      
-
-	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
+// 	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+// 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+// 	  double gamma_dot;
+// // 	  double Area;
+// // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+// 
+// 	  CalculateB(B, DN_DX);      
+// 
+// 	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
 	    
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
@@ -1628,12 +1810,13 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    }
 	}
 	if (rVariable == MU) {//app mu
-	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+/*	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+  	  double app_mu = 0.0;
 // 	  double gamma_dot = 0.0;
 	  double mu;
 	  double density;
-	  double app_mu;
+	//  double average_app_mu;
 	  double app_mu_derivative;
 	  double gamma_dot;
 // 	  double Area;
@@ -1641,7 +1824,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  calculatedensity(GetGeometry(), density, mu);
 	  CalculateB(B, DN_DX);    
 	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
-	    
+// 	  average_app_mu = (app_mu[0]+app_mu[1]+app_mu[2])*0.333333333333333333333333;*/
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
 		rValues[PointNumber] = app_mu;
@@ -1733,7 +1916,6 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//Bingham
 	const double m_coef = rCurrentProcessInfo[M];
 	CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
-// 	CalculateApparentViscosityStbl(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu);//to consider the equivalent viscosity not the fluid viscosity in the fluid part 
 	//Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
 	//do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
 	
