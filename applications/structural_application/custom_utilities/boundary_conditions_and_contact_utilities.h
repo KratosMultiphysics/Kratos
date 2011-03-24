@@ -113,6 +113,7 @@ namespace Kratos
 	enum Intersect{IT_POINT   = 0, IT_SEGMENT, IT_EMPTY}; 
         enum Exist_Node {no_nodes = 0, yes_nodes};
 	enum Near_Node  {no_near  = 0, yes_near};
+	enum Object     {is_node  = 0, is_object};
 	
 	class Segment2D
 	{
@@ -649,7 +650,7 @@ void CreatePointLinkingConditions(
 	 ConditionsArrayType& LinkingConditions
 	 )
 	 {
-	    
+	    Object What_Is;
 	    const unsigned int& InsideNodes = Ids[slave];
 	    unsigned int segment = 0;
 	    std::vector<unsigned int>::iterator    repeated_object;  
@@ -673,40 +674,51 @@ void CreatePointLinkingConditions(
 	        TotalInsideNodes.push_back(InsideNodes);  
 	   
 	      
-	    bool exist_segment =  LocateMasterSegment(segment, mr_model_part.Nodes()(Ids[slave]), mr_model_part.Nodes()(Ids[master]), (*it_pair)[master]);
+	    bool exist_segment =  LocateMasterSegment(segment, What_Is, mr_model_part.Nodes()(Ids[slave]), mr_model_part.Nodes()(Ids[master]), (*it_pair)[master]);
 
 	    if(exist_segment==true)
 	    {
 		// Slave Node
 		Point2D<Node<3> >::Pointer point_geom     =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(mr_model_part.Nodes()(InsideNodes) ) );
 		Condition::Pointer SlaveNode              =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
+		 
+		switch(What_Is)
+		{
+		  case ( is_node):
+		  {
+		   WeakPointerVector<Condition>& neighb_cond            =  mr_model_part.Nodes()(Ids[master])->GetValue(NEIGHBOUR_CONDITIONS);  
+		   Condition::Pointer MasterFace                        =  (neighb_cond(segment).lock());  
+		   Condition::GeometryType& Mgeom                       =  MasterFace->GetGeometry();
+		   Condition::GeometryType& Sgeom                       =  SlaveNode->GetGeometry();   
+		   Triangle2D3<Node<3> >::Pointer Lgeom                 =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
 
-		WeakPointerVector<Condition>& neighb_cond =  mr_model_part.Nodes()(Ids[master])->GetValue(NEIGHBOUR_CONDITIONS);  //(*it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS);
-		Condition::Pointer MasterFace             =  (neighb_cond(segment).lock());   // me devuelve el puntero
+		   Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
+		    Lgeom,
+		    tempProperties,
+		    MasterFace, 
+		    SlaveNode) );
+		   LinkingConditions.push_back( newLink );    
+		   Id++;
+		break;
+		}
+	        case(is_object):
+		  {
+	           WeakPointerVector<Condition>& neighb_cond =  (*it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS);
+		   Condition::Pointer MasterFace             =  (neighb_cond(segment).lock());  
+		   Condition::GeometryType& Mgeom            =  MasterFace->GetGeometry();
+		   Condition::GeometryType& Sgeom            =  SlaveNode->GetGeometry();   
+		   Triangle2D3<Node<3> >::Pointer Lgeom      =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
 
-		//KRATOS_WATCH(neighb_cond.size() )
-		//KRATOS_WATCH(segment )
-		
-		
-		// creando geometria trinagular para el link
-		Condition::GeometryType& Mgeom = MasterFace->GetGeometry();
-		Condition::GeometryType& Sgeom = SlaveNode->GetGeometry();   
-		
-		//KRATOS_WATCH(Mgeom[0].Id())
-		//KRATOS_WATCH(Mgeom[1].Id())
-		
-		Triangle2D3<Node<3> >::Pointer Lgeom    =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
-
-		Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
-		Lgeom,
-		tempProperties,
-		MasterFace, 
-		SlaveNode) );
-
-		LinkingConditions.push_back( newLink );    
-		Id++;
-		
-             
+		   Condition::Pointer newLink  = Condition::Pointer( new PointSegmentContactLink(Id,
+		    Lgeom,
+		    tempProperties,
+		    MasterFace, 
+		    SlaveNode) );
+		    LinkingConditions.push_back( newLink );    
+		    Id++;
+		    break;
+		}
+	      }
 	    }
 	    
 	    }
@@ -721,6 +733,7 @@ void CreatePointLinkingConditions(
 //*****************************************************************************************************
 
 bool LocateMasterSegment(unsigned int& segmento,
+			 Object& What_Is,
 			 const NodePointerType& SlaveNode,
 			 const NodePointerType& MasterNode, // the most near
 			 const PointerType& MasterObject)
@@ -731,7 +744,7 @@ bool LocateMasterSegment(unsigned int& segmento,
 	    WeakPointerVector<Condition>& neighb_cond_slave      = SlaveNode->GetValue(NEIGHBOUR_CONDITIONS);
    	    WeakPointerVector<Condition>& neighb_cond_master     = MasterNode->GetValue(NEIGHBOUR_CONDITIONS);
    	    
-	        
+	    bool flag;    
 	    std::vector<unsigned int> segment;
 	    unsigned int I       = 0;
 	    segmento             = 0;
@@ -741,152 +754,28 @@ bool LocateMasterSegment(unsigned int& segmento,
 	    vector<array_1d<double, 2> >      Points1;
 	    array_1d<double, 2>               Point;
 	     
-	     // test with displacement	      
+	          
 	     array_1d<double,3>& old_pos     = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);   
 
+	      // test with displacement 
 	      if(Test_One(segmento, SlaveNode, MasterNode)) 
-		   return true;
-	     
-	      
-	     /*
-	      Points0.resize(2, false); 
-              Points1.resize(2, false);
-	      
-	      Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-	      Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-	      Points0(1)[0] = SlaveNode->X();  // + current_pos[0];
-	      Points0(1)[1] = SlaveNode->Y();  // + current_pos[1];
-	      
-	      unsigned int JJ = 1; 
-	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++){
-	          Condition::GeometryType& geom_2 = cond->GetGeometry();
-		    		  
-		  Points1(0)[0] = geom_2[0].X(); 
-	          Points1(0)[1] = geom_2[0].Y();
-	          Points1(1)[0] = geom_2[1].X();
-	          Points1(1)[1] = geom_2[1].Y();
-
-		  
-		  if(IntersectSegment(Point, Points0, Points1)!=IT_EMPTY){
-		   Points.push_back(Point); 
-		   segment.push_back(I);
+	          { 
+		    What_Is = is_node;
+		    return true;
 		  }
-		  I++;
-		  JJ++;
-		  if(JJ>neighb_cond.size())
-		        break;
-	      }
-	       	       
-	       if (Points.size()!=0)
-	       {
-		  if (Points.size()==1){
-		      segmento = segment[0];
-		  }
-	          // en caso de que el nodo quede fuera e intersecte con dos aristas 
-	         else if (Points.size()>1)
+	                 
+	      if(Test_Two(segmento, SlaveNode, MasterObject)) 
 	          {
-		    
-		    array_1d<double, 2> rect;
-		    double dist0              =  0.00;
-		    array_1d<double, 2> rect1 =  Points0[0] - Points[0];
-		    double dist1              =  std::sqrt(inner_prod(rect1, rect1 ));
-
-		    unsigned j   = 0;
-		    for(unsigned int i = 1; i<Points.size(); i++){
-		    rect = Points0[0] - Points[i];
-		    dist0 = std::sqrt(inner_prod(rect, rect ));
-		    if(dist0> dist1){
-		      dist1 =  dist0;
-		      j++;
-		       }
-		    }          
-		    segmento = segment[j];
-	          }
-		 return true;
-	       }
-		 
+		    What_Is = is_object;
+		    return true;
+		  }
 	    
-	      */
+	     if (Test_Three(segmento, SlaveNode, MasterObject) )
+	         {
+		   What_Is = is_object;
+		   return true;
+	         }
 	    
-	      // test with edges            
-	      unsigned int II  = 1;
-	      unsigned int III = 1;
-	      Points.clear(); 
-	      segment.clear();
-	      for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
-	        {
-		Condition::GeometryType& geom = cond_slave->GetGeometry();
-		Point.resize(2, false); 
-		Points0.resize(2, false); 
-		Points1.resize(2, false);
-		
-		Points0(0)[0] = geom[0].X(); 
-		Points0(0)[1] = geom[0].Y();
-		Points0(1)[0] = geom[1].X();
-		Points0(1)[1] = geom[1].Y(); 
-
-	      I  = 0; 
-	      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); ++cond){
-		      Condition::GeometryType& geom_3 = cond->GetGeometry();     
-		      Points1(0)[0] = geom_3[0].X(); 
-		      Points1(0)[1] = geom_3[0].Y();
-		      Points1(1)[0] = geom_3[1].X();
-		      Points1(1)[1] = geom_3[1].Y();
-		      
-		      if(IntersectSegment(Point, Points0, Points1)==IT_POINT)
-		      {  
-			 Points.push_back(Point); 
-		         segment.push_back(I); 
-		      }
-		      I++;
-		      III++;
-		      if(III>neighb_cond.size())
-		        continue;
-		    }     
-		    
-	         II++;
-		 if(II>neighb_cond_slave.size())
-		    break;
-
-		
-	    }  
-	    
-	    if (Points.size()!=0)
-	    {
-	      if (Points.size()==1){
-	         segmento = segment[0];
-	    }
-	    // en caso de que el nodo quede fuera e intersecte con dos aristas 
-	    else if (Points.size()>1)
-	     {
-	      Points0(0)[0] = SlaveNode->X0() + old_pos[0];
-	      Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
-	      Points0(1)[0] = SlaveNode->X();  
-	      Points0(1)[1] = SlaveNode->Y(); 
-	      
-	      array_1d<double, 2> rect;
-              array_1d<double, 2> rect1 =  Points0[0] - Points[0];
-	      double dist0              =  0.00;
-	      double dist1              =  std::sqrt(inner_prod(rect1, rect1 ));
-	      
-	      
-	         
-	      unsigned int m     = 0;
-	      for(unsigned int i = 1; i<Points.size(); i++){
-	         rect = Points0[1] - Points[i];
-		 dist0 = std::sqrt(inner_prod(rect, rect ));
-		 
-		 if(dist0 > dist1){
-		    dist1 =  dist0;
-		    m++;
-		 } 
-		
-	      }
-	       
-	       segmento = segment[m];       
-	      }
-	    return true;
-	    }
 	    
 	    // el elemento tiene una sola condicion master
 	    if(neighb_cond.size()==1)
@@ -905,7 +794,6 @@ bool LocateMasterSegment(unsigned int& segmento,
 //************************************************************************************
 //************************************************************************************ 
 
-//test with displacement
 bool Test_One(unsigned int& segmento,
 	       const NodePointerType& SlaveNode,
 	       const NodePointerType& MasterNode) 
@@ -987,19 +875,192 @@ bool Test_One(unsigned int& segmento,
 
 
 
-
-bool Test_Two()
+bool Test_Two( unsigned int& segmento, 
+	       const NodePointerType& SlaveNode,
+	       const PointerType& MasterObject) 
 {
-  return false;  
+  
+  KRATOS_TRY   
+  
+  WeakPointerVector<Condition>& neighb_cond     = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
+
+  std::vector<unsigned int> segment;
+  unsigned int I       = 0;
+  segmento             = 0;
+
+  std::vector<array_1d<double, 2> > Points;   // punto de interseccion del segmento 
+  vector<array_1d<double, 2> >      Points0;
+  vector<array_1d<double, 2> >      Points1;
+  array_1d<double, 2>               Point;
+     
+  array_1d<double,3>& old_pos     = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);   
+
+
+  Points0.resize(2, false); 
+  Points1.resize(2, false);
+
+  Points0(0)[0] = SlaveNode->X0() + old_pos[0];
+  Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
+  Points0(1)[0] = SlaveNode->X(); 
+  Points0(1)[1] = SlaveNode->Y(); 
+
+  unsigned int JJ = 1; 
+  for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); cond++){
+  Condition::GeometryType& geom_2 = cond->GetGeometry();
+	    
+    Points1(0)[0] = geom_2[0].X(); 
+    Points1(0)[1] = geom_2[0].Y();
+    Points1(1)[0] = geom_2[1].X();
+    Points1(1)[1] = geom_2[1].Y();
+
+    if(IntersectSegment(Point, Points0, Points1)!=IT_EMPTY){
+        Points.push_back(Point); 
+        segment.push_back(I);
+    }
+    I++;
+    JJ++;
+    if(JJ>neighb_cond.size())
+       break;
+  }
+
+  if (Points.size()!=0)
+  {
+      if (Points.size()==1){
+      segmento = segment[0];
+      }
+
+      else if (Points.size()>1)
+      {
+	array_1d<double, 2> rect;
+	double dist0              =  0.00;
+	array_1d<double, 2> rect1 =  Points0[0] - Points[0];
+	double dist1              =  std::sqrt(inner_prod(rect1, rect1 ));
+
+	unsigned j   = 0;
+	for(unsigned int i = 1; i<Points.size(); i++){
+	rect = Points0[0] - Points[i];
+	dist0 = std::sqrt(inner_prod(rect, rect ));
+	if(dist0> dist1){
+	   dist1 =  dist0;
+	   j++;
+	 }
+        }          
+       segmento = segment[j];
+      }
+     return true;
+  }
+  
+  return false;
+  KRATOS_CATCH("")
 }
 
-bool Test_Three()
-{
-  return false;  
-}
 
+
+bool Test_Three(unsigned int& segmento,
+	      const NodePointerType& SlaveNode,
+	      const PointerType& MasterObject)
+{
+ 
+  KRATOS_TRY   
+  
+  WeakPointerVector<Condition>& neighb_cond            = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
+  WeakPointerVector<Condition>& neighb_cond_slave      = SlaveNode->GetValue(NEIGHBOUR_CONDITIONS);
+  array_1d<double,3>& old_pos                          = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);   
+  std::vector<unsigned int>         segment;
+  std::vector<array_1d<double, 2> > Points; // punto de interseccion del segmento
+  vector<array_1d<double, 2> >      Points0;
+  vector<array_1d<double, 2> >      Points1;
+  array_1d<double, 2>               Point;
+
+  // test with edges
+  segmento         = 0;
+  unsigned int I   = 0;
+  unsigned int II  = 1;
+  unsigned int III = 1;
+
+  
+  for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
+  {
+      Condition::GeometryType& geom = cond_slave->GetGeometry();
+      Point.resize(2, false); 
+      Points0.resize(2, false); 
+      Points1.resize(2, false);
+
+      Points0(0)[0] = geom[0].X(); 
+      Points0(0)[1] = geom[0].Y();
+      Points0(1)[0] = geom[1].X();
+      Points0(1)[1] = geom[1].Y(); 
+
+      I  = 0; 
+      for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); ++cond){
+        Condition::GeometryType& geom_3 = cond->GetGeometry();     
+	Points1(0)[0] = geom_3[0].X(); 
+	Points1(0)[1] = geom_3[0].Y();
+	Points1(1)[0] = geom_3[1].X();
+	Points1(1)[1] = geom_3[1].Y();
+
+	if(IntersectSegment(Point, Points0, Points1)==IT_POINT)
+	{  
+	  Points.push_back(Point); 
+	  segment.push_back(I); 
+	}
+        I++;
+        III++;
+        if(III>neighb_cond.size())
+            continue;
+     }     
+
+     II++;
+     if(II>neighb_cond_slave.size())
+         break;
+  }  
+
+  if (Points.size()!=0)
+  {
+     if (Points.size()==1){
+       segmento = segment[0];
+     }
+   // en caso de que el nodo quede fuera e intersecte con dos aristas 
+  else if (Points.size()>1)
+  {
+      Points0(0)[0] = SlaveNode->X0() + old_pos[0];
+      Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
+      Points0(1)[0] = SlaveNode->X();  
+      Points0(1)[1] = SlaveNode->Y(); 
+
+      array_1d<double, 2> rect;
+      array_1d<double, 2> rect1 =  Points0[0] - Points[0];
+      double dist0              =  0.00;
+      double dist1              =  std::sqrt(inner_prod(rect1, rect1 ));
+
+      unsigned int m     = 0;
+      for(unsigned int i = 1; i<Points.size(); i++){
+         rect  = Points0[1] - Points[i];
+         dist0 = std::sqrt(inner_prod(rect, rect ));
+         if(dist0 > dist1){
+          dist1 =  dist0;
+          m++;
+        } 
+      }
+   segmento = segment[m];       
+  }
+  return true;
+  }
+  
+ 
+  return false;
+  
+  KRATOS_CATCH("")
+  
+}
 
 bool Test_Four()
+{
+  return false;  
+}
+
+
+bool Test_Five()
 {
   return false;  
 }
