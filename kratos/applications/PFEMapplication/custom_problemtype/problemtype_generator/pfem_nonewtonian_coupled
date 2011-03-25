@@ -7,7 +7,7 @@ VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
 VECTOR CONDITION MESH_VELOCITY     	point line surface volume free 0.0 0.0 0.0
 #VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
-SCALAR CONDITION INTERNAL_FRICTION_ANGLE point line surface volume free  1.0
+#SCALAR CONDITION INTERNAL_FRICTION_ANGLE point line surface volume free  1.0
 SCALAR CONDITION WATER_PRESSURE     point line surface volume free  0.0
 SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
 #SCALAR CONDITION VISCOSITY     	point line surface volume free  0.000001
@@ -25,23 +25,25 @@ FACE CONDITION Condition3D surface
 FACE CONDITION Fluid2DNeumann line
 FACE CONDITION Fluid3DNeumann surface 
 
-ELEMENT Fluid2D surface
-ELEMENT ASGS2D surface
+#ELEMENT Fluid2D surface
+#ELEMENT ASGS2D surface
 ELEMENT NoNewtonianASGS2D surface
 ELEMENT NoNewtonianASGS3D volume
-ELEMENT Fluid3D volume 
-ELEMENT ASGS3D volume
-ELEMENT Fluid2DCoupled surface
-ELEMENT Fluid3DCoupled volume 
+##ELEMENT Fluid3D volume 
+#ELEMENT ASGS3D volume
+#ELEMENT Fluid2DCoupled surface
+#ELEMENT Fluid3DCoupled volume 
 
-PROPERTY Density 1000.0 Density
-PROPERTY Viscosity 0.000001 Viscosity
+PROPERTY Solid_Density 1000.0 Density
+PROPERTY Fluidified_Viscosity 0.001 Viscosity
 PROPERTY Gravity_X 0.0 Gravity_X
 PROPERTY Gravity_Y -9.806 Gravity_Y
 PROPERTY Gravity_Z 0.0 Gravity_Z
 PROPERTY Porosity 1.0 Porosity
 PROPERTY Diameter 0.01 Diameter
-PROPERTY YieldStress 1.0 YieldStress
+PROPERTY Yield_Stress 1.0 Yield_Stress
+PROPERTY m_coef 3000.0 m_coef
+PROPERTY Friction_Angle_Tangent 1.0 Friction_Angle_Tangent
 
 #PROPERTY max_time 100.0 max_time
 PROPERTY max_x 10.0 max_x
@@ -51,15 +53,15 @@ PROPERTY min_x -1.0 min_x
 PROPERTY min_y -1.0 min_y
 PROPERTY min_z -1.0 min_z
 PROPERTY use_oss 0 use_oss
-PROPERTY dynamic_tau 1 dynamic_tau
-PROPERTY nsteps 100 nsteps
-PROPERTY output_dt 0.1 output_Dt
-PROPERTY min_dt 0.001 min_dt
-PROPERTY max_dt 0.1 max_dt
-PROPERTY safety_factor 0.5 safety_factor
+PROPERTY dynamic_tau 0.001 dynamic_tau
+#PROPERTY nsteps 100 nsteps
+#PROPERTY output_dt 0.1 output_Dt
+#PROPERTY min_dt 0.001 min_dt
+#PROPERTY max_dt 0.1 max_dt
+#PROPERTY safety_factor 0.5 safety_factor
 
-#PROPERTY SolverType "pfem_solver_ale" "monolithic_solver_lagrangian" SolverType # remember to put the text between " " !
-TEXT FLAG PROPERTY SolverType pfem_solver_ale monolithic_solver_lagrangian SolverType # remember to put the text between " " !
+#PROPERTY SolverType "monolithic_solver_lagrangian" "pfem_solver_ale" SolverType # remember to put the text between " " !
+#TEXT FLAG PROPERTY SolverType monolithic_solver_lagrangian pfem_solver_ale SolverType # remember to put the text between " " !
 PROPERTY laplacian_form 3 laplacian_form
 
 FILE SELECTION fluid_file fluid.mdpa fluid_file
