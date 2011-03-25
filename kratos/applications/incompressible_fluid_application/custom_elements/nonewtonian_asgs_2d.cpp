@@ -262,7 +262,7 @@ namespace Kratos {
 /*20101216*/
 	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);//tau 2
 // #ifdef NAVIERSTOKES
-	CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area);
+	CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, m_coef, Area);
 // #endif
 	CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
 	//KRATOS_WATCH(rRightHandSideVector);
@@ -675,7 +675,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double time, const double area) {
+    void NoNewtonianASGS2D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double time, const double m_coef, const double area) {
 	KRATOS_TRY
 		const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
 	const array_1d<double, 3 > & mesh_vel0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -690,10 +690,30 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	//ms_adv_vel[0] = 0.0;
 	//ms_adv_vel[1] = 0.0;
-
-	//calculate convective term
+	
+	////* grad mu*/
+	double mu;
 	int nodes_number = 3;
 	int dof = 2;
+	double density;
+	calculatedensity(GetGeometry(), density, mu);
+// 	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
+// 	double gamma_dot;
+// 	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
+// 	CalculateB(B, DN_DX);
+//  	CalculateNodalApparentViscosity(grad_sym_vel, gamma_dot, B, mu, m_coef);
+// 
+// 	const double & app_mu0  = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
+// 	const double & app_mu1  = GetGeometry()[1].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
+// 	const double & app_mu2  = GetGeometry()[2].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);	
+// 	
+// 	ms_adv_vel[0] += DN_DX(0, 0) * app_mu0 + DN_DX(1, 0) * app_mu1 + DN_DX(2, 0) * app_mu2 ;
+// 	ms_adv_vel[1] += DN_DX(0, 1) * app_mu0 + DN_DX(1, 1) * app_mu1 + DN_DX(2, 1) * app_mu2;
+
+	
+	//calculate convective term
+// 	int nodes_number = 3;
+// 	int dof = 2;
 	int matsize = dof*nodes_number;
 
 	boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
@@ -707,14 +727,14 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    shape_func(column, 0) = N[ii];
 	    shape_func(column + 1, 1) = shape_func(column, 0);
 	}
-	//build (a.grad V)(ro*a.grad U) stabilization term & assemble
+	//build (a.grad V)(ro*a.grad U) stabilization term & assemble and  //build (a.grad V)(ro*grad nu.grad U) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > adv_stblterm = ZeroMatrix(matsize, matsize);
 	adv_stblterm = tauone * prod(trans(conv_opr), conv_opr);
 
 
-	double density;
-	double mu;
-	calculatedensity(GetGeometry(), density, mu);
+// 	double density;
+// 	double mu;
+// 	calculatedensity(GetGeometry(), density, mu);
 
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int row = ii * (dof + 1);
@@ -769,36 +789,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    F[index + 1] += area * fbd_stblterm[loc_index + 1];
 	}
 	
-// 	//build (a.grad V)(ro*grad nu.grad U) stabilization term & assemble
-// 	boost::numeric::ublas::bounded_matrix<double, 2, 6 > visc_opr = ZeroMatrix(dof, matsize);
-// 
-// 	for (int ii = 0; ii < nodes_number; ii++) {
-// 	    int column = ii*dof;
-// 	    visc_opr(0, column) = DN_DX(ii, 0) * ms_adv_vel[0] + DN_DX(ii, 1) * ms_adv_vel[1];
-// 	    visc_opr(1, column + 1) = visc_opr(0, column);
-// 
-// 	}
-// 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > visc_stblterm = ZeroMatrix(matsize, matsize);
-// 	visc_stblterm = tauone * prod(trans(conv_opr), visc_opr);
-// 
-// 
-// 	double density;
-// 	double mu;
-// 	calculatedensity(GetGeometry(), density, mu);
-// 
-// 	for (int ii = 0; ii < nodes_number; ii++) {
-// 	    int row = ii * (dof + 1);
-// 	    int loc_row = ii*dof;
-// 	    for (int jj = 0; jj < nodes_number; jj++) {
-// 		int column = jj * (dof + 1);
-// 		int loc_column = jj*dof;
-// 
-// 		K(row, column) += area * density * adv_stblterm(loc_row, loc_column);
-// 		K(row, column + 1) += area * density * adv_stblterm(loc_row, loc_column + 1);
-// 		K(row + 1, column) += area * density * adv_stblterm(loc_row + 1, loc_column);
-// 		K(row + 1, column + 1) += area * density * adv_stblterm(loc_row + 1, loc_column + 1);
-// 	    }
-// 	}
+
 	KRATOS_CATCH("")
     }
     //************************************************************************************

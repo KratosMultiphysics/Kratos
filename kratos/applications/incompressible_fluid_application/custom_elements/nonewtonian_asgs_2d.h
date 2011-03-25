@@ -255,7 +255,7 @@ namespace Kratos
 	///Calculate the following stabilization terms:  \f$  (a \nabla w, \nabla \cdot u) \f$ 
       virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
 	///Calculate the following stabilization terms:  \f$  (a \nabla w, a \nabla w \nabla p + f) \f$  and \f$  (\nabla q, a \nabla u ) \f$
-      virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double time,const double area);
+      virtual void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double thawone,const double timeconst, double m,const double area);
 	///Calculate the following stabilization terms:  \f$  (\nabla q, \nabla p + f) \f$ 
       virtual void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double area);
 	///Add body forces to the lhs
