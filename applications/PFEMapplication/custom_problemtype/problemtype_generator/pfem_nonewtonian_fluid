@@ -5,12 +5,9 @@ USE PYTHON SCRIPTS pfem_nonewtonian_scripts # ... but include my scripts from th
 VECTOR CONDITION DISPLACEMENT 		point line surface volume fixed 0.0 0.0 0.0
 VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
 VECTOR CONDITION MESH_VELOCITY     	point line surface volume free 0.0 0.0 0.0
-#VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
-SCALAR CONDITION INTERNAL_FRICTION_ANGLE point line surface volume free  1.0
+#SCALAR CONDITION INTERNAL_FRICTION_ANGLE point line surface volume free  1.0
 SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
-#SCALAR CONDITION VISCOSITY     	point line surface volume free  0.000001
-#SCALAR CONDITION DENSITY     		point line surface volume free  1.0
 
 FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0
 FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
@@ -23,23 +20,23 @@ FACE CONDITION Condition3D surface
 FACE CONDITION Fluid2DNeumann line
 FACE CONDITION Fluid3DNeumann surface 
 
-ELEMENT Fluid2D surface
-ELEMENT ASGS2D surface
 ELEMENT NoNewtonianASGS2D surface
+ELEMENT CouetteNonNewtonianASGS2D surface
 ELEMENT NoNewtonianASGS3D volume
-ELEMENT Fluid3D volume 
-ELEMENT ASGS3D volume
-ELEMENT Fluid2DCoupled surface
-ELEMENT Fluid3DCoupled volume 
+
+#OPTION 2D_Body_Element surface NoNewtonianASGS2D
+#OPTION 3D_Body_Element volume NoNewtonianASGS3D
 
 PROPERTY Density 1000.0 Density
 PROPERTY Viscosity 0.000001 Viscosity
 PROPERTY Gravity_X 0.0 Gravity_X
 PROPERTY Gravity_Y -9.806 Gravity_Y
 PROPERTY Gravity_Z 0.0 Gravity_Z
-PROPERTY YieldStress 1.0 YieldStress
+PROPERTY Friction_Angle_Tangent 1.0 Friction_Angle_Tangent
+PROPERTY Yield_Stress 1.0 Yield_Stress
+PROPERTY m_coef 3000.0 m_coef
 
-#PROPERTY max_time 100.0 max_time
+PROPERTY max_time 10.0 max_time
 PROPERTY max_x 10.0 max_x
 PROPERTY max_y 10.0 max_y
 PROPERTY max_z 10.0 max_z
@@ -47,15 +44,15 @@ PROPERTY min_x -1.0 min_x
 PROPERTY min_y -1.0 min_y
 PROPERTY min_z -1.0 min_z
 PROPERTY use_oss 0 use_oss
-PROPERTY dynamic_tau 1 dynamic_tau
-PROPERTY nsteps 100 nsteps
+PROPERTY dynamic_tau 1.0 dynamic_tau
+#PROPERTY nsteps 100 nsteps
 PROPERTY output_dt 0.1 output_Dt
 PROPERTY min_dt 0.001 min_dt
 PROPERTY max_dt 0.1 max_dt
 PROPERTY safety_factor 0.5 safety_factor
 
 #PROPERTY SolverType "pfem_solver_ale" "monolithic_solver_lagrangian" SolverType # remember to put the text between " " !
-TEXT FLAG PROPERTY SolverType pfem_solver_ale monolithic_solver_lagrangian SolverType # remember to put the text between " " !
+#TEXT FLAG PROPERTY SolverType pfem_solver_ale monolithic_solver_lagrangian SolverType # remember to put the text between " " !
 PROPERTY laplacian_form 3 laplacian_form
 
 DEFINE MODEL PART WallBoundary point line surface LOWER
