@@ -683,33 +683,33 @@ namespace Kratos {
 		}
 	    }
 
-	    //find the max diagonal term
-	    double max_diag = 0.0;
-	    for (int i_node = 0; i_node < n_nodes; i_node++) {
-		double L_diag = mL(i_node, i_node);
-		if (fabs(L_diag) > fabs(max_diag)) max_diag = L_diag;
-	    }
+// 	    //find the max diagonal term
+// 	    double max_diag = 0.0;
+// 	    for (int i_node = 0; i_node < n_nodes; i_node++) {
+// 		double L_diag = mL(i_node, i_node);
+// 		if (fabs(L_diag) > fabs(max_diag)) max_diag = L_diag;
+// 	    }
 
 
 
 
 	    //respect pressure boundary conditions by penalization
-//            double huge = max_diag * 1e6;
-//            for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
-//                unsigned int i_node = mPressureOutletList[i_pressure];
-//                mL(i_node, i_node) = huge;
-//                rhs[i_node] = 0.0;
-//            }
-	    for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
-		unsigned int i_node = mPressureOutletList[i_pressure];
-		mL(i_node, i_node) = max_diag;
-		rhs[i_node] = 0.0;
-		for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-		{
-		    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-		    mL(i_node, j_neighbour) = 0.0;
-		}
-	    }
+            double huge = 1e20;
+           for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
+               unsigned int i_node = mPressureOutletList[i_pressure];
+               mL(i_node, i_node) = huge;
+               rhs[i_node] = 0.0;
+           }
+// 	    for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
+// 		unsigned int i_node = mPressureOutletList[i_pressure];
+// 		mL(i_node, i_node) = max_diag;
+// 		rhs[i_node] = 0.0;
+// 		for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+// 		{
+// 		    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+// 		    mL(i_node, j_neighbour) = 0.0;
+// 		}
+// 	    }
 
 	    //set starting vector for iterative solvers
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
