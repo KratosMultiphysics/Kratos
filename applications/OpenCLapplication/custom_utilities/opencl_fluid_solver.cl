@@ -578,7 +578,7 @@ __kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdi
 //
 // Part of ComputeWallResistance
 
-__kernel void ComputeWallResistance(const IndexType slip_size)
+__kernel void ComputeWallResistance(__global VectorType *vel, __global VectorType *rhs, __global VectorType *mSlipNormal, __global IndexType *mSlipBoundaryList, ValueType density, ValueType mu, ValueType ym, const IndexType slip_size)
 {
 	// Get work item index
 	const size_t i_slip = get_global_id(0);
@@ -588,34 +588,15 @@ __kernel void ComputeWallResistance(const IndexType slip_size)
 	{
 		ValueType k = 0.41;
 		ValueType B = 5.1;
-		//double density = mRho;
-		//double mu = mViscosity;
 		ValueType toll = 1e-6;
-		//double ym = mY_wall;
 		ValueType y_plus_incercept = 10.9931899;
 		IndexType itmax = 100;
-
 		IndexType i_node = mSlipBoundaryList[i_slip];
-		//unsigned int i_node = mSlipBoundaryList[i_slip];
-
-		//array_1d<double, TDim>& rhs_i = rhs[i_node];
-		//const array_1d<double, TDim>& U_i = vel[i_node];
-		//const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
-
 		VectorType U_i = vel[i_node];
-		//VectorType an_i = mSlipNormal[i_node];
 
 		// Compute the modulus of the velocity
 		ValueType mod_vel = KRATOS_OCL_LENGTH3(U_i);
 		ValueType area = KRATOS_OCL_LENGTH3(mSlipNormal[i_node]);
-
-		//for (unsigned int comp = 0; comp < TDim; comp++)
-		//{
-			//mod_vel += U_i[comp] * U_i[comp];
-			//area += an_i[comp] * an_i[comp];
-		//}
-		//mod_vel = sqrt(mod_vel);
-		//area = sqrt(area);
 
 		// Now compute the skin friction
 		ValueType mod_uthaw = sqrt(mod_vel * mu / ym);
@@ -637,19 +618,11 @@ __kernel void ComputeWallResistance(const IndexType slip_size)
 				mod_uthaw -= dx;
 				it++;
 			}
-
-			//if (it == itmax)
-			//{
-				//std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
-			//}
 		}
 
 		if (mod_vel > 1e-12)
 		{
 			rhs[i_node] -= U_i * area * mod_uthaw * mod_uthaw * density / mod_vel;
-			//for (unsigned int comp = 0; comp < TDim; comp++)
-			//{
-				//rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
-			//}
 		}
+	}
 }
