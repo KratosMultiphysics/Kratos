@@ -54,24 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // OpenCL kernels and functions used in opencl_edge_data.h
 
 
-// TODO: Use mad()
-
-
-//
-// Safe method for enabling 64 bit floating point OpenCL extension (doubles) on both ATI and nVidia platforms
-
-//
-// Try enabling the AMD version first
-
-#pragma OPENCL EXTENSION cl_amd_fp64: enable
-
-#ifndef cl_amd_fp64
-
-	// Failed, probably we are not on an ATI platform, so try Khronos version
-
-	#pragma OPENCL EXTENSION cl_khr_fp64: enable
-
-#endif
+#include "opencl_enable_fp64.cl"
 
 
 //

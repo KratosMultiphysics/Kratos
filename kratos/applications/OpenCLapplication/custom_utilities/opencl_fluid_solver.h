@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
+#include "viennacl/linalg/bicgstab.hpp"
 
 // TODO: Remove unneeded ones
 //#include "includes/node.h"
@@ -148,9 +149,14 @@ namespace Kratos
 				mpOpenCLFluidSolver = mrDeviceGroup.BuildProgramFromFile("opencl_fluid_solver.cl", "-cl-fast-relaxed-math");
 
 				// Register kernels
+				mkAddVectorInplace = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "AddVectorInplace");
+				mkSubVectorInplace = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SubVectorInplace");
+
 				mkSolveStep1_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_1");
 				mkSolveStep1_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep1_2");
 				mkSolveStep2_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep2_1");
+				mkSolveStep2_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep2_2");
+				mkSolveStep3_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep3_1");
 
 				mkCalculateRHS = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "CalculateRHS");
 			}
@@ -382,7 +388,7 @@ namespace Kratos
 					double vel_norm = Norm2_3(mvel_n1[i_node]);
 
 
-					//use CFL condition to compute time step size
+					// Use CFL condition to compute time step size
 					double delta_t_i = CFLNumber / (2.00 * vel_norm / hmin_i + 4.00 * mViscosity / (hmin_i * hmin_i));
 					double delta_t_i_avg = 1.00 / (2.00 * vel_norm / havg_i + 4.00 * mViscosity / (havg_i * havg_i));
 
@@ -742,76 +748,23 @@ namespace Kratos
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_1, n_nodes);
 
+
+				if (muse_mass_correction == true)
+				{
+					// Calling SubVectorInplace OpenCL kernel
+
+					// Setting arguments
+					mrDeviceGroup.SetKernelArg(mkSubVectorInplace, 0, rhs_GPU.handle());
+					mrDeviceGroup.SetBufferAsKernelArg(mkSubVectorInplace, 1, mbdiv_error);
+					mrDeviceGroup.SetKernelArg(mkSubVectorInplace, 2, n_nodes);
+
+					// Execute OpenCL kernel
+					mrDeviceGroup.ExecuteKernel(mkSubVectorInplace, n_nodes);
+				}
+
+				// TODO: Fix this part after modifications of Riccardo
+
 /*
-				#pragma omp parallel for firstprivate(time_inv)
-				for (int i_node = 0; i_node < n_nodes; i_node++) {
-
-				double& rhs_i = rhs[i_node];
-				rhs_i = 0.0;
-				const double& p_i = mPn1[i_node];
-				const double& p_old_i = mPn[i_node];
-				const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-
-				array_1d<double, TDim>& xi_i = mXi[i_node];
-
-				double l_ii = 0.0;
-
-				//loop over all neighbours
-				for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-					const double& p_j = mPn1[j_neighbour];
-					const double& p_old_j = mPn[j_neighbour];
-					const array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
-					const array_1d<double, TDim>& xi_j = mXi[j_neighbour];
-
-					CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-		#ifdef SYMM_PRESS
-					double edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
-		#else
-					double edge_tau = mTauPressure[i_node];
-		#endif
-
-
-
-					//compute laplacian operator
-					double sum_l_ikjk;
-					edge_ij.CalculateScalarLaplacian(sum_l_ikjk);
-					double sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
-					sum_l_ikjk *= (delta_t + edge_tau);
-
-					//assemble right-hand side
-					//pressure contribution
-					rhs_i -= sum_l_ikjk * (p_j - p_i);
-					rhs_i += sum_l_ikjk_onlydt * (p_old_j - p_old_i);
-
-
-					//calculating the divergence of the fract vel
-					edge_ij.Sub_D_v(rhs_i, U_i_curr*mRho, U_j_curr * mRho);
-
-					//high order stabilizing term
-					double temp = 0.0;
-					edge_ij.Add_div_v(temp, xi_i, xi_j);
-					rhs_i += edge_tau * temp;
-
-					//assemble laplacian matrix
-					mL(i_node, j_neighbour) = sum_l_ikjk;
-					l_ii -= sum_l_ikjk;
-				}
-
-				mL(i_node, i_node) = l_ii;
-				}
-
-				if(muse_mass_correction == true)
-				{
-				#pragma omp parallel for
-				for (int i_node = 0; i_node < n_nodes; i_node++)
-				{
-					double& rhs_i = rhs[i_node];
-					rhs_i -= mdiv_error[i_node];
-				}
-				}
-
 				//find the max diagonal term
 				double max_diag = 0.0;
 				for (int i_node = 0; i_node < n_nodes; i_node++) {
@@ -819,75 +772,62 @@ namespace Kratos
 				if (fabs(L_diag) > fabs(max_diag)) max_diag = L_diag;
 				}
 
-
-
-
-				//respect pressure boundary conditions by penalization
-		//            double huge = max_diag * 1e6;
-		//            for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
-		//                unsigned int i_node = mPressureOutletList[i_pressure];
-		//                mL(i_node, i_node) = huge;
-		//                rhs[i_node] = 0.0;
-		//            }
-				for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
-				unsigned int i_node = mPressureOutletList[i_pressure];
-				mL(i_node, i_node) = max_diag;
-				rhs[i_node] = 0.0;
-				for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+				for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++)
 				{
-					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-					mL(i_node, j_neighbour) = 0.0;
-				}
-				}
-
-				//set starting vector for iterative solvers
-				for (int i_node = 0; i_node < n_nodes; i_node++)
-				dp[i_node] = 0.0;
-
-				pLinearSolver->Solve(mL, dp, rhs);
-				KRATOS_WATCH(*pLinearSolver)
-
-
-				//update pressure
-				for (int i_node = 0; i_node < n_nodes; i_node++)
-				mPn1[i_node] += dp[i_node];
-
-				//write pressure and density to Kratos
-				mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes);
-
-
-				//compute pressure proj for the next step
-
-				#pragma omp parallel for firstprivate(time_inv), private(work_array)
-				for (int i_node = 0; i_node < n_nodes; i_node++) {
-				array_1d<double, TDim>& xi_i = mXi[i_node];
-				for (unsigned int comp = 0; comp < TDim; comp++)
-					xi_i[comp] = 0.0;
-
-
-					const double& p_i = mPn1[i_node];
-
-					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-					//get global index of neighbouring node j
-					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-
-						const double& p_j = mPn1[j_neighbour];
-
-						//projection of pressure gradients
-						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-						edge_ij.Add_grad_p(xi_i, p_i, p_j);
+					unsigned int i_node = mPressureOutletList[i_pressure];
+					mL(i_node, i_node) = max_diag;
+					rhs[i_node] = 0.0;
+					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+					{
+						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+						mL(i_node, j_neighbour) = 0.0;
 					}
-
-					const double& m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-					for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					xi_i[l_comp] *= m_inv;
-
-
 				}
-
-				mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes);
 */
+				// TODO: Is this a good thing to do?
+				// TODO: Maybe we do not need this the way ViennaCL solver is used
+
+				// Set starting vector for iterative solvers
+				dp_GPU.clear();
+
+				// Calling the ViennaCL solver
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());
+
+				// Update pressure
+
+				// Calling AddVectorInplace OpenCL kernel
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkAddVectorInplace, 0, mbPn1);
+				mrDeviceGroup.SetKernelArg(mkAddVectorInplace, 1, dp_GPU.handle());
+				mrDeviceGroup.SetKernelArg(mkAddVectorInplace, 2, n_nodes);
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkAddVectorInplace, n_nodes);
+
+				// Write pressure and density to Kratos
+				mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes, mbPn1);
+
+				// Compute pressure proj for the next step
+
+				// Calling SolveStep2_2 OpenCL kernel
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 0, mbXi);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 1, mbPn1);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 2, mr_matrix_container.GetRowStartIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 3, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetImageAsKernelArg(mkSolveStep2_2, 4, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 5, mr_matrix_container.GetInvertedMassBuffer());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 6, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep2_2, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep2_2][0] + 1) * sizeof(cl_uint));
+
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkSolveStep2_2, n_nodes);
+
+				mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
+
 				KRATOS_CATCH("")
 			}
 
@@ -898,90 +838,58 @@ namespace Kratos
 
 			void SolveStep3()
 			{
-/*
 				KRATOS_TRY
 
-				//get number of nodes
 				ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
 
-				// TODO: Is this OK?
-				//int n_nodes = rNodes.size();
-
-				//define work array
-				array_1d<double, TDim> correction;
-				//read time step size from Kratos
-				ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+				// Read time step size from Kratos
+				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 				double delta_t = CurrentProcessInfo[DELTA_TIME];
 
 				double factor = 0.5;
-				if(massume_constant_dp == true)
-				factor = 1.0;
 
-				//compute end of step momentum
-				double rho_inv = 1.0 / mRho;
-				#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv,factor)
-				for (int i_node = 0; i_node < n_nodes; i_node++) {
-
-					array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-					double delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv*factor;
-					const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-
-					//setting to zero
-					for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-					correction[l_comp] = 0.0;
-
-					//compute edge contributions dt*M^(-1)Gp
-					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-					unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-					double delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv*factor;
-
-					CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-					edge_ij.Sub_grad_p(correction, delta_p_i, delta_p_j);
-					}
-					//compute prefactor
-					double coefficient = delta_t * m_inv;
-
-					//correct fractional momentum
-					for (unsigned int comp = 0; comp < TDim; comp++)
-					U_i_curr[comp] += coefficient * correction[comp];
-
+				if (massume_constant_dp == true)
+				{
+					factor = 1.00;
 				}
 
-				ApplyVelocityBC(mvel_n1);
+				// Compute end of step momentum
+				double rho_inv = 1.00 / mRho;
+
+				// Calling SolveStep3_1 OpenCL kernel
+
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_1, 0, mbvel_n1);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_1, 1, mbPn);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_1, 2, mbPn1);
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_1, 3, mr_matrix_container.GetRowStartIndexBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_1, 4, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetImageAsKernelArg(mkSolveStep3_1, 5, mr_matrix_container.GetEdgeValuesBuffer());
+				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_1, 6, mr_matrix_container.GetInvertedMassBuffer());
+				mrDeviceGroup.SetKernelArg(mkSolveStep3_1, 7, rho_inv);
+				mrDeviceGroup.SetKernelArg(mkSolveStep3_1, 8, factor);
+				mrDeviceGroup.SetKernelArg(mkSolveStep3_1, 9, delta_t);
+				mrDeviceGroup.SetKernelArg(mkSolveStep3_1, 10, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_1, 11, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_1][0] + 1) * sizeof(cl_uint));
+
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkSolveStep3_1, n_nodes);
+
+				ApplyVelocityBC(mbvel_n1);
 
 				//write velocity of time step n+1 to Kratos
-				mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
+				mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
-
-
-				//calculate the error on the divergence
-				if(muse_mass_correction == true)
+/*
+				// Calculate the error on the divergence
+				if (muse_mass_correction == true)
 				{
 				#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
-				for (int i_node = 0; i_node < n_nodes; i_node++)
-				{
-					double& div_i_err = mdiv_error[i_node];
-					div_i_err = 0.0;
-
-					const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-
-					//compute edge contributions dt*M^(-1)Gp
-					for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-					{
-						unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-						array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
-
-						CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-						edge_ij.Add_D_v(div_i_err, U_i_curr*mRho, U_j_curr * mRho);
-					}
 
 				}
-				}
-
-				KRATOS_CATCH("")
 */
+				KRATOS_CATCH("")
 			}
 
 			//
@@ -1002,7 +910,7 @@ namespace Kratos
 				unsigned int itmax = 100;
 
 				if (mu == 0)
-				KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+				KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with zero viscosity", "");
 
 				//slip condition
 				int slip_size = mSlipBoundaryList.size();
@@ -1196,7 +1104,7 @@ namespace Kratos
 			OpenCL::DeviceGroup &mrDeviceGroup;
 			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbrhs;
 
-			cl_uint mpOpenCLFluidSolver, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkCalculateRHS;
+			cl_uint mpOpenCLFluidSolver, mkAddVectorInplace, mkSubVectorInplace, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkSolveStep2_2, mkSolveStep3_1, mkCalculateRHS;
 
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
