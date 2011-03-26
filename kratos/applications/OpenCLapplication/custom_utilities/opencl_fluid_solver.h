@@ -157,8 +157,11 @@ namespace Kratos
 				mkSolveStep2_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep2_1");
 				mkSolveStep2_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep2_2");
 				mkSolveStep3_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep3_1");
+				mkSolveStep3_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SolveStep3_2");
 
 				mkCalculateRHS = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "CalculateRHS");
+
+				mkComputeWallResistance = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ComputeWallResistance");
 			}
 
 			//
@@ -878,17 +881,30 @@ namespace Kratos
 
 				ApplyVelocityBC(mbvel_n1);
 
-				//write velocity of time step n+1 to Kratos
+				// Write velocity of time step n+1 to Kratos
 				mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
-/*
+
 				// Calculate the error on the divergence
 				if (muse_mass_correction == true)
 				{
-				#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
+					// Calling SolveStep3_2 OpenCL kernel
 
+					// Setting arguments
+					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 0, mbvel_n1);
+					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 1, mbdiv_error);
+					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 3, mr_matrix_container.GetRowStartIndexBuffer());
+					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 4, mr_matrix_container.GetColumnIndexBuffer());
+					mrDeviceGroup.SetImageAsKernelArg(mkSolveStep3_2, 5, mr_matrix_container.GetEdgeValuesBuffer());
+					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 6, mRho);
+					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 7, n_nodes);
+					mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_2, 8, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_2][0] + 1) * sizeof(cl_uint));
+
+
+					// Execute OpenCL kernel
+					mrDeviceGroup.ExecuteKernel(mkSolveStep3_2, n_nodes);
 				}
-*/
+
 				KRATOS_CATCH("")
 			}
 
@@ -898,15 +914,12 @@ namespace Kratos
 
 			void ComputeWallResistance(cl_uint vel_buffer, cl_uint rhs_buffer)
 			{
-/*				// Parameters:
-				double k = 0.41;
-				double B = 5.1;
+				// Parameters:
 				double density = mRho;
 				double mu = mViscosity;
-				double toll = 1e-6;
 				double ym = mY_wall;
-				double y_plus_incercept = 10.9931899;
-				unsigned int itmax = 100;
+
+				unsigned int slip_size = mSlipBoundaryListLength;
 
 				if (mu == 0)
 				{
@@ -914,63 +927,23 @@ namespace Kratos
 				}
 
 				// Slip condition
-				int slip_size = mSlipBoundaryListLength;  //mSlipBoundaryList.size();
-				#pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
-				for (int i_slip = 0; i_slip < slip_size; i_slip++)
-				{
-					unsigned int i_node = mSlipBoundaryList[i_slip];
 
-					array_1d<double, TDim>& rhs_i = rhs[i_node];
-					const array_1d<double, TDim>& U_i = vel[i_node];
-					const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+				// Calling ComputeWallResistance OpenCL kernel
 
-					// Compute the modulus of the velocity
-					double mod_vel = 0.0;
-					double area = 0.0;
-					for (unsigned int comp = 0; comp < TDim; comp++)
-					{
-						mod_vel += U_i[comp] * U_i[comp];
-						area += an_i[comp] * an_i[comp];
-					}
-					mod_vel = sqrt(mod_vel);
-					area = sqrt(area);
+				// Setting arguments
+				mrDeviceGroup.SetBufferAsKernelArg(mkComputeWallResistance, 0, vel_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkComputeWallResistance, 1, rhs_buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkComputeWallResistance, 2, mbSlipNormal);
+				mrDeviceGroup.SetBufferAsKernelArg(mkComputeWallResistance, 3, mbSlipBoundaryList);
+				mrDeviceGroup.SetKernelArg(mkComputeWallResistance, 4, density);
+				mrDeviceGroup.SetKernelArg(mkComputeWallResistance, 5, mu);
+				mrDeviceGroup.SetKernelArg(mkComputeWallResistance, 6, ym);
+				mrDeviceGroup.SetKernelArg(mkComputeWallResistance, 7, slip_size);
 
-					// Now compute the skin friction
-					double mod_uthaw = sqrt(mod_vel * mu / ym);
-					const double y_plus = ym * mod_uthaw / mu;
 
-					if (y_plus > y_plus_incercept)
-					{
-						// Begin cycle to calculate the real u_thaw's module
-						unsigned int it = 0;
-						double dx = 1e10;
-
-						while (fabs(dx) > toll * mod_uthaw && it < itmax)
-						{
-							double a = 1.0 / k;
-							double temp = a * log(ym * mod_uthaw / mu) + B;
-							double y = mod_uthaw * (temp) - mod_vel;
-							double y1 = temp + a;
-							dx = y / y1;
-							mod_uthaw -= dx;
-							it = it + 1;
-						}
-
-						if (it == itmax)
-						{
-							std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
-						}
-					}
-
-					if (mod_vel > 1e-12)
-					{
-						for (unsigned int comp = 0; comp < TDim; comp++)
-						{
-							rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
-						}
-					}
-				}
-*/			}
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkSolveStep3_1, slip_size);
+			}
 
             //
             // CalculateNormals
@@ -1094,9 +1067,9 @@ namespace Kratos
 
 			// OpenCL stuff
 			OpenCL::DeviceGroup &mrDeviceGroup;
-			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbrhs;
+			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbSlipBoundaryList, mbrhs;
 
-			cl_uint mpOpenCLFluidSolver, mkAddVectorInplace, mkSubVectorInplace, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkSolveStep2_2, mkSolveStep3_1, mkCalculateRHS;
+			cl_uint mpOpenCLFluidSolver, mkAddVectorInplace, mkSubVectorInplace, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkSolveStep2_2, mkSolveStep3_1, mkSolveStep3_2, mkCalculateRHS, mkComputeWallResistance;
 
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
