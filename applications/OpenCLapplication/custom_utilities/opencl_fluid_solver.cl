@@ -58,6 +58,40 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 //
+// AddVectorInplace
+//
+// Adds Vec2 to Vec1, putting the result in Vec1
+
+__kernel void AddVectorInplace(__global ValueType *Vec1, __global ValueType *Vec2, const IndexType n)
+{
+	// Get work item index
+	const size_t i = get_global_id(0);
+
+	// Check if we are in the range
+	if (i < n)
+	{
+		Vec1[i] += Vec2[i];
+	}
+}
+
+//
+// SubVectorInplace
+//
+// Subtracts Vec2 from Vec1, putting the result in Vec1
+
+__kernel void SubVectorInplace(__global ValueType *Vec1, __global ValueType *Vec2, const IndexType n)
+{
+	// Get work item index
+	const size_t i = get_global_id(0);
+
+	// Check if we are in the range
+	if (i < n)
+	{
+		Vec1[i] -= Vec2[i];
+	}
+}
+
+//
 // SolveStep1_1
 //
 // Part of SolveStep1
@@ -319,206 +353,147 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 //
 // Part of SolveStep2
 
+__kernel void SolveStep2_2(__global VectorType *mXi, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		VectorType Temp_Xi_i_node = 0.00;
+		ValueType p_i = mPn1[i_node];
+
+		// Loop over all neighbours
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			// Get global index of neighbouring node j
+			IndexType j_neighbour = ColumnIndex[csr_index];
+			ValueType p_j = mPn1[j_neighbour];
+
+			// Projection of pressure gradients
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
+			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
+
+			Add_grad_p(Ni_DNj, &Temp_Xi_i_node, p_i, p_j);
+		}
+
+		mXi[i_node] = Temp_Xi_i_node * InvertedMass[i_node];
+	}
+}
+
+//
+// SolveStep3_1
+//
+// Part of SolveStep3
+
+__kernel void SolveStep3_1(__global VectorType *mvel_n1, __global ValueType *mPn, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, ValueType rho_inv, ValueType factor, ValueType delta_t, const IndexType n_nodes, __local IndexType *Bounds)
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		VectorType correction = 0.00;
+		ValueType delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv * factor;
+
+		// Compute edge contributions dt * M ^ (-1) Gp
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			// Get global index of neighbouring node j
+			IndexType j_neighbour = ColumnIndex[csr_index];
+			ValueType delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv * factor;
+
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
+			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
+
+			Sub_grad_p(Ni_DNj, &correction, delta_p_i,  delta_p_j);
+		}
+
+		// Correct fractional momentum
+		mvel_n1[i_node] += delta_t * InvertedMass[i_node] * correction;
+	}
+}
+
+//
+// SolveStep3_2
+//
+// Part of SolveStep3
+
+__kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdiv_error, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, ValueType mRho, const IndexType n_nodes, __local IndexType *Bounds)
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		ValueType Temp_div_i_err = 0.00;
+		VectorType U_i_curr = mvel_n1[i_node];
+
+		// Compute edge contributions dt * M ^ (-1) Gp
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			IndexType j_neighbour = ColumnIndex[csr_index];
+			VectorType U_j_curr = mvel_n1[j_neighbour];
+
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
+			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
+
+			Add_D_v(Ni_DNj, &Temp_div_i_err, U_i_curr * mRho, U_j_curr * mRho);
+		}
+
+		mdiv_error[i_node] = Temp_div_i_err;
+	}
+}
+
 /*
-	void SolveStep2(typename TLinearSolver::Pointer pLinearSolver) {
-	    KRATOS_TRY
-
-	    //PREREQUISITES
-
-	    //allocate memory for variables
-	    ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-	    int n_nodes = rNodes.size();
-	    //unknown and right-hand side vector
-	    TSystemVectorType dp, rhs;
-	    dp.resize(n_nodes);
-	    rhs.resize(n_nodes);
-	    array_1d<double, TDim> dU_i, dU_j, work_array;
-	    //read time step size from Kratos
-	    ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-	    double delta_t = CurrentProcessInfo[DELTA_TIME];
-
-#ifdef _OPENMP
-	    double time_inv = 0.0; //1.0/delta_t;
-
-	    //read the pressure projection from the database
-#endif
-	    mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
-	    mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes);
-	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
-
-	    #pragma omp parallel for firstprivate(time_inv)
-	    for (int i_node = 0; i_node < n_nodes; i_node++) {
-
-		// First loop was here!
-
-	    if(muse_mass_correction == true)
-	    {
-		#pragma omp parallel for
-		for (int i_node = 0; i_node < n_nodes; i_node++)
-		{
-		    double& rhs_i = rhs[i_node];
-		    rhs_i -= mdiv_error[i_node];
-		}
-	    }
-
-	    //find the max diagonal term
-	    double max_diag = 0.0;
-	    for (int i_node = 0; i_node < n_nodes; i_node++) {
-		double L_diag = mL(i_node, i_node);
-		if (fabs(L_diag) > fabs(max_diag)) max_diag = L_diag;
-	    }
-
-	    for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
-		unsigned int i_node = mPressureOutletList[i_pressure];
-		mL(i_node, i_node) = max_diag;
-		rhs[i_node] = 0.0;
-		for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-		{
-		    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-		    mL(i_node, j_neighbour) = 0.0;
-		}
-	    }
-
-	    //set starting vector for iterative solvers
-	    for (int i_node = 0; i_node < n_nodes; i_node++)
-		dp[i_node] = 0.0;
-
-	    pLinearSolver->Solve(mL, dp, rhs);
-	    KRATOS_WATCH(*pLinearSolver)
-
-
-	    //update pressure
-	    for (int i_node = 0; i_node < n_nodes; i_node++)
-		mPn1[i_node] += dp[i_node];
-
-	    //write pressure and density to Kratos
-	    mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes);
-
-
-	    //compute pressure proj for the next step
-
-	    #pragma omp parallel for firstprivate(time_inv), private(work_array)
-	    for (int i_node = 0; i_node < n_nodes; i_node++) {
-		array_1d<double, TDim>& xi_i = mXi[i_node];
-		for (unsigned int comp = 0; comp < TDim; comp++)
-		    xi_i[comp] = 0.0;
-
-
-		    const double& p_i = mPn1[i_node];
-
-		    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-			//get global index of neighbouring node j
-			unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-
-			    const double& p_j = mPn1[j_neighbour];
-
-			    //projection of pressure gradients
-			    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-			    edge_ij.Add_grad_p(xi_i, p_i, p_j);
-		    }
-
-		    const double& m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-		    for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-			xi_i[l_comp] *= m_inv;
-
-
-	    }
-
-	    mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes);
-
-	    KRATOS_CATCH("")
-	}
-
-	//**********************************************************************************
-	//function to solve fluid equations - fractional step 3: correct fractional momentum
-
-	void SolveStep3() {
-	    KRATOS_TRY
-	    //get number of nodes
-	    ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-
-	    int n_nodes = rNodes.size();
-
-	    //define work array
-	    array_1d<double, TDim> correction;
-	    //read time step size from Kratos
-	    ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-	    double delta_t = CurrentProcessInfo[DELTA_TIME];
-
-	    double factor = 0.5;
-	    if(massume_constant_dp == true)
-		factor = 1.0;
-
-	    //compute end of step momentum
-	    double rho_inv = 1.0 / mRho;
-	    #pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv,factor)
-	    for (int i_node = 0; i_node < n_nodes; i_node++) {
-
-		    array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-		    double delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv*factor;
-		    const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-
-		    //setting to zero
-		    for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-			correction[l_comp] = 0.0;
-
-		    //compute edge contributions dt*M^(-1)Gp
-		    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-			unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-			double delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv*factor;
-
-			CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-			edge_ij.Sub_grad_p(correction, delta_p_i, delta_p_j);
-		    }
-		    //compute prefactor
-		    double coefficient = delta_t * m_inv;
-
-		    //correct fractional momentum
-		    for (unsigned int comp = 0; comp < TDim; comp++)
-			U_i_curr[comp] += coefficient * correction[comp];
-
-	    }
-
-	    ApplyVelocityBC(mvel_n1);
-
-	    //write velocity of time step n+1 to Kratos
-	    mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
-
-
-
-	    //calculate the error on the divergence
-	    if(muse_mass_correction == true)
-	    {
-		#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
-		for (int i_node = 0; i_node < n_nodes; i_node++)
-		{
-		    double& div_i_err = mdiv_error[i_node];
-		    div_i_err = 0.0;
-
-			const array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
-
-			//compute edge contributions dt*M^(-1)Gp
-			for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-			{
-			    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-			    array_1d<double, TDim>& U_j_curr = mvel_n1[j_neighbour];
-
-			    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-
-			    edge_ij.Add_D_v(div_i_err, U_i_curr*mRho, U_j_curr * mRho);
-			}
-
-		}
-	    }
-
-	    KRATOS_CATCH("")
-	}
-
-
-	//************************************
-
 	void ApplyVelocityBC(CalcVectorType& VelArray) {
 	    KRATOS_TRY
 
