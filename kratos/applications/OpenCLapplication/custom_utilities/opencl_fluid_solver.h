@@ -898,87 +898,79 @@ namespace Kratos
 
 			void ComputeWallResistance(cl_uint vel_buffer, cl_uint rhs_buffer)
 			{
-/*
-				//parameters:
+/*				// Parameters:
 				double k = 0.41;
 				double B = 5.1;
 				double density = mRho;
 				double mu = mViscosity;
 				double toll = 1e-6;
-				double ym = mY_wall; //0.0825877; //0.0093823
+				double ym = mY_wall;
 				double y_plus_incercept = 10.9931899;
 				unsigned int itmax = 100;
 
 				if (mu == 0)
-				KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with zero viscosity", "");
+				{
+					KRATOS_ERROR(std::logic_error, "It is not possible to use the wall law with zero viscosity", "");
+				}
 
-				//slip condition
-				int slip_size = mSlipBoundaryList.size();
-		#pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
+				// Slip condition
+				int slip_size = mSlipBoundaryListLength;  //mSlipBoundaryList.size();
+				#pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
 				for (int i_slip = 0; i_slip < slip_size; i_slip++)
 				{
-				unsigned int i_node = mSlipBoundaryList[i_slip];
+					unsigned int i_node = mSlipBoundaryList[i_slip];
 
 					array_1d<double, TDim>& rhs_i = rhs[i_node];
 					const array_1d<double, TDim>& U_i = vel[i_node];
 					const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
 
-					//compute the modulus of the velocity
+					// Compute the modulus of the velocity
 					double mod_vel = 0.0;
 					double area = 0.0;
 					for (unsigned int comp = 0; comp < TDim; comp++)
 					{
-					mod_vel += U_i[comp] * U_i[comp];
-					area += an_i[comp] * an_i[comp];
+						mod_vel += U_i[comp] * U_i[comp];
+						area += an_i[comp] * an_i[comp];
 					}
 					mod_vel = sqrt(mod_vel);
 					area = sqrt(area);
 
-					//now compute the skin friction
+					// Now compute the skin friction
 					double mod_uthaw = sqrt(mod_vel * mu / ym);
 					const double y_plus = ym * mod_uthaw / mu;
 
 					if (y_plus > y_plus_incercept)
 					{
-					//begin cicle to calculate the real u_thaw's module:
-					unsigned int it = 0;
-					double dx = 1e10;
-					//                        KRATOS_WATCH(fabs(dx));
-					while (fabs(dx) > toll * mod_uthaw && it < itmax)
-					{
-						double a = 1.0 / k;
-						double temp = a * log(ym * mod_uthaw / mu) + B;
-						double y = mod_uthaw * (temp) - mod_vel;
-						double y1 = temp + a;
-						dx = y / y1;
-						mod_uthaw -= dx;
-						it = it + 1;
+						// Begin cycle to calculate the real u_thaw's module
+						unsigned int it = 0;
+						double dx = 1e10;
+
+						while (fabs(dx) > toll * mod_uthaw && it < itmax)
+						{
+							double a = 1.0 / k;
+							double temp = a * log(ym * mod_uthaw / mu) + B;
+							double y = mod_uthaw * (temp) - mod_vel;
+							double y1 = temp + a;
+							dx = y / y1;
+							mod_uthaw -= dx;
+							it = it + 1;
+						}
+
+						if (it == itmax)
+						{
+							std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
+						}
 					}
-
-					//                         KRATOS_WATCH(toll*mod_uthaw);
-					//                         KRATOS_WATCH(area);
-					//                        KRATOS_WATCH(it);
-					if (it == itmax)
-						std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
-
-
-					}
-					//                    else
-					//                    {
-					//                        for (unsigned int comp = 0; comp < TDim; comp++)
-					//                            rhs_i[comp] -= U_i[comp] * area * mu  / (density*ym) ;
-					//                    }
 
 					if (mod_vel > 1e-12)
-					for (unsigned int comp = 0; comp < TDim; comp++)
-						rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
-
-
-
-
+					{
+						for (unsigned int comp = 0; comp < TDim; comp++)
+						{
+							rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+						}
+					}
 				}
-*/
-			}
+*/			}
 
             //
             // CalculateNormals

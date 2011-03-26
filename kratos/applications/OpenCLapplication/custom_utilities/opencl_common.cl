@@ -43,73 +43,74 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: mossaiby $
-//   Date:                $Date: 2010-09-30 18:26:51 $
+//   Date:                $Date: 2011-03-20 00:42:01 $
 //   Revision:            $Revision: 1.00 $
 //
 //
 
 //
-// opencl_edge_data.cl
+// opencl_common.cl
 //
-// OpenCL kernels and functions used in opencl_edge_data.h
+// OpenCL common kernels and functions
 
 
-#include "opencl_common.cl"
+// Include guard, we do not need this more than once
+
+#ifndef KRATOS_OPENCL_COMMON_CL_INCLUDED
+
+#define KRATOS_OPENCL_COMMON_CL_INCLUDED
 
 
-// TODO: Optimize kernels (vectorize, use built-in functions, avoid excessive use of __global data)
+#include "opencl_enable_fp64.cl"
 
-// Common kernels
 
 //
-// SetToZero
-//
-// Zeros a vector
+// OpenCL 1.0 adjustment
 
-__kernel void SetToZero(__global ValueType *Vector, const IndexType n)
+#if KRATOS_OCL_VERSION < 110
+
+typedef double4 double3;
+
+#endif
+
+
+//
+// Fast math macros
+
+// Currently these are not supported on GPUs
+
+#ifdef __CPU__
+
+	#define KRATOS_OCL_DIVIDE(x, y)			native_divide(x, y)
+	#define KRATOS_OCL_RECIP(x)				native_recip(x)
+	#define KRATOS_OCL_SQRT(x)				native_sqrt(x)
+
+#else
+
+	#define KRATOS_OCL_DIVIDE(x, y)			((x) / (y))
+	#define KRATOS_OCL_RECIP(x)				(1.00 / (x))
+	#define KRATOS_OCL_SQRT(x)				sqrt(x)
+
+#endif
+
+//
+// OpenCL defines length() as length of the vector, so if we use double4 instead of double3, we have to take care of this
+
+inline double length3(double4 x)
 {
-	// Get work item index
-	const size_t id = get_global_id(0);
+	double4 t = x;
+	t.s3 = 0.00;
 
-	// Check if we are in the range
-	if (id < n)
-	{
-		Vector[id] = 0.00;
-	}
+	return KRATOS_OCL_SQRT(dot(t, t));
 }
 
-//
-// Add_Minv_value1
-//
-// DestinationVector = Origin1Vector + Value * MinvVector * OriginVector
-// double version
+#if KRATOS_OCL_VERSION < 110
+	#define KRATOS_OCL_LENGTH3(x)			length3(x)
+	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z, 0.00))
+#else
+	#define KRATOS_OCL_LENGTH3(x)			length(x)
+	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z))
+#endif
 
-__kernel void Add_Minv_value1(__global ValueType *DestinationVector, __global ValueType *Origin1Vector, const ValueType Value, __global ValueType *MinvVector, __global ValueType *OriginVector, const IndexType n)
-{
-	// Get work item index
-	const size_t id = get_global_id(0);
 
-	// Check if we are in the range
-	if (id < n)
-	{
-		DestinationVector[id] = Origin1Vector[id] + Value * MinvVector[id] * OriginVector[id];
-	}
-}
-
-//
-// Add_Minv_value3
-//
-// DestinationVector = Origin1Vector + Value * MinvVector * OriginVector
-// double3 version
-
-__kernel void Add_Minv_value3(__global VectorType *DestinationVector, __global VectorType *Origin1Vector, const ValueType Value, __global VectorType *MinvVector, __global VectorType *OriginVector, const IndexType n)
-{
-	// Get work item index
-	const size_t id = get_global_id(0);
-
-	// Check if we are in the range
-	if (id < n)
-	{
-		DestinationVector[id] = Origin1Vector[id] + Value * MinvVector[id] * OriginVector[id];
-	}
-}
+#endif  // KRATOS_OPENCL_COMMON_CL_INCLUDED

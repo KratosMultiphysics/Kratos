@@ -54,17 +54,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // OpenCL kernels and functions used in opencl_edge_data.h
 
 
-#include "opencl_enable_fp64.cl"
+// Include guard, we do not need this more than once
+
+#ifndef KRATOS_OPENCL_EDGE_DATA_COMMON_CL_INCLUDED
+
+#define KRATOS_OPENCL_EDGE_DATA_COMMON_CL_INCLUDED
 
 
-//
-// OpenCL 1.0 adjustment
-
-#if KRATOS_OCL_VERSION < 110
-
-typedef double4 double3;
-
-#endif
+#include "opencl_common.cl"
 
 
 //
@@ -96,25 +93,6 @@ typedef double4 double3;
 
 
 //
-// Fast math macros
-
-// Currently these are not supported on GPUs
-
-#ifdef __CPU__
-
-	#define KRATOS_OCL_DIVIDE(x, y)			native_divide(x, y)
-	#define KRATOS_OCL_RECIP(x)				native_recip(x)
-	#define KRATOS_OCL_SQRT(x)				native_sqrt(x)
-
-#else
-
-	#define KRATOS_OCL_DIVIDE(x, y)			((x) / (y))
-	#define KRATOS_OCL_RECIP(x)				(1.00 / (x))
-	#define KRATOS_OCL_SQRT(x)				sqrt(x)
-
-#endif
-
-//
 // Used types
 
 typedef unsigned int IndexType;
@@ -124,26 +102,6 @@ typedef double3 VectorType;
 typedef double ValueType;
 
 typedef double16 EdgeType;
-
-
-//
-// OpenCL defines length() as length of the vector, so if we use double4 instead of double3, we have to take care of this
-
-inline ValueType length3(double4 x)
-{
-	double4 t = x;
-	t.s3 = 0.00;
-
-	return KRATOS_OCL_SQRT(dot(t, t));
-}
-
-#if KRATOS_OCL_VERSION < 110
-	#define KRATOS_OCL_LENGTH3(x)			length3(x)
-	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z, 0.00))
-#else
-	#define KRATOS_OCL_LENGTH3(x)			length(x)
-	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z))
-#endif
 
 
 //
@@ -431,3 +389,6 @@ inline void Sub_ViscousContribution(const ValueType LaplacianIJ_0_0, const Value
 	// destination[l_comp] -= nu_i * L * (U_j[l_comp] - U_i[l_comp])
 	*destination -= nu_i * (LaplacianIJ_0_0 + LaplacianIJ_1_1 + LaplacianIJ_2_2) * (U_j - U_i);
 }
+
+
+#endif  // KRATOS_OPENCL_EDGE_DATA_COMMON_CL_INCLUDED
