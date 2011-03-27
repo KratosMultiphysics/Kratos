@@ -353,7 +353,36 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 //
 // Part of SolveStep2
 
-__kernel void SolveStep2_2(__global VectorType *mXi, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
+__kernel void SolveStep2_2(__global IndexType *mPressureOutletList, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global ValueType *mL_Values, __global ValueType *rhs, const IndexType mPressureOutletListLength)
+{
+	// Get work item index
+	const size_t i_pressure = get_global_id(0);
+
+	// Check if we are in the range
+	if (i_pressure < mPressureOutletListLength)
+	{
+		IndexType i_node = mPressureOutletList[i_pressure];
+
+		// RHS
+		rhs[i_node] = 0.00;
+
+		for (IndexType i = RowStartIndex[i_node]; i < RowStartIndex[i_node + 1]; i++)
+		{
+			if (ColumnIndex[i] == i_node)
+			{
+				// Diagonal element
+				mL_Values[i] = 1e20;  // A huge value
+			}
+		}
+	}
+}
+
+//
+// SolveStep2_3
+//
+// Part of SolveStep2
+
+__kernel void SolveStep2_3(__global VectorType *mXi, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -493,85 +522,81 @@ __kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdi
 	}
 }
 
-/*
-	void ApplyVelocityBC(CalcVectorType& VelArray) {
-	    KRATOS_TRY
+//
+// ApplyVelocityBC_1
+//
+// Part of ApplyVelocityBC
 
+__kernel void ApplyVelocityBC_1(__global VectorType *VelArray, __global VectorType *medge_nodes_direction, __global IndexType *medge_nodes, const IndexType medge_nodes_directionListLength)
+{
+	// Get work item index
+	const size_t i = get_global_id(0);
 
-	    if(mWallLawIsActive == false)
-	    {
-		//apply conditions on corner edges
-		int edge_size = medge_nodes_direction.size();
-		#pragma omp parallel for firstprivate(edge_size)
-		for (int i = 0; i < edge_size; i++)
-		{
-		    int i_node = medge_nodes[i];
-		    const array_1d<double, TDim>& direction = medge_nodes_direction[i];
-			array_1d<double, TDim>& U_i = VelArray[i_node];
-			double temp=0.0;
-			for (unsigned int comp = 0; comp < TDim; comp++)
-			    temp += U_i[comp] * direction[comp];
+	// Check if we are in the range
+	if (i < medge_nodes_directionListLength)
+	{
+		IndexType i_node = medge_nodes[i];
+		VectorType direction = medge_nodes_direction[i];
 
-			for (unsigned int comp = 0; comp < TDim; comp++)
-			    U_i[comp] = direction[comp]*temp;
-
-		}
-
-		//apply conditions on corners
-		int corner_size = mcorner_nodes.size();
-		for (int i = 0; i < corner_size; i++)
-		{
-		    int i_node = mcorner_nodes[i];
-
-		    array_1d<double, TDim>& U_i = VelArray[i_node];
-			for (unsigned int comp = 0; comp < TDim; comp++)
-			    U_i[comp] = 0.0;
-		}
-	    }
-
-
-	    //slip condition
-	    int slip_size = mSlipBoundaryList.size();
-	    #pragma omp parallel for firstprivate(slip_size)
-	    for (int i_slip = 0; i_slip < slip_size; i_slip++)
-	    {
-		unsigned int i_node = mSlipBoundaryList[i_slip];
-		    array_1d<double, TDim>& U_i = VelArray[i_node];
-		    array_1d<double, TDim>& an_i = mSlipNormal[i_node];
-		    double projection_length = 0.0;
-		    double normalization = 0.0;
-		    for (unsigned int comp = 0; comp < TDim; comp++) {
-			projection_length += U_i[comp] * an_i[comp];
-			normalization += an_i[comp] * an_i[comp];
-		    }
-		    projection_length /= normalization;
-		    //tangential momentum as difference between original and normal momentum
-		    for (unsigned int comp = 0; comp < TDim; comp++)
-			U_i[comp] -= projection_length * an_i[comp];
-
-	    }
-
-	    //fixed condition
-	    int fixed_size = mFixedVelocities.size();
-	    #pragma omp parallel for firstprivate(fixed_size)
-	    for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
-	    {
-		unsigned int i_node = mFixedVelocities[i_velocity];
-
-		    const array_1d<double, TDim>& u_i_fix = mFixedVelocitiesValues[i_velocity];
-		    array_1d<double, TDim>& u_i = VelArray[i_node];
-
-		    for (unsigned int comp = 0; comp < TDim; comp++)
-			u_i[comp] = u_i_fix[comp];
-
-	    }
-
-
-
-	    KRATOS_CATCH("")
+		// TODO: Can this be optimized?
+		VelArray[i_node] = dot(VelArray[i_node], direction) * direction;
 	}
+}
 
-*/
+//
+// ApplyVelocityBC_2
+//
+// Part of ApplyVelocityBC
+
+__kernel void ApplyVelocityBC_2(__global VectorType *VelArray, __global IndexType *mcorner_nodes, const IndexType mcorner_nodesListLength)
+{
+	// Get work item index
+	const size_t i = get_global_id(0);
+
+	// Check if we are in the range
+	if (i < mcorner_nodesListLength)
+	{
+		VelArray[mcorner_nodes[i]] = 0.00;
+	}
+}
+
+//
+// ApplyVelocityBC_3
+//
+// Part of ApplyVelocityBC
+
+__kernel void ApplyVelocityBC_3(__global VectorType *VelArray, __global VectorType *mSlipNormal, __global IndexType *mSlipBoundaryList, const IndexType mSlipBoundaryListLength)
+{
+	// Get work item index
+	const size_t i_slip = get_global_id(0);
+
+	// Check if we are in the range
+	if (i_slip < mSlipBoundaryListLength)
+	{
+		IndexType i_node = mSlipBoundaryList[i_slip];
+		VectorType an_i = mSlipNormal[i_node];
+
+		// Tangential momentum as difference between original and normal momentum
+		VelArray[i_node] -= (dot(VelArray[i_node], an_i) / dot(an_i, an_i)) * an_i;
+	}
+}
+
+//
+// ApplyVelocityBC_4
+//
+// Part of ApplyVelocityBC
+
+__kernel void ApplyVelocityBC_4(__global VectorType *VelArray, __global VectorType *mFixedVelocitiesValues, __global IndexType *mFixedVelocities, const IndexType mFixedVelocitiesListLength)
+{
+	// Get work item index
+	const size_t i_velocity = get_global_id(0);
+
+	// Check if we are in the range
+	if (i_velocity < mFixedVelocitiesListLength)
+	{
+		VelArray[mFixedVelocities[i_velocity]] = mFixedVelocitiesValues[i_velocity];
+	}
+}
 
 //
 // ComputeWallResistance
