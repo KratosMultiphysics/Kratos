@@ -96,7 +96,7 @@ namespace Kratos
 			typedef cl_double3 *CalcVectorType;
 			typedef cl_double *ValuesVectorType;
 
-			// TODO: Check for effect of alignment in GPU types
+			// TODO: Check for effect of alignment in GPU types while optimizing the performance
 
 			typedef CompressedMatrix HostMatrixType;
 			typedef viennacl::compressed_matrix <double> DeviceMatrixType;
@@ -145,8 +145,25 @@ namespace Kratos
 
 				mWallLawIsActive = false;
 
-				// Loading OpenCL program
-				mpOpenCLFluidSolver = mrDeviceGroup.BuildProgramFromFile("opencl_fluid_solver.cl", "-cl-fast-relaxed-math");
+				// Loading OpenCL program and defining appropriate macros
+				// TODO: Remove if not needed (also remove in .cl file)
+				mpOpenCLFluidSolver = mrDeviceGroup.BuildProgramFromFile(
+					"opencl_fluid_solver.cl",
+					"-cl-fast-relaxed-math"
+
+#ifdef SPLIT_OSS
+
+					" -DSPLIT_OSS"
+
+#endif
+
+#ifdef SYMM_PRESS
+
+					" -DSYMM_PRESS"
+
+#endif
+
+				);
 
 				// Register kernels
 				mkAddVectorInplace = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "AddVectorInplace");
@@ -235,7 +252,7 @@ namespace Kratos
 				mbHmin = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 				mbHavg = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
-				mbNodalFlag = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+				mbNodalFlag = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);  // TODO: Not used properly
 
 				mbTauPressure = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 				mbTauConvection = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
@@ -453,7 +470,7 @@ namespace Kratos
                 ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
                 mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
-                unsigned int fixed_size = mFixedVelocitiesListLength; // TODO: Is this OK? Why firstprivate? //mFixedVelocities.size();
+                unsigned int fixed_size = mFixedVelocitiesListLength; // TODO: Why firstprivate? //mFixedVelocities.size();
 
                 #pragma omp parallel for firstprivate(fixed_size)
                 for (unsigned int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
@@ -693,7 +710,7 @@ namespace Kratos
             //
             // Function to solve fluid equations - fractional step 2: calculate pressure
 
-			void SolveStep2()  // TODO: Fix this! (typename TLinearSolver::Pointer pLinearSolver)
+			void SolveStep2()  // TODO: Fix this! Should we get the linear solver as an argument? //typename TLinearSolver::Pointer pLinearSolver
 			{
 
 				KRATOS_TRY
@@ -701,15 +718,13 @@ namespace Kratos
 				// Prerequisites
 
 				// Allocate memory for variables
-				ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-				//int n_nodes = rNodes.size();
-				//unknown and right-hand side vector
-				//TSystemVectorType dp, rhs;
+				ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
+
 				// TODO: Do the resize inside the Initialize
 				//dp.resize(n_nodes);
 				//rhs.resize(n_nodes);
-				//array_1d<double, TDim> dU_i, dU_j, work_array;
-				//read time step size from Kratos
+
+				// Read time step size from Kratos
 				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 				double delta_t = CurrentProcessInfo[DELTA_TIME];
 
@@ -774,17 +789,15 @@ namespace Kratos
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_2, mPressureOutletListLength);
 
-//*mPressureOutletList, *RowStartIndex, *ColumnIndex, *mL_Values, *rhs, mPressureOutletListLength
 
-
-				// TODO: Is this a good thing to do?
-				// TODO: Maybe we do not need this the way ViennaCL solver is used
+				// TODO: Is this a good thing to do? Can we start from last dp instead?
+				// TODO: Maybe we do not need this, because of the way ViennaCL solver is used
 
 				// Set starting vector for iterative solvers
 				dp_GPU.clear();
 
 				// Calling the ViennaCL solver
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
 
 				// Update pressure
 
@@ -1016,7 +1029,7 @@ namespace Kratos
 				KRATOS_TRY
 
 				// TODO: Fix these! Copy from Initialize
-				// TODO: mL and GPU counterpart
+				// TODO: mL, dp, rhs and their GPU counterparts
 
 				/*mWork.clear();
 				mvel_n.clear();
@@ -1112,7 +1125,7 @@ namespace Kratos
 			ValuesVectorType mNodalFlag;
 
 			// Lists of nodes with different types of boundary conditions
-			IndicesVectorType mSlipBoundaryList, mPressureOutletList, mFixedVelocitiesList;  // TODO: These are all used on GPU, try to avoid using std::vector
+			IndicesVectorType mSlipBoundaryList, mPressureOutletList, mFixedVelocitiesList;
 			CalcVectorType mFixedVelocitiesValuesList;
 
 			unsigned int mSlipBoundaryListLength, mPressureOutletListLength, mFixedVelocitiesListLength;
@@ -1145,9 +1158,9 @@ namespace Kratos
 			ValuesVectorType mBeta;
 
 			// Variables for edge BCs
-			IndicesVectorType medge_nodesList;  // TODO: Fix this!
-			CalcVectorType medge_nodes_directionList;  // TODO: Is this OK?
-			IndicesVectorType mcorner_nodesList;  // TODO: Fix this!
+			IndicesVectorType medge_nodesList;
+			CalcVectorType medge_nodes_directionList;
+			IndicesVectorType mcorner_nodesList;
 
 			unsigned int medge_nodesListLength, medge_nodes_directionListLength, mcorner_nodesListLength;
 
