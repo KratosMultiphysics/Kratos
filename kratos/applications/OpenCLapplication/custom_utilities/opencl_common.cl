@@ -117,11 +117,15 @@ inline double length3(double4 x)
 }
 
 #if KRATOS_OCL_VERSION < 110
+
 	#define KRATOS_OCL_LENGTH3(x)			length3(x)
 	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z, 0.00))
+
 #else
+
 	#define KRATOS_OCL_LENGTH3(x)			length(x)
 	#define KRATOS_OCL_VECTOR3(x, y, z)		((VectorType)(x, y, z))
+
 #endif
 
 

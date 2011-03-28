@@ -107,6 +107,7 @@ __kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_
 		double h_avg_i = mHavg[i_node];
 		double vel_norm = KRATOS_OCL_LENGTH3(mvel_n1[i_node]);
 
+		// TODO: Optimize this
 		mTauPressure[i_node] = 1.00 / (2.00 * vel_norm / h_avg_i + mstabdt_pressure_factor * time_inv_avg + (4.00 * mViscosity) / (h_avg_i * h_avg_i));
 		mTauConvection[i_node] = 1.00 / (2.00 * vel_norm / h_avg_i + mstabdt_convection_factor * time_inv_avg + (4.00 * mViscosity) / (h_avg_i * h_avg_i));
 		mTau2[i_node] = (mViscosity + h_avg_i * vel_norm * 0.5) * mtau2_factor;
@@ -223,7 +224,7 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 			VectorType stab_high;
 
 			CalculateConvectionStabilization_LOW(Lij0, Lij1, Lij2, &stab_low, a_i, U_i, U_j);
-			CalculateConvectionStabilization_HIGH(Ni_DNj, &stab_high, a_i, pi_i, pi_j);  // TODO: Move this upward to use less registers!
+			CalculateConvectionStabilization_HIGH(Ni_DNj, &stab_high, a_i, pi_i, pi_j);
 
 			Sub_StabContribution(&Temp_rhs_i_node, edge_tau, 1.00, stab_low, stab_high);
 		}
@@ -270,8 +271,6 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 		ValueType l_ii = 0.00;
 
-		// TODO: Get this flag dynamically from host if needed
-
 #ifndef SYMM_PRESS
 
 			ValueType edge_tau = mTauPressure[i_node];
@@ -305,8 +304,6 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge));
 			VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge));
 
-			// TODO: Get this flag dynamically from host if needed
-
 #ifdef SYMM_PRESS
 
 			ValueType edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
@@ -317,7 +314,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			ValueType sum_l_ikjk;
 			CalculateScalarLaplacian(Lij0.x, Lij1.y, Lij2.z, &sum_l_ikjk);
 
-			ValueType sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
+			ValueType sum_l_ikjk_onlydt = sum_l_ikjk * delta_t;
 			sum_l_ikjk *= (delta_t + edge_tau);
 
 			// Assemble right-hand side
@@ -538,7 +535,6 @@ __kernel void ApplyVelocityBC_1(__global VectorType *VelArray, __global VectorTy
 		IndexType i_node = medge_nodes[i];
 		VectorType direction = medge_nodes_direction[i];
 
-		// TODO: Can this be optimized?
 		VelArray[i_node] = dot(VelArray[i_node], direction) * direction;
 	}
 }

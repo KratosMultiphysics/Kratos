@@ -57,8 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "opencl_common.cl"
 
 
-// TODO: Optimize kernels (vectorize, use built-in functions, avoid excessive use of __global data)
-
 // Common kernels
 
 //
