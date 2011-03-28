@@ -153,6 +153,7 @@ namespace Kratos
         CalculateCellSize(mObjectsSize);  // Calculate number of Cells
         AllocateContainer();              // Allocate cell list
         GenerateBins();                   // Fill Cells with objects
+
       }
      
       BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
@@ -185,9 +186,12 @@ namespace Kratos
       /// Destructor.
       virtual ~BinsObjectDynamic(){}
       
+     
+     
 //************************************************************************   
 //************************************************************************
-     
+
+
  SizeType SearchObjects(PointerType& ThisObject, ResultIteratorType& Result,  const SizeType& MaxNumberOfResults )
     {
       PointType Low, High;      
@@ -1135,16 +1139,41 @@ namespace Kratos
       ///@}    
       ///@name Un accessible methods 
       ///@{ 
+      ///@} 
       
       
+      public:
       /// Assignment operator.
-      BinsObjectDynamic& operator=(BinsObjectDynamic const& rOther){}
+      BinsObjectDynamic& operator=(const BinsObjectDynamic& rOther)
+      {
+	mMinPoint            = rOther.mMinPoint;     
+	mMaxPoint            = rOther.mMaxPoint;  
+	mObjectsBegin        = rOther.mObjectsBegin; 
+ 	mObjectsEnd          = rOther.mObjectsEnd; 
+	mObjectsSize         = rOther.mObjectsSize;  
+	mCellSize            = rOther.mCellSize;
+	mInvCellSize         = rOther.mInvCellSize; 
+	mN                   = rOther.mN; 
+	mCells               = rOther.mCells; 
+	return *this;
+      }
 
       /// Copy constructor.
-      BinsObjectDynamic(BinsObjectDynamic const& rOther){}
+      BinsObjectDynamic(const BinsObjectDynamic& rOther)
+      {
+	mMinPoint            = rOther.mMinPoint;     
+	mMaxPoint            = rOther.mMaxPoint;  
+	mObjectsBegin        = rOther.mObjectsBegin; 
+ 	mObjectsEnd          = rOther.mObjectsEnd; 
+	mObjectsSize         = rOther.mObjectsSize;  
+	mCellSize            = rOther.mCellSize;
+	mInvCellSize         = rOther.mInvCellSize; 
+	mN                   = rOther.mN; 
+	mCells               = rOther.mCells; 
+      }
 
         
-      ///@}    
+        
       
      
     }; // Class BinsObjectDynamic 
