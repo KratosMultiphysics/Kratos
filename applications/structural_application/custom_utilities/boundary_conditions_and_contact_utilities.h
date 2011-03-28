@@ -135,6 +135,13 @@ namespace Kratos
 	  array_1d<double,2 > mCenter;
 	  array_1d<double,2 > mDirection;
 
+	  void AssignPointsAndComputeParameters(array_1d<double,2 >& P0, array_1d<double,2 >& P1)
+	  {
+	    noalias(mP0) = P0;
+	    noalias(mP1) = P1;
+	    ComputeCenterDirectionExtent();
+	  }
+	  
 	  //--------------------------------------------------------------------------->
 	  void ComputeCenterDirectionExtent ()
 	  {
@@ -150,6 +157,35 @@ namespace Kratos
 	  {
 	     return mDirection[0]*vec[1] - mDirection[1]*vec[0];
 	  }
+	  
+	  inline double DistPoint2Segment2D(array_1d<double,2 >& rPoint)
+	  {
+	      array_1d<double,2 > diff = rPoint - this->mCenter;
+	      array_1d<double,2 > ClosestPoint1;
+	      array_1d<double,2 > ClosestPoint0; 
+	      double param = inner_prod(this->mDirection, diff);
+
+	      if (-this->mExtent < param)
+	      {
+	         if (param < this->mExtent)
+	          {
+	            ClosestPoint1 = this->mCenter + param * this->mDirection;
+	          }
+	      else
+	          {
+	           ClosestPoint1 = this->mP1;
+	          }
+	      }
+	      else
+	      {
+	          ClosestPoint1 = this->mP0;
+	      }
+
+	      ClosestPoint0 = rPoint;
+	      diff          = ClosestPoint1 - ClosestPoint0;
+	      return std::sqrt(inner_prod(diff, diff));
+
+	      }
 
 	};
 	  
@@ -333,6 +369,12 @@ namespace Kratos
 	    mr_model_part.AddProperties( tempProperties );
 
 	    
+	    array_1d<unsigned int, 2 >  Ids;       
+	    Near_Node  Near  =  no_near;
+	    bool corner      =  false; 
+	    std::vector<array_1d<unsigned int, 2 > > Ids_2;
+	    std::vector<Near_Node> Is_Near;
+	    
 	    for(IteratorContainerContactPair it_pair = mPairContacts.begin(); it_pair!= mPairContacts.end(); it_pair++)
 	        { 
 		  
@@ -359,24 +401,39 @@ namespace Kratos
 		     case(yes_nodes):
 		     {
 		       std::cout<< "yes_nodes" << std::endl;  
-		       array_1d<unsigned int, 2 >  Ids;       
-		       Near_Node  Near  =  no_near;
-		       bool corner      =  false; 
 		       for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			 unsigned int& id  = InsideNodes[in]; 
+			 
+			 KRATOS_WATCH(id)
+			 Ids[master] = 0;
+			 Ids[slave]  = 0;
 		         Near   = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);
 			 corner = Is_Corner(mr_model_part.Nodes()(Ids[slave]), mr_model_part.Nodes()(Ids[master])); 
 			 
+			 KRATOS_WATCH(Ids[master])
+			 KRATOS_WATCH(Ids[slave])
+			 
+
+			 
+			 
+			 if (Near==yes_near)
+			    std::cout<< "Is Near" << std::endl;
+			 else
+			    std::cout<< "Is Not Near" << std::endl;
+			 
+			 if (corner==true)
+			    std::cout<< "Is Corner" << std::endl;
+			 else
+			    std::cout<< "Is Not Corner" << std::endl;
+			 
+			 
+			 
 			 if(Near==yes_near && corner==true){
-			   std::cout<< "yes near " << std::endl;
 			   // contact node - to - node  
 			   CreatePointLinkingConditions(master, slave,  id, Ids, it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
 			 }
 			 
 			 else{
-			     std::cout<< "no near " << std::endl;
-			     //KRATOS_WATCH(Ids[master])
-			     //KRATOS_WATCH(Ids[slave])
 			     //KRATOS_WATCH(id)
 			     // contact node - to - segment
 			     CreateLinkingConditions(master, slave, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
@@ -390,12 +447,12 @@ namespace Kratos
 			    master = 1;
 			    slave  = 0; 
 			    NodeInside( (*it_pair)[master], (*it_pair)[slave], InsideNodes);
+			    std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
 			    for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			    unsigned int& id  = InsideNodes[in];   
-			    Near = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);  
-			    std::cout<< "no near " << std::endl;
-			    //KRATOS_WATCH(Ids[master])
-			    //KRATOS_WATCH(Ids[slave])
+			    //Near = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);  
+			    KRATOS_WATCH(Ids[master])
+			    KRATOS_WATCH(Ids[slave])
 			    //unsigned int& id  = InsideNodes[in]; 
 			    // contact node - to - segment
 			    if(Near==no_near)
@@ -410,32 +467,32 @@ namespace Kratos
 		     case(no_nodes):
 		     {    
 		        std::cout<< "no nodes " << std::endl;
-			std::vector<array_1d<unsigned int, 2 > > Ids;
-			std::vector<Near_Node> Is_Near;
 			
-		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids, Is_Near);
-		        for(unsigned int i = 0; i<Ids.size(); i++){   
+		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids_2, Is_Near);
+		        for(unsigned int i = 0; i<Ids_2.size(); i++){   
 			if(Is_Near[i]==yes_near){
 			  std::cout<< "yes_near " << std::endl;
-			  KRATOS_WATCH(Ids[i][master]) 
-			  KRATOS_WATCH(Ids[i][slave])
+			  KRATOS_WATCH(Ids_2[i][master]) 
+			  KRATOS_WATCH(Ids_2[i][slave])
 			    // contact node - to - node  
-			   CreatePointLinkingConditions(master, slave, Ids[i][slave], Ids[i], it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
+			   CreatePointLinkingConditions(master, slave, Ids_2[i][slave], Ids_2[i], it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
 			 }
 			 
 			 
 			 if(Is_Near[i]==no_near){  
 			     std::cout<< "no_near " << std::endl;
-			     KRATOS_WATCH(Ids[i][master]) 
-			     KRATOS_WATCH(Ids[i][slave])
+			     KRATOS_WATCH(Ids_2[i][master]) 
+			     KRATOS_WATCH(Ids_2[i][slave])
 			     // contact node - to - segment
-			     CreateLinkingConditions(master, slave, Ids[i], Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
+			     CreateLinkingConditions(master, slave, Ids_2[i], Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
 			    }
 			}
 			
 		        break;
 		       }
 		    }
+		    
+		    InsideNodes.clear();
 		} 
 		
 		      std::cout<<"     NUMBER OF INITIAL CONDITIONS    = " << rConditions.size() <<  std::endl; 
@@ -463,7 +520,7 @@ void CreatePointLinkingConditions(
 	 const unsigned int& InsideNodes,
 	 const array_1d<unsigned int, 2 >& Ids,
 	 const IteratorContainerContactPair& it_pair,
-	 const PropertiesType::Pointer tempProperties, 
+	 const PropertiesType::Pointer& tempProperties, 
 	 bool& initialize,
 	 unsigned int& Id,
 	 std::vector<unsigned int>& TotalInsideNodes,
@@ -647,7 +704,7 @@ void CreatePointLinkingConditions(
 	    double min   = (*std::min_element(Distance.begin(), Distance.end() ) );
 	    double ratio = std::fabs(min/max); 
 	    
-	    if(ratio < 1E-3)
+	    if(ratio < 1E-6)
                 return yes_near;
 	     
 	    return no_near; 
@@ -665,7 +722,7 @@ void CreatePointLinkingConditions(
          const array_1d<unsigned int, 2 >& Ids,   
 	 Exist_Node& Exist,
 	 const IteratorContainerContactPair& it_pair,
-	 const PropertiesType::Pointer tempProperties, 
+	 const PropertiesType::Pointer& tempProperties, 
 	 bool& initialize,
 	 unsigned int& Id,
 	 std::vector<unsigned int>& TotalInsideNodes,
@@ -783,21 +840,28 @@ bool LocateMasterSegment(unsigned int& segmento,
 	     { 
 	       case(yes_nodes):
 	       {
-		 std::cout<< "TEST A " << std::endl; 
+		std::cout<< "TEST A " << std::endl; 
 	       //el elemento tiene una sola condicion master
-	      if(neighb_cond.size()==1)
-	      {  What_Is = is_object;
+	        if(neighb_cond.size()==1)
+	        {  What_Is = is_object;
 	         segmento = 0;
 	         return true;
-	      } 
+	        } 
 		 
 	       std::cout<< "TEST B " << std::endl; 
+	       if(Test_One_B_Distances(segmento, SlaveNode, MasterObject)) 
+	        {
+		   What_Is = is_object;
+		   return true; 
+	        }
+		 
+	       std::cout<< "TEST C " << std::endl; 
 	       if(Test_One_B(segmento, SlaveNode, MasterNode)) 
 	          { 
 		    What_Is = is_node;
 		    return true;
 		  }
-	       std::cout<< "TEST C " << std::endl;	  
+	       std::cout<< "TEST D " << std::endl;	  
 	       if(Test_Three(segmento, SlaveNode, MasterObject)) 
 	          {
 		    What_Is = is_object;
@@ -1023,7 +1087,6 @@ bool Test_One_A(unsigned int& segmento,
 
 
 
-/// comparacion con desplazamientos
 bool Test_One_C(unsigned int& segmento,
 	       const NodePointerType& SlaveNode,
 	       const NodePointerType& MasterNode) 
@@ -1045,7 +1108,8 @@ bool Test_One_C(unsigned int& segmento,
   unsigned int II  = 1;
   unsigned int III = 1;
 
-  
+  KRATOS_WATCH(neighb_cond.size())
+  KRATOS_WATCH(neighb_cond_slave.size())
   for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
   {
       Condition::GeometryType& geom = cond_slave->GetGeometry();
@@ -1083,6 +1147,7 @@ bool Test_One_C(unsigned int& segmento,
          break;
   }  
 
+  std::cout<< "FINISHHHHHHHH" << std::endl;
   if (Points.size()!=0)
   {
      if (Points.size()==1){
@@ -1154,15 +1219,6 @@ bool Test_One_B(unsigned int& segmento,
   Points0(1)[0] = SlaveNode->X(); 
   Points0(1)[1] = SlaveNode->Y(); 
 
-
-  Points0.resize(2, false); 
-  Points1.resize(2, false);
-
-  Points0(0)[0] = SlaveNode->X();
-  Points0(0)[1] = SlaveNode->Y(); 
-  Points0(1)[0] = SlaveNode->X(); 
-  Points0(1)[1] = SlaveNode->Y(); 
-
  
   unsigned int JJ = 1; 
   for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++){
@@ -1216,6 +1272,74 @@ bool Test_One_B(unsigned int& segmento,
   KRATOS_CATCH("")
 }
 
+
+
+//Calculando distancias de puntos a segmentos 
+bool Test_One_B_Distances(unsigned int& segmento,
+	       const NodePointerType& SlaveNode,
+	       const PointerType& MasterObject) 
+{
+  
+  KRATOS_TRY   
+  
+  WeakPointerVector<Condition>& neighb_cond_master     = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
+
+  std::vector<unsigned int> segment;
+  unsigned int I       = 0;
+  segmento             = 0;
+
+     
+  std::vector<double>               Distances;   // punto de interseccion del segmento 
+  array_1d<double, 2>               Points0;
+  vector<array_1d<double, 2> >      Points1;
+    
+  Points1.resize(2, false);
+
+  Points0[0] = SlaveNode->X(); 
+  Points0[1] = SlaveNode->Y();
+  Segment2D Segment1;
+  
+  unsigned int JJ = 1; 
+  for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++){
+  Condition::GeometryType& geom_2 = cond->GetGeometry();
+	    
+    Points1(0)[0] = geom_2[0].X(); 
+    Points1(0)[1] = geom_2[0].Y();
+    Points1(1)[0] = geom_2[1].X();
+    Points1(1)[1] = geom_2[1].Y();
+    
+    Segment1.AssignPointsAndComputeParameters(Points1[0], Points1[1]);
+    Distances.push_back(Segment1.DistPoint2Segment2D(Points0));
+    segment.push_back(I);
+    
+    I++;
+    JJ++;
+    if(JJ>neighb_cond_master.size())
+       break;
+  }
+
+  
+  if (Distances.size()!=0)
+  {
+      if (Distances.size()==1){
+      segmento = segment[0];
+      }
+
+      else if (Distances.size()>1)
+      {     
+      std::vector<double>::iterator it;
+      int position  = 0; 
+      const double min   = (*std::min_element(Distances.begin(), Distances.end() ) );
+      it                 = std::find(Distances.begin(), Distances.end(), min);
+      position           = int(it-Distances.begin()); 
+      segmento           = segment[position];
+      }
+     return true;
+  }
+  
+  return false;
+  KRATOS_CATCH("")
+}
 
 /// para cercanos
 /// caso en que las aristas estan fuera
