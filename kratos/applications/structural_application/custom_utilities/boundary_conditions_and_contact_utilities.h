@@ -346,7 +346,9 @@ namespace Kratos
 	  
 	  //  caso en que un nodo este dentro de un elemento y al la vez fuera de otro
 	  bool CheckPenetrabilitySlaveNodeInOtherMasterElement(const NodePointerType& SlaveNode, 
-	                                                       const PointerType& SlaveObject)
+	                                                       const PointerType& SlaveObject,
+							       const PointerType& MasterObject
+	                                                       )
 	  {
 	      
 	      std::vector<unsigned int> segment;
@@ -358,10 +360,11 @@ namespace Kratos
               vector<array_1d<double, 2> >      Points1;
               array_1d<double, 2>               Point;
 	      
-              array_1d<double,3>& old_pos     = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);  
+              array_1d<double,3>& old_pos       = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);  
 	      ContainerType Result;
-	      //mBinsObjectDynamic.SearchObjectsInner(SlaveObject, Result);
+	      //mBinsObjectDynamic.SearchObjectsInner(SlaveObject,  Result);
 
+	      
 	      // Solo contacta con uno 
 	      if(Result.size()==1)
 		 return true;
@@ -381,11 +384,12 @@ namespace Kratos
 	      
 	      
 	      unsigned int JJ = 1;
-	      for( IteratorType it = Result.begin(); it!=Result.end(); it++)
-	      {  /*
+	      for(IteratorType it = Result.begin(); it!=Result.end(); it++)
+	      {  
 		JJ=1;
-	        WeakPointerVector<Condition>& it->GetValue(NEIGHBOUR_CONDITIONS);
-	        for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++){
+	        WeakPointerVector<Condition>& neighb_cond = (*it)->GetValue(NEIGHBOUR_CONDITIONS);
+		
+	        for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); cond++){
 	        Condition::GeometryType& geom_2 = cond->GetGeometry();
 
 	         Points1(0)[0] = geom_2[0].X(); 
@@ -397,15 +401,13 @@ namespace Kratos
 	           Points.push_back(Point); 
 	           segment.push_back(I);
 	            }
-	      JJ++;
-	      if(JJ>neighb_cond_master.size())
-	          break;
-	      }
-	        */
+	            
+	         JJ++;
+	         if(JJ>neighb_cond.size())
+	            break;
+	        }
 	       }
-	        
-	     }
-	      
+	      }
 	      return false;
 	  }
 	  
