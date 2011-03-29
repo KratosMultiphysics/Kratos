@@ -103,8 +103,8 @@ namespace Kratos
 	                          IndexType NewId, 
 				  GeometryType::Pointer pGeometry,  
                                   PropertiesType::Pointer pProperties,
-                                  Condition::Pointer Master, 
-                                  Condition::Pointer Slave
+                                  Condition::Pointer Slave, 
+                                  Condition::Pointer Master
                                   //Point<3>& MasterContactLocalPoint,
                                   //Point<3>& SlaveContactLocalPoint,
                                   //int SlaveIntegrationPointIndex
@@ -148,16 +148,19 @@ namespace Kratos
      Vector PointPointContactLink::NormalVector()
      {
        
-       //std::vector<array_1d<double, 3 > >    normales;
-       //array_1d<double, 3> e3            =   ZeroVector(3);
-       //array_1d<double, 3> t             =   ZeroVector(3);
+       std::vector<array_1d<double, 3 > >    normales;
+       array_1d<double, 3> e3            =   ZeroVector(3);
+       array_1d<double, 3> t             =   ZeroVector(3);
        array_1d<double, 3> Result        =   ZeroVector(3);
        
-       //e3[0] = 0.00; 
-       //e3[1] = 0.00; 
-       //e3[2] = 1.00;
+       e3[0] = 0.00; 
+       e3[1] = 0.00; 
+       e3[2] = 1.00;
        
-       //Condition::GeometryType& geom_master      = (GetValue(CONTACT_LINK_MASTER))->GetGeometry();
+       Condition::GeometryType& geom_master      = (GetValue(CONTACT_LINK_MASTER))->GetGeometry();
+       
+       /*
+       KRATOS_WATCH(geom_master[0].Id())
        Condition::GeometryType& geom_slave       = (GetValue(CONTACT_LINK_SLAVE))->GetGeometry();
        if (geom_slave[0].IsFixed(DISPLACEMENT_X) == true && geom_slave[0].IsFixed(DISPLACEMENT_Y) == true) 
               geom_slave       = (GetValue(CONTACT_LINK_MASTER))->GetGeometry();
@@ -173,12 +176,10 @@ namespace Kratos
        
        Points0[2] = 0.00;  
        Points1[2] = 0.00;  
+       */ 
        
        
-       
-       /*
        WeakPointerVector<Condition>& neighb_cond = geom_master[0].GetValue(NEIGHBOUR_CONDITIONS);
-       
        for(WeakPointerVector< Condition >::iterator cond  = neighb_cond.begin(); cond!= neighb_cond.end(); cond++){
 	    Condition::GeometryType& geom = cond->GetGeometry();
 	    t = geom[0] - geom[1];
@@ -190,12 +191,15 @@ namespace Kratos
        Result             =   ZeroVector(3);
        for(unsigned int i = 0; i<normales.size(); i++)
 	  noalias(Result) += normales[i];
-       */
+       
+//         for(unsigned int i = 0; i<normales.size(); i++)
+// 	     KRATOS_WATCH(normales[i])
        
        // sacando la normal promedio
-       noalias(Result) = Points0 - Points1;
-       const double inner = std::sqrt(inner_prod(Result,Result));
-       Result = (1.00 /inner)  * Result;            
+       //noalias(Result) = Points0 - Points1;
+       const double inner = 1.00 / std::sqrt(inner_prod(Result,Result));
+       Result =  inner * Result; 
+       //KRATOS_WATCH(Result)
        return Result;
        
      }
@@ -285,6 +289,7 @@ namespace Kratos
 	    rRightHandSideVector.resize(MatSize,false);
 	    noalias(rRightHandSideVector) = ZeroVector(MatSize); 
 	    Vector& lamdas = GetValue(LAMBDAS);
+	    
 	    Calculate(CONSTRAINT_VECTOR, Constraint, rCurrentProcessInfo);
 	    noalias(rRightHandSideVector) = -lamdas[0] * Constraint;    
         }
@@ -396,11 +401,12 @@ namespace Kratos
 	Output.resize(4, false);
 	Output            = ZeroVector(4);
 	Vector Normal     = NormalVector();
+        
 
-	Output[0] =   Normal[0]; // slave
-	Output[1] =   Normal[1];
-	Output[2] =  -Normal[0]; // master
-        Output[3] =  -Normal[1];
+	Output[0] =     Normal[0]; // slave
+	Output[1] =     Normal[1];
+	Output[2] =    -Normal[0]; // master
+        Output[3] =    -Normal[1];
       }
     }
     
