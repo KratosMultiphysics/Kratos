@@ -808,7 +808,7 @@ namespace Kratos
      }
 
     // Dimension = 2
-    void SearchObjectLocal(PointerType& ThisObject, ResultContainerType& Result, 
+    void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result, 
                           SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
        PointType  MinCell, MaxCell;
@@ -834,7 +834,7 @@ namespace Kratos
     } 
 
     // Dimension = 3
-    void SearchObjectLocal(PointerType& ThisObject, ResultContainerType& Result, 
+    void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result, 
                           SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
       PointType  MinCell, MaxCell;
@@ -1144,7 +1144,7 @@ namespace Kratos
       
       public:
       /// Assignment operator.
-      BinsObjectDynamic& operator=(const BinsObjectDynamic& rOther)
+      BinsObjectDynamic<TConfigure> & operator=(const BinsObjectDynamic<TConfigure> & rOther)
       {
 	mMinPoint            = rOther.mMinPoint;     
 	mMaxPoint            = rOther.mMaxPoint;  
@@ -1161,15 +1161,7 @@ namespace Kratos
       /// Copy constructor.
       BinsObjectDynamic(const BinsObjectDynamic& rOther)
       {
-	mMinPoint            = rOther.mMinPoint;     
-	mMaxPoint            = rOther.mMaxPoint;  
-	mObjectsBegin        = rOther.mObjectsBegin; 
- 	mObjectsEnd          = rOther.mObjectsEnd; 
-	mObjectsSize         = rOther.mObjectsSize;  
-	mCellSize            = rOther.mCellSize;
-	mInvCellSize         = rOther.mInvCellSize; 
-	mN                   = rOther.mN; 
-	mCells               = rOther.mCells; 
+        *this =  rOther;
       }
 
         
