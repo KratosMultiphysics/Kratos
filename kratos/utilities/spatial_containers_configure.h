@@ -116,15 +116,16 @@ class SpatialContainersConfigure
       ///@{
          
       enum { Dimension = TDimension };
-      typedef Point<Dimension, double>                            PointType;
-      typedef std::vector<double>::iterator                       DistanceIteratorType;
-      typedef ModelPart::ElementsContainerType::ContainerType     ContainerType;
-      //typedef ModelPart::ConditionsContainerType::ContainerType   ContainerType;
-      typedef ContainerType::value_type                           PointerType;
-      typedef ContainerType::iterator                             IteratorType; 
-      typedef ModelPart::ElementsContainerType::ContainerType     ResultContainerType;
-     // typedef ModelPart::ConditionsContainerType::ContainerType   ResultContainerType;    
-      typedef ContainerType::iterator                             ResultIteratorType; 
+      typedef Point<Dimension, double>                        PointType;
+      typedef std::vector<double>::iterator                   DistanceIteratorType;
+      typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
+      typedef ContainerType::value_type                       PointerType;
+      typedef ContainerType::iterator                         IteratorType; 
+      typedef ModelPart::ElementsContainerType::ContainerType ResultContainerType;
+      typedef ResultContainerType::value_type                 ResultPointerType;
+      typedef ResultContainerType::iterator                   ResultIteratorType; 
+      
+
       
       /// Contact Pairs
 //       typedef std::pair<PointerType, PointerType>            ContactPairType;
@@ -132,11 +133,14 @@ class SpatialContainersConfigure
 //       typedef std::vector<ContactPairType>::iterator         IteraratorContactType; 
       
       /// Contact Pairs
-      typedef ContactPair<PointerType>                       ContactPairType;
+      typedef ContactPair<PointerType>                        ContactPairType;
       //typedef array_1d<PointerType, 2>                       ContactPairType;
-      typedef std::vector<ContactPairType>                   ContainerContactType; 
-      typedef std::vector<ContactPairType>::iterator         IteratorContactType; 
-      
+      typedef  std::vector<ContactPairType>                   ContainerContactType; 
+      typedef  ContainerContactType::iterator                 IteratorContactType; 
+      typedef  ContainerContactType::value_type               PointerContactType; 
+      typedef  std::vector<PointerType>::iterator             PointerTypeIterator;
+
+     
       
         
       /// Pointer definition of SpatialContainersConfigure
