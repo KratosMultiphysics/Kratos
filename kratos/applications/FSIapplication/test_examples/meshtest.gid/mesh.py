@@ -130,11 +130,11 @@ destination_model_part = ModelPart("fluid_part")
 
 #############################################
 ##importing the solvers needed
-import incompressible_fluid_solver
+import fractional_step_solver
 import NonConformant_OneSideMap
 import structural_solver_dynamic
 
-incompressible_fluid_solver.AddVariables(destination_model_part)
+fractional_step_solver.AddVariables(destination_model_part)
 NonConformant_OneSideMap.AddVariables(destination_model_part,origin_model_part)
 structural_solver_dynamic.AddVariables(origin_model_part)
 
