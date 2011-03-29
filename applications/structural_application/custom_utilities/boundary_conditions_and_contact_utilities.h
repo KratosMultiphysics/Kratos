@@ -194,7 +194,9 @@ namespace Kratos
 	    
 	     
 	    /// Elements
+	    
 	    typedef ModelPart::ElementsContainerType                     ElementsArrayType;
+	    /*
 	    typedef ModelPart::ElementsContainerType::ContainerType      ContainerType; 
 	    typedef ContainerType::value_type                            PointerType;
 	    typedef ContainerType::iterator                              IteratorType; 
@@ -203,7 +205,7 @@ namespace Kratos
  	    typedef std::vector<ContactPairType>                         ContainerContactPair;   
  	    typedef ContainerContactPair::iterator                       IteratorContainerContactPair;  
  	    typedef ContainerContactPair::value_type                     PointerContainerContactPair;  
-	    
+	    */
 	
 	    /// Conditions General
 	    typedef ModelPart::ConditionsContainerType                   ConditionsArrayType;
@@ -235,7 +237,32 @@ namespace Kratos
 	    
 	    
 	     
-	     
+	    static const std::size_t space_dim = 2;
+	    typedef SpatialContainersConfigure<space_dim>     Configure;   
+	    typedef Configure::PointType                      PointType; 
+	    typedef PointType::CoordinatesArrayType           CoordinatesArrayType;
+            typedef Configure::ContainerType                  ContainerType;   
+            typedef Configure::PointerType                    PointerType;
+            typedef Configure::IteratorType                   IteratorType; 
+            typedef Configure::ResultContainerType            ResultContainerType;
+	    typedef Configure::ResultPointerType              ResultPointerType;
+            typedef Configure::ResultIteratorType             ResultIteratorType; 
+            typedef Configure::ContactPairType                ContactPairType;
+            typedef Configure::ContainerContactType           ContainerContactType; 
+            typedef Configure::IteratorContactType            IteratorContactType; 
+            typedef Configure::PointerContactType             PointerContactType; 
+            typedef Configure::PointerTypeIterator            PointerTypeIterator;
+	    
+	    typedef ContainerContactType  ContainerContactPair;   
+ 	    typedef IteratorContactType   IteratorContainerContactPair;  
+ 	    typedef PointerContactType    PointerContainerContactPair;  
+	         
+	    
+	    
+	    //typedef Point<space_dim , double>                             PointType;
+	    //typedef PointType::CoordinatesArrayType                       CoordinatesArrayType;
+	    
+
 	    
 	    
             BoundaryConditionsAndContactUtilities(){}
@@ -270,10 +297,7 @@ namespace Kratos
 
        
 	 private:
-
-	 static const std::size_t space_dim = 2;
-	 typedef SpatialContainersConfigure<space_dim>       Configure;   
-	   
+ 
 	   
          //************************************************************************************
 	 //************************************************************************************   
@@ -285,10 +309,6 @@ namespace Kratos
 	    /// Configure 
 	    std::cout<< std::endl;
 	    std::cout<<"  COMPUTING CONTACT CONDITIONS TO MODEL PART " << std::endl; 
-             const std::size_t dim = 2;
-	    typedef Point<dim , double>                   PointType;
-	    typedef PointType::CoordinatesArrayType       CoordinatesArrayType;
-
 	    
 	    IteratorType it_begin     =  mBoundaryElements.begin();
 	    IteratorType it_end       =  mBoundaryElements.end(); 
@@ -298,6 +318,7 @@ namespace Kratos
 	    rBinsObjectDynamic.SearchContact(mPairContacts);
 	    FiltratePairContacts(mPairContacts);
 	    mBinsObjectDynamic = rBinsObjectDynamic;
+	    
 	    
 	    
 	    if(mPairContacts.size()!=0)
@@ -345,9 +366,10 @@ namespace Kratos
 	  
 	  
 	  //  caso en que un nodo este dentro de un elemento y al la vez fuera de otro
-	  bool CheckPenetrabilitySlaveNodeInOtherMasterElement(const NodePointerType& SlaveNode, 
-	                                                       const PointerType& SlaveObject,
-							       const PointerType& MasterObject
+	  ///WARNING = NOT FINISHHHHHHHH YETTTTTTTt
+	  bool CheckPenetrabilitySlaveNodeInOtherMasterElement(NodePointerType& SlaveNode, 
+	                                                       PointerType& SlaveObject,
+							       PointerType& MasterObject
 	                                                       )
 	  {
 	      
@@ -355,16 +377,16 @@ namespace Kratos
               unsigned int I                    = 0;
               unsigned int segmento             = 0;
 	      
-              std::vector<array_1d<double, 2> > Points;   //puntos de interseccion del segmento 
+              std::vector<array_1d<double, 2> > Points;   
               vector<array_1d<double, 2> >      Points0;
               vector<array_1d<double, 2> >      Points1;
               array_1d<double, 2>               Point;
+	      ResultContainerType               Result;
+	      
 	      
               array_1d<double,3>& old_pos       = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);  
-	      ContainerType Result;
-	      //mBinsObjectDynamic.SearchObjectsInner(SlaveObject,  Result);
-
-	      
+              mBinsObjectDynamic.SearchObjectsInner(SlaveObject, Result);
+           
 	      // Solo contacta con uno 
 	      if(Result.size()==1)
 		 return true;
@@ -384,8 +406,9 @@ namespace Kratos
 	      
 	      
 	      unsigned int JJ = 1;
-	      for(IteratorType it = Result.begin(); it!=Result.end(); it++)
+	      for(ResultIteratorType it = Result.begin(); it!=Result.end(); it++)
 	      {  
+		KRATOS_WATCH( (*it)->Id())
 		JJ=1;
 	        WeakPointerVector<Condition>& neighb_cond = (*it)->GetValue(NEIGHBOUR_CONDITIONS);
 		
@@ -441,8 +464,9 @@ namespace Kratos
 
 	    
 	    array_1d<unsigned int, 2 >  Ids;       
-	    Near_Node  Near  =  no_near;
-	    bool corner      =  false; 
+	    Near_Node  Near         =  no_near;
+	    bool corner             =  false; 
+	    bool is_double_penetred =  false;
 	    std::vector<array_1d<unsigned int, 2 > > Ids_2;
 	    std::vector<Near_Node> Is_Near;
 	    
@@ -468,17 +492,19 @@ namespace Kratos
 		      Exist = yes_nodes;
 		   
 		   // Verificando que el nodo dentro no haya solapado otro elemeto que no sea su master
-		   
-		   
-		   std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl; 
+		      
+		   //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl; 
 		   switch(Exist)
 		   {
 		    
 		     case(yes_nodes):
 		     {
-		       std::cout<< "yes_nodes" << std::endl;  
+		       //std::cout<< "yes_nodes" << std::endl;  
 		       for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			 unsigned int& id  = InsideNodes[in]; 
+			 		 
+		         //is_double_penetred = CheckPenetrabilitySlaveNodeInOtherMasterElement(mr_model_part.Nodes()(id), (*it_pair)[slave],(*it_pair)[master]);
+	                                   
 			 
 			 //KRATOS_WATCH(id)
 			 Ids[master] = 0;
@@ -491,7 +517,7 @@ namespace Kratos
 			 
 
 			 
-			 
+			 /*
 			 if (Near==yes_near)
 			    std::cout<< "Is Near" << std::endl;
 			 else
@@ -501,7 +527,7 @@ namespace Kratos
 			    std::cout<< "Is Corner" << std::endl;
 			 else
 			    std::cout<< "Is Not Corner" << std::endl;
-			 
+			 */
 			 
 			 
 			 if(Near==yes_near && corner==true){
@@ -515,26 +541,6 @@ namespace Kratos
 			     CreateLinkingConditions(master, slave, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
 			    }
 			 }
-			 
-			// intercambiando master por slave y viceversa 
-			if(master==0){ 
-			    std::cout<< "Changing " << std::endl;
-			    InsideNodes.clear();
-			    master = 1;
-			    slave  = 0; 
-			    NodeInside( (*it_pair)[master], (*it_pair)[slave], InsideNodes);
-			    std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
-			    for(unsigned int in = 0; in<InsideNodes.size(); in++){
-			    //unsigned int& id  = InsideNodes[in];   
-			    //Near = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);  
-			    //KRATOS_WATCH(Ids[master])
-			    //KRATOS_WATCH(Ids[slave])
-			    //unsigned int& id  = InsideNodes[in]; 
-			    // contact node - to - segment
-			    if(Near==no_near)
-			        CreateLinkingConditions(master, slave, Ids, Exist,it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
-			    }
-			   }
 		       
 		       break;
 		   }
@@ -547,7 +553,7 @@ namespace Kratos
 		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids_2, Is_Near);
 		        for(unsigned int i = 0; i<Ids_2.size(); i++){   
 			if(Is_Near[i]==yes_near){
-			  std::cout<< "yes_near " << std::endl;
+			  //std::cout<< "yes_near " << std::endl;
 			  //KRATOS_WATCH(Ids_2[i][master]) 
 			  //KRATOS_WATCH(Ids_2[i][slave])
 			    // contact node - to - node  
@@ -556,7 +562,7 @@ namespace Kratos
 			 
 			 
 			 if(Is_Near[i]==no_near){  
-			     std::cout<< "no_near " << std::endl;
+			     //std::cout<< "no_near " << std::endl;
 			     //KRATOS_WATCH(Ids_2[i][master]) 
 			     //KRATOS_WATCH(Ids_2[i][slave])
 			     // contact node - to - segment
@@ -566,7 +572,100 @@ namespace Kratos
 			
 		        break;
 		       }
-		    }
+		 
+		   }
+		      
+		      // intercambiando master por slave y viceversa 
+	 	      if(master==0)
+		      { 
+			//std::cout<< "Changing " << std::endl;
+			InsideNodes.clear();
+			master = 1;
+			slave  = 0; 
+			NodeInside( (*it_pair)[master], (*it_pair)[slave], InsideNodes);
+			//std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
+		          
+		       if(InsideNodes.size()!=0)
+		        Exist = yes_nodes;
+		      
+		       switch(Exist)
+		        {
+		    
+		        case(yes_nodes):
+		        {
+		       //std::cout<< "yes_nodes" << std::endl;  
+		       for(unsigned int in = 0; in<InsideNodes.size(); in++){
+			 unsigned int& id  = InsideNodes[in]; 
+			 		 
+		         //is_double_penetred = CheckPenetrabilitySlaveNodeInOtherMasterElement(mr_model_part.Nodes()(id), (*it_pair)[slave],(*it_pair)[master]);
+	                                   
+			 
+			 //KRATOS_WATCH(id)
+			 Ids[master] = 0;
+			 Ids[slave]  = 0;
+		         Near   = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);
+			 corner = Is_Corner(mr_model_part.Nodes()(Ids[slave]), mr_model_part.Nodes()(Ids[master])); 
+			 
+			 //KRATOS_WATCH(Ids[master])
+			 //KRATOS_WATCH(Ids[slave])
+			 
+			 
+			 /*
+			 if (Near==yes_near)
+			    std::cout<< "Is Near" << std::endl;
+			 else
+			    std::cout<< "Is Not Near" << std::endl;
+			 
+			 if (corner==true)
+			    std::cout<< "Is Corner" << std::endl;
+			 else
+			    std::cout<< "Is Not Corner" << std::endl;
+			 */
+			 
+			 
+			 if(Near==yes_near && corner==true){
+			   // contact node - to - node  
+			   CreatePointLinkingConditions(master, slave,  id, Ids, it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
+			 }
+			 
+			 else{
+			     //KRATOS_WATCH(id)
+			     // contact node - to - segment
+			     CreateLinkingConditions(master, slave, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
+			    }
+			 }   
+		         break;
+		       }
+		     
+		        //Caso en que los triangulos se intersecten pero no hay nodo dentro de los elemetos
+		        case(no_nodes):
+		        {    
+		        //std::cout<< "no nodes " << std::endl;
+			
+		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids_2, Is_Near);
+		        for(unsigned int i = 0; i<Ids_2.size(); i++){   
+			if(Is_Near[i]==yes_near){
+			  //std::cout<< "yes_near " << std::endl;
+			  //KRATOS_WATCH(Ids_2[i][master]) 
+			  //KRATOS_WATCH(Ids_2[i][slave])
+			    // contact node - to - node  
+			   CreatePointLinkingConditions(master, slave, Ids_2[i][slave], Ids_2[i], it_pair, tempProperties, initialize, Id, TotalInsideNodes, LinkingConditions); 
+			 }
+			 
+			 
+			 if(Is_Near[i]==no_near){  
+			     //std::cout<< "no_near " << std::endl;
+			     //KRATOS_WATCH(Ids_2[i][master]) 
+			     //KRATOS_WATCH(Ids_2[i][slave])
+			     // contact node - to - segment
+			     CreateLinkingConditions(master, slave, Ids_2[i], Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
+			    }
+			}
+			
+		        break;
+		       }
+	             }    
+		  }  
 		    
 		    InsideNodes.clear();
 		} 
@@ -707,7 +806,7 @@ void CreatePointLinkingConditions(
             const double max   = (*std::max_element(Distance.begin(), Distance.end() ) );  
 	    for(unsigned int i = 0; i<Distance.size(); i++){
 	       ratio =  std::fabs(Distance[i]/max);
-	       if(ratio < 1E-6){
+	       if(ratio < 1E-8){
 		  Id[master] = geom_0[M[i]].Id();   
 		  Id[slave]  = geom_1[S[i]].Id();
 		  Ids.push_back(Id); 
@@ -779,7 +878,7 @@ void CreatePointLinkingConditions(
             double max   = (*std::max_element(Distance.begin(), Distance.end() ) );  
 	    double min   = (*std::min_element(Distance.begin(), Distance.end() ) );
 	    double ratio = std::fabs(min/max); 
-	    if(ratio < 0.01) 
+	    if(ratio < 1E-8) 
                 return yes_near;
 	     
 	    return no_near; 
