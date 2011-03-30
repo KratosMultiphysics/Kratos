@@ -391,7 +391,7 @@ namespace Kratos
 			// ComputeTimeStep
 			//
 			// Function to set adequate time step size
-
+//RICCARDO. will we then port this to the gpu?
 			double ComputeTimeStep(const double CFLNumber, const double MaxDt)
 			{
 				KRATOS_TRY
@@ -480,6 +480,7 @@ namespace Kratos
                 }
 
                 // TODO: Should we update anything on GPU?
+                //RICCARDO: well... we have to ensure that a copy of this array is present on the GPU after this moment
 
                 KRATOS_CATCH("")
             }
