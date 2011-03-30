@@ -1179,6 +1179,65 @@ namespace Kratos
             //verify
             KRATOS_CATCH("")
         }
+
+                //******************************************************************************************
+        //******************************************************************************************
+        /**
+         * This function computes the reactions and stores them in "ReactionVar"
+         * @param rReactionVar variable used in storing the reactions
+         * @param change_sign
+         */
+        void ComputeReactions(Variable<array_1d<double,3> >& rReactionVar)
+        {
+            KRATOS_TRY
+
+            //check if the variable used is existing in the model part
+            if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rReactionVar) == false)
+                KRATOS_ERROR(std::logic_error, "ReactionVar does not exist! please Add  ----rReactionVar---- variable!!!!!! ERROR", "");
+
+            InitializeFractionalStep(this->m_step, this->mtime_order);
+
+            ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+
+            //set reactions to zero
+            #pragma omp parallel for
+            for (int i = 0; i < BaseType::GetModelPart().Nodes().size(); i++)
+            {
+                ModelPart::NodesContainerType::iterator it = BaseType::GetModelPart().NodesBegin() + i;
+                it->FastGetSolutionStepValue(FRACT_VEL) = it->FastGetSolutionStepValue(VELOCITY);
+                it->FastGetSolutionStepValue(PRESSURE_OLD_IT) = it->FastGetSolutionStepValue(PRESSURE);
+                it->FastGetSolutionStepValue(rReactionVar) = ZeroVector(3);
+            }
+
+            for (unsigned int component = 0; component != this->mdomain_size; component++)
+            {
+                rCurrentProcessInfo[FRACTIONAL_STEP] = component+1;
+
+                Vector rhs(this->mdomain_size+1);
+                Matrix lhs(this->mdomain_size+1,this->mdomain_size+1);
+
+                #pragma omp parallel for firstprivate(rhs,lhs)
+                for(int i=0; i<BaseType::GetModelPart().Elements().size(); i++)
+                {
+                    ModelPart::ElementsContainerType::iterator it = BaseType::GetModelPart().ElementsBegin()+i;
+
+                    it->CalculateLocalSystem(lhs,rhs,rCurrentProcessInfo);
+
+                    //now sum contributions where needed
+                    Geometry<Node<3> >& geom = it->GetGeometry();
+                    for(unsigned int k=0; k<rhs.size(); k++)
+                    {
+                        array_1d<double,3>& react = geom[k].FastGetSolutionStepValue(rReactionVar);
+
+                        #pragma omp atomic
+                        react[component] += rhs[k];
+                    }
+                }
+            }
+
+            KRATOS_CATCH("");
+        }
+        
         /*@} */
         /**@name Operators
          */
@@ -1287,6 +1346,8 @@ namespace Kratos
             for (unsigned int i = 1; i < number_of_threads; i++)
                 partitions[i] = partitions[i - 1] + partition_size;
         }
+
+
 
 
         /*@} */
