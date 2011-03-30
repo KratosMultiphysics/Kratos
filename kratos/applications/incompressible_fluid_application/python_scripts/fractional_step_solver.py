@@ -92,19 +92,34 @@ class IncompressibleFluidSolver:
 ##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
         self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+        self.dynamic_tau = 0.001
 
 
         ##handling slip condition
         self.slip_conditions_initialized = False
         self.create_slip_conditions = GenerateSlipConditionProcess(self.model_part,domain_size)
+
+        self.compute_reactions=False
         
 
 
     def Initialize(self):
         (self.neighbour_search).Execute()
-        
-        solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form, )
+
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+
+        self.domain_size = int(self.domain_size)
+        self.laplacian_form = int(self.laplacian_form)
+        solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form )
+
+        self.ReformDofAtEachIteration = bool(self.ReformDofAtEachIteration)
+        self.vel_toll = float(self.vel_toll)
+        self.press_toll = float(self.press_toll)
+        self.max_vel_its = int(self.max_vel_its)
+        self.max_press_its = int(self.max_press_its)
+        self.time_order = int(self.time_order)
+        self.domain_size = int(self.domain_size)
+        self.predictor_corrector = bool(self.predictor_corrector)
         self.solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
         self.solver.ApplyFractionalVelocityFixity()
@@ -132,6 +147,9 @@ class IncompressibleFluidSolver:
         print "just before solve"
         print self.model_part
         (self.solver).Solve()
+
+        if(self.compute_reactions == True):
+            self.solver.ComputeReactions(REACTION)
 
 ##        (self.create_slip_conditions).SetNormalVelocityToZero()
 ##        (self.create_slip_conditions).ApplyEdgeConstraints()
