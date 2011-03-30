@@ -95,7 +95,7 @@ __kernel void SubVectorInplace(__global ValueType *Vec1, __global ValueType *Vec
 // SolveStep1_1
 //
 // Part of SolveStep1
-
+//RICCARDO: would rename this to ComputeStabilizationCoeffs
 __kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_n1, __global VectorType *mTauPressure, __global VectorType *mTauConvection, __global VectorType *mTau2, double mViscosity, double time_inv_avg, double mstabdt_pressure_factor, double mstabdt_convection_factor, double mtau2_factor, const IndexType n_nodes)
 {
 	// Get work item index
@@ -118,7 +118,7 @@ __kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_
 // SolveStep1_2
 //
 // Part of SolveStep1
-
+//RICCARDO: would rename this to ComputeConvectiveProjection
 __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
@@ -144,17 +144,18 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 	{
 		VectorType Temp_Pi_i_node = 0.00;
 
+//RICCARDO: are u sure you want to copy this? don't u prefer using a reference?
 		VectorType a_i = mvel_n1[i_node];
 
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
-		    VectorType a_j = mvel_n1[j_neighbour];
+                        VectorType a_j = mvel_n1[j_neighbour];
 
 			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
 			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
 
-		    Add_ConvectiveContribution(Ni_DNj, &Temp_Pi_i_node, a_i, a_i, a_j);  // U_i = a_i, U_j = a_j
+                        Add_ConvectiveContribution(Ni_DNj, &Temp_Pi_i_node, a_i, a_i, a_j);  // U_i = a_i, U_j = a_j
 		}
 
 		mPi[i_node] = InvertedMass[i_node] * Temp_Pi_i_node;
@@ -212,7 +213,7 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 
 			Sub_ConvectiveContribution(Ni_DNj, &Temp_rhs_i_node, a_i, U_i, U_j);
 			Sub_grad_p(Ni_DNj, &Temp_rhs_i_node, p_i * inverse_rho, p_j * inverse_rho);
-
+//RICCARDO: optimization: you already have a private copy of CurrentEdge...are u sure we need still to have another local copy of Lij0 etc?
 			VectorType Lij0 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_2(CurrentEdge));
 			VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge));
 			VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge));
@@ -299,7 +300,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
 			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
 			VectorType DNi_Nj = KRATOS_OCL_VECTOR3(KRATOS_OCL_DNI_NJ_0(CurrentEdge), KRATOS_OCL_DNI_NJ_1(CurrentEdge), KRATOS_OCL_DNI_NJ_2(CurrentEdge));
-
+//RICCARDO: optimization: here you only use Lij0.x Lij1.y Lij2.z ... don't need to copy all of them
 			VectorType Lij0 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_2(CurrentEdge));
 			VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge));
 			VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge));
@@ -334,6 +335,8 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			Temp_rhs_i_node += edge_tau * Temp;
 
 			// Assemble laplacian matrix
+//RICCARDO: ouch! i said this wrong on the internet. mL has the form of matrix_container BUT it also has the diagonal! MATRIX_container DOES NOT have the diagonal
+//SORRRY FOR THIS JUST REALIZED IT
 			mL_Values[csr_index] = sum_l_ikjk;  // TODO: Check this! I assume that the graph of mL is EXACTLY as mr_matrix_container!
 
 			l_ii -= sum_l_ikjk;
@@ -349,7 +352,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 // SolveStep2_2
 //
 // Part of SolveStep2
-
+//Riccardo: would change the name of this to ApplyPressureBCs
 __kernel void SolveStep2_2(__global IndexType *mPressureOutletList, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global ValueType *mL_Values, __global ValueType *rhs, const IndexType mPressureOutletListLength)
 {
 	// Get work item index
@@ -378,7 +381,7 @@ __kernel void SolveStep2_2(__global IndexType *mPressureOutletList, __global Ind
 // SolveStep2_3
 //
 // Part of SolveStep2
-
+//RICCARDO: would rename this to ComputePressureProj
 __kernel void SolveStep2_3(__global VectorType *mXi, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *InvertedMass, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
@@ -476,7 +479,7 @@ __kernel void SolveStep3_1(__global VectorType *mvel_n1, __global ValueType *mPn
 // SolveStep3_2
 //
 // Part of SolveStep3
-
+//RICCARDO: would rename this to StoreMassConservationError
 __kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdiv_error, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, ValueType mRho, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
@@ -610,7 +613,7 @@ __kernel void ComputeWallResistance(__global VectorType *vel, __global VectorTyp
 		ValueType k = 0.41;
 		ValueType B = 5.1;
 		ValueType toll = 1e-6;
-		ValueType y_plus_incercept = 10.9931899;
+		ValueType y_plus_intercept = 10.9931899;
 		IndexType itmax = 100;
 		IndexType i_node = mSlipBoundaryList[i_slip];
 		VectorType U_i = vel[i_node];
@@ -623,7 +626,7 @@ __kernel void ComputeWallResistance(__global VectorType *vel, __global VectorTyp
 		ValueType mod_uthaw = sqrt(mod_vel * mu / ym);
 		ValueType y_plus = ym * mod_uthaw / mu;
 
-		if (y_plus > y_plus_incercept)
+		if (y_plus > y_plus_intercept)
 		{
 			// Begin cycle to calculate the real u_thaw's module
 			IndexType it = 0;
