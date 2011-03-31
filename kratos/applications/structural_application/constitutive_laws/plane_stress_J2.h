@@ -141,22 +141,6 @@ namespace Kratos
                                         bool SaveInternalVariables = true
                                       );
 
-//         void CalculateStress( const Vector& StrainVector,
-//                                           Vector& StressVector);
-
-//         void CalculateConstitutiveMatrix( const Vector& StrainVector,
-//                     Matrix& ElasticityTensor );
-
-//         void CalculateStressAndTangentMatrix(Vector& StressVector,
-//                     const Vector& StrainVector,
-//                     Matrix& algorithmicTangent);
-
-        void UpdateMaterial( const Vector& StrainVector,
-                                         const Properties& props,
-                                         const GeometryType& geom,
-                                         const Vector& ShapeFunctionsValues ,
-                                         const ProcessInfo& CurrentProcessInfo);
-
         void FinalizeSolutionStep( const Properties& props,
                                                const GeometryType& geom,
                                                const Vector& ShapeFunctionsValues ,

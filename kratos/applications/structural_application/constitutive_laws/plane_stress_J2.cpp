@@ -92,7 +92,9 @@ namespace Kratos
     /**
      *	TO BE TESTED!!!
      */
-    PlaneStressJ2::~PlaneStressJ2() { }
+    PlaneStressJ2::~PlaneStressJ2()
+    {
+    }
 
     bool PlaneStressJ2::Has(const Variable<double>& rThisVariable)
     {
@@ -111,12 +113,12 @@ namespace Kratos
 
     double& PlaneStressJ2::GetValue(const Variable<double>& rThisVariable, double& rValue)
     {
-        return( rValue );
+        return ( rValue);
     }
 
     Vector& PlaneStressJ2::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
     {
-        return( rValue );
+        return ( rValue);
     }
 
     Matrix& PlaneStressJ2::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
@@ -127,23 +129,33 @@ namespace Kratos
     }
 
     void PlaneStressJ2::SetValue(const Variable<double>& rThisVariable, const double& rValue,
-            const ProcessInfo& rCurrentProcessInfo) { }
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     void PlaneStressJ2::SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
-            const ProcessInfo& rCurrentProcessInfo) { }
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     void PlaneStressJ2::SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-            const ProcessInfo& rCurrentProcessInfo) { }
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     void PlaneStressJ2::Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
-            const ProcessInfo& rCurrentProcessInfo) { }
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     /**
      *	TO BE TESTED!!!
      */
     void PlaneStressJ2::InitializeMaterial(const Properties& props,
             const GeometryType& geom,
-            const Vector& ShapeFunctionsValues) { }
+            const Vector& ShapeFunctionsValues)
+    {
+    }
 
     /**
      *	TO BE TESTED!!!
@@ -195,21 +207,27 @@ namespace Kratos
         P(2, 2) = 2.0;
     }
 
-    void PlaneStressJ2::CalculateMaterialResponse( const Vector& StrainVector,
+    void PlaneStressJ2::CalculateMaterialResponse(const Vector& StrainVector,
             const Matrix& DeformationGradient,
             Vector& StressVector,
             Matrix& AlgorithmicTangent,
             const ProcessInfo& CurrentProcessInfo,
-            const Properties& props, 
+            const Properties& props,
             const GeometryType& geom,
             const Vector& ShapeFunctionsValues,
             bool CalculateStresses,
             int CalculateTangent,
-            bool SaveInternalVariables )
+            bool SaveInternalVariables)
     {
         KRATOS_TRY
 
-                double theta = 0.0;
+        mE = props.GetValue(YOUNG_MODULUS);
+        mNU = props.GetValue(POISSON_RATIO);
+        msigma_y = props.GetValue(YIELD_STRESS);
+        mH = 0.0;
+        mtheta = 0.0;
+
+//        double theta = 0.0;
 
         //resize output quantities
         if (StressVector.size() != 3 && CalculateStresses == true) StressVector.resize(3, false);
@@ -219,15 +237,15 @@ namespace Kratos
         array_1d<double, 3 > elastic_strain;
         noalias(elastic_strain) = StrainVector;
         noalias(elastic_strain) -= mOldPlasticStrain;
-        //KRATOS_WATCH(StrainVector);
-        //KRATOS_WATCH(mOldPlasticStrain);
+        //        KRATOS_WATCH(StrainVector);
+        //        KRATOS_WATCH(mOldPlasticStrain);
 
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > C, Cinv, P;
         CalculateElasticMatrix(C);
         CalculateInverseElasticMatrix(Cinv);
         CalculateP(P);
 
-//                KRATOS_WATCH(C);
+//                        KRATOS_WATCH(C);
 
         array_1d<double, 3 > s_trial = prod(C, elastic_strain);
         array_1d<double, 3 > xi_trial = s_trial;
@@ -235,18 +253,18 @@ namespace Kratos
 
         //                KRATOS_WATCH(compute_f_trial(xi_trial, malpha_old));
 
-//        double fbar2 = fbar_2(0.0, xi_trial);
-//        double fbar_value = sqrt(fbar_2(0.0, xi_trial));
-//        double r2_value = R_2(0.0, fbar_value, malpha_old);
-//        double aaa = fbar_value - sqrt(r2_value);
+        //        double fbar2 = fbar_2(0.0, xi_trial);
+        //        double fbar_value = sqrt(fbar_2(0.0, xi_trial));
+        //        double r2_value = R_2(0.0, fbar_value, malpha_old);
+        //        double aaa = fbar_value - sqrt(r2_value);
         //                KRATOS_WATCH(sqrt(r2_value));
         //                KRATOS_WATCH(fbar_value);
         //                KRATOS_WATCH(sqrt(r2_value));
-        //                KRATOS_WATCH(aaa);
+        //                        KRATOS_WATCH(aaa);
 
         double H1 = (1.0 - mtheta) * mH;
         ////        KRATOS_WATCH(xi_trial);
-        ////        KRATOS_WATCH(mbeta_old)
+        //                KRATOS_WATCH(mbeta_old)
         if (compute_f_trial(xi_trial, malpha_old) < 0) //elastic case
         {
             if (CalculateStresses == true) noalias(StressVector) = s_trial;
@@ -261,7 +279,7 @@ namespace Kratos
 
             //            KRATOS_WATCH(dgamma);
             //            KRATOS_WATCH(xi_trial);
-            //            KRATOS_WATCH(malpha_old);
+            //                        KRATOS_WATCH(malpha_old);
 
             //calculate XImat
             //note that here i reuse the C as auxiliary variable as i don't need it anymore
@@ -301,56 +319,34 @@ namespace Kratos
 
             if (CalculateTangent != 0)
             {
-
-                //compute tangent
-                array_1d<double, 3 > XPXi = prod(XImat, aux);
-
-                double K1_n1 = theta*mH; //msigma_y + theta * mH*alpha;
-                //                double K1_n1 = msigma_y + theta * mH*alpha;
-                double theta1 = 1.0 + 0.6666666666666667 * H1*dgamma;
-                double theta2 = 1.0 - 0.6666666666666667 * K1_n1*dgamma;
-                double beta_val = inner_prod(xi, aux);
-                beta_val *= 0.6666666666666667 * (theta1 / theta2) * (K1_n1 * theta1 + H1 * theta2);
-
-                double denom = inner_prod(aux, XPXi);
-                denom += beta_val;
-                denom = sqrt(denom);
-                XPXi /= denom;
-
-                noalias(AlgorithmicTangent) = XImat;
-                noalias(AlgorithmicTangent) -= outer_prod(XPXi, XPXi);
-//                KRATOS_WATCH(XImat);
-//                KRATOS_WATCH(XPXi);
+                  noalias(AlgorithmicTangent) = XImat;
+                  
+//                //compute tangent
+//                array_1d<double, 3 > XPXi = prod(XImat, aux);
 //
-//                                KRATOS_WATCH(algorithmicTangent);
+//                double K1_n1 = theta*mH; //msigma_y + theta * mH*alpha;
+//                //                double K1_n1 = msigma_y + theta * mH*alpha;
+//                double theta1 = 1.0 + 0.6666666666666667 * H1*dgamma;
+//                double theta2 = 1.0 - 0.6666666666666667 * K1_n1*dgamma;
+//                double beta_val = inner_prod(xi, aux);
+//                beta_val *= 0.6666666666666667 * (theta1 / theta2) * (K1_n1 * theta1 + H1 * theta2);
+//
+//                double denom = inner_prod(aux, XPXi);
+//                denom += beta_val;
+//                denom = sqrt(denom);
+//                XPXi /= denom;
+//
+//                noalias(AlgorithmicTangent) = XImat;
+//                noalias(AlgorithmicTangent) -= outer_prod(XPXi, XPXi);
+
             }
             //KRATOS_WATCH(algorithmicTangent);
 
-
+//            noalias(AlgorithmicTangent) = C;
 
         }
 
         KRATOS_CATCH("")
-    }
-
-    //***********************************************************************************************
-    //***********************************************************************************************
-
-    void PlaneStressJ2::UpdateMaterial(const Vector& StrainVector,
-            const Properties& props,
-            const GeometryType& geom,
-            const Vector& ShapeFunctionsValues,
-            const ProcessInfo& CurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        mE = props.GetValue(YOUNG_MODULUS);
-        mNU = props.GetValue(POISSON_RATIO);
-        msigma_y = props.GetValue(YIELD_STRESS);
-        mH = 0.0;
-        mtheta = 0.0;
-
-        KRATOS_CATCH("");
     }
 
     //***********************************************************************************************
@@ -388,7 +384,9 @@ namespace Kratos
 
     void PlaneStressJ2::Calculate(const Variable<double>& rVariable,
             double& Output,
-            const ProcessInfo& rCurrentProcessInfo) { }
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     double PlaneStressJ2::fbar_2(const double dgamma, const array_1d<double, 3 > & xi)
     {
@@ -428,7 +426,7 @@ namespace Kratos
         unsigned it = 0;
         double increment = 1.0;
         const unsigned int itmax = 1000;
-        while (fabs(g1) > tol && fabs(increment)>1e-14 && it++ < itmax)
+        while (fabs(g1) > tol && fabs(increment) > 1e-14 && it++ < itmax)
         {
             increment = -g1 * (x1 - x0) / (g1 - g0);
             x0 = x1;
@@ -437,7 +435,7 @@ namespace Kratos
 
             g1 = f2(x1, xi, alpha);
 
-//                        std::cout << increment << " " << fabs(g1) << " " << tol  <<std::endl;
+            //                        std::cout << increment << " " << fabs(g1) << " " << tol  <<std::endl;
         }
 
         if (it == itmax)
@@ -480,35 +478,35 @@ namespace Kratos
 
     }
 
-//     void PlaneStressJ2::CalculateStress( const Vector& StrainVector,
-//                                           Vector& StressVector)
-//     {
-//         bool calculate_stress_flag = true;
-//         bool calculate_tangent_flag = false;
-//         bool save_internal_variables = false;
-//         Matrix algorithmicTangent(0,0);
-//         CalculateMaterialResponse(StrainVector,StressVector,algorithmicTangent,calculate_stress_flag,calculate_tangent_flag,save_internal_variables);
-//     }
+    //     void PlaneStressJ2::CalculateStress( const Vector& StrainVector,
+    //                                           Vector& StressVector)
+    //     {
+    //         bool calculate_stress_flag = true;
+    //         bool calculate_tangent_flag = false;
+    //         bool save_internal_variables = false;
+    //         Matrix algorithmicTangent(0,0);
+    //         CalculateMaterialResponse(StrainVector,StressVector,algorithmicTangent,calculate_stress_flag,calculate_tangent_flag,save_internal_variables);
+    //     }
 
-//         void PlaneStressJ2::CalculateConstitutiveMatrix( const Vector& StrainVector,
-//                     Matrix& ElasticityTensor )
-//     {
-//         bool calculate_stress_flag = false;
-//         bool calculate_tangent_flag = true;
-//         bool save_internal_variables = false;
-//         Vector StressVector(0);
-//         CalculateMaterialResponse(StrainVector,StressVector,ElasticityTensor,calculate_stress_flag,calculate_tangent_flag,save_internal_variables);
-//     }
+    //         void PlaneStressJ2::CalculateConstitutiveMatrix( const Vector& StrainVector,
+    //                     Matrix& ElasticityTensor )
+    //     {
+    //         bool calculate_stress_flag = false;
+    //         bool calculate_tangent_flag = true;
+    //         bool save_internal_variables = false;
+    //         Vector StressVector(0);
+    //         CalculateMaterialResponse(StrainVector,StressVector,ElasticityTensor,calculate_stress_flag,calculate_tangent_flag,save_internal_variables);
+    //     }
 
-//         void PlaneStressJ2::CalculateStressAndTangentMatrix(Vector& StressVector,
-//                     const Vector& StrainVector,
-//                     Matrix& algorithmicTangent)
-//     {
-//         bool calculate_stress_flag = true;
-//         bool calculate_tangent_flag = true;
-//         bool save_internal_variables = false;
-//         CalculateMaterialResponse(StrainVector,StressVector,algorithmicTangent,calculate_stress_flag,calculate_tangent_flag,save_internal_variables);
-//     }
+    //         void PlaneStressJ2::CalculateStressAndTangentMatrix(Vector& StressVector,
+    //                     const Vector& StrainVector,
+    //                     Matrix& algorithmicTangent)
+    //     {
+    //         bool calculate_stress_flag = true;
+    //         bool calculate_tangent_flag = true;
+    //         bool save_internal_variables = false;
+    //         CalculateMaterialResponse(StrainVector,StressVector,algorithmicTangent,calculate_stress_flag,calculate_tangent_flag,save_internal_variables);
+    //     }
 
 
 } // Namespace Kratos
