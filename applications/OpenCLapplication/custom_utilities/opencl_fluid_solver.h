@@ -104,8 +104,6 @@ namespace Kratos
 			typedef Vector HostVectorType;
 			typedef viennacl::vector <double> DeviceVectorType;
 
-			// TODO: Remove mHmin and friends
-
 			//
 			// OpenCLFluidSolver3D
 			//
@@ -187,6 +185,9 @@ namespace Kratos
 				mkApplyVelocityBC_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "mkApplyVelocityBC_2");
 				mkApplyVelocityBC_3 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "mkApplyVelocityBC_3");
 				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "mkApplyVelocityBC_4");
+
+				// TODO: Is this OK?
+				viennacl::ocl::setup_context(0, mrDeviceGroup.Contexts[0], mrDeviceGroup.DeviceIDs[0], mrDeviceGroup.CommandQueues[0]);
 			}
 
 			//
@@ -208,11 +209,9 @@ namespace Kratos
 			{
 				KRATOS_TRY
 
-				// Get no. of nodes
+				// Get no. of nodes and edges
 				n_nodes = mr_model_part.Nodes().size();
 				n_edges = mr_matrix_container.GetNumberEdges();
-
-				// TODO: Initialize the lists and their lengths here
 
 				// TODO: Check if these are all needed
 
@@ -222,7 +221,7 @@ namespace Kratos
 				AllocateArray(&mvel_n1, n_nodes);
 				AllocateArray(&mPn, n_nodes);
 				AllocateArray(&mPn1, n_nodes);
-				AllocateArray(&mHmin, n_nodes);
+				//AllocateArray(&mHmin, n_nodes);
 				AllocateArray(&mHavg, n_nodes);
 				AllocateArray(&mNodalFlag, n_nodes);
 
@@ -241,6 +240,21 @@ namespace Kratos
 
 				// RHS
 				AllocateArray(&mrhs, n_nodes);
+
+				// Allocating lists
+				// TODO: Maximum size is used; if this seems a problem with OpenCL buffers, try fixing this
+				// TODO: Decide where to copy these lists to GPU
+				AllocateArray(&mSlipBoundaryList, n_nodes);
+				AllocateArray(&mPressureOutletList, n_nodes);
+				AllocateArray(&mFixedVelocitiesList, n_nodes);
+
+				AllocateArray(&mFixedVelocitiesValuesList, n_nodes);
+
+
+				AllocateArray(&medge_nodesList, n_nodes);
+				AllocateArray(&medge_nodes_directionList, n_nodes);
+				AllocateArray(&mcorner_nodesList, n_nodes);
+
 
 				// Allocating buffers on OpenCL device
 				mbWork = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
@@ -269,6 +283,29 @@ namespace Kratos
 
 				// RHS
 				mbrhs = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
+
+				// Lists
+				mbSlipBoundaryList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
+				mbPressureOutletList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
+				mbFixedVelocitiesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
+
+				mbFixedVelocitiesValuesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
+
+
+				mbedge_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
+				mbedge_nodes_directionList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
+				mbcorner_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
+
+
+				// Lists' lengths
+				mSlipBoundaryListLength = 0;
+				mPressureOutletListLength = 0;
+				mFixedVelocitiesListLength = 0;
+
+				medge_nodesListLength = 0;
+				medge_nodes_directionListLength = 0;
+				mcorner_nodesListLength = 0;
+
 
 				mr_matrix_container.SetToZero(mbdiv_error);
 
@@ -322,7 +359,7 @@ namespace Kratos
 
 				// Compute slip normals and fill SlipList
 				CalculateNormals(mr_model_part.Conditions());
-				mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes(), mbSlipNormal);
+				mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes(), mbSlipNormal);  // TODO: Check what type of update is needed
 
 				DetectEdges3D(mr_model_part.Conditions());
 
@@ -384,6 +421,11 @@ namespace Kratos
 					inode->FastGetSolutionStepValue(PRESS_PROJ) = temp;
 				}
 
+				// TODO: Is here OK to copy to GPU?
+				mrDeviceGroup.CopyBuffer(mbFixedVelocitiesList, OpenCL::HostToDevice, OpenCL::VoidPList(1, mFixedVelocitiesList));
+				mrDeviceGroup.CopyBuffer(mbFixedVelocitiesValuesList, OpenCL::HostToDevice, OpenCL::VoidPList(1, mFixedVelocitiesValuesList));
+				mrDeviceGroup.CopyBuffer(mbPressureOutletList, OpenCL::HostToDevice, OpenCL::VoidPList(1, mPressureOutletList));
+
 				KRATOS_CATCH("")
 			}
 
@@ -391,7 +433,7 @@ namespace Kratos
 			// ComputeTimeStep
 			//
 			// Function to set adequate time step size
-//RICCARDO. will we then port this to the gpu?
+
 			double ComputeTimeStep(const double CFLNumber, const double MaxDt)
 			{
 				KRATOS_TRY
@@ -411,7 +453,7 @@ namespace Kratos
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
 				{
 					const double havg_i = mHavg[i_node];
-					const double hmin_i = mHmin[i_node];
+					const double hmin_i = mr_matrix_container.GetHmin()[i_node];
 
 					double vel_norm = Norm2_3(mvel_n1[i_node]);
 
@@ -479,8 +521,8 @@ namespace Kratos
                     mFixedVelocitiesValuesList[i_velocity] = mvel_n1[i_node];
                 }
 
-                // TODO: Should we update anything on GPU?
-                //RICCARDO: well... we have to ensure that a copy of this array is present on the GPU after this moment
+				// TODO: Should we update anything on GPU?
+				mrDeviceGroup.CopyBuffer(mbFixedVelocitiesList, OpenCL::HostToDevice, OpenCL::VoidPList(1, mFixedVelocitiesList));
 
                 KRATOS_CATCH("")
             }
@@ -596,8 +638,8 @@ namespace Kratos
 
 				// Setting arguments
 				mrDeviceGroup.SetBufferAsKernelArg(mkApplyVelocityBC_4, 0, VelArray_buffer);
-				mrDeviceGroup.SetBufferAsKernelArg(mkApplyVelocityBC_4, 1, mbFixedVelocitiesValues);
-				mrDeviceGroup.SetBufferAsKernelArg(mkApplyVelocityBC_4, 2, mbFixedVelocities);
+				mrDeviceGroup.SetBufferAsKernelArg(mkApplyVelocityBC_4, 1, mbFixedVelocitiesValuesList);
+				mrDeviceGroup.SetBufferAsKernelArg(mkApplyVelocityBC_4, 2, mbFixedVelocitiesList);
 				mrDeviceGroup.SetKernelArg(mkApplyVelocityBC_4, 3, mFixedVelocitiesListLength);
 
 
@@ -1017,6 +1059,10 @@ namespace Kratos
 					}
 				}
 
+				// TODO: Is here OK to copy to GPU?
+				//mrDeviceGroup.CopyBuffer(mbSlipNormal, OpenCL::HostToDevice, OpenCL::VoidPList(1, mSlipNormal));  // TODO: Is this needed?
+				mrDeviceGroup.CopyBuffer(mbSlipBoundaryList, OpenCL::HostToDevice, OpenCL::VoidPList(1, mSlipBoundaryList));
+
 				KRATOS_CATCH("")
 			}
 
@@ -1037,7 +1083,7 @@ namespace Kratos
 				mvel_n1.clear();
 				mPn.clear();
 				mPn1.clear();
-				mHmin.clear();
+				//mHmin.clear();
 				mHavg.clear();
 				mSlipNormal.clear();
 				mNodalFlag.clear();
@@ -1071,7 +1117,7 @@ namespace Kratos
 
 			// OpenCL stuff
 			OpenCL::DeviceGroup &mrDeviceGroup;
-			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbSlipBoundaryList, mbPressureOutletList, mbedge_nodes_directionList, mbedge_nodesList, mbcorner_nodesList, mbFixedVelocities, mbFixedVelocitiesValues, mbrhs;
+			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbSlipBoundaryList, mbPressureOutletList, mbedge_nodes_directionList, mbedge_nodesList, mbcorner_nodesList, mbFixedVelocitiesList, mbFixedVelocitiesValuesList, mbrhs;
 
 			cl_uint mpOpenCLFluidSolver, mkAddVectorInplace, mkSubVectorInplace, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkSolveStep2_2, mkSolveStep2_3, mkSolveStep3_1, mkSolveStep3_2, mkCalculateRHS, mkComputeWallResistance, mkApplyVelocityBC_1, mkApplyVelocityBC_2, mkApplyVelocityBC_3, mkApplyVelocityBC_4;
 
@@ -1109,7 +1155,7 @@ namespace Kratos
 			ValuesVectorType mPn, mPn1;
 
 			// Minimum length of the edges surrounding edges surrounding each nodal point
-			ValuesVectorType mHmin;
+			//ValuesVectorType mHmin;
 			ValuesVectorType mHavg;
 			CalcVectorType mEdgeDimensions;
 
@@ -1217,14 +1263,14 @@ namespace Kratos
 					noalias(position[i_node]) = node_it -> Coordinates();
 
 					// Initialize minimum edge length with relatively big values
-					mHmin[i_node] = 1e10;
+					//mHmin[i_node] = 1e10;
 				}
 
-				ValuesVectorType TempHmin = mr_matrix_container.GetHmin();
-				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-				{
-					mHmin[i_node] = TempHmin[i_node];
-				}
+				//ValuesVectorType TempHmin = mr_matrix_container.GetHmin();
+				//for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+				//{
+				//	mHmin[i_node] = TempHmin[i_node];
+				//}
 
 				// Take unstructured meshes into account
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -1365,11 +1411,6 @@ namespace Kratos
 				}
 
 				// Fill the list of edge_nodes
-				// TODO: These lists should be allocated somewhere, Initialize?
-				//medge_nodes.resize(0);
-				//medge_nodes_direction.resize(0);
-				//mcorner_nodes.resize(0);
-
 				medge_nodesListLength = 0;
 				medge_nodes_directionListLength = 0;
 				mcorner_nodesListLength = 0;
@@ -1409,6 +1450,11 @@ namespace Kratos
 				{
 					KRATOS_WATCH(mcorner_nodesList[i]);
 				}
+
+				// TODO: Is here OK to copy to GPU?
+				mrDeviceGroup.CopyBuffer(mbedge_nodesList, OpenCL::HostToDevice, OpenCL::VoidPList(1, medge_nodesList));
+				mrDeviceGroup.CopyBuffer(mbedge_nodes_directionList, OpenCL::HostToDevice, OpenCL::VoidPList(1, medge_nodes_directionList));
+				mrDeviceGroup.CopyBuffer(mbcorner_nodesList, OpenCL::HostToDevice, OpenCL::VoidPList(1, mcorner_nodesList));
 
 				KRATOS_CATCH("")
 			}
