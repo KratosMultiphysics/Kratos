@@ -1203,4 +1203,4 @@ namespace Kratos
 
 } // Namespace Kratos
 
-#endif //KRATOS_OPENCL_EDGE_DATA_H_INCLUDED defined
+#endif // KRATOS_OPENCL_EDGE_DATA_H_INCLUDED defined
