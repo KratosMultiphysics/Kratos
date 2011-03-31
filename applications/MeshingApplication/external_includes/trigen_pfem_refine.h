@@ -542,7 +542,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				}
 			}
 			//identifying boundary, creating skin
-			IdentifyBoundary(ThisModelPart, properties, out2);
+			IdentifyBoundary(ThisModelPart, rReferenceBoundaryCondition, properties, out2);
 
 KRATOS_WATCH("ln749");
 
@@ -762,6 +762,11 @@ KRATOS_WATCH("ln754");
 				int nfluid = int( temp[0].FastGetSolutionStepValue(IS_FLUID) );
 				nfluid += int( temp[1].FastGetSolutionStepValue(IS_FLUID) );
 				nfluid += int( temp[2].FastGetSolutionStepValue(IS_FLUID) );
+
+				//check the number of nodes of boundary
+				int nboundary = int( temp[0].FastGetSolutionStepValue(IS_BOUNDARY) );
+				nboundary += int( temp[1].FastGetSolutionStepValue(IS_BOUNDARY) );
+				nboundary += int( temp[2].FastGetSolutionStepValue(IS_BOUNDARY) );
 				//first check that we are working with fluid elements, otherwise throw an error
 				//if (nfluid!=3)
 				//	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
@@ -770,28 +775,42 @@ KRATOS_WATCH("ln754");
 				
 				if(number_of_structure_nodes!=3) //if it is = 3 it is a completely fixed element -> do not add it
 				{
+				  
 					if (nfs != 0 || nfluid != 3)  //in this case it is close to the surface so i should use alpha shape 
 					{
 						
 						if( AlphaShape(my_alpha,temp) && number_of_structure_nodes!=3) //if alpha shape says to preserve
 						{
-							preserved_list1[el] = true;
-							number_of_preserved_elems += 1;
-														
+// 							if(nboundary==3 && number_of_structure_nodes > 1 && nfs > 0) //if it is = 3 pressure problems -> do not add it
+// 							{
+// 							      preserved_list1[el] = false;	
+// 							}
+// 							else
+// 							{
+								preserved_list1[el] = true;
+								number_of_preserved_elems += 1;
+// 							}							
 						}
 					}
 					else //internal triangle --- should be ALWAYS preserved
 					{							
 						double bigger_alpha = my_alpha*10.0;
-						if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3) 
-							{
-							preserved_list1[el] = true;
-							number_of_preserved_elems += 1;							
-							}
-					}				
+						if( AlphaShape(bigger_alpha,temp) && number_of_structure_nodes!=3) {
+// 						  	if(nboundary==3 && number_of_structure_nodes > 1 && nfs > 0) //if it is = 3 pressure problems -> do not add it
+// 							{
+// 							      preserved_list1[el] = false;	
+// 							}
+// 							else
+// 							{
+								preserved_list1[el] = true;
+								number_of_preserved_elems += 1;							
+// 							}
+						}
+					}			
 				}
 				else 
 					preserved_list1[el] = false;
+				
 			}
 		return number_of_preserved_elems;
 		}	
@@ -800,7 +819,7 @@ KRATOS_WATCH("ln754");
 
 
 
-		void IdentifyBoundary(ModelPart& ThisModelPart, Properties::Pointer& properties, struct triangulateio& out2)
+		void IdentifyBoundary(ModelPart& ThisModelPart, Condition const& rReferenceBoundaryCondition,  Properties::Pointer& properties, struct triangulateio& out2)
 		{
 
 			//reset the boundary flag
@@ -842,14 +861,10 @@ KRATOS_WATCH("ln754");
 					temp1.reserve(2);
 					temp1.push_back(iii->GetGeometry()(1)); 
 					temp1.push_back(iii->GetGeometry()(2));
-				
-					Geometry< Node<3> >::Pointer cond = 
-						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
-					int id = (iii->Id()-1)*3;
-					
-					Condition::Pointer p_cond = 
-						Condition::Pointer(new Condition(id, cond, properties) );	
 
+					Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+					int id = (iii->Id()-1)*3;
+					Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp1, properties);	
 					ThisModelPart.Conditions().push_back(p_cond);
 
 				}
@@ -869,14 +884,10 @@ KRATOS_WATCH("ln754");
 					temp1.reserve(2);
 					temp1.push_back(iii->GetGeometry()(2)); 
 					temp1.push_back(iii->GetGeometry()(0));
-					
-					Geometry< Node<3> >::Pointer cond = 
-						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+
+					Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
 					int id = (iii->Id()-1)*3+1;
-					//
-					Condition::Pointer p_cond = 
-						Condition::Pointer(new Condition(id, cond, properties) );
-					
+					Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp1, properties);	
 					ThisModelPart.Conditions().push_back(p_cond);
 									
 
@@ -896,15 +907,11 @@ KRATOS_WATCH("ln754");
 					temp1.reserve(2);
 					temp1.push_back(iii->GetGeometry()(0)); 
 					temp1.push_back(iii->GetGeometry()(1));
-					Geometry< Node<3> >::Pointer cond = 
-						Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
+
+					Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
 					int id = (iii->Id()-1)*3+2;
-					
-					Condition::Pointer p_cond = 
-						Condition::Pointer(new Condition(id, cond, properties) );
-					
-					ThisModelPart.Conditions().push_back(p_cond);
-					
+					Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp1, properties);	
+					ThisModelPart.Conditions().push_back(p_cond);					
 
 				}
 
