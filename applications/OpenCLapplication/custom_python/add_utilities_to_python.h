@@ -43,10 +43,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -62,7 +62,7 @@ namespace Python
   void  AddUtilitiesToPython();
 
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_GPU_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_GPU_UTILITIES_TO_PYTHON_H_INCLUDED defined
