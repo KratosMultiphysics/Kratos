@@ -74,9 +74,19 @@ namespace Kratos
 	///@name Kratos Classes
 	///@{
 
-	/// Short class definition.
-	/** Detail class definition.
+	/// This class allows the interpolation between non-matching meshes in 2D and 3D.
+	/** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
+	* 
+	* This class allows the interpolation of a variable or of the whole model parte between non-matching meshes 
+	* in 2D and 3D.
+	* 
+	* For every node of the destination model part it is checked in which element of the origin model part it is
+	* contained and a linear interpolation is performed
+	*
+	* The data structure used by default is kd tree although bin, kd-tree of bins can be easily used just commenting
+	* and decommenting the opportune lines at the beginning of the function
 	*/
+
 	//class MeshTransfer
 	template<std::size_t TDim>
 	class MeshTransfer  
@@ -111,6 +121,11 @@ namespace Kratos
 		//If you want to pass the whole model part
 		//**********************************************************************
 		//**********************************************************************
+		/// Interpolate the whole problem type
+		/**
+		  * @param rOrigin_ModelPart: the model part  all the variable should be taken from
+		  * @param rDestination_ModelPart: the destination model part where we want to know the values of the variables
+		  */
 		void DirectInterpolation(
 			ModelPart& rOrigin_ModelPart , 
 			ModelPart& rDestination_ModelPart 
@@ -279,6 +294,13 @@ namespace Kratos
 		//If you want to pass only one variable
 		//**********************************************************************
 		//**********************************************************************
+		/// Interpolate one variable
+		/**
+		  * @param rOrigin_ModelPart: the model part  all the variable should be taken from
+		  * @param rDestination_ModelPart: the destination model part where we want to know the values of the variables
+		  * @param rOriginVariable: the name of the interpolated variable in the origin model part 
+		  * @param rOriginVariable: the name of the interpolated variable in the destination model part 
+		  */
 		template<class TDataType>
 		void DirectVariableInterpolation(
 			ModelPart& rOrigin_ModelPart , 
