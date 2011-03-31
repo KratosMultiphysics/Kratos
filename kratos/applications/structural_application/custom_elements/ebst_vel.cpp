@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/ebst_vel.h"
 #include "includes/constitutive_law.h"
 #include "structural_application.h"
+#include "utilities/geometry_utilities.h" 
 
 
 namespace Kratos
@@ -99,6 +100,7 @@ namespace Kratos
     {
 
         return Element::Pointer(new EbstVel(NewId, GetGeometry().Create(ThisNodes), pProperties));
+
     }
 
     //***********************************************************************************
@@ -146,7 +148,6 @@ namespace Kratos
                 index += 3;
             }
         }
-
         
         KRATOS_CATCH("")
     }
@@ -181,7 +182,81 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
+	//************************************************************************************
+	//************************************************************************************
 
+    void EbstVel::Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+            array_1d<double, 3 > & Output,
+            const ProcessInfo& rCurrentProcessInfo) 
+        {
+	  Output = ZeroVector(3);
+
+	  double Area = GetGeometry().Area();
+	  double TotalMass = Area * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
+	  Vector LumpFact;
+	  GetGeometry().LumpingFactors(LumpFact);
+
+
+	  //fill velocity and pressure mass
+	  Output[0] = LumpFact[0] * TotalMass;
+	  
+
+       }
+	//************************************************************************************
+	//************************************************************************************
+        void EbstVel::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+       {
+
+	  double Area = GetGeometry().Area();
+// 	  boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX = ZeroMatrix(3, 2);
+// 	  array_1d<double, 3 > N = ZeroVector(3); //dimension = number of nodes
+// 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+
+// 	  double inv_max_h = inner_prod(DN_DX(0),DN_DX(0));
+// 	  double first = inner_prod(DN_DX(1),DN_DX(1));
+// 	  double second = inner_prod(DN_DX(2),DN_DX(2));
+
+// 	  if(inv_max_h < first)
+// 	    inv_max_h = first;
+// 	  else if (inv_max_h < second)
+// 	    inv_max_h = second;
+// 	  inv_max_h = sqrt(inv_max_h);
+
+        Matrix coord = ZeroMatrix(3,3);;
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            coord(i, 0) = GetGeometry()[i].X();
+            coord(i, 1) = GetGeometry()[i].Y();
+            coord(i, 2) = GetGeometry()[i].Z();
+        }
+
+         Vector  vec = ZeroVector(3);
+	    vec[0] = coord(2,0) - coord(1,0);
+	    vec[1] = coord(2,1) - coord(1,1);
+	    vec[2] = coord(2,2) - coord(1,2);
+
+	 double length = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+	 double jam = 0.0 ;
+
+        for (unsigned int i = 1; i < 3; i++)
+        {
+	  vec[0] = coord(i,0) - coord(0,0);
+	  vec[1] = coord(i,1) - coord(0,1);
+	  vec[2] = coord(i,2) - coord(0,2);
+	  jam = vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2];
+
+	  if(jam > length)
+	      length=jam;
+	}
+
+          length = sqrt(length);
+	  double h = 2*Area/length;
+	  double sound_velocity = 4700.0;
+
+	  Output = h/sound_velocity;
+
+/* KRATOS_WATCH(Output);*/
+        }
 
 
 } // Namespace Kratos.
