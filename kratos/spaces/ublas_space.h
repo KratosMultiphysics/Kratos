@@ -253,7 +253,7 @@ namespace Kratos
 #else
             //omptl::copy(rX.begin(), rX.end(), rY.begin());
             const int size = rX.size();
-            if (rY.size() != size)
+            if (rY.size() != static_cast<unsigned int>(size))
                 rY.resize(size, false);
             
 #pragma omp parallel for 
@@ -412,7 +412,7 @@ namespace Kratos
                 noalias(rX) = A*rY;
 #else
             const int size = rY.size();
-            if (rX.size() != size)
+            if (rX.size() != static_cast<unsigned int>(size) )
                 rX.resize(size, false);
 
             if (A == 1.00)
@@ -454,7 +454,7 @@ namespace Kratos
                 noalias(rX) += A*rY;
 #else
             const int size = rY.size();
-            if (rX.size() != size)
+            if (rX.size() != static_cast<unsigned int>(size) )
                 rX.resize(size, false);
 
             if (A == 1.00)
