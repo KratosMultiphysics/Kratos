@@ -84,7 +84,7 @@ namespace viennacl
     * @param filename   The filename
     * @return The text read from the file
     */
-    std::string readTextFromFile(const std::string & filename)
+    inline std::string readTextFromFile(const std::string & filename)
     {
       std::ifstream f(filename.c_str());
       if (!f) return std::string();
@@ -104,7 +104,7 @@ namespace viennacl
     * @param to_replace The replacement for found substrings
     * @return The resulting string
     */
-    std::string strReplace(const std::string & text, std::string to_search, std::string to_replace)
+    inline std::string strReplace(const std::string & text, std::string to_search, std::string to_replace)
     {
       std::string::size_type pos=0;
         std::string result;
@@ -140,7 +140,7 @@ namespace viennacl
     * @param source   The source string
     * @return   The double precision kernel
     */
-    std::string make_double_kernel(std::string const & source)
+    inline std::string make_double_kernel(std::string const & source)
     {
       #ifdef VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK
         std::string result = "#pragma OPENCL EXTENSION cl_amd_fp64 : enable\n\n";
