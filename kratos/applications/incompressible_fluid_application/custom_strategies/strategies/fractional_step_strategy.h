@@ -1235,6 +1235,8 @@ namespace Kratos
                 }
             }
 
+            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(rReactionVar);
+
             KRATOS_CATCH("");
         }
         
