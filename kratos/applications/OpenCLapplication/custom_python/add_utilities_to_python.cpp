@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/opencl_interface.h"
 #include "custom_utilities/opencl_edge_data.h"
 #include "custom_utilities/opencl_pure_convection_edgebased.h"
+#include "custom_utilities/opencl_fluid_solver.h"
 
 
 namespace Kratos
@@ -87,6 +88,17 @@ namespace Python
                           .def("Initialize", &OpenCLPureConvectionEdgeBased3D::Initialize)
                           .def("Solve", &OpenCLPureConvectionEdgeBased3D::Solve)
 						  .def("ComputeTimeStep", &OpenCLPureConvectionEdgeBased3D::ComputeTimeStep)
+                        ;
+
+          class_< OpenCLFluidSolver3D,  boost::noncopyable >   ("OpenCLFluidSolver3D", init< OpenCLMatrixContainer&, ModelPart&, const double, const double, const Vector, bool, double, double, double, double, bool >() )
+						  .def("Initialize", &OpenCLFluidSolver3D::Initialize)
+						  .def("ComputeTimeStep", &OpenCLFluidSolver3D::ComputeTimeStep)
+						  .def("SolveStep1", &OpenCLFluidSolver3D::SolveStep1)
+						  .def("SolveStep2", &OpenCLFluidSolver3D::SolveStep2)
+						  .def("SolveStep3", &OpenCLFluidSolver3D::SolveStep3)
+						  .def("ComputeTimeStep", &OpenCLFluidSolver3D::ComputeTimeStep)
+						  .def("CalculateNormals", &OpenCLFluidSolver3D::CalculateNormals)
+						  .def("UpdateFixedVelocityValues", &OpenCLFluidSolver3D::UpdateFixedVelocityValues)
                         ;
 
           enum_<cl_device_type>("cl_device_type")
