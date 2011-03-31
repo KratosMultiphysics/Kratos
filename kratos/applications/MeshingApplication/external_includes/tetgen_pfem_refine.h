@@ -809,22 +809,22 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				//if( neighb(0).expired()  );
 				if( outnew.neighborlist[base] == -1)
 				{
-					CreateBoundaryFace(1, 2, 3, ThisModelPart,   0, *(iii.base()), properties );
+					CreateBoundaryFace(1, 2, 3, ThisModelPart,   0, *(iii.base()), rReferenceBoundaryCondition, properties );
 				}
 				//if(neighb(1).expired() );
 				if( outnew.neighborlist[base+1] == -1)
 				{
-					CreateBoundaryFace(0,3,2, ThisModelPart,   1, *(iii.base()), properties );
+					CreateBoundaryFace(0,3,2, ThisModelPart,   1, *(iii.base()), rReferenceBoundaryCondition, properties );
 				}
 				if( outnew.neighborlist[base+2] == -1)
 				//if(neighb(2).expired() );
 				{
-					CreateBoundaryFace(0,1,3, ThisModelPart,   2, *(iii.base()), properties );
+					CreateBoundaryFace(0,1,3, ThisModelPart,   2, *(iii.base()), rReferenceBoundaryCondition, properties );
 				}
 				if( outnew.neighborlist[base+3] == -1)
 				//if(neighb(3).expired() );
 				{
-					CreateBoundaryFace(0,2,1, ThisModelPart,   3, *(iii.base()), properties );
+					CreateBoundaryFace(0,2,1, ThisModelPart,   3, *(iii.base()), rReferenceBoundaryCondition, properties );
 				}
 
 			}
@@ -944,7 +944,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		array_1d<double,3> mRhs; //center pos
 
 
-		void CreateBoundaryFace(const int& i1, const int& i2, const int& i3, ModelPart& ThisModelPart, const int& outer_node_id, Element::Pointer origin_element, Properties::Pointer properties)
+		void CreateBoundaryFace(const int& i1, const int& i2, const int& i3, ModelPart& ThisModelPart, const int& outer_node_id, Element::Pointer origin_element, Condition const& rReferenceBoundaryCondition, Properties::Pointer properties)
 		{
 			KRATOS_TRY
 
@@ -963,7 +963,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
 			//Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D< Node<3> >(temp) );
 			int id = (origin_element->Id()-1)*4;
-			Condition::Pointer p_cond = Condition::Pointer(new Condition(id, cond, properties) );
+			Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp, properties);	
 
 			//assigning the neighbour node
 			(p_cond->GetValue(NEIGHBOUR_NODES)).clear();
