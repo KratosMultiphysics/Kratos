@@ -118,6 +118,11 @@ class SolvingStrategyPython:
  	if(self.ReformDofSetAtEachStep == True):
             self.Clear();
 
+    def Check(self):
+        self.builder_and_solver.Check(self.model_part)
+        self.scheme.Check(self.model_part)
+        self.convergence_criteria.Check(self.model_part)
+
             
     #######################################################################
     #######################################################################

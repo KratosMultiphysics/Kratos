@@ -50,6 +50,7 @@ class DynamicStructuralSolver:
 
         #definition of the convergence criteria
         self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
+        self.conv_criteria.Check(self.model_part)
         
        
 
@@ -60,6 +61,7 @@ class DynamicStructuralSolver:
         #definition of time scheme
         self.damp_factor = -0.1; 
         self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(self.damp_factor)
+        self.time_scheme.Check(self.model_part)
         #definition of the convergence criteria
         #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
@@ -70,7 +72,8 @@ class DynamicStructuralSolver:
         MoveMeshFlag = True
         import strategy_python
         self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
-       
+
+        self.solver.Check();
          
          #creating the solution strategy
         #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,30,True,False,True)

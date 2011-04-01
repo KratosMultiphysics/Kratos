@@ -1201,7 +1201,7 @@ namespace Kratos
 
             //set reactions to zero
             #pragma omp parallel for
-            for (int i = 0; i < BaseType::GetModelPart().Nodes().size(); i++)
+            for (int i = 0; i < static_cast<int>(BaseType::GetModelPart().Nodes().size()); i++)
             {
                 ModelPart::NodesContainerType::iterator it = BaseType::GetModelPart().NodesBegin() + i;
                 it->FastGetSolutionStepValue(FRACT_VEL) = it->FastGetSolutionStepValue(VELOCITY);
@@ -1217,7 +1217,7 @@ namespace Kratos
                 Matrix lhs(this->mdomain_size+1,this->mdomain_size+1);
 
                 #pragma omp parallel for firstprivate(rhs,lhs)
-                for(int i=0; i<BaseType::GetModelPart().Elements().size(); i++)
+                for(int i=0; i<static_cast<int>(BaseType::GetModelPart().Elements().size()); i++)
                 {
                     ModelPart::ElementsContainerType::iterator it = BaseType::GetModelPart().ElementsBegin()+i;
 

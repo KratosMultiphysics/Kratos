@@ -34,8 +34,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 /* *********************************************************   
  *          
  *   Last Modified by:    $Author: pooyan $
@@ -62,250 +62,290 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
+    /**@name Kratos Globals */
+    /*@{ */
 
+
+    /*@} */
+    /**@name Type Definitions */
+    /*@{ */
+
+    /*@} */
+
+
+    /**@name  Enum's */
+    /*@{ */
+
+
+    /*@} */
+    /**@name  Functions */
+    /*@{ */
+
+
+
+    /*@} */
+    /**@name Kratos Classes */
+    /*@{ */
+
+        /** Short class definition.
+    Detail class definition.
+
+      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
   
-/*@} */
-/**@name Type Definitions */       
-/*@{ */
-  
-/*@} */
-
-
-/**@name  Enum's */       
-/*@{ */
-  
-
-/*@} */
-/**@name  Functions */       
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-  
-/** Short class definition.
-Detail class definition.
-
-  \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-  
-	\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+            \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 	
-      \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+          \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 	  
-		\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+                    \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 		
 		  
-			\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+                            \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 			
-			  \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+                              \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 			  
-				\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+                                    \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 				
-				  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+                                      \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 				  
 					
-	*/
-	template<class TSparseSpace,
-			 class TDenseSpace //= DenseSpace<double>
-			>
+     */
+    template<class TSparseSpace,
+    class TDenseSpace //= DenseSpace<double>
+    >
     class ConvergenceCriteria
     {
     public:
-      /**@name Type Definitions */       
-      /*@{ */
-		
-		typedef typename TSparseSpace::DataType TDataType;
-		typedef typename TSparseSpace::MatrixType TSystemMatrixType;
-		typedef typename TSparseSpace::VectorType TSystemVectorType;
+        /**@name Type Definitions */
+        /*@{ */
 
-		typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
-		typedef typename TDenseSpace::VectorType LocalSystemVectorType;
+        typedef typename TSparseSpace::DataType TDataType;
+        typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+        typedef typename TSparseSpace::VectorType TSystemVectorType;
 
-		typedef Dof<TDataType> TDofType;
-		typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
-/* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
+        typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
+        typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-      /** Counted pointer of ConvergenceCriteria */
-		//typedef boost::shared_ptr< ConvergenceCriteria< TSparseSpace, TDenseSpace > > Pointer;		
-		KRATOS_CLASS_POINTER_DEFINITION( ConvergenceCriteria );
-      /*@} */
-      /**@name Life Cycle 
-       */    
-      /*@{ */
-      
-      /** Constructor.
-       */
-	  ConvergenceCriteria()
-		{
-		mActualizeRHSIsNeeded=false;
-		mConvergenceCriteriaIsInitialized = false;
-		}
+        typedef Dof<TDataType> TDofType;
+        typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+        /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
 
-      /** Destructor.
-       */
-      virtual ~ConvergenceCriteria(){}
-      
+        /** Counted pointer of ConvergenceCriteria */
+        //typedef boost::shared_ptr< ConvergenceCriteria< TSparseSpace, TDenseSpace > > Pointer;
+        KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
+        /*@} */
+        /**@name Life Cycle
+         */
+        /*@{ */
 
-      /*@} */
-      /**@name Operators 
-       */  
-      /*@{ */
+        /** Constructor.
+         */
+        ConvergenceCriteria()
+        {
+            mActualizeRHSIsNeeded = false;
+            mConvergenceCriteriaIsInitialized = false;
+        }
 
-	  void SetActualizeRHSFlag(bool flag) {mActualizeRHSIsNeeded = flag;}
-      bool GetActualizeRHSflag() {return mActualizeRHSIsNeeded;}
-	  
-	  /*Criterias that need to be called before getting the solution */
-      virtual bool PreCriteria(
-					ModelPart& r_model_part,
-					DofsArrayType& rDofSet,
-					const TSystemMatrixType& A,
-					const TSystemVectorType& Dx,
-					const TSystemVectorType& b
-					){return true;}
+        /** Destructor.
+         */
+        virtual ~ConvergenceCriteria()
+        {
+        }
 
-	  /*Criterias that need to be called after getting the solution */
-	  virtual bool PostCriteria(
-					ModelPart& r_model_part,
-					DofsArrayType& rDofSet,
-					const TSystemMatrixType& A,
-					const TSystemVectorType& Dx,
-					const TSystemVectorType& b
-					){return true;}
 
-	  virtual void Initialize(
-					ModelPart& r_model_part
-					) {mConvergenceCriteriaIsInitialized = true;}
+        /*@} */
+        /**@name Operators
+         */
 
-	  virtual void InitializeSolutionStep(
-					ModelPart& r_model_part,
-					DofsArrayType& rDofSet,
-					const TSystemMatrixType& A,
-					const TSystemVectorType& Dx,
-					const TSystemVectorType& b
-					){}
+        /*@{ */
 
-	  virtual void FinalizeSolutionStep(
-					ModelPart& r_model_part,
-					DofsArrayType& rDofSet,
-					const TSystemMatrixType& A,
-					const TSystemVectorType& Dx,
-					const TSystemVectorType& b
-					){}
+        void SetActualizeRHSFlag(bool flag)
+        {
+            mActualizeRHSIsNeeded = flag;
+        }
 
-	  bool mActualizeRHSIsNeeded;
-	  bool mConvergenceCriteriaIsInitialized;
+        bool GetActualizeRHSflag()
+        {
+            return mActualizeRHSIsNeeded;
+        }
 
-      
-      /*@} */
-      /**@name Operations */
-      /*@{ */
-      
-      
-      /*@} */  
-      /**@name Access */
-      /*@{ */
-      
-      
-      /*@} */
-      /**@name Inquiry */
-      /*@{ */
-      
-      
-      /*@} */      
-      /**@name Friends */
-      /*@{ */
-      
-            
-      /*@} */
-      
+        /*Criterias that need to be called before getting the solution */
+        virtual bool PreCriteria(
+                ModelPart& r_model_part,
+                DofsArrayType& rDofSet,
+                const TSystemMatrixType& A,
+                const TSystemVectorType& Dx,
+                const TSystemVectorType& b
+                )
+        {
+            return true;
+        }
+
+        /*Criterias that need to be called after getting the solution */
+        virtual bool PostCriteria(
+                ModelPart& r_model_part,
+                DofsArrayType& rDofSet,
+                const TSystemMatrixType& A,
+                const TSystemVectorType& Dx,
+                const TSystemVectorType& b
+                )
+        {
+            return true;
+        }
+
+        virtual void Initialize(
+                ModelPart& r_model_part
+                )
+        {
+            mConvergenceCriteriaIsInitialized = true;
+        }
+
+        virtual void InitializeSolutionStep(
+                ModelPart& r_model_part,
+                DofsArrayType& rDofSet,
+                const TSystemMatrixType& A,
+                const TSystemVectorType& Dx,
+                const TSystemVectorType& b
+                )
+        {
+        }
+
+        virtual void FinalizeSolutionStep(
+                ModelPart& r_model_part,
+                DofsArrayType& rDofSet,
+                const TSystemMatrixType& A,
+                const TSystemVectorType& Dx,
+                const TSystemVectorType& b
+                )
+        {
+        }
+        
+        /**
+         * This function is designed to be called once to perform all the checks needed
+         * on the input provided. Checks can be "expensive" as the function is designed
+         * to catch user's errors.
+         * @param r_model_part
+         * @return 0 all ok
+         */
+        virtual int Check(ModelPart& r_model_part)
+        {
+            KRATOS_TRY
+
+            return 0;
+            KRATOS_CATCH("");
+        }
+
+
+
+        bool mActualizeRHSIsNeeded;
+        bool mConvergenceCriteriaIsInitialized;
+
+
+        /*@} */
+        /**@name Operations */
+        /*@{ */
+
+
+        /*@} */
+        /**@name Access */
+        /*@{ */
+
+
+        /*@} */
+        /**@name Inquiry */
+        /*@{ */
+
+
+        /*@} */
+        /**@name Friends */
+        /*@{ */
+
+
+        /*@} */
+
     protected:
         /**@name Protected static Member Variables */
         /*@{ */
-        
+
         /*@} */
         /**@name Protected member Variables */
         /*@{ */
-       
-        
+
+
         /*@} */
         /**@name Protected Operators*/
         /*@{ */
-        
-        
+
+
         /*@} */
         /**@name Protected Operations*/
         /*@{ */
-        
-        
+
+
         /*@} */
         /**@name Protected  Access */
         /*@{ */
-        
-        
-        /*@} */     
+
+
+        /*@} */
         /**@name Protected Inquiry */
         /*@{ */
-        
-        
-        /*@} */   
-	/**@name Protected LifeCycle */  
+
+
+        /*@} */
+        /**@name Protected LifeCycle */
         /*@{ */
-      
 
 
-        /*@} */    
+
+        /*@} */
 
     private:
         /**@name Static Member Variables */
         /*@{ */
-        
-        
+
+
         /*@} */
         /**@name Member Variables */
         /*@{ */
-        
+
         /*@} */
         /**@name Private Operators*/
         /*@{ */
-        
-        
+
+
         /*@} */
         /**@name Private Operations*/
         /*@{ */
-        
-        
+
+
         /*@} */
         /**@name Private  Access */
         /*@{ */
-        
-        
-        /*@} */     
+
+
+        /*@} */
         /**@name Private Inquiry */
         /*@{ */
-        
-        
-        /*@} */   
+
+
+        /*@} */
         /**@name Un accessible methods */
         /*@{ */
-        
-        
-        /*@} */   
-        
+
+
+        /*@} */
+
     }; /* Class ClassName */
 
-  /*@} */
-  
-  /**@name Type Definitions */       
-  /*@{ */
-  
-  
-  /*@} */
-  
-}  /* namespace Kratos.*/
+    /*@} */
+
+    /**@name Type Definitions */
+    /*@{ */
+
+
+    /*@} */
+
+} /* namespace Kratos.*/
 
 #endif /* KRATOS_NEW_CONVERGENCE_CRITERIA  defined */
 

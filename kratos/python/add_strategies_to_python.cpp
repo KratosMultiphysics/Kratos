@@ -302,6 +302,7 @@ namespace Kratos
                     .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
                     .def("Clean", &BaseSchemeType::Clean)
                     .def("MoveMesh", MoveMesh)
+                    .def("Check", &BaseSchemeType::Check)
                     ;
 
             class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
@@ -322,6 +323,7 @@ namespace Kratos
                     .def("Initialize", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::Initialize)
                     .def("InitializeSolutionStep", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::InitializeSolutionStep)
                     .def("FinalizeSolutionStep", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::FinalizeSolutionStep)
+                    .def("Check", &ConvergenceCriteria<SparseSpaceType, LocalSpaceType >::Check)
                     ;
 
             class_< DisplacementCriteria<SparseSpaceType, LocalSpaceType >,
