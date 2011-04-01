@@ -1,0 +1,2 @@
+NO INICIALIZADO: CheckGLError.
+    CheckGLError.
