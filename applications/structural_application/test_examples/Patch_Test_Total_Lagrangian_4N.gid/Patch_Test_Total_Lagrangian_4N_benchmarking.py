@@ -115,6 +115,9 @@ model_part.SetBufferSize(2)
 #structural_solver_relaxation.AddDofs(model_part)
 structural_solver_static.AddDofs(model_part)
 
+model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,  Isotropic2D())
+print "Isotropic model selected"
+
 #creating a fluid solver object
 #solver = structural_solver_relaxation.RelaxationStructuralSolver(model_part,domain_size)
 #solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
@@ -123,9 +126,6 @@ solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size)
 
 solver.structure_linear_solver =  SuperLUSolver()
 
-
-model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,  Isotropic2D())
-print "Isotropic model selected"
 
 
 node_1 = FindNode(model_part.Nodes, 0.00, 0.12, 0.00)

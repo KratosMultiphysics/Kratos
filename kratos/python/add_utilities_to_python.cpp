@@ -91,6 +91,7 @@ namespace Python
 		.def("SetToZero_ScalarVar",&VariableUtils::SetToZero_ScalarVar)
 		.def("SetToZero_ScalarVar",&VariableUtils::SetToZero_ScalarVar)
 		.def("SetToZero_VelocityVectorVar",&VariableUtils::SetToZero_VelocityVectorVar)
+		.def("CheckVariableExists",&VariableUtils::SetToZero_VelocityVectorVar)
 		;
 
 	  class_<NormalCalculationUtils>("NormalCalculationUtils", init<>())

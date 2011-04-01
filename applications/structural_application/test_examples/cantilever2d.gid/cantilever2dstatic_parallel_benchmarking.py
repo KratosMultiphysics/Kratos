@@ -86,6 +86,9 @@ model_part.SetBufferSize(2)
 #importing the solver files
 structural_solver_static_parallel.AddDofs(model_part)
 
+model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
+print "Linear elastic model selected"
+
 #creating a fluid solver object
 solver = structural_solver_static_parallel.StaticStructuralSolver(model_part,domain_size)
 ##pDiagPrecond = ParallelDiagonalPreconditioner()
@@ -98,8 +101,6 @@ for node in model_part.Nodes:
     node.SetSolutionStepValue(BODY_FORCE_Y,0,gravity);
     node.SetSolutionStepValue(BODY_FORCE_Z,0,0.0); 
 
-model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
-print "Linear elastic model selected"
 
 node_1 = FindNode(model_part.Nodes, 0.05, 1.00, 0.00)
 node_2 = FindNode(model_part.Nodes, 0.00, 1.00, 0.00)

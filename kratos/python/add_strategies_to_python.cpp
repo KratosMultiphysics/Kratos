@@ -389,6 +389,7 @@ namespace Kratos
                     .def("FinalizeSolutionStep", &BuilderAndSolverType::FinalizeSolutionStep)
                     .def("CalculateReactions", &BuilderAndSolverType::CalculateReactions)
                     .def("Clear", &BuilderAndSolverType::Clear)
+                    .def("Check", &BuilderAndSolverType::Check)
                     .def("SetEchoLevel", &BuilderAndSolverType::SetEchoLevel)
                     .def("GetEchoLevel", &BuilderAndSolverType::GetEchoLevel)
                     ;

@@ -147,11 +147,11 @@ namespace Kratos
                 ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-                    
-            #pragma omp parallel for
-            for(int k=0; k< static_cast<int>(rNodes.size()) ;k++)
+
+#pragma omp parallel for
+                    for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 array_1d<double, 3 > & destination = i->GetValue(SavedVariable);
                 noalias(destination) = i->FastGetSolutionStepValue(OriginVariable);
             }
@@ -166,10 +166,10 @@ namespace Kratos
                 ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-            #pragma omp parallel for
-            for(int k=0; k < static_cast<int>(rNodes.size()) ;k++)
+#pragma omp parallel for
+                    for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 i->GetValue(SavedVariable) = i->FastGetSolutionStepValue(OriginVariable);
             }
             KRATOS_CATCH("")
@@ -183,10 +183,10 @@ namespace Kratos
                 ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-            #pragma omp parallel for
-            for(int k=0; k < static_cast<int>(rNodes.size()) ;k++)
+#pragma omp parallel for
+                    for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 noalias(i->FastGetSolutionStepValue(DestinationVariable)) = i->FastGetSolutionStepValue(OriginVariable);
             }
             KRATOS_CATCH("")
@@ -201,10 +201,10 @@ namespace Kratos
                 ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-            #pragma omp parallel for
-            for(int k=0; k< static_cast<int>(rNodes.size()) ;k++)
+#pragma omp parallel for
+                    for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 i->FastGetSolutionStepValue(DestinationVariable) = i->FastGetSolutionStepValue(OriginVariable);
             }
             KRATOS_CATCH("")
@@ -216,10 +216,10 @@ namespace Kratos
         void SetToZero_VectorVar(const Variable< array_1d<double, 3 > >& Variable, ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-            #pragma omp parallel for
-            for(int k=0; k < static_cast<int>(rNodes.size()) ;k++)
+#pragma omp parallel for
+                    for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 noalias(i->FastGetSolutionStepValue(Variable)) = ZeroVector(3);
             }
             KRATOS_CATCH("")
@@ -231,14 +231,14 @@ namespace Kratos
         void SetToZero_VelocityVectorVar(ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-            #pragma omp parallel for
-            for(int k=0; k< static_cast<int>(rNodes.size()) ;k++)
+#pragma omp parallel for
+                    for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 noalias(i->FastGetSolutionStepValue(VELOCITY)) = ZeroVector(3);
-//                (i)->Fix(VELOCITY_X);
-//                (i)->Fix(VELOCITY_Y);
-//                (i)->Fix(VELOCITY_Z);
+                //                (i)->Fix(VELOCITY_X);
+                //                (i)->Fix(VELOCITY_Y);
+                //                (i)->Fix(VELOCITY_Z);
                 //i->FastGetSolutionStepValue(VELOCITY).Fix;
             }
 
@@ -247,17 +247,18 @@ namespace Kratos
 
         //***********************************************************************
         //***********************************************************************
+
         void SetToZero_VelocityVectorVar1(ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-            #pragma omp parallel for
-            for(int k=0; k < static_cast<int>(rNodes.size()) ;k++)
+#pragma omp parallel for
+                    for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 noalias(i->FastGetSolutionStepValue(VELOCITY)) = ZeroVector(3);
-//                (i)->Fix(VELOCITY_X);
-//                (i)->Fix(VELOCITY_Y);
-//                (i)->Fix(VELOCITY_Z);
+                //                (i)->Fix(VELOCITY_X);
+                //                (i)->Fix(VELOCITY_Y);
+                //                (i)->Fix(VELOCITY_Z);
                 //i->FastGetSolutionStepValue(VELOCITY).Fix;
             }
 
@@ -266,13 +267,14 @@ namespace Kratos
 
         //***********************************************************************
         //***********************************************************************
+
         void SetToZero_ScalarVar(const Variable< double >& Variable, ModelPart::NodesContainerType& rNodes)
         {
             KRATOS_TRY
-            #pragma omp parallel for
-            for(int k=0; k < static_cast<int>(rNodes.size()) ;k++)
+#pragma omp parallel for
+                    for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
             {
-                ModelPart::NodesContainerType::iterator i = rNodes.begin()+k;
+                ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
                 i->FastGetSolutionStepValue(Variable) = 0.0;
             }
             KRATOS_CATCH("")
@@ -297,6 +299,25 @@ namespace Kratos
 
             return selected_nodes;
             KRATOS_CATCH("")
+        }
+
+        int CheckVariableExists(const Variable< double >& rVariable, ModelPart::NodesContainerType& rNodes)
+        {
+            KRATOS_TRY
+
+            for (ModelPart::NodeIterator i = rNodes.begin(); i != rNodes.end(); ++i)
+            {
+
+                if (i->SolutionStepsDataHas(rVariable) == false)
+                {
+                    std::cout << "problem on node with Id " << i->Id() << "variable " << rVariable << " is not allocated!" << std::endl;
+                    KRATOS_ERROR(std::logic_error, "It is impossible to move the mesh since the rVariable var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
+                }
+            }
+
+            return 0;
+
+            KRATOS_CATCH("");
         }
 
         /*@} */

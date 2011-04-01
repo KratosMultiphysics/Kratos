@@ -100,13 +100,15 @@ model_part.SetBufferSize(2)
 #importing the solver files
 structural_solver_static.AddDofs(model_part)
 
+model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
+print "Linear elastic model selected"
+
 #creating a fluid solver object
 solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size)
 ##pILUPrecond = ILU0Preconditioner() 
 ##solver.structure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
 solver.structure_linear_solver = SuperLUSolver()
-model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
-print "Linear elastic model selected"
+
 
 node_1 = FindNode(model_part.Nodes, 0.05, 1.00, 0.00)
 node_2 = FindNode(model_part.Nodes, 0.00, 1.00, 0.00)
