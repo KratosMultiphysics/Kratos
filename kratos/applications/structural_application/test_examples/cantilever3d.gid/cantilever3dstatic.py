@@ -61,12 +61,13 @@ model_part.SetBufferSize(2)
 #importing the solver files
 structural_solver_static.AddDofs(model_part)
 
+model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
+
 #creating a fluid solver object
 solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size)
 #pILUPrecond = ILU0Preconditioner() 
 #solver.structure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
 
-model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
 print "Linear elastic model selected"
 
 solver.Initialize()

@@ -40,14 +40,14 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
+ */
 /* *********************************************************   
-*          
-*   Last Modified by:    $Author: kazem $
-*   Date:                $Date: 2009-01-16 10:50:17 $
-*   Revision:            $Revision: 1.11 $
-*
-* ***********************************************************/
+ *
+ *   Last Modified by:    $Author: kazem $
+ *   Date:                $Date: 2009-01-16 10:50:17 $
+ *   Revision:            $Revision: 1.11 $
+ *
+ * ***********************************************************/
 
 #if !defined(KRATOS_ISOTROPIC_2D_H_INCLUDED )
 #define  KRATOS_ISOTROPIC_2D_H_INCLUDED
@@ -66,219 +66,229 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	/**
-	 * Defines a linear elastic isotropic constitutive law in 3D space.
-	 * This material law is defined by the parameters E (Young's modulus) 
-	 * and NU (Poisson ratio)
-	 * As there are no further parameters the functionality is limited 
-	 * to linear elasticity.
-	 */
-	class Isotropic2D : public ConstitutiveLaw
-	{
-		public:
-			/**
-			 * Type Definitions
-			 */
-			typedef ConstitutiveLaw BaseType;
-			/**
-			 * Counted pointer of Isotropic2D
-			 */
-			typedef boost::shared_ptr<Isotropic2D> Pointer;
+
+    /**
+     * Defines a linear elastic isotropic constitutive law in 3D space.
+     * This material law is defined by the parameters E (Young's modulus)
+     * and NU (Poisson ratio)
+     * As there are no further parameters the functionality is limited
+     * to linear elasticity.
+     */
+    class Isotropic2D : public ConstitutiveLaw
+    {
+    public:
+        /**
+         * Type Definitions
+         */
+        typedef ConstitutiveLaw BaseType;
+        /**
+         * Counted pointer of Isotropic2D
+         */
+        typedef boost::shared_ptr<Isotropic2D> Pointer;
+
+        /**
+         * Life Cycle
+         */
+        /**
+         * Default constructor.
+         */
+        Isotropic2D();
+
+        virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+        {
+            boost::shared_ptr<ConstitutiveLaw > p_clone(new Isotropic2D());
+            return p_clone;
+        }
+
+        /**
+         * Destructor.
+         */
+        virtual ~Isotropic2D();
+
+        /**
+         * Operators
+         */
+        /**
+         * Operations
+         */
+        bool Has(const Variable<double>& rThisVariable);
+        bool Has(const Variable<Vector>& rThisVariable);
+        bool Has(const Variable<Matrix>& rThisVariable);
+
+        void SetValue(const Variable<double>& rVariable,
+                const double& Value,
+                const ProcessInfo& rCurrentProcessInfo);
+        void SetValue(const Variable<Vector>& rThisVariable,
+                const Vector& rValue,
+                const ProcessInfo& rCurrentProcessInfo);
+        void SetValue(const Variable<Matrix>& rThisVariable,
+                const Matrix& rValue,
+                const ProcessInfo& rCurrentProcessInfo);
+
+        double& GetValue(const Variable<double>& rThisVariable, double& rValue);
+
+        /**
+         * Material parameters are inizialized
+         */
+        void InitializeMaterial(const Properties& props,
+                const GeometryType& geom,
+                const Vector& ShapeFunctionsValues);
+
+        /**
+         * Calculates the constitutive matrix for a given strain vector
+         * @param StrainVector the current vector of strains the constitutive
+         * matrix is to be generated for
+         * @param rResult Matrix the result will be stored in
+         */
+        void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+        //		void PlaneStrainConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+
+        /**
+         * Calculates the stresses for given strain state
+         * @param StrainVector the current vector of strains
+         * @param rResult the stress vector corresponding to the given strains
+         */
+        void CalculateStress(const Vector& StrainVector, Vector& rResult);
+
+        /**
+         * As this constitutive law describes only linear elastic material properties
+         * this function is rather useless and in fact does nothing
+         */
+        /*			void InitializeSolutionStep( const Properties& props,
+                                                const GeometryType& geom, //this is just to give the array of nodes
+                                                const Vector& ShapeFunctionsValues ,
+                                                const ProcessInfo& CurrentProcessInfo);
 			
-			/**
-			 * Life Cycle 
-			 */
-			/**
-			 * Default constructor.
-			 */
-			Isotropic2D();
-			
-			virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
-			{
-				boost::shared_ptr<ConstitutiveLaw > p_clone(new Isotropic2D());
-				return p_clone;
-			}
-
-			/**
-			 * Destructor.
-			 */
-			virtual ~Isotropic2D();
-			
-			/**
-			 * Operators 
-			 */
-			/**
-			 * Operations
-			 */
-			bool Has( const Variable<double>& rThisVariable );
-			bool Has( const Variable<Vector>& rThisVariable );
-			bool Has( const Variable<Matrix>& rThisVariable );
-			
-            void SetValue( const Variable<double>& rVariable, 
-                           const double& Value, 
-                           const ProcessInfo& rCurrentProcessInfo );
-            void SetValue( const Variable<Vector>& rThisVariable, 
-                           const Vector& rValue, 
-                           const ProcessInfo& rCurrentProcessInfo );
-            void SetValue( const Variable<Matrix>& rThisVariable, 
-                           const Matrix& rValue, 
-                           const ProcessInfo& rCurrentProcessInfo );
-			   
-	    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-		
-		/**
-			 * Material parameters are inizialized
-			 */ 
-			void InitializeMaterial( const Properties& props,
-					const GeometryType& geom,
-					const Vector& ShapeFunctionsValues );
-            			
-			/**
-			 * Calculates the constitutive matrix for a given strain vector
-			 * @param StrainVector the current vector of strains the constitutive 
-			 * matrix is to be generated for
-			 * @param rResult Matrix the result will be stored in
-			 */
-			void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
- 	//		void PlaneStrainConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
-			
-			/**
-			 * Calculates the stresses for given strain state
-			 * @param StrainVector the current vector of strains
-			 * @param rResult the stress vector corresponding to the given strains
-			 */
-			void CalculateStress(const Vector& StrainVector, Vector& rResult);
-			
-			/**
-			 * As this constitutive law describes only linear elastic material properties
-			 * this function is rather useless and in fact does nothing
-			 */ 		
-/*			void InitializeSolutionStep( const Properties& props,
-					const GeometryType& geom, //this is just to give the array of nodes
-					const Vector& ShapeFunctionsValues ,
-					const ProcessInfo& CurrentProcessInfo);
-			
-			void FinalizeSolutionStep( const Properties& props,
-					const GeometryType& geom, //this is just to give the array of nodes
-					const Vector& ShapeFunctionsValues ,
-					const ProcessInfo& CurrentProcessInfo);
-*/			
-			/**
-			 * Calculates the cauchy stresses. For a given deformation and stress state
-			 * the cauchy stress vector is calculated
-			 * @param Cauchy_StressVector the result vector of cauchy stresses (will be overwritten)
-			 * @param F the current deformation gradient
-			 * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
-			 * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
-			 */
-			void CalculateCauchyStresses( Vector& Cauchy_StressVector,
-					const Matrix& F,
-					const Vector& PK2_StressVector,
-					const Vector& GreenLagrangeStrainVector);
-			
-			
-			/**
-			 * converts a strain vector styled variable into its form, which the
-			 * deviatoric parts are no longer multiplied by 2
-			 */
-            void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, 
-                           const ProcessInfo& rCurrentProcessInfo);
-            
-            void Calculate( const Variable<double>& rVariable, 
-                                    double& Output, 
-                                    const ProcessInfo& rCurrentProcessInfo);
-
-			void CalculateStressAndTangentMatrix(Vector& StressVector,
-			      const Vector& StrainVector,
-			      Matrix& algorithmicTangent);
+                                void FinalizeSolutionStep( const Properties& props,
+                                                const GeometryType& geom, //this is just to give the array of nodes
+                                                const Vector& ShapeFunctionsValues ,
+                                                const ProcessInfo& CurrentProcessInfo);
+         */
+        /**
+         * Calculates the cauchy stresses. For a given deformation and stress state
+         * the cauchy stress vector is calculated
+         * @param Cauchy_StressVector the result vector of cauchy stresses (will be overwritten)
+         * @param F the current deformation gradient
+         * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
+         * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
+         */
+        void CalculateCauchyStresses(Vector& Cauchy_StressVector,
+                const Matrix& F,
+                const Vector& PK2_StressVector,
+                const Vector& GreenLagrangeStrainVector);
 
 
-            void CalculateMaterialResponse( const Vector& StrainVector,
-                                            const Matrix& DeformationGradient,
-                                            Vector& StressVector,
-                                            Matrix& AlgorithmicTangent,
-                                            const ProcessInfo& CurrentProcessInfo,
-                                            const Properties& props, 
-                                            const GeometryType& geom,
-                                            const Vector& ShapeFunctionsValues,
-                                            bool CalculateStresses = true,
-                                            int CalculateTangent = true,
-                                            bool SaveInternalVariables = true
-                                          );
+        /**
+         * converts a strain vector styled variable into its form, which the
+         * deviatoric parts are no longer multiplied by 2
+         */
+        void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult,
+                const ProcessInfo& rCurrentProcessInfo);
 
-               std::string Info() const;
-               
-             
-//                  void Interpolate_Internal_Variables(double& weight, 
-//                                      ConstitutiveLaw< Node<3> >& Other_Constitutive_Law,   
-//                                     const ProcessInfo& rCurrentProcessInfo);
-            
+        void Calculate(const Variable<double>& rVariable,
+                double& Output,
+                const ProcessInfo& rCurrentProcessInfo);
 
-			/**
-			 * Input and output
-			 */
-			/**
-			 * Turn back information as a string.
-			 */
-			//virtual String Info() const;
-			/**
-			 * Print information about this object.
-			 */
-			//virtual void PrintInfo(std::ostream& rOStream) const;
-			/**
-			 * Print object's data.
-			 */
-			//virtual void PrintData(std::ostream& rOStream) const;
-		
-		protected:
- 
-		private:
-
-		///@}
-		///@name Serialization
-		///@{	
-		friend class Serializer;
-
-		virtual void save(Serializer& rSerializer)
-		{
-		   rSerializer.save("Name","Isotropic2D");
-		   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-		}
-
-		virtual void load(Serializer& rSerializer)
-		{
-		   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-		}
-			
-			/**
-			 * Static Member Variables 
-			 */
-
-			 /**
-			  * calculates the linear elastic constitutive matrix in terms of Young's modulus and
-			  * Poisson ratio
-			  * @param E the Young's modulus
-			  * @param NU the Poisson ratio
-			  * @return the linear elastic constitutive matrix
-			  */
-			 void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
-
-		         double mE,mNU, mDE ;
-
- 	//		 void CalculatePlaneElasticMatrix(Matrix& C, const double E, const double NU);
+        void CalculateStressAndTangentMatrix(Vector& StressVector,
+                const Vector& StrainVector,
+                Matrix& algorithmicTangent);
 
 
-			 /**
-			  * Un accessible methods 
-			  */
-			 /**
-			  * Assignment operator.
-			  */
-			 //Isotropic2D& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
-			 /**
-			  * Copy constructor.
-			  */
-			 //Isotropic2D(const IsotropicPlaneStressWrinklingNew& rOther);
-	}; // Class Isotropic2D 
-}  // namespace Kratos.
+        void CalculateMaterialResponse(const Vector& StrainVector,
+                const Matrix& DeformationGradient,
+                Vector& StressVector,
+                Matrix& AlgorithmicTangent,
+                const ProcessInfo& CurrentProcessInfo,
+                const Properties& props,
+                const GeometryType& geom,
+                const Vector& ShapeFunctionsValues,
+                bool CalculateStresses = true,
+                int CalculateTangent = true,
+                bool SaveInternalVariables = true
+                );
+
+        std::string Info() const;
+
+        /**
+         * returns the size of the strain vector of the current constitutive law
+         * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
+         */
+        virtual SizeType GetStrainSize()
+        {
+            return 3;
+        }
+
+
+        //                  void Interpolate_Internal_Variables(double& weight,
+        //                                      ConstitutiveLaw< Node<3> >& Other_Constitutive_Law,
+        //                                     const ProcessInfo& rCurrentProcessInfo);
+
+
+        /**
+         * Input and output
+         */
+        /**
+         * Turn back information as a string.
+         */
+        //virtual String Info() const;
+        /**
+         * Print information about this object.
+         */
+        //virtual void PrintInfo(std::ostream& rOStream) const;
+        /**
+         * Print object's data.
+         */
+        //virtual void PrintData(std::ostream& rOStream) const;
+
+    protected:
+
+    private:
+
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
+
+        virtual void save(Serializer& rSerializer)
+        {
+            rSerializer.save("Name", "Isotropic2D");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        }
+
+        /**
+         * Static Member Variables
+         */
+
+        /**
+         * calculates the linear elastic constitutive matrix in terms of Young's modulus and
+         * Poisson ratio
+         * @param E the Young's modulus
+         * @param NU the Poisson ratio
+         * @return the linear elastic constitutive matrix
+         */
+        void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
+
+        double mE, mNU, mDE;
+
+        //		 void CalculatePlaneElasticMatrix(Matrix& C, const double E, const double NU);
+
+
+        /**
+         * Un accessible methods
+         */
+        /**
+         * Assignment operator.
+         */
+        //Isotropic2D& operator=(const IsotropicPlaneStressWrinklingNew& rOther);
+        /**
+         * Copy constructor.
+         */
+        //Isotropic2D(const IsotropicPlaneStressWrinklingNew& rOther);
+    }; // Class Isotropic2D
+} // namespace Kratos.
 #endif // KRATOS_ISOTROPIC_2D_H_INCLUDED  defined 

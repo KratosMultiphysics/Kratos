@@ -58,14 +58,15 @@ model_part.SetBufferSize(2)
 #importing the solver files
 structural_solver_static_parallel.AddDofs(model_part)
 
+model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
+print "Linear elastic model selected"
+
 #creating a fluid solver object
 solver = structural_solver_static_parallel.StaticStructuralSolver(model_part,domain_size)
 ##pDiagPrecond = ParallelDiagonalPreconditioner()
 ##solver.model_linear_solver =  ParallelCGSolver(1e-8, 5000,pDiagPrecond)
 
 
-model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
-print "Linear elastic model selected"
 
 solver.Initialize()
 solver.SetEchoLevel(1)

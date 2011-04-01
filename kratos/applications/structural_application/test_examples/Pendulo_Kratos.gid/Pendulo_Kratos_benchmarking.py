@@ -83,13 +83,15 @@ model_part.SetBufferSize(2)
 #importing the solver files
 structural_solver_dynamic.AddDofs(model_part)
 
-#creating a fluid solver object
-solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
-
 
 model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
 model_part.Properties[2].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
 print "Linear elastic model selected"
+
+#creating a fluid solver object
+solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
+
+
 
 
 

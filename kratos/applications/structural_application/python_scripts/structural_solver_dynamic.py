@@ -92,3 +92,8 @@ class DynamicStructuralSolver:
     #######################################################################   
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
+
+    def Check(self):
+        self.builder_and_solver.Check(self.model_part)
+        self.scheme.Check(self.model_part)
+        self.convergence_criteria.Check(self.model_part)
