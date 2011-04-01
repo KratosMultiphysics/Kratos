@@ -206,6 +206,62 @@ def Run():
 
         ################################################################
 
+	Text += "PlasticitJ2 with EBST collection benchmarks: "
+	os.chdir("plasticJ2.gid")
+	sys.path.append(os.getcwd())
+
+	print "PlasticitJ2 with EBST TENSION benchmarks..."
+	Msg = benchmarking.RunBenchmark("tension.py","tension_ref.txt")
+
+	if (Msg == True):
+		Text += "OK\n"
+		print "PlasticitJ2 with EBST TENSION benchmarks successful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "PlasticitJ2 with EBST TENSION benchmarks FAILED"
+
+	print "PlasticitJ2 with EBST TORSION benchmarks..."
+	Msg = benchmarking.RunBenchmark("torsion.py","torsion_ref.txt")
+
+	if (Msg == True):
+		Text += "OK\n"
+		print "PlasticitJ2 with EBST TORSION benchmarks successful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "PlasticitJ2 with EBST TORSION benchmarks FAILED"
+
+	print "PlasticitJ2 with EBST VERTICAL benchmarks..."
+	Msg = benchmarking.RunBenchmark("vertical.py","vertical_ref.txt")
+
+	if (Msg == True):
+		Text += "OK\n"
+		print "PlasticitJ2 with EBST VERTICAL benchmarks successful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "PlasticitJ2 with EBST VERTICAL benchmarks FAILED"
+
+	print "PlasticitJ2 with EBST FORCE benchmarks..."
+	Msg = benchmarking.RunBenchmark("force.py","force_ref.txt")
+
+	if (Msg == True):
+		Text += "OK\n"
+		print "PlasticitJ2 with EBST FORCE benchmarks successful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "PlasticitJ2 with EBST FORCE benchmarks FAILED"
+
+	os.chdir("..")
+
+        ################################################################
+
 
 
         print "resume of all of the examples for the fluid application :"
