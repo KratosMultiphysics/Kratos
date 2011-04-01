@@ -306,15 +306,30 @@ namespace Kratos
         virtual int Check()
         {
             KRATOS_TRY
-                    
-            for(ModelPart::ElementsContainerType::iterator it=GetModelPart().ElementsBegin();
-                    it!=GetModelPart().ElementsEnd();it++)
+
+                    //check if displacement var is needed
+            if (mMoveMeshFlag == true)
+            {
+                for (ModelPart::NodeIterator i = GetModelPart().NodesBegin();
+                        i != GetModelPart().NodesEnd(); ++i)
+
+                    if (i->SolutionStepsDataHas(DISPLACEMENT) == false)
+                        {
+                            std::cout << "problem on node with Id " << i->Id() << std::endl;
+                            KRATOS_ERROR(std::logic_error, "It is impossible to move the mesh since the DISPLACMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
+                        }
+            }
+
+
+
+            for (ModelPart::ElementsContainerType::iterator it = GetModelPart().ElementsBegin();
+                    it != GetModelPart().ElementsEnd(); it++)
             {
                 it->Check(GetModelPart().GetProcessInfo());
             }
 
-            for(ModelPart::ConditionsContainerType::iterator it=GetModelPart().ConditionsBegin();
-                    it!=GetModelPart().ConditionsEnd();it++)
+            for (ModelPart::ConditionsContainerType::iterator it = GetModelPart().ConditionsBegin();
+                    it != GetModelPart().ConditionsEnd(); it++)
             {
                 it->Check(GetModelPart().GetProcessInfo());
             }

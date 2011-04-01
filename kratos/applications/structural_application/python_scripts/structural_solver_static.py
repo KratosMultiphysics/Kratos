@@ -38,6 +38,7 @@ class StaticStructuralSolver:
 
         self.model_part = model_part
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        self.time_scheme.Check(self.model_part)
 
         #definition of the solvers
         self.structure_linear_solver =  SkylineLUFactorizationSolver()
@@ -46,6 +47,7 @@ class StaticStructuralSolver:
         #definition of the convergence criteria
 #        self.conv_criteria = DisplacementCriteria(0.0001,1e-6)
         self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
+        self.conv_criteria.Check(self.model_part)
 
         self.CalculateReactionFlag = True
         self.ReformDofSetAtEachStep = False
@@ -62,6 +64,7 @@ class StaticStructuralSolver:
        
         #creating the solution strategy
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,5000,True,True,True)
+        self.solver.Check();
         
         #(self.solver).SetReformDofSetAtEachStepFlag(True)
         #(self.solver).SetMoveMeshFlag(True)

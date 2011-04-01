@@ -840,7 +840,7 @@ namespace Kratos
 				dp_GPU.clear();
 
 				// Calling the ViennaCL solver
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
+//				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
 
 				// Update pressure
 

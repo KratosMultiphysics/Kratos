@@ -1,5 +1,5 @@
-BeginZE /home/rrossi/esempi/cavity3d_edgebased.gid/cavity3d_edgebased_0.post.vv
-   x -1.56065 1.56065
+BeginZE /home/rrossi/kratos/applications/OpenCLapplication/test_examples/cavity3d_edgebased.gid/cavity3d_edgebased_0.post.vv
+   x -1.70052 1.70052
    y 0.866025 -0.866025
    z -2.59808 2.59808
    e 0.866025
@@ -29,16 +29,16 @@ BeginZE /home/rrossi/esempi/cavity3d_edgebased.gid/cavity3d_edgebased_0.post.vv
    OGLStereo(EyeDistance) 0.08
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/rrossi/esempi/cavity3d_edgebased.gid/cavity3d_edgebased_0.post.vv
+EndZE /home/rrossi/kratos/applications/OpenCLapplication/test_examples/cavity3d_edgebased.gid/cavity3d_edgebased_0.post.vv
 
 
 BeginPostState
 BeginSingleMesh
   Num meshes: 1
   Num sets: 0
-  Num cuts: 1
+  Num cuts: 0
   Mesh: 0
-  State: Off
+  State: On
     Name: "Kratos_Tetrahedra3D4_Mesh"
     IdSet: 0
     Color Type: 0
@@ -48,13 +48,13 @@ BeginSingleMesh
     Color Shininess: 0.3
     Property Massive: 1
     Property Transparent: 0
-    Property Style: 76
+    Property Style: 125
     Property Edge Width: 1
     Property Vector Filter Factor: 0
     Property Stream Arrow: 0
   EndMesh: 0
 EndSingleMesh
   Post_Prefs_Vector_Size: 0 32 32 32
-  ResultView: {Id 1710} {Contour Fill} Kratos 1.0000400543212891 VELOCITY |VELOCITY| 0.0 4 4
+  ResultView: {Id 364} {Contour Fill} Kratos 1.0000400543212891 PRESSURE PRESSURE 0.0 4 4
 EndPostState
 

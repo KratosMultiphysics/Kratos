@@ -462,14 +462,14 @@ namespace Kratos
     void Unique()
     {
         typename TContainerType::iterator end_it = mData.end();
-#ifndef _OPENMP
+//#ifndef _OPENMP
         std::sort(mData.begin(), mData.end(), CompareKey());
-#else
-	if(mData.size() > 2000)
-	  omptl::sort(mData.begin(), mData.end(), CompareKey());
-	else
-	  std::sort(mData.begin(), mData.end(), CompareKey());
-#endif
+//#else
+//	if(mData.size() > 2000)
+//	  omptl::sort(mData.begin(), mData.end(), CompareKey());
+//	else
+//	  std::sort(mData.begin(), mData.end(), CompareKey());
+//#endif
         typename TContainerType::iterator new_end_it = std::unique(mData.begin(), mData.end(), EqualKeyTo());
         mData.erase(new_end_it, end_it);
         mSortedPartSize = mData.size();
