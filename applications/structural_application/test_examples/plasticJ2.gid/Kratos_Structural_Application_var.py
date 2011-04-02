@@ -17,5 +17,5 @@ Max_Iter = 30
 # Declare Python Variables
 
 problem_name="plasticJ2"
-problem_path="/home/kazem/examples/plasticJ2.gid"
-kratos_path="/home/kazem/kratos"
+problem_path="."
+kratos_path="../../../.."
