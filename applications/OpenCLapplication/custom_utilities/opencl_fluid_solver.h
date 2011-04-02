@@ -771,13 +771,6 @@ namespace Kratos
 				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 				double delta_t = CurrentProcessInfo[DELTA_TIME];
 
-				// TODO: It seems that this is not used anymore
-
-		//#ifdef _OPENMP
-				//double time_inv = 0.0; //1.0/delta_t;
-
-		//#endif
-
 				// Read the pressure projection from the database
 				mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes, mbPn1);  // TODO: Is this OK? //mr_model_part.Nodes()
 				mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
@@ -791,8 +784,8 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 2, mbTauPressure);
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 3, mbPn);
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 4, mbPn1);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 5, mr_matrix_container.GetRowStartIndexBuffer());
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 6, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 5, mL_GPU.handle1());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 6, mL_GPU.handle2());
 				mrDeviceGroup.SetImageAsKernelArg(mkSolveStep2_1, 7, mr_matrix_container.GetEdgeValuesBuffer());
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 8, rhs_GPU.handle());
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 9, mL_GPU.handle());
@@ -822,8 +815,8 @@ namespace Kratos
 
 				// Setting arguments
 				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 0, mbPressureOutletList);
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 1, mr_matrix_container.GetRowStartIndexBuffer());
-				mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 2, mr_matrix_container.GetColumnIndexBuffer());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 1, mL_GPU.handle1());
+				mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 2, mL_GPU.handle2());
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 3, mL_GPU.handle());
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 4, rhs_GPU.handle());
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 5, mPressureOutletListLength);
@@ -840,7 +833,7 @@ namespace Kratos
 				dp_GPU.clear();
 
 				// Calling the ViennaCL solver
-//				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
 
 				// Update pressure
 
