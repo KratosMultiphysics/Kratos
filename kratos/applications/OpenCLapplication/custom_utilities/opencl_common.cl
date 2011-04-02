@@ -65,6 +65,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 //
+// OpenCL 1.0 adjustment
+
+#if KRATOS_OCL_VERSION < 110
+
+typedef double4 double3;
+
+#endif
+
+
+//
 // Used types
 
 typedef unsigned int IndexType;
@@ -74,16 +84,6 @@ typedef double3 VectorType;
 typedef double ValueType;
 
 typedef double16 EdgeType;
-
-
-//
-// OpenCL 1.0 adjustment
-
-#if KRATOS_OCL_VERSION < 110
-
-typedef double4 double3;
-
-#endif
 
 
 //
