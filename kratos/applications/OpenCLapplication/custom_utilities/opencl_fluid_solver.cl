@@ -296,7 +296,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			VectorType U_j_curr = mvel_n1[j_neighbour];
 			VectorType xi_j = mXi[j_neighbour];
 
-			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, j_neighbour < i_node ? csr_index : csr_index - 1);  // TODO: Is this correct?
+			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, (j_neighbour < i_node ? csr_index : csr_index - 1) - i_node);  // TODO: Is this correct?
 			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
 			VectorType DNi_Nj = KRATOS_OCL_VECTOR3(KRATOS_OCL_DNI_NJ_0(CurrentEdge), KRATOS_OCL_DNI_NJ_1(CurrentEdge), KRATOS_OCL_DNI_NJ_2(CurrentEdge));
 
