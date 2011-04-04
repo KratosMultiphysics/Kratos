@@ -1,5 +1,6 @@
 #importing the Kratos Library
 from Kratos import *
+from KratosIncompressibleFluidApplication import *
 from KratosOpenCLApplication import *
 
 def AddVariables(model_part):
@@ -21,7 +22,7 @@ def AddDofs(model_part):
 
 class OpenClSolver:
     
-    def __init__(self,model_part,domain_size,body_force,viscosity,density):
+    def __init__(self,model_part,domain_size,body_force,viscosity,density,cl_source_path):
 
         print "entered in EdgeBasedEulerianSolver python constructor"
         #data of the problem
@@ -50,37 +51,30 @@ class OpenClSolver:
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
         (self.neighbour_search).Execute()
 
-        pDiagPrecond = DiagonalPreconditioner()
-        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
-
-        
+        self.cl_source_path = cl_source_path
+        self.single_device_flag = True
 
 
 
     def Initialize(self):
-        print "entered in EdgeBasedEulerianSolver Initialize"
-        #build the edge data structure
         if(self.domain_size == 2):
-            self.matrix_container = MatrixContainer2D()
-        else:
-            self.matrix_container = MatrixContainer3D()
+            raise "error! only 3D implemented"
 
+        print "entered in intialize"
+        self.device_group = OpenCLDeviceGroup(cl_device_type.CL_DEVICE_TYPE_GPU,self.single_device_flag)
+        self.device_group.AddCLSearchPath(self.cl_source_path)
+
+        self.matrix_container = OpenCLMatrixContainer3D(self.device_group)
         self.matrix_container.ConstructCSRVector(self.model_part)
         self.matrix_container.BuildCSRData(self.model_part)
+        print "contructed matrix_containers"
 
-        ##for 3D problems we need to evaluate the condition's neighbours
-        if(self.domain_size == 3):
-            self.condition_neighbours_finder = FindConditionsNeighboursProcess(self.model_part,self.domain_size,10)
-            self.condition_neighbours_finder.Execute()
+        self.condition_neighbours_finder = FindConditionsNeighboursProcess(self.model_part,self.domain_size,10)
+        self.condition_neighbours_finder.Execute()
 
         ##constructing the solver
-        print "ln82"
-        if(self.domain_size == 2):
-            self.fluid_solver = FluidSolver2D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
-        else:
-            print "ln83"
-            self.fluid_solver = FluidSolver3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
-            print "ln84"
+        self.fluid_solver = OpenCLFluidSolver3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
+        print "ln84"
 
         self.fluid_solver.Initialize()
         print "ln91"
@@ -97,7 +91,7 @@ class OpenClSolver:
     def Solve(self):
 ##        (self.fluid_solver).UpdateFixedVelocityValues()
         (self.fluid_solver).SolveStep1();
-        (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
+        (self.fluid_solver).SolveStep2();
         (self.fluid_solver).SolveStep3();
    
     ################################################################
