@@ -187,7 +187,8 @@ namespace Kratos
 				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_4");
 
 				// TODO: Is this OK?
-				viennacl::ocl::setup_context(0, mrDeviceGroup.Contexts[0], mrDeviceGroup.DeviceIDs[0], mrDeviceGroup.CommandQueues[0]);
+				viennacl::ocl::setup_context(1, mrDeviceGroup.Contexts[0], mrDeviceGroup.DeviceIDs[0], mrDeviceGroup.CommandQueues[0]);
+				viennacl::ocl::switch_context(1);
 			}
 
 			//
