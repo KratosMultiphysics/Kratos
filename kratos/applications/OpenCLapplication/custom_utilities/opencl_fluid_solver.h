@@ -540,12 +540,6 @@ namespace Kratos
 				//int n_nodes = vel.size();
 
 				double inverse_rho = 1.0 / mRho;
-				cl_double3 body_force;
-
-				KRATOS_OCL_COMP_0(body_force) = mBodyForce[0];
-				KRATOS_OCL_COMP_1(body_force) = mBodyForce[1];
-				KRATOS_OCL_COMP_2(body_force) = mBodyForce[2];
-				KRATOS_OCL_COMP_3(body_force) = 0.00;
 
 				// Setting arguments
 
@@ -560,11 +554,13 @@ namespace Kratos
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 7, pressure_buffer);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 8, rhs_buffer);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 9, mbTauConvection);
-				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 10, body_force);
-				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 11, inverse_rho);
-				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 12, mViscosity);
-				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 13, n_nodes);
-				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS, 14, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 10, mBodyForce[0]);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 11, mBodyForce[1]);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 12, mBodyForce[2]);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 13, inverse_rho);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 14, mViscosity);
+				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 15, n_nodes);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS, 16, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
 
 				// Apply wall resistance
 				if (mWallLawIsActive == true)
