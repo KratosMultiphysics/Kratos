@@ -181,10 +181,10 @@ namespace Kratos
 
 				mkComputeWallResistance = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ComputeWallResistance");
 
-				mkApplyVelocityBC_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "mkApplyVelocityBC_1");
-				mkApplyVelocityBC_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "mkApplyVelocityBC_2");
-				mkApplyVelocityBC_3 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "mkApplyVelocityBC_3");
-				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "mkApplyVelocityBC_4");
+				mkApplyVelocityBC_1 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_1");
+				mkApplyVelocityBC_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_2");
+				mkApplyVelocityBC_3 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_3");
+				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_4");
 
 				// TODO: Is this OK?
 				viennacl::ocl::setup_context(0, mrDeviceGroup.Contexts[0], mrDeviceGroup.DeviceIDs[0], mrDeviceGroup.CommandQueues[0]);
