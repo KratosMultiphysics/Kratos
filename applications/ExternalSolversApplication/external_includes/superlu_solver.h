@@ -188,7 +188,7 @@ namespace Kratos
                     
                 //resubstitution of results
 		#pragma omp parallel for
-                for( unsigned int i=0; i<rB.size(); i++ )
+                for(int i=0; i<static_cast<unsigned int>(rB.size()); i++ )
                 	rX[i] = rB[i]; // B(i,0);
                 
 		//deallocate memory used
