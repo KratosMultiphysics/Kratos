@@ -404,7 +404,7 @@ namespace Kratos
 	    std::vector<Near_Node> Is_Near;
 	    IntersectTriangleCases<Configure> IntersectTriangles(mr_model_part);  
 	    
-	    #pragma omp parallel for 
+	   // #pragma omp parallel for 
 	    for(IteratorContainerContactPair it_pair = mPairContacts.begin(); it_pair!= mPairContacts.end(); it_pair++)
 	        { 
 		   //Vericando los nodos que caen en el elemento.
