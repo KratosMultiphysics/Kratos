@@ -218,7 +218,7 @@ def ImportApplications(kernel, applications_path):
 
     if(Import_OpenCLApplication == True):
         print "importing KratosOpenCLApplication ..."
-        sys.path.append(applications_path + '/OpenCLApplication/python_scripts')
+        sys.path.append(applications_path + '/OpenCLapplication/python_scripts')
         from KratosOpenCLApplication import *
         opencl_application = KratosOpenCLApplication()
         kernel.AddApplication(opencl_application)
