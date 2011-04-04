@@ -244,6 +244,8 @@ namespace Kratos
 				// Allocating lists
 				// TODO: Maximum size is used; if this seems a problem with OpenCL buffers, try fixing this
 				// TODO: Decide where to copy these lists to GPU
+				AllocateArray(&mSlipNormal, n_nodes);
+
 				AllocateArray(&mSlipBoundaryList, n_nodes);
 				AllocateArray(&mPressureOutletList, n_nodes);
 				AllocateArray(&mFixedVelocitiesList, n_nodes);
@@ -1364,7 +1366,7 @@ namespace Kratos
 
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
 				{
-					temp_edge_nodes[i_node] = 0.00;
+					temp_edge_nodes[i_node] = 0;
 					noalias(temp_cornern_list[i_node]) = ZeroVector(3);
 				}
 
