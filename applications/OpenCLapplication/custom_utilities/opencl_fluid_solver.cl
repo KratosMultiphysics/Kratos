@@ -166,11 +166,13 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 // Part of CalculateRHS
 // Note: Will replace double3 with 3 doubles if problem occures
 
-__kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_buffer, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *LumpedMass, __global VectorType *convective_velocity, __global ValueType *pressure, __global VectorType *rhs_buffer, __global ValueType *mTauConvection, double3 mBodyForce, double inverse_rho, double mViscosity, const IndexType n_nodes, __local IndexType *Bounds)
+__kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_buffer, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *LumpedMass, __global VectorType *convective_velocity, __global ValueType *pressure, __global VectorType *rhs_buffer, __global ValueType *mTauConvection, ValueType mBodyForce1, ValueType mBodyForce2, ValueType mBodyForce3, ValueType inverse_rho, ValueType mViscosity, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
 	const size_t i_thread = get_local_id(0);
+
+	VectorType mBodyForce = KRATOS_OCL_VECTOR3(mBodyForce1, mBodyForce2, mBodyForce3);
 
 	// Reading for loop bounds
 
