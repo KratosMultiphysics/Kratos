@@ -680,7 +680,7 @@ namespace Kratos
                 }
 		int temp  = kratos_nodes_to_receive.size();
                 kratos_nodes_to_receive.Unique();
-		if(temp != kratos_nodes_to_receive.size())
+		if(temp != static_cast<int>(kratos_nodes_to_receive.size()))
  			KRATOS_ERROR(std::logic_error,"the list of nodes to receive has repeated nodes","");
 
                 nnodes_to_receive = kratos_nodes_to_receive.size();
@@ -730,7 +730,7 @@ namespace Kratos
 		
 //                KRATOS_WATCH("ln222222");
                 r_local_nodes.Unique();
-		if(r_local_nodes.size() != nnodes_to_send)
+		if(static_cast<int>(r_local_nodes.size()) != nnodes_to_send)
 			KRATOS_ERROR(std::logic_error,"impossible situation. Something wrong happend","");
 
                 //add local and ghost to the interface mesh
@@ -751,7 +751,7 @@ namespace Kratos
 
 		int size = r_interface_nodes.size();
                 r_interface_nodes.Unique();
-		if(size != r_interface_nodes.size())
+		if(size != static_cast<int>(r_interface_nodes.size()))
  			KRATOS_ERROR(std::logic_error,"something went wrong in the interface nodes","");
 
 
