@@ -81,6 +81,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 	//
+	// ViennaCLHelper
+	//
+	// ViennaCL helper class
+
+	class ViennaCLHelper
+	{
+		public:
+
+			//
+			// ViennaCLHelper
+			//
+			// Constructor
+
+			ViennaCLHelper(OpenCL::DeviceGroup &_DeviceGroup)
+			{
+				// Set our own context, device and command queue
+				viennacl::ocl::setup_context(0, _DeviceGroup.Contexts[0], _DeviceGroup.DeviceIDs[0], _DeviceGroup.CommandQueues[0]);
+			}
+	};
+
+	//
 	// OpenCLFluidSolver3D
 	//
 	// OpenCL based 3D fluid solver
@@ -125,6 +146,7 @@ namespace Kratos
 				mrDeviceGroup(matrix_container.GetDeviceGroup()),
 				mr_matrix_container(matrix_container),
 				mr_model_part(model_part),
+				mViennaCLHelper(matrix_container.GetDeviceGroup()),
 				mstabdt_pressure_factor(stabdt_pressure_factor),
 				mstabdt_convection_factor(stabdt_convection_factor),
 				medge_detection_angle(edge_detection_angle),
@@ -185,10 +207,6 @@ namespace Kratos
 				mkApplyVelocityBC_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_2");
 				mkApplyVelocityBC_3 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_3");
 				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_4");
-
-				// TODO: What should we do with these?!
-				//viennacl::ocl::setup_context(1, mrDeviceGroup.Contexts[0], mrDeviceGroup.DeviceIDs[0], mrDeviceGroup.CommandQueues[0]);
-				//viennacl::ocl::switch_context(1);
 			}
 
 			//
@@ -866,7 +884,7 @@ namespace Kratos
 
 				// TODO: For debugging ONLY! Delete it!
 				HostVectorType dp(n_nodes);
-                                HostVectorType res(n_nodes);
+				HostVectorType res(n_nodes);
 				viennacl::copy(rhs_GPU, res);
 				KRATOS_WATCH(norm_2(res));
 
@@ -1170,6 +1188,9 @@ namespace Kratos
 
 			// Associated model part
 			ModelPart &mr_model_part;
+
+			// ViennaCL helper
+			ViennaCLHelper mViennaCLHelper;
 
 			// No. of nodes
 			unsigned int n_nodes;
