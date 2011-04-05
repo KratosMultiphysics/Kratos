@@ -489,6 +489,8 @@ namespace Kratos {
 	    mr_matrix_container.AssignVectorToVector(mWork, mvel_n1);
 	    ApplyVelocityBC(mvel_n1);
 
+            KRATOS_WATCH(mvel_n1[745]);
+
 	    KRATOS_CATCH("")
 	}
 
@@ -716,7 +718,7 @@ namespace Kratos {
 		dp[i_node] = 0.0;
 
 	    pLinearSolver->Solve(mL, dp, rhs);
-	    KRATOS_WATCH(*pLinearSolver)
+//	    KRATOS_WATCH(*pLinearSolver)
 
 
 	    //update pressure
