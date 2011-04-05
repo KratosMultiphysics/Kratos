@@ -729,7 +729,9 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of first stage");
-				KRATOS_WATCH(mvel_n1[745]);
+				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
 
 				// Second step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -741,7 +743,9 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of second stage");
-				KRATOS_WATCH(mvel_n1[745]);
+				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
 
 				// Third step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -753,7 +757,9 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of third stage");
-				KRATOS_WATCH(mvel_n1[745]);
+				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
 
 				// Fourth step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -767,7 +773,9 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of step1");
-				KRATOS_WATCH(mvel_n1[745]);
+				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
 
 				KRATOS_CATCH("")
             }
