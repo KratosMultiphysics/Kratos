@@ -726,9 +726,10 @@ namespace Kratos {
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
 		dp[i_node] = 0.0;
 
+            KRATOS_WATCH(norm_2(rhs));
 	    pLinearSolver->Solve(mL, dp, rhs);
 //	    KRATOS_WATCH(*pLinearSolver)
-
+KRATOS_WATCH(norm_2(dp));
 
 	    //update pressure
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
@@ -855,6 +856,9 @@ namespace Kratos {
 		    
 		}
 	    }
+
+            KRATOS_WATCH("end of step3")
+            KRATOS_WATCH(mvel_n1[745]);
 
 	    KRATOS_CATCH("")
 	}
