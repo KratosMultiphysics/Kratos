@@ -288,6 +288,8 @@ namespace Kratos
 				mbrhs = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 
 				// Lists
+				mbSlipNormal = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
+
 				mbSlipBoundaryList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
 				mbPressureOutletList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
 				mbFixedVelocitiesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
