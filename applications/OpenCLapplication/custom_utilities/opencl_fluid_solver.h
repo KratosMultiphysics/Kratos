@@ -864,8 +864,18 @@ namespace Kratos
 				// Set starting vector for iterative solvers
 				//dp_GPU.clear();
 
+				// TODO: For debugging ONLY! Delete it!
+				HostVectorType dp(n_nodes);
+				viennacl::copy(dp_GPU, dp);
+				KRATOS_WATCH(norm_2(dp));
+
+
 				// Calling the ViennaCL solver
 				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
+
+				// TODO: For debugging ONLY! Delete it!
+				viennacl::copy(dp_GPU, dp);
+				KRATOS_WATCH(norm_2(dp));
 
 				// Update pressure
 
@@ -975,6 +985,14 @@ namespace Kratos
 					// Execute OpenCL kernel
 					mrDeviceGroup.ExecuteKernel(mkSolveStep3_2, n_nodes);
 				}
+
+				// TODO: Debugging only, delete this!
+				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
+				KRATOS_WATCH("end of step3");
+				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
+				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
+
 
 				KRATOS_CATCH("")
 			}
