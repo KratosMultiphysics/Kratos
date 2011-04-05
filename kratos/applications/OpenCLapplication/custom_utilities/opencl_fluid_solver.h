@@ -186,9 +186,9 @@ namespace Kratos
 				mkApplyVelocityBC_3 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_3");
 				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_4");
 
-				// TODO: Is this OK?
-				viennacl::ocl::setup_context(1, mrDeviceGroup.Contexts[0], mrDeviceGroup.DeviceIDs[0], mrDeviceGroup.CommandQueues[0]);
-				viennacl::ocl::switch_context(1);
+				// TODO: What should we do with these?!
+				//viennacl::ocl::setup_context(1, mrDeviceGroup.Contexts[0], mrDeviceGroup.DeviceIDs[0], mrDeviceGroup.CommandQueues[0]);
+				//viennacl::ocl::switch_context(1);
 			}
 
 			//
@@ -936,12 +936,12 @@ namespace Kratos
 					// Setting arguments
 					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 0, mbvel_n1);
 					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 1, mbdiv_error);
-					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 3, mr_matrix_container.GetRowStartIndexBuffer());
-					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 4, mr_matrix_container.GetColumnIndexBuffer());
-					mrDeviceGroup.SetImageAsKernelArg(mkSolveStep3_2, 5, mr_matrix_container.GetEdgeValuesBuffer());
-					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 6, mRho);
-					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 7, n_nodes);
-					mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_2, 8, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_2][0] + 1) * sizeof(cl_uint));
+					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 2, mr_matrix_container.GetRowStartIndexBuffer());
+					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 3, mr_matrix_container.GetColumnIndexBuffer());
+					mrDeviceGroup.SetImageAsKernelArg(mkSolveStep3_2, 4, mr_matrix_container.GetEdgeValuesBuffer());
+					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 5, mRho);
+					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 6, n_nodes);
+					mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_2, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_2][0] + 1) * sizeof(cl_uint));
 
 
 					// Execute OpenCL kernel
