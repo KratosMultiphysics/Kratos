@@ -834,7 +834,7 @@ namespace Kratos
 				// TODO: Maybe we do not need this, because of the way ViennaCL solver is used
 
 				// Set starting vector for iterative solvers
-				dp_GPU.clear();
+				//dp_GPU.clear();
 
 				// Calling the ViennaCL solver
 				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
