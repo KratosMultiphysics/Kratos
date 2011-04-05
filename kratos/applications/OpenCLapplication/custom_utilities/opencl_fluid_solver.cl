@@ -148,7 +148,7 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
-                        VectorType a_j = mvel_n1[j_neighbour];
+			VectorType a_j = mvel_n1[j_neighbour];
 
 			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
 			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));

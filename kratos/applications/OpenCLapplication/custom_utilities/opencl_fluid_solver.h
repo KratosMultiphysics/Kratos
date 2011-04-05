@@ -726,6 +726,11 @@ namespace Kratos
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				ApplyVelocityBC(mbvel_n1);
 
+				// TODO: Debugging only, delete this!
+				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
+				KRATOS_WATCH("end of first stage");
+				KRATOS_WATCH(mvel_n1[745]);
+
 				// Second step
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
@@ -733,12 +738,22 @@ namespace Kratos
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				ApplyVelocityBC(mbvel_n1);
 
+				// TODO: Debugging only, delete this!
+				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
+				KRATOS_WATCH("end of second stage");
+				KRATOS_WATCH(mvel_n1[745]);
+
 				// Third step
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 3.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				ApplyVelocityBC(mbvel_n1);
+
+				// TODO: Debugging only, delete this!
+				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
+				KRATOS_WATCH("end of third stage");
+				KRATOS_WATCH(mvel_n1[745]);
 
 				// Fourth step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -748,6 +763,11 @@ namespace Kratos
 				// Compute right-hand side
 				mr_matrix_container.AssignVectorToVector(mbWork, mbvel_n1);
 				ApplyVelocityBC(mbvel_n1);
+
+				// TODO: Debugging only, delete this!
+				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
+				KRATOS_WATCH("end of step1");
+				KRATOS_WATCH(mvel_n1[745]);
 
 				KRATOS_CATCH("")
             }
