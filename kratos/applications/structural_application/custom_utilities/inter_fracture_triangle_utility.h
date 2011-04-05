@@ -132,24 +132,9 @@ namespace Kratos
         bool Detect_And_Split_Elements(ModelPart& this_model_part)
         {
             KRATOS_TRY
-
-                    bool is_split = false;
+   
+            bool is_split = false;
             array_1d<double, 3 > Failure_Maps;
-
-            /*
-   
-            FindElementalNeighboursProcess    ElementosVecinos(this_model_part, 2, 10);
-            FindNodalNeighboursProcess        NodosVecinos(this_model_part, 2, 10);
-            FindConditionsNeighboursProcess   CondicionesVecinas(this_model_part, 2, 10);
-   
-            ElementosVecinos.ClearNeighbours();
-            NodosVecinos.ClearNeighbours();
-            CondicionesVecinas.ClearNeighbours();
-            ElementosVecinos.Execute();
-            NodosVecinos.Execute();
-            CondicionesVecinas.Execute();
-             */
-
             WeakPointerVector< Node < 3 > > Nodes_To_Be_Dupplicated;
             unsigned int detect = Detect_Node_To_Be_Splitted(this_model_part, Nodes_To_Be_Dupplicated);
 
@@ -356,7 +341,7 @@ namespace Kratos
             KRATOS_TRY
 
 
-                    double prod = 0.00;
+            double prod = 0.00;
             array_1d<double, 3 > Coord_Point_1;
             array_1d<double, 3 > Coord_Point_2;
             array_1d<double, 3 > normal;
@@ -523,7 +508,6 @@ namespace Kratos
         ///************************************************************************************************
 
         //pNode = the father node
-
         void CalculateConditions(ModelPart& this_model_part,
                 Node < 3 > ::Pointer& pNode, // father node
                 Node < 3 > ::Pointer& pnode, // child node
@@ -654,18 +638,21 @@ namespace Kratos
 
         void Finalize(ModelPart& this_model_part)
         {
-            NodesArrayType& pNodes = this_model_part.Nodes();
-#ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-#else
+            NodesArrayType& pNodes       = this_model_part.Nodes();
+	    ElementsArrayType& pElements = this_model_part.Elements();
+	    
+	    
+            #ifdef _OPENMP
+            int number_of_threads = 1;  //omp_get_max_threads();
+            #else
             int number_of_threads = 1;
-#endif
+            #endif
 
             vector<unsigned int> node_partition;
             CreatePartition(number_of_threads, pNodes.size(), node_partition);
             //mfail_node.clear();
 
-#pragma omp parallel for 
+            #pragma omp parallel for 
             for (int k = 0; k < number_of_threads; k++)
             {
                 NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
@@ -677,8 +664,71 @@ namespace Kratos
                 }
             }
 
+	    unsigned int New_Id      = 0;
+	    array_1d<double, 3> dir  = ZeroVector(3);
+	    Node < 3 > ::Pointer pchild_node; 
+            vector<unsigned int> element_partition;
+            CreatePartition(number_of_threads, pElements.size(), element_partition);
+	    unsigned int size_1; 
+	    unsigned int size_2;   
+	    
+	    #pragma omp parallel for 
+            for(int k=0; k<number_of_threads; k++)          
+	    {
+	         ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+ 	         ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	         for (ElementsArrayType::iterator it=it_begin; it!=it_end; ++it)
+	           {
+		     size_1 = ComputeNumNeighbElem(it); 
+		     switch(size_1){
+		       case 0:
+		         {
+	                  Element::GeometryType& geom = it->GetGeometry(); 
+		          for(unsigned int i = 0; i<geom.size(); i++)
+		          {
+                              Node<3>::Pointer& pfather_node                =  geom(i); 
+			      WeakPointerVector<Element>& Neighb_Elem_Elem  =  pfather_node->GetValue(NEIGHBOUR_ELEMENTS);
+			      size_2                                        =  (geom[i].GetValue(NEIGHBOUR_ELEMENTS)).size()-1;
 
-            FindElementalNeighboursProcess ElementosVecinos(this_model_part, 2, 10);
+			      if(size_2!=0){
+				//KRATOS_WATCH(it->Id())
+				//KRATOS_WATCH(size_1)
+				//KRATOS_WATCH(geom[i].Id())
+			        //KRATOS_WATCH((geom[i].GetValue(NEIGHBOUR_ELEMENTS)).size())
+				
+			         for(unsigned int j = 0; j<size_2; j++) 
+			           {
+				     New_Id  = this_model_part.Nodes().size() + 1;
+				     //KRATOS_WATCH(New_Id)
+                                     Create_New_Node(this_model_part, dir,  pchild_node, New_Id, pfather_node); 
+                                     Insert_New_Node_In_Elements(geom, pchild_node, pfather_node->Id());
+				     pchild_node->GetValue(NEIGHBOUR_ELEMENTS).push_back(Neighb_Elem_Elem(j).lock());
+			           }
+
+                                    Neighb_Elem_Elem.erase(Neighb_Elem_Elem.begin(),Neighb_Elem_Elem.begin() + size_2);  
+			           //Neighb_Elem_Elem.clear();
+				   //Neighb_Elem_Elem.push_back(ThisNeigh); 
+				   
+				   //KRATOS_WATCH(pfather_node->GetValue(NEIGHBOUR_ELEMENTS).size())
+			           //KRATOS_WATCH(Neighb_Elem_Elem.size())
+			           //KRATOS_WATCH("------------------------------------")
+			      }
+			   }
+			    
+		          break;
+			 }
+			
+		       case 1:
+			break;
+		       
+		       default:
+			  break; 
+                     }
+		   }
+		}
+	       
+	       
+	    FindElementalNeighboursProcess ElementosVecinos(this_model_part, 2, 10);
             FindNodalNeighboursProcess NodosVecinos(this_model_part, 2, 10);
             FindConditionsNeighboursProcess CondicionesVecinas(this_model_part, 2, 10);
 
@@ -688,10 +738,21 @@ namespace Kratos
             ElementosVecinos.Execute();
             NodosVecinos.Execute();
             CondicionesVecinas.Execute();
+	}
+	
+      unsigned int ComputeNumNeighbElem(const ElementsArrayType::iterator& relem)
+      {
+	unsigned int count = 0;
+	 WeakPointerVector<Element>& Neighb_Elem_Elem = relem->GetValue(NEIGHBOUR_ELEMENTS);
+         for(WeakPointerVector<Element>::iterator it  = Neighb_Elem_Elem.begin(); it != Neighb_Elem_Elem.end(); it++)
+	    if( it->Id()!=relem->Id())
+	      count++;
+	    
+	 return count;   
+      }
 
-        }
 
-        static void Calculate_Normal_Faliure_Maps(array_1d<double, 3 > & normal, const array_1d<double, 3 > & failure_map)
+       void Calculate_Normal_Faliure_Maps(array_1d<double, 3 > & normal, const array_1d<double, 3 > & failure_map)
         {
 
             // WARNING: SOLO 2D
