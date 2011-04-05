@@ -1648,22 +1648,24 @@ namespace OpenCL
 
 			void ExecuteKernel(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _GlobalWorkSize)
 			{
-				cl_int Err;
+				if (_GlobalWorkSize != 0)
+					{cl_int Err;
 
-				// Enqueue kernel; we may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
+					// Enqueue kernel; we may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
 
-				size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][_DeviceIndex] - 1) / WorkGroupSizes[_KernelIndex][_DeviceIndex]) * WorkGroupSizes[_KernelIndex][_DeviceIndex];
+					size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][_DeviceIndex] - 1) / WorkGroupSizes[_KernelIndex][_DeviceIndex]) * WorkGroupSizes[_KernelIndex][_DeviceIndex];
 
-				Err = clEnqueueNDRangeKernel(CommandQueues[_DeviceIndex], Kernels[_KernelIndex][_DeviceIndex], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][_DeviceIndex], 0, NULL, NULL);
-				KRATOS_OCL_CHECK(Err);
+					Err = clEnqueueNDRangeKernel(CommandQueues[_DeviceIndex], Kernels[_KernelIndex][_DeviceIndex], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][_DeviceIndex], 0, NULL, NULL);
+					KRATOS_OCL_CHECK(Err);
 
-				Err = clFlush(CommandQueues[_DeviceIndex]);
-				KRATOS_OCL_CHECK(Err);
+					Err = clFlush(CommandQueues[_DeviceIndex]);
+					KRATOS_OCL_CHECK(Err);
 
-				// Wait for kernel to finish
+					// Wait for kernel to finish
 
-				Err = clFinish(CommandQueues[_DeviceIndex]);
-				KRATOS_OCL_CHECK(Err);
+					Err = clFinish(CommandQueues[_DeviceIndex]);
+					KRATOS_OCL_CHECK(Err);
+				}
 			}
 	};
 

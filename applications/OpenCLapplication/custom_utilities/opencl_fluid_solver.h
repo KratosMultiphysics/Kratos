@@ -633,7 +633,7 @@ namespace Kratos
 
 				// Fixed condition
 
-				// Calling ApplyVelocityBC_3 OpenCL kernel
+				// Calling ApplyVelocityBC_4 OpenCL kernel
 
 				// Setting arguments
 				mrDeviceGroup.SetBufferAsKernelArg(mkApplyVelocityBC_4, 0, VelArray_buffer);
