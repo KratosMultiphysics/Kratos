@@ -466,6 +466,8 @@ namespace Kratos {
 	    mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMass(), rhs);
 	    ApplyVelocityBC(mvel_n1);
 
+            KRATOS_WATCH("end of first stage")
+            KRATOS_WATCH(mvel_n1[745]);
 	    //second step
 	    mr_matrix_container.SetToZero(rhs);
 	    CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);
@@ -473,12 +475,18 @@ namespace Kratos {
 	    mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMass(), rhs);
 	    ApplyVelocityBC(mvel_n1);
 
+                        KRATOS_WATCH("end of second stage")
+            KRATOS_WATCH(mvel_n1[745]);
+
 	    //third step
 	    mr_matrix_container.SetToZero(rhs);
 	    CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);
 	    mr_matrix_container.Add_Minv_value(mWork, mWork, delta_t / 3.0, mr_matrix_container.GetInvertedMass(), rhs);
 	    mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, delta_t, mr_matrix_container.GetInvertedMass(), rhs);
 	    ApplyVelocityBC(mvel_n1);
+
+                        KRATOS_WATCH("end of thir stage")
+            KRATOS_WATCH(mvel_n1[745]);
 
 	    //fourth step
 	    mr_matrix_container.SetToZero(rhs);
@@ -489,6 +497,7 @@ namespace Kratos {
 	    mr_matrix_container.AssignVectorToVector(mWork, mvel_n1);
 	    ApplyVelocityBC(mvel_n1);
 
+            KRATOS_WATCH("end of Step1")
             KRATOS_WATCH(mvel_n1[745]);
 
 	    KRATOS_CATCH("")
