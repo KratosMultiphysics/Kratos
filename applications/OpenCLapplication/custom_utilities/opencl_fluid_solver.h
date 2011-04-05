@@ -370,6 +370,9 @@ namespace Kratos
 				unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
 
 				// Allocate memory for variables
+				rhs_GPU.resize(n_nodes);
+				dp_GPU.resize(n_nodes);
+
 				mL.resize(n_nodes, n_nodes, n_nonzero_entries);
 
 				// TODO: May we assume that the graph of mL is the same as the graph of mr_matrix_container? What does the flag do?
