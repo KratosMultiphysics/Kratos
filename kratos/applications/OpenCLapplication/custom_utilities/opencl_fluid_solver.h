@@ -1052,7 +1052,7 @@ namespace Kratos
 				}
 
 				// TODO: Is here OK to copy to GPU?
-				//mrDeviceGroup.CopyBuffer(mbSlipNormal, OpenCL::HostToDevice, OpenCL::VoidPList(1, mSlipNormal));  // TODO: Is this needed?
+				mrDeviceGroup.CopyBuffer(mbSlipNormal, OpenCL::HostToDevice, OpenCL::VoidPList(1, mSlipNormal));  // TODO: Is this needed?
 				mrDeviceGroup.CopyBuffer(mbSlipBoundaryList, OpenCL::HostToDevice, OpenCL::VoidPList(1, mSlipBoundaryList));
 
 				KRATOS_CATCH("")
