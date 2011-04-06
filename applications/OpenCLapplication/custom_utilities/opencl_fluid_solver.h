@@ -884,9 +884,12 @@ namespace Kratos
 
 				// TODO: For debugging ONLY! Delete it!
 				HostVectorType dp(n_nodes);
-				HostVectorType res(n_nodes);
-				viennacl::copy(rhs_GPU, res);
-				KRATOS_WATCH(norm_2(res));
+				HostVectorType rhs(n_nodes);
+				viennacl::copy(rhs_GPU, rhs);
+				KRATOS_WATCH(norm_2(rhs));
+
+				copy(mL_GPU, mL);
+				KRATOS_WATCH(matrix_norm_1 <HostMatrixType>::apply(mL));
 
 
 				// Calling the ViennaCL solver
