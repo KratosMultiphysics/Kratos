@@ -70,7 +70,7 @@ __kernel void AddVectorInplace(__global ValueType *Vec1, __global ValueType *Vec
 	// Check if we are in the range
 	if (i < n)
 	{
-		Vec1[i] += Vec2[i];
+		//Vec1[i] += Vec2[i];
 	}
 }
 
@@ -87,7 +87,7 @@ __kernel void SubVectorInplace(__global ValueType *Vec1, __global ValueType *Vec
 	// Check if we are in the range
 	if (i < n)
 	{
-		Vec1[i] -= Vec2[i];
+		//Vec1[i] -= Vec2[i];
 	}
 }
 
@@ -104,13 +104,13 @@ __kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		double h_avg_i = mHavg[i_node];
+		/*double h_avg_i = mHavg[i_node];
 		double vel_norm = KRATOS_OCL_LENGTH3(mvel_n1[i_node]);
 
 		// TODO: Optimize this
 		mTauPressure[i_node] = 1.00 / (2.00 * vel_norm / h_avg_i + mstabdt_pressure_factor * time_inv_avg + (4.00 * mViscosity) / (h_avg_i * h_avg_i));
 		mTauConvection[i_node] = 1.00 / (2.00 * vel_norm / h_avg_i + mstabdt_convection_factor * time_inv_avg + (4.00 * mViscosity) / (h_avg_i * h_avg_i));
-		mTau2[i_node] = (mViscosity + h_avg_i * vel_norm * 0.5) * mtau2_factor;
+		mTau2[i_node] = (mViscosity + h_avg_i * vel_norm * 0.5) * mtau2_factor;*/
 	}
 }
 
@@ -142,7 +142,7 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		VectorType Temp_Pi_i_node = 0.00;
+		/*VectorType Temp_Pi_i_node = 0.00;
 		VectorType a_i = mvel_n1[i_node];
 
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
@@ -156,7 +156,7 @@ __kernel void SolveStep1_2(__global VectorType *mPi, __global VectorType *mvel_n
 			Add_ConvectiveContribution(Ni_DNj, &Temp_Pi_i_node, a_i, a_i, a_j);  // U_i = a_i, U_j = a_j
 		}
 
-		mPi[i_node] = InvertedMass[i_node] * Temp_Pi_i_node;
+		mPi[i_node] = InvertedMass[i_node] * Temp_Pi_i_node;*/
 	}
 }
 
@@ -191,7 +191,7 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		VectorType Temp_rhs_i_node = LumpedMass[i_node] * mBodyForce;
+		/*VectorType Temp_rhs_i_node = LumpedMass[i_node] * mBodyForce;
 
 		VectorType a_i = convective_velocity[i_node];
 		VectorType U_i = vel_buffer[i_node];
@@ -230,7 +230,7 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 			Sub_StabContribution(&Temp_rhs_i_node, edge_tau, 1.00, stab_low, stab_high);
 		}
 
-		rhs_buffer[i_node] = Temp_rhs_i_node;
+		rhs_buffer[i_node] = Temp_rhs_i_node;*/
 	}
 }
 
@@ -262,7 +262,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		ValueType Temp_rhs_i_node = 0.00;
+		/*ValueType Temp_rhs_i_node = 0.00;
 
 		ValueType p_i = mPn1[i_node];
 		ValueType p_old_i = mPn[i_node];
@@ -274,7 +274,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 #ifndef SYMM_PRESS
 
-			ValueType edge_tau = mTauPressure[i_node];
+		ValueType edge_tau = mTauPressure[i_node];
 
 #endif
 
@@ -343,7 +343,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 		mL_Values[DiagonalIndex] = l_ii;
 
-		rhs_buffer[i_node] = Temp_rhs_i_node;
+		rhs_buffer[i_node] = Temp_rhs_i_node;*/
 	}
 }
 
@@ -360,7 +360,7 @@ __kernel void SolveStep2_2(__global IndexType *mPressureOutletList, __global Ind
 	// Check if we are in the range
 	if (i_pressure < mPressureOutletListLength)
 	{
-		IndexType i_node = mPressureOutletList[i_pressure];
+		/*IndexType i_node = mPressureOutletList[i_pressure];
 
 		// RHS
 		rhs[i_node] = 0.00;
@@ -375,7 +375,7 @@ __kernel void SolveStep2_2(__global IndexType *mPressureOutletList, __global Ind
 				// Diagonal element
 				mL_Values[i] = 1e20;  // A huge value
 			}
-		}
+		}*/
 	}
 }
 
@@ -407,7 +407,7 @@ __kernel void SolveStep2_3(__global VectorType *mXi, __global ValueType *mPn1, _
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		VectorType Temp_Xi_i_node = 0.00;
+		/*VectorType Temp_Xi_i_node = 0.00;
 		ValueType p_i = mPn1[i_node];
 
 		// Loop over all neighbours
@@ -424,7 +424,7 @@ __kernel void SolveStep2_3(__global VectorType *mXi, __global ValueType *mPn1, _
 			Add_grad_p(Ni_DNj, &Temp_Xi_i_node, p_i, p_j);
 		}
 
-		mXi[i_node] = Temp_Xi_i_node * InvertedMass[i_node];
+		mXi[i_node] = Temp_Xi_i_node * InvertedMass[i_node];*/
 	}
 }
 
@@ -456,7 +456,7 @@ __kernel void SolveStep3_1(__global VectorType *mvel_n1, __global ValueType *mPn
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		VectorType correction = 0.00;
+		/*VectorType correction = 0.00;
 		ValueType delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv * factor;
 
 		// Compute edge contributions dt * M ^ (-1) Gp
@@ -473,7 +473,7 @@ __kernel void SolveStep3_1(__global VectorType *mvel_n1, __global ValueType *mPn
 		}
 
 		// Correct fractional momentum
-		mvel_n1[i_node] += delta_t * InvertedMass[i_node] * correction;
+		mvel_n1[i_node] += delta_t * InvertedMass[i_node] * correction;*/
 	}
 }
 
@@ -505,7 +505,7 @@ __kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdi
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		ValueType Temp_div_i_err = 0.00;
+		/*ValueType Temp_div_i_err = 0.00;
 		VectorType U_i_curr = mvel_n1[i_node];
 
 		// Compute edge contributions dt * M ^ (-1) Gp
@@ -520,7 +520,7 @@ __kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdi
 			Add_D_v(Ni_DNj, &Temp_div_i_err, U_i_curr * mRho, U_j_curr * mRho);
 		}
 
-		mdiv_error[i_node] = Temp_div_i_err;
+		mdiv_error[i_node] = Temp_div_i_err;*/
 	}
 }
 
@@ -536,11 +536,11 @@ __kernel void ApplyVelocityBC_1(__global VectorType *VelArray, __global VectorTy
 
 	// Check if we are in the range
 	if (i < medge_nodes_directionListLength)
-	{
+	{/*
 		IndexType i_node = medge_nodes[i];
 		VectorType direction = medge_nodes_direction[i];
 
-		VelArray[i_node] = dot(VelArray[i_node], direction) * direction;
+		VelArray[i_node] = dot(VelArray[i_node], direction) * direction;*/
 	}
 }
 
@@ -557,7 +557,7 @@ __kernel void ApplyVelocityBC_2(__global VectorType *VelArray, __global IndexTyp
 	// Check if we are in the range
 	if (i < mcorner_nodesListLength)
 	{
-		VelArray[mcorner_nodes[i]] = 0.00;
+		//VelArray[mcorner_nodes[i]] = 0.00;
 	}
 }
 
@@ -574,11 +574,11 @@ __kernel void ApplyVelocityBC_3(__global VectorType *VelArray, __global VectorTy
 	// Check if we are in the range
 	if (i_slip < mSlipBoundaryListLength)
 	{
-		IndexType i_node = mSlipBoundaryList[i_slip];
+		/*IndexType i_node = mSlipBoundaryList[i_slip];
 		VectorType an_i = mSlipNormal[i_node];
 
 		// Tangential momentum as difference between original and normal momentum
-		VelArray[i_node] -= (dot(VelArray[i_node], an_i) / dot(an_i, an_i)) * an_i;
+		VelArray[i_node] -= (dot(VelArray[i_node], an_i) / dot(an_i, an_i)) * an_i;*/
 	}
 }
 
@@ -595,7 +595,7 @@ __kernel void ApplyVelocityBC_4(__global VectorType *VelArray, __global VectorTy
 	// Check if we are in the range
 	if (i_velocity < mFixedVelocitiesListLength)
 	{
-		VelArray[mFixedVelocities[i_velocity]] = mFixedVelocitiesValues[i_velocity];
+		//VelArray[mFixedVelocities[i_velocity]] = mFixedVelocitiesValues[i_velocity];
 	}
 }
 
@@ -612,7 +612,7 @@ __kernel void ComputeWallResistance(__global VectorType *vel, __global VectorTyp
 	// Check if we are in the range
 	if (i_slip < slip_size)
 	{
-		ValueType k = 0.41;
+		/*ValueType k = 0.41;
 		ValueType B = 5.1;
 		ValueType toll = 1e-6;
 		ValueType y_plus_intercept = 10.9931899;
@@ -649,6 +649,6 @@ __kernel void ComputeWallResistance(__global VectorType *vel, __global VectorTyp
 		if (mod_vel > 1e-12)
 		{
 			rhs[i_node] -= U_i * area * mod_uthaw * mod_uthaw * density / mod_vel;
-		}
+		}*/
 	}
 }
