@@ -72,7 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
-#include "viennacl/linalg/bicgstab.hpp"
+#include "viennacl/linalg/gmres.hpp"
 
 // TODO: Just for test, delete
 #include "includes/matrix_market_interface.h"
@@ -264,7 +264,7 @@ namespace Kratos
 				AllocateArray(&mdiv_error, n_nodes);
 
 				// RHS
-				AllocateArray(&mrhs, n_nodes);
+				AllocateArray(&mrhs, n_nodes);  // TODO: It seems that this is not needed
 
 				// Allocating lists
 				// TODO: Maximum size is used; if this seems a problem with OpenCL buffers, try fixing this
@@ -340,13 +340,13 @@ namespace Kratos
 
 				// Read velocity and pressure data from Kratos
 
-				// TODO: It seems that we do not need this as Solve() does this at first step
-				/*
-				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
-				mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
-				mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
-				mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, mr_model_part.Nodes());
-				*/
+				// TODO: Can these be host only?
+				mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes(), mbvel_n1);
+				mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, mr_model_part.Nodes(), mbvel_n);
+
+				mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes(), mbPn1);
+				mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes(), mbPn);
+
 				mr_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes(), mbx);
 
 				// Set flag for first time step
@@ -686,6 +686,13 @@ namespace Kratos
             {
 				KRATOS_TRY
 
+				// TODO: Test only, delete!
+				//for (unsigned int i = 0; i < n_nodes; i++)
+				//{
+				//	std::cout << mr_matrix_container.GetInvertedMass()[i] << "  ";
+				//}
+				//std::cout << std::endl;
+
 				// Prerequisites
 
 				// Variables for node based data handling
@@ -917,7 +924,7 @@ namespace Kratos
 				WriteMatrixMarketVector("rhs.mm", rhs);
 
 				// Calling the ViennaCL solver
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::gmres_tag());  // TODO: Is this OK to hard-code BiCGStab?
 
 				// TODO: For debugging ONLY! Delete it!
 				HostVectorType dp(n_nodes);
@@ -925,7 +932,7 @@ namespace Kratos
 				viennacl::copy(dp_GPU, dp);
 				KRATOS_WATCH(norm_2(dp));
 
-				dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::bicgstab_tag());  // TODO: Just for test, delete
+				dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::gmres_tag());  // TODO: Just for test, delete
 				WriteMatrixMarketVector("dp2.mm", dp2);
 				KRATOS_WATCH(norm_2(dp2));
 
@@ -1288,7 +1295,7 @@ namespace Kratos
 			ValuesVectorType mdiv_error;
 
 			// Storage of nodal values in local variables
-			CalcVectorType mrhs;
+			CalcVectorType mrhs;  // TODO: It seems that this is not needed
 
 			// Variables for resolving pressure equation
 
