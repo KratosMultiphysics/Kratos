@@ -747,9 +747,10 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of first stage");
-				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
+				double vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 				// Second step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -761,9 +762,10 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of second stage");
-				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
+				vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 				// Third step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -775,9 +777,10 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of third stage");
-				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
+				vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 				// Fourth step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -791,9 +794,10 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of step1");
-				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
+                                vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 				KRATOS_CATCH("")
             }
@@ -1011,9 +1015,10 @@ namespace Kratos
 				// TODO: Debugging only, delete this!
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of step3");
-				KRATOS_WATCH(KRATOS_OCL_COMP_0(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_1(mvel_n1[745]));
-				KRATOS_WATCH(KRATOS_OCL_COMP_2(mvel_n1[745]));
+				double vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2) + pow(KRATOS_OCL_COMP_0(mvel_n1[i]),2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 
 				KRATOS_CATCH("")
@@ -1348,6 +1353,9 @@ namespace Kratos
 
 					h_i = pow(6.0 * m_i, 1.0 / 3.0);
 				}
+
+                                //transfer mHavg to gpu
+                                mrDeviceGroup.CopyBuffer(mbHavg, OpenCL::HostToDevice, OpenCL::VoidPList(1, mHavg));
 
 				// Compute edge coordinates
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
