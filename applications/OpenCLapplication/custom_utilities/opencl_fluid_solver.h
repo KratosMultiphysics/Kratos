@@ -416,7 +416,7 @@ namespace Kratos
 						if ((j_neighbour > i_node) && (flag == 0))
 						{
 							// Add diagonal/nodal contribution
-							mL.push_back(i_node, i_node, 0.00);
+							mL.push_back(i_node, i_node, 1.00); // TODO: Just for test, was: 0.00);
 							flag = 1;
 						}
 
@@ -883,19 +883,19 @@ namespace Kratos
 				//dp_GPU.clear();
 
 				// TODO: For debugging ONLY! Delete it!
-				HostVectorType dp(n_nodes);
 				HostVectorType rhs(n_nodes);
 				viennacl::copy(rhs_GPU, rhs);
 				KRATOS_WATCH(norm_2(rhs));
 
 				copy(mL_GPU, mL);
-				KRATOS_WATCH(matrix_norm_1 <HostMatrixType>::apply(mL));
+				KRATOS_WATCH(matrix_norm_frobenius <HostMatrixType>::apply(mL));
 
 
 				// Calling the ViennaCL solver
 				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
 
 				// TODO: For debugging ONLY! Delete it!
+				HostVectorType dp(n_nodes);
 				viennacl::copy(dp_GPU, dp);
 				KRATOS_WATCH(norm_2(dp));
 
