@@ -66,10 +66,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 
+// TODO: Just for test, delete
+#define VIENNACL_HAVE_UBLAS 1
+
 // Project includes
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/bicgstab.hpp"
+
+// TODO: Just for test, delete
+#include "includes/matrix_market_interface.h"
 
 // TODO: Remove unneeded ones
 //#include "includes/node.h"
@@ -427,7 +433,7 @@ namespace Kratos
 					// If diagonal element is the last non-zero element of the row
 					if (flag == 0)
 					{
-						mL.push_back(i_node, i_node, 0.0);
+						mL.push_back(i_node, i_node, 1.00); // TODO: Just for test, was: 0.00);
 					}
 				}
 
@@ -892,16 +898,23 @@ namespace Kratos
 				KRATOS_WATCH(norm_2(rhs));
 
 				copy(mL_GPU, mL);
-				KRATOS_WATCH(matrix_norm_frobenius <HostMatrixType>::apply(mL));
+				KRATOS_WATCH(matrix_norm_frobenius <HostMatrixType> :: apply(mL));
 
+				WriteMatrixMarketMatrix("mL.mm", mL, false);
+				WriteMatrixMarketVector("rhs.mm", rhs);
 
 				// Calling the ViennaCL solver
 				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag());  // TODO: Is this OK to hard-code BiCGStab?
 
 				// TODO: For debugging ONLY! Delete it!
 				HostVectorType dp(n_nodes);
+				HostVectorType dp2(n_nodes);
 				viennacl::copy(dp_GPU, dp);
 				KRATOS_WATCH(norm_2(dp));
+
+				dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::bicgstab_tag());  // TODO: Just for test, delete
+				WriteMatrixMarketVector("dp2.mm", dp2);
+				KRATOS_WATCH(norm_2(dp2));
 
 				// Update pressure
 
