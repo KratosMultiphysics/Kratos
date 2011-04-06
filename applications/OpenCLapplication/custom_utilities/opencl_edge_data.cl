@@ -100,7 +100,7 @@ __kernel void Add_Minv_value1(__global ValueType *DestinationVector, __global Va
 // DestinationVector = Origin1Vector + Value * MinvVector * OriginVector
 // double3 version
 
-__kernel void Add_Minv_value3(__global VectorType *DestinationVector, __global VectorType *Origin1Vector, const ValueType Value, __global VectorType *MinvVector, __global VectorType *OriginVector, const IndexType n)
+__kernel void Add_Minv_value3(__global VectorType *DestinationVector, __global VectorType *Origin1Vector, const ValueType Value, __global ValueType *MinvVector, __global VectorType *OriginVector, const IndexType n)
 {
 	// Get work item index
 	const size_t id = get_global_id(0);
