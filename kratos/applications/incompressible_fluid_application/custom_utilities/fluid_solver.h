@@ -467,7 +467,11 @@ namespace Kratos {
 	    ApplyVelocityBC(mvel_n1);
 
             KRATOS_WATCH("end of first stage")
-            KRATOS_WATCH(mvel_n1[745]);
+            double vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+                                KRATOS_WATCH(sqrt(vnorm2));
+
 	    //second step
 	    mr_matrix_container.SetToZero(rhs);
 	    CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);
@@ -476,7 +480,10 @@ namespace Kratos {
 	    ApplyVelocityBC(mvel_n1);
 
                         KRATOS_WATCH("end of second stage")
-            KRATOS_WATCH(mvel_n1[745]);
+            vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    //third step
 	    mr_matrix_container.SetToZero(rhs);
@@ -486,7 +493,10 @@ namespace Kratos {
 	    ApplyVelocityBC(mvel_n1);
 
                         KRATOS_WATCH("end of thir stage")
-            KRATOS_WATCH(mvel_n1[745]);
+            vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    //fourth step
 	    mr_matrix_container.SetToZero(rhs);
@@ -498,7 +508,10 @@ namespace Kratos {
 	    ApplyVelocityBC(mvel_n1);
 
             KRATOS_WATCH("end of Step1")
-            KRATOS_WATCH(mvel_n1[745]);
+            vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    KRATOS_CATCH("")
 	}
@@ -858,7 +871,10 @@ KRATOS_WATCH(norm_2(dp));
 	    }
 
             KRATOS_WATCH("end of step3")
-            KRATOS_WATCH(mvel_n1[745]);
+            double vnorm2 = 0.0;
+                                for( int i = 0; i< rNodes.size(); i++)
+                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    KRATOS_CATCH("")
 	}
