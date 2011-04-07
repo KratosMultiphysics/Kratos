@@ -935,14 +935,14 @@ namespace Kratos
 
 				// TODO: For debugging ONLY! Delete it!
 				HostVectorType dp(n_nodes);
-				HostVectorType dp2(n_nodes);
+				//HostVectorType dp2(n_nodes);
 				viennacl::copy(dp_GPU, dp);
 				KRATOS_WATCH(norm_2(dp));
 
-				viennacl::linalg::row_scaling <HostMatrixType> precond_CPU(mL, viennacl::linalg::row_scaling_tag());
-				dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::bicgstab_tag(1e-6, 1000), precond_CPU);  // TODO: Just for test, delete
-				WriteMatrixMarketVector("dp2.mm", dp2);
-				KRATOS_WATCH(norm_2(dp2));
+				//viennacl::linalg::row_scaling <HostMatrixType> precond_CPU(mL, viennacl::linalg::row_scaling_tag());
+				//dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::bicgstab_tag(1e-6, 1000), precond_CPU);  // TODO: Just for test, delete
+				//WriteMatrixMarketVector("dp2.mm", dp2);
+				//KRATOS_WATCH(norm_2(dp2));
 
 				// Update pressure
 
