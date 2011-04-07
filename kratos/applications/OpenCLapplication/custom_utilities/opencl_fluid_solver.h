@@ -72,8 +72,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
-#include "viennacl/linalg/gmres.hpp"
-#include "viennacl/linalg/jacobi_precond.hpp"
+#include "viennacl/linalg/bicgstab.hpp"
+#include "viennacl/linalg/row_scaling.hpp"
 
 // TODO: Just for test, delete
 #include "includes/matrix_market_interface.h"
@@ -930,8 +930,8 @@ namespace Kratos
 				WriteMatrixMarketVector("rhs.mm", rhs);
 
 				// Calling the ViennaCL solver
-				viennacl::linalg::jacobi_precond <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::jacobi_tag());
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::gmres_tag(), precond_GPU);  // TODO: Is this OK to hard-code solver?
+				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(), precond_GPU);  // TODO: Is this OK to hard-code solver?
 
 				// TODO: For debugging ONLY! Delete it!
 				HostVectorType dp(n_nodes);
@@ -939,7 +939,7 @@ namespace Kratos
 				viennacl::copy(dp_GPU, dp);
 				KRATOS_WATCH(norm_2(dp));
 
-				dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::gmres_tag());  // TODO: Just for test, delete
+				dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::bicgstab_tag());  // TODO: Just for test, delete
 				WriteMatrixMarketVector("dp2.mm", dp2);
 				KRATOS_WATCH(norm_2(dp2));
 
