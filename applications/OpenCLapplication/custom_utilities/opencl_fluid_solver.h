@@ -66,23 +66,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 
 
-// TODO: Just for test, delete
-#define VIENNACL_HAVE_UBLAS 1
-
 // Project includes
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/bicgstab.hpp"
 #include "viennacl/linalg/row_scaling.hpp"
-
-// TODO: Just for test, delete
-#include "includes/matrix_market_interface.h"
-
-// TODO: Remove unneeded ones
-//#include "includes/node.h"
-//#include "geometries/geometry.h"
-//#include "utilities/geometry_utilities.h"
-//#include "incompressible_fluid_application.h"
 
 
 namespace Kratos
@@ -265,7 +253,7 @@ namespace Kratos
 				AllocateArray(&mdiv_error, n_nodes);
 
 				// RHS
-				AllocateArray(&mrhs, n_nodes);  // TODO: It seems that this is not needed
+				//AllocateArray(&mrhs, n_nodes);  // TODO: It seems that this is not needed
 
 				// Allocating lists
 				// TODO: Maximum size is used; if this seems a problem with OpenCL buffers, try fixing this
@@ -294,7 +282,7 @@ namespace Kratos
 				mbHmin = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 				mbHavg = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
-				mbNodalFlag = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);  // TODO: Not used properly
+				//mbNodalFlag = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);  // TODO: Not used properly
 
 				mbTauPressure = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 				mbTauConvection = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
@@ -423,7 +411,7 @@ namespace Kratos
 						if ((j_neighbour > i_node) && (flag == 0))
 						{
 							// Add diagonal/nodal contribution
-							mL.push_back(i_node, i_node, 1.00); // TODO: Just for test, was: 0.00);
+							mL.push_back(i_node, i_node, 0.00);
 							flag = 1;
 						}
 
@@ -434,7 +422,7 @@ namespace Kratos
 					// If diagonal element is the last non-zero element of the row
 					if (flag == 0)
 					{
-						mL.push_back(i_node, i_node, 1.00); // TODO: Just for test, was: 0.00);
+						mL.push_back(i_node, i_node, 0.00);
 					}
 				}
 
@@ -689,13 +677,6 @@ namespace Kratos
             {
 				KRATOS_TRY
 
-				// TODO: Test only, delete!
-				//for (unsigned int i = 0; i < n_nodes; i++)
-				//{
-				//	std::cout << mr_matrix_container.GetInvertedMass()[i] << "  ";
-				//}
-				//std::cout << std::endl;
-
 				// Prerequisites
 
 				// Variables for node based data handling
@@ -760,18 +741,6 @@ namespace Kratos
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				ApplyVelocityBC(mbvel_n1);
 
-				// TODO: Debugging only, delete this!
-				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
-				KRATOS_WATCH("end of first stage");
-
-				double vnorm2 = 0.00;
-				for (unsigned int i = 0; i < n_nodes; i++)
-				{
-					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
-				}
-
-				KRATOS_WATCH(sqrt(vnorm2));
-
 				// Second step
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
@@ -779,36 +748,12 @@ namespace Kratos
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				ApplyVelocityBC(mbvel_n1);
 
-				// TODO: Debugging only, delete this!
-				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
-				KRATOS_WATCH("end of second stage");
-
-                                vnorm2 = 0.00;
-				for (unsigned int i = 0; i < n_nodes; i++)
-				{
-					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
-				}
-
-				KRATOS_WATCH(sqrt(vnorm2));
-
 				// Third step
 				mr_matrix_container.SetToZero(mbrhs);
 				CalculateRHS(mbvel_n1, mbPn, mbvel_n1, mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbWork, mbWork, delta_t / 3.00, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				mr_matrix_container.Add_Minv_value3(mbvel_n1, mbvel_n, delta_t, mr_matrix_container.GetInvertedMassBuffer(), mbrhs);
 				ApplyVelocityBC(mbvel_n1);
-
-				// TODO: Debugging only, delete this!
-				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
-				KRATOS_WATCH("end of third stage");
-
-                                vnorm2 = 0.00;
-				for (unsigned int i = 0; i < n_nodes; i++)
-				{
-					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
-				}
-
-				KRATOS_WATCH(sqrt(vnorm2));
 
 				// Fourth step
 				mr_matrix_container.SetToZero(mbrhs);
@@ -818,18 +763,6 @@ namespace Kratos
 				// Compute right-hand side
 				mr_matrix_container.AssignVectorToVector(mbWork, mbvel_n1);
 				ApplyVelocityBC(mbvel_n1);
-
-				// TODO: Debugging only, delete this!
-				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
-				KRATOS_WATCH("end of step1");
-
-                                 vnorm2 = 0.00;
-				for (unsigned int i = 0; i < n_nodes; i++)
-				{
-					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
-				}
-
-				KRATOS_WATCH(sqrt(vnorm2));
 
 				KRATOS_CATCH("")
             }
@@ -848,10 +781,6 @@ namespace Kratos
 
 				// Allocate memory for variables
 				ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
-
-				// TODO: Do the resize inside the Initialize
-				//dp.resize(n_nodes);
-				//rhs.resize(n_nodes);
 
 				// Read time step size from Kratos
 				ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -912,37 +841,9 @@ namespace Kratos
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_2, mPressureOutletListLength);
 
 
-				// TODO: Is this a good thing to do? Can we start from last dp instead?
-				// TODO: Maybe we do not need this, because of the way ViennaCL solver is used
-
-				// Set starting vector for iterative solvers
-				//dp_GPU.clear();
-
-				// TODO: For debugging ONLY! Delete it!
-				HostVectorType rhs(n_nodes);
-				viennacl::copy(rhs_GPU, rhs);
-				KRATOS_WATCH(norm_2(rhs));
-
-				copy(mL_GPU, mL);
-				KRATOS_WATCH(matrix_norm_frobenius <HostMatrixType> :: apply(mL));
-
-				WriteMatrixMarketMatrix("mL.mm", mL, false);
-				WriteMatrixMarketVector("rhs.mm", rhs);
-
 				// Calling the ViennaCL solver
 				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
 				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-6, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
-
-				// TODO: For debugging ONLY! Delete it!
-				HostVectorType dp(n_nodes);
-				//HostVectorType dp2(n_nodes);
-				viennacl::copy(dp_GPU, dp);
-				KRATOS_WATCH(norm_2(dp));
-
-				//viennacl::linalg::row_scaling <HostMatrixType> precond_CPU(mL, viennacl::linalg::row_scaling_tag());
-				//dp2 = viennacl::linalg::solve(mL, rhs, viennacl::linalg::bicgstab_tag(1e-6, 1000), precond_CPU);  // TODO: Just for test, delete
-				//WriteMatrixMarketVector("dp2.mm", dp2);
-				//KRATOS_WATCH(norm_2(dp2));
 
 				// Update pressure
 
@@ -1052,24 +953,11 @@ namespace Kratos
 					mrDeviceGroup.ExecuteKernel(mkSolveStep3_2, n_nodes);
 				}
 
-				// TODO: Debugging only, delete this!
-				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
-				KRATOS_WATCH("end of step3");
-
-				double vnorm2 = 0.00;
-				for (unsigned int i = 0; i < n_nodes; i++)
-				{
-					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
-				}
-
-				KRATOS_WATCH(sqrt(vnorm2));
-
-
 				KRATOS_CATCH("")
 			}
 
 			//
-			//
+			// ComputeWallResistance
 			//
 
 			void ComputeWallResistance(cl_uint vel_buffer, cl_uint rhs_buffer)
@@ -1127,7 +1015,6 @@ namespace Kratos
 
 				// (Re)initialize normals
 				//unsigned int n_nodes = mNodalFlag.size();  // TODO: Is this OK?
-				//mSlipNormal.resize(n_nodes);  // TODO: Fix this!
 				std::vector<bool> is_slip(n_nodes);
 
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -1302,7 +1189,7 @@ namespace Kratos
 			ValuesVectorType mdiv_error;
 
 			// Storage of nodal values in local variables
-			CalcVectorType mrhs;  // TODO: It seems that this is not needed
+			//CalcVectorType mrhs;  // TODO: It seems that this is not needed
 
 			// Variables for resolving pressure equation
 
@@ -1382,12 +1269,6 @@ namespace Kratos
 					// Initialize minimum edge length with relatively big values
 					//mHmin[i_node] = 1e10;
 				}
-
-				//ValuesVectorType TempHmin = mr_matrix_container.GetHmin();
-				//for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-				//{
-				//	mHmin[i_node] = TempHmin[i_node];
-				//}
 
 				// Take unstructured meshes into account
 				for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
