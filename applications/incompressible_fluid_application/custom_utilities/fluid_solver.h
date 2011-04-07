@@ -466,11 +466,11 @@ namespace Kratos {
 	    mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMass(), rhs);
 	    ApplyVelocityBC(mvel_n1);
 
-            KRATOS_WATCH("end of first stage")
-            double vnorm2 = 0.0;
-                                for( int i = 0; i< rNodes.size(); i++)
-                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
-                                KRATOS_WATCH(sqrt(vnorm2));
+//            KRATOS_WATCH("end of first stage")
+//            double vnorm2 = 0.0;
+//                                for( int i = 0; i< rNodes.size(); i++)
+//                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+//                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    //second step
 	    mr_matrix_container.SetToZero(rhs);
@@ -479,11 +479,11 @@ namespace Kratos {
 	    mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, 0.5 * delta_t, mr_matrix_container.GetInvertedMass(), rhs);
 	    ApplyVelocityBC(mvel_n1);
 
-                        KRATOS_WATCH("end of second stage")
-            vnorm2 = 0.0;
-                                for( int i = 0; i< rNodes.size(); i++)
-                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
-                                KRATOS_WATCH(sqrt(vnorm2));
+//                        KRATOS_WATCH("end of second stage")
+//            vnorm2 = 0.0;
+//                                for( int i = 0; i< rNodes.size(); i++)
+//                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+//                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    //third step
 	    mr_matrix_container.SetToZero(rhs);
@@ -492,11 +492,11 @@ namespace Kratos {
 	    mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, delta_t, mr_matrix_container.GetInvertedMass(), rhs);
 	    ApplyVelocityBC(mvel_n1);
 
-                        KRATOS_WATCH("end of thir stage")
-            vnorm2 = 0.0;
-                                for( int i = 0; i< rNodes.size(); i++)
-                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
-                                KRATOS_WATCH(sqrt(vnorm2));
+//                        KRATOS_WATCH("end of thir stage")
+//            vnorm2 = 0.0;
+//                                for( int i = 0; i< rNodes.size(); i++)
+//                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+//                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    //fourth step
 	    mr_matrix_container.SetToZero(rhs);
@@ -507,11 +507,11 @@ namespace Kratos {
 	    mr_matrix_container.AssignVectorToVector(mWork, mvel_n1);
 	    ApplyVelocityBC(mvel_n1);
 
-            KRATOS_WATCH("end of Step1")
-            vnorm2 = 0.0;
-                                for( int i = 0; i< rNodes.size(); i++)
-                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
-                                KRATOS_WATCH(sqrt(vnorm2));
+//            KRATOS_WATCH("end of Step1")
+//            vnorm2 = 0.0;
+//                                for( int i = 0; i< rNodes.size(); i++)
+//                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+//                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    KRATOS_CATCH("")
 	}
@@ -739,11 +739,11 @@ namespace Kratos {
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
 		dp[i_node] = 0.0;
 
-            KRATOS_WATCH(norm_2(rhs));
-            KRATOS_WATCH(norm_frobenius(mL));
+//            KRATOS_WATCH(norm_2(rhs));
+//            KRATOS_WATCH(norm_frobenius(mL));
 	    pLinearSolver->Solve(mL, dp, rhs);
 //	    KRATOS_WATCH(*pLinearSolver)
-KRATOS_WATCH(norm_2(dp));
+//KRATOS_WATCH(norm_2(dp));
 
 	    //update pressure
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
@@ -871,11 +871,11 @@ KRATOS_WATCH(norm_2(dp));
 		}
 	    }
 
-            KRATOS_WATCH("end of step3")
-            double vnorm2 = 0.0;
-                                for( int i = 0; i< rNodes.size(); i++)
-                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
-                                KRATOS_WATCH(sqrt(vnorm2));
+//            KRATOS_WATCH("end of step3")
+//            double vnorm2 = 0.0;
+//                                for( int i = 0; i< rNodes.size(); i++)
+//                                    vnorm2 += pow(mvel_n1[i][0],2) + pow(mvel_n1[i][1],2) + pow(mvel_n1[i][2],2);
+//                                KRATOS_WATCH(sqrt(vnorm2));
 
 	    KRATOS_CATCH("")
 	}
