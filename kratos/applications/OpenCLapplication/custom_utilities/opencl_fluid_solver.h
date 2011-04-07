@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/gmres.hpp"
+#include "viennacl/linalg/jacobi_precond.hpp"
 
 // TODO: Just for test, delete
 #include "includes/matrix_market_interface.h"
@@ -929,7 +930,8 @@ namespace Kratos
 				WriteMatrixMarketVector("rhs.mm", rhs);
 
 				// Calling the ViennaCL solver
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::gmres_tag());  // TODO: Is this OK to hard-code BiCGStab?
+				viennacl::linalg::jacobi_precond <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::jacobi_tag());
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::gmres_tag(), precond_GPU);  // TODO: Is this OK to hard-code solver?
 
 				// TODO: For debugging ONLY! Delete it!
 				HostVectorType dp(n_nodes);
