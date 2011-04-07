@@ -96,7 +96,7 @@ __kernel void SubVectorInplace(__global ValueType *Vec1, __global ValueType *Vec
 //
 // Part of SolveStep1
 //RICCARDO: would rename this to ComputeStabilizationCoeffs
-__kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_n1, __global ValueType *mTauPressure, __global ValueType *mTauConvection, ValueTypeVectorType *mTau2, ValueType mViscosity, ValueType time_inv_avg, ValueType mstabdt_pressure_factor, ValueType mstabdt_convection_factor, ValueType mtau2_factor, const IndexType n_nodes)
+__kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_n1, __global ValueType *mTauPressure, __global ValueType *mTauConvection, __global ValueType *mTau2, ValueType mViscosity, ValueType time_inv_avg, ValueType mstabdt_pressure_factor, ValueType mstabdt_convection_factor, ValueType mtau2_factor, const IndexType n_nodes)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
