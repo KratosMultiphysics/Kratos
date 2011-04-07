@@ -96,7 +96,7 @@ __kernel void SubVectorInplace(__global ValueType *Vec1, __global ValueType *Vec
 //
 // Part of SolveStep1
 //RICCARDO: would rename this to ComputeStabilizationCoeffs
-__kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_n1, __global VectorType *mTauPressure, __global VectorType *mTauConvection, __global VectorType *mTau2, double mViscosity, double time_inv_avg, double mstabdt_pressure_factor, double mstabdt_convection_factor, double mtau2_factor, const IndexType n_nodes)
+__kernel void SolveStep1_1(__global ValueType *mHavg, __global VectorType *mvel_n1, __global ValueType *mTauPressure, __global ValueType *mTauConvection, ValueTypeVectorType *mTau2, ValueType mViscosity, ValueType time_inv_avg, ValueType mstabdt_pressure_factor, ValueType mstabdt_convection_factor, ValueType mtau2_factor, const IndexType n_nodes)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -262,7 +262,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		/*ValueType Temp_rhs_i_node = 0.00;
+		ValueType Temp_rhs_i_node = 0.00;
 
 		ValueType p_i = mPn1[i_node];
 		ValueType p_old_i = mPn[i_node];
@@ -343,7 +343,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 		mL_Values[DiagonalIndex] = l_ii;
 
-		rhs_buffer[i_node] = Temp_rhs_i_node;*/
+		rhs_buffer[i_node] = Temp_rhs_i_node;
 	}
 }
 
@@ -505,7 +505,7 @@ __kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdi
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		/*ValueType Temp_div_i_err = 0.00;
+		ValueType Temp_div_i_err = 0.00;
 		VectorType U_i_curr = mvel_n1[i_node];
 
 		// Compute edge contributions dt * M ^ (-1) Gp
@@ -520,7 +520,7 @@ __kernel void SolveStep3_2(__global VectorType *mvel_n1, __global ValueType *mdi
 			Add_D_v(Ni_DNj, &Temp_div_i_err, U_i_curr * mRho, U_j_curr * mRho);
 		}
 
-		mdiv_error[i_node] = Temp_div_i_err;*/
+		mdiv_error[i_node] = Temp_div_i_err;
 	}
 }
 
