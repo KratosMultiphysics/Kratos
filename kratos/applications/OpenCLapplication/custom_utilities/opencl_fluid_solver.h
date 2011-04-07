@@ -574,8 +574,6 @@ namespace Kratos
 				double inverse_rho = 1.0 / mRho;
 
 				// Setting arguments
-
-				// Execute OpenCL kernel
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 0, mbPi);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 1, vel_buffer);
 				mrDeviceGroup.SetBufferAsKernelArg(mkCalculateRHS, 2, mr_matrix_container.GetRowStartIndexBuffer());
@@ -592,7 +590,11 @@ namespace Kratos
 				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 13, inverse_rho);
 				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 14, mViscosity);
 				mrDeviceGroup.SetKernelArg(mkCalculateRHS, 15, n_nodes);
-				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS, 16, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkCalculateRHS, 16, (mrDeviceGroup.WorkGroupSizes[mkCalculateRHS][0] + 1) * sizeof(cl_uint));
+
+				// Execute OpenCL kernel
+				mrDeviceGroup.ExecuteKernel(mkCalculateRHS, n_nodes);
+
 
 				// Apply wall resistance
 				if (mWallLawIsActive == true)
@@ -872,7 +874,7 @@ namespace Kratos
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 10, mRho);
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 11, delta_t);
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 12, n_nodes);
-				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep2_1, 13, (mrDeviceGroup.WorkGroupSizes[mkSolveStep1_2][0] + 1) * sizeof(cl_uint));
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep2_1, 13, (mrDeviceGroup.WorkGroupSizes[mkSolveStep2_1][0] + 1) * sizeof(cl_uint));
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_1, n_nodes);
@@ -965,9 +967,9 @@ namespace Kratos
 				mrDeviceGroup.SetKernelArg(mkSolveStep2_3, 6, n_nodes);
 				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep2_3, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep2_3][0] + 1) * sizeof(cl_uint));
 
-
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_3, n_nodes);
+
 
 				mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
 
@@ -1015,9 +1017,9 @@ namespace Kratos
 				mrDeviceGroup.SetKernelArg(mkSolveStep3_1, 10, n_nodes);
 				mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_1, 11, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_1][0] + 1) * sizeof(cl_uint));
 
-
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep3_1, n_nodes);
+
 
 				ApplyVelocityBC(mbvel_n1);
 
@@ -1039,7 +1041,6 @@ namespace Kratos
 					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 5, mRho);
 					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 6, n_nodes);
 					mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_2, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_2][0] + 1) * sizeof(cl_uint));
-
 
 					// Execute OpenCL kernel
 					mrDeviceGroup.ExecuteKernel(mkSolveStep3_2, n_nodes);
