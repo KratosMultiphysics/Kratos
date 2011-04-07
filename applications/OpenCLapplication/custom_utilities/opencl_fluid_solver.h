@@ -782,6 +782,7 @@ namespace Kratos
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of second stage");
 
+                                vnorm2 = 0.00;
 				for (unsigned int i = 0; i < n_nodes; i++)
 				{
 					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
@@ -800,6 +801,7 @@ namespace Kratos
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of third stage");
 
+                                vnorm2 = 0.00;
 				for (unsigned int i = 0; i < n_nodes; i++)
 				{
 					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
@@ -820,6 +822,7 @@ namespace Kratos
 				mrDeviceGroup.CopyBuffer(mbvel_n1, OpenCL::DeviceToHost, OpenCL::VoidPList(1, mvel_n1));
 				KRATOS_WATCH("end of step1");
 
+                                 vnorm2 = 0.00;
 				for (unsigned int i = 0; i < n_nodes; i++)
 				{
 					vnorm2 += pow(KRATOS_OCL_COMP_0(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_1(mvel_n1[i]), 2) + pow(KRATOS_OCL_COMP_2(mvel_n1[i]), 2);
