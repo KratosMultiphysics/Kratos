@@ -740,6 +740,7 @@ namespace Kratos {
 		dp[i_node] = 0.0;
 
             KRATOS_WATCH(norm_2(rhs));
+            KRATOS_WATCH(norm_frobenius(mL));
 	    pLinearSolver->Solve(mL, dp, rhs);
 //	    KRATOS_WATCH(*pLinearSolver)
 KRATOS_WATCH(norm_2(dp));
