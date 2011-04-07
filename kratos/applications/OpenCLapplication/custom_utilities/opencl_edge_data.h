@@ -797,7 +797,7 @@ namespace Kratos
 
 				int64_t t1 = timeNanos();
 
-				std::cout << "transfer variables time " << t1 - t0 << std::endl;
+				//std::cout << "transfer variables time " << t1 - t0 << std::endl;
 
 				// TODO: Single device code
 				if (!HostOnly)
