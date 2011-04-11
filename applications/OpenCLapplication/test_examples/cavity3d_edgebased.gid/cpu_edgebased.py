@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+import time as my_timer
+tenter = my_timer.time()
+
 import fluid_only_var
 
 ##################################################################
@@ -76,6 +80,8 @@ for i in range(0,refinement_steps):
 
 edgebased_eulerian_solver.AddDofs(fluid_model_part)
 
+t1 = my_timer.time()
+
 zero = Vector(3)
 zero[0]=0.0;
 zero[1]=0.0;
@@ -108,6 +114,7 @@ gid_io.FinalizeMesh()
 
 gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
 
+t2 = my_timer.time()
 
 time = 0.0
 step = 0
@@ -137,5 +144,9 @@ while(time < final_time):
       
 gid_io.FinalizeResults()
           
+t3 = my_timer.time()
+print "initial time (reading, refinining etc) =", t1-tenter
+print "solver setup time                      =", t2-t1
+print "run time                               =", t3-t2
         
 
