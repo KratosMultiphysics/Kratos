@@ -316,15 +316,15 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			ValueType sum_l_ikjk;
 			CalculateScalarLaplacian(Lij0x, Lij1y, Lij2z, &sum_l_ikjk);
 
-			ValueType sum_l_ikjk_onlydt = sum_l_ikjk * delta_t;
-			sum_l_ikjk *= (delta_t + edge_tau);
+			ValueType sum_l_ikjk_onlydt = sum_l_ikjk * 2.0*delta_t;
+			sum_l_ikjk *= (2.0*delta_t + edge_tau);
 
 			// Assemble right-hand side
 
 			// Pressure contribution
 			Temp_rhs_i_node -= sum_l_ikjk * (p_j - p_i);
 			Temp_rhs_i_node += sum_l_ikjk_onlydt * (p_old_j - p_old_i);  // TODO: Optimize this a bit!
-
+//the 2 above is to be thinked!
 			// Calculating the divergence of the fract vel
 			Sub_D_v(Ni_DNj, &Temp_rhs_i_node, U_i_curr * mRho, U_j_curr * mRho);
 
