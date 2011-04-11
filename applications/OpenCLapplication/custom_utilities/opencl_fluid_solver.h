@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/bicgstab.hpp"
 #include "viennacl/linalg/row_scaling.hpp"
+#include "viennacl/io/kernel_parameters.hpp"
 
 
 namespace Kratos
@@ -93,6 +94,10 @@ namespace Kratos
 			{
 				// Set our own context, device and command queue
 				viennacl::ocl::setup_context(0, _DeviceGroup.Contexts[0], _DeviceGroup.DeviceIDs[0], _DeviceGroup.CommandQueues[0]);
+
+				// Loading best set of parameters
+				viennacl::io::read_kernel_parameters <viennacl::vector <double> > ("vector_parameters.xml");
+				viennacl::io::read_kernel_parameters <viennacl::compressed_matrix <double> > ("sparse_parameters.xml");
 			}
 	};
 
@@ -842,8 +847,8 @@ namespace Kratos
 
 
 				// Calling the ViennaCL solver
-				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
+				//viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
 
 				// Update pressure
 
