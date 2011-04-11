@@ -21,7 +21,17 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
     #model_part.AddNodalSolutionStepVariable(INSITU_STRESS);
-    model_part.AddNodalSolutionStepVariable(FACE_LOAD);
+    model_part.AddNodalSolutionStepVariable(NODAL_DAMAGE);
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+    model_part.AddNodalSolutionStepVariable(NODAL_VOLUME);
+    model_part.AddNodalSolutionStepVariable(NODAL_VALUES);
+    model_part.AddNodalSolutionStepVariable(SPLIT_NODAL);
+    model_part.AddNodalSolutionStepVariable(IS_DUPLICATED);
+    model_part.AddNodalSolutionStepVariable(NODAL_STRAIN);
+    model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
+    model_part.AddNodalSolutionStepVariable(REFINEMENT_LEVEL);
+    model_part.AddNodalSolutionStepVariable(IS_CONTACT_SLAVE);
+    model_part.AddNodalSolutionStepVariable(IS_CONTACT_MASTER);
 
     print "variables for the dynamic structural solution added correctly"
         
@@ -75,5 +85,10 @@ class DynamicStructuralSolver:
         
     def SetFractionDeltaTime(self, fraction):
       (self.solver).SetFractionDeltaTime(fraction)
+      
+    def SetConditionsFlag(self, ComputeContactConditions):
+      (self.solver).SetConditionsFlag(ComputeContactConditions)
+    
+    
       
       
