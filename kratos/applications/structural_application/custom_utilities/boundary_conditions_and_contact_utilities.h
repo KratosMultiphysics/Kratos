@@ -433,7 +433,7 @@ namespace Kratos
 		     if(InsideNodes.size()==1)
 		         is_repited = (mr_model_part.Nodes()(id)->GetValue(IS_CONTACT_SLAVE)==1);
 		  }
-		  std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
+		  //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
                   if(is_repited==false)
 		  {
 		    //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
@@ -446,10 +446,13 @@ namespace Kratos
 		     {
 		       //std::cout<< "Yes Nodes" << std::endl;
 		       Case = IntersectTriangles.LocateCaseItersection(Id_Node_Case_5, Change, InsideNodes, (*it_pair)[master], (*it_pair)[slave]);
+		       //KRATOS_WATCH(Case)
+		       
 		       switch(Case) 
 		       {
 			 case 1: // un solo nodo dentro
 			 {
+			     
 			     unsigned int& id  = InsideNodes[0];  
 			     Ids[master]       = 0;
 			     Ids[slave]        = 0;
@@ -460,6 +463,7 @@ namespace Kratos
 			 
 			 case 2 :
 			 {
+			  
 			  for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			     unsigned int& id  = InsideNodes[in];  
 			     Ids[master]       = 0;
@@ -472,6 +476,7 @@ namespace Kratos
 			 
 			 case 3:
 			 {
+			  
 			   unsigned int& id  = InsideNodes[0];  
 			   Ids[master]       = 0;
 			   Ids[slave]        = 0;
@@ -482,6 +487,7 @@ namespace Kratos
 			 
 			 case 5:
 			 {
+			   
 			   unsigned int& id  = InsideNodes[0];  
 			   Ids[master]       = 0;
 			   Ids[slave]        = 0;
@@ -489,9 +495,9 @@ namespace Kratos
 			   CreateLinkingConditions(master, slave, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );
 			  
 			   //WARNING = SPECIAL CASE
-			   Exist             =  no_nodes;
+			   Exist              =  no_nodes;
 			   unsigned int& id_2 =  Id_Node_Case_5;
-			   Near              = CheckNearNodes(slave, master,  mr_model_part.Nodes()(id_2), (*it_pair)[slave], Ids);
+			   Near               = CheckNearNodes(slave, master,  mr_model_part.Nodes()(id_2), (*it_pair)[slave], Ids);
 			   CreateLinkingConditions(slave, master, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );
 			   break;
 			 }
