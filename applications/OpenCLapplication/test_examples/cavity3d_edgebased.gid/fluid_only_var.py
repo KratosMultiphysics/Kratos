@@ -13,4 +13,4 @@ dynamic_tau = 0.001
 
 problem_name="cavity3d_edgebased"
 problem_path="/home/rrossi/esempi/cavity3d_edgebased.gid"
-kratos_path="/home/rrossi/kratos"
+kratos_path="../../../.."
