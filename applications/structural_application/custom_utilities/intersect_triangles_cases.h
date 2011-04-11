@@ -127,35 +127,32 @@ namespace Kratos
 	    {
 	       if(InsideNodes.size()==1)
 	       {
+		 unsigned int& id = InsideNodes[0];
 		 //caso normal 
-		 if(neighb_cond.size()==1){
-		    rCase = Case_1;}
-		 //is corner???
-		 else
-		   {
-		     if(neighb_cond.size()==3) 
-		       {   
-			 unsigned int& id = InsideNodes[0];
+		 if(neighb_cond.size()==1)
+		      if(Test_One(mr_model_part.Nodes()(id), MasterObject)==true) 
+		           rCase = Case_1;
+		   
+		   //is corner???
+		   if(neighb_cond.size()!=1) 
 			 Is_Corner(NodeOutside, rCase, mr_model_part.Nodes()(id), SlaveObject, MasterObject);  
-		       } 
-		      else
-		        rCase = Case_1;
-		    } 
+  
 	       }
  
 	       if(InsideNodes.size()==2) 
-	         {
 		   rCase = Case_2;
-	         }
+	        
 	      
 	      }
+	      
+	      //if(rCase == Case_0) rCase = Case_3;
 	      
 	      if( (rCase == Case_5) || (rCase == Case_3) ) //uno dentro y otro fuera
 	      { 
 		Change = false;
 	      }
 	      
-	      //KRATOS_WATCH(rCase)
+	      
 	      return rCase;
 	    }
 	    
@@ -194,14 +191,15 @@ namespace Kratos
 	    unsigned int II  = 1;
 	    unsigned int III = 1;
 
-	    
+	     
+	    Points0.resize(2, false); 
+	    Points1.resize(2, false);
 	    for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
 	    {
 	    Condition::GeometryType& geom = cond_slave->GetGeometry();
-	    Point.resize(2, false); 
-	    Points0.resize(2, false); 
-	    Points1.resize(2, false);
-
+	    Point[0] = 0.00; 
+	    Point[1] = 0.00;
+	    
 	    Points0(0)[0] = geom[0].X(); 
 	    Points0(0)[1] = geom[0].Y();
 	    Points0(1)[0] = geom[1].X();
@@ -254,8 +252,9 @@ namespace Kratos
 	    //busca si el tercer segmento intersecta con el master
 	    // is case_3 o 5;
 	    rCase = Is_Case3_Or_Case_5(NodeOutside, SlaveNode, SlaveObject, MasterObject);
+	    
 	    // Verifica si de verdad es corner o si es un nodo dentro. (case_3 or case_1)
-	    if(rCase==Case_3)
+	    if(rCase==Case_3 && Distances.size()==2)
 	    {
 	        const double toler  = 1E-6;
 	        double min   = MinDistancesEdges(SlaveObject, MasterObject); 
@@ -288,7 +287,7 @@ namespace Kratos
 	
 	std::vector<Condition::Pointer>     rConditions;
 	
-	Point.resize(2, false); 
+
 	Points0.resize(2, false); 
 	Points1.resize(2, false);
 	
@@ -352,7 +351,7 @@ namespace Kratos
 	 
 	}
 	
-	
+	// compute the distance triangles edges
 	double MinDistancesEdges( const PointerType& SlaveObject,
 	                          const PointerType& MasterObject)
 	{
@@ -360,31 +359,80 @@ namespace Kratos
 	Element::GeometryType& geom_slave  = SlaveObject->GetGeometry();  
 	Element::GeometryType& geom_master = MasterObject->GetGeometry();
 	  
-        Vector Distances(6);
+        Vector Distances;
+	Distances.resize(6, false);
+	Distances = ZeroVector(6);
+	
 	array_1d<double, 3> Vect; 
 	
-	Vect         = geom_slave[0].Coordinates() - geom_slave[1].Coordinates(); 
-	Distances[0] = std::sqrt(inner_prod(Vect, Vect ) ) ;
+	noalias(Vect)  = geom_slave[0].Coordinates() - geom_slave[1].Coordinates(); 
+	Distances[0]   = std::sqrt(inner_prod(Vect, Vect ) ) ;
 	
-        Vect         = geom_slave[1].Coordinates() - geom_slave[2].Coordinates(); 
-	Distances[1] = std::sqrt(inner_prod(Vect, Vect ) ) ;
+        noalias(Vect)  = geom_slave[1].Coordinates() - geom_slave[2].Coordinates(); 
+	Distances[1]   = std::sqrt(inner_prod(Vect, Vect ) ) ;
 	
-        Vect         = geom_slave[2].Coordinates() - geom_slave[0].Coordinates(); 
-	Distances[2] = std::sqrt(inner_prod(Vect, Vect ) ) ;
+        noalias(Vect)  = geom_slave[2].Coordinates() - geom_slave[0].Coordinates(); 
+	Distances[2]   = std::sqrt(inner_prod(Vect, Vect ) ) ;
 	
-	Vect         = geom_master[0].Coordinates() - geom_master[1].Coordinates(); 
-	Distances[3] = std::sqrt(inner_prod(Vect, Vect ) ) ;
+	noalias(Vect)  = geom_master[0].Coordinates() - geom_master[1].Coordinates(); 
+	Distances[3]   = std::sqrt(inner_prod(Vect, Vect ) ) ;
 	
-        Vect         = geom_master[1].Coordinates() - geom_master[2].Coordinates(); 
-	Distances[4] = std::sqrt(inner_prod(Vect, Vect ) ) ;
+        noalias(Vect)  = geom_master[1].Coordinates() - geom_master[2].Coordinates(); 
+	Distances[4]   = std::sqrt(inner_prod(Vect, Vect ) ) ;
 	
-        Vect         = geom_master[2].Coordinates() - geom_master[0].Coordinates(); 
-	Distances[5] = std::sqrt(inner_prod(Vect, Vect ) ) ;
+        noalias(Vect)  = geom_master[2].Coordinates() - geom_master[0].Coordinates(); 
+	Distances[5]   = std::sqrt(inner_prod(Vect, Vect ) ) ;
 
 	double min = (*std::min_element(Distances.begin(), Distances.end() ) );
 	return min;
 	
 	}
+	
+
+// comparacion con desplazamientos
+bool Test_One(
+	       const NodePointerType& SlaveNode,
+	       const PointerType& MasterObject) 
+{
+  
+  KRATOS_TRY   
+  
+ 
+  vector<array_1d<double, 2> >      Points0;
+  vector<array_1d<double, 2> >      Points1;
+  array_1d<double, 2>               Point;
+  
+  WeakPointerVector<Condition>& neighb_cond_master  = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
+  array_1d<double,3>& old_pos                       = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,2);   
+  
+  Points0.resize(2, false); 
+  Points1.resize(2, false);
+
+  Points0(0)[0] = SlaveNode->X0() + old_pos[0];
+  Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
+  Points0(1)[0] = SlaveNode->X(); 
+  Points0(1)[1] = SlaveNode->Y(); 
+   
+  unsigned int JJ = 1; 
+  for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++){
+  Condition::GeometryType& geom_2 = cond->GetGeometry();
+	    
+    Points1(0)[0] = geom_2[0].X(); 
+    Points1(0)[1] = geom_2[0].Y();
+    Points1(1)[0] = geom_2[1].X();
+    Points1(1)[1] = geom_2[1].Y();
+
+    if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
+        return true;
+    
+    JJ++;
+    if(JJ>neighb_cond_master.size())
+       break;
+  }
+  
+  return false;
+  KRATOS_CATCH("")
+}
 	
 	
 	
