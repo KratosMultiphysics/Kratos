@@ -1281,7 +1281,7 @@ namespace Kratos
 					double &h_i = mHavg[i_node];
 					double &m_i = mr_matrix_container.GetLumpedMass()[i_node];
 
-					h_i = pow(6.0 * m_i, 1.0 / 3.0);
+					h_i = pow(6.00 * m_i, 1.00 / 3.00);
 				}
 
                                 //transfer mHavg to gpu

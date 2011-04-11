@@ -775,7 +775,7 @@ namespace Kratos
 				unsigned int n_nodes = rNodes.size();
  				unsigned int var_pos = it_begin -> pGetVariablesList() -> Index(rVariable);
 
-				int64_t t0 = timeNanos();
+				//int64_t t0 = timeNanos();
 
 				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
 				for(unsigned int i = 0; i < n_nodes; i++)
@@ -795,7 +795,7 @@ namespace Kratos
 					KRATOS_OCL_COMP_3(rDestination[i_node]) = 0.00;
 				}
 
-				int64_t t1 = timeNanos();
+				//int64_t t1 = timeNanos();
 
 				//std::cout << "transfer variables time " << t1 - t0 << std::endl;
 
