@@ -149,7 +149,7 @@ class TLinearSolver>
 	      {
 
 
-		std::cout<<std::fixed<<std::setw(20)<< std::scientific<<std::setprecision(4);  
+		std::cout<<std::fixed<<std::scientific<<std::setprecision(6);  
 	        mdimension                 = dimension; 
 		malpha_damp                = alpha_damp;
                 mfraction_delta_time       = fraction_delta_time; 
@@ -165,11 +165,8 @@ class TLinearSolver>
 		mInitializeWasPerformed    = false;
 
 		mtimestep                  = 0.00;
-		
-		if(mComputeContactConditions==true)
-	  	    mpBCCU_Pointer =  typename BoundaryConditionsAndContactUtilities::Pointer (new BoundaryConditionsAndContactUtilities(model_part, mdimension) );
-		
-		mpLagrangianMultiplier = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
+	  	mpBCCU_Pointer             = typename BoundaryConditionsAndContactUtilities::Pointer (new BoundaryConditionsAndContactUtilities(model_part, mdimension) );
+		mpLagrangianMultiplier     = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
 		
                 std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES "<< std::endl;
 	      }
@@ -320,7 +317,7 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 
 	{
 	   
-	  array_1d<double,3>& actual_displacement   = i->FastGetSolutionStepValue(DISPLACEMENT);   /// Estamos en paso  T(n+1)
+	  array_1d<double,3>& actual_displacement   = i->FastGetSolutionStepValue(DISPLACEMENT);     /// Estamos en paso  T(n+1)
 	  array_1d<double,3>& current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT,1);   /// U(n)
 	  array_1d<double,3>& old_displacement      = i->FastGetSolutionStepValue(DISPLACEMENT,2);   /// U(n-1)
 	  array_1d<double,3>& current_Rhs           = i->FastGetSolutionStepValue(RHS);              /// Fext(n) - Fint(n)  
@@ -349,6 +346,14 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	    if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
 	       actual_displacement[2]     = current_displacement[2] + mid_pos_velocity[2] * current_delta_time; 
 	}
+	
+          if(i->Id()==1324 || i->Id()==1331 )
+ 	  {
+ 	    KRATOS_WATCH(i->Id()) 
+ 	    KRATOS_WATCH(actual_displacement)
+ 	    KRATOS_WATCH(current_displacement)
+ 	    KRATOS_WATCH(old_displacement)
+ 	  }
 
       }   
     }
@@ -1015,6 +1020,12 @@ void FinalizeSolutionStep()
 }
 
 
+
+void ChangeContactConditions(const bool& contact)
+{ 
+  mComputeContactConditions = contact;
+
+}
 
 void ChangeFractionDeltaTime(const double& new_fraction_delta_time)
 {
