@@ -756,6 +756,7 @@ namespace Kratos {
                 for (long unsigned int j=col_begin; j<col_end; j++)
                     t += Lvalues[j]*Lvalues[j];
 
+                t = sqrt(t);
                 scaling_factors[k] = 1.0/sqrt(t);
             }
 
