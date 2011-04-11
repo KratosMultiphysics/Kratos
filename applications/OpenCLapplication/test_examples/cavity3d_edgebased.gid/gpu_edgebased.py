@@ -24,7 +24,7 @@ kernel = Kernel()   #defining kernel
 import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
 applications_interface.Import_OpenCLApplication = True
-##applications_interface.Import_ExternalSolversApplication = True
+applications_interface.Import_MeshingApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 ## from now on the order is not anymore crucial
@@ -32,6 +32,7 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 ##################################################################
 from KratosIncompressibleFluidApplication import *
 from KratosOpenCLApplication import *
+from KratosMeshingApplication import *
 ##from KratosExternalSolversApplication import *
 
 #defining a model part for the fluid and one for the structure
@@ -57,7 +58,25 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
-fluid_model_part.SetBufferSize(3)
+fluid_model_part.SetBufferSize(2)
+
+#neighbour search
+number_of_avg_elems = 10
+number_of_avg_nodes = 10
+neighbour_search = FindNodalNeighboursProcess(fluid_model_part,number_of_avg_elems,number_of_avg_nodes)
+(neighbour_search).Execute()
+
+#############################################
+##perform refinement
+refinement_steps = 1
+Refine = LocalRefineTetrahedraMesh(fluid_model_part)
+for i in range(0,refinement_steps):
+    for elem in fluid_model_part.Elements:
+        elem.SetValue(SPLIT_ELEMENT,True)
+    refine_on_reference = False;
+    interpolate_internal_variables = False;
+    Refine.LocalRefineMesh(refine_on_reference,interpolate_internal_variables)    
+    (neighbour_search).Execute()
 
 opencl_eulerian_NS_solver.AddDofs(fluid_model_part)
 
