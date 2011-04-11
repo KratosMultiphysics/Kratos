@@ -190,6 +190,7 @@ namespace Kratos
                  .def("Initialize", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)      
                  .def("ComputeCriticalTime",  &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime) 
                  .def("SetFractionDeltaTime", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeFractionDeltaTime)     
+                 .def("SetConditionsFlag", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeContactConditions)
                   ;
 
 
