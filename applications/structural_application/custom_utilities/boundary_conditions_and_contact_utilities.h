@@ -38,7 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: nelson $
+//   Last Modified by:    $Author: Nelson Lafontaine $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
 //
@@ -280,6 +280,9 @@ namespace Kratos
 	   for(ModelPart::NodeIterator i=pNodes.begin(); i!= pNodes.end(); i++){      
 	       //if(i->FastGetSolutionStepValue(IS_BOUNDARY) == 1.00)
 		   i->GetValue(NEIGHBOUR_CONDITIONS).clear();
+		   i->GetValue(IS_CONTACT_SLAVE)  = 0;
+		   i->GetValue(IS_CONTACT_MASTER) = 0;
+		   
 	   }
 	    
 	    
@@ -383,7 +386,7 @@ namespace Kratos
 	    bool initialize           = false;
 	    
 	    std::vector<unsigned int>                InsideNodes;
-	    std::vector<unsigned int>                TotalInsideNodes;                        
+	    std::vector<unsigned int>                TotalInsideNodes;                
 	    std::vector<unsigned int>::iterator      repeated_object;  
 	    
 	    unsigned int Id               = rConditions.size() + 1;
@@ -395,16 +398,18 @@ namespace Kratos
 	    
 	    array_1d<unsigned int, 2 >  Ids;       
 	    Near_Node  Near             =  no_near;
+	    bool is_repited             =  false;
 	    bool corner                 =  false; 
 	    bool Change                 =  true; 
-	    int  Case                   =  0;       
+	    int  Case                   =  0;     
 	    unsigned int Id_Node_Case_5 =  0;
+	    
 	    //bool is_double_penetred =  false;
 	    std::vector<array_1d<unsigned int, 2 > > Ids_2;
 	    std::vector<Near_Node> Is_Near;
 	    IntersectTriangleCases<Configure> IntersectTriangles(mr_model_part);  
 	    
-	   // #pragma omp parallel for 
+	    //#pragma omp parallel for 
 	    for(IteratorContainerContactPair it_pair = mPairContacts.begin(); it_pair!= mPairContacts.end(); it_pair++)
 	        { 
 		   //Vericando los nodos que caen en el elemento.
@@ -419,19 +424,41 @@ namespace Kratos
 		        NodeInside( (*it_pair)[master], (*it_pair)[slave], InsideNodes);   
 		     }
 		   
-		  //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
-		  if(InsideNodes.size()!=0)
-		       Exist = yes_nodes;
+		   
 		  
+		  if(InsideNodes.size()!=0)
+		  {
+		     unsigned int& id  = InsideNodes[0];  
+		     Exist = yes_nodes;
+		     if(InsideNodes.size()==1)
+		         is_repited = (mr_model_part.Nodes()(id)->GetValue(IS_CONTACT_SLAVE)==1);
+		  }
+		  std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
+                  if(is_repited==false)
+		  {
+		    //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
+//  		    for(unsigned int i = 0; i<InsideNodes.size(); i++)
+//  		      std::cout<<InsideNodes[i]<<std::endl;
+		    
 		  switch(Exist)
 		    {
 		    case(yes_nodes):
 		     {
-		       //identifico caso
+		       //std::cout<< "Yes Nodes" << std::endl;
 		       Case = IntersectTriangles.LocateCaseItersection(Id_Node_Case_5, Change, InsideNodes, (*it_pair)[master], (*it_pair)[slave]);
 		       switch(Case) 
 		       {
-			 case 1 : case 2 :
+			 case 1: // un solo nodo dentro
+			 {
+			     unsigned int& id  = InsideNodes[0];  
+			     Ids[master]       = 0;
+			     Ids[slave]        = 0;
+		             Near              = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);
+			     CreateLinkingConditions(master, slave, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );  
+			  break;
+			 }
+			 
+			 case 2 :
 			 {
 			  for(unsigned int in = 0; in<InsideNodes.size(); in++){
 			     unsigned int& id  = InsideNodes[in];  
@@ -476,6 +503,7 @@ namespace Kratos
  
                      case(no_nodes):
 		     {   
+		        //std::cout<< "No Nodes" << std::endl;
 		        CheckNearNodes(master, slave, (*it_pair)[slave], (*it_pair)[master], Ids_2, Is_Near);
 		        for(unsigned int i = 0; i<Ids_2.size(); i++){   
 			   if(Is_Near[i]==no_near){
@@ -486,6 +514,7 @@ namespace Kratos
 		    }
 		    
 		   }
+		  }
 		   
 		// intercambiando master por slave y viceversa 
 		  if(master==0 && Change==true)
@@ -494,11 +523,19 @@ namespace Kratos
 		    master = 1;
 		    slave  = 0; 
 		    NodeInside( (*it_pair)[master], (*it_pair)[slave], InsideNodes);
-		    //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
 		    
-		     if(InsideNodes.size()!=0)
-		       Exist = yes_nodes;
-		  
+		   if(InsideNodes.size()!=0)
+		   { 
+		     unsigned int& id  = InsideNodes[0];  
+		     Exist = yes_nodes;
+		     if(InsideNodes.size()==1)
+		         is_repited = (mr_model_part.Nodes()(id)->GetValue(IS_CONTACT_SLAVE)==1);
+		   }
+		   
+		  if(is_repited==false)
+		  {
+		   //std::cout<< "Changing"<< std::endl;
+		   //std::cout<< "     MASTER OBJECT =  " <<  (*it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (*it_pair)[slave]->Id() << std::endl;
 		  switch(Exist)
 		    {
 		    case(yes_nodes):
@@ -507,18 +544,27 @@ namespace Kratos
 		       Case = IntersectTriangles.LocateCaseItersection(Id_Node_Case_5, Change, InsideNodes, (*it_pair)[master], (*it_pair)[slave]);
 		       switch(Case) 
 		       {
-			 case 1 : case 2 :
+			 case 1 : 
+			 {
+			    unsigned int& id  = InsideNodes[0];        
+			    Ids[master]       = 0;
+			    Ids[slave]        = 0;
+			    Near              = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);
+			    CreateLinkingConditions(master, slave, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );  
+			    break;
+			 }
+			 
+			 case 2 :
 			 {
 			  for(unsigned int in = 0; in<InsideNodes.size(); in++){
-			     unsigned int& id  = InsideNodes[in];  
+			     unsigned int& id  = InsideNodes[in];        
 			     Ids[master]       = 0;
 			     Ids[slave]        = 0;
 		             Near              = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (*it_pair)[master], Ids);
 			     CreateLinkingConditions(master, slave, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );  
-			   }
-			  break;
+			     }
+			    break;
 			 }
-			 
 			 
 			 case 3:
 			 {
@@ -542,27 +588,26 @@ namespace Kratos
 			   Exist              =  no_nodes;
 			   unsigned int& id_2 =  Id_Node_Case_5;
 			   Near               = CheckNearNodes(slave, master,  mr_model_part.Nodes()(id_2), (*it_pair)[slave], Ids);
-			   CreateLinkingConditions(slave, master, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );    
-                           
+			   CreateLinkingConditions(slave, master, Ids, Exist, it_pair, tempProperties,  initialize, Id, TotalInsideNodes, LinkingConditions );            
 			   break;
 			 }
 		       }
+		       
 		       break;
 		     }
 		     case(no_nodes):
 		     {
 		       break;
 		     }
-		     
-   
+		     }
 		    }
-		    
-		   }   
+		  }
 		       
 		  Exist            =  no_nodes;
 	          Near             =  no_near;
 	          corner           =  false; 
 	          Change           =  true; 
+		  is_repited       =  false;
 	          Case             =  0;       
 	          Id_Node_Case_5   =  0;
 	          master           =  0;
@@ -570,6 +615,8 @@ namespace Kratos
 		  Ids_2.clear();
 	          Is_Near.clear();
                   InsideNodes.clear();
+		  
+		  //std::cout << "************************************"<< std::endl;
 		}
 
 		      
@@ -721,15 +768,25 @@ void CreatePointLinkingConditions(
 	    */
 	    
 	    //Check si dos corner chocan
-	    if(VerifyToCornerIntersect(SlaveObject, MasterObject)==false) 
+	    std::vector<unsigned int > nodes;
+	    if(VerifyToCornerIntersect(nodes, SlaveObject, MasterObject)==false) 
 	    { 
-		// si no se cumple lo anterior tomamos los nodos mas cercanos
-		// WARNING = Solo valido para un caso en que un solo nodo quede fuera
-		const double min   = (*std::min_element(Distance.begin(), Distance.end() ) );
-		it                 = std::find(Distance.begin(), Distance.end(), min);
-		const int position = int(it-Distance.begin()); 
-		Id[master]         = geom_0[M[position]].Id();   
-		Id[slave]          = geom_1[S[position]].Id();
+		if(nodes.size()==2)
+		{
+		Id[master]         = nodes[0]; //geom_0[M[position]].Id();   
+		Id[slave]          = nodes[1]; //geom_1[S[position]].Id();
+		}
+		else
+		{
+		 // si no se cumple lo anterior tomamos los nodos mas cercanos
+		 // WARNING = Solo valido para un caso en que un solo nodo quede fuera
+		 const double min   = (*std::min_element(Distance.begin(), Distance.end() ) );
+		 it                 = std::find(Distance.begin(), Distance.end(), min);
+		 const int position = int(it-Distance.begin());
+		 Id[master]         = geom_0[M[position]].Id();   
+		 Id[slave]          = geom_1[S[position]].Id();
+		}
+		
 		Ids.push_back(Id); 
 		Is_Near.push_back(no_near);
 	     }
@@ -799,7 +856,8 @@ void CreatePointLinkingConditions(
 //*****************************************************************************************************
 //*****************************************************************************************************
 
-    bool VerifyToCornerIntersect( const PointerType&    SlaveObject,
+    bool VerifyToCornerIntersect(  std::vector<unsigned int >& Ids,
+                                   const PointerType&    SlaveObject,
 	                           const PointerType&   MasterObject
                                 ) 
 
@@ -822,13 +880,15 @@ void CreatePointLinkingConditions(
   unsigned int III = 1;
   unsigned int IV  = 0; 
   
+  Points0.resize(2, false); 
+  Points1.resize(2, false);
+  
   for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
   {
       Condition::GeometryType& geom = cond_slave->GetGeometry();
-      Point.resize(2, false); 
-      Points0.resize(2, false); 
-      Points1.resize(2, false);
-
+      
+      Point[0]      = 0.00;
+      Point[1]      = 0.00;
       Points0(0)[0] = geom[0].X(); 
       Points0(0)[1] = geom[0].Y();
       Points0(1)[0] = geom[1].X();
@@ -858,7 +918,41 @@ void CreatePointLinkingConditions(
          break;
   }  
 
-    if(neighb_cond_slave.size()==3) 
+        
+    
+    if(neighb_cond_master.size()==2 && neighb_cond_slave.size()==2)
+    {
+
+        Condition::GeometryType& geom_1 = (neighb_cond_master(0).lock())->GetGeometry();
+	Condition::GeometryType& geom_2 = (neighb_cond_master(1).lock())->GetGeometry();
+	
+	if(geom_1[0].Id()==geom_2[0].Id())
+	  Ids.push_back(geom_1[0].Id());
+	else if(geom_1[0].Id()==geom_2[1].Id())
+	  Ids.push_back(geom_1[0].Id());
+	else if(geom_1[1].Id()==geom_2[0].Id())
+	  Ids.push_back(geom_1[1].Id());
+	else 
+	  Ids.push_back(geom_1[1].Id());
+	   
+	
+	Condition::GeometryType& geom_3 = (neighb_cond_slave(0).lock())->GetGeometry();
+	Condition::GeometryType& geom_4 = (neighb_cond_slave(1).lock())->GetGeometry();
+	
+	if(geom_3[0].Id()==geom_4[0].Id())
+	  Ids.push_back(geom_3[0].Id());
+	else if(geom_3[0].Id()==geom_4[1].Id())
+	  Ids.push_back(geom_3[0].Id());
+        else if(geom_3[1].Id()==geom_4[0].Id())
+	  Ids.push_back(geom_3[1].Id());
+	else
+	  Ids.push_back(geom_3[1].Id());
+	
+	return false;
+      }
+      
+    
+    if(segment.size()==3) 
 	if(segment[0].size()== 2 && segment[1].size()== 2 && segment[2].size()== 2)
 	  return true;
     
@@ -1034,14 +1128,23 @@ bool LocateMasterSegment(unsigned int& segmento,
 	       {
 		//std::cout<< "TEST A " << std::endl; 
 	       //el elemento tiene una sola condicion master
-	        if(neighb_cond.size()==1)
-	        {  What_Is = is_object;
-	         segmento = 0;
-	         return true;
-	        } 
+	        bool test_1 = bool(neighb_cond.size()==1);
+		bool test_2 = Test_One_B(segmento, SlaveNode, MasterNode);
+		
+	        if(test_1==true )
+		 {
+		  if(test_2==true)
+	           {  
+		      What_Is = is_object;
+	              segmento = 0;
+	              return true;
+	           } 
+		 }
 		 
 	       //std::cout<< "TEST B " << std::endl; 
-	       if(Test_One_B_Distances(segmento, SlaveNode, MasterObject)) 
+	       //if(test_1==false)
+	       {
+	         if(Test_One_B_Distances(segmento, SlaveNode, MasterObject)) 
 	        {
 		   What_Is = is_object;
 		   return true; 
@@ -1064,7 +1167,7 @@ bool LocateMasterSegment(unsigned int& segmento,
 		   What_Is = is_object;
 		   return true;
 	         }
-	         
+	       }
 		  break;
 	       }
 	       
@@ -1105,7 +1208,6 @@ bool LocateMasterSegment(unsigned int& segmento,
 	    
 	     }
 	     
-	     
 	    segmento = 0; 
 	    What_Is  = is_object;
             return false;
@@ -1137,14 +1239,17 @@ bool Is_Corner(
   unsigned int II  = 1;
   unsigned int III = 1;
 
+    
+   Points0.resize(2, false); 
+   Points1.resize(2, false);
   
   for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
   {
       Condition::GeometryType& geom = cond_slave->GetGeometry();
-      Point.resize(2, false); 
-      Points0.resize(2, false); 
-      Points1.resize(2, false);
 
+      Point[0]      = 0.00;
+      Point[1]      = 0.00;
+      
       Points0(0)[0] = geom[0].X(); 
       Points0(0)[1] = geom[0].Y();
       Points0(1)[0] = geom[1].X();
@@ -1298,14 +1403,16 @@ bool Test_One_C(unsigned int& segmento,
   unsigned int II  = 1;
   unsigned int III = 1;
 
-  //KRATOS_WATCH(neighb_cond.size())
-  //KRATOS_WATCH(neighb_cond_slave.size())
+   
+  Points0.resize(2, false); 
+  Points1.resize(2, false);
   for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
   {
       Condition::GeometryType& geom = cond_slave->GetGeometry();
-      Point.resize(2, false); 
-      Points0.resize(2, false); 
-      Points1.resize(2, false);
+
+  
+      Point[0]      = 0.00;
+      Point[1]      = 0.00;
       
       Points0(0)[0] = geom[0].X(); 
       Points0(0)[1] = geom[0].Y();
@@ -1722,14 +1829,16 @@ bool Test_Four(unsigned int& segmento,
   unsigned int II  = 1;
   unsigned int III = 1;
 
+   
+  Points0.resize(2, false); 
+  Points1.resize(2, false);
   
   for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
   {
       Condition::GeometryType& geom = cond_slave->GetGeometry();
-      Point.resize(2, false); 
-      Points0.resize(2, false); 
-      Points1.resize(2, false);
 
+      Point[0]      = 0.00;
+      Point[1]      = 0.00;
       Points0(0)[0] = geom[0].X(); 
       Points0(0)[1] = geom[0].Y();
       Points0(1)[0] = geom[1].X();
@@ -1826,14 +1935,16 @@ bool Test_Five(unsigned int& segmento,
   unsigned int II  = 1;
   unsigned int III = 1;
 
+
+  Points0.resize(2, false); 
+  Points1.resize(2, false);
   
   for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond.end(); ++cond_slave)
   {
       Condition::GeometryType& geom = cond_slave->GetGeometry();
-      Point.resize(2, false); 
-      Points0.resize(2, false); 
-      Points1.resize(2, false);
-
+      Point[0] = 0.00; 
+      Point[1] = 0.00;
+      
       Points0(0)[0] = geom[0].X(); 
       Points0(0)[1] = geom[0].Y();
       Points0(1)[0] = geom[1].X();
@@ -1951,8 +2062,8 @@ void CalculateBoundaryContour(ConditionsArrayType& MasterConditions)
 					Pair[0]   =  geom_1[1].Id();
 					Pair[1]   =  geom_1[2].Id();
 					CreateMasterConditions(Pair, elem, Id, MasterConditions);
-		                        geom_1[1].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
-					geom_1[2].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+		                        geom_1[1].GetValue(IS_BOUNDARY) = 1.00; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					geom_1[2].GetValue(IS_BOUNDARY) = 1.00;
 			              }
 			              
 				      if (face==1)  // edge 2-0
@@ -1960,8 +2071,8 @@ void CalculateBoundaryContour(ConditionsArrayType& MasterConditions)
 					 Pair[0] =   geom_1[2].Id();
 					 Pair[1] =   geom_1[0].Id();
 					 CreateMasterConditions(Pair, elem, Id, MasterConditions);
-					 geom_1[2].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
-					 geom_1[0].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					 geom_1[2].GetValue(IS_BOUNDARY) = 1.00; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					 geom_1[0].GetValue(IS_BOUNDARY) = 1.00; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 
 				      }
 				      if (face==2) // edge 0-1
@@ -1969,8 +2080,8 @@ void CalculateBoundaryContour(ConditionsArrayType& MasterConditions)
 					 Pair[0] =   geom_1[0].Id();
 					 Pair[1] =   geom_1[1].Id();
 					 CreateMasterConditions(Pair, elem, Id, MasterConditions);
-					 geom_1[0].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
-					 geom_1[1].FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					 geom_1[0].GetValue(IS_BOUNDARY) = 1.00; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
+					 geom_1[1].GetValue(IS_BOUNDARY) = 1.00; // FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 				      }
 				      
 				       if (is_boundary==false)   
