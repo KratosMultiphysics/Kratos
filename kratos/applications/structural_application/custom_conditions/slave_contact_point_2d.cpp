@@ -71,9 +71,13 @@ namespace Kratos
             Condition( NewId, pGeometry )
     {
       
-        GetValue( IS_CONTACT_SLAVE  )  = 1;
-	GetValue( IS_CONTACT_MASTER )  = 0; 
+        GetValue( IS_CONTACT_SLAVE  )         = 1;
+	GetValue( IS_CONTACT_MASTER )         = 0; 
+	Condition::GeometryType& geom         = this->GetGeometry();
+	geom[0].GetValue(IS_CONTACT_SLAVE  )  = 1;
+	
     }
+    
     
     //************************************************************************************
     //**** life cycle ********************************************************************
