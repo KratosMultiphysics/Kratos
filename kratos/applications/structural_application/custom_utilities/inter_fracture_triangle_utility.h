@@ -643,15 +643,38 @@ namespace Kratos
 	    
 	    
             #ifdef _OPENMP
-            int number_of_threads = 1;  //omp_get_max_threads();
+            int number_of_threads = 1; //omp_get_max_threads();
             #else
             int number_of_threads = 1;
             #endif
+ 
+            vector<unsigned int> element_partition;
+            CreatePartition(number_of_threads, pElements.size(), element_partition);
+	    #pragma omp parallel for 
+            for(int k=0; k<number_of_threads; k++)          
+	    {
+	         ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+ 	         ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	         for (ElementsArrayType::iterator it=it_begin; it!=it_end; ++it)
+	           {
+		      it->GetValue(ACTIVATION_LEVEL)=0;
+		   }
+	    }
+
 
             vector<unsigned int> node_partition;
             CreatePartition(number_of_threads, pNodes.size(), node_partition);
             //mfail_node.clear();
 
+            unsigned int New_Id      = 0;
+	    unsigned int level       = 1;
+	    unsigned int count       = 0;
+	    array_1d<double, 3> dir  = ZeroVector(3);
+	    Node < 3 > ::Pointer     pchild_node; 
+	    std::vector< WeakPointerVector<Element> > LevelElements;
+	    std::vector< int > IdElements_1;
+	    std::vector< int > IdElements_2;
+	    
             #pragma omp parallel for 
             for (int k = 0; k < number_of_threads; k++)
             {
@@ -660,10 +683,85 @@ namespace Kratos
 
                 for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
                 {
-                    i->GetValue(SPLIT_NODAL) = false;
-                }
-            }
+                    i->GetValue(SPLIT_NODAL)       = false;
+		    
+		    if(i->GetValue(IS_BOUNDARY)==1)
+		    {
+		       WeakPointerVector<Condition>& Neighb_Conditions  =  i->GetValue(NEIGHBOUR_CONDITIONS);
+		       if(Neighb_Conditions.size()>2)
+		       {
+			  
+			  WeakPointerVector<Element>& Neighb_Elem =  i->GetValue(NEIGHBOUR_ELEMENTS);
+                          //busco  de estos elementos quien es vecinos
+			  for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
+			        {
+				  IdElements_1.push_back(neighb->Id()); 
+				}
+			  level = 1;
+			  for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
+			  {
+			     
+			     if(neighb->GetValue(ACTIVATION_LEVEL)==0)
+			     {
+			      neighb->GetValue(ACTIVATION_LEVEL)=level;  
+			      WeakPointerVector<Element>& Neighb_Elem_2 =  neighb->GetValue(NEIGHBOUR_ELEMENTS);
+			      IdElements_2.clear();
+			      for(WeakPointerVector<Element>::iterator  neighb_2 = Neighb_Elem_2.begin(); neighb_2!= Neighb_Elem_2.end(); neighb_2++)
+			        {
+				  IdElements_2.push_back(neighb_2->Id()); 
+				}
+			       for(unsigned int id = 0; id<IdElements_2.size();id++)
+			       {
+				  const int& this_id =  IdElements_2[id];
+			   	  std::vector< int >::iterator is = std::find(IdElements_1.begin(), IdElements_1.end(), this_id);
+			          if(is!=IdElements_1.end())
+				     (Neighb_Elem_2(id).lock())->GetValue(ACTIVATION_LEVEL)=level;
+				}
+				
+				level++;
+			     }
+			     
+			  }
+			  
+			   count = level -1;
+			   LevelElements.resize(count);   
+			   for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
+			   {
+			      const int&  the_level = neighb->GetValue(ACTIVATION_LEVEL);
+			      LevelElements[the_level-1].push_back(*neighb.base());
+			   }
+			   
+			   Node<3>::Pointer& pfather_node =  *i.base(); 
+		           New_Id  = this_model_part.Nodes().size() + 1;
+                           Create_New_Node(this_model_part, dir,  pchild_node, New_Id, pfather_node); 
+			   // creo los nodos para cada grupo
+			   for(unsigned int ii = 0; ii<LevelElements.size()-1; ii++)
+			   {
+			     WeakPointerVector<Element>& thiswaek = LevelElements[ii];
+			     for(WeakPointerVector<Element>::iterator  it = thiswaek.begin(); it != thiswaek.end();  it++)
+			     {
+			      Element::GeometryType& geom = it->GetGeometry(); 
+		              for(unsigned int j = 0; j<geom.size(); j++)
+		                {
+				 if(geom[j].Id()==i->Id())
+				 {
+                                    Insert_New_Node_In_Elements(geom, pchild_node, pfather_node->Id());
+				 }
+			       }
+		             }   
+		           }
+		           
+		           for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
+			       neighb->GetValue(ACTIVATION_LEVEL)=0;
+     
+		          LevelElements.clear();
+                        }
+                     }
+                     
+		}
+	    }
 
+            /* 
 	    unsigned int New_Id      = 0;
 	    array_1d<double, 3> dir  = ZeroVector(3);
 	    Node < 3 > ::Pointer pchild_node; 
@@ -691,43 +789,34 @@ namespace Kratos
 			      size_2                                        =  (geom[i].GetValue(NEIGHBOUR_ELEMENTS)).size()-1;
 
 			      if(size_2!=0){
-				//KRATOS_WATCH(it->Id())
-				//KRATOS_WATCH(size_1)
-				//KRATOS_WATCH(geom[i].Id())
-			        //KRATOS_WATCH((geom[i].GetValue(NEIGHBOUR_ELEMENTS)).size())
-				
 			         for(unsigned int j = 0; j<size_2; j++) 
 			           {
 				     New_Id  = this_model_part.Nodes().size() + 1;
-				     //KRATOS_WATCH(New_Id)
                                      Create_New_Node(this_model_part, dir,  pchild_node, New_Id, pfather_node); 
                                      Insert_New_Node_In_Elements(geom, pchild_node, pfather_node->Id());
 				     pchild_node->GetValue(NEIGHBOUR_ELEMENTS).push_back(Neighb_Elem_Elem(j).lock());
 			           }
 
                                     Neighb_Elem_Elem.erase(Neighb_Elem_Elem.begin(),Neighb_Elem_Elem.begin() + size_2);  
-			           //Neighb_Elem_Elem.clear();
-				   //Neighb_Elem_Elem.push_back(ThisNeigh); 
-				   
-				   //KRATOS_WATCH(pfather_node->GetValue(NEIGHBOUR_ELEMENTS).size())
-			           //KRATOS_WATCH(Neighb_Elem_Elem.size())
-			           //KRATOS_WATCH("------------------------------------")
 			      }
 			   }
 			    
 		          break;
 			 }
-			
-		       case 1:
-			break;
-		       
+		       case 1: case 2:
+		       {
+			 
+			 
+			 break;
+		       }
 		       default:
 			  break; 
                      }
 		   }
 		}
 	       
-	       
+	       */
+	     
 	    FindElementalNeighboursProcess ElementosVecinos(this_model_part, 2, 10);
             FindNodalNeighboursProcess NodosVecinos(this_model_part, 2, 10);
             FindConditionsNeighboursProcess CondicionesVecinas(this_model_part, 2, 10);
