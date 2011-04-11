@@ -102,7 +102,7 @@ namespace Kratos
 	  ProcessInfo& CurrentProcessInfo      =  mr_model_part.GetProcessInfo();
 	  //ConditionsContainerType& pConditions =  mr_model_part.ConditionsArray();   
 	  //const double current_delta_time      =  CurrentProcessInfo[DELTA_TIME]; 
-	  const unsigned int   max             =  300;  
+	  const unsigned int   max             =  25;  
 	  unsigned int   iter                  =  0;  
 	  
 
@@ -135,7 +135,6 @@ namespace Kratos
 	  relative_error2 = 0.00;
 	  
 	  
-	  //std::cout<< "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << std::endl;
 	  while(is_converged ==false &&   ++iter < max )
 	  {                    
  	      //STEP1
@@ -151,7 +150,6 @@ namespace Kratos
 		}
 		
 	      }
-	      
 	      //STEP2 
 	      UpadateDisplacement();
 		
@@ -248,8 +246,6 @@ namespace Kratos
 		Aux           = ZeroMatrix(Constraint_Matrix.size1(), Constraint_Matrix.size1());
 	        noalias(Aux)  = prod(Matrix(prod(Constraint_Matrix,InvMass)), (trans(Constraint_Matrix)));
 		
-		CheckMatrix(Aux);
-		
 		InvAux        = ZeroMatrix(Aux.size1(), Aux.size1());
 		SD_MathUtils<double>::InvertMatrix(Aux,InvAux);
 		
@@ -257,7 +253,8 @@ namespace Kratos
 		noalias(delta_lambdas) = (1.00/(current_delta_time * current_delta_time))  * prod(InvAux, Vector( prod(Constraint_Matrix, Displ) ) );
 		lamda_old              = lambdas[0]; 
 		noalias(lambdas)       += delta_lambdas;  
-                
+		
+		//WARNING
 		if (lambdas[0] > 0.00) 
 		{
 		  lambdas[0]       = 0.00;
@@ -265,6 +262,7 @@ namespace Kratos
 		  
 		}
 
+                
 		CalculateContactDisplacement(rCond, delta_lambdas, Constraint, InvMass);
 		
       }
