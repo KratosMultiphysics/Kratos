@@ -49,5 +49,53 @@
         </test>
       </tests>
     </device>
+    <device>
+      <name>Cypress</name>
+      <driver>CAL 1.4.1332</driver>
+      <computeunits>20</computeunits>
+      <workgroupsize>256</workgroupsize>
+      <tests>
+        <test>
+          <name>compressed_matrix</name>
+          <numeric>float</numeric>
+          <alignment>1</alignment>
+          <kernels>
+            <kernel>
+              <name>vec_mul</name>
+              <params>
+                <param>
+                  <name>globalsize</name>
+                  <value>32768</value>
+                </param>
+                <param>
+                  <name>localsize</name>
+                  <value>64</value>
+                </param>
+              </params>
+            </kernel>
+          </kernels>
+        </test>
+        <test>
+          <name>compressed_matrix</name>
+          <numeric>double</numeric>
+          <alignment>1</alignment>
+          <kernels>
+            <kernel>
+              <name>vec_mul</name>
+              <params>
+                <param>
+                  <name>globalsize</name>
+                  <value>8192</value>
+                </param>
+                <param>
+                  <name>localsize</name>
+                  <value>256</value>
+                </param>
+              </params>
+            </kernel>
+          </kernels>
+        </test>
+      </tests>
+    </device>
   </devices>
 </parameters>
