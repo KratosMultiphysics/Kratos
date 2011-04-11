@@ -766,6 +766,8 @@ namespace Kratos {
                 long unsigned int col_end = Lrow_indices[k+1];
                 double i_factor = scaling_factors[k];
 
+                rhs[k] *= scaling_factors[k];
+
                 for (long unsigned int j=col_begin; j<col_end; j++)
                 {
                     Lvalues[j] *= scaling_factors[Lcol_indices[j]] * i_factor;
