@@ -672,8 +672,10 @@ namespace Kratos {
 		    //compute laplacian operator
 		    double sum_l_ikjk;
 		    edge_ij.CalculateScalarLaplacian(sum_l_ikjk);
-		    double sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
-		    sum_l_ikjk *= (delta_t + edge_tau);
+//                    sum_l_ikjk *= 2.0;
+                    
+		    double sum_l_ikjk_onlydt = sum_l_ikjk * (2.0*delta_t);
+		    sum_l_ikjk *= (2.0*delta_t + edge_tau);
 
 		    //assemble right-hand side
 		    //pressure contribution
@@ -847,8 +849,8 @@ namespace Kratos {
 
 
 	    //calculate the error on the divergence
-	    if(muse_mass_correction == true)
-	    {
+//	    if(muse_mass_correction == true)
+//	    {
 		#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
 		for (int i_node = 0; i_node < n_nodes; i_node++)
 		{
@@ -869,7 +871,7 @@ namespace Kratos {
 			}
 		    
 		}
-	    }
+//	    }
 
 //            KRATOS_WATCH("end of step3")
 //            double vnorm2 = 0.0;
