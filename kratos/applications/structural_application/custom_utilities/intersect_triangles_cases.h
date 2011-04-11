@@ -128,17 +128,21 @@ namespace Kratos
 	       if(InsideNodes.size()==1)
 	       {
 		 unsigned int& id = InsideNodes[0];
-		 //caso normal 
+		
 		 if(neighb_cond.size()==1)
 		      if(Test_One(mr_model_part.Nodes()(id), MasterObject)==true) 
 		           rCase = Case_1;
 		   
 		   //is corner???
+		   ///WARNING std::cout<< "is corner" << std::endl; 
 		   if(neighb_cond.size()!=1) 
 			 Is_Corner(NodeOutside, rCase, mr_model_part.Nodes()(id), SlaveObject, MasterObject);  
+		   
+		   
   
 	       }
  
+                
 	       if(InsideNodes.size()==2) 
 		   rCase = Case_2;
 	        
@@ -152,7 +156,7 @@ namespace Kratos
 		Change = false;
 	      }
 	      
-	      
+	      //KRATOS_WATCH("FINALLLLL ")
 	      return rCase;
 	    }
 	    
@@ -194,6 +198,9 @@ namespace Kratos
 	     
 	    Points0.resize(2, false); 
 	    Points1.resize(2, false);
+	    
+	    ///WARNING std::cout<< "AAAAAAAAAAAAAAAAA" << std::endl;
+	     
 	    for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
 	    {
 	    Condition::GeometryType& geom = cond_slave->GetGeometry();
@@ -242,6 +249,7 @@ namespace Kratos
 		break;
 	    }  
 
+            ///WARNING std::cout<< "BBBBBBBBBBBBBBBBB" << std::endl;
             
             // is case_1;
 	    if(segment.size()==1){
@@ -251,7 +259,9 @@ namespace Kratos
 
 	    //busca si el tercer segmento intersecta con el master
 	    // is case_3 o 5;
-	    rCase = Is_Case3_Or_Case_5(NodeOutside, SlaveNode, SlaveObject, MasterObject);
+	    
+	     rCase = Is_Case3_Or_Case_5(NodeOutside, SlaveNode, SlaveObject, MasterObject);
+	     
 	    
 	    // Verifica si de verdad es corner o si es un nodo dentro. (case_3 or case_1)
 	    if(rCase==Case_3 && Distances.size()==2)
@@ -294,6 +304,7 @@ namespace Kratos
 	unsigned int I   = 0;
 	unsigned int III = 1;
 	vector<unsigned int> Oposite_Ids(2);
+	
  	for(unsigned int i = 0; i<geom_slave.size(); i++){
 	   if(SlaveNode->Id()!=geom_slave[i].Id())
 	   {
@@ -325,6 +336,7 @@ namespace Kratos
 	
 	if(is_case5 == true)
 	{
+	   III   = 1;
 	   rCase = Case_5;
 	   unsigned int j   = 0;
 	   std::vector<unsigned int> Ids(4);
@@ -336,6 +348,9 @@ namespace Kratos
 	     Ids[0+j] = geom_3[0].Id(); 
 	     Ids[1+j] = geom_3[1].Id();
 	     j += 2;
+	     III++;
+	     if(III>rConditions.size())
+	       break;
 	   }
 	   
 	   for(unsigned int i = 0; i<4; i++) {
@@ -347,6 +362,8 @@ namespace Kratos
 	     }
 	   }  
 	}
+	
+	//KRATOS_WATCH(rCase)
 	return rCase;
 	 
 	}
