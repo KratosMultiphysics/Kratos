@@ -154,6 +154,9 @@ namespace Kratos
             }
 
             Finalize(this_model_part);
+	    InitializeElementsAndVariables();
+	    RecomputeNodalMass();
+	    
             return is_split;
             KRATOS_CATCH("")
         }
@@ -414,11 +417,12 @@ namespace Kratos
             } else
             {
 
-                //* reseting internal variables
+             
                 for (WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
                         neighb_elem != neighb_elems.end(); neighb_elem++)
                 {
-                    neighb_elem->Initialize();
+		    mResetingElements.push_back(*neighb_elem.base());
+                    //neighb_elem->Initialize();
                 }
 
                 unsigned int New_Id = this_model_part.Nodes().size() + 1;
@@ -441,6 +445,95 @@ namespace Kratos
 
         }
 
+
+         
+         
+         
+         ///************************************************************************************************
+        ///************************************************************************************************
+         
+         ///Resetea los elementos alrededor de la fratura
+         void InitializeElementsAndVariables()
+         {
+	    KRATOS_TRY
+	       
+           ProcessInfo& CurrentProcessInfo =  mr_model_part.GetProcessInfo();
+	   for(WeakPointerVector< Element >::iterator reset_elem = mResetingElements.begin();
+                 reset_elem != mResetingElements.end(); reset_elem++)
+                {
+                    reset_elem->Initialize();
+		    reset_elem->InitializeSolutionStep(CurrentProcessInfo);
+		    reset_elem->FinalizeSolutionStep(CurrentProcessInfo);  
+                }
+                
+                if(mResetingElements.size()!=0)
+		    mResetingElements.clear();
+		
+                KRATOS_CATCH("")
+	 }
+
+        
+     void RecomputeNodalMass()
+      {
+      
+      KRATOS_TRY
+      ProcessInfo& CurrentProcessInfo  = mr_model_part.GetProcessInfo();
+      NodesArrayType& pNodes           = mr_model_part.Nodes();  
+      ElementsArrayType& pElements     = mr_model_part.Elements(); 
+
+      
+      Matrix MassMatrix;
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+      #endif
+      
+     vector<unsigned int> node_partition;
+     CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+    #pragma omp parallel for
+    for(int k=0; k<number_of_threads; k++)
+      {
+	NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+	{
+          i->FastGetSolutionStepValue(NODAL_MASS) = 0.00;     
+	  
+	}
+      }
+
+
+      vector<unsigned int> element_partition;
+      CreatePartition(number_of_threads, pElements.size(), element_partition);
+       
+      #pragma omp parallel for private(MassMatrix)
+      for(int k=0; k<number_of_threads; k++)
+      {
+	ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+	  {
+	    Element::GeometryType& geom = it->GetGeometry(); 
+	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+	    unsigned int dim   = geom.WorkingSpaceDimension();
+	    unsigned int index = 0;
+	    for (unsigned int i = 0; i <geom.size(); i++)
+	     {
+		geom[i].SetLock();
+		index = i*dim;
+		geom[i].FastGetSolutionStepValue(NODAL_MASS) += MassMatrix(index,index);
+		geom[i].UnSetLock();
+	     }
+	 }
+      }
+        mr_model_part.GetCommunicator().AssembleCurrentData(NODAL_MASS); 
+	
+        KRATOS_CATCH("") 
+     }
+	
 
         ///************************************************************************************************
         ///************************************************************************************************
@@ -857,6 +950,7 @@ namespace Kratos
 
         ModelPart& mr_model_part;
         unsigned int mdomain_size;
+	WeakPointerVector< Element > mResetingElements;
         //WeakPointerVector< Node<3> > mfail_node;
 
 
