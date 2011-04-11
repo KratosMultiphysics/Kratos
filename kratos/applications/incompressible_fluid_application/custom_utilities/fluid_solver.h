@@ -741,9 +741,45 @@ namespace Kratos {
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
 		dp[i_node] = 0.0;
 
+            //compute row scaling factors
+            TSystemVectorType scaling_factors(n_nodes);
+            double* Lvalues = mL.value_data().begin();
+            long unsigned int* Lrow_indices = mL.index1_data().begin();
+            long unsigned int* Lcol_indices = mL.index2_data().begin();
+
+            for (unsigned int k = 0; k < mL.size1(); k++)
+            {
+                double t = 0.0;
+                long unsigned int col_begin = Lrow_indices[k];
+                long unsigned int col_end = Lrow_indices[k+1];
+
+                for (long unsigned int j=col_begin; j<col_end; j++)
+                    t += Lvalues[j]*Lvalues[j];
+
+                scaling_factors[k] = 1.0/sqrt(t);
+            }
+
+            for (unsigned int k = 0; k < mL.size1(); k++)
+            {
+                double t = 0.0;
+                long unsigned int col_begin = Lrow_indices[k];
+                long unsigned int col_end = Lrow_indices[k+1];
+                double i_factor = scaling_factors[k];
+
+                for (long unsigned int j=col_begin; j<col_end; j++)
+                {
+                    Lvalues[j] *= scaling_factors[Lcol_indices[j]] * i_factor;
+                }
+            }
+
 //            KRATOS_WATCH(norm_2(rhs));
 //            KRATOS_WATCH(norm_frobenius(mL));
 	    pLinearSolver->Solve(mL, dp, rhs);
+
+            //apply inverse scaling
+            for (int k = 0; k < mL.size1(); k++)
+                dp[k] *= scaling_factors[k];
+
 //	    KRATOS_WATCH(*pLinearSolver)
 //KRATOS_WATCH(norm_2(dp));
 
