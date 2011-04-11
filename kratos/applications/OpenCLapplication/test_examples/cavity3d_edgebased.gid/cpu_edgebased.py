@@ -103,6 +103,8 @@ while(time < final_time):
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
+    print "current time = ",time, " Dt = ",Dt
+
     if(step >= 3):
         fluid_solver.Solve()
 
