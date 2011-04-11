@@ -55,6 +55,7 @@ gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_cond
 model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
+
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
 
@@ -102,7 +103,8 @@ while(time < final_time):
         Dt = initial_Dt
     else:
         Dt = fluid_solver.EstimateTimeStep(safety_factor,full_Dt)
-        
+
+    print "current time = ",time, " Dt = ",Dt
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
