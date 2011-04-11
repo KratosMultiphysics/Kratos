@@ -50,8 +50,10 @@ class EdgeBasedLevelSetSolver:
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
         (self.neighbour_search).Execute()
 
-        pDiagPrecond = DiagonalPreconditioner()
-        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+#        pDiagPrecond = DiagonalPreconditioner()
+#        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+
+        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
 
 
 
