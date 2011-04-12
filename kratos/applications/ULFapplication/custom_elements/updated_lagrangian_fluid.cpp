@@ -67,13 +67,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 	//static variables
-	boost::numeric::ublas::bounded_matrix<double,3,6> UpdatedLagrangianFluid::msB;
-	boost::numeric::ublas::bounded_matrix<double,3,3> UpdatedLagrangianFluid::ms_constitutive_matrix;
-	boost::numeric::ublas::bounded_matrix<double,3,6> UpdatedLagrangianFluid::ms_temp;
-	array_1d<double,6> UpdatedLagrangianFluid::ms_temp_vec;
-	boost::numeric::ublas::bounded_matrix<double,3,2> UpdatedLagrangianFluid::msDN_Dx;
-  	array_1d<double,3> UpdatedLagrangianFluid::msN; //dimension = number of nodes
-	
+	
+
+	
 	//************************************************************************************
 	//************************************************************************************
 	UpdatedLagrangianFluid::UpdatedLagrangianFluid(IndexType NewId, GeometryType::Pointer pGeometry)
@@ -106,6 +102,15 @@ namespace Kratos
 	void UpdatedLagrangianFluid::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+
+		boost::numeric::ublas::bounded_matrix<double,3,6> msB;
+		boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+
+		boost::numeric::ublas::bounded_matrix<double,3,2> UpdatedLagrangianFluid::msDN_Dx;
+	  	array_1d<double,3> msN; //dimension = number of nodes
+	
+		static array_1d<double,6> ms_temp_vec;
 		const double& density = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
 							GetGeometry()[2].FastGetSolutionStepValue(DENSITY));
@@ -189,6 +194,13 @@ namespace Kratos
 	//************************************************************************************
 	void UpdatedLagrangianFluid::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
+
+		boost::numeric::ublas::bounded_matrix<double,3,6> msB;
+		boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+
+		boost::numeric::ublas::bounded_matrix<double,3,2> UpdatedLagrangianFluid::msDN_Dx;
+	  	array_1d<double,3> msN; //dimension = number of nodes		
 		const double& density = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
 							GetGeometry()[2].FastGetSolutionStepValue(DENSITY));		
@@ -284,6 +296,13 @@ KRATOS_CATCH("")
 	void UpdatedLagrangianFluid::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		boost::numeric::ublas::bounded_matrix<double,3,6> msB;
+		boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
+
+		boost::numeric::ublas::bounded_matrix<double,3,2> UpdatedLagrangianFluid::msDN_Dx;
+	  	array_1d<double,3> msN; //dimension = number of nodes
+
 		unsigned int NumberOfNodes = GetGeometry().size();
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();
 		
