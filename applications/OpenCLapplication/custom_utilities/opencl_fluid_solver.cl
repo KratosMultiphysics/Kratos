@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "opencl_edge_data_common.cl"
 
+//#define SYMM_PRESS
 
 //
 // AddVectorInplace
@@ -241,6 +242,8 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 
 __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mXi, __global ValueType *mTauPressure, __global ValueType *mPn, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *rhs_buffer, __global ValueType *mL_Values, ValueType mRho, ValueType delta_t, const IndexType n_nodes, __local IndexType *Bounds)
 {
+        #define SYMM_PRESS
+
 	// Get work item index
 	const size_t i_node = get_global_id(0);
 	const size_t i_thread = get_local_id(0);
