@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/bicgstab.hpp"
+#include "viennacl/linalg/cg.hpp"
 #include "viennacl/linalg/row_scaling.hpp"
 #include "viennacl/io/kernel_parameters.hpp"
 
@@ -849,6 +850,7 @@ namespace Kratos
 				// Calling the ViennaCL solver
 				//viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
 				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
+//				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
 
 				// Update pressure
 
