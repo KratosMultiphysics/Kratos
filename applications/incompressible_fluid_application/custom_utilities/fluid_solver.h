@@ -755,11 +755,13 @@ namespace Kratos {
 
                 for (long unsigned int j=col_begin; j<col_end; j++)
                     if( Lcol_indices[j] == k)
+                    {
                         t = fabs(Lvalues[j]);
+                    }
 //                        t += Lvalues[j]*Lvalues[j];
 
 //                t = sqrt(t);
-                scaling_factors[k] = -1.0/sqrt(t);
+                scaling_factors[k] = 1.0/sqrt(t);
             }
 
             for (unsigned int k = 0; k < mL.size1(); k++)
