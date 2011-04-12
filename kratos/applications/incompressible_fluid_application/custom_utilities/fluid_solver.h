@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_EDGEBASED_FLUID_SOLVER_H_INCLUDED
 
 //#define SPLIT_OSS
-//#define SYMM_PRESS
+#define SYMM_PRESS
 
 
 // System includes
@@ -754,33 +754,41 @@ namespace Kratos {
                 long unsigned int col_end = Lrow_indices[k+1];
 
                 for (long unsigned int j=col_begin; j<col_end; j++)
-                    t += Lvalues[j]*Lvalues[j];
+                    if( Lcol_indices[j] == k)
+                        t = fabs(Lvalues[j]);
+//                        t += Lvalues[j]*Lvalues[j];
 
-                t = sqrt(t);
-                scaling_factors[k] = 1.0/sqrt(t);
+//                t = sqrt(t);
+                scaling_factors[k] = -1.0/sqrt(t);
             }
 
             for (unsigned int k = 0; k < mL.size1(); k++)
             {
-                double t = 0.0;
                 long unsigned int col_begin = Lrow_indices[k];
                 long unsigned int col_end = Lrow_indices[k+1];
-                double i_factor = scaling_factors[k];
+                double k_factor = scaling_factors[k];
 
-                rhs[k] *= scaling_factors[k];
+                rhs[k] *= k_factor;
 
                 for (long unsigned int j=col_begin; j<col_end; j++)
                 {
-                    Lvalues[j] *= scaling_factors[Lcol_indices[j]] * i_factor;
+                    Lvalues[j] *= scaling_factors[Lcol_indices[j]] * k_factor;
                 }
             }
+
+//            double huge = 1e20;
+//           for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++) {
+//               unsigned int i_node = mPressureOutletList[i_pressure];
+//               mL(i_node, i_node) = 1.0;
+//               rhs[i_node] = 0.0;
+//           }
 
 //            KRATOS_WATCH(norm_2(rhs));
 //            KRATOS_WATCH(norm_frobenius(mL));
 	    pLinearSolver->Solve(mL, dp, rhs);
 
             //apply inverse scaling
-            for (int k = 0; k < mL.size1(); k++)
+            for (int k = 0; k < dp.size(); k++)
                 dp[k] *= scaling_factors[k];
 
 //	    KRATOS_WATCH(*pLinearSolver)
