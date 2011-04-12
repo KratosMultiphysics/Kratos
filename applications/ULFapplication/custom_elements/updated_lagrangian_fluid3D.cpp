@@ -66,16 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//static variables
-	boost::numeric::ublas::bounded_matrix<double,6,12> UpdatedLagrangianFluid3D::msB = ZeroMatrix(6,12);
-	boost::numeric::ublas::bounded_matrix<double,6,6> UpdatedLagrangianFluid3D::ms_constitutive_matrix;
-	boost::numeric::ublas::bounded_matrix<double,6,12> UpdatedLagrangianFluid3D:: ms_temp;
-	
-	//the one below - not changed yet (coz I dont know what is stored in this vector)
-	array_1d<double,6> UpdatedLagrangianFluid3D::ms_temp_vec;
-	
-	boost::numeric::ublas::bounded_matrix<double,4,3> UpdatedLagrangianFluid3D::msDN_Dx;
-  	array_1d<double,4> UpdatedLagrangianFluid3D::msN; //dimension = number of nodes
+
 
 	//************************************************************************************
 	//************************************************************************************
@@ -95,7 +86,8 @@ namespace Kratos
 	Element::Pointer UpdatedLagrangianFluid3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 	{
 		KRATOS_TRY
-		//KRATOS_WATCH("3D CONSTRUCTOR PAOLO IS THE BEST")
+
+		//KRATOS_WATCH("3D CONSTRUCTOR PAOLO IS THE BEST")
 		return Element::Pointer(new UpdatedLagrangianFluid3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 		KRATOS_CATCH("");
 	}
@@ -109,6 +101,17 @@ namespace Kratos
 	void UpdatedLagrangianFluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		//aux variables
+		boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
+		boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+	
+		//the one below - not changed yet (coz I dont know what is stored in this vector)
+		array_1d<double,6> ms_temp_vec;
+	
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+	  	array_1d<double,4> msN; //dimension = number of nodes
+
 		const double density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
 							GetGeometry()[2].FastGetSolutionStepValue(DENSITY) + 
@@ -217,7 +220,8 @@ namespace Kratos
 		rRightHandSideVector[9]	 += msDN_Dx(3,0)*pavg;
 		rRightHandSideVector[10] += msDN_Dx(3,1)*pavg;
 		rRightHandSideVector[11] += msDN_Dx(3,2)*pavg;
-		
+
+		
 		KRATOS_CATCH("")
 	}
 
@@ -225,6 +229,17 @@ namespace Kratos
 	//************************************************************************************
 	void UpdatedLagrangianFluid3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
+		
+		//aux variables
+		boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
+		boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+	
+		//the one below - not changed yet (coz I dont know what is stored in this vector)
+		array_1d<double,6> ms_temp_vec;
+	
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+	  	array_1d<double,4> msN; //dimension = number of nodes
 		
 		const double& density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
@@ -251,14 +266,16 @@ namespace Kratos
 							GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE)+
 							GetGeometry()[3].FastGetSolutionStepValue(BODY_FORCE));
 	
-		for(unsigned int i = 0; i<number_of_nodes; i++)
+
+		for(unsigned int i = 0; i<number_of_nodes; i++)
 		{
 			rRightHandSideVector[i*3] = body_force[0]* density * mA0 * 0.25;
 			rRightHandSideVector[i*3+1] = body_force[1] * density * mA0 * 0.25;
 			rRightHandSideVector[i*3+2] = body_force[2] * density * mA0 * 0.25;
 		}
 
-		//get the old pressure
+
+		//get the old pressure
 		double p0old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
 		double p1old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
 		double p2old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
@@ -294,6 +311,16 @@ namespace Kratos
 	void UpdatedLagrangianFluid3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		//aux variables
+		boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
+		boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+	
+		//the one below - not changed yet (coz I dont know what is stored in this vector)
+		array_1d<double,6> ms_temp_vec;
+	
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+	  	array_1d<double,4> msN; //dimension = number of nodes
 		
 		const double& density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
@@ -328,6 +355,17 @@ namespace Kratos
 	void UpdatedLagrangianFluid3D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		//aux variables
+		boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
+		boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+	
+		//the one below - not changed yet (coz I dont know what is stored in this vector)
+		array_1d<double,6> ms_temp_vec;
+	
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+	  	array_1d<double,4> msN; //dimension = number of nodes
+
 		unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();
 		
@@ -501,6 +539,16 @@ namespace Kratos
 	//************************************************************************************
 	  void  UpdatedLagrangianFluid3D::Calculate(const Variable<double >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
 	  {
+		//aux variables
+		boost::numeric::ublas::bounded_matrix<double,6,12> msB = ZeroMatrix(6,12);
+		boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
+		boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
+	
+		//the one below - not changed yet (coz I dont know what is stored in this vector)
+		array_1d<double,6> ms_temp_vec;
+	
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_Dx;
+	  	array_1d<double,4> msN; //dimension = number of nodes
 		if(rVariable == PRESSURE)
 		{
 			const double density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
