@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "opencl_edge_data_common.cl"
 
-//#define SYMM_PRESS
+
 
 //
 // AddVectorInplace
@@ -242,7 +242,6 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 
 __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mXi, __global ValueType *mTauPressure, __global ValueType *mPn, __global ValueType *mPn1, __global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __read_only image2d_t EdgeValues, __global ValueType *rhs_buffer, __global ValueType *mL_Values, ValueType mRho, ValueType delta_t, const IndexType n_nodes, __local IndexType *Bounds)
 {
-        #define SYMM_PRESS
 
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -653,5 +652,115 @@ __kernel void ComputeWallResistance(__global VectorType *vel, __global VectorTyp
 		{
 			rhs[i_node] -= U_i * area * mod_uthaw * mod_uthaw * density / mod_vel;
 		}
+	}
+}
+
+//
+__kernel void ComputeScalingCoefficients(__global IndexType *RowStartIndex,
+					 __global IndexType *ColumnIndex,
+					 __global ValueType *mL_Values,
+					 __global ValueType *scaling_factors,
+					 const IndexType n_nodes,
+					 __local IndexType *Bounds
+					 )
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+		ValueType temp = 0.00;
+
+		// Loop over all neighbours
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			IndexType j_neighbour = ColumnIndex[csr_index];
+
+			if (j_neighbour == i_node)
+			{
+				temp = fabs(mL_Values[csr_index]);
+				continue;
+			}
+		}
+
+		scaling_factors[i_node] = -1.0/sqrt(temp);
+	}
+}
+
+//
+__kernel void ApplyScaling(__global IndexType *RowStartIndex,
+			   __global IndexType *ColumnIndex,
+			   __global ValueType *mL_Values,
+			   __global ValueType *rhs,
+			   __global ValueType *scaling_factors,
+			   const IndexType n_nodes,
+			   __local IndexType *Bounds
+			  )
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+
+                ValueType row_factor = scaling_factors[i_node];
+
+                rhs[i_node] = rhs[i_node]*row_factor;
+
+		// Loop over all neighbours
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			IndexType j_neighbour = ColumnIndex[csr_index];
+                        if (j_neighbour < n_nodes)
+                        {
+                            ValueType col_factor = scaling_factors[j_neighbour];
+                            mL_Values[csr_index] *= row_factor*col_factor;
+                        }
+		}
+	}
+}
+
+//
+__kernel void ApplyInverseScaling( __global ValueType *values,
+				   __global ValueType *scaling_factors,
+				  const IndexType n_nodes
+				  )
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+
+	if (i_node < n_nodes)
+	{
+		values[i_node] *= scaling_factors[i_node];
 	}
 }
