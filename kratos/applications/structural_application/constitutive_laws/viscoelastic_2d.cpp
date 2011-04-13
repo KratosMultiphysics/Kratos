@@ -134,10 +134,10 @@ namespace Kratos
     void Viscoelastic2D::Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, 
                    const ProcessInfo& rCurrentProcessInfo)
     {
-            for (unsigned int ii = 0; ii<3; ii++)
-	     rResult(0,ii) = mhn1(ii); // What for ??????????????
-	     KRATOS_WATCH("rResult");
-	     KRATOS_WATCH(rResult);
+//             for (unsigned int ii = 0; ii<3; ii++)
+// 	     rResult(0,ii) = mhn1(ii); // What for ??????????????
+// 	     KRATOS_WATCH("rResult");
+// 	     KRATOS_WATCH(rResult);
            //rResult(0,ii) = mplastic_strain(ii); 
     }
 
@@ -183,18 +183,37 @@ namespace Kratos
 		mA= geom.Area();  // JUST A TEST, need to check if it will be updated later!!! 
 		mAlpha=props[ALPHA];  // angle used for retraction
 		mRetractionTime=props[RETRACTION_TIME];  // Time to start retraction
+		// nelson
+                mMaterialParameters.resize((props[MATERIAL_PARAMETERS]).size(), false);
+		noalias(mMaterialParameters) = props[MATERIAL_PARAMETERS];
+                //KRATOS_WATCH(props[MATERIAL_PARAMETERS])    
+                //KRATOS_WATCH(mMaterialParameters) 
 		noalias(md) = ZeroVector(16);
+		md[6]=mMaterialParameters[0];
+		md[7]=mMaterialParameters[1];
+		md[8]=mMaterialParameters[2];
+		md[9]=mMaterialParameters[3];
+		md[10]=mMaterialParameters[4];
+		md[11]=mMaterialParameters[5];
+		md[12]=mMaterialParameters[6];
+		md[13]=mMaterialParameters[7];
+		md[14]=mMaterialParameters[8];
+		md[15]=mMaterialParameters[9];
+		//noalias(md) = mMaterialParameters;
+		//KRATOS_WATCH(md) 
+		// nelson
+		//noalias(md) = ZeroVector(16);
 		//KRATOS_WATCH("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
 		// viscous parameters  HOW DO I DECLARE THEIR VALUES????????
 		// beta - for each Maxwell device
-		md[6]=props[YOUNG_MODULUS]; // just to test
+		//md[6]=props[YOUNG_MODULUS]; // just to test
 		//md[6]=0.25; // b1 Christian uses=0.354;
 // 		md[7]=0.286; // b2
 // 		md[8]=0.298; // b3
 // 		md[9]=0.285; // b4
 // 		md[10]=0.348; // b5
 		// tau (relaxation time) - for each Maxwell device
-		md[11]=props[POISSON_RATIO];// just to test
+		//md[11]=props[POISSON_RATIO];// just to test
 		//md[11]=0.0001; // ta1 Christian uses=0.001;
 // 		md[12]=0.010; // ta2
 // 		md[13]=0.010; // ta3
@@ -202,7 +221,7 @@ namespace Kratos
 // 		md[15]=10.00; // ta5
 		/*mCtangent.resize(6,6,false);
 		noalias(mCtangent) = ZeroMatrix(6,6);*/
-		mMaterialParameters = props[MATERIAL_PARAMETERS];
+
 		mInSituStress = ZeroVector(6);
 		//KRATOS_WATCH("HELLOOOOOOOOOOOOOOOOOOOOOOOOOOOOO 222222222");
 		noalias(mhn1)=ZeroVector(36);  // initialize history vector
