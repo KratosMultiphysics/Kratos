@@ -132,6 +132,12 @@ namespace viennacl
         {
           assert(system_matrix.size1() == system_matrix.size2());
           
+          init_gpu();
+        }
+        
+        /*
+        void init_cpu()
+        {
           std::vector< std::map<unsigned int, ScalarType> > cpu_check;
           std::vector<ScalarType> diag_M_inv_cpu(system_matrix.size1());
           
@@ -163,6 +169,28 @@ namespace viennacl
           
           diag_M_inv.resize(system_matrix.size1(), false);
           viennacl::fast_copy(diag_M_inv_cpu, diag_M_inv);
+        } */
+        
+        void init_gpu()
+        {
+          if (tag_.norm() == 1)
+          {
+            viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(
+                                                viennacl::linalg::kernels::compressed_matrix<ScalarType, MAT_ALIGNMENT>::program_name(),
+                                                "row_scaling_1");
+
+            viennacl::ocl::enqueue( k(system_matrix.handle1(), system_matrix.handle2(), system_matrix.handle(), 
+                                      diag_M_inv, diag_M_inv.size()) );        
+          }
+          else
+          {
+            viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(
+                                                viennacl::linalg::kernels::compressed_matrix<ScalarType, MAT_ALIGNMENT>::program_name(),
+                                                "row_scaling_2");
+
+            viennacl::ocl::enqueue( k(system_matrix.handle1(), system_matrix.handle2(), system_matrix.handle(), 
+                                      diag_M_inv, diag_M_inv.size()) );        
+          }
         }
         
         template <unsigned int ALIGNMENT>

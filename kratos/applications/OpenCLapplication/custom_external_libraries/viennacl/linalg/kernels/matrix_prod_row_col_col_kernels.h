@@ -33,20 +33,20 @@ namespace viennacl
       if (!init_done[context_.handle()])
       {
         std::string source;
-        source.append(matrix_prod_row_col_col_align1_prod_TA);
         source.append(matrix_prod_row_col_col_align1_prod_TT);
-        source.append(matrix_prod_row_col_col_align1_prod_AT);
         source.append(matrix_prod_row_col_col_align1_prod_AA);
+        source.append(matrix_prod_row_col_col_align1_prod_AT);
+        source.append(matrix_prod_row_col_col_align1_prod_TA);
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
         std::cout << "Creating program " << prog_name << std::endl;
         #endif
         context_.add_program(source, prog_name);
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
-        prog_.add_kernel("prod_TA");
         prog_.add_kernel("prod_TT");
-        prog_.add_kernel("prod_AT");
         prog_.add_kernel("prod_AA");
+        prog_.add_kernel("prod_AT");
+        prog_.add_kernel("prod_TA");
         init_done[context_.handle()] = true;
        } //if
      } //init
@@ -72,20 +72,20 @@ namespace viennacl
         std::string source;
         viennacl::ocl::platform pf;
         std::string pf_info(pf.info());
-        source.append(viennacl::tools::make_double_kernel(matrix_prod_row_col_col_align1_prod_TA, pf_info));
         source.append(viennacl::tools::make_double_kernel(matrix_prod_row_col_col_align1_prod_TT, pf_info));
-        source.append(viennacl::tools::make_double_kernel(matrix_prod_row_col_col_align1_prod_AT, pf_info));
         source.append(viennacl::tools::make_double_kernel(matrix_prod_row_col_col_align1_prod_AA, pf_info));
+        source.append(viennacl::tools::make_double_kernel(matrix_prod_row_col_col_align1_prod_AT, pf_info));
+        source.append(viennacl::tools::make_double_kernel(matrix_prod_row_col_col_align1_prod_TA, pf_info));
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
         std::cout << "Creating program " << prog_name << std::endl;
         #endif
         context_.add_program(source, prog_name);
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
-        prog_.add_kernel("prod_TA");
         prog_.add_kernel("prod_TT");
-        prog_.add_kernel("prod_AT");
         prog_.add_kernel("prod_AA");
+        prog_.add_kernel("prod_AT");
+        prog_.add_kernel("prod_TA");
         init_done[context_.handle()] = true;
        } //if
      } //init
