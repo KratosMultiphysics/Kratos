@@ -32,6 +32,27 @@ namespace viennacl
 {
   namespace linalg
   {
+    
+    
+    // A * x
+    /** @brief Returns a proxy class that represents matrix-vector multiplication with a compressed_matrix
+    *
+    * This is used for the convenience expression result = prod(mat, vec);
+    *
+    * @param mat    The matrix
+    * @param vec    The vector
+    */
+    template<class SCALARTYPE, unsigned int ALIGNMENT, unsigned int VECTOR_ALIGNMENT>
+    vector_expression<const coordinate_matrix<SCALARTYPE, ALIGNMENT>,
+                      const vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
+                      op_prod > prod_impl(const coordinate_matrix<SCALARTYPE, ALIGNMENT> & mat, 
+                                     const vector<SCALARTYPE, VECTOR_ALIGNMENT> & vec)
+    {
+      return vector_expression<const coordinate_matrix<SCALARTYPE, ALIGNMENT>,
+                               const vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
+                               op_prod >(mat, vec);
+    }
+    
     // A * x
     /** @brief Returns a proxy class that represents matrix-vector multiplication with a coordinate_matrix
     *
@@ -100,16 +121,16 @@ namespace viennacl
                                                                                           viennacl::op_prod> & proxy) 
     {
       // check for the special case x = A * x
-      if (proxy.get_rhs().handle().get() == this->handle().get())
+      if (proxy.rhs().handle() == this->handle())
       {
-        viennacl::vector<SCALARTYPE, ALIGNMENT> result(proxy.get_rhs().size());
-        viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);
+        viennacl::vector<SCALARTYPE, ALIGNMENT> result(proxy.rhs().size());
+        viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), result);
         *this = result;
         return *this;
       }
       else
       {
-        viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), *this);
+        viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), *this);
         return *this;
       }
       return *this;
@@ -127,8 +148,8 @@ namespace viennacl
                                                                                  const vector<SCALARTYPE, ALIGNMENT>,
                                                                                  op_prod> & proxy) 
     {
-      vector<SCALARTYPE, ALIGNMENT> result(proxy.get_lhs().size1());
-      viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);
+      vector<SCALARTYPE, ALIGNMENT> result(proxy.lhs().size1());
+      viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), result);
       *this += result;
       return *this;
     }
@@ -145,7 +166,7 @@ namespace viennacl
                                                                                  op_prod> & proxy) 
     {
       vector<SCALARTYPE, ALIGNMENT> result(proxy.get_lhs().size1());
-      viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);
+      viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), result);
       *this -= result;
       return *this;
     }
@@ -165,7 +186,7 @@ namespace viennacl
     {
       assert(proxy.get_lhs().size1() == size());
       vector<SCALARTYPE, ALIGNMENT> result(size());
-      viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);
+      viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), result);
       result += *this;
       return result;
     }
@@ -183,7 +204,7 @@ namespace viennacl
     {
       assert(proxy.get_lhs().size1() == size());
       vector<SCALARTYPE, ALIGNMENT> result(size());
-      viennacl::linalg::prod_impl(proxy.get_lhs(), proxy.get_rhs(), result);
+      viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), result);
       result = *this - result;
       return result;
     }

@@ -102,6 +102,12 @@ namespace viennacl
         jacobi_precond(MatrixType const & mat, jacobi_tag const & tag) : system_matrix(mat), diag_A_inv(mat.size1())
         {
           assert(system_matrix.size1() == system_matrix.size2());
+
+          init_gpu();
+        }
+          
+        /*void init_cpu()
+        {
           
           std::vector< std::map<unsigned int, ScalarType> > cpu_check;
           std::vector<ScalarType> diag_A_inv_cpu(system_matrix.size1());
@@ -130,7 +136,18 @@ namespace viennacl
           
           diag_A_inv.resize(system_matrix.size1(), false);
           viennacl::fast_copy(diag_A_inv_cpu, diag_A_inv);
+        }*/
+        
+        void init_gpu()
+        {
+          viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(
+                                              viennacl::linalg::kernels::compressed_matrix<ScalarType, MAT_ALIGNMENT>::program_name(),
+                                              "jacobi_precond");
+
+          viennacl::ocl::enqueue( k(system_matrix.handle1(), system_matrix.handle2(), system_matrix.handle(), 
+                                    diag_A_inv, diag_A_inv.size()) );        
         }
+        
         
         template <unsigned int ALIGNMENT>
         void apply(viennacl::vector<ScalarType, ALIGNMENT> & vec) const
