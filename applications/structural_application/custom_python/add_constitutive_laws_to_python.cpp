@@ -69,8 +69,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
-// #include "constitutive_laws/hyperelastic_3d.h"
+#include "constitutive_laws/hyperelastic_3d.h"
 #include "constitutive_laws/hyperelastic_2d.h"
+#include "constitutive_laws/viscoelastic_2d.h" // new VISCOELASTICITY
 #include "constitutive_laws/von_mises_3d.h"
 #include "constitutive_laws/hypoelastic_2d.h"
 #include "constitutive_laws/plane_strain.h"
@@ -179,6 +180,7 @@ namespace Kratos
 //                  ;
 
             
+
             
             class_<BrittleMaterial2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
                     ("BrittleMaterial2D",
@@ -186,6 +188,7 @@ namespace Kratos
                      .def(init<FluencyCriteriaPointer, PropertiesPointer>())
                     ;
             
+
             class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
                     ("VonMises3D", 
                      init<>() ) 
@@ -218,6 +221,8 @@ namespace Kratos
 			init<>() )
 			;
 			*/
+
+
             
             class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
                     ("HooksLaw",
@@ -234,16 +239,36 @@ namespace Kratos
                      init<>() )
                     ;
             
-            // 			class_< Hyperelastic3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			// 				    ("Hyperelastic3D",
-			// 				     init<>() )
-			// 				    ;
-            
+	    class_< Hyperelastic3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("Hyperelastic3D",
+			init<>() )
+			;           
+
+             
             class_< Hyperelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
                     ("Hyperelastic2D",
                      init<>() )
                     ;
-		    
+
+
+            class_< Viscoelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Viscoelastic2D",
+                     init<>() )
+                    ;
+    
+// 			class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >, boost::noncopyable >
+// 			("PlaneStressDamageOrthotropic2D",
+// 			init<>() )
+// 			//.def(init<FluencyCriteriaType const&>())
+//                         .def(init<FluencyCriteriaPointer>())
+// 			;
+/*
+			class_<ComposeMaterial , bases< ConstitutiveLawBaseType >, boost::noncopyable >
+			("ComposeMaterial",
+			init<>() )
+                        .def(init<MaterialsContainer>())
+			;*/
+
         
         }
     }  // namespace Python.
