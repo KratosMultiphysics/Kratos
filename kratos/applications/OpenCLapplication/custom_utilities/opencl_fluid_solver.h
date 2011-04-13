@@ -52,7 +52,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_OPENCL_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED)
 #define KRATOS_OPENCL_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED
 
-// TODO: What are these?
 //#define SPLIT_OSS
 #define SYMM_PRESS
 
@@ -69,7 +68,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
-#include "viennacl/linalg/bicgstab.hpp"
 #include "viennacl/linalg/cg.hpp"
 #include "viennacl/linalg/row_scaling.hpp"
 #include "viennacl/io/kernel_parameters.hpp"
@@ -208,10 +206,6 @@ namespace Kratos
 				mkApplyVelocityBC_2 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_2");
 				mkApplyVelocityBC_3 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_3");
 				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_4");
-
-                                mkComputeScalingCoefficients = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ComputeScalingCoefficients");
-                                mkApplyScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyScaling");
-                                mkApplyInverseScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyInverseScaling");
 			}
 
 			//
@@ -323,8 +317,6 @@ namespace Kratos
 				mbedge_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
 				mbedge_nodes_directionList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 				mbcorner_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
-
-                                mbscaling_factors = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
 
 
 				// Lists' lengths
@@ -852,41 +844,11 @@ namespace Kratos
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_2, mPressureOutletListLength);
 
-                                //here compute the scaling factors
-				mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 0, mL_GPU.handle1());
-				mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 1, mL_GPU.handle2());
-				mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 2, mL_GPU.handle());
-				mrDeviceGroup.SetBufferAsKernelArg(mkComputeScalingCoefficients, 3, mbscaling_factors);
-				mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 4, n_nodes);
-				mrDeviceGroup.SetLocalMemAsKernelArg(mkComputeScalingCoefficients, 5, (mrDeviceGroup.WorkGroupSizes[mkComputeScalingCoefficients][0] + 1) * sizeof(cl_uint));
-
-				// Execute OpenCL kernel
-//				mrDeviceGroup.ExecuteKernel(mkComputeScalingCoefficients, n_nodes);
-
-                                //apply scaling
-				mrDeviceGroup.SetKernelArg(mkApplyScaling, 0, mL_GPU.handle1());
-				mrDeviceGroup.SetKernelArg(mkApplyScaling, 1, mL_GPU.handle2());
-				mrDeviceGroup.SetKernelArg(mkApplyScaling, 2, mL_GPU.handle());
-				mrDeviceGroup.SetKernelArg(mkApplyScaling, 3, rhs_GPU.handle());
-				mrDeviceGroup.SetBufferAsKernelArg(mkApplyScaling, 4, mbscaling_factors);
-				mrDeviceGroup.SetKernelArg(mkApplyScaling, 5, n_nodes);
-				mrDeviceGroup.SetLocalMemAsKernelArg(mkApplyScaling, 6, (mrDeviceGroup.WorkGroupSizes[mkApplyScaling][0] + 1) * sizeof(cl_uint));
-
-				// Execute OpenCL kernel
-////				mrDeviceGroup.ExecuteKernel(mkApplyScaling, n_nodes);
 
 				// Calling the ViennaCL solver
-				//viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
-				//dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
+				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
 
-                                //apply inverse scalign
-                                mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 0, dp_GPU.handle());
-				mrDeviceGroup.SetBufferAsKernelArg(mkApplyInverseScaling, 1, mbscaling_factors);
-				mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 2, n_nodes);
-
-				// Execute OpenCL kernel
-////				mrDeviceGroup.ExecuteKernel(mkApplyInverseScaling, n_nodes);
 
 				// Update pressure
 
@@ -1162,10 +1124,8 @@ namespace Kratos
 			// OpenCL stuff
 			OpenCL::DeviceGroup &mrDeviceGroup;
 			cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbSlipBoundaryList, mbPressureOutletList, mbedge_nodes_directionList, mbedge_nodesList, mbcorner_nodesList, mbFixedVelocitiesList, mbFixedVelocitiesValuesList, mbrhs;
-                        cl_uint mbscaling_factors;
 
 			cl_uint mpOpenCLFluidSolver, mkAddVectorInplace, mkSubVectorInplace, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkSolveStep2_2, mkSolveStep2_3, mkSolveStep3_1, mkSolveStep3_2, mkCalculateRHS, mkComputeWallResistance, mkApplyVelocityBC_1, mkApplyVelocityBC_2, mkApplyVelocityBC_3, mkApplyVelocityBC_4;
-                        cl_uint mkComputeScalingCoefficients,mkApplyScaling,mkApplyInverseScaling;
 
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
