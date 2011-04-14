@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED
 
 //#define SPLIT_OSS
-//#define SYMM_PRESS
+#define SYMM_PRESS
 
 
 // System includes
@@ -997,18 +997,20 @@ namespace Kratos {
 		    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
 #ifdef SYMM_PRESS
-		    double edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
+		    double edge_tau = 0.25 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
 #else
-		    double edge_tau = mTauPressure[i_node];
+		    double edge_tau = 0.5* mTauPressure[i_node];
 #endif
 		    //     						double edge_tau = CalculateEdgeTau(time_inv,h_i,a_i,h_j,a_j);
 		    //
+                    if(edge_tau < delta_t) edge_tau=delta_t;
 
 
 
 		    //compute laplacian operator
 		    double sum_l_ikjk;
 		    edge_ij.CalculateScalarLaplacian(sum_l_ikjk);
+
 //                    double sum_l_ikjk_onlystab = sum_l_ikjk * (edge_tau);
 		    double sum_l_ikjk_onlydt = sum_l_ikjk * (delta_t);
 		    sum_l_ikjk *= (delta_t + edge_tau);
@@ -1059,6 +1061,7 @@ namespace Kratos {
 		double L_diag = mL(i_node, i_node);
 		if (fabs(L_diag) > fabs(max_diag)) max_diag = L_diag;
 	    }
+            if(max_diag < 1e20) max_diag=1e20;
 
 
 
@@ -1110,15 +1113,15 @@ namespace Kratos {
 		}
 	    }
 
-	    for (int i_node = 0; i_node < n_nodes; i_node++) 
-	    {
-	      if(  fabs(mL(i_node, i_node)) < 1e-20)
-	      {
-		mL(i_node, i_node)=max_diag;
-		rhs[i_node] = 0.0;
-		KRATOS_WATCH("arghhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
-	      }
-	    }
+//	    for (int i_node = 0; i_node < n_nodes; i_node++)
+//	    {
+//	      if(  fabs(mL(i_node, i_node)) < 1e-20)
+//	      {
+//		mL(i_node, i_node)=max_diag;
+//		rhs[i_node] = 0.0;
+//		KRATOS_WATCH("arghhhhhhhhhhhhhhhhhhhhhhhhhhhhhh");
+//	      }
+//	    }
 
 
 
@@ -2925,7 +2928,7 @@ void ComputeWallResistance(
 
     };
 } //namespace Kratos
-
+#undef SYMM_PRESS
 #endif //KRATOS_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED defined
 
 
