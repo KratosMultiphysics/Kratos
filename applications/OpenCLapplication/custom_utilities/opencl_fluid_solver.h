@@ -1472,5 +1472,6 @@ namespace Kratos
 	};
 
 }  // Namespace Kratos
-#undef SYMM_PRESS
+
+//#undef SYMM_PRESS
 #endif  // KRATOS_OPENCL_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED
