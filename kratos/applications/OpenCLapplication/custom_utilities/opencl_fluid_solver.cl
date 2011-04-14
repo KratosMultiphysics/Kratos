@@ -275,8 +275,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 		ValueType l_ii = 0.00;
 
 #ifndef SYMM_PRESS
-		ValueType edge_tau = 2.0*mTauPressure[i_node];
-                if(edge_tau < delta_t) edge_tau=delta_t;
+		ValueType edge_tau = mTauPressure[i_node];
 
 #endif
 
@@ -310,8 +309,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 #ifdef SYMM_PRESS
 
-			ValueType edge_tau =  (mTauPressure[i_node] + mTauPressure[j_neighbour]);
-                        if(edge_tau < delta_t) edge_tau=delta_t;
+			ValueType edge_tau = 0.5* (mTauPressure[i_node] + mTauPressure[j_neighbour]);
 
 #endif
 
@@ -377,6 +375,7 @@ __kernel void SolveStep2_2(__global IndexType *mPressureOutletList, __global Ind
 			{
 				// Diagonal element
 				mL_Values[i] = 1e20;  // A huge value
+                                break;
 			}
 		}
 	}
@@ -695,10 +694,70 @@ __kernel void ComputeScalingCoefficients(__global IndexType *RowStartIndex,
 			if (j_neighbour == i_node)
 			{
 				temp = fabs(mL_Values[csr_index]);
-				continue;
+				break;
 			}
 		}
 
 		scaling_factors[i_node] = 1.0/KRATOS_OCL_SQRT(temp);
+	}
+}
+
+//
+__kernel void ApplyScaling(__global IndexType *RowStartIndex,
+			   __global IndexType *ColumnIndex,
+			   __global ValueType *mL_Values,
+			   __global ValueType *rhs,
+			   __global ValueType *scaling_factors,
+			   const IndexType n_nodes,
+			   __local IndexType *Bounds
+			  )
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+	const size_t i_thread = get_local_id(0);
+
+	// Reading for loop bounds
+	if (i_thread == 0)
+	{
+		Bounds[0] = RowStartIndex[i_node];
+	}
+
+	if (i_node < n_nodes)
+	{
+		Bounds[i_thread + 1] = RowStartIndex[i_node + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Check if we are in the range
+	if (i_node < n_nodes)
+	{
+
+                ValueType row_factor = scaling_factors[i_node];
+
+                rhs[i_node] = rhs[i_node]*row_factor;
+
+		// Loop over all neighbours
+		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
+		{
+			IndexType j_neighbour = ColumnIndex[csr_index];
+                        ValueType col_factor = scaling_factors[j_neighbour];
+                        mL_Values[csr_index] *= row_factor*col_factor;
+		}
+	}
+}
+
+//
+__kernel void ApplyInverseScaling( __global ValueType *values,
+				   __global ValueType *scaling_factors,
+				  const IndexType n_nodes
+				  )
+{
+	// Get work item index
+	const size_t i_node = get_global_id(0);
+
+	if (i_node < n_nodes)
+	{
+		values[i_node] *= scaling_factors[i_node];
 	}
 }
