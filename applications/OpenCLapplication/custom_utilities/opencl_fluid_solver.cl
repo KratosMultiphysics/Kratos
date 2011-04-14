@@ -276,7 +276,8 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 #ifndef SYMM_PRESS
 
-		ValueType edge_tau = mTauPressure[i_node];
+		ValueType edge_tau = 0.5*mTauPressure[i_node];
+                if(edge_tau < delta_t) edge_tau = delta_t;
 
 #endif
 
@@ -310,7 +311,8 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 #ifdef SYMM_PRESS
 
-			ValueType edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
+			ValueType edge_tau = 0.25 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
+                        if(edge_tau < delta_t) edge_tau = delta_t;
 
 #endif
 
@@ -318,8 +320,8 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			ValueType sum_l_ikjk;
 			CalculateScalarLaplacian(Lij0x, Lij1y, Lij2z, &sum_l_ikjk);
 
-			ValueType sum_l_ikjk_onlydt = sum_l_ikjk * 2.0*delta_t;
-			sum_l_ikjk *= (2.0*delta_t + edge_tau);
+			ValueType sum_l_ikjk_onlydt = sum_l_ikjk * delta_t;
+			sum_l_ikjk *= (delta_t + edge_tau);
 
 			// Assemble right-hand side
 
@@ -698,6 +700,6 @@ __kernel void ComputeScalingCoefficients(__global IndexType *RowStartIndex,
 			}
 		}
 
-		scaling_factors[i_node] = -1.0/sqrt(temp);
+		scaling_factors[i_node] = 1.0/KRATOS_OCL_SQRT(temp);
 	}
 }
