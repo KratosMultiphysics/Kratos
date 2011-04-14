@@ -275,9 +275,8 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 		ValueType l_ii = 0.00;
 
 #ifndef SYMM_PRESS
-
-		ValueType edge_tau = 0.5*mTauPressure[i_node];
-                if(edge_tau < delta_t) edge_tau = delta_t;
+		ValueType edge_tau = 2.0*mTauPressure[i_node];
+                if(edge_tau < delta_t) edge_tau=delta_t;
 
 #endif
 
@@ -311,8 +310,8 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 #ifdef SYMM_PRESS
 
-			ValueType edge_tau = 0.25 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
-                        if(edge_tau < delta_t) edge_tau = delta_t;
+			ValueType edge_tau =  (mTauPressure[i_node] + mTauPressure[j_neighbour]);
+                        if(edge_tau < delta_t) edge_tau=delta_t;
 
 #endif
 
