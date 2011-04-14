@@ -209,9 +209,9 @@ namespace Kratos
 				mkApplyVelocityBC_3 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_3");
 				mkApplyVelocityBC_4 = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyVelocityBC_4");
 
-                                mkComputeScalingCoefficients = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ComputeScalingCoefficients");
-                                mkApplyScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyScaling");
-                                mkApplyInverseScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyInverseScaling");
+				mkComputeScalingCoefficients = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ComputeScalingCoefficients");
+				mkApplyScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyScaling");
+				mkApplyInverseScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyInverseScaling");
 			}
 
 			//
@@ -324,7 +324,7 @@ namespace Kratos
 				mbedge_nodes_directionList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 				mbcorner_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
 
-                                mbscaling_factors = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+				mbscaling_factors = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
 				// Lists' lengths
 				mSlipBoundaryListLength = 0;
@@ -851,9 +851,12 @@ namespace Kratos
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_2, mPressureOutletListLength);
 
-                                //***************************************************************************************
-                                //apply scaling
-                                 //here compute the scaling factors
+
+				// Apply scaling to the system of equations
+
+				// Compute the scaling factors
+
+				// Setting arguments
 				mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 0, mL_GPU.handle1());
 				mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 1, mL_GPU.handle2());
 				mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 2, mL_GPU.handle());
@@ -864,7 +867,10 @@ namespace Kratos
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkComputeScalingCoefficients, n_nodes);
 
-                                //apply scaling
+
+				// Apply scaling
+
+				// Setting arguments
 				mrDeviceGroup.SetKernelArg(mkApplyScaling, 0, mL_GPU.handle1());
 				mrDeviceGroup.SetKernelArg(mkApplyScaling, 1, mL_GPU.handle2());
 				mrDeviceGroup.SetKernelArg(mkApplyScaling, 2, mL_GPU.handle());
@@ -875,20 +881,21 @@ namespace Kratos
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkApplyScaling, n_nodes);
-                                //***************************************************************************************
-
 
 
 				//viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
 //				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-5, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
 //				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solve
-//                                viennacl::linalg::jacobi_precond <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::jacobi_tag());
-//                                viennacl::linalg::cg_tag custom_solver(1e-3, 1000);
-//                                dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, custom_cg,precond_GPU);
-                                viennacl::linalg::bicgstab_tag custom_solver(1e-3, 1000);
-                                dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, custom_solver);
-std::cout << "No. of iters: " << custom_solver.iters() << std::endl;
-std::cout << "Est. error: " << custom_solver.error() << std::endl;
+//  			viennacl::linalg::jacobi_precond <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::jacobi_tag());
+//              viennacl::linalg::cg_tag custom_solver(1e-3, 1000);
+//              dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, custom_cg,precond_GPU);
+
+				viennacl::linalg::bicgstab_tag custom_solver(1e-3, 1000);
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, custom_solver);
+
+				std::cout << "No. of iters: " << custom_solver.iters() << std::endl;
+				std::cout << "Est. error: " << custom_solver.error() << std::endl;
+
 //				viennacl::linalg::jacobi_precond <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::jacobi_tag());
 //        			dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
 //				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
@@ -896,15 +903,17 @@ std::cout << "Est. error: " << custom_solver.error() << std::endl;
 //				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
 //				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
 
-                                //***************************************************************************************
-                                //apply inverse scalign
-                                mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 0, dp_GPU.handle());
+
+			   // Apply inverse scalign
+
+				// Setting arguments
+				mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 0, dp_GPU.handle());
 				mrDeviceGroup.SetBufferAsKernelArg(mkApplyInverseScaling, 1, mbscaling_factors);
 				mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 2, n_nodes);
 
 				// Execute OpenCL kernel
 				mrDeviceGroup.ExecuteKernel(mkApplyInverseScaling, n_nodes);
-                                //***************************************************************************************
+
 
 				// Update pressure
 
@@ -1184,7 +1193,7 @@ std::cout << "Est. error: " << custom_solver.error() << std::endl;
 			cl_uint mpOpenCLFluidSolver, mkAddVectorInplace, mkSubVectorInplace, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkSolveStep2_2, mkSolveStep2_3, mkSolveStep3_1, mkSolveStep3_2, mkCalculateRHS, mkComputeWallResistance, mkApplyVelocityBC_1, mkApplyVelocityBC_2, mkApplyVelocityBC_3, mkApplyVelocityBC_4;
                         cl_uint mkComputeScalingCoefficients,mkApplyScaling,mkApplyInverseScaling;
                         cl_double mbscaling_factors;
-                        
+
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
 

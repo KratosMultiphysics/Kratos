@@ -275,6 +275,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 		ValueType l_ii = 0.00;
 
 #ifndef SYMM_PRESS
+
 		ValueType edge_tau = mTauPressure[i_node];
 
 #endif
@@ -309,7 +310,7 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 
 #ifdef SYMM_PRESS
 
-			ValueType edge_tau = 0.5* (mTauPressure[i_node] + mTauPressure[j_neighbour]);
+			ValueType edge_tau = 0.5 * (mTauPressure[i_node] + mTauPressure[j_neighbour]);
 
 #endif
 
@@ -325,7 +326,8 @@ __kernel void SolveStep2_1(__global VectorType *mvel_n1, __global VectorType *mX
 			// Pressure contribution
 			Temp_rhs_i_node -= sum_l_ikjk * (p_j - p_i);
 			Temp_rhs_i_node += sum_l_ikjk_onlydt * (p_old_j - p_old_i);  // TODO: Optimize this a bit!
-//the 2 above is to be thinked!
+			// TODO: The 2 above is to be thinked!
+
 			// Calculating the divergence of the fract vel
 			Sub_D_v(Ni_DNj, &Temp_rhs_i_node, U_i_curr * mRho, U_j_curr * mRho);
 
@@ -375,7 +377,7 @@ __kernel void SolveStep2_2(__global IndexType *mPressureOutletList, __global Ind
 			{
 				// Diagonal element
 				mL_Values[i] = 1e20;  // A huge value
-                                break;
+				break;
 			}
 		}
 	}
@@ -656,13 +658,11 @@ __kernel void ComputeWallResistance(__global VectorType *vel, __global VectorTyp
 }
 
 //
-__kernel void ComputeScalingCoefficients(__global IndexType *RowStartIndex,
-					 __global IndexType *ColumnIndex,
-					 __global ValueType *mL_Values,
-					 __global ValueType *scaling_factors,
-					 const IndexType n_nodes,
-					 __local IndexType *Bounds
-					 )
+// ComputeScalingCoefficients
+//
+// Computes scaling factors
+
+__kernel void ComputeScalingCoefficients(__global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global ValueType *mL_Values, __global ValueType *scaling_factors, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -684,7 +684,7 @@ __kernel void ComputeScalingCoefficients(__global IndexType *RowStartIndex,
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		ValueType temp = 0.00;
+		ValueType DiagonalValue = 0.00;
 
 		// Loop over all neighbours
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
@@ -693,24 +693,21 @@ __kernel void ComputeScalingCoefficients(__global IndexType *RowStartIndex,
 
 			if (j_neighbour == i_node)
 			{
-				temp = fabs(mL_Values[csr_index]);
+				DiagonalValue = fabs(mL_Values[csr_index]);
 				break;
 			}
 		}
 
-		scaling_factors[i_node] = 1.0/KRATOS_OCL_SQRT(temp);
+		scaling_factors[i_node] = KRATOS_OCL_RECIP(KRATOS_OCL_SQRT(DiagonalValue));
 	}
 }
 
 //
-__kernel void ApplyScaling(__global IndexType *RowStartIndex,
-			   __global IndexType *ColumnIndex,
-			   __global ValueType *mL_Values,
-			   __global ValueType *rhs,
-			   __global ValueType *scaling_factors,
-			   const IndexType n_nodes,
-			   __local IndexType *Bounds
-			  )
+// ApplyScaling
+//
+// Applies scaling
+
+__kernel void ApplyScaling(__global IndexType *RowStartIndex, __global IndexType *ColumnIndex, __global ValueType *mL_Values, __global ValueType *rhs, __global ValueType *scaling_factors, const IndexType n_nodes, __local IndexType *Bounds)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
@@ -733,25 +730,27 @@ __kernel void ApplyScaling(__global IndexType *RowStartIndex,
 	if (i_node < n_nodes)
 	{
 
-                ValueType row_factor = scaling_factors[i_node];
+		ValueType row_factor = scaling_factors[i_node];
 
-                rhs[i_node] = rhs[i_node]*row_factor;
+		rhs[i_node] *= row_factor;
 
 		// Loop over all neighbours
 		for (IndexType csr_index = Bounds[i_thread]; csr_index != Bounds[i_thread + 1]; csr_index++)
 		{
 			IndexType j_neighbour = ColumnIndex[csr_index];
-                        ValueType col_factor = scaling_factors[j_neighbour];
-                        mL_Values[csr_index] *= row_factor*col_factor;
+
+			ValueType col_factor = scaling_factors[j_neighbour];
+			mL_Values[csr_index] *= row_factor * col_factor;
 		}
 	}
 }
 
 //
-__kernel void ApplyInverseScaling( __global ValueType *values,
-				   __global ValueType *scaling_factors,
-				  const IndexType n_nodes
-				  )
+// ApplyInverseScaling
+//
+// Applies inverse scaling
+
+__kernel void ApplyInverseScaling( __global ValueType *values, __global ValueType *scaling_factors, const IndexType n_nodes)
 {
 	// Get work item index
 	const size_t i_node = get_global_id(0);
