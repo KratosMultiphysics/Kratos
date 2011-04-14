@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/cg.hpp"
+#include "viennacl/linalg/bicgstab.hpp"
 #include "viennacl/linalg/row_scaling.hpp"
 #include "viennacl/io/kernel_parameters.hpp"
 
@@ -317,7 +318,6 @@ namespace Kratos
 				mbedge_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
 				mbedge_nodes_directionList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double3), CL_MEM_READ_WRITE);
 				mbcorner_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_uint), CL_MEM_READ_WRITE);
-
 
 				// Lists' lengths
 				mSlipBoundaryListLength = 0;
@@ -845,10 +845,15 @@ namespace Kratos
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_2, mPressureOutletListLength);
 
 
-				// Calling the ViennaCL solver
-				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
 
+				//viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
+				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
+//				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000));//, precond_GPU);  // TODO: Is this OK to hard-code solver?
+
+//				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
+//				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
+//				viennacl::linalg::row_scaling <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::row_scaling_tag());
+//				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
 
 				// Update pressure
 
@@ -1467,5 +1472,5 @@ namespace Kratos
 	};
 
 }  // Namespace Kratos
-
+#undef SYMM_PRESS
 #endif  // KRATOS_OPENCL_EDGEBASED_LEVELSET_FLUID_SOLVER_H_INCLUDED
