@@ -62,12 +62,12 @@ class EdgeBasedLevelSetSolver:
         eliminate_isolated.Execute()
 
         #definition of the solvers
-#        pDiagPrecond = DiagonalPreconditioner()
-#        self.pressure_linear_solver =  CGSolver(1e-3, 5000,pDiagPrecond)
+        pDiagPrecond = DiagonalPreconditioner()
+        self.pressure_linear_solver =  CGSolver(1e-3, 5000,pDiagPrecond)
 #        self.pressure_linear_solver =  CGSolver(1e-3, 5000)
 
-        pDiagPrecond = DiagonalPreconditioner()
-        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+#        pDiagPrecond = DiagonalPreconditioner()
+#        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 #        self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000)
 
         ##initializing the press proj to -body_force
