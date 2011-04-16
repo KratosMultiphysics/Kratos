@@ -96,6 +96,10 @@ namespace Kratos
 				// Set our own context, device and command queue
 				viennacl::ocl::setup_context(0, _DeviceGroup.Contexts[0], _DeviceGroup.DeviceIDs[0], _DeviceGroup.CommandQueues[0]);
 
+				// Workaround: ViennaCL 'owns' contexts, command queues
+				clRetainContext(_DeviceGroup.Contexts[0]);
+				clRetainCommandQueue(_DeviceGroup.CommandQueues[0]);
+
 				// Loading best set of parameters
 				viennacl::io::read_kernel_parameters <viennacl::vector <double> > ("vector_parameters.xml");
 				viennacl::io::read_kernel_parameters <viennacl::compressed_matrix <double> > ("sparse_parameters.xml");
