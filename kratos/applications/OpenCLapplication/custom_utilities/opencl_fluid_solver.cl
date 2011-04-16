@@ -173,8 +173,6 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 	const size_t i_node = get_global_id(0);
 	const size_t i_thread = get_local_id(0);
 
-	VectorType mBodyForce = KRATOS_OCL_VECTOR3(mBodyForce1, mBodyForce2, mBodyForce3);
-
 	// Reading for loop bounds
 
 	if (i_thread == 0)
@@ -192,7 +190,7 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 	// Check if we are in the range
 	if (i_node < n_nodes)
 	{
-		VectorType Temp_rhs_i_node = LumpedMass[i_node] * mBodyForce;
+		VectorType Temp_rhs_i_node = LumpedMass[i_node] * KRATOS_OCL_VECTOR3(mBodyForce1, mBodyForce2, mBodyForce3);
 
 		VectorType a_i = convective_velocity[i_node];
 		VectorType U_i = vel_buffer[i_node];
@@ -212,12 +210,12 @@ __kernel void CalculateRHS(__global VectorType *mPi, __global VectorType *vel_bu
 			EdgeType CurrentEdge = ReadDouble16FromDouble16Image(EdgeValues, csr_index);
 			VectorType Ni_DNj = KRATOS_OCL_VECTOR3(KRATOS_OCL_NI_DNJ_0(CurrentEdge), KRATOS_OCL_NI_DNJ_1(CurrentEdge), KRATOS_OCL_NI_DNJ_2(CurrentEdge));
 
-			Sub_ConvectiveContribution(Ni_DNj, &Temp_rhs_i_node, a_i, U_i, U_j);
-			Sub_grad_p(Ni_DNj, &Temp_rhs_i_node, p_i * inverse_rho, p_j * inverse_rho);
-
 			VectorType Lij0 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_0_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_0_2(CurrentEdge));
 			VectorType Lij1 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_1_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_1_2(CurrentEdge));
 			VectorType Lij2 = KRATOS_OCL_VECTOR3(KRATOS_OCL_LAPLACIANIJ_2_0(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_1(CurrentEdge), KRATOS_OCL_LAPLACIANIJ_2_2(CurrentEdge));
+
+			Sub_ConvectiveContribution(Ni_DNj, &Temp_rhs_i_node, a_i, U_i, U_j);
+			Sub_grad_p(Ni_DNj, &Temp_rhs_i_node, p_i * inverse_rho, p_j * inverse_rho);
 
 			Sub_ViscousContribution(Lij0.x, Lij1.y, Lij2.z, &Temp_rhs_i_node, U_i, mViscosity, U_j, mViscosity);
 
