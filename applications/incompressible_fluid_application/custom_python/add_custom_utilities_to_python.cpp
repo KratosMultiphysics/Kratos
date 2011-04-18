@@ -75,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/parallel_extrapolation_utilities.h" 
 #include "custom_utilities/wave_generator.h"
 #include "custom_utilities/estimate_dt_utilities.h"
+#include "custom_utilities/lagrangian_particle_utilities.h"
 
 
 //#include "custom_utilities/edgebased_levelset.h"
@@ -305,6 +306,14 @@ namespace Python
 //			  .def("MarkNodesByDistance",&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
 ////			  .def("CalculateForces",&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
 //			  ;
+
+        class_<LagrangianParticleUtils < 2 > >("LagrangianUtils2D", init<>())
+                    .def("StreamlineMove", &LagrangianParticleUtils < 2 > ::StreamlineMove)
+                    .def("Reseed", &LagrangianParticleUtils < 2 > ::Reseed)
+                    .def("VisualizationModelPart", &LagrangianParticleUtils < 2 > ::VisualizationModelPart)
+                    .def("TransferToEulerianMesh", &LagrangianParticleUtils < 2 > ::TransferToEulerianMesh)
+                    .def("RestartStep", &LagrangianParticleUtils < 2 > ::RestartStep)
+                    ;
 
   }
 	
