@@ -418,9 +418,9 @@ namespace Kratos
 	 if( div_vel < 0.0)
 	    {
              CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
-             Vel_art_visc = 1.5 * abs(div_vel) * pow(H,2);
+             Vel_art_visc = 1.4 * abs(div_vel) * pow(H,2);
 
-	     Pr_art_visc = 10.5*sqrt(norm_grad_p/density) * pow(H,1.5);
+	     Pr_art_visc = 1.4*sqrt(norm_grad_p/density) * pow(H,1.5);
 	    } 
 	   
 	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
@@ -462,29 +462,40 @@ namespace Kratos
 
 	  int nodes_number = 3;
 	  array_1d<double,3> mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
-	  double pp = GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE);
-	  array_1d<double,3> grad_p;
-	  grad_p[0] = DN_DX(0,0)*pp;
-	  grad_p[1] = DN_DX(0,1)*pp;
+	  double rho = GetGeometry()[0].FastGetSolutionStepValue(DENSITY_WATER);
+	  double pr = GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE);
+	  
+	  array_1d<double,3> grad_rho,grad_pr;
+	  grad_rho[0] = DN_DX(0,0)*rho;
+	  grad_rho[1] = DN_DX(0,1)*rho;
+	  grad_pr[0] = DN_DX(0,0)*pr;
+	  grad_pr[1] = DN_DX(0,1)*pr;	  
 		  
           for (int ii = 1; ii < nodes_number; ii++) {	  
 	        mean_acc += GetGeometry()[ii].FastGetSolutionStepValue(ACCELERATION);  
-		pp = GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
-		grad_p[0] += DN_DX(ii,0)*pp;
-		grad_p[1] += DN_DX(ii,1)*pp;		
+		rho = GetGeometry()[ii].FastGetSolutionStepValue(DENSITY_WATER);
+		pr = GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		
+		grad_rho[0] += DN_DX(ii,0)*rho;
+		grad_rho[1] += DN_DX(ii,1)*rho;	
+		grad_pr[0] += DN_DX(ii,0)*pr;
+		grad_pr[1] += DN_DX(ii,1)*pr;				
 	  }
 	  mean_acc *= 0.33333333333333333333333333333333333;
-	  grad_p *= 0.33333333333333333333333333333333333;
-	  grad_p[2] = 0.0;
+	  grad_rho *= 0.33333333333333333333333333333333333;
+	  grad_pr *= 0.33333333333333333333333333333333333;	  
+	  grad_rho[2] = 0.0;
+	  grad_pr[2] = 0.0;	  
 	  
 	  double norm_acc =  MathUtils<double>::Norm3(mean_acc);
-	  norm_grad =  MathUtils<double>::Norm3(grad_p);
-
+	  double norm_grad_rho =  MathUtils<double>::Norm3(grad_rho);
+          norm_grad =  MathUtils<double>::Norm3(grad_pr);
+	  
+	  
 	  array_1d<double,3>  n_dir= ZeroVector(3);
 	  if(norm_acc != 0.0)
 	             n_dir = 0.75/norm_acc*mean_acc;
-	  if(norm_grad != 0.0)
-	             n_dir +=  0.25/norm_grad*grad_p;
+	  if(norm_grad_rho != 0.0)
+	             n_dir +=  0.25/norm_grad_rho*grad_rho;
 	  
 	  double norm_n_dir =  MathUtils<double>::Norm3(n_dir);	
  	  
