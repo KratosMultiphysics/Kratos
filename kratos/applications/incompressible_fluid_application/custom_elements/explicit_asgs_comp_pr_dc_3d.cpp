@@ -472,7 +472,127 @@ namespace Kratos
         KRATOS_CATCH("")
 
 	  }
+    //************************************************************************************
+    //************************************************************************************
+     void ExplicitASGSCOMPPRDC3D::CalculateArtifitialViscosity(double& Vel_art_visc,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,4,3>&DN_DX)
+ 	{
+	    KRATOS_TRY    
+	  
+	 Vel_art_visc = 0.0; 
+	 Pr_art_visc = 0.0;
+         int nodes_number = 4;
+	 double div_vel = 0.0;
+         for( int ii=0; ii < nodes_number; ++ii)
+	 {
+	    const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+	    div_vel += (vel[0]*DN_DX(ii,0) + vel[1]*DN_DX(ii,1) + vel[2]*DN_DX(ii,2));
+	    
+	 }  
+	 
+	 double H=0.0;
+	 double norm_grad_p = 0.0;
+	 
+	double mu;
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+	 
+	 if( div_vel < 0.0)
+	    {
+             CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
+             Vel_art_visc = 1.4* abs(div_vel) * pow(H,2);
 
+	     Pr_art_visc = 1.0*sqrt(norm_grad_p/density) * pow(H,1.5);
+	    } 
+	   
+	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
+	   this->GetValue(PR_ART_VISC)=Pr_art_visc;
+	    
+	    
+	    KRATOS_CATCH("")
+	}
+    //************************************************************************************
+    //************************************************************************************
+     void ExplicitASGSCOMPPRDC3D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,double& norm_grad )
+ 	{
+	    KRATOS_TRY 
+	    
+  	  GeometryType::JacobiansType J;
+	  GetGeometry().Jacobian(J); 
+
+	  Matrix CC;
+	  CC.resize(3,3,false);	  	
+	  
+	  Matrix inverse_CC;
+	  inverse_CC.resize(3,3,false);	  	  
+
+	  noalias(CC) = prod(J[0],trans(J[0]));	 
+	  
+	  double det=0.0;
+	  
+	 MathUtils<double>::InvertMatrix3(CC,inverse_CC ,det);  	  	  
+
+	  int nodes_number = 4;
+	  array_1d<double,3> mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
+	  double rho = GetGeometry()[0].FastGetSolutionStepValue(DENSITY_WATER);
+	  double pr = GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE);
+	  
+	  array_1d<double,3> grad_rho,grad_pr;
+	  grad_rho[0] = DN_DX(0,0)*rho;
+	  grad_rho[1] = DN_DX(0,1)*rho;
+	  grad_rho[2] = DN_DX(0,2)*rho;	  
+	  
+	  grad_pr[0] = 0.25*DN_DX(0,0)*pr;
+	  grad_pr[1] = 0.25*DN_DX(0,1)*pr;
+	  grad_pr[2] = 0.25*DN_DX(0,2)*pr;		  
+		  
+          for (int ii = 1; ii < nodes_number; ii++) {	  
+	        mean_acc += GetGeometry()[ii].FastGetSolutionStepValue(ACCELERATION);  
+		rho = GetGeometry()[ii].FastGetSolutionStepValue(DENSITY_WATER);
+	        pr = GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
+		
+		grad_rho[0] += DN_DX(ii,0)*rho;
+		grad_rho[1] += DN_DX(ii,1)*rho;	
+		grad_rho[2] += DN_DX(ii,2)*rho;	
+		
+		grad_pr[0] += 0.25*DN_DX(ii,0)*pr;
+		grad_pr[1] += 0.25*DN_DX(ii,1)*pr;
+		grad_pr[2] += 0.25*DN_DX(ii,2)*pr;			
+		
+	  }
+	  mean_acc *= 0.25;
+	  grad_rho *= 0.25;
+ 
+	  
+	  double norm_acc =  MathUtils<double>::Norm3(mean_acc);
+	  double norm_grad_rho =  MathUtils<double>::Norm3(grad_rho);
+	  
+	  norm_grad =  MathUtils<double>::Norm3(grad_pr);
+
+	  array_1d<double,3>  n_dir= ZeroVector(3);
+	  if(norm_acc != 0.0)
+	             n_dir = 0.75/norm_acc*mean_acc;
+	  if(norm_grad_rho != 0.0)
+	             n_dir +=  0.25/norm_grad_rho*grad_rho;
+	  
+	  double norm_n_dir =  MathUtils<double>::Norm3(n_dir);	
+ 	  
+	  if(norm_n_dir != 0.0)
+	    {
+	      n_dir/=norm_n_dir;	  
+	      array_1d<double,3>  CC_n;	  
+	      CC_n = prod(inverse_CC,n_dir);	  
+	      double denom = n_dir[0]*CC_n[0] + n_dir[1]*CC_n[1] + n_dir[2]*CC_n[2];
+
+	      if(denom <= 0.0)
+		    KRATOS_ERROR(std::logic_error,"CalculateCharectristicLength zero or negative denominator ",denom)	
+	      else
+		    ch_length = 2.0/sqrt(denom);
+	    }
+	   else
+	         ch_length = 0.0;
+	  
+	    KRATOS_CATCH("")
+	}
 	//************************************************************************************
 	//************************************************************************************
 
