@@ -102,6 +102,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/builder_and_solvers/explicit_residualbased_builder.h"
 #include "custom_strategies/strategies/explicit_residualbased_predictorcorrector_velocity_bossak_scheme.h"
 //#include "custom_strategies/strategies/residualbased_linear_scheme_particle_move_back.h"
+#include "custom_strategies/strategies/mid_point_predictorcorrector.h"
+#include "custom_strategies/strategies/hydro_mid_point_predictorcorrector.h"
 
 // #include "custom_strategies/strategies/fractionalstep_configuration_slip.h"
 // #include "custom_strategies/strategies/fractional_step_strategy_slip.h"
@@ -141,6 +143,11 @@ namespace Kratos
 
             typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
             typedef ExplicitResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitResidualBasedNewtonRaphsonStrategyType;
+
+
+                        typedef MidPointPredictorCorrector< SparseSpaceType, LocalSpaceType > MidPointPredictorCorrectorType;
+			
+                        typedef HydroMidPointPredictorCorrector< SparseSpaceType, LocalSpaceType > 			HydroMidPointPredictorCorrectorType;
 
 
             //********************************************************************
@@ -361,6 +368,19 @@ namespace Kratos
             // 			         boost::noncopyable >
             // 			        ("FractionalStepConfigurationSlip", init< ModelPart&, LinearSolverType::Pointer, LinearSolverType::Pointer,
             //                                                                         unsigned int, unsigned int, bool >() );
+                         //*******************************************************************************************	
+			class_< MidPointPredictorCorrectorType,
+				bases< ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible<SparseSpaceType,LocalSpaceType> >,  boost::noncopyable >
+					(
+					"MidPointPredictorCorrector", init< double, double >()
+					);
+                         //*******************************************************************************************	
+			class_< HydroMidPointPredictorCorrectorType,
+				bases< ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible<SparseSpaceType,LocalSpaceType> >,  boost::noncopyable >
+					(
+					"HydroMidPointPredictorCorrector", init< double, double >()
+					);					
+					
 
 
             //********************************************************************************************
