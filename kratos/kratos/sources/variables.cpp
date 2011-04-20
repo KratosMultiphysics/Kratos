@@ -436,7 +436,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, MAX_DT)
     KRATOS_CREATE_VARIABLE(double,  VEL_ART_VISC)
     KRATOS_CREATE_VARIABLE(double,  PR_ART_VISC)
-
+    KRATOS_CREATE_VARIABLE(double, INTERNAL_ENERGY )
 
     KratosApplication::KratosApplication() :
     mCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -821,7 +821,9 @@ namespace Kratos
 	KRATOS_REGISTER_VARIABLE(MIN_DT)
 	KRATOS_REGISTER_VARIABLE(MAX_DT)
         KRATOS_REGISTER_VARIABLE(VEL_ART_VISC)
-        KRATOS_REGISTER_VARIABLE(PR_ART_VISC)	
+        KRATOS_REGISTER_VARIABLE(PR_ART_VISC)
+        KRATOS_REGISTER_VARIABLE(INTERNAL_ENERGY)
+        
     }
 
     // Specialize array of compenents for VariableData
