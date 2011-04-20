@@ -214,8 +214,8 @@ namespace Kratos
 			double difference_water_pr_norm = 0.0;
 			double reference_vel_norm = 0.0;
 			double difference_vel_norm = 0.0;
-			int pr_size = 0;
-			int vel_size = 0;
+			int pr_size = 1;
+			int vel_size = 1;
                             double  dimension=(r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
 			
 
@@ -283,7 +283,6 @@ namespace Kratos
 			double vel_abs = sqrt(difference_vel_norm)/vel_size;
 			double air_pr_abs = sqrt(difference_air_pr_norm)/pr_size;
 			double water_pr_abs = sqrt(difference_water_pr_norm)/pr_size;
-
 
 
 				std::cout << "VELOCITY CRITERIA :: obtained ratio = " << vel_ratio << ";  expected ratio = " << mVelRatioTolerance << "obtained abs = " <<vel_abs << ";  expected abs = " << mVelAbsTolerance << std::endl;
