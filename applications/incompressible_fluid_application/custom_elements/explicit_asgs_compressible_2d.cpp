@@ -164,7 +164,7 @@ namespace Kratos
 
 	//viscous term	
 	//CalculateViscousTerm(rDampMatrix, DN_DX, Area);
- 	CalcualteDCOperatior(rDampMatrix, DN_DX, Area);
+	CalcualteDCOperatior(rDampMatrix, DN_DX, Area);
 	//Advective term
 	double tauone;
 	double tautwo;
@@ -510,7 +510,7 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.333333333333333333333333;
 
-vc2 = 5.0/9.0;;
+//  vc2 = 1.0;
 	}
 
 
@@ -599,7 +599,7 @@ vc2 = 5.0/9.0;;
             //tauone = time;
             tautwo = time;
 	    
-	    
+
             KRATOS_CATCH("")
 
               }
@@ -778,7 +778,7 @@ vc2 = 5.0/9.0;;
             double VC = GetGeometry()[ii].FastGetSolutionStepValue(AIR_SOUND_VELOCITY ) ;
 	    inv_max_h = sqrt(inv_max_h);
 	    
-VC = sqrt(5.0)/3.0;	    
+//  VC = 1.0;	    
 	    calc_t = 1.0/(inv_max_h * VC );
 
 
@@ -859,9 +859,9 @@ VC = sqrt(5.0)/3.0;
 	 if( div_vel < 0.0)
 	    {
              CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
-             Vel_art_visc = .5* abs(div_vel) * pow(H,2);
+             Vel_art_visc = 1.4* abs(div_vel) * pow(H,2);
 
-	     Pr_art_visc = .5*sqrt(norm_grad_p/density) * pow(H,1.5);
+	     Pr_art_visc = 1.0*sqrt(norm_grad_p/density) * pow(H,1.5);
 	    } 
 	   
 	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
@@ -906,28 +906,39 @@ VC = sqrt(5.0)/3.0;
 	  int nodes_number = 3;
 	  array_1d<double,3> mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
 	  double rho = GetGeometry()[0].FastGetSolutionStepValue(DENSITY_AIR);
-	  array_1d<double,3> grad_rho;
+	  double pr = GetGeometry()[0].FastGetSolutionStepValue(AIR_PRESSURE);
+	  array_1d<double,3> grad_rho,grad_pr;
 	  grad_rho[0] = DN_DX(0,0)*rho;
 	  grad_rho[1] = DN_DX(0,1)*rho;
+	  
+	  grad_pr[0] = DN_DX(0,0)*pr;
+	  grad_pr[1] = DN_DX(0,1)*pr;	  
+	  
 		  
           for (int ii = 1; ii < nodes_number; ii++) {	  
 	        mean_acc += GetGeometry()[ii].FastGetSolutionStepValue(ACCELERATION);  
 		rho = GetGeometry()[ii].FastGetSolutionStepValue(DENSITY_AIR);
+		pr = GetGeometry()[ii].FastGetSolutionStepValue(AIR_PRESSURE);		
 		grad_rho[0] += DN_DX(ii,0)*rho;
-		grad_rho[1] += DN_DX(ii,1)*rho;		
+		grad_rho[1] += DN_DX(ii,1)*rho;	
+		grad_pr[0] += DN_DX(ii,0)*pr;
+		grad_pr[1] += DN_DX(ii,1)*pr;			
 	  }
 	  mean_acc *= 0.33333333333333333333333333333333333;
 	  grad_rho *= 0.33333333333333333333333333333333333;
+	  grad_pr *= 0.33333333333333333333333333333333333;	  
 	  grad_rho[2] = 0.0;
+	  grad_pr[2] = 0.0;
 	  
 	  double norm_acc =  MathUtils<double>::Norm3(mean_acc);
-	  norm_grad =  MathUtils<double>::Norm3(grad_rho);
+	  double norm_grad_rho =  MathUtils<double>::Norm3(grad_rho);
+	  norm_grad =  MathUtils<double>::Norm3(grad_pr);
 
 	  array_1d<double,3>  n_dir= ZeroVector(3);
 	  if(norm_acc != 0.0)
 	             n_dir = 0.75/norm_acc*mean_acc;
-	  if(norm_grad != 0.0)
-	             n_dir +=  0.25/norm_grad*grad_rho;
+	  if(norm_grad_rho != 0.0)
+	             n_dir +=  0.25/norm_grad_rho*grad_rho;
 	  
 	  double norm_n_dir =  MathUtils<double>::Norm3(n_dir);	
  	  
