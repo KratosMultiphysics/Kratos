@@ -521,6 +521,10 @@ if(vel_mass == 0.0 || (water_p_mass == 0.0 && air_p_mass==0.0))
                         UpdatePressure(CurrentWaterPressurerRate, OldWaterPressurerRate, CurrentWaterPressure, OldWaterPressure);
 
                         UpdatePressure(CurrentAirPressurerRate, OldAirPressurerRate, CurrentAirPressure, OldAirPressure);
+			
+			double& internal_energy = ind->FastGetSolutionStepValue(INTERNAL_ENERGY);//air
+			internal_energy = CurrentAirPressure/(air_density*(5.0/3.0-1.0));
+
 									             
 // 	if(	CurrentAirPressure <= 0.00189)
 // 	           CurrentAirPressure = .00189;
