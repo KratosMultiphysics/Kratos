@@ -252,7 +252,7 @@ namespace Kratos
 				  unsigned int index = i*type_ind;
 
 				   geom[i].SetLock(); 				  
-				  array_1d<double,3>& node_rhs_vel = geom[i].FastGetSolutionStepValue(RHS);//deine temlate dim
+				  array_1d<double,3>& node_rhs_vel = geom[i].FastGetSolutionStepValue(RHS);
 				  double& node_rhs_water_p = geom[i].FastGetSolutionStepValue(RHS_WATER);
 				  double& node_rhs_air_p = geom[i].FastGetSolutionStepValue(RHS_AIR);
 
