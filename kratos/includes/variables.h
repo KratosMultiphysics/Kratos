@@ -410,6 +410,7 @@ namespace Kratos
     
     KRATOS_DEFINE_VARIABLE(double,  VEL_ART_VISC)
     KRATOS_DEFINE_VARIABLE(double,  PR_ART_VISC)
+    KRATOS_DEFINE_VARIABLE(double, INTERNAL_ENERGY )    
 
 }  // namespace Kratos.
 #endif // KRATOS_VARIABLES_H_INCLUDED  defined 
