@@ -226,13 +226,13 @@ namespace Kratos
 			//mSchemeIsInitialized = true;
 			
 		ModelPart::ElementsContainerType::iterator elem_bg = r_model_part.ElementsBegin();
-		unsigned int n_elems = r_model_part.Elements().size();	
+		 int n_elems = r_model_part.Elements().size();	
 		
 		ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-		unsigned int n_nodes = r_model_part.Nodes().size();
+		 int n_nodes = r_model_part.Nodes().size();
               
 		 ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-                for (unsigned int jj=0; jj<n_elems; ++jj)
+                for ( int jj=0; jj<n_elems; ++jj)
 		      {
 			ModelPart::ElementsContainerType::iterator elem = elem_bg + jj;
 		        array_1d<double,3> mass_vec = ZeroVector(3);
@@ -242,7 +242,7 @@ namespace Kratos
 			double air_water = elem->GetValue(IS_WATER_ELEMENT);	
 			
 			Element::GeometryType& geom = elem->GetGeometry();
-			for (unsigned int i = 0; i <geom.size(); i++)
+			for ( int i = 0; i <geom.size(); i++)
 			      {
 				geom[i].FastGetSolutionStepValue(NODAL_MASS)  +=   mass_vec[0]; 
 
@@ -257,7 +257,7 @@ namespace Kratos
 		      }
 		      
 				  #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		  for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
+		  for( int kkk = 0; kkk < n_nodes; kkk++)
 		      {
 			ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
 						
@@ -267,8 +267,8 @@ namespace Kratos
 			
 			
 			array_1d<double,3> rhs_vel = ind->FastGetSolutionStepValue(RHS,1) = ZeroVector(3);
-			double rhs_water_p = ind->FastGetSolutionStepValue(RHS_WATER,1) = 0.0;
-			double rhs_air_p = ind->FastGetSolutionStepValue(RHS_AIR,1) = 0.0;	
+// 			double rhs_water_p = ind->FastGetSolutionStepValue(RHS_WATER,1) = 0.0;
+// 			double rhs_air_p = ind->FastGetSolutionStepValue(RHS_AIR,1) = 0.0;	
 			
 			const double air_density = ind->FastGetSolutionStepValue(DENSITY_AIR);
 			double& CurrentInternalEnergy = ind->FastGetSolutionStepValue(INTERNAL_ENERGY,0);
@@ -293,7 +293,7 @@ namespace Kratos
 			    TSystemVectorType& Dx,
 			    TSystemVectorType& b
 			    ) {
-			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+// 			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
 			Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
@@ -330,10 +330,10 @@ namespace Kratos
 
 	
 	    ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-	    unsigned int n_nodes = r_model_part.Nodes().size();
+	     int n_nodes = r_model_part.Nodes().size();
 
 	      #pragma omp parallel for firstprivate(n_nodes, it_begin)
-	      for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
+	      for( int kkk = 0; kkk < n_nodes; kkk++)
 		  {
 		    ModelPart::NodesContainerType::iterator itNode = it_begin+kkk;
 
@@ -428,14 +428,14 @@ namespace Kratos
 			KRATOS_TRY
 
 		  ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-		  unsigned int n_nodes = r_model_part.Nodes().size();
+		   int n_nodes = r_model_part.Nodes().size();
 
- 		  double K1 = 2070000000;
-		  double K2 = 7.15;
+//  		  double K1 = 2070000000;
+// 		  double K2 = 7.15;
                   KRATOS_WATCH("inside initialize nonlinear iteration");
 
 		  #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		  for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
+		  for( int kkk = 0; kkk < n_nodes; kkk++)
 		      {
 			ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
 
@@ -518,7 +518,7 @@ KRATOS_WATCH("inside update");
 		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 		  // double GammaNewmark = 0.5 - NewAlphaBossak;
 		    double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-		    double time_fac = 1.0 / (mGamma * DeltaTime);
+// 		    double time_fac = 1.0 / (mGamma * DeltaTime);
 
 		    #pragma omp parallel for firstprivate(n_nodes, it_begin)
 		    for( int kkk = 0; kkk < n_nodes; kkk++)
@@ -707,7 +707,7 @@ KRATOS_WATCH("AFTER update vel and pr");
 			//add velocity mass
 			double air_water = elem->GetValue(IS_WATER_ELEMENT);				
 			Element::GeometryType& geom = elem->GetGeometry();
-			for (unsigned int i = 0; i <geom.size(); i++)
+			for ( int i = 0; i <geom.size(); i++)
 			      {
 				geom[i].FastGetSolutionStepValue(NODAL_MASS)  +=   mass_vec[0]; 
 
@@ -725,8 +725,8 @@ KRATOS_WATCH("AFTER update vel and pr");
 		  for( int kkk = 0; kkk < n_nodes; kkk++)
 		      {
 			ModelPart::NodesContainerType::iterator ind = it_begin+kkk; 
-			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
-			const double old_vol = ind->FastGetSolutionStepValue(NODAL_PAUX ,1);	
+/*			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
+			const double old_vol = ind->FastGetSolutionStepValue(NODAL_PAUX ,1);*/	
 			
 			const double current_vol = ind->FastGetSolutionStepValue(NODAL_PAUX);	
 			const double mass_zero = ind->FastGetSolutionStepValue(VISCOSITY);				
@@ -753,7 +753,7 @@ KRATOS_WATCH("AFTER update vel and pr");
 
 		  // double GammaNewmark = 0.5 - NewAlphaBossak;
 		    double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-		    double time_fac = 1.0 / (mGamma * DeltaTime);
+// 		    double time_fac = 1.0 / (mGamma * DeltaTime);
 		    double K1 = 2070000000;
 		    double K2 = 7.15;		    
 
@@ -776,7 +776,7 @@ KRATOS_WATCH("AFTER update vel and pr");
                            double energy_mass = 0.5*ind->FastGetSolutionStepValue(NODAL_MASS);
 			          energy_mass += 0.5*ind->FastGetSolutionStepValue(NODAL_MASS,1);
 				  
-			const double mass_zero = ind->FastGetSolutionStepValue(VISCOSITY);				
+// 			const double mass_zero = ind->FastGetSolutionStepValue(VISCOSITY);				
 			   
 			   
 /*			  const double rhs_water_p = ind->FastGetSolutionStepValue(RHS_WATER);*/
