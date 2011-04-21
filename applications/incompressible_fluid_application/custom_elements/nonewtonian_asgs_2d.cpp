@@ -697,41 +697,55 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	int dof = 2;
 	double density;
 	calculatedensity(GetGeometry(), density, mu);
+//------------------------b
 // 	boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
 // 	double gamma_dot;
+//	array_1d<double, 3 >& nodal_app_mu,
 // 	array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
 // 	CalculateB(B, DN_DX);
-//  	CalculateNodalApparentViscosity(grad_sym_vel, gamma_dot, B, mu, m_coef);
+//  	CalculateNodalApparentViscosity(nodal_app_mu, grad_sym_vel, gamma_dot, B, mu, m_coef);
 // 
-// 	const double & app_mu0  = GetGeometry()[0].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
-// 	const double & app_mu1  = GetGeometry()[1].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
-// 	const double & app_mu2  = GetGeometry()[2].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);	
 // 	
-// 	ms_adv_vel[0] += DN_DX(0, 0) * app_mu0 + DN_DX(1, 0) * app_mu1 + DN_DX(2, 0) * app_mu2 ;
-// 	ms_adv_vel[1] += DN_DX(0, 1) * app_mu0 + DN_DX(1, 1) * app_mu1 + DN_DX(2, 1) * app_mu2;
+// 	array_1d<double,2> grad_app_mu;
+//	grad_app_mu = prod(trans(DN_DX),nodal_app_mu);
+// 	grad_app_mu /= density; //dynamic viscosity. kinematic viscosity is recovered later on in the assembling process.
+//------------------------e
 
 	
 	//calculate convective term
 // 	int nodes_number = 3;
 // 	int dof = 2;
 	int matsize = dof*nodes_number;
-
 	boost::numeric::ublas::bounded_matrix<double, 2, 6 > conv_opr = ZeroMatrix(dof, matsize);
+//------------------------b
+// 	boost::numeric::ublas::bounded_matrix<double, 2, 6 > visc_opr = ZeroMatrix(dof, matsize);
+//------------------------e
 	boost::numeric::ublas::bounded_matrix<double, 6, 2 > shape_func = ZeroMatrix(matsize, dof);
+	
 
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int column = ii*dof;
 	    conv_opr(0, column) = DN_DX(ii, 0) * ms_adv_vel[0] + DN_DX(ii, 1) * ms_adv_vel[1];
 	    conv_opr(1, column + 1) = conv_opr(0, column);
 
+//------------------------b
+// 	    visc_opr(0, column) = DN_DX(ii, 0) * grad_app_mu[0] + DN_DX(ii, 1) * grad_app_mu[1];
+// 	    visc_opr(1, column + 1) = conv_opr(0, column);
+//------------------------e
+
 	    shape_func(column, 0) = N[ii];
 	    shape_func(column + 1, 1) = shape_func(column, 0);
 	}
-	//build (a.grad V)(ro*a.grad U) stabilization term & assemble and  //build (a.grad V)(ro*grad nu.grad U) stabilization term & assemble
+	//build (a.grad V)(ro*a.grad U) stabilization term & assemble and  
 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > adv_stblterm = ZeroMatrix(matsize, matsize);
 	adv_stblterm = tauone * prod(trans(conv_opr), conv_opr);
-
-
+	
+//------------------------b
+// 	//build (a.grad V)(ro*grad_mu.grad U) stabilization term & assemble and  
+// 	adv_stblterm +=  tauone *prod(trans(conv_opr),visc_opr);
+//------------------------e
+	
+	
 // 	double density;
 // 	double mu;
 // 	calculatedensity(GetGeometry(), density, mu);
@@ -752,7 +766,12 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//build 1*tau1*(a.grad V)(grad P) & 1*tau1*(grad q)(ro*a.grad U) stabilization terms & assemble
 	boost::numeric::ublas::bounded_matrix<double, 6, 3 > grad_stblterm = ZeroMatrix(matsize, nodes_number);
 	grad_stblterm = tauone * prod(trans(conv_opr), trans(DN_DX));
-
+	
+//------------------------b
+// 	boost::numeric::ublas::bounded_matrix<double, 6, 3 > grad_viscstblterm = ZeroMatrix(matsize, nodes_number);
+// 	grad_viscstblterm = grad_stblterm + tauone * prod(trans(visc_opr), trans(DN_DX)) ;
+//------------------------e
+	
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int row = ii * (dof + 1);
 	    int loc_row = ii*dof;
@@ -761,9 +780,14 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 		K(row, column) += area * grad_stblterm(loc_row, jj);
 		K(row + 1, column) += area * grad_stblterm(loc_row + 1, jj);
-
+//------------------------b_original
 		K(column, row) += area * density * grad_stblterm(loc_row, jj);
 		K(column, row + 1) += area * density * grad_stblterm(loc_row + 1, jj);
+//------------------------b
+// 		K(column, row) += area * density * grad_viscstblterm(loc_row, jj);
+// 		K(column, row + 1) += area * density * grad_viscstblterm(loc_row + 1, jj);
+//------------------------e
+
 	    }
 	}
 
@@ -1446,58 +1470,71 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  double yield = 0.0;
 	  double friction_angle_tangent = 0.0; 
 	  double water_pressure = 0.0;
-	  double gamma_dot_inv;
+	  double cohesion = 0.0;
+// 	  double gamma_dot_inv;
 // 	  double solid_pressure = 0.0;
 // 	  double seepage_drag_x = 0.0;
 	  
-	  
+// 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+// 	      double & effective_stress = GetGeometry()[ii].FastGetSolutionStepValue(EFFECTIVE_STRESS);
+// 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+// 		  effective_stress =  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+// 	      	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+// 			    effective_stress -= GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
+// 		      }
+// 	      }
+// 	}
 
 	  
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
-		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
-	      }
-// 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
 	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
-	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+	      cohesion +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);//this is the COHESION of Mohr Coulomb failure criteria!!!	      
+	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) > 0.0){ //nodes with zero solid pressure does not have  any yield. Otherwise negative yield values appears (if water pressure > 0)
 		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
-// 		    solid_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+		    if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+			water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);	
+		    }
 	      }
-       	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);//this is the COHESION of Mohr Coulomb failure criteria!!!
-// 	      seepage_drag_x += GetGeometry()[ii].FastGetSolutionStepValue(SEEPAGE_DRAG_X);
-	      //CHECK NEGATIVE VALUES....
-
 	  }
 	  friction_angle_tangent /= nodes_number;
 	  water_pressure /= nodes_number;
 	  yield /= nodes_number;
-// KRATOS_WATCH(friction_angle_tangent)
-// KRATOS_WATCH(yield)
-// 	  solid_pressure /= nodes_number;
-// 	  seepage_drag_x /= nodes_number;
-// 	  pay attention: negative yield stress meaningful
-// 	  if(yield < solid_pressure) //otherwise we are enshuring a minimum resistance of the material
-// 	    yield = solid_pressure; 
+	  cohesion /= nodes_number;
+
+// // 	  
+// 	  if(water_pressure < yield){
+// // 	      yield -= water_pressure;
+// // 	      yield  = pow(yield, 0.5)
+// 	      yield *= friction_angle_tangent;
+// 	  }
 // 	  else
-// 	    yield -= 10.0 * seepage_drag_x; //to make more week the downstream toe, where the seepage drag in x in higher.
-// 	  
-	  if(water_pressure < yield){
-	      yield -= water_pressure;
-	      yield *= friction_angle_tangent;
-	  }
-	  else
-	      yield = 0.0;
+// 	      yield = 0.0;
+
+	  yield *= friction_angle_tangent;
+	  yield += cohesion;
 	  
-// 	  if(yield < 100.0)
-//A sort of COHESION!!!!! not present at a micro level but possibly present at a macro level
-// 	    yield += 100.0;
+	  
+// 	  for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+// 	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+// 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+// 	      water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);	
+// 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);//this is the COHESION of Mohr Coulomb failure criteria!!!
+// 	  }
+// 	  friction_angle_tangent /= nodes_number;
+// 	  water_pressure /= nodes_number;
+// 	  yield /= nodes_number;
+// 
+// 	  yield -= water_pressure;
+// 	  yield *= friction_angle_tangent;
+// 	  if(yield < 1e-4) yield = 0.0;
+
 	  
 	  
 // KRATOS_WATCH(yield)
 
 #ifdef EXPONENCIAL_MODEL
 ////////EXPONENCIAL MODEL
-	if (gamma_dot > 1e-3) {
+	if (gamma_dot > 1e-8) {
 	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 	    app_mu = mu + (yield / gamma_dot) * aux_1;
 // 			gamma_dot_inv = 1.0/gamma_dot;
@@ -1608,91 +1645,89 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    //************************************************************************************
     //************************************************************************************
 
-    void NoNewtonianASGS2D::CalculateNodalApparentViscosity(
+    void NoNewtonianASGS2D::CalculateNodalApparentViscosity(array_1d<double, 3 >& nodal_app_mu,
 	    array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
 	    const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
 	    const double & mu, const double & m_coef) {
 	KRATOS_TRY
-// 	app_mu = ZeroVector(3);
 
-	double aux_1;
-	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
-	
-	
-	  // The yield is variable: it decreases where water is present
-	  unsigned int nodes_number = 3;
-	  array_1d<double, 3 > yield = ZeroVector(3); //nodal yield
-	  array_1d<double, 3 > water_pressure = ZeroVector(3); //nodal_water_pressure
-	  double friction_angle_tangent = 0.0; 
-	  
-	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
-		    water_pressure[ii] +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
-	      }
-	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
-	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
-		    yield[ii] +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
-	      }
-	  }
-	  friction_angle_tangent /= nodes_number;
-
-	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-	  if(water_pressure[ii] < yield[ii]){
-	      yield[ii] -= water_pressure[ii];
-	      yield[ii] *= friction_angle_tangent;
-	  }
-	  else
-	      yield[ii] = 0.0;
-	}
-#ifdef EXPONENCIAL_MODEL
-////////EXPONENCIAL MODEL
-      for(unsigned int ii = 0; ii < nodes_number; ++ii) {
-	double & app_mu = GetGeometry()[ii].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
-	if (gamma_dot > 1e-3) {
-	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
-	    app_mu = mu + (yield[ii] / gamma_dot) * aux_1;
-// 	    if (app_mu < mu) {
-// 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
-// 	    }
-	} else {
-	    app_mu = mu + yield[ii] * m_coef ;
-// // 			gamma_dot_inv = 0.0;
-	}
-	 /////// UPPERBOUND IN APPARENT VISCOSITY /////////
-// 	if(app_mu > 1e4){
-// 	  app_mu = 1e4;
+// 	double aux_1;
+// 	CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
+// 	
+// 	
+// 	  // The yield is variable: it decreases where water is present
+// 	  unsigned int nodes_number = 3;
+// 	  array_1d<double, 3 > yield = ZeroVector(3); //nodal yield
+// 	  array_1d<double, 3 > water_pressure = ZeroVector(3); //nodal_water_pressure
+// 	  double friction_angle_tangent = 0.0; 
+// 	  
+// 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+// 
+// 	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+// 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
+// 		    yield[ii] +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+// 		    if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+// 			  water_pressure[ii] +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		    
+// 		    }
+// 	      }
+// 	  }
+// 	  friction_angle_tangent /= nodes_number;
+// 
+// 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
+// 	  if(water_pressure[ii] < yield[ii]){
+// 	      yield[ii] -= water_pressure[ii];
+// 	      yield[ii] *= friction_angle_tangent;
+// 	  }
+// 	  else
+// 	      yield[ii] = 0.0;
 // 	}
-      }
-#else	
-// ////////BILINEAR MODEL
-      double mu_s = 1e7;
-      double average_yield = 0.0;
-      for(unsigned int ii=0, ii<nodes_number; i++){
-	average_yield += yield[ii];
-      }
-      averaged_yield /= nodes_number;
-      double gamma_dot_lim = averaged_yield/mu_s;
-      
-      
-      for(unsigned int ii = 0; ii < nodes_number; ++ii) { 
-	double & app_mu = GetGeometry()[ii].FastGetSolutionStepValue(EFFECTIVE_VISCOSITY);
-	if(gamma_dot >= gamma_dot_lim){
-	  if (gamma_dot_lim <= 1e-10){
-	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
-	  }
-	  else{
-	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield[ii])/gamma_dot ;
-	  }
-	}
-	else{
-	  app_mu = mu_s ;
-	}
-// 	  /////// UPPERBOUND IN APPARENT VISCOSITY /////////
-// 	if(app_mu > 1e5){
-// 	  app_mu = 1e5;
+// #ifdef EXPONENCIAL_MODEL
+// ////////EXPONENCIAL MODEL
+//       for(unsigned int ii = 0; ii < nodes_number; ++ii) {
+// 	if (gamma_dot > 1e-3) {
+// 	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
+// 	    app_mu = mu + (yield[ii] / gamma_dot) * aux_1;
+// // 	    if (app_mu < mu) {
+// // 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+// // 	    }
+// 	} else {
+// 	    app_mu = mu + yield[ii] * m_coef ;
+// // // 			gamma_dot_inv = 0.0;
 // 	}
-      }
-#endif
+// 	 /////// UPPERBOUND IN APPARENT VISCOSITY /////////
+// // 	if(app_mu > 1e4){
+// // 	  app_mu = 1e4;
+// // 	}
+//       }
+// #else	
+// // ////////BILINEAR MODEL
+//       double mu_s = 1e7;
+//       double average_yield = 0.0;
+//       for(unsigned int ii=0, ii<nodes_number; i++){
+// 	average_yield += yield[ii];
+//       }
+//       averaged_yield /= nodes_number;
+//       double gamma_dot_lim = averaged_yield/mu_s;
+//       
+//       
+//       for(unsigned int ii = 0; ii < nodes_number; ++ii) { 
+// 	if(gamma_dot >= gamma_dot_lim){
+// 	  if (gamma_dot_lim <= 1e-10){
+// 	    app_mu = mu ; //newtonian fluid, no rigid behavior. yield ~ 0;
+// 	  }
+// 	  else{
+// 	    app_mu = (mu*(gamma_dot-gamma_dot_lim) + yield[ii])/gamma_dot ;
+// 	  }
+// 	}
+// 	else{
+// 	  app_mu = mu_s ;
+// 	}
+// // 	  /////// UPPERBOUND IN APPARENT VISCOSITY /////////
+// // 	if(app_mu > 1e5){
+// // 	  app_mu = 1e5;
+// // 	}
+//       }
+// #endif
 
 
 	KRATOS_CATCH("")
@@ -1757,8 +1792,10 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	calculatedensity(GetGeometry(), density, mu);
 	CalculateB(B, DN_DX);    
 	CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
-// 	  average_app_mu = (app_mu[0]+app_mu[1]+app_mu[2])*0.333333333333333333333333;
 	CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
+	
+// 	KRATOS_WATCH("Entra qui????? ---------")
+// 	KRATOS_WATCH(app_mu)
 	
 	if (rVariable == THAWONE) {
 	    for (unsigned int PointNumber = 0;
@@ -1777,23 +1814,11 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	if (rVariable == IS_WATER_ELEMENT) {
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
-		//	KRATOS_WATCH(this->GetValue(IS_WATER));
-		//	KRATOS_WATCH(this->Info());
 		rValues[PointNumber] = this->GetValue(IS_WATER_ELEMENT);
 	    }
 	}
-//PROVISIONALbegin---only for debugging
 	if (rVariable == EQ_STRAIN_RATE) {//gamma dot
-// 	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
-// 	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
-// 	  double gamma_dot;
-// // 	  double Area;
-// // 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-// 
-// 	  CalculateB(B, DN_DX);      
-// 
-// 	  CalculateGradSymVel(grad_sym_vel, gamma_dot, B);
-	    
+   
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
 		rValues[PointNumber] = gamma_dot;
@@ -1801,25 +1826,10 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    }
 	}
 	if (rVariable == MU) {//app mu
-/*	  boost::numeric::ublas::bounded_matrix<double, 3, 6 > B = ZeroMatrix(3, 6);
-	  array_1d<double, 3 > grad_sym_vel = ZeroVector(3);
-  	  double app_mu = 0.0;
-// 	  double gamma_dot = 0.0;
-	  double mu;
-	  double density;
-	//  double average_app_mu;
-	  double app_mu_derivative;
-	  double gamma_dot;
-// 	  double Area;
-// 	  GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-	  calculatedensity(GetGeometry(), density, mu);
-	  CalculateB(B, DN_DX);    
-	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
-// 	  average_app_mu = (app_mu[0]+app_mu[1]+app_mu[2])*0.333333333333333333333333;*/
+
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
 		rValues[PointNumber] = app_mu;
-
 	    }
 	}
 	if (rVariable == TAU) {//SQRT(0.5 DEVSTRESS:DEVSTRESS)
@@ -1827,11 +1837,10 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
 		rValues[PointNumber] = mDevStress;
-
 	    }
+	    //KRATOS_WATCH(mDevStress);
 	}	
 	
-//PROVISIONALend---only for debugging
     }
 
       
