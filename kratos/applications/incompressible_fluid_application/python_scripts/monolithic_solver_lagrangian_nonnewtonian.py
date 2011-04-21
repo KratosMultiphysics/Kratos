@@ -44,7 +44,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MU);   
     model_part.AddNodalSolutionStepVariable(YIELD_STRESS);
     model_part.AddNodalSolutionStepVariable(EQ_STRAIN_RATE);
-    model_part.AddNodalSolutionStepVariable(EFFECTIVE_VISCOSITY);
+    model_part.AddNodalSolutionStepVariable(PRESS_PROJ); ### WATER PRESSURE GRADIENT
 
 
     print "variables for the dynamic structural solution added correctly"
@@ -86,7 +86,7 @@ class MonolithicSolver:
 ##        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
 
-        self.max_iter = 10
+        self.max_iter = 20
 
                           
         #default settings
@@ -143,6 +143,7 @@ class MonolithicSolver:
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef );
+##        self.model_part.ProcessInfo.SetValue(SCALE, self.regularization_coef );
 
        
         #time increment for output 
@@ -168,6 +169,7 @@ class MonolithicSolver:
         self.Remesh()
 ##        (self.neigh_finder).Execute();
 ##        print "145"
+        
         (self.solver).Solve()
 ##        self.RestoreOldPosition()
 
@@ -227,11 +229,11 @@ class MonolithicSolver:
             
             ##remesh
             if(self.domain_size == 2):
-##                (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
-    	        (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
+    	        (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+##       	        (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Monolithic2DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
             elif(self.domain_size == 3):
-##                (self.Mesher).ReGenerateMesh("ASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
                 (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+##                (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Monolithic3DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
 
 	    print "regenerated mesh"			      
 
@@ -255,17 +257,31 @@ class MonolithicSolver:
         (self.neigh_finder).Execute();
 
     def RestoreOldPosition(self):
+        raise "ERROR. The calculation of effective viscosity is not yet implemented nodally!!!!! "
+    
         for node in self.model_part.Nodes:
-            displ0 = node.GetSolutionStepValue(DISPLACEMENT_X)
-            displ1 = node.GetSolutionStepValue(DISPLACEMENT_Y)
-            displ2 = node.GetSolutionStepValue(DISPLACEMENT_Z)
-            displ = math.sqrt(displ0*displ0 + displ1*displ1 + displ2*displ2)
+            #displacement is the total displacement from the beginning of the simulation.
+            #We have to consider the Delta_displacement
+            displX = node.GetSolutionStepValue(DISPLACEMENT_X)
+            displY = node.GetSolutionStepValue(DISPLACEMENT_Y)
+            displZ = node.GetSolutionStepValue(DISPLACEMENT_Z)
+            old_displX = node.GetSolutionStepValue(DISPLACEMENT_X,1)
+            old_displY = node.GetSolutionStepValue(DISPLACEMENT_Y,1)
+            old_displZ = node.GetSolutionStepValue(DISPLACEMENT_Z,1)
+
+            displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
             
             if(node.GetSolutionStepValue(EFFECTIVE_VISCOSITY) >= 1e4 and displ < 0.01):
-                node.SetSolutionStepValue(DISPLACEMENT_X,0,0.0)
-                node.SetSolutionStepValue(DISPLACEMENT_Y,0,0.0)
-                node.SetSolutionStepValue(DISPLACEMENT_Z,0,0.0)
+                node.SetSolutionStepValue(DISPLACEMENT_X,0,old_displX)
+                node.SetSolutionStepValue(DISPLACEMENT_Y,0,old_displY)
+                node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
+##                node.X = node.X0
+##                node.Y = node.Y0
+##                node.Z = node.Z0
 
+            (self.MeshMover).Execute(); #to update the positions with the new displacements
+
+             
     ######################################################################
     def OutputStep(self,time,gid_io):
         if(time >= self.next_output_time):
@@ -288,13 +304,15 @@ class MonolithicSolver:
             gid_io.WriteNodalResults(DENSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(VISCOSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(BODY_FORCE, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(DISPLACEMENT, (self.model_part).Nodes, time, 0);            
             gid_io.WriteNodalResults(INTERNAL_FRICTION_ANGLE, (self.model_part).Nodes, time, 0);            
             gid_io.WriteNodalResults(YIELD_STRESS, (self.model_part).Nodes, time, 0);
-            gid_io.PrintOnGaussPoints(EQ_STRAIN_RATE,self.model_part,time)
-            gid_io.PrintOnGaussPoints(MU,self.model_part,time)
-            gid_io.PrintOnGaussPoints(TAU,self.model_part,time)
-            gid_io.WriteNodalResults(EFFECTIVE_VISCOSITY, (self.model_part).Nodes, time, 0);
+            gid_io.PrintOnGaussPoints(EQ_STRAIN_RATE,self.model_part,time);
+            gid_io.PrintOnGaussPoints(MU,self.model_part,time);
+            gid_io.PrintOnGaussPoints(TAU,self.model_part,time);
+##            gid_io.WriteNodalResults(EFFECTIVE_VISCOSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(IS_FLUID, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(PRESS_PROJ, (self.model_part).Nodes, time, 0); ### WATER PRESSURE GRADIENT
 
             gid_io.Flush()
             gid_io.FinalizeResults()        
