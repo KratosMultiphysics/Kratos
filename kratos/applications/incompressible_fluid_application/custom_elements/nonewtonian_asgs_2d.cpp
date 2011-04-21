@@ -1475,15 +1475,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 	  double solid_pressure = 0.0;
 // 	  double seepage_drag_x = 0.0;
 	  
-// 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-// 	      double & effective_stress = GetGeometry()[ii].FastGetSolutionStepValue(EFFECTIVE_STRESS);
-// 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
-// 		  effective_stress =  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
-// 	      	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
-// 			    effective_stress -= GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
-// 		      }
-// 	      }
-// 	}
+
 
 	  
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
