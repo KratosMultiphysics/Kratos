@@ -1368,28 +1368,33 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	yield /= nodes_number;
 #else		  
 	 for (unsigned int ii = 0; ii < nodes_number; ++ii) {
-	      if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
-		    water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
-	      }
-// 	      yield +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);
 	      friction_angle_tangent += GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
+	      cohesion +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);//this is the COHESION of Mohr Coulomb failure criteria!!!	      
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
 		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
+		    if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+			water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);	
+		    }
 	      }
 	  }
 	  
 	  friction_angle_tangent /= nodes_number;
 	  water_pressure /= nodes_number;
 	  yield /= nodes_number;
-	  
+	  cohesion /= nodes_number;
+
 
 	  //pay attention: negative yield stress meaningfull
-	  if(water_pressure < yield){
-	      yield -= water_pressure;
-	      yield *= friction_angle_tangent;
-	  }
-	  else
-	      yield = 0.0;
+// 	  if(water_pressure < yield){
+// 	      yield -= water_pressure;
+// 	      yield *= friction_angle_tangent;
+// 	  }
+// 	  else
+// 	      yield = 0.0;
+
+
+	  yield *= friction_angle_tangent;
+	  yield += cohesion;
 #endif
 	  
 #ifdef EXPONENCIAL_MODEL	  
