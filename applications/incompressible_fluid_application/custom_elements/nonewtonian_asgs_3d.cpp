@@ -1357,9 +1357,10 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	  unsigned int nodes_number = 4;
 	  double yield = 0.0;
 	  double friction_angle_tangent = 0.0; 
-	  double water_pressure = 0.0;
+// 	  double water_pressure = 0.0;
 // 	  double gamma_dot_inv;
-	  
+	  double cohesion = 0.0;
+
 #ifdef TAU_CONST
 //         double m_coef = 100;
 	for (unsigned int ii = 0; ii < nodes_number; ++ii) {
@@ -1372,14 +1373,14 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	      cohesion +=  GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);//this is the COHESION of Mohr Coulomb failure criteria!!!	      
 	      if(GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) >= 0.0){
 		    yield +=  GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
-		    if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
-			water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);	
-		    }
+// 		    if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
+// 			water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);	
+// 		    }
 	      }
 	  }
 	  
 	  friction_angle_tangent /= nodes_number;
-	  water_pressure /= nodes_number;
+// 	  water_pressure /= nodes_number;
 	  yield /= nodes_number;
 	  cohesion /= nodes_number;
 
