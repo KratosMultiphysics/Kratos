@@ -149,11 +149,16 @@ namespace Kratos
 		* @param rFluid_ModelPart: The fluid model part where Seepage drag has been evaluated for the current time step @see nonewtonian_asgs_2d.h, nonewtonian_asgs_3d.h
 		* @param rSeepageDragVar: The seepage drag vector that is evaluated in the fluid model part
 		* @param mu: Fluid viscosity
+		* @param fluid_density: Fluid density
+		* @param solid_density: Solid density
+
 		*/
 		void CalculateFluidDrag(
 			ModelPart& rFluid_ModelPart,
 			Variable< array_1d<double,3> >& rSeepageDragVar,
-			const double& mu 
+			const double & fluid_nu ,
+			const double & fluid_density,
+			const double & solid_density
 			)
  		{
 
@@ -169,6 +174,7 @@ namespace Kratos
 				  const double& diameter = inode->FastGetSolutionStepValue(DIAMETER);
 				  //Nodal velocity
 				  const array_1d<double,3>& vel = inode->FastGetSolutionStepValue(VELOCITY);
+
 				  double vel_norm = norm_2(vel);
 				  array_1d<double,3>& darcy_term = inode->FastGetSolutionStepValue(rSeepageDragVar);
 // 				  KRATOS_WATCH(inode->Id())
@@ -176,15 +182,13 @@ namespace Kratos
 // 				  KRATOS_WATCH(vel_norm)
 				  
 				  //dimensionally accelerations. A, B not multiplied by porosity like in the fluid momentum equation
-				  double lin_coeff = 150 * mu * (1-porosity)*(1-porosity)/(porosity*porosity*porosity*diameter*diameter);
+				  double lin_coeff = 150 * fluid_nu * (1-porosity)*(1-porosity)/(porosity*porosity*porosity*diameter*diameter);
 				  double non_lin_coeff = 1.75 * (1-porosity)/(porosity*porosity*porosity*diameter);
-				  noalias(darcy_term) = (lin_coeff + non_lin_coeff * vel_norm) * vel;
-// 				  KRATOS_WATCH(darcy_term);
+				  noalias(darcy_term) = (lin_coeff + non_lin_coeff * vel_norm) * vel * fluid_density / solid_density;
+
 			      }
 			}
-			
-			
-			
+
 			KRATOS_CATCH("")
 
 		}
@@ -212,19 +216,35 @@ namespace Kratos
 				   inode != rStructural_ModelPart.NodesEnd();
 				   inode++)	
 			{
-			  if(inode->FastGetSolutionStepValue(IS_STRUCTURE) == 0)
-			  {
-			  
-			    array_1d<double,3>& bodyforce_drag = inode->FastGetSolutionStepValue(rBodyForce);
+// 			  if(inode->FastGetSolutionStepValue(IS_STRUCTURE) == 0)
+// 			  {
+			    const double& porosity = inode->FastGetSolutionStepValue(POROSITY);
+			    const array_1d<double,3>& press_grad = inode->FastGetSolutionStepValue(PRESS_PROJ);
+			    const double& solid_density = inode->FastGetSolutionStepValue(DENSITY);
+
+  			    array_1d<double,3>& bodyforce_drag = inode->FastGetSolutionStepValue(rBodyForce);
 			    bodyforce_drag  = inode->FastGetSolutionStepValue(rSeepageDragVar);
+
+			    ////subtracting buoyancy force
+			    if(inode->FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0) //TO IDENTIFY FLUID NODES...we don't have any information over distance
+			    {
+				noalias(bodyforce_drag) -= (1-porosity) * press_grad / solid_density;
+			    	array_1d<double,3> temp  = (1-porosity) * press_grad / solid_density;
+				KRATOS_WATCH(temp);
+// 			    	KRATOS_WATCH(porosity);
+// 			    	KRATOS_WATCH(press_grad);
+// 			    	KRATOS_WATCH(solid_density);
+			    }
+			    
 			    bodyforce_drag  +=  rGravityAcc;
 // 			    KRATOS_WATCH(bodyforce_drag)
-			  } 
+// 			  } 
 			}
 			  
 			KRATOS_CATCH("")
 
 		}
+
 
 
 
