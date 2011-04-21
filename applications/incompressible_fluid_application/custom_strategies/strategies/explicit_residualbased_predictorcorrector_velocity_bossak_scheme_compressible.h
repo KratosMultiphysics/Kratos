@@ -410,7 +410,7 @@ KRATOS_WATCH("inside update");
 		   int n_nodes = r_model_part.Nodes().size();
 
 		  //dt factor
-		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+// 		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 		  // double GammaNewmark = 0.5 - NewAlphaBossak;
 //		    double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 // 		    double time_fac = 1.0 / (mGamma * DeltaTime);
