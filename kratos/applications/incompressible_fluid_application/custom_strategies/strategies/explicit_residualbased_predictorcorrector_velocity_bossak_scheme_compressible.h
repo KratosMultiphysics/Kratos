@@ -191,13 +191,10 @@ namespace Kratos
 		//mMass.resize(10,10);
 		//mDamp.resize(10,10);
 
-	    //Allocate auxiliary memory
-	    int NumThreads = OpenMPUtils::GetNumThreads();
-	    mMass.resize(NumThreads);
-	    mDamp.resize(NumThreads);
-	    mvel.resize(NumThreads);
-	    macc.resize(NumThreads);
-	    maccold.resize(NumThreads);
+		//mvel.resize(10,false);
+		//macc.resize(10,false);
+		//maccold.resize(10,false);
+
 
 		std::cout << "using the ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible" << std::endl;
 	}
@@ -217,63 +214,6 @@ namespace Kratos
 			Performing the update of the solution.
 		*/
 //************************************************************************************************
-//************************************************************************************************		
-	           void Initialize(
-			ModelPart& r_model_part
-			)
-		{
-			KRATOS_TRY
-			//mSchemeIsInitialized = true;
-			
-		ModelPart::ElementsContainerType::iterator elem_bg = r_model_part.ElementsBegin();
-		 int n_elems = r_model_part.Elements().size();	
-		
-		ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-		 int n_nodes = r_model_part.Nodes().size();
-              
-		 ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-                for ( int jj=0; jj<n_elems; ++jj)
-		      {
-			ModelPart::ElementsContainerType::iterator elem = elem_bg + jj;
-		        array_1d<double,3> mass_vec = ZeroVector(3);
-		        elem->Calculate(VELOCITY, mass_vec,CurrentProcessInfo);//write on air water and ebs_vel to calculate mass  
-
-			//add velocity mass
-			double air_water = elem->GetValue(IS_WATER_ELEMENT);	
-			
-			Element::GeometryType& geom = elem->GetGeometry();
-			for (unsigned int i = 0; i <geom.size(); i++)
-			      {
-				geom[i].FastGetSolutionStepValue(NODAL_MASS)  +=   mass_vec[0]; 
-
-				if(air_water == 1.0)
-				  geom[i].FastGetSolutionStepValue(NODAL_MAUX)  +=   mass_vec[1];
-
-				if(air_water == 0.0)			      
-				  geom[i].FastGetSolutionStepValue(NODAL_PAUX)  +=   mass_vec[1]; 
-
-			      }
-								
-		      }
-		      
-				  #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		  for( int kkk = 0; kkk < n_nodes; kkk++)
-		      {
-			ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
-						
-			ind->FastGetSolutionStepValue(NODAL_MASS,1 ) = ind->FastGetSolutionStepValue(NODAL_MASS ); 		
-			ind->FastGetSolutionStepValue(NODAL_MAUX,1 ) = ind->FastGetSolutionStepValue(NODAL_MAUX ); 
-			ind->FastGetSolutionStepValue(NODAL_PAUX,1 ) = ind->FastGetSolutionStepValue(NODAL_PAUX ); 
-		
-		}		      
-		      
-		      
-		      
-			
-			
-			KRATOS_CATCH("")
-		}
-//************************************************************************************************
 //************************************************************************************************
 		    void InitializeSolutionStep(
 			    ModelPart& r_model_part,
@@ -287,7 +227,7 @@ namespace Kratos
 
 
 // 			double calc_dt = 1.0;
-			double& DeltaTime = CurrentProcessInfo[DELTA_TIME];
+			double& DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
 // 			  for(typename  ModelPart::ElementsContainerType::iterator elem = r_model_part.ElementsBegin(); elem != r_model_part.ElementsEnd(); elem++)
 // 				    {
@@ -330,10 +270,10 @@ namespace Kratos
 
 	
 	    ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-	     int n_nodes = r_model_part.Nodes().size();
+	    unsigned int n_nodes = r_model_part.Nodes().size();
 
 	      #pragma omp parallel for firstprivate(n_nodes, it_begin)
-	      for( int kkk = 0; kkk < n_nodes; kkk++)
+	      for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
 		  {
 		    ModelPart::NodesContainerType::iterator itNode = it_begin+kkk;
 
@@ -407,16 +347,16 @@ namespace Kratos
 KRATOS_WATCH("inside update");
 
 		  ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-		   int n_nodes = r_model_part.Nodes().size();
+		  unsigned int n_nodes = r_model_part.Nodes().size();
 
 		  //dt factor
-// 		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 		  // double GammaNewmark = 0.5 - NewAlphaBossak;
-//		    double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-// 		    double time_fac = 1.0 / (mGamma * DeltaTime);
+		    double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+		    double time_fac = 1.0 / (mGamma * DeltaTime);
 
 		    #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		    for( int kkk = 0; kkk < n_nodes; kkk++)
+		    for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
 			{
 			  ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
 
@@ -438,17 +378,8 @@ KRATOS_WATCH("inside update");
 			  const array_1d<double,3> rhs_vel = ind->FastGetSolutionStepValue(RHS);//deine temlate dim
 			  const double rhs_water_p = ind->FastGetSolutionStepValue(RHS_WATER);
 			  const double rhs_air_p = ind->FastGetSolutionStepValue(RHS_AIR);
-			  
-			  
-			   const double air_density = ind->FastGetSolutionStepValue(DENSITY_AIR);
-			   
-			   double& nodal_mass_density = ind->FastGetSolutionStepValue(VISCOSITY);
-			    
-			   nodal_mass_density += air_density*air_p_mass;
-			  
 
 			//  vel_mass *= time_fac;
-			
 if(vel_mass == 0.0 || (water_p_mass == 0.0 && air_p_mass==0.0))
 	 {
 	  KRATOS_WATCH("EEEEEEEEEEEEEEEEEEEEEEEE RRRRRRRRRRRRRRRRo RRRRRRRRRRRRRRRRRR  vel_mass == 0.0 ");
@@ -483,18 +414,11 @@ if(vel_mass == 0.0 || (water_p_mass == 0.0 && air_p_mass==0.0))
 
 
 			  //update displacement and velocity
-// 			array_1d<double,3> DeltaVel;
-// 			double DeltaWaterPressure = 0.0;
-// 			double DeltaAirPressure = 0.0;
+			array_1d<double,3> DeltaVel;
+			double DeltaWaterPressure = 0.0;
+			double DeltaAirPressure = 0.0;
 
-// 			if(ind->FastGetSolutionStepValue(AIR_PRESSURE) < 160.0)
-// 			      {
-// 				ind->FastGetSolutionStepValue(AIR_PRESSURE) = 160.0;//considering min ro = .01
-// 			      }
-// 			if(ind->FastGetSolutionStepValue(WATER_PRESSURE) < 600000.0)//this is considering that min density of water is 997 (996.69 is w pressure zero)
-// 			      {
-// 				ind->FastGetSolutionStepValue(WATER_PRESSURE) = 600000.0;//considering min ro = .01
-// 			      }
+
 			array_1d<double,3>& CurrentDisplacement = (ind)->FastGetSolutionStepValue(DISPLACEMENT,0);
 			array_1d<double,3>& OldDisplacement = (ind)->FastGetSolutionStepValue(DISPLACEMENT,1);
 
@@ -521,13 +445,17 @@ if(vel_mass == 0.0 || (water_p_mass == 0.0 && air_p_mass==0.0))
                         UpdatePressure(CurrentWaterPressurerRate, OldWaterPressurerRate, CurrentWaterPressure, OldWaterPressure);
 
                         UpdatePressure(CurrentAirPressurerRate, OldAirPressurerRate, CurrentAirPressure, OldAirPressure);
-			
-			double& internal_energy = ind->FastGetSolutionStepValue(INTERNAL_ENERGY);//air
-			internal_energy = CurrentAirPressure/(air_density*(5.0/3.0-1.0));
 
-									             
-// 	if(	CurrentAirPressure <= 0.00189)
-// 	           CurrentAirPressure = .00189;
+
+ 			if(CurrentAirPressure < 160.0)
+ 			      {
+ 				CurrentAirPressure = 160.0;//considering min ro = .01
+ 			      }
+ 			if(CurrentWaterPressure < 600000.0)//this is considering that min density of water is 997 (996.69 is w pressure zero)
+ 			      {
+ 				CurrentWaterPressure = 600000.0;//considering min ro = .01
+ 			      }
+
 
 //to not move nodes with fixed flag
 			if(ind->IsFixed(DISPLACEMENT_X)) CurrentDisplacement[0] = 0.0;
@@ -557,8 +485,7 @@ if(vel_mass == 0.0 || (water_p_mass == 0.0 && air_p_mass==0.0))
 				ind->FastGetSolutionStepValue(MESH_VELOCITY_X) = ind->FastGetSolutionStepValue(VELOCITY_X);
 				ind->FastGetSolutionStepValue(MESH_VELOCITY_Y) = ind->FastGetSolutionStepValue(VELOCITY_Y);
 				ind->FastGetSolutionStepValue(MESH_VELOCITY_Z) = ind->FastGetSolutionStepValue(VELOCITY_Z);
-				
-			        (this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);				
+			(this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);
 			      }
 
 			}
@@ -593,14 +520,14 @@ KRATOS_WATCH("AFTER update vel and pr");
 			KRATOS_TRY
 
 		  ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-		   int n_nodes = r_model_part.Nodes().size();
+		  unsigned int n_nodes = r_model_part.Nodes().size();
 
  		  double K1 = 2070000000;
 		  double K2 = 7.15;
                   KRATOS_WATCH("inside initialize nonlinear iteration");
 
 		  #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		  for( int kkk = 0; kkk < n_nodes; kkk++)
+		  for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
 		      {
 			ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
 
@@ -612,37 +539,34 @@ KRATOS_WATCH("AFTER update vel and pr");
 			 ind->FastGetSolutionStepValue(RHS_WATER) = 0.0;
 			 ind->FastGetSolutionStepValue(RHS_AIR) = 0.0;
 
-			 ind->FastGetSolutionStepValue(VISCOSITY) = 0.0;
 
 
 	                //loop over nodes to update density and sound velocity
 			//*********update density DENSITY_AIR 
-// 			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
-// 
-// 			double pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
-// 			 double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
+			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
+
+			double pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
+			 double old_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE,1);
 			double alpha = 1.0;
-			
+
+
 // UNCOMMENT FOR IMPLOSION
-// 			if(pr < 160.0)
-// 			      {
-// 				KRATOS_WATCH(pr);
-// 				ind->FastGetSolutionStepValue(AIR_PRESSURE) = 160.0;//considering min ro = .01
-// 				  pr = 160.0;
-// 				  KRATOS_WATCH("///////////////////////////// a reset air pressure////////////////////////");
-// 				  std::cout<< ind->Id()<<std::endl;
-// 			      }
-/*			if(old_pr == 0.0 ) 	
+ 			if(pr < 160.0)
+ 			      {
+ 				//KRATOS_WATCH(pr);
+ 				ind->FastGetSolutionStepValue(AIR_PRESSURE) = 160.0;//considering min ro = .01
+ 				//  pr = 160.0;
+ 				//  KRATOS_WATCH("///////////////////////////// a reset air pressure////////////////////////");
+ 				//  std::cout<< ind->Id()<<std::endl;
+ 			      }
+			if(old_pr == 0.0 ) 	
 				alpha = 1.0;
 			else
 			  {
 				  alpha = pow(pr/old_pr, 1.0/1.4);
 			  }
-			  
-			  double calc_density = old_rho*alpha;			
-			  
-			ind->FastGetSolutionStepValue(DENSITY_AIR ) = calc_density;	
-*/
+			ind->FastGetSolutionStepValue(DENSITY_AIR ) = old_rho*alpha;	
+
 			//*******update water density DENSITY
 			
 			const double old_rho_w = ind->FastGetSolutionStepValue(DENSITY_WATER ,1);	
@@ -651,14 +575,14 @@ KRATOS_WATCH("AFTER update vel and pr");
 
 
 // UNCOMMENT FOR IMPLOSION
-// 			if(pr_w < 600000.0)
-// 			      {
+ 			if(pr_w < 600000.0)
+ 			      {
 // 				KRATOS_WATCH(pr_w);
-// 				ind->FastGetSolutionStepValue(WATER_PRESSURE) = 600000.0;//this is considering that min density of water is 997 (996.69 is w pressure zero
+ 				ind->FastGetSolutionStepValue(WATER_PRESSURE) = 600000.0;//this is considering that min density of water is 997 (996.69 is w pressure zero
 // 				  pr_w = 600000.0;
 // 				  KRATOS_WATCH("///////////////////////////// old WATER pressure reset////////////////////////");
 // 				  std::cout<< ind->Id()<<std::endl;
-// 			      }
+ 			      }
 
 			alpha = (pr_w + K1/K2)/(old_pr_w + K1/K2);
 			ind->FastGetSolutionStepValue(DENSITY_WATER) = old_rho_w*pow(alpha,(1.0/K2));
@@ -675,12 +599,12 @@ KRATOS_WATCH("AFTER update vel and pr");
             //create a partition of the element array
 
 		ModelPart::ElementsContainerType::iterator elem_bg = r_model_part.ElementsBegin();
-		 int n_elems = r_model_part.Elements().size();	
+		unsigned int n_elems = r_model_part.Elements().size();	
               
 		 ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
                 // assemble all elements
 // 	         #pragma omp parallel for firstprivate(n_elems, elem_bg)
-                for ( int jj=0; jj<n_elems; ++jj)
+                for (unsigned int jj=0; jj<n_elems; ++jj)
 		      {
 			ModelPart::ElementsContainerType::iterator elem = elem_bg + jj;
 		        array_1d<double,3> mass_vec = ZeroVector(3);
@@ -688,7 +612,6 @@ KRATOS_WATCH("AFTER update vel and pr");
 
 			//add velocity mass
 			double air_water = elem->GetValue(IS_WATER_ELEMENT);	
-			
 			Element::GeometryType& geom = elem->GetGeometry();
 			for (unsigned int i = 0; i <geom.size(); i++)
 			      {
@@ -708,32 +631,11 @@ KRATOS_WATCH("AFTER update vel and pr");
 								
 		      }    
                  //#pragma omp barrier
-
-		//mass conservation 
-				  #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		  for( int kkk = 0; kkk < n_nodes; kkk++)
-		      {
-			ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
-			
-	                //loop over nodes to update density and sound velocity
-			//*********update density DENSITY_AIR 
-			const double old_rho = ind->FastGetSolutionStepValue(DENSITY_AIR ,1);	
-			const double old_vol = ind->FastGetSolutionStepValue(NODAL_PAUX ,1);	
-			
-			const double current_vol = ind->FastGetSolutionStepValue(NODAL_PAUX);	
-			
-			double calc_density = old_rho*old_vol/current_vol;
-			
-			ind->FastGetSolutionStepValue(DENSITY_AIR ) = calc_density;		
-
-
-			//update sound velocity
-			ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible<TSparseSpace,TDenseSpace>::CalculateSoundVelocity(ind);
-		
-		}//end of loop over nodes
 KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
 			KRATOS_CATCH("")
 		}
+//************************************************************************************************
+//************************************************************************************************
 //************************************************************************************************
 //************************************************************************************************
         void Calculate_RHS_Contribution(
@@ -742,23 +644,21 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
                 Element::EquationIdVectorType& EquationId,
                 ProcessInfo& CurrentProcessInfo) {
                  KRATOS_TRY
-
-	      int k = OpenMPUtils::ThisThread();
                              //Initializing the non linear iteration for the current element
             (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
+            (rCurrentElement)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
 
-            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
+            (rCurrentElement)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
-                   
+            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+                    
 	                 KRATOS_CATCH("")
         }
 //************************************************************************************************
@@ -770,24 +670,24 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
                 ProcessInfo& CurrentProcessInfo) {
             KRATOS_TRY
 
-            int k = OpenMPUtils::ThisThread();
-
             (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
                        
             KRATOS_CATCH("")
         }
         //************************************************************************************************
-        //************************************************************************************************	
+        //**************************************************************************************
+	
 		/*@} */
 		/**@name Operations */
 		/*@{ */
@@ -858,6 +758,8 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
 //                 rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
 //                 noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
 //             }
+// KRATOS_WATCH("Empty AddDynamicsToRHS ELEMENt");
+
 	    KRATOS_CATCH("")
 
         }
@@ -868,7 +770,6 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
                 LocalSystemMatrixType& D,
                 LocalSystemMatrixType& M,
                 ProcessInfo& CurrentProcessInfo) {
-	              KRATOS_TRY
             //adding inertia contributionDISPLACEMENT
 //             if (M.size1() != 0) {
 //                 rCurrentElement->GetSecondDerivativesVector(VelocityBossakAuxiliaries::macc, 0);
@@ -886,7 +787,8 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
 //                 rCurrentElement->GetFirstDerivativesVector(VelocityBossakAuxiliaries::mvel, 0);
 //                 noalias(RHS_Contribution) -= prod(D, VelocityBossakAuxiliaries::mvel);
 //             }
-	    KRATOS_CATCH("")
+
+// KRATOS_WATCH("Empty AddDynamicsToRHS CONDITION");
         }	
 
       
@@ -924,11 +826,15 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
         /*@} */
         /**@name Member Variables */
         /*@{ */
-	std::vector< Matrix >mMass;
-	std::vector< Matrix >mDamp;
-	std::vector< Vector >mvel;
-	std::vector< Vector >macc;
-	std::vector< Vector >maccold;		
+/*		Matrix mMass;
+		Matrix mDamp;
+
+		Vector mvel;
+		Vector macc;
+		Vector maccold;
+
+		DofsVectorType mElementalDofList;
+*/		
 	    double mGamma;
         
         /*@} */
