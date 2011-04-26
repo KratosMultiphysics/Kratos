@@ -95,12 +95,17 @@ namespace viennacl
         //std::cout << "prod(coordinate_matrix" << ALIGNMENT << ", vector) called with internal_nnz=" << mat.internal_nnz() << std::endl;
         
         viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::coordinate_matrix<TYPE, ALIGNMENT>::program_name(), "vec_mul");
-        unsigned int thread_num = k.local_work_size();
+        unsigned int thread_num = 256; //k.local_work_size(0);
         
-        k.global_work_size(thread_num);
-        viennacl::ocl::enqueue(k(mat.handle12(), mat, vec, result, mat.nnz(),
-                                                             viennacl::ocl::local_mem(sizeof(unsigned int)*thread_num),
-                                                             viennacl::ocl::local_mem(sizeof(TYPE)*thread_num)) );
+        k.local_work_size(0, thread_num);
+        
+        k.global_work_size(0, 64 * thread_num);  //64 work groups are hard-coded for now. Gives reasonable performance in most cases
+        //k.global_work_size(0, thread_num);  //64 work groups are hard-coded for now. Gives reasonable performance in most cases
+        viennacl::ocl::enqueue(k(mat.handle12(), mat, mat.handle3(),
+                                 vec,
+                                 result,
+                                 viennacl::ocl::local_mem(sizeof(cl_uint)*thread_num),
+                                 viennacl::ocl::local_mem(sizeof(TYPE)*thread_num)) );
 
       }
     //};

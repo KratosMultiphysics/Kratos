@@ -100,39 +100,39 @@ namespace viennacl
         *   @param vec    The vector over which to iterate
         *   @param index  The starting index of the iterator
         */        
-        const_vector_iterator(vector<SCALARTYPE, ALIGNMENT> const & vec,      unsigned int index)  : _elements(vec.handle()), _index(index) {};
-        const_vector_iterator(viennacl::ocl::handle<cl_mem> const & elements, unsigned int index)  : _elements(elements), _index(index) {};
+        const_vector_iterator(vector<SCALARTYPE, ALIGNMENT> const & vec,      cl_uint index)  : elements_(vec.handle()), index_(index) {};
+        const_vector_iterator(viennacl::ocl::handle<cl_mem> const & elements, cl_uint index)  : elements_(elements), index_(index) {};
 
         
         value_type operator*(void) const 
         { 
            value_type result;
-           result = entry_proxy<SCALARTYPE>(_index, _elements);
+           result = entry_proxy<SCALARTYPE>(index_, elements_);
            return result;
         }
-        self_type operator++(void) { ++_index; return *this; }
+        self_type operator++(void) { ++index_; return *this; }
         self_type operator++(int) { self_type tmp = *this; ++(*this); return tmp; }
         
-        bool operator==(self_type const & other) const { return _index == other._index; }
-        bool operator!=(self_type const & other) const { return _index != other._index; }
+        bool operator==(self_type const & other) const { return index_ == other.index_; }
+        bool operator!=(self_type const & other) const { return index_ != other.index_; }
         
 //        self_type & operator=(self_type const & other)
 //        {
 //           _index = other._index;
-//           _elements = other._elements;
+//           elements_ = other._elements;
 //           return *this;
 //        }   
 
-        difference_type operator-(self_type const & other) const { difference_type result = _index; return result - other._index; }
-        self_type operator+(difference_type diff) const { return self_type(_elements, _index + diff); }
+        difference_type operator-(self_type const & other) const { difference_type result = index_; return result - other.index_; }
+        self_type operator+(difference_type diff) const { return self_type(elements_, index_ + diff); }
         
-        unsigned int index() const { return _index; }
-        viennacl::ocl::handle<cl_mem> const & handle() const { return _elements; }
+        unsigned int index() const { return index_; }
+        viennacl::ocl::handle<cl_mem> const & handle() const { return elements_; }
 
       protected:
         /** @brief  The index of the entry the iterator is currently pointing to */
-        viennacl::ocl::handle<cl_mem> _elements;
-        unsigned int _index;
+        viennacl::ocl::handle<cl_mem> elements_;
+        unsigned int index_;
     };
     
 
@@ -159,7 +159,7 @@ namespace viennacl
     class vector_iterator : public const_vector_iterator<SCALARTYPE, ALIGNMENT>
     {
         typedef const_vector_iterator<SCALARTYPE, ALIGNMENT>  base_type;
-        typedef vector_iterator<SCALARTYPE, ALIGNMENT>    self_type;
+        typedef vector_iterator<SCALARTYPE, ALIGNMENT>        self_type;
       public:
         vector_iterator() : base_type(){};
         vector_iterator(viennacl::ocl::handle<cl_mem> const & elements, unsigned int index)  : base_type(elements, index) {};
@@ -167,21 +167,21 @@ namespace viennacl
         *   @param vec    The vector over which to iterate
         *   @param index  The starting index of the iterator
         */        
-        vector_iterator(vector<SCALARTYPE, ALIGNMENT> & vec, unsigned int index) : base_type(vec, index) {};
+        vector_iterator(vector<SCALARTYPE, ALIGNMENT> & vec, cl_uint index) : base_type(vec, index) {};
         vector_iterator(base_type const & b) : base_type(b) {};
 
         typename base_type::value_type operator*(void)  
         { 
            typename base_type::value_type result;
-           result = entry_proxy<SCALARTYPE>(base_type::_index, base_type::_elements); 
+           result = entry_proxy<SCALARTYPE>(base_type::index_, base_type::elements_); 
            return result;
         }
         
-        viennacl::ocl::handle<cl_mem> handle() { return base_type::_elements; }
+        viennacl::ocl::handle<cl_mem> handle() { return base_type::elements_; }
         
         operator base_type() const
         {
-          return base_type(base_type::_elements, base_type::_index);
+          return base_type(base_type::elements_, base_type::index_);
         }
     };
 
@@ -200,29 +200,31 @@ namespace viennacl
       
     public:
       typedef scalar<typename viennacl::tools::CHECK_SCALAR_TEMPLATE_ARGUMENT<SCALARTYPE>::ResultType>   value_type;
+      typedef vcl_size_t                                        size_type;
+      typedef vcl_ptrdiff_t                                     difference_type;
       typedef const_vector_iterator<SCALARTYPE, ALIGNMENT>      const_iterator;
       typedef vector_iterator<SCALARTYPE, ALIGNMENT>            iterator;
 
       /** @brief Default constructor in order to be compatible with various containers.
       */
-      vector() : _size(0) { viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::init();  }
+      vector() : size_(0) { viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::init();  }
 
       /** @brief An explicit constructor for the vector, allocating the given amount of memory (plus a padding specified by 'ALIGNMENT')
       *
       * @param vec_size   The length (i.e. size) of the vector.
       */
-      explicit vector(unsigned int vec_size) : _size(vec_size)
+      explicit vector(size_type vec_size) : size_(vec_size)
       {
         viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::init(); 
         
-        if (_size > 0)
-          _elements = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*internal_size());
+        if (size_ > 0)
+          elements_ = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*internal_size());
         
-        //force entries above _size to zero:
-        if (_size < internal_size())
+        //force entries above size_ to zero:
+        if (size_ < internal_size())
         {
-          std::vector<SCALARTYPE> temp(internal_size() - _size);
-          cl_int err = clEnqueueWriteBuffer(viennacl::ocl::get_queue().handle(), _elements, CL_TRUE, sizeof(SCALARTYPE)*_size, sizeof(SCALARTYPE)*(internal_size() - _size), &(temp[0]), 0, NULL, NULL);
+          std::vector<SCALARTYPE> temp(internal_size() - size_);
+          cl_int err = clEnqueueWriteBuffer(viennacl::ocl::get_queue().handle(), elements_, CL_TRUE, sizeof(SCALARTYPE)*size_, sizeof(SCALARTYPE)*(internal_size() - size_), &(temp[0]), 0, NULL, NULL);
           //assert(err == CL_SUCCESS);
           VIENNACL_ERR_CHECK(err);
         }
@@ -236,9 +238,9 @@ namespace viennacl
       * @param existing_mem   An OpenCL handle representing the memory
       * @param vec_size       The size of the vector. 
       */
-      explicit vector(cl_mem existing_mem, unsigned int vec_size) : _size(vec_size),  _elements(existing_mem)
+      explicit vector(cl_mem existing_mem, size_type vec_size) : size_(vec_size),  elements_(existing_mem)
       {
-        _elements.inc();  //prevents that the user-provided memory is deleted once the vector object is destroyed.
+        elements_.inc();  //prevents that the user-provided memory is deleted once the vector object is destroyed.
       }
       
       /** @brief The copy constructor
@@ -246,15 +248,15 @@ namespace viennacl
       * Entries of 'vec' are directly copied to this vector.
       */
       vector(const vector<SCALARTYPE, ALIGNMENT> & vec) :
-        _size(vec.size())
+        size_(vec.size())
       {
         viennacl::linalg::kernels::vector<SCALARTYPE, 1>::init(); 
         
         if (size() != 0)
         {
-          _elements = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*internal_size());
+          elements_ = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*internal_size());
           cl_int err;
-          err = clEnqueueCopyBuffer(viennacl::ocl::get_queue().handle(), vec.handle(), _elements, 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
+          err = clEnqueueCopyBuffer(viennacl::ocl::get_queue().handle(), vec.handle(), elements_, 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
           //assert(err == CL_SUCCESS);
           VIENNACL_ERR_CHECK(err);
         }
@@ -268,7 +270,7 @@ namespace viennacl
         if (size() != 0)
         {
           cl_int err;
-          err = clEnqueueCopyBuffer(viennacl::ocl::get_queue().handle(), vec.handle(), _elements, 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
+          err = clEnqueueCopyBuffer(viennacl::ocl::get_queue().handle(), vec.handle(), elements_, 0, 0, sizeof(SCALARTYPE)*internal_size(), 0, NULL, NULL);
           VIENNACL_ERR_CHECK(err);
         }
         return *this;
@@ -574,27 +576,27 @@ namespace viennacl
       *  @param new_size  The new size of the vector
       *  @param preserve  If true, old entries of the vector are preserved, otherwise eventually discarded.
       */
-      void resize(unsigned int new_size, bool preserve = true)
+      void resize(size_type new_size, bool preserve = true)
       {
         assert(new_size > 0);
         
-        if (new_size != _size)
+        if (new_size != size_)
         {
           unsigned int new_internal_size = viennacl::tools::roundUpToNextMultiple<unsigned int>(new_size, ALIGNMENT);
         
-          std::vector<SCALARTYPE> temp(_size);
-          if (preserve && _size > 0)
+          std::vector<SCALARTYPE> temp(size_);
+          if (preserve && size_ > 0)
             fast_copy(*this, temp);
           temp.resize(new_size);  //drop all entries above new_size
           temp.resize(new_internal_size); //enlarge to fit new internal size
           
           if (new_internal_size != internal_size())
           {
-            _elements = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*new_internal_size);
+            elements_ = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(SCALARTYPE)*new_internal_size);
           }
           
           fast_copy(temp, *this);
-          _size = new_size;
+          size_ = new_size;
         }
         
       }
@@ -603,26 +605,26 @@ namespace viennacl
       //read-write access to an element of the vector
       /** @brief Read-write access to a single element of the vector
       */
-      entry_proxy<SCALARTYPE> operator()(unsigned int index)
+      entry_proxy<SCALARTYPE> operator()(size_type index)
       {
-        return entry_proxy<SCALARTYPE>(index, _elements);
+        return entry_proxy<SCALARTYPE>(index, elements_);
       }
 
       /** @brief Read-write access to a single element of the vector
       */
-      entry_proxy<SCALARTYPE> operator[](unsigned int index)
+      entry_proxy<SCALARTYPE> operator[](size_type index)
       {
-        return entry_proxy<SCALARTYPE>(index, _elements);
+        return entry_proxy<SCALARTYPE>(index, elements_);
       }
 
 
       /** @brief Read access to a single element of the vector
       */
-      scalar<SCALARTYPE> operator()(unsigned int index) const
+      scalar<SCALARTYPE> operator()(size_type index) const
       {
         scalar<SCALARTYPE> tmp;
         cl_int err;
-        err = clEnqueueCopyBuffer(viennacl::ocl::get_queue().handle(), _elements, tmp.handle(), sizeof(SCALARTYPE)*index, 0, sizeof(SCALARTYPE), 0, NULL, NULL);
+        err = clEnqueueCopyBuffer(viennacl::ocl::get_queue().handle(), elements_, tmp.handle(), sizeof(SCALARTYPE)*index, 0, sizeof(SCALARTYPE), 0, NULL, NULL);
         //assert(err == CL_SUCCESS);
         VIENNACL_ERR_CHECK(err);
         return tmp;
@@ -630,7 +632,7 @@ namespace viennacl
       
       /** @brief Read access to a single element of the vector
       */
-      scalar<SCALARTYPE> operator[](unsigned int index) const
+      scalar<SCALARTYPE> operator[](size_type index) const
       {
         return operator()(index);
       }
@@ -807,7 +809,7 @@ namespace viennacl
                                                                          const scalar<SCALARTYPE>,
                                                                            op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         viennacl::linalg::mul_add(proxy.lhs(), proxy.rhs(), *this, result);
         return result;
       }
@@ -818,7 +820,7 @@ namespace viennacl
                                                                          const scalar<SCALARTYPE>,
                                                                            op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         viennacl::linalg::mul_add(proxy.lhs(), proxy.rhs(), *this, result);
         return result;
       }
@@ -829,7 +831,7 @@ namespace viennacl
                                                                          const SCALARTYPE,
                                                                          op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         viennacl::linalg::mul_add(proxy.lhs(), proxy.rhs(), *this, result);
         return result;
       }
@@ -840,7 +842,7 @@ namespace viennacl
                                                                          const SCALARTYPE,
                                                                          op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         viennacl::linalg::mul_add(proxy.lhs(), proxy.rhs(), *this, result);
         return result;
       }
@@ -851,7 +853,7 @@ namespace viennacl
       */
       vector<SCALARTYPE, ALIGNMENT> operator - (const vector<SCALARTYPE, ALIGNMENT> & vec) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         viennacl::linalg::sub(*this, vec, result);
         return result;
       }
@@ -862,7 +864,7 @@ namespace viennacl
                                                                          const scalar<SCALARTYPE>,
                                                                            op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         result = *this;
         viennacl::linalg::inplace_mul_sub(result, proxy.lhs(), proxy.rhs());
         return result;
@@ -874,7 +876,7 @@ namespace viennacl
                                                                          const scalar<SCALARTYPE>,
                                                                            op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         result = *this;
         viennacl::linalg::inplace_mul_sub(result, proxy.lhs(), proxy.rhs());
         return result;
@@ -886,7 +888,7 @@ namespace viennacl
                                                                          const SCALARTYPE,
                                                                          op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         result = *this;
         viennacl::linalg::inplace_mul_add(result, proxy.lhs(), -proxy.rhs());
         return result;
@@ -898,7 +900,7 @@ namespace viennacl
                                                                          const SCALARTYPE,
                                                                          op_prod> & proxy) const
       {
-        vector<SCALARTYPE, ALIGNMENT> result(_size);
+        vector<SCALARTYPE, ALIGNMENT> result(size_);
         result = *this;
         viennacl::linalg::inplace_mul_add(result, proxy.lhs(), -proxy.rhs());
         return result;
@@ -977,30 +979,30 @@ namespace viennacl
       */ 
       vector<SCALARTYPE, ALIGNMENT> & fast_swap(vector<SCALARTYPE, ALIGNMENT> & other) 
       { 
-        assert(this->_size == other._size); 
-        this->_elements.swap(other._elements); 
+        assert(this->size_ == other.size_); 
+        this->elements_.swap(other.elements_); 
         return *this; 
       };       
       
       /** @brief Returns the length of the vector (cf. std::vector)
       */
-      unsigned int size() const { return _size; }
+      size_type size() const { return size_; }
       
       /** @brief Returns the maximum possible size of the vector, which is given by 128 MByte due to limitations by OpenCL.
       */
-      unsigned int max_size() const
+      size_type max_size() const
       {
         return (128*1024*1024) / sizeof(SCALARTYPE);  //128 MB is maximum size of memory chunks in OpenCL!
       }
       /** @brief Returns the internal length of the vector, which is given by size() plus the extra memory due to padding the memory with zeros up to a multiple of 'ALIGNMENT'
       */
-      unsigned int internal_size() const { return viennacl::tools::roundUpToNextMultiple<unsigned int>(_size, ALIGNMENT); }
+      size_type internal_size() const { return viennacl::tools::roundUpToNextMultiple<size_type>(size_, ALIGNMENT); }
       
       /** @brief Returns true is the size is zero */
-      bool empty() { return _size == 0; }
+      bool empty() { return size_ == 0; }
       
       /** @brief Returns the OpenCL memory viennacl::ocl::handle. Typically used for launching compute viennacl::ocl::kernels */
-      const viennacl::ocl::handle<cl_mem> & handle() const { return _elements; }
+      const viennacl::ocl::handle<cl_mem> & handle() const { return elements_; }
 
       /** @brief Resets all entries to zero. Does not change the size of the vector.
       */
@@ -1008,7 +1010,7 @@ namespace viennacl
       {
         viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "clear");
         
-        viennacl::ocl::enqueue(k(_elements, internal_size()));
+        viennacl::ocl::enqueue(k(elements_, static_cast<cl_uint>(internal_size())));
       }
       //void swap(vector & other){}
       
@@ -1018,8 +1020,8 @@ namespace viennacl
       //void erase_element(unsigned int i){}
       
     private:
-      unsigned int _size;
-      viennacl::ocl::handle<cl_mem> _elements;
+      cl_uint size_;
+      viennacl::ocl::handle<cl_mem> elements_;
     }; //vector
     
 
@@ -1325,7 +1327,7 @@ namespace viennacl
       std::vector<SCALARTYPE> tmp(val.size());
       copy(val.begin(), val.end(), tmp.begin());
       std::cout << "[" << val.size() << "](";
-      for (unsigned int i=0; i<val.size(); ++i)
+      for (typename std::vector<SCALARTYPE>::size_type i=0; i<val.size(); ++i)
       {
         if (i > 0)
           s << ",";
@@ -1343,14 +1345,13 @@ namespace viennacl
     */
     template<class SCALARTYPE, unsigned int ALIGNMENT>
     void swap(viennacl::vector<SCALARTYPE, ALIGNMENT> & vec1,
-              viennacl::vector<SCALARTYPE, ALIGNMENT> & vec2, 
-              size_t NUM_THREADS = 0)
+              viennacl::vector<SCALARTYPE, ALIGNMENT> & vec2)
     {
       assert(vec1.size() == vec2.size());
 
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "swap");
 
-      viennacl::ocl::enqueue(k(vec1, vec2, vec1.size()));
+      viennacl::ocl::enqueue(k(vec1, vec2, static_cast<cl_uint>(vec1.size())));
     }
     
     /** @brief Swaps the content of two vectors by swapping OpenCL handles only, NO data is copied

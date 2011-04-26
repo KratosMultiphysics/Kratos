@@ -97,7 +97,7 @@ namespace viennacl
       CPU_ScalarType beta;
       CPU_ScalarType alpha;
       CPU_ScalarType omega;
-      ScalarType inner_prod_temp; //temporary variable for inner product
+      ScalarType inner_prod_temp; //temporary variable for inner product computation
       ScalarType new_ip_rr0star = 0;
       
       for (unsigned int i = 0; i < tag.max_iterations(); ++i)
@@ -111,6 +111,14 @@ namespace viennacl
         //s = residual - alpha*tmp0;
         s = residual;
         s -= alpha*tmp0;
+        
+        //std::cout << "alpha: " << alpha << std::endl;
+        /*std::cout << "s[0]: " << s[0] << std::endl;
+        std::cout << "s[end]: " << s[s.size()-1] << std::endl;
+        for (long k=0; k<10; ++k)
+          std::cout << s[k] << std::endl;
+        exit(0);*/
+        
         
         tmp1 = viennacl::linalg::prod(matrix, s);
         //omega = viennacl::linalg::inner_prod(tmp1, s) / viennacl::linalg::inner_prod(tmp1, tmp1);

@@ -28,12 +28,16 @@
 #ifndef _VIENNACL_FORWARDS_H_
 #define _VIENNACL_FORWARDS_H_
 
-#include <stddef.h>
+//#include <stddef.h>
+#include <cstddef>
 #include "viennacl/ocl/forwards.h"
 
 namespace viennacl
 {
+  typedef std::size_t                                       vcl_size_t;
+  typedef std::ptrdiff_t                                    vcl_ptrdiff_t;
  
+  
   /** @brief A tag class representing addition */
   struct op_add;
   /** @brief A tag class representing subtraction */
