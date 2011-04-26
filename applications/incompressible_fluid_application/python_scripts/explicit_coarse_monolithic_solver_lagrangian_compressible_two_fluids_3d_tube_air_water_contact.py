@@ -222,7 +222,7 @@ class MonolithicSolver:
              
 	print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<>>>>>>>>>>>>>>>>>>>>><<>><< after contact <<<<<<<<<<<<<<<<<<<<<<<<<<"
 
-	new_Dt = PfemUtils().ExplicitDeltaT(.6, min_dt, max_dt, self.model_part)
+	new_Dt = PfemUtils().ExplicitDeltaT(.2, min_dt, max_dt, self.model_part)
 	print new_Dt
 
 	time = self.model_part.ProcessInfo[TIME]
