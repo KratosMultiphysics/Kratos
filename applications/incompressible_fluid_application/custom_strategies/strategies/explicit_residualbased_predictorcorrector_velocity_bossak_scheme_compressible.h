@@ -191,10 +191,13 @@ namespace Kratos
 		//mMass.resize(10,10);
 		//mDamp.resize(10,10);
 
-		//mvel.resize(10,false);
-		//macc.resize(10,false);
-		//maccold.resize(10,false);
-
+	    //Allocate auxiliary memory
+	    int NumThreads = OpenMPUtils::GetNumThreads();
+	    mMass.resize(NumThreads);
+	    mDamp.resize(NumThreads);
+	    mvel.resize(NumThreads);
+	    macc.resize(NumThreads);
+	    maccold.resize(NumThreads);
 
 		std::cout << "using the ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible" << std::endl;
 	}
@@ -270,10 +273,10 @@ namespace Kratos
 
 	
 	    ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-	    unsigned int n_nodes = r_model_part.Nodes().size();
+	     int n_nodes = r_model_part.Nodes().size();
 
 	      #pragma omp parallel for firstprivate(n_nodes, it_begin)
-	      for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
+	      for( int kkk = 0; kkk < n_nodes; kkk++)
 		  {
 		    ModelPart::NodesContainerType::iterator itNode = it_begin+kkk;
 
@@ -347,7 +350,7 @@ namespace Kratos
 KRATOS_WATCH("inside update");
 
 		  ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-		  unsigned int n_nodes = r_model_part.Nodes().size();
+		   int n_nodes = r_model_part.Nodes().size();
 
 		  //dt factor
 		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -356,7 +359,7 @@ KRATOS_WATCH("inside update");
 		    double time_fac = 1.0 / (mGamma * DeltaTime);
 
 		    #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		    for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
+		    for( int kkk = 0; kkk < n_nodes; kkk++)
 			{
 			  ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
 
@@ -520,14 +523,14 @@ KRATOS_WATCH("AFTER update vel and pr");
 			KRATOS_TRY
 
 		  ModelPart::NodesContainerType::iterator it_begin = r_model_part.NodesBegin();
-		  unsigned int n_nodes = r_model_part.Nodes().size();
+		   int n_nodes = r_model_part.Nodes().size();
 
  		  double K1 = 2070000000;
 		  double K2 = 7.15;
                   KRATOS_WATCH("inside initialize nonlinear iteration");
 
 		  #pragma omp parallel for firstprivate(n_nodes, it_begin)
-		  for(unsigned int kkk = 0; kkk < n_nodes; kkk++)
+		  for( int kkk = 0; kkk < n_nodes; kkk++)
 		      {
 			ModelPart::NodesContainerType::iterator ind = it_begin+kkk;
 
@@ -599,12 +602,12 @@ KRATOS_WATCH("AFTER update vel and pr");
             //create a partition of the element array
 
 		ModelPart::ElementsContainerType::iterator elem_bg = r_model_part.ElementsBegin();
-		unsigned int n_elems = r_model_part.Elements().size();	
+		 int n_elems = r_model_part.Elements().size();	
               
 		 ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
                 // assemble all elements
 // 	         #pragma omp parallel for firstprivate(n_elems, elem_bg)
-                for (unsigned int jj=0; jj<n_elems; ++jj)
+                for ( int jj=0; jj<n_elems; ++jj)
 		      {
 			ModelPart::ElementsContainerType::iterator elem = elem_bg + jj;
 		        array_1d<double,3> mass_vec = ZeroVector(3);
@@ -644,21 +647,23 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
                 Element::EquationIdVectorType& EquationId,
                 ProcessInfo& CurrentProcessInfo) {
                  KRATOS_TRY
+
+	      int k = OpenMPUtils::ThisThread();
                              //Initializing the non linear iteration for the current element
             (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentElement)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
 
-            (rCurrentElement)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
+            (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
+            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
-            AddDynamicsToRHS(rCurrentElement, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
-                    
+                   
 	                 KRATOS_CATCH("")
         }
 //************************************************************************************************
@@ -670,18 +675,19 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
                 ProcessInfo& CurrentProcessInfo) {
             KRATOS_TRY
 
+            int k = OpenMPUtils::ThisThread();
+
             (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(VelocityBossakAuxiliaries::mDamp, RHS_Contribution, CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
-
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, VelocityBossakAuxiliaries::mDamp, VelocityBossakAuxiliaries::mMass, CurrentProcessInfo);
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
                        
             KRATOS_CATCH("")
         }
@@ -826,15 +832,11 @@ KRATOS_WATCH("END OF INITIALIZE NonLinIteration");
         /*@} */
         /**@name Member Variables */
         /*@{ */
-/*		Matrix mMass;
-		Matrix mDamp;
-
-		Vector mvel;
-		Vector macc;
-		Vector maccold;
-
-		DofsVectorType mElementalDofList;
-*/		
+	std::vector< Matrix >mMass;
+	std::vector< Matrix >mDamp;
+	std::vector< Vector >mvel;
+	std::vector< Vector >macc;
+	std::vector< Vector >maccold;		
 	    double mGamma;
         
         /*@} */
