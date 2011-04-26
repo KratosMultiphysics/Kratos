@@ -408,15 +408,18 @@ namespace Kratos
 	double length2 = ele_length * ele_length;
 
        // tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (length2 * density) + 2.0 * advvel_norm / ele_length);
-        tauone = 1.0 / (dyn_st_beta / int_time + 4.0 * mu / (length2 * density) + 2.0 * advvel_norm / ele_length);
+        //tauone = 1.0 / (dyn_st_beta / int_time + 4.0 * mu / (length2 * density) + 2.0 * advvel_norm / ele_length);
 
+         tauone =  time*VC2;
+        // tauone = 1000.0*time;
+//KRATOS_WATCH(tauone);
 // std::cout << Id() <<" advvel_norm: " << advvel_norm << " " << "ele_length: " << ele_length << std::endl;
 // std::cout << "mu density time " << mu << ""<< density << ""<< time << std::endl;
 
         //tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
-        //tautwo = int_time;
-        tautwo = ele_length*vc;
-
+         tautwo = time;
+        //tautwo = ele_length*vc;
+       // tautwo = 100.0*time;
 
 // std::cout << "TAUs "<< tauone << " " << tautwo << std::endl;
 
@@ -618,8 +621,8 @@ namespace Kratos
 	  double mu;
 	  calculatedensity(GetGeometry(), density, mu);
 	//update density and calculate sound velocity
-	double VC2;
-	CalculateSoundVelocity(GetGeometry(), VC2);
+	//double VC2;
+	//CalculateSoundVelocity(GetGeometry(), VC2);
 
 	  //fill velocity and pressure mass
 	  Output[0] = density*lump_mass_fac;
