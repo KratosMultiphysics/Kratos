@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/nist_utilities.h" 
 #include "custom_utilities/erosion_utilities.h" 
 #include "custom_utilities/drag_utilities.h" 
+//#include "custom_utilities/streamline_utils.h" 
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -120,7 +121,7 @@ namespace Python
 		.def("MoveNodes",&PfemUtils::MoveNodes)
 		.def("AssignMeshVelocity",&PfemUtils::AssignMeshVelocity)
                 .def("CFLdeltaT",&PfemUtils::CFLdeltaT)
-						     
+                .def("ExplicitDeltaT",&PfemUtils::ExplicitDeltaT)						     
 		 ;
 	  
 	  class_<NormalToWallCalculationUtils>("NormalToWallCalculationUtils", init<>())
@@ -176,6 +177,9 @@ namespace Python
 		.def("AddDrag",&DragUtils::AddDrag)
 		;
 
+ //         class_<StreamlineUtils<2>,  boost::noncopyable>  ("StreamlineUtils2D", init< >())
+//		.def("LagrangianMoveBackAndForward",&StreamlineUtils<2>::LagrangianMoveBackAndForward)
+//		 ;
 
 
   }
