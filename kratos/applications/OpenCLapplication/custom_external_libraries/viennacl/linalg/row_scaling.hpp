@@ -180,7 +180,7 @@ namespace viennacl
                                                 "row_scaling_1");
 
             viennacl::ocl::enqueue( k(system_matrix.handle1(), system_matrix.handle2(), system_matrix.handle(), 
-                                      diag_M_inv, diag_M_inv.size()) );        
+                                      diag_M_inv, static_cast<cl_uint>(diag_M_inv.size())) );        
           }
           else
           {
@@ -189,7 +189,7 @@ namespace viennacl
                                                 "row_scaling_2");
 
             viennacl::ocl::enqueue( k(system_matrix.handle1(), system_matrix.handle2(), system_matrix.handle(), 
-                                      diag_M_inv, diag_M_inv.size()) );        
+                                      diag_M_inv, static_cast<cl_uint>(diag_M_inv.size())) );        
           }
         }
         
@@ -202,7 +202,7 @@ namespace viennacl
           viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<ScalarType, ALIGNMENT>::program_name(),
                                                                 "diag_precond");
 
-          viennacl::ocl::enqueue( k(diag_M_inv, vec, vec.size()) );        
+          viennacl::ocl::enqueue( k(diag_M_inv, vec, static_cast<cl_uint>(vec.size())) );        
         }
         
       private:

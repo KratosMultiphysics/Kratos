@@ -35,9 +35,11 @@ namespace viennacl
         std::string source;
         source.append(compressed_matrix_align1_row_scaling_1);
         source.append(compressed_matrix_align1_lu_forward);
+        source.append(compressed_matrix_align1_bicgstab_kernel2);
         source.append(compressed_matrix_align1_lu_backward);
         source.append(compressed_matrix_align4_vec_mul);
         source.append(compressed_matrix_align1_jacobi_precond);
+        source.append(compressed_matrix_align1_bicgstab_kernel1);
         source.append(compressed_matrix_align1_row_scaling_2);
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
@@ -47,9 +49,11 @@ namespace viennacl
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
         prog_.add_kernel("row_scaling_1");
         prog_.add_kernel("lu_forward");
+        prog_.add_kernel("bicgstab_kernel2");
         prog_.add_kernel("lu_backward");
         prog_.add_kernel("vec_mul");
         prog_.add_kernel("jacobi_precond");
+        prog_.add_kernel("bicgstab_kernel1");
         prog_.add_kernel("row_scaling_2");
         init_done[context_.handle()] = true;
        } //if
@@ -73,9 +77,11 @@ namespace viennacl
         std::string source;
         source.append(compressed_matrix_align1_row_scaling_1);
         source.append(compressed_matrix_align1_lu_forward);
+        source.append(compressed_matrix_align1_bicgstab_kernel2);
         source.append(compressed_matrix_align1_lu_backward);
         source.append(compressed_matrix_align1_vec_mul);
         source.append(compressed_matrix_align1_jacobi_precond);
+        source.append(compressed_matrix_align1_bicgstab_kernel1);
         source.append(compressed_matrix_align1_row_scaling_2);
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
@@ -85,9 +91,11 @@ namespace viennacl
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
         prog_.add_kernel("row_scaling_1");
         prog_.add_kernel("lu_forward");
+        prog_.add_kernel("bicgstab_kernel2");
         prog_.add_kernel("lu_backward");
         prog_.add_kernel("vec_mul");
         prog_.add_kernel("jacobi_precond");
+        prog_.add_kernel("bicgstab_kernel1");
         prog_.add_kernel("row_scaling_2");
         init_done[context_.handle()] = true;
        } //if
@@ -111,9 +119,11 @@ namespace viennacl
         std::string source;
         source.append(compressed_matrix_align1_row_scaling_1);
         source.append(compressed_matrix_align1_lu_forward);
+        source.append(compressed_matrix_align1_bicgstab_kernel2);
         source.append(compressed_matrix_align1_lu_backward);
         source.append(compressed_matrix_align8_vec_mul);
         source.append(compressed_matrix_align1_jacobi_precond);
+        source.append(compressed_matrix_align1_bicgstab_kernel1);
         source.append(compressed_matrix_align1_row_scaling_2);
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
@@ -123,9 +133,11 @@ namespace viennacl
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
         prog_.add_kernel("row_scaling_1");
         prog_.add_kernel("lu_forward");
+        prog_.add_kernel("bicgstab_kernel2");
         prog_.add_kernel("lu_backward");
         prog_.add_kernel("vec_mul");
         prog_.add_kernel("jacobi_precond");
+        prog_.add_kernel("bicgstab_kernel1");
         prog_.add_kernel("row_scaling_2");
         init_done[context_.handle()] = true;
        } //if
@@ -154,9 +166,11 @@ namespace viennacl
         std::string pf_info(pf.info());
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_row_scaling_1, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_lu_forward, pf_info));
+        source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_bicgstab_kernel2, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_lu_backward, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align4_vec_mul, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_jacobi_precond, pf_info));
+        source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_bicgstab_kernel1, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_row_scaling_2, pf_info));
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
@@ -166,9 +180,11 @@ namespace viennacl
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
         prog_.add_kernel("row_scaling_1");
         prog_.add_kernel("lu_forward");
+        prog_.add_kernel("bicgstab_kernel2");
         prog_.add_kernel("lu_backward");
         prog_.add_kernel("vec_mul");
         prog_.add_kernel("jacobi_precond");
+        prog_.add_kernel("bicgstab_kernel1");
         prog_.add_kernel("row_scaling_2");
         init_done[context_.handle()] = true;
        } //if
@@ -194,9 +210,11 @@ namespace viennacl
         std::string pf_info(pf.info());
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_row_scaling_1, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_lu_forward, pf_info));
+        source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_bicgstab_kernel2, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_lu_backward, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_vec_mul, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_jacobi_precond, pf_info));
+        source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_bicgstab_kernel1, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_row_scaling_2, pf_info));
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
@@ -206,9 +224,11 @@ namespace viennacl
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
         prog_.add_kernel("row_scaling_1");
         prog_.add_kernel("lu_forward");
+        prog_.add_kernel("bicgstab_kernel2");
         prog_.add_kernel("lu_backward");
         prog_.add_kernel("vec_mul");
         prog_.add_kernel("jacobi_precond");
+        prog_.add_kernel("bicgstab_kernel1");
         prog_.add_kernel("row_scaling_2");
         init_done[context_.handle()] = true;
        } //if
@@ -234,9 +254,11 @@ namespace viennacl
         std::string pf_info(pf.info());
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_row_scaling_1, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_lu_forward, pf_info));
+        source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_bicgstab_kernel2, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_lu_backward, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align8_vec_mul, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_jacobi_precond, pf_info));
+        source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_bicgstab_kernel1, pf_info));
         source.append(viennacl::tools::make_double_kernel(compressed_matrix_align1_row_scaling_2, pf_info));
         std::string prog_name = program_name();
         #ifdef VIENNACL_BUILD_INFO
@@ -246,9 +268,11 @@ namespace viennacl
         viennacl::ocl::program & prog_ = context_.get_program(prog_name);
         prog_.add_kernel("row_scaling_1");
         prog_.add_kernel("lu_forward");
+        prog_.add_kernel("bicgstab_kernel2");
         prog_.add_kernel("lu_backward");
         prog_.add_kernel("vec_mul");
         prog_.add_kernel("jacobi_precond");
+        prog_.add_kernel("bicgstab_kernel1");
         prog_.add_kernel("row_scaling_2");
         init_done[context_.handle()] = true;
        } //if

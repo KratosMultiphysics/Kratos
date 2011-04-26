@@ -125,7 +125,7 @@ namespace viennacl
       result.resize(vec.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "mult");
 
-      viennacl::ocl::enqueue(k(vec, alpha, result, vec.internal_size()));        
+      viennacl::ocl::enqueue(k(vec, alpha, result, static_cast<cl_uint>(vec.internal_size())));        
     }
 
     /** @brief Scales a vector. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
@@ -144,7 +144,7 @@ namespace viennacl
       result.resize(vec.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "cpu_mult");
 
-      viennacl::ocl::enqueue(k(vec, alpha, result, vec.internal_size()));        
+      viennacl::ocl::enqueue(k(vec, alpha, result, static_cast<cl_uint>(vec.internal_size())));        
     }
 
     /** @brief Scales a vector inplace. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
@@ -160,7 +160,7 @@ namespace viennacl
     {
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "inplace_mult");
 
-      viennacl::ocl::enqueue(k(vec, alpha, vec.internal_size()));        
+      viennacl::ocl::enqueue(k(vec, alpha, static_cast<cl_uint>(vec.internal_size())));        
     }
 
     /** @brief Scales a vector inplace. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
@@ -176,7 +176,7 @@ namespace viennacl
     {
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "cpu_inplace_mult");
 
-      viennacl::ocl::enqueue(k(vec, alpha, vec.internal_size()));        
+      viennacl::ocl::enqueue(k(vec, alpha, static_cast<cl_uint>(vec.internal_size())));        
     }
 
     //result = vec / scalar
@@ -197,7 +197,7 @@ namespace viennacl
       result.resize(vec.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "divide");
 
-      viennacl::ocl::enqueue(k(vec, alpha, result, vec.internal_size()));        
+      viennacl::ocl::enqueue(k(vec, alpha, result, static_cast<cl_uint>(vec.internal_size())));        
     }
 
     /** @brief Scales a vector inplace. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
@@ -213,7 +213,7 @@ namespace viennacl
     {
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "inplace_divide");
 
-      viennacl::ocl::enqueue(k(vec, alpha, vec.internal_size()));        
+      viennacl::ocl::enqueue(k(vec, alpha, static_cast<cl_uint>(vec.internal_size())));        
     }
 
     //result = factor * vec1 + vec2
@@ -234,7 +234,7 @@ namespace viennacl
     {
       assert(vec1.size() == vec2.size() && result.size() == vec1.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "mul_add");
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
       viennacl::ocl::enqueue(k(vec1, alpha, vec2, result, size));        
     }
@@ -256,7 +256,7 @@ namespace viennacl
     {
       assert(vec1.size() == vec2.size() && result.size() == vec1.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "cpu_mul_add");
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
       viennacl::ocl::enqueue(k(vec1, alpha, vec2, result, size));        
     }
@@ -276,7 +276,7 @@ namespace viennacl
                          scalar<SCALARTYPE> const & alpha)
     {
       assert(vec1.size() == vec2.size());
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "inplace_mul_add");
 
       viennacl::ocl::enqueue(k(vec1, vec2, alpha, size));        
@@ -297,7 +297,7 @@ namespace viennacl
     {
       assert(vec1.size() == vec2.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "cpu_inplace_mul_add");
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
       viennacl::ocl::enqueue(k(vec1, vec2, alpha, size));        
     }
@@ -319,7 +319,7 @@ namespace viennacl
     {
       assert(vec1.size() == vec2.size() && result.size() == vec1.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "mul_sub");
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
       viennacl::ocl::enqueue(k(vec1, alpha, vec2, result, size));        
     }
@@ -340,7 +340,7 @@ namespace viennacl
     {
       assert(vec1.size() == vec2.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "inplace_mul_sub");
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
       viennacl::ocl::enqueue(k(vec1, vec2, alpha, size));        
     }
@@ -360,7 +360,7 @@ namespace viennacl
     {
       assert(vec1.size() == vec2.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "inplace_div_add");
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
       viennacl::ocl::enqueue(k(vec1, vec2, alpha, size));        
     }
@@ -380,7 +380,7 @@ namespace viennacl
     {
       assert(vec1.size() == vec2.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "inplace_div_sub");
-      unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+      cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
       viennacl::ocl::enqueue(k(vec1, vec2, alpha, size));        
     }
@@ -404,9 +404,9 @@ namespace viennacl
       {
         assert(vec1.size() == vec2.size());
         viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "inner_prod");
-        unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
+        cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
         unsigned int work_groups = k.global_work_size() / k.local_work_size();
-        viennacl::vector<SCALARTYPE> temp(work_groups);
+        static viennacl::vector<SCALARTYPE> temp(work_groups);
         
         /*unsigned int pos = 0;
         k.argument(pos++, vec1.handle());
@@ -470,7 +470,7 @@ namespace viennacl
                      scalar<SCALARTYPE> & result)
     {
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "norm_1");
-      unsigned int size = vcl_vec.internal_size();
+      cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
       
       if (k.local_work_size() != k.global_work_size())
       {
@@ -516,7 +516,7 @@ namespace viennacl
                      scalar<SCALARTYPE> & result)
     {
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "norm_2");
-      unsigned int size = vcl_vec.internal_size();
+      cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
       
       if (k.local_work_size() != k.global_work_size())
       {
@@ -560,7 +560,7 @@ namespace viennacl
     void norm_inf_impl(const viennacl::vector<SCALARTYPE, ALIGNMENT> & vcl_vec,
                   scalar<SCALARTYPE> & result)
     {
-      unsigned int size = vcl_vec.internal_size();
+      cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "norm_inf");
 
       if (k.local_work_size() != k.global_work_size())
@@ -612,13 +612,13 @@ namespace viennacl
       viennacl::ocl::handle<cl_mem> h = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(cl_uint));
       
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "index_norm_inf");
-      unsigned int size = vcl_vec.internal_size();
+      cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
 
       k.global_work_size(0, k.local_work_size());
       viennacl::ocl::enqueue(k(vcl_vec,
-                                                              size,
-                                                              viennacl::ocl::local_mem(sizeof(SCALARTYPE) * k.local_work_size()),
-                                                              viennacl::ocl::local_mem(sizeof(cl_uint) * k.local_work_size()), h));
+                               size,
+                               viennacl::ocl::local_mem(sizeof(SCALARTYPE) * k.local_work_size()),
+                               viennacl::ocl::local_mem(sizeof(cl_uint) * k.local_work_size()), h));
       
       //read value:
       cl_uint result;
@@ -647,7 +647,7 @@ namespace viennacl
       assert(vec1.size() == vec2.size());
       viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "plane_rotation");
 
-      viennacl::ocl::enqueue(k(vec1, vec2, alpha, beta, vec1.size()));
+      viennacl::ocl::enqueue(k(vec1, vec2, alpha, beta, static_cast<cl_uint>(vec1.size())));
     }
     
   } //namespace linalg

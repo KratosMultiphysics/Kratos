@@ -218,7 +218,7 @@ namespace viennacl
             }
             
             if (rows > 0 && cols > 0)
-              mat.resize(rows, cols);
+              mat.resize(rows, cols, false);
             
             is_header = false;
           }

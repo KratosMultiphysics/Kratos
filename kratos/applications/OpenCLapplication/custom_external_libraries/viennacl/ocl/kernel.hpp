@@ -93,13 +93,13 @@ namespace viennacl
       
       
       /** @brief Sets an unsigned integer argument at the provided position */
-      void arg(unsigned int pos, unsigned int val)
+      void arg(unsigned int pos, cl_uint val)
       {
         init();
         #if defined(VIENNACL_DEBUG_ALL) || defined(VIENNACL_DEBUG_KERNEL)
         std::cout << "ViennaCL: Setting unsigned long kernel argument at pos " << pos << " for kernel " << name_ << std::endl;
         #endif
-        cl_int err = clSetKernelArg(handle_, pos, sizeof(unsigned int), (void*)&val);
+        cl_int err = clSetKernelArg(handle_, pos, sizeof(cl_uint), (void*)&val);
         VIENNACL_ERR_CHECK(err);
       }
 

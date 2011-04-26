@@ -145,7 +145,7 @@ namespace viennacl
                                               "jacobi_precond");
 
           viennacl::ocl::enqueue( k(system_matrix.handle1(), system_matrix.handle2(), system_matrix.handle(), 
-                                    diag_A_inv, diag_A_inv.size()) );        
+                                    diag_A_inv, static_cast<cl_uint>(diag_A_inv.size())) );        
         }
         
         
@@ -158,7 +158,7 @@ namespace viennacl
           viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<ScalarType, ALIGNMENT>::program_name(),
                                                                 "diag_precond");
 
-          viennacl::ocl::enqueue( k(diag_A_inv, vec, vec.size()) );        
+          viennacl::ocl::enqueue( k(diag_A_inv, vec, static_cast<cl_uint>(vec.size())) );        
         }
         
       private:
