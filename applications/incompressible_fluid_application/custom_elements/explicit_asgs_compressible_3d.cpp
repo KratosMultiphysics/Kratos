@@ -231,7 +231,7 @@ namespace Kratos
 			K(row + jj, row + jj) += density*lump_mass_fac;
 
 		//add pressure mass
-			K(row + dof , row + dof ) += 1.5*lump_mass_fac;
+			K(row + dof , row + dof ) += lump_mass_fac;
 	    }
 	
 	
@@ -302,13 +302,13 @@ namespace Kratos
                 int column = jj * (dof + 1) + dof;
 
                 K(row, column) += -1 * volume * N(jj) * DN_DX(ii, 0);
-                K(column, row) += 1.5*VC2 * volume * density * N(jj) * DN_DX(ii, 0);
+                K(column, row) += VC2 * volume * density * N(jj) * DN_DX(ii, 0);
 
                 K(row + 1, column) += -1 * volume * N(jj) * DN_DX(ii, 1);
-                K(column, row + 1) += 1.5*VC2 * volume * density * N(jj) * DN_DX(ii, 1);
+                K(column, row + 1) += VC2 * volume * density * N(jj) * DN_DX(ii, 1);
 
                 K(row + 2, column) += -1 * volume * N(jj) * DN_DX(ii, 2);
-                K(column, row + 2) += 1.5*VC2 * volume * density * N(jj) * DN_DX(ii, 2);
+                K(column, row + 2) += VC2 * volume * density * N(jj) * DN_DX(ii, 2);
             }
         }
 
@@ -339,7 +339,7 @@ namespace Kratos
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += 1.5*volume *tauone * gard_opr(ii, jj);
+                K(row, column) += volume *tauone * gard_opr(ii, jj);
 
             }
         }
@@ -364,7 +364,7 @@ namespace Kratos
 
 
         array_1d<double, 4 > fbd_stblterm = ZeroVector(nodes_number);
-        fbd_stblterm = 1.5*tauone * prod(DN_DX, bdf);
+        fbd_stblterm = tauone * prod(DN_DX, bdf);
 
 
         for (int ii = 0; ii < nodes_number; ++ii) {
@@ -499,7 +499,6 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.25;
 
- vc2 = 1.0;	 
    // KRATOS_WATCH("THIS IS An AIR ELEMENT");
              // KRATOS_WATCH(vc2);
 
@@ -605,16 +604,21 @@ namespace Kratos
 
 
         //tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (length2* density) + 2.0 * advvel_norm / ele_length);
-        tauone = 1.0 / (dyn_st_beta / int_time + 4.0 * mu / (length2* density) + 2.0 * advvel_norm / ele_length);
+        //tauone = 1.0 / (dyn_st_beta / int_time + 4.0 * mu / (length2* density) + 2.0 * advvel_norm / ele_length);
+         tauone = time*VC2;
+         //tauone = 1000.0*time;
 
 // std::cout << Id() <<" advvel_norm: " << advvel_norm << " " << "ele_length: " << ele_length << std::endl;
 // std::cout << "mu density time " << mu << ""<< density << ""<< time << std::endl;
 
         //tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
-         //tautwo = int_time;
+         //tautwo = density*density*VC2*tauone;
+        tautwo = int_time;
+        //tautwo = ele_length*vc;
+        //tautwo = 100.0*time;
         
-            tauone = time * VC2;
-            tautwo = time;
+          //  tauone = time * VC2;
+           // tautwo = time;
 
         KRATOS_CATCH("")
 
@@ -717,7 +721,7 @@ namespace Kratos
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
-//             int loc_index = ii * dof ;
+            int loc_index = ii * dof ;
             const array_1d<double, 3 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
@@ -805,7 +809,6 @@ namespace Kratos
             double inv_max_h = DN_DX(ii,0)*DN_DX(ii,0) + DN_DX(ii,1)*DN_DX(ii,1) + DN_DX(ii,2)*DN_DX(ii,2);
             double VC = GetGeometry()[ii].FastGetSolutionStepValue(AIR_SOUND_VELOCITY ) ;
 	    inv_max_h = sqrt(inv_max_h);
- VC = 1.0;	    
 	    calc_t = 1.0/(inv_max_h * VC );
 	    
 	    if( calc_t < Output)
