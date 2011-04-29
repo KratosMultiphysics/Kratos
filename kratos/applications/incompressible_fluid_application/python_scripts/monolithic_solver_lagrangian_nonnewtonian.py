@@ -171,7 +171,7 @@ class MonolithicSolver:
 ##        print "145"
         
         (self.solver).Solve()
-##        self.RestoreOldPosition()
+        self.RestoreOldPosition()
 
 ##	print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
         (self.PfemUtils).MoveLonelyNodes(self.model_part)
@@ -257,7 +257,6 @@ class MonolithicSolver:
         (self.neigh_finder).Execute();
 
     def RestoreOldPosition(self):
-        raise "ERROR. The calculation of effective viscosity is not yet implemented nodally!!!!! "
     
         for node in self.model_part.Nodes:
             #displacement is the total displacement from the beginning of the simulation.
@@ -270,8 +269,9 @@ class MonolithicSolver:
             old_displZ = node.GetSolutionStepValue(DISPLACEMENT_Z,1)
 
             displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
+            delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ) 
             
-            if(node.GetSolutionStepValue(EFFECTIVE_VISCOSITY) >= 1e4 and displ < 0.01):
+            if(displ < 0.005):
                 node.SetSolutionStepValue(DISPLACEMENT_X,0,old_displX)
                 node.SetSolutionStepValue(DISPLACEMENT_Y,0,old_displY)
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
@@ -279,7 +279,7 @@ class MonolithicSolver:
 ##                node.Y = node.Y0
 ##                node.Z = node.Z0
 
-            (self.MeshMover).Execute(); #to update the positions with the new displacements
+            (self.MeshMover).Execute(); #to update the position with the new displacement
 
              
     ######################################################################
