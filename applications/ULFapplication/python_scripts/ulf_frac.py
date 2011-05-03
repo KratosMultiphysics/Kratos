@@ -21,6 +21,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+    model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(FORCE);
     model_part.AddNodalSolutionStepVariable(IS_FLUID);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
@@ -36,9 +37,9 @@ def AddVariables(model_part):
 def AddDofs(model_part):
     for node in model_part.Nodes:
         #adding dofs
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-        node.AddDof(DISPLACEMENT_Z);
+        node.AddDof(DISPLACEMENT_X, REACTION_X);
+        node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+        node.AddDof(DISPLACEMENT_Z, REACTION_Z);
         node.AddDof(PRESSURE); 
         #node.AddDof(IS_STRUCTURE);
 
@@ -148,7 +149,7 @@ class ULF_FSISolver:
     def Initialize(self):
 
         #creating the solution strategy
-        CalculateReactionFlag = False
+        CalculateReactionFlag = True
         ReformDofSetAtEachStep = True
         MoveMeshFlag = True
         
@@ -164,7 +165,8 @@ class ULF_FSISolver:
         (self.mark_fluid_process).Execute(); #we need this before saving the structrural elements
 
         #we specify domain size, to deal with problems involving membarnes in 3D in a specific way (see save_structure_model_part_process.h
-        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part, self.domain_size);
+        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part, 3);
+        print "STRUCTURE PART!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", self.structure_model_part
         #(self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part, self.domain_size);
 
         #creating initially empty container for lagrangian inlet-nodes
@@ -192,7 +194,9 @@ class ULF_FSISolver:
         return [inverted_elements,volume]
                          
     #######################################################################
-    def Solve(self):
+    def Solve(self, lagrangian_inlet_process):
+      
+	self.lagrangian_inlet_process=lagrangian_inlet_process
 
         print "solving the fluid problem"
         inverted_elements = (self.solver).Solve(self.domain_size,self.UlfUtils)
@@ -235,7 +239,9 @@ class ULF_FSISolver:
             print "advancing in time without doing anything..."
             (self.solver).PredictionStep(self.domain_size,self.UlfUtils)     
                 
-        
+       
+        self.lagrangian_inlet_process.Execute()       
+          
         (self.fluid_neigh_finder).Execute();       
         self.Remesh();
 
@@ -253,14 +259,14 @@ class ULF_FSISolver:
             ((self.fluid_model_part).Elements).clear();
             ((self.fluid_model_part).Conditions).clear();
             
-
+	self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 2.5000)
         #mark outer nodes for erasing
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         #adaptivity=True
         #time=self.combined_model_part.ProcessInfo.GetValue(TIME);
         #print "TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", time
         
-        h_factor=0.25
+        h_factor=0.2
         if (self.remeshing_flag==1.0):
             if (self.domain_size == 2):
                 (self.Mesher).ReGenerateMesh("UlfFrac2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)

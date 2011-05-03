@@ -42,7 +42,6 @@ class ULFFracStrategyPython:
 
         self.rebuild_level = 1 #rebuild at each solution step
         self.echo_level = 1
-        #self.builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
         if (domain_size==2):
             self.builder_and_solver = ResidualBasedIncompressibleBuilder2D(self.dummy_solver)
         if (domain_size==3):
@@ -81,8 +80,8 @@ class ULFFracStrategyPython:
         ReformDofSet=True
         #maybe should be just "fluid_model_part" below, and not the combined
         #self.PressureLinStrat=ResidualBasedLinearStrategy(self.model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
-        #self.PressureLinStrat=LapModifiedLinearStrategy2D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
-        self.PressureLinStrat=ResidualBasedLinearStrategy(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+        self.PressureLinStrat=LapModifiedLinearStrategy2D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+        #self.PressureLinStrat=ResidualBasedLinearStrategy(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
         self.PressureLinStrat.SetEchoLevel(1)
         #############################################
         (self.VariableUtils) = VariableUtils()
@@ -174,47 +173,24 @@ class ULFFracStrategyPython:
             
             #update iteration count
             it = it + 1
-        
-
-        #self.out_file.write(str(it)+" "+"\n")
-
-        #print self.fluid_model_part
-        
-        #print self.model_part
-        #for node in self.model_part.Nodes:
-        #    if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1):
-        #        node.SetSolutionStepValue(PRESSURE,0,0.0)
-        
+            
         (self.builder_and_solver).SavePressureIteration(self.model_part);
-        #Calculating the nodal pressure forces
         for node in self.model_part.Nodes:
-            if (node.GetSolutionStepValue(IS_FLUID)==1):
-                if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1):
-                    #node.SetSolutionStepValue(PRESSURE,0,0.0)
-                    node.Fix(PRESSURE)
-            #if (node.GetSolutionStepValue(IS_INTERFACE)==1):
-                #node.Fix(PRESSURE)
-                    
-                       
-        #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
+            if (node.GetSolutionStepValue(IS_STRUCTURE)==0):
+                if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1 and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1):
+		  # and node.X>0.5):
+                  #node.SetSolutionStepValue(PRESSURE,0,0.0)
+                  #print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                  node.Fix(PRESSURE)
+            if (node.GetSolutionStepValue(IS_INTERFACE)==1):
+                node.Fix(PRESSURE)
+
+        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
         self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);          
+
+        self.PressureLinStrat.Solve()        
+        self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);          
         
-        (self.PressureLinStrat).Solve()
-
-
-        ##################################
-        #lf.space_utils.SetToZeroMatrix(self.WorkMatrix)
-        #and now the divergence matrix for fluid-only
-##        self.builder_and_solver.SetUpDofSet(self.pres_time_scheme,self.model_part);
-##        self.builder_and_solver.SetUpSystem(self.model_part)
-##        self.space_utils.SetToZeroMatrix(self.D_fluid)
-##        self.builder_and_solver.ConstructMatrixStructure_Fluid_DivergenceMatrixD(self.D_fluid,  self.model_part)
-##        #print "Building Auxilliary : DM-1G for FLUID!"
-##        density_str=1000.0;
-##        (self.builder_and_solver).BuildAuxiliariesFSI(self.D_fluid, density_str, self.model_part)
-        #print WorkMatrix
-                
-
         converged=False
         inverted_elements=False
         while(converged == False and inverted_elements == False):
@@ -225,27 +201,10 @@ class ULFFracStrategyPython:
                 inverted_elements = True
                 print "INVERTED ELEMENT FOUND"
                 
-##            
-        
-        #normDx = self.ExecuteIteration(3, self.echo_level,self.MoveMeshFlag,calculate_norm, UlfUtils)
-        #normDx = self.ExecuteIteration(3, self.echo_level,self.MoveMeshFlag,calculate_norm, UlfUtils)
 
-##        
-####        print "Correcting velocity"
-####        #store the nodal mass
-##        (self.CalculateMass).Execute()
-##
-####        #solve for end-of-step displacement
-##        (self.builder_and_solver).FractionalStepProjection(self.model_part, -0.3)
-##        #and now update the velocity and acceleration
-##        (self.builder_and_solver).UpdateAfterProjection(self.model_part, -0.3)
-##
-##        #self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-##        #move mesh
-##        self.scheme.MoveMesh(self.model_part.Nodes);
-##        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);
-####
-##        UlfUtils.CalculateNodalArea(self.model_part,self.domain_size);
+        
+
+       # UlfUtils.CalculateNodalArea(self.model_part,self.domain_size);
         
         ###############################################################################################
         Atott=UlfUtils.CalculateVolume(self.model_part, self.domain_size)
@@ -330,7 +289,7 @@ class ULFFracStrategyPython:
         self.builder_and_solver.ModifyForDirichlet(self.A, self.b)
         
         #now we will use the CG algorith written here to solve the modified system: A+GMinvD=b
-        self.prec_CG_Solve(20000, 1e-8, global_iteration_number)
+        self.prec_CG_Solve(20000, 1e-9, global_iteration_number)
         
         #full output if needed
         if(echo_level >= 3):
@@ -370,7 +329,7 @@ class ULFFracStrategyPython:
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
 	if(CalculateReactionsFlag == True):
-            self.builder_and_solver.CalculateReactions(self.cheme,self.model_part,self.A,self.Dx,self.b)
+            self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
 
 	#Finalisation of the solution step, 
         self.scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
