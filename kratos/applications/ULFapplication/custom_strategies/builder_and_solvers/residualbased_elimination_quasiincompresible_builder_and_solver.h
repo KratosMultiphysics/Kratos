@@ -167,7 +167,7 @@ namespace Kratos
 			TSystemVectorType& b)
 		{
 			KRATOS_TRY
-			KRATOS_WATCH("EMPTY FUNCTION FOR THIS SOLVER")
+			KRATOS_WATCH("Initialize Solution Step::: EMPTY FUNCTION FOR THIS SOLVER")
 			KRATOS_CATCH("")
 		}
 
@@ -178,7 +178,7 @@ namespace Kratos
 			TSystemVectorType& b)
 		{
 			KRATOS_TRY
-			KRATOS_WATCH("EMPTY FUNCTION FOR THIS SOLVER")
+			KRATOS_WATCH("Finalize Solution Step:::EMPTY FUNCTION FOR THIS SOLVER")
 			KRATOS_CATCH("")
 		}
 
@@ -504,36 +504,104 @@ namespace Kratos
 		{
 			unsigned int local_size = RHS_Contribution.size();
 
-			if (BaseType::mCalculateReactionsFlag==false) //if we don't need to calculate reactions
+			for (unsigned int i_local=0; i_local<local_size; i_local++)
 			{
-				for (unsigned int i_local=0; i_local<local_size; i_local++)
-				{
-					unsigned int i_global=EquationId[i_local];
-					if ( i_global < BaseType::mEquationSystemSize ) //on "free" DOFs
-					{	// ASSEMBLING THE SYSTEM VECTOR
-						b[i_global] += RHS_Contribution[i_local];
-					}
+				unsigned int i_global=EquationId[i_local];
+				if ( i_global < BaseType::mEquationSystemSize ) //on all DOFS
+				{	// ASSEMBLING THE SYSTEM VECTOR
+					b[i_global] += RHS_Contribution[i_local];
 				}
 			}
-			else //when the calculation of reactions is needed
+			
+		}
+		//**************************************************************************
+		//**************************************************************************
+		void CalculateReactions(
+			typename TSchemeType::Pointer pScheme,
+			ModelPart& r_model_part,
+			TSystemMatrixType& A,
+			TSystemVectorType& Dx,
+			TSystemVectorType& b)
+		{
+			//refresh RHS to have the correct reactions
+			BuildRHS(pScheme,r_model_part,b);
+
+			//KRATOS_WATCH(b)
+
+			//array_1d<double, 3> ReactionsVec;
+			typename DofsArrayType::ptr_iterator it2;
+			for (it2=BaseType::mDofSet.ptr_begin();it2 != BaseType::mDofSet.ptr_end(); ++it2)
 			{
-			  TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-				for (unsigned int i_local=0; i_local<local_size; i_local++)
+				if ( (*it2)->IsFixed()  )
 				{
-					unsigned int i_global=EquationId[i_local];
-					if ( i_global < BaseType::mEquationSystemSize ) //on "free" DOFs
-					{	// ASSEMBLING THE SYSTEM VECTOR
-						b[i_global] += RHS_Contribution[i_local];
-					}
-					else //on "fixed" DOFs
-					{	// Assembling the Vector of REACTIONS
-						ReactionsVector[i_global-BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
-					}
+					unsigned int eq_id=(*it2)->EquationId();
+						
+					//KRATOS_WATCH(eq_id)
+					//KRATOS_WATCH(b[eq_id])
+					(*it2)->GetSolutionStepReactionValue() = b[eq_id];
+					//KRATOS_WATCH((*it2)->GetSolutionStepReactionValue())
 				}
+				//
 			}
+			
 		}
 
+		//**************************************************************************
+		//**************************************************************************
+		void BuildRHS(
+			typename TSchemeType::Pointer pScheme,
+			ModelPart& r_model_part,
+			TSystemVectorType& b)
+		{
+			KRATOS_TRY		
 
+				//Getting the Elements
+				ElementsArrayType& pElements = r_model_part.Elements();
+
+			//getting the array of the conditions
+			ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
+
+			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+			//resetting to zero the vector of reactions
+			TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
+
+			//contributions to the system
+			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
+			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+			//vector containing the localization in the system of the different
+			//terms
+			Element::EquationIdVectorType EquationId;
+
+			// assemble all elements
+			for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
+			{
+				//calculate elemental Right Hand Side Contribution
+				pScheme->Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+
+				//assemble the elemental contribution
+				AssembleRHS(b,RHS_Contribution,EquationId);
+			}
+
+			LHS_Contribution.resize(0,0,false);
+			RHS_Contribution.resize(0,false);
+
+			// assemble all conditions
+			for (typename ConditionsArrayType::ptr_iterator it=ConditionsArray.ptr_begin(); it!=ConditionsArray.ptr_end(); ++it)
+			{
+				//calculate elemental contribution
+				pScheme->Condition_Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+
+				//assemble the elemental contribution
+				AssembleRHS(b,RHS_Contribution,EquationId);
+			}
+
+			KRATOS_CATCH("")
+
+		}				
+		//**************************************************************************
+		//**************************************************************************
 		void ConstructMatrixStructure(
 			TSystemMatrixType& A, ModelPart& r_model_part
 			)
@@ -1120,8 +1188,8 @@ namespace Kratos
 				
 				if (preconditioner[i]<0.0)
 				{
-				preconditioner[i]=1.0;
-					//KRATOS_ERROR(std::logic_error,"NEGATIVE PRECONDITIONER","")
+				//preconditioner[i]=1.0;
+					KRATOS_ERROR(std::logic_error,"NEGATIVE PRECONDITIONER","")
 				}
 				
 				
