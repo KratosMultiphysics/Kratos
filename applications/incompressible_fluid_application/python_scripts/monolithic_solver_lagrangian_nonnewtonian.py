@@ -72,6 +72,8 @@ class MonolithicSolver:
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
 #        self.linear_solver = SuperLUSolver()
+#        self.linear_solver = SuperLUIterativeSolver()
+
         self.linear_solver = MKLPardisoSolver()
 
 ##        pPrecond = DiagonalPreconditioner()
@@ -271,7 +273,7 @@ class MonolithicSolver:
             displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
             delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ) 
             
-            if(displ < 0.005):
+            if(displ < 0.0001):
                 node.SetSolutionStepValue(DISPLACEMENT_X,0,old_displX)
                 node.SetSolutionStepValue(DISPLACEMENT_Y,0,old_displY)
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
