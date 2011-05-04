@@ -190,7 +190,7 @@ namespace Kratos
             std::vector< std::vector<double> > GlobalPatchNum(NumThreads); // Numerator on each patch
             std::vector< std::vector<double> > GlobalPatchDen(NumThreads); // Denominator on each patch
 
-            const double EnergyTol = 0.05;
+            const double EnergyTol = 0.005;
             double TotalDissipation = 0;
 
             #pragma omp parallel reduction(+:TotalDissipation)
@@ -563,7 +563,7 @@ namespace Kratos
 
             rModel *= Volume; // To this point, rModel contains the integral over the element of Grad(U_coarse):Grad(U)
 
-            // Norm[ Grad(u) ]
+            // Norm[ Symmetric Grad(u) ] = ( 2 * Sij * Sij )^(1/2), we compute the Sij * Sij part in the following loop:
             double SqNorm = 0.0;
             for (unsigned int i = 0; i < Dim; ++i)
             {
@@ -573,7 +573,7 @@ namespace Kratos
             }
 
             const double cubeH = 6*Volume;
-            rModel *= Density * pow(cubeH, 2.0/3.0) * sqrt(SqNorm);
+            rModel *= Density * pow(cubeH, 2.0/3.0) * sqrt(2.0 * SqNorm);
         }
 
         /// Equivalent to VMS2DSmagorinsky::GetFirstDerivativesVector(), using the velocity evaluated on the coarse mesh

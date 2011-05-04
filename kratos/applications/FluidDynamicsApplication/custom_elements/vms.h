@@ -88,7 +88,7 @@ namespace Kratos
     ///@{
 
     ///@}
-    ///@name Kratos Elements
+    ///@name Kratos Classes
     ///@{
 
     /// A stabilized element for the incompressible Navier-Stokes equations.
@@ -1174,7 +1174,7 @@ namespace Kratos
          */
         virtual void GetEffectiveViscosity(const double Density,
                                            const double MolecularViscosity,
-                                           array_1d<double, TNumNodes>& rShapeFunc,
+                                           const array_1d<double, TNumNodes>& rShapeFunc,
                                            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            double& TotalViscosity,
                                            const ProcessInfo& rCurrentProcessInfo)
@@ -1355,7 +1355,7 @@ namespace Kratos
                 }
             }
 
-            // Norm[ Grad(u) ]
+            // Norm[ Symmetric Grad(u) ] = ( 2 * Sij * Sij )^(1/2)
             Index = 0;
             double NormS(0.0);
             for (unsigned int i = 0; i < TDim; ++i)
@@ -1369,7 +1369,7 @@ namespace Kratos
                 ++Index; // Diagonal terms
             }
 
-            NormS = sqrt(NormS);
+            NormS = sqrt( 2.0 * NormS );
             return NormS;
         }
 

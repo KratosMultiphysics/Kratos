@@ -76,7 +76,7 @@ namespace Kratos
     ///@{
 
     ///@}
-    ///@name Kratos Elements
+    ///@name Kratos Classes
     ///@{
 
     /// An element for the simulation of Bingham plastics.
@@ -294,12 +294,11 @@ namespace Kratos
                 else if (rVariable == TAU)
                 {
                     double NormS = this->SymmetricGradientNorm(DN_DX);
-                    rValues[0] = Density*Viscosity*NormS*1.414213562;
+                    rValues[0] = Density*Viscosity*NormS;
                 }
                 else if (rVariable == EQ_STRAIN_RATE)
                 {
-                    double NormS = this->SymmetricGradientNorm(DN_DX);
-                    rValues[0] = NormS*1.414213562;
+                    rValues[0] = this->SymmetricGradientNorm(DN_DX);
                 }
 
             }
@@ -404,7 +403,7 @@ namespace Kratos
          */
         virtual void GetEffectiveViscosity(const double Density,
                                            const double MolecularViscosity,
-                                           array_1d<double, TNumNodes>& rShapeFunc,
+                                           const array_1d<double, TNumNodes>& rShapeFunc,
                                            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                                            double& TotalViscosity,
                                            const ProcessInfo& rCurrentProcessInfo)
@@ -418,11 +417,11 @@ namespace Kratos
 
                 //non newtonian case
                 const double mcoef = rCurrentProcessInfo.GetValue(M);
-                double aux_1 = 1.0 - exp(-(mcoef * 1.414213562 * NormS));
-                if(1.414213562 * NormS < 1.0/(1000.0*mcoef))
+                double aux_1 = 1.0 - exp(-(mcoef * NormS));
+                if(NormS < 1.0/(1000.0*mcoef))
                     TotalViscosity += yield*mcoef;
                 else
-                    TotalViscosity += (yield / (1.414213562 * NormS)) * aux_1;
+                    TotalViscosity += (yield / NormS) * aux_1;
 
                 TotalViscosity/=Density;
             }
