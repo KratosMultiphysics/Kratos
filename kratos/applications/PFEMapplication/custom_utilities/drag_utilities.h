@@ -230,7 +230,6 @@ namespace Kratos
 			    {
 				noalias(bodyforce_drag) -= (1-porosity) * press_grad / solid_density;
 			    	array_1d<double,3> temp  = (1-porosity) * press_grad / solid_density;
-				KRATOS_WATCH(temp);
 // 			    	KRATOS_WATCH(porosity);
 // 			    	KRATOS_WATCH(press_grad);
 // 			    	KRATOS_WATCH(solid_density);
