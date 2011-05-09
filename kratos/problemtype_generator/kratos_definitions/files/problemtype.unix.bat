@@ -13,4 +13,8 @@ rm $2/$1-2.dat
 
 chmod 700 $2/${1}_aux.unix.bat
 
+# The following line is required when python and kratos
+# are linked to different versions of libstdc++.so
+export LD_PRELOAD=libstdc++.so.6
+
 ./${1}_aux.unix.bat $1 $2 $3
