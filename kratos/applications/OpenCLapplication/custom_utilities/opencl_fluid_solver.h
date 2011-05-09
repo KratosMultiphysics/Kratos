@@ -70,9 +70,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/cg.hpp"
 #include "viennacl/linalg/bicgstab.hpp"
+#include "viennacl/linalg/bicgstab_tuned.hpp"
 #include "viennacl/linalg/row_scaling.hpp"
 #include "viennacl/linalg/jacobi_precond.hpp"
 #include "viennacl/io/kernel_parameters.hpp"
+
+#include "linear_solvers/cg_solver.h"
+#include "spaces/ublas_space.h"
 
 
 namespace Kratos
@@ -156,7 +160,8 @@ namespace Kratos
 				mstabdt_convection_factor(stabdt_convection_factor),
 				medge_detection_angle(edge_detection_angle),
 				mtau2_factor(tau2_factor),
-				massume_constant_dp(assume_constant_dp)
+				massume_constant_dp(assume_constant_dp),
+                                mcustom_solver(1e-3, 1000)
 			{
 				mViscosity = viscosity;
 
@@ -240,6 +245,9 @@ namespace Kratos
 				// Get no. of nodes and edges
 				n_nodes = mr_model_part.Nodes().size();
 				n_edges = mr_matrix_container.GetNumberEdges();
+
+                                dp.resize(n_nodes);
+                                rhs.resize(n_nodes);
 
 				// TODO: Check if these are all needed
 
@@ -828,18 +836,18 @@ namespace Kratos
 				mrDeviceGroup.ExecuteKernel(mkSolveStep2_1, n_nodes);
 
 
-				if (muse_mass_correction == true)
-				{
-					// Calling SubVectorInplace OpenCL kernel
-
-					// Setting arguments
-					mrDeviceGroup.SetKernelArg(mkSubVectorInplace, 0, rhs_GPU.handle());
-					mrDeviceGroup.SetBufferAsKernelArg(mkSubVectorInplace, 1, mbdiv_error);
-					mrDeviceGroup.SetKernelArg(mkSubVectorInplace, 2, n_nodes);
-
-					// Execute OpenCL kernel
-					mrDeviceGroup.ExecuteKernel(mkSubVectorInplace, n_nodes);
-				}
+//				if (muse_mass_correction == true)
+//				{
+//					// Calling SubVectorInplace OpenCL kernel
+//
+//					// Setting arguments
+//					mrDeviceGroup.SetKernelArg(mkSubVectorInplace, 0, rhs_GPU.handle());
+//					mrDeviceGroup.SetBufferAsKernelArg(mkSubVectorInplace, 1, mbdiv_error);
+//					mrDeviceGroup.SetKernelArg(mkSubVectorInplace, 2, n_nodes);
+//
+//					// Execute OpenCL kernel
+//					mrDeviceGroup.ExecuteKernel(mkSubVectorInplace, n_nodes);
+//				}
 
 				// Calling SubVectorInplace OpenCL kernel
 
@@ -894,11 +902,33 @@ namespace Kratos
 //              viennacl::linalg::cg_tag custom_solver(1e-3, 1000);
 //              dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, custom_cg,precond_GPU);
 
-				viennacl::linalg::bicgstab_tag custom_solver(1e-3, 1000);
-				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, custom_solver);
+//				viennacl::linalg::bicgstab_tag custom_solver(1e-3, 1000);
+//				dp_GPU = viennacl::linalg::solve_tuned(mL_GPU, rhs_GPU, mcustom_solver);
 
-				std::cout << "No. of iters: " << custom_solver.iters() << std::endl;
-				std::cout << "Est. error: " << custom_solver.error() << std::endl;
+
+
+////////				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, mcustom_solver);
+////////
+////////				std::cout << "No. of iters: " << mcustom_solver.iters() << std::endl;
+////////				std::cout << "Est. error: " << mcustom_solver.error() << std::endl;
+
+
+
+                                typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+                                typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+
+                                copy(rhs_GPU.begin(), rhs_GPU.end(), rhs.begin());
+                                copy(mL_GPU, mL);
+                                SpaceType::SetToZero(dp);
+
+
+                                LinearSolver<SpaceType,  LocalSpaceType>::Pointer plinear_solver = LinearSolver<SpaceType,  LocalSpaceType>::Pointer( new CGSolver<SpaceType,  LocalSpaceType>(1e-3, 1000) );
+                                plinear_solver->Solve(mL,dp,rhs);
+                                KRATOS_WATCH(*plinear_solver);
+
+                                copy(dp.begin(), dp.end(), dp_GPU.begin());
+
+
 
 //				viennacl::linalg::jacobi_precond <DeviceMatrixType> precond_GPU(mL_GPU, viennacl::linalg::jacobi_tag());
 //        			dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::cg_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
@@ -1009,23 +1039,23 @@ namespace Kratos
 
 
 				// Calculate the error on the divergence
-				if (muse_mass_correction == true)
-				{
-					// Calling SolveStep3_2 OpenCL kernel
-
-					// Setting arguments
-					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 0, mbvel_n1);
-					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 1, mbdiv_error);
-					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 2, mr_matrix_container.GetRowStartIndexBuffer());
-					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 3, mr_matrix_container.GetColumnIndexBuffer());
-					mrDeviceGroup.SetImageAsKernelArg(mkSolveStep3_2, 4, mr_matrix_container.GetEdgeValuesBuffer());
-					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 5, mRho);
-					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 6, n_nodes);
-					mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_2, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_2][0] + 1) * sizeof(cl_uint));
-
-					// Execute OpenCL kernel
-					mrDeviceGroup.ExecuteKernel(mkSolveStep3_2, n_nodes);
-				}
+//				if (muse_mass_correction == true)
+//				{
+//					// Calling SolveStep3_2 OpenCL kernel
+//
+//					// Setting arguments
+//					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 0, mbvel_n1);
+//					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 1, mbdiv_error);
+//					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 2, mr_matrix_container.GetRowStartIndexBuffer());
+//					mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep3_2, 3, mr_matrix_container.GetColumnIndexBuffer());
+//					mrDeviceGroup.SetImageAsKernelArg(mkSolveStep3_2, 4, mr_matrix_container.GetEdgeValuesBuffer());
+//					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 5, mRho);
+//					mrDeviceGroup.SetKernelArg(mkSolveStep3_2, 6, n_nodes);
+//					mrDeviceGroup.SetLocalMemAsKernelArg(mkSolveStep3_2, 7, (mrDeviceGroup.WorkGroupSizes[mkSolveStep3_2][0] + 1) * sizeof(cl_uint));
+//
+//					// Execute OpenCL kernel
+//					mrDeviceGroup.ExecuteKernel(mkSolveStep3_2, n_nodes);
+//				}
 
 				KRATOS_CATCH("")
 			}
@@ -1198,6 +1228,8 @@ namespace Kratos
                         cl_uint mkComputeScalingCoefficients,mkApplyScaling,mkApplyInverseScaling;
                         cl_double mbscaling_factors;
 
+                        Vector rhs,dp;
+
 			// Matrix container
 			OpenCLMatrixContainer &mr_matrix_container;
 
@@ -1225,6 +1257,9 @@ namespace Kratos
 			double medge_detection_angle;
 			double mtau2_factor;
 			bool massume_constant_dp;
+
+//                       viennacl::linalg::bicgstab_tag mcustom_solver;
+                        viennacl::linalg::cg_tag mcustom_solver;
 
 			// Nodal values
 
@@ -1475,15 +1510,18 @@ namespace Kratos
 
 						// Check for neighbour zero
 						if (neighb[0].Id() != current_id) // Check if the neighbour exists
-						CornerDectectionHelper(face_geometry, face_normal, An, neighb, 1, 2, 0, temp_edge_nodes, temp_cornern_list);
+                                                    if (neighb[0].GetValue(IS_STRUCTURE) == 1.00)
+                                                        CornerDectectionHelper(face_geometry, face_normal, An, neighb, 1, 2, 0, temp_edge_nodes, temp_cornern_list);
 
 						// Check for neighbour one
 						if (neighb[1].Id() != current_id) // Check if the neighbour exists
-						CornerDectectionHelper(face_geometry, face_normal, An, neighb, 2, 0, 1, temp_edge_nodes, temp_cornern_list);
+                                                    if (neighb[1].GetValue(IS_STRUCTURE) == 1.00)
+                                                        CornerDectectionHelper(face_geometry, face_normal, An, neighb, 2, 0, 1, temp_edge_nodes, temp_cornern_list);
 
 						// Check for neighbour two
 						if (neighb[2].Id() != current_id) // Check if the neighbour exists
-						CornerDectectionHelper(face_geometry, face_normal, An, neighb, 0, 1, 2, temp_edge_nodes, temp_cornern_list);
+                                                    if (neighb[2].GetValue(IS_STRUCTURE) == 1.00)
+                                                        CornerDectectionHelper(face_geometry, face_normal, An, neighb, 0, 1, 2, temp_edge_nodes, temp_cornern_list);
 					}
 				}
 
@@ -1536,6 +1574,8 @@ namespace Kratos
 				KRATOS_CATCH("")
 			}
 	};
+
+        
 
 }  // Namespace Kratos
 
