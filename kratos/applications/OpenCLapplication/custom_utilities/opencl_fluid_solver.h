@@ -179,7 +179,7 @@ namespace Kratos
 				// TODO: Remove if not needed (also remove in .cl file)
 				mpOpenCLFluidSolver = mrDeviceGroup.BuildProgramFromFile(
 					"opencl_fluid_solver.cl",
-					"-cl-fast-relaxed-math"
+					"-cl-fast-relaxed-math -O3"
 
 #ifdef SPLIT_OSS
 
@@ -907,26 +907,26 @@ namespace Kratos
 
 
 
-////////				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, mcustom_solver);
-////////
-////////				std::cout << "No. of iters: " << mcustom_solver.iters() << std::endl;
-////////				std::cout << "Est. error: " << mcustom_solver.error() << std::endl;
+				dp_GPU = viennacl::linalg::solve_tuned(mL_GPU, rhs_GPU, mcustom_solver);
+
+				std::cout << "No. of iters: " << mcustom_solver.iters() << std::endl;
+				std::cout << "Est. error: " << mcustom_solver.error() << std::endl;
 
 
 
-                                typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-                                typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-                                copy(rhs_GPU.begin(), rhs_GPU.end(), rhs.begin());
-                                copy(mL_GPU, mL);
-                                SpaceType::SetToZero(dp);
-
-
-                                LinearSolver<SpaceType,  LocalSpaceType>::Pointer plinear_solver = LinearSolver<SpaceType,  LocalSpaceType>::Pointer( new CGSolver<SpaceType,  LocalSpaceType>(1e-3, 1000) );
-                                plinear_solver->Solve(mL,dp,rhs);
-                                KRATOS_WATCH(*plinear_solver);
-
-                                copy(dp.begin(), dp.end(), dp_GPU.begin());
+//                                typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+//                                typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+//
+//                                copy(rhs_GPU.begin(), rhs_GPU.end(), rhs.begin());
+//                                copy(mL_GPU, mL);
+//                                SpaceType::SetToZero(dp);
+//
+//
+//                                LinearSolver<SpaceType,  LocalSpaceType>::Pointer plinear_solver = LinearSolver<SpaceType,  LocalSpaceType>::Pointer( new CGSolver<SpaceType,  LocalSpaceType>(1e-3, 1000) );
+//                                plinear_solver->Solve(mL,dp,rhs);
+//                                KRATOS_WATCH(*plinear_solver);
+//
+//                                copy(dp.begin(), dp.end(), dp_GPU.begin());
 
 
 
@@ -1258,8 +1258,8 @@ namespace Kratos
 			double mtau2_factor;
 			bool massume_constant_dp;
 
-//                       viennacl::linalg::bicgstab_tag mcustom_solver;
-                        viennacl::linalg::cg_tag mcustom_solver;
+                        viennacl::linalg::bicgstab_tag mcustom_solver;
+//                        viennacl::linalg::cg_tag mcustom_solver;
 
 			// Nodal values
 
