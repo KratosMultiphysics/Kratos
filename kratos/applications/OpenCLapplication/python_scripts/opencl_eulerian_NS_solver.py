@@ -57,6 +57,10 @@ class OpenClSolver:
 
 
     def Initialize(self):
+
+        print NORMAL
+        print IS_STRUCTURE
+                
         if(self.domain_size == 2):
             raise "error! only 3D implemented"
 
@@ -74,15 +78,11 @@ class OpenClSolver:
 
         ##constructing the solver
         self.fluid_solver = OpenCLFluidSolver3D(self.matrix_container,self.model_part,self.viscosity,self.density,self.body_force,self.use_mass_correction,self.edge_detection_angle,self.stabdt_pressure_factor,self.stabdt_convection_factor,self.edge_detection_angle,self.assume_constant_pressure)
-        print "ln84"
 
         self.fluid_solver.Initialize()
-        print "ln91"
-
-
 
         print "**********************************************"
-        print "finished EdgeBasedLevelSetSolver initialize"
+        print "finished OpenCLNSFluidSolver Initialize"
 
         
 
@@ -90,8 +90,11 @@ class OpenClSolver:
     ################################################################
     def Solve(self):
 ##        (self.fluid_solver).UpdateFixedVelocityValues()
+
         (self.fluid_solver).SolveStep1();
+
         (self.fluid_solver).SolveStep2();
+
         (self.fluid_solver).SolveStep3();
    
     ################################################################
