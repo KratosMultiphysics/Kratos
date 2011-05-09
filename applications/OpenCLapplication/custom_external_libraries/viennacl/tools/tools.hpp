@@ -298,6 +298,8 @@ namespace viennacl
       
       std::string result = ss.str();
       result.append(strReplace(source, "float", "double"));
+//      result.append(strReplace(strReplace(strReplace(source, "1.0f", "1.0"), "0.0f", "0.0"), "float", "double"));
+
       return result;
     }
     
