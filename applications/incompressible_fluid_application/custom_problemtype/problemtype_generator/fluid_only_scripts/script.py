@@ -64,7 +64,7 @@ input_file_name = fluid_only_var.problem_name
 
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
-multifile = MultiFileFlag.MultipleFiles
+multifile = MultiFileFlag.SingleFile
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
@@ -154,6 +154,11 @@ gid_io.FinalizeMesh()
 
 gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
 
+# Write .post.list file (GiD postprocess list)
+f = open(ProjectParameters.problem_name+'.post.lst','w')
+f.write('Single\n')
+f.write(ProjectParameters.problem_name+'.post.bin\n')
+f.close()
 
 time = 0.0
 step = 0
