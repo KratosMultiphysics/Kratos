@@ -1080,7 +1080,13 @@ namespace Kratos
         //verify that the constitutive law exists
         if (this->GetProperties().Has(CONSTITUTIVE_LAW)==false)
         {
-            KRATOS_ERROR(std::logic_error,"constitutive law not provided for element ",this->Id());
+            KRATOS_ERROR(std::logic_error,"constitutive law not provided for property ",this->GetProperties().Id());
+        }
+
+        //Verify that the body force is defined
+        if (this->GetProperties().Has(BODY_FORCE)==false)
+        {
+            KRATOS_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
         }
 
         //verify that the constitutive law has the correct dimension
