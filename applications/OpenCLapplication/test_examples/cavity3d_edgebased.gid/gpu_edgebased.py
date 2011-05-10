@@ -82,6 +82,9 @@ for i in range(0,refinement_steps):
     Refine.LocalRefineMesh(refine_on_reference,interpolate_internal_variables)    
     (neighbour_search).Execute()
 
+##aux_renumberer = RenumberByNeighbourCountUtil()
+##aux_renumberer.Renumber(fluid_model_part.Nodes)
+
 opencl_eulerian_NS_solver.AddDofs(fluid_model_part)
 
 t1 = my_timer.time()
