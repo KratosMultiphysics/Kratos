@@ -99,6 +99,7 @@ namespace Python
 						  .def("ComputeTimeStep", &OpenCLFluidSolver3D::ComputeTimeStep)
 						  .def("CalculateNormals", &OpenCLFluidSolver3D::CalculateNormals)
 						  .def("UpdateFixedVelocityValues", &OpenCLFluidSolver3D::UpdateFixedVelocityValues)
+                                                  .def("ActivateWallResistance", &OpenCLFluidSolver3D::ActivateWallResistance)
                         ;
 
           enum_<cl_device_type>("cl_device_type")
