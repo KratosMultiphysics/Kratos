@@ -1082,12 +1082,12 @@ namespace Kratos
         {
             KRATOS_ERROR(std::logic_error,"constitutive law not provided for element ",this->Id());
         }
-        if (this->GetProperties().Has(THICKNESS)==false)
-            KRATOS_ERROR(std::logic_error,"THICKNESS law not provided for element ",this->Id());
 
         //verify that the constitutive law has the correct dimension
         if(dimension==2)
         {
+            if (this->GetProperties().Has(THICKNESS)==false)
+                KRATOS_ERROR(std::logic_error,"THICKNESS not provided for element ",this->Id());
             if(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() != 3)
                 KRATOS_ERROR(std::logic_error,"wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ",this->Id());
         }
