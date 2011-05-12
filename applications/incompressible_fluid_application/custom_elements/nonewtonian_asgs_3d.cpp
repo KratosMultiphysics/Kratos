@@ -642,64 +642,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             }
         }
 
-        /*
-        //tau1*ro/dt*U(n+1,i+1).(1.0*a.grad V)
-        boost::numeric::ublas::bounded_matrix<double,6,6> temp_convterm = ZeroMatrix(matsize,matsize);
-        temp_convterm = prod(trans(conv_opr),trans(shape_func));
 
-        double fac = tauone/time*density;
-	
-        for ( int ii = 0; ii < nodes_number; ii++)
-            {
-                int row = ii*(dof+1);
-                int loc_row = ii*dof;
-                for( int jj=0; jj < nodes_number; jj++)
-                   {
-                        int column = jj*(dof+1);
-                        int loc_column = jj*dof;
-
-                        K(row,column) += area*fac*temp_convterm(loc_row,loc_column);
-                        K(row + 1,column + 1) += area*fac*temp_convterm(loc_row + 1,loc_column + 1);
-                   }
-            }
-
-	
-        //build (1.0*a.grad V) (Fbody + ro/dt * U(n)) stabilization term & assemble
-        array_1d<double,2> bdf = ZeroVector(2);
-        const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
-
-        const array_1d<double,3>& acce0 = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
-        const array_1d<double,3>& acce1 = GetGeometry()[1].FastGetSolutionStepValue(ACCELERATION);
-        const array_1d<double,3>& acce2 = GetGeometry()[2].FastGetSolutionStepValue(ACCELERATION);
-
-<<<<<<< .mine
-	for(int ii = 0; ii< nodes_number; ++ii)
-	  {
-		int index = ii*(dof + 1);DN_DX
-		int loc_index = ii*dof;
-		F[index] += 1.0*area*fbd_stblterm[loc_index];
-		F[index + 1] += 1.0*area*fbd_stblterm[loc_index + 1];
-	  }
-=======
-        bdf[0] = N[0]*(density*bdf0[0] + density/time * acce0[0] ) +  N[1]*(density*bdf1[0] + density/time * acce1[0]) + N[2]*(density*bdf2[0] + density/time * acce2[0]);
-        bdf[1] =  N[0]*(density*bdf0[1] + density/time * acce0[1] ) +  N[1]*(density*bdf1[1] + density/time * acce1[1]) + N[2]*(density*bdf2[1] + density/time * acce2[1]);
->>>>>>> .r469
-	
-
-        array_1d<double,6> fbd_stblterm = ZeroVector(matsize);
-        fbd_stblterm = tauone *1.0* prod(trans(conv_opr),bdf);
-
-        for(int ii = 0; ii< nodes_number; ++ii)
-          {
-                int index = ii*(dof + 1);
-                int loc_index = ii*dof;
-                F[index] += 1.0*area*fbd_stblterm[loc_index];
-                F[index + 1] += 1.0*area*fbd_stblterm[loc_index + 1];
-          }
-	
-         */
         //build (1.0*a.grad V) (Fbody) stabilization term & assemble
         array_1d<double, 3 > bdf = ZeroVector(3);
         const array_1d<double, 3 > bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
@@ -714,14 +657,14 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
         array_1d<double, 12 > fbd_stblterm = ZeroVector(matsize);
-        fbd_stblterm = tauone * 1.0 * prod(trans(conv_opr), bdf);
+        fbd_stblterm = tauone * prod(trans(conv_opr), bdf);
 
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1);
             int loc_index = ii*dof;
-            F[index] += 1.0 * volume * fbd_stblterm[loc_index];
-            F[index + 1] += 1.0 * volume * fbd_stblterm[loc_index + 1];
-            F[index + 2] += 1.0 * volume * fbd_stblterm[loc_index + 2];
+            F[index] +=  volume * fbd_stblterm[loc_index];
+            F[index + 1] +=  volume * fbd_stblterm[loc_index + 1];
+            F[index + 2] +=  volume * fbd_stblterm[loc_index + 2];
         }
         KRATOS_CATCH("")
     }
@@ -820,50 +763,6 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             }
         }
-        /*
-        //build 1*tau1*ro/deltat U grad q)
-        double fac = tauone*density/time;
-        for ( int ii = 0; ii < nodes_number; ii++)
-            {
-                int row = ii*(dof+1);
-                for( int jj=0; jj < nodes_number; jj++)
-                   {
-                        int column = jj*(dof+1) + dof;
-
-                        //K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
-                        K(column,row) += 1*area * fac* N(ii) * DN_DX(jj,0);
-
-                        //K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
-                        K(column,row + 1) += 1*area * fac* N(ii) * DN_DX(jj,1);
-                   }
-            }
-
-	
-        //build 1*(grad q) (Fbody + ro/dt * U(n+1,i)) stabilization term & assemble
-        array_1d<double,2> bdf = ZeroVector(2);
-        const array_1d<double,2> bdf0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double,2> bdf1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);
-        const array_1d<double,2> bdf2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);
-
-
-        const array_1d<double,3>& vel0_n = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-        const array_1d<double,3>& vel1_n = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-        const array_1d<double,3>& vel2_n = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-
-
-        bdf[0] = N[0]*(density*bdf0[0] + density/time * vel0_n[0] ) +  N[1]*(density*bdf1[0] + density/time * vel1_n[0]) + N[2]*(density*bdf2[0] + density/time * vel2_n[0]);
-        bdf[1] =  N[0]*(density*bdf0[1] + density/time * vel0_n[1] ) +  N[1]*(density*bdf1[1] + density/time * vel1_n[1]) + N[2]*(density*bdf2[1] + density/time * vel2_n[1]);
-
-        array_1d<double,3> fbd_stblterm = ZeroVector(nodes_number);
-        fbd_stblterm = tauone * prod(DN_DX,bdf);
-	
-
-        for(int ii = 0; ii< nodes_number; ++ii)
-          {
-                int index = ii*(dof + 1) + dof;
-                F[index] += 1*area*fbd_stblterm[ii];
-          }*/
-
 
         //build 1*(grad q) (Fbody ) stabilization term & assemble
         array_1d<double, 3 > bdf = ZeroVector(3);
