@@ -72,7 +72,7 @@ class MonolithicSolver:
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
 #        self.linear_solver = SuperLUSolver()
-#        self.linear_solver = SuperLUIterativeSolver()
+##        self.linear_solver = SuperLUIterativeSolver()
 
         self.linear_solver = MKLPardisoSolver()
 
@@ -117,7 +117,7 @@ class MonolithicSolver:
         
         self.alpha_shape = 1.4
 	self.h_factor = 0.4
-	
+##	self.h_factor = 0.7	
         #detecting free_surface to all nodes
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
@@ -273,13 +273,15 @@ class MonolithicSolver:
             displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
             delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ) 
             
-            if(displ < 0.0001):
+            if(self.domain_size == 2):
+                red_factor = 0.0001
+            elif(self.domain_size == 3):
+                red_factor = 0.1
+            if(displ < (node.GetSolutionStepValue(NODAL_H)* red_factor)):                
                 node.SetSolutionStepValue(DISPLACEMENT_X,0,old_displX)
                 node.SetSolutionStepValue(DISPLACEMENT_Y,0,old_displY)
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
-##                node.X = node.X0
-##                node.Y = node.Y0
-##                node.Z = node.Z0
+
 
             (self.MeshMover).Execute(); #to update the position with the new displacement
 
@@ -314,6 +316,7 @@ class MonolithicSolver:
             gid_io.PrintOnGaussPoints(TAU,self.model_part,time);
 ##            gid_io.WriteNodalResults(EFFECTIVE_VISCOSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(IS_FLUID, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(NODAL_H, (self.model_part).Nodes, time, 0);            
             gid_io.WriteNodalResults(PRESS_PROJ, (self.model_part).Nodes, time, 0); ### WATER PRESSURE GRADIENT
 
             gid_io.Flush()
