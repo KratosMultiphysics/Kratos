@@ -1323,7 +1323,6 @@ namespace OpenCL
 				}
 
 				Options += "-DKRATOS_OCL_VERSION=" KRATOS_OCL_VERSION_STRING;
-                                Options += " -O3";
 
 				// Add CLSearchPath to compiler's include path, so #include's work as intended
 
