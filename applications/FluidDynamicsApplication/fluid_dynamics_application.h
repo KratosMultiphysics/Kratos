@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/bingham_vms.h"
+#include "custom_elements/dynamic_vms.h"
 
 namespace Kratos
 {
@@ -243,6 +244,10 @@ namespace Kratos
  		const BinghamVMS<2> mBinghamVMS2D;
                 /// 3D instance of the BinghamVMS element
  		const BinghamVMS<3> mBinghamVMS3D;
+                /// 2D instance of the Dynamic Subscale version of the VMS element
+                const DynamicVMS<2> mDynamicVMS2D;
+                /// 3D instance of the Dynamic Subscale version of the VMS element
+                const DynamicVMS<3> mDynamicVMS3D;
 
 
 		///@} 
