@@ -40,6 +40,7 @@ python-extension KratosFluidDynamicsApplication
 	fluid_dynamics_python_application.cpp 
 	vms.cpp
 	bingham_vms.cpp
+	dynamic_vms.cpp
 
 
 	#kratos library

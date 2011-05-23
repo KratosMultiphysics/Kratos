@@ -31,7 +31,9 @@ namespace Kratos
                 mVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
                 mVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
                 mBinghamVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-                mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))//,
+                mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+                mDynamicVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+                mDynamicVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))//,
 //                mFluidPeriodicCondition2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
  	{}
  	
@@ -46,6 +48,7 @@ namespace Kratos
                 KRATOS_REGISTER_VARIABLE(TAUONE)
                 KRATOS_REGISTER_VARIABLE(TAUTWO)
 //                KRATOS_REGISTER_VARIABLE(C_SMAGORINSKY)
+                KRATOS_REGISTER_VARIABLE(SUBSCALE)
  		KRATOS_REGISTER_VARIABLE(VORTICITY)
  		KRATOS_REGISTER_VARIABLE(COARSE_VELOCITY)
 
@@ -54,6 +57,8 @@ namespace Kratos
                 KRATOS_REGISTER_ELEMENT("VMS3D",mVMS3D)
                 KRATOS_REGISTER_ELEMENT("BinghamVMS2D",mBinghamVMS2D)
                 KRATOS_REGISTER_ELEMENT("BinghamVMS3D",mBinghamVMS3D)
+                KRATOS_REGISTER_ELEMENT("DynamicVMS2D",mDynamicVMS2D)
+                KRATOS_REGISTER_ELEMENT("DynamicVMS3D",mDynamicVMS3D)
 
 		// Register Conditions
  //               KRATOS_REGISTER_CONDITION("FluidPeriodicCondition2D",mFluidPeriodicCondition2D)

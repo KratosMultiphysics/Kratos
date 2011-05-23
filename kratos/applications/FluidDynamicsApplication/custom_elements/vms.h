@@ -508,16 +508,12 @@ namespace Kratos
 
                 if ( rCurrentProcessInfo[OSS_SWITCH] != 1 ) // ASGS
                 {
-                    this->AddSubscaleEstimate(ElementalMomRes, AdvVel, Density, TauOne, N, DN_DX, 1.0);
+                    this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);
+                    ElementalMomRes *= TauOne;
                 }
                 else // OSS
                 {
-                    double ElementalMassRes;
-                    this->AddProjectionResidualContribution(AdvVel,Density,ElementalMomRes,ElementalMassRes,N,DN_DX,1.0);
-                    for (unsigned int i = 0; i < TNumNodes; ++i)
-                    {
-                        ElementalMomRes -= N[i] * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ,0);
-                    }
+                    this->OSSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);;
                     ElementalMomRes *= TauOne;
                 }
 
@@ -1126,42 +1122,85 @@ namespace Kratos
             }
         }
 
-        /// A-posteriori evaluation of the elemental momentum residual (for error estimation).
-        /** Note that this function adds the result to the rMomentumRes parameter, to allow
-         * the use of multiple integration points. This means that the initialization of
-         * the rMomentumRes parameter is left to the caller function.
+        /// Assemble the contribution from an integration point to the element's residual.
+        /**
+         * ASGS version. Note that rElementalMomRes should be initialized before calling this.
+         * @param rAdvVel Convection velocity (not including subscale)
+         * @param Density Fluid density evaluated at integration point
+         * @param rElementalMomRes Result
+         * @param rShapeFunc Shape functions evaluated at integration point
+         * @param rShapeDeriv Shape function derivatives evaluated at integration point
+         * @param Weight Integration point weight (as a fraction of area or volume)
          */
-        void AddSubscaleEstimate(array_1d< double, 3 > & rMomentumRes,
-                                 const array_1d< double, 3 > & rAdvVel,
-                                 const double Density,
-                                 const double Tau,
-                                 const array_1d< double, TNumNodes >& rShapeFunc,
-                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-                                 const double Weight)
+        void ASGSMomResidual(const array_1d< double, 3 > & rAdvVel,
+                             const double Density,
+                             array_1d< double, 3 > & rElementalMomRes,
+                             const array_1d< double, TNumNodes >& rShapeFunc,
+                             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                             const double Weight)
         {
-            const double Coef = Weight * Tau;
-            GeometryType& rGeom = this->GetGeometry();
             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
             array_1d<double, TNumNodes> AGradN;
             this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-            // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v)Node_j (column vector)
+            // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
             for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
             {
 
                 // Variable references
-                const array_1d< double, 3 > & rVelocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-                const array_1d< double, 3 > & rAcceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-                const array_1d< double, 3 > & rBodyForce = rGeom[i].FastGetSolutionStepValue(BODY_FORCE);
-                const double& rPressure = rGeom[i].FastGetSolutionStepValue(PRESSURE);
+                const array_1d< double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+                const array_1d< double, 3 > & rAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
+                const array_1d< double, 3 > & rBodyForce = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+                const double& rPressure = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
 
                 // Compute this node's contribution to the residual (evaluated at inegration point)
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    rMomentumRes[d] += Coef * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
+                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
                 }
             }
         }
+
+        /// Assemble the contribution from an integration point to the element's residual.
+        /**
+         * OSS version. Note that rElementalMomRes should be initialized before calling this.
+         * @param rAdvVel Convection velocity (not including subscale)
+         * @param Density Fluid density evaluated at integration point
+         * @param rElementalMomRes Result
+         * @param rShapeFunc Shape functions evaluated at integration point
+         * @param rShapeDeriv Shape function derivatives evaluated at integration point
+         * @param Weight Integration point weight (as a fraction of area or volume)
+         */
+        void OSSMomResidual(const array_1d< double, 3 > & rAdvVel,
+                            const double Density,
+                            array_1d< double, 3 > & rElementalMomRes,
+                            const array_1d< double, TNumNodes >& rShapeFunc,
+                            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                            const double Weight)
+        {
+            // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+            array_1d<double, TNumNodes> AGradN;
+            this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+
+            // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
+            for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
+            {
+
+                // Variable references
+                const array_1d< double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+                const array_1d< double, 3 > & rBodyForce = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+                const array_1d< double, 3 > & rProjection = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
+                const double& rPressure = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+
+                // Compute this node's contribution to the residual (evaluated at inegration point)
+                for (unsigned int d = 0; d < TDim; ++d)
+                {
+                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (AGradN[i] * rVelocity[d]-rBodyForce[d])) + rShapeDeriv(i, d) * rPressure);
+                    rElementalMomRes[d] -= Weight * rShapeFunc[i] * rProjection[d];
+                }
+            }
+        }
+
 
         /// Add the contribution from Smagorinsky model to the (kinematic) viscosity
         /**
