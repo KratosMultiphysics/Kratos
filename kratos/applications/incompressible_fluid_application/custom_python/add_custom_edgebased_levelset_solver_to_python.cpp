@@ -101,7 +101,10 @@ namespace Python
 			  .def("UpdateFixedVelocityValues",&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
                           .def("ActivateWallResistance"   ,&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ActivateWallResistance)
                           .def("SetShockCapturingCoefficient"   ,&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetShockCapturingCoefficient)
-				  ;
+			  .def("ComputeVolumeVariation",&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeVolumeVariation)
+                          .def("ComputeWetVolume"   ,&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeWetVolume)
+                          .def("DiscreteVolumeCorrection"   ,&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::DiscreteVolumeCorrection)
+		;
 
 
 	  class_< EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >
@@ -124,6 +127,9 @@ namespace Python
 			  .def("UpdateFixedVelocityValues",&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
                           .def("ActivateWallResistance",&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ActivateWallResistance)
                           .def("SetShockCapturingCoefficient"   ,&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetShockCapturingCoefficient)
+			  .def("ComputeVolumeVariation",&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeVolumeVariation)
+                          .def("ComputeWetVolume"   ,&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeWetVolume)
+                          .def("DiscreteVolumeCorrection"   ,&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::DiscreteVolumeCorrection)
 	          ;
   }
 	
