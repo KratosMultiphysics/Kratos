@@ -53,8 +53,8 @@ class EdgeBasedLevelSetSolver:
 #        pDiagPrecond = DiagonalPreconditioner()
 #        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
-        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
-#        self.pressure_linear_solver =  CGSolver(1e-3, 5000)
+#        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
+        self.pressure_linear_solver =  CGSolver(1e-3, 5000)
 
 
 
