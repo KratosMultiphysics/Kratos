@@ -34,8 +34,11 @@ from KratosIncompressibleFluidApplication import *
 model_part = ModelPart("FluidPart");  
 
 #providing the variable list to the model part
-import incompressible_fluid_solver
-incompressible_fluid_solver.AddVariables(model_part)
+import fractional_step_solver
+fractional_step_solver.AddVariables(model_part)
+model_part.AddNodalSolutionStepVariable(REACTION)
+
+
 
 #reading a model
 gid_mode_flag = GiDPostMode.GiD_PostBinary
@@ -56,11 +59,11 @@ print model_part
 model_part.SetBufferSize(3)
 
 #adding dofs
-incompressible_fluid_solver.AddDofs(model_part)
+fractional_step_solver.AddDofs(model_part)
 
 
 #creating a fluid solver object
-fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
+fluid_solver = fractional_step_solver.IncompressibleFluidSolver(model_part,domain_size)
 #fluid_solver = flexible_incompressible_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
 fluid_solver.laplacian_form =1;
 fluid_solver.predictor_corrector = True;
@@ -68,6 +71,8 @@ fluid_solver.vel_toll = 1e-3
 fluid_solver.time_order = 2
 fluid_solver.ReformDofAtEachIteration = False
 fluid_solver.echo_level = 0
+fluid_solver.compute_reactions = True
+
 
 ##pILUPrecond = ILU0Preconditioner() 
 ##pDiagPrecond = DiagonalPreconditioner() 
@@ -80,6 +85,16 @@ fluid_solver.echo_level = 0
 
 fluid_solver.Initialize()
 
+outfile = open("reactions.out",'w')
+
+def WriteReactions(time,nodes):
+    outfile.write("time = " + str(time) + "\n" )
+    for node in model_part.Nodes:
+        vel = node.GetSolutionStepValue(REACTION)
+        a = str(node.Id) + " " + str(vel[0]) + " " +  str(vel[1]) + " " + str(vel[2]) + "\n"
+        outfile.write(a)
+    outfile.write("\n")
+    
 #settings to be changed
 Re = 100.0
 nsteps = 100
@@ -111,6 +126,8 @@ for step in range(0,nsteps):
     if(step > 4):
         fluid_solver.Solve()
 
+        WriteReactions(time,model_part.Nodes)
+
 ##        for node in model_part.Nodes:
 ##            node.SetSolutionStepValue(PRESS_PROJ,0,zero);
 
@@ -119,6 +136,7 @@ for step in range(0,nsteps):
     if(out == output_step):
         gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(REACTION,model_part.Nodes,time,0)
         out = 0
     out = out + 1
     
