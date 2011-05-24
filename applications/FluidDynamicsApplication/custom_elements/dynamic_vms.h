@@ -310,7 +310,7 @@ namespace Kratos
             double InvStep = 1.0 / DeltaTime;
             const double ElemSize = this->ElementSize(Area);
 
-            MatrixType Gradient(TDim,TDim,0.0); // Velocity gradient
+            MatrixType Gradient = ZeroMatrix(TDim,TDim); // Velocity gradient
 
             array_1d<double,3> rVelocity;
 
@@ -325,7 +325,7 @@ namespace Kratos
             Gradient *= Density;
 
             // Iteration variables
-            VectorType Subscale(TDim,0.0); ///@todo Ensure I'm using dense matrix types here.
+            VectorType Subscale = ZeroVector(TDim); ///@todo Ensure I'm using dense matrix types here.
             VectorType Vel(TDim);
             for (unsigned int d = 0; d < TDim; ++d)
                 Vel[d] = AdvVel[d] + mSubscaleVel[d]; // Here I'm taking the subscale from last iteration as initial guess
@@ -339,7 +339,7 @@ namespace Kratos
 
             MatrixType J(TDim,TDim);
             VectorType r(TDim);
-            VectorType dx(TDim,0.0);
+            VectorType dx = ZeroVector(TDim);
 
             while ( SubscaleError > mSubscaleTol && SubscaleNorm > mSubscaleTol && mIterCount <= 10 ) ///@todo add some absolute criteria too
             {
