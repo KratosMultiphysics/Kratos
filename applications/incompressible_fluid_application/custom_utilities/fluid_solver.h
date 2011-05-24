@@ -793,7 +793,7 @@ namespace Kratos {
             for (int k = 0; k < dp.size(); k++)
                 dp[k] *= scaling_factors[k];
 
-//	    KRATOS_WATCH(*pLinearSolver)
+	    KRATOS_WATCH(*pLinearSolver)
 //KRATOS_WATCH(norm_2(dp));
 
 	    //update pressure
@@ -1547,7 +1547,7 @@ void ComputeWallResistance(
 
     };
 } //namespace Kratos
-
+#undef SYMM_PRESS
 #endif //KRATOS_EDGEBASED_FLUID_SOLVER_H_INCLUDED defined
 
 
