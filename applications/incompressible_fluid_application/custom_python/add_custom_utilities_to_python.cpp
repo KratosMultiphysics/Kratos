@@ -310,6 +310,7 @@ namespace Python
         class_<LagrangianParticleUtils < 2 > >("LagrangianUtils2D", init<>())
                     .def("StreamlineMove", &LagrangianParticleUtils < 2 > ::StreamlineMove)
                     .def("Reseed", &LagrangianParticleUtils < 2 > ::Reseed)
+                    .def("ReseedEmptyElements", &LagrangianParticleUtils < 2 > ::ReseedEmptyElements)
                     .def("VisualizationModelPart", &LagrangianParticleUtils < 2 > ::VisualizationModelPart)
                     .def("TransferToEulerianMesh", &LagrangianParticleUtils < 2 > ::TransferToEulerianMesh)
                     .def("RestartStep", &LagrangianParticleUtils < 2 > ::RestartStep)
