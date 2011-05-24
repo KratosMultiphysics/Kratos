@@ -13,7 +13,7 @@ print_layers = False
 use_mass_correction = True
 redistance_frequency = 5
 extrapolation_layers = 5
-number_of_inital_steps = 10
+number_of_inital_steps = 1
 initial_time_step = 0.0001
 # Declare Python Variables
 

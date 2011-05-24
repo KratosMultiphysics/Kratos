@@ -40,8 +40,8 @@ model_part = ModelPart("FluidPart");
 print "after creation of the model part"
 
 ##importing the solver files and adding the variables
-import incompressible_fluid_solver
-incompressible_fluid_solver.AddVariables(model_part)
+import fractional_step_solver
+fractional_step_solver.AddVariables(model_part)
 
 model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT)
 model_part.AddNodalSolutionStepVariable(REACTION)
@@ -67,12 +67,12 @@ print model_part
 model_part.SetBufferSize(3)
 
 ##add Degrees of Freedom to all of the nodes
-incompressible_fluid_solver.AddDofs(model_part)
+fractional_step_solver.AddDofs(model_part)
 
 
 
 #creating a fluid solver object
-fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
+fluid_solver = fractional_step_solver.IncompressibleFluidSolver(model_part,domain_size)
 fluid_solver.laplacian_form = 1;
 fluid_solver.predictor_corrector = True
 fluid_solver.vel_toll = 1e-3
