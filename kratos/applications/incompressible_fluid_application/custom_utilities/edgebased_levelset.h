@@ -823,11 +823,11 @@ namespace Kratos {
 	    for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
 		    inode != mr_model_part.NodesEnd();
 		    inode++) {
-		if (inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
+		if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) //candidates are only the ones inside the fluid domain
 		{
 		    WeakPointerVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
 		    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++) {
-			if (i->FastGetSolutionStepValue(DISTANCE) > 0.0) //add the node as free surface if one of its neighb is outside
+			if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) //add the node as free surface if one of its neighb is outside
 			{
 			    if (inode->GetValue(IS_VISITED) == 0.0) {
 				layers[0].push_back(*(inode.base()));
@@ -848,7 +848,7 @@ namespace Kratos {
 		  for (WeakPointerVector< Node < 3 > >::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
 		  {
 
-		      if (jjj->FastGetSolutionStepValue(DISTANCE) > 0 &&
+		      if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
 			      jjj->GetValue(IS_VISITED) == 0.0) {
 			  layers[1].push_back(Node < 3 > ::Pointer(*(jjj.base())));
 			  jjj->GetValue(IS_VISITED) = 2.0;
@@ -946,6 +946,16 @@ namespace Kratos {
 			}
 	    }
 
+            //if a node is very close to the free surface (relatively to the element size) fix the pressure on it
+//            for(ModelPart::NodesContainerType::iterator iii = mr_model_part.NodesBegin(); iii!=mr_model_part.NodesEnd(); iii++)
+//            {
+//                unsigned int i_node = iii->FastGetSolutionStepValue(AUX_INDEX);
+//
+//                double dist = mdistances[i_node];
+//                if(dist > 0.0 && dist < 0.01*mHavg[i_node])
+//                    iii->FastGetSolutionStepValue(PRESSURE) = 0.0;
+//
+//            }
 	    //PREREQUISITES
 
 	    //allocate memory for variables
@@ -965,7 +975,8 @@ namespace Kratos {
 
 	    //read the pressure projection from the database
 #endif
-	    mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
+	    mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
+            mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
 	    mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes);
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
 	    //for (int i_node = 0; i_node < n_nodes; i_node++)
@@ -1467,11 +1478,11 @@ namespace Kratos {
 	    for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
 		    inode != mr_model_part.NodesEnd();
 		    inode++) {
-		if (inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are only the ones inside the fluid domain
+		if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) //candidates are only the ones inside the fluid domain
 		{
 		    WeakPointerVector< Node < 3 > >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
 		    for (WeakPointerVector< Node < 3 > >::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++) {
-			if (i->FastGetSolutionStepValue(DISTANCE) > 0.0) //add the node as free surface if one of its neighb is outside
+			if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) //add the node as free surface if one of its neighb is outside
 			{
 			    if (inode->GetValue(IS_VISITED) == 0.0) {
 				layers[0].push_back(*(inode.base()));
@@ -1502,7 +1513,7 @@ namespace Kratos {
 		    for (WeakPointerVector< Node < 3 > >::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) //destination = origin1 + value * Minv*origin
 		    {
 
-			if (jjj->FastGetSolutionStepValue(DISTANCE) > 0 &&
+			if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
 				jjj->GetValue(IS_VISITED) == 0.0) {
 			    layers[il + 1].push_back(Node < 3 > ::Pointer(*(jjj.base())));
 			    jjj->GetValue(IS_VISITED) = double(il + 2.0);
@@ -1642,6 +1653,8 @@ namespace Kratos {
 
 		}
 	    }
+
+            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
 
 //             //on the first layer outside the pressure is set to a value such that on the free surface the pressure is approx 0
 //             for (PointIterator iii = layers[1].begin(); iii != layers[1].end(); iii++)
@@ -2400,7 +2413,7 @@ namespace Kratos {
 
             double wet_volume = 0.0;
             //#pragma omp parallel for firstprivate(slip_size)
-            for (int i = 0; i < mdistances.size(); i++)
+            for (int i = 0; i < static_cast<int>(mdistances.size()); i++)
             {
                 double dist = mdistances[i];
                 const double m_inv = mr_matrix_container.GetInvertedMass()[i];
@@ -2416,7 +2429,7 @@ namespace Kratos {
             KRATOS_CATCH("");
         }
 
-        double DiscreteVolumeCorrection(double expected_volume, double measured_volume)
+        void DiscreteVolumeCorrection(double expected_volume, double measured_volume)
         {
 
             if (measured_volume < expected_volume)
