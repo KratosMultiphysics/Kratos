@@ -170,6 +170,11 @@ class EdgeBasedLevelSetSolver:
     ################################################################
     ################################################################
     def FluidOnlySolve(self):
+        if (self.extrapolation_layers<3):
+            print "insufficient number of extrapolation layers. Minimum is 3"
+            raise ValueError
+
+
         print "entered in EdgeBasedLevelSetSolver fluid only solve"
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
 
@@ -183,6 +188,9 @@ class EdgeBasedLevelSetSolver:
     ################################################################
     ################################################################
     def Solve(self):
+        if (self.extrapolation_layers<3):
+            print "insufficient number of extrapolation layers. Minimum is 3"
+            raise ValueError
 
         (self.fluid_solver).UpdateFixedVelocityValues()
 
