@@ -154,6 +154,7 @@ namespace Kratos {
         virtual void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
 
+	            virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 	/*virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                 std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);*/
 
@@ -194,6 +195,7 @@ namespace Kratos {
 	  void CalculateMinDistanceAndNormal(double& h,array_1d<double,3>& n,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > ordered_points);
           void DetectContact(Geometry< Node<3> >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, const unsigned int single_node_index, array_1d<double,3>& n, double& h);
           void CheckIsContactMaster(int& flag);
+	  void FlagVariableCheckForNonSuitableElements(double& accepted);
      private:
        
        
@@ -201,6 +203,7 @@ namespace Kratos {
 	    ///@name Serialization
 	    ///@{	
 	    friend class Serializer; 
+	    
 
 	    virtual void save(Serializer& rSerializer)
 	    {
