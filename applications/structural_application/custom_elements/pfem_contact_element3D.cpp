@@ -146,12 +146,20 @@ KRATOS_CATCH("");
 		bool is_contact = false;
 	       Geometry< Node<3> >& geom = GetGeometry();
 		array_1d<double,3> n;
-		double h,Volume;
+		double Volume;
+		double h = 1.0e6;
 		GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
 
 		//find reference face. If a reference face is not found, then do nothing
 		int reference_face = -1;
 		WeakPointerVector< Element >& neigb_el = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+	 	int ss3 = 0.0;
+		
+		double accepted = 1.0;
+		FlagVariableCheckForNonSuitableElements(accepted);
+		
+	 if(Volume > 0.0 && accepted == 1.0){	
 		for(unsigned int i=0;i<4; i++)
 		{
 		      if(neigb_el[i].Id() == this->Id()) //missing neighbour
@@ -160,7 +168,7 @@ KRATOS_CATCH("");
 				reference_face=i;
 			}
 		}
-
+		
 		if(numb_ext_faces > 1) //this is most probably a sliver
 		{
 			h = 1e6;
@@ -181,6 +189,16 @@ KRATOS_CATCH("");
 				bool image_inside = Check_image_inside_face(n, reference_face, GetGeometry(),true); 
 				  if(image_inside)
 				  {
+/*				    KRATOS_WATCH(h);*/
+// 				    if(h<l0){
+// 				     KRATOS_WATCH("numb_ext_faces > 1");
+// 				     KRATOS_WATCH(h);
+// 				    }
+// 				    
+// 				    }
+/*KRATOS_WATCH("numb_ext_faces > 1");
+KRATOS_WATCH(h);
+KRATOS_WATCH(n);	*/			    
 					    is_contact = true;
 					    break;
 				  }    
@@ -190,6 +208,7 @@ KRATOS_CATCH("");
 		else if (numb_ext_faces == 1) //in this case i have a reference face
 		{
 			double aaa = norm_2(row(DN_DX,reference_face));
+									 
 			h = 1.0/aaa;
 			noalias(n) = row(DN_DX,reference_face);
 			n /= aaa;
@@ -200,8 +219,16 @@ KRATOS_CATCH("");
 			DetectContact(GetGeometry(),DN_DX,reference_face, n, h);
 			bool image_inside = true;
 
-			   if(image_inside)
+			   if(image_inside){
 				    is_contact = true;
+/*				    				    KRATOS_WATCH(h);*/
+// 				    if(h<l0){
+// 				     KRATOS_WATCH("numb_ext_faces == 1");
+// 				     KRATOS_WATCH(h);
+// 				    }
+/*KRATOS_WATCH(h);
+KRATOS_WATCH(n);*/				    
+			   }
 			   else
 				    is_contact = false;
 
@@ -240,17 +267,26 @@ KRATOS_CATCH("");
 					    double auxh = 1.0/aaa;
 					    noalias(auxn) = row(otherDN_DX,other_reference_face);
 					    auxn /= aaa;
-
 					    bool image_inside = Check_image_inside_face(auxn, other_reference_face, other_geom,true); 
-
 					    if(image_inside==true && auxh < h)
 					    {
 // std::cout << " h calc" << Id() << " " << neigb_el[i].Id() << std::endl;
+// 				    KRATOS_WATCH(h);
+
 						h = auxh;
-						noalias(n) = auxn;					    
+						noalias(n) = auxn;	
+/*KRATOS_WATCH("numb_ext_faces == else");
+KRATOS_WATCH(h);
+KRATOS_WATCH(n);*/						
+//  						if(h<l0){
+// 				                     KRATOS_WATCH("numb_ext_faces == else");
+// 						     KRATOS_WATCH(h);
+// 						}
+
 					    }
 
 					    is_contact = true;
+					    ss3 = 500;
 				    }
 				 }
 
@@ -296,10 +332,23 @@ KRATOS_CATCH("");
 
 
 		}
+	
+// 		if(ss3==500 && h<l0){
+// 		  KRATOS_WATCH(is_contact);
+// 		  KRATOS_WATCH(h);
+// 		}
 		
-// KRATOS_WATCH(h);
-// KRATOS_WATCH(l0);
-// KRATOS_WATCH(is_contact);
+	 		
+// 		if( h<l0){
+// 		  KRATOS_WATCH("Good H but not contact");
+// 		 KRATOS_WATCH(h); 
+// 			 KRATOS_WATCH(is_contact);
+// 		}
+	 }
+// 	    int my_flag = 0;
+//           CheckIsContactMaster(my_flag);
+// 	  if(my_flag ==1)
+// 	    KRATOS_WATCH("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBVVVVVVVVVVVVVVVVVVVVVVVVVVVNNNNNNNNNNNNNNNNNNNNNNN");
 
 
 		if(is_contact == true) //note that if a reference face is not encountered nothing is done
@@ -314,11 +363,14 @@ KRATOS_CATCH("");
 			norm_n = norm_2(n);
 			double h=1.0/norm_n;
 			n/=norm_n;*/
-	//KRATOS_WATCH(h);		
-	//KRATOS_WATCH(l0);
+// 	KRATOS_WATCH(h);		
+// 	KRATOS_WATCH(l0);
 	//KRATOS_WATCH(GetProperties()[THICKNESS]);
-	//KRATOS_WATCH(GetProperties()[DENSITY]);	
-
+	//KRATOS_WATCH(GetProperties()[DENSITY]);
+	
+	if(h<0.0)
+             KRATOS_ERROR(std::logic_error,"NEGATIVE HH","")
+             
 			if(h>l0) //in this case it is not in contact
 			{
 				if(CalculateResidualVectorFlag==true) noalias(rRightHandSideVector) = ZeroVector(12);
@@ -331,10 +383,12 @@ KRATOS_CATCH("");
 			      //{
 // KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>>><<<one contact element is detected<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 // KRATOS_WATCH(h);
+// KRATOS_WATCH(n);
 // int flag = 0;
 // CheckIsContactMaster(flag);
 // KRATOS_WATCH(flag);
-// 				this->GetValue(IS_CONTACT_MASTER) = 8956;
+ 				this->GetValue(IS_CONTACT_MASTER) = 120;
+/*				KRATOS_WATCH(h);*/
 				mcontact_is_active = true;
 				mpenetration = l0 - h;
 // if(mcontact_is_active == true)
@@ -352,11 +406,12 @@ KRATOS_CATCH("");
 //KRATOS_WATCH(H_zero);
 				//calculate 1d strain
 				double eps= 0.5*(h*h-l0*l0)/(l0*l0);
-
+// KRATOS_WATCH(eps);
 				//calculate effective strain 
 				array_1d<double,6> strain;
 				noalias(strain)  = VoigtTensorComponents(n,n);
 				strain *= eps;
+// 	KRATOS_WATCH(h);		
 // KRATOS_WATCH(strain);
 				//compute elastic matrix
 				//setting up material matrix
@@ -398,7 +453,7 @@ KRATOS_CATCH("");
 				//calculate RHS and LHS;
 				if(CalculateResidualVectorFlag==true) 
 					noalias(rRightHandSideVector) -= Volume*prod(trans(B),stress);
-// KRATOS_WATCH(rRightHandSideVector);					
+//  KRATOS_WATCH(rRightHandSideVector);					
 				if(CalculateStiffnessMatrixFlag==true)
 				{
 					//KRATOS_WATCH(Alpha_factor);
@@ -448,7 +503,8 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 		bool CalculateStiffnessMatrixFlag = false;
 		bool CalculateResidualVectorFlag = true;
 		MatrixType temp = Matrix();
-		
+			
+	  
 		CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 	  KRATOS_CATCH("")
 	}
@@ -475,6 +531,8 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
         void PfemContactElement3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)	
  	    {
 	      KRATOS_TRY
+
+          
 	      KRATOS_CATCH("")
  	    }
 
@@ -567,37 +625,29 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 		noalias(rDampMatrix)= ZeroMatrix(MatSize,MatSize);
       
 
-// 		  int contact_flag = this->GetValue(IS_CONTACT_MASTER);
-// 		if(contact_flag == 8956)
-		if(mcontact_is_active == true)
-		  {
 
-
-		      Geometry< Node<3> >& geom = GetGeometry();
-		      double Volume;				
-		      GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
-
-		      double lump_mass_fac = Volume * 0.25;
-		     // double density=geom[0].FastGetSolutionStepValue(DENSITY);
-		      const double density=GetProperties()[DENSITY];
-// 		      const double E = GetProperties()[YOUNG_MODULUS];
-
-		      int nodes_number = 4;
-		      int dof = 3;
-		  for (int nd = 0; nd < nodes_number; nd++) {
-			  int row = nd * dof ;
-			    for (int jj = 0; jj < dof; jj++)
-			  rDampMatrix(row + jj, row + jj) += 100.0*density * lump_mass_fac;
-			  }
-
-
-// double aux = 0.0;
-// for(unsigned int i=0; i<12; i++)
-//     for(unsigned int j=0; j<12; j++)
-// 	aux += rDampMatrix(i,j);
+// 		if(mcontact_is_active == true)
+// 		  {
 // 
-// std::cout << Id() << " d " << aux << std::endl;
-		   }
+// 
+// 		      Geometry< Node<3> >& geom = GetGeometry();
+// 		      double Volume;				
+// 		      GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
+// 
+// 		      double lump_mass_fac = Volume * 0.25;
+// 		      const double density=GetProperties()[DENSITY];
+// 
+// 		      int nodes_number = 4;
+// 		      int dof = 3;
+// 		  for (int nd = 0; nd < nodes_number; nd++) {
+// 			  int row = nd * dof ;
+// 			    for (int jj = 0; jj < dof; jj++)
+// 			  rDampMatrix(row + jj, row + jj) += 100.0*density * lump_mass_fac;
+// 			  }
+// 
+// 
+// 
+// 		   }
 
 		KRATOS_CATCH("")
 	}
@@ -1045,8 +1095,8 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 		boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
 		array_1d<double,4> N;
 
-		const unsigned int number_of_nodes = GetGeometry().size();
-		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+// 		const unsigned int number_of_nodes = GetGeometry().size();
+// 		const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 // 		unsigned int MatSize=number_of_nodes*dim;
 		
 		const double l0 = GetProperties()[THICKNESS];
@@ -1093,7 +1143,8 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 				bool image_inside = Check_image_inside_face(n, reference_face, GetGeometry(),true); 
 				  if(image_inside)
 				  {
-					    is_contact = true;           
+					    is_contact = true;   
+
 					    break;
 				  }    
 			    }
@@ -1124,7 +1175,8 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 				  }
 		}
 		else //case B - one edge on each side
-		{	h = 1e6;
+		{
+			h = 1e6;
 			n[0] = 1.0; n[1] = 1.0; n[2] = 1.0;
 			array_1d<double,3> auxn;
 			//loop on the neighbouring contact elements and try to calculate h and n basing on them
@@ -1166,8 +1218,8 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 						h = auxh;
 						noalias(n) = auxn;					    
 					    }
-
 					    is_contact = true;
+
 				    }
 				 }
 
@@ -1175,8 +1227,13 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
                }
 
 	      if(is_contact ==true && h < l0 )
+	      {
                       flag = 1;
-
+// 		      KRATOS_WATCH(h);
+// 
+// 		      KRATOS_WATCH(numb_ext_faces);
+// 		      KRATOS_WATCH(is_contact);
+	      }
 		      KRATOS_CATCH("");
 	  }
 	//************************************************************************************
@@ -1185,7 +1242,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
        {
 //KRATOS_WATCH("mcontact_is_active");
           int flag = 0;
-          CheckIsContactMaster(flag);
+           CheckIsContactMaster(flag);
 
 
 	  double sound_velocity = 4700.0;
@@ -1194,11 +1251,55 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 	  if( flag == 1 )
 	     {
 	      Output = 1.0 * hp / sound_velocity;
-// 		KRATOS_WATCH(" XXXXXXXXXXXXXX CONTACT DT XXXXXXXXXXXXX");
+ 		KRATOS_WATCH(" XXXXXXXXXXXXXX CONTACT DT XXXXXXXXXXXXX");
 // 		KRATOS_WATCH(Output);
 	     }
 	  else 
 	      Output = 100.0;
 	 
         }
+	//************************************************************************************
+	//************************************************************************************                
+          void PfemContactElement3D::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo){
+	  
+
+  
+	  }
+	  
+	//************************************************************************************
+	//************************************************************************************                
+          void PfemContactElement3D::FlagVariableCheckForNonSuitableElements(double& accepted){
+	    
+// 	    double first = GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE);
+// 	    double suitable = 0.0;
+// 	    for(int ii = 1; ii<4; ++ii){
+// 	      double other =  GetGeometry()[ii].FastGetSolutionStepValue(FLAG_VARIABLE);
+// 	      if(first != other)
+// 		suitable = 1.0;
+// 	      
+// 	      if(other < 0.0)
+// 		suitable = 0.0;
+// 	    }
+// 	    
+// 	    if(suitable == 1.0 and first>0.0){
+// 	         accepted = 1.0;
+// 		this->GetValue(IS_CONTACT_MASTER) = 300;
+// 	    }
+// 	    else
+// 	    {
+// 	         accepted = 0.0;
+// 
+// 	    }
+	    
+	    for(int ii = 0; ii<4; ++ii){
+	      double neg =  GetGeometry()[ii].FastGetSolutionStepValue(FLAG_VARIABLE);
+	      if(neg < 0.0)
+	      {
+// 		this->GetValue(IS_CONTACT_MASTER) = 5000;
+		accepted = 0.0;
+	      }
+	    }	    
+	    
+	    
+	  }
 } // Namespace Kratos
