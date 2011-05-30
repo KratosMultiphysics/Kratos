@@ -593,13 +593,13 @@ namespace Kratos
         calculatedensity(GetGeometry(), density, mu);
 
 
-        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+       // const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 
         double VC2;
 	CalculateSoundVelocity(GetGeometry(), VC2);
 	double vc = sqrt(VC2);
 
-	double length2 = ele_length * ele_length;
+	//double length2 = ele_length * ele_length;
 	double int_time = ele_length/vc;
 
 
@@ -721,7 +721,7 @@ namespace Kratos
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
-            int loc_index = ii * dof ;
+           // int loc_index = ii * dof ;
             const array_1d<double, 3 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
