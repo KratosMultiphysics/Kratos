@@ -564,13 +564,13 @@ namespace Kratos {
 ////                mTauConvection[i_node] = mdelta_t_avg;
 ////            }
 
-	    //laplacian smoothing on the taus
-	    //note here that we use mTau2 as a temporary vector
-            LaplacianSmooth(mTauConvection, mTau2);
-            LaplacianSmooth(mTauPressure, mTau2);
-            #pragma omp parallel for
-	    for (int i_node = 0; i_node < n_nodes; i_node++)
-                mTau2[i_node] = 0.0;
+// 	    //laplacian smoothing on the taus
+// 	    //note here that we use mTau2 as a temporary vector
+//             LaplacianSmooth(mTauConvection, mTau2);
+//             LaplacianSmooth(mTauPressure, mTau2);
+//             #pragma omp parallel for
+// 	    for (int i_node = 0; i_node < n_nodes; i_node++)
+//                 mTau2[i_node] = 0.0;
 //            mr_matrix_container.AssignVectorToVector(mTauPressure, mTauConvection);
 
 
