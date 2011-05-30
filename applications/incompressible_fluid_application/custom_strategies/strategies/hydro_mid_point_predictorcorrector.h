@@ -242,7 +242,7 @@ namespace Kratos
 			double air_water = elem->GetValue(IS_WATER_ELEMENT);	
 			
 			Element::GeometryType& geom = elem->GetGeometry();
-			for ( int i = 0; i <geom.size(); i++)
+			for (unsigned int i = 0; i <geom.size(); i++)
 			      {
 				geom[i].FastGetSolutionStepValue(NODAL_MASS)  +=   mass_vec[0]; 
 
@@ -707,7 +707,7 @@ KRATOS_WATCH("AFTER update vel and pr");
 			//add velocity mass
 			double air_water = elem->GetValue(IS_WATER_ELEMENT);				
 			Element::GeometryType& geom = elem->GetGeometry();
-			for ( int i = 0; i <geom.size(); i++)
+			for ( unsigned int i = 0; i <geom.size(); i++)
 			      {
 				geom[i].FastGetSolutionStepValue(NODAL_MASS)  +=   mass_vec[0]; 
 
