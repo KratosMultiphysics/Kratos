@@ -790,7 +790,7 @@ namespace Kratos {
 	    pLinearSolver->Solve(mL, dp, rhs);
 
             //apply inverse scaling
-            for (int k = 0; k < dp.size(); k++)
+            for (unsigned int k = 0; k < dp.size(); k++)
                 dp[k] *= scaling_factors[k];
 
 	    KRATOS_WATCH(*pLinearSolver)
