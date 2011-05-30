@@ -398,14 +398,14 @@ namespace Kratos
         calculatedensity(GetGeometry(), density, mu);
 
 
-        const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
+       // const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 
         double VC2;
 	CalculateSoundVelocity(GetGeometry(), VC2);
 	double vc = sqrt(VC2);
 
-	double int_time = ele_length/vc;
-	double length2 = ele_length * ele_length;
+	//double int_time = ele_length/vc;
+	//double length2 = ele_length * ele_length;
 
        // tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (length2 * density) + 2.0 * advvel_norm / ele_length);
         //tauone = 1.0 / (dyn_st_beta / int_time + 4.0 * mu / (length2 * density) + 2.0 * advvel_norm / ele_length);
