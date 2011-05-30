@@ -224,7 +224,7 @@ namespace Kratos
 			    TSystemVectorType& Dx,
 			    TSystemVectorType& b
 			    ) {
-			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+			//ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
 			Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
 
@@ -356,7 +356,7 @@ KRATOS_WATCH("inside update");
 		    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 		  // double GammaNewmark = 0.5 - NewAlphaBossak;
 		    double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-		    double time_fac = 1.0 / (mGamma * DeltaTime);
+		    //double time_fac = 1.0 / (mGamma * DeltaTime);
 
 		    #pragma omp parallel for firstprivate(n_nodes, it_begin)
 		    for( int kkk = 0; kkk < n_nodes; kkk++)
@@ -418,8 +418,8 @@ if(vel_mass == 0.0 || (water_p_mass == 0.0 && air_p_mass==0.0))
 
 			  //update displacement and velocity
 			array_1d<double,3> DeltaVel;
-			double DeltaWaterPressure = 0.0;
-			double DeltaAirPressure = 0.0;
+			//double DeltaWaterPressure = 0.0;
+			//double DeltaAirPressure = 0.0;
 
 
 			array_1d<double,3>& CurrentDisplacement = (ind)->FastGetSolutionStepValue(DISPLACEMENT,0);
