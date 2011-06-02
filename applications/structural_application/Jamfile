@@ -76,7 +76,9 @@ alias sources_KratosStructuralApplication
 	isotropic_3d.cpp 
 	hyperelastic_3d.cpp 
 	hyperelastic_2d.cpp 
-	viscoelastic_2d.cpp # new!!
+	viscoelastic_2d.cpp
+        viscofibers_2d.cpp # new!!
+	viscofibers_hypermatrix_2d.cpp # new!!
 	von_mises_3d.cpp
 	membrane_element.cpp 
 	isotropic_2d.cpp 
