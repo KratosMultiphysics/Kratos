@@ -72,6 +72,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/hyperelastic_3d.h"
 #include "constitutive_laws/hyperelastic_2d.h"
 #include "constitutive_laws/viscoelastic_2d.h" // new VISCOELASTICITY
+#include "constitutive_laws/viscofibers_2d.h" // new VISCOELASTIC Fibers
+#include "constitutive_laws/viscofibers_hypermatrix_2d.h" // new VISCOELASTIC Fibers and Hyperelastic Matrix
 #include "constitutive_laws/von_mises_3d.h"
 #include "constitutive_laws/hypoelastic_2d.h"
 #include "constitutive_laws/plane_strain.h"
@@ -182,12 +184,14 @@ namespace Kratos
             
 
             
+
             class_<BrittleMaterial2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
                     ("BrittleMaterial2D",
                      init<>() )
                      .def(init<FluencyCriteriaPointer, PropertiesPointer>())
                     ;
             
+
 
             class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
                     ("VonMises3D", 
@@ -250,12 +254,23 @@ namespace Kratos
                      init<>() )
                     ;
 
+		    
+            class_< Viscofibers2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Viscofibers2D",
+                     init<>() )
+                    ;
+
 
             class_< Viscoelastic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
                     ("Viscoelastic2D",
                      init<>() )
                     ;
+
     
+	    class_< Viscofibers_Hypermatrix2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("Viscofibers_Hypermatrix2D",
+                     init<>() )
+                    ;
 // 			class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >, boost::noncopyable >
 // 			("PlaneStressDamageOrthotropic2D",
 // 			init<>() )
