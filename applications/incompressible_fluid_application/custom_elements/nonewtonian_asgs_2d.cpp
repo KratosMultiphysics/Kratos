@@ -103,7 +103,7 @@ namespace Kratos {
 	
 	boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
 	array_1d<double, 3 > N;
-	array_1d<double, 2 > ms_adv_vel;
+// 	array_1d<double, 2 > ms_adv_vel;
 	
 	// KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ NoNewtonianASGS element ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 	int nodes_number = 3;
@@ -1882,7 +1882,10 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1];
 	advvel_norm = sqrt(advvel_norm);
 
-	double ele_length = 2.0 * sqrt(area / 3.00);
+// 	double ele_length = 2.0 * sqrt(area / 3.00);
+	//edge of a regular triangle of area equal to our element
+	//// A = sqrt(3) l^2 / 4 
+	double ele_length = 1.5196714 * sqrt(area);
 
 	double mu;
 	double gamma_dot;
