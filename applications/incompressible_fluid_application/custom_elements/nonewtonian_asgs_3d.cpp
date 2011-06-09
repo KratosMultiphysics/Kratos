@@ -838,7 +838,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         //body  & momentum term force
         for (int ii = 0; ii < nodes_number; ii++) {
             int index = ii * (dof + 1);
-            int loc_index = ii * dof ;
+           // int loc_index = ii * dof ;
             const array_1d<double, 3 > bdf = GetGeometry()[ii].FastGetSolutionStepValue(BODY_FORCE);
 
 
@@ -1071,7 +1071,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         double mean_y_adv = 0.25 * (advproj_0[1] + advproj_1[1] + advproj_2[1]+ advproj_3[1]);
         double mean_z_adv = 0.25 * (advproj_0[2] + advproj_1[2] + advproj_2[2]+ advproj_3[2]);
 
-        double mean_div = 0.3333333333333333 * (div_proj_0 + div_proj_1 + div_proj_2 + div_proj_3);
+        double mean_div = 0.25 * (div_proj_0 + div_proj_1 + div_proj_2 + div_proj_3);
 
         for (unsigned int ii = 0; ii < number_of_nodes; ii++) {
             int index = ii * (dim + 1);
@@ -1298,7 +1298,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #endif
 	  
 #ifdef EXPONENCIAL_MODEL	  
-        if (gamma_dot > 1e-10) {
+        if (gamma_dot > 1e-8) {
             aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 // 	    KRATOS_WATCH(aux_1)
 // 	    KRATOS_WATCH(gamma_dot)
@@ -1458,61 +1458,18 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //*************************************************************************************
 
     void NoNewtonianASGS3D::calculatedensity(Geometry< Node < 3 > > geom, double& density, double& viscosity) {
+	
+	double kk = 0.0;
+	density = 0.0;
+	viscosity = 0.0;
+	for (int ii = 0; ii < 4; ++ii) {
+	    kk++;
+	    density += geom[ii].FastGetSolutionStepValue(DENSITY);
+	    viscosity += geom[ii].FastGetSolutionStepValue(VISCOSITY);
+	}
 
-        /*double kk = 0.0;
-        for(int ii=0;ii<3;++ii)
-                if(geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0)
-                        {
-                                kk++;
-                                density +=geom[ii].FastGetSolutionStepValue(DENSITY);
-                        }
-
-        density/=kk;*/
-        /*
-                density = ZeroVector(3);
-        for(int ii=0;ii<3;++ii)
-                density[ii] = geom[ii].FastGetSolutionStepValue(DENSITY);*/
-
-        /*const double rho0 = geom[0].FastGetSolutionStepValue(DENSITY);
-        const double rho1 = geom[1].FastGetSolutionStepValue(DENSITY);
-        const double rho2 = geom[2].FastGetSolutionStepValue(DENSITY);
-         density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );*/
-
-
-        double first = geom[0].FastGetSolutionStepValue(IS_POROUS);
-        double second = geom[1].FastGetSolutionStepValue(IS_POROUS);
-        double third = geom[2].FastGetSolutionStepValue(IS_POROUS);
-        double forth = geom[3].FastGetSolutionStepValue(IS_POROUS);
-
-        density = 0.0;
-
-        if (first == second && second == third && third == forth) {
-            //for inside the domain totally inside one fluid
-            density = geom[0].FastGetSolutionStepValue(DENSITY);
-            viscosity = geom[0].FastGetSolutionStepValue(VISCOSITY);
-        } else {
-            //for element having common node between two fluids or boundary element with IS_POROUS==1 inside the domain
-            for (int ii = 0; ii < 4; ++ii) {
-                if (geom[ii].GetSolutionStepValue(IS_POROUS) == 1.0 && geom[ii].GetSolutionStepValue(IS_STRUCTURE) != 1.0) {
-                    density = geom[ii].FastGetSolutionStepValue(DENSITY);
-                    viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
-
-                }
-            }
-            //for boundary element with IS_POROUS==1 on the boundary
-            if (density == 0.0)
-                for (int ii = 0; ii < 4; ++ii) {
-                    if (geom[ii].GetSolutionStepValue(IS_POROUS) == 0.0) {
-                        density = geom[ii].FastGetSolutionStepValue(DENSITY);
-                        viscosity = geom[ii].FastGetSolutionStepValue(VISCOSITY);
-
-
-                    }
-                }
-
-        }
-
-
+	density /= kk;
+	viscosity /= kk;
 	//Here we calculate Dynamic viscosity from Kinemeatic viscosity
 	viscosity *= density;
 
@@ -1545,9 +1502,13 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1]+ ms_adv_vel[2] * ms_adv_vel[2];
         advvel_norm = sqrt(advvel_norm);
 
-        double ele_length = pow(12*volume,0.333333333333333333333);  
-        ele_length = 2.0/3.0 * ele_length * sqrt(3.00);
+//         double ele_length = pow(12*volume,0.333333333333333333333);  
+//         ele_length = 2.0/3.0 * ele_length * sqrt(3.00);
 
+	//// edge of a regular tethaedra of volume equal to our element
+	//// V = sqrt(2) l^3 /12
+        double ele_length = pow( 8.4852814 * volume  ,0.333333333333333333333);  
+	
         double mu;
 	double gamma_dot;
         //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -1635,6 +1596,8 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	const double m_coef = rCurrentProcessInfo[M];
 
 	boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+	boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);	
+	array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
         array_1d<double, 4 > N; 
 	
         //getting data for the given geometry
@@ -1642,7 +1605,18 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
         double tauone;
         double tautwo;
+
+	 double app_mu;
+	 double mu;
+	 double density;
+	 double app_mu_derivative;
+	 double gamma_dot;
+	 
+	 calculatedensity(GetGeometry(), density, mu);
+	 CalculateB(B, DN_DX);    
+	 CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
         CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
+	
         if (rVariable == THAWONE) {
             for (unsigned int PointNumber = 0;
                     PointNumber < 1;
@@ -1681,16 +1655,16 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             }
         }
 	if (rVariable == MU) {//app mu
-	  boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
-	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
-	  double mu;
-	  double density;
-	  double app_mu;
-	  double app_mu_derivative;
-	  double gamma_dot;
-	  calculatedensity(GetGeometry(), density, mu);
-	  CalculateB(B, DN_DX);    
-	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+// 	  boost::numeric::ublas::bounded_matrix<double, 6, 12> B = ZeroMatrix(6, 12);
+// 	  array_1d<double, 6 > grad_sym_vel = ZeroVector(6);
+// 	  double mu;
+// 	  double density;
+// 	  double app_mu;
+// 	  double app_mu_derivative;
+// 	  double gamma_dot;
+// 	  calculatedensity(GetGeometry(), density, mu);
+// 	  CalculateB(B, DN_DX);    
+// 	  CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 	    
 	    for (unsigned int PointNumber = 0;
 		    PointNumber < 1; PointNumber++) {
