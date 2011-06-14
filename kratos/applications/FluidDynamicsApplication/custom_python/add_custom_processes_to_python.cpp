@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-#include "custom_processes/spalart_allmaras_turbulence_model.h"
+//#include "custom_processes/spalart_allmaras_turbulence_model.h"
 
 namespace Kratos
 {
@@ -72,16 +72,16 @@ namespace Kratos
         {
             using namespace boost::python;
 
-            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+//            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+//            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-            typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+//            typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+//            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-            class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
-                    ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
-                    .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
-                    ;
+//            class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
+//                    ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+//                    .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
+//                    ;
         }
 
 
