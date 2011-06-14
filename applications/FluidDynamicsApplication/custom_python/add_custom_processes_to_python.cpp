@@ -1,20 +1,17 @@
 /*
 ==============================================================================
-KratosFluidDynamicsApplication 
+KratosFluiDynamicsApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
 
 
 Permission is hereby granted, free  of charge, to any person obtaining
@@ -40,68 +37,58 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
-//   
-//   Project Name:        Kratos       
-//   Last modified by:    $Author: jcotela $
-//   Date:                $Date: 2010-11-11 $
-//   Revision:            $Revision: 1.0 $
+ */
+
+//
+//   Project Name:        Kratos
+//   Last modified by:    $Author:  $
+//   Date:                $Date:  $
+//   Revision:            $Revision: 1.2 $
 //
 //
 
-// System includes 
 
-#if defined(KRATOS_PYTHON)
-// External includes 
+// System includes
+
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
-#include "fluid_dynamics_application.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
+#include "includes/model_part.h"
+#include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
- 
+#include "custom_processes/spalart_allmaras_turbulence_model.h"
+
 namespace Kratos
 {
 
-namespace Python
-{
+    namespace Python
+    {
 
-  using namespace boost::python;
+        void AddCustomProcessesToPython()
+        {
+            using namespace boost::python;
 
+            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-  
-  BOOST_PYTHON_MODULE(KratosFluidDynamicsApplication)
-  {
+            typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-	  class_<KratosFluidDynamicsApplication, 
-			  KratosFluidDynamicsApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosFluidDynamicsApplication")
-			;
-
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-	AddCustomProcessesToPython();
-
-	//registering variables in python
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX)
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUONE);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUTWO);
-//        KRATOS_REGISTER_IN_PYTHON_VARIABLE(C_SMAGORINSKY);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(SUBSCALE);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(VORTICITY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(COARSE_VELOCITY);
+            class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
+                    ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+                    .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
+                    ;
+        }
 
 
-  }
-  
-  
-}  // namespace Python.
-  
-}  // namespace Kratos.
 
-#endif // KRATOS_PYTHON defined
+
+
+    } // namespace Python.
+
+} // Namespace Kratos
+
