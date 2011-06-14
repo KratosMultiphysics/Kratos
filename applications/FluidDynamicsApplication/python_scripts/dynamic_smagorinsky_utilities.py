@@ -26,7 +26,7 @@ class DynamicSmagorinsky:
         # Find neighbours
         self.nodal_neighbour_search.Execute()
 
-    def Refine(self, num_refinements = 1):
+    def Refine(self, num_refinements = 1, boundary_var = None):
 
         refine_on_reference = True;
         interpolate_internal_variables = False;
@@ -53,6 +53,9 @@ class DynamicSmagorinsky:
 
             # Update neighbours
             self.nodal_neighbour_search.Execute()
+            if boundary_var != None:
+                self.smagorinsky_util.CorrectFlagValues(boundary_var)
+            
 
     def CorrectBoundary(self,boundary_var = FLAG_VARIABLE):
 
