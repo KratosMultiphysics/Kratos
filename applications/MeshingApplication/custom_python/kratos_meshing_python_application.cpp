@@ -42,6 +42,8 @@ namespace Python
 		AddMeshersToPython();
 		AddProcessesToPython();
 		AddCustomUtilitiesToPython();
+
+		KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER)
 		
   }
   
