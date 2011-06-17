@@ -35,6 +35,7 @@ namespace Kratos
 	///@{ 
 
 	// Variables definition 
+	KRATOS_DEFINE_VARIABLE(double, COUNTER)
 
 	///@} 
 	///@name Type Definitions
