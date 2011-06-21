@@ -274,7 +274,7 @@ class ULF_FSISolver:
             if (self.domain_size == 2):
                 (self.Mesher).ReGenerateMesh("UlfFrac2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
             elif (self.domain_size == 3):
-                (self.Mesher).ReGenerateMesh("UlfFrac3D","Condition3D", self.fluid_model_part, self.node_erase_process, False, False, self.alpha_shape, h_factor)
+                (self.Mesher).ReGenerateMesh("UlfFrac3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
        
 
         ##calculating fluid neighbours before applying boundary conditions
