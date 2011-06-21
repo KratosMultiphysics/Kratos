@@ -1,6 +1,7 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosULFApplication import *
+from KratosPFEMApplication import *
 from KratosStructuralApplication import *
 from KratosMeshingApplication import *
 #import time
@@ -74,6 +75,7 @@ class ULF_FSISolver:
 
         ###temporary ... i need it to calculate the nodal area
         self.UlfUtils = UlfUtils()
+        self.PfemUtils = PfemUtils()
 
         #self.save_structural_elements
         self.alpha_shape = 1.5;
@@ -135,8 +137,8 @@ class ULF_FSISolver:
         #saving the structural elements
         (self.mark_fluid_process).Execute(); #we need this before saving the structrural elements
         print "Saving STRUCTURE"
-        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part, self.domain_size);
-        (self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part, self.domain_size);
+        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part);
+        (self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part);
 
         #marking the fluid
         (self.fluid_neigh_finder).Execute();
@@ -158,12 +160,14 @@ class ULF_FSISolver:
         return [inverted_elements,volume]
                          
     #######################################################################
-    def Solve(self):
+    def Solve(self, lagrangian_inlet_process): 
 
         print "solving the fluid problem"
         inverted_elements = (self.solver).Solve(self.domain_size,self.UlfUtils)
         print "succesful solution of the fluid "
-
+	self.lagrangian_inlet_process=lagrangian_inlet_process
+	
+        
         
         reduction_factor = 0.5
         max_reduction_steps = 5
@@ -227,11 +231,13 @@ class ULF_FSISolver:
                             
         #print "pressure contribution process" - to be executed using exclusively fluid elements
         #and neighbouring relationships
+        self.lagrangian_inlet_process.Execute()
+        
         (self.fluid_neigh_finder).Execute();
         (self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
               
         (self.pressure_calculate_process).Execute();
-        
+        #self.lagrangian_inlet_process.Execute()
         #print "remeshing"
         self.Remesh();
 
@@ -239,6 +245,10 @@ class ULF_FSISolver:
    ######################################################################
 ######################################################################
     def Remesh(self):
+	#self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 3.50)
+	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.1)
+	#self.UlfUtils.MarkNodesCloseToWallForBladder(self.fluid_model_part, 0.0003)
+			
         ##erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
@@ -249,15 +259,16 @@ class ULF_FSISolver:
 
 
         #marking nodes outside of the bounding box
-        (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
+        #(self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
+         
         h_factor=0.2;
         ##remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
             #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.add_nodes, self.alpha_shape)          
             (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
-       
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)            
+              
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
@@ -270,6 +281,9 @@ class ULF_FSISolver:
 
         #calculating the neighbours for the overall model
         (self.combined_neigh_finder).Execute();
+               
+        #self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part, self.domain_size)
+        #self.node_erase_process.Execute()
 
         print "end of remesh fucntion"       
     ######################################################################
