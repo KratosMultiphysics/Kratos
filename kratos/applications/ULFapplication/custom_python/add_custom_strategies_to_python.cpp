@@ -194,17 +194,14 @@ namespace Kratos
 				init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
 				.def("Solve", &LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
 				;
+			typedef LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy3D; 
 
-
-						/*
-			class_< LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< ResidualBasedLinearStrategyType >,  boost::noncopyable >
-				("LapModifiedLinearStrategy2D", 
-				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,
-				bool, bool, bool, bool
-				>() )
-				  .def("Solve",&LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve);
+			class_< LapModifiedLinearStrategy3D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("LapModifiedLinearStrategy3D", 
+				init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+				.def("Solve", &LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
+				;
 			
-			*/
 		}
 
 	}  // namespace Python.
