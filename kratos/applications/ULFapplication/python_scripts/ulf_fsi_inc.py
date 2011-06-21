@@ -2,6 +2,7 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosULFApplication import *
+from KratosPFEMApplication import *
 from KratosStructuralApplication import *
 from KratosMeshingApplication import *
 #import time
@@ -82,6 +83,7 @@ class ULF_FSISolver:
 
         ###temporary ... i need it to calculate the nodal area
         self.UlfUtils = UlfUtils()
+         self.PfemUtils = PfemUtils()
 
         #self.save_structural_elements
         self.alpha_shape = 1.5;
@@ -150,8 +152,8 @@ class ULF_FSISolver:
         (self.mark_fluid_process).Execute(); #we need this before saving the structrural elements
 
         #we specify domain size, to deal with problems involving membarnes in 3D in a specific way (see save_structure_model_part_process.h
-        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part, self.domain_size);
-        (self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part, self.domain_size);
+        (self.save_structure_model_part_process).SaveStructure(self.fluid_model_part, self.structure_model_part);
+        (self.save_structure_conditions_process).SaveStructureConditions(self.fluid_model_part, self.structure_model_part);
 
         #creating initially empty container for lagrangian inlet-nodes
 
@@ -275,7 +277,8 @@ class ULF_FSISolver:
    #  This is done to make switching off/on of remeshing easier
     def Remesh(self):                 
         ##erase all conditions and elements prior to remeshing
-        self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 2.50)
+        #self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 2.50)
+        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.1)
         
         if (self.remeshing_flag==1.0):
             ((self.combined_model_part).Elements).clear();
@@ -292,7 +295,7 @@ class ULF_FSISolver:
             if (self.domain_size == 2):
                 (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
             elif (self.domain_size == 3):
-                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
+                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
 
         
             #remesh CHECK for 3D or 2D

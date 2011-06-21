@@ -80,7 +80,11 @@ class ULFFracStrategyPython:
         ReformDofSet=True
         #maybe should be just "fluid_model_part" below, and not the combined
         #self.PressureLinStrat=ResidualBasedLinearStrategy(self.model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
-        self.PressureLinStrat=LapModifiedLinearStrategy2D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+        if (domain_size==2):
+	  self.PressureLinStrat=LapModifiedLinearStrategy2D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+	if (domain_size==3):
+	  self.PressureLinStrat=LapModifiedLinearStrategy3D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+        
         #self.PressureLinStrat=ResidualBasedLinearStrategy(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
         self.PressureLinStrat.SetEchoLevel(1)
         #############################################
@@ -182,8 +186,8 @@ class ULFFracStrategyPython:
                   #node.SetSolutionStepValue(PRESSURE,0,0.0)
                   #print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                   node.Fix(PRESSURE)
-            if (node.GetSolutionStepValue(IS_INTERFACE)==1):
-                node.Fix(PRESSURE)
+            #if (node.GetSolutionStepValue(IS_INTERFACE)==1):
+            #    node.Fix(PRESSURE)
 
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
         self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);          
