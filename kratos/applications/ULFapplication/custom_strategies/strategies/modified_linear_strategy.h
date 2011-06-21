@@ -362,10 +362,10 @@ namespace Kratos
 				
 				pBuilderAndSolver->Build(pScheme,BaseType::GetModelPart(),mA,mb);
 				//ADD HERE THE INTERFACE LAPLACIAN
-				
-				ConstructMatrixStructure_FluidDivergenceMatrixD( mD,  BaseType::GetModelPart());
 				/*
-				double density_str=1000.0;
+				ConstructMatrixStructure_FluidDivergenceMatrixD( mD,  BaseType::GetModelPart());
+				
+				double density_str=10000.0;
 				BuildAuxiliariesFSI(mD, density_str, BaseType::GetModelPart());
 				mA+=mD;
 				*/
@@ -746,7 +746,7 @@ namespace Kratos
 
 			mD.resize(reduced_dim,this->mpb->size(),false);
 
-			KRATOS_WATCH(mD)
+			//KRATOS_WATCH(mD)
 			
 			std::vector<int>  indices;
 			indices.reserve(1000);
@@ -778,8 +778,8 @@ namespace Kratos
 			//fill the matrix row by row
 			//unsigned int dof_position = r_model_part.NodesBegin()->GetDofPosition(DISPLACEMENT_X);
 			unsigned int dof_position = r_model_part.NodesBegin()->GetDofPosition(PRESSURE);
-			KRATOS_WATCH("Pressure DOF")
-			KRATOS_WATCH(dof_position)
+			//KRATOS_WATCH("Pressure DOF")
+			//KRATOS_WATCH(dof_position)
 			
 			for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
 			{
@@ -805,7 +805,7 @@ namespace Kratos
 						{
 							//unsigned int tmp = (i->GetDof(DISPLACEMENT_X,dof_position)).EquationId();
 							unsigned int tmp = (i->GetDof(PRESSURE,dof_position)).EquationId();
-							KRATOS_WATCH(tmp)
+							//KRATOS_WATCH(tmp)
 							for(unsigned int kk = 0; kk<TDim; kk++)
 							{
 								indices.push_back(TDim*tmp + kk);
@@ -829,8 +829,8 @@ namespace Kratos
 				}
 			}
 			
-			KRATOS_WATCH("FSI D")
-			KRATOS_WATCH(mD)
+			//KRATOS_WATCH("FSI D")
+			//KRATOS_WATCH(mD)
 			KRATOS_CATCH("")
 		
 		}
@@ -850,7 +850,7 @@ namespace Kratos
 				//WorkMatrix.resize(reduced_dim, reduced_dim, false);
 
 			TSystemMatrixType WorkMatrix(reduced_dim,reduced_dim);
-			KRATOS_WATCH(WorkMatrix)
+			//KRATOS_WATCH(WorkMatrix)
 
 			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
 			array_1d<double,TDim+1> N;
@@ -861,7 +861,7 @@ namespace Kratos
 			
 			TSystemVectorType mMdiagInv(this->mpb->size());
 //this->mEquationSystemSize);
-			KRATOS_WATCH(mMdiagInv)
+			//KRATOS_WATCH(mMdiagInv)
 
 
 			//getting the dof position
@@ -939,9 +939,11 @@ namespace Kratos
 				
 			}
 			//inverting the mass matrix
+			/*
 			KRATOS_WATCH(mMdiagInv.size())
 			KRATOS_WATCH(mD.size1())
 			KRATOS_WATCH(mD.size2())
+			*/
 			for(unsigned int i = 0; i<TSparseSpace::Size(mMdiagInv); i++)
 			{
 				if (mMdiagInv[i]>1e-26)
@@ -949,15 +951,16 @@ namespace Kratos
 				else{ //if (mMdiagInv[i]==0.0)
 					//KRATOS_WATCH(mMdiagInv[i])
 					//KRATOS_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")					
-					mMdiagInv[i] = 1000000000000.0;					
+					mMdiagInv[i] = 10000000000000000.0;					
 					}
 			}
 			//finally we will compute the matrix DM-1G (interface Lapalcian)
 			//first we multiply G with Minv
 			TSystemMatrixType matG;
 			
-			TSparseSpace::Transpose(mD, matG);
-			KRATOS_WATCH(matG)
+			//TSparseSpace::Transpose(mD, matG);
+			matG=trans(mD);
+			//KRATOS_WATCH(matG)
 			for (int i=0;i<mMdiagInv.size();i++)
 			{
 			for (int j=0;j<matG.size2();j++)
@@ -972,7 +975,7 @@ namespace Kratos
 			//WorkMatrix = D * G
 			//TSparseSpace::Mult(mD, matG, WorkMatrix);
 			WorkMatrix=boost::numeric::ublas::prod(mD, matG);
-			KRATOS_WATCH(WorkMatrix)
+			//KRATOS_WATCH(WorkMatrix)
 
 			KRATOS_CATCH (" ")
 		}	
