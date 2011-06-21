@@ -487,6 +487,190 @@ namespace Kratos
 			}
 		}
 
+		void MarkNodesCloseToWallForBladder(ModelPart& ThisModelPart, const double& crit_distance)
+
+		{
+		for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
+				in!=ThisModelPart.NodesEnd(); in++)
+			{
+				if (in->FastGetSolutionStepValue(DISTANCE)>0.00 && in->FastGetSolutionStepValue(DISTANCE)<crit_distance && in->FastGetSolutionStepValue(IS_STRUCTURE)==0)
+					{
+					in->GetValue(ERASE_FLAG)=true;
+					KRATOS_WATCH("NODE EXCESSIVELY CLOSE TO WALL!!!!! BLADDER FUNCTION!!!!!!!!!!!!!!!!!!!!!!!!!!111")
+					}
+			}
+		}
+		//this is a function originally written by Antonia. It seems to work better then the MarkNodesCloseToWall (its given below)
+		void MarkNodesTouchingWall(ModelPart& ThisModelPart, int domain_size, double factor)
+		{
+		KRATOS_TRY;
+			
+		if (domain_size==2)
+			{
+			
+			for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{	
+					double n_str=0;
+					
+					//counting number on nodes at the wall
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					n_str = geom[0].FastGetSolutionStepValue(IS_BOUNDARY);
+					n_str+= geom[1].FastGetSolutionStepValue(IS_BOUNDARY);
+					n_str+= geom[2].FastGetSolutionStepValue(IS_BOUNDARY);
+					//if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
+					if (n_str==2.0)
+						{
+						 boost::numeric::ublas::bounded_matrix<double,3,2> sort_coord = ZeroMatrix(3,2);
+						 int cnt=1;
+						for (int i=0; i<3;++i)
+						    if(geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
+						       {	
+							sort_coord(0,0) = geom[i].X();
+							sort_coord(0,1) = geom[i].Y();
+						       }
+						    else 
+							{
+							sort_coord(cnt,0) = geom[i].X();
+							sort_coord(cnt,1) = geom[i].Y();
+							cnt++;
+							}
+
+						 array_1d<double,2> vec1 = ZeroVector(2);
+						 array_1d<double,2> vec2 = ZeroVector(2);
+
+						 vec1[0] = sort_coord(0,0) - sort_coord(1,0);  		
+						 vec1[1] = sort_coord(0,1) - sort_coord(1,1); 
+						
+						 vec2[0] = sort_coord(2,0) - sort_coord(1,0);  		
+						 vec2[1] = sort_coord(2,1) - sort_coord(1,1); 
+	
+						 double outer_prod = 0.0;
+						 outer_prod = vec2[1]*vec1[0]-vec1[1]*vec2[0];
+
+						 double length_measure =0.0;
+						 length_measure = vec2[0]*vec2[0] + vec2[1]*vec2[1];
+						 length_measure = sqrt(length_measure);
+						 outer_prod/=length_measure;
+	 
+						//KRATOS_WATCH(fabs(outer_prod));
+					//	RATOS_WATCH(factor*length_measure);
+
+						if (fabs(outer_prod)<factor*length_measure)
+							{
+								for (int i=0;i<3;i++)
+									{
+									//if thats not the wall node, remove it
+									if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
+										{
+										geom[i].GetValue(ERASE_FLAG)=true;
+										//KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
+										}
+									}
+							}
+						}
+
+				}
+			}
+		  else
+		  {
+			for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+				i!=ThisModelPart.ElementsEnd(); i++)
+			{	
+				double n_str=0;
+				//the n_int is just for the bladder example.. otherwise the function works just with is_STR flag
+				double n_int=0;
+				
+				//counting number on nodes at the wall
+				Geometry< Node<3> >& geom = i->GetGeometry();
+				if(geom.size() == 4){
+					for(int ii = 0; ii <= domain_size ; ++ii)
+						{
+						n_str += geom[ii].FastGetSolutionStepValue(IS_STRUCTURE);
+						n_int += geom[ii].FastGetSolutionStepValue(IS_INTERFACE);
+						}
+					//if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
+					if (n_str==3.0 && n_int==3.0){
+						  boost::numeric::ublas::bounded_matrix<double,4,3> sort_coord = ZeroMatrix(4,3);
+						  int cnt=1;
+						  for (int i=0; i<4;++i){
+						    if(geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
+							{	
+							sort_coord(0,0) = geom[i].X();
+							sort_coord(0,1) = geom[i].Y();
+							sort_coord(0,2) = geom[i].Z();
+							}
+						    else 
+							{
+							sort_coord(cnt,0) = geom[i].X();
+							sort_coord(cnt,1) = geom[i].Y();
+							sort_coord(cnt,2) = geom[i].Z();
+							cnt++;
+							}
+						  }
+						  array_1d<double,3> vec1 = ZeroVector(3);
+						  array_1d<double,3> vec2 = ZeroVector(3);
+						  array_1d<double,3> vec3 = ZeroVector(3);
+
+						
+						  vec1[0] = sort_coord(0,0) - sort_coord(1,0);  		
+						  vec1[1] = sort_coord(0,1) - sort_coord(1,1); 
+						  vec1[2] = sort_coord(0,2) - sort_coord(1,2); 
+						
+						  vec2[0] = sort_coord(2,0) - sort_coord(1,0);  		
+						  vec2[1] = sort_coord(2,1) - sort_coord(1,1); 
+						  vec2[2] = sort_coord(2,2) - sort_coord(1,2); 
+												
+						  vec3[0] = sort_coord(3,0) - sort_coord(1,0);  		
+						  vec3[1] = sort_coord(3,1) - sort_coord(1,1); 
+						  vec3[2] = sort_coord(3,2) - sort_coord(1,2); 
+
+						  //Control the hight of the thetraedral element
+						  //Volume of the tethraedra
+						  double vol = (vec2[0]*vec3[1]*vec1[2]-vec2[0]*vec3[2]*vec1[1]+
+								vec2[1]*vec3[2]*vec1[0]-vec2[1]*vec3[0]*vec1[2]+
+								vec2[2]*vec3[0]*vec1[1]-vec2[2]*vec3[1]*vec1[0])*0.1666666666667;
+						  //Area of the basis
+						  array_1d<double,3> outer_prod = ZeroVector(3);
+						  outer_prod[0] = vec2[1]*vec3[2]-vec2[2]*vec3[1];
+						  outer_prod[1] = vec2[2]*vec3[0]-vec2[0]*vec3[2];
+						  outer_prod[2] = vec2[0]*vec3[1]-vec2[1]*vec3[0];
+						  double area_base = norm_2(outer_prod);
+						  area_base *= 0.5;
+						  //height
+						
+						  if(area_base >0.0000000001)
+						    vol/= area_base;
+						  else
+						    KRATOS_ERROR(std::logic_error,"error: BAse element has zero area","");
+						  
+						//vol/=area_base;
+						  double length_measure1 = norm_2(vec2);						   
+						  double length_measure = norm_2(vec3);
+						  if(length_measure1 < length_measure)
+						  {
+						    length_measure = length_measure1;
+						  }
+
+						if (fabs(vol)<factor*length_measure)
+						{
+							for (int i=0;i<4;i++)
+							{
+								//if thats not the wall node, remove it
+								//never remove a Lagrangian inlet node
+								if (geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && geom[i].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0.0)
+								{
+									geom[i].GetValue(ERASE_FLAG)=true;
+									KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
+								}
+							}
+						}
+					}//interface elements
+				}//non_shell
+			}//all elements loop
+		  }//domain_size==3
+		  KRATOS_CATCH("")
+		}
 
 		void MarkNodesCloseToWall(ModelPart& ThisModelPart, int domain_size, double alpha_shape)
 		{
@@ -531,11 +715,13 @@ namespace Kratos
 				{	
 					int n_str=0;
 					int n_fl=0;
+					int n_lag=0;
 					int n_interf=0;
 					//counting number on nodes at the wall
 					Geometry< Node<3> >& geom = i->GetGeometry();
 					for (unsigned int iii=0;iii<geom.size();iii++)
 					{
+					n_lag += int(geom[iii].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET));
 					n_str += int(geom[iii].FastGetSolutionStepValue(IS_STRUCTURE));
 					n_fl += int(geom[iii].FastGetSolutionStepValue(IS_FLUID));
 					n_interf += int(geom[iii].FastGetSolutionStepValue(IS_INTERFACE));
@@ -544,7 +730,7 @@ namespace Kratos
 
 					//if three nodes are at the wall, we check if the fourth node is close to it or not by passing the alpha-shape
 					//if (geom.size()==4.0 && n_str==3.0 && n_fl==4.0)
-					if (geom.size()==4.0 && n_interf==3)
+					if (geom.size()==4 && n_interf==3 && n_lag==0)
 						{
 						//if alpha shape tells to preserve
 						if (AlphaShape3D(alpha_shape, geom)==false)
@@ -560,6 +746,7 @@ namespace Kratos
 									}
 							}
 						}
+					
 
 				}
 			}
@@ -567,6 +754,59 @@ namespace Kratos
 				
 
 		}
+		void SetNodalHAtLagInlet(ModelPart& ThisModelPart, double factor)
+		{
+		for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{	
+					int n_lag=0;
+					
+					//counting number on nodes at the wall
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					for (unsigned int iii=0;iii<geom.size();iii++)
+					{
+					n_lag += int(geom[iii].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET));
+					}
+					if (geom.size()==4 && n_lag>0)
+						{
+						for (unsigned int iii=0;iii<geom.size();iii++)
+							{
+							geom[iii].FastGetSolutionStepValue(NODAL_H)/=factor;
+							}
+						
+						}
+				}
+
+		}
+		void RestoreNodalHAtLagInlet(ModelPart& ThisModelPart, double factor)
+		{
+		for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
+					i!=ThisModelPart.ElementsEnd(); i++)
+				{	
+					int n_lag=0;
+					
+					//counting number on nodes at the wall
+					Geometry< Node<3> >& geom = i->GetGeometry();
+					for (unsigned int iii=0;iii<geom.size();iii++)
+					{
+					n_lag += int(geom[iii].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET));
+					}
+					if (geom.size()==4 && n_lag>0)
+						{
+						for (unsigned int iii=0;iii<geom.size();iii++)
+							{
+							KRATOS_WATCH("before")
+							KRATOS_WATCH(geom[iii].FastGetSolutionStepValue(NODAL_H))
+							geom[iii].FastGetSolutionStepValue(NODAL_H)*=factor;
+							KRATOS_WATCH("after")
+							KRATOS_WATCH(geom[iii].FastGetSolutionStepValue(NODAL_H))
+							}
+						
+						}
+				}
+
+		}
+
 		void MarkLonelyNodesForErasing(ModelPart& ThisModelPart, int domain_size)
 		{
 
@@ -574,7 +814,13 @@ namespace Kratos
 			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
 				in!=ThisModelPart.NodesEnd(); in++)
 			{
-				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 )//&& in->FastGetSolutionStepValue(IS_FLUID)==1.0)
+			in->GetValue(ERASE_FLAG)=false;
+
+			}
+			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
+				in!=ThisModelPart.NodesEnd(); in++)
+			{
+				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0)//&& in->FastGetSolutionStepValue(IS_FLUID)==1.0)
 					{
 					in->GetValue(ERASE_FLAG)=true;
 					KRATOS_WATCH("Marking lonelynodes!!!")
@@ -792,7 +1038,7 @@ namespace Kratos
 
 					)
 				{
-					i->GetValue(ERASE_FLAG)=true;					
+					//i->GetValue(ERASE_FLAG)=true;					
 					//set to zero the pressure
 					(i)->FastGetSolutionStepValue(PRESSURE) = 0;
 					
