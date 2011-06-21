@@ -100,7 +100,7 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-		void  SaveStructureConditions(ModelPart& fluid_model_part, ModelPart& structure_model_part,  int domain_size)
+		void  SaveStructureConditions(ModelPart& fluid_model_part, ModelPart& structure_model_part)
 		{
 			KRATOS_TRY
 				
@@ -122,12 +122,13 @@ namespace Kratos
 				
 				if(n_struct==ic->GetGeometry().size())// && n_fluid != im->GetGeometry().size())
 				{
-					structure_model_part.Conditions().push_back(*(ic.base()));	
+					structure_model_part.Conditions().push_back(*(ic.base()));
+					/*	
 					for (unsigned int i=0;i<ic->GetGeometry().size();i++)
 					{
 					ic->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID)=0.0; 
 					}
-								
+					*/			
 				}
 				
 				
