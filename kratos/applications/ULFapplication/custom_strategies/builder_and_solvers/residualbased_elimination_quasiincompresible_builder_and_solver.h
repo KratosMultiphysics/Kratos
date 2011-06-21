@@ -527,11 +527,30 @@ namespace Kratos
 			BuildRHS(pScheme,r_model_part,b);
 
 			//KRATOS_WATCH(b)
-
+			/*
+			for (typename NodesArrayType::iterator node_iterator =r_model_part.NodesBegin(); node_iterator !=r_model_part.NodesEnd(); ++node_iterator)
+			{
+				
+				//not adding thelonely nodes:
+				if( node_iterator->FastGetSolutionStepValue(IS_INTERFACE)==1.0 )
+				{
+				//we add one because we have to account for the contribution of the node itself
+				unsigned int eq_id=(node_iterator->GetDof(DISPLACEMENT_X)).EquationId();
+				node_iterator->FastGetSolutionStepValue(REACTION_X)=b[eq_id];
+				eq_id=(node_iterator->GetDof(DISPLACEMENT_Y)).EquationId();
+				node_iterator->FastGetSolutionStepValue(REACTION_Y)=b[eq_id];
+				}
+			}
+			*/
+			
 			//array_1d<double, 3> ReactionsVec;
 			typename DofsArrayType::ptr_iterator it2;
 			for (it2=BaseType::mDofSet.ptr_begin();it2 != BaseType::mDofSet.ptr_end(); ++it2)
 			{
+				
+
+
+				//JUST FOR ONE EXAMPLE - Turek (otherwise the below is correct)				
 				if ( (*it2)->IsFixed()  )
 				{
 					unsigned int eq_id=(*it2)->EquationId();
@@ -1184,14 +1203,17 @@ namespace Kratos
 					//preconditioner[i] = 1.00/preconditioner[i];
 					preconditioner[i] = 1.00/preconditioner[i];
 				else 
-					preconditioner[i] = 10000000000000000000.0;
+					preconditioner[i] = 1000000000000000000.0;
 				
+				if (preconditioner[i]<0.0)					
+					preconditioner[i]*=1000000000000000000.0;
+				/*
 				if (preconditioner[i]<0.0)
 				{
 				//preconditioner[i]=1.0;
 					KRATOS_ERROR(std::logic_error,"NEGATIVE PRECONDITIONER","")
 				}
-				
+				*/
 				
 							
 			}
