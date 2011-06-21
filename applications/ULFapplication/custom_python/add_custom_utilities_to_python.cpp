@@ -105,8 +105,12 @@ namespace Python
 		.def("InjectNodesAtInlet", &UlfUtils::InjectNodesAtInlet)
 		.def("MoveInletNodes", &UlfUtils::MoveInletNodes)
 		.def("MarkNodesCloseToWall", &UlfUtils::MarkNodesCloseToWall)
+		.def("MarkNodesTouchingWall", &UlfUtils::MarkNodesTouchingWall)
+		.def("MarkNodesCloseToWallForBladder", &UlfUtils::MarkNodesCloseToWallForBladder)
 		.def("MarkNodesCloseToFS", &UlfUtils::MarkNodesCloseToFS)
 		.def ("MarkLonelyNodesForErasing", &UlfUtils::MarkLonelyNodesForErasing)
+		.def ("RestoreLagInletNodalH", &UlfUtils::RestoreNodalHAtLagInlet)
+		.def ("SetLagInletNodalH", &UlfUtils::SetNodalHAtLagInlet)
 		 ;
 	  
 	  class_<NistUtils>("NistUtils", init<>())
