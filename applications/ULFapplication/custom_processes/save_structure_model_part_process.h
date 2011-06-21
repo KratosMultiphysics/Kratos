@@ -100,7 +100,7 @@ namespace Kratos
 		///@name Operations
 		///@{
 
-		void  SaveStructure(ModelPart& fluid_model_part, ModelPart& structure_model_part,  int domain_size)
+		void  SaveStructure(ModelPart& fluid_model_part, ModelPart& structure_model_part)
 		{
 			KRATOS_TRY
 				
@@ -112,33 +112,18 @@ namespace Kratos
 				//PointerVector<Element> struct_elements_list;
 				//check number of structure nodes
 				unsigned int n_struct=0;
-				unsigned int n_fluid = 0;
+				//unsigned int n_fluid = 0;
 				for (unsigned int i=0;i<im->GetGeometry().size();i++)
 				{
 					n_struct += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE) );
-					n_fluid += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID) );
+					//n_fluid += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID) );
 					
 				}
 				
 				if(n_struct==im->GetGeometry().size())// && n_fluid != im->GetGeometry().size())
 				{
 					structure_model_part.Elements().push_back(*(im.base()));					
-				}
-				
-				//3D problem involving membrane moving in fluid (only for this)
-				/*
-				if (int(domain_size)==3)
-				{
-				//just to check FOR FLUID-MEMBRANE!!!! otherwise th eone above is correct
-				
-					if(n_struct==im->GetGeometry().size() && n_struct!= 4)
-					{
-					//KRATOS_WATCH("Domain size iz 3333333333333333333333333333333333333333333333333333333!!!!!!!")
-					structure_model_part.Elements().push_back(*(im.base()));
-				
-					}
-				}
-				*/
+				}			
 				
 			}
 		KRATOS_CATCH("")
