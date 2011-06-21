@@ -14,7 +14,7 @@ rrossi@cimne.upc.edu
 Gran Capita' s/n, 08034 Barcelona, Spain
 
 
-Permission is hereby granted, free  of charge, to any person obtaining
+Permission is hereby granted, free  of charge, to any person obtaining  
 a  copy  of this  software  and  associated  documentation files  (the
 "Software"), to  deal in  the Software without  restriction, including
 without limitation  the rights to  use, copy, modify,  merge, publish,
@@ -115,7 +115,7 @@ namespace Kratos
 			: mr_model_part(model_part)
 		{
 			KRATOS_TRY
-				minsertion_time = 0.00;
+			minsertion_time = 0.00;
 			minsertion_time_step = insertion_time_step;
 			//by default we set the inlet vel to 0
 			this->minlet_vel=inlet_vel;
@@ -193,7 +193,7 @@ namespace Kratos
 
 							int id = mr_model_part.Nodes().size();
 							id++;
-							KRATOS_WATCH(id)
+							//KRATOS_WATCH(id)
 							double init_pos_x=in->X()-in->FastGetSolutionStepValue(DISPLACEMENT_X);
 							double init_pos_y=in->Y()-in->FastGetSolutionStepValue(DISPLACEMENT_Y);
 							double init_pos_z=in->Z()-in->FastGetSolutionStepValue(DISPLACEMENT_Z);
@@ -205,7 +205,7 @@ namespace Kratos
 							Node<3>::Pointer new_node = mr_model_part.CreateNewNode(id, init_pos_x, init_pos_y, init_pos_z);//in->X(), in->Y(), in->Z());
 
 		                                        new_node->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize() );	
-							KRATOS_WATCH(new_node->GetBufferSize())						
+							//KRATOS_WATCH(new_node->GetBufferSize())						
 
 							for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
 								{
@@ -226,33 +226,37 @@ namespace Kratos
 
 							//array_1d<double,3>& dnew = new_node->FastGetSolutionStepValue(DISPLACEMENT);
 							//const array_1d<double,3>& d = in->FastGetSolutionStepValue(DISPLACEMENT);
-							array_1d<double,3> d=this->minlet_vel*dt;
-							//unsigned int step = 0;     
-							//unsigned int buffer_size = in->GetBufferSize();
-							//unsigned int step_data_size = mr_model_part.GetNodalSolutionStepDataSize();
-							//KRATOS_WATCH(in->FastGetSolutionStepValue(DISPLACEMENT))
 
+							//here we read the velocity of the Lagrangian inlet
+							const array_1d<double,3>& inlet_vel = in->FastGetSolutionStepValue(VELOCITY,1);
 							
-							//new_node->SolutionStepData().Data()=in->SolutionStepData().Data();
-							size_t sizee = 0;
-							new_node->FastGetSolutionStepValue(DISPLACEMENT)=d;
+							//array_1d<double,3> d=this->minlet_vel*dt;
+							//KRATOS_WATCH(inlet_vel)
+							array_1d<double,3> d=inlet_vel*dt;
+
+							size_t sizee = 0;							
+							new_node->FastGetSolutionStepValue(DISPLACEMENT)+=d;
 							//KRATOS_WATCH(new_node->FastGetSolutionStepValue(DISPLACEMENT))
 							
-							//new_node->FastGetSolutionStepValue(DISPLACEMENT,1) = in->FastGetSolutionStepValue(DISPLACEMENT,1);
-							new_node->FastGetSolutionStepValue(VELOCITY) = this->minlet_vel;//in->FastGetSolutionStepValue(VELOCITY);
-							//new_node->FastGetSolutionStepValue(VELOCITY,1) = in->FastGetSolutionStepValue(VELOCITY,1);
+							//new_node->FastGetSolutionStepValue(VELOCITY) = this->minlet_vel;//in->FastGetSolutionStepValue(VELOCITY);
+							//in->FastGetSolutionStepValue(VELOCITY) = this->minlet_vel;//in->FastGetSolutionStepValue(VELOCITY);
+							new_node->FastGetSolutionStepValue(VELOCITY) = inlet_vel;//in->FastGetSolutionStepValue(VELOCITY);
+							in->FastGetSolutionStepValue(VELOCITY) = inlet_vel;//in->FastGetSolutionStepValue(VELOCITY);
+							
+							new_node->FastGetSolutionStepValue(NODAL_AREA) = in->FastGetSolutionStepValue(NODAL_AREA);
+							new_node->FastGetSolutionStepValue(PRESSURE,1) = in->FastGetSolutionStepValue(PRESSURE,1);
 							new_node->FastGetSolutionStepValue(PRESSURE) = in->FastGetSolutionStepValue(PRESSURE);
 							new_node->FastGetSolutionStepValue(BULK_MODULUS) = in->FastGetSolutionStepValue(BULK_MODULUS);
 							new_node->FastGetSolutionStepValue(VISCOSITY) = in->FastGetSolutionStepValue(VISCOSITY);
 							new_node->FastGetSolutionStepValue(DENSITY) = in->FastGetSolutionStepValue(DENSITY);
 							new_node->FastGetSolutionStepValue(BODY_FORCE) = in->FastGetSolutionStepValue(BODY_FORCE);
 							new_node->FastGetSolutionStepValue(IS_FLUID)=1.0;
+							new_node->FastGetSolutionStepValue(IS_BOUNDARY)=1.0;
 							//new_node->FastGetSolutionStepValue(ACCELERATION) = in->FastGetSolutionStepValue(PRESS_PROJ);
 							new_node->Fix(DISPLACEMENT_X);
 							new_node->Fix(DISPLACEMENT_Y);
 							new_node->Fix(DISPLACEMENT_Z);
 
-							new_node->FastGetSolutionStepValue(IS_BOUNDARY) = 1;
 							//new_node->FastGetSolutionStepValue(IS_STRUCTURE) = 1;
 							new_node->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) = 1;
 							double nodal_h = in->FastGetSolutionStepValue(NODAL_H);
@@ -261,7 +265,7 @@ namespace Kratos
 						}
 					}
 					minsertion_time_step = EstimateInsertionTime();
-KRATOS_WATCH(minsertion_time_step);
+					KRATOS_WATCH(minsertion_time_step);
 				
 					//update the time for the next insertion
 					minsertion_time = time + minsertion_time_step;
@@ -276,8 +280,13 @@ KRATOS_WATCH(minsertion_time_step);
 					if(in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 1)
 						{
 						array_1d<double,3> old_disp=in->FastGetSolutionStepValue(DISPLACEMENT,1);
-						array_1d<double,3> inc_disp=this->minlet_vel*dt;
+						const array_1d<double,3>& inlet_vel = in->FastGetSolutionStepValue(VELOCITY,1);
+						//KRATOS_WATCH(inlet_vel)
+						//array_1d<double,3> inc_disp=this->minlet_vel*dt;
+						array_1d<double,3> inc_disp=inlet_vel*dt;	
 						in->FastGetSolutionStepValue(DISPLACEMENT)=inc_disp+old_disp;
+						//in->FastGetSolutionStepValue(VELOCITY)=this->minlet_vel;
+						in->FastGetSolutionStepValue(VELOCITY)=inlet_vel;
 						in->Fix(DISPLACEMENT_X);
 						in->Fix(DISPLACEMENT_Y);
 						in->Fix(DISPLACEMENT_Z);
@@ -394,8 +403,8 @@ KRATOS_WATCH(minsertion_time_step);
 				if(in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 1)
 				{
 					const array_1d<double,3> v = this->minlet_vel;//in->FastGetSolutionStepValue(VELOCITY);
-					KRATOS_WATCH("INLET VELOCITY")
-					KRATOS_WATCH(v)
+					//KRATOS_WATCH("INLET VELOCITY")
+					//KRATOS_WATCH(v)
 					double nodal_h = in->FastGetSolutionStepValue(NODAL_H);
 
 					//estimating the next time step
@@ -404,7 +413,7 @@ KRATOS_WATCH(minsertion_time_step);
 					KRATOS_WATCH(dtcandidate)
 					if( dtcandidate < dt_estimate)
 						dt_estimate = dtcandidate;
-					//dt_estimate*=0.75;
+					dt_estimate*=1.1;
 					KRATOS_WATCH(dt_estimate)
 				}
 			}
