@@ -26,7 +26,7 @@
  * TetrahedraSplitMode, Split_Tetrahedra, and TetrahedraGetNewConnectivityGID\n
  *
  *
- * EXAMPLE: imagine that an user would like to split a triangle formed\n
+ * EXAMPLE: imagine that an user would like to split a tetrahedra formed\n
  * by the ids 3 9 7 12 by introducing a new node 15 on the edge between 9 and 7\n
  * he should define\n
  * int aux[11];\n
