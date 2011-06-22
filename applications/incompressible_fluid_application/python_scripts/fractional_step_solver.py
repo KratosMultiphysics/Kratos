@@ -191,25 +191,32 @@ class IncompressibleFluidSolver:
         new_restart_utilities.PrintRestart_ScalarVariable(VISCOSITY,"VISCOSITY",self.model_part.Nodes,restart_file)
         new_restart_utilities.PrintRestart_ScalarVariable(DENSITY,"DENSITY",self.model_part.Nodes,restart_file)
         restart_file.close() 
-        
-##        backupfile = open(FileName+".py",'w')
-####        backupfile.write( "from Kratos import *\n");
-####        backupfile.write( "def Restart(NODES):\n" )
-##        
-##        import restart_utilities
-##        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestart_ScalarVariable_PyFormat(PRESSURE,"PRESSURE",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestart_ScalarVariable_PyFormat(DENSITY,"DENSITY",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestart_ScalarVariable_PyFormat(VISCOSITY,"VISCOSITY",self.model_part.Nodes,backupfile)
-##
-##        restart_utilities.PrintRestartFixity_PyFormat(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestartFixity_PyFormat(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestartFixity_PyFormat(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,backupfile)
-##        restart_utilities.PrintRestartFixity_PyFormat(PRESSURE,"PRESSURE",self.model_part.Nodes,backupfile)
-##        
-##        backupfile.close()
+
+    def ActivateSmagorinsky(self,C):
+        for elem in self.model_part.Elements:
+            elem.SetValue(C_SMAGORINSKY,C)
+
+    def ActivateSpalartAllmaras(self,wall_nodes,DES):
+        from KratosFluidDynamicsApplication import *
+        for node in wall_nodes:
+            node.SetValue(IS_VISITED,1.0)
+
+        distance_calculator = BodyDistanceCalculationUtils()
+        distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+
+        non_linear_tol = 0.001
+        max_it = 5
+        reform_dofset = self.ReformDofAtEachIteration
+        time_order = self.time_order
+        pPrecond = DiagonalPreconditioner()
+        turbulence_linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
+        turbulence_model.AdapatForFractionalStep()
+        if(DES==True):
+            turbulence_model.ActivateDES(1.0);
+
+        self.solver.AddInitializeIterationProcess(turbulence_model);
+
 
 
         
