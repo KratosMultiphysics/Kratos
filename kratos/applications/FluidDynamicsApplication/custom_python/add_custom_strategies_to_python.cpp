@@ -62,12 +62,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "processes/process.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -92,12 +94,11 @@ namespace Kratos
 
 			//********************************************************************
 			//********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-// 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-// 				("TestStrategy", 
-// 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-// 				;
+ 			class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
+ 					bases< BaseSchemeType >,  boost::noncopyable >
+ 				("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",
+ 				init<double,double,Process::Pointer >() )
+ 				;
 		 
 		}
 

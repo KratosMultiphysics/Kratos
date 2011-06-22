@@ -1,6 +1,7 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
+from KratosFluidDynamicsApplication import *
 ##from KratosExternalSolversApplication import * # For SuperLU solver
 
 
@@ -62,8 +63,7 @@ class DecoupledSolver:
 
         self.alpha = -0.3
         self.move_mesh_strategy = 0
-        self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme\
-                           ( self.alpha,self.move_mesh_strategy )
+
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
         
@@ -89,8 +89,8 @@ class DecoupledSolver:
 
         self.max_iter = 10
 
-        self.dynamic_tau = 0.0
-        self.oss_switch  = 0
+        self.dynamic_tau = None
+        self.oss_switch  = None
                             
         #default settings
         self.echo_level = 0
@@ -109,9 +109,25 @@ class DecoupledSolver:
         self.IN_min_tol = self.linear_tol
         self.IN_max_tol=0.1
         self.IN_gamma=0.9
+
+        # For Spalart-Allmaras
+        self.turbulence_model = None
+        self.domain_size = domain_size
         
     #######################################################################
     def Initialize(self):
+
+        if self.turbulence_model == None:
+            self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme\
+                               ( self.alpha,self.move_mesh_strategy )
+        else:
+            self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
+                               (self.alpha,\
+                                self.move_mesh_strategy,\
+                                self.turbulence_model)
+
+        self.time_scheme.Check(self.model_part)
+
         #creating the solution strategy
 
         self.builder_and_solver = PressureSplittingBuilderAndSolver\
@@ -146,8 +162,12 @@ class DecoupledSolver:
         
         (self.solver).SetEchoLevel(self.echo_level)
 
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
-        self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
+        if self.dynamic_tau != None:
+            self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        if self.oss_switch != None:
+            self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
+
+        self.solver.Check()
 	                     
     #######################################################################   
     def Solve(self):
@@ -183,7 +203,36 @@ class DecoupledSolver:
 
     def UseVelocityCorrection(self,level=2):
         self.velocity_correction = level
+
+    def ActivateSmagorinsky(self,c):
+        for elem in self.model_part.Elements:
+            elem.SetValue(C_SMAGORINSY,c)
+
+    def ActivateSpalartAllmaras(self,wall_nodes,DES=False):
         
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        neighbour_search = FindNodalNeighboursProcess(self.model_part,number_of_avg_elems,number_of_avg_nodes)
+        neighbour_search.Execute()
+
+        for node in wall_nodes:
+          node.SetValue(IS_VISITED,1.0)
+          node.SetSolutionStepValue(DISTANCE,0,0.0)
+
+        # Compute distance function
+        distance_calculator = BodyDistanceCalculationUtils()
+        distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+
+        non_linear_tol = 1e-3
+        max_it = 5
+        reform_dofset = False
+        time_order = 2
+        pPrecond = DiagonalPreconditioner()
+        turbulence_linear_solver =  BICGSTABSolver(1e-9, 5000,pPrecond)
+
+        self.turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+        if DES:
+            self.turbulence_model.ActivateDES(1.0)
 
 
 
