@@ -166,7 +166,7 @@ namespace Kratos
 		}	
 
 		//mpi sync variables
-		if(is_distributed == false)
+		if(is_distributed == true)
 		{
 		  int my_rank = rmodel_part.GetCommunicator().MyPID();
 		    #pragma omp parallel for firstprivate(node_size,my_rank)
@@ -332,7 +332,7 @@ namespace Kratos
 		}	
 
 		//mpi sync variables
-		if(is_distributed == false)
+		if(is_distributed == true)
 		{
 		  int my_rank = rmodel_part.GetCommunicator().MyPID();
 		    #pragma omp parallel for firstprivate(node_size,my_rank)
@@ -414,7 +414,7 @@ namespace Kratos
 		}
 
 		//mpi sync variables
-		if(is_distributed == false)
+		if(is_distributed == true)
 		{
 		  int my_rank = rmodel_part.GetCommunicator().MyPID();
 		    #pragma omp parallel for firstprivate(node_size,my_rank)
