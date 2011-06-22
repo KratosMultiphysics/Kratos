@@ -61,6 +61,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
+#include "spaces/ublas_space.h"
+
+#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 namespace Kratos
 {
@@ -81,6 +85,7 @@ namespace Kratos
             class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
                     ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
                     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
+                    .def("AdapatForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdapatForFractionalStep)
                     ;
         }
 
