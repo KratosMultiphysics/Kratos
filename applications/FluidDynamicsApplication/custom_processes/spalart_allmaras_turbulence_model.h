@@ -84,7 +84,7 @@ namespace Kratos
                 unsigned int max_it,
                 bool reform_dofset,
                 unsigned int time_order)
-        : mr_model_part(rmodel_part), mdomain_size(domain_size), mtol(non_linear_tol), mmax_it(max_it), mtime_order(time_order)
+        : mr_model_part(rmodel_part), mdomain_size(domain_size), mtol(non_linear_tol), mmax_it(max_it), mtime_order(time_order),madapt_for_fractional_step(false)
         {
             //************************************************************************************************
             //check that the variables needed are in the model part DISTANCE, MOLECULAR_VISCOSITY, TURBLUENT_VISCOSITY, VELOCITY, MESH_VELOCITY, VISCOSITY,NODALA_AREA,TEMP_CONV_PROJ
@@ -159,6 +159,19 @@ namespace Kratos
             //            KRATOS_WATCH( *(mspalart_model_part.pGetProcessInfo()) );
             //            KRATOS_WATCH( *(mr_model_part.pGetProcessInfo() )     );
 
+            if(madapt_for_fractional_step == true)
+            {
+                if (!(mspalart_model_part.NodesBegin()->SolutionStepsDataHas(FRACT_VEL)))
+                    KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", FRACT_VEL);
+
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(mspalart_model_part.Nodes().size()); i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = mspalart_model_part.NodesBegin() + i;
+                    it->FastGetSolutionStepValue(VELOCITY) = it->FastGetSolutionStepValue(FRACT_VEL);
+                }
+            }
+
             AuxSolve();
 
             //update viscosity on the nodes
@@ -194,6 +207,24 @@ namespace Kratos
 
         virtual ~SpalartAllmarasTurbulenceModel()
         {
+        }
+
+        void SetMaxIterations(unsigned int max_it)
+        {
+            KRATOS_TRY
+
+            mmax_it = max_it;
+
+            KRATOS_CATCH("");
+        }
+
+        void AdaptForFractionalStep()
+        {
+            KRATOS_TRY
+
+            madapt_for_fractional_step = true;
+
+            KRATOS_CATCH("");
         }
 
         void ActivateDES(double CDES)
@@ -337,6 +368,7 @@ namespace Kratos
         unsigned int mdomain_size;
         double mtol;
         unsigned int mmax_it;
+        bool madapt_for_fractional_step;
         unsigned int mtime_order;
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpstep1;
 
