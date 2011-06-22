@@ -614,12 +614,12 @@ namespace Kratos
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	
  	MPI_Barrier(MPI_COMM_WORLD);
-	for(unsigned int proc_id = 0; proc_id<nproc; proc_id++)
+	for(int proc_id = 0; proc_id<nproc; proc_id++)
 	{
 	  if(proc_id == rank)
 	  {
 	
-	    for(unsigned int i_color = 0 ; i_color <  neighbours_indices.size() ; i_color++)
+	    for(int i_color = 0 ; i_color <  neighbours_indices.size() ; i_color++)
 	    {
 	      if((neighbours_indices[i_color]) >= 0)
 		{
