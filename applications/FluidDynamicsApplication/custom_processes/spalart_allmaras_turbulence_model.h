@@ -120,7 +120,7 @@ namespace Kratos
             else
                 KRATOS_ERROR(std::logic_error, "Spalart Allmaras not yet implemented in 3D", "")
 
-                const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
+            const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
 
             //generating the elements
             for (ModelPart::ElementsContainerType::iterator iii = mr_model_part.ElementsBegin(); iii != mr_model_part.ElementsEnd(); iii++)
