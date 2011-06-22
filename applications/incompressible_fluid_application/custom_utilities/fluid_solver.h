@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_EDGEBASED_FLUID_SOLVER_H_INCLUDED
 
 //#define SPLIT_OSS
-#define SYMM_PRESS
+//#define SYMM_PRESS
 
 
 // System includes
@@ -407,7 +407,7 @@ namespace Kratos {
 	    double stabdt_pressure_factor  = mstabdt_pressure_factor;
 	    double stabdt_convection_factor  = mstabdt_convection_factor;
 	    double tau2_factor = mtau2_factor;
-
+            KRATOS_WATCH(stabdt_pressure_factor);
 	    #pragma omp parallel for firstprivate(time_inv_avg,stabdt_pressure_factor,stabdt_convection_factor,tau2_factor)
 	    for (int i_node = 0; i_node < n_nodes; i_node++) {
 		double& h_avg_i = mHavg[i_node];
@@ -635,8 +635,10 @@ namespace Kratos {
 	    //read the pressure projection from the database
 #endif
 	    mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
+            mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
 	    mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes);
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+	    mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, rNodes);
 
 	    #pragma omp parallel for firstprivate(time_inv)
 	    for (int i_node = 0; i_node < n_nodes; i_node++) {
@@ -701,6 +703,7 @@ namespace Kratos {
 
 	    if(muse_mass_correction == true)
 	    {
+                std::cout << "****************************************" << std::endl;
 		#pragma omp parallel for
 		for (int i_node = 0; i_node < n_nodes; i_node++)
 		{
@@ -898,8 +901,8 @@ namespace Kratos {
 
 
 	    //calculate the error on the divergence
-//	    if(muse_mass_correction == true)
-//	    {
+	    if(muse_mass_correction == true)
+	    {
 		#pragma omp parallel for private(correction) firstprivate(delta_t,rho_inv)
 		for (int i_node = 0; i_node < n_nodes; i_node++)
 		{
@@ -920,7 +923,7 @@ namespace Kratos {
 			}
 		    
 		}
-//	    }
+	    }
 
 //            KRATOS_WATCH("end of step3")
 //            double vnorm2 = 0.0;
@@ -1027,527 +1030,622 @@ namespace Kratos {
 		for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
 		    CalculateNormal2D(cond_it, area_normal);
 	    }//3D case
-	    else if (TDim == 3)
-	    {
-		//help vectors for cross product
-		array_1d<double, 3 > v1;
-		array_1d<double, 3 > v2;
-		for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
-		    CalculateNormal3D(cond_it, area_normal, v1, v2);
-	    }
+            else if (TDim == 3)
+            {
+                //help vectors for cross product
+                array_1d<double, 3 > v1;
+                array_1d<double, 3 > v2;
+                for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
+                    CalculateNormal3D(cond_it, area_normal, v1, v2);
+            }
 
-	    //(re)initialize normals
-	    unsigned int n_nodes = mNodalFlag.size();
-	    mSlipNormal.resize(n_nodes);
-	    std::vector<bool> is_slip(n_nodes);
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-	    {
-		noalias(mSlipNormal[i_node]) = ZeroVector(TDim);
-		is_slip[i_node] = false;
-	    }
+            //(re)initialize normals
+            unsigned int n_nodes = mNodalFlag.size();
+            mSlipNormal.resize(n_nodes);
+            std::vector<bool> is_slip(n_nodes);
+            for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                noalias(mSlipNormal[i_node]) = ZeroVector(TDim);
+                is_slip[i_node] = false;
+            }
 
 
-	    //loop over all faces
-	    const double node_factor = 1.0 / TDim;
-	    for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
-	    {
-		//get geometry data of the face
-		Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
+            //loop over all faces
+            const double node_factor = 1.0 / TDim;
+            for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
+            {
+                //get geometry data of the face
+                Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
 
-		//reference for area normal of the face
-		array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
+                //reference for area normal of the face
+                array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
 
-		//slip condition
-		if (cond_it->GetValue(IS_STRUCTURE) == true)
-		    for (unsigned int if_node = 0; if_node < TDim; if_node++)
-		    {
-			unsigned int i_node = static_cast<unsigned int> (face_geometry[if_node].FastGetSolutionStepValue(AUX_INDEX));
-			array_1d<double, TDim>& slip_normal = mSlipNormal[i_node];
-			is_slip[i_node] = true;
-			for (unsigned int comp = 0; comp < TDim; comp++)
-			{
-			    slip_normal[comp] += node_factor * face_normal[comp];
-			}
+                //slip condition
+                if (cond_it->GetValue(IS_STRUCTURE) == true)
+                    for (unsigned int if_node = 0; if_node < TDim; if_node++)
+                    {
+                        unsigned int i_node = static_cast<unsigned int> (face_geometry[if_node].FastGetSolutionStepValue(AUX_INDEX));
+                        array_1d<double, TDim>& slip_normal = mSlipNormal[i_node];
+                        is_slip[i_node] = true;
+                        for (unsigned int comp = 0; comp < TDim; comp++)
+                        {
+                            slip_normal[comp] += node_factor * face_normal[comp];
+                        }
+                    }
+            }
+
+            //fill the list of slip nodes
+            for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                if (is_slip[i_node] == true)
+                    mSlipBoundaryList.push_back(i_node);
+            }
+
+
+
+            KRATOS_CATCH("")
+        }
+
+
+
+
+
+
+
+
+
+
+
+        //*******************************
+        //function to free dynamic memory
+
+        void Clear()
+        {
+            KRATOS_TRY
+            mWork.clear();
+            mvel_n.clear();
+            mvel_n1.clear();
+            mPn.clear();
+            mPn1.clear();
+            mHmin.clear();
+            mHavg.clear();
+            mSlipNormal.clear();
+            mNodalFlag.clear();
+            mFixedVelocities.clear();
+            mFixedVelocitiesValues.clear();
+            mPressureOutletList.clear();
+            //	    mPressureOutlet.clear();
+            mSlipBoundaryList.clear();
+            mL.clear();
+            mTauPressure.clear();
+            mTauConvection.clear();
+            mTau2.clear();
+
+            mBeta.clear();
+
+            mdiv_error.clear();
+
+            KRATOS_CATCH("")
+        }
+
+        void ActivateWallResistance(double Ywall)
+        {
+            mWallLawIsActive = true;
+            mY_wall = Ywall;
+        }
+
+        void ComputePressureStabilization()
+        {
+            KRATOS_TRY
+
+            //PREREQUISITES
+
+            //variables for node based data handling
+            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            int n_nodes = rNodes.size();
+            //storage of nodal values in local variables
+            CalcVectorType rhs;
+            rhs.resize(n_nodes);
+
+
+            //read velocity and pressure data from Kratos
+            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+
+            //read time step size from Kratos
+            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+            double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+
+            //compute intrinsic time
+            //            double time_inv = 1.0 / delta_t;
+            double time_inv_avg = 1.0 / mdelta_t_avg;
+
+            double stabdt_pressure_factor = mstabdt_pressure_factor;
+
+            KRATOS_WATCH(stabdt_pressure_factor);
+#pragma omp parallel for firstprivate(time_inv_avg,stabdt_pressure_factor)
+            for (int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                double& h_avg_i = mHavg[i_node];
+                array_1d<double, TDim>& a_i = mvel_n1[i_node];
+                const double nu_i = mViscosity;
+
+                double vel_norm = norm_2(a_i);
+
+                double tau = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_pressure_factor * time_inv_avg + (4.0 * nu_i) / (h_avg_i * h_avg_i));
+                mTauPressure[i_node] = tau;
+            }
+
+            KRATOS_CATCH("");
+        }
+
+
+        	//*********************************************************************
+	//function to calculate right-hand side of fractional momentum equation
+
+	void ViscosityCorrectionStep()
+	{
+	    KRATOS_TRY
+
+	    int n_nodes = mvel_n1.size();
+            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+
+            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+            double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+            CalcVectorType rhs;
+	    rhs.resize(n_nodes);
+
+	    //calculating the RHS
+	    double inverse_rho = 1.0 / mRho;
+	    #pragma omp parallel for 
+	    for (int i_node = 0; i_node < n_nodes; i_node++)
+            {
+		    array_1d<double, TDim>& rhs_i = rhs[i_node];
+		    const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+
+		    //initializing with the external forces (e.g. gravity)
+		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+		    for (unsigned int comp = 0; comp < TDim; comp++)
+			rhs_i[comp] = 0.0 ;
+
+		    //convective term
+		    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+			unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+			    const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
+
+			    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+			    edge_ij.Sub_ViscousContribution(rhs_i, U_i, mViscosity, U_j, mViscosity);
 		    }
 	    }
 
-	    //fill the list of slip nodes
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-	    {
-		if (is_slip[i_node] == true)
-		    mSlipBoundaryList.push_back(i_node);
-	    }
+            //correcting the velocity
+ 	    mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n1, delta_t, mr_matrix_container.GetInvertedMass(), rhs);
+	    ApplyVelocityBC(mvel_n1);
 
-
-
+	    mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
 	    KRATOS_CATCH("")
-	}
-
-
-
-
-
-
-
-
-
-
-
-	//*******************************
-	//function to free dynamic memory
-
-	void Clear()
-	{
-	    KRATOS_TRY
-	    mWork.clear();
-	    mvel_n.clear();
-	    mvel_n1.clear();
-	    mPn.clear();
-	    mPn1.clear();
-	    mHmin.clear();
-	    mHavg.clear();
-	    mSlipNormal.clear();
-	    mNodalFlag.clear();
-	    mFixedVelocities.clear();
-	    mFixedVelocitiesValues.clear();
-	    mPressureOutletList.clear();
-//	    mPressureOutlet.clear();
-	    mSlipBoundaryList.clear();
-	    mL.clear();
-	    mTauPressure.clear();
-	    mTauConvection.clear();
-	    mTau2.clear();
-
-	    mBeta.clear();
-
-	    mdiv_error.clear();
-
-	    KRATOS_CATCH("")
-	}
-
-
-void ActivateWallResistance(double Ywall)
-	{
-	    mWallLawIsActive = true;
-	    mY_wall = Ywall;
 	}
 
 
     private:
-	MatrixContainer& mr_matrix_container;
-	ModelPart& mr_model_part;
+        MatrixContainer& mr_matrix_container;
+        ModelPart& mr_model_part;
 
-	bool muse_mass_correction;
+        bool muse_mass_correction;
 
-	//parameters controlling the wall law
-	bool mWallLawIsActive;
-	bool mY_wall;
+        //parameters controlling the wall law
+        bool mWallLawIsActive;
+        bool mY_wall;
 
-	//parameters for controlling the usage of the delta time in the stabilization
-	double mstabdt_pressure_factor;
-	double mstabdt_convection_factor;
-	double medge_detection_angle;
-	double mtau2_factor;
-	bool massume_constant_dp;
+        //parameters for controlling the usage of the delta time in the stabilization
+        double mstabdt_pressure_factor;
+        double mstabdt_convection_factor;
+        double medge_detection_angle;
+        double mtau2_factor;
+        bool massume_constant_dp;
 
-	//nodal values
-	//velocity vector U at time steps n and n+1
-	CalcVectorType mWork, mvel_n, mvel_n1, mx;
-	//pressure vector p at time steps n and n+1
-	ValuesVectorType mPn, mPn1;
+        //nodal values
+        //velocity vector U at time steps n and n+1
+        CalcVectorType mWork, mvel_n, mvel_n1, mx;
+        //pressure vector p at time steps n and n+1
+        ValuesVectorType mPn, mPn1;
 
-	//minimum length of the edges surrounding edges surrounding each nodal point
-	ValuesVectorType mHmin;
-	ValuesVectorType mHavg;
-	CalcVectorType mEdgeDimensions;
+        //minimum length of the edges surrounding edges surrounding each nodal point
+        ValuesVectorType mHmin;
+        ValuesVectorType mHavg;
+        CalcVectorType mEdgeDimensions;
 
-	//area normal
-	CalcVectorType mSlipNormal;
-	//projection terms
-	CalcVectorType mPi, mXi;
+        //area normal
+        CalcVectorType mSlipNormal;
+        //projection terms
+        CalcVectorType mPi, mXi;
 
-	//flag for first time step
-	bool mFirstStep;
-
-	//flag to differentiate interior and boundary nodes
-	ValuesVectorType mNodalFlag;
-	//lists of nodes with different types of boundary conditions
-	IndicesVectorType mSlipBoundaryList, mPressureOutletList, mFixedVelocities;
-	CalcVectorType mFixedVelocitiesValues;
-//	ValuesVectorType mPressureOutlet;
-
-	//intrinsic time step size
-	ValuesVectorType mTauPressure;
-	ValuesVectorType mTauConvection;
-	ValuesVectorType mTau2;
-
-	ValuesVectorType mdiv_error;
-
-	//variables for resolving pressure equation
-	//laplacian matrix
-	TSystemMatrixType mL;
-
-	//constant variables
-	double mRho;
-	double mViscosity;
-	array_1d<double, TDim> mBodyForce;
-
-
-	//variables for convection
-	ValuesVectorType mBeta;
-
-	//variables for edge BCs
-	IndicesVectorType medge_nodes;
-	CalcVectorType medge_nodes_direction;
-	IndicesVectorType mcorner_nodes;
-
-
-	double mdelta_t_avg;
-	double max_dt;
-	
-
-	//***********************************************************
-	//functions to calculate area normals for boundary conditions
-
-	void CalculateNormal2D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3 > & area_normal)
-	{
-	    Geometry<Node < 3 > >& face_geometry = (cond_it)->GetGeometry();
-
-	    area_normal[0] = face_geometry[1].Y() - face_geometry[0].Y();
-	    area_normal[1] = -(face_geometry[1].X() - face_geometry[0].X());
-	    area_normal[2] = 0.00;
-
-	    noalias((cond_it)->GetValue(NORMAL)) = area_normal;
-	}
+        //flag for first time step
+        bool mFirstStep;
 
-	void CalculateNormal3D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3 > & area_normal, array_1d<double, 3 > & v1, array_1d<double, 3 > & v2)
-	{
-	    Geometry<Node < 3 > >& face_geometry = (cond_it)->GetGeometry();
-
-	    v1[0] = face_geometry[1].X() - face_geometry[0].X();
-	    v1[1] = face_geometry[1].Y() - face_geometry[0].Y();
-	    v1[2] = face_geometry[1].Z() - face_geometry[0].Z();
-
-	    v2[0] = face_geometry[2].X() - face_geometry[0].X();
-	    v2[1] = face_geometry[2].Y() - face_geometry[0].Y();
-	    v2[2] = face_geometry[2].Z() - face_geometry[0].Z();
-
-	    MathUtils<double>::CrossProduct(area_normal, v1, v2);
-	    area_normal *= -0.5;
-
-	    noalias((cond_it)->GetValue(NORMAL)) = area_normal;
-	}
-
-
-	//*********************************************************
-	//function to calculate minimum length of surrounding edges
-
-	void CalculateEdgeLengths(ModelPart::NodesContainerType& rNodes)
-	{
-	    KRATOS_TRY
-
-		    //get number of nodes
-		    unsigned int n_nodes = rNodes.size();
-	    //reserve memory for storage of nodal coordinates
-	    std::vector< array_1d<double, 3 > > position;
-	    position.resize(n_nodes);
-
-	    //get position of all nodes
-	    for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
-	    {
-		//get the global index of the node
-		unsigned int i_node = static_cast<unsigned int> (node_it->FastGetSolutionStepValue(AUX_INDEX));
-		//save its coordinates locally
-		noalias(position[i_node]) = node_it->Coordinates();
-
-		//initialize minimum edge length with relatively big values
-		mHmin[i_node] = 1e10;
-	    }
-
-	    ValuesVectorType& aaa = mr_matrix_container.GetHmin();
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-	    {
-		mHmin[i_node] = aaa[i_node];
-	    }
-
-	    //take unstructured meshes into account
-	    if (TDim == 2)
-	    {
-		for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-		{
-		    double& h_i = mHavg[i_node];
-		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
-		    // 						double& rho_i = mRho[i_node];
-
-		    h_i = sqrt(2.0 * m_i);
-		}
-	    } else if (TDim == 3)
-	    {
-		for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-		{
-		    double& h_i = mHavg[i_node];
-		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
-		    // 						double& rho_i = mRho[i_node];
-
-		    h_i = pow(6.0 * m_i, 1.0 / 3.0);
-		}
-	    }
-
-	    //compute edge coordinates
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-	    {
-		array_1d<double, 3 > & pos_i = position[i_node];
-
-		for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-		{
-		    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-		    array_1d<double, 3 > & pos_j = position[j_neighbour];
-
-		    array_1d<double, TDim>& l_k = mEdgeDimensions[csr_index];
-		    for (unsigned int comp = 0; comp < TDim; comp++)
-			l_k[comp] = pos_i[comp] - pos_j[comp];
-		}
-	    }
-
-	    KRATOS_CATCH("")
-	}
-
-
-
-
-
-
-
-	//**************************************
-	void CornerDectectionHelper(Geometry< Node<3> >& face_geometry,
-				    const array_1d<double,3>& face_normal,
-				    const double An,
-				    const WeakPointerVector<Condition>& neighb,
-				    const unsigned int i1,
-				    const unsigned int i2,
-				    const unsigned int neighb_index,
-				    std::vector<unsigned int>& edge_nodes,
-				    CalcVectorType& cornern_list
-				    )
-	{
-	    double acceptable_angle = 45.0/180.0*3.1; //angles of less than 45 deg will be accepted
-	    double acceptable_cos = cos(acceptable_angle);
-
-	    if(face_geometry[i1].Id() < face_geometry[i2].Id()) //we do this to add the face ones
-			{
-			    const array_1d<double, 3 > & neighb_normal = neighb[neighb_index].GetValue(NORMAL);
-			    double neighb_An = norm_2(neighb_normal);
-
-			    double cos_normal = 1.0/(An*neighb_An) * inner_prod(face_normal,neighb_normal);
-
-			    //if the angle is too big between the two normals then the edge in the middle is a corner
-			    if(cos_normal < acceptable_cos)
-			    {
-				array_1d<double, 3 > edge = face_geometry[i2].Coordinates() -  face_geometry[i1].Coordinates();
-				double temp = norm_2(edge);
-				edge/=temp;
-
-				int index1 = face_geometry[i1].FastGetSolutionStepValue(AUX_INDEX);
-				int index2 = face_geometry[i2].FastGetSolutionStepValue(AUX_INDEX);
-
-				edge_nodes[index1] += 1;
-				edge_nodes[index2] += 1;
-				
-				double sign1 = inner_prod(cornern_list[index1],edge);
-				if(sign1 >= 0)
-				    cornern_list[index1] += edge;
-				else
-				    cornern_list[index1] -= edge;
-				
-				double sign2 = inner_prod(cornern_list[index2],edge);
-				if(sign2 >= 0)
-				  cornern_list[index2] += edge;
-				else
-				  cornern_list[index2] -= edge;
-
-
-			    }
-
-
-
-			}
-
-
-	}
-
-	//function to calculate the area normals
-	void DetectEdges3D(ModelPart::ConditionsContainerType& rConditions) {
-	    KRATOS_TRY
-
-	    //calculate area normals face-by-face
-	    array_1d<double, 3 > area_normal;
-
-	    //(re)initialize normals
-	    unsigned int n_nodes = mNodalFlag.size();
-	    std::vector<unsigned int> temp_edge_nodes(n_nodes);
-	    CalcVectorType temp_cornern_list(n_nodes);
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-	    {
-		temp_edge_nodes[i_node] = 0.0;
-		noalias(temp_cornern_list[i_node]) = ZeroVector(TDim);
-	    }
-
-	    //loop over all faces
-//            const double node_factor = 1.0 / TDim;
-	    for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
-	    {
-		//get geometry data of the face
-		Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
-
-		//reference for area normal of the face
-		const array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
-		double An = norm_2(face_normal);
-
-		unsigned int current_id = cond_it->Id();
-
-		//slip condition
-		if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
-		{
-		    const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
-
-		    //check for neighbour zero
-		    if(neighb[0].Id() != current_id) //check if the neighbour exists
-			CornerDectectionHelper(face_geometry,face_normal,An,neighb,1,2, 0,temp_edge_nodes,temp_cornern_list );
-
-		    //check for neighbour one
-		    if(neighb[1].Id() != current_id) //check if the neighbour exists
-			CornerDectectionHelper(face_geometry,face_normal,An,neighb,2,0, 1,temp_edge_nodes,temp_cornern_list );
-
-		    //check for neighbour two
-		    if(neighb[2].Id() != current_id) //check if the neighbour exists
-			CornerDectectionHelper(face_geometry,face_normal,An,neighb,0,1, 2,temp_edge_nodes,temp_cornern_list );
-
-		}
-	    }
-
-	    //fill the list of edge_nodes
-	    medge_nodes.resize(0);
-	    medge_nodes_direction.resize(0);
-	    mcorner_nodes.resize(0);
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-	    {
-		if (temp_edge_nodes[i_node] == 2) //node is a edge_node
-		{
-		    medge_nodes.push_back(i_node);
-		    array_1d<double,TDim>& node_edge = temp_cornern_list[i_node];
-		    
-		    node_edge /= norm_2(node_edge);
-		    medge_nodes_direction.push_back(node_edge);
-		}
-		else if (temp_edge_nodes[i_node] > 2)
-		    mcorner_nodes.push_back(i_node);
-	    }
-
-
-
-	    for (unsigned int i = 0; i < mcorner_nodes.size(); i++)
-	    {
-		KRATOS_WATCH(mcorner_nodes[i]);
-
-	    }
-
-
-	    KRATOS_CATCH("")
-	}
-
-
-
-void ComputeWallResistance(
-		const CalcVectorType& vel,
-		CalcVectorType& rhs
-		)
-	{
-	    //parameters:
-	    double k = 0.41;
-	    double B = 5.1;
-	    double density = mRho;
-	    double mu = mViscosity;
-	    double toll = 1e-6;
-	    double ym = mY_wall; //0.0825877; //0.0093823
-	    double y_plus_incercept = 10.9931899;
-	    unsigned int itmax = 100;
-
-	    if (mu == 0)
-		KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
-
-	    //slip condition
-	    int slip_size = mSlipBoundaryList.size();
+        //flag to differentiate interior and boundary nodes
+        ValuesVectorType mNodalFlag;
+        //lists of nodes with different types of boundary conditions
+        IndicesVectorType mSlipBoundaryList, mPressureOutletList, mFixedVelocities;
+        CalcVectorType mFixedVelocitiesValues;
+        //	ValuesVectorType mPressureOutlet;
+
+        //intrinsic time step size
+        ValuesVectorType mTauPressure;
+        ValuesVectorType mTauConvection;
+        ValuesVectorType mTau2;
+
+        ValuesVectorType mdiv_error;
+
+        //variables for resolving pressure equation
+        //laplacian matrix
+        TSystemMatrixType mL;
+
+        //constant variables
+        double mRho;
+        double mViscosity;
+        array_1d<double, TDim> mBodyForce;
+
+
+        //variables for convection
+        ValuesVectorType mBeta;
+
+        //variables for edge BCs
+        IndicesVectorType medge_nodes;
+        CalcVectorType medge_nodes_direction;
+        IndicesVectorType mcorner_nodes;
+
+
+        double mdelta_t_avg;
+        double max_dt;
+
+
+        //***********************************************************
+        //functions to calculate area normals for boundary conditions
+
+        void CalculateNormal2D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3 > & area_normal)
+        {
+            Geometry<Node < 3 > >& face_geometry = (cond_it)->GetGeometry();
+
+            area_normal[0] = face_geometry[1].Y() - face_geometry[0].Y();
+            area_normal[1] = -(face_geometry[1].X() - face_geometry[0].X());
+            area_normal[2] = 0.00;
+
+            noalias((cond_it)->GetValue(NORMAL)) = area_normal;
+        }
+
+        void CalculateNormal3D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3 > & area_normal, array_1d<double, 3 > & v1, array_1d<double, 3 > & v2)
+        {
+            Geometry<Node < 3 > >& face_geometry = (cond_it)->GetGeometry();
+
+            v1[0] = face_geometry[1].X() - face_geometry[0].X();
+            v1[1] = face_geometry[1].Y() - face_geometry[0].Y();
+            v1[2] = face_geometry[1].Z() - face_geometry[0].Z();
+
+            v2[0] = face_geometry[2].X() - face_geometry[0].X();
+            v2[1] = face_geometry[2].Y() - face_geometry[0].Y();
+            v2[2] = face_geometry[2].Z() - face_geometry[0].Z();
+
+            MathUtils<double>::CrossProduct(area_normal, v1, v2);
+            area_normal *= -0.5;
+
+            noalias((cond_it)->GetValue(NORMAL)) = area_normal;
+        }
+
+
+        //*********************************************************
+        //function to calculate minimum length of surrounding edges
+
+        void CalculateEdgeLengths(ModelPart::NodesContainerType& rNodes)
+        {
+            KRATOS_TRY
+
+                    //get number of nodes
+                    unsigned int n_nodes = rNodes.size();
+            //reserve memory for storage of nodal coordinates
+            std::vector< array_1d<double, 3 > > position;
+            position.resize(n_nodes);
+
+            //get position of all nodes
+            for (typename ModelPart::NodesContainerType::iterator node_it = rNodes.begin(); node_it != rNodes.end(); node_it++)
+            {
+                //get the global index of the node
+                unsigned int i_node = static_cast<unsigned int> (node_it->FastGetSolutionStepValue(AUX_INDEX));
+                //save its coordinates locally
+                noalias(position[i_node]) = node_it->Coordinates();
+
+                //initialize minimum edge length with relatively big values
+                mHmin[i_node] = 1e10;
+            }
+
+            ValuesVectorType& aaa = mr_matrix_container.GetHmin();
+            for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                mHmin[i_node] = aaa[i_node];
+            }
+
+            //take unstructured meshes into account
+            if (TDim == 2)
+            {
+                for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+                {
+                    double& h_i = mHavg[i_node];
+                    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+                    // 						double& rho_i = mRho[i_node];
+
+                    h_i = sqrt(2.0 * m_i);
+                }
+            } else if (TDim == 3)
+            {
+                for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+                {
+                    double& h_i = mHavg[i_node];
+                    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+                    // 						double& rho_i = mRho[i_node];
+
+                    h_i = pow(6.0 * m_i, 1.0 / 3.0);
+                }
+            }
+
+            //compute edge coordinates
+            for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                array_1d<double, 3 > & pos_i = position[i_node];
+
+                for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                {
+                    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+                    array_1d<double, 3 > & pos_j = position[j_neighbour];
+
+                    array_1d<double, TDim>& l_k = mEdgeDimensions[csr_index];
+                    for (unsigned int comp = 0; comp < TDim; comp++)
+                        l_k[comp] = pos_i[comp] - pos_j[comp];
+                }
+            }
+
+            KRATOS_CATCH("")
+        }
+
+
+
+
+
+
+
+        //**************************************
+
+        void CornerDectectionHelper(Geometry< Node < 3 > >& face_geometry,
+                const array_1d<double, 3 > & face_normal,
+                const double An,
+                const WeakPointerVector<Condition>& neighb,
+                const unsigned int i1,
+                const unsigned int i2,
+                const unsigned int neighb_index,
+                std::vector<unsigned int>& edge_nodes,
+                CalcVectorType& cornern_list
+                )
+        {
+            double acceptable_angle = 45.0 / 180.0 * 3.1; //angles of less than 45 deg will be accepted
+            double acceptable_cos = cos(acceptable_angle);
+
+            if (face_geometry[i1].Id() < face_geometry[i2].Id()) //we do this to add the face ones
+            {
+                const array_1d<double, 3 > & neighb_normal = neighb[neighb_index].GetValue(NORMAL);
+                double neighb_An = norm_2(neighb_normal);
+
+                double cos_normal = 1.0 / (An * neighb_An) * inner_prod(face_normal, neighb_normal);
+
+                //if the angle is too big between the two normals then the edge in the middle is a corner
+                if (cos_normal < acceptable_cos)
+                {
+                    array_1d<double, 3 > edge = face_geometry[i2].Coordinates() - face_geometry[i1].Coordinates();
+                    double temp = norm_2(edge);
+                    edge /= temp;
+
+                    int index1 = face_geometry[i1].FastGetSolutionStepValue(AUX_INDEX);
+                    int index2 = face_geometry[i2].FastGetSolutionStepValue(AUX_INDEX);
+
+                    edge_nodes[index1] += 1;
+                    edge_nodes[index2] += 1;
+
+                    double sign1 = inner_prod(cornern_list[index1], edge);
+                    if (sign1 >= 0)
+                        cornern_list[index1] += edge;
+                    else
+                        cornern_list[index1] -= edge;
+
+                    double sign2 = inner_prod(cornern_list[index2], edge);
+                    if (sign2 >= 0)
+                        cornern_list[index2] += edge;
+                    else
+                        cornern_list[index2] -= edge;
+
+
+                }
+
+
+
+            }
+
+
+        }
+
+        //function to calculate the area normals
+
+        void DetectEdges3D(ModelPart::ConditionsContainerType& rConditions)
+        {
+            KRATOS_TRY
+
+            //calculate area normals face-by-face
+            array_1d<double, 3 > area_normal;
+
+            //(re)initialize normals
+            unsigned int n_nodes = mNodalFlag.size();
+            std::vector<unsigned int> temp_edge_nodes(n_nodes);
+            CalcVectorType temp_cornern_list(n_nodes);
+            for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                temp_edge_nodes[i_node] = 0.0;
+                noalias(temp_cornern_list[i_node]) = ZeroVector(TDim);
+            }
+
+            //loop over all faces
+            //            const double node_factor = 1.0 / TDim;
+            for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
+            {
+                //get geometry data of the face
+                Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
+
+                //reference for area normal of the face
+                const array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
+                double An = norm_2(face_normal);
+
+                unsigned int current_id = cond_it->Id();
+
+                //slip condition
+                if (cond_it->GetValue(IS_STRUCTURE) == 1.0) //this is a slip face --> now look for its neighbours
+                {
+                    const WeakPointerVector<Condition>& neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
+
+                    //check for neighbour zero
+                    if (neighb[0].Id() != current_id) //check if the neighbour exists
+                        CornerDectectionHelper(face_geometry, face_normal, An, neighb, 1, 2, 0, temp_edge_nodes, temp_cornern_list);
+
+                    //check for neighbour one
+                    if (neighb[1].Id() != current_id) //check if the neighbour exists
+                        CornerDectectionHelper(face_geometry, face_normal, An, neighb, 2, 0, 1, temp_edge_nodes, temp_cornern_list);
+
+                    //check for neighbour two
+                    if (neighb[2].Id() != current_id) //check if the neighbour exists
+                        CornerDectectionHelper(face_geometry, face_normal, An, neighb, 0, 1, 2, temp_edge_nodes, temp_cornern_list);
+
+                }
+            }
+
+            //fill the list of edge_nodes
+            medge_nodes.resize(0);
+            medge_nodes_direction.resize(0);
+            mcorner_nodes.resize(0);
+            for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+            {
+                if (temp_edge_nodes[i_node] == 2) //node is a edge_node
+                {
+                    medge_nodes.push_back(i_node);
+                    array_1d<double, TDim>& node_edge = temp_cornern_list[i_node];
+
+                    node_edge /= norm_2(node_edge);
+                    medge_nodes_direction.push_back(node_edge);
+                } else if (temp_edge_nodes[i_node] > 2)
+                    mcorner_nodes.push_back(i_node);
+            }
+
+
+
+            for (unsigned int i = 0; i < mcorner_nodes.size(); i++)
+            {
+                KRATOS_WATCH(mcorner_nodes[i]);
+
+            }
+
+
+            KRATOS_CATCH("")
+        }
+
+        void ComputeWallResistance(
+                const CalcVectorType& vel,
+                CalcVectorType& rhs
+                )
+        {
+            //parameters:
+            double k = 0.41;
+            double B = 5.1;
+            double density = mRho;
+            double mu = mViscosity;
+            double toll = 1e-6;
+            double ym = mY_wall; //0.0825877; //0.0093823
+            double y_plus_incercept = 10.9931899;
+            unsigned int itmax = 100;
+
+            if (mu == 0)
+                KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+
+            //slip condition
+            int slip_size = mSlipBoundaryList.size();
 #pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
-	    for (int i_slip = 0; i_slip < slip_size; i_slip++)
-	    {
-		unsigned int i_node = mSlipBoundaryList[i_slip];
+            for (int i_slip = 0; i_slip < slip_size; i_slip++)
+            {
+                unsigned int i_node = mSlipBoundaryList[i_slip];
 
-		    array_1d<double, TDim>& rhs_i = rhs[i_node];
-		    const array_1d<double, TDim>& U_i = vel[i_node];
-		    const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+                array_1d<double, TDim>& rhs_i = rhs[i_node];
+                const array_1d<double, TDim>& U_i = vel[i_node];
+                const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
 
-		    //compute the modulus of the velocity
-		    double mod_vel = 0.0;
-		    double area = 0.0;
-		    for (unsigned int comp = 0; comp < TDim; comp++)
-		    {
-			mod_vel += U_i[comp] * U_i[comp];
-			area += an_i[comp] * an_i[comp];
-		    }
-		    mod_vel = sqrt(mod_vel);
-		    area = sqrt(area);
+                //compute the modulus of the velocity
+                double mod_vel = 0.0;
+                double area = 0.0;
+                for (unsigned int comp = 0; comp < TDim; comp++)
+                {
+                    mod_vel += U_i[comp] * U_i[comp];
+                    area += an_i[comp] * an_i[comp];
+                }
+                mod_vel = sqrt(mod_vel);
+                area = sqrt(area);
 
-		    //now compute the skin friction
-		    double mod_uthaw = sqrt(mod_vel * mu / ym);
-		    const double y_plus = ym * mod_uthaw / mu;
+                //now compute the skin friction
+                double mod_uthaw = sqrt(mod_vel * mu / ym);
+                const double y_plus = ym * mod_uthaw / mu;
 
-		    if (y_plus > y_plus_incercept)
-		    {
-			//begin cicle to calculate the real u_thaw's module:
-			unsigned int it = 0;
-			double dx = 1e10;
-			//                        KRATOS_WATCH(fabs(dx));
-			while (fabs(dx) > toll * mod_uthaw && it < itmax)
-			{
-			    double a = 1.0 / k;
-			    double temp = a * log(ym * mod_uthaw / mu) + B;
-			    double y = mod_uthaw * (temp) - mod_vel;
-			    double y1 = temp + a;
-			    dx = y / y1;
-			    mod_uthaw -= dx;
-			    it = it + 1;
-			}
+                if (y_plus > y_plus_incercept)
+                {
+                    //begin cicle to calculate the real u_thaw's module:
+                    unsigned int it = 0;
+                    double dx = 1e10;
+                    //                        KRATOS_WATCH(fabs(dx));
+                    while (fabs(dx) > toll * mod_uthaw && it < itmax)
+                    {
+                        double a = 1.0 / k;
+                        double temp = a * log(ym * mod_uthaw / mu) + B;
+                        double y = mod_uthaw * (temp) - mod_vel;
+                        double y1 = temp + a;
+                        dx = y / y1;
+                        mod_uthaw -= dx;
+                        it = it + 1;
+                    }
 
-			//                         KRATOS_WATCH(toll*mod_uthaw);
-			//                         KRATOS_WATCH(area);
-			//                        KRATOS_WATCH(it);
-			if (it == itmax)
-			    std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
-
-
-		    }
-		    //                    else
-		    //                    {
-		    //                        for (unsigned int comp = 0; comp < TDim; comp++)
-		    //                            rhs_i[comp] -= U_i[comp] * area * mu  / (density*ym) ;
-		    //                    }
-
-		    if (mod_vel > 1e-12)
-			for (unsigned int comp = 0; comp < TDim; comp++)
-			    rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+                    //                         KRATOS_WATCH(toll*mod_uthaw);
+                    //                         KRATOS_WATCH(area);
+                    //                        KRATOS_WATCH(it);
+                    if (it == itmax)
+                        std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
 
 
+                }
+                //                    else
+                //                    {
+                //                        for (unsigned int comp = 0; comp < TDim; comp++)
+                //                            rhs_i[comp] -= U_i[comp] * area * mu  / (density*ym) ;
+                //                    }
 
-		
-	    }
-	}
+                if (mod_vel > 1e-12)
+                    for (unsigned int comp = 0; comp < TDim; comp++)
+                        rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+
+
+
+
+            }
+        }
+
 
 
 
 
     };
 } //namespace Kratos
-#undef SYMM_PRESS
+//#undef SYMM_PRESS
 #endif //KRATOS_EDGEBASED_FLUID_SOLVER_H_INCLUDED defined
 
 
