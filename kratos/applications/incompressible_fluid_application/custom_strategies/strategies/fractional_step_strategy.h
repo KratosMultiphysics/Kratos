@@ -617,6 +617,10 @@ namespace Kratos
             //solve for fractional step velocities
             while (is_converged == false && iteration++<MaxIterations)
             {
+                //execute initialize iteration processes;
+                for(unsigned int i=0; i<mInitializeIterationProcesses.size(); i++)
+                    mInitializeIterationProcesses[i]->Execute();
+
                 //perform one iteration over the fractional step velocity
                 FractionalVelocityIteration(normDx);
                 is_converged = ConvergenceCheck(normDx, velocity_toll);
@@ -1239,7 +1243,15 @@ namespace Kratos
 
             KRATOS_CATCH("");
         }
-        
+
+
+         //******************************************************************************************
+        void AddInitializeIterationProcess(Process::Pointer pnew_process)
+        {
+            KRATOS_TRY
+            mInitializeIterationProcesses.push_back(pnew_process);
+            KRATOS_CATCH("");
+        }
         /*@} */
         /**@name Operators
          */
@@ -1333,6 +1345,8 @@ namespace Kratos
 
         GenerateSlipConditionProcess::Pointer mpSlipProcess;
         bool mHasSlipProcess;
+
+        std::vector< Process::Pointer > mInitializeIterationProcesses;
 
         SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& msolver_config;
 
