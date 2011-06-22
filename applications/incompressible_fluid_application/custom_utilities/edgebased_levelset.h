@@ -1144,6 +1144,7 @@ namespace Kratos {
             long unsigned int* Lrow_indices = mL.index1_data().begin();
             long unsigned int* Lcol_indices = mL.index2_data().begin();
 
+            #pragma omp parallel for
             for (unsigned int k = 0; k < mL.size1(); k++)
             {
                 double t = 0.0;
@@ -1154,13 +1155,14 @@ namespace Kratos {
                     if( Lcol_indices[j] == k)
                     {
                         t = fabs(Lvalues[j]);
+                        break;
                     }
 //                        t += Lvalues[j]*Lvalues[j];
 
 //                t = sqrt(t);
                 scaling_factors[k] = 1.0/sqrt(t);
             }
-
+            #pragma omp parallel for
             for (unsigned int k = 0; k < mL.size1(); k++)
             {
                 long unsigned int col_begin = Lrow_indices[k];
@@ -1176,6 +1178,7 @@ namespace Kratos {
             }
 
 	    //set starting vector for iterative solvers
+            #pragma omp parallel for
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
 		dp[i_node] = 0.0;
 	    //KRATOS_WATCH(rhs);
@@ -1184,7 +1187,8 @@ namespace Kratos {
 	    KRATOS_WATCH(*pLinearSolver)
 
 
-		    //update pressure
+            //update pressure
+            #pragma omp parallel for
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
 		mPn1[i_node] += dp[i_node]*scaling_factors[i_node];
 	    //				for (unsigned int i_pressure = 0; i_pressure < mPressureOutletList.size(); i_pressure++)
