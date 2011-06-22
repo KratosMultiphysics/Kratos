@@ -211,7 +211,7 @@ class IncompressibleFluidSolver:
         pPrecond = DiagonalPreconditioner()
         turbulence_linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
-        turbulence_model.AdapatForFractionalStep()
+        turbulence_model.AdaptForFractionalStep()
         if(DES==True):
             turbulence_model.ActivateDES(1.0);
 
