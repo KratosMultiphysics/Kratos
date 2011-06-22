@@ -39,8 +39,8 @@ fluid_model_part = ModelPart("FluidPart");
 ##importing the solvers needed
 SolverType = fluid_only_var.SolverType
 if(SolverType == "FractionalStep"):
-    import incompressible_fluid_solver
-    incompressible_fluid_solver.AddVariables(fluid_model_part)
+    import fractional_step_solver
+    fractional_step_solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     import monolithic_solver_eulerian
     monolithic_solver_eulerian.AddVariables(fluid_model_part)
@@ -67,7 +67,7 @@ fluid_model_part.SetBufferSize(3)
 
 ##adding dofs
 if(SolverType == "FractionalStep"):
-    incompressible_fluid_solver.AddDofs(fluid_model_part)
+    fractional_step_solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     monolithic_solver_eulerian.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
@@ -91,7 +91,7 @@ for node in fluid_model_part.Nodes:
 #creating the solvers
 #fluid solver
 if(SolverType == "FractionalStep"):
-    fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
+    fluid_solver = fractional_step_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
     fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
     fluid_solver.predictor_corrector = fluid_only_var.predictor_corrector
     fluid_solver.max_press_its = fluid_only_var.max_press_its
