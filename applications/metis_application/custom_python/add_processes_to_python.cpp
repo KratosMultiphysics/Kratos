@@ -37,8 +37,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    $Author: rrossi $
@@ -67,61 +67,65 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/metis_contact_partitioning_process.h" 
 #include "custom_processes/metis_partitioning_process_quadratic.h"
 #include "custom_processes/set_mpi_communicator_process.h"
+#include "custom_processes/metis_scalar_reorder_process.h"
 
 
 namespace Kratos
 {
-	
-namespace Python
-{
 
-  int GetRank()
-  {
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    namespace Python
+    {
 
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! rank = " << rank << std::endl;
-    
-    return rank;    
-  }
+        int GetRank()
+        {
+            int rank;
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  void  AddProcessesToPython()
-  {
-	using namespace boost::python;
+            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! rank = " << rank << std::endl;
 
-    	class_<std::vector<int> >("IndicesVector")
-        .def(vector_indexing_suite<std::vector<int> >())
-		;
+            return rank;
+        }
 
-	  class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
-							    init<ModelPart&, IO&, unsigned int, unsigned int>())
-	    .def(init<ModelPart&, IO&, unsigned int>())
-		 ;
+        void AddProcessesToPython()
+        {
+            using namespace boost::python;
 
-	  class_<MetisDivideInputToPartitionsProcess, bases<Process> >("MetisDivideInputToPartitionsProcess",
-							    init<IO&, unsigned int, unsigned int>())
-	    .def(init<IO&, unsigned int>())
-		 ;
+            class_<std::vector<int> >("IndicesVector")
+                    .def(vector_indexing_suite<std::vector<int> >())
+                    ;
 
-	  class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
-							    init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
-	    .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
-		 ;
-                                
-      class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic",
-              init<ModelPart&, IO&, unsigned int, unsigned int>())
-                 .def(init<ModelPart&, IO&, unsigned int>())
-         ;
+            class_<MetisScalarReorder, bases<Process> >("MetisScalarReorder",init<ModelPart&>())
+                    ;
 
-	  def("GetRank", GetRank);
+            class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
+                    init<ModelPart&, IO&, unsigned int, unsigned int>())
+                    .def(init<ModelPart&, IO&, unsigned int>())
+                    ;
 
-          class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
-                  init<ModelPart&>())
-          ;
+            class_<MetisDivideInputToPartitionsProcess, bases<Process> >("MetisDivideInputToPartitionsProcess",
+                    init<IO&, unsigned int, unsigned int>())
+                    .def(init<IO&, unsigned int>())
+                    ;
 
-  }
-	
-}  // namespace Python.
+            class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
+                    init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
+                    .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
+                    ;
+
+            class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic",
+                    init<ModelPart&, IO&, unsigned int, unsigned int>())
+                    .def(init<ModelPart&, IO&, unsigned int>())
+                    ;
+
+            def("GetRank", GetRank);
+
+            class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
+                    init<ModelPart&>())
+                    ;
+
+        }
+
+    } // namespace Python.
 
 } // Namespace Kratos
 
