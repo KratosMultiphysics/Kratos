@@ -147,7 +147,7 @@ namespace Kratos
 
             BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> > (pNewLinearSolver, TURBULENT_VISCOSITY));
             mpstep1 = typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (mspalart_model_part, pscheme, pNewLinearSolver, componentwise_build, CalculateReactions, reform_dofset, CalculateNormDxFlag));
-            mpstep1->SetEchoLevel(2);
+            mpstep1->SetEchoLevel(0);
         }
 
         void Execute()
@@ -428,8 +428,8 @@ namespace Kratos
                 dT_norm = mpstep1->Solve();
                 T_norm = CalculateVarNorm();
                 CalculateProjection();
-                KRATOS_WATCH(dT_norm)
-                KRATOS_WATCH(T_norm)
+//                KRATOS_WATCH(dT_norm)
+//                KRATOS_WATCH(T_norm)
 
                 ratio = 1.00;
                 if (T_norm != 0.00)
@@ -446,7 +446,7 @@ namespace Kratos
                 if (ratio < mtol)
                     is_converged = true;
 
-                std::cout << " iter = " << iter << " ratio = " << ratio << std::endl;
+                std::cout << "   SA iter = " << iter << " ratio = " << ratio << std::endl;
 
             }
 
