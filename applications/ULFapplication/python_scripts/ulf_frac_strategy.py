@@ -178,12 +178,12 @@ class ULFFracStrategyPython:
             #update iteration count
             it = it + 1
             
-        (self.builder_and_solver).SavePressureIteration(self.model_part);
+        #(self.builder_and_solver).SavePressureIteration(self.model_part);
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_STRUCTURE)==0):
                 if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1 and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1):
 		  # and node.X>0.5):
-                  #node.SetSolutionStepValue(PRESSURE,0,0.0)
+                  node.SetSolutionStepValue(PRESSURE,0,0.0)
                   #print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                   node.Fix(PRESSURE)
             #if (node.GetSolutionStepValue(IS_INTERFACE)==1):
@@ -215,7 +215,7 @@ class ULFFracStrategyPython:
         self.out_file.write(str(Atott)+" "+"\n")
         
         #moving lonely nodes
-        UlfUtils.MoveLonelyNodes(self.model_part);
+        UlfUtils.MarkLonelyNodesForErasing(self.model_part);
 
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
@@ -312,9 +312,9 @@ class ULFFracStrategyPython:
         
         UlfUtils.CalculateNodalArea(self.fluid_model_part,self.domain_size);
 
-        if (global_iteration_number==1):
-            print "Updating quasi-inc pressures"
-            self.builder_and_solver.UpdatePressuresNew(self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)
+        #if (global_iteration_number==1):
+            #print "Updating quasi-inc pressures"
+            #self.builder_and_solver.UpdatePressuresNew(self.MPconsistent, self.MPinv, self.model_part, self.bulk_modulus, self.density)
 ##                        
         self.scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
 

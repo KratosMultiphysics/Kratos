@@ -807,7 +807,7 @@ namespace Kratos
 
 		}
 
-		void MarkLonelyNodesForErasing(ModelPart& ThisModelPart, int domain_size)
+		void MarkLonelyNodesForErasing(ModelPart& ThisModelPart)
 		{
 
 //delete lonely nodes //just to try: 19/07/2010
@@ -1065,6 +1065,34 @@ namespace Kratos
 
 			KRATOS_CATCH("")
 		}
+		//////////////////////
+		/*
+		void MarkLonelyNodesForErasing(ModelPart& ThisModelPart)
+		{			
+			KRATOS_TRY;
+			
+			for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; 
+				i != ThisModelPart.NodesEnd() ; ++i)
+			{
+				if(
+					(i)->FastGetSolutionStepValue(IS_STRUCTURE) == 0 && //if it is not a wall node
+					(i)->GetValue(NEIGHBOUR_ELEMENTS).size() == 0 &&//and it is lonely
+					((i)->GetDof(DISPLACEMENT_X).IsFixed() == false || (i)->GetDof(DISPLACEMENT_Y).IsFixed() == false || (i)->GetDof(DISPLACEMENT_Z).IsFixed() == false) //and not the node of the wall, where the 0-displ is prescribed
+
+					)
+				{
+					
+					i->GetValue(ERASE_FLAG)=true;					
+					
+					
+
+				}
+
+			}
+
+			KRATOS_CATCH("")
+		}
+		*/
 		
 		
 		//**********************************************************************************************

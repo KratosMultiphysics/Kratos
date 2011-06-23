@@ -586,8 +586,8 @@ namespace Kratos
 		//calculating parameter tau (saved internally to each element)
 		double h = sqrt(2.00*Area);
 		double tau = 1.00 / ( 4.00*nu/(h*h) + 1.0/dt);
-		//tau=0.0;
-						
+		//tau*=10.0;
+								
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
 		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
 		//								   and LHS +=Tau1*(gradQ, gradP)
