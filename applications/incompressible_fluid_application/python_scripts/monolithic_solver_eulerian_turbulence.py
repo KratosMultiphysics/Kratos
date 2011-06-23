@@ -162,9 +162,9 @@ class MonolithicSolver:
         distance_calculator = BodyDistanceCalculationUtils()
         distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
 
-        non_linear_tol = 1e-3
-        max_it = 5
-        reform_dofset = False
+        non_linear_tol = 0.001
+        max_it = 3
+        reform_dofset = self.ReformDofSetAtEachStep
         time_order = 2
         pPrecond = DiagonalPreconditioner()
         turbulence_linear_solver =  BICGSTABSolver(1e-9, 5000,pPrecond)
