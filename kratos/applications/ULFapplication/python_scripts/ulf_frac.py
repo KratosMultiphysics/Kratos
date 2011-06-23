@@ -269,7 +269,7 @@ class ULF_FSISolver:
         #time=self.combined_model_part.ProcessInfo.GetValue(TIME);
         #print "TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", time
         
-        h_factor=0.2
+        h_factor=0.25
         if (self.remeshing_flag==1.0):
             if (self.domain_size == 2):
                 (self.Mesher).ReGenerateMesh("UlfFrac2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
@@ -298,7 +298,9 @@ class ULF_FSISolver:
         #(self.fluid_only_neigh_finder).Execute();
         (self.UlfUtils).CalculateNodalArea(self.fluid_model_part,self.domain_size);
         
-        print "end of remesh fucntion"
+        self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part)
+        self.node_erase_process.Execute()
+        print "end of remesh function"
 
        
     ######################################################################

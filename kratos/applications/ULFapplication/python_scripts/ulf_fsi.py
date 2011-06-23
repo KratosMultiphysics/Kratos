@@ -246,7 +246,7 @@ class ULF_FSISolver:
 ######################################################################
     def Remesh(self):
 	#self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 3.50)
-	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.1)
+	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.06)
 	#self.UlfUtils.MarkNodesCloseToWallForBladder(self.fluid_model_part, 0.0003)
 			
         ##erase all conditions and elements prior to remeshing
