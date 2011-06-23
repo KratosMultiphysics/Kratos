@@ -256,7 +256,7 @@ namespace Kratos
                     KRATOS_ERROR(std::logic_error,"unexpected isolated node. Wrong node has Id ",i->Id());
 
                 if(distance > h_max*CDES)
-                    i->FastGetSolutionStepValue(DISTANCE) = h_max;
+                    i->FastGetSolutionStepValue(DISTANCE) = h_max*CDES;
 
             }
 
