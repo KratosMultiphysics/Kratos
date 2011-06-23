@@ -205,7 +205,7 @@ class IncompressibleFluidSolver:
         distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
 
         non_linear_tol = 0.001
-        max_it = 5
+        max_it = 3
         reform_dofset = self.ReformDofAtEachIteration
         time_order = self.time_order
         pPrecond = DiagonalPreconditioner()
