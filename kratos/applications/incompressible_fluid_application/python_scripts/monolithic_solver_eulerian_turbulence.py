@@ -145,7 +145,7 @@ class MonolithicSolver:
         
     def ActivateSmagorinsky(self,c):
         for elem in self.model_part.Elements:
-            elem.SetValue(C_SMAGORINSY,c)
+            elem.SetValue(C_SMAGORINSKY,c)
 
     def ActivateSpalartAllmaras(self,wall_nodes,DES=False):
 
