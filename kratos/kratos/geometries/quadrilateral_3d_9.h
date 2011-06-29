@@ -1471,6 +1471,24 @@ namespace Kratos
             
             static const GeometryData msGeometryData;
             
+            
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+ 	  rSerializer.save("Name","Quadrilateral3D9");
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
+	}
+            
             /**
              * Private Operations
              */

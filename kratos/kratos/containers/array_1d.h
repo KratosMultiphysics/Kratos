@@ -688,7 +688,7 @@ namespace Kratos
 	  ///@name Private Operations
 	  ///@{	
 		
-		
+	
 	  ///@}	
 	  ///@name Private	Access 
 	  ///@{	

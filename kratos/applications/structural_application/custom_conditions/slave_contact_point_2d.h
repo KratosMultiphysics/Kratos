@@ -258,7 +258,7 @@ namespace Kratos
 		// A private default constructor necessary for serialization 
 		 SlaveContactPoint2D(){}; 
 
-		virtual void save(Serializer& rSerializer)
+		virtual void save(Serializer& rSerializer) const
 		{
 		rSerializer.save("Name","SlaveContactPoint2D");
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );

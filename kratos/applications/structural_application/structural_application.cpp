@@ -387,7 +387,8 @@ namespace Kratos
             mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
    
             mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-            mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+            mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+            mIsotropic3D()
              
    {}
 
@@ -564,6 +565,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "LinearElement2D9N", mLinearElement2D9N )
         KRATOS_REGISTER_ELEMENT( "LinearElement3D4N", mLinearElement3D4N )
         KRATOS_REGISTER_ELEMENT( "LinearElement3D8N",   mLinearElement3D8N )
+        KRATOS_REGISTER_ELEMENT( "TotalLagrangian", mTotalLagrangian3D4N )
         KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D3N", mTotalLagrangian2D3N )
         KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D4N", mTotalLagrangian2D4N )
         KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D6N", mTotalLagrangian2D6N )
@@ -626,6 +628,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "EbstVel3D3N", mEbstVel3D3N )
 
         KRATOS_REGISTER_CONDITION( "Face2D", mFace2D )
+        KRATOS_REGISTER_CONDITION( "Face3D", mFace3D3N )
         KRATOS_REGISTER_CONDITION( "Face3D3N", mFace3D3N )
         KRATOS_REGISTER_CONDITION( "Face3D6N", mFace3D6N )
         KRATOS_REGISTER_CONDITION( "Face3D4N", mFace3D4N )
@@ -675,8 +678,15 @@ namespace Kratos
 	KRATOS_REGISTER_CONDITION( "SlaveContactPoint2D", mSlaveContactPoint2D )
 	KRATOS_REGISTER_CONDITION( "MasterContactFace2D", mMasterContactFace2D )
 	
-	
-	 //Serializer::Register("PointForce2D", mPointForce2D)
+//	KratosComponents<ConstitutiveLaw >::Add("Isotropic3D", mIsotropic3D);
+	 Serializer::Register("Isotropic3D", mIsotropic3D);
+
+//        std::cout << "registered objects:" << std::endl;
+//
+//        for(Serializer::RegisteredObjectsContainerType::iterator i = Serializer::GetRegisteredObjects().begin() ; i != Serializer::GetRegisteredObjects().end() ; i++)
+//            std::cout << i->first << std::endl;
+
+
 
 
     }

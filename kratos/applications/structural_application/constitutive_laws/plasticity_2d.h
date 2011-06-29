@@ -192,7 +192,7 @@ namespace Kratos
 	///@{	
 	friend class Serializer;
 
-	virtual void save(Serializer& rSerializer)
+	virtual void save(Serializer& rSerializer) const
 	{
 	   rSerializer.save("Name"," Plasticity2D ");
 	   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);

@@ -200,9 +200,9 @@ class Face3D
 		///@{	
 		friend class Serializer;
 
-		virtual void save(Serializer& rSerializer)
+		virtual void save(Serializer& rSerializer) const
 		{
-		rSerializer.save("Name","Face3D");
+		//rSerializer.save("Name","Face3D");
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
 		}
 

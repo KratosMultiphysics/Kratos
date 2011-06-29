@@ -57,9 +57,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstddef>
 
 
+
+// External includes 
+
+
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
+#include "includes/serializer.h"
 
 
 namespace Kratos
@@ -448,15 +453,25 @@ namespace Kratos
 	this->operator()(i) = Value;
 	KRATOS_CATCH_LEVEL_4(*this)
       }
-        
-        
-//       friend class boost::serialization::access;
-      
-//       template<class TArchive>
-// 	  void serialize(TArchive & ThisArchive, const unsigned int ThisVersion)
-// 	  {
-//  	      ThisArchive & boost::serialization::base_object<array_1d<TDataType, TDimension> >(*this); 
-// 	  }
+ 	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+       
+        friend class Serializer;
+	
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+            rSerializer.save_base("BaseClass",*static_cast<const array_1d<TDataType, TDimension> *>(this));
+	  //rSerializer.save_base("BaseData",*dynamic_cast<const array_1d<TDataType, TDimension>*>(this));
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+            rSerializer.load_base("BaseClass",*static_cast<array_1d<TDataType, TDimension> *>(this));
+//	  rSerializer.load_base("BaseData",*dynamic_cast<array_1d<TDataType, TDimension>*>(this));
+	}
         
       ///@} 
       ///@name Private  Access 

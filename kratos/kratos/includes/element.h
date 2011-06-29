@@ -154,7 +154,8 @@ namespace Kratos
          * Constructor.
          */
         Element(IndexType NewId = 0) : BaseType(NewId),
-        mpGeometry(new GeometryType(NodesArrayType())),
+       // mpGeometry(new GeometryType(NodesArrayType())),
+        mpGeometry(), // for serialization the pointer must be null 
         mpProperties(new PropertiesType)
         {
         }
@@ -657,142 +658,162 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
+            
+            ///@}
+            ///@name Access
+            ///@{
+            
+            GeometryType::Pointer pGetGeometry()
+            {
+                return mpGeometry;
+            }
+            
+            const GeometryType::Pointer pGetGeometry() const
+            {
+                return mpGeometry;
+            }
+            
+            GeometryType& GetGeometry()
+            {
+                return *mpGeometry;
+            }
+            
+            GeometryType const& GetGeometry() const
+            {
+                return *mpGeometry;
+            }
+            
+            PropertiesType::Pointer pGetProperties()
+            {
+                return mpProperties;
+            }
+            
+            const PropertiesType::Pointer pGetProperties() const
+            {
+                return mpProperties;
+            }
+            
+            PropertiesType& GetProperties()
+            {
+                return *mpProperties;
+            }
+            
+            PropertiesType const& GetProperties() const
+            {
+                return *mpProperties;
+            }
+            
+            ///@}
+            ///@name Inquiry
+            ///@{
+            ///@}      
+            ///@name Input and output
+            ///@{
+            /// Turn back information as a string.
+            virtual std::string Info() const
+            {
+                std::stringstream buffer;
+                buffer << "Element #" << Id();
+                return buffer.str();
+            }
+            
+            /// Print information about this object.
+            virtual void PrintInfo(std::ostream& rOStream) const
+            {
+                rOStream << "Element #" << Id();
+            }
+            
+            /// Print object's data.
+            virtual void PrintData(std::ostream& rOStream) const
+            {
+                mpGeometry->PrintData(rOStream);
+            }
+            ///@}      
+            ///@name Friends
+            ///@{
+            ///@}
+        
+        protected:
+            ///@name Protected static Member Variables 
+            ///@{ 
+            ///@} 
+            ///@name Protected member Variables 
+            ///@{ 
+            ///@} 
+            ///@name Protected Operators
+            ///@{ 
+            ///@} 
+            ///@name Protected Operations
+            ///@{ 
+            ///@} 
+            ///@name Protected  Access 
+            ///@{ 
+            ///@}      
+            ///@name Protected Inquiry 
+            ///@{ 
+            ///@}    
+            ///@name Protected LifeCycle 
+            ///@{ 
+            ///@}
+        
+        private:
+            ///@name Static Member Variables 
+            ///@{ 
+            ///@} 
+            ///@name Member Variables 
+            ///@{ 
+            /** A pointer to data related to this node. */
+            DataValueContainer mData;
+            
+            /**
+             * pointer to the element's geometry
+             */
+            GeometryType::Pointer mpGeometry;
+            
+            /**
+             * pointer to the element's properties
+             */
+            Properties::Pointer mpProperties;
+            
+            ///@} 
+            ///@name Private Operators
+            ///@{ 
+            ///@} 
+            ///@name Private Operations
+            ///@{ 
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.save("Data", mData);
+          rSerializer.save("Geometry",mpGeometry);
+	  rSerializer.save("Properties", mpProperties);
+	}
 
-        ///@}
-        ///@name Access
-        ///@{
-
-        GeometryType::Pointer pGetGeometry()
-        {
-            return mpGeometry;
-        }
-
-        const GeometryType::Pointer pGetGeometry() const
-        {
-            return mpGeometry;
-        }
-
-        GeometryType& GetGeometry()
-        {
-            return *mpGeometry;
-        }
-
-        GeometryType const& GetGeometry() const
-        {
-            return *mpGeometry;
-        }
-
-        PropertiesType::Pointer pGetProperties()
-        {
-            return mpProperties;
-        }
-
-        const PropertiesType::Pointer pGetProperties() const
-        {
-            return mpProperties;
-        }
-
-        PropertiesType& GetProperties()
-        {
-            return *mpProperties;
-        }
-
-        PropertiesType const& GetProperties() const
-        {
-            return *mpProperties;
-        }
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-        ///@}
-        ///@name Input and output
-        ///@{
-        /// Turn back information as a string.
-
-        virtual std::string Info() const
-        {
-            std::stringstream buffer;
-            buffer << "Element #" << Id();
-            return buffer.str();
-        }
-
-        /// Print information about this object.
-
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-            rOStream << "Element #" << Id();
-        }
-
-        /// Print object's data.
-
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-            mpGeometry->PrintData(rOStream);
-        }
-        ///@}
-        ///@name Friends
-        ///@{
-        ///@}
-
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-        ///@}
-        ///@name Protected Operators
-        ///@{
-        ///@}
-        ///@name Protected Operations
-        ///@{
-        ///@}
-        ///@name Protected  Access
-        ///@{
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-        ///@}
-
-    private:
-        ///@name Static Member Variables
-        ///@{
-        ///@}
-        ///@name Member Variables
-        ///@{
-        /** A pointer to data related to this node. */
-        DataValueContainer mData;
-
-        /**
-         * pointer to the element's geometry
-         */
-        GeometryType::Pointer mpGeometry;
-
-        /**
-         * pointer to the element's properties
-         */
-        Properties::Pointer mpProperties;
-
-        ///@}
-        ///@name Private Operators
-        ///@{
-        ///@}
-        ///@name Private Operations
-        ///@{
-        ///@}
-        ///@name Private  Access
-        ///@{
-        ///@}
-        ///@name Private Inquiry
-        ///@{
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-        ///@}
+	virtual void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.load("Data", mData);
+          rSerializer.load("Geometry",mpGeometry);
+	  rSerializer.load("Properties", mpProperties);
+	}
+	      
+            ///@} 
+            ///@name Private  Access 
+            ///@{ 
+            ///@}    
+            ///@name Private Inquiry 
+            ///@{ 
+            ///@}    
+            ///@name Un accessible methods 
+            ///@{ 
+            ///@}    
     }; // Class Element 
     ///@} 
     ///@name Type Definitions       

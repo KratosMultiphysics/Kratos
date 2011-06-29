@@ -924,6 +924,11 @@ namespace Kratos
       ///@} 
       ///@name Private Operators
       ///@{ 
+      
+      ///@} 
+      ///@name Private Operations
+      ///@{ 
+        
         
       inline void Allocate()
 	  {
@@ -950,10 +955,11 @@ namespace Kratos
 	  {
 	      if(mpData == 0)
 		  return;
+		  
+	      SizeType size = mpVariablesList->DataSize();
 	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
 		  i_variable != mpVariablesList->end() ; i_variable++)
 	      {
-		  SizeType size = mpVariablesList->DataSize();
 		  BlockType*  position = mpData + LocalOffset(*i_variable);
 		  for(SizeType i = 0 ; i < mQueueSize ; i++)
 		      i_variable->Destruct(position + i * size);
@@ -997,11 +1003,68 @@ namespace Kratos
 	      BlockType* position = mpCurrentPosition + ThisIndex * mpVariablesList->DataSize();
 	      return (position < mpData + total_size) ? position : position - total_size;
 	  }
-      
+	  
       ///@} 
-      ///@name Private Operations
+      ///@name Serialization
       ///@{ 
         
+	friend class Serializer;
+ 	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  rSerializer.save("Variables List", mpVariablesList);
+	  rSerializer.save("QueueSize", mQueueSize);
+          if(mpVariablesList->DataSize() != 0 )
+            rSerializer.save("QueueIndex", SizeType(mpCurrentPosition-mpData)/mpVariablesList->DataSize());
+          else
+           rSerializer.save("QueueIndex", 0);
+
+	  
+	      if(mpData == 0)
+		  KRATOS_ERROR(std::logic_error, "Cannot save an empty variables list container", "");
+		  
+	      SizeType size = mpVariablesList->DataSize();
+	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+		  i_variable != mpVariablesList->end() ; i_variable++)
+	      {
+		  BlockType*  position = mpData + LocalOffset(*i_variable);
+		  for(SizeType i = 0 ; i < mQueueSize ; i++)
+                  {
+                      //rSerializer.save("VariableName", i_variable->Name());
+		      i_variable->Save(rSerializer, position + i * size);
+                  }
+	      }
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  rSerializer.load("Variables List", mpVariablesList);
+	  rSerializer.load("QueueSize", mQueueSize);
+          SizeType queue_index;
+          rSerializer.load("QueueIndex", queue_index);
+	  Allocate();
+
+          // Setting the current position at the begining of data
+          if(queue_index > mQueueSize)
+              KRATOS_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
+          mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
+
+          std::string name;
+              for(SizeType i = 0 ; i < mQueueSize ; i++)
+                  AssignZero(i);
+	      
+	      SizeType size = mpVariablesList->DataSize();
+	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+		  i_variable != mpVariablesList->end() ; i_variable++)
+	      {
+		  BlockType*  position = mpData + LocalOffset(*i_variable);
+		  for(SizeType i = 0 ; i < mQueueSize ; i++)
+                  {
+                      //rSerializer.load("VariableName", name);
+		      i_variable->Load(rSerializer, position + i * size);
+                  }
+	      }
+	}
         
       ///@} 
       ///@name Private  Access 

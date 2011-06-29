@@ -124,7 +124,7 @@ namespace Kratos
       ///@{ 
       
       VariableComponent(const std::string& NewName, const AdaptorType& NewAdaptor) 
-	: BaseType(NewName), mAdaptor(NewAdaptor)
+	: BaseType(NewName, sizeof(DataType)), mAdaptor(NewAdaptor)
 	{
 	}
 
@@ -265,6 +265,10 @@ namespace Kratos
       ///@{ 
         
       TAdaptorType mAdaptor;
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
         
       ///@} 
       ///@name Private Operators
@@ -279,7 +283,6 @@ namespace Kratos
       ///@} 
       ///@name Private  Access 
       ///@{ 
-        
         
       ///@}    
       ///@name Private Inquiry 

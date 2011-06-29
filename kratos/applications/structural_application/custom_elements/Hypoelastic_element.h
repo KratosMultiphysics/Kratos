@@ -153,11 +153,12 @@ namespace Kratos
 	///@}
 	///@name Serialization
 	///@{	
+
 	friend class Serializer; 
 	// A private default constructor necessary for serialization 
 	HypoelasticElement(){}
 
-	virtual void save(Serializer& rSerializer)
+	virtual void save(Serializer& rSerializer) const
 	{
 	   rSerializer.save("Name","HypoelasticElement");
 	   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );

@@ -67,7 +67,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "containers/buffer.h"
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
@@ -641,6 +640,38 @@ namespace Kratos
                 }
        
         
+      ///@}
+      ///@name Serialization
+      ///@{
+
+	friend class Serializer;
+
+	virtual void save(Serializer& rSerializer) const
+	{
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.save("Is Fixed", mIsFixed);
+	  rSerializer.save("Equation Id", mEquationId);
+	  rSerializer.save("Solution Steps Data", mpSolutionStepsData);
+	  rSerializer.save("Variable", mpVariable->Name());
+	  rSerializer.save("Reaction", mpReaction->Name());
+	  rSerializer.save("Variable Type", mVariableType);
+	  rSerializer.save("Reaction Type", mReactionType);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+            std::string name;
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.load("Is Fixed", mIsFixed);
+	  rSerializer.load("Equation Id", mEquationId);
+	  rSerializer.load("Solution Steps Data", mpSolutionStepsData);
+	  rSerializer.load("Variable", name);
+          mpVariable=KratosComponents<VariableData>::pGet(name);
+	  rSerializer.load("Reaction", name);
+          mpReaction=KratosComponents<VariableData>::pGet(name);
+	  rSerializer.load("Variable Type", mVariableType);
+	  rSerializer.load("Reaction Type", mReactionType);
+	}
       ///@} 
       ///@name Private Operations
       ///@{ 

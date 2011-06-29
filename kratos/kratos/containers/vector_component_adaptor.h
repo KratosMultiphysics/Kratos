@@ -110,12 +110,12 @@ namespace Kratos
       
       /// Constructor.
       VectorComponentAdaptor(const SourceVariableType& rSourceVariable, int ComponentIndex)
-	: mSourceVariable(rSourceVariable), mComponentIndex(ComponentIndex)
+	: mpSourceVariable(&rSourceVariable), mComponentIndex(ComponentIndex)
 	{}
 
       /// Copy constructor.
       VectorComponentAdaptor(const VectorComponentAdaptor& rOther)
-	: mSourceVariable(rOther.mSourceVariable), mComponentIndex(rOther.mComponentIndex)
+	: mpSourceVariable(rOther.mpSourceVariable), mComponentIndex(rOther.mComponentIndex)
 	{}
 
       /// Destructor.
@@ -153,7 +153,7 @@ namespace Kratos
       
       const SourceVariableType& GetSourceVariable() const
       {
-	return mSourceVariable;
+	return *mpSourceVariable;
       }
       
       ///@}
@@ -169,14 +169,14 @@ namespace Kratos
       virtual std::string Info() const
 	{
 	  std::stringstream buffer;
-	  buffer << mSourceVariable.Name() << " vector component " << mComponentIndex << " adaptor";
+	  buffer << mpSourceVariable->Name() << " vector component " << mComponentIndex << " adaptor";
 	  return buffer.str();
 	}
       
       /// Print information about this object.
       virtual void PrintInfo(std::ostream& rOStream) const
 	{
-	  rOStream << mSourceVariable.Name() << " vector component " << mComponentIndex << " adaptor";
+	  rOStream << mpSourceVariable->Name() << " vector component " << mComponentIndex << " adaptor";
 	}
 
       /// Print object's data.
@@ -238,9 +238,13 @@ namespace Kratos
       ///@name Member Variables 
       ///@{ 
         
-      const SourceVariableType& mSourceVariable;
+      const SourceVariableType* mpSourceVariable;
       
       int mComponentIndex;
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
         
       ///@} 
       ///@name Private Operators

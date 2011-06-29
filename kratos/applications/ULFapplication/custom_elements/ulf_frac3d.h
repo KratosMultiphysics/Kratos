@@ -253,7 +253,16 @@ namespace Kratos
         void VelocityStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 	  //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
 	  //inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, array_1d<double,4>& N, double& Area);
-        
+ 
+ 	    ///@}
+	    ///@name Serialization
+	    ///@{
+	    friend class Serializer;
+
+       
+        // default constructor for serialization
+        UlfFrac3D():Element(){}
+
       ///@} 
       ///@name Private Operations
       ///@{ 

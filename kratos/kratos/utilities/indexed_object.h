@@ -266,8 +266,26 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
         
+ 	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  rSerializer.save("Id",mId);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  rSerializer.load("Id",mId);
+	}
+	
+	
         
+       
       ///@} 
       ///@name Private  Access 
       ///@{ 

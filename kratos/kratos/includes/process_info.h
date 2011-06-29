@@ -565,7 +565,33 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
         
+	friend class Serializer;
+	
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
+	  rSerializer.save("Is Time Step",mIsTimeStep);
+	  rSerializer.save("Solution Step Index",mSolutionStepIndex);
+ 	  rSerializer.save("Previous Solution Step Info",mpPreviousSolutionStepInfo);
+ 	  rSerializer.save("Previous Time Step Info", mpPreviousTimeStepInfo);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
+	  rSerializer.load("Is Time Step",mIsTimeStep);
+	  rSerializer.load("Solution Step Index",mSolutionStepIndex);
+ 	  rSerializer.load("Previous Solution Step Info",mpPreviousSolutionStepInfo);
+ 	  rSerializer.load("Previous Time Step Info", mpPreviousTimeStepInfo);
+	}
+
+     
         
       ///@} 
       ///@name Private  Access 

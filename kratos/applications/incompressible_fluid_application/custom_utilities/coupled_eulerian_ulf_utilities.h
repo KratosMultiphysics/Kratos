@@ -1031,6 +1031,19 @@ N);
 
 		}
 
+		for(ModelPart::PropertiesContainerType::iterator i_properties = full_model_part.PropertiesBegin() ; 
+				i_properties != full_model_part.PropertiesEnd() ; ++i_properties)
+		{	  
+					reduced_model_part.AddProperties(*(i_properties.base()));
+			
+		}
+
+		for(ModelPart::ConditionsContainerType::iterator i_condition = full_model_part.ConditionsBegin() ; 
+				i_condition != full_model_part.ConditionsEnd() ; ++i_condition)
+		{	  
+					reduced_model_part.AddCondition(*(i_condition.base()));
+			
+		}
 		/*
 		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
 				im != full_model_part.ElementsEnd() ; ++im)

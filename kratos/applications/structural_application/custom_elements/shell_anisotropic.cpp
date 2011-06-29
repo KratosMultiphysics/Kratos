@@ -1773,7 +1773,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 			//saving the angle
 			double proj1 = inner_prod(v1,vcomposite);
 			double proj2 = inner_prod(v2,vcomposite);
-			mRotAngle = atan2(proj1,proj2);
+//			mRotAngle = atan2(proj1,proj2);
+                        mRotAngle = acos(proj1);
+                        if(proj2 < 0)
+                            mRotAngle = -mRotAngle;
+
+                        KRATOS_WATCH(mRotAngle)
 			
 			
 			KRATOS_CATCH("")

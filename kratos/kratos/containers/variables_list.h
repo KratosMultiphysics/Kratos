@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-//#include "includes/kratos_components.h"
+#include "includes/kratos_components.h"
 #include "containers/variable.h"
 
 
@@ -274,8 +274,26 @@ namespace Kratos
 	//	return mVariables.capacity();
 	//}    
     
-     template<class TDataType>
-	void Add(Variable<TDataType> const& ThisVariable)
+//      template<class TDataType>
+// 	void Add(Variable<TDataType> const& ThisVariable)
+// 	{
+// 	  if(ThisVariable.Key()== 0)
+// 		  KRATOS_ERROR(std::logic_error, 
+// 		  "Adding uninitialize variable to this variable list. Check if all variables are registered before kernel initialization","");
+// 
+// 	  if(Has(ThisVariable))
+// 		  return;
+// 
+// 	  if(mPositions.size() <= ThisVariable.Key())
+// 	    mPositions.resize(ThisVariable.Key()+1/*KratosComponents<VariableData>::Size()*/, static_cast<IndexType>(-1));
+// 
+// 	  mPositions[ThisVariable.Key()] = mDataSize;
+// 	  mVariables.push_back(&ThisVariable);
+// 	  const SizeType block_size = sizeof(BlockType);
+// 	  mDataSize += static_cast<SizeType>(((block_size - 1) + sizeof(TDataType)) / block_size);
+// 	}
+
+	void Add(VariableData const& ThisVariable)
 	{
 	  if(ThisVariable.Key()== 0)
 		  KRATOS_ERROR(std::logic_error, 
@@ -285,14 +303,14 @@ namespace Kratos
 		  return;
 
 	  if(mPositions.size() <= ThisVariable.Key())
-	    mPositions.resize(ThisVariable.Key()+1/*KratosComponents<VariableData>::Size()*/, static_cast<IndexType>(-1));
+	    mPositions.resize(ThisVariable.Key()+1, static_cast<IndexType>(-1));
 
 	  mPositions[ThisVariable.Key()] = mDataSize;
 	  mVariables.push_back(&ThisVariable);
 	  const SizeType block_size = sizeof(BlockType);
-	  mDataSize += static_cast<SizeType>(((block_size - 1) + sizeof(TDataType)) / block_size);
+	  mDataSize += static_cast<SizeType>(((block_size - 1) +  ThisVariable.Size()) / block_size);
 	}
-
+	
       IndexType Index(IndexType VariableKey) const
       {
 	return mPositions[VariableKey];
@@ -329,7 +347,21 @@ namespace Kratos
       ///@name Inquiry
       ///@{
       
-      template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+//       template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+// 	{
+// 	  if(mPositions.empty())
+// 	    return false;
+// 
+// 	  if(rThisVariable.Key()== 0)
+// 	    return false;
+// 
+// 	  if(mPositions.size() <= rThisVariable.Key())
+// 		  return false;
+// 
+// 	  return (Index(rThisVariable) < mDataSize);
+// 	}
+
+       bool Has(const VariableData& rThisVariable) const
 	{
 	  if(mPositions.empty())
 	    return false;
@@ -340,7 +372,7 @@ namespace Kratos
 	  if(mPositions.size() <= rThisVariable.Key())
 		  return false;
 
-	  return (Index(rThisVariable) < mDataSize);
+	  return (Index(rThisVariable.Key()) < mDataSize);
 	}
 
       bool IsEmpty() const
@@ -442,6 +474,40 @@ namespace Kratos
       ///@name Private Operations
       ///@{ 
         
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+ 	
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+// 	  rSerializer.save("Data Size", mDataSize);
+// 	  rSerializer.save("Positions", mPositions);
+	  std::size_t size= mVariables.size();
+	  rSerializer.save("Size", size);
+	  for(std::size_t i = 0 ; i < size ; i++)
+	  {
+	    rSerializer.save("Variable Name", mVariables[i]->Name());
+	  }
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+// 	  rSerializer.load("Data Size", mDataSize);
+// 	  rSerializer.load("Positions", mPositions);
+	  std::size_t size;
+	  rSerializer.load("Size", size);
+	  std::string name;
+	  for(std::size_t i = 0 ; i < size ; i++)
+	  {
+	    rSerializer.load("Variable Name", name);
+	    Add(*KratosComponents<VariableData>::pGet(name));
+	  }
+	}
+ 
         
       ///@} 
       ///@name Private  Access 

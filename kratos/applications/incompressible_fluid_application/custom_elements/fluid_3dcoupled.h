@@ -230,7 +230,15 @@ namespace Kratos
       ///@{ 
 		
         
-        
+       ///@}
+      ///@name Serialization
+      ///@{
+
+	friend class Serializer;
+
+        Fluid3DCoupled() {}
+
+       
       ///@} 
       ///@name Private Operators
       ///@{ 

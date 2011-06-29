@@ -844,6 +844,44 @@ namespace Kratos
       MassFactorsContainerType mMassFactors;
 
       LampedMassFactorsContainerType mLampedMassFactors;
+           
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  rSerializer.save("Dimension", mDimension);
+	  rSerializer.save("Working Space Dimension", mWorkingSpaceDimension);
+	  rSerializer.save("Local Space Dimension", mLocalSpaceDimension);
+// 	  rSerializer.save("Default Method", mDefaultMethod);
+// 	  rSerializer.save("Integration Points", mIntegrationPoints);
+// 	  rSerializer.save("Shape Functions Values", mShapeFunctionsValues);
+// 	  rSerializer.save("Shape Functions Local Gradients", mShapeFunctionsLocalGradients);
+// 	  rSerializer.save("Mass Factors", mMassFactors);
+// 	  rSerializer.save("Lamped Mass Factors", mLampedMassFactors);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  rSerializer.load("Dimension", mDimension);
+	  rSerializer.load("Working Space Dimension", mWorkingSpaceDimension);
+	  rSerializer.load("Local Space Dimension", mLocalSpaceDimension);
+// 	  rSerializer.load("Default Method", mDefaultMethod);
+// 	  rSerializer.load("Integration Points", mIntegrationPoints);
+// 	  rSerializer.load("Shape Functions Values", mShapeFunctionsValues);
+// 	  rSerializer.load("Shape Functions Local Gradients", mShapeFunctionsLocalGradients);
+// 	  rSerializer.load("Mass Factors", mMassFactors);
+// 	  rSerializer.load("Lamped Mass Factors", mLampedMassFactors);
+	}
+	
+	// Private default constructor for serialization
+	GeometryData()
+	{
+	}
+	      
         
       ///@} 
       ///@name Private Operators

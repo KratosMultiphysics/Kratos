@@ -114,6 +114,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/slave_contact_point_2d.h"
 #include "custom_conditions/face_vel_3D.h"
 
+#include "constitutive_laws/isotropic_2d.h"
+#include "constitutive_laws/isotropic_3d.h"
+
 
 #include "includes/variables.h"
 #include "includes/ublas_interface.h"
@@ -521,6 +524,8 @@ namespace Kratos
 
 	    const SlaveContactPoint2D mSlaveContactPoint2D; 
  	    const MasterContactFace2D mMasterContactFace2D;
+
+            const Isotropic3D mIsotropic3D;
  	    
 	    
 //             const UPCTestElement mUPCTestElement3D20N;

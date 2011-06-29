@@ -207,7 +207,9 @@ namespace Kratos
       
     private:
       ///@name Static Member Variables 
-      ///@{ 
+      ///@{
+
+
 /*		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
   		static array_1d<double,3> msN; //dimension = number of nodes
   		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes*/
@@ -217,6 +219,13 @@ namespace Kratos
       ///@{ 
 		
         
+       ///@}
+      ///@name Serialization
+      ///@{
+
+	friend class Serializer;
+
+         LaplacianMeshMovingElem2D(){}
         
       ///@} 
       ///@name Private Operators
@@ -239,7 +248,8 @@ namespace Kratos
         
       ///@}    
       ///@name Un accessible methods 
-      ///@{ 
+      ///@{
+
       
       /// Assignment operator.
       //LaplacianMeshMovingElem2D& operator=(const LaplacianMeshMovingElem2D& rOther);

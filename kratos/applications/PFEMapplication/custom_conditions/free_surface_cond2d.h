@@ -212,6 +212,20 @@ namespace Kratos
       ///@{ 
 		
         
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
+
+        virtual void save(Serializer& rSerializer) const
+        {
+         }
+
+        virtual void load(Serializer& rSerializer)
+        {
+        }
+
+        FreeSurfaceCond2d(){}
         
       ///@} 
       ///@name Private Operators

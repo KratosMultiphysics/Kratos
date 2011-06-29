@@ -117,6 +117,8 @@ namespace Kratos
       typedef TElementType ElementType;
 
       typedef TConditionType ConditionType;
+      
+      typedef Mesh<TNodeType, TPropertiesType, TElementType, TConditionType> MeshType;
 
       /// Nodes container. Which is a vector set of nodes with their Id's as key.
       typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
@@ -528,7 +530,31 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
         
+        
+	friend class Serializer;
+	
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  rSerializer.save("Nodes",mpNodes);
+	  rSerializer.save("Properties",mpProperties);
+	  rSerializer.save("Elements",mpElements);
+	  rSerializer.save("Conditions",mpConditions);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  rSerializer.load("Nodes",mpNodes);
+	  rSerializer.load("Properties",mpProperties);
+	  rSerializer.load("Elements",mpElements);
+	  rSerializer.load("Conditions",mpConditions);
+	}
+
         
       ///@} 
       ///@name Private  Access 

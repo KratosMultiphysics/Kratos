@@ -6,13 +6,13 @@
 
 
 #### Compiler and tool definitions shared by all build targets #####
-PURE_CC = gcc
+PURE_CC = icc
 PCC_FLAGS = -c -L. -lGPUSparse
 CCC = nvcc
 CXX = nvcc
 BASICOPTS =  -Xcompiler -fPIC -arch compute_13 -code compute_13 -O3 -DUSE_UMUL24
 CCFLAGS = $(BASICOPTS)
-CXXFLAGS = $(BASICOPTS)
+CXXFLAGS = $(BASICOPTS) --compiler-bindir=/usr/bin/gcc-4.3
 CCADMIN = 
 
 
@@ -25,6 +25,7 @@ all: libGPUSparse.a
 CPPFLAGS_libGPUSparse.a = \
 	-I/usr/local/cuda/include \
 	-I/usr/local/lapackpp/include/lapackpp 
+
 OBJS_libGPUSparse.a =  \
 	$(TARGETDIR_libGPUSparse.a)/cwrapper.o \
 	$(TARGETDIR_libGPUSparse.a)/mmio.o \

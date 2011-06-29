@@ -64,13 +64,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //#include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
-//#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/tetrahedra_3d_4.h"
 
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 
 namespace Kratos
 {
+
+    
  	
     KRATOS_CREATE_VARIABLE(ConvectionDiffusionSettings::Pointer,  CONVECTION_DIFFUSION_SETTINGS)	
     KRATOS_CREATE_VARIABLE(RadiationSettings::Pointer,  RADIATION_SETTINGS)
@@ -452,7 +454,9 @@ namespace Kratos
     mpMatrixVariables(KratosComponents<Variable<Matrix> >::pGetComponents()),
     mpArray1DVariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >::pGetComponents()),
     mpElements(KratosComponents<Element>::pGetComponents()), 
-    mpConditions(KratosComponents<Condition>::pGetComponents())
+    mpConditions(KratosComponents<Condition>::pGetComponents()),
+    mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
+    mpRegisteredObjectsName(&(Serializer::GetRegisteredObjectsName()))
     {}
 
     void KratosApplication::RegisterVariables()
@@ -832,7 +836,18 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(VEL_ART_VISC)
         KRATOS_REGISTER_VARIABLE(PR_ART_VISC)
         KRATOS_REGISTER_VARIABLE(INTERNAL_ENERGY)
-        
+
+       Tetrahedra3D4 <Node<3> >  Tetrahedra3D4Prototype( Element::GeometryType::PointsArrayType( 4, Node<3>() ) );
+
+       Serializer::Register("Tetrahedra3D4", Tetrahedra3D4Prototype);
+
+       Triangle3D3 <Node<3> >  Triangle3D3Prototype( Element::GeometryType::PointsArrayType( 3, Node<3>() ) );
+
+       Serializer::Register("Triangle3D3", Triangle3D3Prototype);
+
+       Serializer::Register("Node3D", Node<3>());
+       Serializer::Register("Properties", Properties());
+
     }
 
     // Specialize array of compenents for VariableData

@@ -214,6 +214,14 @@ namespace Kratos
       ///@{ 
 		
         
+       ///@}
+      ///@name Serialization
+      ///@{
+
+	friend class Serializer;
+
+         LaplacianMeshMovingElem3D(){}
+
         
       ///@} 
       ///@name Private Operators
@@ -238,6 +246,7 @@ namespace Kratos
       ///@name Un accessible methods 
       ///@{ 
       
+       
       /// Assignment operator.
       //LaplacianMeshMovingElem3D& operator=(const LaplacianMeshMovingElem3D& rOther);
 

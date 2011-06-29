@@ -97,7 +97,6 @@ namespace Kratos
 {
 
 
-
   ///@name Kratos Globals
 
   ///@{ 
@@ -162,7 +161,7 @@ namespace Kratos
 
 
 
-      typedef std::map<std::string, boost::reference_wrapper<TComponentType const> > ComponentsContainerType;
+      typedef std::map<std::string, const TComponentType* > ComponentsContainerType;
 
   
 
@@ -224,7 +223,7 @@ namespace Kratos
 
       {
 
-	msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
+	msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
 
       }
 
@@ -248,7 +247,7 @@ namespace Kratos
 	typename ComponentsContainerType::iterator i =  msComponents.find(Name);
 /* 	if(i == msComponents.end()) */
 /* 	   KRATOS_ERROR(std::invalid_argument, "The component is not registered!", Name); */
-	return i->second.get();
+	return *(i->second);
 
       }
 
@@ -566,7 +565,7 @@ namespace Kratos
 
 
 
-      typedef std::map<std::string, boost::reference_wrapper<VariableData> > ComponentsContainerType;
+      typedef std::map<std::string, VariableData* > ComponentsContainerType;
 
   
 
@@ -628,7 +627,7 @@ namespace Kratos
 
       {
 
-	msComponents.insert(ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
+	msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
 
       }
 
@@ -660,7 +659,15 @@ namespace Kratos
 
       {
 
-	return msComponents.find(Name)->second.get();
+	return *(msComponents.find(Name)->second);
+
+      }
+
+      static VariableData* pGet(std::string const& Name)
+
+      {
+
+	return (msComponents.find(Name)->second);
 
       }
 
@@ -761,7 +768,7 @@ namespace Kratos
 
 	for(ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
 
-	  rOStream << "    " << i->second << std::endl;
+	  rOStream << "    " << *(i->second) << std::endl;
 
       }
 

@@ -135,7 +135,7 @@ namespace Kratos
             BeamElement(){}; 
 
 	    
-	    virtual void save(Serializer& rSerializer)
+	    virtual void save(Serializer& rSerializer) const
 	    {
 	       rSerializer.save("Name","BeamElement");
 	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -145,7 +145,7 @@ namespace Kratos
 	    {
 	      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
 	    }
-
+      
 	      
 	      
 

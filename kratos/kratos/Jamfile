@@ -78,7 +78,8 @@ alias static_Kratos
 	add_process_info_to_python.cpp	
 	add_parallel_strategies_to_python.cpp
 	add_parallel_linear_solvers_to_python.cpp
-	add_matrix_market_interface_to_python.cpp 
+	add_matrix_market_interface_to_python.cpp
+        add_serializer_to_python.cpp
 	kratos_python.cpp
 
 	##gidpost library

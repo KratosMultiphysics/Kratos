@@ -267,13 +267,13 @@ namespace Kratos {
 	array_1d<double,3> m_bending_stress;
 
     private:
-     
+    
             ///@}
       ///@name Serialization
       ///@{	
       friend class Serializer; 
 
-      virtual void save(Serializer& rSerializer)
+      virtual void save(Serializer& rSerializer) const
       {
         rSerializer.save("Name","Ebst");
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -285,12 +285,9 @@ namespace Kratos {
       }
       
           // Constructor
-
-
-      
-        
-    }; // class KRATOS_EBST_H_INCLUDED.
+       
+    }; // class Ebst.
 
 } // namespace Kratos.
 
-#endif // KRATOS_MEMBRANE_BEPPE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_EBST_H_INCLUDED  defined 

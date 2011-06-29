@@ -1003,7 +1003,7 @@ namespace Kratos
             {
                 BaseType::PrintData(rOStream);
                 std::cout << std::endl;
-                Matrix jacobian;
+                Matrix jacobian(3,3);
                 Jacobian(jacobian, PointType());
                 rOStream << "    Jacobian in the origin\t : " << jacobian;
             }
@@ -1022,6 +1022,26 @@ namespace Kratos
             static const GeometryData msGeometryData;
             
             
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+ 	  //rSerializer.save("Name","Tetrahedra3D4");
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
+	}
+
+        // serialization needs the default constructor
+             Tetrahedra3D4(): BaseType(PointsArrayType(), &msGeometryData){}
+           
             /**
              * Private Operations
              */
@@ -1207,7 +1227,6 @@ namespace Kratos
              * Un accessible methods 
              */
             
-            Tetrahedra3D4();
     
     };// Class Tetrahedra3D4
     

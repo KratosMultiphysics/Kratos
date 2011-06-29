@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "utilities/counter.h"
+#include "includes/serializer.h"
 
 
 namespace Kratos
@@ -106,7 +107,7 @@ namespace Kratos
       
       /// Copy constructor
       VariableData(const VariableData& rOtherVariable) 
-	: mName(rOtherVariable.mName), mKey(rOtherVariable.mKey){}
+	: mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize){}
 
       /// Destructor.
       virtual ~VariableData(){}
@@ -138,6 +139,19 @@ namespace Kratos
       
       virtual void Print(const void* pSource, std::ostream& rOStream) const {}
       
+      virtual void Allocate(void** pData) const
+	{
+	}
+	
+      virtual void Save(Serializer& rSerializer, void* pData) const
+      {
+      }
+      
+      virtual void Load(Serializer& rSerializer, void* pData) const
+      {
+      }
+      
+      
       ///@}
       ///@name Access
       ///@{ 
@@ -149,6 +163,8 @@ namespace Kratos
       void SetKey(KeyType NewKey) {mKey = NewKey;}
     
       const std::string& Name() const {return mName;}
+      
+      std::size_t Size() const { return mSize; }
 
       
       ///@}
@@ -210,6 +226,8 @@ namespace Kratos
       {
 	mName = rOtherVariable.mName;
 	mKey = rOtherVariable.mKey;
+	mSize = rOtherVariable.mSize;
+	
 	return *this;
       }
         
@@ -235,9 +253,14 @@ namespace Kratos
       /// Constructor.
 /*       VariableData(const std::string& NewName) : mName(NewName), mKey(gCounter++){} */
       //VariableData(const std::string& NewName) : mName(NewName), mKey(Counter<VariableData>::Increment()){}
-      VariableData(const std::string& NewName) : mName(NewName), mKey(0){}
+      VariableData(const std::string& NewName, std::size_t NewSize) : mName(NewName), mKey(0), mSize(NewSize){}
             
-      ///@}
+       
+      /** default constructor is to be used only with serialization due to the fact that
+	  each variable must have a name defined.*/
+      VariableData(){}
+
+    ///@}
       
     private:
       ///@name Static Member Variables 
@@ -252,6 +275,8 @@ namespace Kratos
       /** Key value of this variable. Each variable will be locate by this
 	  value in each data structure. Variable constructor will initialize it. */
       KeyType mKey;
+      
+      std::size_t mSize;
 
       ///@} 
       ///@name Private Operators
@@ -261,9 +286,22 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+    
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  rSerializer.save("Name",mName);
+	  rSerializer.save("Key",mKey);
+	}
         
+	virtual void load(Serializer& rSerializer)
+	{
+	  rSerializer.load("Name",mName);
+	  rSerializer.load("Key",mKey);
+	}
         
-      ///@} 
+       ///@} 
       ///@name Private  Access 
       ///@{ 
         
@@ -276,10 +314,6 @@ namespace Kratos
       ///@}    
       ///@name Un accessible methods 
       ///@{ 
-      
-      /** default constructor is un accessible due to the fact that
-	  each variable must have a name defined.*/
-      VariableData();
         
       ///@}    
         

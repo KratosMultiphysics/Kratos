@@ -295,17 +295,16 @@ class MembraneElement
 			array_1d<double,3>& a,
 			array_1d<double,3>& b);
 
-			
-	
-				    ///@}
+	    ///@} 
 	    ///@name Serialization
-	    ///@{	
+	    ///@{ 
+    
 	    friend class Serializer; 
 
 	    // A private default constructor necessary for serialization 
 	    MembraneElement(){}
 
-	    virtual void save(Serializer& rSerializer)
+	    virtual void save(Serializer& rSerializer) const
 	    {
 	       rSerializer.save("Name","MembraneElement");
 	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
@@ -316,6 +315,7 @@ class MembraneElement
 	       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
 	    }
 
+	    ///@} 
 
 	};	// class MembraneElement.
 

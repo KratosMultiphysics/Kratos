@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 
 
 namespace Kratos
@@ -393,7 +394,35 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
     
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  size_type size = mData.size();
+	  
+	  rSerializer.save("size", size);
+	  
+	  for(size_type i = 0 ; i < size ; i++)
+	    rSerializer.save("E", mData[i]);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  size_type size;
+	  
+	  rSerializer.load("size", size);
+	  
+	  mData.resize(size);
+	  
+	  for(size_type i = 0 ; i < size ; i++)
+	    rSerializer.load("E", mData[i]);
+	}
+
         
       ///@} 
       ///@name Private  Access 
