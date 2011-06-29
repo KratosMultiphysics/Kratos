@@ -368,8 +368,8 @@ namespace Kratos
         unsigned int mdomain_size;
         double mtol;
         unsigned int mmax_it;
-        bool madapt_for_fractional_step;
         unsigned int mtime_order;
+        bool madapt_for_fractional_step;
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpstep1;
 
         ///@}
@@ -464,8 +464,6 @@ namespace Kratos
             KRATOS_TRY;
 
             double norm = 0.00;
-
-            ProcessInfo& rCurrentProcessInfo = mspalart_model_part.GetProcessInfo();
 
 
 
