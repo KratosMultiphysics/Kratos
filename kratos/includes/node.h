@@ -64,11 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "geometries/point.h"
 #include "includes/dof.h"
-//#include "includes/neighbours.h"
-#include "containers/buffer.h"
 #include "containers/vector_map.h"
 #include "containers/pointer_vector_set.h"
-//#include "containers/fix_data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "utilities/indexed_object.h"
 
@@ -1123,7 +1120,42 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
         
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+// 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
+// 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<TDimension> );
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.save("Data", mData);
+	  const SolutionStepsNodalDataContainerType* p_solution_steps_nodal_data = &mSolutionStepsNodalData;
+	  // I'm saving it as pointer so the dofs pointers will point to it as stored pointer. Pooyan.
+	  rSerializer.save("Solution Steps Nodal Data", p_solution_steps_nodal_data);
+	  rSerializer.save("Initial Position", mInitialPosition);
+	  rSerializer.save("Data", mDofs);
+	  
+// 	  KRATOS_WATCH((rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin())-size);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+// 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
+// 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point<TDimension> );
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.load("Data", mData);
+           SolutionStepsNodalDataContainerType* p_solution_steps_nodal_data = &mSolutionStepsNodalData;
+	  rSerializer.load("Solution Steps Nodal Data", p_solution_steps_nodal_data);
+	  rSerializer.load("Initial Position", mInitialPosition);
+	  rSerializer.load("Data", mDofs);
+// 	  KRATOS_WATCH(size- (rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin()));
+	}
         
       ///@} 
       ///@name Private  Access 

@@ -200,7 +200,7 @@ CurrentProcessInfo);
       // A private default constructor necessary for serialization 
       NodeTyingLagrange(){}; 
 
-      virtual void save(Serializer& rSerializer)
+      virtual void save(Serializer& rSerializer) const
       {
       rSerializer.save("Name","NodeTyingLagrange");
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );

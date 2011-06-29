@@ -228,7 +228,7 @@ namespace Kratos
 		double mRotAngle;
 		
 		array_1d< array_1d<double,3>, 3> rot_oldit;
-			
+		  
 		///@} 
 		///@name Private Operators
 		///@{ 
@@ -485,7 +485,7 @@ namespace Kratos
 		// A private default constructor necessary for serialization 
 		ShellAnisotropic(){}
 
-		virtual void save(Serializer& rSerializer)
+		virtual void save(Serializer& rSerializer) const
 		{
 		    rSerializer.save("Name","ShellAnisotropic");
 		    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );

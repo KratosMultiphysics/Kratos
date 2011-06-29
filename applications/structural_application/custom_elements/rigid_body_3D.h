@@ -202,7 +202,6 @@ namespace Kratos
      array_1d<double,3> mtranslational_stiffness;
      array_1d<double,3> mrotational_stiffness;
       
-        
       ///@} 
       ///@name Private Operators
       ///@{ 
@@ -223,7 +222,7 @@ namespace Kratos
 	// A private default constructor necessary for serialization 
 	RigidBody3D(){}
 
-	virtual void save(Serializer& rSerializer)
+	virtual void save(Serializer& rSerializer) const
 	{
 	  rSerializer.save("Name","RigidBody3D");
 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );

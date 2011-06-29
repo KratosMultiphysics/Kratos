@@ -122,11 +122,11 @@ namespace Kratos
 		  @param NewSize This size is for reserving the memory and by default
 	      is equal to 1.
 	  */
-	  Buffer(SizeType NewSize = 1) :  mpData(0) , mpBegin(mpData), mpEnd(mpData), mSize(0)
+	  Buffer(SizeType NewSize = 1) :  mpData(0) , mpBegin(mpData), mpEnd(mpData), mCapacity(0)
 	  {
 		  resize(BlockCompatibleSize(NewSize));
 
-		  for(SizeType i = 0 ; i < mSize ; i++)
+		  for(SizeType i = 0 ; i < mCapacity ; i++)
 			  mpData[i] = BlockType();
 	  }
 
@@ -134,7 +134,7 @@ namespace Kratos
 	      
 		  @param rOther The other buffer to be copied
 	  */
-      Buffer(const Buffer& rOther) :  mpData(new BlockType[rOther.mSize]), mpBegin(0), mpEnd(0), mSize(rOther.mSize) 
+      Buffer(const Buffer& rOther) :  mpData(new BlockType[rOther.mCapacity]), mpBegin(0), mpEnd(0), mCapacity(rOther.mCapacity)
       {
 	      // Setting the current position with relative source container offset
 	      mpBegin = mpData + (rOther.mpBegin - rOther.mpData);
@@ -147,9 +147,9 @@ namespace Kratos
 		  @param rContainer A pointer to the constant memory block containing the data.
 		  @param NewSize The size of the memory block
 	  */
-      Buffer(const ContainerType& rContainer, SizeType NewSize) : mpData(new BlockType[BlockCompatibleSize(NewSize)]) , mpBegin(mpData), mpEnd(mpData+NewSize), mSize(BlockCompatibleSize(NewSize))
+      Buffer(const ContainerType& rContainer, SizeType NewSize) : mpData(new BlockType[BlockCompatibleSize(NewSize)]) , mpBegin(mpData), mpEnd(mpData+NewSize), mCapacity(BlockCompatibleSize(NewSize))
       {
- 	   std::copy(rContainer, rContainer + mSize, mpData); 
+ 	   std::copy(rContainer, rContainer + mCapacity, mpData);
       }
 
 	  /// Destructor releases the memory allocated for buffer.
@@ -170,14 +170,14 @@ namespace Kratos
 	  {
 		  // here I'm just copying the active part of the buffer not the whole!
 		  const SizeType other_size=rOther.mpEnd - rOther.mpBegin;
-		  if(mSize < other_size)
+		  if(mCapacity < other_size)
 		  {
-			  mSize=other_size;
-			  mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
+			  mCapacity=other_size;
+			  mpData = (BlockType*)realloc(mpData, mCapacity * sizeof(BlockType));
 		  }
 		  std::copy(rOther.mpBegin, rOther.mpEnd, mpData); 
 		  mpBegin = mpData;
-		  mpEnd = mpData+mSize;
+		  mpEnd = mpData+mCapacity;
 
 		  return *this;
 	  }
@@ -189,14 +189,17 @@ namespace Kratos
       
 	  /** Returns the size of the buffer.
 	  */
-      SizeType size() const {return mSize * sizeof(BlockType);}
-    
+          SizeType size() const {return ((mpEnd-mpBegin) * sizeof(BlockType));}
+
+          SizeType capacity() const {return mCapacity * sizeof(BlockType);}
+
+ 
 	  /** Swaps this buffer by another one by swapping the pointer 
 	      to data which make it efficient.
 	  */
 	  void swap(Buffer& rOther) 
 	  {
-		  std::swap(mSize, rOther.mSize);
+		  std::swap(mCapacity, rOther.mCapacity);
 		  std::swap(mpData, rOther.mpData);
 		  std::swap(mpBegin, rOther.mpBegin);
 		  std::swap(mpEnd, rOther.mpEnd);
@@ -208,10 +211,10 @@ namespace Kratos
 		  std::size_t string_size = rValue.size() + 1; // the one is for end string null character
 		  SizeType data_size = BlockCompatibleSize(string_size*sizeof(char)); 
 		  iterator new_end = mpEnd + data_size;
-		  iterator max_end = mpData + mSize;
+		  iterator max_end = mpData + mCapacity;
 		  if(new_end > max_end)
 		  {
-			  resize(mSize+data_size);
+			  resize(mCapacity+data_size);
 		  }
 		  std::copy(rValue.c_str(), rValue.c_str() + string_size, (char*)mpEnd);
 		  mpEnd+=data_size;
@@ -280,10 +283,10 @@ namespace Kratos
 	  {
 		  SizeType data_size = BlockCompatibleSize(sizeof(TDataType));
 		  iterator new_end = mpEnd + data_size;
-		  iterator max_end = mpData + mSize;
+		  iterator max_end = mpData + mCapacity;
 		  if(new_end > max_end)
 		  {
-			  resize(mSize+data_size);
+			  resize(mCapacity+data_size);
 		  }
 
 		  *((TDataType *)mpEnd) = rValue;
@@ -346,7 +349,7 @@ namespace Kratos
 
 		  pop_front(size);
 
-		  rValue.resize(size);
+		  rValue.resize(size,false);
 
 		  pop_front(rValue.begin(), rValue.end());
 	  } 
@@ -420,16 +423,16 @@ namespace Kratos
 	  */
 	  void resize(SizeType NewSize)
 	  {
-		  if(mSize < NewSize)
+		  if(mCapacity < NewSize)
 		  {
-			  mSize=NewSize;
+			  mCapacity=NewSize;
 
 			  SizeType begin_offset = mpBegin - mpData;
 			  SizeType end_offset = mpEnd - mpData;
 			  if(mpData)
-				  mpData = (BlockType*)realloc(mpData, mSize * sizeof(BlockType));
+				  mpData = (BlockType*)realloc(mpData, mCapacity * sizeof(BlockType));
 			  else
-				  mpData = (BlockType*)malloc(mSize * sizeof(BlockType));
+				  mpData = (BlockType*)malloc(mCapacity * sizeof(BlockType));
 
 			  mpBegin = mpData + begin_offset;
 			  mpEnd = mpData + end_offset;
@@ -450,6 +453,11 @@ namespace Kratos
        iterator                   end()              { return mpEnd; }
 	  /// Returns a constant iterator to the end of the buffer.
        const_iterator             end()   const      { return mpEnd; }
+
+       ContainerType data()
+       {
+           return mpData;
+       }
 	
      
       
@@ -469,7 +477,7 @@ namespace Kratos
       virtual std::string Info() const
       {
 	std::stringstream buffer;
-	buffer << "buffer (size = " << size() << ") : ";
+	buffer << "buffer (capacity = " << capacity() << ") : ";
 	
 	return buffer.str();
       }
@@ -510,7 +518,7 @@ namespace Kratos
       
       iterator mpEnd;
       
-      SizeType mSize;
+      SizeType mCapacity;
 
       ///@} 
       ///@name Private Operators

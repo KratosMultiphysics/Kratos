@@ -1202,6 +1202,26 @@ namespace Kratos
         ///@{ 
         static const GeometryData msGeometryData;
         
+            
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+  	  //rSerializer.save("Name","Triangle3D3");
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
+	}
+            
+        Triangle3D3(): BaseType(PointsArrayType(), &msGeometryData){}
+
         ///@} 
         ///@name Member Variables 
         ///@{ 
@@ -1366,8 +1386,6 @@ namespace Kratos
         ///@name Un accessible methods 
         ///@{ 
       
-        Triangle3D3();
-
             
         
         ///@}

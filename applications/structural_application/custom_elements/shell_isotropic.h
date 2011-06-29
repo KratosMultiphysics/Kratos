@@ -479,6 +479,7 @@ namespace Kratos
 				boost::numeric::ublas::bounded_matrix<double,3,3>& InvertedMatrix,
 				double& InputMatrixDet
 				);
+		  
 		///@} 
 		///@name Private Operations
 		///@{ 
@@ -497,7 +498,7 @@ namespace Kratos
 		// A private default constructor necessary for serialization 
 		ShellIsotropic(){}
 
-		virtual void save(Serializer& rSerializer)
+		virtual void save(Serializer& rSerializer) const
 		{
 		rSerializer.save("Name","ShellIsotropic");
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );

@@ -223,7 +223,39 @@ namespace Kratos
       ///@} 
       ///@name Private Operators
       ///@{ 
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
         
+	  friend class Serializer;
+	  
+
+	virtual void save(Serializer& rSerializer) const
+	{
+	  rSerializer.save("DensityVar",mpDensityVar);
+	  rSerializer.save("DiffusionVar",mpDiffusionVar);
+	  rSerializer.save("UnknownVar",mpUnknownVar);
+	  rSerializer.save("VolumeSourceVar",mpVolumeSourceVar);
+	  rSerializer.save("SurfaceSourceVar",mpSurfaceSourceVar);
+	  rSerializer.save("ProjectionVar",mpProjectionVar);
+	  rSerializer.save("ConvectionVar",mpConvectionVar);
+	  rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
+// 	  rSerializer.save("",);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  rSerializer.load("DensityVar",mpDensityVar);
+	  rSerializer.load("DiffusionVar",mpDiffusionVar);
+	  rSerializer.load("UnknownVar",mpUnknownVar);
+	  rSerializer.load("VolumeSourceVar",mpVolumeSourceVar);
+	  rSerializer.load("SurfaceSourceVar",mpSurfaceSourceVar);
+	  rSerializer.load("ProjectionVar",mpProjectionVar);
+	  rSerializer.load("ConvectionVar",mpConvectionVar);
+	  rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
+	}
+
         
       ///@} 
       ///@name Private Operations

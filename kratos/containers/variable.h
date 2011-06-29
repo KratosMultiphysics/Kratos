@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "variable_data.h"
 
-
+ 
 namespace Kratos
 {
 
@@ -102,7 +102,7 @@ namespace Kratos
       
       /// Pointer definition of Variable
       KRATOS_CLASS_POINTER_DEFINITION(Variable);
-  
+
       /// type of this variable 
       typedef TDataType Type;
 
@@ -118,7 +118,7 @@ namespace Kratos
       
       /** Constructor with specific name and zero value */
       Variable(const std::string& NewName, const TDataType Zero = TDataType()) 
-	: VariableData(NewName), mZero(Zero)
+	: VariableData(NewName, sizeof(TDataType)), mZero(Zero)
 	{
 	}
         
@@ -167,14 +167,30 @@ namespace Kratos
 	{
 	   static_cast<TDataType* >(pSource)->~TDataType();
 	}
-      
-      void Print(const void* pSource, std::ostream& rOStream) const
+	
+	void Print(const void* pSource, std::ostream& rOStream) const
 	{
 	  rOStream << Name() << " : " << *static_cast<const TDataType* >(pSource) ;
 	}
-      
+	
+	virtual void Save(Serializer& rSerializer, void* pData) const
+	{
+	  // I'm saving by the value, it can be done by the pointer to detect shared data. Pooyan.
+	  rSerializer.save("Data",*static_cast<TDataType* >(pData));
+	}
+	
+	virtual void Allocate(void** pData) const
+	{
+	  *pData = new TDataType;
+	}
+	
+	virtual void Load(Serializer& rSerializer, void* pData) const
+	{
+	  rSerializer.load("Data",*static_cast<TDataType* >(pData));
+	}
+	
       static const VariableType& StaticObject(){return msStaticObject;}
-
+        
       ///@}
       ///@name Access
       ///@{ 
@@ -282,7 +298,24 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+    
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
+	  rSerializer.save("Zero",mZero);
+	}
         
+	virtual void load(Serializer& rSerializer)
+	{
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
+	  rSerializer.load("Zero",mZero);
+	}
         
       ///@} 
       ///@name Private  Access 
@@ -300,7 +333,7 @@ namespace Kratos
       
       /** Default constructor is un accessible due to the fact that
 	each variable must have a name defined.*/
-      Variable();
+      Variable(){}
         
       ///@}    
         

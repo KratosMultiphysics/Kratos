@@ -67,27 +67,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
   ///@name Kratos Classes
   ///@{
   
-  /// Short class definition.
-  /** Detail class definition.
+  /// Kernel is in charge of synchronization the whole system of Kratos itself and its appliction.
+  /** Kernel is the first component of the Kratos to be created and then used to plug the application into Kratos.
+      Kernel takes the list of variables defined in the Variables file in Kratos and then by adding each application
+      synchronizes the variables of this application with its variables and add the new ones to the Kratos.
+      After adding all applications its time to initialize the Kratos to assign variables key to the list of all variables
+      in Kratos and all added applications. Finally the initialized variables with keys are synchronized in each
+      application in time of calling InitializeApplication method for each of them.
+      The sequence of using Kernel is as follow:
+	1. Creating the Kernel using its default constructor
+	2. Adding applications to Kernel using AddApplication method
+	3. Initializing the Kernel using Initialize method
+	4. Initializing the applications using InitializeApplication method 
+	
+      It is very important to perform all this step exactly in the same order as described above.
+      
+      @see AddApplication
+      @see Initialize
+      @see InitializeApplication
+      @see KratosApplication
   */
   class Kernel
     {
@@ -103,13 +104,20 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
+      /** The default constructor creates a list of registerd variables in variables.cpp
+          by calling the RegisterVariables method of application class.
+          
+          @see KratosApplication
+          
+      */
       Kernel()
 	  {
 		  mKratosApplication.RegisterVariables();
-//		  		KratosApplication::RegisterVariables();
 	  }
 
       /// Copy constructor.
+      /** This constructor is empty
+      */
 	  Kernel(Kernel const& rOther){}
 
 
@@ -118,23 +126,19 @@ namespace Kratos
       
 
       ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
       ///@name Operations
       ///@{
 
-      void Initialize()
-	{
-	  unsigned int j = 0;
-	  for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = KratosComponents<VariableData>::GetComponents().begin() ;
-		  i != KratosComponents<VariableData>::GetComponents().end() ; i++)
-		  //const_cast<VariableData&>(i->second.get()).SetKey(++j);
-		  i->second.get().SetKey(++j);
-	}
-      
+      /// Pluging an application into Kratos.
+      /** This method first call the register method of the new application in order to create the 
+          components list of the application and then syncronizes the lists of its components with Kratos ones.
+          The synchronized lists are
+	    - Variables
+	    - Elements
+	    - Conditions
+	    
+	  @param NewApplication The application to be added and synchronized 
+      */
       void AddApplication(KratosApplication& NewApplication)
 	{
 	typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
@@ -171,24 +175,43 @@ namespace Kratos
 		KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
 															   NewApplication.GetComponents(Variable<double>("NONE")).end());
 
+
+                Serializer::GetRegisteredObjects().insert(NewApplication.GetRegisteredObjects().begin(), NewApplication.GetRegisteredObjects().end());
+
+                Serializer::GetRegisteredObjectsName().insert(NewApplication.GetRegisteredObjectsName().begin(), NewApplication.GetRegisteredObjectsName().end());
 	}
       
+      /// Assign sequential key to the registered variables.
+      /** This method assigns a sequential key to all registerd variables in kratos and all added applications.
+          It is very important to call this function after adding ALL necessary applications using AddApplication
+          methods before calling this function. Otherwise it leads to uninitialized variables with key 0!
+          
+          @see AddApplication
+          @see InitializeApplication
+      */
+      void Initialize()
+	{
+	  unsigned int j = 0;
+	  for(KratosComponents<VariableData>::ComponentsContainerType::iterator i = KratosComponents<VariableData>::GetComponents().begin() ;
+		  i != KratosComponents<VariableData>::GetComponents().end() ; i++)
+		  //const_cast<VariableData&>(i->second.get()).SetKey(++j);
+		  i->second->SetKey(++j);
+	}
+      
+      /// Initializes and synchronizes the list of variables, elements and conditions in each application.
+      /** This method gives the application the list of all variables, elements and condition which is registered
+          by kratos and all other added applications.
+          
+          
+          @see AddApplication
+          @see Initialize
+      */
       void InitializeApplication(KratosApplication& NewApplication)
 	{
 		NewApplication.SetComponents(KratosComponents<VariableData>::GetComponents());
 		NewApplication.SetComponents(KratosComponents<Element>::GetComponents());
 		NewApplication.SetComponents(KratosComponents<Condition>::GetComponents());
 	}
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
       
       
       ///@}      
@@ -221,49 +244,6 @@ namespace Kratos
 		rOStream << "Echo Finished" << std::endl;
 	}
       
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
       ///@}
       
     private:
@@ -276,27 +256,12 @@ namespace Kratos
       ///@{ 
 	  KratosApplication mKratosApplication;
         
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
+       
       ///@} 
       ///@name Private Operations
       ///@{ 
         
       void RegisterVariables();
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
         
       ///@}    
       ///@name Un accessible methods 
@@ -310,12 +275,6 @@ namespace Kratos
         
     }; // Class Kernel 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
   ///@} 
   ///@name Input and output 
   ///@{ 

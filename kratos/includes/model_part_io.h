@@ -740,21 +740,21 @@ namespace Kratos
       void ReadNodesBlock(ModelPart& rModelPart)
       {
 	KRATOS_TRY
+	NodeType temp_node;
+        SizeType temp_id;
 
-	SizeType id;
-	double x;
-	double y;
-	double z;
-	  
+        // Giving model part's variables list to the node
+        temp_node.SetSolutionStepVariablesList(&rModelPart.GetNodalSolutionStepVariablesList());
+
+        //set buffer size
+        temp_node.SetBufferSize(rModelPart.GetBufferSize());
+
+
 	std::string word;
 
 	SizeType number_of_nodes_read = 0;
 
-	std::cout << "	Reading Nodes : ";
-
-        std::vector< unsigned int > id_vector;
-        std::vector< array_1d<double,3> > coordinates_vector;
-
+	std::cout << "Reading Nodes : ";
 
 	while(!mInput.eof())
 	{
@@ -762,50 +762,95 @@ namespace Kratos
 	  if(CheckEndBlock("Nodes", word))
 	    break;
 
-	  ExtractValue(word, id);
+	  ExtractValue(word, temp_id);
+          temp_node.SetId(temp_id);
 	  ReadWord(word);
-	  ExtractValue(word, x);
+	  ExtractValue(word, temp_node.X());
 	  ReadWord(word);
-	  ExtractValue(word, y);
+	  ExtractValue(word, temp_node.Y());
 	  ReadWord(word);
-	  ExtractValue(word, z);
+	  ExtractValue(word, temp_node.Z());
 
-          id_vector.push_back(id);
-          array_1d<double,3> coords;
-          coords[0]=x;
-          coords[1]=y;
-          coords[2]=z;
-          coordinates_vector.push_back(coords);
+          temp_node.X0() = temp_node.X();
+          temp_node.Y0() = temp_node.Y();
+          temp_node.Z0() = temp_node.Z();
+
+
+	  rModelPart.Nodes().push_back(temp_node);
 	  number_of_nodes_read++;
 	}
+		std::cout << number_of_nodes_read << " nodes read" << std::endl;
 
-        #ifndef _OPENMP
-            for(std::size_t i = 0 ; i < id_vector.size() ; i++)
-            {
-                const array_1d<double,3>& temp = coordinates_vector[i];
-                rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
-            }
-       #else
-            int number_of_threads = omp_get_max_threads();
-            vector<unsigned int> partition;
-            CreatePartition(number_of_threads, id_vector.size(), partition);
-            for( int k=0; k<number_of_threads; k++ )
-            {
-                #pragma omp parallel
-                if( omp_get_thread_num() == k )
-                {
-                    for( std::size_t i = partition[k]; i < partition[k+1]; i++ )
-                    {
-                        const array_1d<double,3>& temp = coordinates_vector[i];
-                        rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
-                    }
-                }
-            }
-        #endif
+	unsigned int numer_of_nodes_read = rModelPart.Nodes().size();
+	rModelPart.Nodes().Unique();
+	if(rModelPart.Nodes().size() != numer_of_nodes_read)
+	  std::cout << "attention! we read " << numer_of_nodes_read << " but there are only " << rModelPart.Nodes().size() << " non repeated nodes" << std::endl;
 
-
-
-        std::cout << number_of_nodes_read << " nodes read" << std::endl;
+//	SizeType id;
+//	double x;
+//	double y;
+//	double z;
+//
+//	std::string word;
+//
+//	SizeType number_of_nodes_read = 0;
+//
+//	std::cout << "	Reading Nodes : ";
+//
+//        std::vector< unsigned int > id_vector;
+//        std::vector< array_1d<double,3> > coordinates_vector;
+//
+//
+//	while(!mInput.eof())
+//	{
+//	  ReadWord(word);
+//	  if(CheckEndBlock("Nodes", word))
+//	    break;
+//
+//	  ExtractValue(word, id);
+//	  ReadWord(word);
+//	  ExtractValue(word, x);
+//	  ReadWord(word);
+//	  ExtractValue(word, y);
+//	  ReadWord(word);
+//	  ExtractValue(word, z);
+//
+//          id_vector.push_back(id);
+//          array_1d<double,3> coords;
+//          coords[0]=x;
+//          coords[1]=y;
+//          coords[2]=z;
+//          coordinates_vector.push_back(coords);
+//	  number_of_nodes_read++;
+//	}
+//
+//        #ifndef _OPENMP
+//            for(std::size_t i = 0 ; i < id_vector.size() ; i++)
+//            {
+//                const array_1d<double,3>& temp = coordinates_vector[i];
+//                rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
+//            }
+//       #else
+//            int number_of_threads = omp_get_max_threads();
+//            vector<unsigned int> partition;
+//            CreatePartition(number_of_threads, id_vector.size(), partition);
+//            for( int k=0; k<number_of_threads; k++ )
+//            {
+//                #pragma omp parallel
+//                if( omp_get_thread_num() == k )
+//                {
+//                    for( std::size_t i = partition[k]; i < partition[k+1]; i++ )
+//                    {
+//                        const array_1d<double,3>& temp = coordinates_vector[i];
+//                        rModelPart.CreateNewNode(id_vector[i],temp[0],temp[1],temp[2]);
+//                    }
+//                }
+//            }
+//        #endif
+//
+//
+//
+//        std::cout << number_of_nodes_read << " nodes read" << std::endl;
 
 	KRATOS_CATCH("")
       }
@@ -842,10 +887,14 @@ namespace Kratos
 	    }
 	  else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
 	    {
-	      Vector temp_vector; // defining a Vector because for array_1d the operator >> is not defined yet! 
+	      Vector temp_vector; // defining a Vector because for array_1d the operator >> is not defined yet!
 	      ReadVectorialValue(temp_vector);
  	      temp_properties[KratosComponents<Variable<array_1d<double,3> > >::Get(variable_name)] = temp_vector;
 	    }
+          else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+	    {
+	      ReadVectorialValue(temp_properties[KratosComponents<Variable<Vector> >::Get(variable_name)]);
+ 	    }
 	  else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
 	    {
 	      ReadVectorialValue(temp_properties[KratosComponents<Variable<Matrix> >::Get(variable_name)]);

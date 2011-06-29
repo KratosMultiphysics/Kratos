@@ -213,6 +213,14 @@ namespace Kratos
       ///@name Static Member Variables 
       ///@{ 
         
+       ///@}
+      ///@name Serialization
+      ///@{
+
+	friend class Serializer;
+
+        ASGSPRDC2D() : ASGS2D() {}
+
       ///@} 
       ///@name Member Variables 
       ///@{ 

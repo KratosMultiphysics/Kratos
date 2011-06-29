@@ -1205,6 +1205,23 @@ namespace Kratos
         ///@name Static Member Variables 
         ///@{ 
         static const GeometryData msGeometryData;
+            
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+ 	  rSerializer.save("Name","Triangle2D3");
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
+	}
         
         ///@} 
         ///@name Member Variables 

@@ -138,7 +138,8 @@ namespace Kratos
          */
         Condition(IndexType NewId = 0)
         : BaseType(NewId)
-        , mpGeometry(new GeometryType(NodesArrayType()))
+        , mpGeometry()
+//        , mpGeometry(new GeometryType(NodesArrayType()))
         , mpProperties(new PropertiesType)
         {
         }
@@ -597,6 +598,28 @@ namespace Kratos
 
         Properties::Pointer mpProperties;
 
+
+      ///@}
+      ///@name Serialization
+      ///@{
+
+	friend class Serializer;
+
+	virtual void save(Serializer& rSerializer) const
+	{
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.save("Data", mData);
+          rSerializer.save("Geometry",mpGeometry);
+	  rSerializer.save("Properties", mpProperties);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.load("Data", mData);
+          rSerializer.load("Geometry",mpGeometry);
+	  rSerializer.load("Properties", mpProperties);
+	}
 
         ///@}
         ///@name Private Operators

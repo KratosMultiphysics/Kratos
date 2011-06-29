@@ -65,6 +65,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/kratos_config.h"
 
 
+#define KRATOS_BOOST_SERIALIZATION_DEFINED
+
+
+
 #define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
 typedef boost::shared_ptr<a > SharedPointer; \
 typedef boost::weak_ptr<a > WeakPointer
@@ -270,13 +274,15 @@ catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 #undef KRATOS_REGISTER_ELEMENT
 #endif
 #define KRATOS_REGISTER_ELEMENT(name, reference) \
-    KratosComponents<Element >::Add(name, reference);
+    KratosComponents<Element >::Add(name, reference); \
+    Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_CONDITION
 #undef KRATOS_REGISTER_CONDITION
 #endif
 #define KRATOS_REGISTER_CONDITION(name, reference) \
-    KratosComponents<Condition >::Add(name, reference);
+    KratosComponents<Condition >::Add(name, reference); \
+    Serializer::Register(name, reference);
 
 
 
@@ -359,13 +365,17 @@ namespace Kratos
 #define KRATOS_WATCH(variable) \
   std::cout << #variable << " : " << variable << std::endl;
 
-  /* Major version
+
+  // Complete version
+#define KRATOS_VERSION  2.10
+
+ /* Major version
    */
-#define KRATOS_MAJOR_VERSION  0
+#define KRATOS_MAJOR_VERSION  2
 
   /* Minor version 
    */
-#define KRATOS_MINOR_VERSION  2
+#define KRATOS_MINOR_VERSION  1
 
   /* Corrected version 
    */
@@ -374,9 +384,13 @@ namespace Kratos
 
 }  /* namespace Kratos.*/
 
-#define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType)
 
-#define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType)
+
+#define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
+	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
+
+#define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType) \
+	Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
 
   
 #endif /* KRATOS_DEFINE  defined */

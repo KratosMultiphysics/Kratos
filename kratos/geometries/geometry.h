@@ -1751,6 +1751,24 @@ namespace Kratos
 	  GeometryData const* mpGeometryData;
          
            
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
+// 	  rSerializer.save("Geometry Data", mpGeometryData);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
+// 	  rSerializer.load("Geometry Data", const_cast<GeometryData*>(mpGeometryData));
+	}
+	      
 
       ///@} 
       ///@name Private Operators

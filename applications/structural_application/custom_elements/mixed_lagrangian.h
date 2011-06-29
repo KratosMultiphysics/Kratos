@@ -335,7 +335,7 @@ namespace Kratos
 	    // A private default constructor necessary for serialization 
 	    MixedLagrangian(){}
 
-	    virtual void save(Serializer& rSerializer)
+	    virtual void save(Serializer& rSerializer) const
 	    {
 	       rSerializer.save("Name","MixedLagrangian");
 	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );

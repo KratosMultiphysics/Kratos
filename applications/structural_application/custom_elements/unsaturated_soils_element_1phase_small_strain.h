@@ -484,6 +484,7 @@ namespace Kratos
             void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
 
             void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
+	    
             ///@}
             ///@name Private Operations
             ///@{
@@ -502,7 +503,7 @@ namespace Kratos
 	    // A private default constructor necessary for serialization 
 	    UnsaturatedSoilsElement_1phase_SmallStrain(){}
 
-	    virtual void save(Serializer& rSerializer)
+	    virtual void save(Serializer& rSerializer) const
 	    {
 	    rSerializer.save("Name","UnsaturatedSoilsElement_1phase_SmallStrain");
 	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );

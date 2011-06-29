@@ -228,6 +228,14 @@ namespace Kratos
       ///@{ 
 		
         
+      ///@}
+      ///@name Serialization
+      ///@{
+
+	friend class Serializer;
+
+        Fluid2DCoupled() {}
+
         
       ///@} 
       ///@name Private Operators
@@ -257,7 +265,10 @@ namespace Kratos
         
       ///@}    
       ///@name Un accessible methods 
-      ///@{ 
+      ///@{
+
+
+      
       
       /// Assignment operator.
       //Fluid2DCoupled& operator=(const Fluid2DCoupled& rOther);

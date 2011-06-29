@@ -187,6 +187,7 @@ namespace Kratos
             noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
         }
 
+
         //resizing as needed the RHS
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
@@ -201,12 +202,15 @@ namespace Kratos
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
+
         const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+
 
         //calculating actual jacobian
         GeometryType::JacobiansType J;
 
         GetGeometry().Jacobian(J);
+
 
         //KRATOS_WATCH(J)
 
@@ -218,14 +222,19 @@ namespace Kratos
             //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
             noalias(DN_DX) = prod(DN_De[PointNumber], mInvJ0[PointNumber]);
 
+
             //deformation gradient
             //Does not work with Newmark scheme for some reason
             noalias(F) = prod(J[PointNumber], mInvJ0[PointNumber]);
 
+ 
             //strain calculation
             noalias(C) = prod(trans(F), F);
 
+
             CalculateStrain(C, StrainVector);
+
+
             Comprobate_State_Vector(StrainVector);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
                     StrainVector,
@@ -239,12 +248,13 @@ namespace Kratos
                     true,
                     CalculateStiffnessMatrixFlag,
                     true);
-
+ 
             //calculating operator B
             CalculateB(B, F, DN_DX, StrainVector.size());
 
             //calculating weights for integration on the reference configuration
             double IntToReferenceWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
+
 
             if (dim == 2) IntToReferenceWeight *= GetProperties()[THICKNESS];
 
@@ -267,6 +277,7 @@ namespace Kratos
                 noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(B), StressVector);
             }
         }
+
 
         KRATOS_CATCH("")
     }
@@ -1052,7 +1063,7 @@ namespace Kratos
 
         unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-        Element::Check(rCurrentProcessInfo);
+	      
 
         //verify that the variables are correctly initialized
         if(VELOCITY.Key() == 0)
@@ -1114,6 +1125,20 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+
+	      void TotalLagrangian::save(Serializer& rSerializer) const
+	      {
+//		std::cout << "Saving the TotalLagrangian #" << Id() << std::endl;
+		//rSerializer.save("Name","TotalLagrangian");
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+	      }
+
+	      void TotalLagrangian::load(Serializer& rSerializer)
+	      {
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+//		std::cout << "Loading the TotalLagrangian #" << Id() << std::endl;
+                mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+ 	      }
 
 
 

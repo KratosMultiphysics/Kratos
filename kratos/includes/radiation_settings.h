@@ -220,6 +220,22 @@ namespace Kratos
       ///@{ 
         
         
+     ///@}
+     ///@name Serialization
+     ///@{
+ 
+     friend class Serializer;
+
+     virtual void save(Serializer& rSerializer) const
+     {
+       /// @todo implement the save method in RadiationSettings
+     }
+
+     virtual void load(Serializer& rSerializer)
+     {
+       /// @todo implement the load method in RadiationSettings
+     }
+
       ///@} 
       ///@name Private Operators
       ///@{ 

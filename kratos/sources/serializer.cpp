@@ -53,16 +53,14 @@ namespace Kratos
 {
 
   Serializer::RegisteredObjectsContainerType Serializer::msRegisteredObjects;
-  
 
-  template<class TDataType>
-  void Serializer::load(std::string const & rTag, const Variable<TDataType>* pVariable)
+  Serializer::RegisteredObjectsNameContainerType Serializer::msRegisteredObjectsName;
+
+  VariableData* Serializer::GetVariableData(std::string const & VariableName)
   {
-    std::string name;
-    mBuffer >> name;
-	  
-    pVariable = static_cast<const Variable<TDataType>*>(&KratosComponents<VariableData>::Get(name));
+    return KratosComponents<VariableData>::pGet(VariableName);
   }
-  
+
+
 
 }

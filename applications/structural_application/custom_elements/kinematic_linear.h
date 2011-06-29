@@ -242,7 +242,7 @@ namespace Kratos
 	    // A private default constructor necessary for serialization 
 	    KinematicLinear(){}
 
-	    virtual void save(Serializer& rSerializer)
+	    virtual void save(Serializer& rSerializer) const
 	    {
 	       rSerializer.save("Name","KinematicLinear");
 	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
@@ -343,6 +343,7 @@ namespace Kratos
 
             void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
 
+	      
             ///@}
             ///@name Private Operations
             ///@{

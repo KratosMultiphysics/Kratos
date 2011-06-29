@@ -346,6 +346,24 @@ namespace Kratos
       ///@name Private Operations
       ///@{ 
         
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+	
+	void save(Serializer& rSerializer) const
+	{
+ 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.save("Data", mData);
+	}
+
+	void load(Serializer& rSerializer)
+	{
+ 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+	  rSerializer.load("Data", mData);
+	}
         
       ///@} 
       ///@name Private  Access 

@@ -64,6 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "containers/variable.h"
 #include "containers/variable_component.h"
+#include "includes/kratos_components.h"
+
 
 
 namespace Kratos
@@ -93,6 +95,7 @@ namespace Kratos
   */
   class DataValueContainer
     {
+      
     public:
       ///@name Type Definitions
       ///@{
@@ -359,8 +362,7 @@ namespace Kratos
       ///@} 
       ///@name Protected Operations
       ///@{ 
-        
-        
+       
       ///@} 
       ///@name Protected  Access 
       ///@{ 
@@ -406,6 +408,39 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+        
+	friend class Serializer;
+ 	
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+	  std::size_t size = mData.size();
+	  rSerializer.save("Size", size);
+	  for(std::size_t i = 0 ; i < size ; i++)
+	  {
+	    rSerializer.save("Variable Name", mData[i].first->Name());
+	    mData[i].first->Save(rSerializer, mData[i].second);
+	  }
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	  std::size_t size;
+	  rSerializer.load("Size", size);
+	  mData.resize(size);
+	  std::string name;
+	  for(std::size_t i = 0 ; i < size ; i++)
+	  {
+	    rSerializer.load("Variable Name", name);
+	    mData[i].first = KratosComponents<VariableData>::pGet(name);
+	    mData[i].first->Allocate(&(mData[i].second));
+	    mData[i].first->Load(rSerializer, mData[i].second);
+	  }
+	}
         
         
       ///@} 

@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
 from KratosPFEMApplication import *
 from KratosMeshingApplication import *
+import time
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -120,7 +122,7 @@ class PFEMSolver:
 
         #aux variable
         self.normDx = Array3()
-
+	self.total_remeshing_time = 0.00
         
 
  
@@ -316,6 +318,8 @@ class PFEMSolver:
         
     ######################################################################
     def Remesh(self):
+        remeshing_start_time=time.time()
+        
         #clearing the sytem matrices as the connectivity will change
         (self.fluid_solver).Clear()
         print "fluid solver"
@@ -359,8 +363,14 @@ class PFEMSolver:
         print "e"
 
         self.substep = 0;
-        print "end of function Remesh"
-
+        
+        remeshing_end_time=time.time()
+        
+        print "Remeshing time :", remeshing_end_time - remeshing_start_time
+        self.total_remeshing_time += remeshing_end_time - remeshing_start_time
+        print "Total remeshing time :", self.total_remeshing_time
+        
+        
     ######################################################################
     def SolutionStep1(self):
         #step initialization for the fluid solution

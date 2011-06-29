@@ -1171,7 +1171,7 @@ namespace Kratos
                     if (typeid (ref_el) != typeid (*it))
                     {
                         std::cout << "wrong element found --> " << it->Id() << std::endl;
-                        KRATOS_ERROR(std::logic_error, "Fractional step strategy requires Fluid2D element for the 2D case", "");
+                        KRATOS_ERROR(std::logic_error, "Fractional step strategy requires Fluid3D element for the 3D case", "");
                     }
                     it->Check(BaseType::GetModelPart().GetProcessInfo());
                 }

@@ -537,6 +537,24 @@ namespace Kratos
     protected:
 
     private:
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
+	  
+	  friend class Serializer;
+	  
+	
+	virtual void save(Serializer& rSerializer) const
+	{
+// 	  rSerializer.save("",);
+	}
+
+	virtual void load(Serializer& rSerializer)
+	{
+	}
+	  
+	  
     }; /* Class ConstitutiveLaw */
 
     /**

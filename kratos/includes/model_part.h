@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "includes/process_info.h"
 #include "containers/data_value_container.h"
 //#include "containers/fix_data_value_container.h"
@@ -1170,20 +1171,37 @@ namespace Kratos
         ///@}
         ///@name Private Operations
         ///@{
+	  
+      ///@} 
+      ///@name Serialization
+      ///@{ 
 
-        //       friend class boost::serialization::access;
+	  friend class Serializer;
+    
+	virtual void save(Serializer& rSerializer) const
+	{
+	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
+	  rSerializer.save("Name",mName);
+	  rSerializer.save("Buffer Size",mBufferSize);
+	  rSerializer.save("Current Index",mCurrentIndex);
+	  rSerializer.save("ProcessInfo", mpProcessInfo);
+	  const VariablesList* p_list = &mVariablesList;
+	  // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
+	  rSerializer.save("Variables List", p_list);
+ 	  rSerializer.save("Meshes", mMeshes);
+	}
 
-        //       template<class TArchive>
-        // 	  void serialize(TArchive & ThisArchive, const unsigned int ThisVersion)
-        // 	  {
-        // /* 	      ThisArchive & mName & mBufferSize & mCurrentIndex; */
-        // 	  }
-
-        //       void RemoveSolutionStepData(IndexType SolutionStepIndex, MeshType& ThisMesh)
-        // 	{
-        // 	  for(NodeIterator i_node = ThisMesh.NodesBegin() ; i_node != ThisMesh.NodesEnd() ; ++i_node)
-        // 	    i_node->RemoveSolutionStepNodalData(SolutionStepIndex);
-        // 	}
+	virtual void load(Serializer& rSerializer)
+	{
+	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
+	  rSerializer.load("Name",mName);
+	  rSerializer.load("Buffer Size",mBufferSize);
+	  rSerializer.load("Current Index",mCurrentIndex);
+	  rSerializer.load("ProcessInfo", mpProcessInfo);
+	  VariablesList* p_list = &mVariablesList;
+	  rSerializer.load("Variables List", p_list);
+ 	  rSerializer.load("Meshes", mMeshes);
+	}
 
         ///@}
         ///@name Private  Access
