@@ -807,7 +807,7 @@ namespace Kratos
                         if( it->AddElement( element_iterator ) )
                             break;
                 }
-                if( mWriteConditions == WriteConditions || mWriteConditions == WriteConditions )
+                if( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
                     for( MeshType::ConditionsContainerType::iterator conditions_iterator =
                          rThisMesh.ConditionsBegin(); 
                          conditions_iterator != rThisMesh.ConditionsEnd(); conditions_iterator++ )
