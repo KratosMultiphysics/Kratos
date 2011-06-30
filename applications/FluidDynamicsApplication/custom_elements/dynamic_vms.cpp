@@ -137,19 +137,5 @@ namespace Kratos
         noalias(rx) = prod(Inverse,rb); // rx = Inverse * rb
     }
 
-    template <>
-    void DynamicVMS<2,3>::save(Serializer& rSerializer) const
-    {
-        rSerializer.save("Name","DynamicVMS2D");
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElementType );
-    }
-
-    template <>
-    void DynamicVMS<3,4>::save(Serializer& rSerializer) const
-    {
-        rSerializer.save("Name","DynamicVMS3D");
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElementType );
-    }
-
     ///@} // Specialized implementations
 }

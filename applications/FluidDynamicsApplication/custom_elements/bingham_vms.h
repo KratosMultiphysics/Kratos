@@ -96,7 +96,7 @@ namespace Kratos
      * inside each element.
      *
      * This class requires at least the following variables:\n
-     * On each Node, as solution step variables VELOCITY, PRESSURE, ACCELERATION, MESH_VELOCITY.\n
+     * On each Node, as solution step variables VELOCITY, PRESSURE, ACCELERATION, MESH_VELOCITY, DENSITY, VISCOSITY.\n
      * On ProcessInfo OSS_SWITCH, DYNAMIC_TAU, DELTA_TIME, YIELD_STRESS.\n
      * If OSS is used, the nodes also require NODAL_AREA, ADVPROJ and DIVPROJ as solution step variables.\n
      * To compute the effective viscosity, MU and TAU have to be defined on the elements.\n
@@ -459,7 +459,10 @@ namespace Kratos
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const;
+        virtual void save(Serializer& rSerializer) const
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElementType);
+        }
 
         virtual void load(Serializer& rSerializer)
         {
