@@ -80,7 +80,7 @@ namespace Kratos
     
     ///Flags for mesh writing
     enum WriteDeformedMeshFlag{WriteDeformed, WriteUndeformed};
-    enum WriteConditionsFlag{WriteConditions, WriteElementsOnly};
+    enum WriteConditionsFlag{WriteConditions, WriteElementsOnly, WriteConditionsOnly};
     enum MultiFileFlag{SingleFile, MultipleFiles};
             
     
@@ -464,6 +464,8 @@ namespace Kratos
                     GiD_BeginOnMeshGroup( (char *)(step_index.str()).c_str() );
                 }
                 //initializing gauss points containers
+                if( mWriteConditions != WriteConditionsOnly )
+                {
                 for( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                      element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
                     for( typename std::vector<TGaussPointContainer>::iterator it =
@@ -471,8 +473,9 @@ namespace Kratos
                          it != mGidGaussPointContainers.end(); it++ )
                         if( it->AddElement( element_iterator ) )
                             break;
+                }
                 
-                if( mWriteConditions == WriteConditions )
+                if( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
                     for( MeshType::ConditionsContainerType::iterator conditions_iterator =
                          rThisMesh.ConditionsBegin(); conditions_iterator 
                          != rThisMesh.ConditionsEnd(); conditions_iterator++ )
@@ -795,13 +798,16 @@ namespace Kratos
 
 		Timer::Start("Writing Mesh");
 
+                if( mWriteConditions != WriteConditionsOnly )
+                {
                 for( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd(); ++element_iterator)
                         for( typename std::vector<TMeshContainer>::iterator it = mGidMeshContainers.begin();
                              it != mGidMeshContainers.end(); it++ )
                         if( it->AddElement( element_iterator ) )
                             break;
-                if( mWriteConditions == WriteConditions )
+                }
+                if( mWriteConditions == WriteConditions || mWriteConditions == WriteConditions )
                     for( MeshType::ConditionsContainerType::iterator conditions_iterator =
                          rThisMesh.ConditionsBegin(); 
                          conditions_iterator != rThisMesh.ConditionsEnd(); conditions_iterator++ )
