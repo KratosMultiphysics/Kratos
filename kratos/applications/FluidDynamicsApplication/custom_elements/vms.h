@@ -116,12 +116,12 @@ namespace Kratos
      * value C_SMAGORINSKY is set to something other than zero.
      *
      * This class requires at least the following variables:\n
-     * On each Node, as solution step variables VELOCITY, PRESSURE, ACCELERATION, MESH_VELOCITY.\n
+     * On each Node, as solution step variables VELOCITY, PRESSURE, ACCELERATION, MESH_VELOCITY, DENSITY, VISCOSITY.\n
      * On ProcessInfo OSS_SWITCH, DYNAMIC_TAU, DELTA_TIME.\n
      * If OSS is used, the nodes also require NODAL_AREA, ADVPROJ and DIVPROJ as solution step variables.\n
      * If Smagorinsky is used, C_SMAGORINSKY has to be defined on the elements.\n
      * Error estimation stores ERROR_RATIO on the elements.\n
-     * Some additional variables can be used to print results on the element: TAUONE, TAUTWO, MU, VORTICITY.
+     * Some additional variables can be used to print results on the element: SUBSCALE, TAUONE, TAUTWO, MU, VORTICITY.
      *
      * @see ResidualBasedEliminationBuilderAndSolver compatible monolithic solution strategy.
      * @see PressureSplittingBuilderAndSolver compatible segregated solution strategy.
@@ -730,6 +730,95 @@ namespace Kratos
         ///@name Access
         ///@{
 
+        ///@}
+        ///@name Elemental Data
+        ///@{
+
+        /// Checks the input and that all required Kratos variables have been registered.
+        /**
+         * This function provides the place to perform checks on the completeness of the input.
+         * It is designed to be called only once (or anyway, not often) typically at the beginning
+         * of the calculations, so to verify that nothing is missing from the input
+         * or that no common error is found.
+         * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
+         * @return 0 if no errors were found.
+         */
+        virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+        {
+            KRATOS_TRY
+
+            // Perform basic element checks
+            int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
+            if(ErrorCode != 0) return ErrorCode;
+
+            // Check that all required variables have been registered
+            if(VELOCITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","")
+            if(MESH_VELOCITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","")
+            if(ACCELERATION.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","")
+            if(PRESSURE.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","")
+            if(DENSITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","")
+            if(VISCOSITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","")
+            if(OSS_SWITCH.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if the application was correctly registered.","")
+            if(DYNAMIC_TAU.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","")
+            if(DELTA_TIME.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","")
+            if(ADVPROJ.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"ADVPROJ Key is 0. Check if the application was correctly registered.","")
+            if(DIVPROJ.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DIVPROJ Key is 0. Check if the application was correctly registered.","")
+            if(NODAL_AREA.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check if the application was correctly registered.","")
+            if(C_SMAGORINSKY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"C_SMAGORINSKY Key is 0. Check if the application was correctly registered.","")
+            if(ERROR_RATIO.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"ERROR_RATIO Key is 0. Check if the application was correctly registered.","")
+            // Additional variables, only required to print results:
+            // SUBSCALE, TAUONE, TAUTWO, MU, VORTICITY.
+
+            // Checks on nodes
+
+            // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+            for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+            {
+                if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
+                    KRATOS_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
+                    KRATOS_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
+                    KRATOS_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
+                    KRATOS_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
+                if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
+                   this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
+                   this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
+                    KRATOS_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+                if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
+                    KRATOS_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+            }
+            // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
+
+            // If this is a 2D problem, check that nodes are in XY plane
+            if (this->GetGeometry().WorkingSpaceDimension() == 2)
+            {
+                for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
+                {
+                    if (this->GetGeometry()[i].Z() != 0.0)
+                        KRATOS_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
+                }
+            }
+
+            return 0;
+
+            KRATOS_CATCH("");
+        }
 
         ///@}
         ///@name Inquiry
@@ -1156,7 +1245,7 @@ namespace Kratos
                 // Compute this node's contribution to the residual (evaluated at inegration point)
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rAcceleration[d] - rBodyForce[d]) + AGradN[i] * rVelocity[d]) + rShapeDeriv(i, d) * rPressure);
+                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rBodyForce[d] - rAcceleration[d]) - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
                 }
             }
         }
@@ -1195,8 +1284,8 @@ namespace Kratos
                 // Compute this node's contribution to the residual (evaluated at inegration point)
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (AGradN[i] * rVelocity[d]-rBodyForce[d])) + rShapeDeriv(i, d) * rPressure);
-                    rElementalMomRes[d] -= Weight * rShapeFunc[i] * rProjection[d];
+                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rBodyForce[d] - AGradN[i] * rVelocity[d])) - rShapeDeriv(i, d) * rPressure);
+                    rElementalMomRes[d] += Weight * rShapeFunc[i] * rProjection[d];
                 }
             }
         }
@@ -1239,11 +1328,27 @@ namespace Kratos
          * the element to an array_1d
          * @param rAdvVel: Output array
          * @param rShapeFunc: Shape functions evaluated at the point of interest
-         * @param Step: The time Step (Defaults to 0 = Current)
+         */
+        virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
+                                     const array_1d< double, TNumNodes >& rShapeFunc)
+        {
+            // Compute the weighted value of the advective velocity in the (Gauss) Point
+            rAdvVel = rShapeFunc[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY));
+            for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
+                rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY));
+        }
+
+        /// Write the advective velocity evaluated at this point to an array
+        /**
+         * Writes the value of the advective velocity evaluated at a point inside
+         * the element to an array_1d
+         * @param rAdvVel: Output array
+         * @param rShapeFunc: Shape functions evaluated at the point of interest
+         * @param Step: The time Step
          */
         virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
                                      const array_1d< double, TNumNodes >& rShapeFunc,
-                                     const std::size_t Step = 0)
+                                     const std::size_t Step)
         {
             // Compute the weighted value of the advective velocity in the (Gauss) Point
             rAdvVel = rShapeFunc[0] * (this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, Step) - this->GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY, Step));
@@ -1528,7 +1633,10 @@ namespace Kratos
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const;
+        virtual void save(Serializer& rSerializer) const
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+        }
 
         virtual void load(Serializer& rSerializer)
         {

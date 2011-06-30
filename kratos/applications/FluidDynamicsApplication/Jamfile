@@ -40,7 +40,6 @@ python-extension KratosFluidDynamicsApplication
 	add_custom_processes_to_python.cpp
 	fluid_dynamics_python_application.cpp 
 	vms.cpp
-	bingham_vms.cpp
 	dynamic_vms.cpp
         spalart_allmaras_element.cpp
 

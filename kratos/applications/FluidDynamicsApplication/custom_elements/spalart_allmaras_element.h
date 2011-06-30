@@ -246,13 +246,12 @@ namespace Kratos
 	
         virtual void save(Serializer& rSerializer) const
 	{
-	rSerializer.save("Name", "SpalartAllmaras2D");
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 	}
 	
 	virtual void load(Serializer& rSerializer)
 	{
-	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 	}
 	
 
