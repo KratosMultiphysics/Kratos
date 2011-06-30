@@ -950,8 +950,8 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 		  }
 	  
 	  // finally do the division to get sc and tc
-	      sc = (abs(sN) < 0.000000001 ? 0.0 : sN / sD);
-	      tc = (abs(tN) < 0.000000001 ? 0.0 : tN / tD);
+	      sc = (fabs(sN) < 0.000000001 ? 0.0 : sN / sD);
+	      tc = (fabs(tN) < 0.000000001 ? 0.0 : tN / tD);
 
 
 		    n = w + (sc * u) - (tc * v);
