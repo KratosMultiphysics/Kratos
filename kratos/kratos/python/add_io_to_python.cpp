@@ -235,9 +235,10 @@ namespace Kratos
                     .value("WriteUndeformed", WriteUndeformed)
                     ;
             
-            enum_<WriteConditionsFlag>("WriteConditionsFlag")
+            enum_<WriteConditionsFlag>("WriteConditionsFlag") 
                     .value("WriteConditions",WriteConditions)
                     .value("WriteElementsOnly",WriteElementsOnly)
+                    .value("WriteConditionsOnly",WriteConditionsOnly)
                     ;
             
             enum_<MultiFileFlag>("MultiFileFlag")
