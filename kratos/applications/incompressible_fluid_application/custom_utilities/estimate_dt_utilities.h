@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/element.h"
+#include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
 
@@ -83,7 +84,7 @@ namespace Kratos {
 
         /// Constructor
         /**
-         @param rModelPart The model part containing the problem mesh
+         * @param rModelPart The model part containing the problem mesh
          */
         EstimateDtUtil(ModelPart& rModelPart):
             mrModelPart(rModelPart)
@@ -99,9 +100,9 @@ namespace Kratos {
 
         /// Calculate the maximum time step that satisfies the Courant-Friedrichs-Lewy (CFL) condition.
         /**
-         @param CFL The upper limit for the Courant number
-         @param dt_max Maximum admissible time step (upper bound to be used for situations with very low velocity fields)
-         @return A time step value that satisfies the CFL condition for the current mesh and velocity field
+         * @param CFL The upper limit for the Courant number
+         * @param dt_max Maximum admissible time step (upper bound to be used for situations with very low velocity fields)
+         * @return A time step value that satisfies the CFL condition for the current mesh and velocity field
          */
         double EstimateDt(double CFL, double dt_max)
         {
@@ -113,39 +114,94 @@ namespace Kratos {
             array_1d<double, NumNodes> N;
             boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
 
-            double MaxDen = 0.0;
-            double Den;
+            double MaxProj = 0.0;
 
             for( ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem)
             {
                 // Get the element's geometric parameters
                 Geometry< Node<3> >& rGeom = itElem->GetGeometry();
                 GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
-                Den = 0;
 
-                for(unsigned int i = 0; i < NumNodes; ++i)
+                // Elemental Velocity
+                array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+                for (unsigned int i = 1; i < NumNodes; ++i)
+                    ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+
+                // Velocity norm
+                double VelNorm = ElementVel[0]*ElementVel[0];
+                for (unsigned int d = 1; d < TDim; ++d)
+                    VelNorm += ElementVel[d]*ElementVel[d];
+                VelNorm = sqrt(VelNorm);
+
+                // Maximum element size along the direction of velocity
+                for (unsigned int i = 0; i < NumNodes; ++i)
                 {
-                    array_1d< double, 3 >& rVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
-
-                    for(unsigned int j = 0; j < NumNodes; ++j)
-                    {
-                        double temp = 0;
-                        for(unsigned int d = 0; d < TDim; ++d)
-                        {
-                            temp = fabs(rVel[d] * DN_DX(j,d));
-                            if(temp > Den) Den = temp;
-                        }
-                    }
+                    double Proj = 0.0;
+                    for (unsigned int d = 0; d < TDim; ++d)
+                        Proj += ElementVel[d]*DN_DX(i,d);
+                    Proj = fabs(Proj);
+                    if (Proj > MaxProj) MaxProj = Proj;
                 }
-                if(Den > MaxDen)
-                    MaxDen = Den;
             }
 
-            double dt = CFL / MaxDen;
+            // Dt to obtain desired CFL
+            double dt = CFL / MaxProj;
             if(dt > dt_max)
                 dt = dt_max;
 
             return dt;
+
+            KRATOS_CATCH("")
+        }
+
+        /// Calculate each element's CFL for a given time step value.
+        /**
+         * This function is mainly intended for test and debug purposes, but can
+         * be sometimes useful to detect where a mesh is inadequate. CFL values
+         * are stored as the elemental value of DIVPROJ, so be careful with elements
+         * that use it, such as Fluid and VMS (in particular, avoid printing both
+         * nodal and elemental values of the variable in GiD)
+         * @param Dt The time step used by the fluid solver
+         */
+        void CalculateLocalCFL(double Dt)
+        {
+            KRATOS_TRY;
+
+            const unsigned int NumNodes = TDim +1;
+
+            double Area;
+            array_1d<double, NumNodes> N;
+            boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
+
+            for( ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem)
+            {
+                // Get the element's geometric parameters
+                Geometry< Node<3> >& rGeom = itElem->GetGeometry();
+                GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
+
+                // Elemental Velocity
+                array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+                for (unsigned int i = 1; i < NumNodes; ++i)
+                    ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+
+                // Velocity norm
+                double VelNorm = ElementVel[0]*ElementVel[0];
+                for (unsigned int d = 1; d < TDim; ++d)
+                    VelNorm += ElementVel[d]*ElementVel[d];
+                VelNorm = sqrt(VelNorm);
+
+                double ElemProj = 0.0;
+                // Maximum element size along the direction of velocity
+                for (unsigned int i = 0; i < NumNodes; ++i)
+                {
+                    double Proj = 0.0;
+                    for (unsigned int d = 0; d < TDim; ++d)
+                        Proj += ElementVel[d]*DN_DX(i,d);
+                    Proj = fabs(Proj);
+                    if (Proj > ElemProj) ElemProj = Proj;
+                }
+                itElem->SetValue(DIVPROJ,ElemProj*Dt);
+            }
 
             KRATOS_CATCH("")
         }
@@ -161,6 +217,22 @@ namespace Kratos {
         ModelPart& mrModelPart;
         
         ///@} // Member variables
+        ///@name Serialization
+        ///@{
+
+        friend class Serializer;
+
+        virtual void save(Serializer& rSerializer) const
+        {
+            rSerializer.save("mrModelPart",mrModelPart);
+        }
+
+        virtual void load(Serializer& rSerializer)
+        {
+            rSerializer.load("mrModelPart",mrModelPart);
+        }
+
+        ///@}
 
     };
 
