@@ -196,9 +196,8 @@ namespace Kratos
 	    // A private default constructor necessary for serialization 
 	    PointPointContactLink(){}; 
 
-	    virtual void save(Serializer& rSerializer)
+	    virtual void save(Serializer& rSerializer) const
 	    {
-	    rSerializer.save("Name","PointPointContactLink");
 	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
 	    }
 
