@@ -1506,18 +1506,11 @@ array_1d<double,3> conv_opr;
 	double fac_linear = kinv * mu /density;	
 	double fac_nonlinear = (1.75 / eps * advvel_norm * sqrt(  kinv / (eps * 150.0))) ;    
 
-	int dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
-	
-		if(dyn_st_switch)
-		  {
-			tauone = 1.0/(1.0/time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm_fluid*1.0/ele_length + fac_linear +  fac_nonlinear);
-		  }
-		else
-		 {
-			tauone = 1.0/(4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm_fluid*1.0/ele_length + fac_linear +  fac_nonlinear);
-		  }
+        const double dyn_st_switch = rCurrentProcessInfo[DYNAMIC_TAU];
+	tauone = 1.0/(dyn_st_switch /time + 4.0*mu/(ele_length*ele_length*density)+2.0*advvel_norm_fluid/ele_length + fac_linear +  fac_nonlinear);
+
 		
-	tautwo = mu/density + 1.0*ele_length*advvel_norm_fluid/2.0;
+	tautwo = mu/density + ele_length*advvel_norm_fluid*0.5;
 
 
 	KRATOS_CATCH("")
