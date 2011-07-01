@@ -37,9 +37,10 @@ import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
 applications_interface.Import_PFEMApplication = True
 applications_interface.Import_MeshingApplication = True
+applications_interface.Import_ExternalSolversAppliction = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
-from KratosStructuralApplication import *
+##from KratosStructuralApplication import *
 from KratosIncompressibleFluidApplication import *
 from KratosPFEMApplication import *
 from KratosMeshingApplication import *
@@ -79,6 +80,7 @@ pfem_model_part.AddNodalSolutionStepVariable(NODAL_MASS)
 pfem_model_part.AddNodalSolutionStepVariable(DIAMETER)
 pfem_model_part.AddNodalSolutionStepVariable(SEEPAGE_DRAG)
 pfem_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE)
+##pfem_model_part.AddNodalSolutionStepVariable(AUX_INDEX)
 
 
 
@@ -118,7 +120,8 @@ for node in pfem_model_part.Nodes:
     node.SetSolutionStepValue(BODY_FORCE_Z,0,body_force[2]) 
     node.SetSolutionStepValue(YIELD_STRESS,0,pfem_nonewtonian_coupled_var.Yield_Stress) 
     node.SetSolutionStepValue(INTERNAL_FRICTION_ANGLE,0,pfem_nonewtonian_coupled_var.Friction_Angle_Tangent)
-    node.SetSolutionStepValue(EFFECTIVE_VISCOSITY,0,pfem_nonewtonian_coupled_var.Yield_Stress)
+##    node.SetSolutionStepValue(EFFECTIVE_VISCOSITY,0,pfem_nonewtonian_coupled_var.Yield_Stress)
+##    node.SetSolutionStepValue(AUX_INDEX,0,0.0)
 
 edgebased_levelset_solver.AddDofs(fixed_model_part)
 
@@ -157,9 +160,7 @@ box_corner2[0]=pfem_nonewtonian_coupled_var.max_x;
 box_corner2[1]=pfem_nonewtonian_coupled_var.max_y;
 box_corner2[2]=pfem_nonewtonian_coupled_var.max_z;
 
-#####time setting pfem ---> commented: time step is controlled by the explicit method
-##max_dt = pfem_nonewtonian_coupled_var.max_dt
-##min_dt = pfem_nonewtonian_coupled_var.min_dt
+
 
 #the buffer size should be set up here after the mesh is read for the first time
 pfem_model_part.SetBufferSize(2)
@@ -168,13 +169,12 @@ fixed_model_part.SetBufferSize(2)
 
 
 
-viscosity   = edgebased_levelset_var.viscosity
+fluid_viscosity   = edgebased_levelset_var.viscosity
 ##print "*****************   VISCOSITY  *********************"
-##print viscosity
-density     = edgebased_levelset_var.density
+fluid_density = edgebased_levelset_var.density
+solid_density = pfem_nonewtonian_coupled_var.Density
 ##print "*****************   DENSITY  *********************"
-##print density
-fluid_solver = edgebased_levelset_solver.EdgeBasedLevelSetSolver(fixed_model_part,domain_size,body_force,viscosity,density)
+fluid_solver = edgebased_levelset_solver.EdgeBasedLevelSetSolver(fixed_model_part,domain_size,body_force,fluid_viscosity,fluid_density)
 
 fluid_solver.redistance_frequency = edgebased_levelset_var.redistance_frequency
 fluid_solver.extrapolation_layers = edgebased_levelset_var.extrapolation_layers
@@ -199,9 +199,15 @@ structural_solver.oss_swith = int(pfem_nonewtonian_coupled_var.use_oss)
 structural_solver.dynamic_tau = pfem_nonewtonian_coupled_var.dynamic_tau
 structural_solver.regularization_coef = pfem_nonewtonian_coupled_var.m_coef #m regularization coefficient in the exponential law of viscosity
 structural_solver.echo_level = 2
-#problem parameters to be changed 
-max_Dt = edgebased_levelset_var.max_time_step 
+#problem parameters to be changed
+#####time setting pfem
+### pfem implicit
+max_dt = pfem_nonewtonian_coupled_var.max_dt
+min_dt = pfem_nonewtonian_coupled_var.min_dt
+### edgebased explicit
+max_Dt = edgebased_levelset_var.max_time_step
 initial_Dt_ls = 0.001 * max_Dt 
+
 final_time = edgebased_levelset_var.max_time
 output_dt = edgebased_levelset_var.output_dt
 safety_factor = edgebased_levelset_var.safety_factor
@@ -209,13 +215,6 @@ safety_factor = edgebased_levelset_var.safety_factor
 number_of_inital_steps = edgebased_levelset_var.number_of_inital_steps
 initial_time_step = edgebased_levelset_var.initial_time_step
 
-############## To be inserted in the problem type########
-critical_vel = Vector(3);
-critical_vel[0] = 0.06;
-critical_vel[1] = 0.0;
-critical_vel[2] = 0.0;
-critical_en = 0.000001;
-##############
 
 structural_solver.Initialize(output_dt)
 
@@ -223,13 +222,11 @@ structural_solver.Initialize(output_dt)
 
 if (domain_size == 3):
     ProjectionModule = MeshTransfer3D();
-    ErosionModule = ErosionUtils3D();
 else:
     ProjectionModule = MeshTransfer2D();
-    ErosionModule = ErosionUtils2D();
 PfemUtils = PfemUtils();
 DragUtils = DragUtils();
-
+VariableUtils = VariableUtils()
 
 
 ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, POROSITY, POROSITY);
@@ -239,8 +236,7 @@ for node in fixed_model_part.Nodes:
         node.SetSolutionStepValue(POROSITY,0,1.0)
     if(node.GetSolutionStepValue(DIAMETER) == 0.0):
         node.SetSolutionStepValue(DIAMETER,0,1.0)
-##bool to decide to solve or not the pfem model 
-calculate_dam = True
+
 
 
 out = 0
@@ -251,8 +247,12 @@ step = 0
 next_output_time = output_dt
 max_safety_factor = safety_factor
 
-substep_number = 10
-substep_counter = 0
+##substep_number = 1 #each substep_number structure is evaluated. TO BE PUT IN THE PROBLEM TYPE!!!!
+##substep_counter = 0
+
+check_structure_dt = True
+print_structure = True
+next_structure_step = Time
 
 while(Time < final_time):
 ##    print "line49"
@@ -267,12 +267,31 @@ while(Time < final_time):
         if(safety_factor > max_safety_factor):
             safety_factor = max_safety_factor
 
-    Dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
-    ### in the edgebased strategy new_Dt = solver.EstimateDeltaTime(min_dt,max_dt)
-    ### and time = time + new_Dt*safety_factor
+    ### check which of the dime step is more restrictive
+    fluid_dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
+    if(check_structure_dt == True):
+        structure_dt = structural_solver.EstimateDeltaTime(min_dt,max_dt)
 
-        
-    Time = Time + Dt    
+        if(structure_dt <= fluid_dt):
+            Dt = structure_dt
+            next_structure_step = Time
+        else:
+            Dt = fluid_dt
+            if(structure_dt * safety_factor > 10* fluid_dt):
+                next_structure_step = Time + 10* fluid_dt
+            else:
+                next_structure_step = Time + safety_factor * structure_dt
+            check_structure_dt = False
+    else:
+        Dt = fluid_dt
+                
+    print "fluid_dt = ", fluid_dt
+    print "structure_dt = ", structure_dt
+    print "Dt = ", Dt
+   
+    print "next_structure_step =", next_structure_step
+
+    Time = Time + Dt
     fixed_model_part.CloneTimeStep(Time)
 
     ##let's do this later ... only each substep_number fluid solutions
@@ -280,11 +299,14 @@ while(Time < final_time):
 
     print "******** CURRENT TIME = ",Time
 
+
+            
+
     if(step > 3):
-        if( calculate_dam == True):
-            ##(origin_model_part, destination_model_part, origin_variable_destination_variable)
-            ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, POROSITY, POROSITY);
-            ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, DIAMETER, DIAMETER);
+       
+        ##(origin_model_part, destination_model_part, origin_variable_destination_variable)
+        ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, POROSITY, POROSITY);
+        ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, DIAMETER, DIAMETER);
 
         for node in fixed_model_part.Nodes:
             if(node.GetSolutionStepValue(POROSITY) == 0.0):
@@ -326,67 +348,61 @@ while(Time < final_time):
         print "finished checking the time stepping"
         print fixed_model_part
 
-            
-        
-        if(substep_counter == substep_number):
-            substep_counter = 0
+
+        if(Time >= next_structure_step):
             
             pfem_model_part.CloneTimeStep(Time)
+            if(Time > 0.0):  ## only for A2!!!!
+                
                        
-            print pfem_model_part
-            #solving the structural problem ...........................................................................................
-            print "starting solving structure~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            PfemUtils.CalculateNodalMass(pfem_model_part,domain_size)
-##COMMENTING OUT provisionally BEGIN
-##            print "starting EROSION"
-##            structural_solver.neigh_finder.Execute(); 
-##            print "founded neighbours"
-##            calculate_dam = ErosionModule.CheckErosionableNodes(fixed_model_part, pfem_model_part, critical_vel, critical_en, viscosity, density);
-##            print "finished EROSION"
-##COMMENTING OUT provisionally END
+                print pfem_model_part
+                #solving the structural problem ...........................................................................................
+                print "starting solving structure~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                PfemUtils.CalculateNodalMass(pfem_model_part,domain_size)
+
             
-            if(calculate_dam == True):
-                ##Projecting the water pressure
+
+######                ##Projecting the water pressure
                 ProjectionModule.DirectScalarVarInterpolation(fixed_model_part, pfem_model_part, PRESSURE, WATER_PRESSURE);
 
-##COMMENTING OUT provisionally BEGIN             
-                #Adding Darcy non linear term to the external forces
-                DragUtils.CalculateFluidDrag(fixed_model_part, SEEPAGE_DRAG, viscosity)
+
+                #Calculating Darcy non linear term
+                DragUtils.CalculateFluidDrag(fixed_model_part, SEEPAGE_DRAG, fluid_viscosity, fluid_density, solid_density )
                 ProjectionModule.DirectVectorialVarInterpolation(fixed_model_part, pfem_model_part, SEEPAGE_DRAG, SEEPAGE_DRAG);
-                DragUtils.AddDrag(pfem_model_part, SEEPAGE_DRAG, BODY_FORCE, body_force)
-##COMMENTING OUT provisionally END
+                ProjectionModule.DirectVectorialVarInterpolation(fixed_model_part, pfem_model_part, PRESS_PROJ, PRESS_PROJ);
+                #Adding Darcy non linear term and Water weight to the external force                
+                DragUtils.AddDrag(pfem_model_part, SEEPAGE_DRAG, BODY_FORCE, body_force )
                 
                 #PFEM steps
                 structural_solver.Remesh();
-                print "Remesh in done!"
                 (structural_solver.solver).Solve();
-                print "Solve in done!"
-                (structural_solver.solver).Clear();
-        
-                
-                print "finished solving structure"
-        ##        ErosionModule.SetErosionableNodes(pfem_model_part);
-        ##        if (Time>0.25):
-        ##        ProjectionModule.DirectScalarVarInterpolation(pfem_model_part, fixed_model_part, POROSITY);
-        ##        for node in fixed_model_part.Nodes:
-        ##            if( node.GetSolutionStepValue(POROSITY) == 0.5):
-        ##                print node.Id
+                structural_solver.RestoreOldPosition()
 
-    	        if (Time > 9.0):
-                    substep_number = 2
-        substep_counter += 1
+                (structural_solver.PfemUtils).MoveLonelyNodes(pfem_model_part)
+                (structural_solver.solver).Clear();
+                
+                check_structure_dt = True
+                print_structure = True
+                print "finished solving structure"
+##        else:
+##            for node in fixed_model_part.Nodes:
+##                node.SetSolutionStepValue(DISPLACEMENT_X,0,0.0)
+##                node.SetSolutionStepValue(DISPLACEMENT_Y,0,0.0)
+##                node.SetSolutionStepValue(DISPLACEMENT_Z,0,0.0)
+        
 
 ##################################
     if(Time >= next_output_time):        
+    
+
         ##a change in the output name is needed!!!!
-        
         res_name1 = str(name_fixed)
         gid_io.ChangeOutputName(res_name1)
         gid_io.InitializeMesh( Time );
         gid_io.WriteMesh(fixed_model_part.GetMesh() )
         gid_io.FinalizeMesh();
 	gid_io.InitializeResults( Time, fixed_model_part.GetMesh() )
-## 	    print "fluid output ****************************************************"
+## 	    print "structure output ****************************************************"
    	gid_io.WriteNodalResults(VELOCITY,fixed_model_part.Nodes,Time,0)
 ## 	    gid_io.WriteNodalResults(CONV_VELOCITY,fixed_model_part.Nodes,Time,0)
    	gid_io.WriteNodalResults(PRESSURE,fixed_model_part.Nodes,Time,0)
@@ -400,39 +416,48 @@ while(Time < final_time):
         gid_io.Flush()
         gid_io.FinalizeResults()
 
+##        if(Time > 0.0):  ## only for ??? !!!!
+        if(print_structure == True):  ## only for ??? !!!!
         
-        res_name2 = str(name_pfem)
-        gid_io.ChangeOutputName(res_name2)
-        gid_io.InitializeMesh( Time );
-        gid_io.WriteNodeMesh(pfem_model_part.GetMesh());
-        gid_io.WriteMesh(pfem_model_part.GetMesh() )
-        gid_io.FinalizeMesh();
+            res_name2 = str(name_pfem)
+            gid_io.ChangeOutputName(res_name2)
+            gid_io.InitializeMesh( Time );
+            gid_io.WriteNodeMesh(pfem_model_part.GetMesh());
+            gid_io.WriteMesh(pfem_model_part.GetMesh() )
+            gid_io.FinalizeMesh();
 
-        gid_io.InitializeResults( Time, pfem_model_part.GetMesh() )
-##        print "structure output ****************************************************"
-        gid_io.WriteNodalResults(VELOCITY,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(PRESSURE,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(IS_FREE_SURFACE,pfem_model_part.Nodes,Time,0)
-##        gid_io.WriteNodalResults(IS_BOUNDARY,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(IS_STRUCTURE,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(VISCOSITY,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(DENSITY,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(BODY_FORCE,pfem_model_part.Nodes,Time,0)
-##        gid_io.WriteNodalResults(FRICTION_COEFFICIENT,pfem_model_part.Nodes,Time,0)
-##        gid_io.WriteNodalResults(IS_EROSIONABLE,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(POROSITY,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(DIAMETER,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(SEEPAGE_DRAG,pfem_model_part.Nodes,Time,0)
-        gid_io.WriteNodalResults(WATER_PRESSURE,pfem_model_part.Nodes,Time,0)
-        gid_io.PrintOnGaussPoints(EQ_STRAIN_RATE,pfem_model_part,Time)
-        gid_io.PrintOnGaussPoints(TAU,pfem_model_part,Time)
-        gid_io.PrintOnGaussPoints(MU,pfem_model_part,Time)
+            gid_io.InitializeResults( Time, pfem_model_part.GetMesh() )
+    ##        print "fluid output ****************************************************"
+            gid_io.WriteNodalResults(VELOCITY,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(PRESSURE,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(IS_FREE_SURFACE,pfem_model_part.Nodes,Time,0)
+    ##        gid_io.WriteNodalResults(IS_BOUNDARY,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(IS_STRUCTURE,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(VISCOSITY,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(DENSITY,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(BODY_FORCE,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(DISPLACEMENT,pfem_model_part.Nodes,Time,0)
+    ##        gid_io.WriteNodalResults(FRICTION_COEFFICIENT,pfem_model_part.Nodes,Time,0)
+    ##        gid_io.WriteNodalResults(IS_EROSIONABLE,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(POROSITY,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(DIAMETER,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(SEEPAGE_DRAG,pfem_model_part.Nodes,Time,0)
+            gid_io.WriteNodalResults(WATER_PRESSURE,pfem_model_part.Nodes,Time,0)
+            gid_io.PrintOnGaussPoints(EQ_STRAIN_RATE,pfem_model_part,Time)
+            gid_io.PrintOnGaussPoints(MU,pfem_model_part,Time)
+            gid_io.PrintOnGaussPoints(TAU,pfem_model_part,Time)
+            gid_io.WriteNodalResults(NODAL_H, pfem_model_part.Nodes, Time, 0);
+            gid_io.WriteNodalResults(EXTERNAL_PRESSURE, pfem_model_part.Nodes, Time, 0);
+            gid_io.WriteNodalResults(PRESS_PROJ, pfem_model_part.Nodes, Time, 0);
+            
 
-        gid_io.Flush()  
-        gid_io.FinalizeResults()
+            gid_io.Flush()  
+            gid_io.FinalizeResults()
 
+            print_structure = False
+            
         next_output_time = Time + output_dt
-
+        
         out = 0
 
     out = out + 1
