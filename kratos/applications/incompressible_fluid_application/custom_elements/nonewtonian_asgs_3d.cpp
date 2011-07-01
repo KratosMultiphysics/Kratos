@@ -751,7 +751,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         //build 1*(grad q . grad p) stabilization term & assemble
         boost::numeric::ublas::bounded_matrix<double, 4, 4 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
-        gard_opr = 1.0 * tauone * prod(DN_DX, trans(DN_DX));
+        gard_opr = tauone * prod(DN_DX, trans(DN_DX));
 
         for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1) + dof;
@@ -759,7 +759,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += volume * 1.0 * gard_opr(ii, jj);
+                K(row, column) += volume  * gard_opr(ii, jj);
 
             }
         }
@@ -782,7 +782,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1) + dof;
-            F[index] += 1.0 * volume * fbd_stblterm[ii];
+            F[index] +=  volume * fbd_stblterm[ii];
         }
 
         KRATOS_CATCH("")
@@ -896,7 +896,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//	Remember to modify CalculateViscousTerm and CalculateTau
 	// 	app_mu = mu;
 		
-		aux_1 = 2 * app_mu * grad_sym_vel;
+		aux_1 = 2.0 * app_mu * grad_sym_vel;
 		aux_1[3] *= 0.5; //considering Voigt notation for the gradient of velocity (alternative to the C matrix of the viscous term.
 		aux_1[4] *= 0.5;
 		aux_1[5] *= 0.5;
@@ -1086,13 +1086,13 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             double proj;
 
             proj = mean_x_adv * (adv_vel[0] * DN_DX(ii, 0) + adv_vel[1] * DN_DX(ii, 1) + adv_vel[2] * DN_DX(ii, 2));
-            F[index] += (tauone * 1.0 * volume * proj);
+            F[index] += (tauone  * volume * proj);
 
             proj = mean_y_adv * (adv_vel[0] * DN_DX(ii, 0) + adv_vel[1] * DN_DX(ii, 1) + adv_vel[2] * DN_DX(ii, 2));
-            F[index + 1 ] += (tauone * 1.0 * volume * proj);
+            F[index + 1 ] += (tauone  * volume * proj);
 
             proj = mean_z_adv * (adv_vel[0] * DN_DX(ii, 0) + adv_vel[1] * DN_DX(ii, 1) + adv_vel[2] * DN_DX(ii, 2));
-            F[index + 2 ] += (tauone * 1.0 * volume * proj);
+            F[index + 2 ] += (tauone  * volume * proj);
 
             //tauone*(xi,gradq)
             proj = (mean_x_adv * DN_DX(ii, 0) + mean_y_adv * DN_DX(ii, 1) + mean_z_adv * DN_DX(ii, 2));
