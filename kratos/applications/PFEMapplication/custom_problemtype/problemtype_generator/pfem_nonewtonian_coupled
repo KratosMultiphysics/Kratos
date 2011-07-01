@@ -56,8 +56,8 @@ PROPERTY use_oss 0 use_oss
 PROPERTY dynamic_tau 0.001 dynamic_tau
 #PROPERTY nsteps 100 nsteps
 #PROPERTY output_dt 0.1 output_Dt
-#PROPERTY min_dt 0.001 min_dt
-#PROPERTY max_dt 0.1 max_dt
+PROPERTY min_dt 0.001 min_dt
+PROPERTY max_dt 0.1 max_dt
 #PROPERTY safety_factor 0.5 safety_factor
 
 #PROPERTY SolverType "monolithic_solver_lagrangian" "pfem_solver_ale" SolverType # remember to put the text between " " !
