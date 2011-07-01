@@ -655,7 +655,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_div = ZeroMatrix(matsize, matsize);
 	temp_div = tautwo * prod(trans(div_opr), div_opr);
-
+	temp_div *= (area * density);
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int row = ii * (dof + 1);
 	    int loc_row = ii*dof;
@@ -663,10 +663,10 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		int column = jj * (dof + 1);
 		int loc_column = jj*dof;
 
-		K(row, column) += area * density * temp_div(loc_row, loc_column);
-		K(row, column + 1) += area * density * temp_div(loc_row, loc_column + 1);
-		K(row + 1, column) += area * density * temp_div(loc_row + 1, loc_column);
-		K(row + 1, column + 1) += area * density * temp_div(loc_row + 1, loc_column + 1);
+		K(row, column) +=  temp_div(loc_row, loc_column);
+		K(row, column + 1) +=  temp_div(loc_row, loc_column + 1);
+		K(row + 1, column) +=  temp_div(loc_row + 1, loc_column);
+		K(row + 1, column + 1) +=  temp_div(loc_row + 1, loc_column + 1);
 	    }
 	}
 
@@ -862,7 +862,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	boost::numeric::ublas::bounded_matrix<double, 6, 6 > temp_convterm = ZeroMatrix(matsize, matsize);
 	temp_convterm = prod(trans(conv_opr), trans(shape_func));
 
-	double fac = tauone*density;
+	double fac = tauone * density * area; 
 
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int row = ii * (dof + 1);
@@ -871,8 +871,8 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		int column = jj * (dof + 1);
 		int loc_column = jj*dof;
 
-		M(row, column) += area * fac * temp_convterm(loc_row, loc_column);
-		M(row + 1, column + 1) += area * fac * temp_convterm(loc_row + 1, loc_column + 1);
+		M(row, column) +=  fac * temp_convterm(loc_row, loc_column);
+		M(row + 1, column + 1) +=  fac * temp_convterm(loc_row + 1, loc_column + 1);
 	    }
 	}
 
@@ -893,7 +893,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	//build 1*(grad q . grad p) stabilization term & assemble
 	boost::numeric::ublas::bounded_matrix<double, 3, 3 > gard_opr = ZeroMatrix(nodes_number, nodes_number);
-	gard_opr = 1.0 * tauone * prod(DN_DX, trans(DN_DX));
+	gard_opr =  tauone * prod(DN_DX, trans(DN_DX));
 
 	for (int ii = 0; ii < nodes_number; ii++) {
 	    int row = ii * (dof + 1) + dof;
