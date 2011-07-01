@@ -1919,7 +1919,7 @@ KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
 	tauone = 1.0 / (dyn_st_beta / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm  / ele_length);
 
-// 	tautwo = mu / density + 1.0 * ele_length * advvel_norm / 2.0;
+// 	tautwo = mu / density +  ele_length * advvel_norm * 0.5;
 	tautwo = 0.0;
 
 
