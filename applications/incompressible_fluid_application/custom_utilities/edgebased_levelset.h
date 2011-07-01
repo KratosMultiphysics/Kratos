@@ -1145,7 +1145,7 @@ namespace Kratos {
             long unsigned int* Lcol_indices = mL.index2_data().begin();
 
             #pragma omp parallel for
-            for (unsigned int k = 0; k < mL.size1(); k++)
+            for (int k = 0; k < static_cast<unsigned int>(mL.size1()); k++)
             {
                 double t = 0.0;
                 long unsigned int col_begin = Lrow_indices[k];
@@ -1163,7 +1163,7 @@ namespace Kratos {
                 scaling_factors[k] = 1.0/sqrt(t);
             }
             #pragma omp parallel for
-            for (unsigned int k = 0; k < mL.size1(); k++)
+            for (int k = 0; k < static_cast<unsigned int>(mL.size1()); k++)
             {
                 long unsigned int col_begin = Lrow_indices[k];
                 long unsigned int col_end = Lrow_indices[k+1];
