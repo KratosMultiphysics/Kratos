@@ -1153,7 +1153,7 @@ namespace Kratos {
 
             //read time step size from Kratos
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-            double delta_t = CurrentProcessInfo[DELTA_TIME];
+//            double delta_t = CurrentProcessInfo[DELTA_TIME];
 
 
             //compute intrinsic time
@@ -1198,7 +1198,7 @@ namespace Kratos {
 	    rhs.resize(n_nodes);
 
 	    //calculating the RHS
-	    double inverse_rho = 1.0 / mRho;
+//	    double inverse_rho = 1.0 / mRho;
 	    #pragma omp parallel for 
 	    for (int i_node = 0; i_node < n_nodes; i_node++)
             {
@@ -1206,7 +1206,7 @@ namespace Kratos {
 		    const array_1d<double, TDim>& U_i = mvel_n1[i_node];
 
 		    //initializing with the external forces (e.g. gravity)
-		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+//		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
 		    for (unsigned int comp = 0; comp < TDim; comp++)
 			rhs_i[comp] = 0.0 ;
 
