@@ -208,7 +208,7 @@ namespace Kratos
 		}
 		
  		//mpi sync variables
-		if(is_distributed == false)
+		if(is_distributed == true)
 		{
 		    #pragma omp parallel for private(DN_DX) firstprivate(node_size)
 		    for(int i = 0; i<node_size; i++)
@@ -535,6 +535,23 @@ namespace Kratos
 
 	      if (discriminant < 0.0) //here we solve (2ax+b) = 0
 	      {
+//                  double numerator = 0.0;
+//                  double denominator = 0.0;
+//                  for(unsigned int i=0; i<TDim+1; i++)
+//                  {
+//                      for (unsigned int jjj = 0; jjj < TDim; jjj++)
+//                      {
+//                          if(i != unknown_node_index)
+//                            numerator += DN_DX(unknown_node_index, jjj) * DN_DX(i, jjj);
+//                          else
+//                            denominator += DN_DX(unknown_node_index, jjj)*DN_DX(unknown_node_index, jjj);
+//                      }
+//                  }
+//                  distance = - numerator/denominator;
+//
+//                  KRATOS_WATCH(geom[unknown_node_index].Id());
+
+
 // 		KRATOS_WATCH(discriminant);
 		  distance = -b / (2.0*a); //avg_dist ; //
 	      } 
