@@ -75,7 +75,7 @@ class ULF_FSISolver:
         self.pres_linear_solver =  SkylineLUFactorizationSolver()
                 
         #definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(1e-6,1e-8)
+        self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
 
         #self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part,domain_size);
         self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
@@ -300,6 +300,7 @@ class ULF_FSISolver:
         
         self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part)
         self.node_erase_process.Execute()
+        (self.mark_fluid_process).Execute();
         print "end of remesh function"
 
        
