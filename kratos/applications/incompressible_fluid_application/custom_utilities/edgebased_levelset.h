@@ -1145,7 +1145,7 @@ namespace Kratos {
             long unsigned int* Lcol_indices = mL.index2_data().begin();
 
             #pragma omp parallel for
-            for (int k = 0; k < static_cast<unsigned int>(mL.size1()); k++)
+            for (unsigned int k = 0; k < static_cast< int>(mL.size1()); k++)
             {
                 double t = 0.0;
                 long unsigned int col_begin = Lrow_indices[k];
@@ -1430,6 +1430,9 @@ namespace Kratos {
 	void ExtrapolateValues(unsigned int extrapolation_layers)
 	{
 	    KRATOS_TRY
+
+            //ensure that corner nodes are wet if all of the nodes around them have a negative distance
+
 
 	    typedef Node < 3 > PointType;
 	    typedef PointerVector<PointType > PointVector;
@@ -2280,6 +2283,27 @@ namespace Kratos {
             //                }
             //            }
 
+            //wetten corner nodes if needed
+            int corner_size = mcorner_nodes.size();
+            for (int i = 0; i < corner_size; i++)
+            {
+                int i_node = mcorner_nodes[i];
+                bool to_be_wettened = true;
+                double min_dist = 0.0;
+                for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                {
+			unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+                        double neighb_dist = mphi_n1[j_neighbour];
+                        if(min_dist > neighb_dist)
+                            min_dist = neighb_dist;
+                        if(neighb_dist >= 0.0)
+                        {
+                            to_be_wettened=false;
+                        }
+                }
+                if(to_be_wettened==true)
+                    mphi_n1[i_node] = min_dist;
+            }
 
 
             mr_matrix_container.WriteScalarToDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
