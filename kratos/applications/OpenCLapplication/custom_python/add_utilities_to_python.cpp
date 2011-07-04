@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/opencl_pure_convection_edgebased.h"
 #include "custom_utilities/opencl_fluid_solver.h"
 #include "custom_utilities/renumber_by_neighbour_count_util.h"
+#include "custom_utilities/opencl_benchmark_device.h"
 
 
 namespace Kratos
@@ -113,7 +114,7 @@ namespace Python
                           .def("Renumber",&RenumberByNeighbourCountUtil::Renumber)
                         ;
 
-
+          def("BenchmarkDevice", OpenCL::BenchmarkDevice);
   }
 
 }  // namespace Python.
