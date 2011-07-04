@@ -66,20 +66,34 @@ __kernel void InitializeBuffers(__global float4 *Buffer1, __global float4 *Buffe
 	{
 		Buffer1[i] = i;
 		Buffer2[i] = Elements - i;
-		Buffer3[i] = 0.00;
+		Buffer3[i] = HUGE_VALF;
 	}
 }
 
-__kernel void BenchmarkDevice(__global float4 *Buffer1, __global float4 *Buffer2, __global float4 *Buffer3, const IndexType Chunks)
+// Note: This is not an optimal kernel; there is a BUG in the second which I cannot find...
+
+__kernel void BenchmarkDevice(__global float4 *Buffer1, __global float4 *Buffer2, __global float4 *Buffer3, const IndexType Elements)
 {
 	// Get work item index
-	const size_t gid = get_group_id(0);
+	const size_t i = get_global_id(0);
+
+	// Check if we are in the range
+	if (i < Elements)
+	{
+		Buffer3[i] = Buffer1[i] + Buffer2[i];
+	}
+}
+
+__kernel void BenchmarkDevice2(__global float4 *Buffer1, __global float4 *Buffer2, __global float4 *Buffer3, const IndexType Chunks)
+{
+	// Get work item index
+	const size_t gid = get_global_id(0);
 	const size_t lid = get_local_id(0);
 
 	const size_t stride = get_local_size(0);
 
 	// Check if we are in the range
-	if (get_global_id(0) < Chunks)
+	if (gid < Chunks)
 	{
 		uint start = gid * KRATOS_OCL_BENCHMARK_CHUNKSIZE;
 		uint end = start + KRATOS_OCL_BENCHMARK_CHUNKSIZE;

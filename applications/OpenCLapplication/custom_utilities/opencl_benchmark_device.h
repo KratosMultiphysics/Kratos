@@ -68,8 +68,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // Benchmarking constants
 
-#define KRATOS_OCL_BENCHMARK_CHUNKS		10000
-#define KRATOS_OCL_BENCHMARK_CHUNKSIZE	512
+#define KRATOS_OCL_BENCHMARK_CHUNKS		15360000
+#define KRATOS_OCL_BENCHMARK_CHUNKSIZE	1
 #define KRATOS_OCL_BENCHMARK_ELEMENTS	(KRATOS_OCL_BENCHMARK_CHUNKS * KRATOS_OCL_BENCHMARK_CHUNKSIZE)
 #define KRATOS_OCL_BENCHMARK_TRIES		10
 
@@ -135,7 +135,7 @@ namespace OpenCL
 
 			t1 = Timer();
 
-			Device.ExecuteKernel(BenchmarkDeviceKernel, KRATOS_OCL_BENCHMARK_CHUNKS);
+			Device.ExecuteKernel(BenchmarkDeviceKernel, KRATOS_OCL_BENCHMARK_ELEMENTS);  //KRATOS_OCL_BENCHMARK_CHUNKS);
 
 			t2 = Timer();
 
@@ -146,11 +146,36 @@ namespace OpenCL
 		}
 
 		std::cout <<
+			std::endl <<
 			"OpenCL benchmark device" << std::endl <<
 			std::endl <<
+			"Workgroup size of the benchmark kernel is: " << Device.WorkGroupSizes[BenchmarkDeviceKernel][0] << std::endl<<
+			std::endl;
+
+		unsigned int FloatElemets = sizeof(cl_float4) / sizeof(cl_float) * KRATOS_OCL_BENCHMARK_ELEMENTS;
+		float *HostBuffer = new float[FloatElemets];
+
+		Device.CopyBuffer(Buffer3, OpenCL::DeviceToHost, VoidPList(1, HostBuffer));
+
+		for (unsigned int i = 0; i < FloatElemets; i++)
+		{
+			if (HostBuffer[i] != KRATOS_OCL_BENCHMARK_ELEMENTS)
+			{
+				std::cout <<
+					"Solution invalid at element " << i << ", value: " << HostBuffer[i] << std::endl <<
+					std::endl;
+
+				break;
+			}
+		}
+
+		delete[] HostBuffer;
+
+		std::cout <<
 			"Memory bandwidth measured:" <<
 			std::endl <<
-			"Add:	" << KRATOS_OCL_BENCHMARK_ELEMENTS * sizeof(cl_float4) / static_cast <double> (t0) << " GB/s" << std::endl;
+			"Add:	" << KRATOS_OCL_BENCHMARK_ELEMENTS * sizeof(cl_float4) / static_cast <double> (t0) << " GB/s" << std::endl <<
+			KRATOS_OCL_BENCHMARK_ELEMENTS * sizeof(cl_float4) << " bytes of data processed in " << t0 << "ns." << std::endl;
 	}
 }
 
