@@ -174,8 +174,8 @@ namespace OpenCL
 		std::cout <<
 			"Memory bandwidth measured:" <<
 			std::endl <<
-			"Add:	" << KRATOS_OCL_BENCHMARK_ELEMENTS * sizeof(cl_float4) / static_cast <double> (t0) << " GB/s" << std::endl <<
-			KRATOS_OCL_BENCHMARK_ELEMENTS * sizeof(cl_float4) << " bytes of data processed in " << t0 << "ns." << std::endl;
+			"Add:	" << 3 * KRATOS_OCL_BENCHMARK_ELEMENTS * sizeof(cl_float4) / static_cast <double> (t0) << " GB/s" << std::endl <<
+			3 * KRATOS_OCL_BENCHMARK_ELEMENTS * sizeof(cl_float4) << " bytes of data processed in " << t0 << "ns." << std::endl;
 	}
 }
 
