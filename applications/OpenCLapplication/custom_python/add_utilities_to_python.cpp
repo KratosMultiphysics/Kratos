@@ -62,7 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/opencl_edge_data.h"
 #include "custom_utilities/opencl_pure_convection_edgebased.h"
 #include "custom_utilities/opencl_fluid_solver.h"
-#include "custom_utilities/renumber_by_neighbour_count_util.h"
+//#include "custom_utilities/renumber_by_neighbour_count_util.h"
 #include "custom_utilities/opencl_benchmark_device.h"
 
 
@@ -110,9 +110,9 @@ namespace Python
                           .value("CL_DEVICE_TYPE_ALL", CL_DEVICE_TYPE_ALL)
                         ;
 
-          class_< RenumberByNeighbourCountUtil,  boost::noncopyable >   ("RenumberByNeighbourCountUtil", init< >() )
-                          .def("Renumber",&RenumberByNeighbourCountUtil::Renumber)
-                        ;
+//          class_< RenumberByNeighbourCountUtil,  boost::noncopyable >   ("RenumberByNeighbourCountUtil", init< >() )
+//                          .def("Renumber",&RenumberByNeighbourCountUtil::Renumber)
+//                        ;
 
           def("BenchmarkDevice", OpenCL::BenchmarkDevice);
   }
