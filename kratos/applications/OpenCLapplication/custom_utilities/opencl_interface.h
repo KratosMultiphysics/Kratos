@@ -888,6 +888,13 @@ namespace OpenCL
 					}
 
 					Err = clEnqueueCopyBuffer(CommandQueues[i], Buffers[_SourceBufferIndex][i], Buffers[_DestinationBufferIndex][i], 0, 0, BufferLengths[_SourceBufferIndex][i], 0, NULL, NULL);
+					KRATOS_OCL_CHECK(Err);
+				}
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					Err = clFinish(CommandQueues[i]);
+					KRATOS_OCL_CHECK(Err);
 				}
 			}
 
@@ -908,6 +915,10 @@ namespace OpenCL
 				}
 
 				Err = clEnqueueCopyBuffer(CommandQueues[_DeviceIndex], Buffers[_SourceBufferIndex][_DeviceIndex], Buffers[_DestinationBufferIndex][_DeviceIndex], 0, 0, BufferLengths[_SourceBufferIndex][_DeviceIndex], 0, NULL, NULL);
+				KRATOS_OCL_CHECK(Err);
+
+				Err = clFinish(CommandQueues[_DeviceIndex]);
+				KRATOS_OCL_CHECK(Err);
 			}
 
 			//
@@ -1133,6 +1144,7 @@ namespace OpenCL
 					}
 
 					Err = clEnqueueCopyImage(CommandQueues[i], Images[_SourceImageIndex][i], Images[_DestinationImageIndex][i], Origin, Origin, ImageDimensions[_SourceImageIndex][i].Sizes, 0, NULL, NULL);
+					KRATOS_OCL_CHECK(Err);
 				}
 			}
 
@@ -1156,6 +1168,7 @@ namespace OpenCL
 				}
 
 				Err = clEnqueueCopyImage(CommandQueues[_DeviceIndex], Images[_SourceImageIndex][_DeviceIndex], Images[_DestinationImageIndex][_DeviceIndex], Origin, Origin, ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes, 0, NULL, NULL);
+				KRATOS_OCL_CHECK(Err);
 			}
 
 			//
@@ -1173,6 +1186,7 @@ namespace OpenCL
 					// We use the dimensions of the image; the user is responsible for the results
 
 					Err = clEnqueueCopyBufferToImage(CommandQueues[i], Buffers[_SourceBufferIndex][i], Images[_DestinationImageIndex][i], 0, Origin, ImageDimensions[_DestinationImageIndex][i].Sizes, 0, NULL, NULL);
+					KRATOS_OCL_CHECK(Err);
 				}
 			}
 
@@ -1189,6 +1203,7 @@ namespace OpenCL
 				// We use the dimensions of the image; the user is responsible for the results
 
 				Err = clEnqueueCopyBufferToImage(CommandQueues[_DeviceIndex], Buffers[_SourceBufferIndex][_DeviceIndex], Images[_DestinationImageIndex][_DeviceIndex], 0, Origin, ImageDimensions[_DestinationImageIndex][_DeviceIndex].Sizes, 0, NULL, NULL);
+				KRATOS_OCL_CHECK(Err);
 			}
 
 			//
@@ -1204,6 +1219,7 @@ namespace OpenCL
 				// We use the dimensions of the image; the user is responsible for the results
 
 				Err = clEnqueueCopyImageToBuffer(CommandQueues[_DeviceIndex], Images[_SourceImageIndex][_DeviceIndex], Buffers[_DestinationBufferIndex][_DeviceIndex], Origin, ImageDimensions[_SourceImageIndex][_DeviceIndex].Sizes, 0, 0, NULL, NULL);
+				KRATOS_OCL_CHECK(Err);
 			}
 
 			//
@@ -1221,6 +1237,7 @@ namespace OpenCL
 					// We use the dimensions of the image; the user is responsible for the results
 
 					Err = clEnqueueCopyImageToBuffer(CommandQueues[i], Images[_SourceImageIndex][i], Buffers[_DestinationBufferIndex][i], Origin, ImageDimensions[_SourceImageIndex][i].Sizes, 0, 0, NULL, NULL);
+					KRATOS_OCL_CHECK(Err);
 				}
 			}
 
@@ -1341,6 +1358,7 @@ namespace OpenCL
 					// Check for Image support
 
 					Err = clGetDeviceInfo(DeviceIDs[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(cl_bool), &ImageSupport, NULL);
+					KRATOS_OCL_CHECK(Err);
 
 					if (ImageSupport)
 					{
@@ -1626,9 +1644,6 @@ namespace OpenCL
 
 						Err = clEnqueueNDRangeKernel(CommandQueues[i], Kernels[_KernelIndex][i], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][i], 0, NULL, NULL);
 						KRATOS_OCL_CHECK(Err);
-
-						Err = clFlush(CommandQueues[i]);
-						KRATOS_OCL_CHECK(Err);
 					}
 
 					// Wait for kernels to finish
@@ -1656,9 +1671,6 @@ namespace OpenCL
 					size_t GlobalWorkSize = ((_GlobalWorkSize + WorkGroupSizes[_KernelIndex][_DeviceIndex] - 1) / WorkGroupSizes[_KernelIndex][_DeviceIndex]) * WorkGroupSizes[_KernelIndex][_DeviceIndex];
 
 					Err = clEnqueueNDRangeKernel(CommandQueues[_DeviceIndex], Kernels[_KernelIndex][_DeviceIndex], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][_DeviceIndex], 0, NULL, NULL);
-					KRATOS_OCL_CHECK(Err);
-
-					Err = clFlush(CommandQueues[_DeviceIndex]);
 					KRATOS_OCL_CHECK(Err);
 
 					// Wait for kernel to finish
