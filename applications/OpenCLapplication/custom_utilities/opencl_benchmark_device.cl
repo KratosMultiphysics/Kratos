@@ -70,24 +70,10 @@ __kernel void InitializeBuffers(__global float4 *Buffer1, __global float4 *Buffe
 	}
 }
 
-// Note: This is not an optimal kernel; there is a BUG in the second which I cannot find...
-
-__kernel void BenchmarkDevice(__global float4 *Buffer1, __global float4 *Buffer2, __global float4 *Buffer3, const IndexType Elements)
+__kernel void BenchmarkDevice1(__global float4 *Buffer1, __global float4 *Buffer2, __global float4 *Buffer3, const IndexType Chunks)
 {
 	// Get work item index
-	const size_t i = get_global_id(0);
-
-	// Check if we are in the range
-	if (i < Elements)
-	{
-		Buffer3[i] = Buffer1[i] + Buffer2[i];
-	}
-}
-
-__kernel void BenchmarkDevice2(__global float4 *Buffer1, __global float4 *Buffer2, __global float4 *Buffer3, const IndexType Chunks)
-{
-	// Get work item index
-	const size_t gid = get_global_id(0);
+	const size_t gid = get_group_id(0);
 	const size_t lid = get_local_id(0);
 
 	const size_t stride = get_local_size(0);
@@ -102,5 +88,17 @@ __kernel void BenchmarkDevice2(__global float4 *Buffer1, __global float4 *Buffer
 		{
 			Buffer3[j] = Buffer1[j] + Buffer2[j];
 		}
+	}
+}
+
+__kernel void BenchmarkDevice2(__global float4 *Buffer1, __global float4 *Buffer2, __global float4 *Buffer3, const IndexType Elements)
+{
+	// Get work item index
+	const size_t i = get_global_id(0);
+
+	// Check if we are in the range
+	if (i < Elements)
+	{
+		Buffer3[i] = Buffer1[i] + Buffer2[i];
 	}
 }
