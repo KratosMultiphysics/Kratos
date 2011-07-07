@@ -1109,7 +1109,7 @@ namespace Kratos {
 	    //						rhs[i_dist] = 0.0;
 	    //					}
 	    //				}
-
+            #pragma omp parallel for
 	    for (int i_node = 0; i_node < n_nodes; i_node++) {
 		if (mdistances[i_node] >= 0) {
 		    mL(i_node, i_node) = max_diag;
@@ -1145,14 +1145,14 @@ namespace Kratos {
             long unsigned int* Lcol_indices = mL.index2_data().begin();
 
             #pragma omp parallel for
-            for (unsigned int k = 0; k < static_cast< int>(mL.size1()); k++)
+            for (int k = 0; k < static_cast< int>(mL.size1()); k++)
             {
                 double t = 0.0;
                 long unsigned int col_begin = Lrow_indices[k];
                 long unsigned int col_end = Lrow_indices[k+1];
 
                 for (long unsigned int j=col_begin; j<col_end; j++)
-                    if( Lcol_indices[j] == k)
+                    if( static_cast<int>(Lcol_indices[j]) == k)
                     {
                         t = fabs(Lvalues[j]);
                         break;
@@ -1163,7 +1163,7 @@ namespace Kratos {
                 scaling_factors[k] = 1.0/sqrt(t);
             }
             #pragma omp parallel for
-            for (int k = 0; k < static_cast<unsigned int>(mL.size1()); k++)
+            for (int k = 0; k < static_cast<int>(mL.size1()); k++)
             {
                 long unsigned int col_begin = Lrow_indices[k];
                 long unsigned int col_end = Lrow_indices[k+1];
