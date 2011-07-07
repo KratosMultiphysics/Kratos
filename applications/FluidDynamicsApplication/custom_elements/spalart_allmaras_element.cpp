@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes 
 #include "includes/define.h"
 #include "custom_elements/spalart_allmaras_element.h"
-#include "fluid_dynamics_application.h"
+#include "fluid_dynamics_application_variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "spalart_allmaras_element.h"
@@ -133,7 +133,6 @@ namespace Kratos
 
 
         //calculating viscosity
-
         double molecular_viscosity = GetGeometry()[0].FastGetSolutionStepValue(MOLECULAR_VISCOSITY);
         double turbulent_viscosity = GetGeometry()[0].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         double proj = GetGeometry()[0].FastGetSolutionStepValue(TEMP_CONV_PROJ);
@@ -218,13 +217,8 @@ namespace Kratos
         //INERTIA CONTRIBUTION
         noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * MassFactors;
 
-        // RHS = Fext (heat per unit mass)
-//#pragma omp critical
-//        {
-//        KRATOS_WATCH(source_term)// / rLeftHandSideMatrix(0,0))
+        // RHS = Fext
         noalias(rRightHandSideVector) = source_term*N;
-//        KRATOS_WATCH(rRightHandSideVector)
-//        }
 
         //RHS += Suy * proj[component]
         noalias(rRightHandSideVector) += (tau1 * proj) * u_DN;
@@ -245,19 +239,12 @@ namespace Kratos
         // RHS -= LHS*temperatures
         for (unsigned int iii = 0; iii < number_of_points; iii++)
             temp_vec_np[iii] = GetGeometry()[iii].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
-//   #pragma omp critical
-//        {
-//        KRATOS_WATCH(rRightHandSideVector)
+
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
-//        KRATOS_WATCH(rRightHandSideVector)
-//        }
 
         rRightHandSideVector *= Area;
         rLeftHandSideMatrix *= Area;
-//#pragma omp critical
-//        {
-//        KRATOS_WATCH(rRightHandSideVector)
-//        }
+
         KRATOS_CATCH("");
     }
 
@@ -373,7 +360,7 @@ namespace Kratos
         const double cw2 = 0.3;
         const double cw3 = 2.0;
         const double cv1 = 7.1;
-//        const double ct1 = 1.0;
+//        const double ct1 = 1.0; // For ft1 (trip term, not implemented)
 //        const double ct2 = 2.0;
         const double ct3 = 1.2; // Original value is 1.1, correction by Spalart
         const double ct4 = 0.5; // Original value is 2.0, correction by Spalart
@@ -401,23 +388,9 @@ namespace Kratos
 
         double source_term = cb1 * (1.0 - ft2) * S_hat * turbulent_viscosity;
         source_term += cb2 * norm2_gradnu / sigma;
-//#pragma omp critical
-//        {
-//            KRATOS_WATCH("Start")
-//        source_term = cb1 * (1.0 - ft2) * S_hat * turbulent_viscosity;
-//        KRATOS_WATCH(source_term)
-//        source_term += cb2 * norm2_gradnu / sigma;
-//        KRATOS_WATCH(source_term)
+
         source_term -= (cw1 * fw - ft2 * cb1/(kappa*kappa) ) * pow(molecular_viscosity/distance,2);
-//        KRATOS_WATCH(source_term)
-//        KRATOS_WATCH(cw1)
-//        KRATOS_WATCH(fw)
-//        KRATOS_WATCH(ft2)
-//        KRATOS_WATCH(cb1)
-//        KRATOS_WATCH(molecular_viscosity)
-//        KRATOS_WATCH(distance)
-//                KRATOS_WATCH("End")
-//        }
+
         return source_term;
     }
 
