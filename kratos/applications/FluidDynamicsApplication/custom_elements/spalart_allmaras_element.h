@@ -88,14 +88,10 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
   
-  /// An elment that implements the spalart Allmaras turubulence model
+  /// An elment that implements the spalart Allmaras turubulence model.
    /**
-    * @todo
-	The problem can be written in matrix form as 
-     \f$ \rho C M \frac{\partial T}{\partial t} + \rho C S T  = - \kappa L T \f$
-
-
-  */
+    * @todo add detailed documentation
+    */
   class SpalartAllmaras2D
 	  : public Element
     {

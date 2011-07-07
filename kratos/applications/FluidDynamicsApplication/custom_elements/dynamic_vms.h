@@ -684,7 +684,6 @@ namespace Kratos
             Gradient *= Density;
 
             // Iteration variables
-            {
             VectorType Subscale(TDim);
             VectorType TotalVel(TDim);
             for (unsigned int d = 0; d < TDim; ++d)
@@ -755,17 +754,16 @@ namespace Kratos
 //                    KRATOS_WATCH(mIterCount)
 //                }
 //                #pragma omp master
-                if (this->Id() == 8068)
-                {
-                    KRATOS_WATCH(mIterCount)
-                    KRATOS_WATCH(SubscaleNorm)                    
-                    KRATOS_WATCH(SubscaleError)
-                    KRATOS_WATCH(RHSNorm)
-                }
+//                if (this->Id() == 8068)
+//                {
+//                    KRATOS_WATCH(mIterCount)
+//                    KRATOS_WATCH(SubscaleNorm)
+//                    KRATOS_WATCH(SubscaleError)
+//                    KRATOS_WATCH(RHSNorm)
+//                }
 
                 // Iteration counter
                 ++mIterCount;
-            }
 
             // Store the converged subscale
             for(unsigned int d = 0; d < TDim; ++d)
@@ -847,7 +845,7 @@ namespace Kratos
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
                     // RHS -= Density * v * (SubscaleVel - OldSubscaleVel) / Dt
-//                    rRightHandSideVector[LocalIndex++] += Coef * rShapeFunc[iNode] * (mOldSubscaleVel[d] - mSubscaleVel[d]);
+                    rRightHandSideVector[LocalIndex++] += Coef * rShapeFunc[iNode] * (mOldSubscaleVel[d] - mSubscaleVel[d]);
                 }
                 ++LocalIndex; // Skip pressure Dof
             }
