@@ -1152,7 +1152,7 @@ namespace Kratos {
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
 
             //read time step size from Kratos
-            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+//            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 //            double delta_t = CurrentProcessInfo[DELTA_TIME];
 
 
