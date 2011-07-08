@@ -378,53 +378,50 @@ namespace Kratos
 
         const double ft2 = ct3 * exp(-ct4*xi*xi);
 
-        const double r = turbulent_viscosity / ( S_hat * kappa * kappa * distance * distance);
+        double r = turbulent_viscosity / ( S_hat * kappa * kappa * distance * distance);
+        if(r>10.0) r=10.0;
+
         const double g = r + cw2 * (pow(r,6) - r);
         const double fw = g * pow( (1.0+pow(cw3,6)) / ( pow(g,6) + pow(cw3,6) ) , 1.0/6.0);
 
-        double p1 = DN_DX(0, 0) * GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY) + DN_DX(1, 0) * GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY) + DN_DX(2, 0) * GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-        double p2 = DN_DX(0, 1) * GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY) + DN_DX(1, 1) * GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY) + DN_DX(2, 1) * GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        double p1 = DN_DX(0, 0) * GetGeometry()[0].FastGetSolutionStepValue(TURBULENT_VISCOSITY) + DN_DX(1, 0) * GetGeometry()[1].FastGetSolutionStepValue(TURBULENT_VISCOSITY) + DN_DX(2, 0) * GetGeometry()[2].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        double p2 = DN_DX(0, 1) * GetGeometry()[0].FastGetSolutionStepValue(TURBULENT_VISCOSITY) + DN_DX(1, 1) * GetGeometry()[1].FastGetSolutionStepValue(TURBULENT_VISCOSITY) + DN_DX(2, 1) * GetGeometry()[2].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         const double norm2_gradnu = p1*p1 + p2*p2;
 
         double source_term = cb1 * (1.0 - ft2) * S_hat * turbulent_viscosity;
         source_term += cb2 * norm2_gradnu / sigma;
 
-        source_term -= (cw1 * fw - ft2 * cb1/(kappa*kappa) ) * pow(molecular_viscosity/distance,2);
+        source_term -= (cw1 * fw - ft2 * cb1/(kappa*kappa) ) * pow(turbulent_viscosity/distance,2);
 
         return source_term;
     }
 
     double SpalartAllmaras2D::AntimetricGradientNorm(const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv)
         {
-            const unsigned int GradientSize = 3; // Number of different terms in the symmetric gradient matrix
-            array_1d<double,GradientSize> GradientVector( GradientSize, 0.0 );
-            unsigned int Index;
+            boost::numeric::ublas::bounded_matrix<double,2,2> grad = ZeroMatrix(2,2);
+
+//            const unsigned int GradientSize = 4; // Number of different terms in the symmetric gradient matrix
+//            array_1d<double,GradientSize> GradientVector( GradientSize, 0.0 );
+//            unsigned int Index;
 
             // Compute Symmetric Grad(u). Note that only the lower half of the matrix is calculated
             for (unsigned int k = 0; k < 3; ++k)
             {
                 const array_1d<double, 3> & rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY);
-                Index = 0;
                 for (unsigned int i = 0; i < 2; ++i)
                 {
-                    for (unsigned int j = 0; j < i; ++j) // Off-diagonal
-                        GradientVector[Index++] += 0.5 * (rShapeDeriv(k, j) * rNodeVel[i] - rShapeDeriv(k, i) * rNodeVel[j]);
-                    GradientVector[Index++] = 0.0; // Diagonal
+                    for (unsigned int j = 0; j < 2; ++j) // Off-diagonal
+                        grad(i,j) += 0.5 * (rShapeDeriv(k, j) * rNodeVel[i] - rShapeDeriv(k, i) * rNodeVel[j]);
                 }
             }
 
-            // Norm[ Antimetric Grad(u) ] = ( 2 * Omegaij * Omegaij )^(1/2)
-            Index = 0;
             double NormS(0.0);
             for (unsigned int i = 0; i < 2; ++i)
             {
-                for (unsigned int j = 0; j < i; ++j)
+                for (unsigned int j = 0; j < 2; ++j)
                 {
-                    NormS += 2.0 * GradientVector[Index] * GradientVector[Index]; // Using symmetry, lower half terms of the matrix are added twice
-                    ++Index;
+                    NormS += grad(i,j) * grad(i,j); // Using symmetry, lower half terms of the matrix are added twice
                 }
-                NormS += GradientVector[Index] * GradientVector[Index]; // Diagonal terms
-                ++Index; // Diagonal terms
             }
 
             NormS = sqrt( 2.0 * NormS );
