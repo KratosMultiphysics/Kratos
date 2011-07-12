@@ -526,7 +526,7 @@ namespace Kratos
 		///@{ 
 
 		/// Assignment operator.
-		EmbeddedMeshLocatorProcess& operator=(EmbeddedMeshLocatorProcess const& rOther);
+		EmbeddedMeshLocatorProcess& operator=(EmbeddedMeshLocatorProcess const& rOther){};
 
 		/// Copy constructor.
 		//EmbeddedMeshLocatorProcess(EmbeddedMeshLocatorProcess const& rOther);
