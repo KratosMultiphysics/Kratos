@@ -117,7 +117,7 @@ namespace Kratos
 				im != full_model_part.ElementsEnd() ; ++im)
 		{	  
 			
-			for (int i=0;i<domain_size+1;i++)
+			
 			n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
 			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
 			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
