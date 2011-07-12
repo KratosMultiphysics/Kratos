@@ -301,7 +301,7 @@ namespace Kratos
 		///@{ 
 
 		/// Assignment operator.
-		SetHMapProcess& operator=(SetHMapProcess const& rOther);
+		SetHMapProcess& operator=(SetHMapProcess const& rOther){};
 
 		/// Copy constructor.
 		//SetHMapProcess(SetHMapProcess const& rOther);
