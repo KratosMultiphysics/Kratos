@@ -76,6 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/wave_generator.h"
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/lagrangian_particle_utilities.h"
+#include "custom_utilities/embedded_utilities.h"
 
 
 //#include "custom_utilities/edgebased_levelset.h"
@@ -102,6 +103,11 @@ namespace Kratos
                     .def("FindInterface", &CoupledEulerianUlfUtils::FindInterface)
                     .def("FindIntersectionOfEdges", &CoupledEulerianUlfUtils::FindIntersectionOfEdges)
                     .def("DisableSubdomain", &CoupledEulerianUlfUtils::DisableSubdomain)
+                    ;
+
+	    class_<EmbeddedUtils > ("EmbeddedUtils", init<>())	    
+                    .def("SaveInterfaceElemsModelPart", &EmbeddedUtils::SaveInterfaceElemsModelPart)
+                    .def("DisableSubdomain", &EmbeddedUtils::DisableSubdomain)
                     ;
 
             class_<CalculateForcesUtils > ("CalculateForcesUtils", init<>())
