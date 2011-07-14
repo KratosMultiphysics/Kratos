@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosFluidDynamicsApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/strategies/gear_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -98,6 +99,12 @@ namespace Kratos
  					bases< BaseSchemeType >,  boost::noncopyable >
  				("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",
  				init<double,double,Process::Pointer >() )
+ 				;
+
+                        class_< GearScheme< SparseSpaceType, LocalSpaceType >,
+                                    bases< BaseSchemeType >,  boost::noncopyable >
+ 				("GearScheme",init<>()) // default constructor
+                                .def(init< Process::Pointer >()) // constructor passing a turbulence model
  				;
 		 
 		}
