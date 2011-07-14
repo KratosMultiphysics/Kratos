@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/openmp_utils.h"
 
 
 namespace Kratos {
@@ -110,42 +111,60 @@ namespace Kratos {
 
             const unsigned int NumNodes = TDim +1;
 
-            double Area;
-            array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector ElementPartition;
+            OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
 
-            double MaxProj = 0.0;
+            std::vector<double> MaxProj(NumThreads,0.0);
 
-            for( ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem)
+            #pragma omp parallel shared(MaxProj)
             {
-                // Get the element's geometric parameters
-                Geometry< Node<3> >& rGeom = itElem->GetGeometry();
-                GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
+                int k = OpenMPUtils::ThisThread();
+                ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
+                ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
 
-                // Elemental Velocity
-                array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                for (unsigned int i = 1; i < NumNodes; ++i)
-                    ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                double& rMaxProj = MaxProj[k];
 
-                // Velocity norm
-                double VelNorm = ElementVel[0]*ElementVel[0];
-                for (unsigned int d = 1; d < TDim; ++d)
-                    VelNorm += ElementVel[d]*ElementVel[d];
-                VelNorm = sqrt(VelNorm);
+                double Area;
+                array_1d<double, NumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
 
-                // Maximum element size along the direction of velocity
-                for (unsigned int i = 0; i < NumNodes; ++i)
+                for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
                 {
-                    double Proj = 0.0;
-                    for (unsigned int d = 0; d < TDim; ++d)
-                        Proj += ElementVel[d]*DN_DX(i,d);
-                    Proj = fabs(Proj);
-                    if (Proj > MaxProj) MaxProj = Proj;
+                    // Get the element's geometric parameters
+                    Geometry< Node<3> >& rGeom = itElem->GetGeometry();
+                    GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
+                    
+                    // Elemental Velocity
+                    array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+                    for (unsigned int i = 1; i < NumNodes; ++i)
+                        ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                    
+                    // Velocity norm
+                    double VelNorm = ElementVel[0]*ElementVel[0];
+                    for (unsigned int d = 1; d < TDim; ++d)
+                        VelNorm += ElementVel[d]*ElementVel[d];
+                    VelNorm = sqrt(VelNorm);
+
+                    // Maximum element size along the direction of velocity
+                    for (unsigned int i = 0; i < NumNodes; ++i)
+                    {
+                        double Proj = 0.0;
+                        for (unsigned int d = 0; d < TDim; ++d)
+                            Proj += ElementVel[d]*DN_DX(i,d);
+                        Proj = fabs(Proj);
+                        if (Proj > rMaxProj) rMaxProj = Proj;
+                    }
                 }
             }
 
+            // Obtain the maximum projected element size (compare thread results)
+            double Max = 0.0;
+            for (int k = 0; k < NumThreads; ++k)
+                if (Max < MaxProj[k]) Max = MaxProj[k];
+
             // Dt to obtain desired CFL
-            double dt = CFL / MaxProj;
+            double dt = CFL / Max;
             if(dt > dt_max)
                 dt = dt_max;
 
@@ -168,39 +187,50 @@ namespace Kratos {
             KRATOS_TRY;
 
             const unsigned int NumNodes = TDim +1;
+            
+             int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::PartitionVector ElementPartition;
+            OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
 
-            double Area;
-            array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
-
-            for( ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); ++itElem)
+            #pragma omp parallel
             {
-                // Get the element's geometric parameters
-                Geometry< Node<3> >& rGeom = itElem->GetGeometry();
-                GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
+                int k = OpenMPUtils::ThisThread();
+                ModelPart::ElementIterator ElemBegin = mrModelPart.ElementsBegin() + ElementPartition[k];
+                ModelPart::ElementIterator ElemEnd = mrModelPart.ElementsBegin() + ElementPartition[k+1];
+                
+                double Area;
+                array_1d<double, NumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
 
-                // Elemental Velocity
-                array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                for (unsigned int i = 1; i < NumNodes; ++i)
-                    ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
-
-                // Velocity norm
-                double VelNorm = ElementVel[0]*ElementVel[0];
-                for (unsigned int d = 1; d < TDim; ++d)
-                    VelNorm += ElementVel[d]*ElementVel[d];
-                VelNorm = sqrt(VelNorm);
-
-                double ElemProj = 0.0;
-                // Maximum element size along the direction of velocity
-                for (unsigned int i = 0; i < NumNodes; ++i)
+                for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
                 {
-                    double Proj = 0.0;
-                    for (unsigned int d = 0; d < TDim; ++d)
-                        Proj += ElementVel[d]*DN_DX(i,d);
-                    Proj = fabs(Proj);
-                    if (Proj > ElemProj) ElemProj = Proj;
+                    // Get the element's geometric parameters
+                    Geometry< Node<3> >& rGeom = itElem->GetGeometry();
+                    GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
+                    
+                    // Elemental Velocity
+                    array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+                    for (unsigned int i = 1; i < NumNodes; ++i)
+                        ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                    
+                    // Velocity norm
+                    double VelNorm = ElementVel[0]*ElementVel[0];
+                    for (unsigned int d = 1; d < TDim; ++d)
+                        VelNorm += ElementVel[d]*ElementVel[d];
+                    VelNorm = sqrt(VelNorm);
+
+                    double ElemProj = 0.0;
+                    // Maximum element size along the direction of velocity
+                    for (unsigned int i = 0; i < NumNodes; ++i)
+                    {
+                        double Proj = 0.0;
+                        for (unsigned int d = 0; d < TDim; ++d)
+                            Proj += ElementVel[d]*DN_DX(i,d);
+                        Proj = fabs(Proj);
+                        if (Proj > ElemProj) ElemProj = Proj;
+                    }
+                    itElem->SetValue(DIVPROJ,ElemProj*Dt);
                 }
-                itElem->SetValue(DIVPROJ,ElemProj*Dt);
             }
 
             KRATOS_CATCH("")
