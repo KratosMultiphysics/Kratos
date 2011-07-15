@@ -127,7 +127,7 @@ namespace Kratos
 				 if (distance*distance_aux<0.0)
 				   node_of_intersected_elem=true;
 				}
-				if (node_of_intersected_elem=true)
+				if (node_of_intersected_elem==true)
 				  reduced_model_part.AddNode(*(in.base()));
 				  
 				
