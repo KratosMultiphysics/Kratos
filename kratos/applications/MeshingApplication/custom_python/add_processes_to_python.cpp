@@ -59,9 +59,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
-#include "custom_processes/set_h_map_process.h" 
+// #include "custom_processes/set_h_map_process.h" 
 #include "custom_processes/find_nodal_h_process.h" 
-#include "custom_processes/embedded_mesh_locator_process.h" 
+// #include "custom_processes/embedded_mesh_locator_process.h" 
 
 #include "includes/node.h"
 
@@ -75,12 +75,12 @@ namespace Python
 	using namespace boost::python;
  	
 	  
-	   class_<SetHMapProcess, bases<Process> >("SetHMapProcess",init<ModelPart&>())
-		   .def("CalculateOptimalH",&SetHMapProcess::CalculateOptimalH)
-		 ;
-	  class_<EmbeddedMeshLocatorProcess, bases<Process> >("EmbeddedMeshLocatorProcess",init<ModelPart&>())
-		   .def("Locate",&EmbeddedMeshLocatorProcess::Locate)
-		 ;
+// 	   class_<SetHMapProcess, bases<Process> >("SetHMapProcess",init<ModelPart&>())
+// 		   .def("CalculateOptimalH",&SetHMapProcess::CalculateOptimalH)
+// 		 ;
+// 	  class_<EmbeddedMeshLocatorProcess, bases<Process> >("EmbeddedMeshLocatorProcess",init<ModelPart&>())
+// 		   .def("Locate",&EmbeddedMeshLocatorProcess::Locate)
+// 		 ;
 	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
 		   .def("Execute",&FindNodalHProcess::Execute)
 		 ;
