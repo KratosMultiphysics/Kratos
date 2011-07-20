@@ -183,6 +183,7 @@ namespace Kratos
 							in->FastGetSolutionStepValue(IS_STRUCTURE) = 0;
 							in->FastGetSolutionStepValue(IS_BOUNDARY) = 0;
 							in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) = 0;
+							in->FastGetSolutionStepValue(IS_FREE_SURFACE) = 0;
 							in->Free(DISPLACEMENT_X);
 							in->Free(DISPLACEMENT_Y);
 							in->Free(DISPLACEMENT_Z);
