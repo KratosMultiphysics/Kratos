@@ -1229,6 +1229,55 @@ namespace Kratos {
 	    KRATOS_CATCH("")
 	}
 
+        void ComputeViscousForces()
+	{
+	    KRATOS_TRY
+
+            if (mr_model_part.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
+                KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+
+	    int n_nodes = mvel_n1.size();
+            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+
+            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+            double delta_t = CurrentProcessInfo[DELTA_TIME];
+
+            CalcVectorType rhs;
+	    rhs.resize(n_nodes);
+
+	    //calculating the RHS
+//	    double inverse_rho = 1.0 / mRho;
+	    #pragma omp parallel for
+	    for (int i_node = 0; i_node < n_nodes; i_node++)
+            {
+		    array_1d<double, TDim>& rhs_i = rhs[i_node];
+		    const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+
+		    //initializing with the external forces (e.g. gravity)
+//		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+		    for (unsigned int comp = 0; comp < TDim; comp++)
+			rhs_i[comp] = 0.0 ;
+
+		    //convective term
+		    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+			unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+			    const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
+
+			    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+			    edge_ij.Sub_ViscousContribution(rhs_i, U_i, mViscosity, U_j, mViscosity);
+		    }
+
+                    const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
+
+                    for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+                        rhs_i[l_comp] *= m_inv;
+	    }
+
+	    mr_matrix_container.WriteVectorToDatabase(FORCE, rhs, rNodes);
+	    KRATOS_CATCH("")
+	}
 
     private:
         MatrixContainer& mr_matrix_container;
