@@ -212,6 +212,7 @@ namespace Kratos
                     .def("UpdateFixedVelocityValues", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
                     .def("ComputePressureStabilization", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputePressureStabilization)
                     .def("ViscosityCorrectionStep", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ViscosityCorrectionStep)
+                    .def("ComputeViscousForces", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeViscousForces)
                     ;
 
             class_< FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("FluidSolver3D", init < MatrixContainer < 3, SparseSpaceType>&, ModelPart&, const double, const double, const Vector, bool, double, double, double, double, bool >())
@@ -225,6 +226,7 @@ namespace Kratos
                     .def("UpdateFixedVelocityValues", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
                     .def("ComputePressureStabilization", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputePressureStabilization)
                     .def("ViscosityCorrectionStep", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ViscosityCorrectionStep)
+                    .def("ComputeViscousForces", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeViscousForces)
                     ;
 
 
@@ -325,6 +327,9 @@ namespace Kratos
                     .def("VisualizationModelPart", &LagrangianParticleUtils < 2 > ::VisualizationModelPart)
                     .def("TransferToEulerianMesh", &LagrangianParticleUtils < 2 > ::TransferToEulerianMesh)
                     .def("RestartStep", &LagrangianParticleUtils < 2 > ::RestartStep)
+                    .def("BackAndForth", &LagrangianParticleUtils < 2 > ::BackAndForth)
+                    .def("ConvectParticles", &LagrangianParticleUtils < 2 > ::ConvectParticles)
+                    .def("TransferToEulerianMeshShapeBased", &LagrangianParticleUtils < 2 > ::TransferToEulerianMeshShapeBased)
                     ;
 
         }
