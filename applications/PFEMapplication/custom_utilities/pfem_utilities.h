@@ -362,7 +362,7 @@ namespace Kratos
                            pt0[1] = geom[2].Y();
                            pt0[2] = geom[2].Z();
                        }
-                       if(ii == 1)
+                       else if(ii == 1)
                        {
                            pt1[0] = geom[0].X();
                            pt1[1] = geom[0].Y();
@@ -373,7 +373,7 @@ namespace Kratos
                            pt0[1] = geom[2].Y();
                            pt0[2] = geom[2].Z();
                        }
-                       if(ii == 2)
+                       else
                        {
                            pt1[0] = geom[1].X();
                            pt1[1] = geom[1].Y();
@@ -717,12 +717,20 @@ namespace Kratos
 		void MarkExcessivelyCloseNodes(ModelPart::NodesContainerType& rNodes, const double admissible_distance_factor)
 		{			
 			KRATOS_TRY;
-KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
-			double fact2 = admissible_distance_factor*admissible_distance_factor;
+KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");			
+	
+		        const double fact2 = admissible_distance_factor*admissible_distance_factor;			
 
-			for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-			{
+			
 
+		ModelPart::NodeIterator NodesBegin = rNodes.begin();
+		int size = rNodes.size();
+		ModelPart::NodeIterator in;
+		#pragma omp parallel for firstprivate(size,NodesBegin),private(in)
+		for(int k = 0; k<size; k++)
+		{
+		    in = NodesBegin + k;			
+		  
 				if(in->FastGetSolutionStepValue(IS_STRUCTURE) == 0) //if it is not a wall node i can erase
 				{
 					double hnode2 = in->FastGetSolutionStepValue(NODAL_H);
@@ -745,7 +753,8 @@ KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 						}
 					}
 				}
-			}
+		}
+// 	    }
 
 			KRATOS_CATCH("")
 		}
@@ -1376,13 +1385,21 @@ KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 			}
 		else if(domain_size == 3)
 			{
-			  for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin(); 
-					i!=ThisModelPart.ElementsEnd(); i++)
-				{	
+			    int elem_size = ThisModelPart.Elements().size();
+			    ModelPart::ElementIterator ElemBegin = ThisModelPart.ElementsBegin();
+			    ModelPart::ElementIterator ele;
+
+			#pragma omp parallel for firstprivate(elem_size,ElemBegin),private(ele)
+			    for(int kk=0; kk<elem_size	; kk++)
+
+				{
+					ele = ElemBegin+kk;
+					
+
 					int n_intr=0;
 					
 					//counting number on nodes at the Interface
-					Geometry< Node<3> >& geom = i->GetGeometry();
+					Geometry< Node<3> >& geom = ele->GetGeometry();
 
 				    if(geom.size() == 4){
 					for(int ii = 0; ii <= domain_size ; ++ii)
@@ -1449,15 +1466,22 @@ KRATOS_WATCH("INSSSSSSSSSSIDE MARK EXCESSIVELY");
 
 						//get H
 						double hnode2 = (ThisModelPart.GetProperties(0))[THICKNESS];
+
 		//				double hnode2 = geom[non_interface_id].FastGetSolutionStepValue(NODAL_H);
               //                                  hnode2*=hnode2;
 								
 						//mark node to delete
 						if (fabs(dist_to_surf)<factor*hnode2 )
 							{
+							   geom[non_interface_id].SetLock();
 							   geom[non_interface_id].GetValue(ERASE_FLAG)=true;
+
+							   geom[non_interface_id].UnSetLock();					
+
+
 							  // KRATOS_WATCH("NODE TOUCHING THE SURFACE - WILL BE ERASED!!!!")
 							  // KRATOS_WATCH(dist_to_surf)
+
 							}
 			
 					  }//interface elemenets
@@ -1913,9 +1937,10 @@ KRATOS_WATCH(NumThreads);
 
 		   double DT = max_dt;
 		   for(int kk=0; kk<NumThreads; ++kk)
-			if( Threads_dt[kk] < DT)
+			if( Threads_dt[kk] < DT)			
 			      DT = Threads_dt[kk];
-
+			
+		   
 
 		    if(DT < min_dt) DT = min_dt;	
 
