@@ -23,7 +23,7 @@ def MultilevelLinearSolver(tolerance, max_iterations):
     MLList.set("smoother: pre or post", "both");
     MLList.set("ML output",0);
 
-    tolerance = 1e-4
+    #tolerance = 1e-4
     nit_max = 1000
 
     linear_solver =  MultiLevelSolver(aztec_parameters,MLList,tolerance,nit_max);
