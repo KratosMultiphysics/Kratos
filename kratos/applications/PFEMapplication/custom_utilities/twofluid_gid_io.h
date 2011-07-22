@@ -563,6 +563,12 @@ namespace Kratos
                 mMeshElements.clear();
                 mMeshConditions.clear();
             }
+            
+            ModelPart::NodesContainerType GetMeshNodes()
+            {
+                return mMeshNodes;
+            }
+
 
         private:
             ///member variables
