@@ -568,6 +568,13 @@ namespace Kratos
                 mMeshConditions.clear();
             }
             
+            ModelPart::NodesContainerType GetMeshNodes()
+            {
+                return mMeshNodes;
+                
+            }
+
+            
         private:
             ///member variables
             GeometryData::KratosGeometryType mGeometryType;
