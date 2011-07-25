@@ -572,8 +572,8 @@ public:
         GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = mNodeList.begin();
-                i_node != mNodeList.end() ; ++i_node)
+        for ( NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
             GiD_WriteScalar( i_node->Id(), i_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_EndResult();
@@ -596,8 +596,8 @@ public:
         GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = mNodeList.begin();
-                i_node != mNodeList.end() ; ++i_node)
+        for ( NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
             GiD_WriteScalar( i_node->Id(), i_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_EndResult();
@@ -620,8 +620,8 @@ public:
         GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Vector,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = mNodeList.begin();
-                i_node != mNodeList.end() ; ++i_node)
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
         {
             array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
@@ -648,8 +648,8 @@ public:
         GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = mNodeList.begin();
-                i_node != mNodeList.end() ; ++i_node)
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
         {
             Vector& tempVector = i_node->GetSolutionStepValue(rVariable,
                                  SolutionStepNumber);
@@ -678,8 +678,8 @@ public:
         GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = mNodeList.begin();
-                i_node != mNodeList.end() ; ++i_node)
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
         {
             //Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
             //        SolutionStepNumber);
@@ -820,7 +820,7 @@ public:
         int nodes_id[1];
         GiD_BeginElements();
         
-        mNodeList.clear();
+//         mNodeList.clear();
         
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
@@ -828,12 +828,12 @@ public:
         {
             nodes_id[0] = node_iterator->Id();
             GiD_WriteElement(node_iterator->Id(), nodes_id);
-            mNodeList.push_back(*node_iterator);
+//             mNodeList.push_back(*node_iterator);
         }
         GiD_EndElements();
         GiD_EndMesh();
         
-        mNodeList.Unique();
+//         mNodeList.Unique();
 
         Timer::Stop("Writing Mesh");
 
@@ -872,7 +872,7 @@ public:
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
 
-        mNodeList.clear();
+//         mNodeList.clear();
 
         for ( typename std::vector<TMeshContainer>::iterator it = mGidMeshContainers.begin();
                 it != mGidMeshContainers.end(); it++ )
@@ -888,14 +888,14 @@ public:
             ModelPart::NodesContainerType tempNodes = it->GetMeshNodes();
             for( ModelPart::NodesContainerType::iterator iter = tempNodes.begin(); iter != tempNodes.end(); iter++ )
             {
-                mNodeList.push_back(*iter);
+//                 mNodeList.push_back(*iter);
                 
             }
             
             it->Reset();
         }
         
-        mNodeList.Unique();
+//         mNodeList.Unique();
 
 
 
@@ -1021,7 +1021,7 @@ protected:
     std::vector<TGaussPointContainer> mGidGaussPointContainers;
     bool mMeshFileOpen;
     bool mResultFileOpen;
-    ModelPart::NodesContainerType mNodeList;
+//     ModelPart::NodesContainerType mNodeList;
 
 private:
     /**
