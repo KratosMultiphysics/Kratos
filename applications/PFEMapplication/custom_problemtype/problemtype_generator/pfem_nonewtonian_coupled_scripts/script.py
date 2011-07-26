@@ -267,18 +267,22 @@ while(Time < final_time):
         if(safety_factor > max_safety_factor):
             safety_factor = max_safety_factor
 
-    ### check which of the dime step is more restrictive
+    ### CALCULATE FLUID_DT AND STRUCTURE_DT
     fluid_dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
     if(check_structure_dt == True):
-        structure_dt = structural_solver.EstimateDeltaTime(min_dt,max_dt)
-
+        if(step < 2.0*number_of_inital_steps):
+            structure_dt = min_dt
+        else:
+            structure_dt = structural_solver.EstimateDeltaTime(min_dt,max_dt)
+        
+        ##check which of the dime step is more restrictive
         if(structure_dt <= fluid_dt):
             Dt = structure_dt
             next_structure_step = Time
         else:
             Dt = fluid_dt
-            if(structure_dt * safety_factor > 10* fluid_dt):
-                next_structure_step = Time + 10* fluid_dt
+            if(structure_dt * safety_factor > 10.0* fluid_dt):
+                next_structure_step = Time + 10.0* fluid_dt
             else:
                 next_structure_step = Time + safety_factor * structure_dt
             check_structure_dt = False
