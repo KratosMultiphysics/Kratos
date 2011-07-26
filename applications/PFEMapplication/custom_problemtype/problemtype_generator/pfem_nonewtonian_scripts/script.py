@@ -27,8 +27,10 @@ applications_interface.Import_IncompressibleFluidApplication = True
 applications_interface.Import_PFEMApplication = True
 applications_interface.Import_MeshingApplication = True
 applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
+##from KratosStructuralApplication import *
 from KratosIncompressibleFluidApplication import *
+from KratosPFEMApplication import *
+from KratosMeshingApplication import *
 # from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
@@ -109,9 +111,16 @@ time = 0.0
 while(time < final_time):
 ##    print "line49"
 
-    new_Dt = solver.EstimateDeltaTime(min_dt,max_dt)
-
-    time = time + new_Dt*safety_factor
+    
+    if(step < 10):
+        time = time + min_dt
+    else:
+        new_Dt = solver.EstimateDeltaTime(min_dt,max_dt)
+        time = time + new_Dt*safety_factor
+##        print 'Delta Time  = ', new_Dt
+##        print 'Safety factor  = ', safety_factor
+           
+##    print 'Time  = ', time
     
     model_part.CloneTimeStep(time)
 
