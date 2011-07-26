@@ -1027,6 +1027,11 @@ namespace Kratos
             return *mpCommunicator;
         }
 
+        Communicator::Pointer pGetCommunicator()
+        {
+            return mpCommunicator;
+        }
+
         void SetCommunicator(Communicator::Pointer pNewCommunicator)
         {
             mpCommunicator = pNewCommunicator;
