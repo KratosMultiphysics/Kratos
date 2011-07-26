@@ -158,57 +158,28 @@ class MonolithicSolver:
                  
     #######################################################################   
     def Solve(self,time,gid_io):
-##        (self.neigh_finder).Execute();
-##        (self.solver).Solve()
-##	(self.solver).Clear()
-##        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-##	#(self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes, .05)
-##        (self.node_erase_process).Execute();
-##        self.Remesh()
-##        self.OutputStep(time,gid_io)
-##        print "143"
 
         self.Remesh()
-##        (self.neigh_finder).Execute();
-##        print "145"
         
         (self.solver).Solve()
-        self.RestoreOldPosition()
-
-##	print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
-        (self.PfemUtils).MoveLonelyNodes(self.model_part)
-##        print "a47"
-
         
-	(self.solver).Clear()
-##	print "149"
+        self.RestoreOldPosition()
+        (self.PfemUtils).MoveLonelyNodes(self.model_part)
+
+        (self.solver).Clear()
+        
         self.OutputStep(time,gid_io)
 
     #######################################################################  
     def EstimateDeltaTime(self,min_dt,max_dt):
         print "Estimating delta time"
         return (self.PfemUtils).EstimateDeltaTime(min_dt,max_dt,self.model_part)
-
-#    def EstimateDeltaTime(self,min_dt,max_dt):
-#        print "Estimating delta time"
-#        return (self.UlfUtils).EstimateDeltaTime(max_dt,domain_size)
-
         
 
     #######################################################################   
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
     
-##    ########################################################################
-##    def Remesh(self):
-##
-##        if (self.remeshing_flag==True):
-##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)						      
-####	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)						      
-##
-##             #calculating fluid neighbours before applying boundary conditions
-##            (self.neigh_finder).Execute();
-
     ########################################################################
     def Remesh(self):
 
@@ -254,10 +225,11 @@ class MonolithicSolver:
 ##                if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
 ##                    node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
 
-        ##################################################################
+    ##################################################################
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
 
+    ##################################################################
     def RestoreOldPosition(self):
     
         for node in self.model_part.Nodes:
