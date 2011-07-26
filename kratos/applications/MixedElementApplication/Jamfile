@@ -1,0 +1,77 @@
+project KratosMixedElementApplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_conditions
+       custom_elements
+       custom_processes
+       custom_python
+       custom_strategies
+       custom_utilities
+       external_includes
+    :
+    requirements <include>. 
+		<define>KRATOS_PYTHON
+		<link>shared
+    ;
+
+
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+# no libs needed for this application ... have a look to PFEMapplication for examples
+# of use in a more general case
+#alias libkratos 	: /kratos-prj/kratos//libkratos/<link>static ;
+#lib libkratos : : <name>kratos ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+import python ;
+python-extension KratosMixedElementApplication
+    :  
+	#list of sources
+	sigma_u_element.cpp
+#	element_3d.cpp 
+	mixedelement_application.cpp 
+	add_custom_strategies_to_python.cpp 
+	add_custom_utilities_to_python.cpp 
+	mixedelement_python_application.cpp 
+
+
+	#kratos library
+    #/kratos-prj/kratos//libkratos/<link>static
+    /KratosProject//libkratos_static
+
+    	 
+	#"system" includes	
+	/KratosProject//pythonlib
+	/KratosProject//boost_python_lib
+
+	/KratosProject//libomp
+#    : <tag>@tag
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+
+#rule tag ( name : type ? : property-set )
+#{
+#  if $(name) = "libKratosMixedElementApplication"
+#  {
+#    if [ $(property-set).get <os> ] = NT
+#    {  return KratosMixedElementApplication.dll ;  }
+#    else
+#    {  return KratosMixedElementApplication.so ;   }
+#  }
+#  else
+#  {
+#    return $(name) ;
+#  }  
+#}
+install install : KratosMixedElementApplication : <location>$(TOP)/libs ;
+
+
