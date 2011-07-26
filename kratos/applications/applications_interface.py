@@ -22,6 +22,7 @@ Import_OpenCLApplication = False
 Import_PodApplication = False
 Import_LevelSetApplication = False
 Import_FluidDynamicsApplication = False
+Import_KratosMixedElementApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -44,6 +45,7 @@ print "Import_OpenCLApplication: False"
 print "Import_PodApplication: False"
 print "Import_LevelSetApplication: False"
 print "Import_FluidDynamicsApplication: False"
+print "Import_KratosMixedElementApplication: False"
 
 
 def ImportApplications(kernel, applications_path):
@@ -69,6 +71,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_PodApplication: "+str(Import_PodApplication)
     print "Import_LevelSetApplication:"+str(Import_LevelSetApplication)
     print "Import_FluidDynamicsApplication: "+str(Import_FluidDynamicsApplication)
+    print "Import_KratosMixedElementApplication: "+str(Import_KratosMixedElementApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -245,6 +248,13 @@ def ImportApplications(kernel, applications_path):
         fluid_dynamics_application = KratosFluidDynamicsApplication()
         kernel.AddApplication(fluid_dynamics_application)
         print "KratosFluidDynamicsApplication sucessfully imported"
+    if(Import_KratosMixedElementApplication == True):
+        print "importing KratosMixedElementApplication ..."
+        sys.path.append(applications_path + '/MixedElementApplication/python_scripts')
+        from KratosMixedElementApplication import *
+        mixed_element_application = KratosMixedElementApplication()
+        kernel.AddApplication(mixed_element_application)
+        print "KratosMixedElementApplication sucessfully imported"
         
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
@@ -291,3 +301,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(levelset_application);
     if(Import_FluidDynamicsApplication == True):
         kernel.InitializeApplication(fluid_dynamics_application);
+    if(Import_KratosMixedElementApplication == True):
+        kernel.InitializeApplication(mixed_element_application);
