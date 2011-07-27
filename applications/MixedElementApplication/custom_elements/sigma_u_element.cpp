@@ -187,7 +187,7 @@ namespace Kratos
         Matrix block12_aux(StrainSize,dim*nnodes,0.0);
         Matrix block21(dim*nnodes,StrainSize*nnodes,0.0);
         Matrix block22(dim*nnodes,dim*nnodes);
-        Vector N(GetGeometry().size());
+        Vector N(nnodes);
         Matrix F;
         
         for(unsigned int igauss=0; igauss<GetGeometry().size(); igauss++)
@@ -195,13 +195,8 @@ namespace Kratos
             //get nodal strain
             GetNodalVariable(eps_h, igauss, dim);
 
-
-            for (unsigned int i = 0; i < GetGeometry().size(); i++)
-                for (unsigned int j = 0; j < N.size(); j++)
-                {
-                    if (i == j) N[j] = 1.0;
-                    else N[j] = 0.0;
-                }
+            noalias(N)=ZeroVector(nnodes);
+            N[igauss] = 1.0;
 
             //compute Constitutive Law matrix
             mConstitutiveLawVector[igauss]->CalculateMaterialResponse(
@@ -232,7 +227,7 @@ namespace Kratos
 
             //write block12_aux into block12
             for(unsigned int k=0; k<StrainSize; k++)
-                for(unsigned int l=0; l<StrainSize; l++)
+                for(unsigned int l=0; l<dim*nnodes; l++)
                     block12(igauss*StrainSize+k,l) = block12_aux(k,l);
 
 //KRATOS_WATCH(block12);
@@ -246,7 +241,7 @@ namespace Kratos
         noalias(block22) = prod(trans(B), tmp);
 
         //compute tau
-        double tau=0.1;
+        double tau=0.01;
 
         //assemble blocks (multiplication by tau is done here)
         for(unsigned int i=0; i<GetGeometry().size(); i++)
