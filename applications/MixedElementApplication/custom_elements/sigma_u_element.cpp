@@ -174,14 +174,19 @@ namespace Kratos
         //compute B (it is constant over the whole element)
         Matrix B(StrainSize,dim*nnodes);
         CalculateB(B, mDN_DX, StrainSize);
-//        KRATOS_WATCH(B);
-
+//KRATOS_WATCH(StrainSize)
+        Vector discontinuous_strain(StrainSize);
+        Vector u_list(dim*nnodes);
+        GetDisplacements(u_list,dim);
+        noalias(discontinuous_strain) = prod(B,u_list);
+        
+//KRATOS_WATCH(discontinuous_strain)
         //nodal integration weight is used
         const double weight = 1.0/static_cast<double>(dim+1);
         Matrix C(StrainSize,StrainSize);
         Matrix Cavg(StrainSize,StrainSize,0.0);
         Vector eps_h(StrainSize);
-        Vector stress_vector(StrainSize);
+//        Vector stress_vector(StrainSize); 
         Matrix block11(StrainSize*nnodes,StrainSize*nnodes,0.0);
         Matrix block12(StrainSize*nnodes,dim*nnodes,0.0);
         Matrix block12_aux(StrainSize,dim*nnodes,0.0);
@@ -189,6 +194,10 @@ namespace Kratos
         Matrix block22(dim*nnodes,dim*nnodes);
         Vector N(nnodes);
         Matrix F;
+        std::vector< Vector > stresses_vector(nnodes);
+        Vector stress_discontinuous(StrainSize,0.0);
+        Vector aux_stress_discontinuous(StrainSize);
+
         
         for(unsigned int igauss=0; igauss<GetGeometry().size(); igauss++)
         {
@@ -197,23 +206,15 @@ namespace Kratos
 
             noalias(N)=ZeroVector(nnodes);
             N[igauss] = 1.0;
-
-            //compute Constitutive Law matrix
-            mConstitutiveLawVector[igauss]->CalculateMaterialResponse(
-                    eps_h,
-                    F,
-                    stress_vector,
-                    C,
-                    rCurrentProcessInfo,
-                    GetProperties(),
-                    GetGeometry(),
-                    N,
-                    false,
-                    CalculateStiffnessMatrixFlag,
-                    false);
-//KRATOS_WATCH(C);
-//KRATOS_WATCH(mConstitutiveLawVector(igauss));
-
+//KRATOS_WATCH(discontinuous_strain)
+            //compute (and average) discontinuous stress
+            mConstitutiveLawVector[igauss]->CalculateMaterialResponse(discontinuous_strain,F,aux_stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
+            noalias(stress_discontinuous) += weight * aux_stress_discontinuous;
+//            KRATOS_WATCH(aux_stress_discontinuous)
+            //compute continuous stress
+            stresses_vector[igauss].resize(StrainSize,false);
+            mConstitutiveLawVector[igauss]->CalculateMaterialResponse(eps_h,F,stresses_vector[igauss],C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,true);
+//KRATOS_WATCH(stresses_vector[igauss])
             //average constitutitve law on the center point
             noalias(Cavg) += weight * C;
 
@@ -232,7 +233,7 @@ namespace Kratos
 
 //KRATOS_WATCH(block12);
         }
-
+//        KRATOS_WATCH(234)
         noalias(block21) = trans(block12);
 //KRATOS_WATCH(Cavg);
         //compute block 22 (note that Cavg is used here)
@@ -241,7 +242,7 @@ namespace Kratos
         noalias(block22) = prod(trans(B), tmp);
 
         //compute tau
-        double tau=0.01;
+        double tau=0.1;
 
         //assemble blocks (multiplication by tau is done here)
         for(unsigned int i=0; i<GetGeometry().size(); i++)
@@ -278,11 +279,57 @@ namespace Kratos
                 }
             }
         }
-        
+
         //finish the formation of the residua
-        Vector tmp1(MatSize);
-        GetValuesVector(tmp1,0);
-        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,tmp1);
+        Vector tmp1(dim*nnodes);
+        Vector stress_stabilized = tau*stress_discontinuous;
+        for(unsigned int i=0; i<GetGeometry().size(); i++)
+            noalias(stress_stabilized) += ((1.0-tau)*weight)*stresses_vector[i] ;
+
+        stress_stabilized *= mArea0;
+
+        noalias(tmp1) = -prod(trans(B),stress_stabilized);
+
+//        KRATOS_WATCH(tmp1)
+//        KRATOS_WATCH(tau*prod(trans(B),stress_discontinuous))
+//        KRATOS_WATCH(tau* prod(block22,u_list))
+//        Vector all_stresses(nnodes*StrainSize);
+//
+//        for(unsigned int i=0; i<GetGeometry().size(); i++)
+//        {
+//            noalias(tmp1) -= ((1.0-tau)) * prod(block21,all_stresses);
+//        }
+
+        //GetS(all_stresses,dim);
+        //noalias(tmp1) -= ((1.0-tau)) * prod(block21,all_stresses);
+
+        for(unsigned int i=0; i<GetGeometry().size(); i++)
+        {
+            int i_sigma_block_start = i*var_block_size;
+            int i_u_block_start = i_sigma_block_start + StrainSize;
+            const double coeff = mArea0*weight*(1.0-tau);
+            for(unsigned int l=0; l<StrainSize; l++)
+            {
+               
+                rRightHandSideVector[i_sigma_block_start+l] = coeff*(stresses_vector[i][l] - stress_discontinuous[l] );
+            }
+
+            for(unsigned int l=0; l<dim; l++)
+                rRightHandSideVector[i_u_block_start+l] = /*body_force[l]*mArea0*/ tmp1[i*dim+l];
+        }
+
+//        Vector tmp1(MatSize);
+//        GetValuesVector(tmp1,0);
+//
+//        Vector aux = prod(rLeftHandSideMatrix,tmp1);
+//         for(unsigned int i=0; i<GetGeometry().size(); i++)
+//        {
+//            int i_sigma_block_start = i*var_block_size;
+//            int i_u_block_start = i_sigma_block_start + StrainSize;
+//            for(unsigned int l=0; l<dim; l++)
+//                aux[i_u_block_start+l] = 0;
+//        }
+//        noalias(rRightHandSideVector) -= aux;
         
 //        KRATOS_WATCH(rLeftHandSideMatrix);
 //                KRATOS_WATCH(rRightHandSideVector);
@@ -722,6 +769,41 @@ namespace Kratos
 
     }
 
+        //************************************************************************************
+    //************************************************************************************
+    void SigmaUElement::GetDisplacements(Vector& value, const unsigned int dim)
+    {
+        if(value.size() != GetGeometry().size()*dim)
+            value.resize(GetGeometry().size()*dim);
+        
+        unsigned int counter=0;
+        for(unsigned int i=0; i<GetGeometry().size(); i++)
+            for(unsigned int j=0; j<dim; j++)
+            {
+                const array_1d<double,3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+                value[counter++] = disp[j];
+            }
+    }
+
+    void SigmaUElement::GetS(Vector& value, const unsigned int dim)
+    {
+        if(dim == 2)
+        {
+            const unsigned int StrainSize = 3;
+            if(value.size() != StrainSize*GetGeometry().size())
+                value.resize(StrainSize*GetGeometry().size());
+
+            unsigned int counter=0;
+            for(unsigned int i=0; i<GetGeometry().size(); i++)
+            {
+                value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SX);
+                value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SY);
+                value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SXY);
+            }
+        }
+        else
+            KRATOS_ERROR(std::logic_error,"3D not yet implemented","");
+    }
 
 } // Namespace Kratos
 
