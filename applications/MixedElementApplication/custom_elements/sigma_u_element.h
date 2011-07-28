@@ -248,6 +248,8 @@ namespace Kratos
             ///@name Private Operators
             ///@{
             void GetNodalVariable(Vector& value, unsigned int i, const unsigned int dim);
+            void GetDisplacements(Vector& value, const unsigned int dim);
+            void GetS(Vector& value, const unsigned int dim);
 
             void CalculateAndAddKm(
                 MatrixType& K,
