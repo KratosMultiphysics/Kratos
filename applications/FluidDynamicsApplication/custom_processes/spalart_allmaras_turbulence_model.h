@@ -1,8 +1,8 @@
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+//
+//   Project Name:        Kratos
+//   Last Modified by:    $Author: jcotela $
+//   Date:                $Date: 2011-07-22 17:06:00 $
+//   Revision:            $Revision: 1.2 $
 //
 //
 
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -31,7 +31,7 @@
 
 namespace Kratos
 {
-    ///@addtogroup ApplicationNameApplication
+    ///@addtogroup FluidDynamicsApplication
     ///@{
 
     ///@name Kratos Globals
@@ -75,7 +75,6 @@ namespace Kratos
         ///@{
 
         /// Default constructor.
-
         SpalartAllmarasTurbulenceModel(
                 ModelPart& rmodel_part,
                 typename TLinearSolver::Pointer pNewLinearSolver,
@@ -87,7 +86,7 @@ namespace Kratos
         : mr_model_part(rmodel_part), mdomain_size(domain_size), mtol(non_linear_tol), mmax_it(max_it), mtime_order(time_order),madapt_for_fractional_step(false)
         {
             //************************************************************************************************
-            //check that the variables needed are in the model part DISTANCE, MOLECULAR_VISCOSITY, TURBLUENT_VISCOSITY, VELOCITY, MESH_VELOCITY, VISCOSITY,NODALA_AREA,TEMP_CONV_PROJ
+            //check that the variables needed are in the model part
             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(DISTANCE)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", DISTANCE);
             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(VELOCITY)))
@@ -105,14 +104,15 @@ namespace Kratos
             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(TEMP_CONV_PROJ)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TEMP_CONV_PROJ);
 
+            if (mr_model_part.GetBufferSize() < 3)
+                KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", mr_model_part.GetBufferSize())
+
             //************************************************************************************************
             //construct a new auxiliary model part
-            mspalart_model_part.SetBufferSize(mr_model_part.GetBufferSize());
+            mspalart_model_part.SetBufferSize(3);
             mspalart_model_part.Nodes() = mr_model_part.Nodes();
             mspalart_model_part.SetProcessInfo(mr_model_part.pGetProcessInfo());
             mspalart_model_part.SetProperties(mr_model_part.pProperties());
-            //            KRATOS_WATCH( mspalart_model_part.pGetProcessInfo());
-            //            KRATOS_WATCH( mr_model_part.pGetProcessInfo()      );
 
             std::string ElementName;
             if (domain_size == 2)
@@ -130,34 +130,25 @@ namespace Kratos
                 mspalart_model_part.Elements().push_back(p_element);
             }
 
-            //************************************************************************************************
-            //construct strategy
-
-//            ProcessInfo& rCurrentProcessInfo = mspalart_model_part.GetProcessInfo();
-
             //initializing fractional velocity solution step
             typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
-            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer
-                    (new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             bool CalculateReactions = false;
             bool CalculateNormDxFlag = true;
 
             typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
+            typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
             BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> > (pNewLinearSolver, TURBULENT_VISCOSITY));
-            mpstep1 = typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (mspalart_model_part, pscheme, pNewLinearSolver, componentwise_build, CalculateReactions, reform_dofset, CalculateNormDxFlag));
+            mpstep1 = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (mspalart_model_part, pscheme, pNewLinearSolver, componentwise_build, CalculateReactions, reform_dofset, CalculateNormDxFlag));
             mpstep1->SetEchoLevel(0);
+            mpstep1->Check();
         }
 
         void Execute()
         {
             KRATOS_TRY
-
-            //            KRATOS_WATCH( mspalart_model_part.pGetProcessInfo());
-            //            KRATOS_WATCH( mr_model_part.pGetProcessInfo()      );
-            //            KRATOS_WATCH( *(mspalart_model_part.pGetProcessInfo()) );
-            //            KRATOS_WATCH( *(mr_model_part.pGetProcessInfo() )     );
 
             if(madapt_for_fractional_step == true)
             {
@@ -327,6 +318,14 @@ namespace Kratos
         ///@name Protected member Variables
         ///@{
 
+        ModelPart& mr_model_part;
+        ModelPart mspalart_model_part;
+        unsigned int mdomain_size;
+        double mtol;
+        unsigned int mmax_it;
+        unsigned int mtime_order;
+        bool madapt_for_fractional_step;
+        typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpstep1;
 
         ///@}
         ///@name Protected Operators
@@ -352,6 +351,13 @@ namespace Kratos
         ///@name Protected LifeCycle
         ///@{
 
+        /// Protected constructor, initializing only the references (for derived classes)
+        SpalartAllmarasTurbulenceModel(ModelPart& rModelPart)
+        :
+        Process(),
+        mr_model_part(rModelPart),
+        mspalart_model_part()
+        {}
 
         ///@}
 
@@ -363,14 +369,7 @@ namespace Kratos
         ///@}
         ///@name Member Variables
         ///@{
-        ModelPart& mr_model_part;
-        ModelPart mspalart_model_part;
-        unsigned int mdomain_size;
-        double mtol;
-        unsigned int mmax_it;
-        unsigned int mtime_order;
-        bool madapt_for_fractional_step;
-        typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpstep1;
+
 
         ///@}
         ///@name Private Operators
@@ -393,9 +392,6 @@ namespace Kratos
 
             if (mtime_order == 2)
             {
-                if (mspalart_model_part.GetBufferSize() < 3)
-                    KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", mspalart_model_part.GetBufferSize())
-
                     double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
                 double rho = dt_old / Dt;
@@ -490,14 +486,8 @@ namespace Kratos
             for (ModelPart::NodeIterator i = mspalart_model_part.NodesBegin();
                     i != mspalart_model_part.NodesEnd(); ++i)
             {
-                if ((i->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
-                {
-                    (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ) = 0.00;
-                    (i)->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
-                } else
-                {
-                    (i)->FastGetSolutionStepValue(NODAL_AREA) = 1.00;
-                }
+                (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ) = 0.00;
+                (i)->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
             }
 
             //add the elemental contributions for the calculation of the velocity
@@ -509,13 +499,21 @@ namespace Kratos
                 (i)->InitializeSolutionStep(rCurrentProcessInfo);
             }
 
-            //solve nodally for the velocity
+            Communicator& rComm = mspalart_model_part.GetCommunicator();
+
+            rComm.AssembleCurrentData(NODAL_AREA);
+            rComm.AssembleCurrentData(TEMP_CONV_PROJ);
+
+            // Obtain nodal projection of the residual
             for (ModelPart::NodeIterator i = mspalart_model_part.NodesBegin();
                     i != mspalart_model_part.NodesEnd(); ++i)
             {
-                double& conv_proj = (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ);
-                double temp = 1.00 / (i)->FastGetSolutionStepValue(NODAL_AREA);
-                conv_proj *= temp;
+                const double NodalArea = i->FastGetSolutionStepValue(NODAL_AREA);
+                if(NodalArea > 0.0)
+                {
+                    double& rConvProj = i->FastGetSolutionStepValue(TEMP_CONV_PROJ);
+                    rConvProj /= NodalArea;
+                }
             }
 
             KRATOS_CATCH("")
