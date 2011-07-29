@@ -290,10 +290,12 @@ namespace Kratos
 
             class_< EstimateDtUtil < 2 >, boost::noncopyable > ("EstimateDt2D", init<ModelPart&>())
                     .def("EstimateDt", &EstimateDtUtil < 2 > ::EstimateDt)
+                    .def("CalculateLocalCFL", &EstimateDtUtil < 2 > ::CalculateLocalCFL)
                     ;
 
             class_< EstimateDtUtil < 3 >, boost::noncopyable > ("EstimateDt3D", init<ModelPart&>())
                     .def("EstimateDt", &EstimateDtUtil < 3 > ::EstimateDt)
+                    .def("CalculateLocalCFL", &EstimateDtUtil < 3 > ::CalculateLocalCFL)
                     ;
 
             // 	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
