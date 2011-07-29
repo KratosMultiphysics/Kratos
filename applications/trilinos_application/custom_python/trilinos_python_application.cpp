@@ -16,7 +16,8 @@
 #include "custom_python/add_trilinos_convergence_criterias_to_python.h" 
 #include "custom_python/add_trilinos_schemes_to_python.h" 
 #include "custom_python/add_trilinos_linear_solvers_to_python.h" 
-#include "custom_python/add_trilinos_strategies_to_python.h" 
+#include "custom_python/add_trilinos_processes_to_python.h"
+#include "custom_python/add_trilinos_strategies_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_trilinos_communicator_to_python.h"
@@ -50,6 +51,7 @@ namespace Kratos {
 		AddConvergenceCriterias();
 		AddSchemes();
 		AddLinearSolvers();
+		AddProcesses();
 		AddStrategies();
         AddCustomIOToPython();
         AddCustomUtilitiesToPython();

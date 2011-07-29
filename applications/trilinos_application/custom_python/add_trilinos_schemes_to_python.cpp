@@ -47,6 +47,8 @@
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
+#include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
 //convergence criterias
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -127,6 +129,7 @@ namespace Kratos
             .def( "CalculateOutputData", &TrilinosBaseSchemeType::CalculateOutputData )
             .def( "Clean", &TrilinosBaseSchemeType::Clean )
             .def( "MoveMesh", MoveMesh )
+            .def("Check", &TrilinosBaseSchemeType::Check )
             ;
 
             class_ < TrilinosResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
@@ -159,6 +162,20 @@ namespace Kratos
             bases< TrilinosResidualBasedPredictorCorrectorVelocityBossak_BaseScheme >, boost::noncopyable >
             (
                 "TrilinosPredictorCorrectorVelocityBossakScheme", init<double, double >()
+            );
+
+            typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TurbulentBossakBaseType;
+
+            class_ < TurbulentBossakBaseType,
+            bases< TrilinosBaseSchemeType >, boost::noncopyable >
+            (
+                "TurbulentBossakBaseType", init<double, double, Process::Pointer >()
+            );
+
+            class_ < TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+            bases< TurbulentBossakBaseType >, boost::noncopyable >
+            (
+                "TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent", init<double, double, Process::Pointer >()
             );
         }
 
