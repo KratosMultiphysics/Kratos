@@ -320,7 +320,7 @@ namespace Kratos
         /// Assignment operator.
         TrilinosSpalartAllmarasTurbulenceModel & operator=(TrilinosSpalartAllmarasTurbulenceModel const& rOther)
         {
-            BaseTurbulenceModelType(rOther);
+            BaseTurbulenceModelType::operator=(rOther);
             return *this;
         }
 
