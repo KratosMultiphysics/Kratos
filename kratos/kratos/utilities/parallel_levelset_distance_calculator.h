@@ -280,6 +280,139 @@ namespace Kratos
 	      
 	     KRATOS_CATCH("")
 	}
+
+      /// A simplified version of CalculateDistances to be used when the rDistanceVar == 0 surface is described by a set of nodes
+      /**
+       * @param rmodel_part is the ModelPart on which we will operate
+       * @param rDistanceVar is the Variable that we will use in calculating the distance
+       * @param rAreaVar is the Variable that we will use for L2 projections
+       * @param max_levels is the number of maximum "layers" of element that will be used in the calculation of the distances
+       * @param max_distance distances will not be computed after reaching this limit
+       * @see ParallelDistanceCalculator::CalculateDistances
+       */
+      void CalculateDistancesLagrangianSurface(ModelPart& rmodel_part,
+                                               const Variable<double>& rDistanceVar,
+                                               const Variable<double>& rAreaVar,
+                                               const unsigned int max_levels,
+                                               const double max_distance)
+	{
+	  KRATOS_TRY
+	  bool is_distributed = false;
+	  if(rmodel_part.GetCommunicator().TotalProcesses() > 1)
+	    is_distributed = true;
+
+	   //check that variables needed are in the model part
+	   if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
+	     KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","")
+	   if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+	     KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","")
+
+	   if(is_distributed == true)
+	    if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+	     KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
+
+           array_1d<double,TDim+1> visited;
+           int elem_size = rmodel_part.Elements().size();
+           int node_size = rmodel_part.Nodes().size();
+
+	   array_1d<double,TDim+1> N;
+	   boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
+
+ 	   // Extend the distances layer by layer up to a maximum level of layers
+	   for(unsigned int level=0; level<max_levels; level++)
+	   {
+ 		//loop on active elements and advance the distance computation
+		#pragma omp parallel for private(DN_DX,visited) firstprivate(elem_size)
+		for(int i = 0; i<elem_size; i++)
+		{
+		    PointerVector< Element>::iterator it=rmodel_part.ElementsBegin()+i;
+		    Geometry<Node<3> >&geom = it->GetGeometry();
+
+		    for(unsigned int i=0; i<TDim+1; i++)
+		      visited[i] = geom[i].GetValue(IS_VISITED);
+
+		    if(IsActive(visited))
+		    {
+			double Volume;
+			GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
+
+			AddDistanceToNodes(rDistanceVar,rAreaVar,geom,DN_DX,Volume);
+		    }
+		}
+
+ 		//mpi sync variables
+		if(is_distributed == true)
+		{
+		    #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+		    for(int i = 0; i<node_size; i++)
+		    {
+			    ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
+			    if(it->GetValue(IS_VISITED) == 1.0)
+			    {
+			      double& distance = it->FastGetSolutionStepValue(rDistanceVar);
+			      it->GetValue(rDistanceVar) = distance;
+			      distance = 0.0;
+			    }
+			    else
+			      it->GetValue(rDistanceVar) = 0.0;
+		    }
+
+		    rmodel_part.GetCommunicator().AssembleCurrentData(rAreaVar);
+		    rmodel_part.GetCommunicator().AssembleCurrentData(rDistanceVar);
+
+		    #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+		    for(int i = 0; i<node_size; i++)
+		    {
+			    ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
+			    it->FastGetSolutionStepValue(rDistanceVar) += it->GetValue(rDistanceVar);
+		    }
+
+		    rmodel_part.GetCommunicator().Barrier();
+		 }
+
+
+		//finalize the computation of the distance
+		#pragma omp parallel for private(DN_DX) firstprivate(node_size)
+		for(int i = 0; i<node_size; i++)
+		{
+			ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
+			double& area = it->FastGetSolutionStepValue(rAreaVar);
+			double& is_visited = it->GetValue(IS_VISITED);
+			if(area > 1e-20 && is_visited != 1.0) //this implies that node was computed at the current level and not before
+			{
+			  double& distance = it->FastGetSolutionStepValue(rDistanceVar);
+			  distance /= area;
+			  is_visited = 1.0;
+			}
+		}
+
+	   }
+
+	   //*****************************************************************+
+	   //*****************************************************************+
+	   //*****************************************************************+
+	   //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
+	  #pragma omp parallel for firstprivate(node_size)
+	  for(int i = 0; i<node_size; i++)
+	  {
+		  ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
+		  const double area = it->FastGetSolutionStepValue(rAreaVar);
+		  double& dist = it->FastGetSolutionStepValue(rDistanceVar);
+
+		  if(dist < 0.0)
+		    KRATOS_ERROR(std::logic_error,"IMPOSSIBLE negative distance found !!","");
+
+		  if(dist > max_distance || area <1e-20)
+		    dist = max_distance;
+
+		  if(it->GetValue(IS_FLUID) == 1.0)
+		      dist = -fabs(dist);
+		  else
+		      dist = fabs(dist);
+	  }
+
+	     KRATOS_CATCH("")
+	}
 	
 	
 	
