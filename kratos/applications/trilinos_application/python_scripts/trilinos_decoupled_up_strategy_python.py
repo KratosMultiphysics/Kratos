@@ -8,7 +8,7 @@ class DecoupledUPStrategyPython(SolvingStrategyPython):
 
     def __init__(self,builder_and_solver_type,model_part,time_scheme,\
                  vel_linear_solver,press_linear_solver,\
-                 convergence_criteria,CalculateReactionsFlag,\
+                 convergence_criteria,max_iter,CalculateReactionsFlag,\
                  ReformDofSetAtEachStep,MoveMeshFlag,Comm,guess_row_size):
 
         #save the input parameters
@@ -24,7 +24,7 @@ class DecoupledUPStrategyPython(SolvingStrategyPython):
         self.space_utils = TrilinosSparseSpace()
 
         #default values for some variables
-        self.max_iter = 30
+        self.max_iter = max_iter
         self.echo_level = 1
 ##        self.builder_and_solver_type = builder_and_solver_type
 	if(builder_and_solver_type == "PressureSplitting"):
