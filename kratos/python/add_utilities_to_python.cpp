@@ -119,11 +119,13 @@ namespace Python
 
 	  class_<ParallelDistanceCalculator<2>, boost::noncopyable >("ParallelDistanceCalculator2D", init<>())
 			  .def("CalculateDistances",&ParallelDistanceCalculator<2>::CalculateDistances )
+			  .def("CalculateDistancesLagrangianSurface",&ParallelDistanceCalculator<2>::CalculateDistancesLagrangianSurface )
                           .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<2>::FindMaximumEdgeSize )
 			  ;
 
 	  class_<ParallelDistanceCalculator<3>, boost::noncopyable >("ParallelDistanceCalculator3D", init<>())
 			  .def("CalculateDistances",&ParallelDistanceCalculator<3>::CalculateDistances )
+                          .def("CalculateDistancesLagrangianSurface",&ParallelDistanceCalculator<2>::CalculateDistancesLagrangianSurface )
                           .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<3>::FindMaximumEdgeSize )
  			  ;
 			  
