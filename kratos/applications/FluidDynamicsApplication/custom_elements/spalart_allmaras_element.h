@@ -158,7 +158,12 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-//      virtual String Info() const;
+      virtual std::string Info() const
+      {
+          std::stringstream buffer;
+          buffer << "Spalart-Allmaras #" << Id();
+          return buffer.str();
+      }
       
       /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
