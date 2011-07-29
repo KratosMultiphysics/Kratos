@@ -716,7 +716,7 @@ namespace Kratos
 	  if((destination = neighbours_indices[i_color]) >= 0)
 	    {
 	      // Updating nodes
-	      unsigned int position = 0;
+	      int position = 0;
 	      unsigned int nodal_data_size = sizeof(TDataType) / sizeof(double);
 	      NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
 
