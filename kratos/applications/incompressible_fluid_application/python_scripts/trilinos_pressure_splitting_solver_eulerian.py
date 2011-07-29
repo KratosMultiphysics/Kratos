@@ -3,8 +3,9 @@ import mpi
 #importing the Kratos Library
 from Kratos import *
 from KratosMetisApplication import *
-from KratosIncompressibleFluidApplication import *
 from KratosTrilinosApplication import *
+from KratosIncompressibleFluidApplication import *
+from KratosFluidDynamicsApplication import *
 #from KratosStructuralApplication import *
 
 
@@ -42,7 +43,7 @@ def AddVariables(model_part):
 
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX); 
 
-    print "variables for the dynamic structural solution added correctly"
+    print "variables for the pressure splitting solver added correctly"
         
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -55,7 +56,7 @@ def AddDofs(model_part):
 
     mpi.world.barrier()
         
-    print "dofs for the monolithic solver added correctly"
+    print "dofs for the pressure splitting solver added correctly"
 
 class PressureSplittingSolver:
     #######################################################################
@@ -69,9 +70,7 @@ class PressureSplittingSolver:
 
         self.Comm = CreateCommunicator()
 
-	self.time_scheme = TrilinosPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
-
-        #defining the velocity linear solver
+	#defining the velocity linear solver
         vel_aztec_parameters = ParameterList()
         vel_aztec_parameters.set("AZ_solver","AZ_bicgstab")#"AZ_cg");
         vel_aztec_parameters.set("AZ_kspace",100);
@@ -117,7 +116,7 @@ class PressureSplittingSolver:
         # Solver parameters
         press_overlap_level = 1
         press_nit_max = 1000
-        press_linear_tol = 1e-3
+        press_linear_tol = 1e-5
 
         self.press_linear_solver =  AztecSolver(\
             press_aztec_parameters,press_preconditioner_type,\
@@ -139,6 +138,9 @@ class PressureSplittingSolver:
         self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
+
+        self.dynamic_tau = None
+        self.oss_switch  = None
     
         if(domain_size == 2):
             estimate_neighbours = 10
@@ -150,10 +152,32 @@ class PressureSplittingSolver:
             
 ##        self.guess_row_size = 15
 ##        self.buildertype="standard"
+
+        # For Spalart-Allmaras
+        self.turbulence_model = None
+        self.domain_size = domain_size
             
         
     #######################################################################
     def Initialize(self):
+
+        if self.turbulence_model == None:
+            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakScheme\
+                               ( self.alpha,self.move_mesh_strategy )
+        else:
+            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent\
+                               (self.alpha,\
+                                self.move_mesh_strategy,\
+                                self.turbulence_model)
+
+        self.time_scheme.Check(self.model_part)
+
+        # set values for some parameters if provided
+        if self.dynamic_tau != None:
+            self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau)
+        if self.oss_switch != None:
+            self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch )
+
         #creating the solution strategy
         from trilinos_decoupled_up_strategy_python import DecoupledUPStrategyPython
 
@@ -162,12 +186,15 @@ class PressureSplittingSolver:
                                                 self.rel_pres_tol,\
                                                 self.abs_pres_tol,\
                                                 self.Comm)
+
         
         self.solver = DecoupledUPStrategyPython(\
             self.buildertype,self.model_part,self.time_scheme,\
             self.vel_linear_solver,self.press_linear_solver,self.conv_criteria,\
-            self.CalculateReactionFlag,self.ReformDofSetAtEachStep,\
+            self.max_iter,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,\
             self.MoveMeshFlag,self.Comm,self.guess_row_size)
+
+##        self.solver.Check()
 
 ##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
 ##        (self.solver).SetEchoLevel(self.echo_level)
@@ -186,7 +213,51 @@ class PressureSplittingSolver:
     
     ########################################################################
 
-        
+
+    def ActivateSmagorinsky(self,c):
+        for elem in self.model_part.Elements:
+            elem.SetValue(C_SMAGORINSKY,c)
+
+    def ActivateSpalartAllmaras(self,wall_nodes,DES=False):
+
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        neighbour_search = FindNodalNeighboursProcess(self.model_part,number_of_avg_elems,number_of_avg_nodes)
+        neighbour_search.Execute()
+
+        for node in wall_nodes:
+          node.SetValue(IS_VISITED,1.0)
+          node.SetSolutionStepValue(DISTANCE,0,0.0)
+
+        # Compute distance function
+        if self.domain_size == 2:
+            distance_calculator = ParallelDistanceCalculator2D()
+        else:
+            distance_calculator = ParallelDistanceCalculator3D()
+
+        max_levels = 15
+        max_dist = 100.0
+        distance_calculator.CalculateDistancesLagrangianSurface\
+                            (self.model_part,
+                             DISTANCE,
+                             NODAL_AREA,
+                             max_levels,
+                             max_dist)
+
+
+        import PressureMultiLevelSolver
+        turbulence_linear_solver =  PressureMultiLevelSolver.MultilevelLinearSolver(1e-4,1000)
+
+        non_linear_tol = 0.001
+        max_it = 3
+        reform_dofset = self.ReformDofSetAtEachStep
+        time_order = 2
+
+        self.C = CreateCommunicator()
+        self.turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.C,self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+##        self.turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+        if DES:
+            self.turbulence_model.ActivateDES(1.0)
 
 
 

@@ -93,7 +93,7 @@ class MonolithicSolver:
         #default settings
         self.echo_level = 0
         self.CalculateReactionFlag = True
-        self.ReformDofSetAtEachStep = True
+        self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
     
