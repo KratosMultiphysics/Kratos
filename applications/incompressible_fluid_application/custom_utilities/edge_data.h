@@ -73,7 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
 #include "incompressible_fluid_application.h"
-
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -540,69 +540,84 @@ namespace Kratos
 				if (i_node != n_nodes)
 					KRATOS_WATCH("ERROR - Highest nodal index doesn't coincide with number of nodes!");
 
-				//allocating memory for block of CSR data
-				mNonzeroEdgeValues.resize(mNumberEdges);
-				mColumnIndex.resize(mNumberEdges);
-				mRowStartIndex.resize(n_nodes+1);
-				mLumpedMassMatrix.resize(n_nodes);
-				mInvertedMassMatrix.resize(n_nodes);
-				mDiagGradientMatrix.resize(n_nodes);
-				mHmin.resize(n_nodes);
+				//allocating memory for block of CSR data - setting to zero for first-touch OpenMP allocation
+				mNonzeroEdgeValues.resize(mNumberEdges); //SetToZero(mNonzeroEdgeValues);
+				mColumnIndex.resize(mNumberEdges);       //SetToZero(mColumnIndex);
+				mRowStartIndex.resize(n_nodes+1);        //SetToZero(mRowStartIndex);
+				mLumpedMassMatrix.resize(n_nodes);       SetToZero(mLumpedMassMatrix);
+				mInvertedMassMatrix.resize(n_nodes);     SetToZero(mInvertedMassMatrix);
+				mDiagGradientMatrix.resize(n_nodes);     SetToZero(mDiagGradientMatrix);
+				mHmin.resize(n_nodes); SetToZero(mHmin);
 
 				//INITIALIZING OF THE CSR VECTOR
 
 				//temporary variable as the row start index of a node depends on the number of neighbours of the previous one
 				unsigned int row_start_temp = 0;
-				//main loop over all nodes
-				for (typename ModelPart::NodesContainerType::iterator node_it=model_part.NodesBegin(); node_it!=model_part.NodesEnd(); node_it++)
+								
+				int number_of_threads= OpenMPUtils::GetNumThreads();
+				std::vector<int> row_partition(number_of_threads);
+				OpenMPUtils::DivideInPartitions(model_part.Nodes().size(),number_of_threads,row_partition);
+				
+				for (int k = 0; k < number_of_threads; k++)
 				{
-					//getting the global index of the node
-					i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
-					//determining its neighbours
-					WeakPointerVector< Node<3> >& neighb_nodes = node_it->GetValue(NEIGHBOUR_NODES);
-					//number of neighbours of node i determines row start index for the following node
-					unsigned int n_neighbours = neighb_nodes.size();
-					//DIAGONAL TERMS
-					//n_neighbours++;
-
-					//reserving memory for work array
-					std::vector<unsigned int> work_array;
-					work_array.reserve(n_neighbours);
-					//DIAGONAL TERMS
-					//work_array.push_back(i_node);
-
-					//nested loop over the neighbouring nodes
-					for (WeakPointerVector< Node<3> >::iterator neighb_it=neighb_nodes.begin(); neighb_it!=neighb_nodes.end(); neighb_it++)
+				    #pragma omp parallel
+				    if (OpenMPUtils::ThisThread() == k)
+				    {
+					for (std::size_t aux_i = row_partition[k]; aux_i < row_partition[k + 1]; aux_i++)
 					{
-						//getting global index of the neighbouring node
-						work_array.push_back(static_cast<unsigned int>(neighb_it->FastGetSolutionStepValue(AUX_INDEX)));
-					}
-					//reordering neighbours following their global indices
-					std::sort(work_array.begin(),work_array.end());
+						typename ModelPart::NodesContainerType::iterator node_it=model_part.NodesBegin() + aux_i;
+					//main loop over all nodes
+// 					for (typename ModelPart::NodesContainerType::iterator node_it=model_part.NodesBegin(); node_it!=model_part.NodesEnd(); node_it++)
+// 					{
+						//getting the global index of the node
+						i_node = static_cast<unsigned int>(node_it->FastGetSolutionStepValue(AUX_INDEX));
+						//determining its neighbours
+						WeakPointerVector< Node<3> >& neighb_nodes = node_it->GetValue(NEIGHBOUR_NODES);
+						//number of neighbours of node i determines row start index for the following node
+						unsigned int n_neighbours = neighb_nodes.size();
+						//DIAGONAL TERMS
+						//n_neighbours++;
 
-					//setting current row start index
-					mRowStartIndex[i_node] = row_start_temp;
-					//nested loop over the by now ordered neighbours
-					for (unsigned int counter = 0; counter < n_neighbours; counter++)
-					{
-						//getting global index of the neighbouring node
-						unsigned int j_neighbour = work_array[counter];
-						//calculating CSR index
-						unsigned int csr_index = mRowStartIndex[i_node]+counter;
+						//reserving memory for work array
+						std::vector<unsigned int> work_array;
+						work_array.reserve(n_neighbours);
+						//DIAGONAL TERMS
+						//work_array.push_back(i_node);
 
-						//saving column index j of the original matrix
-						mColumnIndex[csr_index] = j_neighbour;
-						//initializing the CSR vector entries with zero
-						mNonzeroEdgeValues[csr_index].Mass = 0.0;
-						
-						//mNonzeroEdgeValues[csr_index].Laplacian = 0.0;
-						noalias(mNonzeroEdgeValues[csr_index].LaplacianIJ) = ZeroMatrix(TDim,TDim);
-						noalias(mNonzeroEdgeValues[csr_index].Ni_DNj) = ZeroVector(TDim);
-						//TRANSPOSED GRADIENT
-						noalias(mNonzeroEdgeValues[csr_index].DNi_Nj) = ZeroVector(TDim);
+						//nested loop over the neighbouring nodes
+						for (WeakPointerVector< Node<3> >::iterator neighb_it=neighb_nodes.begin(); neighb_it!=neighb_nodes.end(); neighb_it++)
+						{
+							//getting global index of the neighbouring node
+							work_array.push_back(static_cast<unsigned int>(neighb_it->FastGetSolutionStepValue(AUX_INDEX)));
+						}
+						//reordering neighbours following their global indices
+						std::sort(work_array.begin(),work_array.end());
+
+						//setting current row start index
+						mRowStartIndex[i_node] = row_start_temp;
+						//nested loop over the by now ordered neighbours
+						for (unsigned int counter = 0; counter < n_neighbours; counter++)
+						{
+							//getting global index of the neighbouring node
+							unsigned int j_neighbour = work_array[counter];
+							//calculating CSR index
+							unsigned int csr_index = mRowStartIndex[i_node]+counter;
+
+							//saving column index j of the original matrix
+							mColumnIndex[csr_index] = j_neighbour;
+							//initializing the CSR vector entries with zero
+							mNonzeroEdgeValues[csr_index].Mass = 0.0;
+							
+							//mNonzeroEdgeValues[csr_index].Laplacian = 0.0;
+							noalias(mNonzeroEdgeValues[csr_index].LaplacianIJ) = ZeroMatrix(TDim,TDim);
+							noalias(mNonzeroEdgeValues[csr_index].Ni_DNj) = ZeroVector(TDim);
+							//TRANSPOSED GRADIENT
+							noalias(mNonzeroEdgeValues[csr_index].DNi_Nj) = ZeroVector(TDim);
+						}
+						//preparing row start index for next node
+						row_start_temp += n_neighbours;
 					}
-					//preparing row start index for next node
-					row_start_temp += n_neighbours;
+				    }
 				}
 				//adding last entry (necessary for abort criterion of loops)
 				mRowStartIndex[n_nodes] = mNumberEdges;
@@ -610,16 +625,19 @@ namespace Kratos
 				//INITIALIZING NODE BASED VALUES
 
 				//lumped mass matrix (elements Mi)
-				for (i_node=0; i_node<n_nodes; i_node++)
-					mLumpedMassMatrix[i_node] = 0.0;
+/*				#pragma omp parallel for
+				for (int i_node=0; i_node<n_nodes; i_node++)
+					mLumpedMassMatrix[i_node] = 0.0;*/
 				
+				#pragma omp parallel for
 				//set the heights to a huge number
-				for (i_node=0; i_node<n_nodes; i_node++)
+				for (int i_node=0; i_node<n_nodes; i_node++)
 					mHmin[i_node] = 1e10;
 				
 				//diagonal of gradient matrix (elements Gii)
-				for (i_node=0; i_node<n_nodes; i_node++)
-					noalias(mDiagGradientMatrix[i_node]) = ZeroVector(TDim);
+// 				#pragma omp parallel for
+// 				for (int i_node=0; i_node<n_nodes; i_node++)
+// 					noalias(mDiagGradientMatrix[i_node]) = ZeroVector(TDim);
 
 			KRATOS_CATCH("")
 			}
@@ -1102,7 +1120,33 @@ namespace Kratos
 				
 				KRATOS_CATCH("")
 			}					
-			
+
+			//**********************************************************************
+			void AllocateAndSetToZero(CalcVectorType& data_vector, int size)
+			{
+				data_vector.resize(size);
+				int loop_size = size;
+				#pragma omp parallel for 
+				for (int i_node = 0; i_node < loop_size; i_node++)
+				{
+					array_1d<double,TDim>& aaa = data_vector[i_node];
+					for (unsigned int comp = 0; comp < TDim; comp++)
+						aaa[comp] = 0.0;
+				}
+			}	
+
+			void AllocateAndSetToZero(ValuesVectorType& data_vector, int size)
+			{
+				data_vector.resize(size);
+				int loop_size = size;
+				#pragma omp parallel for 
+				for (int i_node = 0; i_node < loop_size; i_node++)
+				{
+					 data_vector[i_node]= 0.0;;
+				}
+			}				
+
+
 			//**********************************************************************
 			void SetToZero(	CalcVectorType& data_vector)
 			{
