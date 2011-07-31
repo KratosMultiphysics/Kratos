@@ -165,33 +165,33 @@ namespace Kratos {
 	    unsigned int n_nodes = mr_model_part.Nodes().size();
 	    unsigned int n_edges = mr_matrix_container.GetNumberEdges();
 	    //size data vectors
-	    mWork.resize(n_nodes);
-	    mvel_n.resize(n_nodes);
-	    mvel_n1.resize(n_nodes);
-	    mPn.resize(n_nodes);
-	    mPn1.resize(n_nodes);
-	    mHmin.resize(n_nodes);
-	    mHavg.resize(n_nodes);
-	    mNodalFlag.resize(n_nodes);
-	    mdistances.resize(n_nodes);
+	    mWork.resize(n_nodes);	mr_matrix_container.SetToZero(mWork);
+	    mvel_n.resize(n_nodes);     mr_matrix_container.SetToZero(mvel_n);
+	    mvel_n1.resize(n_nodes);    mr_matrix_container.SetToZero(mvel_n1);
+	    mPn.resize(n_nodes);        mr_matrix_container.SetToZero(mPn);
+	    mPn1.resize(n_nodes);       mr_matrix_container.SetToZero(mPn1);
+	    mHmin.resize(n_nodes);      mr_matrix_container.SetToZero(mHmin);
+	    mHavg.resize(n_nodes);      mr_matrix_container.SetToZero(mHavg);
+	    mNodalFlag.resize(n_nodes); mr_matrix_container.SetToZero(mNodalFlag);
+	    mdistances.resize(n_nodes); mr_matrix_container.SetToZero(mdistances);
 
-	    mTauPressure.resize(n_nodes);
-	    mTauConvection.resize(n_nodes);
-	    mTau2.resize(n_nodes);
-	    mPi.resize(n_nodes);
-	    mXi.resize(n_nodes);
-	    mx.resize(n_nodes);
+	    mTauPressure.resize(n_nodes); mr_matrix_container.SetToZero(mTauPressure);
+	    mTauConvection.resize(n_nodes); mr_matrix_container.SetToZero(mTauConvection);
+	    mTau2.resize(n_nodes); mr_matrix_container.SetToZero(mTau2);
+	    mPi.resize(n_nodes); mr_matrix_container.SetToZero(mPi);
+	    mXi.resize(n_nodes); mr_matrix_container.SetToZero(mXi);
+	    mx.resize(n_nodes); mr_matrix_container.SetToZero(mx);
 
-	    mEdgeDimensions.resize(n_edges);
+	    mEdgeDimensions.resize(n_edges); mr_matrix_container.SetToZero(mEdgeDimensions);
 
 	    //convection variables
-	    mBeta.resize(n_nodes);
-	    mPiConvection.resize(n_nodes);
-	    mphi_n.resize(n_nodes);
-	    mphi_n1.resize(n_nodes);
+	    mBeta.resize(n_nodes); mr_matrix_container.SetToZero(mBeta);
+	    mPiConvection.resize(n_nodes);  mr_matrix_container.SetToZero(mPiConvection);
+	    mphi_n.resize(n_nodes); mr_matrix_container.SetToZero(mphi_n);
+	    mphi_n1.resize(n_nodes); mr_matrix_container.SetToZero(mphi_n1);
 
-	    mEps.resize(n_nodes);
-	  mD.resize(n_nodes);
+	    mEps.resize(n_nodes); mr_matrix_container.SetToZero(mEps);
+	  mD.resize(n_nodes); mr_matrix_container.SetToZero(mD);
 
 	    mdiv_error.resize(n_nodes);
 	    mr_matrix_container.SetToZero(mdiv_error);
@@ -250,8 +250,19 @@ namespace Kratos {
 	    //allocate memory for variables
 	    mL.resize(n_nodes, n_nodes, n_nonzero_entries);
 
+	    int number_of_threads= OpenMPUtils::GetNumThreads();
+	    std::vector<int> row_partition(number_of_threads);
+	    OpenMPUtils::DivideInPartitions(n_nodes,number_of_threads,row_partition);
+				
+	    for (int k = 0; k < number_of_threads; k++)
+	    {
+		#pragma omp parallel
+		if (OpenMPUtils::ThisThread() == k)
+		{
+		  for (std::size_t i_node = row_partition[k]; i_node < row_partition[k + 1]; i_node++)
+		  {
 	    //loop over all nodes
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
+// 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
 		//flag for considering diagonal matrix elements
 		bool flag = 0;
 
@@ -271,6 +282,8 @@ namespace Kratos {
 		//if diagonal element is the last non-zero element of the row
 		if (flag == 0)
 		    mL.push_back(i_node, i_node, 0.0);
+	       }
+	      }
 	    }
 
 
