@@ -1077,19 +1077,32 @@ namespace Kratos
 					   )
 			{
 				KRATOS_TRY
+				
+				int number_of_threads= OpenMPUtils::GetNumThreads();
+				std::vector<int> row_partition(number_of_threads);
+				OpenMPUtils::DivideInPartitions(destination.size(),number_of_threads,row_partition);
+				
+				
+				    #pragma omp parallel
+				    {
+				      int k = OpenMPUtils::ThisThread();
+					for (std::size_t i_node = row_partition[k]; i_node < row_partition[k + 1]; i_node++)
+					{
+				/*
 				int loop_size = destination.size();	
 				#pragma omp parallel for	
 				for (int i_node = 0; i_node < loop_size; i_node++)
-				{
-					array_1d<double, TDim>& dest = destination[i_node];
-					const double m_inv = Minv_vec[i_node];
-					const array_1d<double, TDim>& origin_vec1 = origin1[i_node];
-					const array_1d<double, TDim>& origin_value = origin[i_node];
+				{*/
+						array_1d<double, TDim>& dest = destination[i_node];
+						const double m_inv = Minv_vec[i_node];
+						const array_1d<double, TDim>& origin_vec1 = origin1[i_node];
+						const array_1d<double, TDim>& origin_value = origin[i_node];
 
-					double temp = value * m_inv;
-					for(unsigned int comp = 0; comp < TDim; comp++)
-						dest[comp] = origin_vec1[comp] + temp * origin_value[comp];
-				}
+						double temp = value * m_inv;
+						for(unsigned int comp = 0; comp < TDim; comp++)
+							dest[comp] = origin_vec1[comp] + temp * origin_value[comp];
+					}
+				    }
 						
 				
 				KRATOS_CATCH("")
@@ -1104,10 +1117,16 @@ namespace Kratos
 					   )
 			{
 				KRATOS_TRY
-						int loop_size = destination.size();	
-				#pragma omp parallel for	
-				for (int i_node = 0; i_node < loop_size; i_node++)
-				{
+				int number_of_threads= OpenMPUtils::GetNumThreads();
+				std::vector<int> row_partition(number_of_threads);
+				OpenMPUtils::DivideInPartitions(destination.size(),number_of_threads,row_partition);
+				
+				
+				    #pragma omp parallel			    
+				    {
+				      int k = OpenMPUtils::ThisThread();
+					for (std::size_t i_node = row_partition[k]; i_node < row_partition[k + 1]; i_node++)
+					{
 					double& dest = destination[i_node];
 					const double m_inv = Minv_vec[i_node];
 					const double& origin_vec1 = origin1[i_node];
@@ -1115,6 +1134,7 @@ namespace Kratos
 
 					double temp = value * m_inv;
 					dest = origin_vec1 + temp * origin_value;
+					}
 				}
 						
 				
