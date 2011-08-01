@@ -183,18 +183,19 @@ class MonolithicSolver:
     ########################################################################
     def Remesh(self):
 
-        if (self.remeshing_flag==True):
-           # (self.PfemUtils).MoveLonelyNodes(self.model_part)
-            (self.MeshMover).Execute();
+        
+       # (self.PfemUtils).MoveLonelyNodes(self.model_part)
+        (self.MeshMover).Execute();
 
-            (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
 ##            if(self.domain_size == 2):
-            (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
+        (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
 ##            if(self.domain_size == 3):
 ##                (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 1.0)
 ##                (self.ActOnWalls).Execute();
-            (self.node_erase_process).Execute();
-            
+        (self.node_erase_process).Execute();
+        
+        if (self.remeshing_flag==True):     
             (self.neigh_finder).ClearNeighbours();
 
             ((self.model_part).Elements).clear();
@@ -255,7 +256,7 @@ class MonolithicSolver:
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
 
 
-            (self.MeshMover).Execute(); #to update the position with the new displacement
+        (self.MeshMover).Execute(); #to update the position with the new displacement
 
              
     ######################################################################
