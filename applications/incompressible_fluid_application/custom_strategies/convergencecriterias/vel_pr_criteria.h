@@ -54,7 +54,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    ///@name Kratos classes
+    ///@addtogroup IncompressibleFluidApplication
+    ///@{
+
+    ///@name Kratos Classes
     ///@{
 
     /// Convergence criteria for fluid problems.
@@ -96,10 +99,10 @@ namespace Kratos
 
         /// Constructor.
         /**
-         @param VelRatioTolerance Relative tolerance for velocity error
-         @param VelAbsTolerance Absolute tolerance for velocity error
-         @param PrsRatioTolerance Relative tolerance for presssure error
-         @param PrsAbsTolerance Absolute tolerance for presssure error
+         * @param VelRatioTolerance Relative tolerance for velocity error
+         * @param VelAbsTolerance Absolute tolerance for velocity error
+         * @param PrsRatioTolerance Relative tolerance for presssure error
+         * @param PrsAbsTolerance Absolute tolerance for presssure error
          */
         VelPrCriteria(  TDataType VelRatioTolerance,
                         TDataType VelAbsTolerance,
@@ -123,12 +126,12 @@ namespace Kratos
 
         /// Compute relative and absoute error.
         /**
-         @param rModelPart Reference to the ModelPart containing the fluid problem.
-         @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-         @param A System matrix (unused)
-         @param Dx Vector of results (variations on nodal variables)
-         @param b RHS vector (residual)
-         @return true if convergence is achieved, false otherwise
+         * @param rModelPart Reference to the ModelPart containing the fluid problem.
+         * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+         * @param A System matrix (unused)
+         * @param Dx Vector of results (variations on nodal variables)
+         * @param b RHS vector (residual)
+         * @return true if convergence is achieved, false otherwise
          */
         bool PostCriteria(  ModelPart& rModelPart,
                             DofsArrayType& rDofSet,
@@ -221,7 +224,7 @@ namespace Kratos
 
         /// Initialize this class before using it
         /**
-         @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
+         * @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
          */
         void Initialize( ModelPart& rModelPart	)
         {
@@ -254,6 +257,8 @@ namespace Kratos
     };
 
     ///@} // Kratos classes
+
+    ///@} // Application group
 }
 
 #endif	/* _VEL_PR_CRITERIA_H */

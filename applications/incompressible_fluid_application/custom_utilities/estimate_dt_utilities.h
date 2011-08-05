@@ -188,7 +188,7 @@ namespace Kratos {
 
             const unsigned int NumNodes = TDim +1;
             
-             int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector ElementPartition;
             OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfElements(),NumThreads,ElementPartition);
 

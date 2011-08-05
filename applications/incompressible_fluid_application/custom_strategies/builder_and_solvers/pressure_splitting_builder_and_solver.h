@@ -293,7 +293,7 @@ namespace Kratos
 
             OpenMPUtils::DivideInPartitions(rElements.size(),NumThreads,ElementPartition);
 
-            double start_prod = omp_get_wtime();
+//            double start_prod = omp_get_wtime();
 
             #pragma omp parallel
             {
@@ -320,8 +320,8 @@ namespace Kratos
 
                     // clean local elemental memory
                     pScheme->CleanMemory(*pElem);
+                    }
                 }
-            }
 
             PartitionVector ConditionPartition;
 
@@ -354,8 +354,8 @@ namespace Kratos
             }
 
 
-            double stop_prod = omp_get_wtime();
-            std::cout << "time: " << stop_prod - start_prod << std::endl;
+//            double stop_prod = omp_get_wtime();
+//            std::cout << "time: " << stop_prod - start_prod << std::endl;
 
             for(int i = 0; i< TotalSize; i++)
                 omp_destroy_lock(&lock_array[i]);
@@ -1242,7 +1242,7 @@ namespace Kratos
                         TSparseSpace::Clear((this->mpIDiagS));
 
             if (this->GetEchoLevel() > 0) {
-                std::cout << "ResidualBasedEliminationBuilderAndSolver Clear Function called" << std::endl;
+                std::cout << "PressureSplittingBuilderAndSolver Clear Function called" << std::endl;
             }
         }
 
