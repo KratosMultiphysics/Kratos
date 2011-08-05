@@ -34,7 +34,6 @@ namespace Kratos
                 const array_1d<double, 3 > & rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
                 rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
             }
-            rVorticity *= 0.5; // vorticity = 1/2 (nabla x velocity)
         }
         else if (rVariable == SUBSCALE)
         {
@@ -88,7 +87,6 @@ namespace Kratos
                 rVorticity[1] += N[iNode] * ( DN_DX(iNode,2)*rVelocity[0] - DN_DX(iNode,0)*rVelocity[2] );
                 rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
             }
-            rVorticity *= 0.5; // vorticity = 1/2 (nabla x velocity)
         }
         else if (rVariable == SUBSCALE)
         {
