@@ -234,7 +234,7 @@ namespace Kratos
             array_1d<double,TDim> vel_gauss;
             array_1d<double,TNumNodes> temp_vec_np;
             array_1d<double,TNumNodes> u_DN;
-            array_1d<double,TDim> grad_g(TDim,0.0);
+            array_1d<double,TDim> grad_g;
             boost::numeric::ublas::bounded_matrix<double,TDim,TDim> First;
             boost::numeric::ublas::bounded_matrix<double,TDim,TDim> Second;
             boost::numeric::ublas::bounded_matrix<double,TDim,TNumNodes> Third;
@@ -279,7 +279,11 @@ namespace Kratos
             const double norm_u = norm_2(vel_gauss);
             double tau1 = (h * h) / (c1 * conductivity + c2 * norm_u * h);
 
-            for (unsigned int i = 0; i < TNumNodes; ++i)
+            const double node_turb_visc = GetGeometry()[0].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+            for (unsigned int d = 0; d < TDim; ++d)
+                grad_g[d] = DN_DX(0,d) * node_turb_visc;
+
+            for (unsigned int i = 1; i < TNumNodes; ++i)
             {
                 const double node_turb_visc = GetGeometry()[i].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
                 for (unsigned int d = 0; d < TDim; ++d)
