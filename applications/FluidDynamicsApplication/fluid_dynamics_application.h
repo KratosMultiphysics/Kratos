@@ -251,8 +251,9 @@ namespace Kratos
                 const DynamicVMS<3> mDynamicVMS3D;
 
                 /// 2D Spalart-Allmaras turbulent viscosity transport equation element
-                const SpalartAllmaras2D mSpalartAllmaras2D;
-
+                const SpalartAllmaras<2,3> mSpalartAllmaras2D;
+                /// 3D Spalart-Allmaras turbulent viscosity transport equation element
+                const SpalartAllmaras<3,4> mSpalartAllmaras3D;
 
 		///@} 
 		///@name Private Operators
