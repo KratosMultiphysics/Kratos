@@ -135,7 +135,7 @@ namespace Kratos
             if (BaseTurbulenceModelType::mdomain_size == 2)
                 ElementName = std::string("SpalartAllmaras2D");
             else
-                KRATOS_ERROR(std::logic_error, "Spalart Allmaras not yet implemented in 3D", "") ///@todo update once you have 3D Spal-Al
+                ElementName = std::string("SpalartAllmaras3D");
 
             const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
 
