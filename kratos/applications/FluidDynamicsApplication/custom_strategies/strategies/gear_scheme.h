@@ -250,7 +250,6 @@ namespace Kratos
 
             const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-//            KRATOS_WATCH(mpTurbulenceModel)
             if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
 
             //if orthogonal subscales are computed
