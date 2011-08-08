@@ -196,7 +196,7 @@ class IncompressibleFluidSolver:
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY,C)
 
-    def ActivateSpalartAllmaras(self,wall_nodes,DES):
+    def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
         from KratosFluidDynamicsApplication import *
         for node in wall_nodes:
             node.SetValue(IS_VISITED,1.0)
@@ -213,7 +213,7 @@ class IncompressibleFluidSolver:
         turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
         turbulence_model.AdaptForFractionalStep()
         if(DES==True):
-            turbulence_model.ActivateDES(1.0);
+            turbulence_model.ActivateDES(CDES);
 
         self.solver.AddInitializeIterationProcess(turbulence_model);
 
