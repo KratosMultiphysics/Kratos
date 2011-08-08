@@ -147,7 +147,7 @@ class MonolithicSolver:
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY,c)
 
-    def ActivateSpalartAllmaras(self,wall_nodes,DES=False):
+    def ActivateSpalartAllmaras(self,wall_nodes,DES=False,CDES=1.0):
 
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
@@ -171,7 +171,7 @@ class MonolithicSolver:
 
         self.turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
         if DES:
-            self.turbulence_model.ActivateDES(1.0)
+            self.turbulence_model.ActivateDES(CDES)
 
 
 
