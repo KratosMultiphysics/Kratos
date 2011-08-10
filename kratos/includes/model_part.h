@@ -1069,6 +1069,19 @@ namespace Kratos
         ///@}
         ///@name Input and output
         ///@{
+            
+        /// run input validation
+        virtual int Check( ProcessInfo& rCurrentProcessInfo ) const
+        {
+            KRATOS_TRY
+            int err = 0;
+            for (ElementConstantIterator elem_iterator = ElementsBegin(); elem_iterator != ElementsEnd(); elem_iterator++)
+                err = elem_iterator->Check(rCurrentProcessInfo);
+            for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
+                err = condition_iterator->Check(rCurrentProcessInfo);
+            return err;
+            KRATOS_CATCH("");
+        }
 
         /// Turn back information as a string.
 
