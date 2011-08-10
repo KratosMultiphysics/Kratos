@@ -325,6 +325,7 @@ namespace Kratos
                     .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
                     .def("CreateNewNode", ModelPartCreateNewNode)
                     .def("GetCommunicator", ModelPartGetCommunicator, return_internal_reference<>())
+                    .def("Check", &ModelPart::Check)
                     //.def("",&ModelPart::)
                     .def(self_ns::str(self))
                     ;
