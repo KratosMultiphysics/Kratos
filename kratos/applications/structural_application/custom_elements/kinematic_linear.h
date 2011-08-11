@@ -234,25 +234,35 @@ namespace Kratos
             ///@name Protected Operations
             ///@{
 
-	    ///@}
-	    ///@name Serialization
-	    ///@{	
-	    friend class Serializer; 
-	    
-	    // A private default constructor necessary for serialization 
-	    KinematicLinear(){}
+            ///@}
+            ///@name Serialization
+            ///@{
 
-	    virtual void save(Serializer& rSerializer) const
-	    {
-	       rSerializer.save("Name","KinematicLinear");
-	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-	    }
+            friend class Serializer;
 
-	    virtual void load(Serializer& rSerializer)
-	    {
-	       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
-	    }
-	      
+            // A private default constructor necessary for serialization
+            KinematicLinear() {}
+
+            virtual void save( Serializer& rSerializer ) const
+            {
+                rSerializer.save( "Name", "KinematicLinear" );
+                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Element );
+            }
+
+            virtual void load( Serializer& rSerializer )
+            {
+                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Element );
+            }
+
+            /**
+             * This function provides the place to perform checks on the completeness of the input.
+             * It is designed to be called only once (or anyway, not often) typically at the beginning
+             * of the calculations, so to verify that nothing is missing from the input
+             * or that no common error is found.
+             * @param rCurrentProcessInfo
+             */
+            virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+
 
             ///@}
             ///@name Protected  Access
@@ -289,7 +299,7 @@ namespace Kratos
             Vector mDetJ0;
 
             bool mfirst_time_step;
-            
+
             bool mIsInitialized;
 
             Matrix mInitialDisp;
@@ -343,7 +353,7 @@ namespace Kratos
 
             void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
 
-	      
+
             ///@}
             ///@name Private Operations
             ///@{

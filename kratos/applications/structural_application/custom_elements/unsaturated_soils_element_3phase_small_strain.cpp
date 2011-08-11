@@ -3375,7 +3375,7 @@ namespace Kratos
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
-            std::cout << "falscheGröße: " << rValues.size() << "!=" << mConstitutiveLawVector.size() << std::endl;
+            std::cout << "wrong size: " << rValues.size() << "!=" << mConstitutiveLawVector.size() << std::endl;
             return;
         }
 
@@ -3393,7 +3393,7 @@ namespace Kratos
     {
         if ( rValues.size() != mConstitutiveLawVector.size() )
         {
-            std::cout << "falscheGröße: " << rValues.size() << "!=" << mConstitutiveLawVector.size() << std::endl;
+            std::cout << "wrong size: " << rValues.size() << "!=" << mConstitutiveLawVector.size() << std::endl;
             return;
         }
 
