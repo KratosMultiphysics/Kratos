@@ -120,20 +120,35 @@ namespace Kratos
     */
     void KinematicLinear::Initialize()
     {
-        if( mIsInitialized )
-            return;
         KRATOS_TRY//EXCEPTION HANDLING (see corresponing KRATOS_CATCH("") )
 
         //dimension of the problem
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
+
+
+        if ( mIsInitialized )
+        {
+            //Set Up Initial displacement for StressFreeActivation of Elements
+            mInitialDisp.resize( GetGeometry().size(), dim, false );
+
+            for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
+                for ( unsigned int i = 0; i < 3; i++ )
+                    mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
+
+            return;
+        }
+
         //number of integration points used, mThisIntegrationMethod refers to the
         //integration method defined in the constructor
         const GeometryType::IntegrationPointsArrayType& integration_points =
             GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
         //initializing the Jacobian, the inverse Jacobian and Jacobians determinant in the reference
         // configuration
         GeometryType::JacobiansType J0( integration_points.size() );
+
         mInvJ0.resize( integration_points.size() );
+
         mTotalDomainInitialSize = 0.00;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ )
@@ -176,10 +191,11 @@ namespace Kratos
         {
             mConstitutiveLawVector.resize( integration_points.size() );
         }
+
         InitializeMaterial();
-        
+
         mIsInitialized = true;
-        
+
 
         KRATOS_CATCH( "" )
     }
@@ -1080,6 +1096,33 @@ namespace Kratos
             }
         }
     }
+
+    int KinematicLinear::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+    {
+        KRATOS_TRY
+
+        if ( this->Id() < 1 )
+        {
+            KRATOS_ERROR( std::logic_error, "Element found with Id 0 or negative", "" )
+        }
+
+        if ( this->GetGeometry().Area() < 0 )
+        {
+            std::cout << "error on element -> " << this->Id() << std::endl;
+            KRATOS_ERROR( std::logic_error, "Area can not be lesser than 0", "" )
+        }
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+        {
+            return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+        }
+
+        return 0;
+
+        KRATOS_CATCH( "" );
+
+    }
+
 
 
 } // Namespace Kratos
