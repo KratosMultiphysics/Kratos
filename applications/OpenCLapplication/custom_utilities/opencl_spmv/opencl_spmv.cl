@@ -6,6 +6,24 @@
 
 #include "opencl_common.cl"
 
+
+#define KRATOS_OCL_DEBUG
+
+
+#ifdef KRATOS_OCL_DEBUG
+
+#pragma OPENCL EXTENSION cl_amd_printf: enable
+
+#define KRATOS_OCL_VIEW_INT(x)		printf(#x ": %d\n", x)
+#define KRATOS_OCL_VIEW_DOUBLE(x)	printf(#x ": %f\n", x)
+
+#else
+
+#define KRATOS_OCL_VIEW_INT(x)
+#define KRATOS_OCL_VIEW_DOUBLE(x)
+
+#endif
+
 __kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __global IndexType *A_ColumnIndices, __global ValueType *A_Values, __global ValueType *X_Values, __global ValueType *Y_Values, __local IndexType *Bounds, __local ValueType *Buffer)
 {
 	const size_t gid = get_group_id(0);  // OK
@@ -36,6 +54,25 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __glo
 
 	const size_t Start = Bounds[lgid];
 	const size_t End = Bounds[lgid + 1];
+
+////////////////////////////////////////////////
+
+#ifdef KRATOS_OCL_DEBUG
+
+	if (get_global_id(0) == 1000)
+	{
+		KRATOS_OCL_VIEW_INT(Start);
+		KRATOS_OCL_VIEW_INT(End);
+		KRATOS_OCL_VIEW_INT(stride);
+		KRATOS_OCL_VIEW_INT(get_local_id(0));
+		KRATOS_OCL_VIEW_INT(get_global_id(0));
+		KRATOS_OCL_VIEW_INT(get_num_groups(0));
+	}
+
+#endif
+
+////////////////////////////////////////////////
+
 
 	//
 
@@ -95,7 +132,7 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __glo
 
 	if (ltid < 2)
 	{
-		Buffer[tid] += Buffer[tid + 32];
+		Buffer[tid] += Buffer[tid + 2];
 	}
 
 	barrier(CLK_LOCAL_MEM_FENCE);
