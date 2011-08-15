@@ -44,7 +44,7 @@ int main()
 	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 5, (ROWS_PER_WORKGROUP + 1) * sizeof(cl_uint));
 	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 6, WorkgroupSize * sizeof(cl_double));
 
-	DeviceGroup.ExecuteKernel(Kernel, A.size1() * 256 / 16);
+	DeviceGroup.ExecuteKernel(Kernel, A.size1() * WorkgroupSize / ROWS_PER_WORKGROUP + 1);
 
 	DeviceGroup.CopyBuffer(Y_Values, Kratos::OpenCL::DeviceToHost, Kratos::OpenCL::VoidPList(1, &Y1[0]));
 

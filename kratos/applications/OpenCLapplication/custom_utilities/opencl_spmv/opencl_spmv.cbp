@@ -33,12 +33,12 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 			<Add directory="../../custom_utilities" />
-			<Add directory="/home/mossaiby/AMD-APP-SDK-v2.4-lnx64/include" />
+			<Add directory="/home/mossaiby/AMD-APP-SDK-v2.5-RC2-lnx64/include" />
 			<Add directory="../../../../kratos" />
 		</Compiler>
 		<Linker>
 			<Add option="-lOpenCL" />
-			<Add directory="/home/mossaiby/AMD-APP-SDK-v2.4-lnx64/lib/x86_64" />
+			<Add directory="/home/mossaiby/AMD-APP-SDK-v2.5-RC2-lnx64/lib/x86_64" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Unit filename="opencl_spmv.cl" />
