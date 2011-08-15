@@ -1,6 +1,9 @@
 #define ROWS_PER_WORKGROUP_BITS 4
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
 
+// TODO: Fix this!
+#define LOCAL_WORKGROUP_SIZE (256 / 16)
+
 #include "opencl_common.cl"
 
 __kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __global IndexType *A_ColumnIndices, __global ValueType *A_Values, __global ValueType *X_Values, __global ValueType *Y_Values, __local IndexType *Bounds, __local ValueType *Buffer)
@@ -8,7 +11,7 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __glo
 	const size_t gid = get_group_id(0);  // OK
 	const size_t tid = get_local_id(0);  // OK
 
-	const size_t workgroup_size = get_group_size(0);
+	const size_t workgroup_size = get_num_groups(0);
 	const size_t local_workgroup_size = workgroup_size >> ROWS_PER_WORKGROUP_BITS;
 
 	const size_t lgid = tid / (workgroup_size >> ROWS_PER_WORKGROUP_BITS);  // OK

@@ -2,9 +2,12 @@
 #include "opencl_interface.h"
 #include "includes/matrix_market_interface.h"
 
+#define ROWS_PER_WORKGROUP_BITS 4
+#define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
+
 int main()
 {
-	Kratos::OpenCL::DeviceGroup DeviceGroup(CL_DEVICE_TYPE_CPU, true);
+	Kratos::OpenCL::DeviceGroup DeviceGroup(CL_DEVICE_TYPE_GPU, true);
 
 	DeviceGroup.AddCLSearchPath("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities");
 	cl_uint Program = DeviceGroup.BuildProgramFromFile("opencl_spmv.cl", "-cl-fast-relaxed-math");
@@ -15,10 +18,13 @@ int main()
 	std::cout << "Kernel workgroup size: " << WorkgroupSize << std::endl;
 
 	Kratos::CompressedMatrix A;
-	Kratos::Vector X, Y;
+	Kratos::Vector X, Y1, Y2;
 
 	Kratos::ReadMatrixMarketMatrix("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities/opencl_spmv/A_0.mm", A);
 	Kratos::ReadMatrixMarketVector("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities/opencl_spmv/B_0.mm", X);
+
+	Y1.resize(A.size1());
+	Y2.resize(A.size1());
 
 	cl_uint A_RowIndices = DeviceGroup.CreateBuffer((A.size1() + 1) * sizeof(unsigned int), CL_MEM_READ_ONLY);
 	cl_uint A_ColumnIndices = DeviceGroup.CreateBuffer(A.nnz() * sizeof(unsigned int), CL_MEM_READ_ONLY);
@@ -35,13 +41,19 @@ int main()
 	DeviceGroup.SetBufferAsKernelArg(Kernel, 2, A_Values);
 	DeviceGroup.SetBufferAsKernelArg(Kernel, 3, X_Values);
 	DeviceGroup.SetBufferAsKernelArg(Kernel, 4, Y_Values);
-	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 5, 17 * sizeof(cl_uint));  // TODO: Fix this
-	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 6, 256 * sizeof(cl_double));  // TODO: Fix this
+	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 5, (ROWS_PER_WORKGROUP + 1) * sizeof(cl_uint));
+	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 6, WorkgroupSize * sizeof(cl_double));
 
 	DeviceGroup.ExecuteKernel(Kernel, A.size1() * 256 / 16);
 
-	Y.resize(A.size1());
-	prod(A, X, Y);
+	DeviceGroup.CopyBuffer(Y_Values, Kratos::OpenCL::DeviceToHost, Kratos::OpenCL::VoidPList(1, &Y1[0]));
+
+	prod(A, X, Y2);
+
+	for (int i = 0; i < 10; i++)
+	{
+		std::cout << Y1[i] << "  " << Y2[i] << std::endl;
+	}
 
 	return 0;
 }
