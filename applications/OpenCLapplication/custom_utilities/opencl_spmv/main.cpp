@@ -10,7 +10,9 @@ int main()
 	cl_uint Program = DeviceGroup.BuildProgramFromFile("opencl_spmv.cl", "-cl-fast-relaxed-math");
 	cl_uint Kernel = DeviceGroup.RegisterKernel(Program, "CSR_Matrix_Vector_Multiply");
 
-	std::cout << "Kernel workgroup size: " << DeviceGroup.WorkGroupSizes[Kernel][0] << std::endl;
+	size_t WorkgroupSize = DeviceGroup.WorkGroupSizes[Kernel][0];
+
+	std::cout << "Kernel workgroup size: " << WorkgroupSize << std::endl;
 
 	Kratos::CompressedMatrix A;
 	Kratos::Vector X, Y;
@@ -27,8 +29,6 @@ int main()
 	DeviceGroup.CopyBuffer(A_RowIndices, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, &A.index1_data()[0]));
 	DeviceGroup.CopyBuffer(A_ColumnIndices, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, &A.index2_data()[0]));
 	DeviceGroup.CopyBuffer(A_Values, Kratos::OpenCL::HostToDevice, Kratos::OpenCL::VoidPList(1, &A.value_data()[0]));
-
-//A_RowIndices, A_ColumnIndices, A_Values, X_Values, Y_Values, __local IndexType *Bounds, __local ValueType *Buffer)
 
 	DeviceGroup.SetBufferAsKernelArg(Kernel, 0, A_RowIndices);
 	DeviceGroup.SetBufferAsKernelArg(Kernel, 1, A_ColumnIndices);
