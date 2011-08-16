@@ -217,6 +217,10 @@ namespace Kratos
                                             int CalculateTangent = true,
                                             bool SaveInternalVariables = true
                                           );
+					  
+	        int Check(const Properties& props,
+                      const GeometryType& geom,
+                      const ProcessInfo& CurrentProcessInfo);
 
 
  
@@ -235,20 +239,46 @@ namespace Kratos
 
    void CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& C);
    void CalculateElasticStress(array_1d<double,4>& Strain, array_1d<double,4>& Stress);
+   void CalculateAlmansiStrain(const Vector& Strain, const Matrix& F,Vector& Almansi); 
+   void CalculateSPK(const Vector& Cauchy_Stress, const Matrix& F,  Vector& Stress); 
    
 
    
-     friend class Serializer;
-     virtual void save(Serializer& rSerializer) const
-     {
-        rSerializer.save("Name", "BrittleMaterial2D");
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw );
-     }
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
 
-     virtual void load(Serializer& rSerializer)
-     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw );
-     }
+    virtual void save( Serializer& rSerializer ) const
+    {
+	KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
+	rSerializer.save( "E",   mE );
+	rSerializer.save( "NU",  mNU );
+	rSerializer.save( "DE",  mDE );
+	rSerializer.save( "CTM", mComputeTangentMatrix);
+	rSerializer.save( "LE",  mlength); 
+	//rSerializer.save( "FCP", mpFluencyCriteria);
+        rSerializer.save( "PR",  mpProperties);
+	//rSerializer.save( "InSituStress", mInSituStress );
+	//rSerializer.save( "CurrentStress", mCurrentStress );
+	//rSerializer.save( "MaterialParameters", mMaterialParameters );
+    }
+
+    virtual void load( Serializer& rSerializer )
+    {
+	KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
+	rSerializer.load( "E", mE );
+	rSerializer.load( "NU", mNU );
+	rSerializer.load( "DE", mDE );
+        rSerializer.save( "CTM", mComputeTangentMatrix);
+	rSerializer.save( "LE", mlength);  
+        //rSerializer.save( "FCP", mpFluencyCriteria);
+        rSerializer.save( "PR",  mpProperties);
+	//rSerializer.load( "InSituStress", mInSituStress );
+	//rSerializer.load( "Ctangent", mCtangent );
+	//rSerializer.load( "CurrentStress", mCurrentStress );
+	//rSerializer.load( "MaterialParameters", mMaterialParameters );
+    }
 
 
    

@@ -114,6 +114,8 @@ namespace Kratos
              mpFluencyCriteria->GetValue(DILATANCY_ANGLE, rValue);
 	  else if(rThisVariable == INTERNAL_FRICTION_ANGLE)
              mpFluencyCriteria->GetValue(INTERNAL_FRICTION_ANGLE, rValue);
+	  else if(rThisVariable == FT)
+             mpFluencyCriteria->GetValue(FT, rValue);
 	  else if(rThisVariable==DELTA_TIME)
               rValue = sqrt(mE/mDE);
            
@@ -136,9 +138,7 @@ namespace Kratos
 		     rValue(0,i) = mpFluencyCriteria->mplastic_strain[i]; 
           }
           
-        return( rValue );  
-       
-      
+        return( rValue );        
     }
 
     void BrittleMaterial2D::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
@@ -182,11 +182,10 @@ namespace Kratos
 	  //mfailurefactor           = 0.00;
 	  
           double Gc           = (*mpProperties)[CRUSHING_ENERGY]/mlength;
-//          double length_limit = 2.00*mE*Gc/((*mpProperties)[FC]*(*mpProperties)[FC]);
-
+          //double length_limit = 2.00*mE*Gc/((*mpProperties)[FC]*(*mpProperties)[FC]);       
           //if (length_limit<mlength) {KRATOS_ERROR(std::logic_error, "Element length greater than permitted" , ""); }          
           mpFluencyCriteria->InitializeMaterial(*mpProperties);
-	  mpFluencyCriteria->GetValue(geom.Length());   
+	  mpFluencyCriteria->GetValue(mlength);   
 	}
 
 
@@ -207,7 +206,7 @@ void BrittleMaterial2D::FinalizeSolutionStep( const Properties& props,
 		  const GeometryType& geom, 
 		  const Vector& ShapeFunctionsValues ,
 		  const ProcessInfo& CurrentProcessInfo)
-{ 
+{
         mpFluencyCriteria->FinalizeSolutionStep();        
 	
 	// Calculating the local fail failure
@@ -270,10 +269,19 @@ void BrittleMaterial2D::CalculateMaterialResponse( const Vector& StrainVector,
         int CalculateTangent,
         bool SaveInternalVariables
                                                )
-{
-  
+{ 
     UpdateMaterial(StrainVector, props, geom,ShapeFunctionsValues, CurrentProcessInfo);
-    if (CalculateStresses==true) { CalculateStress(StrainVector, StressVector);}
+    if (CalculateStresses==true) 
+    { 
+      Vector Almansi;
+      Vector Cauchy_Stress;
+      CalculateAlmansiStrain(StrainVector, DeformationGradient, Almansi);
+      //CalculateStress(StrainVector, StressVector); 
+      CalculateStress(Almansi, Cauchy_Stress);
+      CalculateSPK(Cauchy_Stress, DeformationGradient, StressVector);
+      
+      
+    }
     if (CalculateTangent==1){CalculateStressAndTangentMatrix(StressVector,StrainVector, AlgorithmicTangent);}
 }
 
@@ -290,6 +298,9 @@ void BrittleMaterial2D::CalculateConstitutiveMatrix(const Vector& StrainVector, 
   ConstitutiveMatrix(0,0) = c1;  ConstitutiveMatrix(0,1) = c2;  ConstitutiveMatrix(0,2) = 0.0;
   ConstitutiveMatrix(1,0) = c2;  ConstitutiveMatrix(1,1) = c1;  ConstitutiveMatrix(1,2) = 0.0;
   ConstitutiveMatrix(2,0) = 0.0; ConstitutiveMatrix(2,1) = 0.0; ConstitutiveMatrix(2,2) = c3;
+  //double  damage = 0.00; 
+  //mpFluencyCriteria->GetValue(DAMAGE, damage); 
+  //ConstitutiveMatrix*=(1.00-damage);
   
 }
 
@@ -355,6 +366,52 @@ void BrittleMaterial2D::CalculateCauchyStresses(
 }
 
 
+   void BrittleMaterial2D::CalculateAlmansiStrain(const Vector& Strain, const Matrix& F,  Vector& Almansi)
+   {
+     
+     int size1 = Strain.size();
+     int size2 = F.size1();
+     
+     Matrix F_inv;
+     Matrix Strain_Tensor;
+     Matrix Almansi_Tensor;
+     
+     Almansi.resize(size1);
+     F_inv.resize(size2, size2);
+     Almansi_Tensor.resize(size2, size2);
+     Strain_Tensor.resize(size2, size2);
+     
+     Strain_Tensor = SD_MathUtils<double>::StrainVectorToTensor(Strain);
+     SD_MathUtils<double>::InvertMatrix(F, F_inv);
+     noalias(Almansi_Tensor) =  prod( Matrix(prod(trans(F_inv), Strain_Tensor)),F_inv);
+     
+     noalias(Almansi) = SD_MathUtils<double>::TensorToStrainVector(Almansi_Tensor);
+     
+   }
+   
+   void BrittleMaterial2D::CalculateSPK(const Vector& Cauchy_Stress, const Matrix& F, Vector& Stress)
+   {
+     int size1       = Cauchy_Stress.size();
+     int size2       = F.size1();
+     const double J  = MathUtils<double>::Det2( F );
+     
+     Matrix F_inv;
+     Matrix Stress_Tensor;
+     Matrix Cauchy_Tensor;
+     
+     Stress.resize(size1);
+     F_inv.resize(size2, size2);
+     Cauchy_Tensor.resize(size2, size2);
+     Stress_Tensor.resize(size2, size2);
+     
+     Cauchy_Tensor = MathUtils<double>::StressVectorToTensor(Cauchy_Stress);
+     SD_MathUtils<double>::InvertMatrix(F, F_inv);
+     noalias(Stress_Tensor) =  prod( Matrix(prod(F_inv, Cauchy_Tensor)),trans(F_inv));
+     SD_MathUtils<double>::TensorToVector(Stress_Tensor, Stress);
+     Stress*= J;  
+     
+   }
+
 //***********************************************************************************************
 //***********************************************************************************************
 
@@ -383,6 +440,49 @@ void BrittleMaterial2D::UpdateMaterial( const Vector& StrainVector,
 //***********************************************************************************************
 //***********************************************************************************************
 
+int BrittleMaterial2D::Check(const Properties& props,
+                const GeometryType& geom,
+                const ProcessInfo& CurrentProcessInfo)
+        {
+            KRATOS_TRY
+          
+            
+            if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
+                KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+
+	    const double& nu = props[POISSON_RATIO];
+	    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+	    if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
+                KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+
+	    if(FRACTURE_ENERGY.Key() == 0 || props[FRACTURE_ENERGY]<= 0.00)
+                KRATOS_ERROR(std::invalid_argument,"FRACTURE_ENERGY has Key zero or invalid value ","");
+	    
+	    if(CRUSHING_ENERGY.Key() == 0 || props[CRUSHING_ENERGY]<= 0.00)
+                KRATOS_ERROR(std::invalid_argument,"CRUSHING_ENERGY has Key zero or invalid value ","");
+	  
+	    if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+            
+	    if(INTERNAL_FRICTION_ANGLE.Key() == 0 || props[INTERNAL_FRICTION_ANGLE]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"INTERNAL_FRICTION_ANGLE has Key zero or invalid value ","");
+	    
+	    if(DILATANCY_ANGLE.Key() == 0 || props[DILATANCY_ANGLE]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DILATANCY_ANGLE has Key zero or invalid value ","");
+	
+	    if(COHESION.Key() == 0 || props[COHESION]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"COHESION has Key zero or invalid value ","");
+	
+	    if(FT.Key() == 0 || props[FT]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
+	
+	    if(FC.Key() == 0 || props[FC]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
+    	    
+	    return 0;
+	    
+            KRATOS_CATCH("");
+        }
 
 
 }

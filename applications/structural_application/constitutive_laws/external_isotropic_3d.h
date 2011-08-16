@@ -182,6 +182,8 @@ namespace Kratos
                                           const Matrix& F,
                                           const Vector& PK2_StressVector,
                                           const Vector& GreenLagrangeStrainVector);
+					  
+              int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
             
 //            /**
 //             * converts a strain vector styled variable into its form, which the

@@ -182,6 +182,9 @@ namespace Kratos
 			void Calculate( const Variable<Matrix >& rVariable, 
                                     Matrix& Output, 
                                     const ProcessInfo& rCurrentProcessInfo){};
+		
+				    
+			int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
 			/**
 			 * Input and output
