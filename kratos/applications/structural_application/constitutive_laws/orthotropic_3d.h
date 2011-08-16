@@ -265,6 +265,8 @@ namespace Kratos
 				 Vector mCurrentStress;
 
 			void CalculateTransformationMatrix(Matrix& T);
+			
+			int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
 			 /**
 			  * Un accessible methods 

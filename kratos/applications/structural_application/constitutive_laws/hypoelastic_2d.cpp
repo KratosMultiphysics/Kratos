@@ -265,4 +265,20 @@ namespace Kratos
 		rCauchy_StressVector[1] = msaux(1,1);
 		rCauchy_StressVector[2] = msaux(0,1);
     }
+    
+          int Hypoelastic2D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
+       {
+	  
+            if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+	 
+	    if(MIU.Key() == 0 || props[MIU]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"MIU has Key zero or invalid value ","");
+	    
+	    if(LAMBDA.Key() == 0 || props[LAMBDA]< 0.00) 
+               KRATOS_ERROR(std::invalid_argument,"LAMBDA has Key zero or invalid value ","");
+	    
+	    return 0;
+         }
+    
 } // Namespace Kratos

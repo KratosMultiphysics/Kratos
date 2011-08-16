@@ -147,6 +147,7 @@ namespace Kratos
                                           );
             
 
+	  int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
             /**
              * Operators 
              */

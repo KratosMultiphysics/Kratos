@@ -175,6 +175,7 @@ namespace Kratos
 						   
 						   
 	                 std::string Info() const;
+			 int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
  
 		
