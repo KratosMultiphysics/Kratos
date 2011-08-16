@@ -260,8 +260,10 @@ namespace Kratos
 				 int CalculateTangent = true,
 				 bool SaveInternalVariables = true);
 
+	
+	   int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 			
-			/**
+	                 /**
 			 * converts a strain vector styled variable into its form, which the
 			 * deviatoric parts are no longer multiplied by 2
 			 */

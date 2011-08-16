@@ -611,6 +611,35 @@ namespace Kratos
         noalias( Result ) = k11  - outer_prod( k12, k21 ) / k22( 0, 0 );
 
     }
+    
+        int Plasticity2D::Check(const Properties& props,
+                const GeometryType& geom,
+                const ProcessInfo& CurrentProcessInfo)
+        {
+            KRATOS_TRY
+
+            if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+            
+            if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
+                KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+	    
+	    const double& nu = props[POISSON_RATIO];
+	    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+	    if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
+                KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+         
+            if(YIELD_STRESS.Key() == 0 || props[YIELD_STRESS]< 0.00)
+                KRATOS_ERROR(std::invalid_argument,"YIELD_STRESS has Key zero or invalid value ","");
+
+	    if(ISOTROPIC_HARDENING_MODULUS.Key())
+                KRATOS_ERROR(std::invalid_argument,"ISOTROPIC_HARDENING_MODULUS has Key zero or invalid value ","");
+	    
+	    return 0;
+	    
+            KRATOS_CATCH("");
+        }
+    
 
 }
 

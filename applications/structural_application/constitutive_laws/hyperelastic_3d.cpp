@@ -620,6 +620,21 @@ namespace Kratos
 		rCauchy_StressVector[4]=msaux(1,3);
 		rCauchy_StressVector[5]=msaux(2,3);
 	}
+	
+	
+         int Hyperelastic3D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
+        {  
+            if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+	    
+	    if(MU.Key() == 0 || props[MU]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"MU has Key zero or invalid value ","");
+	    
+	    if(BULK_MODULUS.Key() == 0 || props[BULK_MODULUS]< 0.00) 
+               KRATOS_ERROR(std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ","");
+    
+	    return 0;
+         }
 
 } // Namespace Kratos
 

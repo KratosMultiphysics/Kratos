@@ -166,6 +166,7 @@ namespace Kratos
             return 3;
         }
 
+        int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
         /**
          * Input and output

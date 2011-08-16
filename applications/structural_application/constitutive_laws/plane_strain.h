@@ -196,6 +196,8 @@ namespace Kratos
                                                bool CalculateStresses = true,
                                                int CalculateTangent = 1,
                                                bool SaveInternalVariables = true );
+					       
+	     int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
 			/**
 			 * Input and output

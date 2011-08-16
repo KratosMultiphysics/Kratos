@@ -166,6 +166,8 @@ namespace Kratos
                                       bool SaveInternalVariables = true );
 
 	  double CalculateThicknessRatio(const Vector& GreenLagrangeStrainVector);
+	  
+	  int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
       ///@}
       ///@name Operations

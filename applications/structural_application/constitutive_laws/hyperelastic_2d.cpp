@@ -754,6 +754,34 @@ namespace Kratos
 		//KRATOS_WATCH(rCauchy_StressVector)
 	}
 
+
+          int Hyperelastic2D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
+       {
+	 
+ 
+            if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+
+	    if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
+               KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+
+	    const double& nu = props[POISSON_RATIO];
+	    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+	    if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
+                KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+	    
+	    if(MU.Key() == 0 || props[MU]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"MU has Key zero or invalid value ","");
+	    
+	    if(BULK_MODULUS.Key() == 0 || props[BULK_MODULUS]< 0.00) 
+               KRATOS_ERROR(std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ","");
+	    
+	    if(RETRACTION_TIME.Key() == 0 || props[RETRACTION_TIME]< 0.00) 
+                KRATOS_ERROR(std::invalid_argument,"RETRACTION_TIME has Key zero or invalid value ","");
+	    
+	    return 0;
+         }
+
 } // Namespace Kratos
 
 //***********************************************************************************************************

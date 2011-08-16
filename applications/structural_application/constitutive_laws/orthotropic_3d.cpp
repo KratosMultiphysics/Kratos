@@ -350,4 +350,28 @@ namespace Kratos
 		rCauchy_StressVector[4] = msaux(0,2);
 		rCauchy_StressVector[5] = msaux(1,2);
     }
+    
+    
+         int Orthotropic3D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
+         {
+	 
+	    
+	   if(MATERIAL_DIRECTION.Key() == 0) 
+                KRATOS_ERROR(std::invalid_argument,"MATERIAL_DIRECTION has Key zero or invalid value ","");
+
+	   if(ORTHOTROPIC_YOUNG_MODULUS .Key() == 0)  
+                KRATOS_ERROR(std::invalid_argument,"ORTHOTROPIC_YOUNG_MODULUS has Key zero invalid value ","");
+	  
+	    if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+	    
+	    if(ORTHOTROPIC_POISSON_RATIO .Key() == 0 ) 
+               KRATOS_ERROR(std::invalid_argument,"ORTHOTROPIC_POISSON_RATIO has Key zero or invalid value ","");
+	    
+	    if(ORTHOTROPIC_SHEAR_MODULUS.Key() == 0 ) 
+               KRATOS_ERROR(std::invalid_argument,"ORTHOTROPIC_SHEAR_MODULUS has Key zero or invalid value ","");
+	    
+	    return 0;
+	    
+         }
 } // Namespace Kratos

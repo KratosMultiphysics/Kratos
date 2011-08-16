@@ -218,6 +218,11 @@ namespace Kratos
             return 3;
         }
 
+        int Check(const Properties& props,
+                const GeometryType& geom,
+                const ProcessInfo& CurrentProcessInfo);
+
+		
 
         //                  void Interpolate_Internal_Variables(double& weight,
         //                                      ConstitutiveLaw< Node<3> >& Other_Constitutive_Law,
@@ -244,21 +249,34 @@ namespace Kratos
 
     private:
 
-        ///@}
-        ///@name Serialization
-        ///@{
-        friend class Serializer;
+            ///@}
+            ///@name Serialization
+            ///@{
+            friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const
-        {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-        }
+            virtual void save( Serializer& rSerializer ) const
+            {
+                //rSerializer.save("Name", "Isotropic3D");
+                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
+                rSerializer.save( "E", mE );
+                rSerializer.save( "NU", mNU );
+                rSerializer.save( "DE", mDE );
+                //rSerializer.save( "InSituStress", mInSituStress );
+                //rSerializer.save( "CurrentStress", mCurrentStress );
+                //rSerializer.save( "MaterialParameters", mMaterialParameters );
+            }
 
-        virtual void load(Serializer& rSerializer)
-        {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-        }
-
+            virtual void load( Serializer& rSerializer )
+            {
+                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
+                rSerializer.load( "E", mE );
+                rSerializer.load( "NU", mNU );
+                rSerializer.load( "DE", mDE );
+                //rSerializer.load( "InSituStress", mInSituStress );
+                //rSerializer.load( "Ctangent", mCtangent );
+                //rSerializer.load( "CurrentStress", mCurrentStress );
+                //rSerializer.load( "MaterialParameters", mMaterialParameters );
+            }
         /**
          * Static Member Variables
          */
