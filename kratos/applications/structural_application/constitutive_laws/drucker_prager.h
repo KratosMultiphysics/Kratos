@@ -331,6 +331,8 @@ namespace Kratos
 			 * this function does nothing
 			  */
 			void CalculateTangentMatrix(const Vector& StrainVector);
+			
+			int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 			 
 			 /**
 			 * calculates the linear elastic constitutive matrix in terms of Young's modulus and

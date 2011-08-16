@@ -171,6 +171,8 @@ namespace Kratos
 					const GeometryType& geom, //this is just to give the array of nodes
 					const Vector& ShapeFunctionsValues ,
 					const ProcessInfo& CurrentProcessInfo);
+					
+	     int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 			
 			/**
 			 * Calculates the cauchy stresses. For a given deformation and stress state

@@ -224,6 +224,20 @@ namespace Kratos
 
 	}
 
+          int Fluid2D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
+       {
+	  
+            if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+	 
+	    if(MIU.Key() == 0 || props[MIU]<0.00)
+                KRATOS_ERROR(std::invalid_argument,"MIU has Key zero or invalid value ","");
+	    
+	    if(BULK_MODULUS.Key() == 0 || props[BULK_MODULUS]< 0.00) 
+               KRATOS_ERROR(std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ","");
+	    
+	    return 0;
+         }
 
 
 

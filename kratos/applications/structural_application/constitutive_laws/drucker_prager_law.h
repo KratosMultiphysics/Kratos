@@ -190,7 +190,8 @@ namespace Kratos
                                       int CalculateTangent = true,
                                       bool SaveInternalVariables = true );
             
-				      
+	    int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
+	    
 				      
 		  private:
 
