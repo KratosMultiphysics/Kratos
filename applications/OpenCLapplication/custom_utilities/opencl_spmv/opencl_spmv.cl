@@ -1,13 +1,18 @@
-#define ROWS_PER_WORKGROUP_BITS 4
-#define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
+//#define ROWS_PER_WORKGROUP_BITS 1
+//#define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
+
+#define ROWS_PER_WORKGROUP 16
 
 // TODO: Fix this!
-#define LOCAL_WORKGROUP_SIZE (256 / 16)
+#define LOCAL_WORKGROUP_SIZE (512 / 16)
 
-#include "opencl_common.cl"
+//#include "opencl_common.cl"
+#include "opencl_enable_fp64.cl"
 
+typedef ulong IndexType;
+typedef double ValueType;
 
-#define KRATOS_OCL_DEBUG
+//#define KRATOS_OCL_DEBUG
 
 
 #ifdef KRATOS_OCL_DEBUG
@@ -24,136 +29,127 @@
 
 #endif
 
-__kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __global IndexType *A_ColumnIndices, __global ValueType *A_Values, __global ValueType *X_Values, __global ValueType *Y_Values, __local IndexType *Bounds, __local ValueType *Buffer)
+__kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __global IndexType *A_ColumnIndices, __global ValueType *A_Values, __global ValueType *X_Values, __global ValueType *Y_Values, IndexType N, __local IndexType *Bounds, __local ValueType *Buffer)
 {
-	const size_t gid = get_group_id(0);  // OK
-	const size_t tid = get_local_id(0);  // OK
+	const IndexType gid = get_group_id(0);  // OK
+	const IndexType tid = get_local_id(0);  // OK
 
-	const size_t workgroup_size = get_num_groups(0);
-	const size_t local_workgroup_size = workgroup_size >> ROWS_PER_WORKGROUP_BITS;
+	const IndexType workgroup_size = get_local_size(0);  // OK
+	//const IndexType local_workgroup_size = workgroup_size / ROWS_PER_WORKGROUP;
 
-	const size_t lgid = tid / (workgroup_size >> ROWS_PER_WORKGROUP_BITS);  // OK
-	const size_t ltid = tid % (workgroup_size >> ROWS_PER_WORKGROUP_BITS);  // OK
+	const IndexType lgid = tid / (workgroup_size / ROWS_PER_WORKGROUP);  // OK
+	const IndexType ltid = tid % (workgroup_size / ROWS_PER_WORKGROUP);  // OK
 
-	const size_t stride = workgroup_size >> ROWS_PER_WORKGROUP_BITS; // OK
+	const IndexType Row = gid * ROWS_PER_WORKGROUP + lgid;
+	const IndexType stride = workgroup_size / ROWS_PER_WORKGROUP; // OK
 
-	// Read bounds
-
-	if (tid == 0)
+	if (Row < N)
 	{
-		Bounds[0] = A_RowIndices[gid << ROWS_PER_WORKGROUP_BITS];
-	}
 
-	if (tid < ROWS_PER_WORKGROUP)
-	{
-		Bounds[tid + 1] = A_RowIndices[(gid << ROWS_PER_WORKGROUP_BITS) + tid + 1];
+		// Read bounds
+
+		if (tid == workgroup_size - 1)
+		{
+			Bounds[ROWS_PER_WORKGROUP] = A_RowIndices[Row + 1];
+		}
+
+		if (ltid == 0)
+		{
+			Bounds[lgid] = A_RowIndices[Row];
+		}
+
 		Buffer[tid] = 0.00;
-	}
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+		barrier(CLK_LOCAL_MEM_FENCE);
 
-	const size_t Start = Bounds[lgid];
-	const size_t End = Bounds[lgid + 1];
+		const IndexType Start = Bounds[lgid];
+		const IndexType End = Bounds[lgid + 1];
 
-////////////////////////////////////////////////
+		//Safe but non-optimized way
+		//const IndexType Start = A_RowIndices[gid * ROWS_PER_WORKGROUP + lgid];
+		//const IndexType End = A_RowIndices[gid * ROWS_PER_WORKGROUP + lgid + 1];
 
-#ifdef KRATOS_OCL_DEBUG
-
-	if (get_global_id(0) == 1000)
-	{
-		KRATOS_OCL_VIEW_INT(Start);
-		KRATOS_OCL_VIEW_INT(End);
-		KRATOS_OCL_VIEW_INT(stride);
-		KRATOS_OCL_VIEW_INT(get_local_id(0));
-		KRATOS_OCL_VIEW_INT(get_global_id(0));
-		KRATOS_OCL_VIEW_INT(get_num_groups(0));
-	}
-
-#endif
-
-////////////////////////////////////////////////
-
-
-	//
-
-	for (IndexType i = Start + ltid; i < End; i += stride)
-	{
 		//
-		Buffer[lgid] += A_Values[i] * X_Values[A_ColumnIndices[i]];
-	}
 
-	//
+		for (IndexType i = Start + ltid; i < End; i += stride)
+		{
+			//
+			Buffer[tid] += A_Values[i] * X_Values[A_ColumnIndices[i]];
+		}
+
+		//
 
 #if LOCAL_WORKGROUP_SIZE > 32
 
-	if (ltid < 32)
-	{
-		Buffer[tid] += Buffer[tid + 32];
-	}
+		if (ltid < 32)
+		{
+			Buffer[tid] += Buffer[tid + 32];
+		}
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+		barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
 #if LOCAL_WORKGROUP_SIZE > 16
 
-	if (ltid < 16)
-	{
-		Buffer[tid] += Buffer[tid + 16];
-	}
+		if (ltid < 16)
+		{
+			Buffer[tid] += Buffer[tid + 16];
+		}
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+		barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
 #if LOCAL_WORKGROUP_SIZE > 8
 
-	if (ltid < 8)
-	{
-		Buffer[tid] += Buffer[tid + 8];
-	}
+		if (ltid < 8)
+		{
+			Buffer[tid] += Buffer[tid + 8];
+		}
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+		barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
 #if LOCAL_WORKGROUP_SIZE > 4
 
-	if (ltid < 4)
-	{
-		Buffer[tid] += Buffer[tid + 4];
-	}
+		if (ltid < 4)
+		{
+			Buffer[tid] += Buffer[tid + 4];
+		}
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+		barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
 #if LOCAL_WORKGROUP_SIZE > 2
 
-	if (ltid < 2)
-	{
-		Buffer[tid] += Buffer[tid + 2];
-	}
+		if (ltid < 2)
+		{
+			Buffer[tid] += Buffer[tid + 2];
+		}
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+		barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
 #if LOCAL_WORKGROUP_SIZE > 1
 
-	if (ltid < 1)
-	{
-		Buffer[tid] += Buffer[tid + 1];
-	}
+		if (ltid < 1)
+		{
+			Buffer[tid] += Buffer[tid + 1];
+		}
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+		barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
-	//
+		//
 
-	if (ltid == 0)
-	{
-		Y_Values[(gid << ROWS_PER_WORKGROUP_BITS) + lgid] = Buffer[tid];
+		if (ltid == 0)
+		{
+			Y_Values[Row] = Buffer[tid];
+		}
 	}
 }
