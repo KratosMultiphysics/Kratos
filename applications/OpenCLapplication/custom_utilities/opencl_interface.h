@@ -1440,7 +1440,7 @@ namespace OpenCL
 			//
 			// Register a kernel in the built program on all devices
 
-			cl_uint RegisterKernel(cl_uint _ProgramIndex, const char *_KernelName)
+			cl_uint RegisterKernel(cl_uint _ProgramIndex, const char *_KernelName, cl_uint _WorkGroupSize = 0)
 			{
 				cl_int Err;
 				cl_uint KernelNo = Kernels.size();
@@ -1460,39 +1460,47 @@ namespace OpenCL
 					Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &MaxWorkGroupSize, NULL);
 					KRATOS_OCL_CHECK(Err);
 
-#if KRATOS_OCL_VERSION > 100
-
-					Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(size_t), &PreferredWorkGroupSizeMultiple, NULL);
-					KRATOS_OCL_CHECK(Err);
-
-#else
-					// For OpenCL 1.0 only
-
-					PreferredWorkGroupSizeMultiple = 64;
-
-#endif
-
-					// Select an optimal WorkGroupSize
-
-					if (DeviceTypes[i] == CL_DEVICE_TYPE_CPU)
+					if (_WorkGroupSize > 0)
 					{
-						// On CPU devices we use a fixed group size
-
-						WorkGroupSize = KRATOS_OCL_CPU_WORK_GROUP_SIZE;
+						WorkGroupSize = _WorkGroupSize;
 					}
 					else
 					{
-						if (MaxWorkGroupSize < PreferredWorkGroupSizeMultiple)
-						{
-							// MaxWorkGroupSize too low; use it as WorkGroupSize
 
-							WorkGroupSize = MaxWorkGroupSize;
+#if KRATOS_OCL_VERSION > 100
+
+						Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(size_t), &PreferredWorkGroupSizeMultiple, NULL);
+						KRATOS_OCL_CHECK(Err);
+
+#else
+						// For OpenCL 1.0 only
+
+						PreferredWorkGroupSizeMultiple = 64;
+
+#endif
+
+						// Select an optimal WorkGroupSize
+
+						if (DeviceTypes[i] == CL_DEVICE_TYPE_CPU)
+						{
+							// On CPU devices we use a fixed group size
+
+							WorkGroupSize = KRATOS_OCL_CPU_WORK_GROUP_SIZE;
 						}
 						else
 						{
-							// For best performance, we use the maximum work group size which is divisible by WorkGroupSizeMultiple
+							if (MaxWorkGroupSize < PreferredWorkGroupSizeMultiple)
+							{
+								// MaxWorkGroupSize too low; use it as WorkGroupSize
 
-							WorkGroupSize = (MaxWorkGroupSize / PreferredWorkGroupSizeMultiple) * PreferredWorkGroupSizeMultiple;
+								WorkGroupSize = MaxWorkGroupSize;
+							}
+							else
+							{
+								// For best performance, we use the maximum work group size which is divisible by WorkGroupSizeMultiple
+
+								WorkGroupSize = (MaxWorkGroupSize / PreferredWorkGroupSizeMultiple) * PreferredWorkGroupSizeMultiple;
+							}
 						}
 					}
 
