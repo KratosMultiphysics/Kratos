@@ -194,9 +194,14 @@ namespace Kratos
 
         //compute turbulent viscosity
         const double Cs = this->GetValue(C_SMAGORINSKY);
+	
+
         double nu_turbulent = 0.0;
-        if (Cs != 0.0)
+        if (Cs != 0.0){
             nu_turbulent = ComputeSmagorinskyViscosity(DN_DX, h, Cs, nu);
+	
+}
+
 
         //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
         // rLeftHandSideMatrix += Laplacian * nu; --> ONE GAUSS POINT
@@ -855,7 +860,7 @@ namespace Kratos
         NormS = sqrt(NormS);
 
         // Total Viscosity
-        return 2.0 * C * C * h * NormS;
+        return 2.0 * C * C * h * h * NormS;
     }
 
     //************************************************************************************
