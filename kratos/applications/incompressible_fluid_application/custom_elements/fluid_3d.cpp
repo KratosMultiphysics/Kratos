@@ -1013,7 +1013,7 @@ namespace Kratos
         NormS = sqrt(NormS);
 
         // Total Viscosity
-        return 2.0 * C * C * h * NormS;
+        return 2.0 * C * C * h * h * NormS;
     }
 
     int Fluid3D::Check(const ProcessInfo& rCurrentProcessInfo)
