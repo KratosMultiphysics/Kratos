@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: janosch $
 *   Date:                $Date: 2007-03-13 15:01:51 $
 *   Revision:            $Revision: 1.3 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -74,69 +74,80 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-class FaceVel3D
-	: public Face3D
+
+    class FaceVel3D
+                : public Face3D
     {
-	public:
+        public:
 
-		// Counted pointer of Face3D
-		KRATOS_CLASS_POINTER_DEFINITION(FaceVel3D);  
-
-
-		// Constructor void
-		FaceVel3D();
-
-		// Constructor using an array of nodes 
-		FaceVel3D(IndexType NewId, GeometryType::Pointer pGeometry);
-
-		// Constructor using an array of nodes with properties
-		FaceVel3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-		// Destructor
-		virtual ~FaceVel3D();
-
-		
-		// Name Operations
-
-		Condition::Pointer Create(
-			IndexType NewId,
-			NodesArrayType const& ThisNodes,
-			PropertiesType::Pointer pProperties) const;
-
-		void EquationIdVector(
-			EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void GetDofList(
-			DofsVectorType& ElementalDofList,
-			ProcessInfo& rCurrentProcessInfo);
-
-	protected:
+            // Counted pointer of Face3D
+            KRATOS_CLASS_POINTER_DEFINITION( FaceVel3D );
 
 
-	private:
-		///@name Static Member Variables 
+            // Constructor void
+            FaceVel3D();
 
-	///@}
-	///@name Serialization
-	///@{	
-	friend class Serializer;
+            // Constructor using an array of nodes
+            FaceVel3D( IndexType NewId, GeometryType::Pointer pGeometry );
 
-	virtual void save(Serializer& rSerializer) const
-	{
-	rSerializer.save("Name","FaceVel3D");
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Face3D );
-	}
+            // Constructor using an array of nodes with properties
+            FaceVel3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
-	virtual void load(Serializer& rSerializer)
-	{
-	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Face3D );
-	}
-		
-		
+            // Destructor
+            virtual ~FaceVel3D();
 
-	};	// class Face3D.
 
-}	// namespace Kratos.
+            // Name Operations
+
+            Condition::Pointer Create(
+                IndexType NewId,
+                NodesArrayType const& ThisNodes,
+                PropertiesType::Pointer pProperties ) const;
+
+            void EquationIdVector(
+                EquationIdVectorType& rResult,
+                ProcessInfo& rCurrentProcessInfo );
+
+            void GetDofList(
+                DofsVectorType& ElementalDofList,
+                ProcessInfo& rCurrentProcessInfo );
+
+            /**
+             * This function provides the place to perform checks on the completeness of the input.
+             * It is designed to be called only once (or anyway, not often) typically at the beginning
+             * of the calculations, so to verify that nothing is missing from the input
+             * or that no common error is found.
+             * @param rCurrentProcessInfo
+             */
+            virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+
+        protected:
+
+
+        private:
+            ///@name Static Member Variables
+
+            ///@}
+            ///@name Serialization
+            ///@{
+
+            friend class Serializer;
+
+            virtual void save( Serializer& rSerializer ) const
+            {
+                rSerializer.save( "Name", "FaceVel3D" );
+                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Face3D );
+            }
+
+            virtual void load( Serializer& rSerializer )
+            {
+                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Face3D );
+            }
+
+
+
+    }; // class Face3D.
+
+} // namespace Kratos.
 
 #endif // KRATOS_FACE3D_H_INCLUDED  defined 
