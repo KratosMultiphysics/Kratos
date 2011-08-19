@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: janosch $
 *   Date:                $Date: 2008-01-29 13:07:22 $
 *   Revision:            $Revision: 1.1 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -73,147 +73,158 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-class FaceForce3D
-	: public Condition
+
+    class FaceForce3D
+                : public Condition
     {
-	public:
+        public:
 
-		// Counted pointer of FaceForce3D
-		KRATOS_CLASS_POINTER_DEFINITION(FaceForce3D);  
-
-
-		// Constructor void
-		FaceForce3D();
-
-		// Constructor using an array of nodes 
-		FaceForce3D(IndexType NewId, GeometryType::Pointer pGeometry);
-
-		// Constructor using an array of nodes with properties
-		FaceForce3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-		// Destructor
-		virtual ~FaceForce3D();
-
-		
-		// Name Operations
-
-		Condition::Pointer Create(
-			IndexType NewId,
-			NodesArrayType const& ThisNodes,
-			PropertiesType::Pointer pProperties) const;
-
-		void EquationIdVector(
-			EquationIdVectorType& rResult,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void GetDofList(
-			DofsVectorType& ElementalDofList,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void CalculateRightHandSide(
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void CalculateLocalSystem(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void MassMatrix(
-			MatrixType& rMassMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void DampMatrix(
-			MatrixType& rDampMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-
-		void GetValuesVector(
-			Vector& values,
-			int Step = 0);
-
-		void GetFirstDerivativesVector(
-			Vector& values,
-			int Step = 0);
-
-		void GetSecondDerivativesVector(
-			Vector& values,
-			int Step = 0);
-	
-
-	protected:
+            // Counted pointer of FaceForce3D
+            KRATOS_CLASS_POINTER_DEFINITION( FaceForce3D );
 
 
-	private:
-		///@name Static Member Variables 
+            // Constructor void
+            FaceForce3D();
 
-		/// privat variables
+            // Constructor using an array of nodes
+            FaceForce3D( IndexType NewId, GeometryType::Pointer pGeometry );
+
+            // Constructor using an array of nodes with properties
+            FaceForce3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+
+            // Destructor
+            virtual ~FaceForce3D();
 
 
-		// privat name Operations
+            // Name Operations
 
-		void CalculateAll(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			const ProcessInfo& rCurrentProcessInfo,
-			bool CalculateStiffnessMatrixFlag,
-			bool CalculateResidualVectorFlag);
+            Condition::Pointer Create(
+                IndexType NewId,
+                NodesArrayType const& ThisNodes,
+                PropertiesType::Pointer pProperties ) const;
 
-		void CalculateAndSubKp(
-			Matrix& K,
-			array_1d<double,3>& ge,
-			array_1d<double,3>& gn,
-			const Matrix& DN_De,
-			const Vector& N,
-			double pressure,
-			double weight);
+            void EquationIdVector(
+                EquationIdVectorType& rResult,
+                ProcessInfo& rCurrentProcessInfo );
 
-		void MakeCrossMatrix(
-			boost::numeric::ublas::bounded_matrix<double,3,3>& M,
-			array_1d<double,3>& U);
+            void GetDofList(
+                DofsVectorType& ElementalDofList,
+                ProcessInfo& rCurrentProcessInfo );
 
-		void CrossProduct(
-			array_1d<double,3>& cross,
-			array_1d<double,3>& a,
-			array_1d<double,3>& b);
+            void CalculateRightHandSide(
+                VectorType& rRightHandSideVector,
+                ProcessInfo& rCurrentProcessInfo );
 
-		void SubtractMatrix(
-			MatrixType& Destination,
-			boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix, 
-			int InitialRow,
-			int InitialCol);
+            void CalculateLocalSystem(
+                MatrixType& rLeftHandSideMatrix,
+                VectorType& rRightHandSideVector,
+                ProcessInfo& rCurrentProcessInfo );
 
-		void ExpandReducedMatrix(
-			Matrix& Destination,
-			Matrix& ReducedMatrix);
+            void MassMatrix(
+                MatrixType& rMassMatrix,
+                ProcessInfo& rCurrentProcessInfo );
 
-		void CalculateAndAdd_PressureForce(
-			VectorType& residualvector,
-			const Vector& N,
-			const array_1d<double,3>& v3,
-			double pressure,
-			double weight,
-			const ProcessInfo& rCurrentProcessInfo);
-			
-	    ///@}
-	    ///@name Serialization
-	    ///@{	
-	    friend class Serializer;
+            void DampMatrix(
+                MatrixType& rDampMatrix,
+                ProcessInfo& rCurrentProcessInfo );
 
-	    // A private default constructor necessary for serialization 
+            void GetValuesVector(
+                Vector& values,
+                int Step = 0 );
 
-	    virtual void save(Serializer& rSerializer) const
-	    {
-	    rSerializer.save("Name","FaceForce3D");
-	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
-	    }
+            void GetFirstDerivativesVector(
+                Vector& values,
+                int Step = 0 );
 
-	    virtual void load(Serializer& rSerializer)
-	    {
-	    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
-	    }
+            void GetSecondDerivativesVector(
+                Vector& values,
+                int Step = 0 );
 
-	};	// class FaceForce3D.
+            /**
+             * This function provides the place to perform checks on the completeness of the input.
+             * It is designed to be called only once (or anyway, not often) typically at the beginning
+             * of the calculations, so to verify that nothing is missing from the input
+             * or that no common error is found.
+             * @param rCurrentProcessInfo
+             */
+            virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
-}	// namespace Kratos.
+
+        protected:
+
+
+        private:
+            ///@name Static Member Variables
+
+            /// privat variables
+
+
+            // privat name Operations
+
+            void CalculateAll(
+                MatrixType& rLeftHandSideMatrix,
+                VectorType& rRightHandSideVector,
+                const ProcessInfo& rCurrentProcessInfo,
+                bool CalculateStiffnessMatrixFlag,
+                bool CalculateResidualVectorFlag );
+
+            void CalculateAndSubKp(
+                Matrix& K,
+                array_1d<double, 3>& ge,
+                array_1d<double, 3>& gn,
+                const Matrix& DN_De,
+                const Vector& N,
+                double pressure,
+                double weight );
+
+            void MakeCrossMatrix(
+                boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+                array_1d<double, 3>& U );
+
+            void CrossProduct(
+                array_1d<double, 3>& cross,
+                array_1d<double, 3>& a,
+                array_1d<double, 3>& b );
+
+            void SubtractMatrix(
+                MatrixType& Destination,
+                boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+                int InitialRow,
+                int InitialCol );
+
+            void ExpandReducedMatrix(
+                Matrix& Destination,
+                Matrix& ReducedMatrix );
+
+            void CalculateAndAdd_PressureForce(
+                VectorType& residualvector,
+                const Vector& N,
+                const array_1d<double, 3>& v3,
+                double pressure,
+                double weight,
+                const ProcessInfo& rCurrentProcessInfo );
+
+            ///@}
+            ///@name Serialization
+            ///@{
+
+            friend class Serializer;
+
+            // A private default constructor necessary for serialization
+
+            virtual void save( Serializer& rSerializer ) const
+            {
+                rSerializer.save( "Name", "FaceForce3D" );
+                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+            }
+
+            virtual void load( Serializer& rSerializer )
+            {
+                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+            }
+
+    }; // class FaceForce3D.
+
+} // namespace Kratos.
 
 #endif // KRATOS_FACEFORCE3D_H_INCLUDED  defined 

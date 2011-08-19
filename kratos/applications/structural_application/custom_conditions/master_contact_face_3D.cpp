@@ -345,4 +345,17 @@ namespace Kratos
            }
        }
    }
+   
+   /**
+    * This function provides the place to perform checks on the completeness of the input.
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    */
+    int MasterContactFace3D::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+    {
+        return 0;
+    }
+
 } // Namespace Kratos
