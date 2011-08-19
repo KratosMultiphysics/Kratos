@@ -453,7 +453,7 @@ namespace Kratos
             if (this->GetGeometry().Area() < 0)
             {
                 std::cout << "error on element -> " << this->Id() << std::endl;
-                KRATOS_ERROR(std::logic_error, "Area can not be lesser than 0","")
+                KRATOS_ERROR(std::logic_error, "Area cannot be less than 0","")
             }
             return 0;
 
