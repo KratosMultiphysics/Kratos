@@ -4,19 +4,31 @@
 
 #define ROWS_PER_WORKGROUP_BITS 4
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
-#define WORKGROUP_SIZE 512
+
+#define WORKGROUP_SIZE_BITS 9
+#define WORKGROUP_SIZE (1 << WORKGROUP_SIZE_BITS)
+
+#define LOCAL_WORKGROUP_SIZE_BITS (WORKGROUP_SIZE_BITS - ROWS_PER_WORKGROUP_BITS)
+#define LOCAL_WORKGROUP_SIZE (1 << LOCAL_WORKGROUP_SIZE_BITS)
+
+int64_t Timer()
+{
+	struct timespec tp;
+
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+
+	return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
+}
 
 int main()
 {
+	int64_t t1, t2, T1, T2;
+
 	Kratos::OpenCL::DeviceGroup DeviceGroup(CL_DEVICE_TYPE_GPU, true);
 
 	DeviceGroup.AddCLSearchPath("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities");
 	cl_uint Program = DeviceGroup.BuildProgramFromFile("opencl_spmv.cl", "-cl-fast-relaxed-math");
 	cl_uint Kernel = DeviceGroup.RegisterKernel(Program, "CSR_Matrix_Vector_Multiply", WORKGROUP_SIZE);
-
-	size_t WorkgroupSize = DeviceGroup.WorkGroupSizes[Kernel][0];
-
-	std::cout << "Kernel workgroup size: " << WorkgroupSize << std::endl;
 
 	Kratos::CompressedMatrix A;
 	Kratos::Vector X, Y1, Y2;
@@ -46,13 +58,26 @@ int main()
 	DeviceGroup.SetBufferAsKernelArg(Kernel, 4, Y_Values);
 	DeviceGroup.SetKernelArg(Kernel, 5, A.size1());
 	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 6, (ROWS_PER_WORKGROUP + 1) * sizeof(cl_ulong));
-	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 7, WorkgroupSize * sizeof(cl_double));
+	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 7, WORKGROUP_SIZE * sizeof(cl_double));
 
-	DeviceGroup.ExecuteKernel(Kernel, A.size1() * WorkgroupSize / ROWS_PER_WORKGROUP + 1);
+	t1 = Timer();
+
+	DeviceGroup.ExecuteKernel(Kernel, A.size1() * LOCAL_WORKGROUP_SIZE + 1);
+
+	t2 = Timer();
+
+	T1 = t2 - t1;
 
 	DeviceGroup.CopyBuffer(Y_Values, Kratos::OpenCL::DeviceToHost, Kratos::OpenCL::VoidPList(1, &Y1[0]));
 
+
+	t1 = Timer();
+
 	prod(A, X, Y2);
+
+	t2 = Timer();
+
+	T2 = t2 - t1;
 
 	for (cl_uint i = 0; i < A.size1(); i++)
 	{
@@ -67,7 +92,7 @@ int main()
 		std::cout << A.index1_data()[i] << std::endl;
 	}*/
 
-	std::cout << "Test finished." << std::endl;
+	std::cout << "Test finished." << std::endl << "OpenCL SpMV:\t" << T1 << " ns" << std::endl << "uBlas:\t\t" << T2 << " ns" << std::endl;
 
 	return 0;
 }
