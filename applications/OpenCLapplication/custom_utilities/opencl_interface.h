@@ -1475,7 +1475,7 @@ namespace OpenCL
 #else
 						// For OpenCL 1.0 only
 
-						PreferredWorkGroupSizeMultiple = 64;
+						PreferredWorkGroupSizeMultiple = 32;
 
 #endif
 
