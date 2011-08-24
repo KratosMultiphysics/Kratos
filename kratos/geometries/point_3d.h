@@ -595,7 +595,7 @@ namespace Kratos
       */
       virtual std::string Info() const
 	{
-	  return "a point load in 2D space";
+	  return "a point in 3D space";
 	}
 
       /** Print information about this object.
@@ -606,7 +606,7 @@ namespace Kratos
       */
       virtual void PrintInfo(std::ostream& rOStream) const
 	{
-	  rOStream << "a point load in 2D space";
+	  rOStream << "a point in 3D space";
 	}
 
       /** Print geometry's data into given stream. Prints it's points
@@ -619,7 +619,7 @@ namespace Kratos
       */
       virtual void PrintData(std::ostream& rOStream) const
 	{
-	   rOStream << "a point load in 2D space";
+	   rOStream << "a point in 3D space";
 	}      
       
             

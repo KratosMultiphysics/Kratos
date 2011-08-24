@@ -489,7 +489,9 @@ namespace Kratos
             */
             virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
             {
-                KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+                rResult = ZeroVector(1);
+                rResult[0] = 0.5*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                return rResult;
             }
 
             /** Determinant of jacobian in specific integration point of
@@ -512,7 +514,7 @@ namespace Kratos
             */
             virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
             {
-                KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+                return( 0.5*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) ) );
             }
 
             /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -529,7 +531,7 @@ namespace Kratos
             */
             virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
             {
-                KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+                return( 0.5*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) ) );
             }
 
 
