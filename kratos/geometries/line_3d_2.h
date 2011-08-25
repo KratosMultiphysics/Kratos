@@ -551,7 +551,9 @@ namespace Kratos
             */
             virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
             {
-                KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+                rResult[0] = ZeroMatrix(1,1);
+                rResult[0](0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                return rResult;
             }
 
             /** Inverse of jacobian in specific integration point of given integration
@@ -573,7 +575,8 @@ namespace Kratos
             */
             virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
             {
-                KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+                rResult = ZeroMatrix(1,1);
+                rResult(0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
             }
 
             /** Inverse of jacobian in given point. This method calculate inverse of jacobian
@@ -589,7 +592,8 @@ namespace Kratos
             */
             virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
             {
-                KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+                rResult = ZeroMatrix(1,1);
+                rResult(0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
             }
 
 
