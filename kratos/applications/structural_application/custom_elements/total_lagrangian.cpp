@@ -1115,7 +1115,10 @@ namespace Kratos
         }
 
         //check constitutive law
-        GetProperties().GetValue(CONSTITUTIVE_LAW)->Check(GetProperties(),GetGeometry(),rCurrentProcessInfo);
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+        {
+            return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+        }
         
         //check if it is in the XY plane for 2D case
 
