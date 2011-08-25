@@ -219,22 +219,14 @@ namespace Kratos
             virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
             /**
-             * Turn back information as a string.
-             * (DEACTIVATED)
-             */
-            //std::string Info();
-
-            /**
              * Print information about this object.
-             * (DEACTIVATED)
              */
-            //virtual void PrintInfo(std::ostream& rOStream) const;
+            virtual void PrintInfo(std::ostream& rOStream) const;
 
             /**
              * Print object's data.
-             * (DEACTIVATED)
              */
-            //virtual void PrintData(std::ostream& rOStream) const;
+            virtual void PrintData(std::ostream& rOStream) const;
 
         protected:
 

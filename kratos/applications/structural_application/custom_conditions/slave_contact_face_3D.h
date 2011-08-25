@@ -199,15 +199,13 @@ namespace Kratos
       
             /**
              * Print information about this object.
-             * (DEACTIVATED)
              */
-            //virtual void PrintInfo(std::ostream& rOStream) const;
+            virtual void PrintInfo(std::ostream& rOStream) const;
 
             /**
              * Print object's data.
-             * (DEACTIVATED)
              */
-            //virtual void PrintData(std::ostream& rOStream) const;
+            virtual void PrintData(std::ostream& rOStream) const;
             
             /**
             * This function provides the place to perform checks on the completeness of the input.
