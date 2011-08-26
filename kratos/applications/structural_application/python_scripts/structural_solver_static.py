@@ -48,6 +48,7 @@ class StaticStructuralSolver:
 #        self.conv_criteria = DisplacementCriteria(0.0001,1e-6)
         self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
         self.conv_criteria.Check(self.model_part)
+        self.MaxNewtonRapshonIterations = 100
 
         self.CalculateReactionFlag = True
         self.ReformDofSetAtEachStep = False
@@ -63,7 +64,7 @@ class StaticStructuralSolver:
         ##(self.solver).SetEchoLevel(2)
        
         #creating the solution strategy
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,5000,True,True,True)
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         self.solver.Check();
         
         #(self.solver).SetReformDofSetAtEachStepFlag(True)
