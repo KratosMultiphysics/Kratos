@@ -195,7 +195,7 @@ namespace Kratos
                         {
                             if(i_dof->IsFree())
                             {
-                                if(i_dof->GetVariable().Name()== "DISPLACEMENT_X")
+                                if(i_dof->GetVariable() == DISPLACEMENT_X 
                                 {	
                                             mFinalCorrectionNorm +=
                                                 Dx[i_dof->EquationId()]*Dx[i_dof->EquationId()];
@@ -204,7 +204,7 @@ namespace Kratos
                                                     i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_X)* i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_X);
                                             counter++;
                                 }
-                                if( i_dof->GetVariable().Name()== "DISPLACEMENT_Y")
+                                if( i_dof->GetVariable() == DISPLACEMENT_Y)
                                 {	
                                             mFinalCorrectionNorm +=
                                                 Dx[i_dof->EquationId()]*Dx[i_dof->EquationId()];
@@ -213,7 +213,7 @@ namespace Kratos
                                                     i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Y)* i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Y);
                                             counter++;
                                 }
-                                if(i_dof->GetVariable().Name()== "DISPLACEMENT_Z")
+                                if(i_dof->GetVariable() == DISPLACEMENT_Z)
                                 {	
                                             mFinalCorrectionNorm +=
                                                 Dx[i_dof->EquationId()]*Dx[i_dof->EquationId()];
@@ -222,7 +222,7 @@ namespace Kratos
                                                     i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Z)* i_dof->GetSolutionStepValue(DISPLACEMENT_EINS_Z);
                                             counter++;
                                 }
-                                if(i_dof->GetVariable().Name()== "WATER_PRESSURE")
+                                if(i_dof->GetVariable() == WATER_PRESSURE)
                                 {	
                                     HasWaterPres= true;
                                             
@@ -234,7 +234,7 @@ namespace Kratos
 						 					i_dof->GetSolutionStepValue(WATER_PRESSURE_EINS);
                                     counter_WATER ++;
                                 }
-                                if(i_dof->GetVariable().Name()== "AIR_PRESSURE")
+                                if(i_dof->GetVariable() ==  AIR_PRESSURE )
                                 {	
                                     HasAirPres= true;
                                     
