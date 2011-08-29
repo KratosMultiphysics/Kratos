@@ -1,7 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosExternalSolversApplication ****")
-message("KratosExternalSolversApplication not yet ported to cmake")
 # add_definitions( -DTETGEN143 )
 # add_definitions( -DTETLIBRARY )
 # 
