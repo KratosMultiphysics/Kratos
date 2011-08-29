@@ -1,10 +1,11 @@
 cmake_minimum_required (VERSION 2.8)
 project (KratosBaseProject)
 
-##echo user options
-message( " ")
-message("CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}")
-message( " ")
+#tell the lionker to give an error if undefined functions are found
+set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+
+
+
 
 ######################################################################################
 ######################################################################################
@@ -55,7 +56,10 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 # find_package(Trilinos) 
 
 
-
+##echo user options
+message( " ")
+message("CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}")
+message( " ")
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -67,6 +71,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/omptl )
 #defines needed
 add_definitions( -DKRATOS_PYTHON )
 add_definitions( -DNDEBUG )
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_definitions( -fPIC )
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 #include subdirectories
 add_subdirectory(external_libraries/gidpost)
