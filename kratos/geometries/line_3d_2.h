@@ -577,6 +577,7 @@ namespace Kratos
             {
                 rResult = ZeroMatrix(1,1);
                 rResult(0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                return( rResult );
             }
 
             /** Inverse of jacobian in given point. This method calculate inverse of jacobian
@@ -594,6 +595,7 @@ namespace Kratos
             {
                 rResult = ZeroMatrix(1,1);
                 rResult(0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                return( rResult );
             }
 
 
