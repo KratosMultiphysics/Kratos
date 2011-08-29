@@ -10,7 +10,7 @@ cmake ..  					\
 -DCMAKE_C_COMPILER=gcc				\
 -DCMAKE_CXX_COMPILER=g++			\
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -msse3 " \
--DCMAKE_CXX_FLAGS="${CMAKE_C_FLAGS} -funroll-loops -ffast-math -msse3 " \
+-DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -funroll-loops -ffast-math -msse3 " \
 -DCMAKE_BUILD_TYPE=Release  			\
 -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  		\
 -DMESHING_APPLICATION=ON 			\
@@ -23,6 +23,6 @@ cmake ..  					\
 -DFSI_APPLICATION=ON 
 
 #decomment this to have it verbose
-make VERBOSE=1 -j4
-# make -j4
+#make VERBOSE=1 -j4
+make -j4
 make install
