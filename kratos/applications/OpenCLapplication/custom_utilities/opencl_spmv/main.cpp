@@ -11,6 +11,8 @@
 #define LOCAL_WORKGROUP_SIZE_BITS (WORKGROUP_SIZE_BITS - ROWS_PER_WORKGROUP_BITS)
 #define LOCAL_WORKGROUP_SIZE (1 << LOCAL_WORKGROUP_SIZE_BITS)
 
+#define N 50
+
 int64_t Timer()
 {
 	struct timespec tp;
@@ -60,24 +62,36 @@ int main()
 	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 6, (ROWS_PER_WORKGROUP + 1) * sizeof(cl_ulong));
 	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 7, WORKGROUP_SIZE * sizeof(cl_double));
 
-	t1 = Timer();
+	for (unsigned int i = 0; i < N; i++)
+	{
+		t1 = Timer();
 
-	DeviceGroup.ExecuteKernel(Kernel, A.size1() * LOCAL_WORKGROUP_SIZE + 1);
+		DeviceGroup.ExecuteKernel(Kernel, A.size1() * LOCAL_WORKGROUP_SIZE + 1);
 
-	t2 = Timer();
+		t2 = Timer();
 
-	T1 = t2 - t1;
+		if (i == 0 || t2 - t1 < T1)
+		{
+			T1 = t2 - t1;
+		}
+	}
 
 	DeviceGroup.CopyBuffer(Y_Values, Kratos::OpenCL::DeviceToHost, Kratos::OpenCL::VoidPList(1, &Y1[0]));
 
 
-	t1 = Timer();
+	for (unsigned int i = 0; i < N; i++)
+	{
+		t1 = Timer();
 
-	prod(A, X, Y2);
+		prod(A, X, Y2);
 
-	t2 = Timer();
+		t2 = Timer();
 
-	T2 = t2 - t1;
+		if (i == 0 || t2 - t1 < T2)
+		{
+			T2 = t2 - t1;
+		}
+	}
 
 	for (cl_uint i = 0; i < A.size1(); i++)
 	{

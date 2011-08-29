@@ -49,6 +49,8 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType const *A_RowIndices,
 		// __local memory barrier
 		barrier(CLK_LOCAL_MEM_FENCE);
 
+		// TODO: It seems that this is making Bank Conflict!
+
 		// Read bounds from __local memory
 		const IndexType Start = Bounds[lgid];
 		const IndexType End = Bounds[lgid + 1];
