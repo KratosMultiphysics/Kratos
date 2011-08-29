@@ -7,6 +7,10 @@ message("MESHING_APPLICATION ................ ${MESHING_APPLICATION}")
 message("EXTERNAL_SOLVERS_APPLICATION........ ${EXTERNAL_SOLVERS_APPLICATION}")
 message("PFEM_APPLICATION.................... ${PFEM_APPLICATION}")
 message("STRUCTURAL_APPLICATION.............. ${STRUCTURAL_APPLICATION}")
+message("CONVECTION_DIFFUSION_APPLICATION.... ${CONVECTION_DIFFUSION_APPLICATION}")
+message("FLUID_DYNAMICS_APPLICATION.......... ${FLUID_DYNAMICS_APPLICATION}")
+message("ALE_APPLICATION..................... ${ALE_APPLICATION}")
+message("FSI_APPLICATION..................... ${FSI_APPLICATION}")
 message( " ")
 
 
@@ -31,6 +35,21 @@ if(${STRUCTURAL_APPLICATION} MATCHES ON)
   add_subdirectory(structural_application)
 endif(${STRUCTURAL_APPLICATION} MATCHES ON)
 
+if(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
+  add_subdirectory(convection_diffusion_application)
+endif(${CONVECTION_DIFFUSION_APPLICATION} MATCHES ON)
+
+if(${FLUID_DYNAMICS_APPLICATION} MATCHES ON)
+  add_subdirectory(FluidDynamicsApplication)
+endif(${FLUID_DYNAMICS_APPLICATION} MATCHES ON)
+
+if(${ALE_APPLICATION} MATCHES ON)
+  add_subdirectory(ALEapplication)
+endif(${ALE_APPLICATION} MATCHES ON)
+
+if(${FSI_APPLICATION} MATCHES ON)
+  add_subdirectory(FSIapplication)
+endif(${FSI_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
