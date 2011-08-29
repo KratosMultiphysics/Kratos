@@ -7,6 +7,8 @@ message("CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}")
 message( " ")
 
 ######################################################################################
+######################################################################################
+######################################################################################
 ##find all dependencies
 
 #find and include OpenMP if possible
@@ -29,19 +31,33 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${PYTHON_LIBRARIES})
 
+#finding blas and lapack if needed
+set(BLAS_INCLUDE_NEEDED OFF)
+if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
+    set(BLAS_INCLUDE_NEEDED ON)
+endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
 
-enable_language( Fortran )
-#finding blas
-find_package(BLAS)
+if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	enable_language( Fortran )
+    endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-#finding lapack
-find_package(LAPACK)
+    find_package(BLAS REQUIRED)
+    include_directories(${BLAS_INCLUDE_DIRS})
+    link_directories(${BLAS_LIBRARIES})
+
+    find_package(LAPACK REQUIRED)
+    include_directories(${LAPACK_INCLUDE_DIRS})
+    link_directories(${LAPACK_LIBRARIES})
+endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 #finding Mpi
 # find_package(Trilinos) 
 
 
 
+######################################################################################
+######################################################################################
 ######################################################################################
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
