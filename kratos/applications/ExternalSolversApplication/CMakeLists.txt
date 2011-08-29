@@ -21,7 +21,7 @@ set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES
 # ###############################################################
 # ## define library Kratos which defines the basic python interface
 add_library(KratosExternalSolversApplication SHARED ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
-target_link_libraries(KratosExternalSolversApplication KratosCore triangle tetgen msuite )
+target_link_libraries(KratosExternalSolversApplication KratosCore superlu )
 set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 
