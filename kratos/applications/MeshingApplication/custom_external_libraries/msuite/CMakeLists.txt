@@ -43,5 +43,6 @@ set( MSUITE_SOURCES
     )
 
 ###############################################################
-add_library(msuite SHARED ${MSUITE_SOURCES}  )
-install(TARGETS msuite DESTINATION libs )
+add_library(msuite STATIC ${MSUITE_SOURCES}  )
+target_link_libraries(msuite m)
+# install(TARGETS msuite DESTINATION libs )
