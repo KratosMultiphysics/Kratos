@@ -20,5 +20,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 
 ###############################################################
-add_library(triangle SHARED ${TRIANGLE_SOURCES})
-install(TARGETS triangle DESTINATION libs )
+add_library(triangle STATIC ${TRIANGLE_SOURCES})
+target_link_libraries(triangle m)
+# install(TARGETS triangle DESTINATION libs )
