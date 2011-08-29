@@ -2,10 +2,10 @@
 #include "opencl_interface.h"
 #include "includes/matrix_market_interface.h"
 
-#define ROWS_PER_WORKGROUP_BITS 4
+#define ROWS_PER_WORKGROUP_BITS 1
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
 
-#define WORKGROUP_SIZE_BITS 9
+#define WORKGROUP_SIZE_BITS 7
 #define WORKGROUP_SIZE (1 << WORKGROUP_SIZE_BITS)
 
 #define LOCAL_WORKGROUP_SIZE_BITS (WORKGROUP_SIZE_BITS - ROWS_PER_WORKGROUP_BITS)

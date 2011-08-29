@@ -37,7 +37,7 @@
 			<Add directory="../../../../kratos" />
 		</Compiler>
 		<Linker>
-			<Add option="-lOpenCL" />
+			<Add option="-lOpenCL -lrt" />
 			<Add directory="/home/mossaiby/AMD-APP-SDK-v2.5-RC2-lnx64/lib/x86_64" />
 		</Linker>
 		<Unit filename="main.cpp" />

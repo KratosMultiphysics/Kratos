@@ -1,7 +1,7 @@
-#define ROWS_PER_WORKGROUP_BITS 4
+#define ROWS_PER_WORKGROUP_BITS 1
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
 
-#define WORKGROUP_SIZE_BITS 9
+#define WORKGROUP_SIZE_BITS 7
 #define WORKGROUP_SIZE (1 << WORKGROUP_SIZE_BITS)
 
 #define LOCAL_WORKGROUP_SIZE_BITS (WORKGROUP_SIZE_BITS - ROWS_PER_WORKGROUP_BITS)
@@ -18,7 +18,7 @@
 typedef ulong IndexType;
 typedef double ValueType;
 
-__kernel void CSR_Matrix_Vector_Multiply(__global IndexType *A_RowIndices, __global IndexType *A_ColumnIndices, __global ValueType *A_Values, __global ValueType *X_Values, __global ValueType *Y_Values, IndexType N, __local IndexType *Bounds, __local ValueType *Buffer)
+__kernel void CSR_Matrix_Vector_Multiply(__global IndexType const *A_RowIndices, __global IndexType const *A_ColumnIndices, __global ValueType const *A_Values, __global ValueType const *X_Values, __global ValueType *Y_Values, IndexType N, __local IndexType *Bounds, __local ValueType *Buffer)
 {
 	const IndexType gid = get_group_id(0);
 	const IndexType tid = get_local_id(0);
