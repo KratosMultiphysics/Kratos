@@ -9,6 +9,7 @@ set( UNOPTIMIZED_PREDICATES ${CMAKE_CURRENT_SOURCE_DIR}/predicates.cxx )
 
 ##removing optimizations
 SET_SOURCE_FILES_PROPERTIES(${UNOPTIMIZED_PREDICATES} PROPERTIES COMPILE_FLAGS -O0)
+SET_SOURCE_FILES_PROPERTIES(${TETGEN_SOURCES} PROPERTIES COMPILE_FLAGS -O2)
 
 ###############################################################
 add_definitions( -DTETLIBRARY )
@@ -22,5 +23,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 
 ###############################################################
-add_library(tetgen SHARED ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES} )
-install(TARGETS tetgen DESTINATION libs )
+add_library(tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES} )
+target_link_libraries(tetgen m)
+# install(TARGETS tetgen DESTINATION libs )
