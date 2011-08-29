@@ -31,7 +31,7 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
-target_link_libraries(KratosMeshingApplication KratosCore triangle tetgen msuite )
+target_link_libraries(KratosMeshingApplication KratosCore triangle tetgen msuite  )
 set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 
