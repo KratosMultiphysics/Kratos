@@ -11,6 +11,6 @@ set( GIDPOST_SOURCES
 add_definitions( -DUSE_CONST )
 
 ###############################################################
-add_library(gidpost SHARED ${GIDPOST_SOURCES})
+add_library(gidpost STATIC ${GIDPOST_SOURCES})
 
-install(TARGETS gidpost DESTINATION libs )
+# install(TARGETS gidpost DESTINATION libs )
