@@ -22,7 +22,7 @@ int64_t Timer()
 	return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	int64_t t1, t2, T1, T2;
 
@@ -35,8 +35,8 @@ int main()
 	Kratos::CompressedMatrix A;
 	Kratos::Vector X, Y1, Y2;
 
-	Kratos::ReadMatrixMarketMatrix("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities/opencl_spmv/A_0.mm", A);
-	Kratos::ReadMatrixMarketVector("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities/opencl_spmv/B_0.mm", X);
+	Kratos::ReadMatrixMarketMatrix(argv[1], A);
+	Kratos::ReadMatrixMarketVector(argv[2], X);
 
 	Y1.resize(A.size1());
 	Y2.resize(A.size1());
@@ -83,7 +83,7 @@ int main()
 	{
 		t1 = Timer();
 
-		prod(A, X, Y2);
+		axpy_prod(A, X, Y2);
 
 		t2 = Timer();
 
@@ -106,7 +106,10 @@ int main()
 		std::cout << A.index1_data()[i] << std::endl;
 	}*/
 
-	std::cout << "Test finished." << std::endl << "OpenCL SpMV:\t" << T1 << " ns" << std::endl << "uBlas:\t\t" << T2 << " ns" << std::endl;
+	std::cout << "Norm_2 of Y1 is " << norm_2(Y1) << "." << std::endl;
+	std::cout << "Norm_2 of Y2 is " << norm_2(Y2) << "." << std::endl;
+
+	std::cout << "Test finished." << std::endl << "OpenCL SpMV:\t" << T1 / 1000000.00 << " ms" << std::endl << "uBlas:\t\t" << T2 / 1000000.00 << " ms" << std::endl;
 
 	return 0;
 }
