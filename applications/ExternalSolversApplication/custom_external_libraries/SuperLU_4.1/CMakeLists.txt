@@ -1,8 +1,11 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/SRC )
+
 ## generate variables with the sources
 set( LAAUX     
  	${CMAKE_CURRENT_SOURCE_DIR}/SRC/lsame.c
+#         ${CMAKE_CURRENT_SOURCE_DIR}/SRC/xerbla.c
      )
 ##shall we add xerbla.c here?
 
@@ -74,7 +77,7 @@ set( DLUSRC
 	${CMAKE_CURRENT_SOURCE_DIR}/SRC/ilu_dcopy_to_ucol.c 
 	${CMAKE_CURRENT_SOURCE_DIR}/SRC/ilu_dpivotL.c 
 	${CMAKE_CURRENT_SOURCE_DIR}/SRC/ddiagonal.c 
-	#${CMAKE_CURRENT_SOURCE_DIR}/EXAMPLE/dfgmr.c
+ 	${CMAKE_CURRENT_SOURCE_DIR}/EXAMPLE/dfgmr.c
     )
 
 ##removing optimizations
@@ -90,5 +93,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 
 ###############################################################
-add_library(superlu SHARED ${DLUSRC} ${ALLAUX} ${LAAUX} ${DLASRC} ${DZLAUX}     ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} )
+add_library(superlu STATIC ${DLUSRC} ${ALLAUX} ${LAAUX} ${DLASRC} ${DZLAUX} )
+target_link_libraries(superlu ${BLAS_LIBRARIES} )
 install(TARGETS superlu DESTINATION libs )
