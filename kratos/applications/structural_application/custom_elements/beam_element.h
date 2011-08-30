@@ -61,7 +61,9 @@ namespace Kratos
 	      
 	      void CalculateLocalNodalStress(Vector& Stress); 
 	      
-	      double CalculateInternalForces(const double& Mo, const double& Po, const double& Load, const double& X);
+	      double CalculateInternalAxil(   const double& Ao, const double& Load, const double& X);
+	      double CalculateInternalShear(  const double& Vo, const double& Load, const double& X);
+	      double CalculateInternalMoment( const double& Mo, const double& Vo,   const double& Load, const double& X);
 	      
 	      void CalculateDistrubuitedBodyForce(const int Direction, Vector& Load);
 	      
