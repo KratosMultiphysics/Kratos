@@ -235,7 +235,7 @@ namespace Kratos
         void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
         void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-        inline double CalculateH(double Volume);
+        inline double CalculateH(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, double Volume);
         inline double CalculateTau(boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX, array_1d<double, 3 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
 
         double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,
