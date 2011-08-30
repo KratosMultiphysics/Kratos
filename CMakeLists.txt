@@ -4,14 +4,14 @@ project (KratosBaseProject)
 #tell the lionker to give an error if undefined functions are found
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 
-
-
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
 ######################################################################################
 ######################################################################################
 ######################################################################################
 ##find all dependencies
 
+##*****************************
 #find and include OpenMP if possible
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -20,6 +20,7 @@ if (OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif (OPENMP_FOUND) 
 
+##*****************************
 #finding and including BOOST library
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
@@ -27,11 +28,13 @@ find_package(Boost COMPONENTS python REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
+##*****************************
 #finding and including PYTHON
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${PYTHON_LIBRARIES})
 
+##*****************************
 #finding blas and lapack if needed
 set(BLAS_INCLUDE_NEEDED OFF)
 if(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
@@ -52,8 +55,26 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
     link_directories(${LAPACK_LIBRARIES})
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
+##*****************************
 #finding Mpi
-# find_package(Trilinos) 
+set(MPI_NEEDED OFF)
+if(${METIS_APPLICATION} MATCHES ON )
+    set(MPI_NEEDED ON)
+endif(${METIS_APPLICATION} MATCHES ON )
+if(${TRILINOS_APPLICATION} MATCHES ON )
+    set(MPI_NEEDED ON)
+endif(${TRILINOS_APPLICATION} MATCHES ON )
+
+if(${MPI_NEEDED} MATCHES ON )
+    find_package(MPI REQUIRED)
+    add_definitions( -DKRATOS_USING_MPI )
+    set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+    set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+
+    #note that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
+    include_directories(MPI_INCLUDE_PATH)
+endif(${MPI_NEEDED} MATCHES ON )
 
 
 ##echo user options
