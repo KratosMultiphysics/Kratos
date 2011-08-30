@@ -102,6 +102,8 @@ namespace Kratos {
 	typedef typename TSparseSpace::MatrixType TSystemMatrixType;
 	typedef typename TSparseSpace::VectorType TSystemVectorType;
 
+        typedef std::size_t SizeType;
+
 	//constructor and destructor
 
 	FluidSolver(MatrixContainer& mr_matrix_container,
@@ -747,16 +749,16 @@ namespace Kratos {
             //compute row scaling factors
             TSystemVectorType scaling_factors(n_nodes);
             double* Lvalues = mL.value_data().begin();
-            long unsigned int* Lrow_indices = mL.index1_data().begin();
-            long unsigned int* Lcol_indices = mL.index2_data().begin();
+            SizeType* Lrow_indices = mL.index1_data().begin();
+            SizeType* Lcol_indices = mL.index2_data().begin();
 
-            for (unsigned int k = 0; k < mL.size1(); k++)
+            for (SizeType k = 0; k < mL.size1(); k++)
             {
                 double t = 0.0;
-                long unsigned int col_begin = Lrow_indices[k];
-                long unsigned int col_end = Lrow_indices[k+1];
+                SizeType col_begin = Lrow_indices[k];
+                SizeType col_end = Lrow_indices[k+1];
 
-                for (long unsigned int j=col_begin; j<col_end; j++)
+                for (SizeType j=col_begin; j<col_end; j++)
                     if( Lcol_indices[j] == k)
                     {
                         t = fabs(Lvalues[j]);
@@ -767,15 +769,15 @@ namespace Kratos {
                 scaling_factors[k] = 1.0/sqrt(t);
             }
 
-            for (unsigned int k = 0; k < mL.size1(); k++)
+            for (SizeType k = 0; k < mL.size1(); k++)
             {
-                long unsigned int col_begin = Lrow_indices[k];
-                long unsigned int col_end = Lrow_indices[k+1];
+                SizeType col_begin = Lrow_indices[k];
+                SizeType col_end = Lrow_indices[k+1];
                 double k_factor = scaling_factors[k];
 
                 rhs[k] *= k_factor;
 
-                for (long unsigned int j=col_begin; j<col_end; j++)
+                for (SizeType j=col_begin; j<col_end; j++)
                 {
                     Lvalues[j] *= scaling_factors[Lcol_indices[j]] * k_factor;
                 }
