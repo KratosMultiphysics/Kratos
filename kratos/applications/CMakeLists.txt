@@ -11,7 +11,14 @@ message("CONVECTION_DIFFUSION_APPLICATION.... ${CONVECTION_DIFFUSION_APPLICATION
 message("FLUID_DYNAMICS_APPLICATION.......... ${FLUID_DYNAMICS_APPLICATION}")
 message("ALE_APPLICATION..................... ${ALE_APPLICATION}")
 message("FSI_APPLICATION..................... ${FSI_APPLICATION}")
+message("MIXED_ELEMENT_APPLICATION........... ${MIXED_ELEMENT_APPLICATION}")
+message("MKL_SOLVERS_APPLICATION............. ${MKL_SOLVERS_APPLICATION}")
+message("METIS_APPLICATION................... ${METIS_APPLICATION}")
+message("TRILINOS_APPLICATION................ ${TRILINOS_APPLICATION}")
 message( " ")
+
+
+
 
 
 #include subdirectories for compilation
@@ -50,6 +57,26 @@ endif(${ALE_APPLICATION} MATCHES ON)
 if(${FSI_APPLICATION} MATCHES ON)
   add_subdirectory(FSIapplication)
 endif(${FSI_APPLICATION} MATCHES ON)
+
+if(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
+  add_subdirectory(MixedElementApplication)
+endif(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
+
+if(${MKL_SOLVERS_APPLICATION} MATCHES ON)
+  add_subdirectory(mkl_solvers_application)
+endif(${MKL_SOLVERS_APPLICATION} MATCHES ON)
+
+if(${METIS_APPLICATION} MATCHES ON)
+  add_subdirectory(metis_application)
+endif(${METIS_APPLICATION} MATCHES ON)
+
+if(${TRILINOS_APPLICATION} MATCHES ON)
+  add_subdirectory(trilinos_application)
+endif(${TRILINOS_APPLICATION} MATCHES ON)
+
+
+
+
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
