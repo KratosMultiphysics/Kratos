@@ -40,8 +40,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    $Author:  $
@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/timer.hpp> 
 
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "custom_strategies/convergencecriterias/mixed_element_criteria.h"
 
 // Project includes
 #include "includes/define.h"
@@ -77,31 +79,38 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{		
-		using namespace boost::python;
+    namespace Python
+    {
+        using namespace boost::python;
 
-		void  AddCustomStrategiesToPython()
-		{
-			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        void AddCustomStrategiesToPython()
+        {
+            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+            typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+            typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-			//********************************************************************
-			//********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-// 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-// 				("TestStrategy", 
-// 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-// 				;
-		 
-		}
+            //********************************************************************
+            //********************************************************************
+            // 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+            // 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+            // 				("TestStrategy",
+            // 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
+            // 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
+            // 				;
 
-	}  // namespace Python.
+            typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
+
+            class_< MixedElementConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,
+                    bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
+                    ("MixedElementConvergenceCriteria", init<double, double >())
+                    ;
+
+        }
+
+    } // namespace Python.
 
 } // Namespace Kratos
 
