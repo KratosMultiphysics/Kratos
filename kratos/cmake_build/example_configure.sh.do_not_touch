@@ -6,7 +6,7 @@
 #so we should ass here only machine specific stuff
 
 #an effort is made to autodetect all of the libraries needed HOWEVER:
-#METIS_APPLICATION needs the var MKLSOLVER_ROOT_DIR to be specified by the user (not needed if the app is set to OFF)
+#METIS_APPLICATION needs the var PARMETIS_ROOT_DIR to be specified by the user (not needed if the app is set to OFF)
 #TRILINOS_APPLICATION needs the var PARMETIS_ROOT_DIR to be specified by the user (not needed if the app is set to OFF)
 #MKL_SOLVERS_APPLICATION needs the var MKLSOLVER_ROOT_DIR to be specified by the user (not needed if the app is set to OFF)
 
@@ -37,7 +37,8 @@ cmake ..  									\
 -DOPENCL_APPLICATION=ON								\
 -DMIXED_ELEMENT_APPLICATION=ON							\
 -DMKL_SOLVERS_APPLICATION=ON							\
--DMKLSOLVER_ROOT_DIR="/opt/intel/Compiler/11.1/072/mkl"				\
+-DMKLSOLVER_INCLUDE_DIR="/opt/intel/Compiler/11.1/072/mkl/include"		\
+-DMKLSOLVER_LIB_DIR="/opt/intel/Compiler/11.1/072/mkl/lib/em64t"		\
 -DMETIS_APPLICATION=ON								\
 -DPARMETIS_ROOT_DIR="/home/rrossi/compiled_libraries/ParMetis-3.1.1" 		\
 -DTRILINOS_APPLICATION=ON							\
