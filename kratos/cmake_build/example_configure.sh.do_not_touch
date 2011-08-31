@@ -8,7 +8,8 @@
 #an effort is made to autodetect all of the libraries needed HOWEVER:
 #METIS_APPLICATION needs the var PARMETIS_ROOT_DIR to be specified by the user (not needed if the app is set to OFF)
 #TRILINOS_APPLICATION needs the var PARMETIS_ROOT_DIR to be specified by the user (not needed if the app is set to OFF)
-#MKL_SOLVERS_APPLICATION needs the var MKLSOLVER_ROOT_DIR to be specified by the user (not needed if the app is set to OFF)
+#MKL_SOLVERS_APPLICATION needs the var MKLSOLVER_INCLUDE_DIR and MKLSOLVER_LIB_DIR to be specified by the user (not needed if the app is set to OFF)
+#note that the MKLSOLVER_LIB_DIR should include /lib/em64t. This is needed as intel is changing location of mkl at every update of the compiler!!
 
 #the user should also note that the symbol "\" marks that the command continues on the next line. IT SHOULD ONLY BE FOLLOWED
 BY the "ENTER" and NOT by any space!!
