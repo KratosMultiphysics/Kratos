@@ -1,9 +1,27 @@
 cmake_minimum_required (VERSION 2.8)
 project (KratosBaseProject)
 
+#set compiler flags
+if(${CMAKE_COMPILER_IS_GNUCXX}) 
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math  ")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math  ")
+  message("additional default options were set for gcc")
+  message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+  message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+endif(${CMAKE_COMPILER_IS_GNUCXX}) 
+if(${CMAKE_C_COMPILER} MATCHES "icc.*$") 
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -ansi -funroll-loops  -lpthread -wd654 -wd10010  ")
+  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops  -lpthread -wd654 -wd10010  ")
+  message("additional default options were set for intel compiler")
+  message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+  message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+endif(${CMAKE_C_COMPILER} MATCHES "icc.*$") 
+
+
 #tell the lionker to give an error if undefined functions are found
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 
+#set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
 ######################################################################################
