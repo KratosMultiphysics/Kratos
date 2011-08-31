@@ -60,9 +60,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+//#include "linear_solvers/linear_solver.h"
+#include "custom_utilities/plot_damage.h"
+#include "custom_utilities/check_constitutive_law.h"
 
-
+#include "includes/model_part.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -76,10 +79,20 @@ namespace Python
 	using namespace boost::python;
 
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+//		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+//		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+//		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+        class_<PlotUtility,  boost::noncopyable > ("PlotUtils", init<>())
+                    .def("PlotVariable", &PlotUtility::PlotVariable)
+                    ;
+
+        class_<CheckConstitutiveLawUtility,  boost::noncopyable > ("CheckConstitutiveLawUtils", init<Properties::Pointer , ProcessInfo&, double >())
+                    .def("CheckConstitutiveLaw", &CheckConstitutiveLawUtility::CheckConstitutiveLaw)
+                    .def("GetScalarVar",&CheckConstitutiveLawUtility::GetScalarVar)
+                    .def("InitializeSolutionStep",&CheckConstitutiveLawUtility::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep",&CheckConstitutiveLawUtility::FinalizeSolutionStep)
+                    ;
 
   }
 	
