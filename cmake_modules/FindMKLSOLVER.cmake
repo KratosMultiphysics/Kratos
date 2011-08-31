@@ -6,12 +6,12 @@
 # MKLSOLVER_FOUND       - Do not attempt to use if "no" or undefined.
 
 FIND_PATH(MKLSOLVER_INCLUDE_DIR mkl_blas.h
-  ${MKLSOLVER_ROOT_DIR}/include
+  ${MKLSOLVER_INCLUDE_DIR}
 )
 
 # set(LIB_MKL_LIST mkl_intel_ilp64 mkl_intel_thread mkl_core mkl_solver_ilp64 mkl_mc mkl_mc3 mkl_lapack pthread mkl_p4n iomp5)
 
-set(MY_LIB_SEARCH_DIR ${MKLSOLVER_ROOT_DIR}/lib/em64t)
+set(MY_LIB_SEARCH_DIR ${MKLSOLVER_LIB_DIR})
 
 FIND_LIBRARY(AUX1 mkl_intel_ilp64  
   ${MY_LIB_SEARCH_DIR}
