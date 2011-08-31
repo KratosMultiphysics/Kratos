@@ -58,6 +58,10 @@ if(${FSI_APPLICATION} MATCHES ON)
   add_subdirectory(FSIapplication)
 endif(${FSI_APPLICATION} MATCHES ON)
 
+if(${OPENCL_APPLICATION} MATCHES ON)
+  add_subdirectory(OpenCLapplication)
+endif(${OPENCL_APPLICATION} MATCHES ON)
+
 if(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
   add_subdirectory(MixedElementApplication)
 endif(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
