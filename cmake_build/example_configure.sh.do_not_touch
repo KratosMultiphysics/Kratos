@@ -12,7 +12,7 @@
 #note that the MKLSOLVER_LIB_DIR should include /lib/em64t. This is needed as intel is changing location of mkl at every update of the compiler!!
 
 #the user should also note that the symbol "\" marks that the command continues on the next line. IT SHOULD ONLY BE FOLLOWED
-BY the "ENTER" and NOT by any space!!
+#BY the "ENTER" and NOT by any space!!
 
 
 clear
