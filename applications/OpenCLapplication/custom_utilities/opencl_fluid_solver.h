@@ -179,7 +179,7 @@ namespace Kratos
             // TODO: Remove if not needed (also remove in .cl file)
             mpOpenCLFluidSolver = mrDeviceGroup.BuildProgramFromFile(
                     "opencl_fluid_solver.cl",
-                    "-cl-fast-relaxed-math -O3"
+                    "-cl-fast-relaxed-math"
 
 #ifdef SPLIT_OSS
 
