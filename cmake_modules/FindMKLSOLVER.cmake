@@ -60,12 +60,14 @@ FIND_LIBRARY(AUX9 mkl_p4n
 
 
 
-message("************  ${MKLSOLVER_LIBRARY}") 
 
+##ATTENTION! the order of libraries is FUNDAMENTAL!! take care!!!
 IF(MKLSOLVER_INCLUDE_DIR)
   IF(AUX1)
-    SET( MKLSOLVER_LIBRARIES ${AUX1} ${AUX2} ${AUX3} ${AUX4} ${AUX5} ${AUX6} ${AUX7} ${AUX8} ${AUX9}  )
+    SET( MKLSOLVER_LIBRARIES ${AUX9} ${AUX8} ${AUX6} ${AUX5}  ${AUX7} ${AUX4} ${AUX3} ${AUX2}  ${AUX1}  )
+#     SET( MKLSOLVER_LIBRARIES ${AUX1} ${AUX2} ${AUX3} ${AUX4}  ${AUX7} ${AUX5} ${AUX6} ${AUX8}  ${AUX9}  )
     SET( MKLSOLVER_FOUND "YES" )
+    message("************ mkl solver libraries found  ${MKLSOLVER_LIBRARIES}") 
   ELSE(AUX1)
     message("finding MKLSOLVER library failed, please try to set the var MKLSOLVER_ROOT_DIR")
   ENDIF(AUX1)
