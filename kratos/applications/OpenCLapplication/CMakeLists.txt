@@ -10,7 +10,6 @@ link_directories(${OPENCL_LIBRARIES})
 add_definitions( -DVIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK )
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle )
 
 
 ## generate variables with the sources
@@ -19,7 +18,7 @@ set( KRATOS_OPENCL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/opencl_python_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_linear_solvers_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_utilities_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/pugixml/src/pugixml.cpp 	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/pugixml/src/pugixml.cpp 	
 )
 
 ###############################################################
