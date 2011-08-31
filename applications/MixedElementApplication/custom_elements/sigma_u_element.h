@@ -239,6 +239,7 @@ namespace Kratos
              * Container for constitutive law instances on each integration point
              */
             std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+            ConstitutiveLaw::Pointer mpDiscontinuousConstitutiveLaw;
 
             double mArea0;
             Matrix mDN_DX;

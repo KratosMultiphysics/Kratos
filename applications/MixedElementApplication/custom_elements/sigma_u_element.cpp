@@ -186,6 +186,7 @@ namespace Kratos
         Matrix C(StrainSize,StrainSize);
         Matrix Cavg(StrainSize,StrainSize,0.0);
         Vector eps_h(StrainSize);
+        Vector avg_eps_h(StrainSize,0.0);
 //        Vector stress_vector(StrainSize); 
         Matrix block11(StrainSize*nnodes,StrainSize*nnodes,0.0);
         Matrix block12(StrainSize*nnodes,dim*nnodes,0.0);
@@ -204,19 +205,25 @@ namespace Kratos
             //get nodal strain
             GetNodalVariable(eps_h, igauss, dim);
 
+            noalias(avg_eps_h ) += weight*eps_h;
+
             noalias(N)=ZeroVector(nnodes);
             N[igauss] = 1.0;
 //KRATOS_WATCH(discontinuous_strain)
-            //compute (and average) discontinuous stress
-            mConstitutiveLawVector[igauss]->CalculateMaterialResponse(discontinuous_strain,F,aux_stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
-            noalias(stress_discontinuous) += weight * aux_stress_discontinuous;
+
 //            KRATOS_WATCH(aux_stress_discontinuous)
             //compute continuous stress
             stresses_vector[igauss].resize(StrainSize,false);
             mConstitutiveLawVector[igauss]->CalculateMaterialResponse(eps_h,F,stresses_vector[igauss],C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,true);
 //KRATOS_WATCH(stresses_vector[igauss])
+
             //average constitutitve law on the center point
             noalias(Cavg) += weight * C;
+//            noalias(stress_discontinuous) += weight * stresses_vector[igauss];
+
+//                        //compute (and average) discontinuous stress
+//            mConstitutiveLawVector[igauss]->CalculateMaterialResponse(discontinuous_strain,F,aux_stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
+//            noalias(stress_discontinuous) += weight * aux_stress_discontinuous;
 
             //compute block 11
             for(unsigned int k=0; k<StrainSize; k++)
@@ -233,6 +240,12 @@ namespace Kratos
 
 //KRATOS_WATCH(block12);
         }
+
+        //compute discontinuous stressavg_eps_h
+//        noalias(stress_discontinuous) = prod(Cavg,avg_eps_h);
+        noalias(stress_discontinuous) = prod(Cavg,discontinuous_strain);
+////        mpDiscontinuousConstitutiveLaw->CalculateMaterialResponse(discontinuous_strain,F,stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,true);
+////noalias(Cavg) = C;
 //        KRATOS_WATCH(234)
         noalias(block21) = trans(block12);
 //KRATOS_WATCH(Cavg);
@@ -241,8 +254,17 @@ namespace Kratos
         Matrix tmp = prod(Cavg,B);
         noalias(block22) = prod(trans(B), tmp);
 
+        //hystorical variables are saved according to avg_eps_h instead of discontinuous_strain
+//        mpDiscontinuousConstitutiveLaw->CalculateMaterialResponse(avg_eps_h,F,aux_stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,true);
+
         //compute tau
         double tau=0.1;
+
+//        double L = rCurrentProcessInfo[DIAMETER];
+//        double A = GetGeometry().Area();
+//        const double he = sqrt(2.0*A);
+//        const double cepsilon = 50.0;
+//        double tau = cepsilon*he/L;
 
         //assemble blocks (multiplication by tau is done here)
         for(unsigned int i=0; i<GetGeometry().size(); i++)
@@ -285,8 +307,13 @@ namespace Kratos
         Vector stress_stabilized = tau*stress_discontinuous;
         for(unsigned int i=0; i<GetGeometry().size(); i++)
             noalias(stress_stabilized) += ((1.0-tau)*weight)*stresses_vector[i] ;
-
         stress_stabilized *= mArea0;
+
+//        Vector tmp1(dim*nnodes);
+//        Vector stress_stabilized(StrainSize,0.0);
+//        for(unsigned int i=0; i<GetGeometry().size(); i++)
+//            noalias(stress_stabilized) += ((1.0-tau)*weight)*stresses_vector[i] ;
+//        stress_stabilized *= mArea0;
 
         noalias(tmp1) = -prod(trans(B),stress_stabilized);
 
@@ -386,6 +413,9 @@ namespace Kratos
                     GetGeometry(), N,
                     CurrentProcessInfo);
         }
+
+//        for (unsigned int j = 0; j < N.size(); j++) N[j] = 1.0/3.0;
+//        mpDiscontinuousConstitutiveLaw->InitializeSolutionStep(GetProperties(),GetGeometry(),N,CurrentProcessInfo);
     }
 
     ////************************************************************************************
@@ -407,6 +437,11 @@ namespace Kratos
                     N,
                     CurrentProcessInfo);
         }
+
+
+
+//        for (unsigned int j = 0; j < N.size(); j++) N[j] = 1.0/3.0;
+//        mpDiscontinuousConstitutiveLaw->FinalizeSolutionStep(GetProperties(),GetGeometry(),N,CurrentProcessInfo);
     }
 
     //************************************************************************************
@@ -433,6 +468,11 @@ namespace Kratos
 
                 mConstitutiveLawVector[i]->InitializeMaterial(GetProperties(), GetGeometry(), N);
             }
+
+//            for (unsigned int j = 0; j < N.size(); j++) N[j] = 1.0/3.0;
+//            mpDiscontinuousConstitutiveLaw= GetProperties()[CONSTITUTIVE_LAW]->Clone();
+//            mpDiscontinuousConstitutiveLaw->InitializeMaterial(GetProperties(), GetGeometry(), N);
+
         } else
             KRATOS_ERROR(std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id())
 
