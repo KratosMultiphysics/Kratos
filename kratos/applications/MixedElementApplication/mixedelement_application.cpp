@@ -39,7 +39,8 @@ namespace Kratos
     //
 
     KratosMixedElementApplication::KratosMixedElementApplication():
-     		mSigmaUElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+     		mSigmaUElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+                mIrriducibleElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
     // 		mElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
     {
     }
@@ -59,6 +60,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( SYZ)
 
         KRATOS_REGISTER_ELEMENT("SigmaUElement2D", mSigmaUElement2D);
+        KRATOS_REGISTER_ELEMENT("IrriducibleElement2D", mIrriducibleElement2D);
 //        KRATOS_REGISTER_ELEMENT("Elemt3D", mElem3D);
 
     }
