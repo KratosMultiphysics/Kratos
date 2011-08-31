@@ -14,7 +14,7 @@ message("mkl libs ${MKLSOLVER_LIBRARIES}")
 
 ##add definitions needed
 add_definitions(-DMKL_ILP64)
-
+		  
 ## generate variables with the sources
 set( KRATOS_MKL_SOLVERS_APPLICATION_SOURCES    
 	${CMAKE_CURRENT_SOURCE_DIR}/mkl_solvers_application.cpp 
