@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "custom_elements/sigma_u_element.h"
+#include "custom_elements/irriducible_element.h"
 
 #include "includes/variables.h"
 
@@ -205,6 +206,7 @@ namespace Kratos
         ///@name Member Variables
         ///@{
         const SigmaUElement   mSigmaUElement2D;
+        const IrriducibleElement   mIrriducibleElement2D;
         // 		const Elem3D   mElem3D;
 
 

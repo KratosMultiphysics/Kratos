@@ -34,6 +34,7 @@ python-extension KratosMixedElementApplication
     :  
 	#list of sources
 	sigma_u_element.cpp
+        irriducible_element.cpp
 #	element_3d.cpp 
 	mixedelement_application.cpp 
 	add_custom_strategies_to_python.cpp 
