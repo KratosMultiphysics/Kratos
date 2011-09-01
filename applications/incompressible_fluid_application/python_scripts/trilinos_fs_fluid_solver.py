@@ -72,8 +72,8 @@ class IncompressibleFluidSolver:
         self.domain_size = domain_size
 
         #assignation of parameters to be used
-        self.vel_toll = 0.001;
-        self.press_toll = 0.001;
+        self.vel_toll = float(0.001);
+        self.press_toll = float(0.001);
         self.max_vel_its = 6;
         self.max_press_its = 3;
         self.time_order = 2;
