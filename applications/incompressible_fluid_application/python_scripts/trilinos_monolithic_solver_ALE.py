@@ -23,6 +23,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(THAWTWO)
     model_part.AddNodalSolutionStepVariable(REACTION); 
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE); 
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX); 
     print "variables for the dynamic structural solution added correctly"
         
 def AddDofs(model_part):
