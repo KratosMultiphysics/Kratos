@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_edgebased_levelset_solver_to_python.h"
 #include "custom_utilities/edge_data.h"
 #include "custom_utilities/edgebased_levelset.h"
+#include "custom_utilities/edgebased_levelset_substep.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -131,6 +132,58 @@ namespace Python
                           .def("ComputeWetVolume"   ,&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeWetVolume)
                           .def("DiscreteVolumeCorrection"   ,&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::DiscreteVolumeCorrection)
 	          ;
+ 
+	  class_< EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >
+                  ("EdgeBasedLevelSetSubstep2D", init< MatrixContainer< 2, SparseSpaceType>&, ModelPart&, const double, const double, const Vector,bool,double,double, double,double,bool >() )
+			  .def("Initialize",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
+			  .def("ComputeTimeStep",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
+			  .def("SolveStep1",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
+			  .def("SolveStep2",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
+			  .def("SolveStep3",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
+			  .def("ExtrapolateValues",&EdgeBasedLevelSetSubstep< 2,MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ExtrapolateValues)
+			  .def("MarkExternalAndMixedNodes",&EdgeBasedLevelSetSubstep< 2,MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkExternalAndMixedNodes)
+			  .def("MarkInternalAndMixedNodes",&EdgeBasedLevelSetSubstep< 2,MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalAndMixedNodes)
+			  .def("MarkInternalNodes",&EdgeBasedLevelSetSubstep< 2,MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalNodes)
+			  .def("SaveScalarVariableToOldStep",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SaveScalarVariableToOldStep)
+			  .def("ChangeSignToDistance",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ChangeSignToDistance)
+			  .def("MarkNodesByDistance",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
+			  .def("ConvectDistance",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ConvectDistance)
+			  .def("ReduceTimeStep",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ReduceTimeStep)
+			  .def("CheckDistanceConvection",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CheckDistanceConvection)
+			  .def("UpdateFixedVelocityValues",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
+                          .def("ActivateWallResistance"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ActivateWallResistance)
+                          .def("SetShockCapturingCoefficient"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetShockCapturingCoefficient)
+			  .def("ComputeVolumeVariation",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeVolumeVariation)
+                          .def("ComputeWetVolume"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeWetVolume)
+                          .def("DiscreteVolumeCorrection"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::DiscreteVolumeCorrection)
+		;
+ 
+	  class_< EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>,  boost::noncopyable >
+                  ("EdgeBasedLevelSetSubstep3D", init< MatrixContainer< 3, SparseSpaceType>&, ModelPart&, const double, const double, const Vector,bool,double,double, double,double,bool >() )
+			  .def("Initialize",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
+			  .def("ComputeTimeStep",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
+			  .def("SolveStep1",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
+			  .def("SolveStep2",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
+			  .def("SolveStep3",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
+			  .def("ExtrapolateValues",&EdgeBasedLevelSetSubstep< 3,MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ExtrapolateValues)
+			  .def("MarkExternalAndMixedNodes",&EdgeBasedLevelSetSubstep< 3,MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkExternalAndMixedNodes)
+			  .def("MarkInternalAndMixedNodes",&EdgeBasedLevelSetSubstep< 3,MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalAndMixedNodes)
+			  .def("MarkInternalNodes",&EdgeBasedLevelSetSubstep< 3,MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalNodes)
+			  .def("SaveScalarVariableToOldStep",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SaveScalarVariableToOldStep)
+			  .def("ChangeSignToDistance",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ChangeSignToDistance)
+			  .def("MarkNodesByDistance",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
+			  .def("ConvectDistance",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ConvectDistance)
+			  .def("ReduceTimeStep",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ReduceTimeStep)
+			  .def("CheckDistanceConvection",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CheckDistanceConvection)
+			  .def("UpdateFixedVelocityValues",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::UpdateFixedVelocityValues)
+                          .def("ActivateWallResistance"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ActivateWallResistance)
+                          .def("SetShockCapturingCoefficient"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetShockCapturingCoefficient)
+			  .def("ComputeVolumeVariation",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeVolumeVariation)
+                          .def("ComputeWetVolume"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeWetVolume)
+                          .def("DiscreteVolumeCorrection"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::DiscreteVolumeCorrection)
+		;
+
+
   }
 	
 }  // namespace Python.
