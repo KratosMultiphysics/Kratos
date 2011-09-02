@@ -261,7 +261,7 @@ namespace Kratos {
 		#pragma omp parallel
 		if (OpenMPUtils::ThisThread() == k)
 		{
-		  for (std::size_t i_node = row_partition[k]; i_node < row_partition[k + 1]; i_node++)
+		  for (std::size_t i_node = row_partition[k]; i_node < static_cast<int>(row_partition[k + 1]); i_node++)
 		  {
 	    //loop over all nodes
 // 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
