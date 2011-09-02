@@ -149,7 +149,7 @@ namespace Kratos
 			noalias(J) = I + deltatime*Dv_dx;
 			
 			detJ = MathUtils<double>::Det(J);
-			std::cout<<"DETJ is "<<detJ<<std::endl;
+			//std::cout<<"DETJ is "<<detJ<<std::endl;
 
 			if (detJ<=0)				
 			{
