@@ -1,4 +1,4 @@
-#define ROWS_PER_WORKGROUP_BITS 1
+#define ROWS_PER_WORKGROUP_BITS 5
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
 
 #define WORKGROUP_SIZE_BITS 7
@@ -45,10 +45,13 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType const *A_RowIndices,
 
 		// Zero reduction buffer
 		Buffer[tid] = 0.00;
+	}
 
-		// __local memory barrier
-		barrier(CLK_LOCAL_MEM_FENCE);
+	// __local memory barrier
+	barrier(CLK_LOCAL_MEM_FENCE);
 
+	if (Row < N)
+	{
 		// TODO: It seems that this is making Bank Conflict!
 
 		// Read bounds from __local memory

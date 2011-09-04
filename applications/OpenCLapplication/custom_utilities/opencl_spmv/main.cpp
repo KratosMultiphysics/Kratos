@@ -2,7 +2,7 @@
 #include "opencl_interface.h"
 #include "includes/matrix_market_interface.h"
 
-#define ROWS_PER_WORKGROUP_BITS 1
+#define ROWS_PER_WORKGROUP_BITS 5
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
 
 #define WORKGROUP_SIZE_BITS 7
@@ -100,11 +100,6 @@ int main(int argc, char *argv[])
 			std::cout << "Error in location " << i << ": " << Y1[i] << "  " << Y2[i] << std::endl;
 		}
 	}
-
-	/*for (int i = 0; i < 10; i++)
-	{
-		std::cout << A.index1_data()[i] << std::endl;
-	}*/
 
 	std::cout << "Norm_2 of Y1 is " << norm_2(Y1) << "." << std::endl;
 	std::cout << "Norm_2 of Y2 is " << norm_2(Y2) << "." << std::endl;
