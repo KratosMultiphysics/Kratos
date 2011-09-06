@@ -63,29 +63,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-// 	//space defined to allow parallelism
-// 	 namespace ConvDiff3DAuxiliaries
-// 	 {
-// 	     boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
-// 	     #pragma omp threadprivate(msMassFactors)
-// 
-// 	     boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
-// 	     #pragma omp threadprivate(msDN_DX)
-// 
-// 	     array_1d<double,4> msN = ZeroVector(4); //dimension = number of nodes
-// 	     #pragma omp threadprivate(msN)
-// 
-// 	     array_1d<double,3> ms_vel_gauss = ZeroVector(3); //dimesion coincides with space dimension
-// 	     #pragma omp threadprivate(ms_vel_gauss)
-// 
-// 	     array_1d<double,4> ms_temp_vec_np = ZeroVector(4); //dimension = number of nodes
-// 	     #pragma omp threadprivate(ms_temp_vec_np)
-// 
-// 	     array_1d<double,4> ms_u_DN = ZeroVector(4); //dimension = number of nodes
-// 	     #pragma omp threadprivate(ms_u_DN)
-// 
-// 	 }
-// 	 using namespace ConvDiff3DAuxiliaries;
 
 	//************************************************************************************
 	//************************************************************************************
@@ -127,7 +104,15 @@ namespace Kratos
 		array_1d<double,3> ms_vel_gauss;
 		array_1d<double,4> ms_temp_vec_np;
 		array_1d<double,4> ms_u_DN ;
-	     
+	
+    		boost::numeric::ublas::bounded_matrix<double,3,3> First = ZeroMatrix(3,3);
+    		boost::numeric::ublas::bounded_matrix<double,3,3> Second = ZeroMatrix(3,3);
+    		boost::numeric::ublas::bounded_matrix<double,3,4> Third = ZeroMatrix(3,4);
+ 		boost::numeric::ublas::bounded_matrix<double,3,3> Identity = 1.0*IdentityMatrix(3,3);
+
+		array_1d<double,3> grad_g = ZeroVector(3); //dimesion coincides with space dimension
+
+     
 		if(rLeftHandSideMatrix.size1() != number_of_points)
 			rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
 
@@ -139,18 +124,13 @@ namespace Kratos
 		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
 		ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
-		//calculating viscosity
 		const Variable<double>&  rDensityVar = my_settings->GetDensityVariable();
-		//const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+		const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
 		const Variable<double>& rDiffusionVar =my_settings->GetDiffusionVariable();
 		const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
         	const Variable<double>& rSourceVar =my_settings->GetVolumeSourceVariable();
-        	//const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
+        	const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
 		const Variable<array_1d<double,3> >& rMeshVelocityVar =my_settings->GetMeshVelocityVariable();
-
-
-
-
 
 		double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
 		double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
@@ -183,39 +163,67 @@ namespace Kratos
 		heat_flux *= lumping_factor;
 		proj *= lumping_factor;
 		ms_vel_gauss *= lumping_factor;
-		
-		double alpha = conductivity/(density*specific_heat);
 
+		//getting the BDF2 coefficients (not fixed to allow variable time step)
+		//the coefficients INCLUDE the time step
+		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+		//#############//
+		double T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
+    		double T0n = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar,1);
+    		double T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
+    		double T1n = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar,1);
+    		double T2 = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar);
+    		double T2n = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar,1);
+    		double T3 = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar);
+    		double T3n = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar,1);
+
+		double g=0.0;
+    		double p1= msDN_DX(0,0)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,0)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,0)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar); msDN_DX(3,0)*GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar) ; 
+    		double p2 = msDN_DX(0,1)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,1)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,1)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(3,1)*GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar) ;
+    		double p3 = msDN_DX(0,2)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,2)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,2)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(3,2)*GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar) ;
+
+    		grad_g[0] = p1;
+    		grad_g[1] = p2;
+    		grad_g[2] = p3;
+    		double norm_g =norm_2(grad_g);
+
+		double res = density*specific_heat*(inner_prod(ms_vel_gauss,grad_g)) + lumping_factor * specific_heat *density *(BDFcoeffs[0]* (T0-T0n)+ BDFcoeffs[0] * (T1-T1n) + BDFcoeffs[0]*( T2-T2n)+ BDFcoeffs[0]*( T3-T3));
+    		double norm_grad=norm_2(grad_g);
+    		double k_aux=fabs(res) /(norm_grad + 0.000000000001);
+	
+                //#############//			
 		//calculating parameter tau 
 		double c1 = 4.00;
 		double c2 = 2.00;
 		double h =  pow(6.00*Area,0.3333333);
 		double norm_u =norm_2(ms_vel_gauss);
-		double tau = 1.00 / ( c1*alpha/(h*h) + c2*norm_u/h );
+		double tau1=( h*h )/(c1 * conductivity + c2 * density * specific_heat * norm_u * h);
 		
-		//getting the BDF2 coefficients (not fixed to allow variable time step)
-		//the coefficients INCLUDE the time step
-		const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-		
+		noalias(First) =outer_prod(ms_vel_gauss,trans(ms_vel_gauss));
+    		First /=((norm_u+0.0000000001)*(norm_u+0.0000000001));
+    		noalias(Second) =Identity- First;
+    		noalias(Third) =prod(Second, trans(msDN_DX));
+
 		//CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
 		noalias(ms_u_DN) = prod(msDN_DX , ms_vel_gauss);
-		noalias(rLeftHandSideMatrix) = outer_prod(msN,ms_u_DN);
+		noalias(rLeftHandSideMatrix) = (density *specific_heat) *outer_prod(msN,ms_u_DN) ;
 
 		//CONVECTION STABILIZING CONTRIBUTION (Suu)
-		noalias(rLeftHandSideMatrix) += (tau) * outer_prod(ms_u_DN,ms_u_DN);
+		
+		noalias(rLeftHandSideMatrix) += density * specific_heat * density *specific_heat * tau1 * outer_prod(ms_u_DN,ms_u_DN);
 
 		//VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
-		noalias(rLeftHandSideMatrix) += (alpha ) * prod(msDN_DX,trans(msDN_DX));
+		noalias(rLeftHandSideMatrix) += (conductivity /*+ k_aux * h*/) * prod(msDN_DX,trans(msDN_DX))  +  k_aux * h * prod(msDN_DX,Third) ; 
 
 		//INERTIA CONTRIBUTION
-		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * msMassFactors;
+		noalias(rLeftHandSideMatrix) += BDFcoeffs[0] *  (density *specific_heat) * msMassFactors;
 
 		// RHS = Fext
-		noalias(rRightHandSideVector) = (heat_flux)*msN;
+		noalias(rRightHandSideVector) = (heat_flux * density)*msN;
 
 		//RHS += Suy * proj[component] 
-		noalias(rRightHandSideVector) += (tau*proj)*ms_u_DN;  
-
+                noalias(rRightHandSideVector) += density*specific_heat * density*specific_heat * (tau1*proj)*ms_u_DN;   
 		//adding the inertia terms
 		// RHS += M*vhistory 
 		//calculating the historical velocity
@@ -226,7 +234,7 @@ namespace Kratos
 			for(unsigned int iii = 0; iii<number_of_points; iii++)
 				ms_temp_vec_np[iii] += BDFcoeffs[step]*GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar,step);
 		}	
-		noalias(rRightHandSideVector) -= prod(msMassFactors,ms_temp_vec_np) ;
+		noalias(rRightHandSideVector) -= prod(msMassFactors,ms_temp_vec_np *density*specific_heat) ;
 
 		//subtracting the dirichlet term
 		// RHS -= LHS*temperatures
@@ -234,11 +242,10 @@ namespace Kratos
 			ms_temp_vec_np[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
 		
-		//multiplying by area, rho and density
-		rRightHandSideVector *= (Area * density*specific_heat);
-		rLeftHandSideMatrix *= (Area * density*specific_heat);
-//KRATOS_WATCH(rLeftHandSideMatrix)
-//KRATOS_WATCH(rRightHandSideVector)
+		//multiplying by area
+		rRightHandSideVector *= Area ;
+		rLeftHandSideMatrix *= Area ;
+
 		KRATOS_CATCH("");
 	}
 
