@@ -382,6 +382,50 @@ namespace Kratos
     }
 
     /**
+     * Returns the square of the minimum element height, to be used as dilter width in the Smagorinsky model
+     * @see VMS::FilterWidth
+     */
+    template <>
+    double VMS<2,3>::FilterWidth(const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
+    {
+    	double inv_h_max = 0.0;
+	for(unsigned int i=0; i<3; i++)
+	{
+	  double inv_h = 0.0;
+	  for(unsigned int d=0; d<2; d++)
+	    inv_h += DN_DX(i,d)*DN_DX(i,d);
+
+	  if(inv_h > inv_h_max) inv_h_max = inv_h;
+	}
+
+	double DeltaSquared = 1.0/inv_h_max;
+
+        return DeltaSquared ;
+    }
+
+    /**
+     * Returns the square of the minimum element height, to be used as dilter width in the Smagorinsky model
+     * @see VMS::FilterWidth
+     */
+    template <>
+    double VMS<3,4>::FilterWidth(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX)
+    {
+    	double inv_h_max = 0.0;
+	for(unsigned int i=0; i<4; i++)
+	{
+	  double inv_h = 0.0;
+	  for(unsigned int d=0; d<3; d++)
+	    inv_h += DN_DX(i,d)*DN_DX(i,d);
+
+	  if(inv_h > inv_h_max) inv_h_max = inv_h;
+	}
+
+	double DeltaSquared = 1.0/inv_h_max;
+
+        return DeltaSquared ;
+    }
+
+    /**
      * See VMS::CalculateB
      */
     template <>
