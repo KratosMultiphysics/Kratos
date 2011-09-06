@@ -1313,7 +1313,7 @@ namespace Kratos
             if (C != 0.0 )
             {
                 // The filter width in Smagorinsky is typically the element size h. We will store the square of h, as the final formula involves the squared filter width
-                const double FilterWidth = this->FilterWidth();
+                const double FilterWidth = this->FilterWidth(rShapeDeriv);
 
                 const double NormS = this->SymmetricGradientNorm(rShapeDeriv);
 
@@ -1474,6 +1474,9 @@ namespace Kratos
 
         /// Return the filter width for the smagorinsky model (Delta squared)
         double FilterWidth();
+
+        /// Return the filter width for the smagorinsky model (Delta squared)
+        double FilterWidth(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& DN_DX);
 
         /// Compute the norm of the symmetric gradient of velocity
         /**
