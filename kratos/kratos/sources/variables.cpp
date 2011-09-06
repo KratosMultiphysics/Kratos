@@ -231,6 +231,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, LAGRANGE_AIR_PRESSURE )
     KRATOS_CREATE_VARIABLE( double, LAGRANGE_WATER_PRESSURE )
     KRATOS_CREATE_VARIABLE( double, LAGRANGE_TEMPERATURE )
+    KRATOS_CREATE_VARIABLE(double,  IS_INLET)
 
 
     //for ALE application TO BE REMOVED
@@ -450,6 +451,20 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double,  PR_ART_VISC)
     KRATOS_CREATE_VARIABLE(double, INTERNAL_ENERGY )
 
+	//for Vulcan application
+	Kratos::Variable<double> PRESSURES("PRESSURES (N/m2)"); 
+	KRATOS_CREATE_VARIABLE(double, MATERIAL )
+    Kratos::Variable<Kratos::array_1d<double, 3> > VELOCITIES("VELOCITIES", Kratos::zero_vector<double>(3)); 
+
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > 
+                  VELOCITIES_X("X-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(VELOCITIES, 0)); 
+
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > 
+                  VELOCITIES_Y("Y-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(VELOCITIES, 1)); 
+
+    /*const*/ Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > 
+                  VELOCITIES_Z("Z-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(VELOCITIES, 2));
+
     KratosApplication::KratosApplication() :
     mCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mCondition2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
@@ -619,6 +634,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( LAGRANGE_AIR_PRESSURE )
         KRATOS_REGISTER_VARIABLE( LAGRANGE_WATER_PRESSURE )
         KRATOS_REGISTER_VARIABLE( LAGRANGE_TEMPERATURE )
+        KRATOS_REGISTER_VARIABLE( IS_INLET)
 
 
         //for ALE application TO BE REMOVED
@@ -848,6 +864,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(VEL_ART_VISC)
         KRATOS_REGISTER_VARIABLE(PR_ART_VISC)
         KRATOS_REGISTER_VARIABLE(INTERNAL_ENERGY)
+
+
+		// For Vulcan application
+	    KRATOS_REGISTER_VARIABLE(PRESSURES)
+	    KRATOS_REGISTER_VARIABLE(MATERIAL)
+		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITIES)
+
 
        Tetrahedra3D4 <Node<3> >  Tetrahedra3D4Prototype( Element::GeometryType::PointsArrayType( 4, Node<3>() ) );
 
