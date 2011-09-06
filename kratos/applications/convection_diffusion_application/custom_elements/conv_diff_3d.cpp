@@ -179,13 +179,13 @@ namespace Kratos
     		double T3n = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar,1);
 
 		double g=0.0;
-    		double p1= msDN_DX(0,0)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,0)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,0)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar); msDN_DX(3,0)*GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar) ; 
-    		double p2 = msDN_DX(0,1)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,1)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,1)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(3,1)*GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar) ;
-    		double p3 = msDN_DX(0,2)*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar)+msDN_DX(1,2)*GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar)+ msDN_DX(2,2)*GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(3,2)*GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar) ;
+		
+		for (unsigned int i = 0; i<TDim ; i++){
+			for (unsigned int j = 0; j<number_of_points; j++){
+			grad_g[i]+=msDN_DX(j,i)*GetGeometry()[j].FastGetSolutionStepValue(rUnknownVar);
+			}
+		}
 
-    		grad_g[0] = p1;
-    		grad_g[1] = p2;
-    		grad_g[2] = p3;
     		double norm_g =norm_2(grad_g);
 
 		double res = density*specific_heat*(inner_prod(ms_vel_gauss,grad_g)) + lumping_factor * specific_heat *density *(BDFcoeffs[0]* (T0-T0n)+ BDFcoeffs[0] * (T1-T1n) + BDFcoeffs[0]*( T2-T2n)+ BDFcoeffs[0]*( T3-T3));
