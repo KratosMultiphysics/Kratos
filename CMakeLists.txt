@@ -120,7 +120,11 @@ add_subdirectory(kratos)
 add_subdirectory(applications)
 
 #set installation directory
-set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
+if(DEFINED CMAKE_INSTALL_PREFIX)
+   message("user defined install dir ${CMAKE_INSTALL_PREFIX}")
+else(DEFINED CMAKE_INSTALL_PREFIX)
+   set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
+endif(DEFINED CMAKE_INSTALL_PREFIX)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("inc_dirs = ${inc_dirs}")
