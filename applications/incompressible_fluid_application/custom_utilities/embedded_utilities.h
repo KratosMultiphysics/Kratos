@@ -102,7 +102,7 @@ namespace Kratos
 		  for(ModelPart::ElementsContainerType::iterator im = reduced_model_part.ElementsBegin() ; 
 				  im != reduced_model_part.ElementsEnd() ; ++im)
 		    {
-		     for (int i=0;i<im->GetGeometry().size();i++)
+		     for (std::size_t i=0;i<im->GetGeometry().size();i++)
 			  {
 			  distance=distance_aux;
 			  distance_aux=im->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
@@ -120,7 +120,6 @@ namespace Kratos
 			distance=in->FastGetSolutionStepValue(DISTANCE);
 			bool node_of_intersected_elem=false;
 			WeakPointerVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES); 
-			unsigned int count=0;
 			for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++) 
 				{ 					
 				 distance_aux=i->FastGetSolutionStepValue(DISTANCE);
@@ -141,8 +140,8 @@ namespace Kratos
 		void DisableSubdomain(ModelPart& full_model_part, ModelPart& reduced_model_part)
 		{
 		KRATOS_TRY
-		int n_int=0;
-		int n_disabled=0;
+		std::size_t n_int=0;
+		std::size_t n_disabled=0;
 		//clear reduced_model_part
 		reduced_model_part.Conditions().clear();
 		reduced_model_part.Elements().clear();
@@ -158,14 +157,14 @@ namespace Kratos
 				im != full_model_part.ElementsEnd() ; ++im)
 		{	  
 			n_int=0;
-			for (int i=0;i<im->GetGeometry().size();i++)
+			for (std::size_t i=0;i<im->GetGeometry().size();i++)
 				n_int+=im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);				
 				
 
 			if (n_int==im->GetGeometry().size())
 				{
 					
-				  for (int i=0;i<im->GetGeometry().size();i++)
+				  for (std::size_t i=0;i<im->GetGeometry().size();i++)
 				      im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)=true;				
 				}
 
@@ -175,7 +174,7 @@ namespace Kratos
 		{	  
 	            n_disabled=0;
 
-		    for (int i=0;i<im->GetGeometry().size();i++)
+		    for (std::size_t i=0;i<im->GetGeometry().size();i++)
 			n_disabled+=im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE);
 			
 

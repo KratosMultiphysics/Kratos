@@ -77,6 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/estimate_dt_utilities.h"
 #include "custom_utilities/lagrangian_particle_utilities.h"
 #include "custom_utilities/embedded_utilities.h"
+#include "custom_utilities/fluid_thermal_solver_utilities.h"
 
 
 //#include "custom_utilities/edgebased_levelset.h"
@@ -334,6 +335,12 @@ namespace Kratos
                     .def("TransferToEulerianMeshShapeBased", &LagrangianParticleUtils < 2 > ::TransferToEulerianMeshShapeBased)
                     ;
 
+
+            class_<FluidThermalSolverUtilities>("FluidThermalSolverUtilities", init<ModelPart&, ModelPart&>())
+                    .def("ProjectFromThermalToFluid",&FluidThermalSolverUtilities::ProjectFromThermalToFluid)
+                    .def("ProjectFromFluidToThermal",&FluidThermalSolverUtilities::ProjectFromFluidToThermal)
+                    .def("ApplyTables",&FluidThermalSolverUtilities::ApplyTables)
+                    ;
         }
 
     } // namespace Python.
