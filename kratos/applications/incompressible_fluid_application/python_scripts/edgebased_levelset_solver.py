@@ -47,6 +47,7 @@ class EdgeBasedLevelSetSolver:
         self.tau2_factor = 0.0
         self.edge_detection_angle = 45.0
         self.assume_constant_pressure = True
+	self.timer=Timer()
 
         self.use_parallel_distance_calculation = False
 
@@ -192,24 +193,38 @@ class EdgeBasedLevelSetSolver:
             print "insufficient number of extrapolation layers. Minimum is 3"
             raise ValueError
 
+	self.timer.Start("Update Fixed Velocity Values")
         (self.fluid_solver).UpdateFixedVelocityValues()
+	self.timer.Stop("Update Fixed Velocity Values")
 
+	self.timer.Start("Extrapolate Values")
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
+	self.timer.Stop("Extrapolate Values")
 
         ##convect levelset function
        # self.convection_solver.Solve();
+	self.timer.Start("Convect Distance")
         (self.fluid_solver).ConvectDistance()
+	self.timer.Stop("Convect Distance")
 
         if(self.step == self.redistance_frequency):
+	    self.timer.Start("Redistance")
             self.Redistance()
+ 	    self.timer.Stop("Redistance")
             self.step = 0
             print "redistance was executed"
         self.step += 1
 
         ##solve fluid
+	self.timer.Start("Solve Step 1")
         (self.fluid_solver).SolveStep1();
+	self.timer.Stop("Solve Step 1")
+	self.timer.Start("Solve Step 2")
         (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
+	self.timer.Stop("Solve Step 2")
+	self.timer.Start("Solve Step 3")
         (self.fluid_solver).SolveStep3();
+	self.timer.Stop("Solve Step 3")
 
 ##        if(self.step == self.redistance_frequency):
 ##            self.Redistance()
