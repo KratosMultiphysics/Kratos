@@ -23,7 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "modeler/copy_modeler.h"
+#include "modeler/duplicate_mesh_modeler.h"
 
 
 namespace Kratos {
@@ -70,7 +70,7 @@ namespace Kratos {
         FluidThermalSolverUtilities(ModelPart& rFluidModelPart, ModelPart& rThermalModelPart) : mrFluidModelPart(rFluidModelPart), mrThermalModelPart(rThermalModelPart) {
             // Check all variables
             // Generate Copy of Elements
-            CopyModeler copy_modeler(mrFluidModelPart);
+            DuplicateMeshModeler copy_modeler(mrFluidModelPart);
 
             copy_modeler.GenerateMesh(mrThermalModelPart, KratosComponents<Element>::Get("ConvDiff3D"), KratosComponents<Condition>::Get("ThermalFace3D"));
 
