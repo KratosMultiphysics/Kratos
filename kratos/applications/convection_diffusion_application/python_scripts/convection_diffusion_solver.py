@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
 from KratosConvectionDiffusionApplication import *
@@ -15,6 +16,7 @@ def AddVariables(model_part,settings ):
     model_part.AddNodalSolutionStepVariable(settings.GetDensityVariable());
     model_part.AddNodalSolutionStepVariable(settings.GetDiffusionVariable());
     model_part.AddNodalSolutionStepVariable(settings.GetSurfaceSourceVariable());
+    model_part.AddNodalSolutionStepVariable(CONVECTION_COEFFICIENT);
 
 def AddDofs(model_part,settings):
     for node in model_part.Nodes:
