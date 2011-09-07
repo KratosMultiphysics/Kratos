@@ -88,11 +88,11 @@ namespace Kratos
 			typedef std::vector<CSR_Tuple> EdgesVectorType;
 
 			//name for row start and column index vectors
-			typedef std::vector<unsigned int> IndicesVectorType;
+			typedef vector<unsigned int> IndicesVectorType;
 			//defining matrix type for test calculations
-			typedef std::vector< array_1d<double, TDim> > CalcVectorType;
+			typedef vector< array_1d<double, TDim> > CalcVectorType;
 			//defining type for local storage of nodal values
-			typedef std::vector<double> ValuesVectorType;
+			typedef vector<double> ValuesVectorType;
 
 			//defining types for matrix operations
 			typedef typename TSparseSpace::MatrixType TSystemMatrixType;
