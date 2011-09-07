@@ -270,6 +270,8 @@ namespace Kratos
 
     // Used in convection_diffusion and FluidDynamics
     KRATOS_DEFINE_VARIABLE(double,  TEMP_CONV_PROJ)
+    KRATOS_DEFINE_VARIABLE(double,  CONVECTION_COEFFICIENT)
+
 
     KRATOS_DEFINE_VARIABLE(double,AIR_SOUND_VELOCITY)
     KRATOS_DEFINE_VARIABLE(double,WATER_SOUND_VELOCITY)
