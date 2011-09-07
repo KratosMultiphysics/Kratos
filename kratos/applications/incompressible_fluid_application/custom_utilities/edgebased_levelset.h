@@ -89,14 +89,14 @@ namespace Kratos {
     public:
 	//name for the self defined structure
 	typedef EdgesStructureType<TDim> CSR_Tuple;
-	typedef std::vector<CSR_Tuple> EdgesVectorType;
+	typedef vector<CSR_Tuple> EdgesVectorType;
 
 	//name for row start and column index vectors
-	typedef std::vector<unsigned int> IndicesVectorType;
+	typedef vector<unsigned int> IndicesVectorType;
 	//defining matrix type for test calculations
-	typedef std::vector< array_1d<double, TDim> > CalcVectorType;
+	typedef vector< array_1d<double, TDim> > CalcVectorType;
 	//defining type for local storage of nodal values
-	typedef std::vector<double> ValuesVectorType;
+	typedef vector<double> ValuesVectorType;
 
 	//defining types for matrix operations
 	typedef typename TSparseSpace::MatrixType TSystemMatrixType;
@@ -212,6 +212,9 @@ namespace Kratos {
 	    mFirstStep = true;
 
 	    //loop to categorize boundary nodes
+	    std::vector< unsigned int> tempFixedVelocities;
+	    std::vector< array_1d<double,TDim> > tempFixedVelocitiesValues;
+	    std::vector< unsigned int> tempPressureOutletList;
 	    for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
 		    inode != mr_model_part.NodesEnd();
 		    inode++) {
@@ -224,15 +227,30 @@ namespace Kratos {
 		    }
 
 
-		    mFixedVelocities.push_back(index);
-		    mFixedVelocitiesValues.push_back(mvel_n1[index]);
+		    tempFixedVelocities.push_back(index);
+		    tempFixedVelocitiesValues.push_back(mvel_n1[index]);
 		}
 
 		if (inode->IsFixed(PRESSURE)) {
-		    mPressureOutletList.push_back(index);
+		    tempPressureOutletList.push_back(index);
 //		    mPressureOutlet.push_back(external_pressure[index]);
 		}
 	    }
+	    mFixedVelocities.resize(tempFixedVelocities.size(),false);
+	    mFixedVelocitiesValues.resize(tempFixedVelocitiesValues.size(),false);
+	    mPressureOutletList.resize(tempPressureOutletList.size(),false);
+	    
+	    #pragma omp parallel for
+	    for(unsigned int i=0; i<tempFixedVelocities.size(); i++)
+	    {
+	      mFixedVelocities[i] = tempFixedVelocities[i];
+	      mFixedVelocitiesValues[i] = tempFixedVelocitiesValues[i];
+	    }
+	    #pragma omp parallel for
+	    for(unsigned int i=0; i<tempPressureOutletList.size(); i++)
+	    {
+	      mPressureOutletList[i] = tempPressureOutletList[i];
+	    }	    
 
 	    //compute slip normals and fill SlipList
 	    CalculateNormals(mr_model_part.Conditions());
@@ -1961,13 +1979,18 @@ namespace Kratos {
             }
 
             //fill the list of slip nodes
+	    std::vector< unsigned int> tempmSlipBoundaryList;
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
             {
                 if (is_slip[i_node] == true)
-                    mSlipBoundaryList.push_back(i_node);
+                    tempmSlipBoundaryList.push_back(i_node);
 
                 is_slip[i_node] = false;
             }
+            mSlipBoundaryList.resize(tempmSlipBoundaryList.size(),false);
+            #pragma omp parallel for
+            for(unsigned int i=0; i<tempmSlipBoundaryList.size(); i++)
+	      mSlipBoundaryList[i] = tempmSlipBoundaryList[i];
 
             //loop over all faces to fill inlet outlet
             
@@ -1995,11 +2018,16 @@ namespace Kratos {
             }
 
             //fill the list of slip nodes
+	    std::vector< unsigned int> tempmInOutBoundaryList;
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
             {
                 if (is_slip[i_node] == true)
-                    mInOutBoundaryList.push_back(i_node);
+                    tempmInOutBoundaryList.push_back(i_node);
             }
+            mInOutBoundaryList.resize(tempmInOutBoundaryList.size(),false);
+            #pragma omp parallel for
+            for(unsigned int i=0; i<tempmInOutBoundaryList.size(); i++)
+	      mInOutBoundaryList[i] = tempmInOutBoundaryList[i];
 
 
 
@@ -2989,23 +3017,35 @@ namespace Kratos {
 
 
             //fill the list of edge_nodes
-            medge_nodes.resize(0);
-            medge_nodes_direction.resize(0);
-            mcorner_nodes.resize(0);
+            std::vector<unsigned int> tempmedge_nodes;
+            std::vector< array_1d<double,TDim> > tempmedge_nodes_direction;
+            std::vector<unsigned int> tempmcorner_nodes;
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
             {
                 if (temp_edge_nodes[i_node] == 2) //node is a edge_node
                 {
-                    medge_nodes.push_back(i_node);
+                    tempmedge_nodes.push_back(i_node);
                     array_1d<double, TDim>& node_edge = temp_cornern_list[i_node];
 
                     node_edge /= norm_2(node_edge);
-                    medge_nodes_direction.push_back(node_edge);
+                    tempmedge_nodes_direction.push_back(node_edge);
                 } else if (temp_edge_nodes[i_node] > 2)
-                    mcorner_nodes.push_back(i_node);
+                    tempmcorner_nodes.push_back(i_node);
             }
-
-
+            medge_nodes.resize(tempmedge_nodes.size(),false);
+            medge_nodes_direction.resize(tempmedge_nodes_direction.size(),false);
+            mcorner_nodes.resize(tempmcorner_nodes.size(),false);
+	    #pragma omp parallel for
+	    for (unsigned int i = 0; i < tempmedge_nodes.size(); i++)
+	    {
+	      medge_nodes[i] = tempmedge_nodes[i];
+	      medge_nodes_direction[i] = tempmedge_nodes_direction[i];
+	    }
+	    #pragma omp parallel for
+	    for (unsigned int i = 0; i < tempmcorner_nodes.size(); i++)
+	    {
+	      mcorner_nodes[i] = tempmcorner_nodes[i];
+	    }
 
             for (unsigned int i = 0; i < mcorner_nodes.size(); i++)
             {
