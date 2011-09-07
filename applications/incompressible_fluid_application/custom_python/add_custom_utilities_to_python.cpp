@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/level_set_utilities_implicitextrapolation.h" 
 #include "custom_utilities/edge_data.h"
 #include "custom_utilities/fluid_solver.h" 
-#include "custom_utilities/levelset_fluid_solver.h" 
+// #include "custom_utilities/levelset_fluid_solver.h" 
 #include "custom_utilities/Turbolence_Smagorinsky.h" 
 #include "custom_utilities/pure_convection_edgebased.h" 
 #include "custom_utilities/coupled_eulerian_ulf_utilities.h" 
@@ -230,39 +230,39 @@ namespace Kratos
                     ;
 
 
-            class_< LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("LevelSetFluidSolver2D", init < MatrixContainer < 2, SparseSpaceType>&, ModelPart&, bool, bool >())
-                    .def("Initialize", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
-                    .def("ComputeTimeStep", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
-                    .def("SolveStep1", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
-                    .def("SolveStep2", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
-                    .def("SolveStep3", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
-                    .def("SolveStep4", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep4)
-                    .def("ExtrapolateVelocities", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ExtrapolateVelocities)
-                    .def("MarkExternalAndMixedNodes", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkExternalAndMixedNodes)
-                    .def("MarkInternalAndMixedNodes", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalAndMixedNodes)
-                    .def("SaveScalarVariableToOldStep", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SaveScalarVariableToOldStep)
-                    .def("ChangeSignToDistance", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ChangeSignToDistance)
-                    .def("MarkNodesByDistance", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
-                    .def("CalculateForces", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
-                    .def("CalculateVariablesDistribution", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateVariablesDistribution)
-                    ;
-
-            class_< LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("LevelSetFluidSolver3D", init < MatrixContainer < 3, SparseSpaceType>&, ModelPart&, bool, bool >())
-                    .def("Initialize", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
-                    .def("ComputeTimeStep", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
-                    .def("SolveStep1", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
-                    .def("SolveStep2", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
-                    .def("SolveStep3", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
-                    .def("SolveStep4", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep4)
-                    .def("ExtrapolateVelocities", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ExtrapolateVelocities)
-                    .def("MarkExternalAndMixedNodes", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkExternalAndMixedNodes)
-                    .def("MarkInternalAndMixedNodes", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalAndMixedNodes)
-                    .def("SaveScalarVariableToOldStep", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SaveScalarVariableToOldStep)
-                    .def("ChangeSignToDistance", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ChangeSignToDistance)
-                    .def("MarkNodesByDistance", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
-                    .def("CalculateForces", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
-                    .def("CalculateVariablesDistribution", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateVariablesDistribution)
-                    ;
+//             class_< LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("LevelSetFluidSolver2D", init < MatrixContainer < 2, SparseSpaceType>&, ModelPart&, bool, bool >())
+//                     .def("Initialize", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
+//                     .def("ComputeTimeStep", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
+//                     .def("SolveStep1", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
+//                     .def("SolveStep2", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
+//                     .def("SolveStep3", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
+//                     .def("SolveStep4", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep4)
+//                     .def("ExtrapolateVelocities", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ExtrapolateVelocities)
+//                     .def("MarkExternalAndMixedNodes", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkExternalAndMixedNodes)
+//                     .def("MarkInternalAndMixedNodes", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalAndMixedNodes)
+//                     .def("SaveScalarVariableToOldStep", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SaveScalarVariableToOldStep)
+//                     .def("ChangeSignToDistance", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ChangeSignToDistance)
+//                     .def("MarkNodesByDistance", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
+//                     .def("CalculateForces", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
+//                     .def("CalculateVariablesDistribution", &LevelSetFluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateVariablesDistribution)
+//                     ;
+// 
+//             class_< LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("LevelSetFluidSolver3D", init < MatrixContainer < 3, SparseSpaceType>&, ModelPart&, bool, bool >())
+//                     .def("Initialize", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
+//                     .def("ComputeTimeStep", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTimeStep)
+//                     .def("SolveStep1", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep1)
+//                     .def("SolveStep2", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep2)
+//                     .def("SolveStep3", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep3)
+//                     .def("SolveStep4", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SolveStep4)
+//                     .def("ExtrapolateVelocities", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ExtrapolateVelocities)
+//                     .def("MarkExternalAndMixedNodes", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkExternalAndMixedNodes)
+//                     .def("MarkInternalAndMixedNodes", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkInternalAndMixedNodes)
+//                     .def("SaveScalarVariableToOldStep", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SaveScalarVariableToOldStep)
+//                     .def("ChangeSignToDistance", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ChangeSignToDistance)
+//                     .def("MarkNodesByDistance", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::MarkNodesByDistance)
+//                     .def("CalculateForces", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
+//                     .def("CalculateVariablesDistribution", &LevelSetFluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateVariablesDistribution)
+//                     ;
 
 
             class_< PureConvectionEdgeBased < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("PureConvectionEdgeBased2D", init<MatrixContainer < 2, SparseSpaceType>&, ModelPart& >())
