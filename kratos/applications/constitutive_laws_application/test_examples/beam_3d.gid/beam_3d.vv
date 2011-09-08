@@ -1,0 +1,33 @@
+BeginZE /home/hurga/kratos_bcn/kratos/applications/constitutive_laws_application/test_examples/beam_3d.gid/beam_3d.vv
+   x -3.14338 4.14338
+   y 3.26385 -2.26385
+   z -10.7916 5.79156
+   e 2.76385
+   v 0.083201 0.855215 0.147192
+   r -0.489919
+   m -0.506115 0.286533 -0.813479 0 -0.00191439 0.942824 0.333284 0 0.862465 0.170237 -0.476629 0 0 0 0 1
+   c 0.5 0.5 2.5
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector -150 69.3396 0 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/hurga/kratos_bcn/kratos/applications/constitutive_laws_application/test_examples/beam_3d.gid/beam_3d.vv
+

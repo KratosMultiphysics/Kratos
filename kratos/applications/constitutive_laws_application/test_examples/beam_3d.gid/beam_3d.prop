@@ -1,0 +1,10 @@
+// Reading Properties
+//name:  Umat
+PROPERTIES[1][TIME_STEPS] = 1;
+PROPERTIES[1][DELTA_TIME] = 1.000000;
+PROPERTIES[1][DENSITY] = 2400.000000; 
+PROPERTIES[1][YOUNG_MODULUS] = 1.0e6;
+PROPERTIES[1][POISSON_RATIO] = 0.300000; 
+PROPERTIES[1][BODY_FORCE] = [           0,       -74752,            0];
+PROPERTIES[1][GRAVITY] = [           0,        -9.81,            0];
+//======================================================================
