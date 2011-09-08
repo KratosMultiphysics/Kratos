@@ -8,6 +8,7 @@ Import_ConvectionDiffusionApplication = False
 Import_FSIApplication = False
 Import_PFEMApplication = False
 Import_ExternalSolversApplication = False
+Import_ConstitutiveLawsApplication = False
 Import_ULFApplication = False
 Import_MeshingApplication = False
 Import_KratosMKLSolversApplication = False
@@ -31,6 +32,7 @@ print "Import_StructuralApplication: False"
 print "Import_ConvectionDiffusionApplication: False"
 print "Import_FSIApplication: False"
 print "Import_ExternalSolversApplication: False"
+print "Import_ConstitutiveLawsApplication: False"
 print "Import_ULFApplication: False"
 print "Import_MeshingApplication: False"
 print "Import_KratosMKLSolversApplication: False"
@@ -58,6 +60,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_ConvectionDiffusionApplication: "+str(Import_ConvectionDiffusionApplication)
     print "Import_FSIApplication: "+str(Import_FSIApplication)
     print "Import_ExternalSolversApplication: "+str(Import_ExternalSolversApplication)
+    print "Import_ConstitutiveLawsApplication: "+str(Import_ConstitutiveLawsApplication)
     print "Import_ULFApplication: "+str(Import_ULFApplication)
     print "Import_MeshingApplication: "+str(Import_MeshingApplication)
     print "Import_KratosTrilinosApplication: "+str(Import_KratosTrilinosApplication)
@@ -137,6 +140,15 @@ def ImportApplications(kernel, applications_path):
         external_solvers_application = KratosExternalSolversApplication()
         kernel.AddApplication(external_solvers_application)
         print "KratosExternalSolversApplication sucessfully imported"
+
+    if(Import_ConstitutiveLawsApplication == True):
+        print "importing KratosConstitutiveLawsApplication ..."
+        sys.path.append(applications_path + '/constitutive_laws_application/python_scripts')
+        sys.path.append(applications_path + '/constitutive_laws_application/Linux')
+        from KratosConstitutiveLawsApplication import *
+        constitutive_laws_application = KratosConstitutiveLawsApplication()
+        kernel.AddApplication(constitutive_laws_application)
+        print( "KratosConstitutiveLawsApplication successfully imported" )
  	
     if(Import_ULFApplication == True):
         print "importing KratosULFApplication ..."
@@ -273,6 +285,8 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(pfem_application); 
     if(Import_ExternalSolversApplication == True):
         kernel.InitializeApplication(external_solvers_application);
+    if(Import_ConstitutiveLawsApplication == True):
+        kernel.InitializeApplication(constitutive_laws_application);
     if(Import_ULFApplication == True):
         kernel.InitializeApplication(ulf_application);
     if(Import_MeshingApplication == True):
