@@ -87,13 +87,13 @@ namespace Kratos {
 
     /** Detail class definition.
      */
-    class CopyModeler : public Modeler {
+    class DuplicateMeshModeler : public Modeler {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Pointer definition of CopyModeler
-        KRATOS_CLASS_POINTER_DEFINITION(CopyModeler);
+        /// Pointer definition of DuplicateMeshModeler
+        KRATOS_CLASS_POINTER_DEFINITION(DuplicateMeshModeler);
 
         typedef Modeler BaseType;
 
@@ -113,13 +113,13 @@ namespace Kratos {
 
         /// constructor.
 
-        CopyModeler(ModelPart& rSourceModelPart) :
+        DuplicateMeshModeler(ModelPart& rSourceModelPart) :
         mrModelPart(rSourceModelPart) {
         }
 
         /// Destructor.
 
-        virtual ~CopyModeler() {
+        virtual ~DuplicateMeshModeler() {
         }
 
 
@@ -238,7 +238,7 @@ namespace Kratos {
         /// Turn back information as a string.
 
         virtual std::string Info() const {
-            return "CopyModeler";
+            return "DuplicateMeshModeler";
         }
 
         /// Print information about this object.
@@ -333,15 +333,15 @@ namespace Kratos {
         ///@{
 
         /// Assignment operator.
-        CopyModeler & operator=(CopyModeler const& rOther);
+        DuplicateMeshModeler & operator=(DuplicateMeshModeler const& rOther);
 
         /// Copy constructor.
-        CopyModeler(CopyModeler const& rOther);
+        DuplicateMeshModeler(DuplicateMeshModeler const& rOther);
 
 
         ///@}
 
-    }; // Class CopyModeler
+    }; // Class DuplicateMeshModeler
 
     ///@}
 
@@ -356,12 +356,12 @@ namespace Kratos {
 
     /// input stream function
     inline std::istream & operator >>(std::istream& rIStream,
-            CopyModeler& rThis);
+            DuplicateMeshModeler& rThis);
 
     /// output stream function
 
     inline std::ostream & operator <<(std::ostream& rOStream,
-            const CopyModeler& rThis) {
+            const DuplicateMeshModeler& rThis) {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);

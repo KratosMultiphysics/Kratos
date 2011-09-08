@@ -357,7 +357,7 @@ namespace Kratos
 
 		  for(int j = 0 ; j < size ; j++)
 		  {
-			  bool is_inside = false;
+//			  bool is_inside = false;
 			  std::vector<double>& j_intersections = mIntersections[j];
 
 			  for(std::vector<double>::iterator j_x = j_intersections.begin() ; j_x != j_intersections.end() ; j_x++)
