@@ -1,0 +1,142 @@
+// Fixing degrees of freedom in nodes
+
+NODES[1].Fix(DISPLACEMENT_X);
+NODES[1].Fix(DISPLACEMENT_Y);
+NODES[1].Fix(DISPLACEMENT_Z);
+NODES[2].Fix(DISPLACEMENT_X);
+NODES[2].Fix(DISPLACEMENT_Y);
+NODES[2].Fix(DISPLACEMENT_Z);
+NODES[11].Fix(DISPLACEMENT_X);
+NODES[11].Fix(DISPLACEMENT_Y);
+NODES[11].Fix(DISPLACEMENT_Z);
+NODES[33].Fix(DISPLACEMENT_X);
+NODES[33].Fix(DISPLACEMENT_Y);
+NODES[33].Fix(DISPLACEMENT_Z);
+NODES[66].Fix(DISPLACEMENT_X);
+NODES[66].Fix(DISPLACEMENT_Y);
+NODES[66].Fix(DISPLACEMENT_Z);
+NODES[640].Fix(DISPLACEMENT_X);
+NODES[640].Fix(DISPLACEMENT_Y);
+NODES[640].Fix(DISPLACEMENT_Z);
+NODES[641].Fix(DISPLACEMENT_X);
+NODES[641].Fix(DISPLACEMENT_Y);
+NODES[641].Fix(DISPLACEMENT_Z);
+NODES[645].Fix(DISPLACEMENT_X);
+NODES[645].Fix(DISPLACEMENT_Y);
+NODES[645].Fix(DISPLACEMENT_Z);
+NODES[650].Fix(DISPLACEMENT_X);
+NODES[650].Fix(DISPLACEMENT_Y);
+NODES[650].Fix(DISPLACEMENT_Z);
+NODES[656].Fix(DISPLACEMENT_X);
+NODES[656].Fix(DISPLACEMENT_Y);
+NODES[656].Fix(DISPLACEMENT_Z);
+
+
+
+
+
+
+//Conditions
+])
+
+CONDITIONS = ConditionsList(FaceForce3D3N,[
+])
+CONDITIONS = ConditionsList(FaceForce3D6N,[
+])
+CONDITIONS = ConditionsList(FaceForce3D4N,[
+])
+CONDITIONS = ConditionsList(FaceForce3D8N,[
+])
+CONDITIONS = ConditionsList(FaceForce3D9N,[
+])
+
+//Conditions
+CONDITIONS = ConditionsList(Face3D4N,[
+])
+CONDITIONS = ConditionsList(Face3D3N,[
+])
+CONDITIONS = ConditionsList(Face3D6N,[
+])
+CONDITIONS = ConditionsList(Face3D8N,[
+])
+CONDITIONS = ConditionsList(Face3D9N,[
+])
+
+CONDITIONS = ConditionsList(LiningEndFace3D3N,[
+])
+CONDITIONS = ConditionsList(LiningEndFace3D6N,[
+])
+CONDITIONS = ConditionsList(LiningEndFace3D4N,[
+])
+CONDITIONS = ConditionsList(LiningEndFace3D8N,[
+])
+CONDITIONS = ConditionsList(LiningEndFace3D9N,[
+])
+CONDITIONS = ConditionsList(TBMEndFace3D3N,[
+])
+CONDITIONS = ConditionsList(TBMEndFace3D6N,[
+])
+CONDITIONS = ConditionsList(TBMEndFace3D4N,[
+])
+CONDITIONS = ConditionsList(TBMEndFace3D8N,[
+])
+CONDITIONS = ConditionsList(TBMEndFace3D9N,[
+])
+
+CONDITIONS = ConditionsList(TyingLeftSide3D3N,[
+])
+CONDITIONS = ConditionsList(TyingLeftSide3D6N,[
+])
+CONDITIONS = ConditionsList(TyingLeftSide3D4N,[
+])
+CONDITIONS = ConditionsList(TyingLeftSide3D8N,[
+])
+CONDITIONS = ConditionsList(TyingLeftSide3D9N,[
+])
+
+CONDITIONS = ConditionsList(TyingRightSide3D3N,[
+])
+CONDITIONS = ConditionsList(TyingRightSide3D6N,[
+])
+CONDITIONS = ConditionsList(TyingRightSide3D4N,[
+])
+CONDITIONS = ConditionsList(TyingRightSide3D8N,[
+])
+CONDITIONS = ConditionsList(TyingRightSide3D9N,[
+])
+
+CONDITIONS = ConditionsList(TyingLagrangeSlave3D3N,[
+])
+CONDITIONS = ConditionsList(TyingLagrangeSlave3D6N,[
+])
+CONDITIONS = ConditionsList(TyingLagrangeSlave3D4N,[
+])
+CONDITIONS = ConditionsList(TyingLagrangeSlave3D8N,[
+])
+CONDITIONS = ConditionsList(TyingLagrangeSlave3D9N,[
+])
+
+CONDITIONS = ConditionsList(TyingLagrangeMaster,[
+])
+CONDITIONS = ConditionsList(MasterContactFace3D3,[
+])
+CONDITIONS = ConditionsList(MasterContactFace3D6,[
+])
+CONDITIONS = ConditionsList(MasterContactFace3D,[
+])
+CONDITIONS = ConditionsList(MasterContactFace3D8,[
+])
+CONDITIONS = ConditionsList(MasterContactFace3D9,[
+])
+CONDITIONS = ConditionsList(SlaveContactFace3D3,[
+])
+CONDITIONS = ConditionsList(SlaveContactFace3D6,[
+])
+CONDITIONS = ConditionsList(SlaveContactFace3D,[
+])
+CONDITIONS = ConditionsList(SlaveContactFace3D8,[
+])
+CONDITIONS = ConditionsList(SlaveContactFace3D9,[
+])
+CONDITIONS = ConditionsList(GroutFlowCondition3D4N,[
+])

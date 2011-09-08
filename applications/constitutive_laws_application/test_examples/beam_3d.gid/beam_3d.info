@@ -1,0 +1,159 @@
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_StructuralApplicationCore: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_KratosEkateAuxiliaryApplication: False
+Import_KratosExternalConstitutiveLawsApplication: False
+Import_MengmengApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: True
+Import_StructuralApplication: True
+Import_StructuralApplicationCore: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: True
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_KratosEkateAuxiliaryApplication: True
+Import_KratosExternalConstitutiveLawsApplication: True
+Import_MengmengApplication: False
+importing KratosIncompressibleFluidApplication ...
+KratosIncompressibleFluidApplication lib loaded
+KratosIncompressibleFluidApplication application created
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosIncompressibleFluidApplication Succesfully imported
+importing KratosStructuralApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosStructuralApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosStructuralApplication Succesfully imported
+importing KratosMeshingApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing Kratos MeshingApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosMeshingApplication sucessfully imported
+importing KratosMKLSolversApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosMKLSolversApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosMKLSolversApplication sucessfully imported
+importing KratosEkateAuxiliaryApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosEkateAuxiliaryApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosEkateAuxiliaryApplication successfully imported
+importing KratosExternalConstitutiveLawsApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosExternalConstitutiveLawsApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosExternalConstitutiveLawsApplication successfully imported
+variables for the dynamic structural solution added correctly
+./beam_3d opened for io
+./beam_3d.node opened for io
+./beam_3d.prop opened for io
+./beam_3d.elem opened for io
+./beam_3d.cond opened for io
+./beam_3d.init opened for io
+initializing result files
+reading nodes
+temp : Node #664 : (1 , 1 , 0)
+Nodes succesfully read
+reading Properties
+Properties succesfully read
+reading Elements
+Properties succesfully read
+reading Conditions
+Properties succesfully read
+reading Initial Values
+ reading initiali values 
+ finished reading initial values 
+Initial Values succesfully read
+Reading completed succesfully
+input data read OK
+dofs for the dynamic structural solution added correctly
+Linear elastic model selected
+layer sets stored
+nodes on ground surface stored
+initializing deactivation utility
+deactivation utility initialized
+activation utility initialized
+model successfully initialized
+"setting up the dofs" : setting up the dofs
+matrix_partition : [3](0,981,1962)
+number_of_threads : 2
+element_partition : [3](0,1399,2798)
+time: 0.059288
+"finished parallel building" : finished parallel building
+matrix size in solver: 1962
+RHS size in solver: 1962
+Factor time  =     0.04
+Factor flops = 3.198908e+07	Mflops =   807.23
+Solve time   =     0.00
+Solve flops = 6.986580e+05	Mflops =   502.98
+Number of memory expansions: 0
+SuperLU solver finished.
+
+#############################
+Max in Diagonal: 347040757320.0
+#############################
+number_of_threads : 2
+element_partition : [3](0,1399,2798)
+time: 0.057842
+"finished parallel building" : finished parallel building
+matrix size in solver: 1962
+RHS size in solver: 1962
+Factor time  =     0.04
+Factor flops = 3.198908e+07	Mflops =   812.61
+Solve time   =     0.00
+Solve flops = 6.986580e+05	Mflops =   459.38
+Number of memory expansions: 0
+SuperLU solver finished.
+
+#############################
+Max in Diagonal: 347040757320.0
+#############################
+********************************************CONVERGENCE CRITERIA FOR MULTIPHASE PROBLEMS********************************************
+** expected values: 						change= 1.000e-06				energy= 1.000e-10 **
+** obtained values displascement:	ratio= 1.000e+00	change= 3.384e-19	absolute= 0.000e+00	energy= 3.384e-19 **
+************************************************************************************************************************************
+Congratulations the time step solution is converged...
+"ResidualBasedEliminationBuilderAndSolverDeactivation Clear Function called" : ResidualBasedEliminationBuilderAndSolverDeactivation Clear Function called
+writing a 3D mesh
+mesh written...
+write nodal displacements
+Calculation done
