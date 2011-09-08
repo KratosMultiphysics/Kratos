@@ -1,0 +1,12 @@
+This application is used to link KRATOS to user material subroutines that are created for commercial FE software. As an example, an interface to ABAQUS UMAT subroutines has been implemented.
+
+The interface supports multiple different UMAT subroutines that can be selected using a parameter in KRATOS. Adding a new UMAT subroutine to this interface requires the following steps:
+
+1. rename the UMAT file by providing a unique name (e.g. rename umat.f into mises_umat.f)
+2. rename the subroutine inside the UMAT file by providing a unique name (e.g. rename UMAT into MISES_UMAT)
+3. modify the generic umat interface (denoted as Umat class in KRATOS) to account for the additional material model
+ a) all model parameters and the identifier of the actual UMAT implementation are stored in the KRATOS variable MATERIAL_PARAMETERS
+ b) MATERIAL_PARAMETERS[0] shall hold the identifier of the material model
+ c) MATERIAL_PARAMETERS[1 ... n] are the model parameters for the actual UMAT implementation. 
+ d) check the requirements of the UMAT implementation with respect to input and output parameters. Note that usually not all paramters are needed, thus most of them have been provided as NULL pointers in the current implementation. If required, 
+the respective variables have to be created or converted from KRATOS variables

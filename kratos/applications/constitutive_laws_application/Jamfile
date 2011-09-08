@@ -1,0 +1,81 @@
+
+
+project ConstitutiveLawsApplication
+    : 
+    source-location
+       .
+       constitutive_laws
+       custom_python
+       external_includes
+       custom_external_libraries/umat
+    :
+    requirements <include>. 
+		 <include>../../applications/
+                 <include>../../applications/structural_application/
+		 <define>KRATOS_PYTHON
+		 <link>shared
+		
+    ;
+
+#################################################################################
+#################################################################################
+##definition of "dependencies for the project"
+lib libifcore : : <name>ifcore <search>$(FORTRAN_LIB_DIR) ;
+lib libifport : : <name>ifport <search>$(FORTRAN_LIB_DIR) ;
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+
+  SOURCES =
+
+        constitutive_laws_application.cpp
+        constitutive_laws_python_application.cpp
+        add_constitutive_laws_to_python.cpp
+
+#################################################################################
+###########################umat_sources##########################################
+        umat.cpp
+        mises_umat.f
+        umat_fortran_wrapper.f
+        xit.f
+
+    ;
+
+lib libKratosConstitutiveLawsApplication
+    : $(SOURCES)
+
+	#####################kratos library as defined in the jamroot
+    /kratos-prj/kratos//libkratos/<link>static
+    /kratos-prj/structural_application//KratosStructuralApplicationStatic/<link>static
+    	 
+	#####################"system" includes as defined in the jamroot
+    /KratosProject//pythonlib
+    /KratosProject//boost_python_lib
+    /KratosProject//libomp
+    libifcore
+    libifport
+	
+    : <tag>@tag
+    ;
+
+#################################################################################
+#################################################################################
+## rules to install ... and to remove the prefix "lib"
+
+rule tag ( name : type ? : property-set )
+{
+  if $(name) = "libKratosConstitutiveLawsApplication"
+  {
+    if [ $(property-set).get <os> ] = NT
+    {  return KratosConstitutiveLawsApplication.dll ;  }
+    else
+    {  return KratosConstitutiveLawsApplication.so ;   }
+  }
+  else
+  {
+    return $(name) ;
+  }  
+}
+install install : libKratosConstitutiveLawsApplication : <location>$(TOP)/libs ;
+
+
