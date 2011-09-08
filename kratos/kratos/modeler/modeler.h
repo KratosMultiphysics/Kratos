@@ -174,12 +174,18 @@ namespace Kratos
 	  }
 	  */
 
-      
-	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement)
+
+//	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement)
+//	  {
+//		  KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
+//	  }
+//
+
+	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
 	  {
 		  KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
 	  }
-      
+
 	  virtual void GenerateNodes(ModelPart& ThisModelPart)
 	  {
 		  KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for node generation.", "");
