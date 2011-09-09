@@ -217,7 +217,7 @@ namespace Kratos
       ///@name Private Operators
       ///@{ 
 
-///Evaluates  \f$ L h s =  4 \epsilon \sigma T^3 \left\langle W, N \right\rangle + \alpha \left\langle W, N \right\rangle \f$ and \f$R h s = \left\langle W, q \left\rangle - \epsilon \sigma \left\langle W, T^4 - T_0^4 \left\rangle - \left\langle W, \alpha (T - T_0) \left\rangle \right.\right. \right. \right. \right. \right \f$
+///Evaluates  \f$ L h s =  4 \epsilon \sigma T^3 \left\langle W, N \right\rangle + \alpha \left\langle W, N \right\rangle \f$ and \f$ R h s = \left\langle W, q \right\rangle - \epsilon \sigma \left\langle W, T^4 - T_0^4 \right\rangle - \left\langle W, \alpha (T - T_0) \right\rangle \f$
 		void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
 										ProcessInfo& rCurrentProcessInfo,
 										bool CalculateStiffnessMatrixFlag,

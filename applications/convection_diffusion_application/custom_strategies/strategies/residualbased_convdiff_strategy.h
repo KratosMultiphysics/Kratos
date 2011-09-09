@@ -78,9 +78,7 @@ namespace Kratos
 
 
     	Evaluates  \f$ L h s = \frac{\rho C}{\Delta t} (W, N) + (W, v. \nabla N) + \kappa (\nabla W, \nabla N) + 4 \epsilon \sigma T^3 \left\langle W, N \right\rangle + \alpha \left\langle
-   W, N \right\rangle \f$ and \f$R h s = \rho (W, Q) + \frac{\rho C}{\Delta t} (W, T^n)- \left\langle W, q \left\rangle - \epsilon \sigma \left\langle W, T^4 -
-   T_0^4 \left\rangle - \left\langle W, \alpha (T - T_0) \left\rangle \right.
-   \right. \right. \right. \right. \right - L h s \ast T \f$
+   W, N \right\rangle \f$ and \f$ R h s = \rho (W, Q) + \frac{\rho C}{\Delta t} (W, T^n)- \left\langle W, q \right\rangle - \epsilon \sigma \left\langle W, T^4 - T_0^4 \right\rangle - \left\langle W, \alpha (T - T_0) \right\rangle - L h s \ast T \f$
 
 
 	*/
