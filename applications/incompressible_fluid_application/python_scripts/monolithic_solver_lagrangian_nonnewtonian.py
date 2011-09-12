@@ -3,7 +3,7 @@ from Kratos import *
 from KratosIncompressibleFluidApplication import *
 from KratosPFEMApplication import *
 from KratosMeshingApplication import *
-from KratosExternalSolversApplication import *
+##from KratosExternalSolversApplication import *
 from KratosMKLSolversApplication import *
 import math
 
@@ -225,6 +225,67 @@ class MonolithicSolver:
 ##            for node in self.model_part.Nodes:            
 ##                if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
 ##                    node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
+    ########################################################################
+    def Remesh3D(self):
+        delta_displ_max = 0.0
+        nodal_h_max = 0.0
+        for node in self.model_part.Nodes:
+            #displacement is the total displacement from the beginning of the simulation.
+            #We have to consider the Delta_displacement
+            displX = node.GetSolutionStepValue(DISPLACEMENT_X)
+            displY = node.GetSolutionStepValue(DISPLACEMENT_Y)
+            displZ = node.GetSolutionStepValue(DISPLACEMENT_Z)
+            old_displX = node.GetSolutionStepValue(DISPLACEMENT_X,1)
+            old_displY = node.GetSolutionStepValue(DISPLACEMENT_Y,1)
+            old_displZ = node.GetSolutionStepValue(DISPLACEMENT_Z,1)
+
+##            displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
+            delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ) 
+            if (delta_displ_square > delta_displ_max):
+                delta_displ_max = delta_displ_square
+            if(node.GetSolutionStepValue(NODAL_H) > nodal_h_max):
+                nodal_h_max = node.GetSolutionStepValue(NODAL_H)
+
+                
+        if(delta_displ_max > nodal_h_max):
+            self.remeshing_flag==True
+            
+        (self.MeshMover).Execute();
+
+        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+        (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
+
+        (self.node_erase_process).Execute();
+        
+        if(self.remeshing_flag==True):           
+            print Time, "-------------------------------------------------REMESH_3D-----------"
+
+
+        
+            (self.neigh_finder).ClearNeighbours();
+
+            ((self.model_part).Elements).clear();
+            ((self.model_part).Conditions).clear();
+            
+            ##remesh
+            if(self.domain_size == 2):
+                (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+##       	        (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Monolithic2DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
+            elif(self.domain_size == 3):
+                (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+##                (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Monolithic3DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+
+            print "regenerated mesh"			      
+
+             #calculating fluid neighbours before applying boundary conditions
+            (self.neigh_finder).Execute();
+            print "found neighbours"	
+            (self.PfemUtils).ApplyBoundaryConditions(self.model_part,2);
+            (self.PfemUtils).IdentifyFluidNodes(self.model_part);
+            (self.PfemUtils).ApplyMinimalPressureConditions(self.model_part);
+            print "applied BC"	
+
+            self.remeshing_flag==False
 
     ##################################################################
     def FindNeighbours(self):
