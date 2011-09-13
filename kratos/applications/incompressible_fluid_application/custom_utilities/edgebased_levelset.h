@@ -241,13 +241,13 @@ namespace Kratos {
 	    mPressureOutletList.resize(tempPressureOutletList.size(),false);
 	    
 	    #pragma omp parallel for
-	    for(unsigned int i=0; i<tempFixedVelocities.size(); i++)
+	    for(int i=0; i< static_cast<int>(tempFixedVelocities.size()); i++)
 	    {
 	      mFixedVelocities[i] = tempFixedVelocities[i];
 	      mFixedVelocitiesValues[i] = tempFixedVelocitiesValues[i];
 	    }
 	    #pragma omp parallel for
-	    for(unsigned int i=0; i<tempPressureOutletList.size(); i++)
+	    for(int i=0; i< static_cast<int>(tempPressureOutletList.size()); i++)
 	    {
 	      mPressureOutletList[i] = tempPressureOutletList[i];
 	    }	    
@@ -352,70 +352,70 @@ namespace Kratos {
 
 	    //*******************
 	    //loop over all nodes
-	    double n_nodes = mvel_n1.size();
-	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
-	    {
-		const array_1d<double, TDim>& v_i = mvel_n1[i_node];
-		const double havg_i = mHavg[i_node];
-		const double hmin_i = mHmin[i_node];
-		const double eps_i = mEps[i_node];
-	      const double d_i = mD[i_node];
+		double n_nodes = mvel_n1.size();
+		for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+		{
+			const array_1d<double, TDim>& v_i = mvel_n1[i_node];
+			const double havg_i = mHavg[i_node];
+			const double hmin_i = mHmin[i_node];
+			const double eps_i = mEps[i_node];
+			const double d_i = mD[i_node];
 
-		double vel_norm = norm_2(v_i);
+			double vel_norm = norm_2(v_i);
 
-		double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
-		vel_norm /= eps_i;
+			double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
+			vel_norm /= eps_i;
 
-		//use CFL condition to compute time step size
-		double delta_t_i = CFLNumber * 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i) + porosity_coefficient);
-		double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * mViscosity / (havg_i * havg_i) + porosity_coefficient);
+			//use CFL condition to compute time step size
+			double delta_t_i = CFLNumber * 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i) + porosity_coefficient);
+			double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * mViscosity / (havg_i * havg_i) + porosity_coefficient);
 
-		//considering the most restrictive case of neighbor's velocities with similar direction but opposite sense.
-		//loop over all neighbours
-		for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-		    //get global index of neighbouring node j
-		    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+			//considering the most restrictive case of neighbor's velocities with similar direction but opposite sense.
+			//loop over all neighbours
+			for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+				//get global index of neighbouring node j
+				unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
 
-		    const array_1d<double, TDim>& v_j = mvel_n1[j_neighbour];
+				const array_1d<double, TDim>& v_j = mvel_n1[j_neighbour];
 
-		    double v_diff_norm = 0.0;
-		    for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-		    {
-			double temp = v_i[l_comp] - v_j[l_comp];
-			v_diff_norm += temp*temp;
-		    }
-		    v_diff_norm = sqrt(v_diff_norm);
-		    v_diff_norm /= eps_i;
-		    double delta_t_j = CFLNumber * 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
+				double v_diff_norm = 0.0;
+				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+				{
+					double temp = v_i[l_comp] - v_j[l_comp];
+					v_diff_norm += temp*temp;
+				}
+				v_diff_norm = sqrt(v_diff_norm);
+				v_diff_norm /= eps_i;
+				double delta_t_j = CFLNumber * 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
 
-		    if (delta_t_j < delta_t_i)
-			    delta_t_i = delta_t_j;
-//                    if ((v_i_par >= 0.0 && v_j_par <= 0.0) || (v_i_par <= 0.0 && v_j_par >= 0.0))
-//                    {
-//                        double delta_t_j = CFLNumber * 1.0 / (2.0 * norm_2(v_diff) /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
-////                        double delta_t_j = CFLNumber / ((fabs(v_i_par) + fabs(v_j_par)) / mHmin[i_node] + 2.0 * mViscosity / (mHmin[i_node] * mHmin[i_node]));
-//                        // 							KRATOS_WATCH(delta_t_j);
-//                        // 							KRATOS_WATCH(delta_t_i);
-//                        if (delta_t_j < delta_t_i)
-//                            delta_t_i = delta_t_j;
-//                    }
+				if (delta_t_j < delta_t_i)
+					delta_t_i = delta_t_j;
+				//                    if ((v_i_par >= 0.0 && v_j_par <= 0.0) || (v_i_par <= 0.0 && v_j_par >= 0.0))
+				//                    {
+				//                        double delta_t_j = CFLNumber * 1.0 / (2.0 * norm_2(v_diff) /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
+				////                        double delta_t_j = CFLNumber / ((fabs(v_i_par) + fabs(v_j_par)) / mHmin[i_node] + 2.0 * mViscosity / (mHmin[i_node] * mHmin[i_node]));
+				//                        // 							KRATOS_WATCH(delta_t_j);
+				//                        // 							KRATOS_WATCH(delta_t_i);
+				//                        if (delta_t_j < delta_t_i)
+				//                            delta_t_i = delta_t_j;
+				//                    }
 
+
+			}
+
+
+			//choose the overall minimum of delta_t_i
+			if (delta_t_i < delta_t)
+				delta_t = delta_t_i;
+
+			if(delta_t_i_avg < mdelta_t_avg)
+				mdelta_t_avg = delta_t_i_avg;
 
 		}
+		//*******************
+		//perform MPI syncronization of the dt (minimum should be kept)
 
-
-		//choose the overall minimum of delta_t_i
-		if (delta_t_i < delta_t)
-		    delta_t = delta_t_i;
-
-		if(delta_t_i_avg < mdelta_t_avg)
-		  mdelta_t_avg = delta_t_i_avg;
-
-	    }
-	    //*******************
-	    //perform MPI syncronization of the dt (minimum should be kept)
-
-	    return delta_t;
+		return delta_t;
 
 	    KRATOS_CATCH("")
 	}
@@ -1217,7 +1217,7 @@ namespace Kratos {
 	    //KRATOS_WATCH(rhs);
 	    //solve linear equation system L dp = rhs
 	    pLinearSolver->Solve(mL, dp, rhs);
-	    KRATOS_WATCH(*pLinearSolver)
+	    //KRATOS_WATCH(*pLinearSolver)
 
 
             //update pressure
@@ -1989,7 +1989,7 @@ namespace Kratos {
             }
             mSlipBoundaryList.resize(tempmSlipBoundaryList.size(),false);
             #pragma omp parallel for
-            for(unsigned int i=0; i<tempmSlipBoundaryList.size(); i++)
+            for(int i=0; i<tempmSlipBoundaryList.size(); i++)
 	      mSlipBoundaryList[i] = tempmSlipBoundaryList[i];
 
             //loop over all faces to fill inlet outlet
@@ -2026,7 +2026,7 @@ namespace Kratos {
             }
             mInOutBoundaryList.resize(tempmInOutBoundaryList.size(),false);
             #pragma omp parallel for
-            for(unsigned int i=0; i<tempmInOutBoundaryList.size(); i++)
+            for(int i=0; i<tempmInOutBoundaryList.size(); i++)
 	      mInOutBoundaryList[i] = tempmInOutBoundaryList[i];
 
 
@@ -2545,6 +2545,158 @@ namespace Kratos {
         }
 
 
+        void PushFreeSurface()
+        {
+
+                double layer_volume = 0.0;
+                std::vector<unsigned int> first_outside;
+                int n_nodes = mdistances.size();
+
+                //find list of the first nodes outside of the fluid and compute their volume
+                for (int i_node = 0; i_node < n_nodes; i_node++)
+                {
+                    double dist = mdistances[i_node];
+                    if (dist > 0.0) //node is outside domain
+                    {
+                        for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                        {
+                            unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+                            if(mdistances[j_neighbour] <= 0.0)
+                            {
+								//mark the nodes in the outside layer with a small negative distance
+                                mdistances[i_node] = -mHavg[i_node];
+                            }
+                        }
+                    }
+                }
+
+ 
+            mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
+        
+        }
+
+
+	//***************************************
+	//function to set adequate time step size
+
+	double ComputeBoundedTimeStep(const double CFLNumber, const double MaxDt)
+	{
+	    KRATOS_TRY
+
+	    //save the maximum time step
+	    max_dt = MaxDt;
+
+	    //local variable for time step size
+	    double delta_t = 1e10;
+
+	    mdelta_t_avg = 1e10;
+
+	    //getting value of current velocity and of viscosity
+	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
+//            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
+	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
+	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+
+
+//            double delta_t_i = delta_t;
+
+	    //*******************
+	    //loop over all nodes
+		double n_nodes = mvel_n1.size();
+		for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+		{
+			array_1d<double, TDim>& v_i = mvel_n1[i_node];
+			const double havg_i = mHavg[i_node];
+			const double hmin_i = mHmin[i_node];
+			const double eps_i = mEps[i_node];
+			const double d_i = mD[i_node];
+
+			double vel_norm = norm_2(v_i);
+
+			double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
+			vel_norm /= eps_i;
+
+			//use CFL condition to compute time step size
+			double delta_t_i = CFLNumber * 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i) + porosity_coefficient);
+			double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * mViscosity / (havg_i * havg_i) + porosity_coefficient);
+
+			if(delta_t_i < 10e-8) //NO PHYSICS AT ALL!!!!! bounding the delata_t to 10e-08 by reducing the velocity!!
+			{
+				//std::cout << "NO PHYSICS AT ALL!!!!! bounding the delata_t to 10e-08 by reducing the velocity!!" << std::endl;
+				//KRATOS_WATCH(delta_t_i)
+				v_i *= delta_t_i / 10e-8;
+				delta_t_i = 10e-8;
+			}
+
+			if(delta_t_i_avg < 10e-8) //NO PHYSICS AT ALL!!!!! bounding the delta_t_i_avg to 10e-08 by reducing the velocity!!
+			{
+				//std::cout << "NO PHYSICS AT ALL!!!!! bounding the delta_t_i_avg to 10e-08 by reducing the velocity!!" << std::endl;
+				//KRATOS_WATCH(delta_t_i_avg)
+				v_i *= delta_t_i_avg / 10e-8;
+				delta_t_i_avg = 10e-8;
+			}
+
+			//considering the most restrictive case of neighbor's velocities with similar direction but opposite sense.
+			//loop over all neighbours
+			for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+				//get global index of neighbouring node j
+				unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+
+				array_1d<double, TDim>& v_j = mvel_n1[j_neighbour];
+
+				double v_diff_norm = 0.0;
+				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+				{
+					double temp = v_i[l_comp] - v_j[l_comp];
+					v_diff_norm += temp*temp;
+				}
+				v_diff_norm = sqrt(v_diff_norm);
+				v_diff_norm /= eps_i;
+				double delta_t_j = CFLNumber * 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
+
+			if(delta_t_j < 10e-8) //NO PHYSICS AT ALL!!!!! bounding the delata_t to 10e-08 by reducing the velocity!!
+			{
+				//std::cout << "NO PHYSICS AT ALL!!!!! bounding the delta_t_j to 10e-08 by reducing the velocity!!" << std::endl;
+				//KRATOS_WATCH(delta_t_j)
+				v_j *= delta_t_j / 10e-8;
+				delta_t_j = 10e-8;
+			}
+
+
+				if (delta_t_j < delta_t_i)
+					delta_t_i = delta_t_j;
+				//                    if ((v_i_par >= 0.0 && v_j_par <= 0.0) || (v_i_par <= 0.0 && v_j_par >= 0.0))
+				//                    {
+				//                        double delta_t_j = CFLNumber * 1.0 / (2.0 * norm_2(v_diff) /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
+				////                        double delta_t_j = CFLNumber / ((fabs(v_i_par) + fabs(v_j_par)) / mHmin[i_node] + 2.0 * mViscosity / (mHmin[i_node] * mHmin[i_node]));
+				//                        // 							KRATOS_WATCH(delta_t_j);
+				//                        // 							KRATOS_WATCH(delta_t_i);
+				//                        if (delta_t_j < delta_t_i)
+				//                            delta_t_i = delta_t_j;
+				//                    }
+
+
+			}
+
+
+			//choose the overall minimum of delta_t_i
+			if (delta_t_i < delta_t)
+				delta_t = delta_t_i;
+
+			if(delta_t_i_avg < mdelta_t_avg)
+				mdelta_t_avg = delta_t_i_avg;
+
+		}
+		//*******************
+		//perform MPI syncronization of the dt (minimum should be kept)
+
+		if(delta_t <= 10-7) // writing back the changed velocities
+			mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
+
+		return delta_t;
+
+	    KRATOS_CATCH("")
+	}
 
 
 
@@ -3036,13 +3188,13 @@ namespace Kratos {
             medge_nodes_direction.resize(tempmedge_nodes_direction.size(),false);
             mcorner_nodes.resize(tempmcorner_nodes.size(),false);
 	    #pragma omp parallel for
-	    for (unsigned int i = 0; i < tempmedge_nodes.size(); i++)
+	    for ( int i = 0; i < tempmedge_nodes.size(); i++)
 	    {
 	      medge_nodes[i] = tempmedge_nodes[i];
 	      medge_nodes_direction[i] = tempmedge_nodes_direction[i];
 	    }
 	    #pragma omp parallel for
-	    for (unsigned int i = 0; i < tempmcorner_nodes.size(); i++)
+	    for (int i = 0; i < tempmcorner_nodes.size(); i++)
 	    {
 	      mcorner_nodes[i] = tempmcorner_nodes[i];
 	    }
