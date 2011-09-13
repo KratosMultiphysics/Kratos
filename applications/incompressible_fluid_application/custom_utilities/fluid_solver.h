@@ -233,13 +233,13 @@ namespace Kratos {
 	    mPressureOutletList.resize(tempPressureOutletList.size(),false);
 	    
 	    #pragma omp parallel for
-	    for(unsigned int i=0; i<tempFixedVelocities.size(); i++)
+	    for(int i=0; i<tempFixedVelocities.size(); i++)
 	    {
 	      mFixedVelocities[i] = tempFixedVelocities[i];
 	      mFixedVelocitiesValues[i] = tempFixedVelocitiesValues[i];
 	    }
 	    #pragma omp parallel for
-	    for(unsigned int i=0; i<tempPressureOutletList.size(); i++)
+	    for(int i=0; i<tempPressureOutletList.size(); i++)
 	    {
 	      mPressureOutletList[i] = tempPressureOutletList[i];
 	    }	
@@ -1104,7 +1104,7 @@ namespace Kratos {
             }
             mSlipBoundaryList.resize(tempmSlipBoundaryList.size(),false);
 	    #pragma omp parallel for
-	    for(unsigned int i=0; i<tempmSlipBoundaryList.size(); i++)
+	    for( int i=0; i<tempmSlipBoundaryList.size(); i++)
 	      mSlipBoundaryList[i] = tempmSlipBoundaryList[i];
 
 
@@ -1620,13 +1620,13 @@ namespace Kratos {
             medge_nodes_direction.resize(tempmedge_nodes_direction.size(),false);
             mcorner_nodes.resize(tempmcorner_nodes.size(),false);
 	    #pragma omp parallel for
-	    for (unsigned int i = 0; i < tempmedge_nodes.size(); i++)
+	    for (int i = 0; i < tempmedge_nodes.size(); i++)
 	    {
 	      medge_nodes[i] = tempmedge_nodes[i];
 	      medge_nodes_direction[i] = tempmedge_nodes_direction[i];
 	    }
 	    #pragma omp parallel for
-	    for (unsigned int i = 0; i < tempmcorner_nodes.size(); i++)
+	    for (int i = 0; i < tempmcorner_nodes.size(); i++)
 	    {
 	      mcorner_nodes[i] = tempmcorner_nodes[i];
 	    }

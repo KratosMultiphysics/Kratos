@@ -92,6 +92,22 @@ namespace Kratos {
 
         }
 
+
+        /// Destructor.
+
+        virtual ~FluidThermalSolverUtilities() {
+        }
+
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+
+        ///@}
+        ///@name Operations
+        ///@{
+
         int Check()
         {
             //veryfying that the model part has all the variables needed
@@ -163,22 +179,6 @@ namespace Kratos {
         void ApplyTables() {
 
         }
-
-        /// Destructor.
-
-        virtual ~FluidThermalSolverUtilities() {
-        }
-
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-
-        ///@}
-        ///@name Operations
-        ///@{
-
 
         ///@}
         ///@name Access
