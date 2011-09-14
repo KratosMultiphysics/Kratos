@@ -137,9 +137,9 @@ for node in model_part.Nodes:
 
 
 
-#for elem in model_part.Elements:
-    #if (elem.Id < 200):
-        #elem.SetValue(SPLIT_ELEMENT,True)
+for elem in model_part.Elements:
+    if (elem.Id < 200):
+        elem.SetValue(SPLIT_ELEMENT,True)
 #for elem in model_part.Elements:
 #    elem.SetValue(SPLIT_ELEMENT,True)
 
