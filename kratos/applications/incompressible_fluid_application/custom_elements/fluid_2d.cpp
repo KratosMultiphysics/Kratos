@@ -186,7 +186,7 @@ namespace Kratos
         //calculating viscosity
         const double nu = 0.333333333333333333333333 * (nu0 + nu1 + nu2);
         const double density = 0.3333333333333333333333 * (rho0 + rho1 + rho2);
-        const double h = sqrt(2.00 * Area / 3.0);
+        const double h  = CalculateH(DN_DX,Area);
 
         //getting the BDF2 coefficients (not fixed to allow variable time step)
         //the coefficients INCLUDE the time step
@@ -282,7 +282,8 @@ namespace Kratos
         norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1];
         norm_u = sqrt(norm_u);
 
-        tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+//         tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+        tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
 
         //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
         noalias(u_DN) = prod(DN_DX, vel_gauss);
@@ -316,7 +317,8 @@ namespace Kratos
         norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1];
         norm_u = sqrt(norm_u);
 
-        tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+//         tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+        tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
 
         //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
         noalias(u_DN) = prod(DN_DX, vel_gauss);
@@ -350,7 +352,9 @@ namespace Kratos
         norm_u = sqrt(norm_u);
 
 
-        tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+//         tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+        tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
+
         // KRATOS_WATCH(tau);
 
         //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
@@ -452,10 +456,11 @@ namespace Kratos
         double density = 0.33333333333333 * (rho0 + rho1 + rho2);
 
         //calculating parameter tau (saved internally to each element)
-        double h = sqrt(2.00 * Area);
+        double h  = CalculateH(DN_DX,Area);
         double norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1];
         norm_u = sqrt(norm_u);
-        double tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+//         double tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+        double tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
 
         //getting the BDF2 coefficients (not fixed to allow variable time step)
         //the coefficients INCLUDE the time step
@@ -810,19 +815,38 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-
-    inline double Fluid2D::CalculateTau(const double& h, const double& nu, const double& norm_u, const ProcessInfo& CurrentProcessInfo)
+    double Fluid2D::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 3,2> & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
     {
-        const double c1 = 4.00;
-        const double c2 = 2.00;
-
-        const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
-
+	
+	double temp=0.0;
+	
+	//viscous parts
+	double viscous_part=0.0;
+	for(unsigned int i=0; i<3; i++)
+	  for(unsigned int k=0; k<2; k++)
+	    viscous_part += DN_DX(i,k)*DN_DX(i,k);
+	viscous_part *= nu;
+	  
+	//convective parts
+	array_1d<double,2> aux = ZeroVector(3);
+	for(unsigned int i=0; i<3; i++)
+	{
+	  const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+	  double tmp = 0.0;
+	  for(unsigned int k=0; k<2; k++)
+	    tmp += DN_DX(i,k)*vel_gauss[k];
+	  
+	  for(unsigned int l=0; l<2; l++)
+	    aux[l] += tmp*v[l];
+	}
+	aux /= (norm_u + 1e-9);
+	double conv_part=norm_2(aux);
+	
+	const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
         const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
-        double tau = 1.00 / (dyn_st_beta * inv_dt_coeff + c1 * nu / (h * h) + c2 * norm_u / h);
+        double tau = 1.00 / (dyn_st_beta * inv_dt_coeff + viscous_part + conv_part);
 
         return tau;
-
     }
 
     //************************************************************************************
@@ -907,19 +931,11 @@ namespace Kratos
             const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 
             // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
-            array_1d<double, 3 > vel_gauss;
-            array_1d<double, 3 > aux;
-            noalias(aux) = fv0;
-            noalias(aux) -= w0;
-            noalias(vel_gauss) = N[0] * aux;
+            array_1d<double, 2 > vel_gauss;
+ 	    
+            vel_gauss[0] = N[0] * ( fv0[0] - w0[0]) + N[1] * ( fv1[0] - w1[0]) + N[2] * ( fv2[0] - w2[0]);
+            vel_gauss[1] = N[1] * ( fv0[1] - w0[1]) + N[1] * ( fv1[1] - w1[1]) + N[2] * ( fv2[1] - w2[1]);
 
-            noalias(aux) = fv1;
-            noalias(aux) -= w1;
-            noalias(vel_gauss) += N[1] * aux;
-
-            noalias(aux) = fv2;
-            noalias(aux) -= w2;
-            noalias(vel_gauss) += N[2] * aux;
 
             //calculating viscosity
             const double one_third = 1.0/3.0;
@@ -931,10 +947,11 @@ namespace Kratos
             //const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
             //calculating parameter tau (saved internally to each element)
-            double h = sqrt(2.00 * Volume);
+            double h  = CalculateH(DN_DX,Volume);
             double norm_u = vel_gauss[0] * vel_gauss[0] + vel_gauss[1] * vel_gauss[1];
             norm_u = sqrt(norm_u);
-            double tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+//             double tau = CalculateTau(h, nu, norm_u, rCurrentProcessInfo);
+            double tau = CalculateTau(DN_DX, vel_gauss, h, nu, norm_u, rCurrentProcessInfo);
 
             //calculating the subscale velocity assuming that it is governed by the convection part
             array_1d<double, 3 > u_DN;
@@ -983,6 +1000,22 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    inline double Fluid2D::CalculateH(boost::numeric::ublas::bounded_matrix<double, 3,2 > & DN_DX, double Volume)
+    {
+	double inv_h_max = 0.0;
+	for(unsigned int i=0; i<3; i++)
+	{
+	  double inv_h = 0.0;
+	  for(unsigned int k=0; k<2; k++)
+	    inv_h += DN_DX(i,k)*DN_DX(i,k);
+	  
+	  if(inv_h > inv_h_max) inv_h_max = inv_h;
+	}
+	inv_h_max = sqrt(inv_h_max);
+	double h = 1.0/inv_h_max;
+	
+        return h ;
+    }
 
     //#undef GRADPN_FORM
 } // Namespace Kratos
