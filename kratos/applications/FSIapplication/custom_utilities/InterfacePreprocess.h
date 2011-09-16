@@ -24,9 +24,10 @@ namespace Kratos {
         // Generate a new ModelPart containing only the interface
         // It will contain only triangular conditions, regardless of what was used while meshing
         {
+            KRATOS_TRY
 
             // Store pointers to all interface nodes
-            unsigned int Counter = 0;
+            unsigned int NodesCounter = 0;
             for (
                     ModelPart::NodesContainerType::const_iterator node_it = rOriginPart.NodesBegin();
                     node_it != rOriginPart.NodesEnd();
@@ -34,14 +35,14 @@ namespace Kratos {
             {
                 if (node_it->FastGetSolutionStepValue(IS_INTERFACE) == 1.0) {
                     InterfacePart.Nodes().push_back( *(node_it.base()) );
-                    Counter ++;
+                    NodesCounter ++;
                 }
             }
-            std::cout << "    " << Counter << " nodes ";
+            std::cout << "    " << NodesCounter << " nodes ";
 
             // Generate triangular Conditions from original interface conditions
             ModelPart::ConditionsContainerType aux;
-            Counter = 0;
+            unsigned int CondCounter = 0;
 
             for (
                     ModelPart::ConditionsContainerType::const_iterator cond_it = rOriginPart.ConditionsBegin();
@@ -54,12 +55,21 @@ namespace Kratos {
                         ((*cond_it).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
                 {
                     aux.push_back( *(cond_it.base()) );
-                    Counter ++;
+                    CondCounter ++;
                 }
             }
 
-            std::cout << "and " << Counter << " conditions found." << std::endl;
+            std::cout << "and " << CondCounter << " conditions found." << std::endl;
+
+            // Check that we actually found something
+            if( NodesCounter == 0)
+                KRATOS_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0.","");
+            if( CondCounter == 0)
+                KRATOS_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0 and that the contact surfaces have been assigned conditions.","");
+
             GenerateTriangularConditions(aux,InterfacePart.Conditions());
+
+            KRATOS_CATCH("")
 
         }
 
