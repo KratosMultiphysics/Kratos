@@ -29,6 +29,12 @@ class NonConformant_OneSideMap:
     def __init__(self,fluid_model_part,structure_model_part,\
                  search_radius_factor = 2.0, it_max = 3,tol = 1e-3):
 
+        # Error check
+	if fluid_model_part.NumberOfConditions(0) < 1:
+            raise ValueError("No conditions found in the fluid model part, please check that the interface is meshed using Condition3D")
+        if structure_model_part.NumberOfConditions(0) < 1:
+            raise ValueError("No conditions found in the structure model part, please check that the interface is meshed using Face3D3N")
+
         search_radius_factor = search_radius_factor
         self.it_max = it_max
         self.tol = tol
