@@ -1,5 +1,5 @@
 EXE = opencl_spmv
-INC = -I ../../../../kratos/includes/  -I ../../../../kratos/ -I ~/AMD-APP-SDK-v2.5-RC2-lnx64/include -I ..
+INC = -I ../../../../kratos/includes/  -I ../../../../kratos/ -I /usr/local/cuda/include -I ~/AMD-APP-SDK-v2.5-RC2-lnx64/include -I ..
 
 CC = gcc
 CCFLAGS = -O3 -DNDEBUG
