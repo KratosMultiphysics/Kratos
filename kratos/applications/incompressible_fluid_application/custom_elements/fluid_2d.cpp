@@ -274,8 +274,12 @@ namespace Kratos
 
         // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points)
         //(note that the fractional step vel is used)
-        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) + N[1]*(fv1[0] - w1[0]) + N[2]*(fv2[0] - w2[0]);
-        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) + N[1]*(fv1[1] - w1[1]) + N[2]*(fv2[1] - w2[1]);
+        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) 
+		     + N[1]*(fv1[0] - w1[0]) 
+		     + N[2]*(fv2[0] - w2[0]);
+        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) 
+		     + N[1]*(fv1[1] - w1[1]) 
+		     + N[2]*(fv2[1] - w2[1]);
         // KRATOS_WATCH(vel_gauss);
 
         //calculating parameter tau
@@ -309,8 +313,12 @@ namespace Kratos
 
         // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points)
         //(note that the fractional step vel is used)
-        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) + N[1]*(fv1[0] - w1[0]) + N[2]*(fv2[0] - w2[0]);
-        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) + N[1]*(fv1[1] - w1[1]) + N[2]*(fv2[1] - w2[1]);
+        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) 
+		     + N[1]*(fv1[0] - w1[0]) 
+		     + N[2]*(fv2[0] - w2[0]);
+        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) 
+		     + N[1]*(fv1[1] - w1[1]) 
+		     + N[2]*(fv2[1] - w2[1]);
         // KRATOS_WATCH(vel_gauss);
 
         //calculating parameter tau
@@ -343,8 +351,12 @@ namespace Kratos
 
         // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points)
         //(note that the fractional step vel is used)
-        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) + N[1]*(fv1[0] - w1[0]) + N[2]*(fv2[0] - w2[0]);
-        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) + N[1]*(fv1[1] - w1[1]) + N[2]*(fv2[1] - w2[1]);
+        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) 
+		     + N[1]*(fv1[0] - w1[0]) 
+		     + N[2]*(fv2[0] - w2[0]);
+        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) 
+		     + N[1]*(fv1[1] - w1[1]) 
+		     + N[2]*(fv2[1] - w2[1]);
         // KRATOS_WATCH(vel_gauss);
 
         //calculating parameter tau
@@ -444,8 +456,12 @@ namespace Kratos
         const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 
         // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
-        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) + N[1]*(fv1[0] - w1[0]) + N[2]*(fv2[0] - w2[0]);
-        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) + N[1]*(fv1[1] - w1[1]) + N[2]*(fv2[1] - w2[1]);
+        vel_gauss[0] = N[0]*(fv0[0] - w0[0]) 
+		     + N[1]*(fv1[0] - w1[0]) 
+		     + N[2]*(fv2[0] - w2[0]);
+        vel_gauss[1] = N[0]*(fv0[1] - w0[1]) 
+		     + N[1]*(fv1[1] - w1[1]) 
+		     + N[2]*(fv2[1] - w2[1]);
 
         //calculating convective auxiliary vector
 
@@ -608,8 +624,12 @@ namespace Kratos
 
             // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points)
             //(note that the fractional step vel is used)
-            vel_gauss[0] = N[0]*(fv0[0] - w0[0]) + N[1]*(fv1[0] - w1[0]) + N[2]*(fv2[0] - w2[0]);
-            vel_gauss[1] = N[0]*(fv0[1] - w0[1]) + N[1]*(fv1[1] - w1[1]) + N[2]*(fv2[1] - w2[1]);
+            vel_gauss[0] = N[0]*(fv0[0] - w0[0]) 
+			 + N[1]*(fv1[0] - w1[0])
+			 + N[2]*(fv2[0] - w2[0]);
+            vel_gauss[1] = N[0]*(fv0[1] - w0[1]) 
+			 + N[1]*(fv1[1] - w1[1]) 
+			 + N[2]*(fv2[1] - w2[1]);
 
             //calculating convective auxiliary vector
             noalias(u_DN) = prod(DN_DX, vel_gauss);
@@ -636,8 +656,12 @@ namespace Kratos
 
             // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points)
             //(note that the fractional step vel is used)
-            vel_gauss[0] = N[0]*(fv0[0] - w0[0]) + N[1]*(fv1[0] - w1[0]) + N[2]*(fv2[0] - w2[0]);
-            vel_gauss[1] = N[0]*(fv0[1] - w0[1]) + N[1]*(fv1[1] - w1[1]) + N[2]*(fv2[1] - w2[1]);
+            vel_gauss[0] = N[0]*(fv0[0] - w0[0]) 
+			 + N[1]*(fv1[0] - w1[0])
+			 + N[2]*(fv2[0] - w2[0]);
+            vel_gauss[1] = N[0]*(fv0[1] - w0[1]) 
+			 + N[1]*(fv1[1] - w1[1]) 
+			 + N[2]*(fv2[1] - w2[1]);
 
             //calculating convective auxiliary vector
             noalias(u_DN) = prod(DN_DX, vel_gauss);
@@ -663,8 +687,12 @@ namespace Kratos
 
             // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points)
             //(note that the fractional step vel is used)
-            vel_gauss[0] = N[0]*(fv0[0] - w0[0]) + N[1]*(fv1[0] - w1[0]) + N[2]*(fv2[0] - w2[0]);
-            vel_gauss[1] = N[0]*(fv0[1] - w0[1]) + N[1]*(fv1[1] - w1[1]) + N[2]*(fv2[1] - w2[1]);
+            vel_gauss[0] = N[0]*(fv0[0] - w0[0]) 
+			 + N[1]*(fv1[0] - w1[0])
+			 + N[2]*(fv2[0] - w2[0]);
+            vel_gauss[1] = N[0]*(fv0[1] - w0[1]) 
+			 + N[1]*(fv1[1] - w1[1]) 
+			 + N[2]*(fv2[1] - w2[1]);
 
             //calculating convective auxiliary vector
             noalias(u_DN) = prod(DN_DX, vel_gauss);
@@ -933,8 +961,12 @@ namespace Kratos
             // vel_gauss = sum( N[i]*(vel[i]-mesh_vel[i]), i=0, number_of_points) (note that the fractional step vel is used)
             array_1d<double, 2 > vel_gauss;
  	    
-            vel_gauss[0] = N[0] * ( fv0[0] - w0[0]) + N[1] * ( fv1[0] - w1[0]) + N[2] * ( fv2[0] - w2[0]);
-            vel_gauss[1] = N[1] * ( fv0[1] - w0[1]) + N[1] * ( fv1[1] - w1[1]) + N[2] * ( fv2[1] - w2[1]);
+            vel_gauss[0] = N[0] * ( fv0[0] - w0[0])
+			 + N[1] * ( fv1[0] - w1[0]) 
+			 + N[2] * ( fv2[0] - w2[0]);
+            vel_gauss[1] = N[0] * ( fv0[1] - w0[1]) 
+			 + N[1] * ( fv1[1] - w1[1]) 
+			 + N[2] * ( fv2[1] - w2[1]);
 
 
             //calculating viscosity
