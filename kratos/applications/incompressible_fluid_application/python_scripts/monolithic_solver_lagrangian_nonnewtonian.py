@@ -247,7 +247,7 @@ class MonolithicSolver:
                 nodal_h_max = node.GetSolutionStepValue(NODAL_H)
 
                 
-        if(delta_displ_max > nodal_h_max):
+        if(delta_displ_max > 0.25 * nodal_h_max):
             self.remeshing_flag==True
             
         (self.MeshMover).Execute();
@@ -260,8 +260,6 @@ class MonolithicSolver:
         if(self.remeshing_flag==True):           
             print Time, "-------------------------------------------------REMESH_3D-----------"
 
-
-        
             (self.neigh_finder).ClearNeighbours();
 
             ((self.model_part).Elements).clear();
