@@ -1,0 +1,91 @@
+PROBLEMTYPE fluid_ulf	# The name of your problemtype
+#DEFINITION FOLDER fluid_ulf_problemtype # The folder containing the definition file and the .bas templates
+USE KRATOS DEFINITIONS # Use default definition for this problemtype...
+USE PYTHON SCRIPTS fluid_ulf_scripts # ... but include my scripts from this folder
+
+VECTOR CONDITION DISPLACEMENT 		point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION VELOCITY     		point line surface volume fixed 0.0 0.0 0.0
+VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
+SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
+SCALAR CONDITION VISCOSITY     		point line surface volume free  0.0001
+SCALAR CONDITION DENSITY     		point line surface volume free  1.0
+SCALAR CONDITION DENSITY_AIR     	point line surface volume free  1.0
+SCALAR CONDITION DENSITY_WATER     	point line surface volume free  1.0
+SCALAR CONDITION VISCOSITY_AIR     	point line surface volume free  1.0
+SCALAR CONDITION VISCOSITY_WATER     	point line surface volume free  1.0
+
+FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0
+FLAG CONDITION IS_LAGRANGIAN_INLET	point line surface volume free 1.0
+FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
+FLAG CONDITION IS_BOUNDARY    		point line surface volume free 1.0 2.0 3.0 4.0 5.0
+FLAG CONDITION IS_STRUCTURE    		point line surface volume free 1.0 0.0
+
+FACE CONDITION Condition2D line
+FACE CONDITION Condition3D surface 
+
+ELEMENT UpdatedLagrangianFluid2D surface
+ELEMENT UpdatedLagrangianFluid3D volume 
+ELEMENT UpdatedLagrangianFluid2Dinc surface
+ELEMENT UpdatedLagrangianFluid3Dinc volume 
+ELEMENT UlfFrac2D surface 
+ELEMENT UlfFrac3D volume 
+ELEMENT MembraneElement surface
+ELEMENT TotalLagrangian2D3N surface  
+ELEMENT TotalLagrangian3D4N volume
+
+OPTION 2D_Body_Element surface UpdatedLagrangianFluid2D UpdatedLagrangianFluid2Dinc UlfFrac2D TotalLagrangian2D3N MembraneElement
+OPTION 3D_Body_Element volume UpdatedLagrangianFluid3D UpdatedLagrangianFluid3Dinc UlfFrac3D TotalLagrangian3D4N 
+
+PROPERTY FSI 0 FSI
+PROPERTY Time_step 0.01 Dt
+PROPERTY max_time 1.0 max_time
+PROPERTY output_step 1 output_step
+PROPERTY alpha_shape 1.6 alpha_shape
+PROPERTY erase_nodes 1 erase_nodes
+PROPERTY adaptive_refinement 0 adaptive_refinement
+PROPERTY delete_nodes_close_to_wall 1 delete_nodes_close_to_wall
+PROPERTY lagrangian_nodes_inlet 0 lagrangian_nodes_inlet
+PROPERTY bulk_modulus -1000.0 bulk_modulus
+PROPERTY density 1000.0 density
+PROPERTY bounding_box_corner1_x -1 bounding_box_corner1_x
+PROPERTY bounding_box_corner1_y -1 bounding_box_corner1_y
+PROPERTY bounding_box_corner1_z -1 bounding_box_corner1_z
+PROPERTY bounding_box_corner2_x  1 bounding_box_corner2_x
+PROPERTY bounding_box_corner2_y  1 bounding_box_corner2_y
+PROPERTY bounding_box_corner2_z  1 bounding_box_corner2_z
+
+
+TEXT FLAG PROPERTY SolverType Quasi_Inc_Constant_Pressure Quasi_Inc_Linear_Pressure FracStep Incompressible_Modified_FracStep SolverType
+
+DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR 
+ADD MATERIAL Steel     76972.86 1.999E11   0.3  (0.0,-76.972.86,0.0) 1.0  #do not put spaces in the definition of the vector
+
+DEFINE MODEL PART NoSlipCondition point line surface LOWER
+ADD CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
+
+DEFINE MODEL PART FixedPressureCondition point line surface LOWER
+ADD CONDITION PRESSURE point line surface volume fixed 0.0
+
+#DEFINE BOUNDARY PART Boundary OUTWARDS NORMALS
+#ADD 2D ELEMENT 2D_Boundary_Condition
+#ADD 3D ELEMENT 3D_Boundary_Condition
+#ADD 2D CONDITION DISPLACEMENT  point line surface volume fixed 0.0 0.0 0.0
+#ADD 3D CONDITION DISPLACEMENT  point line surface volume fixed 0.0 0.0 0.0
+
+DEFINE ALL ENTITIES PART Body surface volume
+ADD 2D ELEMENT 2D_Body_Element surface
+ADD 3D ELEMENT 3D_Body_Element volume
+
+# Part Interaction --> considering all of the combinations!!!
+
+#GROUP NoSlipCondition FixedPressureCondition IN point line surface
+#NoSlipCondition FixedPressureCondition ASSIGN VELOCITY FROM NoSlipCondition 
+#NoSlipCondition FixedPressureCondition ASSIGN PRESSURE FROM FixedPressureCondition 
+
+
+
+
+
+
+
+
