@@ -37,6 +37,7 @@ OPTION 2D_Body_Element surface UpdatedLagrangianFluid2D UpdatedLagrangianFluid2D
 OPTION 3D_Body_Element volume UpdatedLagrangianFluid3D UpdatedLagrangianFluid3Dinc UlfFrac3D TotalLagrangian3D4N 
 
 PROPERTY FSI 0 FSI
+PROPERTY compute_reactions 0 compute_reactions
 PROPERTY Time_step 0.01 Dt
 PROPERTY max_time 1.0 max_time
 PROPERTY output_step 0.01 output_step
