@@ -237,7 +237,7 @@ class ULFStrategyPython:
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
 	if(CalculateReactionsFlag == True):
-            self.builder_and_solver.CalculateReactions(self.cheme,self.model_part,self.A,self.Dx,self.b)
+            self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
 
 	#Finalisation of the solution step, 
         self.scheme.FinalizeSolutionStep(self.model_part,self.A,self.Dx,self.b)
