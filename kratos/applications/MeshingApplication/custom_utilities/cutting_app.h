@@ -200,7 +200,7 @@ namespace Kratos
 
 			for (int index=0 ; index != this_model_part.Nodes().size() ; ++index) Condition_Nodes[index]=0; //initializing in zero the whole vector (meaning no useful nodes for the condition layer)
 
-			for(typename ConditionsArrayType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
+			for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
 			{
 				Geometry<Node<3> >&geom = i_condition->GetGeometry();
 				for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)         
@@ -235,7 +235,7 @@ namespace Kratos
 			Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
 			Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number); 		//this will allow us later to turn this layer on/off in GID
 			 
-			for(typename ConditionsArrayType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
+			for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
 			{
 				Geometry<Node<3> >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
 				for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)         //looping the nodes
