@@ -39,7 +39,7 @@ OPTION 3D_Body_Element volume UpdatedLagrangianFluid3D UpdatedLagrangianFluid3Di
 PROPERTY FSI 0 FSI
 PROPERTY Time_step 0.01 Dt
 PROPERTY max_time 1.0 max_time
-PROPERTY output_step 1 output_step
+PROPERTY output_step 0.01 output_step
 PROPERTY alpha_shape 1.6 alpha_shape
 PROPERTY erase_nodes 1 erase_nodes
 PROPERTY adaptive_refinement 0 adaptive_refinement
@@ -58,7 +58,7 @@ PROPERTY bounding_box_corner2_z  1 bounding_box_corner2_z
 TEXT FLAG PROPERTY SolverType Quasi_Inc_Constant_Pressure Quasi_Inc_Linear_Pressure FracStep Incompressible_Modified_FracStep SolverType
 
 DEFINE MATERIAL Structure DENSITY SCALAR YOUNG_MODULUS SCALAR POISSON_RATIO SCALAR BODY_FORCE 3DVECTOR THICKNESS SCALAR 
-ADD MATERIAL Steel     76972.86 1.999E11   0.3  (0.0,-76.972.86,0.0) 1.0  #do not put spaces in the definition of the vector
+ADD MATERIAL TestMaterial     2000.0 2000000.0   0.1  (0.0,0.0,0.0) 1.0  #do not put spaces in the definition of the vector
 
 DEFINE MODEL PART NoSlipCondition point line surface LOWER
 ADD CONDITION DISPLACEMENT point line surface volume fixed 0.0 0.0 0.0
