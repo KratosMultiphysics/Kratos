@@ -113,6 +113,8 @@ namespace Kratos
 			fluid_only_model_part.Elements()=fluid_model_part.Elements();
 			fluid_only_model_part.Conditions()=fluid_model_part.Conditions();
 
+			
+
 			for(ModelPart::NodesContainerType::iterator in = fluid_model_part.NodesBegin() ; 
 				in != fluid_model_part.NodesEnd() ; ++in)
 			{		
@@ -134,6 +136,10 @@ namespace Kratos
 			fluid_only_model_part.Nodes().Sort();
 			fluid_only_model_part.Elements().Sort();
 			fluid_only_model_part.Conditions().Sort();
+
+			//WE HAVE TO COPY THE ProcessInfo pointer to the new part, otherwise it is empty
+			fluid_only_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
+
 			
 		KRATOS_CATCH("")
 		}

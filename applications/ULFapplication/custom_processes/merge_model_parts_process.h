@@ -111,7 +111,7 @@ namespace Kratos
 
 			combined_model_part.Nodes()=fluid_model_part.Nodes();
 			combined_model_part.Elements()=fluid_model_part.Elements();
-			combined_model_part.Conditions()=fluid_model_part.Conditions();
+			combined_model_part.Conditions()=fluid_model_part.Conditions();			
 
 			//sorting and renumbering the fluid elements
 			unsigned int id=1;
@@ -161,7 +161,7 @@ namespace Kratos
 				combined_model_part.Conditions().push_back(*(im.base()));
 				id++;
 			}
-			combined_model_part.Conditions().Sort();
+			combined_model_part.Conditions().Sort();			
 
 			//renumbering
 			/*
@@ -173,6 +173,8 @@ namespace Kratos
 				new_id++;
 			}
 			*/
+			//WE HAVE TO COPY THE ProcessInfo pointer to the new part, otherwise it is empty
+			combined_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
 			
 		KRATOS_CATCH("")
 		}

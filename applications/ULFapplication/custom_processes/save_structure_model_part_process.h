@@ -102,11 +102,11 @@ namespace Kratos
 
 		void  SaveStructure(ModelPart& fluid_model_part, ModelPart& structure_model_part)
 		{
-			KRATOS_TRY
+			KRATOS_TRY		
 				
 			//number of structure nodes
 			KRATOS_WATCH("SAVING STRUCTURE")
-		    for(ModelPart::ElementsContainerType::iterator im = fluid_model_part.ElementsBegin() ; 
+		    	for(ModelPart::ElementsContainerType::iterator im = fluid_model_part.ElementsBegin() ; 
 					im != fluid_model_part.ElementsEnd() ; ++im)
 			{		
 				//PointerVector<Element> struct_elements_list;
@@ -126,6 +126,9 @@ namespace Kratos
 				}			
 				
 			}
+			//WE HAVE TO COPY THE ProcessInfo pointer to the new part, otherwise it is empty
+			structure_model_part.SetProcessInfo(fluid_model_part.pGetProcessInfo());
+
 		KRATOS_CATCH("")
 		}
 
