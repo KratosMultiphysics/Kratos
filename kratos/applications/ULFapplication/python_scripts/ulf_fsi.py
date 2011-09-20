@@ -17,6 +17,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(FORCE);
+    model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(IS_FLUID);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
@@ -27,18 +28,26 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_H);
     model_part.AddNodalSolutionStepVariable(NORMAL);
 
-def AddDofs(model_part):
-    for node in model_part.Nodes:
-        #adding dofs
-        node.AddDof(DISPLACEMENT_X);
-        node.AddDof(DISPLACEMENT_Y);
-        node.AddDof(DISPLACEMENT_Z); 
-        node.AddDof(IS_STRUCTURE);
+def AddDofs(model_part, compute_reactions):
+    if (compute_reactions==0):
+	for node in model_part.Nodes:
+	      #adding dofs
+	      node.AddDof(DISPLACEMENT_X);
+	      node.AddDof(DISPLACEMENT_Y);
+	      node.AddDof(DISPLACEMENT_Z);
+	      	
+    elif (compute_reactions==1):
+	for node in model_part.Nodes:
+	      #adding dofs
+	      node.AddDof(DISPLACEMENT_X, REACTION_X);
+	      node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+	      node.AddDof(DISPLACEMENT_Z, REACTION_Z);	      
 
 class ULF_FSISolver:
 
-    def __init__(self, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, add_nodes):
+    def __init__(self, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1,box_corner2, domain_size, add_nodes):
         self.domain_size=domain_size;
+        self.compute_reactions=compute_reactions
         self.echo_level = 0
         
         #saving the different model parts
@@ -128,7 +137,7 @@ class ULF_FSISolver:
     def Initialize(self):
 
         #creating the solution strategy
-        CalculateReactionFlag = False
+        CalculateReactionFlag = bool(self.compute_reactions)
         ReformDofSetAtEachStep = True
         MoveMeshFlag = True
         import ulf_strategy_python

@@ -35,20 +35,30 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_H);
     model_part.AddNodalSolutionStepVariable(NORMAL);
 
-def AddDofs(model_part):
-    for node in model_part.Nodes:
-        #adding dofs
-        node.AddDof(DISPLACEMENT_X, REACTION_X);
-        node.AddDof(DISPLACEMENT_Y, REACTION_Y);
-        node.AddDof(DISPLACEMENT_Z, REACTION_Z);
-        node.AddDof(PRESSURE); 
-        #node.AddDof(IS_STRUCTURE);
+def AddDofs(model_part, compute_reactions):
+    if (compute_reactions==0):
+	for node in model_part.Nodes:
+	      #adding dofs
+	      node.AddDof(DISPLACEMENT_X);
+	      node.AddDof(DISPLACEMENT_Y);
+	      node.AddDof(DISPLACEMENT_Z);
+	      node.AddDof(PRESSURE); 
+	
+    elif (compute_reactions==1):
+	for node in model_part.Nodes:
+	      #adding dofs
+	      node.AddDof(DISPLACEMENT_X, REACTION_X);
+	      node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+	      node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+	      node.AddDof(PRESSURE); 
+        
 
 class ULF_FSISolver:
 
-    def __init__(self, out_file, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, add_nodes, bulk_modulus, density):
+    def __init__(self, out_file, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1,box_corner2, domain_size, add_nodes, bulk_modulus, density):
         self.out_file=out_file
 
+	self.compute_reactions=compute_reactions
         self.domain_size=domain_size;
         self.echo_level = 0
         self.counter = int(0)
@@ -151,7 +161,7 @@ class ULF_FSISolver:
     def Initialize(self):
 
         #creating the solution strategy
-        CalculateReactionFlag = True
+        CalculateReactionFlag = bool(self.compute_reactions)
         ReformDofSetAtEachStep = True
         MoveMeshFlag = True
         
