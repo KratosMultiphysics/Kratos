@@ -5,7 +5,7 @@ A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
-
+ 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
 pooyan@cimne.upc.edu 
@@ -111,6 +111,7 @@ namespace Python
 		.def ("MarkLonelyNodesForErasing", &UlfUtils::MarkLonelyNodesForErasing)
 		.def ("RestoreLagInletNodalH", &UlfUtils::RestoreNodalHAtLagInlet)
 		.def ("SetLagInletNodalH", &UlfUtils::SetNodalHAtLagInlet)
+		.def ("DeleteFreeSurfaceNodesBladder", &UlfUtils::DeleteFreeSurfaceNodesBladder)		
 		 ;
 	  
 	  class_<NistUtils>("NistUtils", init<>())
