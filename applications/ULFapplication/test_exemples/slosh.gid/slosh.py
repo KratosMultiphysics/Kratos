@@ -198,10 +198,7 @@ while (time < total_time):
 ##    if (new_Dt==Dt):
     time = time + new_Dt
 ##    else:
-##        time = time + 0.1*new_Dt
-    
-####    time = Dt*step
-##    new_Dt = Dt
+
     fluid_model_part.CloneTimeStep(time)
     structure_model_part.CloneTimeStep(time)
     combined_model_part.CloneTimeStep(time)

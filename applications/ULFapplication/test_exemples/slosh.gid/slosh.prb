@@ -1,46 +1,60 @@
 PROBLEM DATA
-QUESTION: DOMAIN_SIZE
-VALUE: 2
-HELP: 2 - for 2D, 3 - for 3D
-QUESTION: TOTAL_TIME
-VALUE: 10.0
-QUESTION: MAX_DELTA_TIME
-VALUE: 0.001
-QUESTION: OUTPUT_DT
-VALUE: 0.005
-QUESTION: SAFETY_FACTOR
-VALUE: 0.5
-HELP: Safety factor for the time estimation - meaningful values between 0.1-0.9
-QUESTION: ALPHA_SHAPE
-VALUE: 1.5
-HELP: Geometrical criterioon for element removal
-QUESTION: BOUNDING_BOX_LOWER_CORNER_X
-VALUE: -10.0
-HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
-QUESTION: BOUNDING_BOX_LOWER_CORNER_Y
-VALUE: -10.0
-HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
-QUESTION: BOUNDING_BOX_LOWER_CORNER_Z
-VALUE: -10.0
-HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
-QUESTION: BOUNDING_BOX_UPPER_CORNER_X
-VALUE: 10.0
-HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
-QUESTION: BOUNDING_BOX_UPPER_CORNER_Y
-VALUE: 10.0
-HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
-QUESTION: BOUNDING_BOX_UPPER_CORNER_Z
-VALUE: 10.0
-HELP: Not to conider the nodes flying to far away from the domain it is meaningful to set the cut-off box
-QUESTION: SOLVER_TYPE
+BOOK: Default Elements
+QUESTION: 2D_Body_Element#CB#(UpdatedLagrangianFluid2D,UpdatedLagrangianFluid2Dinc,UlfFrac2D,TotalLagrangian2D3N,MembraneElement)
+VALUE: UpdatedLagrangianFluid2D
+QUESTION: 3D_Body_Element#CB#(UpdatedLagrangianFluid3D,UpdatedLagrangianFluid3Dinc,UlfFrac3D,TotalLagrangian3D4N)
+VALUE: UpdatedLagrangianFluid3D
+BOOK: Problem Parameters
+QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
+VALUE: Use_Default
+DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_file,#CURRENT#)(Copy_From,RESTORE,Python_file,#CURRENT#)(Use_Current,SET,Python_file,#CURRENT#)
+QUESTION: Python_file
+VALUE: script.py
+TKWIDGET: TkwidgetFilePath
+QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
 VALUE: 1
-HELP: 1 - iterative solver, 2 - direct solver
-QUESTION: KRATOS_LIBS_PATH
-VALUE: '/home/centro-calculo/kratosR1/libs/'
-HELP: set the path of the directory where the kratos.lib is installed
-QUESTION: KRATOS_APPLICATIONS_PATH
-VALUE: '/home/centro-calculo/kratosR1/applications/'
-HELP: path where you application is
+QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
+VALUE: 0
+DEPENDENCIES: (1,HIDE,DOMAIN_SIZE,#CURRENT#)(0,RESTORE,DOMAIN_SIZE,#CURRENT#)
+QUESTION: DOMAIN_SIZE#CB#(2,3)
+VALUE: 2
+STATE: HIDDEN
+QUESTION: FSI
+VALUE: 0
+QUESTION: Time_step
+VALUE: 0.01
+QUESTION: max_time
+VALUE: 1.0
+QUESTION: output_step
+VALUE: 0.01
+QUESTION: alpha_shape
+VALUE: 1.6
+QUESTION: erase_nodes
+VALUE: 1
+QUESTION: adaptive_refinement
+VALUE: 0
+QUESTION: delete_nodes_close_to_wall
+VALUE: 1
+QUESTION: lagrangian_nodes_inlet
+VALUE: 0
+QUESTION: bulk_modulus
+VALUE: -1000.0
+QUESTION: density
+VALUE: 1000.0
+QUESTION: bounding_box_corner1_x
+VALUE: -10
+QUESTION: bounding_box_corner1_y
+VALUE: -10
+QUESTION: bounding_box_corner1_z
+VALUE: -10
+QUESTION: bounding_box_corner2_x
+VALUE: 10
+QUESTION: bounding_box_corner2_y
+VALUE: 10
+QUESTION: bounding_box_corner2_z
+VALUE: 10
+QUESTION: SolverType#CB#(Quasi_Inc_Constant_Pressure,Quasi_Inc_Linear_Pressure,FracStep,Incompressible_Modified_FracStep)
+VALUE: Incompressible_Modified_FracStep
 END PROBLEM DATA
 INTERVAL DATA
 END INTERVAL DATA
