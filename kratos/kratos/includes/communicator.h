@@ -474,82 +474,82 @@ namespace Kratos
       
        virtual void Barrier()
       {
-#if defined(KRATOS_USING_MPI )
+/*#if defined(KRATOS_USING_MPI )
 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+#endif*/ 
       }
 
      virtual bool SumAll(int& rValue)
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
           return true;
       }
 
      virtual bool SumAll(double& rValue)
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
           return true;
       }
 
      virtual bool MinAll(int& rValue)
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
           return true;
       }
 
      virtual bool MinAll(double& rValue)
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
           return true;
       }
 
      virtual bool MaxAll(int& rValue)
       {
-#if defined(KRATOS_USING_MPI )
+/*#if defined(KRATOS_USING_MPI )
 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+#endif*/ 
           return true;
       }
 
      virtual bool MaxAll(double& rValue)
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
           return true;
       }
 
       virtual bool SynchronizeNodalSolutionStepsData()
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
 	return true;
 
       }
 
       virtual bool SynchronizeDofs()
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
 	return true;
 
       }
 
       virtual bool AssembleCurrentData(Variable<double> const& ThisVariable)
       {
-#if defined(KRATOS_USING_MPI )
+/*#if defined(KRATOS_USING_MPI )
 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+#endif*/ 
 	return true;
 
       }
@@ -557,27 +557,27 @@ namespace Kratos
       
       virtual bool AssembleCurrentData(Variable<array_1d<double,3> > const& ThisVariable)
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
 	return true;
 
       }
 
       virtual bool AssembleCurrentData(Variable<Vector> const& ThisVariable)
       {
-#if defined(KRATOS_USING_MPI )
-	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+// #if defined(KRATOS_USING_MPI )
+// 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
+// #endif 
 	return true;
 
       }
 
       virtual bool AssembleCurrentData(Variable<Matrix> const& ThisVariable)
       {
-#if defined(KRATOS_USING_MPI )
+/*#if defined(KRATOS_USING_MPI )
 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl; 
-#endif 
+#endif*/ 
 	return true;
 
       }
