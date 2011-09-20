@@ -37,7 +37,7 @@ def AddDofs(model_part):
 
 class ULF_FSISolver:
 
-    def __init__(self, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size):
+    def __init__(self, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, add_nodes):
         self.domain_size=domain_size;
         self.echo_level = 0
         
@@ -46,6 +46,10 @@ class ULF_FSISolver:
         self.fluid_model_part     = fluid_model_part; #contains only fluid elements
         self.structure_model_part = structure_model_part; #contains only structural elements
 
+
+	#adaptivity options
+	self.add_nodes=bool(add_nodes)
+	print "Add nodes? ", self.add_nodes
         #time integration scheme
         damp_factor = -0.3
         self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(damp_factor)
@@ -53,7 +57,7 @@ class ULF_FSISolver:
         #definition of the solvers
 #        self.model_linear_solver =  SkylineLUFactorizationSolver()
         pDiagPrecond = DiagonalPreconditioner()
-        self.model_linear_solver =  BICGSTABSolver(1e-8, 5000,pDiagPrecond)
+        self.model_linear_solver =  BICGSTABSolver(1e-9, 5000,pDiagPrecond)
 
         #definition of the convergence criteria
         self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
@@ -79,7 +83,7 @@ class ULF_FSISolver:
 
         #self.save_structural_elements
         self.alpha_shape = 1.5;
-        self.h_multiplier = 0.3
+        self.h_multiplier = 0.1
 
         ##saving the limits of the box (all the nodes external to this will be erased)
         self.box_corner1 = box_corner1
@@ -146,6 +150,8 @@ class ULF_FSISolver:
         (self.mark_fluid_process).Execute();
 
         #remeshing before the first solution
+        for node in self.fluid_model_part.Nodes:
+	  node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
         self.Remesh();
         
 
@@ -246,7 +252,7 @@ class ULF_FSISolver:
 ######################################################################
     def Remesh(self):
 	#self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 3.50)
-	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.04)
+	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.15)
 	#self.UlfUtils.MarkNodesCloseToWallForBladder(self.fluid_model_part, 0.0003)
 			
         ##erase all conditions and elements prior to remeshing
@@ -256,18 +262,20 @@ class ULF_FSISolver:
         ((self.fluid_model_part).Elements).clear();
         ((self.fluid_model_part).Conditions).clear();
 
+	
 
-
+	self.UlfUtils.DeleteFreeSurfaceNodesBladder(self.fluid_model_part)
         #marking nodes outside of the bounding box
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
+        self.node_erase_process.Execute()
          
-        h_factor=0.1;
+        h_factor=0.8;
         ##remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
             #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.add_nodes, self.alpha_shape)          
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
         elif (self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)            
+            (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)            
               
         ##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();

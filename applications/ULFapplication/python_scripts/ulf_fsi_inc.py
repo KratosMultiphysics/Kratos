@@ -38,7 +38,7 @@ def AddDofs(model_part):
 
 class ULF_FSISolver:
 
-    def __init__(self, out_file, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, remeshing_flag, bulk_modulus, density):
+    def __init__(self, out_file, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, add_nodes, bulk_modulus, density):
         self.out_file=out_file
 
         self.domain_size=domain_size;
@@ -46,7 +46,7 @@ class ULF_FSISolver:
         self.counter = int(0)
 
         # TO REMESH OR NOT: 0 - no remeshing, 1 - remeshing
-        self.remeshing_flag = remeshing_flag
+        self.add_nodes = bool(add_nodes)
         # K - the bulk modulus
         self.bulk_modulus = bulk_modulus
         self.density = density
@@ -83,7 +83,7 @@ class ULF_FSISolver:
 
         ###temporary ... i need it to calculate the nodal area
         self.UlfUtils = UlfUtils()
-         self.PfemUtils = PfemUtils()
+        self.PfemUtils = PfemUtils()
 
         #self.save_structural_elements
         self.alpha_shape = 1.5;
@@ -185,7 +185,7 @@ class ULF_FSISolver:
         return [inverted_elements,volume]
                          
     #######################################################################
-    def Solve(self):        
+    def Solve(self,lagrangian_inlet_process ):        
         #next lines serve only in case of lagrangian inlet
 ##        for node in self.fluid_model_part.Nodes:
 ##            if (node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1 and (node.GetSolutionStepValue(IS_STRUCTURE)!=1)):
@@ -197,6 +197,7 @@ class ULF_FSISolver:
         print "solving the fluid problem"
         inverted_elements = (self.solver).Solve(self.domain_size,self.UlfUtils)
         print "succesful solution of the fluid "
+        self.lagrangian_inlet_process=lagrangian_inlet_process
 
         reduction_factor = 0.5
         max_reduction_steps = 0
@@ -260,7 +261,7 @@ class ULF_FSISolver:
                             
         #print "pressure contribution process" - to be executed using exclusively fluid elements
         #and neighbouring relationships
-        #self.lagrangian_inlet_process.Execute()
+        self.lagrangian_inlet_process.Execute()
         (self.fluid_neigh_finder).Execute();
         #print "injecting lagrangian inlet nodes - if given"
         #(self.UlfUtils).InjectNodesAtInlet(self.fluid_model_part, self.lagrangian_inlet_model_part, 0.50, 0.0, 0.0, 0.01)
@@ -280,22 +281,22 @@ class ULF_FSISolver:
         #self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 2.50)
         self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.1)
         
-        if (self.remeshing_flag==1.0):
-            ((self.combined_model_part).Elements).clear();
-            ((self.combined_model_part).Conditions).clear();
-            ((self.combined_model_part).Nodes).clear();
-            ((self.fluid_model_part).Elements).clear();
-            ((self.fluid_model_part).Conditions).clear();
+        #if (self.remeshing_flag==1.0):
+        ((self.combined_model_part).Elements).clear();
+        ((self.combined_model_part).Conditions).clear();
+        ((self.combined_model_part).Nodes).clear();
+        ((self.fluid_model_part).Elements).clear();
+        ((self.fluid_model_part).Conditions).clear();
             
         #mark outer nodes for erasing
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         #adaptivity=True
         h_factor=0.2#5 #0.5
-        if (self.remeshing_flag==1.0):
-            if (self.domain_size == 2):
-                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
-            elif (self.domain_size == 3):
-                (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
+        #if (self.remeshing_flag==1.0):
+        if (self.domain_size == 2):
+	  (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+	elif (self.domain_size == 3):
+	  (self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid3Dinc","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
 
         
             #remesh CHECK for 3D or 2D
