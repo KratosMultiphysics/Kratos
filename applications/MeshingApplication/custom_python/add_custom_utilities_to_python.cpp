@@ -24,6 +24,7 @@
 #include "custom_utilities/local_triangle_refine_mesh.h"
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
 #include "custom_utilities/tetgen_volume_mesher.h"
+#include "custom_utilities/cutting_app.h"
 
 
 namespace Kratos
@@ -90,6 +91,13 @@ namespace Kratos
                     ("TetgenVolumeMesher", init<ModelPart&>())
                     .def("AddHole", &TetgenVolumeMesher::AddHole)
                     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
+                    ;
+
+            class_<Cutting_Application >("Cutting_Application", init< >())
+                    .def("GenerateCut", &Cutting_Application::GenerateCut)
+                    .def("UpdateCutData", &Cutting_Application ::UpdateCutData)
+                    .def("AddSkinConditions", &Cutting_Application ::AddSkinConditions)
+                    .def("FindSmallestEdge", &Cutting_Application ::FindSmallestEdge)
                     ;
 
         }

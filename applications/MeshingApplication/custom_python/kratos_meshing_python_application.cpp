@@ -45,6 +45,8 @@ namespace Python
 
 		KRATOS_REGISTER_IN_PYTHON_VARIABLE(COUNTER)
 		
+		KRATOS_REGISTER_IN_PYTHON_VARIABLE(WEIGHT_FATHER_NODES) //used in the cutting planes app
+		
   }
   
   
