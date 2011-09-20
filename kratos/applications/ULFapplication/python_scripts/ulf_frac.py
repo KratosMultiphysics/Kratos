@@ -46,7 +46,7 @@ def AddDofs(model_part):
 
 class ULF_FSISolver:
 
-    def __init__(self, out_file, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, remeshing_flag, bulk_modulus, density):
+    def __init__(self, out_file, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, box_corner1,box_corner2, domain_size, add_nodes, bulk_modulus, density):
         self.out_file=out_file
 
         self.domain_size=domain_size;
@@ -54,7 +54,7 @@ class ULF_FSISolver:
         self.counter = int(0)
 
         # TO REMESH OR NOT: 0 - no remeshing, 1 - remeshing
-        self.remeshing_flag = remeshing_flag
+        self.add_nodes = bool(add_nodes)
         # K - the bulk modulus
         self.bulk_modulus = bulk_modulus
         self.density = density
@@ -254,13 +254,12 @@ class ULF_FSISolver:
    #  This is done to make switching off/on of remeshing easier
     def Remesh(self):                 
         ##erase all conditions and elements prior to remeshing
-        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.1)
-        if (self.remeshing_flag==1.0):
-            ((self.combined_model_part).Elements).clear();
-            ((self.combined_model_part).Conditions).clear();
-            ((self.combined_model_part).Nodes).clear();
-            ((self.fluid_model_part).Elements).clear();
-            ((self.fluid_model_part).Conditions).clear();
+        #self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
+        ((self.combined_model_part).Elements).clear();
+        ((self.combined_model_part).Conditions).clear();
+        ((self.combined_model_part).Nodes).clear();
+        ((self.fluid_model_part).Elements).clear();
+        ((self.fluid_model_part).Conditions).clear();
             
 	#self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 2.5000)
         #mark outer nodes for erasing
@@ -269,12 +268,11 @@ class ULF_FSISolver:
         #time=self.combined_model_part.ProcessInfo.GetValue(TIME);
         #print "TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", time
         
-        h_factor=0.25
-        if (self.remeshing_flag==1.0):
-            if (self.domain_size == 2):
-                (self.Mesher).ReGenerateMesh("UlfFrac2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
-            elif (self.domain_size == 3):
-                (self.Mesher).ReGenerateMesh("UlfFrac3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, False, self.alpha_shape, h_factor)
+        h_factor=0.2
+        if (self.domain_size == 2):
+	  (self.Mesher).ReGenerateMesh("UlfFrac2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
+	elif (self.domain_size == 3):
+	  (self.Mesher).ReGenerateMesh("UlfFrac3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
        
 
         ##calculating fluid neighbours before applying boundary conditions
