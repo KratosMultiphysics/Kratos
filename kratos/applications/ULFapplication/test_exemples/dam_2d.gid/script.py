@@ -117,7 +117,7 @@ outstring2 = "convergence_info.txt"
 outputfile1 = open(outstring2, 'w')
 
 add_nodes=fluid_ulf_var.adaptive_refinement
-bulk_modulus=fluid_ulf_var.bulk_modulus
+fluid_ulf_var.bulk_modulus
 density=fluid_ulf_var.density
 #creating the solvers
 #fluid solver
