@@ -51,63 +51,69 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_spatial_containers_to_python.h"
 
 #include "custom_utilities/opencl_interface.h"
-#include "spatial_containers/bins_static_OCL.h"
+#include "spatial_containers/bins_object_static_OCL.h"
 
-template< std::size_t dim_type>
-class Point {
+#include "spatial_containers/spatial_containers.h"
+#include "utilities/spatial_containers_configure.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_3.h"
+#include "includes/model_part.h"
 
-  public:
-
-      double       coord[dim_type];
-      std::size_t  id;
-      std::size_t  tag;
-      //int id;
-
-      double& operator[](std::size_t i) {return coord[i];}
-
-      double const & operator[](std::size_t i) const {return coord[i];}
-};
-
-template< class T, std::size_t dim >
-class PointDistance{
-   public:
-      double operator()( T const& p1, T const& p2 ){
-         double dist = 0.0;
-         for( std::size_t i = 0 ; i < dim ; i++){
-            double tmp = p1[i] - p2[i];
-            dist += tmp*tmp;
-         }
-         return sqrt(dist);
-      }
-};
-
-template< class T, std::size_t dim >
-class PointDistance2{
-   public:
-      double operator()( T const& p1, T const& p2 ){
-         double dist = 0.0;
-         for( std::size_t i = 0 ; i < dim ; i++){
-            double tmp = p1[i] - p2[i];
-            dist += tmp*tmp;
-         }
-         return dist;
-      }
-};
-
-template< std::size_t dim_type >
-std::ostream & operator<<( std::ostream& rOut, Point<dim_type> & rPoint){
-	 rOut << "(" << rPoint.id << ") ";
-   for(std::size_t i = 0 ; i < dim_type ; i++)
-      rOut << rPoint[i] << " "; 
-   return rOut; 
-};
-
-template< std::size_t dim_type >
-std::istream & operator>>( std::istream& rIn, Point<dim_type> & rPoint){
-   for(std::size_t i = 0 ; i < dim_type ; i++)
-      rIn >> rPoint[i]; 
-   return rIn; 
-};
+// template< std::size_t dim_type>
+// class Point {
+// 
+//   public:
+// 
+//       double       coord[dim_type];
+//       std::size_t  id;
+//       std::size_t  tag;
+//       //int id;
+// 
+//       double& operator[](std::size_t i) {return coord[i];}
+// 
+//       double const & operator[](std::size_t i) const {return coord[i];}
+// };
+// 
+// template< class T, std::size_t dim >
+// class PointDistance{
+//    public:
+//       double operator()( T const& p1, T const& p2 ){
+//          double dist = 0.0;
+//          for( std::size_t i = 0 ; i < dim ; i++){
+//             double tmp = p1[i] - p2[i];
+//             dist += tmp*tmp;
+//          }
+//          return sqrt(dist);
+//       }
+// };
+// 
+// template< class T, std::size_t dim >
+// class PointDistance2{
+//    public:
+//       double operator()( T const& p1, T const& p2 ){
+//          double dist = 0.0;
+//          for( std::size_t i = 0 ; i < dim ; i++){
+//             double tmp = p1[i] - p2[i];
+//             dist += tmp*tmp;
+//          }
+//          return dist;
+//       }
+// };
+// 
+// template< std::size_t dim_type >
+// std::ostream & operator<<( std::ostream& rOut, Point<dim_type> & rPoint){
+// 	 rOut << "(" << rPoint.id << ") ";
+//    for(std::size_t i = 0 ; i < dim_type ; i++)
+//       rOut << rPoint[i] << " "; 
+//    return rOut; 
+// };
+// 
+// template< std::size_t dim_type >
+// std::istream & operator>>( std::istream& rIn, Point<dim_type> & rPoint){
+//    for(std::size_t i = 0 ; i < dim_type ; i++)
+//       rIn >> rPoint[i]; 
+//    return rIn; 
+// };
 
 namespace Kratos
 {
@@ -116,19 +122,27 @@ namespace Python
 {
     void  AddSpatialContainersToPython()
     {
+	
+	static const std::size_t Dim = 3;
 
-        static const std::size_t Dim = 3;
-	
-        typedef Point<Dim>              PointType;
+	typedef Kratos::Point<Dim> 		PointType;
+	typedef Kratos::Tetrahedra3D4<PointType>ObjectType;
 
-	typedef PointType*        	PtrPointType;
-	typedef PtrPointType*     	PointVector;
-	typedef PtrPointType*           PointIterator;
+	typedef PointType*			PtrPointType;
+	typedef ObjectType*			PtrObjectType;
+
+	typedef PtrPointType*			PointVector;
+	typedef PtrPointType*			PointIterator;
+
+	typedef PtrObjectType*			ObjectVector;
+	typedef PtrObjectType*			ObjectIterator;
+
+	typedef double*				DistanceVector;
+	typedef double*				DistanceIterator;
 	
-	typedef double*                 DistanceVector;
-        typedef double*                 DistanceIterator;
+	typedef Kratos::SearchUtils::SquaredDistanceFunction<Dim,PointType> DistanceFunction;
 	
-	typedef Kratos::BinsOCL< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, PointDistance2<PointType,Dim> > StaticBinsOCL;
+	typedef Kratos::BinsObjectStaticOCL< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, DistanceFunction > StaticBinsOCL;
       
 	using namespace boost::python;
 	
@@ -136,18 +150,17 @@ namespace Python
 		.def("AddCLSearchPath", &OpenCL::DeviceGroup::AddCLSearchPath)
 		;
 		
-	class_< StaticBinsOCL, boost::noncopyable > ("BinsOCL", init<PointVector,PointVector,cl_int4 *,int,int,OpenCL::DeviceGroup&,size_t> ())
-		.def("GenerateBins", 	   &StaticBinsOCL::generateBins)
-		.def("allocateOCLBuffers", &StaticBinsOCL::allocateOCLBuffers)
-		.def("searchInRadiusOCL",  &StaticBinsOCL::searchInRadiusOCL)
-		.def("searchNearestOCL",   &StaticBinsOCL::searchNearestOCL)
+	class_< StaticBinsOCL, boost::noncopyable > ("BinsObjectStaticOCL", init<Kratos::ModelPart * , Kratos::ModelPart * ,OpenCL::DeviceGroup& > ())
+		.def("GenerateBins", 	   	&StaticBinsOCL::GenerateBins)
+		.def("LoadSample", 	   	&StaticBinsOCL::LoadSample)
+		.def("AllocateOCLBuffers", 	&StaticBinsOCL::AllocateOCLBuffers)
+		.def("InitializeBuffers",  	&StaticBinsOCL::InitializeBuffers)
+		.def("SearchTriangles",	   	&StaticBinsOCL::SearchTriangles)
+		.def("TransferStaticMeshToGPU",	&StaticBinsOCL::TransferStaticMeshToGPU)
+		.def("TransferStaticMeshToCPU",	&StaticBinsOCL::TransferStaticMeshToCPU)
+		.def("CopyStaticmeshData",	&StaticBinsOCL::CopyStaticmeshData)
+		.def("TransferParticMeshToGPU", &StaticBinsOCL::TransferParticMeshToGPU)
 		;
-		
-	enum_<cl_device_type>("cl_device_type")
-                          .value("CL_DEVICE_TYPE_CPU", CL_DEVICE_TYPE_CPU)
-                          .value("CL_DEVICE_TYPE_GPU", CL_DEVICE_TYPE_GPU)
-                          .value("CL_DEVICE_TYPE_ALL", CL_DEVICE_TYPE_ALL)
-                        ;
   }
 	
 }  // namespace Python.
