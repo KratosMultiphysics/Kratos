@@ -807,6 +807,31 @@ namespace Kratos
 
 		}
 
+		
+
+		void DeleteFreeSurfaceNodesBladder(ModelPart& ThisModelPart)
+		{
+
+			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
+				in!=ThisModelPart.NodesEnd(); in++)
+			{
+				if(in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET,1)==0 && in->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0 )
+					{
+					if (in->IsFixed(DISPLACEMENT_X)==true || in->IsFixed(DISPLACEMENT_Y)==true || in->IsFixed(DISPLACEMENT_Z)==true)
+						{
+						KRATOS_WATCH("This node is a BC node. So cant be erased")
+						}
+					else	
+						{
+						in->GetValue(ERASE_FLAG)=true;
+						KRATOS_WATCH("Marking free surface node for erasing (in this problem it is the one that passed through the membrane)!!!")
+						}
+					}
+
+			}
+
+		}
+
 		void MarkLonelyNodesForErasing(ModelPart& ThisModelPart)
 		{
 
@@ -820,13 +845,34 @@ namespace Kratos
 			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
 				in!=ThisModelPart.NodesEnd(); in++)
 			{
-				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0)//&& in->FastGetSolutionStepValue(IS_FLUID)==1.0)
+				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET,1)==0.0)
 					{
 					in->GetValue(ERASE_FLAG)=true;
 					KRATOS_WATCH("Marking lonelynodes!!!")
 					}
 
-			}		
+			}
+			/*	
+			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
+				in!=ThisModelPart.NodesEnd(); in++)
+			{
+				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==1.0)
+					{					
+					in->FastGetSolutionStepValue(PRESSURE)==0;
+					if ((in)->GetDof(DISPLACEMENT_X).IsFixed())										
+						in->FastGetSolutionStepValue(VELOCITY_X)==0;
+
+					if ((in)->GetDof(DISPLACEMENT_Y).IsFixed())										
+						in->FastGetSolutionStepValue(VELOCITY_Y)==0;
+
+					if ((in)->GetDof(DISPLACEMENT_Z).IsFixed())										
+						in->FastGetSolutionStepValue(VELOCITY_Z)==0;
+
+
+					}
+
+			}
+			*/		
 		}
 
 		bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
