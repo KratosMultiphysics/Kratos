@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/pointlocation.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
@@ -69,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //#include "spatial_containers/bounding_box.h"
 #include "utilities/bounding_box_utilities.h"
+
 
 
 namespace Kratos
@@ -128,6 +130,17 @@ namespace Python
                           .def("CalculateDistancesLagrangianSurface",&ParallelDistanceCalculator<2>::CalculateDistancesLagrangianSurface )
                           .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<3>::FindMaximumEdgeSize )
  			  ;
+			  
+	   	  class_<PointLocation>("PointLocation", init<ModelPart& >())
+			  .def("Find2D",&PointLocation::Find2D)
+			  .def("Find3D",&PointLocation::Find3D)
+			  .def("found",&PointLocation::found)
+			  .def("ReturnDefaultPointData_scalar",&PointLocation::ReturnDefaultPointData_scalar)
+			  .def("ReturnDefaultPointData_vector",&PointLocation::ReturnDefaultPointData_vector)
+			  .def("ReturnCustomPointData_scalar",&PointLocation::ReturnCustomPointData_scalar)
+			  .def("ReturnCustomPointData_vector",&PointLocation::ReturnCustomPointData_vector)
+			  ;	  
+			  
 			  
 			  
 // 	  class_<SignedDistanceCalculationBinBased<2> >("SignedDistanceCalculationBinBased2D", init<>())
