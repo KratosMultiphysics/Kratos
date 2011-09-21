@@ -81,15 +81,16 @@ model_part_io_origin.ReadModelPart(fluid_model_part)
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
 
+compute_reactions=fluid_ulf_var.compute_reactions
 ##adding dofs
 if(SolverType == "Incompressible_Modified_FracStep"):
-    ulf_frac.AddDofs(fluid_model_part)
+    ulf_frac.AddDofs(fluid_model_part, compute_reactions)
 elif(SolverType == "FracStep"):
-    ulf_frac.AddDofs(fluid_model_part)
+    ulf_frac.AddDofs(fluid_model_part, compute_reactions)
 elif(SolverType == "Quasi_Inc_Constant_Pressure"):
-    ulf_fsi.AddDofs(fluid_model_part)
+    ulf_fsi.AddDofs(fluid_model_part, compute_reactions)
 elif(SolverType == "Quasi_Inc_Linear_Pressure"):
-    ulf_fsi_inc.AddDofs(fluid_model_part)
+    ulf_fsi_inc.AddDofs(fluid_model_part, compute_reactions)
 
 
 if(SolverType == "Quasi_Inc_Constant_Pressure" or SolverType == "Quasi_Inc_Linear_Pressure"):
@@ -117,12 +118,12 @@ outstring2 = "convergence_info.txt"
 outputfile1 = open(outstring2, 'w')
 
 add_nodes=fluid_ulf_var.adaptive_refinement
-fluid_ulf_var.bulk_modulus
+bulk_modulus=fluid_ulf_var.bulk_modulus
 density=fluid_ulf_var.density
 #creating the solvers
 #fluid solver
 if(SolverType == "Incompressible_Modified_FracStep"):    
-    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
+    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
     solver.alpha_shape = fluid_ulf_var.alpha_shape;
     solver.echo_level = 2;
     
@@ -132,7 +133,7 @@ if(SolverType == "Incompressible_Modified_FracStep"):
     solver.Initialize()
     
 if(SolverType == "FracStep"):    
-    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
+    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
     solver.alpha_shape = fluid_ulf_var.alpha_shape;
     solver.echo_level = 2;
     for node in fluid_model_part.Nodes:
@@ -141,7 +142,7 @@ if(SolverType == "FracStep"):
     solver.Initialize()
     
 elif(SolverType == "Quasi_Inc_Constant_Pressure"):
-    solver = ulf_fsi.ULF_FSISolver(fluid_model_part, structure_model_part, combined_model_part, box_corner1, box_corner2, domain_size, add_nodes)
+    solver = ulf_fsi.ULF_FSISolver(fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes)
     solver.alpha_shape = fluid_ulf_var.alpha_shape;
     solver.echo_level = 2;
    
@@ -152,7 +153,7 @@ elif(SolverType == "Quasi_Inc_Constant_Pressure"):
     solver.Initialize()
     
 elif(SolverType == "Quasi_Inc_Linear_Pressure"): 
-    solver = ulf_fsi_inc.ULF_FSISolver(outputfile1, fluid_model_part, structure_model_part, combined_model_part, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
+    solver = ulf_fsi_inc.ULF_FSISolver(outputfile1, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
     solver.alpha_shape = fluid_ulf_var.alpha_shape;
     solver.echo_level = 2;
         
@@ -160,9 +161,18 @@ elif(SolverType == "Quasi_Inc_Linear_Pressure"):
 	node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)   
 	node.SetSolutionStepValue(DENSITY,0, density)   
     solver.Initialize()
-
-
 print "fluid solver created"
+
+
+if (fluid_ulf_var.FSI==1):
+    if (fluid_ulf_var.domain_size==2):
+	fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
+    elif (fluid_ulf_var.domain_size==3):
+	fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropi32D() )
+    else:
+	raise "Domain size error. It should be 2D or 3D"
+
+
 
 #settings to be changed
 Dt = fluid_ulf_var.Dt 
@@ -215,12 +225,11 @@ while (time < final_time):
 
             gid_io.InitializeResults(time, (combined_model_part).GetMesh());
     
-            gid_io.WriteNodalResults(DISPLACEMENT, combined_model_part.Nodes, time, 0);
-            gid_io.WriteNodalResults(IS_STRUCTURE, combined_model_part.Nodes, time, 0);           
-            gid_io.WriteNodalResults(IS_FREE_SURFACE, combined_model_part.Nodes, time, 0);
-            gid_io.WriteNodalResults(IS_INTERFACE, combined_model_part.Nodes, time, 0);            
+            gid_io.WriteNodalResults(DISPLACEMENT, combined_model_part.Nodes, time, 0);            
             gid_io.WriteNodalResults(VELOCITY, combined_model_part.Nodes, time, 0);
             gid_io.WriteNodalResults(PRESSURE, (combined_model_part).Nodes, time, 0);
+            if (compute_reactions==1):
+		gid_io.WriteNodalResults(REACTION, (combined_model_part).Nodes, time, 0);
             
             
 
