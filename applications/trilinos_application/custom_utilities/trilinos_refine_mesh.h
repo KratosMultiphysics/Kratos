@@ -1333,7 +1333,7 @@ namespace Kratos
             number_of_own_nodes_nocenter -= local_number_of_center_nodes;
             mrComm.SumAll(&number_of_own_nodes_nocenter, &total_number_of_nodes_nocenter, 1);
 
-            int counter = number_of_nodes_before + 1;
+            int counter = total_number_of_nodes_nocenter + number_of_nodes_before + 1;
             for (ModelPart::NodesContainerType::iterator it = center_nodes.begin(); it != center_nodes.end(); it++)
                 it->SetId(counter++);
 
