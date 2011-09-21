@@ -1,6 +1,7 @@
 domain_size = 2
 
 FSI = 0.00000e+00
+compute_reactions = 1.00000e+00
 Dt = 1.00000e-02
 max_time = 1.00000e+00
 output_step = 1.00000e-02
@@ -17,7 +18,7 @@ bounding_box_corner1_z = -1.00000e+01
 bounding_box_corner2_x = 1.00000e+01
 bounding_box_corner2_y = 1.00000e+01
 bounding_box_corner2_z = 1.00000e+01
-SolverType = "Quasi_Inc_Linear_Pressure"
+SolverType = "Quasi_Inc_Constant_Pressure"
 # Declare Python Variables
 
 problem_name = 'dam_2d'
