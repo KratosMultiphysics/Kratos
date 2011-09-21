@@ -333,6 +333,7 @@ class ULFFracStrategyPython:
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
 	if(CalculateReactionsFlag == True):
+	    #note that the reactions are reset to zero inside of the CalculateReactions function
             self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
 
 	#Finalisation of the solution step, 
