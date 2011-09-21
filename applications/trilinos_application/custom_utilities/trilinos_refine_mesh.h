@@ -1247,6 +1247,10 @@ namespace Kratos
             //determine a new unique id
             unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
 
+            if (model_part.Nodes().find(new_id) != model_part.NodesEnd())
+                KRATOS_ERROR(std::logic_error, "id is already being used", "");
+
+
             //determine the coordinates of the new node
             double X = (geom[0].X() + geom[1].X() + geom[2].X() + geom[3].X()) / 4.0;
             double Y = (geom[0].Y() + geom[1].Y() + geom[2].Y() + geom[3].Y()) / 4.0;
