@@ -523,6 +523,15 @@ namespace Kratos
 			TSystemVectorType& Dx,
 			TSystemVectorType& b)
 		{
+			
+			//reset the reactions to zero in all the nodes
+			for (typename NodesArrayType::iterator node_iterator =r_model_part.NodesBegin(); node_iterator !=r_model_part.NodesEnd(); ++node_iterator)
+			{
+				node_iterator->FastGetSolutionStepValue(REACTION_X)=0.0;
+				node_iterator->FastGetSolutionStepValue(REACTION_Y)=0.0;
+				node_iterator->FastGetSolutionStepValue(REACTION_Z)=0.0;
+			}
+			
 			//refresh RHS to have the correct reactions
 			BuildRHS(pScheme,r_model_part,b);
 
