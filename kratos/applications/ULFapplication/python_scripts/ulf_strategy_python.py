@@ -237,6 +237,12 @@ class ULFStrategyPython:
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
 	if(CalculateReactionsFlag == True):
+	    #in the other solvers the reactions are reset within the function CalculateReactions of the quasi inc builder and solver
+	    for node in self.model_part.Nodes:
+		node.SetSolutionStepValue(REACTION_X, 0 , 0.0)
+		node.SetSolutionStepValue(REACTION_Y, 0 , 0.0)
+		node.SetSolutionStepValue(REACTION_Z, 0 , 0.0)
+	   
             self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
 
 	#Finalisation of the solution step, 

@@ -273,7 +273,7 @@ class ULF_FSISolver:
 
 	
 
-	self.UlfUtils.DeleteFreeSurfaceNodesBladder(self.fluid_model_part)
+	#self.UlfUtils.DeleteFreeSurfaceNodesBladder(self.fluid_model_part)
         #marking nodes outside of the bounding box
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         self.node_erase_process.Execute()
