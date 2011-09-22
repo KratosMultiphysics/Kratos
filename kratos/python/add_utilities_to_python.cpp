@@ -34,8 +34,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 //   
 //   Project Name:        Kratos       
 //   Last modified by:    $Author: rrossi $
@@ -70,127 +70,137 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //#include "spatial_containers/bounding_box.h"
 #include "utilities/bounding_box_utilities.h"
-
+#include "utilities/binbased_fast_point_locator.h"
 
 
 namespace Kratos
 {
-	
-namespace Python
-{
- 
-  void  AddUtilitiesToPython()
-  {
-	using namespace boost::python;
 
-	  class_<VariableUtils>("VariableUtils", init<>())
-		.def("SaveVectorVar",&VariableUtils::SaveVectorVar)
-		.def("SaveScalarVar",&VariableUtils::SaveScalarVar)
-		.def("SelectNodeList",&VariableUtils::SelectNodeList)
-		.def("CopyVectorVar",&VariableUtils::CopyVectorVar)
-		.def("CopyScalarVar",&VariableUtils::CopyScalarVar)
-		.def("SetToZero_VectorVar",&VariableUtils::SetToZero_VectorVar)
-		.def("SetToZero_ScalarVar",&VariableUtils::SetToZero_ScalarVar)
-		.def("SetToZero_ScalarVar",&VariableUtils::SetToZero_ScalarVar)
-		.def("SetToZero_VelocityVectorVar",&VariableUtils::SetToZero_VelocityVectorVar)
-		.def("CheckVariableExists",&VariableUtils::SetToZero_VelocityVectorVar)
-		;
+    namespace Python
+    {
 
-	  class_<NormalCalculationUtils>("NormalCalculationUtils", init<>())
-		.def("CalculateOnSimplex",&NormalCalculationUtils::CalculateOnSimplex)
-		;
+        void AddUtilitiesToPython()
+        {
+            using namespace boost::python;
 
-	  class_<BodyNormalCalculationUtils>("BodyNormalCalculationUtils", init<>())
-		.def("CalculateBodyNormals",&BodyNormalCalculationUtils::CalculateBodyNormals)
-		;
+            class_<VariableUtils > ("VariableUtils", init<>())
+                    .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
+                    .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
+                    .def("SelectNodeList", &VariableUtils::SelectNodeList)
+                    .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
+                    .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
+                    .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
+                    .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
+                    .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
+                    .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
+                    .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
+                    ;
 
-	  class_<BodyDistanceCalculationUtils>("BodyDistanceCalculationUtils", init<>())
-			  .def("CalculateDistances2D",&BodyDistanceCalculationUtils::CalculateDistances<2>)
-			  .def("CalculateDistances3D",&BodyDistanceCalculationUtils::CalculateDistances<3>)
-			  ;
+            class_<NormalCalculationUtils > ("NormalCalculationUtils", init<>())
+                    .def("CalculateOnSimplex", &NormalCalculationUtils::CalculateOnSimplex)
+                    ;
 
-	  class_<SignedDistanceCalculationUtils<2> >("SignedDistanceCalculationUtils2D", init<>())
-			  .def("CalculateDistances",&SignedDistanceCalculationUtils<2>::CalculateDistances )
-                          .def("FindMaximumEdgeSize",&SignedDistanceCalculationUtils<2>::FindMaximumEdgeSize )
-			  ;
+            class_<BodyNormalCalculationUtils > ("BodyNormalCalculationUtils", init<>())
+                    .def("CalculateBodyNormals", &BodyNormalCalculationUtils::CalculateBodyNormals)
+                    ;
 
-	  class_<SignedDistanceCalculationUtils<3> >("SignedDistanceCalculationUtils3D", init<>())
-			  .def("CalculateDistances",&SignedDistanceCalculationUtils<3>::CalculateDistances )
-                          .def("FindMaximumEdgeSize",&SignedDistanceCalculationUtils<3>::FindMaximumEdgeSize )
-			  ;
+            class_<BodyDistanceCalculationUtils > ("BodyDistanceCalculationUtils", init<>())
+                    .def("CalculateDistances2D", &BodyDistanceCalculationUtils::CalculateDistances < 2 >)
+                    .def("CalculateDistances3D", &BodyDistanceCalculationUtils::CalculateDistances < 3 >)
+                    ;
 
-	  class_<ParallelDistanceCalculator<2>, boost::noncopyable >("ParallelDistanceCalculator2D", init<>())
-			  .def("CalculateDistances",&ParallelDistanceCalculator<2>::CalculateDistances )
-			  .def("CalculateDistancesLagrangianSurface",&ParallelDistanceCalculator<2>::CalculateDistancesLagrangianSurface )
-                          .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<2>::FindMaximumEdgeSize )
-			  ;
+            class_<SignedDistanceCalculationUtils < 2 > >("SignedDistanceCalculationUtils2D", init<>())
+                    .def("CalculateDistances", &SignedDistanceCalculationUtils < 2 > ::CalculateDistances)
+                    .def("FindMaximumEdgeSize", &SignedDistanceCalculationUtils < 2 > ::FindMaximumEdgeSize)
+                    ;
 
-	  class_<ParallelDistanceCalculator<3>, boost::noncopyable >("ParallelDistanceCalculator3D", init<>())
-			  .def("CalculateDistances",&ParallelDistanceCalculator<3>::CalculateDistances )
-                          .def("CalculateDistancesLagrangianSurface",&ParallelDistanceCalculator<2>::CalculateDistancesLagrangianSurface )
-                          .def("FindMaximumEdgeSize",&ParallelDistanceCalculator<3>::FindMaximumEdgeSize )
- 			  ;
-			  
-	   	  class_<PointLocation>("PointLocation", init<ModelPart& >())
-			  .def("Find2D",&PointLocation::Find2D)
-			  .def("Find3D",&PointLocation::Find3D)
-			  .def("found",&PointLocation::found)
-			  .def("ReturnDefaultPointData_scalar",&PointLocation::ReturnDefaultPointData_scalar)
-			  .def("ReturnDefaultPointData_vector",&PointLocation::ReturnDefaultPointData_vector)
-			  .def("ReturnCustomPointData_scalar",&PointLocation::ReturnCustomPointData_scalar)
-			  .def("ReturnCustomPointData_vector",&PointLocation::ReturnCustomPointData_vector)
-			  ;	  
-			  
-			  
-			  
-// 	  class_<SignedDistanceCalculationBinBased<2> >("SignedDistanceCalculationBinBased2D", init<>())
-// 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
-//                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
-// 			  ;
-// 
-// 	  class_<SignedDistanceCalculationBinBased<3> >("SignedDistanceCalculationBinBased3D", init<>())
-// 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
-//                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
-// 			  ;
+            class_<SignedDistanceCalculationUtils < 3 > >("SignedDistanceCalculationUtils3D", init<>())
+                    .def("CalculateDistances", &SignedDistanceCalculationUtils < 3 > ::CalculateDistances)
+                    .def("FindMaximumEdgeSize", &SignedDistanceCalculationUtils < 3 > ::FindMaximumEdgeSize)
+                    ;
 
-	  class_<DivideElemUtils>("DivideElemUtils", init<>())
-		.def("DivideElement_2D",&DivideElemUtils::DivideElement_2D)
-		;
+            class_<ParallelDistanceCalculator < 2 >, boost::noncopyable > ("ParallelDistanceCalculator2D", init<>())
+                    .def("CalculateDistances", &ParallelDistanceCalculator < 2 > ::CalculateDistances)
+                    .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 2 > ::CalculateDistancesLagrangianSurface)
+                    .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 2 > ::FindMaximumEdgeSize)
+                    ;
 
-	  class_<Timer>("Timer", init<>())
-		.add_property("PrintOnScreen", &Timer::GetPrintOnScreen,&Timer::SetPrintOnScreen)
-		.def("Start", &Timer::Start)
-		.def("Stop", &Timer::Stop)
-		.staticmethod("Start")
-		.staticmethod("Stop")
-// 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
-	    .def(self_ns::str(self))
-		;
- 
+            class_<ParallelDistanceCalculator < 3 >, boost::noncopyable > ("ParallelDistanceCalculator3D", init<>())
+                    .def("CalculateDistances", &ParallelDistanceCalculator < 3 > ::CalculateDistances)
+                    .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 2 > ::CalculateDistancesLagrangianSurface)
+                    .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
+                    ;
+
+            class_<PointLocation > ("PointLocation", init<ModelPart& >())
+                    .def("Find2D", &PointLocation::Find2D)
+                    .def("Find3D", &PointLocation::Find3D)
+                    .def("found", &PointLocation::found)
+                    .def("ReturnDefaultPointData_scalar", &PointLocation::ReturnDefaultPointData_scalar)
+                    .def("ReturnDefaultPointData_vector", &PointLocation::ReturnDefaultPointData_vector)
+                    .def("ReturnCustomPointData_scalar", &PointLocation::ReturnCustomPointData_scalar)
+                    .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
+                    ;
 
 
 
-          class_<BoundingBoxUtilities>("BoundingBoxUtilities", init<ModelPart&, const unsigned int& >() )
+            // 	  class_<SignedDistanceCalculationBinBased<2> >("SignedDistanceCalculationBinBased2D", init<>())
+            // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
+            //                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<2>::FindMaximumEdgeSize )
+            // 			  ;
+            //
+            // 	  class_<SignedDistanceCalculationBinBased<3> >("SignedDistanceCalculationBinBased3D", init<>())
+            // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<3>::CalculateDistances )
+            //                           .def("FindMaximumEdgeSize",&SignedDistanceCalculationBinBased<3>::FindMaximumEdgeSize )
+            // 			  ;
+
+            class_<DivideElemUtils > ("DivideElemUtils", init<>())
+                    .def("DivideElement_2D", &DivideElemUtils::DivideElement_2D)
+                    ;
+
+            class_<Timer > ("Timer", init<>())
+                    .add_property("PrintOnScreen", &Timer::GetPrintOnScreen, &Timer::SetPrintOnScreen)
+                    .def("Start", &Timer::Start)
+                    .def("Stop", &Timer::Stop)
+                    .staticmethod("Start")
+                    .staticmethod("Stop")
+                    // 	    .def("PrintTimingInformation",Timer::PrintTimingInformation)
+                    .def(self_ns::str(self))
+                    ;
+
+
+
+
+            class_<BoundingBoxUtilities > ("BoundingBoxUtilities", init<ModelPart&, const unsigned int& >())
                     .def("Test", &BoundingBoxUtilities::Test)
                     ;
 
-         
-//           class_<SplitElements, boost::noncopyable >
-//                     ("SplitElements", init<ModelPart&, int >() )
-//                     .def("Split", &SplitElements::Split)
-//                     ;
+
+            //           class_<SplitElements, boost::noncopyable >
+            //                     ("SplitElements", init<ModelPart&, int >() )
+            //                     .def("Split", &SplitElements::Split)
+            //                     ;
 
 
-// 	  def("PrintTimingInformation",Timer::PrintTimingInformation);
+            // 	  def("PrintTimingInformation",Timer::PrintTimingInformation);
 
-          class_<OpenMPUtils>("OpenMPUtils", init<>() )
-                  .def("SetNumThreads", &OpenMPUtils::SetNumThreads)
-                  .staticmethod("SetNumThreads")
-                  ;
+            class_<OpenMPUtils > ("OpenMPUtils", init<>())
+                    .def("SetNumThreads", &OpenMPUtils::SetNumThreads)
+                    .staticmethod("SetNumThreads")
+                    ;
 
-  }
-	
-}  // namespace Python.
+            class_< BinBasedFastPointLocator < 2 > > ("BinBasedFastPointLocator2D", init<ModelPart& >())
+                    .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
+                    .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
+                    ;
+
+            class_< BinBasedFastPointLocator < 3 > > ("BinBasedFastPointLocator3D", init<ModelPart&  >())
+                    .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
+                    .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
+                    ;
+
+        }
+
+    } // namespace Python.
 
 } // Namespace Kratos
 
