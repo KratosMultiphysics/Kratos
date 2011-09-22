@@ -187,7 +187,22 @@ namespace Kratos
       virtual ~BinsObjectDynamic(){}
       
      
-     
+ //************************************************************************   
+//************************************************************************
+   SizeType SearchObjectsInCell(const PointType& ThisPoint, ResultIteratorType Result, const SizeType& MaxNumberOfResults)
+    {
+      IndexType icell = CalculateIndex(ThisPoint);
+             
+      /*for(IndexType I = 0; I< Dimension; I++)*/
+        if(mCells[icell].Size() < MaxNumberOfResults){
+           for(IteratorType i_object = mCells[icell].Begin() ; i_object != mCells[icell].End(); i_object++, Result++)      
+              *Result = *i_object;    
+        return mCells[icell].Size();
+      }
+      else
+       return -1;
+      
+    } 
 //************************************************************************   
 //************************************************************************
 
@@ -875,7 +890,17 @@ namespace Kratos
             IndexCell[i] = CalculatePosition(ThisPoint[i],i);
         return IndexCell; 
      }
-     
+
+    IndexType CalculateIndex( const PointType& ThisPoint )
+         {
+            IndexType Index = 0;
+            for(SizeType iDim = Dimension-1 ; iDim > 0 ; iDim--){
+               Index += CalculatePosition(ThisPoint[iDim],iDim);
+               Index *= mN[iDim-1];
+            }
+            Index += CalculatePosition(ThisPoint[0],0);
+            return Index;
+         }    
      
 //************************************************************************   
 //************************************************************************
@@ -1040,7 +1065,7 @@ namespace Kratos
 //************************************************************************
 //************************************************************************
 
-    IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType& ThisDimension )
+    IndexType CalculatePosition( CoordinateType const& ThisCoord, const SizeType& ThisDimension )
     {
       CoordinateType d_index = (ThisCoord - mMinPoint[ThisDimension]) * mInvCellSize[ThisDimension];
       IndexType index = static_cast<IndexType>( (d_index < 0.00) ? 0.00 : d_index );
