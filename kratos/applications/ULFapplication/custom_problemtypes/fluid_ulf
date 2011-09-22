@@ -45,7 +45,6 @@ PROPERTY alpha_shape 1.6 alpha_shape
 PROPERTY erase_nodes 1 erase_nodes
 PROPERTY adaptive_refinement 0 adaptive_refinement
 PROPERTY delete_nodes_close_to_wall 1 delete_nodes_close_to_wall
-PROPERTY lagrangian_nodes_inlet 0 lagrangian_nodes_inlet
 PROPERTY bulk_modulus -1000.0 bulk_modulus
 PROPERTY density 1000.0 density
 PROPERTY bounding_box_corner1_x -1 bounding_box_corner1_x
@@ -54,7 +53,10 @@ PROPERTY bounding_box_corner1_z -1 bounding_box_corner1_z
 PROPERTY bounding_box_corner2_x  1 bounding_box_corner2_x
 PROPERTY bounding_box_corner2_y  1 bounding_box_corner2_y
 PROPERTY bounding_box_corner2_z  1 bounding_box_corner2_z
-
+PROPERTY lagrangian_nodes_inlet 0 lagrangian_nodes_inlet
+PROPERTY lagrangian_inlet_velocity_x 0 lagrangian_inlet_velocity_x
+PROPERTY lagrangian_inlet_velocity_y 0 lagrangian_inlet_velocity_y
+PROPERTY lagrangian_inlet_velocity_z 0 lagrangian_inlet_velocity_z
 
 TEXT FLAG PROPERTY SolverType Quasi_Inc_Constant_Pressure Quasi_Inc_Linear_Pressure FracStep Incompressible_Modified_FracStep SolverType
 
