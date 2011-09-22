@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/lagrangian_particle_utilities.h"
 #include "custom_utilities/embedded_utilities.h"
 #include "custom_utilities/fluid_thermal_solver_utilities.h"
+#include "custom_utilities/move_particle_utility.h"
 
 
 //#include "custom_utilities/edgebased_levelset.h"
@@ -341,6 +342,13 @@ namespace Kratos
                     .def("ProjectFromFluidToThermal",&FluidThermalSolverUtilities::ProjectFromFluidToThermal)
                     .def("ApplyTables",&FluidThermalSolverUtilities::ApplyTables)
                     ;
+                    
+                    
+            class_< MoveParticleUtility<2> > ("MoveParticleUtility2D", init<ModelPart& , ModelPart& >())
+                    .def("MountBin", &MoveParticleUtility<2>::MountBin)
+                    .def("MoveParticles", &MoveParticleUtility<2>::MoveParticles)
+                    ;      
+              
         }
 
     } // namespace Python.
