@@ -168,7 +168,7 @@ if (fluid_ulf_var.FSI==1):
     if (fluid_ulf_var.domain_size==2):
 	fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
     elif (fluid_ulf_var.domain_size==3):
-	fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropi32D() )
+	fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
     else:
 	raise "Domain size error. It should be 2D or 3D"
 
@@ -188,9 +188,16 @@ time = 0.0
 step = 0
 
 inlet_vel = Vector(3)
-inlet_vel[0]=0.0
-inlet_vel[1]=0.0
-inlet_vel[2]=0.0
+
+if (fluid_ulf_var.lagrangian_nodes_inlet==1):    
+    for node in fluid_model_part.Nodes:
+	if (node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)==1):
+	    inlet_vel=node.GetSolutionStepValue(VELOCITY,0)
+	    break
+else:
+    inlet_vel[0]=0.0
+    inlet_vel[1]=0.0
+    inlet_vel[2]=0.0
 
 dummy=LagrangianInletProcess(fluid_model_part, 0.0, inlet_vel)
 
