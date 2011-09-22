@@ -193,6 +193,7 @@ if (fluid_ulf_var.lagrangian_nodes_inlet==1):
     for node in fluid_model_part.Nodes:
 	if (node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)==1):
 	    inlet_vel=node.GetSolutionStepValue(VELOCITY,0)
+	    print "Lagrangian Inlet(s) Velocity  is ", inlet_vel
 	    break
 else:
     inlet_vel[0]=0.0
@@ -237,9 +238,11 @@ while (time < final_time):
             gid_io.WriteNodalResults(PRESSURE, (combined_model_part).Nodes, time, 0);
             if (compute_reactions==1):
 		gid_io.WriteNodalResults(REACTION, (combined_model_part).Nodes, time, 0);
+	    if (fluid_ulf_var.lagrangian_nodes_inlet==1):
+                gid_io.WriteNodalResults(IS_LAGRANGIAN_INLET, (combined_model_part).Nodes, time, 0);
+                
             
             
-
             gid_io.Flush()
             #gid_io.CloseResultFile();
             gid_io.FinalizeResults()
