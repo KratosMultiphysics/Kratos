@@ -263,8 +263,9 @@ class ULF_FSISolver:
    #  the operations on model part
    #  This is done to make switching off/on of remeshing easier
     def Remesh(self):                 
+        ##preventing the nodes from coming tooo close to wall
+        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
         ##erase all conditions and elements prior to remeshing
-        #self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
         ((self.combined_model_part).Nodes).clear();
