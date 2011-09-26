@@ -162,7 +162,7 @@ __kernel void GenerateBinsObjectsA(__global double4 * Points,
 {
     int t = get_global_id(0);
 
-    if(t < size) 
+    if(t < size && Triangles[t].x != -1) 
     {	
 	double4 minBox, maxBox;
 	double4 minCell, maxCell;
@@ -204,7 +204,7 @@ __kernel void GenerateBinsC(__global double4 * Points,
 {
     int t = get_global_id(0);
 
-    if(t < size) 
+    if(t < size && Triangles[t].x != -1) 
     {	
 	double4 minBox, maxBox;
 	double4 minCell, maxCell;
@@ -392,17 +392,14 @@ __kernel void Move(__global int * IndexCellReference,
 		   __constant double * N,
 		   __constant double * radius,
 		   __global double4 * MinPoint,
-		   __global double4 * Nresults,
 		   __global double4 * point,
 		   __global double4 * pointVelocity,
-		   __global double4 * pointAcceleration,
+// 		   __global double4 * pointAcceleration,
 		   __global double4 * pointDisplace,
 		   __global double4 * pointForce,
-		   __global double4 * pointPressureProj,
 		   __global double4 * nodesV,
 		   __global double4 * nodesF,
 		   __global double4 * nodesP,
-		   __global int * dens,
 		   __global double4 * body_force,
 		   double density,
 		   double dt,
@@ -423,6 +420,7 @@ __kernel void Move(__global int * IndexCellReference,
 	double4 fN;
 	double4 eulerian_vel = (double4)(0.0,0.0,0.0,0.0);
 	double4 stp_dis      = (double4)(0.0,0.0,0.0,0.0);
+	double4 pointAcceleration;
 
 	pointVelocityOld[gid] = pointVelocity[gid];
 	point[gid].xyz += pointDisplace[gid].xyz;
@@ -464,10 +462,10 @@ __kernel void Move(__global int * IndexCellReference,
 
 	      fN *= density_inverse;
 
-	      pointAcceleration[gid] = body_force[0];
-	      pointAcceleration[gid] -= fN.x * nodesP[triangleIndex.x-1];
-	      pointAcceleration[gid] -= fN.y * nodesP[triangleIndex.y-1];
-	      pointAcceleration[gid] -= fN.z * nodesP[triangleIndex.z-1];
+	      pointAcceleration = body_force[0];
+	      pointAcceleration -= fN.x * nodesP[triangleIndex.x-1];
+	      pointAcceleration -= fN.y * nodesP[triangleIndex.y-1];
+	      pointAcceleration -= fN.z * nodesP[triangleIndex.z-1];
 
 	      pointForce[gid] = (double4)(0.0,0.0,0.0,0.0);
 
@@ -475,20 +473,14 @@ __kernel void Move(__global int * IndexCellReference,
 	      pointForce[gid] += fN.y * nodesF[triangleIndex.y-1];
 	      pointForce[gid] += fN.z * nodesF[triangleIndex.z-1];
 
-	      pointAcceleration[gid] += pointForce[gid];
+	      pointAcceleration += pointForce[gid];
 
 	      int uses = use_eulerian && subStep;
-
-// 	      if(use_eulerian && subStep == 0) 
-// 	      {
-// 		  pointVelocity[gid].xyz    = eulerian_vel.xyz;
-// 		  pointVelocityOld[gid].xyz = eulerian_vel.xyz;
-// 	      }
 
 	      pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz * !uses;
 	      pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
 
-	      pointVelocity[gid].xyz += pointAcceleration[gid].xyz * small_dt;
+	      pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
 
 	      point[gid].xyz         += eulerian_vel.xyz * small_dt;
 	      stp_dis.xyz 	     += eulerian_vel.xyz * small_dt;
@@ -530,22 +522,25 @@ __kernel void calculateField(__global int * IndexCellReference,
 		   __global double4 * point,
 		   __global double4 * pointVelocity,
 		   __global double4 * nodesV,
-		   __global int     * fixedV,
-		   __global double  * nodesY,
-		   __local int * FLAG,
-		   int size
+		   __global int * gIndex,
+		   __global double4 * gFn,
+		   int size,
+		    __local int * l
 		  )
 {
     int gid = get_global_id(0);
 
+if(gid < size) {
+
     double4 fN;
     double4 vel; 
     int4 triangleIndex;
-    int l = 0;
     int Found = 0;
-    int squareSize = ceil(sqrt(convert_float(size)));
-
-    FLAG[0] = 0;
+//     int squareSize = ceil(sqrt(convert_float(size)));
+// 
+//     FLAG[0] = 0;
+      gFn[gid] = 0;
+      gIndex[gid] = -1;
 
     if(point[gid].w >= 0) 
     {
@@ -559,9 +554,9 @@ __kernel void calculateField(__global int * IndexCellReference,
 
 	Found = 0;
 
-	for(l = loIndex; !Found && (l < hiIndex); l++) 
+	for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex); l[get_local_id(0)]++) 
 	{
-	    triangleIndex = Triangles[(int)BinsObjectContainer[l]];
+	    triangleIndex = Triangles[(int)BinsObjectContainer[l[get_local_id(0)]]];
 
 	    fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
 				     PointsTriangle[triangleIndex.y-1],
@@ -572,32 +567,43 @@ __kernel void calculateField(__global int * IndexCellReference,
 	    Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
 		    fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
 	}
+if(Found) {
+// gFn[gid].x = triangleIndex.x-1;
+// gFn[gid].y = triangleIndex.y-1;
+// gFn[gid].z = triangleIndex.z-1;
+// gFn[gid].w = l[get_local_id(0)]-1;
 
-	//TODO: Try to remove locks from here
-	if (Found) 
-	{
-	    if(!fixedV[triangleIndex.x-1]) {
-// 			while(atom_xchg(&FLAG[(triangleIndex.x-1)%256],1) == 1);
-		nodesV[triangleIndex.x-1].xyz += (fN.x * pointVelocity[gid].xyz);
-		nodesY[triangleIndex.x-1] += fN.x;
-// 			atom_xchg(&FLAG[(triangleIndex.x-1)%256],0);
-	    }
+gFn[gid] = fN;
 
-	    if(!fixedV[triangleIndex.y-1]) {
-// 			while(atom_xchg(&FLAG[(triangleIndex.y-1)%256],1) == 1);
-		nodesV[triangleIndex.y-1].xyz += (fN.y * pointVelocity[gid].xyz);
-		nodesY[triangleIndex.y-1] += fN.y;
-// 			atom_xchg(&FLAG[(triangleIndex.y-1)%256],0);
-	    }
+	gIndex[gid] = BinsObjectContainer[l[get_local_id(0)]-1] < 1600 && BinsObjectContainer[l[get_local_id(0)]-1] >= 0 ? BinsObjectContainer[l[get_local_id(0)]-1] : -1;
+/*
+	gFn[gid].w = (int)BinsObjectContainer[l];*/
+}
 
-	    if(!fixedV[triangleIndex.z-1]) {
-// 			while(atom_xchg(&FLAG[(triangleIndex.z-1)%256],1) == 1);
-		nodesV[triangleIndex.z-1].xyz += (fN.z * pointVelocity[gid].xyz);
-		nodesY[triangleIndex.z-1] += fN.z;
-// 			atom_xchg(&FLAG[(triangleIndex.z-1)%256],0);
-	    }
-	}
-    }
+// 	if (Found) 
+// 	{
+// 	    if(!fixedV[triangleIndex.x-1]) {
+// // 			while(atom_xchg(&FLAG[(triangleIndex.x-1)%256],1) == 1);
+// 		nodesV[triangleIndex.x-1].xyz += (fN.x * pointVelocity[gid].xyz);
+// 		nodesY[triangleIndex.x-1] += fN.x;
+// // 			atom_xchg(&FLAG[(triangleIndex.x-1)%256],0);
+// 	    }
+// 
+// 	    if(!fixedV[triangleIndex.y-1]) {
+// // 			while(atom_xchg(&FLAG[(triangleIndex.y-1)%256],1) == 1);
+// 		nodesV[triangleIndex.y-1].xyz += (fN.y * pointVelocity[gid].xyz);
+// 		nodesY[triangleIndex.y-1] += fN.y;
+// // 			atom_xchg(&FLAG[(triangleIndex.y-1)%256],0);
+// 	    }
+// 
+// 	    if(!fixedV[triangleIndex.z-1]) {
+// // 			while(atom_xchg(&FLAG[(triangleIndex.z-1)%256],1) == 1);
+// 		nodesV[triangleIndex.z-1].xyz += (fN.z * pointVelocity[gid].xyz);
+// 		nodesY[triangleIndex.z-1] += fN.z;
+// // 			atom_xchg(&FLAG[(triangleIndex.z-1)%256],0);
+// 	    }
+// 	}
+    }}
 }
 
 /////////////////////////////////////////////////////////
