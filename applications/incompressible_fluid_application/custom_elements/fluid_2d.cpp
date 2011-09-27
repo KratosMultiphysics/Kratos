@@ -859,7 +859,7 @@ namespace Kratos
 	array_1d<double,2> aux = ZeroVector(3);
 	for(unsigned int i=0; i<3; i++)
 	{
-	  const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+	  const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(FRACT_VEL);
 	  double tmp = 0.0;
 	  for(unsigned int k=0; k<2; k++)
 	    tmp += DN_DX(i,k)*vel_gauss[k];
