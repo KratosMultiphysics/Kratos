@@ -1265,6 +1265,7 @@ namespace Kratos {
 	    int n_nodes = mvel_n1.size();
             ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes);
 
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
             double delta_t = CurrentProcessInfo[DELTA_TIME];
@@ -1300,6 +1301,21 @@ namespace Kratos {
                     for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                         rhs_i[l_comp] *= m_inv;
 	    }
+
+            int fixed_size = mFixedVelocities.size();
+	    #pragma omp parallel for firstprivate(fixed_size)
+	    for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
+	    {
+		unsigned int i_node = mFixedVelocities[i_velocity];
+                array_1d<double, TDim>& rhs_i = rhs[i_node];
+                array_1d<double, TDim>& proj_i = mXi[i_node];
+
+
+                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+                    rhs_i[l_comp] = mBodyForce[l_comp] + proj_i[l_comp];
+
+
+            }
 
 	    mr_matrix_container.WriteVectorToDatabase(FORCE, rhs, rNodes);
 	    KRATOS_CATCH("")
