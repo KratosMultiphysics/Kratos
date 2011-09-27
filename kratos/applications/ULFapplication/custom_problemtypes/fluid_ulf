@@ -14,8 +14,8 @@ SCALAR CONDITION DENSITY_WATER     	point line surface volume free  1.0
 SCALAR CONDITION VISCOSITY_AIR     	point line surface volume free  1.0
 SCALAR CONDITION VISCOSITY_WATER     	point line surface volume free  1.0
 
-FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0
-FLAG CONDITION IS_LAGRANGIAN_INLET	point line surface volume free 1.0
+FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0 0.0
+FLAG CONDITION IS_LAGRANGIAN_INLET	point line surface volume free 1.0 0.0
 FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
 FLAG CONDITION IS_BOUNDARY    		point line surface volume free 1.0 2.0 3.0 4.0 5.0
 FLAG CONDITION IS_STRUCTURE    		point line surface volume free 1.0 0.0
@@ -54,9 +54,6 @@ PROPERTY bounding_box_corner2_x  1 bounding_box_corner2_x
 PROPERTY bounding_box_corner2_y  1 bounding_box_corner2_y
 PROPERTY bounding_box_corner2_z  1 bounding_box_corner2_z
 PROPERTY lagrangian_nodes_inlet 0 lagrangian_nodes_inlet
-PROPERTY lagrangian_inlet_velocity_x 0 lagrangian_inlet_velocity_x
-PROPERTY lagrangian_inlet_velocity_y 0 lagrangian_inlet_velocity_y
-PROPERTY lagrangian_inlet_velocity_z 0 lagrangian_inlet_velocity_z
 
 TEXT FLAG PROPERTY SolverType Quasi_Inc_Constant_Pressure Quasi_Inc_Linear_Pressure FracStep Incompressible_Modified_FracStep SolverType
 
