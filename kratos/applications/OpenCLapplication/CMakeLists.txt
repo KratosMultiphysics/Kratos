@@ -22,7 +22,8 @@ set( KRATOS_OPENCL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/opencl_python_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_linear_solvers_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_utilities_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/pugixml/src/pugixml.cpp 	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/pugixml/src/pugixml.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_spatial_containers_to_python.cpp
 )
 
 ###############################################################
