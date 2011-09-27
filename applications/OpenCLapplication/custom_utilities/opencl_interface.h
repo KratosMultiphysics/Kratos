@@ -219,7 +219,7 @@ namespace OpenCL
 //
 // Returns a string representation of an OpenCL error
 
-	const char *ErrorString(cl_int _Code)
+	inline const char *ErrorString(cl_int _Code)
 	{
 		switch(_Code)
 		{
@@ -300,7 +300,7 @@ namespace OpenCL
 // Used to raise an OpenCL error and abort if requested
 // Do not use directly; use the KRATOS_OCL_CHECK, KRATOS_OCL_WARN or KRATOS_OCL_CHECKED_EXPRESSION macros
 
-	void RaiseError(cl_int _Code, const char *_FileName, const char *_Function, cl_uint _Line, bool _Abort, const char *_Expression = "")
+	inline void RaiseError(cl_int _Code, const char *_FileName, const char *_Function, cl_uint _Line, bool _Abort, const char *_Expression = "")
 	{
 		std::cout <<
 			std::endl <<
@@ -337,7 +337,7 @@ namespace OpenCL
 //
 // Returns a string representation of an OpenCL device type
 
-	const char *DeviceTypeString(cl_device_type _DeviceType)
+	inline const char *DeviceTypeString(cl_device_type _DeviceType)
 	{
 		switch (_DeviceType)
 		{
