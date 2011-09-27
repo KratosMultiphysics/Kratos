@@ -105,7 +105,7 @@ class ULFFracStrategyPython:
     
     #######################################################################
     #######################################################################
-    def Solve(self,domain_size,UlfUtils):
+    def Solve(self,domain_size,UlfUtils, FSI):
         #perform the operations to be performed ONCE and ensure they will not be repeated
         # elemental function "Initialize" is called here
         if(self.InitializeWasPerformed == False):
@@ -186,8 +186,10 @@ class ULFFracStrategyPython:
                   #node.SetSolutionStepValue(PRESSURE,0,0.0)
                   #print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                   node.Fix(PRESSURE)
-            #if (node.GetSolutionStepValue(IS_INTERFACE)==1):
-            #    node.Fix(PRESSURE)
+            #if the problem involves FSI, then the pressure at the FSI interface should be fixed also
+            if (FSI==True):
+	        if (node.GetSolutionStepValue(IS_INTERFACE)==1):
+		    node.Fix(PRESSURE)
 
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
         self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);          

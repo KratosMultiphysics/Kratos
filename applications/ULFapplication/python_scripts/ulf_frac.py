@@ -55,7 +55,7 @@ def AddDofs(model_part, compute_reactions):
 
 class ULF_FSISolver:
 
-    def __init__(self, out_file, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1,box_corner2, domain_size, add_nodes, bulk_modulus, density):
+    def __init__(self, out_file, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, FSI, compute_reactions, box_corner1,box_corner2, domain_size, add_nodes, bulk_modulus, density):
         self.out_file=out_file
 
 	self.compute_reactions=compute_reactions
@@ -65,6 +65,7 @@ class ULF_FSISolver:
 
         # TO REMESH OR NOT: 0 - no remeshing, 1 - remeshing
         self.add_nodes = bool(add_nodes)
+        self.FSI=bool(FSI)
         # K - the bulk modulus
         self.bulk_modulus = bulk_modulus
         self.density = density
@@ -211,7 +212,7 @@ class ULF_FSISolver:
 	self.lagrangian_inlet_process=lagrangian_inlet_process
 
         print "solving the fluid problem"
-        inverted_elements = (self.solver).Solve(self.domain_size,self.UlfUtils)
+        inverted_elements = (self.solver).Solve(self.domain_size,self.UlfUtils, self.FSI)
         print "succesful solution of the fluid "
 
         reduction_factor = 0.5
@@ -231,7 +232,7 @@ class ULF_FSISolver:
             print "time step reduction completed"
             print " *************************************************** "
 
-            (self.solver).Solve(self.domain_size,self.UlfUtils)
+            (self.solver).Solve(self.domain_size,self.UlfUtils, self.FSI)
             [inverted_elements,vol] = self.CheckForInvertedElements()            
 
         if(inverted_elements == True):
@@ -264,7 +265,7 @@ class ULF_FSISolver:
    #  This is done to make switching off/on of remeshing easier
     def Remesh(self):                 
         ##preventing the nodes from coming tooo close to wall
-        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
+        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.12)
         ##erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
