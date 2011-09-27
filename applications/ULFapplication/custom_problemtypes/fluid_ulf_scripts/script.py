@@ -97,14 +97,7 @@ if(SolverType == "Quasi_Inc_Constant_Pressure" or SolverType == "Quasi_Inc_Linea
       for node in fluid_model_part.Nodes:
 	  node.Free(PRESSURE)
 
-##check to ensure that no node has zero density or pressure
-for node in fluid_model_part.Nodes:
-    if(node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ",node.Id," has zero density!"
-        raise 'node with zero density found'
-    if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ",node.Id," has zero viscosity!"
-        raise 'node with zero VISCOSITY found'
+
 
 
 #setting the limits of the bounding box
@@ -120,10 +113,27 @@ outputfile1 = open(outstring2, 'w')
 add_nodes=fluid_ulf_var.adaptive_refinement
 bulk_modulus=fluid_ulf_var.bulk_modulus
 density=fluid_ulf_var.density
+FSI=fluid_ulf_var.FSI
 #creating the solvers
 #fluid solver
+##check to ensure that no node has zero density or pressure
+is_fsi_interf=0.0
+for node in fluid_model_part.Nodes:
+    if(node.GetSolutionStepValue(DENSITY) == 0.0):
+        print "node ",node.Id," has zero density!"
+        raise 'node with zero density found'
+    if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
+        print "node ",node.Id," has zero viscosity!"
+        raise 'node with zero VISCOSITY found'
+    if(FSI==1):
+	is_fsi_interf+=node.GetSolutionStepValue(IS_INTERFACE)
+	
+if (SolverType == "Incompressible_Modified_FracStep" and FSI==1):
+    if (is_fsi_interf==0):
+	raise 'For running FSI using the Modified Frac Step Solver you must prescribe IS_INTERFACE flag at the surface/outer contour of your structure'
+
 if(SolverType == "Incompressible_Modified_FracStep"):    
-    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
+    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, FSI, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
     solver.alpha_shape = fluid_ulf_var.alpha_shape;
     solver.echo_level = 2;
     
@@ -133,7 +143,7 @@ if(SolverType == "Incompressible_Modified_FracStep"):
     solver.Initialize()
     
 if(SolverType == "FracStep"):    
-    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
+    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, FSI, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
     solver.alpha_shape = fluid_ulf_var.alpha_shape;
     solver.echo_level = 2;
     for node in fluid_model_part.Nodes:
