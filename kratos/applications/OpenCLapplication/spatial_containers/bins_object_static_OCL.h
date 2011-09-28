@@ -42,7 +42,8 @@
 #endif
 
 #define WORKGROUP_SIZE 	2
-#define PARTICLE_BUFFER	0
+#define PARTICLE_BUFFER	25000
+#define STEPS 2
 
 #include "../../../kratos/spatial_containers/tree.h"
 #include "../custom_utilities/opencl_interface.h"
@@ -179,7 +180,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    mPointEnd = mPointBegin + mNodeSize;
 	    
 	    mTriangleNodes 	  = (cl_int4 *   )malloc(sizeof(cl_int4)    * mTriangleSize);
-	    mNodes		  = (cl_double4 *)malloc(sizeof(cl_double4) * (mNodeSize    + PARTICLE_BUFFER) );
+	    mNodes		  = (cl_double4 *)malloc(sizeof(cl_double4) * (mNodeSize    		     ) );
 	    mParticles 		  = (cl_double4 *)malloc(sizeof(cl_double4) * (mProblemSize + PARTICLE_BUFFER) );
 	    mParticlesVelocity 	  = (cl_double4 *)malloc(sizeof(cl_double4) * (mProblemSize + PARTICLE_BUFFER) );
 	    mParticlesVelocityOld = (cl_double4 *)malloc(sizeof(cl_double4) * (mProblemSize + PARTICLE_BUFFER) );
@@ -199,8 +200,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    
 	    std::cout << "\tNodes:     " << mNodeSize << std::endl;
 	    std::cout << "\tElements:  " << mTriangleSize << std::endl;
-	    std::cout << "\tParticles: " << mProblemSize << std::endl;
-	    std::cout << "\tParticle Buffer: " << mProblemSize + PARTICLE_BUFFER << std::endl;
+	    std::cout << "\tParticles: " << mProblemSize << " + " <<  PARTICLE_BUFFER << std::endl;
 	    
 	    //StaticMesh Nodes
 	    std::cout << "Cargando Nodos" << std::endl;
@@ -772,15 +772,8 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 
 	//************************************************************************
 	
-	void LoadSample(/*cl_double4 * sample,
-			cl_double4 * emitters,
-			int sampleSize*/)
+	void LoadSample()
 	{
-// 	    mProblemSize = sampleSize;
-// 
-// 	    mParticles = sample;
-// 	    mPointsEmitter  = emitters;
-
 	    cl_double4   * mParticlesItr;
 	    
 	    //Velocity Field
@@ -823,24 +816,12 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		for( ModelPart::NodesContainerType::iterator inode = mStaticMesh->NodesBegin(); inode != mStaticMesh->NodesEnd(); inode++) 
 		{
 		    int id = inode->Id()-1;
-// 		  std::cout << KRATOS_OCL_4_ARRAY_W(nodesV,i) << std::endl;
+
 		    array_1d<double, 3 > & velocity   = inode->FastGetSolutionStepValue(VELOCITY);
-// 		    array_1d<double, 3 > & force      = (inode)->FastGetSolutionStepValue(FORCE);
-// 		    array_1d<double, 3 > & press_proj = (inode)->FastGetSolutionStepValue(PRESS_PROJ);
 		    
 		    velocity[0] = KRATOS_OCL_4_ARRAY_X(nodesV,id);
 		    velocity[1] = KRATOS_OCL_4_ARRAY_Y(nodesV,id);
 		    velocity[2] = KRATOS_OCL_4_ARRAY_Z(nodesV,id);
-		    
-// 		    force[0] = KRATOS_OCL_4_ARRAY_X(nodesF,i);
-// 		    force[1] = KRATOS_OCL_4_ARRAY_Y(nodesF,i);
-// 		    force[2] = KRATOS_OCL_4_ARRAY_Z(nodesF,i);
-// 		    
-// 		    press_proj[0] = KRATOS_OCL_4_ARRAY_X(nodesP,i);
-// 		    press_proj[1] = KRATOS_OCL_4_ARRAY_Y(nodesP,i);
-// 		    press_proj[2] = KRATOS_OCL_4_ARRAY_Z(nodesP,i);
-		    
-// 		    i++;
 		}
 	    }
 	}
@@ -856,16 +837,13 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	void TransferStaticMeshToCPU()
 	{
 	    OCLDeviceGroup.CopyBuffer(OCL_NodesV, OpenCL::DeviceToHost, OpenCL::VoidPList(1,&nodesV[0]));
-// 	    OCLDeviceGroup.CopyBuffer(OCL_NodesF, OpenCL::DeviceToHost, OpenCL::VoidPList(1,&nodesF[0]));
-// 	    OCLDeviceGroup.CopyBuffer(OCL_NodesP, OpenCL::DeviceToHost, OpenCL::VoidPList(1,&nodesP[0]));
 	}
 	
-	void TransferParticMeshToGPU() {
+	void TransferParticMeshToGPU() 
+	{
 	    cl_double4 * mParticlesItr 	       = mParticles;
 	    cl_double4 * mParticlesVelocityItr = mParticlesVelocity;
 	    cl_double4 * mParticlesDisplaceItr = mParticlesDisplace;
-	    
-	    mProblemSize = mParticMesh->NumberOfNodes();
 	  
 	    for( ModelPart::NodesContainerType::iterator inode = mParticMesh->NodesBegin(); inode != mParticMesh->NodesEnd(); inode++, mParticlesItr++, mParticlesVelocityItr++, mParticlesDisplaceItr++) 
 	    {
@@ -888,7 +866,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		KRATOS_OCL_4_ITR_Y(mParticlesDisplaceItr) = displace[1];
 		KRATOS_OCL_4_ITR_Z(mParticlesDisplaceItr) = displace[2];
 		
-		inode->GetValue(ERASE_FLAG) = true;
+		inode->GetValue(ERASE_FLAG) = false;
 	    }
 	    
 	    OCLDeviceGroup.CopyBuffer(OCL_Particles, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticles[0]));
@@ -913,7 +891,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    std::cout << "\tAllocate Bufers Real: " << ConcurrentPointsReal << std::endl;
 	    
 	    ///////////////////////////////////////////////////////////////////////////
-	    ConcurrentPointsReal = mProblemSize + PARTICLE_BUFFER;
+	    ConcurrentPointsReal = PARTICLE_BUFFER > mParticMesh->NumberOfNodes() ? mParticMesh->NumberOfNodes() : PARTICLE_BUFFER;
 	    ///////////////////////////////////////////////////////////////////////////
 	    
 	    OCL_Radius        = OCLDeviceGroup.CreateBuffer(sizeof(double) * 2 , CL_MEM_READ_ONLY);
@@ -926,7 +904,6 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    OCL_ParticlesDisplace     = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
 	    OCL_ParticlesAcceleration = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
 	    OCL_ParticlesForce        = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
-// 	    OCL_ParticlesPress_Proj   = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
 	    OCL_ParticlesN            = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * ConcurrentPointsReal, CL_MEM_READ_WRITE);
 	    OCL_ParticlesLock	      = OCLDeviceGroup.CreateBuffer(sizeof(int)        * ConcurrentPointsReal, CL_MEM_READ_WRITE);
 	    OCL_ParticlesIndex        = OCLDeviceGroup.CreateBuffer(sizeof(int)        * ConcurrentPointsReal, CL_MEM_READ_WRITE);
@@ -934,11 +911,8 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
             OCL_NodesV        = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mNodeSize, CL_MEM_READ_WRITE);
 	    OCL_NodesF        = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mNodeSize, CL_MEM_READ_WRITE);
 	    OCL_NodesP        = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mNodeSize, CL_MEM_READ_WRITE);
-// 	    OCL_NodesR        = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mNodeSize, CL_MEM_READ_WRITE);
 	    OCL_NodesY        = OCLDeviceGroup.CreateBuffer(sizeof(double)     * mNodeSize, CL_MEM_READ_WRITE);
-// 	    OCL_NodesT        = OCLDeviceGroup.CreateBuffer(sizeof(double)     * mNodeSize, CL_MEM_READ_WRITE);
 	    OCL_FixedV        = OCLDeviceGroup.CreateBuffer(sizeof(int)        * mNodeSize, CL_MEM_READ_WRITE);
-// 	    OCL_FLAG          = OCLDeviceGroup.CreateBuffer(sizeof(int)        * mNodeSize, CL_MEM_READ_WRITE);
 	    OCL_results       = OCLDeviceGroup.CreateBuffer(sizeof(int)        * ConcurrentPointsReal, CL_MEM_WRITE_ONLY);
 	    OCL_outData       = OCLDeviceGroup.CreateBuffer(sizeof(int)        * ConcurrentPointsReal, CL_MEM_WRITE_ONLY);
 	    OCL_distance      = OCLDeviceGroup.CreateBuffer(sizeof(double)     * ConcurrentPointsReal, CL_MEM_READ_WRITE);
@@ -953,21 +927,11 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    HOST_memRadius[0] = Radius;
 	    HOST_memRadius[1] = Radius * Radius;
 	    
-// 	    int k = 0;
-// 	    for( IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
-// 	    {
-// 		KRATOS_OCL_4_ARRAY_X(PointsTriangles,k) = (**Point)[0];
-// 		KRATOS_OCL_4_ARRAY_Y(PointsTriangles,k) = (**Point)[1];
-// 		KRATOS_OCL_4_ARRAY_Z(PointsTriangles,k) = (**Point)[2];
-// 		k++;
-// 	    }
-	    
 	    OCLDeviceGroup.CopyBuffer(OCL_Radius        , OpenCL::HostToDevice, OpenCL::VoidPList(1,&HOST_memRadius));
 	    OCLDeviceGroup.CopyBuffer(OCL_PointsTriangle, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mNodes[0]));
 	    
 	    int * dens = (int *)malloc(sizeof(int) * mTriangleSize);
-	    int * particleLock = (int *)malloc(sizeof(int) * (mParticMesh->NumberOfNodes() + PARTICLE_BUFFER));
-	    int * triangleFLAG = (int *)malloc(sizeof(int) * (mNodeSize));
+	    int * particleLock = (int *)malloc(sizeof(int) * (mProblemSize + PARTICLE_BUFFER));
 	    
 	    for(int i = 0 ; i < mTriangleSize; i++) {
 	      dens[i] = 0 ;
@@ -976,21 +940,13 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    for(int i = 0 ; i < (mParticMesh->NumberOfNodes() + PARTICLE_BUFFER); i++) {
 	      particleLock[i] = 1;
 	    }
-	    
-	    for(int i = 0; i < mNodeSize; i++) {
-	      triangleFLAG[i] = 0;
-	    }
-	    
-// 	    OCLDeviceGroup.CopyBuffer(OCL_Dens, OpenCL::HostToDevice, OpenCL::VoidPList(1,dens));
-	    
+
 	    OCLDeviceGroup.CopyBuffer(OCL_Particles, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticles[0]));
 	    OCLDeviceGroup.CopyBuffer(OCL_ParticlesDisplace, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesDisplace[0]));
 	    OCLDeviceGroup.CopyBuffer(OCL_ParticlesVelocity, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesVelocity[0]));
 	    OCLDeviceGroup.CopyBuffer(OCL_ParticlesVelocityOld, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesVelocityOld[0]));
 	    OCLDeviceGroup.CopyBuffer(OCL_ParticlesForce, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesForce[0]));
-// 	    OCLDeviceGroup.CopyBuffer(OCL_ParticlesPress_Proj, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesPress_Proj[0]));
 	    OCLDeviceGroup.CopyBuffer(OCL_ParticlesLock, OpenCL::HostToDevice, OpenCL::VoidPList(1,&particleLock[0]));
-// 	    OCLDeviceGroup.CopyBuffer(OCL_FLAG, OpenCL::HostToDevice, OpenCL::VoidPList(1,&triangleFLAG[0]));
 	    
 	}
          
@@ -1126,26 +1082,33 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 
 	    //Parece que el modelpart de particulas que no pasan puede variar, asi que por ahora provamos a incrementar el tamanyo
 	    
-	    while (processed < mProblemSize)
+	    std::cout << "[=";
+	    
+	    while (processed < mParticMesh->NumberOfNodes())
 	    {	 
-		amount = (ConcurrentPoints > mProblemSize) ? mProblemSize : (processed + ConcurrentPoints) < mProblemSize ? ConcurrentPoints : mProblemSize - processed;
-		
-		amount = mProblemSize;
+		amount = PARTICLE_BUFFER > mParticMesh->NumberOfNodes() ? mParticMesh->NumberOfNodes() : PARTICLE_BUFFER;
+
 		activeParticles[0] = 0;
 		activeParticles[1] = amount;
+		
+		OCLDeviceGroup.CopyBuffer(OCL_Particles, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticles[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_ParticlesDisplace, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesDisplace[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_ParticlesVelocity, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesVelocity[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_ParticlesVelocityOld, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesVelocityOld[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_ParticlesForce, OpenCL::HostToDevice, OpenCL::VoidPList(1,&mParticlesForce[processed]));
    
 		OCLDeviceGroup.CopyBuffer(OCL_Active    , OpenCL::HostToDevice, OpenCL::VoidPList(1,&activeParticles));
 		OCLDeviceGroup.CopyBuffer(OCL_Body_Force, OpenCL::HostToDevice, OpenCL::VoidPList(1,&body_force));
 		
                 OCLDeviceGroup.SetKernelArg(OCLMove, 20, amount);
-		
+
 		OCLDeviceGroup.SetKernelArg(OCLTransferB, 13, amount);
 		
 		OCLDeviceGroup.SetBufferAsKernelArg(OCLUpdate, 8, OCL_Active);
 		OCLDeviceGroup.SetKernelArg(OCLUpdate, 9, mTriangleSize);
 		
 // 		OCLDeviceGroup.ExecuteKernel(OCLMove, (int)ceil(sqrt(amount)));
-		std::cout << OCLDeviceGroup.WorkGroupSizes[OCLMove][0] << std::endl;
+// 		std::cout << OCLDeviceGroup.WorkGroupSizes[OCLMove][0] << std::endl;
 // 		OCLDeviceGroup.ExecuteKernel(OCLMove, OCLDeviceGroup.WorkGroupSizes[OCLMove][0]);
 		OCLDeviceGroup.ExecuteKernel(OCLMove, amount);
 		
@@ -1157,134 +1120,14 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		OCLDeviceGroup.CopyBuffer(OCL_ParticlesDisplace   , OpenCL::DeviceToHost, OpenCL::VoidPList(1,&mParticlesDisplace[processed]));
 		OCLDeviceGroup.CopyBuffer(OCL_ParticlesForce      , OpenCL::DeviceToHost, OpenCL::VoidPList(1,&mParticlesForce[processed]));
 
-// 		OCLDeviceGroup.ExecuteKernel(OCLTransferA, mNodeSize);
 		OCLDeviceGroup.ExecuteKernel(OCLTransferB, amount);
-// 		OCLDeviceGroup.ExecuteKernel(OCLTransferC, mNodeSize);
+
+		OCLDeviceGroup.CopyBuffer(OCL_ParticlesN    , OpenCL::DeviceToHost, OpenCL::VoidPList(1,&mParticlesN[processed]));
+		OCLDeviceGroup.CopyBuffer(OCL_ParticlesIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1,&mParticlesI[processed]));
 		
-		OCLDeviceGroup.CopyBuffer(OCL_ParticlesN    , OpenCL::DeviceToHost, OpenCL::VoidPList(1,&mParticlesN[0]));
-		OCLDeviceGroup.CopyBuffer(OCL_ParticlesIndex, OpenCL::DeviceToHost, OpenCL::VoidPList(1,&mParticlesI[0]));
+// 		std::cout << " a " << std::endl;
 		
-		for(int i = 0; i < mNodeSize; i++) 
-		{
-		    if (!FixedV[i]) 
-		    {
-			KRATOS_OCL_4_ARRAY_X(nodesV,i) = 0;
-			KRATOS_OCL_4_ARRAY_Y(nodesV,i) = 0;
-			KRATOS_OCL_4_ARRAY_Z(nodesV,i) = 0;
-			
-			nodesY[i] = 0;
-		    }
-		}
-// 		
-		for(int i = 0; i < mProblemSize; i++) {
-		  
-		    int elementId = mParticlesI[i];
-		    
-		    int tx, ty, tz;
-		    
-// 		    std::cout << elementId << std::endl;
-		    
-		    if (elementId != -1) 
-		    {
-		      
-// 			std::cout << elementId << " - " << mTriangleSize << std::endl;
-			
-// 			if( elementId+1 >= mTriangleSize ) {
-// 			  std::cout << "Pum: " << elementId+1 << " " << mTriangleSize << std::endl; 
-// 			}
-			
-// 						  elementId--;
-			
-			tx = KRATOS_OCL_4_ARRAY_X(mTriangleNodes,(elementId))-1;
-			ty = KRATOS_OCL_4_ARRAY_Y(mTriangleNodes,(elementId))-1;
-			tz = KRATOS_OCL_4_ARRAY_Z(mTriangleNodes,(elementId))-1;
-			
-// 			if (KRATOS_OCL_4_ARRAY_W(mParticles,i) == 27197 ) { 
-// // 			if(tx+1 == 80 || ty+1 == 80 || tz+1 == 80) {
-// // 			   std::cout << "Rage mode on: " << i << "\t" << KRATOS_OCL_4_ARRAY_X(mParticlesN,i) << std::endl;
-// // 			    std::cout << KRATOS_OCL_4_ARRAY_W(mParticles,i) << " ";
-// // 			    if (KRATOS_OCL_4_ARRAY_W(mParticles,i) == 27197 ) { std::cout << " PIMP!" << std::endl;/* abort();*/}
-// 			
-// 			
-// 			    if(KRATOS_OCL_4_ARRAY_W(mParticles,i) == 27197) {
-// 			      
-// 			    std::cout << std::endl;
-// 			  
-// 			    std::cout << elementId << " - " << elementId + 1 << std::endl;
-// 			    
-// 			    std::cout << KRATOS_OCL_4_ARRAY_X(mParticles,i) << " " << KRATOS_OCL_4_ARRAY_Y(mParticles,i) << " " << KRATOS_OCL_4_ARRAY_Z(mParticles,i) << std::endl;
-// 			    
-//   // 			  tx += 1;
-//   // 			  ty += 1;
-//   // 			  tz += 1;
-// 			    std::cout << tx << " -- " << KRATOS_OCL_4_ARRAY_W(mNodes,tx) << "-" << KRATOS_OCL_4_ARRAY_X(mNodes,tx) << " " << KRATOS_OCL_4_ARRAY_Y(mParticles,tx) << " " << KRATOS_OCL_4_ARRAY_Z(mParticles,tx) << std::endl;
-// 			    std::cout << ty << " -- " << KRATOS_OCL_4_ARRAY_W(mNodes,ty) << "-" << KRATOS_OCL_4_ARRAY_X(mNodes,ty) << " " << KRATOS_OCL_4_ARRAY_Y(mParticles,ty) << " " << KRATOS_OCL_4_ARRAY_Z(mParticles,ty) << std::endl;
-// 			    std::cout << tz << " -- " << KRATOS_OCL_4_ARRAY_W(mNodes,tz) << "-" << KRATOS_OCL_4_ARRAY_X(mNodes,tz) << " " << KRATOS_OCL_4_ARRAY_Y(mParticles,tz) << " " << KRATOS_OCL_4_ARRAY_Z(mParticles,tz) << std::endl;
-// 			    
-// 			    std::cout << "--------" << std::endl;
-// 			    
-// 			    std::cout << KRATOS_OCL_4_ARRAY_W(mParticlesN,i) << " N: " << KRATOS_OCL_4_ARRAY_X(mParticlesN,i) << " " << KRATOS_OCL_4_ARRAY_Y(mParticlesN,i) << " " << KRATOS_OCL_4_ARRAY_Z(mParticlesN,i) << " " << KRATOS_OCL_4_ARRAY_W(mParticlesN,i) << std::endl;
-// 			    
-// 			    std::cout << "--------" << std::endl;
-// 			    
-// 			    std::cout << mParticlesI[i] << " E: " << tx << " " << ty << " " << tz << std::endl;
-// 			    
-// 			    std::cout << "--------" << std::endl;
-// 			    
-// 			    for(int j = 0; j < mBinsObjectSize; j++) {
-// 				std::cout << j << " : " << BinsObjectContainer[j] << std::endl;
-// 			    }
-// 			    
-// 			    for(int j = 0; j < mTriangleSize; j++) {
-// 				std::cout << "(" << j << ")" << KRATOS_OCL_4_ARRAY_W(mNodes,j) << " -- " << KRATOS_OCL_4_ARRAY_X(mTriangleNodes,j) << " " << KRATOS_OCL_4_ARRAY_Y(mTriangleNodes,j) << " " << KRATOS_OCL_4_ARRAY_Z(mTriangleNodes,j) << std::endl;
-// 			    }
-// 			    
-//   // 			  abort();
-// 			  }
-// 		      }
-		      
-// 		      std::cout << std::endl;
-//     		    std::cout << "(" << i << ") " << tx << " " << ty << " " << tz << std::endl;
-		      
-			if(!FixedV[tx]) {
-// 			    if(KRATOS_OCL_4_ARRAY_W(nodesV,tx) != KRATOS_OCL_4_ARRAY_X(mTriangleNodes,elementId)-1) { std::cout << "Problem: " << KRATOS_OCL_4_ARRAY_W(nodesV,tx) << " " << KRATOS_OCL_4_ARRAY_X(mTriangleNodes,elementId)-1 << std::endl; abort(); }
-			  
-			    KRATOS_OCL_4_ARRAY_X(nodesV,tx) += KRATOS_OCL_4_ARRAY_X(mParticlesN,i) * KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
-			    KRATOS_OCL_4_ARRAY_Y(nodesV,tx) += KRATOS_OCL_4_ARRAY_X(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
-			    KRATOS_OCL_4_ARRAY_Z(nodesV,tx) += KRATOS_OCL_4_ARRAY_X(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
-			    
-			    nodesY[tx] += KRATOS_OCL_4_ARRAY_X(mParticlesN,i);
-			}
-			
-			if(!FixedV[ty]) {
-			    KRATOS_OCL_4_ARRAY_X(nodesV,ty) += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i) * KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
-			    KRATOS_OCL_4_ARRAY_Y(nodesV,ty) += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
-			    KRATOS_OCL_4_ARRAY_Z(nodesV,ty) += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
-			    
-			    nodesY[ty] += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i);
-			}
-			
-			if(!FixedV[tz]) {
-			    KRATOS_OCL_4_ARRAY_X(nodesV,tz) += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i) * KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
-			    KRATOS_OCL_4_ARRAY_Y(nodesV,tz) += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
-			    KRATOS_OCL_4_ARRAY_Z(nodesV,tz) += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
-			    
-			    nodesY[tz] += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i);
-			}
-		      }
-		}
-		for(int i = 0; i < mNodeSize; i++) 
-		{ 
-// 		    std::cout << KRATOS_OCL_4_ARRAY_X(nodesV,i) << " " <<  nodesY[i] << "\t" << std::endl;
-		  
-		    if ( nodesY[i] != 0 && !FixedV[i]) {
-			KRATOS_OCL_4_ARRAY_X(nodesV,i) /= nodesY[i];
-			KRATOS_OCL_4_ARRAY_Y(nodesV,i) /= nodesY[i];
-			KRATOS_OCL_4_ARRAY_Z(nodesV,i) /= nodesY[i];
-		    }
-// 		    std::cout << KRATOS_OCL_4_ARRAY_X(nodesV,i) << std::endl;
-		}
-		
+// 		std::cout << " d " << std::endl;
 		
  		int errors = 0;
 		double diff = 0;
@@ -1292,18 +1135,88 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		//Error Check End
 		
 		processed += amount;
-		totalErrors += errors;
+		
+		std::cout << "=";
 		
 // 		ConcurrentPoints = activeParticles;
 	    }
 	    
+	    std::cout << "=]" << std::endl;
 	    clock_gettime( CLOCK_REALTIME, &end );
 	    
-	    std::cout << "Total Processed: " << processed << " Results: \033[41m" << processed - totalErrors << "\033[0;0m  ";// <<  std::endl;
-	    std::cout << "\t\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl; /* MAIN */
+	    std::cout << "MOVE: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
     
-    	    //Write back particles to ModelPart
-	    std::cout << "Writing back Particles" << std::endl;
+	    clock_gettime( CLOCK_REALTIME, &begin );
+	    
+	    for(int i = 0; i < mNodeSize; i++) 
+	    {
+		if (!FixedV[i]) 
+		{
+		    KRATOS_OCL_4_ARRAY_X(nodesV,i) = 0;
+		    KRATOS_OCL_4_ARRAY_Y(nodesV,i) = 0;
+		    KRATOS_OCL_4_ARRAY_Z(nodesV,i) = 0;
+		    
+		    nodesY[i] = 0;
+		}
+	    }
+
+// std::cout << " b " << std::endl;// 		
+
+	    for(int i = 0; i < mParticMesh->NumberOfNodes(); i++) {
+	      
+		int elementId = mParticlesI[i];
+		
+		int tx, ty, tz;
+		
+		if (elementId != -1) 
+		{
+		    tx = KRATOS_OCL_4_ARRAY_X(mTriangleNodes,(elementId))-1;
+		    ty = KRATOS_OCL_4_ARRAY_Y(mTriangleNodes,(elementId))-1;
+		    tz = KRATOS_OCL_4_ARRAY_Z(mTriangleNodes,(elementId))-1;
+		  
+		    if(!FixedV[tx]) {
+			KRATOS_OCL_4_ARRAY_X(nodesV,tx) += KRATOS_OCL_4_ARRAY_X(mParticlesN,i) * KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
+			KRATOS_OCL_4_ARRAY_Y(nodesV,tx) += KRATOS_OCL_4_ARRAY_X(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
+			KRATOS_OCL_4_ARRAY_Z(nodesV,tx) += KRATOS_OCL_4_ARRAY_X(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
+			
+			nodesY[tx] += KRATOS_OCL_4_ARRAY_X(mParticlesN,i);
+		    }
+		    
+		    if(!FixedV[ty]) {
+			KRATOS_OCL_4_ARRAY_X(nodesV,ty) += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i) * KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
+			KRATOS_OCL_4_ARRAY_Y(nodesV,ty) += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
+			KRATOS_OCL_4_ARRAY_Z(nodesV,ty) += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
+			
+			nodesY[ty] += KRATOS_OCL_4_ARRAY_Y(mParticlesN,i);
+		    }
+		    
+		    if(!FixedV[tz]) {
+			KRATOS_OCL_4_ARRAY_X(nodesV,tz) += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i) * KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
+			KRATOS_OCL_4_ARRAY_Y(nodesV,tz) += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
+			KRATOS_OCL_4_ARRAY_Z(nodesV,tz) += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i) * KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
+			
+			nodesY[tz] += KRATOS_OCL_4_ARRAY_Z(mParticlesN,i);
+		    }
+		  }
+	    }
+	    
+// 		std::cout << " c " << std::endl;
+	    
+	    for(int i = 0; i < mNodeSize; i++) 
+	    { 
+		if ( nodesY[i] != 0 && !FixedV[i]) 
+		{
+		    KRATOS_OCL_4_ARRAY_X(nodesV,i) /= nodesY[i];
+		    KRATOS_OCL_4_ARRAY_Y(nodesV,i) /= nodesY[i];
+		    KRATOS_OCL_4_ARRAY_Z(nodesV,i) /= nodesY[i];
+		}
+	    }
+    
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    
+	    std::cout << "TRANSFER: " << "\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
 	    
 	    mParticlesItr           = mParticles;
 	    mParticlesVelocityItr   = mParticlesVelocity;
@@ -1311,70 +1224,39 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    mParticlesForceItr      = mParticlesForce;
 	    mParticlesPress_ProjItr = mParticlesPress_Proj;
 	    
-	    //Always copy
-// 	    for(int i = 0; i < mParticMesh->NumberOfNodes(); i++) 
-// 	    {
-// 		if (KRATOS_OCL_4_ARRAY_W(mParticles,i) >= 0) {
-// 	      
-// 		  Node<3>::Pointer inode = mParticMesh->Nodes()(KRATOS_OCL_4_ARRAY_W(mParticles,i));
-// 		  
-// 		  Kratos::array_1d<double, 3> & velocity = inode->FastGetSolutionStepValue(VELOCITY,1);
-// 		  
-// 		  velocity[0] = KRATOS_OCL_4_ARRAY_X(mParticlesVelocityOld,i);
-// 		  velocity[1] = KRATOS_OCL_4_ARRAY_Y(mParticlesVelocityOld,i);
-// 		  velocity[2] = KRATOS_OCL_4_ARRAY_Z(mParticlesVelocityOld,i);
-// 		  
-// 		  inode->GetValue(ERASE_FLAG) = false;
-// 		
-// 		} /*else {
-// 		  
-// 		  Node<3>::Pointer inode = mParticMesh->Nodes()(-KRATOS_OCL_4_ARRAY_W(mParticles,i));
-// 		  inode->GetValue(ERASE_FLAG) = true;
-// 		  
-// 		}*/
-// 	    }
-	    
 	    //Only copy in last transfer
-	    if(copy_data || true)
-	    for(int i = 0; i < mParticMesh->NumberOfNodes(); i++) 
+	    if(copy_data) 
 	    {
-// 		if (KRATOS_OCL_4_ARRAY_W(mParticles,i) >= 0) {
-	      
-		  Node<3>::Pointer inode = (KRATOS_OCL_4_ARRAY_W(mParticles,i) >= 0) ? mParticMesh->Nodes()(KRATOS_OCL_4_ARRAY_W(mParticles,i)) : mParticMesh->Nodes()(-KRATOS_OCL_4_ARRAY_W(mParticles,i));
-		
-		  Kratos::array_1d<double, 3> & velocity = inode->FastGetSolutionStepValue(VELOCITY);
-		  Kratos::array_1d<double, 3> & displace = inode->FastGetSolutionStepValue(DISPLACEMENT);
-		  Kratos::array_1d<double, 3> & force    = inode->FastGetSolutionStepValue(FORCE);
-		  
-		  inode->X() = KRATOS_OCL_4_ARRAY_X(mParticles,i);
-		  inode->Y() = KRATOS_OCL_4_ARRAY_Y(mParticles,i);
-		  inode->Z() = KRATOS_OCL_4_ARRAY_Z(mParticles,i);
-		  
-		  velocity[0] = KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
-		  velocity[1] = KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
-		  velocity[2] = KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
-		  
-		  displace[0] = KRATOS_OCL_4_ARRAY_X(mParticlesDisplace,i);
-		  displace[1] = KRATOS_OCL_4_ARRAY_Y(mParticlesDisplace,i);
-		  displace[2] = KRATOS_OCL_4_ARRAY_Z(mParticlesDisplace,i);
-		  
-		  force[0] = KRATOS_OCL_4_ARRAY_X(mParticlesForce,i);
-		  force[1] = KRATOS_OCL_4_ARRAY_Y(mParticlesForce,i);
-		  force[2] = KRATOS_OCL_4_ARRAY_Z(mParticlesForce,i);
-		  
-		  inode->GetValue(ERASE_FLAG) = false;
-		
-// 		} else {
-// 		  
-// 		  Node<3>::Pointer inode = mParticMesh->Nodes()(-KRATOS_OCL_4_ARRAY_W(mParticles,i));
-// 		  inode->GetValue(ERASE_FLAG) = true;
-// 		  
-// 		}
+		ModelPart::NodesContainerType::iterator inode = mParticMesh->NodesBegin();
+		for(int i = 0; i < mParticMesh->NumberOfNodes(); i++, inode++) 
+		{
+// 		      Node<3>::Pointer inode = (KRATOS_OCL_4_ARRAY_W(mParticles,i) >= 0) ? mParticMesh->Nodes()(KRATOS_OCL_4_ARRAY_W(mParticles,i)) : mParticMesh->Nodes()(-KRATOS_OCL_4_ARRAY_W(mParticles,i));
+		    
+		      Kratos::array_1d<double, 3> & velocity = inode->FastGetSolutionStepValue(VELOCITY);
+		      Kratos::array_1d<double, 3> & displace = inode->FastGetSolutionStepValue(DISPLACEMENT);
+		      Kratos::array_1d<double, 3> & force    = inode->FastGetSolutionStepValue(FORCE);
+		      
+		      inode->X() = KRATOS_OCL_4_ARRAY_X(mParticles,i);
+		      inode->Y() = KRATOS_OCL_4_ARRAY_Y(mParticles,i);
+		      inode->Z() = KRATOS_OCL_4_ARRAY_Z(mParticles,i);
+		      
+		      velocity[0] = KRATOS_OCL_4_ARRAY_X(mParticlesVelocity,i);
+		      velocity[1] = KRATOS_OCL_4_ARRAY_Y(mParticlesVelocity,i);
+		      velocity[2] = KRATOS_OCL_4_ARRAY_Z(mParticlesVelocity,i);
+		      
+		      displace[0] = KRATOS_OCL_4_ARRAY_X(mParticlesDisplace,i);
+		      displace[1] = KRATOS_OCL_4_ARRAY_Y(mParticlesDisplace,i);
+		      displace[2] = KRATOS_OCL_4_ARRAY_Z(mParticlesDisplace,i);
+		      
+		      force[0] = KRATOS_OCL_4_ARRAY_X(mParticlesForce,i);
+		      force[1] = KRATOS_OCL_4_ARRAY_Y(mParticlesForce,i);
+		      force[2] = KRATOS_OCL_4_ARRAY_Z(mParticlesForce,i);
+		}
 	    }
 	    
-// 	    NodeEraseProcess(*mParticMesh).Execute();
+	    clock_gettime( CLOCK_REALTIME, &end );
 	    
-// 	    mProblemSize = activeParticles[1] > (PARTICLE_BUFFER + mStaticMesh->NumberOfNodes() + mStaticMesh->NumberOfElements() * 4) ? (PARTICLE_BUFFER + mStaticMesh->NumberOfNodes() + mStaticMesh->NumberOfElements() * 4) : activeParticles[1];
+	    std::cout << "WBACK: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
 	}
          
 	void SearchNearestOCL(double Radius, uint ConcurrentPoints) 

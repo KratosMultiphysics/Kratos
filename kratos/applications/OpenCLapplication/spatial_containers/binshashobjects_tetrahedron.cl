@@ -410,105 +410,109 @@ __kernel void Move(__global int * IndexCellReference,
 		  )
 {
 
-	int gid = get_global_id(0);
+      int gid = get_global_id(0);
 
-	double small_dt = dt / subSteps;
-	double density_inverse = 1 / density;
+      if (gid < size) 
+      {
 
-	int4 triangleIndex;
+	  double small_dt = dt / subSteps;
+	  double density_inverse = 1 / density;
 
-	double4 fN;
-	double4 eulerian_vel = (double4)(0.0,0.0,0.0,0.0);
-	double4 stp_dis      = (double4)(0.0,0.0,0.0,0.0);
-	double4 pointAcceleration;
+	  int4 triangleIndex;
 
-	pointVelocityOld[gid] = pointVelocity[gid];
-	point[gid].xyz += pointDisplace[gid].xyz;
+	  double4 fN;
+	  double4 eulerian_vel = (double4)(0.0,0.0,0.0,0.0);
+	  double4 stp_dis      = (double4)(0.0,0.0,0.0,0.0);
+	  double4 pointAcceleration;
 
-	for(int subStep = 0; subStep < subSteps; subStep++)
-	{
-	  double4 aux_point = point[gid];
-	  aux_point.z = 0;
+	  pointVelocityOld[gid] = pointVelocity[gid];
+	  point[gid].xyz += pointDisplace[gid].xyz;
 
-	  int index = calculateIndex(aux_point,N,MinPoint,InvCellSize);
-		      
-	  int loIndex = IndexCellReference[index+1];
-	  int hiIndex = IndexCellReference[index+2];
-
-	  int Found = 0;
-
-	  int l;
-
-	  for(l = loIndex; !Found && (l < hiIndex ); l++) 
+	  for(int subStep = 0; subStep < subSteps; subStep++)
 	  {
-	      triangleIndex = Triangles[(int)BinsObjectContainer[l]];
+	    double4 aux_point = point[gid];
+// 	    aux_point.z = 0;
 
-	      fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
-				       PointsTriangle[triangleIndex.y-1],
-				       PointsTriangle[triangleIndex.z-1],
-  // 				       PointsTriangle[triangleIndex.w-1],
-				       point[gid]);
+	    int index = calculateIndex(aux_point,N,MinPoint,InvCellSize);
+			
+	    int loIndex = IndexCellReference[index+1];
+	    int hiIndex = IndexCellReference[index+2];
 
-	      Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
-		      fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
-	  }
+	    int Found = 0;
 
-	  barrier(CLK_LOCAL_MEM_FENCE);
+	    int l;
 
-	  if (Found) {
-	      eulerian_vel = ((nodesV[triangleIndex.x-1] * fN.x) +
-			      (nodesV[triangleIndex.y-1] * fN.y) +
-			      (nodesV[triangleIndex.z-1] * fN.z));
+	    for(l = loIndex; !Found && (l < hiIndex ); l++) 
+	    {
+		triangleIndex = Triangles[(int)BinsObjectContainer[l]];
 
-	      fN *= density_inverse;
+		fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
+					PointsTriangle[triangleIndex.y-1],
+					PointsTriangle[triangleIndex.z-1],
+    // 				       PointsTriangle[triangleIndex.w-1],
+					point[gid]);
 
-	      pointAcceleration = body_force[0];
-	      pointAcceleration -= fN.x * nodesP[triangleIndex.x-1];
-	      pointAcceleration -= fN.y * nodesP[triangleIndex.y-1];
-	      pointAcceleration -= fN.z * nodesP[triangleIndex.z-1];
+		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
+			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
+	    }
 
-	      pointForce[gid] = (double4)(0.0,0.0,0.0,0.0);
+	    barrier(CLK_LOCAL_MEM_FENCE);
 
-	      pointForce[gid] += fN.x * nodesF[triangleIndex.x-1];
-	      pointForce[gid] += fN.y * nodesF[triangleIndex.y-1];
-	      pointForce[gid] += fN.z * nodesF[triangleIndex.z-1];
+	    if (Found) {
+		eulerian_vel = ((nodesV[triangleIndex.x-1] * fN.x) +
+				(nodesV[triangleIndex.y-1] * fN.y) +
+				(nodesV[triangleIndex.z-1] * fN.z));
 
-	      pointAcceleration += pointForce[gid];
+		fN *= density_inverse;
 
-	      int uses = use_eulerian && subStep;
+		pointAcceleration = body_force[0];
+		pointAcceleration -= fN.x * nodesP[triangleIndex.x-1];
+		pointAcceleration -= fN.y * nodesP[triangleIndex.y-1];
+		pointAcceleration -= fN.z * nodesP[triangleIndex.z-1];
 
-	      pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz * !uses;
-	      pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
+		pointForce[gid] = (double4)(0.0,0.0,0.0,0.0);
 
-	      pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
+		pointForce[gid] += fN.x * nodesF[triangleIndex.x-1];
+		pointForce[gid] += fN.y * nodesF[triangleIndex.y-1];
+		pointForce[gid] += fN.z * nodesF[triangleIndex.z-1];
 
-	      point[gid].xyz         += eulerian_vel.xyz * small_dt;
-	      stp_dis.xyz 	     += eulerian_vel.xyz * small_dt;
+		pointAcceleration += pointForce[gid];
 
-	  } else {
+		int uses = use_eulerian && subStep;
 
-	      point[gid].xyz = 2;
-	      point[gid].w = min(-point[gid].w,point[gid].w);
-	      pointDisplace[gid].xyz = 2;
-	      pointVelocity[gid] = 0;
-	      pointVelocityOld[gid] = 0;
-	      
-	  }
+		pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz * !uses;
+		pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
 
-	  barrier(CLK_LOCAL_MEM_FENCE);
-      }
+		pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
 
-      pointDisplace[gid].xyz += stp_dis.xyz;
+		point[gid].xyz         += eulerian_vel.xyz * small_dt;
+		stp_dis.xyz 	     += eulerian_vel.xyz * small_dt;
 
-      double norm_d = sqrt((stp_dis.x * stp_dis.x) + (stp_dis.y * stp_dis.y));
-      double norm_v = sqrt((pointVelocityOld[gid].x * pointVelocityOld[gid].x) + (pointVelocityOld[gid].y * pointVelocityOld[gid].y));
+	    } else {
 
-      if(norm_d*10.0 < norm_v*dt) {
-	  point[gid].xyz = 2;
-	  point[gid].w = min(-point[gid].w,point[gid].w);
-	  pointDisplace[gid].xyz = 2;
-	  pointVelocity[gid] = 0;
-      }
+		point[gid].xy = -12;
+		point[gid].w = min(-point[gid].w,point[gid].w);
+		pointDisplace[gid].xyz = -12;
+		pointVelocity[gid] = 0;
+		pointVelocityOld[gid] = 0;
+		
+	    }
+
+	    barrier(CLK_LOCAL_MEM_FENCE);
+	}
+
+	pointDisplace[gid].xyz += stp_dis.xyz;
+
+	double norm_d = sqrt((stp_dis.x * stp_dis.x) + (stp_dis.y * stp_dis.y));
+	double norm_v = sqrt((pointVelocityOld[gid].x * pointVelocityOld[gid].x) + (pointVelocityOld[gid].y * pointVelocityOld[gid].y));
+
+	if(norm_d*10.0 < norm_v*dt) {
+	    point[gid].xy = -12;
+	    point[gid].w = min(-point[gid].w,point[gid].w);
+	    pointDisplace[gid].xyz = -12;
+	    pointVelocity[gid] = 0;
+	}
+    }
 }
 
 __kernel void calculateField(__global int * IndexCellReference,
@@ -530,80 +534,51 @@ __kernel void calculateField(__global int * IndexCellReference,
 {
     int gid = get_global_id(0);
 
-if(gid < size) {
+    if(gid < size) {
 
-    double4 fN;
-    double4 vel; 
-    int4 triangleIndex;
-    int Found = 0;
-//     int squareSize = ceil(sqrt(convert_float(size)));
-// 
-//     FLAG[0] = 0;
-      gFn[gid] = 0;
-      gIndex[gid] = -1;
+	double4 fN;
+	double4 vel; 
+	int4 triangleIndex;
+	int Found = 0;
+    //     int squareSize = ceil(sqrt(convert_float(size)));
+    // 
+    //     FLAG[0] = 0;
+	  gFn[gid] = 0;
+	  gIndex[gid] = -1;
 
-    if(point[gid].w >= 0) 
-    {
-	double4 aux_point = point[gid];
-	aux_point.z = 0;
-
-	int index = calculateIndex(aux_point,N,MinPoint,InvCellSize);
-		    
-	int loIndex = IndexCellReference[index+1];
-	int hiIndex = IndexCellReference[index+2];
-
-	Found = 0;
-
-	for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex); l[get_local_id(0)]++) 
+	if(point[gid].w >= 0) 
 	{
-	    triangleIndex = Triangles[(int)BinsObjectContainer[l[get_local_id(0)]]];
+	    double4 aux_point = point[gid];
+// 	    aux_point.z = 0;
 
-	    fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
-				     PointsTriangle[triangleIndex.y-1],
-				     PointsTriangle[triangleIndex.z-1],
-//   					 PointsTriangle[triangleIndex.w-1],
-				     point[gid]);
+	    int index = calculateIndex(aux_point,N,MinPoint,InvCellSize);
+			
+	    int loIndex = IndexCellReference[index+1];
+	    int hiIndex = IndexCellReference[index+2];
 
-	    Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
-		    fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
+	    Found = 0;
+
+	    for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex); l[get_local_id(0)]++) 
+	    {
+		triangleIndex = Triangles[(int)BinsObjectContainer[l[get_local_id(0)]]];
+
+		fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
+					PointsTriangle[triangleIndex.y-1],
+					PointsTriangle[triangleIndex.z-1],
+    //   					 PointsTriangle[triangleIndex.w-1],
+					point[gid]);
+
+		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
+			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
+	    }
+
+	    if(Found) 
+	    {
+		gFn[gid] = fN;
+		gIndex[gid] = BinsObjectContainer[l[get_local_id(0)]-1];
+	    }
 	}
-if(Found) {
-// gFn[gid].x = triangleIndex.x-1;
-// gFn[gid].y = triangleIndex.y-1;
-// gFn[gid].z = triangleIndex.z-1;
-// gFn[gid].w = l[get_local_id(0)]-1;
-
-gFn[gid] = fN;
-
-	gIndex[gid] = BinsObjectContainer[l[get_local_id(0)]-1] < 1600 && BinsObjectContainer[l[get_local_id(0)]-1] >= 0 ? BinsObjectContainer[l[get_local_id(0)]-1] : -1;
-/*
-	gFn[gid].w = (int)BinsObjectContainer[l];*/
-}
-
-// 	if (Found) 
-// 	{
-// 	    if(!fixedV[triangleIndex.x-1]) {
-// // 			while(atom_xchg(&FLAG[(triangleIndex.x-1)%256],1) == 1);
-// 		nodesV[triangleIndex.x-1].xyz += (fN.x * pointVelocity[gid].xyz);
-// 		nodesY[triangleIndex.x-1] += fN.x;
-// // 			atom_xchg(&FLAG[(triangleIndex.x-1)%256],0);
-// 	    }
-// 
-// 	    if(!fixedV[triangleIndex.y-1]) {
-// // 			while(atom_xchg(&FLAG[(triangleIndex.y-1)%256],1) == 1);
-// 		nodesV[triangleIndex.y-1].xyz += (fN.y * pointVelocity[gid].xyz);
-// 		nodesY[triangleIndex.y-1] += fN.y;
-// // 			atom_xchg(&FLAG[(triangleIndex.y-1)%256],0);
-// 	    }
-// 
-// 	    if(!fixedV[triangleIndex.z-1]) {
-// // 			while(atom_xchg(&FLAG[(triangleIndex.z-1)%256],1) == 1);
-// 		nodesV[triangleIndex.z-1].xyz += (fN.z * pointVelocity[gid].xyz);
-// 		nodesY[triangleIndex.z-1] += fN.z;
-// // 			atom_xchg(&FLAG[(triangleIndex.z-1)%256],0);
-// 	    }
-// 	}
-    }}
+    }
 }
 
 /////////////////////////////////////////////////////////
