@@ -56,10 +56,20 @@
 namespace Kratos
 {
 
+	/// CUTTING APPLICATION. 
+	/** The cutting app is used to create cutting planes in a 3D domain. 
+	     Despite this can be done in the postprocessing (using Kratos), on large domains the output data would be really large and include info that is not useful for the user.
+	     This app creates nodes and conditions (in a new, empty model part) intersecting the domain with as many planes as the user want. It is also possible to use different layers
+	     If conditions are triangles, they can be added too to the new model part.
+	     After each time step UpdateCutData must be called to save the new info into the new model part, interpolating from the tetraeda elements
+	     NOTE: it only work with tetraedra elements, generating triangles  (1 or 2) from the tetraedra - plane intersection.
+	 */
     class Cutting_Application
     {	
     public:
-
+    
+    ///@name Type Definitions
+    ///@{
         typedef ModelPart::NodesContainerType NodesArrayType;           
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ModelPart::ConditionsContainerType ConditionsArrayType;
@@ -70,6 +80,10 @@ namespace Kratos
         typedef Node < 3 > ::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer> PointVector;
         typedef PointVector::iterator PointIterator;
+     
+     ///@}
+      ///@name Life Cycle 
+      ///@{ 
 
 		/// Default constructor.
 		Cutting_Application() {smallest_edge=1.0;}  //
@@ -78,8 +92,11 @@ namespace Kratos
 		virtual ~Cutting_Application(){}
 		
 		
-		///This function Creates cutting planes by creating nodes and conditions (to define the conectivities) in a different model part. (new_model_part)
-		///each time it is called a new cutting plane is created and therefore new nodes and conditions are added to the new model part
+		///This function Creates cutting planes by creating nodes and conditions (to define the conectivities) in a different model part. 
+		/** It is used to find the smallest edge that will be used later as a reference to identify whether a node is part of the plane or is simple close
+			(and therefore a new point will be created by interpolation)
+		 * @param mr_model_part . model part to find the smallest edge
+		 **/
         void FindSmallestEdge(ModelPart& mr_model_part)
         {
 			ModelPart& this_model_part = mr_model_part;
@@ -114,7 +131,15 @@ namespace Kratos
         ///************************************************************************************************
 
 		///This function Creates cutting planes by creating nodes and conditions (to define the conectivities) in a different model part. (new_model_part)
-		///each time it is called a new cutting plane is created and therefore new nodes and conditions are added to the new model part
+		/** each time it is called a new cutting plane is created and therefore new nodes and conditions are added to the new model part
+		    WARNING: the cutting plane MUST cut the domain in at least one triangle, otherwise a segmentiation fault might appear
+		 * @param mr_model_part . original model part
+		 * @param mr__new_model_part . destinantion model part
+		 * @param versor. unit vector perpendicular to the plane
+		 * @param Xp. a point that is part of the plane
+		 * @param plane_number . layer to add the conditions (integer)
+		 * @param tolerance factor . if find_smallest edge has been called, then it is the tolerance relative to that edge, in this case it should be 0.5>factor>0. high values will generate less triangles but the result will not be a perfect plane. on the other hand small values will generate a perfect plane but with lots of ugly triangles. If findsmallestedge has noot been run, it absolute tolerance.
+		 **/
         void GenerateCut(ModelPart& mr_model_part, ModelPart& mr_new_model_part, const array_1d<double, 3 >& versor, const array_1d<double, 3 >& Xp, int plane_number ,double tolerance_factor)
         {
 			KRATOS_WATCH("Generating Cutting plane with the following data:")
@@ -154,8 +179,13 @@ namespace Kratos
         ///************************************************************************************************
         
         
-        /// THIS FUNCTION ADDS TO THE NEW MODEL PART THE DATA OF THE CONDITIONS BELONGING TO THE OLD MODEL PART, BASICALLY THE SAME AS THE PREVIOUS FUNCTION BUT THERE'S NO NEED TO INTERPOLATE SINCE THE NODES COORDINATES ALREADY EXIST. WE ONLY NEED TO COPY THEM TO THE NEW MODEL PART.
-		///IMPORTANT: MUST BE CALLED BEFORE THE CUTTING PLANES
+        /// ADDSKINCONDITIONS: THIS FUNCTION ADDS TO THE NEW MODEL PART THE DATA OF THE CONDITIONS BELONGING TO THE OLD MODEL PART, BASICALLY THE SAME AS THE PREVIOUS FUNCTION BUT THERE'S NO NEED TO INTERPOLATE SINCE THE NODES COORDINATES ALREADY EXIST. WE ONLY NEED TO COPY THEM TO THE NEW MODEL PART.
+		/** this function adds the skin condtion. 
+		    WARNING: They have to be triangles and it CAN'T be empty, otherwise a segmentation fault will appear
+		 * @param mr_model_part . original model part
+		 * @param mr__new_model_part . destinantion model part
+		 * @param plane_number . layer to add the conditions (integer)
+		 **/
         void AddSkinConditions(ModelPart& mr_model_part, ModelPart& mr_new_model_part, int plane_number )
         {
 			ModelPart& this_model_part = mr_model_part;
@@ -260,11 +290,11 @@ namespace Kratos
 
 
 
-        ///************************************************************************************************
-        ///************************************************************************************************
+        //************************************************************************************************
+        //************************************************************************************************
         
         
-        ///LIST OF SUBROUTINES
+        //LIST OF SUBROUTINES
         
 
         void CSR_Row_Matrix_Mod(ModelPart& this_model_part, compressed_matrix<int>& Coord)
@@ -303,7 +333,7 @@ namespace Kratos
             }
         }
 
-        ///************************************************************************************************
+        //************************************************************************************************
 
         void FirstLoop(ModelPart& this_model_part, compressed_matrix<int>& Coord, array_1d<double, 3 > versor, array_1d<double, 3 > Xp, 
 						int number_of_triangles, vector<int>&  Elems_In_Plane, double tolerance)//
@@ -597,8 +627,7 @@ namespace Kratos
           for (ElementsArrayType::iterator it = it_begin_old; it != it_end_old; ++it)
           {
              ++current_element;
-             triangle_nodes = 0; //starting, no nodes yet
-                          
+             triangle_nodes = 0; //starting, no nodes yet                       
              ///we eter in the if for only one triangle in the tetraedra
              if (Elems_In_Plane[current_element-1] == 1 ) //do not forget than can be both 1 or 2 triangles per tetraedra. this is the simplest case. no need to check anything, we just create an element with the 3 nodes
              {
@@ -613,7 +642,7 @@ namespace Kratos
 							int index_j = geom[j].Id() - 1; 
 							for (unsigned int l=0; l!=3; ++l) {
 							     if(TriangleNodesArray[l]==Coord(index_i, index_j) //if we have already saved this node or it has not been cutted, then we have no new node to add (coord(i,j)=-1)
-							     || Coord(index_i, index_j) <0 ) 
+							     || Coord(index_i, index_j) <1 ) 
 										new_node=false; }
 					        //if it's a new node and the indexes are correct:
 					        if (new_node && index_i<=index_j){
@@ -630,13 +659,13 @@ namespace Kratos
 
 			it_node1 = new_model_part.Nodes().find(TriangleNodesArray[1]);
 			noalias(temp_vector2) = it_node1->Coordinates(); //node 2
-				
+
 			it_node1 = new_model_part.Nodes().find(TriangleNodesArray[2]);
 			noalias(temp_vector3) = it_node1->Coordinates(); //nodo 3
-			
+
 			temp_vector3 -=temp_vector1; //first edge
 			temp_vector2 -=temp_vector1; //second edge
-			
+	
 			
 			MathUtils<double>::CrossProduct(temp_vector4, temp_vector2 , temp_vector3) ; //multiplying the 2 edges gives us a normal vector to the element
 			
@@ -645,9 +674,8 @@ namespace Kratos
 				temp_int= TriangleNodesArray[2];
 				TriangleNodesArray[2] =  TriangleNodesArray[1];
 				TriangleNodesArray[1] =  temp_int;              //we switch 2 nodes and ready
-			}
-			
-			
+			}		
+		
 			//generate new Elements
                  Triangle3D3<Node<3> > geom(
 						new_model_part.Nodes()(TriangleNodesArray[0]),  
@@ -657,8 +685,8 @@ namespace Kratos
 
             Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
 	        new_model_part.Conditions().push_back(p_condition);
-            number_of_triangles++; 
-            
+            ++number_of_triangles; 
+          
             for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;     
 		}//closing if elems_in_plane==6 (1 triangle)
 		
@@ -678,7 +706,7 @@ namespace Kratos
 							int index_j = geom[j].Id() - 1; 
 							for (unsigned int l=0; l!=3; ++l) {
 							     if(TriangleNodesArray[l]==Coord(index_i, index_j) //same as the part with only one triangle (look above)
-							     || Coord(index_i, index_j) < 0 ) {
+							     || Coord(index_i, index_j) < 1 ) {
 										new_node=false; 
 										}}
 					        if (new_node && index_i<index_j){
@@ -778,7 +806,7 @@ namespace Kratos
            Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1+first_element, geom, properties); 
 
 	        new_model_part.Conditions().push_back(p_condition);
-            number_of_triangles++; 
+            ++number_of_triangles; 
             
             for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case
 			}//cierro el index
@@ -792,7 +820,11 @@ namespace Kratos
         ///************************************************************************************************       
         
         
-     ///THIS FUNCTION UPDATES THE DATA OF THE NEW MODEL PART READING FROM THE DATA OF THE FATHER NODES (and weight factor)   
+     ///UPDATECUTDATA: THIS FUNCTION UPDATES THE DATA OF THE NEW MODEL PART READING FROM THE DATA OF THE FATHER NODES (and weight factor)   
+		/** interpolates data form the origin model part into the new model part (containing the cutting planes)
+		 * @param new_model_part . destination model part
+		 * @param old_model_part . origin model part
+		 **/
      void UpdateCutData( ModelPart& new_model_part, ModelPart& old_model_part) 
      {
 		 KRATOS_WATCH("Updating Cut Data");
