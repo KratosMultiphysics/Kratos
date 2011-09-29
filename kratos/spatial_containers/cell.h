@@ -131,7 +131,14 @@ namespace Kratos
       {
        mObjects.erase(std::remove(mObjects.begin(),mObjects.end(),ThisObject),mObjects.end());
       }
-      
+
+      // This is a zero based index of object in local array
+      void Remove(const std::size_t Index)
+      {
+       std::swap(mObjects[Index], mObjects.back());
+       mObjects.pop_back();
+      }
+
       void Clear()
       {
 	mObjects.clear();
@@ -311,6 +318,11 @@ namespace Kratos
       SizeType Size() const
       {
         return mObjects.size();
+      }
+
+      PointerType GetObject(std::size_t Index)
+      {
+          return mObjects[Index];
       }
        
        
