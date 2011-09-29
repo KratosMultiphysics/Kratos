@@ -11,6 +11,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
     model_part.AddNodalSolutionStepVariable(POROSITY)
+    model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
 #    model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(DIAMETER)
