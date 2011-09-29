@@ -127,7 +127,11 @@ namespace Kratos {
 	    massume_constant_dp(assume_constant_dp)
 
 	{
-	    mViscosity = viscosity;
+	    
+	    for(ModelPart::NodesContainerType::iterator it=mr_model_part.NodesBegin(); it!=mr_model_part.NodesEnd(); it++)
+	      it->FastGetSolutionStepValue(VISCOSITY) = viscosity;
+	    
+// 	    mViscosity = viscosity;
 
 	    noalias(mBodyForce) = body_force;
 	    mRho = density;
@@ -169,6 +173,7 @@ namespace Kratos {
 	    unsigned int n_nodes = mr_model_part.Nodes().size();
 	    unsigned int n_edges = mr_matrix_container.GetNumberEdges();
 	    //size data vectors
+	    mViscosity.resize(n_nodes);	mr_matrix_container.SetToZero(mViscosity);
 	    mWork.resize(n_nodes);	mr_matrix_container.SetToZero(mWork);
 	    mvel_n.resize(n_nodes);     mr_matrix_container.SetToZero(mvel_n);
 	    mvel_n1.resize(n_nodes);    mr_matrix_container.SetToZero(mvel_n1);
@@ -205,6 +210,7 @@ namespace Kratos {
 //	    external_pressure.resize(n_nodes);
 
 	    //read velocity and pressure data from Kratos
+	    mr_matrix_container.FillScalarFromDatabase(VISCOSITY, mViscosity, mr_model_part.Nodes());
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
 	    mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
@@ -345,6 +351,7 @@ namespace Kratos {
             double delta_t_avg_novisc = 1e10;
 
 	    //getting value of current velocity and of viscosity
+	    mr_matrix_container.FillScalarFromDatabase(VISCOSITY, mViscosity, mr_model_part.Nodes() );
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
 //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
@@ -363,15 +370,16 @@ namespace Kratos {
 		const double hmin_i = mHmin[i_node];
 		const double eps_i = mEps[i_node];
 	      const double d_i = mD[i_node];
+		double nu = mViscosity[i_node];
 
 		double vel_norm = norm_2(v_i);
 
-		double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
+		double porosity_coefficient = ComputePorosityCoefficient(nu, vel_norm, eps_i, d_i);
 		vel_norm /= eps_i;
 
 		//use CFL condition to compute time step size
-		double delta_t_i = 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i) + porosity_coefficient);
-		double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * mViscosity / (havg_i * havg_i) + porosity_coefficient);
+		double delta_t_i = 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i) + porosity_coefficient);
+		double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * nu / (havg_i * havg_i) + porosity_coefficient);
 		double delta_t_i_avg_novisc = 1.0 / (2.0 * vel_norm /havg_i );
 
 		//considering the most restrictive case of neighbor's velocities with similar direction but opposite sense.
@@ -390,7 +398,7 @@ namespace Kratos {
 		    }
 		    v_diff_norm = sqrt(v_diff_norm);
 		    v_diff_norm /= eps_i;
-		    double delta_t_j = 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
+		    double delta_t_j = 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i));
                     double delta_t_j_avg_novisc =  1.0 / (2.0 * v_diff_norm /havg_i );
 
 		    if (delta_t_j < delta_t_i)
@@ -493,6 +501,7 @@ namespace Kratos {
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
 	    mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, rNodes);
 
+	    mr_matrix_container.FillScalarFromDatabase(VISCOSITY, mViscosity, rNodes);
 	    mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes);
 	    mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, rNodes);
 
@@ -519,13 +528,13 @@ namespace Kratos {
 		double& h_avg_i = mHavg[i_node];
  
 		array_1d<double, TDim>& a_i = mvel_n1[i_node];
-		const double nu_i = mViscosity;
+		const double nu_i = mViscosity[i_node];
 		const double eps_i = mEps[i_node];
 		const double d_i = mD[i_node];
 
 		double vel_norm = norm_2(a_i);
 
-		double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
+		double porosity_coefficient = ComputePorosityCoefficient(nu_i, vel_norm, eps_i, d_i);
 		vel_norm /= eps_i;
 
 		double tau = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_pressure_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
@@ -533,7 +542,7 @@ namespace Kratos {
 		mTauPressure[i_node] = tau;
 		mTauConvection[i_node] = tau_conv;
 
-		mTau2[i_node] = (mViscosity + h_avg_i*vel_norm*0.5)*tau2_factor;
+		mTau2[i_node] = (nu_i + h_avg_i*vel_norm*0.5)*tau2_factor;
 	    }
 
 
@@ -652,14 +661,15 @@ namespace Kratos {
 	    //calculating the RHS
 	    array_1d<double, TDim> stab_low;
 	    array_1d<double, TDim> stab_high;
-	    const double nu_i = mViscosity;
-	    const double nu_j = mViscosity;
 	    double inverse_rho = 1.0 / mRho;
 #pragma omp parallel for private(stab_low,stab_high)
 	    for (int i_node = 0; i_node < n_nodes; i_node++) {
 		double dist = mdistances[i_node];
 		if (dist <= 0.0) //node is inside domain ---- if outside do nothing
 		{
+		    const double nu_i = mViscosity[i_node];
+		    const double nu_j = nu_i;
+		    
 		    array_1d<double, TDim>& rhs_i = rhs[i_node];
 		    const array_1d<double, TDim>& f_i = mBodyForce;
 		    array_1d<double, TDim> a_i = convective_velocity[i_node];
@@ -684,7 +694,7 @@ namespace Kratos {
 			rhs_i[comp] = m_i * eps_i * f_i[comp] ;
 
 		    //applying the effect of the porosity
-		    double porosity_coefficient = ComputePorosityCoefficient(mViscosity,norm_2(U_i),eps_i, d_i);
+		    double porosity_coefficient = ComputePorosityCoefficient(nu_i,norm_2(U_i),eps_i, d_i);
 // KRATOS_WATCH("after");
 // KRATOS_WATCH(d_i);
 		    for (unsigned int comp = 0; comp < TDim; comp++)
@@ -1991,6 +2001,7 @@ namespace Kratos {
         void Clear()
         {
             KRATOS_TRY
+            mViscosity.clear();
             mWork.clear();
             mvel_n.clear();
             mvel_n1.clear();
@@ -2486,6 +2497,7 @@ namespace Kratos {
         bool massume_constant_dp;
 
         //nodal values
+	ValuesVectorType mViscosity;
         //velocity vector U at time steps n and n+1
         CalcVectorType mWork, mvel_n, mvel_n1, mx;
         //pressure vector p at time steps n and n+1
@@ -2527,7 +2539,6 @@ namespace Kratos {
 
         //constant variables
         double mRho;
-        double mViscosity;
         array_1d<double, TDim> mBodyForce;
 
 
@@ -3050,24 +3061,25 @@ namespace Kratos {
             double k = 0.41;
             double B = 5.1;
             double density = mRho;
-            double mu = mViscosity;
+            
             double toll = 1e-6;
             double ym = mY_wall; //0.0825877; //0.0093823
             double y_plus_incercept = 10.9931899;
             unsigned int itmax = 100;
 
-            if (mu == 0)
+            if (mViscosity[0] == 0)
                 KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
 
             //slip condition
             int slip_size = mSlipBoundaryList.size();
-#pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
+#pragma omp parallel for firstprivate(slip_size,B,density,toll,ym,y_plus_incercept,itmax)
             for (int i_slip = 0; i_slip < slip_size; i_slip++)
             {
                 unsigned int i_node = mSlipBoundaryList[i_slip];
                 double dist = mdistances[i_node];
                 if (dist <= 0.0)
                 {
+		    double mu = mViscosity[i_node];
                     array_1d<double, TDim>& rhs_i = rhs[i_node];
                     const array_1d<double, TDim>& U_i = vel[i_node];
                     const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
