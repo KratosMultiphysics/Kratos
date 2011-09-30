@@ -89,7 +89,8 @@ class IncompressibleFluidSolver:
         self.step = 1
         self.projections_are_initialized = False;
 
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+        self.dynamic_tau = 0.001
+        self.activate_tau2 = False
 
 
 ##        ########################################################
@@ -159,6 +160,9 @@ class IncompressibleFluidSolver:
 
     def Initialize(self):
         (self.neighbour_search).Execute()
+        
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(ACTIVATE_TAU2, self.activate_tau2);
         
 #        self.solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
 #        print "in python: okkio using Coupled Strategy"
