@@ -533,12 +533,14 @@ namespace Kratos
                 distance += N[i] * rGeom[i].FastGetSolutionStepValue(DISTANCE);
 
             double S_hat = S + fv2 * turbulent_viscosity / (distance * distance * kappa * kappa);
+            if(S_hat < 1e-9)
+                S_hat = 1e-9;
 
             const double ft2 = ct3 * exp(-ct4*xi*xi);
 
             double r = turbulent_viscosity / ( S_hat * kappa * kappa * distance * distance);
             if(r>10.0) r=10.0;
-            else if(r<0.0) r = 10.0; // This happens if S_hat < 0.0, which is not allowed, take S_hat = 0; r = min(inf,10)
+//            else if(r<0.0) r = 10.0; // This happens if S_hat < 0.0, which is not allowed, take S_hat = 0; r = min(inf,10)
 
             const double g = r + cw2 * (pow(r,6) - r);
             const double fw = g * pow( (1.0+pow(cw3,6)) / ( pow(g,6) + pow(cw3,6) ) , 1.0/6.0);
