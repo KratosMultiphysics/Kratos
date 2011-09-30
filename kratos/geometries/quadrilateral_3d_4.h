@@ -436,7 +436,8 @@ namespace Kratos
          */
         virtual double Area() const
         {
-            return fabs(DeterminantOfJacobian(PointType())) * 0.5;
+            Vector d = this->Points()[2] - this->Points()[0];
+                return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
         }
         
         /** This method calculates and returns length, area or volume of
