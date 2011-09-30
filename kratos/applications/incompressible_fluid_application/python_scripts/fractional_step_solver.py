@@ -93,6 +93,7 @@ class IncompressibleFluidSolver:
         self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
         self.dynamic_tau = 0.001
+        self.activate_tau2 = False
 
 
         ##handling slip condition
@@ -101,12 +102,15 @@ class IncompressibleFluidSolver:
 
         self.compute_reactions=False
         
+        
+        
 
 
     def Initialize(self):
         (self.neighbour_search).Execute()
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(ACTIVATE_TAU2, self.activate_tau2);
 
         self.domain_size = int(self.domain_size)
         self.laplacian_form = int(self.laplacian_form)
