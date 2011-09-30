@@ -393,6 +393,21 @@ namespace Kratos
         temp_vec_np[1] = fv1[ComponentIndex];
         temp_vec_np[2] = fv2[ComponentIndex];
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp_vec_np);
+
+        //tau2 stabilization
+	const bool activate_tau2 = rCurrentProcessInfo.GetValue(ACTIVATE_TAU2);
+	if(activate_tau2 == true)
+	{
+	    double vnorm = sqrt(fv0[0]*fv0[0]+fv0[1]*fv0[1] + fv1[0]*fv1[0]+fv1[1]*fv1[1] + fv2[0]*fv2[0]+fv2[1]*fv2[1])/3.0;
+	    double tau2 = nu + 0.5*h*vnorm;
+	    double div_v =  DN_DX(0,0)*fv0[0] + DN_DX(0,1)*fv0[1] +
+			    DN_DX(1,0)*fv1[0] + DN_DX(1,1)*fv1[1] +
+			    DN_DX(2,0)*fv2[0] + DN_DX(2,1)*fv2[1];
+	    div_v *= tau2;
+	    rRightHandSideVector[0] += Area*density*DN_DX(0,ComponentIndex)*div_v;
+	    rRightHandSideVector[1] -= Area*density*DN_DX(1,ComponentIndex)*div_v;
+	    rRightHandSideVector[2] -= Area*density*DN_DX(2,ComponentIndex)*div_v;
+	}
         // rLeftHandSideMatrix *= density;
         // rRightHandSideVector *= density;
 
