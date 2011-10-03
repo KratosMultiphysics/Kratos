@@ -859,19 +859,20 @@ namespace Kratos
 	viscous_part *= nu;
 	  
 	//convective part
-	array_1d<double,3> aux = ZeroVector(3);
-	for(unsigned int i=0; i<4; i++)
-	{
-	  const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(FRACT_VEL);
-	  double tmp = 0.0;
-	  for(unsigned int k=0; k<3; k++)
-	    tmp += DN_DX(i,k)*vel_gauss[k];
-	  
-	  for(unsigned int l=0; l<3; l++)
-	    aux[l] += tmp*v[l];
-	}
-	aux /= (norm_u + 1e-9);
-	double conv_part=norm_2(aux);
+//	array_1d<double,3> aux = ZeroVector(3);
+//	for(unsigned int i=0; i<4; i++)
+//	{
+//	  const array_1d<double,3>& v = GetGeometry()[i].FastGetSolutionStepValue(FRACT_VEL);
+//	  double tmp = 0.0;
+//	  for(unsigned int k=0; k<3; k++)
+//	    tmp += DN_DX(i,k)*vel_gauss[k];
+//
+//	  for(unsigned int l=0; l<3; l++)
+//	    aux[l] += tmp*v[l];
+//	}
+//	aux /= (norm_u + 1e-9);
+//	double conv_part=norm_2(aux);
+        double conv_part = 2.0*norm_u/h;
 	
 	const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
         const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
