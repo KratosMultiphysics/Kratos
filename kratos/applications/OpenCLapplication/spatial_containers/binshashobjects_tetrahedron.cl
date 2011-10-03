@@ -237,122 +237,35 @@ __kernel void GenerateBinsC(__global double4 * Points,
     }
 }
 
-
 /////////////////////////////////////////////////////////
 
-inline double dabs (double a ) {if (a >= 0) return a; return -a;}
-
-ComputeGaussPointPositionX(__global double4 * particles,
-			   __global double4 * nodes,
-			   __global double4 * displacement,
-			   __global int4    * elements,
-			   int     i
-			   ) 
-{
-    int ip = get_global_id(0);
-
-    //first
-    double4 tmp = one_sixt * nodes[elements[ip].x-1] + one_sixt * nodes[elements[ip].y-1] + two_third * nodes[elements[ip].z-1];
-    displacement[i] += tmp - particles[i];
-    particles[i] = tmp;
-}
-
-ComputeGaussPointPositionY(__global double4 * particles,
-			   __global double4 * nodes,
-			   __global double4 * displacement,
-			   __global int4    * elements,
-			   int     i
-			   ) 
-{
-
-    int ip = get_global_id(0);
-
-    //second
-    double4 tmp = two_third * nodes[elements[ip].x-1] + one_sixt * nodes[elements[ip].y-1] + one_sixt * nodes[elements[ip].z-1];
-    displacement[i] += tmp - particles[i];
-    particles[i] = tmp;
-}
-
-ComputeGaussPointPositionZ(__global double4 * particles,
-			   __global double4 * nodes,
-			   __global double4 * displacement,
-			   __global int4    * elements,
-			   int     i
-			   ) 
-{
-
-    int ip = get_global_id(0);
-
-    //third
-    double4 tmp = one_sixt * nodes[elements[ip].x-1] + two_third * nodes[elements[ip].y-1] + one_sixt * nodes[elements[ip].z-1];
-    displacement[i] += tmp - particles[i];
-    particles[i] = tmp;
-}
-
-ComputeGaussPointPositionW(__global double4 * particles,
-			   __global double4 * nodes,
-			   __global double4 * displacement,
-			   __global int4    * elements,
-			   int     i
-			   ) 
-{
-
-    int ip = get_global_id(0);
-
-    //fourth
-    double4 tmp = one_third * nodes[elements[ip].x-1] + one_third * nodes[elements[ip].y-1] + one_third * nodes[elements[ip].z-1];
-    displacement[i] += tmp - particles[i];
-    particles[i] = tmp;
-}
-
-//////////////////////UpdateParticlePos//////////////////
-__kernel void Update(__global double4 * point,
-		     __global double4 * PointsTriangle,
-		     __global double4 * pointDisplace,
-		     __global int4    * Triangles,
-		     __global int     * BinsObjectContainer,
-		     __global int     * IndexCellReference,
-		     __global int     * dens,
-		     __global int     * lock,
-		     __global int     * tp,
-		     int size
-		    ) 
-{
-    int ip = get_global_id(0);
-
-    int i = tp[0];
-
-    if(dens[ip] < 4 && ip < 9495) 
-    {
-	for(int j = atom_inc(&tp[0]); (j < tp[1]) && (dens[ip] < 4); j = atom_inc(&tp[0])) 
-	{
-	    if(point[j].w > 8) /* beware this constant !!! can both drop the speed and increase me usage dramatically*/
-	    {
-		switch ((i=i+get_local_id(0)) % 4) {
-		    case 0: ComputeGaussPointPositionY(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		    case 1: ComputeGaussPointPositionY(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		    case 2: ComputeGaussPointPositionZ(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		    case 3: ComputeGaussPointPositionW(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		}
-		dens[ip] += 1;
-	    }
-	}
-
-	if (dens[ip] < 4) { 
-	    for(int j = atom_inc(&tp[1]); j < 139936 && dens[ip] < 4; j = atom_inc(&tp[1])) {
-		switch ((i=i+get_local_id(0)) % 4) {
-		    case 0: ComputeGaussPointPositionX(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		    case 1: ComputeGaussPointPositionY(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		    case 2: ComputeGaussPointPositionZ(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		    case 3: ComputeGaussPointPositionW(point,PointsTriangle,pointDisplace,Triangles,j); break;
-		}
-		dens[ip]+=1;
-	    }
-	}
-    }
-
-    dens[ip] = 0;
-}
+// __kernel void reseed(__global int * IndexCellReference,
+// 		   __global int * BinsObjectContainer,
+// 		   __global double4 * PointsTriangle,
+// 		   __global int4 * Triangles,
+// 		   __global double * InvCellSize,
+// 		   __constant double * N,
+// 		   __constant double * radius,
+// 		   __global double4 * MinPoint,
+// 		   __global double4 * point,
+// 		   __global double4 * pointVelocity,
+// // 		   __global double4 * pointAcceleration,
+// 		   __global double4 * pointDisplace,
+// 		   __global double4 * pointForce,
+// 		   __global double4 * nodesV,
+// 		   __global double4 * nodesF,
+// 		   __global double4 * nodesP,
+// 		   __global double4 * body_force,
+// 		   double density,
+// 		   double dt,
+// 		   double subSteps,
+// 		   int use_eulerian,
+// 		   int size,
+// 		   __global double4 * pointVelocityOld
+// 		  ) 
+// {
+// 
+// }
 
 /////////////////////////////////////////////////////////
 
@@ -406,7 +319,9 @@ __kernel void Move(__global int * IndexCellReference,
 		   double subSteps,
 		   int use_eulerian,
 		   int size,
-		   __global double4 * pointVelocityOld
+		   __global double4 * pointVelocityOld,
+		   __global int * gIndex,
+		   __local int * l
 		  )
 {
 
@@ -418,7 +333,7 @@ __kernel void Move(__global int * IndexCellReference,
 	  double small_dt = dt / subSteps;
 	  double density_inverse = 1 / density;
 
-	  int4 triangleIndex;
+	  int4 triangleIndex = 0;
 
 	  double4 fN;
 	  double4 eulerian_vel = (double4)(0.0,0.0,0.0,0.0);
@@ -427,6 +342,8 @@ __kernel void Move(__global int * IndexCellReference,
 
 	  pointVelocityOld[gid] = pointVelocity[gid];
 	  point[gid].xyz += pointDisplace[gid].xyz;
+
+	  l[get_local_id(0)] = -1;
 
 	  for(int subStep = 0; subStep < subSteps; subStep++)
 	  {
@@ -440,17 +357,26 @@ __kernel void Move(__global int * IndexCellReference,
 
 	    int Found = 0;
 
-	    int l;
+// 	Try to reuse las element coord?
+//	No importa porque se ha corrompido la ram y hasta que no lo apage no se va a arreglar LALALALALA
+// 	    fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
+// 				     PointsTriangle[triangleIndex.y-1],
+// 				     PointsTriangle[triangleIndex.z-1],
+//     // 				     PointsTriangle[triangleIndex.w-1],
+// 				     point[gid]);
+// 
+// 	    Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
+// 		    fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
 
-	    for(l = loIndex; !Found && (l < hiIndex ); l++) 
+	    for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex ); l[get_local_id(0)]++) 
 	    {
-		triangleIndex = Triangles[(int)BinsObjectContainer[l]];
+		triangleIndex = Triangles[(int)BinsObjectContainer[l[get_local_id(0)]]];
 
 		fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
-					PointsTriangle[triangleIndex.y-1],
-					PointsTriangle[triangleIndex.z-1],
-    // 				       PointsTriangle[triangleIndex.w-1],
-					point[gid]);
+					 PointsTriangle[triangleIndex.y-1],
+					 PointsTriangle[triangleIndex.z-1],
+    // 				         PointsTriangle[triangleIndex.w-1],
+					 point[gid]);
 
 		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
 			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
@@ -471,22 +397,21 @@ __kernel void Move(__global int * IndexCellReference,
 		pointAcceleration -= fN.z * nodesP[triangleIndex.z-1];
 
 		pointForce[gid] = (double4)(0.0,0.0,0.0,0.0);
-
 		pointForce[gid] += fN.x * nodesF[triangleIndex.x-1];
 		pointForce[gid] += fN.y * nodesF[triangleIndex.y-1];
 		pointForce[gid] += fN.z * nodesF[triangleIndex.z-1];
 
 		pointAcceleration += pointForce[gid];
 
-		int uses = use_eulerian && subStep;
+		int uses = use_eulerian && !subStep;
 
-		pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz * !uses;
+		pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz    * !uses;
 		pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
 
 		pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
 
-		point[gid].xyz         += eulerian_vel.xyz * small_dt;
-		stp_dis.xyz 	     += eulerian_vel.xyz * small_dt;
+		point[gid].xyz += eulerian_vel.xyz * small_dt;
+		stp_dis.xyz    += eulerian_vel.xyz * small_dt;
 
 	    } else {
 
@@ -529,7 +454,7 @@ __kernel void calculateField(__global int * IndexCellReference,
 		   __global int * gIndex,
 		   __global double4 * gFn,
 		   int size,
-		    __local int * l
+		   __local int * l
 		  )
 {
     int gid = get_global_id(0);
@@ -540,16 +465,14 @@ __kernel void calculateField(__global int * IndexCellReference,
 	double4 vel; 
 	int4 triangleIndex;
 	int Found = 0;
-    //     int squareSize = ceil(sqrt(convert_float(size)));
-    // 
-    //     FLAG[0] = 0;
-	  gFn[gid] = 0;
-	  gIndex[gid] = -1;
+
+	gFn[gid] = 0;
+	gIndex[gid] = -1;
 
 	if(point[gid].w >= 0) 
 	{
 	    double4 aux_point = point[gid];
-// 	    aux_point.z = 0;
+	    if (point[gid].z != 0) aux_point.z = 10;
 
 	    int index = calculateIndex(aux_point,N,MinPoint,InvCellSize);
 			
@@ -563,10 +486,10 @@ __kernel void calculateField(__global int * IndexCellReference,
 		triangleIndex = Triangles[(int)BinsObjectContainer[l[get_local_id(0)]]];
 
 		fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
-					PointsTriangle[triangleIndex.y-1],
-					PointsTriangle[triangleIndex.z-1],
+					 PointsTriangle[triangleIndex.y-1],
+					 PointsTriangle[triangleIndex.z-1],
     //   					 PointsTriangle[triangleIndex.w-1],
-					point[gid]);
+					 point[gid]);
 
 		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
 			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
