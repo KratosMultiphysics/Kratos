@@ -884,7 +884,7 @@ namespace Kratos
 //	}
 //	aux /= (norm_u + 1e-9);
 //	double conv_part=norm_2(aux);
-        double conv_part = norm_u/h;
+        double conv_part = 2.0*norm_u/h;
 	
 	const double dyn_st_beta = CurrentProcessInfo[DYNAMIC_TAU];
         const double inv_dt_coeff = CurrentProcessInfo[BDF_COEFFICIENTS][0];
