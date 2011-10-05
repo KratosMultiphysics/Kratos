@@ -49,15 +49,16 @@ ELEMENT ASGSCompressible2D surface
 ELEMENT ASGSCOMPPRDC2D surface
 ELEMENT NoNewtonianASGS2D surface 
 ELEMENT NoNewtonianASGS3D volume 
-ELEMENT CouetteNonNewtonianASGS2D surface 
+ELEMENT BinghamNonNewtonianASGS2D surface 
+ELEMENT BinghamNonNewtonianASGS3D volume 
 ELEMENT VMS2D surface
 ELEMENT VMS3D volume
 
 
 OPTION 2D_Boundary_Condition line Condition2D Fluid2DNeumann Monolithic2DNeumann
 OPTION 3D_Boundary_Condition surface Condition3D Fluid3DNeumann Monolithic3DNeumann
-OPTION 2D_Body_Element surface Fluid2D Fluid2DCoupled VMS2D ASGS2D ASGSCompressible2D NoNewtonianASGS2D CouetteNonNewtonianASGS2D ASGSCOMPPRDC2D EbstVel3D3N
-OPTION 3D_Body_Element volume Fluid3D Fluid3DCoupled VMS3D ASGS3D ASGSCompressible3D ASGSCOMPPRDC3D NoNewtonianASGS3D
+OPTION 2D_Body_Element surface Fluid2D Fluid2DCoupled VMS2D ASGS2D ASGSCompressible2D NoNewtonianASGS2D BinghamNonNewtonianASGS2D ASGSCOMPPRDC2D EbstVel3D3N
+OPTION 3D_Body_Element volume Fluid3D Fluid3DCoupled VMS3D ASGS3D ASGSCompressible3D ASGSCOMPPRDC3D NoNewtonianASGS3D BinghamNonNewtonianASGS3D
 
 
 
