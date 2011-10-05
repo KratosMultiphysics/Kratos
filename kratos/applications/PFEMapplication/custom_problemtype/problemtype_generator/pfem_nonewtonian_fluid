@@ -21,8 +21,9 @@ FACE CONDITION Fluid2DNeumann line
 FACE CONDITION Fluid3DNeumann surface 
 
 ELEMENT NoNewtonianASGS2D surface
-ELEMENT CouetteNonNewtonianASGS2D surface
+ELEMENT BinghamNonNewtonianASGS2D surface
 ELEMENT NoNewtonianASGS3D volume
+ELEMENT BinghamNonNewtonianASGS3D volume
 
 #OPTION 2D_Body_Element surface NoNewtonianASGS2D
 #OPTION 3D_Body_Element volume NoNewtonianASGS3D
@@ -70,9 +71,11 @@ ADD 2D CONDITION IS_BOUNDARY point line surface 1.0
 
 # Part Interaction --> considering all of the combinations!!!
 GROUP WallBoundary FreeSurfaceBoundary IN point line surface
-WallBoundary FreeSurfaceBoundary ASSIGN VELOCITY fixed 0.0 0.0 0.0 DISPLACEMENT fixed 0.0 0.0 0.0 IS_STRUCTURE free 1.0
-# WallBoundary FreeSurfaceBoundary ASSIGN DISPLACEMENT fixed 0.0 0.0 0.0
-# WallBoundary FreeSurfaceBoundary ASSIGN IS_STRUCTURE free 1.0
+WallBoundary FreeSurfaceBoundary ASSIGN VELOCITY FROM WallBoundary 
+WallBoundary FreeSurfaceBoundary ASSIGN DISPLACEMENT  FROM WallBoundary
+WallBoundary FreeSurfaceBoundary ASSIGN IS_STRUCTURE FROM WallBoundary
+
+
 
 
 
