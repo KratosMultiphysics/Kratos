@@ -110,7 +110,7 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
       
-      /// Counted pointer of NoNewtonianASGS
+      /// Counted pointer of NoNewtonianASGS3D
       KRATOS_CLASS_POINTER_DEFINITION(NoNewtonianASGS3D);
  
       ///@}
@@ -285,7 +285,15 @@ namespace Kratos
       ///@name Protected Operators
       ///@{ 
         
-        
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      // A private default constructor necessary for serialization
+      NoNewtonianASGS3D() : Element()
+      {
+      }
+      
       ///@} 
       ///@name Protected Operations
       ///@{ 
@@ -325,11 +333,6 @@ namespace Kratos
 
       friend class Serializer;
 
-      // A private default constructor necessary for serialization
-      NoNewtonianASGS3D() : Element()
-      {
-      }
-
       virtual void save(Serializer& rSerializer) const
       {
 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
@@ -339,8 +342,7 @@ namespace Kratos
       {
 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
       }	
-	
-	                
+	              
       ///@} 
       ///@name Private Operators
       ///@{ 
