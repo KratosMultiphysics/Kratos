@@ -71,8 +71,9 @@
 
 
 #include "custom_elements/nonewtonian_asgs_2d.h"
-#include "custom_elements/couette_nonnewtonian_asgs_2d.h"
 #include "custom_elements/nonewtonian_asgs_3d.h"
+#include "custom_elements/bingham_nonnewtonian_asgs_2d.h"
+#include "custom_elements/bingham_nonnewtonian_asgs_3d.h"
 
 //#include "custom_elements/asgs_2d_particle.h"
 
@@ -327,10 +328,10 @@ namespace Kratos
 
         const Fluid2DSplit mFluid2DSplit;
 
-        const NoNewtonianASGS2D mNoNewtonianASGS2D;
-        const CouetteNonNewtonianASGS2D mCouetteNonNewtonianASGS2D;
-
-        const NoNewtonianASGS3D mNoNewtonianASGS3D;
+		const NoNewtonianASGS2D mNoNewtonianASGS2D;
+		const NoNewtonianASGS3D mNoNewtonianASGS3D;
+		const BinghamNonNewtonianASGS2D mBinghamNonNewtonianASGS2D;
+		const BinghamNonNewtonianASGS3D mBinghamNonNewtonianASGS3D;
 
 
         const NoSlipCondition2D mNoSlipCondition2D;

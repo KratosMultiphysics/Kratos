@@ -73,10 +73,11 @@ python-extension KratosIncompressibleFluidApplication
 	#abc_2d.cpp
 
 	fluid_2d_split.cpp
-	nonewtonian_asgs_2d.cpp
-	couette_nonnewtonian_asgs_2d.cpp
 
+	nonewtonian_asgs_2d.cpp
 	nonewtonian_asgs_3d.cpp
+	bingham_nonnewtonian_asgs_2d.cpp
+	bingham_nonnewtonian_asgs_3d.cpp
 
 	explicit_asgs_compressible_2d.cpp
 	explicit_asgs_comp_pr_dc_2d.cpp

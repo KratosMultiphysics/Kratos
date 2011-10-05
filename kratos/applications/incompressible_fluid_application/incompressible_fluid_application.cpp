@@ -90,10 +90,11 @@ namespace Kratos
 		mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 			
 		mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		mNoNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		mCouetteNonNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 
+		mNoNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mNoNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+		mBinghamNonNewtonianASGS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mBinghamNonNewtonianASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
 		mNoSlipCondition2D(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 // 		mNoSlipFractStep(0, Element::GeometryType::Pointer(new Geometry <Node<3>  >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
@@ -195,8 +196,10 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("Fluid2DSplit", mFluid2DSplit);
 		
 		KRATOS_REGISTER_ELEMENT("NoNewtonianASGS2D", mNoNewtonianASGS2D);	
-		KRATOS_REGISTER_ELEMENT("CouetteNonNewtonianASGS2D", mCouetteNonNewtonianASGS2D);
 		KRATOS_REGISTER_ELEMENT("NoNewtonianASGS3D", mNoNewtonianASGS3D);		
+		KRATOS_REGISTER_ELEMENT("BinghamNonNewtonianASGS2D", mBinghamNonNewtonianASGS2D);
+		KRATOS_REGISTER_ELEMENT("BinghamNonNewtonianASGS3D", mBinghamNonNewtonianASGS3D);
+
 
 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCompressible2D", mExplicitASGSCompressible2D);
 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCOMPPRDC2D", mExplicitASGSCOMPPRDC2D);
