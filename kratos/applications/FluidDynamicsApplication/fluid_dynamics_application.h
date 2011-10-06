@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/bingham_vms.h"
 #include "custom_elements/dynamic_vms.h"
 #include "custom_elements/spalart_allmaras_element.h"
+#include "custom_conditions/periodic_condition.h"
 
 namespace Kratos
 {
@@ -254,6 +255,9 @@ namespace Kratos
                 const SpalartAllmaras<2,3> mSpalartAllmaras2D;
                 /// 3D Spalart-Allmaras turbulent viscosity transport equation element
                 const SpalartAllmaras<3,4> mSpalartAllmaras3D;
+
+                /// Periodic Condition (implemented using penalization)
+                const PeriodicCondition mPeriodicCondition;
 
 		///@} 
 		///@name Private Operators

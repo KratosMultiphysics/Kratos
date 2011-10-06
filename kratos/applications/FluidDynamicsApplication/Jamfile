@@ -42,7 +42,7 @@ python-extension KratosFluidDynamicsApplication
 	vms.cpp
 	dynamic_vms.cpp
         spalart_allmaras_element.cpp
-
+        periodic_condition.cpp
 
 	#kratos library
 	#/kratos-prj/kratos//libkratos/<link>static
