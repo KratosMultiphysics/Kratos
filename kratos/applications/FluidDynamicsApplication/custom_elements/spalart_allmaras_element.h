@@ -523,9 +523,6 @@ namespace Kratos
             else
                 S = this->AntimetricGradientNorm(DN_DX);
 
-//            const double S = this->CorrectedRotationRate(DN_DX);
-//            const double S = this->AntimetricGradientNorm(DN_DX);
-
             Element::GeometryType& rGeom = this->GetGeometry();
 
             double distance = N[0] * rGeom[0].FastGetSolutionStepValue(DISTANCE);
