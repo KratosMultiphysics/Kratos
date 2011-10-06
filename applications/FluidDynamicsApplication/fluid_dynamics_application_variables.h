@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "custom_utilities/periodic_variables_container.h"
 
 namespace Kratos
 {
@@ -66,6 +67,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double,TAUONE)
     KRATOS_DEFINE_VARIABLE(double,TAUTWO)
 //    KRATOS_DEFINE_VARIABLE(double,C_SMAGORINSKY)
+    KRATOS_DEFINE_VARIABLE(PeriodicVariablesContainer,PERIODIC_VARIABLES)
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SUBSCALE)
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VORTICITY)
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(COARSE_VELOCITY)

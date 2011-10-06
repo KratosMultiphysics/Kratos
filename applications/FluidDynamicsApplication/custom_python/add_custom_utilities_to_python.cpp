@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/linear_solver.h"
 
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
+#include "custom_utilities/periodic_condition_utilities.h"
 
 namespace Kratos
 {
@@ -84,6 +85,13 @@ namespace Python
             .def("StoreCoarseMesh",&DynamicSmagorinskyUtils::StoreCoarseMesh)
             .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
             .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
+            ;
+
+        class_<PeriodicConditionUtilities>("PeriodicConditionUtilities", init<ModelPart&,unsigned int>())
+            .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
+            .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
+            .def("DefineCentralSymmetry",&PeriodicConditionUtilities::DefineCentralSymmetry)
+            .def("DefineCentralAntimetry",&PeriodicConditionUtilities::DefineCentralAntimetry)
             ;
 
   }
