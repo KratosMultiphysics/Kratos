@@ -11,7 +11,7 @@
 
 
 #ifdef _OPENMP
-#include <omp.h>
+#include <omp.h> 
 #endif
 
 #include "boost/smart_ptr.hpp"
@@ -351,6 +351,8 @@ namespace Kratos
             array_1d<double, 3 > temp_dist;               //aux segment
             array_1d<double, 3 > node_coord;             // 
             array_1d<double, 3 > neigh_coord;             //          
+            array_1d<unsigned int, 4 > list_matching_nodes;             // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)    
+			unsigned int exact_nodes=0;
             
             number_of_triangles =  0;
             int current_element= 0; //current element. it's a position. NOT ID!
@@ -360,7 +362,8 @@ namespace Kratos
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) //looping all the elements
             {
 				++current_element; 
-				number_of_cuts = 0 ;       
+				number_of_cuts = 0 ;
+				exact_nodes = 0 ;       
 				Geometry<Node<3> >&geom = it->GetGeometry(); //geometry of the element
 				for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)          //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
 				//when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
@@ -390,6 +393,8 @@ namespace Kratos
 							Coord(index_i, index_i) = -2;	              //saving a -2 in the diagonal
 							isovernode=true;
 							number_of_cuts += 2; //since its neighbour wont take this case as a cut, we must save 2 cuts instead of one. (to reach number_of_cuts=6), 
+							++exact_nodes;
+							list_matching_nodes[i]= geom[i].Id();
 							break;
 							}
 											//check this last condition, used to avoid talking points that belong to other node. might cause some problems when the plane is almost paralel to an edge. to be improved! (it seems to be working correcly even when the edge is part of the plane.)
@@ -400,9 +405,6 @@ namespace Kratos
 							if (index_j > index_i)  Coord(index_i, index_j) = -2;    //saving a -2 in the upper side of the matrix
 							else Coord(index_j, index_i) = -2;
 							number_of_cuts += 1;
-							//KRATOS_WATCH("nodo estandar")
-							//KRATOS_WATCH(dist_node_point)
-							//KRATOS_WATCH(dist_neigh_point)
 							}
 					} //closing the i!=j if
 					} //closing the neighbour loop
@@ -410,18 +412,55 @@ namespace Kratos
 				
 				//now we have to save the data. we should get a list with the elements that will genereate triangles and the total number of triangles
 				Elems_In_Plane[current_element-1] = 0 ; //we initialize as 0
-
-				if (number_of_cuts == 6)     //it can be 8, in that case we have 2 triangles (the cut generates a square)
+				if (exact_nodes!=3){  //this means at least one new node has to be generated
+					if (number_of_cuts == 6)     //it can be 8, in that case we have 2 triangles (the cut generates a square)
+						{
+						number_of_triangles +=1;
+						Elems_In_Plane[current_element-1] = 1 ; //i still don't know the number of the node so i'll have to do another loop later to assign to define node id's of each triangular element
+						}
+					else if (number_of_cuts == 8 ) // 2 triangles in the element!
+						{
+						number_of_triangles +=2;
+						Elems_In_Plane[ current_element-1] = 2 ; 
+						}
+				}
+				else  {//ok, now we'll only add the element if the normal of the plane matches the one of the triangle (created poiting towards the fourth node of the tetraedra)
+					bool found_fourth_node=true; //this is the node that defines the normal of the element
+					for(unsigned int i = 0; i < it->GetGeometry().size() ; i++)          //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
 					{
-					number_of_triangles +=1;
-					Elems_In_Plane[current_element-1] = 1 ; //i still don't know the number of the node so i'll have to do another loop later to assign to define node id's of each triangular element
+						found_fourth_node=true;
+						for (unsigned int aux_index=0;aux_index!=4;++aux_index) {  // we define our plane now
+							if (geom[i].Id()==list_matching_nodes[aux_index] && list_matching_nodes[aux_index]!=0){
+								found_fourth_node=false;
+								//break;   //ok, we have the coordinates of the new node. now we have to mame sure
+							}
+						}	
+						if (found_fourth_node==true) {
+							node_coord[0] = geom[i].X();
+							node_coord[1] = geom[i].Y();
+							node_coord[2] = geom[i].Z();
+							break; 
+						} 
 					}
-				else if (number_of_cuts == 8 ) // 2 triangles in the element!
-					{
-					number_of_triangles +=2;
-					Elems_In_Plane[ current_element-1] = 2 ; 
+					//now we check if the point has a positive distance to the plane. if true we will add a new triangle (property of the element). otherwise not
+					//not that this means that this triangle should be added by the neighbour tetraedra( which would return a positive distance)
+					//so if we're in a boundary of the domain, make sure that the (normal of) the cutting plane points towards the model. otherwise you'll have missing triangles
+					noalias(temp_dist) = node_coord;
+					noalias(temp_dist) -= Xp;             //temp_dist =node_coord-Xpoint
+					dist_node_point = inner_prod(temp_dist,versor);     // dist = (xnode-xp)*versor closest point-plane distance
+					if  (dist_node_point>=0.0) {
+						if (number_of_cuts == 6)    //this should not be necessary, but it's kept just in case (almost plain elements?)
+							{
+							number_of_triangles +=1;
+							Elems_In_Plane[current_element-1] = 1 ; 
+							}
+						else if (number_of_cuts == 8 ) 
+							{							
+							number_of_triangles +=2;
+							Elems_In_Plane[ current_element-1] = 2 ; 
+							}
 					}
-					
+				}
 			} //closing the elem loop
 			KRATOS_WATCH(number_of_triangles);
 
