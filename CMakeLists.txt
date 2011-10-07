@@ -130,3 +130,12 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("inc_dirs = ${inc_dirs}")
+
+
+
+
+################################################################################
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Riccardo Rossi") #required
+SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+INCLUDE(CPack)
