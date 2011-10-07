@@ -489,7 +489,7 @@ namespace Kratos
         PointVector mCandidateNodes;
 
         /// Spatial search strategy
-        typename tree::Pointer mpSearchStrategy;
+        tree::Pointer mpSearchStrategy;
 
         ///@}
         ///@name Private Operators
