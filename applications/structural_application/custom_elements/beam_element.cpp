@@ -325,35 +325,50 @@ void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Process
 void BeamElement::CalculateSectionProperties()
 
 {
-KRATOS_TRY
+        KRATOS_TRY
 
-array_1d<double, 3> x_0;
-array_1d<double, 3> x_1; // Vector que contiene coordenadas de los nodos.
-array_1d<double, 3> length;   // Vector que contiene la direccion de la barra. 
+        array_1d<double, 3> x_0;
+        array_1d<double, 3> x_1; // Vector que contiene coordenadas de los nodos.
+        array_1d<double, 3> length;   // Vector que contiene la direccion de la barra.
 
-double minimo,maximo,B;
-const double b        = GetProperties()[BASE];                                
-const double h        = GetProperties()[HEIGHT];
-
-                 
-mInertia_x     = b*h*h*h/12.0;                                      
-mInertia_y     = b*b*b*h/12.0;                                      
-minimo         = std::min(b,h); 
-maximo	       = std::max(b,h);                                              
-B	       = (1.00-0.63*(minimo/maximo)*(1-(pow(minimo,4)/(12*pow(maximo,4)))))/3;	// constante torsional. Solo para secciones rectangulares.
-mInertia_Polar = B*minimo*minimo*minimo*maximo;											                            
-mArea	       = b*h;														                                                 
+//        double minimo, maximo, B;
+//        const double b        = GetProperties()[BASE];
+//        const double h        = GetProperties()[HEIGHT];
 
 
-x_0(0)= GetGeometry()[0].X0();  x_0(1)= GetGeometry()[0].Y0();  x_0(2)= GetGeometry()[0].Z0();
-x_1(0)= GetGeometry()[1].X0();  x_1(1)= GetGeometry()[1].Y0();  x_1(2)= GetGeometry()[1].Z0();
+        Matrix& inertia = GetProperties()[INERTIA];
+        mArea = GetProperties()[CROSS_AREA];
+        mInertia_x = inertia(0,0);
+        mInertia_y = inertia(1,1);
+        mInertia_Polar = inertia(2,2);
 
-noalias(length) = x_1-x_0;
-mlength = std::sqrt(inner_prod(length, length));
+//        mInertia_x     = b * h * h * h / 12.0;
+//        mInertia_y     = b * b * b * h / 12.0;
+//        minimo         = std::min( b, h );
+//        maximo        = std::max( b, h );
+//        B        = ( 1.00 - 0.63 * ( minimo / maximo ) * ( 1 - ( pow( minimo, 4 ) / ( 12 * pow( maximo, 4 ) ) ) ) ) / 3; // constante torsional. Solo para secciones rectangulares.
+//        mInertia_Polar = B * minimo * minimo * minimo * maximo;
+//        mArea        = b * h;
 
-KRATOS_CATCH("")
 
-}
+        x_0( 0 ) = GetGeometry()[0].X0();
+        x_0( 1 ) = GetGeometry()[0].Y0();
+        x_0( 2 ) = GetGeometry()[0].Z0();
+        x_1( 0 ) = GetGeometry()[1].X0();
+        x_1( 1 ) = GetGeometry()[1].Y0();
+        x_1( 2 ) = GetGeometry()[1].Z0();
+
+        noalias( length ) = x_1 - x_0;
+        mlength = std::sqrt( inner_prod( length, length ) );
+
+        if (mlength == 0.00)
+            KRATOS_ERROR(std::invalid_argument, "Zero length found in elemnet #", this->Id());
+
+
+        KRATOS_CATCH( "" )
+
+    }
+
 
 
 //************************************************************************************
@@ -472,8 +487,11 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
       Vector_zero[i] = x_zero[i+3] - x_zero[i];
       }
 
-      noalias(Normal_zero) = Vector_zero * ( 1.00 / mlength );
-      
+        double length_inverse = ( 1.00 / mlength );
+        for ( unsigned int i = 0; i < 3; i++ )
+        {
+           Normal_zero[i] = Vector_zero[i] * length_inverse;
+        }
 
       nx = Normal_zero[0];
       ny = Normal_zero[1];
@@ -1075,6 +1093,74 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 		
 	      }
             
+
+
+
+
+    
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+
+        //verify that the variables are correctly initialized
+        if(VELOCITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered","");
+        if(DISPLACEMENT.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
+        if(ACCELERATION.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
+        if(DENSITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
+        if(BODY_FORCE.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
+        if(CROSS_AREA.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered","");
+        if(INERTIA.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"INERTIA has Key zero! (check if the application is correctly registered","");
+        if(ROTATION.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered","");
+
+        //verify that the dofs exist
+        for(unsigned int i=0; i<this->GetGeometry().size(); i++)
+        {
+            if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id());
+        }
+
+        //verify that the area is given by properties
+        if (this->GetProperties().Has(CROSS_AREA)==false)
+        {
+            KRATOS_ERROR(std::logic_error,"CROSS_AREA not provided for property ",this->GetProperties().Id());
+        }
+
+        //verify that the inertia is given by properties
+        if (this->GetProperties().Has(INERTIA)==false)
+        {
+            KRATOS_ERROR(std::logic_error,"INERTIA not provided for property ",this->GetProperties().Id());
+        }
+
+        //Verify that the body force is defined
+        if (this->GetProperties().Has(BODY_FORCE)==false)
+        {
+            KRATOS_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
+        }
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
+
 
 
 
