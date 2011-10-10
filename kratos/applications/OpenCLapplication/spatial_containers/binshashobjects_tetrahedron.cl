@@ -13,7 +13,6 @@
 #pragma OPENCL EXTENSION cl_khr_global_int32_extended_atomics : enable
 #pragma OPENCL EXTENSION cl_khr_local_int32_extended_atomics : enable
 
-// #include "Scan.cl"
 #include "opencl_operations.cl"
 
 /////////////////////////////////////////////////////////
@@ -237,65 +236,6 @@ __kernel void GenerateBinsC(__global double4 * Points,
     }
 }
 
-/////////////////////////////////////////////////////////
-
-// __kernel void reseed(__global int * IndexCellReference,
-// 		   __global int * BinsObjectContainer,
-// 		   __global double4 * PointsTriangle,
-// 		   __global int4 * Triangles,
-// 		   __global double * InvCellSize,
-// 		   __constant double * N,
-// 		   __constant double * radius,
-// 		   __global double4 * MinPoint,
-// 		   __global double4 * point,
-// 		   __global double4 * pointVelocity,
-// // 		   __global double4 * pointAcceleration,
-// 		   __global double4 * pointDisplace,
-// 		   __global double4 * pointForce,
-// 		   __global double4 * nodesV,
-// 		   __global double4 * nodesF,
-// 		   __global double4 * nodesP,
-// 		   __global double4 * body_force,
-// 		   double density,
-// 		   double dt,
-// 		   double subSteps,
-// 		   int use_eulerian,
-// 		   int size,
-// 		   __global double4 * pointVelocityOld
-// 		  ) 
-// {
-// 
-// }
-
-/////////////////////////////////////////////////////////
-
-__kernel void initializeNodes(__global double4 * nodesV,
-			      __global int     * fixedV,
-			      __global double  * nodesY
-			     ) 
-{
-    int ip = get_global_id(0);
-
-    if(!fixedV[ip]) {
-      nodesV[ip].xyz = 0;
-      nodesY[ip] = 0;
-    }
-}
-
-__kernel void updateField(__global double4 * nodesV,
-			  __global int     * fixedV,
-			  __global double  * nodesY
-			 ) 
-{
-   int ip = get_global_id(0);
-
-   if(!fixedV[ip]) {
-      if(nodesY[ip] != 0.0) 
-	  nodesV[ip].xyz = nodesV[ip].xyz / nodesY[ip];
-   }
-}
-
-
 /////////////////////MoveParticles//////////////////////
 __kernel void Move(__global int * IndexCellReference,
 		   __global int * BinsObjectContainer,
@@ -307,7 +247,6 @@ __kernel void Move(__global int * IndexCellReference,
 		   __global double4 * MinPoint,
 		   __global double4 * point,
 		   __global double4 * pointVelocity,
-// 		   __global double4 * pointAcceleration,
 		   __global double4 * pointDisplace,
 		   __global double4 * pointForce,
 		   __global double4 * nodesV,
@@ -347,26 +286,12 @@ __kernel void Move(__global int * IndexCellReference,
 
 	  for(int subStep = 0; subStep < subSteps; subStep++)
 	  {
-	    double4 aux_point = point[gid];
-// 	    aux_point.z = 0;
-
-	    int index = calculateIndex(aux_point,N,MinPoint,InvCellSize);
+	    int index = calculateIndex(point[gid],N,MinPoint,InvCellSize);
 			
 	    int loIndex = IndexCellReference[index+1];
 	    int hiIndex = IndexCellReference[index+2];
 
 	    int Found = 0;
-
-// 	Try to reuse las element coord?
-//	No importa porque se ha corrompido la ram y hasta que no lo apage no se va a arreglar LALALALALA
-// 	    fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
-// 				     PointsTriangle[triangleIndex.y-1],
-// 				     PointsTriangle[triangleIndex.z-1],
-//     // 				     PointsTriangle[triangleIndex.w-1],
-// 				     point[gid]);
-// 
-// 	    Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
-// 		    fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
 
 	    for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex ); l[get_local_id(0)]++) 
 	    {
@@ -414,13 +339,7 @@ __kernel void Move(__global int * IndexCellReference,
 		stp_dis.xyz    += eulerian_vel.xyz * small_dt;
 
 	    } else {
-
-		point[gid].xy = -12;
 		point[gid].w = min(-point[gid].w,point[gid].w);
-		pointDisplace[gid].xyz = -12;
-		pointVelocity[gid] = 0;
-		pointVelocityOld[gid] = 0;
-		
 	    }
 
 	    barrier(CLK_LOCAL_MEM_FENCE);
@@ -432,10 +351,7 @@ __kernel void Move(__global int * IndexCellReference,
 	double norm_v = sqrt((pointVelocityOld[gid].x * pointVelocityOld[gid].x) + (pointVelocityOld[gid].y * pointVelocityOld[gid].y));
 
 	if(norm_d*10.0 < norm_v*dt) {
-	    point[gid].xy = -12;
 	    point[gid].w = min(-point[gid].w,point[gid].w);
-	    pointDisplace[gid].xyz = -12;
-	    pointVelocity[gid] = 0;
 	}
     }
 }
@@ -461,25 +377,20 @@ __kernel void calculateField(__global int * IndexCellReference,
 
     if(gid < size) {
 
-	double4 fN;
-	double4 vel; 
-	int4 triangleIndex;
-	int Found = 0;
-
-	gFn[gid] = 0;
+	gFn[gid]    = 0;
 	gIndex[gid] = -1;
 
 	if(point[gid].w >= 0) 
 	{
-	    double4 aux_point = point[gid];
-	    if (point[gid].z != 0) aux_point.z = 10;
+	    double4 fN;
+	    int4 triangleIndex;
 
-	    int index = calculateIndex(aux_point,N,MinPoint,InvCellSize);
+	    int index = calculateIndex(point[gid],N,MinPoint,InvCellSize);
 			
 	    int loIndex = IndexCellReference[index+1];
 	    int hiIndex = IndexCellReference[index+2];
 
-	    Found = 0;
+	    int Found = 0;
 
 	    for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex); l[get_local_id(0)]++) 
 	    {
@@ -488,18 +399,15 @@ __kernel void calculateField(__global int * IndexCellReference,
 		fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
 					 PointsTriangle[triangleIndex.y-1],
 					 PointsTriangle[triangleIndex.z-1],
-    //   					 PointsTriangle[triangleIndex.w-1],
+    //   			 	 PointsTriangle[triangleIndex.w-1],
 					 point[gid]);
 
 		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
 			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
 	    }
 
-	    if(Found) 
-	    {
-		gFn[gid] = fN;
-		gIndex[gid] = BinsObjectContainer[l[get_local_id(0)]-1];
-	    }
+	    gFn[gid]    = fN * Found;
+	    gIndex[gid] = BinsObjectContainer[l[get_local_id(0)]-1] * Found + -1 * !Found;
 	}
     }
 }
