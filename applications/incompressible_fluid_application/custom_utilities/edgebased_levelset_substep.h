@@ -443,9 +443,9 @@ namespace Kratos {
                 mnumsubsteps=1;
                 delta_t_avg_novisc = delta_t;
             }
-            std::cout << "mdelta_t_avg ="  << mdelta_t_avg <<std::endl;
-            std::cout << "delta_t ="  << delta_t <<std::endl;
-            std::cout << "mnumsubsteps ="  << mnumsubsteps <<std::endl;
+            //std::cout << "mdelta_t_avg ="  << mdelta_t_avg <<std::endl;
+            //std::cout << "delta_t ="  << delta_t <<std::endl;
+            //std::cout << "mnumsubsteps ="  << mnumsubsteps <<std::endl;
             delta_t = delta_t_avg_novisc;
 
 //            delta_t *= CFLNumber;
@@ -593,7 +593,7 @@ namespace Kratos {
 
             for(unsigned int substep = 0; substep<n_substeps; substep++)
             {
-                std::cout << "substep " << substep+1 << " of " << n_substeps << std::endl;
+                //std::cout << "substep " << substep+1 << " of " << n_substeps << std::endl;
                     mr_matrix_container.AssignVectorToVector(mvel_n, mWork); //mWork = mvel_n
 
                     //first step of Runge Kutta
@@ -1168,7 +1168,7 @@ namespace Kratos {
 	    //KRATOS_WATCH(rhs);
 	    //solve linear equation system L dp = rhs
 	    pLinearSolver->Solve(mL, dp, rhs);
-	    KRATOS_WATCH(*pLinearSolver)
+	    //KRATOS_WATCH(*pLinearSolver)
 
 
             //update pressure
@@ -2487,7 +2487,7 @@ namespace Kratos {
 
         //parameters controlling the wall law
         bool mWallLawIsActive;
-        bool mY_wall;
+        double mY_wall;
 
         //parameters for controlling the usage of the delta time in the stabilization
         double mstabdt_pressure_factor;
@@ -3130,9 +3130,18 @@ namespace Kratos {
                     //                            rhs_i[comp] -= U_i[comp] * area * mu  / (density*ym) ;
                     //                    }
 
+
+					// Reducing wall friction for the large element near wall. Pooyan.
+					double reducing_factor = 1.00;
+					double h_min = mHavg[i_node];
+					if(ym < h_min)
+						reducing_factor = ym / h_min;
+					//KRATOS_WATCH(h_min);
+					//KRATOS_WATCH(ym);
+					//KRATOS_WATCH(reducing_factor);
                     if (mod_vel > 1e-12)
                         for (unsigned int comp = 0; comp < TDim; comp++)
-                            rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+                            rhs_i[comp] -= reducing_factor * U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
 
 
 
