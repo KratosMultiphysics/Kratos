@@ -41,7 +41,7 @@
 #define KRATOS_OCL_4_ITR_W(Arr)		((*Arr).s[3])
 #endif
 
-#define PARTICLE_BUFFER	65536
+#define PARTICLE_BUFFER	100000
 
 #include "../../../kratos/spatial_containers/tree.h"
 #include "../custom_utilities/opencl_interface.h"
@@ -185,7 +185,6 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    mParticlesDisplace    = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
 	    mParticlesForce 	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
 	    mParticlesN 	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
-	    mParticlesPress_Proj  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
 	    mParticlesI		  = (int *	 )malloc(sizeof(int) 	    * mParticleBufferSize );
 	    
 	    ParticlesOnElement 	  = (int *	 )malloc(sizeof(int)	    * mStaticMesh->NumberOfElements()); 
@@ -389,6 +388,48 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
                 }
                 ypos += 1.0 / 4.0;
             }
+        }
+        
+        void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & N)
+        {
+            double one_third = 1.0 / 3.0;
+            double one_sixt = 1.0 / 6.0;
+            double two_third = 2.0 * one_third;
+
+            N(0, 0) = one_sixt;
+            N(0, 1) = one_sixt;
+            N(0, 2) = two_third;
+            N(1, 0) = two_third;
+            N(1, 1) = one_sixt;
+            N(1, 2) = one_sixt;
+            N(2, 0) = one_sixt;
+            N(2, 1) = two_third;
+            N(2, 2) = one_sixt;
+            N(3, 0) = one_third;
+            N(3, 1) = one_third;
+            N(3, 2) = one_third;
+
+
+            //first
+            pos(0, 0) = one_sixt * geom[0].X() + one_sixt * geom[1].X() + two_third * geom[2].X();
+            pos(0, 1) = one_sixt * geom[0].Y() + one_sixt * geom[1].Y() + two_third * geom[2].Y();
+            pos(0, 2) = one_sixt * geom[0].Z() + one_sixt * geom[1].Z() + two_third * geom[2].Z();
+
+            //second
+            pos(1, 0) = two_third * geom[0].X() + one_sixt * geom[1].X() + one_sixt * geom[2].X();
+            pos(1, 1) = two_third * geom[0].Y() + one_sixt * geom[1].Y() + one_sixt * geom[2].Y();
+            pos(1, 2) = two_third * geom[0].Z() + one_sixt * geom[1].Z() + one_sixt * geom[2].Z();
+
+            //third
+            pos(2, 0) = one_sixt * geom[0].X() + two_third * geom[1].X() + one_sixt * geom[2].X();
+            pos(2, 1) = one_sixt * geom[0].Y() + two_third * geom[1].Y() + one_sixt * geom[2].Y();
+            pos(2, 2) = one_sixt * geom[0].Z() + two_third * geom[1].Z() + one_sixt * geom[2].Z();
+
+            //fourth
+            pos(3, 0) = one_third * geom[0].X() + one_third * geom[1].X() + one_third * geom[2].X();
+            pos(3, 1) = one_third * geom[0].Y() + one_third * geom[1].Y() + one_third * geom[2].Y();
+            pos(3, 2) = one_third * geom[0].Z() + one_third * geom[1].Z() + one_third * geom[2].Z();
+
         }
 	
 	//************************************************************************
@@ -842,6 +883,28 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	
 	void TransferParticMeshToGPU() 
 	{
+	    if(mParticleBufferSize < mParticMesh->NumberOfNodes()) {
+	      
+		free(mParticles);
+		free(mParticlesVelocity);
+		free(mParticlesVelocityOld);
+		free(mParticlesDisplace);
+		free(mParticlesForce);
+		free(mParticlesN);
+		free(mParticlesI);
+		
+		while (mParticleBufferSize < mParticMesh->NumberOfNodes()) mParticleBufferSize += PARTICLE_BUFFER;
+		
+		mParticles 		  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
+		mParticlesVelocity 	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
+		mParticlesVelocityOld 	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
+		mParticlesDisplace    	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
+		mParticlesForce 	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
+		
+		mParticlesN 	  	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
+		mParticlesI		  = (int *	 )malloc(sizeof(int) 	    * mParticleBufferSize );
+	    }
+	  
 	    cl_double4 * mParticlesItr 	       = mParticles;
 	    cl_double4 * mParticlesVelocityItr = mParticlesVelocity;
 	    cl_double4 * mParticlesDisplaceItr = mParticlesDisplace;
@@ -995,7 +1058,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	}
 	
 	void SearchTriangles(array_1d<double, 3 > & body_force, const double density, const double dt, const double substeps, const int ConcurrentPoints, const int use_eulerian,int copy_data) 
-	{  
+	{    
 	    int amount = 0;
 	    int processed = 0;
 	    int oldParticleNum = 0;
@@ -1033,7 +1096,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    OCLDeviceGroup.SetKernelArg(	OCLMove, 20, PARTICLE_BUFFER);
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 21, OCL_ParticlesVelocityOld);
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 22, OCL_ParticlesIndex);
-	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLMove, 23, 512 * sizeof(int));
+	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLMove, 23, OCLDeviceGroup.WorkGroupSizes[OCLMove][0] * sizeof(int));
 	    
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 0,  OCL_IndexCellReferenceO);
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 1,  OCL_BinsObjectContainer);
@@ -1049,9 +1112,9 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 11, OCL_ParticlesIndex);
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 12, OCL_ParticlesN);
 	    OCLDeviceGroup.SetKernelArg(	OCLTransferB, 13, PARTICLE_BUFFER);
-	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLTransferB, 14, 512 * sizeof(int));
+	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLTransferB, 14, OCLDeviceGroup.WorkGroupSizes[OCLTransferB][0] * sizeof(int));
 	    
-// 	    clock_gettime( CLOCK_REALTIME, &begin );
+	    clock_gettime( CLOCK_REALTIME, &begin );
 	    
 	    while (processed < mParticMesh->NumberOfNodes())
 	    {	 
@@ -1081,16 +1144,16 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		processed += amount;
 	    }
 	    
-// 	    clock_gettime( CLOCK_REALTIME, &end );
-// 	    
-// 	    std::cout << "MOVE: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
-// 	    
-// 	    clock_gettime( CLOCK_REALTIME, &begin );
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    
+	    std::cout << "MOVE: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
 	    	    //Only copy in last transfer
 	    
 	    ModelPart::NodesContainerType::iterator inode;
 	    
-	    if(copy_data) 
+	    if(!copy_data) 
 	    {
 		mParticlesItr 	 = mParticles;
 		mParticlesVelItr = mParticlesVelocity;
@@ -1130,11 +1193,11 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		}
 	    }
 	    
-// 	    clock_gettime( CLOCK_REALTIME, &end );
-// 	    
-// 	    std::cout << "WBACK: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
-// 	    
-// 	    clock_gettime( CLOCK_REALTIME, &begin );
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    
+	    std::cout << "WBACK: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
     
 	    //Reseed
 	    if(!copy_data) 
@@ -1166,8 +1229,11 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 
 		ModelPart::ElementsContainerType::iterator el_it = mStaticMesh->ElementsBegin();
 		
-		boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
-		boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
+// 		boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
+// 		boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
+
+		boost::numeric::ublas::bounded_matrix<double, 4, 3 > pos;
+		boost::numeric::ublas::bounded_matrix<double, 4, 3 > Nnew;
 
 		int id = (mParticMesh->NodesEnd() - 1)->Id();
 		
@@ -1199,11 +1265,11 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		}
 	    }
 	    
-// 	    clock_gettime( CLOCK_REALTIME, &end );
-// 	    
-// 	    std::cout << "RESE: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
-// 	    
-// 	    clock_gettime( CLOCK_REALTIME, &begin );
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    
+	    std::cout << "RESE: " << "\t\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
 	    
 	    //TransferToEulerianMeshShapeBased
 	    for(int i = 0; i < mNodeSize; i++) 
@@ -1264,11 +1330,11 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		}
 	    }
     
-// 	    clock_gettime( CLOCK_REALTIME, &end );
-// 	    
-// 	    std::cout << "TRANSFER: " << "\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
-// 	    
-// 	    clock_gettime( CLOCK_REALTIME, &begin );
+	    clock_gettime( CLOCK_REALTIME, &end );
+	    
+	    std::cout << "TRANSFER: " << "\t" << ((float)(end.tv_sec - begin.tv_sec) + (float)(end.tv_nsec-begin.tv_nsec)/1000000000) << std::endl;
+	    
+	    clock_gettime( CLOCK_REALTIME, &begin );
 	    
 	    NodeEraseProcess(*mParticMesh).Execute();
 	    
