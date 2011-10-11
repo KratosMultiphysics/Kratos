@@ -108,6 +108,11 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 add_library(KratosStructuralApplication SHARED ${KRATOS_STRUCTURAL_APPLICATION_SOURCES})
 target_link_libraries(KratosStructuralApplication KratosCore )
 set_target_properties(KratosStructuralApplication PROPERTIES PREFIX "")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosStructuralApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosStructuralApplication DESTINATION libs )
 
 
