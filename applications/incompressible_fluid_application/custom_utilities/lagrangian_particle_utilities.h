@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_LAGRANGIAN_PARTICLES_UTILITIES_INCLUDED
 
 #define PRESSURE_ON_EULERIAN_MESH
-
+#define USE_FEW_PARTICLES
 
 // System includes
 #include <string>
@@ -674,11 +674,13 @@ namespace Kratos
                 pnode->FastGetSolutionStepValue(VELOCITY) = node_it->FastGetSolutionStepValue(VELOCITY);
             }
 
-            //                        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
-            //                        boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > N;
+#ifdef USE_FEW_PARTICLES
+                                    boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
+                                    boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > N;
+#else
             boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
             boost::numeric::ublas::bounded_matrix<double, 16, 3 > N;
-
+#endif
             for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
                     el_it != rEulerianModelPart.ElementsEnd(); el_it++)
             {
@@ -786,10 +788,13 @@ namespace Kratos
             NodeEraseProcess(rLagrangianModelPart).Execute();
 
             //now do reseed
-
+#ifdef USE_FEW_PARTICLES
+                                    boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
+                                    boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > Nnew;
+#else
             boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
             boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
-
+#endif
             //if there are less than the number of particles we decide, reseed the element
             for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
                     el_it != rEulerianModelPart.ElementsEnd(); el_it++)
@@ -831,10 +836,23 @@ namespace Kratos
             rCompleteModelPart.Elements() = rEulerianModelPart.Elements();
             rCompleteModelPart.Nodes() = rEulerianModelPart.Nodes();
 
+
+            unsigned int id;
+            if(rEulerianModelPart.Nodes().size()!= 0)
+               id = (rEulerianModelPart.Nodes().end() - 1)->Id() + 1;
+            else
+                id = 1;
+
+            //preallocate the memory needed
+            int tot_nodes = rEulerianModelPart.Nodes().size() + rLagrangianModelPart.Nodes().size();
+            rCompleteModelPart.Nodes().reserve( tot_nodes );
+
+            //note that here we renumber the nodes
             for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
                     node_it != rLagrangianModelPart.NodesEnd(); node_it++)
             {
                 rCompleteModelPart.AddNode(*(node_it.base()));
+                node_it->SetId(id++);
             }
 
             KRATOS_CATCH("");
