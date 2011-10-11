@@ -24,5 +24,8 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 ###############################################################
 add_library(tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES} )
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 target_link_libraries(tetgen m)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 # install(TARGETS tetgen DESTINATION libs )

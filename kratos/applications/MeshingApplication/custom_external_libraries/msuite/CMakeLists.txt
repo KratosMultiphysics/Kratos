@@ -44,5 +44,8 @@ set( MSUITE_SOURCES
 
 ###############################################################
 add_library(msuite STATIC ${MSUITE_SOURCES}  )
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 target_link_libraries(msuite m)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 # install(TARGETS msuite DESTINATION libs )
