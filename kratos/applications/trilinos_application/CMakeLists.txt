@@ -39,5 +39,11 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 add_library(KratosTrilinosApplication SHARED ${KRATOS_TRILINOS_APPLICATION_SOURCES})
 target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} )
 set_target_properties(KratosTrilinosApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosTrilinosApplication DESTINATION libs )
 

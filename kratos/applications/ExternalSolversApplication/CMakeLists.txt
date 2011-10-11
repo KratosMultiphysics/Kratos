@@ -22,5 +22,11 @@ set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES
 add_library(KratosExternalSolversApplication SHARED ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
 target_link_libraries(KratosExternalSolversApplication KratosCore superlu )
 set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 

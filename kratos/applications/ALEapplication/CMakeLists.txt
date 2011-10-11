@@ -21,6 +21,12 @@ set( KRATOS_ALE_APPLICATION_SOURCES
 add_library(KratosALEApplication SHARED ${KRATOS_ALE_APPLICATION_SOURCES})
 target_link_libraries(KratosALEApplication KratosCore )
 set_target_properties(KratosALEApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosALEApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosALEApplication DESTINATION libs )
 
 
