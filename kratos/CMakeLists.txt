@@ -74,6 +74,12 @@ install(TARGETS KratosCore DESTINATION libs )
 add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos KratosCore )
 set_target_properties(Kratos PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(Kratos PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS Kratos DESTINATION libs )
 
 
