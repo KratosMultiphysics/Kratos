@@ -1113,7 +1113,7 @@ namespace Kratos
 
             double h_half = 0.5 * hmax;
             const double s = r / h_half;
-            const double coeff = sigma / pow(h_half, TDim);
+            const double coeff = sigma / pow(h_half, static_cast<int>(TDim));
 
             if (s <= 1.0)
                 return coeff * (1.0 - 1.5 * s * s + 0.75 * s * s * s);
