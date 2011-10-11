@@ -27,5 +27,11 @@ set( KRATOS_MKL_SOLVERS_APPLICATION_SOURCES
 add_library(KratosMKLSolversApplication SHARED ${KRATOS_MKL_SOLVERS_APPLICATION_SOURCES})
 target_link_libraries(KratosMKLSolversApplication KratosCore ${MKLSOLVER_LIBRARIES} )
 set_target_properties(KratosMKLSolversApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosMKLSolversApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosMKLSolversApplication DESTINATION libs )
 

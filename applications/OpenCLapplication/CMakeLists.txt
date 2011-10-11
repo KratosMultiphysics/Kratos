@@ -31,5 +31,11 @@ set( KRATOS_OPENCL_APPLICATION_SOURCES
 add_library(KratosOpenCLApplication SHARED ${KRATOS_OPENCL_APPLICATION_SOURCES})
 target_link_libraries(KratosOpenCLApplication KratosCore ${OPENCL_LIBRARIES} rt )
 set_target_properties(KratosOpenCLApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosOpenCLApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosOpenCLApplication DESTINATION libs )
 

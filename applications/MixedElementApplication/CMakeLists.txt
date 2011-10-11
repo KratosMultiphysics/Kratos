@@ -20,6 +20,12 @@ set( KRATOS_MIXED_ELEMENT_APPLICATION_SOURCES
 add_library(KratosMixedElementApplication SHARED ${KRATOS_MIXED_ELEMENT_APPLICATION_SOURCES})
 target_link_libraries(KratosMixedElementApplication KratosCore )
 set_target_properties(KratosMixedElementApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosMixedElementApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosMixedElementApplication DESTINATION libs )
 
 

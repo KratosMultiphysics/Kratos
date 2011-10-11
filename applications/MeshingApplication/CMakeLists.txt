@@ -33,6 +33,12 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
 target_link_libraries(KratosMeshingApplication KratosCore triangle tetgen msuite  )
 set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

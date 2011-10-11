@@ -25,6 +25,12 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
 add_library(KratosFluidDynamicsApplication SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES})
 target_link_libraries(KratosFluidDynamicsApplication KratosCore )
 set_target_properties(KratosFluidDynamicsApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosFluidDynamicsApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 
 

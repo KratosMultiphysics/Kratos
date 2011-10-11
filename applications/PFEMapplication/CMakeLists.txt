@@ -21,6 +21,12 @@ set( KRATOS_PFEM_APPLICATION_SOURCES
 add_library(KratosPFEMApplication SHARED ${KRATOS_PFEM_APPLICATION_SOURCES})
 target_link_libraries(KratosPFEMApplication KratosCore )
 set_target_properties(KratosPFEMApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosPFEMApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosPFEMApplication DESTINATION libs )
 
 

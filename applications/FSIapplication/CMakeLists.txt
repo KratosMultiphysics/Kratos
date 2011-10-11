@@ -20,6 +20,12 @@ set( KRATOS_FSI_APPLICATION_SOURCES
 add_library(KratosFSIApplication SHARED ${KRATOS_FSI_APPLICATION_SOURCES})
 target_link_libraries(KratosFSIApplication KratosCore )
 set_target_properties(KratosFSIApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosFSIApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosFSIApplication DESTINATION libs )
 
 

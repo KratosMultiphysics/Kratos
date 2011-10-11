@@ -24,5 +24,11 @@ set( KRATOS_METIS_APPLICATION_SOURCES
 add_library(KratosMetisApplication SHARED ${KRATOS_METIS_APPLICATION_SOURCES})
 target_link_libraries(KratosMetisApplication KratosCore ${METIS_LIBRARY} )
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
+
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 install(TARGETS KratosMetisApplication DESTINATION libs )
 
