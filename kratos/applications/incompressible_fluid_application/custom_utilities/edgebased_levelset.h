@@ -2708,7 +2708,7 @@ namespace Kratos {
 
         //parameters controlling the wall law
         bool mWallLawIsActive;
-        bool mY_wall;
+        double mY_wall;
 
         //parameters for controlling the usage of the delta time in the stabilization
         double mstabdt_pressure_factor;
