@@ -306,9 +306,9 @@ __kernel void Move(__global int * IndexCellReference,
 		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
 			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
 	    }
-
-	    barrier(CLK_LOCAL_MEM_FENCE);
-
+// 
+// 	    barrier(CLK_LOCAL_MEM_FENCE);
+// 
 	    if (Found) {
 		eulerian_vel = ((nodesV[triangleIndex.x-1] * fN.x) +
 				(nodesV[triangleIndex.y-1] * fN.y) +
@@ -337,12 +337,12 @@ __kernel void Move(__global int * IndexCellReference,
 
 		point[gid].xyz += eulerian_vel.xyz * small_dt;
 		stp_dis.xyz    += eulerian_vel.xyz * small_dt;
-
+// 
 	    } else {
 		point[gid].w = min(-point[gid].w,point[gid].w);
 	    }
-
-	    barrier(CLK_LOCAL_MEM_FENCE);
+// 
+// 	    barrier(CLK_LOCAL_MEM_FENCE);
 	}
 
 	pointDisplace[gid].xyz += stp_dis.xyz;
