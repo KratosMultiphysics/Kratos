@@ -54,6 +54,9 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 add_library(KratosIncompressibleFluidApplication SHARED ${KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES})
 target_link_libraries(KratosIncompressibleFluidApplication KratosCore )
 set_target_properties(KratosIncompressibleFluidApplication PROPERTIES PREFIX "")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set_target_properties(KratosIncompressibleFluidApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 install(TARGETS KratosIncompressibleFluidApplication DESTINATION libs )
 
 
