@@ -191,10 +191,10 @@ density=fluid_ulf_var.density
 #creating the solvers
 #fluid solver
 
+FSI=0
 
-
-if(SolverType == "Incompressible_Modified_FracStep"):    
-    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
+if(SolverType == "Incompressible_Modified_FracStep"):        
+    solver = ulf_frac.ULF_FSISolver(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, FSI, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, bulk_modulus, density)
     solver.alpha_shape = 1.5#fluid_ulf_var.alpha_shape;
     solver.echo_level = 2;
     
