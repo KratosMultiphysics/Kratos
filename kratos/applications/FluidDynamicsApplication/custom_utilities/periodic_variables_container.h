@@ -48,10 +48,13 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
-    /// A container of Kratos variables.
+    /// A container of Kratos variables used to define a periodic boundary condition.
     /** It can be filled using either Kratos::Variable<double> or
      * array_1d<double,3> components (VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >).
      * It is used by PeriodicCondition to identify the Dofs where the periodic condition applies.
+     * In addition to the list of variables, an algorithmic weight can also be defined. Higher weights imply
+     * a stricter verification of the boundary condition, but produce stiff linear systems, so iterative
+     * linear solvers might not converge.
      * @see PeriodicCondition
      */
     class PeriodicVariablesContainer
@@ -129,6 +132,7 @@ namespace Kratos
         ///@name Operations
         ///@{
 
+        /// Add a scalar variable to the list of variables where periodic conditions will be imposed.
         void Add(DoubleVariableType const& rThisVariable)
         {
             if(rThisVariable.Key()== 0)
@@ -138,6 +142,7 @@ namespace Kratos
             mPeriodicDoubleVars.push_back(&rThisVariable);
         }
 
+        /// Add a component of a vector variable to the list of variables where periodic conditions will be imposed.
         void Add(VariableComponentType const& rThisVariable)
         {
             if(rThisVariable.Key()== 0)
@@ -147,6 +152,7 @@ namespace Kratos
             mPeriodicVarComponents.push_back(&rThisVariable);
         }
 
+        /// Erase all information contained in this object.
         void Clear()
         {
             mPeriodicDoubleVars.clear();
@@ -159,43 +165,58 @@ namespace Kratos
         ///@name Access
         ///@{
 
+        /// Iterator for the list of scalar variables
         DoubleVariablesConstIterator DoubleVariablesBegin() const
         {
             return DoubleVariablesConstIterator( mPeriodicDoubleVars.begin() );
         }
 
+        /// Iterator for the list of scalar variables
         DoubleVariablesConstIterator DoubleVariablesEnd() const
         {
             return DoubleVariablesConstIterator( mPeriodicDoubleVars.end() );
         }
 
+        /// Iterator for the list of vector components
         VariableComponentsConstIterator VariableComponentsBegin() const
         {
             return VariableComponentsConstIterator( mPeriodicVarComponents.begin() );
         }
 
+        /// Iterator for the list of vector components
         VariableComponentsConstIterator VariableComponentsEnd() const
         {
             return VariableComponentsConstIterator( mPeriodicVarComponents.end() );
         }
 
+        /// Total number of periodic variables (including scalars and vector components)
         SizeType size() const
         {
             return mPeriodicDoubleVars.size() + mPeriodicVarComponents.size();
         }
 
+        /** Returns the weights to be used on the diagonal and off diagonal components of the local finite element matrix
+         * used to impose the boundary condition
+         */
         void GetWeights(double& Diag, double& OffDiag) const
         {
             Diag = mDiag;
             OffDiag = mOffDiag;
         }
 
+        /// Define the algorithmic weight for the periodic boundary condition
         void SetSymmetricCondition(const double ThisWeight)
         {
             mDiag = ThisWeight;
             mOffDiag = -ThisWeight;
         }
 
+        /// Define the algorithmic weight for the periodic boundary condition (antimetric version)
+        /**
+          * This function is used to define an antimetric condition, where V_node1 = - V_node2.
+          * If this overload is used, the off-diagonal terms will be given a weight of opposite sign
+          * to achieve this effect.
+          */
         void SetAntimetricCondition(const double ThisWeight)
         {
             mDiag = ThisWeight;
