@@ -97,19 +97,21 @@ namespace Kratos
 
     /// Auxiliary utilitiy to define periodic boundary conditions for flow problems.
     /**
-     * @todo Write new detailed description
-     Create a condition linking node pairs, one in each side of the periodic boundary.
-     This class assumes conformant meshes at both sides of the boundary (that is,
-     pairs of nodes with concordant coordinates on both sides of the periodic
-     boundary). The class works by identifying both "sides" of the periodic boundary,
-     marked by the user with IS_INTERFACE 1.0 or 2.0 respectively, and creating a
-     condition that matches each node on one side to the nearest node to its image
-     on the other side.
-
-     In addition to identifying the boundary, the user must also provide the vector
-     that provides the translation from the IS_INTERFACE 1.0 side to the other with
-     SetShiftTranslation and provide a weight to the penalty function that imposes
-     the periodic condition with SetWeight.
+     * This utility will try to find node pairs where one of the nodes is on one side
+     * of the periodic boundary and the other is its image on the other side. For each
+     * pair, a PeriodicCondition object linking them will be created and appended to the
+     * ModelPart's Conditions.
+     *
+     * This class is used as follows:
+     * - Initialize a PeriodicConditionUtilities, passing the ModelPart containing the nodes
+     * and the domain size.
+     * - Define a spatial search strategy with SetUpSearchStrategy
+     * - Define a periodic boundary with DefinePeriodicBoundary (for the flow problem) or
+     * DefinePeriodicBoundaryViscosity (for the eddy viscosity transport problem.
+     * - Additional periodic boundaries can be defined by calling DefinePeriodicBoundary
+     * again, if the new boundary is identified by the same variable and value (Otherwise,
+     * first set a new search structure with the new variable and value).
+     * @see PeriodicCondition
      */
     class PeriodicConditionUtilities
     {
@@ -148,6 +150,10 @@ namespace Kratos
         ///@{
 
         /// Default constructor.
+        /**
+          * @param ThisModelPart The problem's ModelPart
+          * @param ThisDomainSize The domain size
+          */
         PeriodicConditionUtilities(ModelPart& ThisModelPart,SizeType ThisDomainSize):
             mrModelPart(ThisModelPart),
             mDomainSize(ThisDomainSize),
@@ -169,6 +175,14 @@ namespace Kratos
         ///@name Operations
         ///@{
 
+        /// Set a spatial search structure that will be used to find the periodic boundary node pairs.
+        /**
+          * This function generates a spatial search structure containing all nodes in the periodic
+          * boundary, which will be used to find node pairs. Note that both sides of the periodic
+          * boundary have to be identified with the same value of rFlagVar.
+          * @param rFlagVar The Kratos (double) Variable used to identify the periodic boundary
+          * @param FlagValue The value of Variable rFlagVer used to identify the periodic boundary
+          */
         void SetUpSearchStructure(Variable<double> const& rFlagVar,
                                   const double FlagValue)
         {
@@ -196,6 +210,15 @@ namespace Kratos
         }
 
         /// Generate a set of conditions linking each node in the periodic boundary to its image on the other side.
+        /**
+          * @param MovementRef If TReference == array_1d<double,3>, MovementRef is assumed to be the transaltion
+          * vector between the two sides of the periodic boundary. If TReference == Node<3>, MovementRef is assumed
+          * to be the center of symmetry for node pairs.
+          * @param pProperties Pointer to the properties that will be assigned to new conditions. Note that PeriodicConditon
+          * objects need to have a value for PERIODIC_VARIABLES in their properties.
+          * @param Tolerance Spatial search tolerance. Two nodes will be considered each other's image if the distance
+          * between one and the image of the other is less than this value.
+          */
         template< class TReference >
         void GenerateConditions(const TReference& MovementRef,
                                 Properties::Pointer pProperties,
@@ -284,6 +307,22 @@ namespace Kratos
         }
 
 
+        /// Find node pairs to define periodic boundary conditions.
+        /** This function uses GenerateConditions to find node pairs
+          * where one is the image of the other by the translation
+          * defined by the arguments. The resulting conditions will enforce
+          * equal values of velocity for each node pair.
+          * @param PenaltyWeight The weight of the periodic boundary condition.
+          * This is an algorithmic parameter, higher weights imply a stricter
+          * verification of the boundary condition, but produce stiff linear
+          * systems, so iterative linear solvers might not converge.
+          * @param TranslationX X component of the vector that transforms each
+          * node in one side of the periodic boundary to its image in the other.
+          * @param TranslationY Y component of the vector that transforms each
+          * node in one side of the periodic boundary to its image in the other.
+          * @param TranslationZ Z component of the vector that transforms each
+          * node in one side of the periodic boundary to its image in the other.
+          */
         void DefinePeriodicBoundary(const double PenaltyWeight,
                                     const double TranslationX,
                                     const double TranslationY,
@@ -312,6 +351,8 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
+        /// Define periodic boundary pairs according to a central symmetry.
+        /** @see DefinePeriodicBoundary */
         void DefineCentralSymmetry(const double PenaltyWeight,
                                    const double CentreX,
                                    const double CentreY,
@@ -321,15 +362,13 @@ namespace Kratos
 
              // check that the spatial seach structure was initialized
             if(mpSearchStrategy == 0)
-                KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundary() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
+                KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefineCentralSymmetry() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
 
             const double Tolerance = 1e-4; // Relative tolerance when searching for node pairs
 
-            Node<3> Centre;
-            Centre.Coordinate(0) = CentreX;
-            Centre.Coordinate(1) = CentreY;
-            Centre.Coordinate(2) = CentreZ;
+            std::size_t Id = 1; // throwaway id for the central node (it doesn't matter if it is not unique, as we are not going to put it in a model part)
+            Node<3> Centre(Id,CentreX,CentreY,CentreZ);
 
             Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
             SetPropertiesForVelocity(pNewProperties);
@@ -339,6 +378,11 @@ namespace Kratos
 
             KRATOS_CATCH("")
         }
+
+        /// Define periodic boundary pairs according to a central symmetry.
+        /** The periodic boundary is here used to define an antimetry (V_node1 = - V_node2).
+          * @see DefinePeriodicBoundary
+          */
         void DefineCentralAntimetry(const double PenaltyWeight,
                                     const double CentreX,
                                     const double CentreY,
@@ -348,7 +392,7 @@ namespace Kratos
 
              // check that the spatial seach structure was initialized
             if(mpSearchStrategy == 0)
-                KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundary() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
+                KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefineCentralAntimetry() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
 
             const double Tolerance = 1e-4; // Relative tolerance when searching for node pairs
@@ -365,7 +409,22 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-
+        /// Find node pairs to define periodic boundary conditions (version for the eddy viscosity problem).
+        /** This function uses GenerateConditions to find node pairs
+          * where one is the image of the other by the translation
+          * defined by the arguments. The resulting conditions will enforce
+          * equal values of eddy viscosity for each node pair.
+          * @param PenaltyWeight The weight of the periodic boundary condition.
+          * This is an algorithmic parameter, higher weights imply a stricter
+          * verification of the boundary condition, but produce stiff linear
+          * systems, so iterative linear solvers might not converge.
+          * @param TranslationX X component of the vector that transforms each
+          * node in one side of the periodic boundary to its image in the other.
+          * @param TranslationY Y component of the vector that transforms each
+          * node in one side of the periodic boundary to its image in the other.
+          * @param TranslationZ Z component of the vector that transforms each
+          * node in one side of the periodic boundary to its image in the other.
+          */
         void DefinePeriodicBoundaryViscosity(const double PenaltyWeight,
                                              const double TranslationX,
                                              const double TranslationY,
