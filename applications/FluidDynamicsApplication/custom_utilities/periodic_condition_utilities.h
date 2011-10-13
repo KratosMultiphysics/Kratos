@@ -353,10 +353,8 @@ namespace Kratos
 
             const double Tolerance = 1e-4; // Relative tolerance when searching for node pairs
 
-            Node<3> Centre;
-            Centre.Coordinate(0) = CentreX;
-            Centre.Coordinate(1) = CentreY;
-            Centre.Coordinate(2) = CentreZ;
+            std::size_t Id = 1; // throwaway id for the central node (it doesn't matter if it is not unique, as we are not going to put it in a model part)
+            Node<3> Centre(Id,CentreX,CentreY,CentreZ);
 
             Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
             SetPropertiesForVelocity(pNewProperties);
