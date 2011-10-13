@@ -555,30 +555,30 @@ namespace Kratos
                 ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
                 if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure ->ln423", "");
 
-                if (NumEntries != num_id_entries) KRATOS_ERROR(std::logic_error, "we should have the same number of new_ids and of partition_values", "")
-                    for (Col = 0; Col < NumEntries; ++Col)
+                if (NumEntries != num_id_entries) KRATOS_ERROR(std::logic_error, "we should have the same number of new_ids and of partition_values", "");
+                for (Col = 0; Col < NumEntries; ++Col)
+                {
+                    if (Indices[Col] > Row)
                     {
-                        if (Indices[Col] > Row)
+                        //nodes are to be created only if they are identified by a positive ID
+                        //AND if they both appear in the overlapping map for the current processor
+                        if (id_values[Col] >= 0 && mp_overlapping_map->MyGID(Indices[Col]) == true)
                         {
-                            //nodes are to be created only if they are identified by a positive ID
-                            //AND if they both appear in the overlapping map for the current processor
-                            if (id_values[Col] >= 0 && mp_overlapping_map->MyGID(Indices[Col]) == true)
-                            {
 //if(this_model_part.Nodes().find(id_values[Col])!=this_model_part.Nodes().end())
 //    KRATOS_ERROR(std::logic_error,"node already existing","");
 
-                                List_New_Nodes[k] = id_values[Col];
-                                partition_new_nodes[k] = partition_values[Col];
+                            List_New_Nodes[k] = id_values[Col];
+                            partition_new_nodes[k] = partition_values[Col];
 
-                                father_node_ids[k][0] = GlobalRow + 1;
-                                father_node_ids[k][1] = Indices[Col] + 1; //+1;
+                            father_node_ids[k][0] = GlobalRow + 1;
+                            father_node_ids[k][1] = Indices[Col] + 1; //+1;
 
-                                k++;
-                            }
-                            if (id_values[Col] < -1.5) //at this point every edge to be refined should have an Id!!
-                                KRATOS_ERROR(std::logic_error, "edge to be refined without id assigned", "")
-                            }
+                            k++;
+                        }
+                        if (id_values[Col] < -1.5) //at this point every edge to be refined should have an Id!!
+                            KRATOS_ERROR(std::logic_error, "edge to be refined without id assigned", "")
                     }
+                }
             }
             if (k != int(n_new_nonzeros)) KRATOS_ERROR(std::logic_error, "number of new nodes check failed", "")
 
@@ -1404,7 +1404,7 @@ namespace Kratos
                                     this_model_part.Nodes()(i1),
                                     this_model_part.Nodes()(i2)
                                     );
-                            KRATOS_WATCH("ln1304");
+                            //KRATOS_WATCH("ln1304");
 
                             Condition::Pointer p_Condition;
                             p_Condition = it->Create(current_id, geom, it->pGetProperties());

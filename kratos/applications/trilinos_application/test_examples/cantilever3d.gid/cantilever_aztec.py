@@ -1,5 +1,8 @@
 #importing MPI ... for this boost 1.35 or superior is needed
-import mpi
+try:
+ import boost.mpi as mpi
+except ImportError:
+ import mpi
 print "i am ",mpi.rank , " of ",mpi.size
 
 ##################################################################
