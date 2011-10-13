@@ -21,6 +21,8 @@ VALUE: 2
 STATE: HIDDEN
 QUESTION: FSI
 VALUE: 0
+QUESTION: compute_reactions
+VALUE: 0
 QUESTION: Time_step
 VALUE: 0.01
 QUESTION: max_time
@@ -35,8 +37,6 @@ QUESTION: adaptive_refinement
 VALUE: 0
 QUESTION: delete_nodes_close_to_wall
 VALUE: 1
-QUESTION: lagrangian_nodes_inlet
-VALUE: 0
 QUESTION: bulk_modulus
 VALUE: -1000.0
 QUESTION: density
@@ -53,6 +53,8 @@ QUESTION: bounding_box_corner2_y
 VALUE: 10
 QUESTION: bounding_box_corner2_z
 VALUE: 10
+QUESTION: lagrangian_nodes_inlet
+VALUE: 0
 QUESTION: SolverType#CB#(Quasi_Inc_Constant_Pressure,Quasi_Inc_Linear_Pressure,FracStep,Incompressible_Modified_FracStep)
 VALUE: Incompressible_Modified_FracStep
 END PROBLEM DATA
