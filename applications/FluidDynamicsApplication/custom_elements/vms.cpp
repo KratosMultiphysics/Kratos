@@ -382,7 +382,7 @@ namespace Kratos
     }
 
     /**
-     * Returns the square of the minimum element height, to be used as dilter width in the Smagorinsky model
+     * Returns the square of the minimum element height, to be used as filter width in the Smagorinsky model
      * @see VMS::FilterWidth
      */
     template <>
