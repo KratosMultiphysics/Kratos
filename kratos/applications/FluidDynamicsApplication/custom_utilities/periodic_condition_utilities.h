@@ -330,7 +330,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-             // check that the spatial seach structure was initialized
+            // check that the spatial seach structure was initialized
             if(mpSearchStrategy == 0)
                 KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundary() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
@@ -351,6 +351,32 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
+        void DefinePeriodicBoundaryPressure(const double PenaltyWeight,
+                                            const double TranslationX,
+                                            const double TranslationY,
+                                            const double TranslationZ = 0.0)
+        {
+            KRATOS_TRY;
+
+            // check that the spatial seach structure was initialized
+            if(mpSearchStrategy == 0)
+                KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundaryPressure() called without a spatial search structure. Please call SetUpSearchStructure() first.","");
+
+            const double Tolerance = 1e-4;
+
+            array_1d<double,3> Translation;
+            Translation[0] = TranslationX;
+            Translation[1] = TranslationY;
+            Translation[2] = TranslationZ;
+
+            Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
+            SetPropertiesForPressure(pNewProperties);
+            SetSymmetry(pNewProperties,PenaltyWeight);
+
+            GenerateConditions(Translation,pNewProperties,Tolerance);
+            KRATOS_CATCH("")
+        }
+
         /// Define periodic boundary pairs according to a central symmetry.
         /** @see DefinePeriodicBoundary */
         void DefineCentralSymmetry(const double PenaltyWeight,
@@ -360,7 +386,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-             // check that the spatial seach structure was initialized
+            // check that the spatial seach structure was initialized
             if(mpSearchStrategy == 0)
                 KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefineCentralSymmetry() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
@@ -371,13 +397,14 @@ namespace Kratos
             Node<3> Centre(Id,CentreX,CentreY,CentreZ);
 
             Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
-            SetPropertiesForVelocity(pNewProperties);
+            SetPropertiesForPressure(pNewProperties);
             SetSymmetry(pNewProperties,PenaltyWeight);
 
             GenerateConditions(Centre,pNewProperties,Tolerance);
 
             KRATOS_CATCH("")
         }
+
 
         /// Define periodic boundary pairs according to a central symmetry.
         /** The periodic boundary is here used to define an antimetry (V_node1 = - V_node2).
@@ -390,7 +417,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-             // check that the spatial seach structure was initialized
+            // check that the spatial seach structure was initialized
             if(mpSearchStrategy == 0)
                 KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefineCentralAntimetry() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
@@ -578,8 +605,18 @@ namespace Kratos
             rPeriodicVariables.Add(VELOCITY_X);
             rPeriodicVariables.Add(VELOCITY_Y);
             if(mDomainSize == 3)
+            {
                 rPeriodicVariables.Add(VELOCITY_Z);
+            }
 //            rPeriodicVariables.Add(PRESSURE);
+        }
+
+        void SetPropertiesForPressure(Properties::Pointer pProperties) const
+        {
+            pProperties->GetValue(PERIODIC_VARIABLES) = PeriodicVariablesContainer();
+            PeriodicVariablesContainer& rPeriodicVariables = pProperties->GetValue(PERIODIC_VARIABLES);
+
+            rPeriodicVariables.Add(PRESSURE);
         }
 
         void SetPropertiesForViscosity(Properties::Pointer pProperties) const

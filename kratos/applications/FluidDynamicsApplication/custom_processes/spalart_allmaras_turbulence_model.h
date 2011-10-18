@@ -29,6 +29,9 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "spaces/ublas_space.h"
 
+// Application includes
+#include "custom_utilities/periodic_condition_utilities.h"
+
 namespace Kratos
 {
     ///@addtogroup FluidDynamicsApplication
@@ -252,6 +255,34 @@ namespace Kratos
             }
 
             KRATOS_CATCH("");
+        }
+
+        /// Set periodic boundary conditions on the turbulent viscosity.
+        /** The periodic boundary conditions are applied using a penalty method. Each node is paired
+          * with its image on the other side of the periodic boundary and the difference in value of
+          * TURBULENT_VISCOSITY of the two sides is penalized using a penalty weight given as input.
+          * Note that this requires a mathcing mesh on both sides (in practice the easiest way to achieve
+          * this is to use a structured mesh on the relevant lines/surfaces) and that the choice of weight
+          * has an impact on the solution: the periodic condition is not strictly enforced for small weights,
+          * while large weights result in a stiff linear system which may be difficult to solve.
+          * @see PeriodicConditionUtilities
+          * @param rThisVariable The variable periodic nodes are painted with
+          * @param ThisValue The value of rThisVariable by which the periodic nodes are identified
+          * @param Weight The algorithmic weight used to enforce the periodic conditions.
+          * @param TrX X value of the translation that transforms one of the periodic nodes with its image on the other side
+          * @param TrY Y value of the translation that transforms one of the periodic nodes with its image on the other side
+          * @param TrZ Z value of the translation that transforms one of the periodic nodes with its image on the other side
+          */
+        void SetPeriodicBoundaryCondition(const Variable<double>& rThisVariable,
+                                          const double ThisValue,
+                                          const double Weight,
+                                          const double TrX,
+                                          const double TrY,
+                                          const double TrZ = 0.0)
+        {
+            PeriodicConditionUtilities CondUtils = PeriodicConditionUtilities(mspalart_model_part,mdomain_size);
+            CondUtils.SetUpSearchStructure(rThisVariable,ThisValue);
+            CondUtils.DefinePeriodicBoundaryViscosity(Weight,TrX,TrY,TrZ);
         }
 
 

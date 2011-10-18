@@ -90,6 +90,7 @@ namespace Python
         class_<PeriodicConditionUtilities>("PeriodicConditionUtilities", init<ModelPart&,unsigned int>())
             .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
             .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
+            .def("DefinePeriodicBoundaryPressure",&PeriodicConditionUtilities::DefinePeriodicBoundaryPressure)
             .def("DefineCentralSymmetry",&PeriodicConditionUtilities::DefineCentralSymmetry)
             .def("DefineCentralAntimetry",&PeriodicConditionUtilities::DefineCentralAntimetry)
             ;

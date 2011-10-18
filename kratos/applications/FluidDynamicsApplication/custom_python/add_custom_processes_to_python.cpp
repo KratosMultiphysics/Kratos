@@ -86,6 +86,7 @@ namespace Kratos
                     ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
                     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
                     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
+                    .def("SetPeriodicBoundaryCondition",&SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetPeriodicBoundaryCondition)
                     ;
         }
 
