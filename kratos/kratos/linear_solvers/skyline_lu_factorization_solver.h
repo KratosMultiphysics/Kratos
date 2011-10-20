@@ -520,7 +520,7 @@ namespace Kratos
         //*
         //***************************************************************************************************
             /* bugfix janosch void backForwardSolve(int vector_size, Vector<double>& b, Vector<double>& x) // n, b, x*/
-            void backForwardSolve(int vector_size, VectorType& b, VectorType& x) // n, b, x
+            void backForwardSolve(int vector_size, const VectorType& b, VectorType& x) // n, b, x
             {
 	        // y = L^-1 * perm[b] ;
 	        // y = U^-1 * y ;
