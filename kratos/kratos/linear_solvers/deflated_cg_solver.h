@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
+#include "utilities/deflation_utils.h"
 
 namespace Kratos
 {
@@ -118,17 +119,23 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
-      DeflatedCGSolver() : mSeedPointNo(0) {}
+      DeflatedCGSolver() {}
 
-      DeflatedCGSolver(double NewMaxTolerance, int SeedPointNo) : BaseType(NewMaxTolerance), mSeedPointNo(SeedPointNo) {}
+      DeflatedCGSolver(double NewMaxTolerance, bool assume_constant_structure, int max_reduced_size) : 
+	  BaseType(NewMaxTolerance)
+	  ,massume_constant_structure(assume_constant_structure)
+	  ,mmax_reduced_size(max_reduced_size) {}
 
-      DeflatedCGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, int SeedPointNo) : BaseType(NewMaxTolerance, NewMaxIterationsNumber), mSeedPointNo(SeedPointNo) {}
+      DeflatedCGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, bool assume_constant_structure, int max_reduced_size) : BaseType(NewMaxTolerance, NewMaxIterationsNumber),massume_constant_structure(assume_constant_structure),mmax_reduced_size(max_reduced_size) {}
 
-      DeflatedCGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner, int SeedPointNo) : 
-      BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner), mSeedPointNo(SeedPointNo) {}
+      DeflatedCGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, 
+		       typename TPreconditionerType::Pointer pNewPreconditioner, bool assume_constant_structure, int max_reduced_size) : 
+      BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner)
+      ,massume_constant_structure(assume_constant_structure)
+      ,mmax_reduced_size(max_reduced_size){}
 
       /// Copy constructor.
-      DeflatedCGSolver(const DeflatedCGSolver& Other) : BaseType(Other), mSeedPointNo(Other.mSeedPointNo) {}
+      DeflatedCGSolver(const DeflatedCGSolver& Other) : BaseType(Other) {}
 
 
       /// Destructor.
@@ -143,7 +150,6 @@ namespace Kratos
       DeflatedCGSolver& operator=(const DeflatedCGSolver& Other)
       {
         BaseType::operator=(Other);
-	mSeedPointNo = Other.mSeedPointNo;
 	return *this;
       }
       
@@ -161,19 +167,20 @@ namespace Kratos
       */
       bool Solve(SparseMatrixType& rA, SparseVectorType& rX, SparseVectorType& rB)
 	{
+	  KRATOS_WATCH("entered in solver")
 	  if(this->IsNotConsistent(rA, rX, rB))
 	    return false;
 	  
 // 	  GetTimeTable()->Start(Info());
 
-	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
- 	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
-	  BaseType::GetPreconditioner()->ApplyLeft(rB);
-
+// 	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
+//  	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
+// 	  BaseType::GetPreconditioner()->ApplyLeft(rB);
+KRATOS_WATCH("ln173")
 	  bool is_solved = IterativeSolve(rA,rX,rB);
 
- 	  BaseType::GetPreconditioner()->Finalize(rX);
-
+//  	  BaseType::GetPreconditioner()->Finalize(rX);
+KRATOS_WATCH("ln177")
 // 	  GetTimeTable()->Stop(Info());
 
 	  return is_solved;
@@ -283,9 +290,12 @@ namespace Kratos
       ///@} 
       ///@name Member Variables 
       ///@{ 
+      int mmax_reduced_size;
+      bool massume_constant_structure;
+      std::vector<int> mw;
+      SparseMatrixType mAdeflated;
       
       //typename LinearSolverType::Pointer  mpLinearSolver;
-      int mSeedPointNo;
         
       ///@} 
       ///@name Private Operators
@@ -295,111 +305,27 @@ namespace Kratos
       ///@} 
       ///@name Private Operations
       ///@{ 
-        
+	
+      
       bool IterativeSolve(SparseMatrixType& rA, SparseVectorType& rX, SparseVectorType& rB)
       {
-	const int size1 = TSparseSpaceType::Size(rX);
-	int size2 = size1 / mSeedPointNo;
-	if (size1 % mSeedPointNo != 0) size2++;
+	const int full_size = TSparseSpaceType::Size(rX);
 
-	std::cout << "********** mSeedPointNo = " << mSeedPointNo << std::endl;
-	std::cout << "********** size1 = " << size1 << std::endl;
-	std::cout << "********** size2 = " << size2 << std::endl;
-
-	SparseMatrixType W(size1, size2, size1);
-
-	// Building W
-	TSparseSpaceType::SetToZero(W);
-
-	std::cout << "********** W set to zero!" << std::endl;
-
-	for (int i = 0; i < size2; i++)
-	  for (int j = 0; j < mSeedPointNo; j++)
-	    if (i * mSeedPointNo + j < size1)
-	      W(i * mSeedPointNo + j, i) = 1;
-
-	std::cout << "********** W built!" << std::endl;
-
-	// Use TSparseSpaceType::size_type?
-	std::vector<std::size_t> w(size1);
-
-	// Building w
-	for (int i = 0; i < size2; i++)
-	  for (int j = 0; j < mSeedPointNo; j++)
-	    if (i * mSeedPointNo + j < size1)
-	      w[i * mSeedPointNo + j] = i;
-
-	std::cout << "********** w built!" << std::endl;
-
-	// Non-zero structure of Ah
-	std::vector<std::set<std::size_t> > AhNZ(size2);
-
-	// Loop over non-zero structure of A and build non-zero structure of Ah
-	typename SparseMatrixType::iterator1 a_iterator = rA.begin1();
-
-	for (int i = 0; i < size1; i++)
+	//construct "coloring" structure and fill reduced matrix structure 
+	//note that this has to be done only once if the matrix structure is preserved
+	if(massume_constant_structure == false || mw.size()==0)
 	{
-		#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-		for (typename SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
-		row_iterator != a_iterator.end() ; ++row_iterator) 
-		{
-		#else
-		for (typename SparseMatrixType::iterator2 row_iterator = begin(a_iterator,
-			boost::numeric::ublas::iterator1_tag());
-			row_iterator != end(a_iterator,
-			boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-		{
-		#endif
-			AhNZ[w[a_iterator.index1()]].insert(w[row_iterator.index2()]);
-		}
-
-	   a_iterator++;
+	  std::cout << "constructing the W matrix and the reduced size one" << std::endl;
+	    DeflationUtils::ConstructW(mmax_reduced_size,rA, mw, mAdeflated);
 	}
 
-	std::cout << "********** NZS built!" << std::endl;
+	//fill reduced matrix mmAdeflated
+	DeflationUtils::FillDeflatedMatrix(rA,mw,mAdeflated);
 
-	// Count the number of non-zeros in Ah
-	int NZ = 0;
-	for (int i = 0; i < size2; i++)
-		NZ += AhNZ[i].size();
-
-	std::cout << "********** NZ = " << NZ << std::endl;
-
-	SparseMatrixType Ah(size2, size2, NZ);
-
-	// Insert the non-zero structure into Ah
-	for(int i = 0 ; i < size2 ; i++)
-	{
-		for(std::set<std::size_t>::iterator j = AhNZ[i].begin() ; j != AhNZ[i].end() ; j++)
-		{
-			Ah.push_back(i,*j, 0.00);
-		}
-	}
-
-	// Now building Ah
-	a_iterator = rA.begin1();
-
-	for (int i = 0; i < size1; i++)
-	{
-		#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-		for (typename SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
-		row_iterator != a_iterator.end() ; ++row_iterator) 
-		{
-		#else
-		for (typename SparseMatrixType::iterator2 row_iterator = begin(a_iterator,
-			boost::numeric::ublas::iterator1_tag());
-			row_iterator != end(a_iterator,
-			boost::numeric::ublas::iterator1_tag()); ++row_iterator )
-		{
-		#endif
-			Ah(w[a_iterator.index1()], w[row_iterator.index2()]) += *row_iterator;
-		}
-
-	   a_iterator++;
-	}
+	std::size_t reduced_size = mAdeflated.size1();
 	
-	std::cout << "********** W^T * A * W built!" << std::endl;
-
+	std::cout << "within solver: full size=" << full_size << " reduced_size="<<reduced_size << " deflation factor = " << double(full_size)/double(reduced_size) << std::endl;
+	
 	// To save some time, we do the factorization once, and do the solve several times.
 	// When this is available through the LinearSolver interface, replace this.
 
@@ -407,36 +333,38 @@ namespace Kratos
 
 	//mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<TSparseSpaceType, TDenseSpaceType>);
 
-	Factorization.copyFromCSRMatrix(Ah);
+	Factorization.copyFromCSRMatrix(mAdeflated);
         Factorization.factorize();
 
 	std::cout << "********** Factorization done!" << std::endl;
 
-	SparseVectorType r(size1), t(size1), d(size1), p(size1), q(size1);
-	SparseVectorType th(size2), dh(size2);
+	SparseVectorType r(full_size), t(full_size), d(full_size), p(full_size), q(full_size);
+	SparseVectorType th(reduced_size), dh(reduced_size);
 
 	// r = rA * rX
-	this->PreconditionedMult(rA, rX, r);
+	TSparseSpaceType::Mult(rA, rX, r);
 
 	// r = rB - r
 	TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
 
 	std::cout << "********** ||r|| = " << TSparseSpaceType::TwoNorm(r) << std::endl;
 
-	// th = W^T * r
-	TSparseSpaceType::TransposeMult(W, r, th);
+	// th = W^T * r -> form reduced problem
+	DeflationUtils::ApplyWtranspose(mw,r,th);
+// 	TSparseSpaceType::TransposeMult(W, r, th);
 
-	// Solve Ah * th = dh
-	Factorization.backForwardSolve(size2, th, dh);
+	// Solve mAdeflated * th = dh
+	Factorization.backForwardSolve(reduced_size, th, dh);
 
-	// t = W * dh
-	TSparseSpaceType::Mult(W, dh, t);
+	// t = W * dh -> transfer reduced problem to large scale one
+	DeflationUtils::ApplyW(mw,dh,t);
+// 	TSparseSpaceType::Mult(W, dh, t);
 
 	// rX = rX + t
 	TSparseSpaceType::ScaleAndAdd(1.00, t, 1.00, rX);
 
 	//r = rA * rX
-	this->PreconditionedMult(rA, rX, r);
+	TSparseSpaceType::Mult(rA, rX, r);
 
 	// r = B - r
 	TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
@@ -446,13 +374,15 @@ namespace Kratos
 	this->PreconditionedMult(rA, r, t);
 
 	// th = W^T * t
-	TSparseSpaceType::TransposeMult(W, t, th);
+	DeflationUtils::ApplyWtranspose(mw,t,th);
+	//	TSparseSpaceType::TransposeMult(W, t, th);
 	
-	// Solve Ah * th = dh
-	Factorization.backForwardSolve(size2, th, dh);
+	// Solve mAdeflated * th = dh
+	Factorization.backForwardSolve(reduced_size, th, dh);
 
 	// p = W * dh
-	TSparseSpaceType::Mult(W, dh, p);
+	DeflationUtils::ApplyW(mw,dh,p);
+// 	TSparseSpaceType::Mult(W, dh, p);
 
 	// p = r - p
 	TSparseSpaceType::ScaleAndAdd(1.00, r, -1.00, p);
@@ -466,8 +396,6 @@ namespace Kratos
 	double roh1 = roh0;
 	double beta = 0;
 
-	std::cout << "********** Just before the loop! " << (fabs(roh0) < 1.0e-30) << std::endl;
-
 	if(fabs(roh0) < 1.0e-30) //modification by Riccardo
 //	if(roh0 == 0.00)
 
@@ -475,7 +403,7 @@ namespace Kratos
 	    
 	do
 	  {
-	    this->PreconditionedMult(rA, p, q);
+	    TSparseSpaceType::Mult(rA, p, q);
 
 	    double pq = TSparseSpaceType::Dot(p, q);
 
@@ -496,16 +424,18 @@ namespace Kratos
 
 	    // t = A * r
 	    //TSparseSpaceType::Mult(rA, r, t);
-	    this->PreconditionedMult(rA, r, t);
+	    TSparseSpaceType::Mult(rA, r, t);
 
 	    // th = W^T * t
-	    TSparseSpaceType::TransposeMult(W, t, th);
+	    DeflationUtils::ApplyWtranspose(mw,t,th);
+// 	    TSparseSpaceType::TransposeMult(W, t, th);
 
-	    // Solve Ah * th = dh
-	    Factorization.backForwardSolve(size2, th, dh);
+	    // Solve mAdeflated * th = dh
+	    Factorization.backForwardSolve(reduced_size, th, dh);
 
 	    // t = W * dh
-	    TSparseSpaceType::Mult(W, dh, t);
+	    DeflationUtils::ApplyW(mw,dh,t);
+	    // TSparseSpaceType::Mult(W, dh, t);
 
 	    // t = r - t
 	    TSparseSpaceType::ScaleAndAdd(1.00, r, -1.00, t);
@@ -519,13 +449,16 @@ namespace Kratos
 
 	    BaseType::mIterationsNumber++;
 
-	    if (BaseType::mIterationsNumber % 100 == 0)
+// 	    if (BaseType::mIterationsNumber % 100 == 0)
 	      std::cout << "********** iteration = " << BaseType::mIterationsNumber << ", resnorm = " << BaseType::mResidualNorm << std::endl;
 
 	  } while(BaseType::IterationNeeded() && (fabs(roh0) > 1.0e-30)/*(roh0 != 0.00)*/);
 	  
 	return BaseType::IsConverged();
       }
+      
+      
+      
         
       ///@} 
       ///@name Private  Access 
