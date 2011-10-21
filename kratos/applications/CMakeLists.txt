@@ -72,6 +72,10 @@ if(${CONSTITUTIVE_LAWS_APPLICATION} MATCHES ON)
   add_subdirectory(constitutive_laws_application)
 endif(${CONSTITUTIVE_LAWS_APPLICATION} MATCHES ON)
 
+if(${ULF_APPLICATION} MATCHES ON)
+  add_subdirectory(ULFapplication)
+endif(${ULF_APPLICATION} MATCHES ON)
+
 if(${MKL_SOLVERS_APPLICATION} MATCHES ON)
   add_subdirectory(mkl_solvers_application)
 endif(${MKL_SOLVERS_APPLICATION} MATCHES ON)
