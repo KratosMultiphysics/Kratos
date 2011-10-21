@@ -306,9 +306,7 @@ __kernel void Move(__global int * IndexCellReference,
 		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
 			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
 	    }
-// 
-// 	    barrier(CLK_LOCAL_MEM_FENCE);
-// 
+
 	    if (Found) {
 		eulerian_vel = ((nodesV[triangleIndex.x-1] * fN.x) +
 				(nodesV[triangleIndex.y-1] * fN.y) +
@@ -330,7 +328,7 @@ __kernel void Move(__global int * IndexCellReference,
 
 		int uses = use_eulerian && !subStep;
 
-		pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz    * !uses;
+// 		pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz    * !uses;
 		pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
 
 		pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
@@ -341,8 +339,6 @@ __kernel void Move(__global int * IndexCellReference,
 	    } else {
 		point[gid].w = min(-point[gid].w,point[gid].w);
 	    }
-// 
-// 	    barrier(CLK_LOCAL_MEM_FENCE);
 	}
 
 	pointDisplace[gid].xyz += stp_dis.xyz;
@@ -354,6 +350,10 @@ __kernel void Move(__global int * IndexCellReference,
 	    point[gid].w = min(-point[gid].w,point[gid].w);
 	}
     }
+}
+
+__kernel void resetCounter(__global int * gElementCounter) {
+      gElementCounter[get_global_id(0)] = 0;
 }
 
 __kernel void calculateField(__global int * IndexCellReference,
@@ -369,6 +369,7 @@ __kernel void calculateField(__global int * IndexCellReference,
 		   __global double4 * nodesV,
 		   __global int * gIndex,
 		   __global double4 * gFn,
+		   __global int * gElementCounter,
 		   int size,
 		   __local int * l
 		  )
@@ -408,6 +409,7 @@ __kernel void calculateField(__global int * IndexCellReference,
 
 	    gFn[gid]    = fN * Found;
 	    gIndex[gid] = BinsObjectContainer[l[get_local_id(0)]-1] * Found + -1 * !Found;
+ 	    if(Found) atom_inc(&gElementCounter[BinsObjectContainer[l[get_local_id(0)]-1]]);
 	}
     }
 }
