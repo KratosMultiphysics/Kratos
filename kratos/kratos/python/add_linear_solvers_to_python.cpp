@@ -190,9 +190,9 @@ typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverTy
 		  ;  
 
   class_<DeflatedCGSolverType, DeflatedCGSolverType::Pointer, bases<IterativeSolverType> >("DeflatedCGSolver")
-		  .def(init<double, int>())
-		  .def(init<double, unsigned int, int>())
-		  .def(init<double, unsigned int,  PreconditionerType::Pointer, int>())
+    .def(init<double,bool,int>())
+    .def(init<double, unsigned int,bool,int>())
+    .def(init<double, unsigned int,  PreconditionerType::Pointer,bool,int>())
 // 		  .def(init<double, unsigned int,  PreconditionerType::Pointer, ModelPart::Pointer>())
 		  //.def("",&LinearSolverType::)
 		  .def(self_ns::str(self))
