@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/pointlocation.h"
+#include "utilities/deflation_utils.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
@@ -82,6 +83,14 @@ namespace Kratos
         void AddUtilitiesToPython()
         {
             using namespace boost::python;
+
+	    class_<DeflationUtils>("DeflationUtils", init<>())
+		.def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
+		;
+
+	  class_<NormalCalculationUtils>("NormalCalculationUtils", init<>())
+		.def("CalculateOnSimplex",&NormalCalculationUtils::CalculateOnSimplex)
+		;
 
             class_<VariableUtils > ("VariableUtils", init<>())
                     .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
