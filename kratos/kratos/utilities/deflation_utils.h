@@ -117,9 +117,9 @@ namespace Kratos
     public:
         /**@name Type Definitions */
         /*@{ */
-      typedef typename boost::numeric::ublas::compressed_matrix<double> SparseMatrixType;
+      typedef boost::numeric::ublas::compressed_matrix<double> SparseMatrixType;
   
-      typedef typename boost::numeric::ublas::vector<double> SparseVectorType;
+      typedef boost::numeric::ublas::vector<double> SparseVectorType;
 
         /*@} */
         /**@name Life Cycle 
@@ -178,7 +178,7 @@ namespace Kratos
 
 		//sorting the indices and elminating the duplicates
 		std::sort(indices.begin(),indices.end());
-		typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
+		std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
 
 		indices.erase(new_end,indices.end());
 
@@ -232,12 +232,12 @@ std::cout << "finished" << std::endl;
 	std::vector<std::set<std::size_t> > deflatedANZ(reduced_size);
 
 	// Loop over non-zero structure of A and build non-zero structure of deflatedA
-	typename SparseMatrixType::iterator1 a_iterator = rA.begin1();
+	SparseMatrixType::iterator1 a_iterator = rA.begin1();
 
 	for (int i = 0; i < full_size; i++)
 	{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-		for (typename SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
+		for (SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
 		row_iterator != a_iterator.end() ; ++row_iterator) 
 		{
 		#else
@@ -403,13 +403,13 @@ std::cout << "finished" << std::endl;
 //	TSparseSpaceType::SetToZero(Ah);
 	
 	// Now building Ah
-	typename SparseMatrixType::const_iterator1 a_iterator = rA.begin1();
+	SparseMatrixType::const_iterator1 a_iterator = rA.begin1();
 	std::size_t full_size = rA.size1();
 
 	for (int i = 0; i < full_size; i++)
 	{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
-		for (typename SparseMatrixType::const_iterator2 row_iterator = a_iterator.begin() ;
+		for (SparseMatrixType::const_iterator2 row_iterator = a_iterator.begin() ;
 		row_iterator != a_iterator.end() ; ++row_iterator) 
 		{
 		#else
