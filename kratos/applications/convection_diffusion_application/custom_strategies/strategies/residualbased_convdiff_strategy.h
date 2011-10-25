@@ -201,8 +201,7 @@ namespace Kratos
 					KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
 					
 				
-				if(BaseType::GetModelPart().GetBufferSize() < 3)
-					KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
+				
 					
 				double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 				
@@ -226,10 +225,16 @@ namespace Kratos
 			//second order prediction for the velocity
 			if(mprediction_order == 2)
 			{
+                                if(BaseType::GetModelPart().GetBufferSize() < 3)
+					KRATOS_ERROR(std::logic_error,"insufficient buffer size for second order prediction","")
+                                                
+                                ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+				const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+					
 				for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
 				i != BaseType::GetModelPart().NodesEnd() ; ++i)
 				{
-					i->FastGetSolutionStepValue(TEMPERATURE) = 2.00*i->FastGetSolutionStepValue(TEMPERATURE,1) - i->FastGetSolutionStepValue(TEMPERATURE,2); 
+					i->FastGetSolutionStepValue(rUnknownVar) = 2.00*i->FastGetSolutionStepValue(rUnknownVar,1) - i->FastGetSolutionStepValue(rUnknownVar,2); 
 				}
 				CalculateProjection();
 			}
