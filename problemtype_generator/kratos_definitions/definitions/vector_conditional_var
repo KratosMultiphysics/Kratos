@@ -2,59 +2,59 @@ file	problemtype.bas
 where	*# Conditional Variable blocks
 
 *if(CondNumEntities > 0)
-*# Check if some node has its X value set
+*# Check if some elem has its X value set
 *set var Xset=0
-*loop nodes *OnlyInCond
+*loop elems *OnlyInCond
 *if(cond(<NAME>_X,int)==1)
 *set var Xset=1
 *endif
-*end nodes
+*end elems
 *if(Xset == 1)
 Begin ConditionalData <NAME>_X
-*loop nodes *OnlyInCond
+*loop elems *OnlyInCond
 *if(cond(<NAME>_X,int)==1)
 *format "%i%10.5e"
-*NodesNum *cond(X_Value)
+*operation(ElemsNum-condbase) *cond(X_Value)
 *endif
-*end nodes
+*end elems
 End ConditionalData
 
 *endif
 *#
-*# Check if some node has its Y value set
+*# Check if some elem has its Y value set
 *set var Yset=0
-*loop nodes *OnlyInCond
+*loop elems *OnlyInCond
 *if(cond(<NAME>_Y,int)==1)
 *set var Yset=1
 *endif
-*end nodes
+*end elems
 *if(Yset == 1)
 Begin ConditionalData <NAME>_Y
-*loop nodes *OnlyInCond
+*loop elems *OnlyInCond
 *if(cond(<NAME>_Y,int)==1)
 *format "%i%10.5e"
-*NodesNum *cond(Y_Value)
+*operation(ElemsNum-condbase) *cond(Y_Value)
 *endif
-*end nodes
+*end elems
 End ConditionalData
 
 *endif
 *#
-*# Check if some node has its Z value set
+*# Check if some elem has its Z value set
 *set var Zset=0
-*loop nodes *OnlyInCond
+*loop elems *OnlyInCond
 *if(cond(<NAME>_Z,int)==1)
 *set var Zset=1
 *endif
-*end nodes
+*end elems
 *if(Zset == 1)
 Begin ConditionalData <NAME>_Z
-*loop nodes *OnlyInCond
+*loop elems *OnlyInCond
 *if(cond(<NAME>_Z,int)==1)
 *format "%i%10.5e"
-*NodesNum *cond(Z_Value)
+*operation(ElemsNum-condbase) *cond(Z_Value)
 *endif
-*end nodes
+*end elems
 End ConditionalData
 *endif
 

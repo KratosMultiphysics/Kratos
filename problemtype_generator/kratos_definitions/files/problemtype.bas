@@ -1,3 +1,5 @@
+*# Define a condition index, which will be used to enforce that condition numbering begins from 1
+*set var condbase=-1
 Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
