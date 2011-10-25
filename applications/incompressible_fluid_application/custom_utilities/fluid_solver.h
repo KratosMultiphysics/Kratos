@@ -1267,8 +1267,8 @@ namespace Kratos {
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
             mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes);
 
-            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-            double delta_t = CurrentProcessInfo[DELTA_TIME];
+//            ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+//            double delta_t = CurrentProcessInfo[DELTA_TIME];
 
             CalcVectorType rhs;
 	    rhs.resize(n_nodes);
