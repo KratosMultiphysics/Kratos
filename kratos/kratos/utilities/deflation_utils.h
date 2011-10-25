@@ -147,7 +147,7 @@ namespace Kratos
 	   //first of all build the connectivty matrix
 	   std::vector< std::vector<int> > index_list(rNodes.size());
 
-	  int total_size = 0; 
+	  std::size_t total_size = 0;
 	  
 	  //renumber nodes consecutively
 	  int new_id = 1;
@@ -156,7 +156,7 @@ namespace Kratos
 	  
 
 	  //constructing the system matrix row by row
-	  int index_i;
+	  std::size_t index_i;
 	  for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); 
 		  in!=rNodes.end(); in++)
 	  {
@@ -234,7 +234,7 @@ std::cout << "finished" << std::endl;
 	// Loop over non-zero structure of A and build non-zero structure of deflatedA
 	SparseMatrixType::iterator1 a_iterator = rA.begin1();
 
-	for (int i = 0; i < full_size; i++)
+	for (std::size_t i = 0; i < full_size; i++)
 	{
 				#ifndef BOOST_UBLAS_NO_NESTED_CLASS_RELATION
 		for (SparseMatrixType::iterator2 row_iterator = a_iterator.begin() ;
@@ -256,15 +256,15 @@ std::cout << "finished" << std::endl;
 	std::cout << "********** NZS built!" << std::endl;
 
 	// Count the number of non-zeros in deflatedA
-	int NZ = 0;
-	for (int i = 0; i < reduced_size; i++)
+	std::size_t NZ = 0;
+	for (std::size_t i = 0; i < reduced_size; i++)
 		NZ += deflatedANZ[i].size();
 
 	std::cout << "********** NZ = " << NZ << std::endl;
 	deflatedA.resize(reduced_size, reduced_size,NZ);
 
 	// Insert the non-zero structure into deflatedA
-	for(int i = 0 ; i < reduced_size ; i++)
+	for(std::size_t i = 0 ; i < reduced_size ; i++)
 	{
 		for(std::set<std::size_t>::iterator j = deflatedANZ[i].begin() ; j != deflatedANZ[i].end() ; j++)
 		{
@@ -359,7 +359,7 @@ std::cout << "finished" << std::endl;
       static void ApplyW(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
 	{
 	  #pragma omp parallel for
-	  for(unsigned int i=0; i<w.size(); i++)
+	  for(int i=0; i<w.size(); i++)
 	  {
 	    y[i] = x[w[i]];
 	  }
@@ -374,12 +374,12 @@ std::cout << "finished" << std::endl;
 	{
 	  //first set to zero the destination vector
 	  #pragma omp parallel for
-	  for(unsigned int i=0; i<y.size(); i++)
+	  for(int i=0; i<y.size(); i++)
 	    y[i] = 0.0;
 	  
 	  //now apply the Wtranspose
 	  #pragma omp parallel for
-	  for(unsigned int i=0; i<w.size(); i++)
+	  for(int i=0; i<w.size(); i++)
 	  {
 	    #pragma omp atomic
 	    y[w[i]] += x[i];
