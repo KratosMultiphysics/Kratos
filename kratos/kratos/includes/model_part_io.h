@@ -478,9 +478,9 @@ namespace Kratos
 	    else if(word == "NodalData")
 	      DivideNodalDataBlock(output_files, NodesAllPartitions);
 	    else if(word == "ElementalData")
-	      DivideElementalDataBlock(output_files, NodesAllPartitions);
+	      DivideElementalDataBlock(output_files, ElementsAllPartitions);
 	    else if(word == "ConditionalData")
-	      DivideConditionalDataBlock(output_files, NodesAllPartitions);
+	      DivideConditionalDataBlock(output_files, ConditionsAllPartitions);
 	    
 	  }
 	  
