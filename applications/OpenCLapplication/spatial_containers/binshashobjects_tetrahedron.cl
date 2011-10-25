@@ -13,6 +13,13 @@
 #pragma OPENCL EXTENSION cl_khr_global_int32_extended_atomics : enable
 #pragma OPENCL EXTENSION cl_khr_local_int32_extended_atomics : enable
 
+// #ifndef NVIDIA
+
+	#pragma OPENCL EXTENSION cl_nv_compiler_options : enable
+	#pragma OPENCL EXTENSION cl_nv_pragma_unroll : enable
+
+// #endif
+
 #include "opencl_operations.cl"
 
 /////////////////////////////////////////////////////////
@@ -253,102 +260,108 @@ __kernel void Move(__global int * IndexCellReference,
 		   __global double4 * nodesF,
 		   __global double4 * nodesP,
 		   __global double4 * body_force,
-		   double density,
-		   double dt,
+		   double idensity,
+		   double small_dt,
 		   double subSteps,
 		   int use_eulerian,
 		   int size,
 		   __global double4 * pointVelocityOld,
-		   __global int * gIndex,
-		   __local int * l
+		   __global double4 * pointDisplaceOld
+// 		   __local int * l
 		  )
 {
 
       int gid = get_global_id(0);
 
-      if (gid < size) 
+      int4 triangleIndex = 0;
+
+      double4 fN;
+      double4 eulerian_vel = (double4)(0.0,0.0,0.0,0.0);
+      double4 stp_dis      = (double4)(0.0,0.0,0.0,0.0);
+      double4 pointAcceleration;
+
+      pointVelocityOld[gid] = pointVelocity[gid];
+      pointDisplaceOld[gid] = pointDisplace[gid];
+      point[gid].xyz += pointDisplace[gid].xyz;
+
+      for(int subStep = 0; subStep < subSteps; subStep++)
       {
+	int index = calculateIndex(point[gid],N,MinPoint,InvCellSize);
+		    
+	int loIndex = IndexCellReference[index+1];
+	int hiIndex = IndexCellReference[index+2];
 
-	  double small_dt = dt / subSteps;
-	  double density_inverse = 1 / density;
+	int Found = 0;
 
-	  int4 triangleIndex = 0;
+	#pragma unroll 2
+	for(int l = loIndex; !Found && (l < hiIndex ); l++) 
+	{
+	    triangleIndex = Triangles[BinsObjectContainer[l]];
 
-	  double4 fN;
-	  double4 eulerian_vel = (double4)(0.0,0.0,0.0,0.0);
-	  double4 stp_dis      = (double4)(0.0,0.0,0.0,0.0);
-	  double4 pointAcceleration;
+	    fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
+				      PointsTriangle[triangleIndex.y-1],
+				      PointsTriangle[triangleIndex.z-1],
+// 				         PointsTriangle[triangleIndex.w-1],
+				      point[gid]);
 
-	  pointVelocityOld[gid] = pointVelocity[gid];
-	  point[gid].xyz += pointDisplace[gid].xyz;
-
-	  l[get_local_id(0)] = -1;
-
-	  for(int subStep = 0; subStep < subSteps; subStep++)
-	  {
-	    int index = calculateIndex(point[gid],N,MinPoint,InvCellSize);
-			
-	    int loIndex = IndexCellReference[index+1];
-	    int hiIndex = IndexCellReference[index+2];
-
-	    int Found = 0;
-
-	    for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex ); l[get_local_id(0)]++) 
-	    {
-		triangleIndex = Triangles[(int)BinsObjectContainer[l[get_local_id(0)]]];
-
-		fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
-					 PointsTriangle[triangleIndex.y-1],
-					 PointsTriangle[triangleIndex.z-1],
-    // 				         PointsTriangle[triangleIndex.w-1],
-					 point[gid]);
-
-		Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
-			fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
-	    }
-
-	    if (Found) {
-		eulerian_vel = ((nodesV[triangleIndex.x-1] * fN.x) +
-				(nodesV[triangleIndex.y-1] * fN.y) +
-				(nodesV[triangleIndex.z-1] * fN.z));
-
-		fN *= density_inverse;
-
-		pointAcceleration = body_force[0];
-		pointAcceleration -= fN.x * nodesP[triangleIndex.x-1];
-		pointAcceleration -= fN.y * nodesP[triangleIndex.y-1];
-		pointAcceleration -= fN.z * nodesP[triangleIndex.z-1];
-
-		pointForce[gid] = (double4)(0.0,0.0,0.0,0.0);
-		pointForce[gid] += fN.x * nodesF[triangleIndex.x-1];
-		pointForce[gid] += fN.y * nodesF[triangleIndex.y-1];
-		pointForce[gid] += fN.z * nodesF[triangleIndex.z-1];
-
-		pointAcceleration += pointForce[gid];
-
-		int uses = use_eulerian && !subStep;
-
-// 		pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz    * !uses;
-		pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
-
-		pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
-
-		point[gid].xyz += eulerian_vel.xyz * small_dt;
-		stp_dis.xyz    += eulerian_vel.xyz * small_dt;
-// 
-	    } else {
-		point[gid].w = min(-point[gid].w,point[gid].w);
-	    }
+	    Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
+		    fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
 	}
 
-	pointDisplace[gid].xyz += stp_dis.xyz;
+	if (Found) {
+	    eulerian_vel = ((nodesV[triangleIndex.x-1] * fN.x) +
+			    (nodesV[triangleIndex.y-1] * fN.y) +
+			    (nodesV[triangleIndex.z-1] * fN.z));
 
-	double norm_d = sqrt((stp_dis.x * stp_dis.x) + (stp_dis.y * stp_dis.y));
-	double norm_v = sqrt((pointVelocityOld[gid].x * pointVelocityOld[gid].x) + (pointVelocityOld[gid].y * pointVelocityOld[gid].y));
+	    fN *= idensity;
 
-	if(norm_d*10.0 < norm_v*dt) {
+	    pointAcceleration = body_force[0];
+	    pointAcceleration -= fN.x * nodesP[triangleIndex.x-1];
+	    pointAcceleration -= fN.y * nodesP[triangleIndex.y-1];
+	    pointAcceleration -= fN.z * nodesP[triangleIndex.z-1];
+
+	    pointForce[gid] = (double4)(0.0,0.0,0.0,0.0);
+	    pointForce[gid] += fN.x * nodesF[triangleIndex.x-1];
+	    pointForce[gid] += fN.y * nodesF[triangleIndex.y-1];
+	    pointForce[gid] += fN.z * nodesF[triangleIndex.z-1];
+
+	    pointAcceleration += pointForce[gid];
+
+	    int uses = use_eulerian && !subStep;
+
+	    pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz    * !uses;
+	    pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
+
+	    pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
+
+	    point[gid].xyz += eulerian_vel.xyz * small_dt;
+	    stp_dis.xyz    += eulerian_vel.xyz * small_dt;
+// 
+	} else {
 	    point[gid].w = min(-point[gid].w,point[gid].w);
 	}
+    }
+
+    pointDisplace[gid].xyz += stp_dis.xyz;	
+}
+
+__kernel void Move2(__global double4 * point,
+		    __global double4 * pointVelocity,
+		    __global double4 * pointDisplace,
+		    __global double4 * pointVelocityOld,
+		    __global double4 * pointDisplaceOld,
+		    double dt
+		   )
+{
+    int gid = get_global_id(0);
+
+    double4 stp_dis = pointDisplace[gid] - pointDisplaceOld[gid];
+
+    double norm_d = sqrt((stp_dis.x * stp_dis.x) + (stp_dis.y * stp_dis.y));
+    double norm_v = sqrt((pointVelocityOld[gid].x * pointVelocityOld[gid].x) + (pointVelocityOld[gid].y * pointVelocityOld[gid].y));
+
+    if(norm_d*10.0 < norm_v*dt) {
+	point[gid].w = min(-point[gid].w,point[gid].w);
     }
 }
 
@@ -369,7 +382,7 @@ __kernel void calculateField(__global int * IndexCellReference,
 		   __global double4 * nodesV,
 		   __global int * gIndex,
 		   __global double4 * gFn,
-		   __global int * gElementCounter,
+// 		   __global int * gElementCounter,
 		   int size,
 		   __local int * l
 		  )
@@ -395,7 +408,7 @@ __kernel void calculateField(__global int * IndexCellReference,
 
 	    for(l[get_local_id(0)] = loIndex; !Found && (l[get_local_id(0)] < hiIndex); l[get_local_id(0)]++) 
 	    {
-		triangleIndex = Triangles[(int)BinsObjectContainer[l[get_local_id(0)]]];
+		triangleIndex = Triangles[BinsObjectContainer[l[get_local_id(0)]]];
 
 		fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
 					 PointsTriangle[triangleIndex.y-1],
@@ -408,8 +421,8 @@ __kernel void calculateField(__global int * IndexCellReference,
 	    }
 
 	    gFn[gid]    = fN * Found;
-	    gIndex[gid] = BinsObjectContainer[l[get_local_id(0)]-1] * Found + -1 * !Found;
- 	    if(Found) atom_inc(&gElementCounter[BinsObjectContainer[l[get_local_id(0)]-1]]);
+	    int lindex = BinsObjectContainer[l[get_local_id(0)]-1] * Found + -1 * !Found;
+	    gIndex[gid] = lindex;
 	}
     }
 }
