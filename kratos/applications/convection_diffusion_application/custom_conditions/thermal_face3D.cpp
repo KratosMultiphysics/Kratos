@@ -142,7 +142,7 @@ namespace Kratos
 		const double C0 = GetGeometry()[0].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
 		const double C1 = GetGeometry()[1].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
 		const double C2 = GetGeometry()[2].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
-		double C=0.333333333333*(C0+C1+C2);
+//		double C=0.333333333333*(C0+C1+C2);
 
 		if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 		{
