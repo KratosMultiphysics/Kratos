@@ -2082,7 +2082,7 @@ namespace Kratos
     }
 
 
-    void DivideConditionalDataBlock(OutputFilesContainerType& OutputFiles, 
+    void DivideElementalDataBlock(OutputFilesContainerType& OutputFiles,
 			      PartitionIndicesContainerType const& ElementsAllPartitions)
     {
       KRATOS_TRY
@@ -2188,12 +2188,11 @@ namespace Kratos
     }
 
 
-    void DivideElementalDataBlock(OutputFilesContainerType& OutputFiles, 
+    void DivideConditionalDataBlock(OutputFilesContainerType& OutputFiles,
 			      PartitionIndicesContainerType const& ConditionsAllPartitions)
     {
       KRATOS_TRY
       
-      KRATOS_WATCH("DivideElementalDataBlock start")
 
       typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
@@ -2241,8 +2240,7 @@ namespace Kratos
 
       WriteInAllFiles(OutputFiles, "End ConditionalData\n");
       
-      KRATOS_WATCH("DivideElementalDataBlock completed")
-
+ 
       KRATOS_CATCH("")
     }
 
