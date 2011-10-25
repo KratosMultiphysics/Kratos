@@ -421,7 +421,7 @@ namespace Kratos
                                         noalias(auxiliary_dist) = geom[k].Coordinates();
                                         noalias(auxiliary_dist) -= geom[j].Coordinates();
                                         array_1d<double, 3 > proj = geom[j].FastGetSolutionStepValue(rProjVar);
-                                        double deltap = inner_prod(auxiliary_dist, proj);
+//                                        double deltap = inner_prod(auxiliary_dist, proj);
                                         peff += geom[j].FastGetSolutionStepValue(rPressureVar);
                                         counter += 1.0;
                                     }
