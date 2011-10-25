@@ -5,8 +5,8 @@ where	*# Conditional Variable blocks
 Begin ConditionalData <NAME>
 *loop elems *OnlyInCond
 *format "%i%10.5e"
-*ElemsNum *cond(<NAME>)
-*end nodes
+*operation(ElemsNum-condbase) *cond(<NAME>)
+*end elems
 End ConditionalData
 
 *endif

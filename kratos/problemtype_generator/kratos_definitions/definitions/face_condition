@@ -7,8 +7,14 @@ Begin Conditions <NAME>
 *loop elems *OnlyInCond
 *Set var i=0
 *set var j= ElemsNnode
+*# Note that we renumber conditions to ensure they start from 1 (instead of from num_elements + 1)
+*# To achieve this, the first time condition blocks are written, a base id is stored and substracted from all condition indices and conditional data
+*# The variable condbase is initialized to -1 in the problemtype.bas file
+*if(condbase == -1)
+*set var condbase=operation(ElemsNum-1)
+*endif
 *format "%i%i%i%i%i%i%i%i"
-*ElemsNum *ElemsMat*\
+*operation(ElemsNum-condbase) *ElemsMat*\
 *for(i=1;i<=j;i=i+1)*\
 	*ElemsConec(*i)*\
 *end
