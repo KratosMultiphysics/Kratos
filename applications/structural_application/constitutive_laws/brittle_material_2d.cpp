@@ -181,7 +181,7 @@ namespace Kratos
 	  mlength                  = geom.Length();
 	  //mfailurefactor           = 0.00;
 	  
-          double Gc           = (*mpProperties)[CRUSHING_ENERGY]/mlength;
+//          double Gc           = (*mpProperties)[CRUSHING_ENERGY]/mlength;
           //double length_limit = 2.00*mE*Gc/((*mpProperties)[FC]*(*mpProperties)[FC]);       
           //if (length_limit<mlength) {KRATOS_ERROR(std::logic_error, "Element length greater than permitted" , ""); }          
           mpFluencyCriteria->InitializeMaterial(*mpProperties);
