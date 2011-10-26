@@ -82,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/convergencecriterias/vel_pr_criteria.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_strategy.h"
 #include "custom_strategies/strategies/runge_kutta_fracstep_GLS_comp_strategy.h"
+#include "custom_strategies/strategies/fracstep_GLS_strategy.h"
 #include "custom_strategies/strategies/newton_raphson_strategy.h"
 //#include "custom_strategies/convergencecriterias/UP_criteria_particle.h"
 //builder and solvers
@@ -343,6 +344,20 @@ namespace Kratos
                     .def("SolveStep2", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
                     .def("SolveStep3", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
                     .def("Clear", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
+
+
+	class_< FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >,
+
+                    bases< BaseSolvingStrategyType >, boost::noncopyable >
+                    ("FracStepStrategy2D",
+                    init < ModelPart&, LinearSolverType::Pointer,
+                    bool, bool, bool
+                    >())
+                    .def("SolveStep1", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
+                    .def("SolveStep2", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+                    .def("SolveStep3", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+                    .def("Clear", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
+
 
             //********************************************************************************************
 
