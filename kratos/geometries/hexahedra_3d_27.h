@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: nelson $
 //   Date:                $Date: 2009-01-21 09:56:09 $
 //   Revision:            $Revision: 1.15 $
@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 
 // External includes
-#include <boost/array.hpp> 
+#include <boost/array.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -67,137 +67,138 @@ namespace Kratos
 {
     /**
      * A twenty-seven node hexahedra geometry with second order shape functions
-     */ 
+     */
+
     template<class TPointType> class Hexahedra3D27 : public Geometry<TPointType>
     {
         public:
             /**
              * Type Definitions
              */
-            
+
             /**
              * Geometry as base class.
              */
             typedef Geometry<TPointType> BaseType;
-            
+
             /**
              * Type of edge and face geometries
              */
             typedef Line3D3<TPointType> EdgeType;
             typedef Quadrilateral3D9<TPointType> FaceType;
-            
+
             /**
              * Pointer definition of Hexahedra3D27
              */
-            KRATOS_CLASS_POINTER_DEFINITION(Hexahedra3D27);
-  
-            /** 
-             * Integration methods implemented in geometry. 
+            KRATOS_CLASS_POINTER_DEFINITION( Hexahedra3D27 );
+
+            /**
+             * Integration methods implemented in geometry.
              */
             typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-            /** 
+            /**
              * A Vector of counted pointers to Geometries. Used for
              * returning edges of the geometry.
              */
             typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
-      
-            /** 
+
+            /**
              * Redefinition of template parameter TPointType.
              */
             typedef TPointType PointType;
-      
-            /** 
+
+            /**
              * Type used for indexing in geometry class.std::size_t used for indexing
              * point or integration point access methods and also all other
              * methods which need point or integration point index.
              */
             typedef typename BaseType::IndexType IndexType;
-      
-      
-            /** 
+
+
+            /**
              * This typed used to return size or dimension in
              * geometry. Dimension, WorkingDimension, PointsNumber and
              * ... return this type as their results.
              */
             typedef typename BaseType::SizeType SizeType;
-      
-            /** 
+
+            /**
              * Array of counted pointers to point. This type used to hold
              * geometry's points.
              */
             typedef typename BaseType::PointsArrayType PointsArrayType;
-      
-            /** 
+
+            /**
              * This type used for representing an integration point in
              * geometry. This integration point is a point with an
              * additional weight component.
              */
             typedef typename BaseType::IntegrationPointType IntegrationPointType;
-      
-            /** 
+
+            /**
              * A Vector of IntegrationPointType which used to hold
              * integration points related to an integration
              * method. IntegrationPoints functions used this type to return
              * their results.
              */
             typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-      
-            /** 
+
+            /**
              * A Vector of IntegrationPointsArrayType which used to hold
              * integration points related to different integration method
              * implemented in geometry.
              */
             typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
-      
-            /** 
+
+            /**
              * A third order tensor used as shape functions' values
              * container.
              */
             typedef typename BaseType::ShapeFunctionsValuesContainerType
-                    ShapeFunctionsValuesContainerType;
-      
+            ShapeFunctionsValuesContainerType;
+
             /**
              * A fourth order tensor used as shape functions' local
              * gradients container in geometry.
              */
-            typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType 
-                    ShapeFunctionsLocalGradientsContainerType;
-      
+            typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType
+            ShapeFunctionsLocalGradientsContainerType;
+
             /**
              * A third order tensor to hold jacobian matrices evaluated at
              * integration points. Jacobian and InverseOfJacobian functions
              * return this type as their result.
              */
             typedef typename BaseType::JacobiansType JacobiansType;
-      
-            /** 
+
+            /**
              * A third order tensor to hold shape functions' local
              * gradients. ShapefunctionsLocalGradients function return this
              * type as its result.
              */
             typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-      
-            /** 
+
+            /**
              * Type of the normal vector used for normal to edges in geomety.
              */
             typedef typename BaseType::NormalType NormalType;
-            
-			/**
-			 * Type of coordinates array
-			 */
-			typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
-			
+
+            /**
+             * Type of coordinates array
+             */
+            typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+
             /**
              * Type of Matrix
              */
             typedef Matrix MatrixType;
-            
-            
+
+
             /**
-             * Life Cycle 
+             * Life Cycle
              */
-            
+
             Hexahedra3D27( const PointType& Point1, const PointType& Point2, const PointType& Point3,
                            const PointType& Point4, const PointType& Point5, const PointType& Point6,
                            const PointType& Point7, const PointType& Point8, const PointType& Point9,
@@ -207,40 +208,40 @@ namespace Kratos
                            const PointType& Point19, const PointType& Point20, const PointType& Point21,
                            const PointType& Point22, const PointType& Point23, const PointType& Point24,
                            const PointType& Point25, const PointType& Point26, const PointType& Point27
-                         ) 
-            : BaseType(PointsArrayType(), &msGeometryData)
+                         )
+                    : BaseType( PointsArrayType(), &msGeometryData )
             {
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point1)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point2)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point3)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point4)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point5)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point6)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point7)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point8)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point9)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point10)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point11)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point12)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point13)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point14)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point15)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point16)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point17)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point18)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point19)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point20)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point21)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point22)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point23)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point24)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point25)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point26)));
-                this->Points().push_back(typename PointType::Pointer(new PointType(Point27)));
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point1 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point2 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point3 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point4 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point5 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point6 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point7 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point8 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point9 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point10 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point11 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point12 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point13 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point14 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point15 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point16 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point17 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point18 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point19 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point20 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point21 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point22 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point23 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point24 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point25 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point26 ) ) );
+                this->Points().push_back( typename PointType::Pointer( new PointType( Point27 ) ) );
             }
-                 
-            Hexahedra3D27( typename PointType::Pointer pPoint1, 
-                           typename PointType::Pointer pPoint2, 
+
+            Hexahedra3D27( typename PointType::Pointer pPoint1,
+                           typename PointType::Pointer pPoint2,
                            typename PointType::Pointer pPoint3,
                            typename PointType::Pointer pPoint4,
                            typename PointType::Pointer pPoint5,
@@ -265,171 +266,180 @@ namespace Kratos
                            typename PointType::Pointer pPoint24,
                            typename PointType::Pointer pPoint25,
                            typename PointType::Pointer pPoint26,
-                           typename PointType::Pointer pPoint27) 
-            : BaseType(PointsArrayType(), &msGeometryData)
+                           typename PointType::Pointer pPoint27 )
+                    : BaseType( PointsArrayType(), &msGeometryData )
             {
-                this->Points().push_back(pPoint1);
-                this->Points().push_back(pPoint2);
-                this->Points().push_back(pPoint3);
-                this->Points().push_back(pPoint4);
-                this->Points().push_back(pPoint5);
-                this->Points().push_back(pPoint6);
-                this->Points().push_back(pPoint7);
-                this->Points().push_back(pPoint8);
-                this->Points().push_back(pPoint9);
-                this->Points().push_back(pPoint10);
-                this->Points().push_back(pPoint11);
-                this->Points().push_back(pPoint12);
-                this->Points().push_back(pPoint13);
-                this->Points().push_back(pPoint14);
-                this->Points().push_back(pPoint15);
-                this->Points().push_back(pPoint16);
-                this->Points().push_back(pPoint17);
-                this->Points().push_back(pPoint18);
-                this->Points().push_back(pPoint19);
-                this->Points().push_back(pPoint20);
-                this->Points().push_back(pPoint21);
-                this->Points().push_back(pPoint22);
-                this->Points().push_back(pPoint23);
-                this->Points().push_back(pPoint24);
-                this->Points().push_back(pPoint25);
-                this->Points().push_back(pPoint26);
-                this->Points().push_back(pPoint27);
+                this->Points().push_back( pPoint1 );
+                this->Points().push_back( pPoint2 );
+                this->Points().push_back( pPoint3 );
+                this->Points().push_back( pPoint4 );
+                this->Points().push_back( pPoint5 );
+                this->Points().push_back( pPoint6 );
+                this->Points().push_back( pPoint7 );
+                this->Points().push_back( pPoint8 );
+                this->Points().push_back( pPoint9 );
+                this->Points().push_back( pPoint10 );
+                this->Points().push_back( pPoint11 );
+                this->Points().push_back( pPoint12 );
+                this->Points().push_back( pPoint13 );
+                this->Points().push_back( pPoint14 );
+                this->Points().push_back( pPoint15 );
+                this->Points().push_back( pPoint16 );
+                this->Points().push_back( pPoint17 );
+                this->Points().push_back( pPoint18 );
+                this->Points().push_back( pPoint19 );
+                this->Points().push_back( pPoint20 );
+                this->Points().push_back( pPoint21 );
+                this->Points().push_back( pPoint22 );
+                this->Points().push_back( pPoint23 );
+                this->Points().push_back( pPoint24 );
+                this->Points().push_back( pPoint25 );
+                this->Points().push_back( pPoint26 );
+                this->Points().push_back( pPoint27 );
             }
-                 
-            Hexahedra3D27( const PointsArrayType& ThisPoints)
-            : BaseType(ThisPoints, &msGeometryData)
+
+            Hexahedra3D27( const PointsArrayType& ThisPoints )
+                    : BaseType( ThisPoints, &msGeometryData )
             {
-                if( this->PointsNumber() != 27) 
-                    KRATOS_ERROR(std::invalid_argument, 
-                                 "Invalid points number. Expected 27, given " , 
-                                 this->PointsNumber());
+                if ( this->PointsNumber() != 27 )
+                    KRATOS_ERROR( std::invalid_argument,
+                                  "Invalid points number. Expected 27, given " ,
+                                  this->PointsNumber() );
             }
 
             /**
-             * Copy constructor. 
+             * Copy constructor.
              * Construct this geometry as a copy of given geometry.
-             * 
+             *
              * @note This copy constructor don't copy the points and new
              * geometry shares points with given source geometry. It's
              * obvious that any change to this new geometry's point affect
              * source geometry's points too.
              */
-            Hexahedra3D27(Hexahedra3D27 const& rOther)
-            : BaseType(rOther)
+            Hexahedra3D27( Hexahedra3D27 const& rOther )
+                    : BaseType( rOther )
             {
             }
 
-            /** 
+            /**
              * Copy constructor from a geometry with other point type.
              * Construct this geometry as a copy of given geometry which
              * has different type of points. The given goemetry's
              * TOtherPointType* must be implicity convertible to this
              * geometry PointType.
-             * 
+             *
              * @note This copy constructor don't copy the points and new
              * geometry shares points with given source geometry. It's
              * obvious that any change to this new geometry's point affect
              * source geometry's points too.
              */
-            template<class TOtherPointType> Hexahedra3D27(Hexahedra3D27<TOtherPointType> const& rOther)
-            : BaseType(rOther)
+            template<class TOtherPointType> Hexahedra3D27( Hexahedra3D27<TOtherPointType> const& rOther )
+                    : BaseType( rOther )
             {
             }
 
             /// Destructor. Does nothing!!!
-            virtual ~Hexahedra3D27(){}
-            
-	    GeometryData::KratosGeometryFamily GetGeometryFamily(){return GeometryData::Kratos_Hexahedra; }
-	    GeometryData::KratosGeometryType GetGeometryType(){return GeometryData::Kratos_Hexahedra3D27; }
-            
+            virtual ~Hexahedra3D27() {}
+
+            GeometryData::KratosGeometryFamily GetGeometryFamily() {return GeometryData::Kratos_Hexahedra; }
+
+            GeometryData::KratosGeometryType GetGeometryType() {return GeometryData::Kratos_Hexahedra3D27; }
+
             /**
-             * Operators 
+             * Operators
              */
-            
-            /** 
+
+            /**
              * Assignment operator.
-             * 
+             *
              * @note This operator don't copy the points and this
              * geometry shares points with given source geometry. It's
              * obvious that any change to this geometry's point affect
              * source geometry's points too.
-             * 
+             *
              * @see Clone
              * @see ClonePoints
              */
-            Hexahedra3D27& operator=(const Hexahedra3D27& rOther)
+            Hexahedra3D27& operator=( const Hexahedra3D27& rOther )
             {
-                BaseType::operator=(rOther);
+                BaseType::operator=( rOther );
                 return *this;
             }
 
-            /** 
+            /**
              * Assignment operator for geometries with different point type.
-             * 
+             *
              * @note This operator don't copy the points and this
              * geometry shares points with given source geometry. It's
              * obvious that any change to this geometry's point affect
              * source geometry's points too.
-             * 
+             *
              * @see Clone
              * @see ClonePoints
              */
-            template<class TOtherPointType> 
-                    Hexahedra3D27& operator=(Hexahedra3D27<TOtherPointType> const & rOther)
+            template<class TOtherPointType>
+            Hexahedra3D27& operator=( Hexahedra3D27<TOtherPointType> const & rOther )
             {
-                BaseType::operator=(rOther);
+                BaseType::operator=( rOther );
 
                 return *this;
             }
-            
-            
+
+
             /**
              * Operations
              */
-            
-            typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const
+
+            typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
             {
-                return typename BaseType::Pointer(new Hexahedra3D27(ThisPoints));
+                return typename BaseType::Pointer( new Hexahedra3D27( ThisPoints ) );
             }
-            
+
             virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
             {
                 Geometry< Point<3> >::PointsArrayType NewPoints;
                 //making a copy of the nodes TO POINTS (not Nodes!!!)
-                for(IndexType i = 0 ; i < this->Points().size() ; i++)
-                    NewPoints.push_back(this->Points()[i]);
+
+                for ( IndexType i = 0 ; i < this->Points().size() ; i++ )
+                    NewPoints.push_back( this->Points()[i] );
+
                 //creating a geometry with the new points
-                boost::shared_ptr< Geometry< Point<3> > > 
-                        p_clone(new Hexahedra3D27< Point<3> >(NewPoints));
+                boost::shared_ptr< Geometry< Point<3> > >
+                p_clone( new Hexahedra3D27< Point<3> >( NewPoints ) );
+
                 p_clone->ClonePoints();
 
                 return p_clone;
             }
-            
+
             //lumping factors for the calculation of the lumped mass matrix
-            virtual Vector& LumpingFactors(Vector& rResult) const
+            virtual Vector& LumpingFactors( Vector& rResult ) const
             {
-                rResult.resize(27, false);
-                for( int i=0; i<8; i++ ) rResult[i] = 1.00 / 216.00;
-                for( int i=8; i<20; i++ ) rResult[i] = 1.00 / 54.00;
-                for( int i=20; i< 26; i++ ) rResult[i] = 2.00 / 27.00;
+                rResult.resize( 27, false );
+
+                for ( int i = 0; i < 8; i++ ) rResult[i] = 1.00 / 216.00;
+
+                for ( int i = 8; i < 20; i++ ) rResult[i] = 1.00 / 54.00;
+
+                for ( int i = 20; i < 26; i++ ) rResult[i] = 2.00 / 27.00;
+
                 rResult[26] = 8.00 / 27.00;
+
                 return rResult;
             }
-            
-            
+
+
             /**
              * Informations
              */
 
-            /** 
+            /**
              * This method calculates and returns Length or charactereistic
              * length of this geometry depending on it's dimension. For one
              * dimensional geometry for example Line it returns length of it
              * and for the other geometries it gives Characteristic length
              * otherwise.
-             * 
+             *
              * @return double value contains length or Characteristic
              * length
              * @see Area()
@@ -441,16 +451,16 @@ namespace Kratos
              */
             virtual double Length() const
             {
-                return sqrt(fabs( DeterminantOfJacobian(PointType())));
+                return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
             }
 
-            /** 
+            /**
              * This method calculates and returns area or surface area of
              * this geometry depending to it's dimension. For one dimensional
              * geometry it returns zero, for two dimensional it gives area
              * and for three dimensional geometries it gives surface area.
-             * 
-             * 
+             *
+             *
              * @return double value contains area or surface area.
              * @see Length()
              * @see Volume()
@@ -461,35 +471,37 @@ namespace Kratos
              */
             virtual double Area() const
             {
-                return fabs(DeterminantOfJacobian(PointType())) * 0.5;
+                return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
             }
 
 
 
-	 virtual double Volume() const
-        {				
+            virtual double Volume() const
+            {
 
-	  Vector temp;
-	  DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
-	  const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-          double Volume=0.00;
-	  for(unsigned int i=0;i<integration_points.size();i++)
-		{
-			Volume+= temp[i]*integration_points[i].Weight();
-		}
-          //KRATOS_WATCH(temp)
-	return Volume;                                                       
-        }
+                Vector temp;
+                DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+                const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+                double Volume = 0.00;
+
+                for ( unsigned int i = 0;i < integration_points.size();i++ )
+                {
+                    Volume += temp[i] * integration_points[i].Weight();
+                }
+
+                //KRATOS_WATCH(temp)
+                return Volume;
+            }
 
 
 
 
-            /** 
+            /**
              * This method calculate and return length, area or volume of
              * this geometry depending to it's dimension. For one dimensional
              * geometry it returns its length, for two dimensional it gives area
              * and for three dimensional geometries it gives its volume.
-             * 
+             *
              * @return double value contains length, area or volume.
              * @see Length()
              * @see Area()
@@ -500,213 +512,225 @@ namespace Kratos
              */
             virtual double DomainSize() const
             {
-                return fabs(DeterminantOfJacobian(PointType())) * 0.5;
+                return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
             }
-			
-			/**
-			 * Returns whether given arbitrary point is inside the Geometry
-			 */
-			virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
-			{
-				this->PointLocalCoordinates( rResult, rPoint );
-				if( fabs(rResult[0]) < 1+1.0e-8)
-					if( fabs(rResult[1]) < 1+1.0e-8)
-						if( fabs(rResult[2]) < 1+1.0e-8)
-							return true;
-				return false;
-			}
-            
-            
+
             /**
-             * Jacobian 
+             * Returns whether given arbitrary point is inside the Geometry
              */
-            
+            virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult )
+            {
+                this->PointLocalCoordinates( rResult, rPoint );
+
+                if ( fabs( rResult[0] ) < 1 + 1.0e-8 )
+                    if ( fabs( rResult[1] ) < 1 + 1.0e-8 )
+                        if ( fabs( rResult[2] ) < 1 + 1.0e-8 )
+                            return true;
+
+                return false;
+            }
+
+
+            /**
+             * Jacobian
+             */
+
             /**
              * :TODO: TO BE TESTED
              */
             /**
-             * Jacobians for given  method. 
-             * This method calculates jacobians matrices in all integrations 
+             * Jacobians for given  method.
+             * This method calculates jacobians matrices in all integrations
              * points of given integration method.
-             * 
+             *
              * @param ThisMethod integration method which jacobians has to
              * be calculated in its integration points.
              * @return JacobiansType a Vector of jacobian
              * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the
              * integration point index of given integration method.
-             * 
+             *
              * @see DeterminantOfJacobian
              * @see InverseOfJacobian
              */
             virtual JacobiansType& Jacobian( JacobiansType& rResult,
-                                             IntegrationMethod ThisMethod) const
+                                             IntegrationMethod ThisMethod ) const
             {
                 //getting derivatives of shape functions
                 ShapeFunctionsGradientsType shape_functions_gradients =
-                        CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
+                    CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
                 //getting values of shape functions
                 Matrix shape_functions_values =
-                        CalculateShapeFunctionsIntegrationPointsValues(ThisMethod);
+                    CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
                 //workaround by riccardo...
-                if(rResult.size() != this->IntegrationPointsNumber(ThisMethod))
+
+                if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
                 {
                     // KLUDGE: While there is a bug in ublas
                     // vector resize, I have to put this beside resizing!!
-                    JacobiansType temp(this->IntegrationPointsNumber(ThisMethod));
-                    rResult.swap(temp);
+                    JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
+                    rResult.swap( temp );
                 }
+
                 //loop over all integration points
-                for( unsigned int pnt=0; pnt < this->IntegrationPointsNumber(ThisMethod); pnt++ )
+                for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
                 {
                     //defining single jacobian matrix
-                    Matrix jacobian = ZeroMatrix(3,3);
+                    Matrix jacobian = ZeroMatrix( 3, 3 );
                     //loop over all nodes
-                    for( unsigned int i=0; i<this->PointsNumber(); i++ )
+
+                    for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
                     {
-                        jacobian(0,0) += (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,0));
-                        jacobian(0,1) += (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,1));
-                        jacobian(0,2) += (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,2));
-                        jacobian(1,0) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,0));
-                        jacobian(1,1) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,1));
-                        jacobian(1,2) += (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,2));
-                        jacobian(2,0) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,0));
-                        jacobian(2,1) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,1));
-                        jacobian(2,2) += (this->GetPoint(i).Z())*(shape_functions_gradients[pnt](i,2));
+                        jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                        jacobian( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+                        jacobian( 0, 2 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 2 ) );
+                        jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                        jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+                        jacobian( 1, 2 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 2 ) );
+                        jacobian( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                        jacobian( 2, 1 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+                        jacobian( 2, 2 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 2 ) );
                     }
+
                     rResult[pnt] = jacobian;
-               }//end of loop over all integration points
-               return rResult;
+                }//end of loop over all integration points
+
+                return rResult;
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
             /** Jacobian in specific integration point of given integration
              *  method. This method calculate jacobian matrix in given
              * integration point of given integration method.
-             * 
+             *
              * @param IntegrationPointIndex index of integration point which jacobians has to
              * be calculated in it.
-             * 
+             *
              * @param ThisMethod integration method which jacobians has to
              * be calculated in its integration points.
-             * 
+             *
              * @return Matrix(double) Jacobian matrix \f$ J_i \f$ where \f$
              * i \f$ is the given integration point index of given
              * integration method.
-             * 
+             *
              * @see DeterminantOfJacobian
              * @see InverseOfJacobian
              */
             virtual Matrix& Jacobian( Matrix& rResult,
-                                      IndexType IntegrationPointIndex, 
-                                      IntegrationMethod ThisMethod) const
+                                      IndexType IntegrationPointIndex,
+                                      IntegrationMethod ThisMethod ) const
             {
                 //setting up size of jacobian matrix
-                rResult.resize(3,3);
+                rResult.resize( 3, 3 );
                 //derivatives of shape functions
-                ShapeFunctionsGradientsType shape_functions_gradients = 
-                        CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
-                Matrix ShapeFunctionsGradientInIntegrationPoint = 
-                        shape_functions_gradients(IntegrationPointIndex);
+                ShapeFunctionsGradientsType shape_functions_gradients =
+                    CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+                Matrix ShapeFunctionsGradientInIntegrationPoint =
+                    shape_functions_gradients( IntegrationPointIndex );
                 //values of shape functions in integration points
-                vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector(27);
+                vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 27 );
                 /*vector<double>*/ ShapeFunctionValuesInIntegrationPoint = row(
-                        CalculateShapeFunctionsIntegrationPointsValues(ThisMethod),
-                IntegrationPointIndex);
-                
+                            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
+                            IntegrationPointIndex );
+
                 //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
                 //loop over all nodes
-                for( unsigned int i=0; i<this->PointsNumber(); i++ )
+
+                for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
                 {
-                    rResult(0,0) += (this->GetPoint(i).X())*(ShapeFunctionsGradientInIntegrationPoint(i,0));
-                    rResult(0,1) += (this->GetPoint(i).X())*(ShapeFunctionsGradientInIntegrationPoint(i,1));
-                    rResult(0,2) += (this->GetPoint(i).X())*(ShapeFunctionsGradientInIntegrationPoint(i,2));
-                    rResult(1,0) += (this->GetPoint(i).Y())*(ShapeFunctionsGradientInIntegrationPoint(i,0));
-                    rResult(1,1) += (this->GetPoint(i).Y())*(ShapeFunctionsGradientInIntegrationPoint(i,1));
-                    rResult(1,2) += (this->GetPoint(i).Y())*(ShapeFunctionsGradientInIntegrationPoint(i,2));
-                    rResult(2,0) += (this->GetPoint(i).Z())*(ShapeFunctionsGradientInIntegrationPoint(i,0));
-                    rResult(2,1) += (this->GetPoint(i).Z())*(ShapeFunctionsGradientInIntegrationPoint(i,1));
-                    rResult(2,2) += (this->GetPoint(i).Z())*(ShapeFunctionsGradientInIntegrationPoint(i,2));
+                    rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+                    rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+                    rResult( 0, 2 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 2 ) );
+                    rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+                    rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+                    rResult( 1, 2 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 2 ) );
+                    rResult( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+                    rResult( 2, 1 ) += ( this->GetPoint( i ).Z() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+                    rResult( 2, 2 ) += ( this->GetPoint( i ).Z() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 2 ) );
                 }
-                
+
                 return rResult;
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
-            /** 
+            /**
              * Jacobian in given point. This method calculate jacobian
              * matrix in given point.
              *
-             *	@param rPoint point which jacobians has to
-             *	be calculated in it.
+             * @param rPoint point which jacobians has to
+             * be calculated in it.
              *
-             *	@return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
+             * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
              *
-             *	@see DeterminantOfJacobian
-             *	@see InverseOfJacobian
+             * @see DeterminantOfJacobian
+             * @see InverseOfJacobian
              */
-            virtual Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rPoint) const
+            virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
             {
                 //setting up size of jacobian matrix
-                rResult.resize(3,3);
+                rResult.resize( 3, 3 );
                 //derivatives of shape functions
-                Matrix shape_functions_gradients = ZeroMatrix(27,3);
-                noalias(shape_functions_gradients) = ShapeFunctionsLocalGradients(
-                        shape_functions_gradients, rPoint );
+                Matrix shape_functions_gradients = ZeroMatrix( 27, 3 );
+                noalias( shape_functions_gradients ) = ShapeFunctionsLocalGradients(
+                                                           shape_functions_gradients, rPoint );
                 //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
                 //loop over all nodes
-                for( unsigned int i=0; i<this->PointsNumber(); i++ )
+
+                for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
                 {
-                    rResult(0,0) += (this->GetPoint(i).X())*(shape_functions_gradients(i,0));
-                    rResult(0,1) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,1));
-                    rResult(0,2) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,2));
-                    rResult(1,0) += (this->GetPoint(i).X())*(shape_functions_gradients(i,0));
-                    rResult(1,1) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,1));
-                    rResult(1,2) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,2));
-                    rResult(2,0) += (this->GetPoint(i).X())*(shape_functions_gradients(i,0));
-                    rResult(2,1) += (this->GetPoint(i).Y())*(shape_functions_gradients(i,1));
-                    rResult(2,2) += (this->GetPoint(i).Z())*(shape_functions_gradients(i,2));
+                    rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
+                    rResult( 0, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
+                    rResult( 0, 2 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 2 ) );
+                    rResult( 1, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
+                    rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
+                    rResult( 1, 2 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 2 ) );
+                    rResult( 2, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
+                    rResult( 2, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
+                    rResult( 2, 2 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 2 ) );
                 }
+
                 return rResult;
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
             /**
-             * Determinant of jacobians for given integration method. 
-             * This method calculate determinant of jacobian in all 
+             * Determinant of jacobians for given integration method.
+             * This method calculate determinant of jacobian in all
              * integrations points of given integration method.
-             * 
+             *
              * @return Vector of double which is vector of determinants of
              * jacobians \f$ |J|_i \f$ where \f$ i=1,2,...,n \f$ is the
              * integration point index of given integration method.
-             * 
+             *
              * @see Jacobian
              * @see InverseOfJacobian
              */
-            virtual Vector& DeterminantOfJacobian( Vector& rResult, 
-                    IntegrationMethod ThisMethod) const
+            virtual Vector& DeterminantOfJacobian( Vector& rResult,
+                                                   IntegrationMethod ThisMethod ) const
             {
                 //workaround by riccardo
-                if(rResult.size() != this->IntegrationPointsNumber(ThisMethod))
+                if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
                 {
                     // KLUDGE: While there is a bug in ublas
                     // vector resize, I have to put this beside resizing!!
-                    Vector temp = ZeroVector(this->IntegrationPointsNumber(ThisMethod));
-                    rResult.swap(temp);
+                    Vector temp = ZeroVector( this->IntegrationPointsNumber( ThisMethod ) );
+                    rResult.swap( temp );
                 }
+
                 //for all integration points
-                for( unsigned int pnt=0; pnt<this->IntegrationPointsNumber(ThisMethod); pnt++ )
+                for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
                 {
                     rResult[pnt] = DeterminantOfJacobian( pnt, ThisMethod );
                 }
+
                 return rResult;
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
@@ -715,165 +739,167 @@ namespace Kratos
              * given integration method. This method calculate determinant
              * of jacobian in given integration point of given integration
              * method.
-             * 
+             *
              * @param IntegrationPointIndex index of integration point which
              * jacobians has to be calculated in it.
-             * 
+             *
              * @param IntegrationPointIndex index of integration point
              * which determinant of jacobians has to be calculated in it.
-             * 
-             * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$ 
+             *
+             * @return Determinamt of jacobian matrix \f$ |J|_i \f$ where \f$
              * i \f$ is the given integration point index of given
              * integration method.
-             * 
+             *
              * @see Jacobian
              * @see InverseOfJacobian
              */
             virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                    IntegrationMethod ThisMethod) const
+                                                  IntegrationMethod ThisMethod ) const
             {
                 /**
                  * KLUDGE: works only with explicitly generated Matrix object
                  */
-                Matrix jacobian = ZeroMatrix(3,3);
+                Matrix jacobian = ZeroMatrix( 3, 3 );
                 jacobian = Jacobian( jacobian, IntegrationPointIndex, ThisMethod );
-                return( MathUtils<double>::Det3(jacobian) );
+                return( MathUtils<double>::Det3( jacobian ) );
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
             /**
-             * Determinant of jacobian in given point. 
+             * Determinant of jacobian in given point.
              * This method calculate determinant of jacobian
              * matrix in given point.
-             * 
+             *
              * @param rPoint point which determinant of jacobians has to
              * be calculated in it.
              * @return Determinamt of jacobian matrix \f$ |J| \f$ in given
-             * point. 
-             * 
+             * point.
+             *
              * @see DeterminantOfJacobian
              * @see InverseOfJacobian
-             * 
+             *
              * KLUDGE: PointType needed for proper functionality
              * KLUDGE: works only with explicitly generated Matrix object
              */
-            virtual double DeterminantOfJacobian( const PointType& rPoint) const
+            virtual double DeterminantOfJacobian( const PointType& rPoint ) const
             {
-                Matrix jacobian = ZeroMatrix(3,3);
+                Matrix jacobian = ZeroMatrix( 3, 3 );
                 jacobian = Jacobian( jacobian, rPoint );
                 return( MathUtils<double>::Det3( jacobian ) );
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
             /**
-             * Inverse of jacobians for given integration method. 
+             * Inverse of jacobians for given integration method.
              * This method calculate inverse of jacobians matrices in all
              * integrations points of given integration method.
-             * 
+             *
              * @param ThisMethod integration method which inverse of jacobians has to
              * be calculated in its integration points.
              * @return Inverse of jacobian
              * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
              * point index of given integration method.
-             * 
+             *
              * @see Jacobian
              * @see DeterminantOfJacobian
-             *  
+             *
              * KLUDGE: works only with explicitly generated Matrix object
              */
-            virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, 
-                    IntegrationMethod ThisMethod) const
+            virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
+                    IntegrationMethod ThisMethod ) const
             {
                 //workaround by riccardo
-                if(rResult.size() != this->IntegrationPointsNumber(ThisMethod))
+                if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
                 {
                     // KLUDGE: While there is a bug in ublas
                     // vector resize, I have to put this beside resizing!!
-                    JacobiansType temp(this->IntegrationPointsNumber(ThisMethod));
-                    rResult.swap(temp);
+                    JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
+                    rResult.swap( temp );
                 }
+
                 //loop over all integration points
-                for( unsigned int pnt=0; pnt<this->IntegrationPointsNumber(ThisMethod); pnt++ )
+                for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
                 {
-                    Matrix tempMatrix = ZeroMatrix(3,3);
+                    Matrix tempMatrix = ZeroMatrix( 3, 3 );
                     rResult[pnt] = InverseOfJacobian( tempMatrix, pnt, ThisMethod );
                 }
+
                 return rResult;
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
 
-            /** 
+            /**
              * Inverse of jacobian in specific integration point of given integration
-             * method. 
+             * method.
              * This method calculate Inverse of jacobian matrix in given
              * integration point of given integration method.
-             * 
+             *
              * @param IntegrationPointIndex index of integration point which
              * inverse of jacobians has to be calculated in it.
-             * 
+             *
              * @param ThisMethod integration method which inverse of jacobians has to
              * be calculated in its integration points.
-             * 
+             *
              * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
              * i \f$ is the given integration point index of given
              * integration method.
-             * 
+             *
              * @see Jacobian
              * @see DeterminantOfJacobian
-             * 
+             *
              * KLUDGE: works only with explicitly generated Matrix object
              */
-            virtual Matrix& InverseOfJacobian( Matrix& rResult, 
-                                               IndexType IntegrationPointIndex, 
-                                               IntegrationMethod ThisMethod) const
+            virtual Matrix& InverseOfJacobian( Matrix& rResult,
+                                               IndexType IntegrationPointIndex,
+                                               IntegrationMethod ThisMethod ) const
             {
                 //current jacobian
-                MatrixType tempMatrix = ZeroMatrix(3,3);
+                MatrixType tempMatrix = ZeroMatrix( 3, 3 );
                 tempMatrix = Jacobian( tempMatrix, IntegrationPointIndex, ThisMethod );
                 double det = 0.0;
-               //inverse of jacobian
+                //inverse of jacobian
                 MathUtils<double>::InvertMatrix3( tempMatrix, rResult, det );
-               
+
                 return rResult;
             }
-            
+
             /**
              * :TODO: TO BE TESTED
              */
-            /** 
-             * Inverse of jacobian in given point. 
+            /**
+             * Inverse of jacobian in given point.
              * This method calculate inverse of jacobian matrix in given point.
-             * 
+             *
              * @param rPoint point which inverse of jacobians has to
              * be calculated in it.
              * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-             *  
+             *
              * @see DeterminantOfJacobian
              * @see InverseOfJacobian
-             * 
+             *
              * KLUDGE: works only with explicitly generated Matrix object
              */
-            virtual Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rPoint) const
+            virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
             {
                 //current jacobian
-                Matrix tempMatrix = ZeroMatrix(3,3);
+                Matrix tempMatrix = ZeroMatrix( 3, 3 );
                 tempMatrix = Jacobian( tempMatrix, rPoint );
-		
+
                 //setting up result matrix
-                rResult.resize(3,3);
+                rResult.resize( 3, 3 );
                 double det;
                 MathUtils<double>::InvertMatrix3( tempMatrix, rResult, det );
                 return rResult;
             }
-            
-            
+
+
             /** This method gives you number of all edges of this
             geometry.
             @return SizeType containes number of this geometry edges.
@@ -885,7 +911,7 @@ namespace Kratos
             {
                 return 12;
             }
-            
+
             virtual SizeType FacesNumber() const
             {
                 return 6;
@@ -897,163 +923,163 @@ namespace Kratos
             @see EdgesNumber()
             @see Edge()
              */
-            virtual GeometriesArrayType Edges(void)
+            virtual GeometriesArrayType Edges( void )
             {
                 GeometriesArrayType edges = GeometriesArrayType();
                 typedef typename Geometry<TPointType>::Pointer EdgePointerType;
                 //0
-                edges.push_back( EdgePointerType(new EdgeType( 
-                                 this->pGetPoint(0),
-                                 this->pGetPoint(8),
-                                 this->pGetPoint(1))) );
-                edges.push_back( EdgePointerType(new EdgeType( 
-                                 this->pGetPoint(1),
-                                 this->pGetPoint(9),
-                                 this->pGetPoint(2))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(2),
-                                 this->pGetPoint(10),
-                                 this->pGetPoint(3))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(3),
-                                 this->pGetPoint(11),
-                                 this->pGetPoint(0))) );
-                
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 0 ),
+                                                      this->pGetPoint( 8 ),
+                                                      this->pGetPoint( 1 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 1 ),
+                                                      this->pGetPoint( 9 ),
+                                                      this->pGetPoint( 2 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 2 ),
+                                                      this->pGetPoint( 10 ),
+                                                      this->pGetPoint( 3 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 3 ),
+                                                      this->pGetPoint( 11 ),
+                                                      this->pGetPoint( 0 ) ) ) );
+
                 //4
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(4),
-                                 this->pGetPoint(16),
-                                 this->pGetPoint(5))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(5),
-                                 this->pGetPoint(17),
-                                 this->pGetPoint(6))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(6),
-                                 this->pGetPoint(18),
-                                 this->pGetPoint(7))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(7),
-                                 this->pGetPoint(19),
-                                 this->pGetPoint(4))) );
-                
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 4 ),
+                                                      this->pGetPoint( 16 ),
+                                                      this->pGetPoint( 5 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 5 ),
+                                                      this->pGetPoint( 17 ),
+                                                      this->pGetPoint( 6 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 6 ),
+                                                      this->pGetPoint( 18 ),
+                                                      this->pGetPoint( 7 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 7 ),
+                                                      this->pGetPoint( 19 ),
+                                                      this->pGetPoint( 4 ) ) ) );
+
                 //8
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(0),
-                                 this->pGetPoint(12),
-                                 this->pGetPoint(4))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(1),
-                                 this->pGetPoint(13),
-                                 this->pGetPoint(5))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(2),
-                                 this->pGetPoint(14),
-                                 this->pGetPoint(6))) );
-                edges.push_back( EdgePointerType(new EdgeType(
-                                 this->pGetPoint(3),
-                                 this->pGetPoint(15),
-                                 this->pGetPoint(7))) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 0 ),
+                                                      this->pGetPoint( 12 ),
+                                                      this->pGetPoint( 4 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 1 ),
+                                                      this->pGetPoint( 13 ),
+                                                      this->pGetPoint( 5 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 2 ),
+                                                      this->pGetPoint( 14 ),
+                                                      this->pGetPoint( 6 ) ) ) );
+                edges.push_back( EdgePointerType( new EdgeType(
+                                                      this->pGetPoint( 3 ),
+                                                      this->pGetPoint( 15 ),
+                                                      this->pGetPoint( 7 ) ) ) );
                 return edges;
             }
-            
-            virtual GeometriesArrayType Faces(void)
+
+            virtual GeometriesArrayType Faces( void )
             {
                 GeometriesArrayType faces = GeometriesArrayType();
                 typedef typename Geometry<TPointType>::Pointer FacePointerType;
-                
-                faces.push_back( FacePointerType(new FaceType(
-                                 this->pGetPoint(3),
-                                 this->pGetPoint(2),  
-                                 this->pGetPoint(1), 
-                                 this->pGetPoint(0), 
-                                 this->pGetPoint(10), 
-                                 this->pGetPoint(9), 
-                                 this->pGetPoint(8),
-                                 this->pGetPoint(11), 
-                                 this->pGetPoint(20)) ) );
-                faces.push_back( FacePointerType(new FaceType(
-                                 this->pGetPoint(0),
-                                 this->pGetPoint(1),  
-                                 this->pGetPoint(5), 
-                                 this->pGetPoint(4), 
-                                 this->pGetPoint(8), 
-                                 this->pGetPoint(13), 
-                                 this->pGetPoint(16),
-                                 this->pGetPoint(12),  
-                                 this->pGetPoint(21)) ) );
-                faces.push_back( FacePointerType(new FaceType(
-                                 this->pGetPoint(2),
-                                 this->pGetPoint(6),  
-                                 this->pGetPoint(5), 
-                                 this->pGetPoint(1), 
-                                 this->pGetPoint(14), 
-                                 this->pGetPoint(17), 
-                                 this->pGetPoint(13),
-                                 this->pGetPoint(9),  
-                                 this->pGetPoint(22)) ) );
-                faces.push_back( FacePointerType(new FaceType(
-                                 this->pGetPoint(7),
-                                 this->pGetPoint(6),  
-                                 this->pGetPoint(2), 
-                                 this->pGetPoint(3), 
-                                 this->pGetPoint(14), 
-                                 this->pGetPoint(18), 
-                                 this->pGetPoint(10),
-                                 this->pGetPoint(15),  
-                                 this->pGetPoint(23)) ) );
-                faces.push_back( FacePointerType(new FaceType(
-                                 this->pGetPoint(7),
-                                 this->pGetPoint(3),  
-                                 this->pGetPoint(0), 
-                                 this->pGetPoint(4), 
-                                 this->pGetPoint(15), 
-                                 this->pGetPoint(11), 
-                                 this->pGetPoint(12),
-                                 this->pGetPoint(19),  
-                                 this->pGetPoint(24)) ) );
-                faces.push_back( FacePointerType(new FaceType(
-                                 this->pGetPoint(4),
-                                 this->pGetPoint(5),  
-                                 this->pGetPoint(6), 
-                                 this->pGetPoint(7), 
-                                 this->pGetPoint(16), 
-                                 this->pGetPoint(17), 
-                                 this->pGetPoint(18),
-                                 this->pGetPoint(19),  
-                                 this->pGetPoint(25)) ) );
+
+                faces.push_back( FacePointerType( new FaceType(
+                                                      this->pGetPoint( 3 ),
+                                                      this->pGetPoint( 2 ),
+                                                      this->pGetPoint( 1 ),
+                                                      this->pGetPoint( 0 ),
+                                                      this->pGetPoint( 10 ),
+                                                      this->pGetPoint( 9 ),
+                                                      this->pGetPoint( 8 ),
+                                                      this->pGetPoint( 11 ),
+                                                      this->pGetPoint( 20 ) ) ) );
+                faces.push_back( FacePointerType( new FaceType(
+                                                      this->pGetPoint( 0 ),
+                                                      this->pGetPoint( 1 ),
+                                                      this->pGetPoint( 5 ),
+                                                      this->pGetPoint( 4 ),
+                                                      this->pGetPoint( 8 ),
+                                                      this->pGetPoint( 13 ),
+                                                      this->pGetPoint( 16 ),
+                                                      this->pGetPoint( 12 ),
+                                                      this->pGetPoint( 21 ) ) ) );
+                faces.push_back( FacePointerType( new FaceType(
+                                                      this->pGetPoint( 2 ),
+                                                      this->pGetPoint( 6 ),
+                                                      this->pGetPoint( 5 ),
+                                                      this->pGetPoint( 1 ),
+                                                      this->pGetPoint( 14 ),
+                                                      this->pGetPoint( 17 ),
+                                                      this->pGetPoint( 13 ),
+                                                      this->pGetPoint( 9 ),
+                                                      this->pGetPoint( 22 ) ) ) );
+                faces.push_back( FacePointerType( new FaceType(
+                                                      this->pGetPoint( 7 ),
+                                                      this->pGetPoint( 6 ),
+                                                      this->pGetPoint( 2 ),
+                                                      this->pGetPoint( 3 ),
+                                                      this->pGetPoint( 14 ),
+                                                      this->pGetPoint( 18 ),
+                                                      this->pGetPoint( 10 ),
+                                                      this->pGetPoint( 15 ),
+                                                      this->pGetPoint( 23 ) ) ) );
+                faces.push_back( FacePointerType( new FaceType(
+                                                      this->pGetPoint( 7 ),
+                                                      this->pGetPoint( 3 ),
+                                                      this->pGetPoint( 0 ),
+                                                      this->pGetPoint( 4 ),
+                                                      this->pGetPoint( 15 ),
+                                                      this->pGetPoint( 11 ),
+                                                      this->pGetPoint( 12 ),
+                                                      this->pGetPoint( 19 ),
+                                                      this->pGetPoint( 24 ) ) ) );
+                faces.push_back( FacePointerType( new FaceType(
+                                                      this->pGetPoint( 4 ),
+                                                      this->pGetPoint( 5 ),
+                                                      this->pGetPoint( 6 ),
+                                                      this->pGetPoint( 7 ),
+                                                      this->pGetPoint( 16 ),
+                                                      this->pGetPoint( 17 ),
+                                                      this->pGetPoint( 18 ),
+                                                      this->pGetPoint( 19 ),
+                                                      this->pGetPoint( 25 ) ) ) );
                 return faces;
             }
-            
-            
+
+
             /**
-             * Shape Function    
+             * Shape Function
              */
-            
+
             /**
              * Calculates the value of a given shape function at a given point.
-             * 
+             *
              * @param ShapeFunctionIndex The number of the desired shape function
-             * @param rPoint the given point in local coordinates at which the 
+             * @param rPoint the given point in local coordinates at which the
              * value of the shape function is calculated
-             * 
-             * @return the value of the shape function at the given point 
+             *
+             * @return the value of the shape function at the given point
              * TODO: TO BE VERIFIED
              */
-            virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex, 
-                                               const CoordinatesArrayType& rPoint) const
+            virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+                                               const CoordinatesArrayType& rPoint ) const
             {
-                double fx1 = 0.5*(rPoint[0]-1.0)*(rPoint[0]);
-                double fx2 = 0.5*(rPoint[0]+1.0)*(rPoint[0]);
-                double fx3 = 1.0-(rPoint[0]*rPoint[0]);
-                double fy1 = 0.5*(rPoint[1]-1.0)*(rPoint[1]);
-                double fy2 = 0.5*(rPoint[1]+1.0)*(rPoint[1]);
-                double fy3 = 1.0-(rPoint[1]*rPoint[1]);
-                double fz1 = 0.5*(rPoint[2]-1.0)*(rPoint[2]);
-                double fz2 = 0.5*(rPoint[2]+1.0)*(rPoint[2]);
-                double fz3 = 1.0-(rPoint[2]*rPoint[2]);
-                
-                switch( ShapeFunctionIndex )
+                double fx1 = 0.5 * ( rPoint[0] - 1.0 ) * ( rPoint[0] );
+                double fx2 = 0.5 * ( rPoint[0] + 1.0 ) * ( rPoint[0] );
+                double fx3 = 1.0 - ( rPoint[0] * rPoint[0] );
+                double fy1 = 0.5 * ( rPoint[1] - 1.0 ) * ( rPoint[1] );
+                double fy2 = 0.5 * ( rPoint[1] + 1.0 ) * ( rPoint[1] );
+                double fy3 = 1.0 - ( rPoint[1] * rPoint[1] );
+                double fz1 = 0.5 * ( rPoint[2] - 1.0 ) * ( rPoint[2] );
+                double fz2 = 0.5 * ( rPoint[2] + 1.0 ) * ( rPoint[2] );
+                double fz3 = 1.0 - ( rPoint[2] * rPoint[2] );
+
+                switch ( ShapeFunctionIndex )
                 {
                     case 0:
                         return( fx1*fy1*fz1 );
@@ -1109,630 +1135,700 @@ namespace Kratos
                         return( fx3*fy3*fz2 );
                     case 26:
                         return( fx3*fy3*fz3 );
-                        
+
                     default:
                         KRATOS_ERROR( std::logic_error,
-                                      "Wrong index of shape function!" , *this);
+                                      "Wrong index of shape function!" , *this );
                 }
+
                 return 0;
             }
 
             /**
              * Calculates the Gradients of the shape functions.
-             * Calculates the gradients of the shape functions with regard to the global 
+             * Calculates the gradients of the shape functions with regard to the global
              * coordinates in all
              * integration points (\f$ \frac{\partial N^i}{\partial X_j} \f$)
              *
              * @param rResult a container which takes the calculated gradients
              * @param ThisMethod the given IntegrationMethod
              * @return the gradients of all shape functions with regard to the global coordinates
-             * 
+             *
              * KLUDGE: method call only works with explicit JacobiansType rather than creating
              * JacobiansType within argument list
-             * 
+             *
              * :TODO: TESTING!!!
              */
-            virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( 
-                    ShapeFunctionsGradientsType& rResult, 
-            IntegrationMethod ThisMethod) const
+            virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+                ShapeFunctionsGradientsType& rResult,
+                IntegrationMethod ThisMethod ) const
             {
                 const unsigned int integration_points_number =
-                        msGeometryData.IntegrationPointsNumber(ThisMethod);
-                if(integration_points_number == 0)
-                    KRATOS_ERROR(std::logic_error,
-                                 "This integration method is not supported" , *this);
+                    msGeometryData.IntegrationPointsNumber( ThisMethod );
+
+                if ( integration_points_number == 0 )
+                    KRATOS_ERROR( std::logic_error,
+                                  "This integration method is not supported" , *this );
+
                 //workaround by riccardo
-                if(rResult.size() != integration_points_number)
+                if ( rResult.size() != integration_points_number )
                 {
                     // KLUDGE: While there is a bug in ublas
                     // vector resize, I have to put this beside resizing!!
-                    ShapeFunctionsGradientsType temp(integration_points_number);
-                    rResult.swap(temp);
+                    ShapeFunctionsGradientsType temp( integration_points_number );
+                    rResult.swap( temp );
                 }
+
                 //calculating the local gradients
                 ShapeFunctionsGradientsType locG =
-                        CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
+                    CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+
                 //getting the inverse jacobian matrices
                 JacobiansType temp( integration_points_number );
+
                 JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+
                 //loop over all integration points
-                for( unsigned int pnt=0; pnt<integration_points_number; pnt++ )
+                for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
                 {
-                    rResult[pnt].resize(27,3);
-                    for( int i=0; i<27; i++ )
+                    rResult[pnt].resize( 27, 3 );
+
+                    for ( int i = 0; i < 27; i++ )
                     {
-                        for( int j=0; j<3; j++ )
+                        for ( int j = 0; j < 3; j++ )
                         {
-                            rResult[pnt](i,j) =
-                                    (locG[pnt](i,0)*invJ[pnt](j,0))
-                                    +(locG[pnt](i,1)*invJ[pnt](j,1))
-                                    +(locG[pnt](i,2)*invJ[pnt](j,2));
+                            rResult[pnt]( i, j ) =
+                                ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
+                                + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) )
+                                + ( locG[pnt]( i, 2 ) * invJ[pnt]( j, 2 ) );
                         }
                     }
                 }//end of loop over integration points
+
                 return rResult;
             }
-            
-            
+
+
             /**
              * Input and output
              */
-            
+
             /**
              * Turn back information as a string.
-             * 
+             *
              * @return String contains information about this geometry.
              * @see PrintData()
-             * @see PrintInfo()    
+             * @see PrintInfo()
              */
             virtual std::string Info() const
             {
                 return "3 dimensional hexahedra with 27 nodes and quadratic shape functions in 3D space";
             }
-            
-            /** 
+
+            /**
              * Print information about this object.
-             * 
+             *
              * @param rOStream Stream to print into it.
              * @see PrintData()
              * @see Info()
              */
-            virtual void PrintInfo(std::ostream& rOStream) const
+            virtual void PrintInfo( std::ostream& rOStream ) const
             {
                 rOStream << "3 dimensional hexahedra with 27 nodes and quadratic shape functions in 3D space";
             }
-            
+
             /**
-             * Print geometry's data into given stream. 
-             * Prints it's points by the order they stored in the geometry 
+             * Print geometry's data into given stream.
+             * Prints it's points by the order they stored in the geometry
              * and then center point of geometry.
-             * 
+             *
              * @param rOStream Stream to print into it.
              * @see PrintInfo()
              * @see Info()
              */
-            virtual void PrintData(std::ostream& rOStream) const
+            virtual void PrintData( std::ostream& rOStream ) const
             {
-                BaseType::PrintData(rOStream);
+                BaseType::PrintData( rOStream );
                 std::cout << std::endl;
                 Matrix jacobian;
-                Jacobian(jacobian, PointType());
+                Jacobian( jacobian, PointType() );
                 rOStream << "Jacobian in the origin\t : " << jacobian;
             }
-            
-                        /**
-             * TODO: TO BE VERIFIED
-                         */
+
             /**
-             * Calculates the gradients in terms of local coordinateds 
+            * TODO: TO BE VERIFIED
+             */
+            /**
+             * Calculates the gradients in terms of local coordinateds
              * of all shape functions in a given point.
-             * 
+             *
              * @param rPoint the current point at which the gradients are calculated
-             * @return the gradients of all shape functions 
+             * @return the gradients of all shape functions
              * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
              */
-            virtual Matrix& ShapeFunctionsLocalGradients( Matrix& result, 
+            virtual Matrix& ShapeFunctionsLocalGradients( Matrix& result,
                     const CoordinatesArrayType& rPoint ) const
             {
-                double fx1 = 0.5*(rPoint[0]-1.0)*(rPoint[0]);
-                double fx2 = 0.5*(rPoint[0]+1.0)*(rPoint[0]);
-                double fx3 = 1.0-(rPoint[0]*rPoint[0]);
-                double fy1 = 0.5*(rPoint[1]-1.0)*(rPoint[1]);
-                double fy2 = 0.5*(rPoint[1]+1.0)*(rPoint[1]);
-                double fy3 = 1.0-(rPoint[1]*rPoint[1]);
-                double fz1 = 0.5*(rPoint[2]-1.0)*(rPoint[2]);
-                double fz2 = 0.5*(rPoint[2]+1.0)*(rPoint[2]);
-                double fz3 = 1.0-(rPoint[2]*rPoint[2]);
-                
-                double gx1 = 0.5*(2.0*rPoint[0]-1.0);
-                double gx2 = 0.5*(2.0*rPoint[0]+1.0);
-                double gx3 = -2*rPoint[0];
-                double gy1 = 0.5*(2.0*rPoint[1]-1.0);
-                double gy2 = 0.5*(2.0*rPoint[1]+1.0);
-                double gy3 = -2*rPoint[1];
-                double gz1 = 0.5*(2.0*rPoint[2]-1.0);
-                double gz2 = 0.5*(2.0*rPoint[2]+1.0);
-                double gz3 = -2*rPoint[2];
+                double fx1 = 0.5 * ( rPoint[0] - 1.0 ) * ( rPoint[0] );
+                double fx2 = 0.5 * ( rPoint[0] + 1.0 ) * ( rPoint[0] );
+                double fx3 = 1.0 - ( rPoint[0] * rPoint[0] );
+                double fy1 = 0.5 * ( rPoint[1] - 1.0 ) * ( rPoint[1] );
+                double fy2 = 0.5 * ( rPoint[1] + 1.0 ) * ( rPoint[1] );
+                double fy3 = 1.0 - ( rPoint[1] * rPoint[1] );
+                double fz1 = 0.5 * ( rPoint[2] - 1.0 ) * ( rPoint[2] );
+                double fz2 = 0.5 * ( rPoint[2] + 1.0 ) * ( rPoint[2] );
+                double fz3 = 1.0 - ( rPoint[2] * rPoint[2] );
+
+                double gx1 = 0.5 * ( 2.0 * rPoint[0] - 1.0 );
+                double gx2 = 0.5 * ( 2.0 * rPoint[0] + 1.0 );
+                double gx3 = -2 * rPoint[0];
+                double gy1 = 0.5 * ( 2.0 * rPoint[1] - 1.0 );
+                double gy2 = 0.5 * ( 2.0 * rPoint[1] + 1.0 );
+                double gy3 = -2 * rPoint[1];
+                double gz1 = 0.5 * ( 2.0 * rPoint[2] - 1.0 );
+                double gz2 = 0.5 * ( 2.0 * rPoint[2] + 1.0 );
+                double gz3 = -2 * rPoint[2];
                 //setting up result matrix
-                if( result.size1() != 27 || result.size2() != 3 )
-                    result.resize(27,3,false);
-                
-                result( 0,0) = gx1*fy1*fz1;
-                result( 0,1) = fx1*gy1*fz1;
-                result( 0,2) = fx1*fy1*gz1;
-                
-                result( 1,0) = gx2*fy1*fz1;
-                result( 1,1) = fx2*gy1*fz1;
-                result( 1,2) = fx2*fy1*gz1;
-                
-                result( 2,0) = gx2*fy2*fz1;
-                result( 2,1) = fx2*gy2*fz1;
-                result( 2,2) = fx2*fy2*gz1;
-                
-                result( 3,0) = gx1*fy2*fz1;
-                result( 3,1) = fx1*gy2*fz1;
-                result( 3,2) = fx1*fy2*gz1;
-                
-                result( 4,0) = gx1*fy1*fz2;
-                result( 4,1) = fx1*gy1*fz2;
-                result( 4,2) = fx1*fy1*gz2;
-                
-                result( 5,0) = gx2*fy1*fz2;
-                result( 5,1) = fx2*gy1*fz2;
-                result( 5,2) = fx2*fy1*gz2;
-                
-                result( 6,0) = gx2*fy2*fz2;
-                result( 6,1) = fx2*gy2*fz2;
-                result( 6,2) = fx2*fy2*gz2;
-                
-                result( 7,0) = gx1*fy2*fz2;
-                result( 7,1) = fx1*gy2*fz2;
-                result( 7,2) = fx1*fy2*gz2;
-                
-                result( 8,0) = gx3*fy1*fz1;
-                result( 8,1) = fx3*gy1*fz1;
-                result( 8,2) = fx3*fy1*gz1;
-                
-                result( 9,0) = gx2*fy3*fz1;
-                result( 9,1) = fx2*gy3*fz1;
-                result( 9,2) = fx2*fy3*gz1;
-                
-                result(10,0) = gx3*fy2*fz1;
-                result(10,1) = fx3*gy2*fz1;
-                result(10,2) = fx3*fy2*gz1;
-                
-                result(11,0) = gx1*fy3*fz1;
-                result(11,1) = fx1*gy3*fz1;
-                result(11,2) = fx1*fy3*gz1;
-                
-                result(12,0) = gx1*fy1*fz3;
-                result(12,1) = fx1*gy1*fz3;
-                result(12,2) = fx1*fy1*gz3;
-                
-                result(13,0) = gx2*fy1*fz3;
-                result(13,1) = fx2*gy1*fz3;
-                result(13,2) = fx2*fy1*gz3;
-                
-                result(14,0) = gx2*fy2*fz3;
-                result(14,1) = fx2*gy2*fz3;
-                result(14,2) = fx2*fy2*gz3;
-                
-                result(15,0) = gx1*fy2*fz3;
-                result(15,1) = fx1*gy2*fz3;
-                result(15,2) = fx1*fy2*gz3;
-                
-                result(16,0) = gx3*fy1*fz2;
-                result(16,1) = fx3*gy1*fz2;
-                result(16,2) = fx3*fy1*gz2;
-                
-                result(17,0) = gx2*fy3*fz2;
-                result(17,1) = fx2*gy3*fz2;
-                result(17,2) = fx2*fy3*gz2;
-                
-                result(18,0) = gx3*fy2*fz2;
-                result(18,1) = fx3*gy2*fz2;
-                result(18,2) = fx3*fy2*gz2;
-                
-                result(19,0) = gx1*fy3*fz2;
-                result(19,1) = fx1*gy3*fz2;
-                result(19,2) = fx1*fy3*gz2;
-                
-                result(20,0) = gx3*fy3*fz1;
-                result(20,1) = fx3*gy3*fz1;
-                result(20,2) = fx3*fy3*gz1;
-                
-                result(21,0) = gx3*fy1*fz3;
-                result(21,1) = fx3*gy1*fz3;
-                result(21,2) = fx3*fy1*gz3;
-                
-                result(22,0) = gx2*fy3*fz3;
-                result(22,1) = fx2*gy3*fz3;
-                result(22,2) = fx2*fy3*gz3;
-                
-                result(23,0) = gx3*fy2*fz3;
-                result(23,1) = fx3*gy2*fz3;
-                result(23,2) = fx3*fy2*gz3;
-                
-                result(24,0) = gx1*fy3*fz3;
-                result(24,1) = fx1*gy3*fz3;
-                result(24,2) = fx1*fy3*gz3;
-                
-                result(25,0) = gx3*fy3*fz2;
-                result(25,1) = fx3*gy3*fz2;
-                result(25,2) = fx3*fy3*gz2;
-                
-                result(26,0) = gx3*fy3*fz3;
-                result(26,1) = fx3*gy3*fz3;
-                result(26,2) = fx3*fy3*gz3;
-                
+
+                if ( result.size1() != 27 || result.size2() != 3 )
+                    result.resize( 27, 3, false );
+
+                result( 0, 0 ) = gx1 * fy1 * fz1;
+
+                result( 0, 1 ) = fx1 * gy1 * fz1;
+
+                result( 0, 2 ) = fx1 * fy1 * gz1;
+
+                result( 1, 0 ) = gx2 * fy1 * fz1;
+
+                result( 1, 1 ) = fx2 * gy1 * fz1;
+
+                result( 1, 2 ) = fx2 * fy1 * gz1;
+
+                result( 2, 0 ) = gx2 * fy2 * fz1;
+
+                result( 2, 1 ) = fx2 * gy2 * fz1;
+
+                result( 2, 2 ) = fx2 * fy2 * gz1;
+
+                result( 3, 0 ) = gx1 * fy2 * fz1;
+
+                result( 3, 1 ) = fx1 * gy2 * fz1;
+
+                result( 3, 2 ) = fx1 * fy2 * gz1;
+
+                result( 4, 0 ) = gx1 * fy1 * fz2;
+
+                result( 4, 1 ) = fx1 * gy1 * fz2;
+
+                result( 4, 2 ) = fx1 * fy1 * gz2;
+
+                result( 5, 0 ) = gx2 * fy1 * fz2;
+
+                result( 5, 1 ) = fx2 * gy1 * fz2;
+
+                result( 5, 2 ) = fx2 * fy1 * gz2;
+
+                result( 6, 0 ) = gx2 * fy2 * fz2;
+
+                result( 6, 1 ) = fx2 * gy2 * fz2;
+
+                result( 6, 2 ) = fx2 * fy2 * gz2;
+
+                result( 7, 0 ) = gx1 * fy2 * fz2;
+
+                result( 7, 1 ) = fx1 * gy2 * fz2;
+
+                result( 7, 2 ) = fx1 * fy2 * gz2;
+
+                result( 8, 0 ) = gx3 * fy1 * fz1;
+
+                result( 8, 1 ) = fx3 * gy1 * fz1;
+
+                result( 8, 2 ) = fx3 * fy1 * gz1;
+
+                result( 9, 0 ) = gx2 * fy3 * fz1;
+
+                result( 9, 1 ) = fx2 * gy3 * fz1;
+
+                result( 9, 2 ) = fx2 * fy3 * gz1;
+
+                result( 10, 0 ) = gx3 * fy2 * fz1;
+
+                result( 10, 1 ) = fx3 * gy2 * fz1;
+
+                result( 10, 2 ) = fx3 * fy2 * gz1;
+
+                result( 11, 0 ) = gx1 * fy3 * fz1;
+
+                result( 11, 1 ) = fx1 * gy3 * fz1;
+
+                result( 11, 2 ) = fx1 * fy3 * gz1;
+
+                result( 12, 0 ) = gx1 * fy1 * fz3;
+
+                result( 12, 1 ) = fx1 * gy1 * fz3;
+
+                result( 12, 2 ) = fx1 * fy1 * gz3;
+
+                result( 13, 0 ) = gx2 * fy1 * fz3;
+
+                result( 13, 1 ) = fx2 * gy1 * fz3;
+
+                result( 13, 2 ) = fx2 * fy1 * gz3;
+
+                result( 14, 0 ) = gx2 * fy2 * fz3;
+
+                result( 14, 1 ) = fx2 * gy2 * fz3;
+
+                result( 14, 2 ) = fx2 * fy2 * gz3;
+
+                result( 15, 0 ) = gx1 * fy2 * fz3;
+
+                result( 15, 1 ) = fx1 * gy2 * fz3;
+
+                result( 15, 2 ) = fx1 * fy2 * gz3;
+
+                result( 16, 0 ) = gx3 * fy1 * fz2;
+
+                result( 16, 1 ) = fx3 * gy1 * fz2;
+
+                result( 16, 2 ) = fx3 * fy1 * gz2;
+
+                result( 17, 0 ) = gx2 * fy3 * fz2;
+
+                result( 17, 1 ) = fx2 * gy3 * fz2;
+
+                result( 17, 2 ) = fx2 * fy3 * gz2;
+
+                result( 18, 0 ) = gx3 * fy2 * fz2;
+
+                result( 18, 1 ) = fx3 * gy2 * fz2;
+
+                result( 18, 2 ) = fx3 * fy2 * gz2;
+
+                result( 19, 0 ) = gx1 * fy3 * fz2;
+
+                result( 19, 1 ) = fx1 * gy3 * fz2;
+
+                result( 19, 2 ) = fx1 * fy3 * gz2;
+
+                result( 20, 0 ) = gx3 * fy3 * fz1;
+
+                result( 20, 1 ) = fx3 * gy3 * fz1;
+
+                result( 20, 2 ) = fx3 * fy3 * gz1;
+
+                result( 21, 0 ) = gx3 * fy1 * fz3;
+
+                result( 21, 1 ) = fx3 * gy1 * fz3;
+
+                result( 21, 2 ) = fx3 * fy1 * gz3;
+
+                result( 22, 0 ) = gx2 * fy3 * fz3;
+
+                result( 22, 1 ) = fx2 * gy3 * fz3;
+
+                result( 22, 2 ) = fx2 * fy3 * gz3;
+
+                result( 23, 0 ) = gx3 * fy2 * fz3;
+
+                result( 23, 1 ) = fx3 * gy2 * fz3;
+
+                result( 23, 2 ) = fx3 * fy2 * gz3;
+
+                result( 24, 0 ) = gx1 * fy3 * fz3;
+
+                result( 24, 1 ) = fx1 * gy3 * fz3;
+
+                result( 24, 2 ) = fx1 * fy3 * gz3;
+
+                result( 25, 0 ) = gx3 * fy3 * fz2;
+
+                result( 25, 1 ) = fx3 * gy3 * fz2;
+
+                result( 25, 2 ) = fx3 * fy3 * gz2;
+
+                result( 26, 0 ) = gx3 * fy3 * fz3;
+
+                result( 26, 1 ) = fx3 * gy3 * fz3;
+
+                result( 26, 2 ) = fx3 * fy3 * gz3;
+
                 return( result );
             }
-            
-        
+
+
         protected:
-            
-            
+
+
             /**
              * there are no protected class members
              */
-        
-        private:
-            
-            
-            /** 
-             * Static Member Variables 
-             */
-             
-            static const GeometryData msGeometryData;
-            
-            
-      ///@} 
-      ///@name Serialization
-      ///@{ 
-        
-	friend class Serializer;
-	
-	virtual void save(Serializer& rSerializer) const
-	{
- 	  rSerializer.save("Name","Hexahedra3D27");
- 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
-	}
 
-	virtual void load(Serializer& rSerializer)
-	{
- 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
-	}
-            
+        private:
+
+
+            /**
+             * Static Member Variables
+             */
+
+            static const GeometryData msGeometryData;
+
+
+            ///@}
+            ///@name Serialization
+            ///@{
+
+            friend class Serializer;
+
+            virtual void save( Serializer& rSerializer ) const
+            {
+                rSerializer.save( "Name", "Hexahedra3D27" );
+                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointsArrayType );
+            }
+
+            virtual void load( Serializer& rSerializer )
+            {
+                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointsArrayType );
+            }
+
+            Hexahedra3D27(): BaseType( PointsArrayType(), &msGeometryData ) {}
+
             /**
              * Private Operations
              */
-            
 
-            
+
+
             /**
              * TODO: TO BE VERIFIED
              */
             /**
              * Calculates the values of all shape function in all integration points.
              * Integration points are expected to be given in local coordinates
-             * 
+             *
              * @param ThisMethod the current integration method
              * @return the matrix of values of every shape function in each integration point
-             * 
+             *
              * KLUDGE: values are hard-coded!
              */
-            static Matrix CalculateShapeFunctionsIntegrationPointsValues( 
-                    typename BaseType::IntegrationMethod ThisMethod)
+            static Matrix CalculateShapeFunctionsIntegrationPointsValues(
+                typename BaseType::IntegrationMethod ThisMethod )
             {
-                IntegrationPointsContainerType all_integration_points = 
-                        AllIntegrationPoints();
-                IntegrationPointsArrayType integration_points = 
-                        all_integration_points[ThisMethod];
+                IntegrationPointsContainerType all_integration_points =
+                    AllIntegrationPoints();
+                IntegrationPointsArrayType integration_points =
+                    all_integration_points[ThisMethod];
                 //number of integration points
                 const int integration_points_number = integration_points.size();
                 //number of nodes in current geometry
                 const int points_number = 27;
                 //setting up return matrix
-                Matrix shape_function_values(integration_points_number, points_number );
+                Matrix shape_function_values( integration_points_number, points_number );
                 //loop over all integration points
-                for(int pnt = 0; pnt < integration_points_number; pnt++)
+
+                for ( int pnt = 0; pnt < integration_points_number; pnt++ )
                 {
-                    double fx1 = 0.5*(integration_points[pnt].X()-1.0)*(integration_points[pnt].X());
-                    double fx2 = 0.5*(integration_points[pnt].X()+1.0)*(integration_points[pnt].X());
-                    double fx3 = 1.0-(integration_points[pnt].X()*integration_points[pnt].X());
-                    double fy1 = 0.5*(integration_points[pnt].Y()-1.0)*(integration_points[pnt].Y());
-                    double fy2 = 0.5*(integration_points[pnt].Y()+1.0)*(integration_points[pnt].Y());
-                    double fy3 = 1.0-(integration_points[pnt].Y()*integration_points[pnt].Y());
-                    double fz1 = 0.5*(integration_points[pnt].Z()-1.0)*(integration_points[pnt].Z());
-                    double fz2 = 0.5*(integration_points[pnt].Z()+1.0)*(integration_points[pnt].Z());
-                    double fz3 = 1.0-(integration_points[pnt].Z()*integration_points[pnt].Z());
-                    
-                    shape_function_values(pnt,0) = ( fx1*fy1*fz1 );
-                    shape_function_values(pnt,1) = ( fx2*fy1*fz1 );
-                    shape_function_values(pnt,2) = ( fx2*fy2*fz1 );
-                    shape_function_values(pnt,3) = ( fx1*fy2*fz1 );
-                    shape_function_values(pnt,4) = ( fx1*fy1*fz2 );
-                    shape_function_values(pnt,5) = ( fx2*fy1*fz2 );
-                    shape_function_values(pnt,6) = ( fx2*fy2*fz2 );
-                    shape_function_values(pnt,7) = ( fx1*fy2*fz2 );
-                    shape_function_values(pnt,8) = ( fx3*fy1*fz1 );
-                    shape_function_values(pnt,9) = ( fx2*fy3*fz1 );
-                    shape_function_values(pnt,10) = ( fx3*fy2*fz1 );
-                    shape_function_values(pnt,11) = ( fx1*fy3*fz1 );
-                    shape_function_values(pnt,12) = ( fx1*fy1*fz3 );
-                    shape_function_values(pnt,13) = ( fx2*fy1*fz3 );
-                    shape_function_values(pnt,14) = ( fx2*fy2*fz3 ); 
-                    shape_function_values(pnt,15) = ( fx1*fy2*fz3 );
-                    shape_function_values(pnt,16) = ( fx3*fy1*fz2 );
-                    shape_function_values(pnt,17) = ( fx2*fy3*fz2 );
-                    shape_function_values(pnt,18) = ( fx3*fy2*fz2 );
-                    shape_function_values(pnt,19) = ( fx1*fy3*fz2 );
-                    shape_function_values(pnt,20) = ( fx3*fy3*fz1 );
-                    shape_function_values(pnt,21) = ( fx3*fy1*fz3 );
-                    shape_function_values(pnt,22) = ( fx2*fy3*fz3 );
-                    shape_function_values(pnt,23) = ( fx3*fy2*fz3 );
-                    shape_function_values(pnt,24) = ( fx1*fy3*fz3 );
-                    shape_function_values(pnt,25) = ( fx3*fy3*fz2 ); 
-                    shape_function_values(pnt,26) = ( fx3*fy3*fz3 );
+                    double fx1 = 0.5 * ( integration_points[pnt].X() - 1.0 ) * ( integration_points[pnt].X() );
+                    double fx2 = 0.5 * ( integration_points[pnt].X() + 1.0 ) * ( integration_points[pnt].X() );
+                    double fx3 = 1.0 - ( integration_points[pnt].X() * integration_points[pnt].X() );
+                    double fy1 = 0.5 * ( integration_points[pnt].Y() - 1.0 ) * ( integration_points[pnt].Y() );
+                    double fy2 = 0.5 * ( integration_points[pnt].Y() + 1.0 ) * ( integration_points[pnt].Y() );
+                    double fy3 = 1.0 - ( integration_points[pnt].Y() * integration_points[pnt].Y() );
+                    double fz1 = 0.5 * ( integration_points[pnt].Z() - 1.0 ) * ( integration_points[pnt].Z() );
+                    double fz2 = 0.5 * ( integration_points[pnt].Z() + 1.0 ) * ( integration_points[pnt].Z() );
+                    double fz3 = 1.0 - ( integration_points[pnt].Z() * integration_points[pnt].Z() );
+
+                    shape_function_values( pnt, 0 ) = ( fx1 * fy1 * fz1 );
+                    shape_function_values( pnt, 1 ) = ( fx2 * fy1 * fz1 );
+                    shape_function_values( pnt, 2 ) = ( fx2 * fy2 * fz1 );
+                    shape_function_values( pnt, 3 ) = ( fx1 * fy2 * fz1 );
+                    shape_function_values( pnt, 4 ) = ( fx1 * fy1 * fz2 );
+                    shape_function_values( pnt, 5 ) = ( fx2 * fy1 * fz2 );
+                    shape_function_values( pnt, 6 ) = ( fx2 * fy2 * fz2 );
+                    shape_function_values( pnt, 7 ) = ( fx1 * fy2 * fz2 );
+                    shape_function_values( pnt, 8 ) = ( fx3 * fy1 * fz1 );
+                    shape_function_values( pnt, 9 ) = ( fx2 * fy3 * fz1 );
+                    shape_function_values( pnt, 10 ) = ( fx3 * fy2 * fz1 );
+                    shape_function_values( pnt, 11 ) = ( fx1 * fy3 * fz1 );
+                    shape_function_values( pnt, 12 ) = ( fx1 * fy1 * fz3 );
+                    shape_function_values( pnt, 13 ) = ( fx2 * fy1 * fz3 );
+                    shape_function_values( pnt, 14 ) = ( fx2 * fy2 * fz3 );
+                    shape_function_values( pnt, 15 ) = ( fx1 * fy2 * fz3 );
+                    shape_function_values( pnt, 16 ) = ( fx3 * fy1 * fz2 );
+                    shape_function_values( pnt, 17 ) = ( fx2 * fy3 * fz2 );
+                    shape_function_values( pnt, 18 ) = ( fx3 * fy2 * fz2 );
+                    shape_function_values( pnt, 19 ) = ( fx1 * fy3 * fz2 );
+                    shape_function_values( pnt, 20 ) = ( fx3 * fy3 * fz1 );
+                    shape_function_values( pnt, 21 ) = ( fx3 * fy1 * fz3 );
+                    shape_function_values( pnt, 22 ) = ( fx2 * fy3 * fz3 );
+                    shape_function_values( pnt, 23 ) = ( fx3 * fy2 * fz3 );
+                    shape_function_values( pnt, 24 ) = ( fx1 * fy3 * fz3 );
+                    shape_function_values( pnt, 25 ) = ( fx3 * fy3 * fz2 );
+                    shape_function_values( pnt, 26 ) = ( fx3 * fy3 * fz3 );
                 }
+
                 return shape_function_values;
             }
-            
+
             /**
              * TODO: TO BE VERIFIED
              */
             /**
              * Calculates the local gradients of all shape functions in all integration points.
-             * Integration points are expected to be given in local coordinates 
-             * 
+             * Integration points are expected to be given in local coordinates
+             *
              * @param ThisMethod the current integration method
-             * @return the vector of the gradients of all shape functions 
+             * @return the vector of the gradients of all shape functions
              * in each integration point
              */
             static ShapeFunctionsGradientsType
-                    CalculateShapeFunctionsIntegrationPointsLocalGradients( 
-                    typename BaseType::IntegrationMethod ThisMethod)
+            CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                typename BaseType::IntegrationMethod ThisMethod )
             {
-                IntegrationPointsContainerType all_integration_points = 
-                        AllIntegrationPoints();
-                IntegrationPointsArrayType integration_points = 
-                        all_integration_points[ThisMethod];
+                IntegrationPointsContainerType all_integration_points =
+                    AllIntegrationPoints();
+                IntegrationPointsArrayType integration_points =
+                    all_integration_points[ThisMethod];
                 //number of integration points
                 const int integration_points_number = integration_points.size();
-                ShapeFunctionsGradientsType d_shape_f_values(integration_points_number);
+                ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
                 //initialising container                //loop over all integration points
-                for( int pnt=0; pnt<integration_points_number; pnt++ )
+
+                for ( int pnt = 0; pnt < integration_points_number; pnt++ )
                 {
-                    double fx1 = 0.5*(integration_points[pnt].X()-1.0)*(integration_points[pnt].X());
-                    double fx2 = 0.5*(integration_points[pnt].X()+1.0)*(integration_points[pnt].X());
-                    double fx3 = 1.0-(integration_points[pnt].X()*integration_points[pnt].X());
-                    double fy1 = 0.5*(integration_points[pnt].Y()-1.0)*(integration_points[pnt].Y());
-                    double fy2 = 0.5*(integration_points[pnt].Y()+1.0)*(integration_points[pnt].Y());
-                    double fy3 = 1.0-(integration_points[pnt].Y()*integration_points[pnt].Y());
-                    double fz1 = 0.5*(integration_points[pnt].Z()-1.0)*(integration_points[pnt].Z());
-                    double fz2 = 0.5*(integration_points[pnt].Z()+1.0)*(integration_points[pnt].Z());
-                    double fz3 = 1.0-(integration_points[pnt].Z()*integration_points[pnt].Z());
-                
-                    double gx1 = 0.5*(2.0*integration_points[pnt].X()-1.0);
-                    double gx2 = 0.5*(2.0*integration_points[pnt].X()+1.0);
-                    double gx3 = -2*integration_points[pnt].X();
-                    double gy1 = 0.5*(2.0*integration_points[pnt].Y()-1.0);
-                    double gy2 = 0.5*(2.0*integration_points[pnt].Y()+1.0);
-                    double gy3 = -2*integration_points[pnt].Y();
-                    double gz1 = 0.5*(2.0*integration_points[pnt].Z()-1.0);
-                    double gz2 = 0.5*(2.0*integration_points[pnt].Z()+1.0);
-                    double gz3 = -2*integration_points[pnt].Z();
+                    double fx1 = 0.5 * ( integration_points[pnt].X() - 1.0 ) * ( integration_points[pnt].X() );
+                    double fx2 = 0.5 * ( integration_points[pnt].X() + 1.0 ) * ( integration_points[pnt].X() );
+                    double fx3 = 1.0 - ( integration_points[pnt].X() * integration_points[pnt].X() );
+                    double fy1 = 0.5 * ( integration_points[pnt].Y() - 1.0 ) * ( integration_points[pnt].Y() );
+                    double fy2 = 0.5 * ( integration_points[pnt].Y() + 1.0 ) * ( integration_points[pnt].Y() );
+                    double fy3 = 1.0 - ( integration_points[pnt].Y() * integration_points[pnt].Y() );
+                    double fz1 = 0.5 * ( integration_points[pnt].Z() - 1.0 ) * ( integration_points[pnt].Z() );
+                    double fz2 = 0.5 * ( integration_points[pnt].Z() + 1.0 ) * ( integration_points[pnt].Z() );
+                    double fz3 = 1.0 - ( integration_points[pnt].Z() * integration_points[pnt].Z() );
+
+                    double gx1 = 0.5 * ( 2.0 * integration_points[pnt].X() - 1.0 );
+                    double gx2 = 0.5 * ( 2.0 * integration_points[pnt].X() + 1.0 );
+                    double gx3 = -2 * integration_points[pnt].X();
+                    double gy1 = 0.5 * ( 2.0 * integration_points[pnt].Y() - 1.0 );
+                    double gy2 = 0.5 * ( 2.0 * integration_points[pnt].Y() + 1.0 );
+                    double gy3 = -2 * integration_points[pnt].Y();
+                    double gz1 = 0.5 * ( 2.0 * integration_points[pnt].Z() - 1.0 );
+                    double gz2 = 0.5 * ( 2.0 * integration_points[pnt].Z() + 1.0 );
+                    double gz3 = -2 * integration_points[pnt].Z();
                     //setting up result matrix
-                    Matrix result = ZeroMatrix(27,3);
-                
-                    result( 0,0) = gx1*fy1*fz1;
-                    result( 0,1) = fx1*gy1*fz1;
-                    result( 0,2) = fx1*fy1*gz1;
-                
-                    result( 1,0) = gx2*fy1*fz1;
-                    result( 1,1) = fx2*gy1*fz1;
-                    result( 1,2) = fx2*fy1*gz1;
-                
-                    result( 2,0) = gx2*fy2*fz1;
-                    result( 2,1) = fx2*gy2*fz1;
-                    result( 2,2) = fx2*fy2*gz1;
-                
-                    result( 3,0) = gx1*fy2*fz1;
-                    result( 3,1) = fx1*gy2*fz1;
-                    result( 3,2) = fx1*fy2*gz1;
-                
-                    result( 4,0) = gx1*fy1*fz2;
-                    result( 4,1) = fx1*gy1*fz2;
-                    result( 4,2) = fx1*fy1*gz2;
-                
-                    result( 5,0) = gx2*fy1*fz2;
-                    result( 5,1) = fx2*gy1*fz2;
-                    result( 5,2) = fx2*fy1*gz2;
-                
-                    result( 6,0) = gx2*fy2*fz2;
-                    result( 6,1) = fx2*gy2*fz2;
-                    result( 6,2) = fx2*fy2*gz2;
-                
-                    result( 7,0) = gx1*fy2*fz2;
-                    result( 7,1) = fx1*gy2*fz2;
-                    result( 7,2) = fx1*fy2*gz2;
-                
-                    result( 8,0) = gx3*fy1*fz1;
-                    result( 8,1) = fx3*gy1*fz1;
-                    result( 8,2) = fx3*fy1*gz1;
-                
-                    result( 9,0) = gx2*fy3*fz1;
-                    result( 9,1) = fx2*gy3*fz1;
-                    result( 9,2) = fx2*fy3*gz1;
-                
-                    result(10,0) = gx3*fy2*fz1;
-                    result(10,1) = fx3*gy2*fz1;
-                    result(10,2) = fx3*fy2*gz1;
-                
-                    result(11,0) = gx1*fy3*fz1;
-                    result(11,1) = fx1*gy3*fz1;
-                    result(11,2) = fx1*fy3*gz1;
-                
-                    result(12,0) = gx1*fy1*fz3;
-                    result(12,1) = fx1*gy1*fz3;
-                    result(12,2) = fx1*fy1*gz3;
-                
-                    result(13,0) = gx2*fy1*fz3;
-                    result(13,1) = fx2*gy1*fz3;
-                    result(13,2) = fx2*fy1*gz3;
-                
-                    result(14,0) = gx2*fy2*fz3;
-                    result(14,1) = fx2*gy2*fz3;
-                    result(14,2) = fx2*fy2*gz3;
-                
-                    result(15,0) = gx1*fy2*fz3;
-                    result(15,1) = fx1*gy2*fz3;
-                    result(15,2) = fx1*fy2*gz3;
-                
-                    result(16,0) = gx3*fy1*fz2;
-                    result(16,1) = fx3*gy1*fz2;
-                    result(16,2) = fx3*fy1*gz2;
-                
-                    result(17,0) = gx2*fy3*fz2;
-                    result(17,1) = fx2*gy3*fz2;
-                    result(17,2) = fx2*fy3*gz2;
-                
-                    result(18,0) = gx3*fy2*fz2;
-                    result(18,1) = fx3*gy2*fz2;
-                    result(18,2) = fx3*fy2*gz2;
-                
-                    result(19,0) = gx1*fy3*fz2;
-                    result(19,1) = fx1*gy3*fz2;
-                    result(19,2) = fx1*fy3*gz2;
-                
-                    result(20,0) = gx3*fy3*fz1;
-                    result(20,1) = fx3*gy3*fz1;
-                    result(20,2) = fx3*fy3*gz1;
-                
-                    result(21,0) = gx3*fy1*fz3;
-                    result(21,1) = fx3*gy1*fz3;
-                    result(21,2) = fx3*fy1*gz3;
-                
-                    result(22,0) = gx2*fy3*fz3;
-                    result(22,1) = fx2*gy3*fz3;
-                    result(22,2) = fx2*fy3*gz3;
-                
-                    result(23,0) = gx3*fy2*fz3;
-                    result(23,1) = fx3*gy2*fz3;
-                    result(23,2) = fx3*fy2*gz3;
-                
-                    result(24,0) = gx1*fy3*fz3;
-                    result(24,1) = fx1*gy3*fz3;
-                    result(24,2) = fx1*fy3*gz3;
-                
-                    result(25,0) = gx3*fy3*fz2;
-                    result(25,1) = fx3*gy3*fz2;
-                    result(25,2) = fx3*fy3*gz2;
-                
-                    result(26,0) = gx3*fy3*fz3;
-                    result(26,1) = fx3*gy3*fz3;
-                    result(26,2) = fx3*fy3*gz3;
-                    
+                    Matrix result = ZeroMatrix( 27, 3 );
+
+                    result( 0, 0 ) = gx1 * fy1 * fz1;
+                    result( 0, 1 ) = fx1 * gy1 * fz1;
+                    result( 0, 2 ) = fx1 * fy1 * gz1;
+
+                    result( 1, 0 ) = gx2 * fy1 * fz1;
+                    result( 1, 1 ) = fx2 * gy1 * fz1;
+                    result( 1, 2 ) = fx2 * fy1 * gz1;
+
+                    result( 2, 0 ) = gx2 * fy2 * fz1;
+                    result( 2, 1 ) = fx2 * gy2 * fz1;
+                    result( 2, 2 ) = fx2 * fy2 * gz1;
+
+                    result( 3, 0 ) = gx1 * fy2 * fz1;
+                    result( 3, 1 ) = fx1 * gy2 * fz1;
+                    result( 3, 2 ) = fx1 * fy2 * gz1;
+
+                    result( 4, 0 ) = gx1 * fy1 * fz2;
+                    result( 4, 1 ) = fx1 * gy1 * fz2;
+                    result( 4, 2 ) = fx1 * fy1 * gz2;
+
+                    result( 5, 0 ) = gx2 * fy1 * fz2;
+                    result( 5, 1 ) = fx2 * gy1 * fz2;
+                    result( 5, 2 ) = fx2 * fy1 * gz2;
+
+                    result( 6, 0 ) = gx2 * fy2 * fz2;
+                    result( 6, 1 ) = fx2 * gy2 * fz2;
+                    result( 6, 2 ) = fx2 * fy2 * gz2;
+
+                    result( 7, 0 ) = gx1 * fy2 * fz2;
+                    result( 7, 1 ) = fx1 * gy2 * fz2;
+                    result( 7, 2 ) = fx1 * fy2 * gz2;
+
+                    result( 8, 0 ) = gx3 * fy1 * fz1;
+                    result( 8, 1 ) = fx3 * gy1 * fz1;
+                    result( 8, 2 ) = fx3 * fy1 * gz1;
+
+                    result( 9, 0 ) = gx2 * fy3 * fz1;
+                    result( 9, 1 ) = fx2 * gy3 * fz1;
+                    result( 9, 2 ) = fx2 * fy3 * gz1;
+
+                    result( 10, 0 ) = gx3 * fy2 * fz1;
+                    result( 10, 1 ) = fx3 * gy2 * fz1;
+                    result( 10, 2 ) = fx3 * fy2 * gz1;
+
+                    result( 11, 0 ) = gx1 * fy3 * fz1;
+                    result( 11, 1 ) = fx1 * gy3 * fz1;
+                    result( 11, 2 ) = fx1 * fy3 * gz1;
+
+                    result( 12, 0 ) = gx1 * fy1 * fz3;
+                    result( 12, 1 ) = fx1 * gy1 * fz3;
+                    result( 12, 2 ) = fx1 * fy1 * gz3;
+
+                    result( 13, 0 ) = gx2 * fy1 * fz3;
+                    result( 13, 1 ) = fx2 * gy1 * fz3;
+                    result( 13, 2 ) = fx2 * fy1 * gz3;
+
+                    result( 14, 0 ) = gx2 * fy2 * fz3;
+                    result( 14, 1 ) = fx2 * gy2 * fz3;
+                    result( 14, 2 ) = fx2 * fy2 * gz3;
+
+                    result( 15, 0 ) = gx1 * fy2 * fz3;
+                    result( 15, 1 ) = fx1 * gy2 * fz3;
+                    result( 15, 2 ) = fx1 * fy2 * gz3;
+
+                    result( 16, 0 ) = gx3 * fy1 * fz2;
+                    result( 16, 1 ) = fx3 * gy1 * fz2;
+                    result( 16, 2 ) = fx3 * fy1 * gz2;
+
+                    result( 17, 0 ) = gx2 * fy3 * fz2;
+                    result( 17, 1 ) = fx2 * gy3 * fz2;
+                    result( 17, 2 ) = fx2 * fy3 * gz2;
+
+                    result( 18, 0 ) = gx3 * fy2 * fz2;
+                    result( 18, 1 ) = fx3 * gy2 * fz2;
+                    result( 18, 2 ) = fx3 * fy2 * gz2;
+
+                    result( 19, 0 ) = gx1 * fy3 * fz2;
+                    result( 19, 1 ) = fx1 * gy3 * fz2;
+                    result( 19, 2 ) = fx1 * fy3 * gz2;
+
+                    result( 20, 0 ) = gx3 * fy3 * fz1;
+                    result( 20, 1 ) = fx3 * gy3 * fz1;
+                    result( 20, 2 ) = fx3 * fy3 * gz1;
+
+                    result( 21, 0 ) = gx3 * fy1 * fz3;
+                    result( 21, 1 ) = fx3 * gy1 * fz3;
+                    result( 21, 2 ) = fx3 * fy1 * gz3;
+
+                    result( 22, 0 ) = gx2 * fy3 * fz3;
+                    result( 22, 1 ) = fx2 * gy3 * fz3;
+                    result( 22, 2 ) = fx2 * fy3 * gz3;
+
+                    result( 23, 0 ) = gx3 * fy2 * fz3;
+                    result( 23, 1 ) = fx3 * gy2 * fz3;
+                    result( 23, 2 ) = fx3 * fy2 * gz3;
+
+                    result( 24, 0 ) = gx1 * fy3 * fz3;
+                    result( 24, 1 ) = fx1 * gy3 * fz3;
+                    result( 24, 2 ) = fx1 * fy3 * gz3;
+
+                    result( 25, 0 ) = gx3 * fy3 * fz2;
+                    result( 25, 1 ) = fx3 * gy3 * fz2;
+                    result( 25, 2 ) = fx3 * fy3 * gz2;
+
+                    result( 26, 0 ) = gx3 * fy3 * fz3;
+                    result( 26, 1 ) = fx3 * gy3 * fz3;
+                    result( 26, 2 ) = fx3 * fy3 * gz3;
+
                     d_shape_f_values[pnt] = result;
                 }
+
                 return d_shape_f_values;
             }
-            
+
             /**
              * TODO: TO BE VERIFIED
              */
             static const IntegrationPointsContainerType AllIntegrationPoints()
             {
-                IntegrationPointsContainerType integration_points = 
-				{{
-                    Quadrature<HexahedraGaussianIntegrationPoints1, 
-                    3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                    Quadrature<HexahedraGaussianIntegrationPoints2, 
-                    3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                    Quadrature<HexahedraGaussianIntegrationPoints3, 
-                    3, IntegrationPoint<3> >::GenerateIntegrationPoints()
-				}};
+                IntegrationPointsContainerType integration_points =
+                {{
+                        Quadrature < HexahedraGaussianIntegrationPoints1,
+                        3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                        Quadrature < HexahedraGaussianIntegrationPoints2,
+                        3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                        Quadrature < HexahedraGaussianIntegrationPoints3,
+                        3, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                    }
+                };
                 return integration_points;
             }
-            
+
             static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
             {
-                ShapeFunctionsValuesContainerType shape_functions_values = 
-				{{
-                    Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                            GeometryData::GI_GAUSS_1),
-                    Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                            GeometryData::GI_GAUSS_2),
-                    Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                            GeometryData::GI_GAUSS_3)
-				}};
+                ShapeFunctionsValuesContainerType shape_functions_values =
+                {{
+                        Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                            GeometryData::GI_GAUSS_1 ),
+                        Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                            GeometryData::GI_GAUSS_2 ),
+                        Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                            GeometryData::GI_GAUSS_3 )
+                    }
+                };
                 return shape_functions_values;
             }
-            
+
             static const ShapeFunctionsLocalGradientsContainerType
-                    AllShapeFunctionsLocalGradients()
+            AllShapeFunctionsLocalGradients()
             {
-                ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = 
-				{{
-                    Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                            GeometryData::GI_GAUSS_1),
-                    Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                            GeometryData::GI_GAUSS_2),
-                    Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                            GeometryData::GI_GAUSS_3)
-				}};
+                ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
+                {{
+                        Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                            GeometryData::GI_GAUSS_1 ),
+                        Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                            GeometryData::GI_GAUSS_2 ),
+                        Hexahedra3D27<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                            GeometryData::GI_GAUSS_3 )
+                    }
+                };
                 return shape_functions_local_gradients;
             }
-            
-            
+
+
             /**
              * Private Friends
              */
-                     
-            template<class TOtherPointType> friend class Hexahedra3D27;
-            
-            
-            /**
-             * Un accessible methods 
-             */
-            
-            Hexahedra3D27();
 
-                             
-    };// Class Geometry 
-    
-    
+            template<class TOtherPointType> friend class Hexahedra3D27;
+
+
+            /**
+             * Un accessible methods
+             */
+
+    };// Class Geometry
+
+
     /**
-     * Input and output 
+     * Input and output
      */
-    
+
     /**
      * input stream function
      */
     template<class TPointType> inline std::istream& operator >> (
-            std::istream& rIStream, Hexahedra3D27<TPointType>& rThis);
-    
+        std::istream& rIStream, Hexahedra3D27<TPointType>& rThis );
+
     /**
      * output stream function
      */
     template<class TPointType> inline std::ostream& operator << (
-            std::ostream& rOStream, const Hexahedra3D27<TPointType>& rThis)
+        std::ostream& rOStream, const Hexahedra3D27<TPointType>& rThis )
     {
-        rThis.PrintInfo(rOStream);
+        rThis.PrintInfo( rOStream );
         rOStream << std::endl;
-        rThis.PrintData(rOStream);
-        
+        rThis.PrintData( rOStream );
+
         return rOStream;
     }
-    
-    template<class TPointType> const 
-            GeometryData Hexahedra3D27<TPointType>::msGeometryData(
-            3, 3, 3, GeometryData::GI_GAUSS_3,
-    Hexahedra3D27<TPointType>::AllIntegrationPoints(),
-    Hexahedra3D27<TPointType>::AllShapeFunctionsValues(),
-    AllShapeFunctionsLocalGradients()
-                                                                  );
-  
+
+    template<class TPointType> const
+    GeometryData Hexahedra3D27<TPointType>::msGeometryData(
+        3, 3, 3, GeometryData::GI_GAUSS_3,
+        Hexahedra3D27<TPointType>::AllIntegrationPoints(),
+        Hexahedra3D27<TPointType>::AllShapeFunctionsValues(),
+        AllShapeFunctionsLocalGradients()
+    );
+
 }// namespace Kratos.
 
 #endif // KRATOS_HEXAHEDRA_3D_27_H_INCLUDED  defined 

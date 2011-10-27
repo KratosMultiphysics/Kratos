@@ -1617,6 +1617,8 @@ namespace Kratos
                 KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointsArrayType );
             }
 
+            Quadrilateral3D9(): BaseType( PointsArrayType(), &msGeometryData ) {}
+
             /**
              * Private Operations
              */
@@ -1800,7 +1802,6 @@ namespace Kratos
             /**
              * Un accessible methods
              */
-            Quadrilateral3D9();
     }; // Class Quadrilateral3D9
 
     /**
