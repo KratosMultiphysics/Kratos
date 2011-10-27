@@ -489,8 +489,8 @@ namespace Kratos
             */
             virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
             {
-                rResult = ZeroVector(1);
-                rResult[0] = 0.5*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                rResult = ZeroVector( 1 );
+                rResult[0] = 0.5 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
                 return rResult;
             }
 
@@ -514,7 +514,7 @@ namespace Kratos
             */
             virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
             {
-                return( 0.5*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) ) );
+                return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
             }
 
             /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -531,7 +531,7 @@ namespace Kratos
             */
             virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
             {
-                return( 0.5*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) ) );
+                return( 0.5*MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) ) );
             }
 
 
@@ -551,8 +551,8 @@ namespace Kratos
             */
             virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
             {
-                rResult[0] = ZeroMatrix(1,1);
-                rResult[0](0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                rResult[0] = ZeroMatrix( 1, 1 );
+                rResult[0]( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
                 return rResult;
             }
 
@@ -575,8 +575,8 @@ namespace Kratos
             */
             virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
             {
-                rResult = ZeroMatrix(1,1);
-                rResult(0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                rResult = ZeroMatrix( 1, 1 );
+                rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
                 return( rResult );
             }
 
@@ -593,8 +593,8 @@ namespace Kratos
             */
             virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
             {
-                rResult = ZeroMatrix(1,1);
-                rResult(0,0) = 2.0*MathUtils<double>::Norm3((this->GetPoint(1))-(this->GetPoint(0)) );
+                rResult = ZeroMatrix( 1, 1 );
+                rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
                 return( rResult );
             }
 
@@ -737,22 +737,24 @@ namespace Kratos
             ///@name Member Variables
             ///@{
 
-      ///@}
-      ///@name Serialization
-      ///@{
+            ///@}
+            ///@name Serialization
+            ///@{
 
-	friend class Serializer;
+            friend class Serializer;
 
-	virtual void save(Serializer& rSerializer) const
-	{
- 	  rSerializer.save("Name","Line3D2");
- 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointsArrayType );
-	}
+            virtual void save( Serializer& rSerializer ) const
+            {
+                rSerializer.save( "Name", "Line3D2" );
+                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointsArrayType );
+            }
 
-	virtual void load(Serializer& rSerializer)
-	{
- 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
-	}
+            virtual void load( Serializer& rSerializer )
+            {
+                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointsArrayType );
+            }
+
+            Line3D2(): BaseType( PointsArrayType(), &msGeometryData ) {}
 
 
             ///@}
@@ -858,10 +860,6 @@ namespace Kratos
             ///@}
             ///@name Un accessible methods
             ///@{
-
-            Line3D2();
-
-
 
             ///@}
 
