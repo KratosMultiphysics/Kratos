@@ -250,7 +250,6 @@ __kernel void Move(__global int * IndexCellReference,
 		   __global int4 * Triangles,
 		   __global double * InvCellSize,
 		   __constant double * N,
-		   __constant double * radius,
 		   __global double4 * MinPoint,
 		   __global double4 * point,
 		   __global double4 * pointVelocity,
@@ -260,14 +259,12 @@ __kernel void Move(__global int * IndexCellReference,
 		   __global double4 * nodesF,
 		   __global double4 * nodesP,
 		   __global double4 * body_force,
+		   __global double4 * pointVelocityOld,
+		   __global double4 * pointDisplaceOld,
 		   double idensity,
 		   double small_dt,
 		   double subSteps,
-		   int use_eulerian,
-		   int size,
-		   __global double4 * pointVelocityOld,
-		   __global double4 * pointDisplaceOld
-// 		   __local int * l
+		   int use_eulerian
 		  )
 {
 
@@ -275,10 +272,7 @@ __kernel void Move(__global int * IndexCellReference,
 
       int4 triangleIndex = 0;
 
-      double4 fN;
       double4 eulerian_vel = (double4)(0.0,0.0,0.0,0.0);
-      double4 stp_dis      = (double4)(0.0,0.0,0.0,0.0);
-      double4 pointAcceleration;
 
       pointVelocityOld[gid] = pointVelocity[gid];
       pointDisplaceOld[gid] = pointDisplace[gid];
@@ -293,16 +287,17 @@ __kernel void Move(__global int * IndexCellReference,
 
 	int Found = 0;
 
-	#pragma unroll 2
+	double4 fN = (double4)(0.0,0.0,0.0,0.0);
+
 	for(int l = loIndex; !Found && (l < hiIndex ); l++) 
 	{
 	    triangleIndex = Triangles[BinsObjectContainer[l]];
 
 	    fN = calculatePositionT3(PointsTriangle[triangleIndex.x-1],
-				      PointsTriangle[triangleIndex.y-1],
-				      PointsTriangle[triangleIndex.z-1],
-// 				         PointsTriangle[triangleIndex.w-1],
-				      point[gid]);
+				     PointsTriangle[triangleIndex.y-1],
+				     PointsTriangle[triangleIndex.z-1],
+// 				     PointsTriangle[triangleIndex.w-1],
+				     point[gid]);
 
 	    Found = fN.x >= 0.0 && fN.y >= 0.0 && fN.z >= 0.0 /*&& fN.w >= 0.0*/ &&
 		    fN.x <= 1.0 && fN.y <= 1.0 && fN.z <= 1.0 /*&& fN.w <= 1.0*/;
@@ -315,34 +310,22 @@ __kernel void Move(__global int * IndexCellReference,
 
 	    fN *= idensity;
 
-	    pointAcceleration = body_force[0];
-	    pointAcceleration -= fN.x * nodesP[triangleIndex.x-1];
-	    pointAcceleration -= fN.y * nodesP[triangleIndex.y-1];
-	    pointAcceleration -= fN.z * nodesP[triangleIndex.z-1];
-
 	    pointForce[gid] = (double4)(0.0,0.0,0.0,0.0);
 	    pointForce[gid] += fN.x * nodesF[triangleIndex.x-1];
 	    pointForce[gid] += fN.y * nodesF[triangleIndex.y-1];
 	    pointForce[gid] += fN.z * nodesF[triangleIndex.z-1];
 
-	    pointAcceleration += pointForce[gid];
+	    pointVelocity[gid].xyz = (use_eulerian && !subStep) ? eulerian_vel.xyz : pointVelocity[gid].xyz;
+	    pointVelocityOld[gid].xyz = (use_eulerian && !subStep) ? eulerian_vel.xyz : pointVelocityOld[gid].xyz;
 
-	    int uses = use_eulerian && !subStep;
+	    pointVelocity[gid].xyz += ((body_force[0].xyz - fN.x * nodesP[triangleIndex.x-1].xyz - fN.y * nodesP[triangleIndex.y-1].xyz - fN.z * nodesP[triangleIndex.z-1].xyz + pointForce[gid].xyz) * small_dt); 
 
-	    pointVelocity[gid].xyz    = eulerian_vel.xyz * uses + pointVelocity[gid].xyz    * !uses;
-	    pointVelocityOld[gid].xyz = eulerian_vel.xyz * uses + pointVelocityOld[gid].xyz * !uses;
-
-	    pointVelocity[gid].xyz += pointAcceleration.xyz * small_dt;
-
-	    point[gid].xyz += eulerian_vel.xyz * small_dt;
-	    stp_dis.xyz    += eulerian_vel.xyz * small_dt;
-// 
+	    point[gid].xyz 	   += eulerian_vel.xyz * small_dt;
+	    pointDisplace[gid].xyz += eulerian_vel.xyz * small_dt;
 	} else {
 	    point[gid].w = min(-point[gid].w,point[gid].w);
 	}
     }
-
-    pointDisplace[gid].xyz += stp_dis.xyz;	
 }
 
 __kernel void Move2(__global double4 * point,
@@ -382,7 +365,6 @@ __kernel void calculateField(__global int * IndexCellReference,
 		   __global double4 * nodesV,
 		   __global int * gIndex,
 		   __global double4 * gFn,
-// 		   __global int * gElementCounter,
 		   int size,
 		   __local int * l
 		  )

@@ -41,7 +41,7 @@
 #define KRATOS_OCL_4_ITR_W(Arr)		((*Arr).s[3])
 #endif
 
-#define PARTICLE_BUFFER	125000
+#define PARTICLE_BUFFER	76800
 
 #include "../../../kratos/spatial_containers/tree.h"
 #include "../custom_utilities/opencl_interface.h"
@@ -167,6 +167,9 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    cl_double4   * mParticlesVelocityItr;
 	    cl_double4   * mParticlesDisplaceItr;
 	    cl_double4   * mParticlesForceItr;
+	    
+	    std::cout << "Inicializando OCL" << std::endl;
+	    InitOCL();
 	 
 	    mNodeSize	  = (StaticMesh->NodesEnd()-1)->Id();
 	    mTriangleSize = (StaticMesh->ElementsEnd()-1)->Id();
@@ -277,8 +280,6 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    
 // 	    mParticMesh->SetNodalSolutionStepVariablesList();
 	    
-	    std::cout << "Inicializando OCL" << std::endl;
-	    InitOCL();
 	    std::cout << "Calculando BoundingBox" << std::endl;
 	    CalculateBoundingBox();
 	    std::cout << "Calculando tamanyo de celdas" << std::endl;
@@ -322,7 +323,8 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
      
 	void InitOCL() 
 	{
-	   OCL_program = OCLDeviceGroup.BuildProgramFromFile("binshashobjects_tetrahedron.cl","-cl-nv-maxrregcount=68 -cl-nv-opt-level=3 -D WORKGROUP_SIZE=512");
+// 	  -cl-nv-maxrregcount=68
+	   OCL_program = OCLDeviceGroup.BuildProgramFromFile("binshashobjects_tetrahedron.cl","-cl-nv-opt-level=3 -D WORKGROUP_SIZE=512");
 
 	   OCLGenerateBinsA     = OCLDeviceGroup.RegisterKernel(OCL_program,"GenerateBinsObjectsA");
 	   OCLScan_Local1	= OCLDeviceGroup.RegisterKernel(OCL_program,"scanExclusiveLocal1");
@@ -332,6 +334,8 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	   OCLMove2		= OCLDeviceGroup.RegisterKernel(OCL_program,"Move2");
 	   OCLTransferB 	= OCLDeviceGroup.RegisterKernel(OCL_program,"calculateField");
 	   OCLResetCounter	= OCLDeviceGroup.RegisterKernel(OCL_program,"resetCounter");
+	   
+	   std::cout << OCLDeviceGroup.WorkGroupSizes[OCLMove][0] << std::endl;
 	   
 	   std::cout << "OCL init ok" << std::endl;
 	}
@@ -1091,24 +1095,21 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
             OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 3,  OCL_TriangleList);
             OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 4,  OCL_InvCellSize);
             OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 5,  OCL_N);
-            OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 6,  OCL_Radius);
-            OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 7,  OCL_MinPoint);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 8,  OCL_Particles);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 9,  OCL_ParticlesVelocity);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 10, OCL_ParticlesDisplace);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 11, OCL_ParticlesForce);
- 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 12, OCL_NodesV);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 13, OCL_NodesF);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 14, OCL_NodesP);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 15, OCL_Body_Force);
-	    OCLDeviceGroup.SetKernelArg(	OCLMove, 16, 1/density);
-	    OCLDeviceGroup.SetKernelArg(	OCLMove, 17, dt/substeps);
-	    OCLDeviceGroup.SetKernelArg(	OCLMove, 18, substeps);
-	    OCLDeviceGroup.SetKernelArg(	OCLMove, 19, use_eulerian);
-	    OCLDeviceGroup.SetKernelArg(	OCLMove, 20, PARTICLE_BUFFER);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 21, OCL_ParticlesVelocityOld);
-	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 22, OCL_ParticlesDisplaceOld);
-// 	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLMove, 23, OCLDeviceGroup.WorkGroupSizes[OCLMove][0] * sizeof(int));
+            OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 6,  OCL_MinPoint);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 7,  OCL_Particles);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 8,  OCL_ParticlesVelocity);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 9, OCL_ParticlesDisplace);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 10, OCL_ParticlesForce);
+ 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 11, OCL_NodesV);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 12, OCL_NodesF);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 13, OCL_NodesP);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 14, OCL_Body_Force);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 15, OCL_ParticlesVelocityOld);
+	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove, 16, OCL_ParticlesDisplaceOld);
+	    OCLDeviceGroup.SetKernelArg(	OCLMove, 17, 1/density);
+	    OCLDeviceGroup.SetKernelArg(	OCLMove, 18, dt/substeps);
+	    OCLDeviceGroup.SetKernelArg(	OCLMove, 19, substeps);
+	    OCLDeviceGroup.SetKernelArg(	OCLMove, 20, use_eulerian);
 	    
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove2, 0, OCL_Particles);
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLMove2, 1, OCL_ParticlesVelocity);
@@ -1130,15 +1131,8 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 10, OCL_NodesV);
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 11, OCL_ParticlesIndex);
 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 12, OCL_ParticlesN);
-// 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLTransferB, 13, OCL_ElementContainer);
 	    OCLDeviceGroup.SetKernelArg(	OCLTransferB, 13, PARTICLE_BUFFER);
 	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLTransferB, 14, OCLDeviceGroup.WorkGroupSizes[OCLTransferB][0] * sizeof(int));
-	    
-// 	    OCLDeviceGroup.SetBufferAsKernelArg(OCLResetCounter, 0, OCL_ElementContainer);
-	    
-// 	    Timer::Start("Gpu-Time");
-// 	    OCLDeviceGroup.ExecuteKernel(OCLResetCounter, mTriangleSize);
-// 	    Timer::Stop("Gpu-Time");
 	    
 	    while (processed < mParticMesh->NumberOfNodes())
 	    {	 
@@ -1177,10 +1171,6 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 
 		processed += amount;
 	    }
-
-// 	    Timer::Start("DeviceMemTransfer");
-// 	    OCLDeviceGroup.CopyBuffer(OCL_ElementContainer, OpenCL::DeviceToHost, OpenCL::VoidPList(1,&mParticlesOnElement[0]));
-// 	    Timer::Stop("DeviceMemTransfer");
 	    
 	    Timer::Start("PythonToLibTransfer");
 	    ModelPart::NodesContainerType::iterator inode = mParticMesh->NodesBegin();
