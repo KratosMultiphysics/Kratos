@@ -75,7 +75,7 @@ convection_diffusion_solver.AddDofs(model_part,thermal_settings)
     
 #creating a fluid solver object
 solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
-solver.time_order = 1
+solver.time_order = 2
 solver.prediction_order = 2
 pDiagPrecond = DiagonalPreconditioner()
 solver.linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
@@ -96,6 +96,9 @@ vel = Vector(3);
 for node in model_part.Nodes:
     vel[0] = -node.Y
     vel[1] = node.X
+##   if(node.X**2 + node.Y**2 > 0.24):
+##        vel[0] = 0.0
+##        vel[1] = 0.0        
     node.SetSolutionStepValue(VELOCITY,0,vel);
 
 #assigning a cone shaped temperature distribution
@@ -138,6 +141,9 @@ for step in range(0,nsteps):
     #print the results
     if(out == output_step):
         gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(TEMP_CONV_PROJ,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(NODAL_AREA,model_part.Nodes,time,0)
         out = 0
     out = out + 1
 
