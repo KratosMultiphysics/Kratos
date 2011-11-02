@@ -19,7 +19,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "custom_utilities/projection.h"
-#include "custom_utilities/GenerateModelPartUtilities.h"
+//#include "custom_utilities/GenerateModelPartUtilities.h"
 #include "custom_utilities/connectivity_preserve_modeler.h"
 #include "custom_utilities/local_triangle_refine_mesh.h"
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
@@ -33,20 +33,20 @@ namespace Kratos
     namespace Python
     {
 
-        void GenerateModelTemperaturePart(GenerateModelPartUtilities& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, unsigned int domain_size)
-        {
-            if (domain_size == 2)
-            {
-                GM.GenerateModelPart(origin_model_part, destination_model_part,
-                        KratosComponents<Element>::Get("ConvDiff2D"),
-                        KratosComponents<Condition>::Get("ThermalFace2D"));
-            } else if (domain_size == 3)
-            {
-                GM.GenerateModelPart(origin_model_part, destination_model_part,
-                        KratosComponents<Element>::Get("ConvDiff3D"),
-                        KratosComponents<Condition>::Get("ThermalFace3D"));
-            }
-        }
+//        void GenerateModelTemperaturePart(GenerateModelPartUtilities& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, unsigned int domain_size)
+//        {
+//            if (domain_size == 2)
+//            {
+//                GM.GenerateModelPart(origin_model_part, destination_model_part,
+//                        KratosComponents<Element>::Get("ConvDiff2D"),
+//                        KratosComponents<Condition>::Get("ThermalFace2D"));
+//            } else if (domain_size == 3)
+//            {
+//                GM.GenerateModelPart(origin_model_part, destination_model_part,
+//                        KratosComponents<Element>::Get("ConvDiff3D"),
+//                        KratosComponents<Condition>::Get("ThermalFace3D"));
+//            }
+//        }
 
         void GenerateModelPart(ConnectivityPreserveModeler& GM, ModelPart& origin_model_part, ModelPart& destination_model_part, const char* ElementName, const char* ConditionName)
         {
@@ -71,8 +71,8 @@ namespace Kratos
                     .def("DirectScalarVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation<double>)
                     .def("DirectVectorialVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >);
 
-            class_<GenerateModelPartUtilities, boost::noncopyable > ("GenerateModelPartUtilities", init< >())
-                    .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart);
+//            class_<GenerateModelPartUtilities, boost::noncopyable > ("GenerateModelPartUtilities", init< >())
+//                    .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart);
 
             class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
                     .def("GenerateModelPart", GenerateModelPart);
