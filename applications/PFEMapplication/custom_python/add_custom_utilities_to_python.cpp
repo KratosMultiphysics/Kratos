@@ -76,7 +76,7 @@ namespace Kratos
 	
 namespace Python
 {
-	void GenerateModelPart(NistUtils& NistUtils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
+	/*void GenerateModelPart(NistUtils& NistUtils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
 	{
 		if(domain_size == 2)
 		{
@@ -90,7 +90,7 @@ namespace Python
 				KratosComponents<Element>::Get("ConvDiff3D"),
 				KratosComponents<Condition>::Get("ThermalFace3D")	); 
 		}
-	}
+	}*/
 	
   void  AddCustomUtilitiesToPython()
   {
@@ -140,7 +140,7 @@ namespace Python
 		;
 
 	  class_<NistUtils>("NistUtils", init<>())
-		.def("GenerateModelPart",GenerateModelPart)
+		//.def("GenerateModelPart",GenerateModelPart)
 		.def("ApplyInitialTemperature",&NistUtils::ApplyInitialTemperature)
 		.def("FindFluidLevel",&NistUtils::FindFluidLevel)
 		;
