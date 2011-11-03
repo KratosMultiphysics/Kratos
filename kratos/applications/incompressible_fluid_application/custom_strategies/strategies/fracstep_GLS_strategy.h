@@ -389,10 +389,13 @@ namespace Kratos
 				}
 			}
 			
-	
+			array_1d<double,3> zero = ZeroVector(3);
 			//set WORK = VELOCITY of the old step
 			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-			{ noalias(it->FastGetSolutionStepValue(AUX_VECTOR)) = it->FastGetSolutionStepValue(VELOCITY,1);	}
+			{ 
+			noalias(it->FastGetSolutionStepValue(AUX_VECTOR)) = it->FastGetSolutionStepValue(VELOCITY,1);	
+			noalias(it->FastGetSolutionStepValue(FORCE)) =    zero;		
+			}
 			
 			
 			//reset the RHS
@@ -411,26 +414,16 @@ namespace Kratos
 			//compute the momentum residual, add it to the RHS_VECTOR on nodes
 			im->Calculate(VELOCITY, Frac_Step_Switch, proc_info);
 			}
-			//////////////////////////////////////////
-			//////////////////////////////////////////
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-			{
-
-				noalias(aux1) = 1.00/(it->FastGetSolutionStepValue(NODAL_MASS)) * it->FastGetSolutionStepValue(FORCE);
-				noalias(it->FastGetSolutionStepValue(FORCE)) = aux1;	
-				//KRATOS_WATCH(aux1);
-
-				noalias(aux) = delta_t/(it->FastGetSolutionStepValue(NODAL_MASS)) * it->FastGetSolutionStepValue(RHS_VECTOR);
-
-				noalias(it->FastGetSolutionStepValue(AUX_VECTOR)) +=  aux;
-				noalias(it->FastGetSolutionStepValue(VELOCITY)) +=  aux;			
+			
+			
+			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)	{	
+			if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
+				{
+				noalias(it->FastGetSolutionStepValue(FORCE)) =    zero;	
+				}
 			}
-			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
 
-			//if (mSlipBoundaryList.size()!=0)
-			//	ApplySlipBC();
-
-
+		
 
 			KRATOS_WATCH("FINISHED STAGE1 OF FRACTIONAL STEP")
 			
@@ -476,8 +469,6 @@ namespace Kratos
 			//allocation of work space
 			boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
 			array_1d<double,3> N;
-			//array_1d<double,3> aux0, aux1, aux2; //this are sized to 3 even in 2D!!		
-	//		double lumping_factor = 0.33333333333333;
 		
 		
 			//calculate the velocity correction and store it in AUX_VECTOR
@@ -494,9 +485,6 @@ namespace Kratos
 				pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
 				pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
 				
-				//Riccardo's modification: multiply the G(p_n+1-p_n) by 1/2
-				//pres_inc*=0.5;
-				//KRATOS_WATCH(pres_inc)
 
 				//Gradient operator G:
 				boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
@@ -610,7 +598,7 @@ namespace Kratos
 			double dt_Minv = (dt / 2.00) / it->FastGetSolutionStepValue(NODAL_MASS);
 			array_1d<double,3>& temp = it->FastGetSolutionStepValue(AUX_VECTOR);
 			array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
-			force_temp *=dt_Minv;
+			force_temp *=(1.0/ it->FastGetSolutionStepValue(NODAL_MASS));
 			//KRATOS_WATCH(force_temp);
 
 			if(!it->IsFixed(VELOCITY_X))
