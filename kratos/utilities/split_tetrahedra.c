@@ -31,10 +31,10 @@
  * he should define\n
  * int aux[11];\n
  * int edge_ids[6];\n
- * int t[54];\n
+ * int t[56];\n
  * then initialize\n
  * aux[0] = 3; aux[1] = 9; aux[2] = 7; aux[3] = 12;\n
- * aux[4] = -1; //edge 01 --> edge to be refined\n
+ * aux[4] = -1; //edge 01 --> edge not to be refined\n
  * aux[5] = 15; //edge 02 (this is the only edge on which we want to add a node)\n
  * aux[6] = -1; //edge 03 -->edge not to be refined\n
  * aux[7] = -1; //edge 12 -->edge not to be refined\n
@@ -44,11 +44,11 @@
  *\n
  * then call\n
  *
- * TetrahedraSplitMode(edge_ids,aux)\n
- * int nel; //number of nodes generated\n
+ * TetrahedraSplitMode(aux, edge_ids);\n
+ * int nel; //number of element generated\n
  * int number_splitted_edges; //number of splitted edges\n
  * int nint; //number of internal nodes\n
- * bools split_needed = Split(edge_ids,t, &nel, &number_splitted_edges, &nint)\n
+ * bool split_needed = Split_Tetrahedra(edge_ids,t, &nel, &number_splitted_edges, &nint)\n
  *\n
  * if( nint==1) // we need to generate a new internal node\n
  * {\n
@@ -141,7 +141,7 @@ inline void TetrahedraGetNewConnectivityGID(const int triangle_index,
         const int t[56],
         const int aux_ids[11],
         int* id0, int* id1, int* id2, int* id3) {
-    unsigned int base = triangle_index * 3;
+    unsigned int base = triangle_index * 4;
     *id0 = aux_ids[t[base]];
     *id1 = aux_ids[t[base + 1]];
     *id2 = aux_ids[t[base + 2]];
