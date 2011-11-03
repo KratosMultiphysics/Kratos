@@ -42,6 +42,12 @@ def AddDofs(model_part):
         node.AddDof(AUX_VEL_Z);
         
         node.AddDof(PRESSURE);
+
+	node.AddDof(ACCELERATION_X);
+        node.AddDof(ACCELERATION_Y);
+        node.AddDof(ACCELERATION_Z);
+
+    
         
     print "dofs for the Frac Step GLS solver added correctly"
 
