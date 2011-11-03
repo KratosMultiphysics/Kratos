@@ -3,8 +3,8 @@ project (KratosBaseProject)
 
 #set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX}) 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math  ")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math  ")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wunused -Wuninitialized -Warray-bounds  -Wempty-body -Wlogical-op ")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wunused -Wuninitialized -Warray-bounds  -Wempty-body -Wlogical-op ")
   message("additional default options were set for gcc")
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
