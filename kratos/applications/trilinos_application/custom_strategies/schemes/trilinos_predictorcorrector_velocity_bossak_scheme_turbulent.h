@@ -131,6 +131,12 @@ namespace Kratos {
         /** Constructor.
          */
 
+        TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy)
+        : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy)
+        {
+            std::cout << "using the TRILINOS velocity Bossak Time Integration Scheme (with turbulence model)" << std::endl;
+        }
+
         TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy, Process::Pointer pTurbulenceModel)
         : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, pTurbulenceModel)
         {
@@ -185,21 +191,21 @@ namespace Kratos {
                 Performing the update of the solution.
          */
 
-        virtual void Update(
-                ModelPart& r_model_part,
-                DofsArrayType& rDofSet,
-                TSystemMatrixType& A,
-                TSystemVectorType& Dv,
-                TSystemVectorType& b
-                ) {
-            KRATOS_TRY
+//        virtual void Update(
+//                ModelPart& r_model_part,
+//                DofsArrayType& rDofSet,
+//                TSystemMatrixType& A,
+//                TSystemVectorType& Dv,
+//                TSystemVectorType& b
+//                ) {
+//            KRATOS_TRY
 
-            BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+//            BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
-            this->AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+//            this->AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
-            KRATOS_CATCH("")
-        }
+//            KRATOS_CATCH("")
+//        }
 
         //***************************************************************************
 		void BasicUpdateOperations(
