@@ -300,6 +300,11 @@ namespace Kratos
                 //***********************************************
                 //new attempt
                 Epetra_LinearProblem AztecProblem(&A, &Dx, &b);
+
+                Epetra_Vector scaling_vect(A.RowMap());
+                A.InvColSums(scaling_vect);
+                AztecProblem.LeftScale(scaling_vect);
+
                 AztecOO solver(AztecProblem);
 
                 // create an empty parameter list for ML options
@@ -336,7 +341,8 @@ namespace Kratos
                 // `DD' means to set default values for domain decomposition
                 // preconditioners
 
-                ML_Epetra::SetDefaults("DD", MLList, options, params);
+                ML_Epetra::SetDefaults("NSSA", MLList, options, params);
+//                ML_Epetra::SetDefaults("DD", MLList, options, params);
 
                 // Overwrite some parameters. Please refer to the user's guide
                 // for more information
@@ -348,10 +354,10 @@ namespace Kratos
                 // the dimension of the coarse problem will be equal to the
                 // number of processors)
 
-                MLList.set("aggregation: type", "METIS");
-                MLList.set("smoother: type", "Aztec");
+//                MLList.set("aggregation: type", "METIS");
+//                MLList.set("smoother: type", "Aztec");
 
-                  MLList.set("aggregation: nodes per aggregate", 128);
+//                  MLList.set("aggregation: nodes per aggregate", 128);
 //                  MLList.set("smoother: pre or post", "pre");
 //                  MLList.set("coarse: type","Amesos-KLU");
 
