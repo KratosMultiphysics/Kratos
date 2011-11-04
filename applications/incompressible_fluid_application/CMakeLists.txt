@@ -23,7 +23,6 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2d_split.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_3d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2d.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2dlevelset.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2dcoupled.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_3dcoupled.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/NDfluid_2d.cpp
