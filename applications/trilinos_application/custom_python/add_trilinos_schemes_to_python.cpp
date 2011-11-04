@@ -176,7 +176,9 @@ namespace Kratos
             bases< TurbulentBossakBaseType >, boost::noncopyable >
             (
                 "TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent", init<double, double, Process::Pointer >()
-            );
+            )
+                    .def(init<double,double >())// constructor without a turbulence model
+                    ;
         }
 
 
