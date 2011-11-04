@@ -416,14 +416,19 @@ namespace Kratos
 			}
 			
 			
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)	{	
-			if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
-				{
-				noalias(it->FastGetSolutionStepValue(FORCE)) =    zero;	
-				}
+			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+			{	
+
+			array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
+			force_temp *=(1.0/ it->FastGetSolutionStepValue(NODAL_MASS));
+
+				if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
+					{
+						noalias(it->FastGetSolutionStepValue(FORCE)) =    zero;	
+					}
 			}
 
-		
+			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
 
 			KRATOS_WATCH("FINISHED STAGE1 OF FRACTIONAL STEP")
 			
