@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosFluidDynamicsApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
-
+#include "boost/numeric/ublas/matrix_proxy.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -151,13 +151,45 @@ namespace Kratos {
 
         typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+        typedef boost::numeric::ublas::matrix_row<LocalSystemMatrixType>  LocalRowType;
+
+        typedef boost::numeric::ublas::matrix_range<LocalSystemMatrixType> MatrixBlockType;
+
+        typedef Element::GeometryType  GeometryType;
+
 
         /*@} */
         /**@name Life Cycle
          */
         /*@{ */
 
-        /** Constructor.
+        /** Constructor without a turbulence model
+         */
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+            double NewAlphaBossak,
+            double MoveMeshStrategy)
+        :
+            Scheme<TSparseSpace, TDenseSpace>()
+        {
+            //default values for the Newmark Scheme
+            mAlphaBossak = NewAlphaBossak;
+            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
+            mGammaNewmark = 0.5 - mAlphaBossak;
+            mMeshVelocity = MoveMeshStrategy;
+
+
+            //Allocate auxiliary memory
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            mMass.resize(NumThreads);
+            mDamp.resize(NumThreads);
+            mvel.resize(NumThreads);
+            macc.resize(NumThreads);
+            maccold.resize(NumThreads);
+
+            std::cout << "using the velocity Bossak Time Integration Scheme" << std::endl;
+        }
+
+        /** Constructor with a turbulence model
          */
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
             double NewAlphaBossak,
@@ -207,9 +239,13 @@ namespace Kratos {
                             TSystemVectorType& Dv,
                             TSystemVectorType& b)
         {
-            KRATOS_TRY
+            KRATOS_TRY;
+
+            this->RotateVelocities(r_model_part);
 
             BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+
+            this->RecoverVelocities(r_model_part);
 
             AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
@@ -410,6 +446,10 @@ namespace Kratos {
             AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
+            // If there is a slip condition, apply it on a rotated system of coordinates
+            this->Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+            this->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+
             KRATOS_CATCH("")
         }
 
@@ -434,6 +474,10 @@ namespace Kratos {
             //adding the dynamic contributions (static is already included)
 
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+
+            // If there is a slip condition, apply it on a rotated system of coordinates
+            this->Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
+            this->ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
         }
 
         /** functions totally analogous to the precedent but applied to
@@ -461,6 +505,9 @@ namespace Kratos {
 
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
+            // Rotate contributions (to match coordinates for slip conditions)
+            this->Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+
             KRATOS_CATCH("")
         }
 
@@ -487,6 +534,10 @@ namespace Kratos {
             //adding the dynamic contributions (static is already included)
 
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+
+
+            // Rotate contributions (to match coordinates for slip conditions)
+            this->Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
 
             KRATOS_CATCH("")
         }
@@ -528,7 +579,8 @@ namespace Kratos {
 
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
-            mpTurbulenceModel->Execute();
+            if (mpTurbulenceModel != 0) // If not null
+                mpTurbulenceModel->Execute();
 
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
@@ -733,6 +785,212 @@ namespace Kratos {
         /**@name Protected Operations*/
         /*@{ */
 
+        template< class TVectorType >
+        double Normalize(TVectorType& rThis)
+        {
+            double Norm = 0;
+            for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+                Norm += (*iComponent)*(*iComponent);
+            Norm = sqrt(Norm);
+            for(typename TVectorType::iterator iComponent = rThis.begin(); iComponent < rThis.end(); ++iComponent)
+                *iComponent /= Norm;
+            return Norm;
+        }
+
+
+        template<class TMatrixType>
+        void RotationOperator(TMatrixType& rRot,
+                              GeometryType::PointType& rThisPoint)
+        {
+            typedef boost::numeric::ublas::matrix_column<TMatrixType> ThisColumnType;
+            // Get the normal evaluated at the node
+            const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+            // Define the new coordinate system, where the first vector is aligned with the normal
+            ThisColumnType rN(rRot,0);
+            for( size_t i = 0; i < 3; ++i)
+                rN[i] = rNormal[i];
+            this->Normalize(rN);
+
+            // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
+            ThisColumnType rT1(rRot,1);
+            rT1(0) = 1.0;
+            rT1(1) = 0.0;
+            rT1(2) = 0.0;
+
+            double dot = TDenseSpace::Dot(rN,rT1);
+
+            // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
+            // If this is the case, repeat the procedure using (0,1,0)
+            if ( fabs(dot) > 0.99 )
+            {
+                rT1(0) = 0.0;
+                rT1(1) = 1.0;
+                rT1(2) = 0.0;
+
+                dot = TDenseSpace::Dot(rN,rT1);
+            }
+
+            // calculate projection and normalize
+            rT1 -= dot * rN;
+            this->Normalize(rT1);
+
+            // The third base component is choosen as N x T1, which is normalized by construction
+            ThisColumnType rT2(rRot,2);
+            rT2(0) = rN(1)*rT1(2) - rN(2)*rT1(1);
+            rT2(1) = rN(2)*rT1(0) - rN(0)*rT1(2);
+            rT2(2) = rN(0)*rT1(1) - rN(1)*rT1(0);
+
+        }
+
+
+        /// Short description
+        /**
+          */
+        void Rotate(LocalSystemMatrixType& rLocalMatrix,
+                    LocalSystemVectorType& rLocalVector,
+                    GeometryType& rGeometry)
+        {
+            const size_t Dim = 3;
+            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
+
+            LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
+
+            size_t Index = 0;
+
+            for(size_t j = 0; j < rGeometry.PointsNumber(); ++j)
+            {
+                if( rGeometry[j].GetValue(IS_STRUCTURE) == 1.0 )
+                {
+                    MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
+                    this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
+                }
+                Index += BlockSize;
+            }
+            LocalSystemMatrixType tmp = boost::numeric::ublas::prod(rLocalMatrix,Rotation);
+            rLocalMatrix = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),tmp);
+
+            LocalSystemVectorType aaa = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),rLocalVector);
+            noalias(rLocalVector) = aaa;
+        }
+
+        // RHS only (Check!)
+        void Rotate(LocalSystemVectorType& rLocalVector,
+                    GeometryType& rGeometry)
+        {
+            const size_t Dim = 3;
+            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
+
+            LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
+
+            size_t Index = 0;
+
+            for(size_t j = 0; j < rGeometry.PointsNumber(); ++j)
+            {
+                if( rGeometry[j].GetValue(IS_STRUCTURE) == 1.0 )
+                {
+                    MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
+                    this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
+                }
+                Index += BlockSize;
+            }
+
+            LocalSystemVectorType Tmp = boost::numeric::ublas::prod(trans(Rotation),rLocalVector);
+            rLocalVector = rLocalVector;
+        }
+
+        void ApplySlipCondition(LocalSystemMatrixType& rLocalMatrix,
+                                LocalSystemVectorType& rLocalVector,
+                                GeometryType& rGeometry)
+        {
+            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
+
+            for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+            {
+                if( rGeometry[itNode].GetValue(IS_STRUCTURE) == 1.0 )
+                {
+                    // We fix the first dof (normal velocity) for each rotated block
+                    size_t j = itNode * BlockSize;
+                    double k = rLocalMatrix(j,j)+rLocalMatrix(j,j+1)+rLocalMatrix(j,j+2);
+                    for( size_t i = 0; i < j; ++i) // Skip term (i,j)
+                    {
+                        rLocalMatrix(i,j) = 0.0;
+                        rLocalMatrix(j,i) = 0.0;
+                    }
+                    for( size_t i = j+1; i < LocalSize; ++i)
+                    {
+                        rLocalMatrix(i,j) = 0.0;
+                        rLocalMatrix(j,i) = 0.0;
+                    }
+
+                    rLocalVector(j) = 0.0; //dot(normal,velm-v);
+                    rLocalMatrix(j,j) = k;
+                }
+            }
+        }
+
+        // RHS only (Check!)
+        void ApplySlipCondition(LocalSystemVectorType& rLocalVector,
+                                GeometryType& rGeometry)
+        {
+            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
+
+            for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+            {
+                if( rGeometry[itNode].GetValue(IS_STRUCTURE) == 1.0 )
+                {
+                    // We fix the firs dof (normal velocity) for each rotated block
+                    size_t j = itNode * BlockSize;
+                    rLocalVector[j] = 0.0;
+                }
+            }
+        }
+
+        /// Transform nodal velocities to the rotated coordinates
+        void RotateVelocities(ModelPart& rModelPart)
+        {
+            const size_t Dim = 3;
+            LocalSystemMatrixType Rotation = IdentityMatrix(Dim,Dim);
+            LocalSystemVectorType Vel(Dim);
+            LocalSystemVectorType Tmp(Dim);
+
+            for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+            {
+                if(itNode->GetValue(IS_STRUCTURE) == 1.0)
+                {
+                    this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
+                    array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+                    for(size_t i = 0; i < Dim; i++) Vel[i] = rVelocity[i];
+                    noalias(Tmp) = boost::numeric::ublas::prod(trans(Rotation),Vel);
+                    for(size_t i = 0; i < Dim; i++) rVelocity[i] = Tmp[i];
+                }
+            }
+        }
+
+        /// Transform nodal velocities from the rotated system to the original one
+        void RecoverVelocities(ModelPart& rModelPart)
+        {
+            const size_t Dim = 3;
+            LocalSystemMatrixType Rotation = IdentityMatrix(Dim,Dim);
+            LocalSystemVectorType Vel(Dim);
+            LocalSystemVectorType Tmp(Dim);
+
+            for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+            {
+                if(itNode->GetValue(IS_STRUCTURE) == 1.0)
+                {
+                    this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
+                    array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+                    for(size_t i = 0; i < Dim; i++) Vel[i] = rVelocity[i];
+                    noalias(Tmp) = boost::numeric::ublas::prod(Rotation,Vel);
+                    for(size_t i = 0; i < Dim; i++) rVelocity[i] = Tmp[i];
+                }
+            }
+        }
 
         /*@} */
         /**@name Protected  Access */

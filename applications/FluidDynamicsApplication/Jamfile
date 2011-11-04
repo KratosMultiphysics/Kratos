@@ -42,6 +42,7 @@ python-extension KratosFluidDynamicsApplication
 	vms.cpp
 	dynamic_vms.cpp
         spalart_allmaras_element.cpp
+        monolithic_wall_condition.cpp
         periodic_condition.cpp
 
 	#kratos library
