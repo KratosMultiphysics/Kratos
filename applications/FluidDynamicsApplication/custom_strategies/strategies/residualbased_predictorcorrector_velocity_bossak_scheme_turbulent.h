@@ -41,14 +41,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
  */
-/* *********************************************************   
- *
- *   Last Modified by:    $Author: Kazem $
- *   Date:                $Date: 2008-07-25 14:48:17 $
- *   Revision:            $Revision: 1.1 $
- *
- * ***********************************************************/
-
 
 #if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_VELOCITY_BOSSAK_TURBULENT_SCHEME )
 #define  KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_VELOCITY_BOSSAK_TURBULENT_SCHEME
@@ -97,31 +89,18 @@ namespace Kratos {
     /**@name Kratos Classes */
     /*@{ */
 
-    /** Short class definition.
-	
-      This class provides the implementation of the basic tasks that are needed by the solution strategy.
-      It is intended to be the place for tailoring the solution strategies to problem specific tasks.
-	  
-            Detail class definition.
-		
-              \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-		  
-                    \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-			
-                      \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-			  
-                            \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-				
-				  
-                                    \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-					
-                                      \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-					  
-                                            \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-						
-                                              \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-						  
-							
+    /// Bossak time scheme for the incompressible flow problem.
+    /** This class provides a second order time scheme of the generalized-alpha Newmark
+        family of methods. It also includes code required to implement slip conditions
+        on the incompressible flow problem and provides the possibility of using a RANS
+        model by passing a turbulence model as an argument to the constructor.
+        This time scheme is intended to be used in combination with elements of type
+        ASGS2D, ASGS3D, VMS or derived classes.
+        To use the slip condition, assign IS_STRUCTURE != 0.0 to the non-historic database
+        of the relevant boundary nodes (that is, use SetValue(IS_STRUCTURE,...)). To use
+        a wall law in combination with the slip condition, use MonolithicWallCondition to
+        mesh the boundary
+        @see ASGS2D, ASGS3D, VMS, MonolithicWallConditon
      */
     template<class TSparseSpace,
     class TDenseSpace //= DenseSpace<double>
@@ -785,6 +764,11 @@ namespace Kratos {
         /**@name Protected Operations*/
         /*@{ */
 
+        /// Normalize a vector.
+        /**
+          @param rThis the vector
+          @return Original norm of the input vector
+          */
         template< class TVectorType >
         double Normalize(TVectorType& rThis)
         {
@@ -798,6 +782,14 @@ namespace Kratos {
         }
 
 
+        /// Compute a rotation matrix to transform values from the cartesian base to one oriented with the node's normal
+        /**
+          The normal is read from solution step data NORMAL. Use NormalCalculationUtils::CalculateOnSimplex to
+          obtain and store the nodal normal from the normals of the model's conditons.
+          @param rRot The rotation matrix (output)
+          @param rThisPoint The point used to orient the new coordinate system.
+          @see NormalCalculationUtils
+          */
         template<class TMatrixType>
         void RotationOperator(TMatrixType& rRot,
                               GeometryType::PointType& rThisPoint)
@@ -844,8 +836,11 @@ namespace Kratos {
         }
 
 
-        /// Short description
+        /// Rotate the local system contributions so that they are oriented with each node's normal
         /**
+          @param rLocalMatrix Local system matrix
+          @param rLocalVector Local RHS vector
+          @param rGeometry A reference to the element's (or condition's) geometry
           */
         void Rotate(LocalSystemMatrixType& rLocalMatrix,
                     LocalSystemVectorType& rLocalVector,
@@ -861,7 +856,7 @@ namespace Kratos {
 
             for(size_t j = 0; j < rGeometry.PointsNumber(); ++j)
             {
-                if( rGeometry[j].GetValue(IS_STRUCTURE) == 1.0 )
+                if( rGeometry[j].GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
                     this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
@@ -875,7 +870,7 @@ namespace Kratos {
             noalias(rLocalVector) = aaa;
         }
 
-        // RHS only (Check!)
+        /// RHS only version of Rotate
         void Rotate(LocalSystemVectorType& rLocalVector,
                     GeometryType& rGeometry)
         {
@@ -889,7 +884,7 @@ namespace Kratos {
 
             for(size_t j = 0; j < rGeometry.PointsNumber(); ++j)
             {
-                if( rGeometry[j].GetValue(IS_STRUCTURE) == 1.0 )
+                if( rGeometry[j].GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
                     this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
@@ -901,6 +896,12 @@ namespace Kratos {
             rLocalVector = rLocalVector;
         }
 
+        /// Apply slip boundary conditions to the rotated local contributions.
+        /** This function takes the local system contributions rotated so each
+          node's velocities are expressed using a base oriented with its normal
+          and imposes that the normal velocity is equal to the mesh velocity in
+          the normal direction.
+          */
         void ApplySlipCondition(LocalSystemMatrixType& rLocalMatrix,
                                 LocalSystemVectorType& rLocalVector,
                                 GeometryType& rGeometry)
@@ -910,7 +911,7 @@ namespace Kratos {
 
             for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
             {
-                if( rGeometry[itNode].GetValue(IS_STRUCTURE) == 1.0 )
+                if( rGeometry[itNode].GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     // We fix the first dof (normal velocity) for each rotated block
                     size_t j = itNode * BlockSize;
@@ -932,16 +933,15 @@ namespace Kratos {
             }
         }
 
-        // RHS only (Check!)
+        /// RHS only version of ApplySlipCondition
         void ApplySlipCondition(LocalSystemVectorType& rLocalVector,
                                 GeometryType& rGeometry)
         {
             const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
-            const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
             {
-                if( rGeometry[itNode].GetValue(IS_STRUCTURE) == 1.0 )
+                if( rGeometry[itNode].GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     // We fix the firs dof (normal velocity) for each rotated block
                     size_t j = itNode * BlockSize;
@@ -950,7 +950,7 @@ namespace Kratos {
             }
         }
 
-        /// Transform nodal velocities to the rotated coordinates
+        /// Transform nodal velocities to the rotated coordinates (aligned with each node's normal)
         void RotateVelocities(ModelPart& rModelPart)
         {
             const size_t Dim = 3;
@@ -960,7 +960,7 @@ namespace Kratos {
 
             for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
             {
-                if(itNode->GetValue(IS_STRUCTURE) == 1.0)
+                if(itNode->GetValue(IS_STRUCTURE) != 0.0)
                 {
                     this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
                     array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
@@ -981,7 +981,7 @@ namespace Kratos {
 
             for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
             {
-                if(itNode->GetValue(IS_STRUCTURE) == 1.0)
+                if(itNode->GetValue(IS_STRUCTURE) != 0.0)
                 {
                     this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
                     array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
