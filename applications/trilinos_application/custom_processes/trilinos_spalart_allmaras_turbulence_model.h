@@ -147,7 +147,13 @@ namespace Kratos
                 BaseTurbulenceModelType::mspalart_model_part.Elements().push_back(p_element);
             }
 
-            const Condition& rReferenceCondition = KratosComponents<Condition>::Get("Condition2D");
+            std::string ConditionName;
+            if (BaseTurbulenceModelType::mdomain_size == 2)
+                ConditionName = std::string("Condition2D");
+            else
+                ConditionName = std::string("Condition3D");
+            const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName);
+
             for (ModelPart::ConditionsContainerType::iterator iii = BaseTurbulenceModelType::mr_model_part.ConditionsBegin(); iii != BaseTurbulenceModelType::mr_model_part.ConditionsEnd(); iii++)
             {
                 Properties::Pointer properties = iii->pGetProperties();
