@@ -79,7 +79,7 @@ void MonolithicWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void MonolithicWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                            ProcessInfo& rCurrentProcessInfo)
+                                              ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;

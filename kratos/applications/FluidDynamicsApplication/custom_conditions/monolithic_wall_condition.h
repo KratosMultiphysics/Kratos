@@ -451,7 +451,7 @@ namespace Kratos
                     const double B = 5.2;
                     const double limit_yplus = 10.9931899; // limit between linear and log regions
 
-                    const double y = this->GetProperties().GetValue(Y_WALL); // wall distance to use in stress calculation
+                    const double y = rGeometry[itNode].GetValue(Y_WALL); // wall distance to use in stress calculation
 
                     const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
                     const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
