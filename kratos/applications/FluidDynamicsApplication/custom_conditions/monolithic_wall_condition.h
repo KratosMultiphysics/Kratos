@@ -82,8 +82,14 @@ namespace Kratos
     ///@{
 
     /// Implements a wall condition for the monolithic formulation.
-    /** It is intended to be used in combination with ASGS and VMS elements or their derived classes.
-      @see ASGS2D,ASGS3D,VMS
+    /**
+      It is intended to be used in combination with ASGS and VMS elements or their derived classes
+      and the ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent time scheme, which supports
+      slip conditions.
+      This condition will add a wall stress term to all nodes identified with IS_STRUCTURE!=0.0 (in the
+      non-historic database, that is, assigned using Node.SetValue()). This stress term is determined
+      according to the wall distance provided as Y_WALL.
+      @see ASGS2D,ASGS3D,VMS,ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent
      */
     template< unsigned int TDim, unsigned int TNumNodes = TDim >
     class MonolithicWallCondition : public Condition
@@ -269,6 +275,12 @@ namespace Kratos
 
 
 
+        /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
+        /**
+          @param rDampMatrix Left-hand side matrix
+          @param rRightHandSideVector Right-hand side vector
+          @param rCurrentProcessInfo ProcessInfo instance (unused)
+          */
         virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
                                                         VectorType& rRightHandSideVector,
                                                         ProcessInfo& rCurrentProcessInfo)
@@ -288,7 +300,7 @@ namespace Kratos
         }
 
 
-
+        /// Check that all data required by this condition is available and reasonable
         virtual int Check(const ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY;
@@ -301,8 +313,45 @@ namespace Kratos
             }
             else
             {
-                // Add condition-specific checks here
-                // we use: VELOCITY, MESH_VELOCITY, PRESSURE, IS_STRUCTURE (non-historic!) Y_WALL (in properties)
+                // Check that all required variables have been registered
+                if(VELOCITY.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+                if(MESH_VELOCITY.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
+                if(ACCELERATION.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
+                if(PRESSURE.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
+                if(DENSITY.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
+                if(VISCOSITY.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
+                if(IS_STRUCTURE.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
+                if(Y_WALL.Key() == 0)
+                    KRATOS_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
+
+                // Checks on nodes
+
+                // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+                for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+                {
+                    if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
+                        KRATOS_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
+                        KRATOS_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
+                        KRATOS_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
+                        KRATOS_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
+                       this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
+                       this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
+                        KRATOS_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+                    if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
+                        KRATOS_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+                }
+
                 return Check;
             }
 
@@ -431,6 +480,11 @@ namespace Kratos
         ///@name Protected Operations
         ///@{
 
+        /// Commpute the wall stress and add corresponding terms to the system contributions.
+        /**
+          @param rLocalMatrix Local system matrix
+          @param rLocalVector Local right hand side
+          */
         void ApplyWallLaw(MatrixType& rLocalMatrix,
                           VectorType& rLocalVector)
         {
@@ -441,7 +495,7 @@ namespace Kratos
 
             for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
             {
-                if( rGeometry[itNode].GetValue(IS_STRUCTURE) == 1.0 )
+                if( rGeometry[itNode].GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                     const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -462,9 +516,6 @@ namespace Kratos
                         wall_vel += Vel[d]*Vel[d];
                     }
                     wall_vel = sqrt(wall_vel);
-
-                    if(wall_vel <= 1e-10)
-                        wall_vel = 1e-10;
 
                     if (wall_vel > 1e-12) // do not bother if velocity is zero
                     {
