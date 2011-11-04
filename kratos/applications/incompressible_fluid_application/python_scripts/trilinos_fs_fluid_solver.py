@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #importing the Kratos Library
-import mpi
+import boost.mpi as mpi
 from Kratos import *
 from KratosMetisApplication import *
 from KratosIncompressibleFluidApplication import *
