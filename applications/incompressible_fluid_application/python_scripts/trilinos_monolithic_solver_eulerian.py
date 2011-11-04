@@ -1,10 +1,14 @@
-import mpi
+try:
+  import boost.mpi as mpi
+except ImportError:
+  import mpi
 
 #importing the Kratos Library
 from Kratos import *
 from KratosMetisApplication import *
 from KratosIncompressibleFluidApplication import *
 from KratosTrilinosApplication import *
+from KratosFluidDynamicsApplication import *
 #from KratosStructuralApplication import *
 
 
@@ -69,11 +73,16 @@ class MonolithicSolver:
 
         self.Comm = CreateCommunicator()
 
-	self.time_scheme = TrilinosPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
+        self.turbulence_model = None
+
+        #self.time_scheme = TrilinosPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         self.linear_solver =  TrilinosLinearSolver()
         
         #definition of the convergence criteria
-        self.conv_criteria = TrilinosUPCriteria(1e-4,1e-9,1e-3,1e-6,self.Comm)
+        self.vel_rel_tol = 1e-4
+        self.vel_abs_tol = 1e-9
+        self.pres_rel_tol = 1e-3
+        self.pres_abs_tol = 1e-6
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
@@ -96,14 +105,54 @@ class MonolithicSolver:
             self.buildertype="ML3Dpress"
             
 ##        self.guess_row_size = 15
-##        self.buildertype="standard"
-            
+        #self.buildertype="standard"
+        #solver_parameters = ParameterList()
+        #self.linear_solver =  AmesosSolver("Superludist",solver_parameters);
+
+        ########################################################
+        #defining the linear solver
+        #self.buildertype="standard"
+        #aztec_parameters = ParameterList()
+        #aztec_parameters.set("AZ_solver","AZ_gmres");
+        #aztec_parameters.set("AZ_kspace",100);
+        #aztec_parameters.set("AZ_output",32);
+
+        ##preconditioner_type = "Amesos"
+        ##preconditioner_parameters = ParameterList()
+        ##preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
+
+        #preconditioner_type = "ILU"
+        #preconditioner_parameters = ParameterList()
+
+        #overlap_level = 0
+        #nit_max = 500
+        #tol = 1e-6
+
+        #self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,tol,nit_max,overlap_level);
+        #self.linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+        ##############################################################
+
         
     #######################################################################
     def Initialize(self):
+
+        #definition of the convergence criteria
+        self.conv_criteria = TrilinosUPCriteria(self.vel_rel_tol,self.vel_abs_tol,self.pres_rel_tol,self.pres_abs_tol,self.Comm)
+
+        # time scheme
+        if self.turbulence_model == None:
+            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent\
+                               ( self.alpha,self.move_mesh_strategy )
+        else:
+            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent\
+                               (self.alpha,\
+                                self.move_mesh_strategy,\
+                                self.turbulence_model)
+
         #creating the solution strategy
         import trilinos_strategy_python
         self.solver = trilinos_strategy_python.SolvingStrategyPython(self.buildertype,self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag,self.Comm,self.guess_row_size)
+        self.solver.max_iter = self.max_iter
 
 ##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
 ##        (self.solver).SetEchoLevel(self.echo_level)
