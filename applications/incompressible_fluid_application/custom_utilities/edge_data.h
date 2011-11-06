@@ -460,7 +460,7 @@ namespace Kratos
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 					L += LaplacianIJ(l_comp,l_comp);
 					
-				double nu_avg = 0.5*(nu_i+nu_j);
+				//double nu_avg = 0.5*(nu_i+nu_j);
 				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
 					destination[l_comp] += nu_i * L * (U_j[l_comp]-U_i[l_comp]);
 			}

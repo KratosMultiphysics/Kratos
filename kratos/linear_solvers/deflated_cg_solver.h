@@ -132,7 +132,8 @@ namespace Kratos
 		       typename TPreconditionerType::Pointer pNewPreconditioner, bool assume_constant_structure, int max_reduced_size) : 
       BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner)
       ,massume_constant_structure(assume_constant_structure)
-      ,mmax_reduced_size(max_reduced_size){}
+,mmax_reduced_size(max_reduced_size)
+      {}
 
       /// Copy constructor.
       DeflatedCGSolver(const DeflatedCGSolver& Other) : BaseType(Other) {}

@@ -134,6 +134,8 @@ namespace Kratos {
             if(mrThermalModelPart.ElementsBegin()->GetGeometry().Dimension() != 3)
                 KRATOS_ERROR(std::invalid_argument, "This algorithm only works with 3D geometries", "")
 
+		  return 0;
+
         }
 
 //        void AddVariablesToThermalModelPart()
