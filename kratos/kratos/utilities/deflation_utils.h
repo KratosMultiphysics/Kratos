@@ -215,7 +215,7 @@ std::cout << "finished" << std::endl;
 	
       ///this function constructs the structure of a smaller matrix using a technique taken from MIS aggregation
       ///the algorythm is taken from the pyamg lib
-      static void ConstructW(const int max_reduced_size, SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  deflatedA)
+      static void ConstructW(const std::size_t max_reduced_size, SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  deflatedA)
       {
 	KRATOS_TRY
 	
@@ -305,7 +305,7 @@ std::cout << "finished" << std::endl;
       
       
       ///block version of ConstructW. To be used when multiple DOFS are associated to the same node.
-      static void ConstructW(const int max_reduced_size, SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  deflatedA, const int block_size)
+      static void ConstructW(const int max_reduced_size, SparseMatrixType& rA, std::vector<int>& w, SparseMatrixType&  deflatedA, const std::size_t block_size)
       {
 	 if(block_size == 1)
 	 {
@@ -359,7 +359,7 @@ std::cout << "finished" << std::endl;
       static void ApplyW(const std::vector<int>& w, const SparseVectorType& x, SparseVectorType& y)
 	{
 	  #pragma omp parallel for
-	  for(int i=0; i<w.size(); i++)
+	  for(int i=0; i<static_cast<int>(w.size()); i++)
 	  {
 	    y[i] = x[w[i]];
 	  }
@@ -374,12 +374,12 @@ std::cout << "finished" << std::endl;
 	{
 	  //first set to zero the destination vector
 	  #pragma omp parallel for
-	  for(int i=0; i<y.size(); i++)
+	  for(int i=0; i<static_cast<int>(y.size()); i++)
 	    y[i] = 0.0;
 	  
 	  //now apply the Wtranspose
 	  #pragma omp parallel for
-	  for(int i=0; i<w.size(); i++)
+	  for(int i=0; i<static_cast<int>(w.size()); i++)
 	  {
 	    #pragma omp atomic
 	    y[w[i]] += x[i];
@@ -404,7 +404,7 @@ std::cout << "finished" << std::endl;
 	
 	// Now building Ah
 	SparseMatrixType::const_iterator1 a_iterator = rA.begin1();
-	std::size_t full_size = rA.size1();
+	int full_size = rA.size1();
 
 	for (int i = 0; i < full_size; i++)
 	{
