@@ -151,9 +151,9 @@ namespace Kratos
             SuperLUIterativeSolver(double NewMaxTolerance, 
 				   int NewMaxIterationsNumber, 
 				   int restart, 
-				   double DropTol=1e-6, 
-				   double FillTol = 1e-4, 
-				   double FillFactor=20)
+				   double DropTol=1e-4, 
+				   double FillTol = 1e-2, 
+				   double FillFactor=10)
 	    {
 	      mTol = NewMaxTolerance;
 	      mmax_it = NewMaxIterationsNumber;
@@ -168,9 +168,9 @@ namespace Kratos
 	      mTol = 1e-6;
 	      mrestart = 50;
 	      mmax_it = mrestart*3;
-	      mDropTol = 1e-6;
-	      mFillTol = 1e-4;
-	      mFillFactor = 20;
+	      mDropTol = 1e-4;
+	      mFillTol = 1e-2;
+	      mFillFactor = 10;
 	    }
             
             /**
@@ -232,9 +232,9 @@ namespace Kratos
 		*/
 		//set options for ILU
 		ilu_set_default_options(&options);
-        options.ColPerm = MMD_ATA;
-		options.PivotGrowth = YES;	  /* Compute reciprocal pivot growth */
-		options.ConditionNumber = YES;/* Compute reciprocal condition number */
+//        options.ColPerm = MMD_ATA;
+//		options.PivotGrowth = YES;	  /* Compute reciprocal pivot growth */
+//		options.ConditionNumber = YES;/* Compute reciprocal condition number */
 		options.ILU_DropTol = mDropTol;
  		options.ILU_FillTol = mFillTol;
 		options.ILU_FillFactor = mFillFactor;

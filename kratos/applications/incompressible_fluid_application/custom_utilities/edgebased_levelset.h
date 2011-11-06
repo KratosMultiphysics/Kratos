@@ -281,29 +281,29 @@ namespace Kratos {
 		{
 		  for (std::size_t i_node = row_partition[k]; i_node < static_cast<int>(row_partition[k + 1]); i_node++)
 		  {
-	    //loop over all nodes
-// 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
-		//flag for considering diagonal matrix elements
-		bool flag = 0;
+		  //loop over all nodes
+      // 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
+		      //flag for considering diagonal matrix elements
+		      bool flag = 0;
 
-		//loop over all neighbours
-		for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-		    //get global index of neighbouring node j
-		    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-		    //define matrix structure row by row (the order does matter!)
-		    if ((j_neighbour > i_node) && (flag == 0)) {
-			//add diagonal/nodal contribution
-			mL.push_back(i_node, i_node, 0.0);
-			flag = 1;
-		    }
-		    //add non-diagonal/edge contribution
-		    mL.push_back(i_node, j_neighbour, 0.0);
+		      //loop over all neighbours
+		      for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+			  //get global index of neighbouring node j
+			  unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+			  //define matrix structure row by row (the order does matter!)
+			  if ((j_neighbour > i_node) && (flag == 0)) {
+			      //add diagonal/nodal contribution
+			      mL.push_back(i_node, i_node, 0.0);
+			      flag = 1;
+			  }
+			  //add non-diagonal/edge contribution
+			  mL.push_back(i_node, j_neighbour, 0.0);
+		      }
+		      //if diagonal element is the last non-zero element of the row
+		      if (flag == 0)
+			  mL.push_back(i_node, i_node, 0.0);
+		   }
 		}
-		//if diagonal element is the last non-zero element of the row
-		if (flag == 0)
-		    mL.push_back(i_node, i_node, 0.0);
-	       }
-	      }
 	    }
 
 
@@ -2548,7 +2548,7 @@ namespace Kratos {
         void PushFreeSurface()
         {
 
-                double layer_volume = 0.0;
+	  //double layer_volume = 0.0;
                 std::vector<unsigned int> first_outside;
                 int n_nodes = mdistances.size();
 

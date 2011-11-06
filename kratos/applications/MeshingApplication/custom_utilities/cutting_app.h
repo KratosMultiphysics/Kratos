@@ -568,10 +568,10 @@ namespace Kratos
                 const int& node_i = Position_Node[i][0];
                 const int& node_j = Position_Node[i][1];
                 ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
-                std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
+                //std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
                 noalias(Coord_Node_1) = it_node1->Coordinates();
                 ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
-                std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
+                //std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
                 noalias(Coord_Node_2) = it_node2->Coordinates();
                 //ok, now we have both coordinates. now we must define a weight coefficient based on the distance.
                 //this coeff will be =node_plane_distance/node_neigh_distance (linear interpolation)

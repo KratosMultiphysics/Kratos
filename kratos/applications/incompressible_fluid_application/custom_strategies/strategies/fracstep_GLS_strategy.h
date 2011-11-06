@@ -342,7 +342,7 @@ namespace Kratos
 
 			//getting delta time 
 			//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-			double& delta_t = model_part.GetProcessInfo()[DELTA_TIME];
+			//double& delta_t = model_part.GetProcessInfo()[DELTA_TIME];
 			//KRATOS_WATCH(delta_t)
 			//Write the mass factors (that corresponds to the assembly of global lumped mass matrix... instead of building and
 			//storing this matris, we write the mass factors to the nodes in the var MASS_FACTORS

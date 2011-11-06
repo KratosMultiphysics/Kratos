@@ -21,7 +21,7 @@
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_trilinos_communicator_to_python.h"
-#include "custom_python/add_first.h"
+// #include "custom_python/add_first.h"
 
 ////utilities
 #include "python/pointer_vector_set_python_interface.h"
@@ -56,7 +56,7 @@ namespace Kratos {
         AddCustomIOToPython();
         AddCustomUtilitiesToPython();
         AddTrilinosCommunicatorToPython();
-	AddFirst();
+// 	AddFirst();
         }
 
 

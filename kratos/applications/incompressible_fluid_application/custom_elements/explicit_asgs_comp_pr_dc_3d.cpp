@@ -402,7 +402,7 @@ namespace Kratos
 
         double VC2;
 	CalculateSoundVelocity(GetGeometry(), VC2);
-	double vc = sqrt(VC2);
+	//double vc = sqrt(VC2);
 
 	//double int_time = ele_length/vc;
 	//double length2 = ele_length * ele_length;

@@ -128,11 +128,11 @@ namespace Kratos
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
         const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
-        const Variable<array_1d<double, 3 > >& rConvectionVar = my_settings->GetConvectionVariable();
+	// const Variable<array_1d<double, 3 > >& rConvectionVar = my_settings->GetConvectionVariable();
         const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
-        const Variable<double>& rSurfaceSourceVar = my_settings->GetSurfaceSourceVariable();
+        //const Variable<double>& rSurfaceSourceVar = my_settings->GetSurfaceSourceVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
 
         double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
@@ -172,16 +172,16 @@ namespace Kratos
         const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
         //#############//
-        double T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
-        double T0n = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar, 1);
-        double T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
-        double T1n = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar, 1);
-        double T2 = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar);
-        double T2n = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar, 1);
-        double T3 = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar);
-        double T3n = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar, 1);
+        //double T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
+        //double T0n = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar, 1);
+        //double T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
+	// double T1n = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar, 1);
+        //double T2 = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar);
+        //double T2n = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar, 1);
+        //double T3 = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar);
+        //double T3n = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar, 1);
 
-        double g = 0.0;
+        //double g = 0.0;
 
         for (unsigned int i = 0; i < TDim; i++)
         {
@@ -191,7 +191,7 @@ namespace Kratos
             }
         }
 
-        double norm_g = norm_2(grad_g);
+        //double norm_g = norm_2(grad_g);
 
         double res = (inner_prod(ms_vel_gauss, grad_g)); //+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
         double aux_res = fabs(res - proj);
