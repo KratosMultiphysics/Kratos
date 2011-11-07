@@ -9,6 +9,7 @@ set( GIDPOST_SOURCES
      )
 
 add_definitions( -DUSE_CONST )
+add_definitions( -w )
 
 ###############################################################
 add_library(gidpost STATIC ${GIDPOST_SOURCES})
