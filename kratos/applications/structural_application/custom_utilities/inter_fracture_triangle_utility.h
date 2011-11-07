@@ -348,7 +348,7 @@ namespace Kratos
             array_1d<double, 3 > Coord_Point_1;
             array_1d<double, 3 > Coord_Point_2;
             array_1d<double, 3 > normal;
-            array_1d<double, 3 > Unit;
+            array_1d<double, 3 > Unit = ZeroVector(3);
 
 
             Positive_Elements.reserve(10);
