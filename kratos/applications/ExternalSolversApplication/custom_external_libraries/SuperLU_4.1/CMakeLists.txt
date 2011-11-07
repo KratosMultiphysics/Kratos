@@ -86,6 +86,7 @@ SET_SOURCE_FILES_PROPERTIES(${TRIANGLE_SOURCES} PROPERTIES COMPILE_FLAGS -O0)
 add_definitions( -DUSE_VENDOR_BLAS )
 add_definitions( -DAdd_ )
 add_definitions( -D_LONGINT )
+add_definitions( -w )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions( -DNO_TIMER )
