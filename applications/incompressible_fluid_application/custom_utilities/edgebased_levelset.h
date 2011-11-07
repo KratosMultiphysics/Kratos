@@ -279,7 +279,7 @@ namespace Kratos {
 		#pragma omp parallel
 		if (OpenMPUtils::ThisThread() == k)
 		{
-		  for (std::size_t i_node = row_partition[k]; i_node < static_cast<int>(row_partition[k + 1]); i_node++)
+		  for (int i_node = row_partition[k]; i_node < static_cast<int>(row_partition[k + 1]); i_node++)
 		  {
 		  //loop over all nodes
       // 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
@@ -291,7 +291,7 @@ namespace Kratos {
 			  //get global index of neighbouring node j
 			  unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
 			  //define matrix structure row by row (the order does matter!)
-			  if ((j_neighbour > i_node) && (flag == 0)) {
+			  if ((static_cast<int>(j_neighbour) > i_node) && (flag == 0)) {
 			      //add diagonal/nodal contribution
 			      mL.push_back(i_node, i_node, 0.0);
 			      flag = 1;
@@ -1989,7 +1989,7 @@ namespace Kratos {
             }
             mSlipBoundaryList.resize(tempmSlipBoundaryList.size(),false);
             #pragma omp parallel for
-            for(int i=0; i<tempmSlipBoundaryList.size(); i++)
+            for(int i=0; i<static_cast<int>(tempmSlipBoundaryList.size()); i++)
 	      mSlipBoundaryList[i] = tempmSlipBoundaryList[i];
 
             //loop over all faces to fill inlet outlet
@@ -2026,7 +2026,7 @@ namespace Kratos {
             }
             mInOutBoundaryList.resize(tempmInOutBoundaryList.size(),false);
             #pragma omp parallel for
-            for(int i=0; i<tempmInOutBoundaryList.size(); i++)
+            for(int i=0; i<static_cast<int>(tempmInOutBoundaryList.size()); i++)
 	      mInOutBoundaryList[i] = tempmInOutBoundaryList[i];
 
 
@@ -3188,18 +3188,18 @@ namespace Kratos {
             medge_nodes_direction.resize(tempmedge_nodes_direction.size(),false);
             mcorner_nodes.resize(tempmcorner_nodes.size(),false);
 	    #pragma omp parallel for
-	    for ( int i = 0; i < tempmedge_nodes.size(); i++)
+	    for ( int i = 0; i < static_cast<int>(tempmedge_nodes.size()); i++)
 	    {
 	      medge_nodes[i] = tempmedge_nodes[i];
 	      medge_nodes_direction[i] = tempmedge_nodes_direction[i];
 	    }
 	    #pragma omp parallel for
-	    for (int i = 0; i < tempmcorner_nodes.size(); i++)
+	    for (int i = 0; i < static_cast<int>(tempmcorner_nodes.size()); i++)
 	    {
 	      mcorner_nodes[i] = tempmcorner_nodes[i];
 	    }
 
-            for (unsigned int i = 0; i < mcorner_nodes.size(); i++)
+            for (int i = 0; i < static_cast<int>(mcorner_nodes.size()); i++)
             {
                 KRATOS_WATCH(mcorner_nodes[i]);
 

@@ -633,7 +633,7 @@ namespace Kratos
                 if (proc_id == rank)
                 {
 
-                    for (int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+                    for (int i_color = 0; i_color < static_cast<int>(neighbours_indices.size()); i_color++)
                     {
                         if ((neighbours_indices[i_color]) >= 0)
                         {

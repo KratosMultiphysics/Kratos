@@ -206,7 +206,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 
 		//calculate convective term	
 		//	int nodes_number = 3;
-		int dof = 2;
+//		int dof = 2;
 		
 		
 		//and now we add the pressure gradient and the force term
@@ -293,7 +293,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
 		//so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2 
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+//		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
 		//const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
@@ -303,7 +303,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);	
 
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
-		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+//		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
 		//const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
@@ -313,7 +313,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);	
 
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);	
-		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+//		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
 		//const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
@@ -443,7 +443,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		// first we write the Galerkin contributions to the momentum residual						
 		CalculateGalerkinMomentumResidual(TmpRhs);
 		//and now the stabilization terms added
-		double dt = rCurrentProcessInfo[DELTA_TIME];
+//		double dt = rCurrentProcessInfo[DELTA_TIME];
 		//CalculateRHSVector(TmpRhs,  dt);
 
 		}

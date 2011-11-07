@@ -192,7 +192,7 @@ namespace Kratos
             //CONSTRUCTION OF VELOCITY
             BuilderSolverTypePointer builder = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (Comm, guess_row_size, pNewLinearSolver));
             this->mstep1 = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme, pNewLinearSolver, builder, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
-            this->mstep1->SetEchoLevel(1);
+            this->mstep1->SetEchoLevel(0);
 
             KRATOS_CATCH("")
         }

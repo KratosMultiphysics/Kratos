@@ -177,6 +177,9 @@ namespace Kratos
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
         {
             KRATOS_TRY
+            
+            mKeepSystemConstantDuringIterations = false;
+            
             //set flags to default values
             SetMaxIterationNumber(MaxIterations);
             mCalculateReactionsFlag = CalculateReactions;
@@ -233,6 +236,9 @@ namespace Kratos
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
         {
             KRATOS_TRY
+            
+            mKeepSystemConstantDuringIterations = false;
+	    
             //set flags to default values
             SetMaxIterationNumber(MaxIterations);
             mCalculateReactionsFlag = CalculateReactions;
@@ -518,14 +524,24 @@ namespace Kratos
                 //it is not called if there is no system to solve
                 if (SparseSpaceType::Size(mDx) != 0)
                 {
-                    if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+                    if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false )
                     {
+		      if( GetKeepSystemConstantDuringIterations() == false)
+		      {
                         //mA = 0.00;
                         TSparseSpace::SetToZero(mA);
                         TSparseSpace::SetToZero(mDx);
                         TSparseSpace::SetToZero(mb);
 
                         pBuilderAndSolver->BuildAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+		      }
+		      else
+		      {
+                        TSparseSpace::SetToZero(mDx);
+                        TSparseSpace::SetToZero(mb);
+
+                        pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+		      }
                     } else
                     {
                         TSparseSpace::SetToZero(mDx);
@@ -712,7 +728,16 @@ namespace Kratos
 
             return mA;
         }
-
+        
+        void SetKeepSystemConstantDuringIterations(bool value)
+        {
+	  mKeepSystemConstantDuringIterations = value;
+	}
+        
+        bool GetKeepSystemConstantDuringIterations()
+        {
+	  return mKeepSystemConstantDuringIterations;
+	}
 
 
         /*@} */
@@ -813,6 +838,9 @@ namespace Kratos
         unsigned int mMaxIterationNumber;
 
         bool mInitializeWasPerformed;
+	
+	//flag to allow keeping system matrix constant during iterations
+	bool mKeepSystemConstantDuringIterations;
 
 
 

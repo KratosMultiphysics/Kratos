@@ -162,7 +162,7 @@ namespace Kratos {
             int ErrorCode = BaseType::Check(rModelPart);
             if (ErrorCode != 0) return ErrorCode;
 
-            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+//            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
             // Check buffer size
             if (rModelPart.GetBufferSize() < 2)

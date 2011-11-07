@@ -178,7 +178,7 @@ namespace Kratos
 			// calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
 			for(IO::ConnectivitiesContainerType::iterator i_element = mrElementsConnectivities.begin() ; i_element != mrElementsConnectivities.end() ; i_element++)
 				for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
-					if(*i_node_id > number_of_nodes)
+					if(static_cast<int>(*i_node_id) > number_of_nodes)
 						number_of_nodes = *i_node_id;
 
 			mrElementsPartitions.resize(number_of_elements);

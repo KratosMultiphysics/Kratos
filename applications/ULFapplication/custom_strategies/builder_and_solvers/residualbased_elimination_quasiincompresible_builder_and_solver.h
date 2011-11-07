@@ -1363,7 +1363,7 @@ for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model
 	void FractionalStepProjection(ModelPart& model_part, double alpha_bossak)
 	{
 	KRATOS_TRY
-	double aaa=0.0;
+//	double aaa=0.0;
 	double dt = model_part.GetProcessInfo()[DELTA_TIME];
 	boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
 	array_1d<double,3> N;

@@ -44,7 +44,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
 
-    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX); 
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    model_part.AddNodalSolutionStepVariable(NORMAL);
 
     print "variables for the dynamic structural solution added correctly"
         
@@ -79,10 +80,10 @@ class MonolithicSolver:
         self.linear_solver =  TrilinosLinearSolver()
         
         #definition of the convergence criteria
-        self.vel_rel_tol = 1e-4
-        self.vel_abs_tol = 1e-9
-        self.pres_rel_tol = 1e-3
-        self.pres_abs_tol = 1e-6
+        self.vel_criteria = 1e-3
+        self.press_criteria = 1e-3
+        self.vel_abs_criteria = 1e-9
+        self.press_abs_criteria = 1e-9
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
@@ -135,9 +136,7 @@ class MonolithicSolver:
         
     #######################################################################
     def Initialize(self):
-
-        #definition of the convergence criteria
-        self.conv_criteria = TrilinosUPCriteria(self.vel_rel_tol,self.vel_abs_tol,self.pres_rel_tol,self.pres_abs_tol,self.Comm)
+        self.conv_criteria = TrilinosUPCriteria(self.vel_criteria,self.vel_abs_criteria,self.press_criteria,self.press_abs_criteria,self.Comm)
 
         # time scheme
         if self.turbulence_model == None:

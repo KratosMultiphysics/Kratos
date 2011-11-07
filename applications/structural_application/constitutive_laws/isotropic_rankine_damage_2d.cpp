@@ -233,8 +233,15 @@ namespace Kratos
 
 
         //compute element lenght
-        double A = geom.Area();
-        const double he = sqrt(2.0*A);
+        double he=0.0;
+        for(unsigned int i=0; i<geom.size(); i++)
+        {
+            const double hn = geom[i].GetSolutionStepValue(NODAL_H);
+            he += hn*ShapeFunctionsValues[i];
+        }
+        
+//        double A = geom.Area();
+//        const double he = sqrt(2.0*A);
 
         const double lch=2.0*he;
         const double ls =2.0*E*Gf/(sigma0*sigma0);
@@ -247,8 +254,8 @@ namespace Kratos
         double d=0.0;
         if(r>=r0)
             d = 1.0 - r0/r*exp(-2.0*Hs*(r-r0)/r0);
-        if(d > 0.999)
-            d = 0.999;
+        if(d > 0.9999)
+            d = 0.9999;
 
 //        KRATOS_WATCH(d);
         

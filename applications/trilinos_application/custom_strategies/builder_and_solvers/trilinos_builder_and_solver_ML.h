@@ -434,6 +434,7 @@ namespace Kratos
 			//prints informations about the current time
 			if (this->GetEchoLevel()>1)
 			{
+//                            if (r_model_part.GetCommunicator().MyPID() == 0)
 				std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
 			}
 

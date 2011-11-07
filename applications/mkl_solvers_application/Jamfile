@@ -22,16 +22,16 @@ project mkl_solvers_application
 #################################################################################
 #################################################################################
 ##definition of "dependencies for the project"
-lib mklintellib : : <name>mkl_intel_ilp64 <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mklthreadlib : : <name>mkl_intel_thread <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mklcorelib : : <name>mkl_core <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mklsolverlib : : <name>mkl_solver_ilp64 <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mklmclib : : <name>mkl_mc <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mklmc3lib : : <name>mkl_mc3 <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mkllapacklib : : <name>mkl_lapack <search>$(MKL_LIB_DIR)/em64t/ ;
+lib mklintellib : : <name>mkl_intel_ilp64 <search>$(MKL_LIB_DIR) ;
+lib mklthreadlib : : <name>mkl_intel_thread <search>$(MKL_LIB_DIR) ;
+lib mklcorelib : : <name>mkl_core <search>$(MKL_LIB_DIR) ;
+lib mklsolverlib : : <name>mkl_solver_ilp64 <search>$(MKL_LIB_DIR) ;
+lib mklmclib : : <name>mkl_mc <search>$(MKL_LIB_DIR) ;
+lib mklmc3lib : : <name>mkl_mc3 <search>$(MKL_LIB_DIR) ;
+lib mkllapacklib : : <name>mkl_lapack <search>$(MKL_LIB_DIR) ;
 lib threadlib : : <name>pthread ;
-##lib guidelib : : <name>guide <search>$(MKL_LIB_DIR)/em64t/ ;
-lib mklp4nlib : : <name>mkl_p4n <search>$(MKL_LIB_DIR)/em64t/ ;
+##lib guidelib : : <name>guide <search>$(MKL_LIB_DIR) ;
+lib mklp4nlib : : <name>mkl_p4n <search>$(MKL_LIB_DIR) ;
 
 #################################################################################
 #################################################################################

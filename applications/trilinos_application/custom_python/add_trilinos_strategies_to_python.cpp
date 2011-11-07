@@ -62,6 +62,7 @@
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation_vec.h"
 #include "custom_strategies/builder_and_solvers/trilinos_pressure_splitting_builder_and_solver.h"
+#include "custom_strategies/strategies/trilinos_convdiff_strategy.h"
 
 //linear solvers
 // #include "linear_solvers/linear_solver.h"
@@ -77,25 +78,26 @@
 // #include "external_includes/ml_solver.h"
 
 //configuration files
-#include "../../incompressible_fluid_application/custom_strategies/strategies/solver_configuration.h"
+#include "incompressible_fluid_application/custom_strategies/strategies/solver_configuration.h"
 #include "custom_strategies/strategies/trilinos_fractionalstep_configuration.h"
-#include "../../incompressible_fluid_application/custom_strategies/strategies/fractional_step_strategy.h"
-#include "../../incompressible_fluid_application/incompressible_fluid_application.h"
+#include "incompressible_fluid_application/custom_strategies/strategies/fractional_step_strategy.h"
+#include "incompressible_fluid_application/incompressible_fluid_application.h"
 
 
 
-namespace Kratos {
+namespace Kratos
+{
 
-    namespace Python {
+    namespace Python
+    {
 
         using namespace boost::python;
 
-
-	void  AddStrategies()
+        void AddStrategies()
         {
-       typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-        typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+            typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+            typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+            typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
             typedef SolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseSolvingStrategyType;
             typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
@@ -324,7 +326,7 @@ namespace Kratos {
                     TrilinosPressureSplittingBuilderAndSolverType;
 
             class_< TrilinosPressureSplittingBuilderAndSolverType, boost::noncopyable >
-                    ("TrilinosPressureSplittingBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, TrilinosLinearSolverType::Pointer, unsigned int, bool, double, double, double > ())
+                    ("TrilinosPressureSplittingBuilderAndSolver", init < Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, TrilinosLinearSolverType::Pointer, unsigned int, bool, double, double, double > ())
                     .def("SetCalculateReactionsFlag", &TrilinosPressureSplittingBuilderAndSolverType::SetCalculateReactionsFlag)
                     .def("GetCalculateReactionsFlag", &TrilinosPressureSplittingBuilderAndSolverType::GetCalculateReactionsFlag)
                     .def("SetDofSetIsInitializedFlag", &TrilinosPressureSplittingBuilderAndSolverType::SetDofSetIsInitializedFlag)
@@ -351,36 +353,36 @@ namespace Kratos {
                     .def("GetEchoLevel", &TrilinosPressureSplittingBuilderAndSolverType::GetEchoLevel)
                     ;
 
-//             typedef TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >
-//                     TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType;
-// 		    
-//             class_< TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType, boost::noncopyable >
-//                     ("TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > ())
-//                     .def("SetCalculateReactionsFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetCalculateReactionsFlag)
-//                     .def("GetCalculateReactionsFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetCalculateReactionsFlag)
-//                     .def("SetDofSetIsInitializedFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetDofSetIsInitializedFlag)
-//                     .def("GetDofSetIsInitializedFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetDofSetIsInitializedFlag)
-//                     .def("SetReshapeMatrixFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetReshapeMatrixFlag)
-//                     .def("GetReshapeMatrixFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetReshapeMatrixFlag)
-//                     .def("GetEquationSystemSize", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetEquationSystemSize)
-//                     .def("BuildLHS", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildLHS)
-//                     .def("BuildRHS", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildRHS)
-//                     .def("Build", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::Build)
-//                     .def("SystemSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SystemSolve)
-//                     .def("BuildAndSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildAndSolve)
-//                     .def("BuildRHSAndSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildRHSAndSolve)
-//                     .def("ApplyDirichletConditions", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::ApplyDirichletConditions)
-//                     .def("SetUpDofSet", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetUpDofSet)
-//                     .def("GetDofSet", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetDofSet, return_internal_reference<>())
-//                     .def("SetUpSystem", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetUpSystem)
-//                     .def("ResizeAndInitializeVectors", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::ResizeAndInitializeVectors)
-//                     .def("InitializeSolutionStep", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::InitializeSolutionStep)
-//                     .def("FinalizeSolutionStep", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::FinalizeSolutionStep)
-//                     .def("CalculateReactions", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::CalculateReactions)
-//                     .def("Clear", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::Clear)
-//                     .def("SetEchoLevel", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetEchoLevel)
-//                     .def("GetEchoLevel", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetEchoLevel)
-//                     ;
+            //             typedef TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >
+            //                     TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType;
+            //
+            //             class_< TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType, boost::noncopyable >
+            //                     ("TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > ())
+            //                     .def("SetCalculateReactionsFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetCalculateReactionsFlag)
+            //                     .def("GetCalculateReactionsFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetCalculateReactionsFlag)
+            //                     .def("SetDofSetIsInitializedFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetDofSetIsInitializedFlag)
+            //                     .def("GetDofSetIsInitializedFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetDofSetIsInitializedFlag)
+            //                     .def("SetReshapeMatrixFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetReshapeMatrixFlag)
+            //                     .def("GetReshapeMatrixFlag", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetReshapeMatrixFlag)
+            //                     .def("GetEquationSystemSize", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetEquationSystemSize)
+            //                     .def("BuildLHS", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildLHS)
+            //                     .def("BuildRHS", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildRHS)
+            //                     .def("Build", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::Build)
+            //                     .def("SystemSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SystemSolve)
+            //                     .def("BuildAndSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildAndSolve)
+            //                     .def("BuildRHSAndSolve", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::BuildRHSAndSolve)
+            //                     .def("ApplyDirichletConditions", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::ApplyDirichletConditions)
+            //                     .def("SetUpDofSet", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetUpDofSet)
+            //                     .def("GetDofSet", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetDofSet, return_internal_reference<>())
+            //                     .def("SetUpSystem", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetUpSystem)
+            //                     .def("ResizeAndInitializeVectors", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::ResizeAndInitializeVectors)
+            //                     .def("InitializeSolutionStep", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::InitializeSolutionStep)
+            //                     .def("FinalizeSolutionStep", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::FinalizeSolutionStep)
+            //                     .def("CalculateReactions", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::CalculateReactions)
+            //                     .def("Clear", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::Clear)
+            //                     .def("SetEchoLevel", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::SetEchoLevel)
+            //                     .def("GetEchoLevel", &TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplitType::GetEchoLevel)
+            //                     ;
 
             //********************************************************************************************
             class_< SolverConfiguration<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
@@ -424,8 +426,21 @@ namespace Kratos {
                     .def("IterativeSolve", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::IterativeSolve)
                     .def("SavePressureIteration", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SavePressureIteration)
                     .def("ApplyFractionalVelocityFixity", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ApplyFractionalVelocityFixity)
-                    .def("SetEchoLevel", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
-            ;
+                    .def("SetEchoLevel", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel)
+                    ;
+
+            //********************************************************************************************
+            class_< TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
+                    ("TrilinosConvectionDiffusionStrategy",
+                    init < Epetra_MpiComm&,
+                    ModelPart&,
+                    TrilinosLinearSolverType::Pointer,
+                    bool,
+                    int,
+                    int
+                    >())
+                    .def("Solve", &TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve)
+                    ;
 
         }
 

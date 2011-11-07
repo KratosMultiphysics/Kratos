@@ -98,6 +98,7 @@ namespace Kratos
 	   if(is_distributed == true)
 	    if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
 	     KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
+KRATOS_WATCH(is_distributed)
 
 	   //reset the variables needed
 	  int node_size = rmodel_part.Nodes().size();
@@ -456,7 +457,7 @@ namespace Kratos
 		  
 	    }
 	    
-// 	    rmodel_part.GetCommunicator().AllReduce(h_max,KRATOS_REDUCE_MIN);
+ 	    r_model_part.GetCommunicator().MaxAll(h_max);
 	    
             return h_max;
 

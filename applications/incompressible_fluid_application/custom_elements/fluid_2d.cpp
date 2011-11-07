@@ -861,7 +861,7 @@ namespace Kratos
     double Fluid2D::CalculateTau(boost::numeric::ublas::bounded_matrix<double, 3,2> & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo)
     {
 	
-	double temp=0.0;
+//	double temp=0.0;
 	
 	//viscous parts
 	double viscous_part=0.0;

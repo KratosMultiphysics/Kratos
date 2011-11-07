@@ -1440,8 +1440,18 @@ namespace Kratos
 	    ExtractValue(word, node_id);
 	    temp_element_nodes.push_back(node_id);
 	  }
-	  
-	  rThisConnectivities.push_back(temp_element_nodes);
+          const int index = id - 1;
+          const int size = rThisConnectivities.size();
+          if(index == size)  // I do push back instead of resizing to size+1
+            rThisConnectivities.push_back(temp_element_nodes);
+          else if(index < size)
+              rThisConnectivities[index]= temp_element_nodes;
+          else
+          {
+              rThisConnectivities.resize(index+1);
+              rThisConnectivities[index]= temp_element_nodes;
+
+          }
 	  number_of_connectivities++;
 	}
 

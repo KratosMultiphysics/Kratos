@@ -381,6 +381,13 @@ namespace Kratos
                 //     KRATOS_WATCH("line 346");
                 new_nodes.push_back(pnode);
             }
+            
+            unsigned int nlocal_nodes = this_model_part.Nodes().size();
+	    this_model_part.Nodes().Unique();
+	    if(nlocal_nodes != this_model_part.Nodes().size())
+	      KRATOS_ERROR(std::logic_error,"nodes were created twice!!","")
+            
+            
         }
 
         void Renumbering_Elements_And_Nodes(ModelPart& this_model_part)
@@ -689,6 +696,9 @@ namespace Kratos
         {
             //determine a new unique id
             unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
+	    
+	    if( model_part.Nodes().find(new_id) != model_part.NodesEnd() )
+	      KRATOS_ERROR(std::logic_error, "adding a center node with an already existing id","")
 
             //determine the coordinates of the new node
             double X = (geom[0].X() + geom[1].X() + geom[2].X() + geom[3].X()) / 4.0;
@@ -754,8 +764,8 @@ namespace Kratos
                                }
                    } */
 
-            /*KRATOS_WATCH(*(model_part.NodesEnd()-1));
-                 model_part.Nodes().push_back(pnode);*/
+//             KRATOS_WATCH(*(model_part.NodesEnd()-1));
+                 model_part.Nodes().push_back(pnode);
 
             //      KRATOS_WATCH(*(model_part.NodesEnd()-1));
 

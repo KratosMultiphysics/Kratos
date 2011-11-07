@@ -849,7 +849,7 @@ namespace Kratos
 	
 	
 	
-	double temp=0.0;
+//	double temp=0.0;
 	
 	//viscous parts
 	double viscous_part=0.0;

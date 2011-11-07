@@ -504,7 +504,7 @@ namespace Kratos
                 {
                     for(int j = 0 ; j < quadratic_type ; j++)
                     {
-                        if( new_node_index[(*i_connectivities)[j]-1] == NumberOfNodes+1 )
+                        if( static_cast<SizeType>(new_node_index[(*i_connectivities)[j]-1]) == NumberOfNodes+1 )
                             new_node_index[(*i_connectivities)[j]-1] = index++;
                         elmnts[i++] = new_node_index[(*i_connectivities)[j]-1]; // transforming to zero base indexing
                     }

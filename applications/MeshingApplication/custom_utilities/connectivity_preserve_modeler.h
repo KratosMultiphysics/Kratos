@@ -99,17 +99,24 @@ namespace Kratos
                 )
         {
             KRATOS_TRY;
+	    
+	    DestinationModelPart.Nodes().clear();
 
             //assigning ProcessInfo
-            DestinationModelPart.pGetProcessInfo() = OriginModelPart.pGetProcessInfo();
+	    DestinationModelPart.SetBufferSize(OriginModelPart.GetBufferSize());
+            DestinationModelPart.SetProcessInfo( OriginModelPart.GetProcessInfo() );
 
             //assigning Properties
             DestinationModelPart.SetProperties(OriginModelPart.pProperties());
+KRATOS_WATCH("aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+	    
+	    KRATOS_WATCH(rReferenceElement);
+	    KRATOS_WATCH(rReferenceBoundaryCondition);
 
             //assigning the nodes to the new model part
-            DestinationModelPart.Nodes().clear();
+            
             DestinationModelPart.Nodes() = OriginModelPart.Nodes();
-
+KRATOS_WATCH("bbbbbbbbbbbbbbbbbbbbbbbbbb");
             //generating the elements
             for (ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
             {
@@ -117,7 +124,7 @@ namespace Kratos
                 Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
                 DestinationModelPart.Elements().push_back(p_element);
             }
-
+KRATOS_WATCH("elements generated");
             //generating the conditions
             for (ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
             {
@@ -126,7 +133,7 @@ namespace Kratos
                 Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(iii->Id(), iii->GetGeometry(), properties);
                 DestinationModelPart.Conditions().push_back(p_condition);
             }
-
+KRATOS_WATCH("conditions generated");
             Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
             DestinationModelPart.SetCommunicator(pComm);
 
