@@ -162,15 +162,13 @@ namespace Kratos {
             int ErrorCode = BaseType::Check(rModelPart);
             if (ErrorCode != 0) return ErrorCode;
 
-//            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-
             // Check buffer size
             if (rModelPart.GetBufferSize() < 2)
                 KRATOS_ERROR(std::logic_error, "GearScheme error: Insufficient buffer size for Bossak scheme, should be at least 2, got ",rModelPart.GetBufferSize());
 
             // Check that all required variables were registered
             if(DELTA_TIME.Key() == 0)
-                KRATOS_ERROR(std::invalid_argument,"TIME_STEP Key is 0. Check if all applications were correctly registered.","");
+                KRATOS_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if all applications were correctly registered.","");
             if(OSS_SWITCH.Key() == 0)
                 KRATOS_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if all applications were correctly registered.","");
 
@@ -182,6 +180,12 @@ namespace Kratos {
                 KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if all applications were correctly registered.","");
             if(ACCELERATION.Key() == 0)
                 KRATOS_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.","");
+
+            // Checks on process info
+            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+            if(rCurrentProcessInfo.Has(DELTA_TIME) == 0)
+                KRATOS_ERROR(std::invalid_argument,"ProcessInfo does not contain a value for DELTA_TIME","");
 
             return 0;
             KRATOS_CATCH("");

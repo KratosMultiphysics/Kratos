@@ -486,6 +486,7 @@ namespace Kratos {
 
             // Rotate contributions (to match coordinates for slip conditions)
             this->Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+            this->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
 
             KRATOS_CATCH("")
         }
@@ -493,32 +494,31 @@ namespace Kratos {
         virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
                                                           LocalSystemVectorType& RHS_Contribution,
                                                           Element::EquationIdVectorType& EquationId,
-                                                          ProcessInfo& CurrentProcessInfo)
+                                                          ProcessInfo& rCurrentProcessInfo)
         {
-            KRATOS_TRY
+            KRATOS_TRY;
 
-                    int k = OpenMPUtils::ThisThread();
+            int k = OpenMPUtils::ThisThread();
 
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             //Initializing the non linear iteration for the current condition
-            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
+            (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
 
             //basic operations for the element considered
-            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
+            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(mMass[k],rCurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
+            (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
-
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k],rCurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             this->Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
+            this->ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
 
-            KRATOS_CATCH("")
+            KRATOS_CATCH("");
         }
         //*************************************************************************************
         //*************************************************************************************
@@ -851,6 +851,7 @@ namespace Kratos {
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
+            bool NeedRotation = false;
 
             size_t Index = 0;
 
@@ -858,16 +859,20 @@ namespace Kratos {
             {
                 if( rGeometry[j].GetValue(IS_STRUCTURE) != 0.0 )
                 {
+                    NeedRotation = true;
                     MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
                     this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
                 }
                 Index += BlockSize;
             }
-            LocalSystemMatrixType tmp = boost::numeric::ublas::prod(rLocalMatrix,Rotation);
-            rLocalMatrix = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),tmp);
+            if(NeedRotation)
+            {
+                LocalSystemMatrixType tmp = boost::numeric::ublas::prod(rLocalMatrix,Rotation);
+                rLocalMatrix = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),tmp);
 
-            LocalSystemVectorType aaa = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),rLocalVector);
-            noalias(rLocalVector) = aaa;
+                LocalSystemVectorType aaa = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),rLocalVector);
+                noalias(rLocalVector) = aaa;
+            }
         }
 
         /// RHS only version of Rotate
@@ -879,6 +884,7 @@ namespace Kratos {
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
+            bool NeedRotation = false;
 
             size_t Index = 0;
 
@@ -886,14 +892,18 @@ namespace Kratos {
             {
                 if( rGeometry[j].GetValue(IS_STRUCTURE) != 0.0 )
                 {
+                    NeedRotation = true;
                     MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
                     this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
                 }
                 Index += BlockSize;
             }
 
-            LocalSystemVectorType Tmp = boost::numeric::ublas::prod(trans(Rotation),rLocalVector);
-            rLocalVector = rLocalVector;
+            if(NeedRotation)
+            {
+                LocalSystemVectorType Tmp = boost::numeric::ublas::prod(trans(Rotation),rLocalVector);
+                rLocalVector = rLocalVector;
+            }
         }
 
         /// Apply slip boundary conditions to the rotated local contributions.
@@ -915,7 +925,13 @@ namespace Kratos {
                 {
                     // We fix the first dof (normal velocity) for each rotated block
                     size_t j = itNode * BlockSize;
-                    double k = rLocalMatrix(j,j)+rLocalMatrix(j,j+1)+rLocalMatrix(j,j+2);
+                    //const double k = rLocalMatrix(j,j)+rLocalMatrix(j,j+1)+rLocalMatrix(j,j+2);
+
+                    // If the mesh is moving, we must impose v_normal = vmesh_normal
+                    array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+                    VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+                    const array_1d<double,3>& rNormal = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+
                     for( size_t i = 0; i < j; ++i) // Skip term (i,j)
                     {
                         rLocalMatrix(i,j) = 0.0;
@@ -927,8 +943,8 @@ namespace Kratos {
                         rLocalMatrix(j,i) = 0.0;
                     }
 
-                    rLocalVector(j) = 0.0; //dot(normal,velm-v);
-                    rLocalMatrix(j,j) = k;
+                    rLocalVector(j) = TDenseSpace::Dot(rNormal,VMesh);
+                    rLocalMatrix(j,j) = 1.0;
                 }
             }
         }
@@ -945,7 +961,13 @@ namespace Kratos {
                 {
                     // We fix the firs dof (normal velocity) for each rotated block
                     size_t j = itNode * BlockSize;
-                    rLocalVector[j] = 0.0;
+
+                    // If the mesh is moving, we must impose v_normal = vmesh_normal
+                    array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+                    VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+                    const array_1d<double,3>& rNormal = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+
+                    rLocalVector[j] = TDenseSpace::Dot(rNormal,VMesh);
                 }
             }
         }

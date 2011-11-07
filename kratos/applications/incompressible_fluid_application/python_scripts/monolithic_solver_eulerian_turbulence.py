@@ -121,7 +121,7 @@ class MonolithicSolver:
                                            self.rel_pres_tol,self.abs_pres_tol)
 ##        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
 ##                                        self.rel_pres_tol,self.abs_pres_tol)
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
