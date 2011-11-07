@@ -21,6 +21,7 @@ else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions( -DLINUX )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
+add_definitions( -w )
 
 ###############################################################
 add_library(tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES} )
