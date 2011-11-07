@@ -154,7 +154,7 @@ class MonolithicSolver:
         self.solver.max_iter = self.max_iter
 
 ##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
-##        (self.solver).SetEchoLevel(self.echo_level)
+        (self.solver).SetEchoLevel(self.echo_level)
 
 	                     
     #######################################################################   
