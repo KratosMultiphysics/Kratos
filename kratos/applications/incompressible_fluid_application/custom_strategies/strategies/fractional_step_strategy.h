@@ -1146,12 +1146,15 @@ namespace Kratos
                 const char ElementName[] = "Fluid2D";
                 Element const& ref_el = KratosComponents<Element>::Get(ElementName);
 
+                const char ElementName2[] = "Fluid2Dlevelset";
+                Element const& ref_el2 = KratosComponents<Element>::Get(ElementName2);
+
                 for (ModelPart::ElementsContainerType::iterator it = BaseType::GetModelPart().ElementsBegin();
                         it != BaseType::GetModelPart().ElementsEnd(); ++it)
                 {
                     if (it->Id() < 1)
                         KRATOS_ERROR(std::logic_error, "Element Id can not be lesser than 1 (0 is not allowed as Id)", "");
-                    if (typeid (ref_el) != typeid (*it))
+                    if (typeid (ref_el) != typeid (*it) && typeid (ref_el2) != typeid (*it))
                     {
                         std::cout << "wrong element found --> " << it->Id() << std::endl;
                         KRATOS_ERROR(std::logic_error, "Fractional step strategy requires Fluid2D element for the 2D case", "");

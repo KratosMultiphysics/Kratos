@@ -250,7 +250,7 @@ namespace Kratos
 				   {
 				      //ilfail = 2;
                                       meta = 1.00;
-				      std::cout<<"******Line Search Trouble. No Convergence Was Reaches *******"<<std::endl; 
+				      std::cout<<"******Line Search Trouble. No Convergence Was Reached *******"<<std::endl;
 				      return false;
 				  }
 				
@@ -366,7 +366,7 @@ namespace Kratos
 			      if ((prodr(ineg)-prodr(ipos))==0)
 				{
 				  ico=2;
-				  std::cout<<" Warning: Division By Zero. Line Searches Filed"<<std::endl;
+				  std::cout<<" Warning: Division By Zero. Line Searches Failed"<<std::endl;
 				  return;
 				}
 			      else

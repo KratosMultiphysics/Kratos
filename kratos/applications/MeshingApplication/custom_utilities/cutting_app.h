@@ -228,7 +228,7 @@ namespace Kratos
 
 
 
-			for (int index=0 ; index != this_model_part.Nodes().size() ; ++index) Condition_Nodes[index]=0; //initializing in zero the whole vector (meaning no useful nodes for the condition layer)
+			for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index) Condition_Nodes[index]=0; //initializing in zero the whole vector (meaning no useful nodes for the condition layer)
 
 			for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
 			{
@@ -241,7 +241,7 @@ namespace Kratos
 			}//done. now we know all the nodes that will have to be added to the new model part.
 			
 			//we loop all the nodes in the old model part and copy the ones used by conditions to the new model part:
-			for (int index=0 ; index != this_model_part.Nodes().size() ; ++index)
+			for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index)
 			{
 				 if (Condition_Nodes[index]==-1) {
 					 ++number_of_nodes; //one new node!

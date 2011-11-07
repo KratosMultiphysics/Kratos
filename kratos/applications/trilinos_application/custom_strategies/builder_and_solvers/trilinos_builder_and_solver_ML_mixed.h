@@ -236,7 +236,8 @@ namespace Kratos
 
             if (BaseType::GetEchoLevel() > 0)
             {
-                std::cout << "Building Time : " << building_time.elapsed() << std::endl;
+                if (r_model_part.GetCommunicator().MyPID() == 0)
+                    std::cout << "Building Time : " << building_time.elapsed() << std::endl;
             }
 
             //apply dirichlet conditions
@@ -244,10 +245,13 @@ namespace Kratos
 
             if (BaseType::GetEchoLevel() == 3)
             {
-                std::cout << "before the solution of the system" << std::endl;
-                std::cout << "System Matrix = " << A << std::endl;
-                std::cout << "unknowns vector = " << Dx << std::endl;
-                std::cout << "RHS vector = " << b << std::endl;
+                if (r_model_part.GetCommunicator().MyPID() == 0)
+                {
+                    std::cout << "before the solution of the system" << std::endl;
+                    std::cout << "System Matrix = " << A << std::endl;
+                    std::cout << "unknowns vector = " << Dx << std::endl;
+                    std::cout << "RHS vector = " << b << std::endl;
+                }
             }
 
             boost::timer solve_time;
@@ -256,14 +260,18 @@ namespace Kratos
 
             if (BaseType::GetEchoLevel() > 0)
             {
-                std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
+                if (r_model_part.GetCommunicator().MyPID() == 0)
+                    std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
             }
             if (BaseType::GetEchoLevel() == 3)
             {
-                std::cout << "after the solution of the system" << std::endl;
-                std::cout << "System Matrix = " << A << std::endl;
-                std::cout << "unknowns vector = " << Dx << std::endl;
-                std::cout << "RHS vector = " << b << std::endl;
+                if (r_model_part.GetCommunicator().MyPID() == 0)
+                {
+                    std::cout << "after the solution of the system" << std::endl;
+                    std::cout << "System Matrix = " << A << std::endl;
+                    std::cout << "unknowns vector = " << Dx << std::endl;
+                    std::cout << "RHS vector = " << b << std::endl;
+                }
             }
 
             KRATOS_CATCH("")
@@ -288,7 +296,7 @@ namespace Kratos
 
             if (norm_b != 0.00)
             {
-                KRATOS_WATCH("entering in -- line 288 the solver");
+                //                KRATOS_WATCH("entering in -- line 288 the solver");
 
 
 
@@ -342,7 +350,7 @@ namespace Kratos
                 // preconditioners
 
                 ML_Epetra::SetDefaults("NSSA", MLList, options, params);
-//                ML_Epetra::SetDefaults("DD", MLList, options, params);
+                //                ML_Epetra::SetDefaults("DD", MLList, options, params);
 
                 // Overwrite some parameters. Please refer to the user's guide
                 // for more information
@@ -354,22 +362,22 @@ namespace Kratos
                 // the dimension of the coarse problem will be equal to the
                 // number of processors)
 
-//                MLList.set("aggregation: type", "METIS");
-//                MLList.set("smoother: type", "Aztec");
+                //                MLList.set("aggregation: type", "METIS");
+                //                MLList.set("smoother: type", "Aztec");
 
-//                  MLList.set("aggregation: nodes per aggregate", 128);
-//                  MLList.set("smoother: pre or post", "pre");
-//                  MLList.set("coarse: type","Amesos-KLU");
+                //                  MLList.set("aggregation: nodes per aggregate", 128);
+                //                  MLList.set("smoother: pre or post", "pre");
+                //                  MLList.set("coarse: type","Amesos-KLU");
 
 
-                
+
                 int numdf; // dofs per node
                 int dimns; // dimension of the null space
                 //				int lrows =  A.NumMyRows(); //number of rows for calling processor
 
                 //Teuchos::RCP<vector<double> >  ns;
                 boost::shared_ptr<vector<double> > ns;
-                double* nullsp;
+                double* nullsp = NULL;
 
                 GenerateNullSpace(A, r_model_part, nullsp, ns, numdf, dimns);
 
@@ -398,9 +406,9 @@ namespace Kratos
                 // number. Also, requires output every 32 iterations
                 // Then, solve with 500 iterations and 1e-12 as tolerance on the
                 // relative residual
- 
+
                 solver.SetAztecOption(AZ_solver, AZ_gmres_condnum);
-                solver.SetAztecOption(AZ_output, 32);
+                solver.SetAztecOption(AZ_output, AZ_none);
                 solver.SetAztecOption(AZ_kspace, 100);
                 solver.Iterate(500, 1e-8);
 
@@ -467,7 +475,8 @@ namespace Kratos
             //prints informations about the current time
             if (this->GetEchoLevel() > 1)
             {
-                std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
+                if (r_model_part.GetCommunicator().MyPID() == 0)
+                    std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
             }
 
             KRATOS_CATCH("")
@@ -557,7 +566,7 @@ namespace Kratos
                             k = k + 3;
                         }
                     }
-                }                    //******************************************************************************************
+                }//******************************************************************************************
                 else
                 {
 
@@ -660,7 +669,7 @@ namespace Kratos
                             k = k + 3;
                         }
                     }
-                }                    //******************************************************************************************
+                }//******************************************************************************************
                 else
                 {
 

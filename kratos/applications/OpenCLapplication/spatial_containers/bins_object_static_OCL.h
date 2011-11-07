@@ -896,7 +896,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	
 	void TransferParticMeshToGPU() 
 	{
-	    if(mParticleBufferSize < mParticMesh->NumberOfNodes()) {
+	    if(mParticleBufferSize < static_cast<int>(mParticMesh->NumberOfNodes())) {
 	      
 		free(mParticles);
 		free(mParticlesVelocity);
@@ -906,7 +906,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 		free(mParticlesN);
 		free(mParticlesI);
 		
-		while (mParticleBufferSize < mParticMesh->NumberOfNodes()) mParticleBufferSize += PARTICLE_BUFFER;
+		while (mParticleBufferSize < static_cast<int>(mParticMesh->NumberOfNodes())) mParticleBufferSize += PARTICLE_BUFFER;
 		
 		mParticles 		  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
 		mParticlesVelocity 	  = (cl_double4 *)malloc(sizeof(cl_double4) * mParticleBufferSize );
@@ -1134,7 +1134,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    OCLDeviceGroup.SetKernelArg(	OCLTransferB, 13, PARTICLE_BUFFER);
 	    OCLDeviceGroup.SetLocalMemAsKernelArg(OCLTransferB, 14, OCLDeviceGroup.WorkGroupSizes[OCLTransferB][0] * sizeof(int));
 	    
-	    while (processed < mParticMesh->NumberOfNodes())
+	    while (processed < static_cast<int>(mParticMesh->NumberOfNodes()))
 	    {	 
 		amount = PARTICLE_BUFFER > mParticMesh->NumberOfNodes() ? mParticMesh->NumberOfNodes() : PARTICLE_BUFFER;
 		

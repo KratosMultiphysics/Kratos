@@ -172,7 +172,7 @@ namespace Kratos
 			MetisGraphPartitioningProcess metis_graph_partitioning_process(elements_connectivities, nodes_partitions, elements_partitions, mNumberOfPartitions, mDimension);
 			metis_graph_partitioning_process.Execute();
 			
-			int number_of_nodes = nodes_partitions.size(); 
+//			int number_of_nodes = nodes_partitions.size();
 
 			GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
 			GraphType domains_colored_graph;

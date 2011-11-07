@@ -564,7 +564,7 @@ namespace Kratos
 				    #pragma omp parallel
 				    if (OpenMPUtils::ThisThread() == k)
 				    {
-					for (std::size_t aux_i = row_partition[k]; aux_i < row_partition[k + 1]; aux_i++)
+					for (unsigned int aux_i = static_cast<unsigned int>(row_partition[k]); aux_i < static_cast<unsigned int>(row_partition[k + 1]); aux_i++)
 					{
 						typename ModelPart::NodesContainerType::iterator node_it=model_part.NodesBegin() + aux_i;
 					//main loop over all nodes
@@ -1087,7 +1087,7 @@ namespace Kratos
 				    #pragma omp parallel
 				    {
 				      int k = OpenMPUtils::ThisThread();
-					for (std::size_t i_node = row_partition[k]; i_node < row_partition[k + 1]; i_node++)
+					for (int i_node = static_cast<int>(row_partition[k]); i_node < static_cast<int>(row_partition[k + 1]); i_node++)
 					{
 				/*
 				int loop_size = destination.size();	
@@ -1126,7 +1126,7 @@ namespace Kratos
 				    #pragma omp parallel			    
 				    {
 				      int k = OpenMPUtils::ThisThread();
-					for (std::size_t i_node = row_partition[k]; i_node < row_partition[k + 1]; i_node++)
+					for (int i_node = static_cast<int>(row_partition[k]); i_node < static_cast<int>(row_partition[k + 1]); i_node++)
 					{
 					double& dest = destination[i_node];
 					const double m_inv = Minv_vec[i_node];

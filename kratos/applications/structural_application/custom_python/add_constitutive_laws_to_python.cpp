@@ -101,6 +101,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/variable_indexing_python.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include "constitutive_laws/mohr_coulomb_plane_strain.h"
+#include "constitutive_laws/isotropic_rankine_damage_2d.h"
 
 #include "constitutive_laws/von_mises_3d.h"
 
@@ -271,6 +272,12 @@ namespace Kratos
                     ("Viscofibers_Hypermatrix2D",
                      init<>() )
                     ;
+
+	    class_< IsotropicRankineDamage2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+                    ("IsotropicRankineDamage2D",
+                     init<>() )
+                    ;
+
 // 			class_<Plane_Stress_Damage_Orthotropic_2D  , bases< ConstitutiveLawBaseType >, boost::noncopyable >
 // 			("PlaneStressDamageOrthotropic2D",
 // 			init<>() )

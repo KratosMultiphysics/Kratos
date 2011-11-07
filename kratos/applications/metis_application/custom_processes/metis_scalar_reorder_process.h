@@ -296,6 +296,8 @@ namespace Kratos
 
         MetisScalarReorder & operator=(MetisScalarReorder const& rOther)
         {
+            this->mrModelPart = rOther.mrModelPart;
+            return *this;
         }
 
         /// Copy constructor.
@@ -325,6 +327,7 @@ namespace Kratos
     inline std::istream & operator >>(std::istream& rIStream,
             MetisScalarReorder& rThis)
     {
+        return rIStream;
     }
 
     /// output stream function

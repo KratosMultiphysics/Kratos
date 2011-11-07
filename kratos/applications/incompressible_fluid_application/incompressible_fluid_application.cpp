@@ -52,7 +52,8 @@ namespace Kratos
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
 
 
-	KratosIncompressibleFluidApplication::KratosIncompressibleFluidApplication():	
+	KratosIncompressibleFluidApplication::KratosIncompressibleFluidApplication():
+//                mFluid2Dlevelset(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 		mFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mFluid2DCoupled(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -154,6 +155,7 @@ namespace Kratos
 		std::cout << "Initializing KratosIncompressibleFluidApplication...variables succesfully registered " << std::endl;
 
 		// Registering elements and conditions here
+//		KRATOS_REGISTER_ELEMENT("Fluid2Dlevelset", mFluid2Dlevelset);
 		KRATOS_REGISTER_ELEMENT("Fluid3D", mFluid3D);
 		KRATOS_REGISTER_ELEMENT("Fluid2D", mFluid2D);
 

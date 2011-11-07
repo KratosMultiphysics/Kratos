@@ -87,6 +87,12 @@ namespace Kratos
         typedef MeshType::NodesContainerType NodesContainerType;
         typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
         typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+
+        double GetAreaFromElement( Element& dummy )
+        {
+            return( dummy.GetGeometry().Area() );
+        }
+
         
         NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
         {
@@ -297,6 +303,7 @@ namespace Kratos
                     .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
                     
                     
+                    .def("GetArea", GetAreaFromElement )
                     .def("GetNode", GetNodeFromElement )
                     .def("GetNodes", GetNodesFromElement )
                     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )

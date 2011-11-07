@@ -68,6 +68,8 @@
 
 #include "custom_elements/fluid_2d_split.h"
 
+//#include "custom_elements/fluid_2dlevelset.h"
+
 
 //#include "custom_conditions/abc_2d.h"
 
@@ -287,6 +289,8 @@ namespace Kratos
         ///@}
         ///@name Private Operators
         ///@{
+//        const Fluid2Dlevelset mFluid2Dlevelset;
+
         const Fluid3D mFluid3D;
         const Fluid2D mFluid2D;
 

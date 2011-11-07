@@ -537,7 +537,7 @@ std::cout << "finished" << std::endl;
 	  for(I i = 0; i < n_row; i++){
 	      if(x[i]){ continue; } //already marked
 
-	      for(I jj = Ap[i]; jj < Ap[i+1]; jj++){
+	      for(I jj = static_cast<I>(Ap[i]); jj < static_cast<I>(Ap[i+1]); jj++){
 		  const I j = Aj[jj];
 	      
 		  const I xj = x[j];

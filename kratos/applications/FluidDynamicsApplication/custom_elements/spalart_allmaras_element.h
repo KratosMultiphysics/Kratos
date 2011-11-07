@@ -298,8 +298,10 @@ namespace Kratos
             const double source_term = this->CalculateSourceTerm(DN_DX, N, molecular_viscosity, turbulent_viscosity, UseRotationCorrection); ///@todo: decide on best option and remove last parameter
 
             double res = (inner_prod(vel_gauss, grad_g));
+	    res -= proj;
             double norm_grad = norm_2(grad_g);
-            double k_aux = fabs(res) / (norm_grad + 0.000000000001);
+            double k_aux = fabs(res) / (norm_grad + 0.00001);
+	    k_aux = 0.0;
 
             noalias(First) = outer_prod(vel_gauss, trans(vel_gauss));
             First /= ((norm_u + 0.0000000001)*(norm_u + 0.0000000001));

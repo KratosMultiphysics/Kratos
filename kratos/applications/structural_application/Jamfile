@@ -66,6 +66,7 @@ alias sources_KratosStructuralApplication
 	isotropic_damage_3d.cpp
 	drucker_prager_law.cpp
 	isotropic_planestress_wrinkling.cpp
+        isotropic_rankine_damage_2d.cpp
 	structural_application.cpp 
         add_conditions_to_python.cpp
         add_custom_strategies_to_python.cpp 

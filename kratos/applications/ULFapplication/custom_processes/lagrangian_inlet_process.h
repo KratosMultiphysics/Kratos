@@ -235,7 +235,7 @@ namespace Kratos
 							//KRATOS_WATCH(inlet_vel)
 							array_1d<double,3> d=inlet_vel*dt;
 
-							size_t sizee = 0;							
+//							size_t sizee = 0;
 							new_node->FastGetSolutionStepValue(DISPLACEMENT)+=d;
 							//KRATOS_WATCH(new_node->FastGetSolutionStepValue(DISPLACEMENT))
 							
