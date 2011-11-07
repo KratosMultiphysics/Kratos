@@ -88,10 +88,6 @@ namespace Kratos
 		.def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
 		;
 
-	  class_<NormalCalculationUtils>("NormalCalculationUtils", init<>())
-		.def("CalculateOnSimplex",&NormalCalculationUtils::CalculateOnSimplex)
-		;
-
             class_<VariableUtils > ("VariableUtils", init<>())
                     .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
                     .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
