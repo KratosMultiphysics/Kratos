@@ -446,7 +446,7 @@ namespace Kratos
       }
 
       #pragma omp parallel for  private(High, Low) 
-      for(SizeType k=0; k<number_of_threads; k++)
+      for(int k=0; k<static_cast<int>(number_of_threads); k++)
       {
         IteratorType i_begin = mObjectsBegin + node_partition[k];
         IteratorType i_end   = mObjectsBegin + node_partition[k+1];
