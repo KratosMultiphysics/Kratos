@@ -286,7 +286,7 @@ void  Split_Node(ModelPart& this_model_part, Node<3>::Pointer pNode, const array
     Coord_Point_1[1]  = pNode->Y();   
     Coord_Point_1[2]  = pNode->Z();
 
-    array_1d<double, 3> Unit;   
+    array_1d<double, 3> Unit = ZeroVector(3);
     //unsigned int i = 0; 
     double prod  = 0.00;
     for(WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
