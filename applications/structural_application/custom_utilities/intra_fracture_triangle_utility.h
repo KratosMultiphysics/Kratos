@@ -992,7 +992,7 @@ void Erase_Old_Element_And_Create_New_Triangle_Element(
 			  //unsigned int Node_old = 0;
 			  //unsigned int Node_new = 0;
 			  array_1d<double, 3> Coord_Point_1; 
-			  array_1d<double, 3> Coord_Point_2; 
+			  array_1d<double, 3> Coord_Point_2 = ZeroVector(3);
 
 			  Coord_Point_1[0]  = pNode->X0(); 
 			  Coord_Point_1[1]  = pNode->Y0();   
@@ -1133,14 +1133,14 @@ Calculate_Normal_Faliure_Maps(normal, Failure_Maps);
 
 
 array_1d<double, 3> Coord_Point_1; 
-array_1d<double, 3> Coord_Point_2; 
+array_1d<double, 3> Coord_Point_2 =ZeroVector(3);
 
 Coord_Point_1[0]  = pNode->X0(); 
 Coord_Point_1[1]  = pNode->Y0();   
 Coord_Point_1[2]  = pNode->Z0();
 
 
-array_1d<double, 3> Unit;   
+array_1d<double, 3> Unit = ZeroVector(3);
 double prod  = 0.00;
 for(WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
 neighb_elem != neighb_elems.end(); neighb_elem++)
