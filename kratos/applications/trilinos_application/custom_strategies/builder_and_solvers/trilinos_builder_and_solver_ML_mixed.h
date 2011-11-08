@@ -378,7 +378,7 @@ namespace Kratos
                     numdf = 4;
                 else
                     KRATOS_ERROR(std::logic_error,"dimension is not contemplated: dim = ",mdim);
-                int dimns; // dimension of the null space
+//                int dimns; // dimension of the null space
                 //				int lrows =  A.NumMyRows(); //number of rows for calling processor
 
                 //Teuchos::RCP<vector<double> >  ns;
