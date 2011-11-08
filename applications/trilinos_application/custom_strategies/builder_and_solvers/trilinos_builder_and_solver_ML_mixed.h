@@ -371,23 +371,30 @@ namespace Kratos
 
 
 
-                int numdf; // dofs per node
+                int numdf ; // dofs per node
+                if (mdim == 2)
+                    numdf = 3;
+                else if(mdim == 3)
+                    numdf = 4;
+                else
+                    KRATOS_ERROR(std::logic_error,"dimension is not contemplated: dim = ",mdim);
                 int dimns; // dimension of the null space
                 //				int lrows =  A.NumMyRows(); //number of rows for calling processor
 
                 //Teuchos::RCP<vector<double> >  ns;
-                boost::shared_ptr<vector<double> > ns;
-                double* nullsp = NULL;
-
-                GenerateNullSpace(A, r_model_part, nullsp, ns, numdf, dimns);
-
-                nullsp = &((*ns)[0]);
+//                boost::shared_ptr<vector<double> > ns;
+//                double* nullsp = NULL;
+//
+//                GenerateNullSpace(A, r_model_part, nullsp, ns, numdf, dimns);
+//
+//                nullsp = &((*ns)[0]);
 
                 MLList.set("PDE equations", numdf);
-                MLList.set("null space: dimension", dimns);
-                MLList.set("null space: type", "pre-computed");
-                MLList.set("null space: add default vectors", false);
-                MLList.set("null space: vectors", nullsp);
+                MLList.set("null space: add default vectors", true);
+//                MLList.set("null space: dimension", dimns);
+//                MLList.set("null space: type", "pre-computed");
+//                MLList.set("null space: add default vectors", false);
+//                MLList.set("null space: vectors", nullsp);
 
                 // Create the preconditioning object. We suggest to use `new' and
                 // `delete' because the destructor contains some calls to MPI (as
