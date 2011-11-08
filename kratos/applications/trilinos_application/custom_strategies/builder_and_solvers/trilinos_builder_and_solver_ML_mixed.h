@@ -391,6 +391,7 @@ namespace Kratos
 
                 MLList.set("PDE equations", numdf);
                 MLList.set("null space: add default vectors", true);
+                MLList.set("aggregation: type","Uncoupled");
 //                MLList.set("null space: dimension", dimns);
 //                MLList.set("null space: type", "pre-computed");
 //                MLList.set("null space: add default vectors", false);
