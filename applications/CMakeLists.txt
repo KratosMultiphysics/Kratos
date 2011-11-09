@@ -19,7 +19,9 @@ message("METIS_APPLICATION................... ${METIS_APPLICATION}")
 message("TRILINOS_APPLICATION................ ${TRILINOS_APPLICATION}")
 message( " ")
 
-
+if(${INSTALL_PYTHON_FILES} MATCHES ON)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/applications_interface.py DESTINATION applications)
+endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 
 
