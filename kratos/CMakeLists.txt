@@ -136,6 +136,7 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 ################################################################################
 SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Riccardo Rossi") #required
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
 SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+Set(CPACK_PACKAGING_INSTALL_PREFIX /opt/kratos )
 INCLUDE(CPack)
