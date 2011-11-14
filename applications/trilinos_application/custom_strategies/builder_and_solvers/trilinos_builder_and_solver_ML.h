@@ -966,6 +966,7 @@ namespace Kratos
 							int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
 							if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 966","");
 						}
+
 					}
 
 					//finalizing graph construction
