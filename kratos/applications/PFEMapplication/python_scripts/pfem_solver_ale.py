@@ -121,7 +121,7 @@ class PFEMSolver:
         self.uzawa_term_is_active = False
 
         #aux variable
-        self.normDx = Array3()
+        self.normDx = 0.0
 	self.total_remeshing_time = 0.00
         
 
@@ -207,10 +207,24 @@ class PFEMSolver:
         print "time order = ", self.time_order
         #initializing the fluid solver
         print self.vel_toll
-#        self.fluid_solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll, self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
-        self.fluid_solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll, self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
-        (self.fluid_solver).SetEchoLevel(self.echo_level)
+        self.domain_size = int(self.domain_size)
+        self.laplacian_form = int(self.laplacian_form)
+        solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form )
 
+        self.ReformDofAtEachIteration = bool(self.ReformDofAtEachIteration)
+        self.vel_toll = float(self.vel_toll)
+        self.press_toll = float(self.press_toll)
+        self.max_vel_its = int(self.max_vel_its)
+        self.max_press_its = int(self.max_press_its)
+        self.time_order = int(self.time_order)
+        self.domain_size = int(self.domain_size)
+        self.predictor_corrector = bool(self.predictor_corrector)
+        self.fluid_solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
+
+#        self.fluid_solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll, self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
+##        self.fluid_solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll, self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
+##        self.fluid_solver = FractionalStepStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll, self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
+##        (self.fluid_solver).SetEchoLevel(self.echo_level)
         #determine the original volume
         if(self.correct_volume == True):
             [inverted_elements,vol] = self.CheckForInvertedElements()
@@ -373,22 +387,21 @@ class PFEMSolver:
         
     ######################################################################
     def SolutionStep1(self):
-        #step initialization for the fluid solution
+       #step initialization for the fluid solution
         (self.fluid_solver).InitializeFractionalStep(self.step, self.time_order);
         (self.fluid_solver).InitializeProjections(self.step,self.projections_are_initialized);
         self.projections_are_initialized = True;
         (self.fluid_solver).AssignInitialStepValues();
 
-        self.normDx[0] = 0.00; self.normDx[1] = 0.00; self.normDx[2] = 0.00;
+        self.normDx = 0.0 #[0] = 0.00; self.normDx[1] = 0.00; self.normDx[2] = 0.00;
         is_converged = False
         iteration = 0
 
         #iterative solution of the velocity
         while(  is_converged == False and iteration < self.max_vel_its  ):
-            (self.fluid_solver).FractionalVelocityIteration(self.normDx);
+            self.normDx = (self.fluid_solver).FractionalVelocityIteration();
             is_converged = (self.fluid_solver).ConvergenceCheck(self.normDx,self.vel_toll);
             iteration = iteration + 1
-            
             
     ######################################################################
     def LagrangianCorrection(self):
@@ -403,9 +416,8 @@ class PFEMSolver:
 
         print "before lagrangian solution"
 
-        self.normDx[0] = 0.00; self.normDx[1] = 0.00; self.normDx[2] = 0.00;
         (self.VariableUtils).SaveVectorVar(FRACT_VEL,VAUX,(self.model_part).Nodes )
-        (self.fluid_solver).FractionalVelocityIteration(self.normDx);
+        self.normDx = (self.fluid_solver).FractionalVelocityIteration();
 
         is_converged = (self.fluid_solver).ConvergenceCheck(self.normDx,self.vel_toll);
 
