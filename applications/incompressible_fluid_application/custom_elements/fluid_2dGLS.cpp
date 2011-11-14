@@ -96,10 +96,26 @@ namespace Kratos
 	//GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
 	double Area = GeometryUtils::CalculateVolume2D(GetGeometry());
 	double lumped_mass_fac = Area * 0.33333333333333333;
+
+	double & m0 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+	double & m1 = GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS);
+	double & m2 = GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS);
+
+	#pragma omp atomic
+	m0+=lumped_mass_fac*rho0;
+	#pragma omp atomic
+	m1+=lumped_mass_fac*rho1;	
+	#pragma omp atomic	
+	m2+=lumped_mass_fac*rho2;
+
+
 	//filling in the diagonal of the lumped mass matrix,  (later I can change it to vector...)
-	GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS)+=lumped_mass_fac*rho0;
+/*	GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS)+=lumped_mass_fac*rho0;
 	GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS)+=lumped_mass_fac*rho1;	
 	GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS)+=lumped_mass_fac*rho2;
+
+*/
+
 	}
 
 	Element::Pointer Fluid2DGLS::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
@@ -205,8 +221,8 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		ms_adv_vel[1] = msN[0]*(vel0[1])+msN[1]*(vel1[1])+msN[2]*(vel2[1]);
 
 		//calculate convective term	
-		//	int nodes_number = 3;
-//		int dof = 2;
+		int nodes_number = 3;
+		int dof = 2;
 		
 		
 		//and now we add the pressure gradient and the force term
@@ -237,12 +253,33 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		GalerkinRHS[5]+=msDN_DX(2,1)*p_avg; 
 		
 		
-		GetGeometry()[0].FastGetSolutionStepValue(FORCE_X) += GalerkinRHS[0];
+		/*GetGeometry()[0].FastGetSolutionStepValue(FORCE_X) += GalerkinRHS[0];
 		GetGeometry()[0].FastGetSolutionStepValue(FORCE_Y) += GalerkinRHS[1];
 		GetGeometry()[1].FastGetSolutionStepValue(FORCE_X) += GalerkinRHS[2];
 		GetGeometry()[1].FastGetSolutionStepValue(FORCE_Y) += GalerkinRHS[3];
 		GetGeometry()[2].FastGetSolutionStepValue(FORCE_X) += GalerkinRHS[4];
-		GetGeometry()[2].FastGetSolutionStepValue(FORCE_Y) += GalerkinRHS[5];
+		GetGeometry()[2].FastGetSolutionStepValue(FORCE_Y) += GalerkinRHS[5];*/
+
+		GetGeometry()[0].SetLock();
+		array_1d<double,3>& rhs0 = GetGeometry()[0].FastGetSolutionStepValue(FORCE);
+		rhs0[0] += GalerkinRHS[0];
+		rhs0[1] += GalerkinRHS[1];
+		GetGeometry()[0].UnSetLock();
+
+		GetGeometry()[1].SetLock();
+		array_1d<double,3>& rhs1 = GetGeometry()[1].FastGetSolutionStepValue(FORCE);
+		rhs1[0] += GalerkinRHS[2];
+		rhs1[1] += GalerkinRHS[3];
+		GetGeometry()[1].UnSetLock();
+	
+		GetGeometry()[2].SetLock();
+		array_1d<double,3>& rhs2 = GetGeometry()[2].FastGetSolutionStepValue(FORCE);
+		rhs2[0] += GalerkinRHS[4];
+		rhs2[1] += GalerkinRHS[5];
+		GetGeometry()[2].UnSetLock();
+
+
+
 				
 		KRATOS_CATCH("")
 
@@ -293,35 +330,35 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		//fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
 		//so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2 
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-//		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-		//const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
+		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
 		//double p0_old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
 		double p0_old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
-		//const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);	
+		const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);	
 
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
-//		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-		//const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
+		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE); 
 		//double p1_old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT); 	 	
 		double p1_old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
-		//const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);	
+		const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);	
 
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);	
-//		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-		//const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
+		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE); 
 		double p2_old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
 		//old iteration can be used if we want to iterate between 1st and 2nd fractional steps
 		//double p2_old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT); 	 	
-		//const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);	
+		const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);	
 
 
 		//in msAuxVec we store the velocity, (not the frac step vel, but u_n, the one that enters the stabilization)
@@ -349,7 +386,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		double h = sqrt(2.00*Area);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h /*+ 1.0/dt*/);
+		double tau = 1.00 / ( 4.00*nu/(h*h) /*+2.00*norm_u/h */+ 1.0/dt);
 		
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
 		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
@@ -443,7 +480,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		// first we write the Galerkin contributions to the momentum residual						
 		CalculateGalerkinMomentumResidual(TmpRhs);
 		//and now the stabilization terms added
-//		double dt = rCurrentProcessInfo[DELTA_TIME];
+		double dt = rCurrentProcessInfo[DELTA_TIME];
 		//CalculateRHSVector(TmpRhs,  dt);
 
 		}
