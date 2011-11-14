@@ -79,7 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/embedded_utilities.h"
 #include "custom_utilities/fluid_thermal_solver_utilities.h"
 #include "custom_utilities/move_particle_utility.h"
-
+#include "custom_utilities/particle_utilities.h"
 
 //#include "custom_utilities/edgebased_levelset.h"
 
@@ -324,7 +324,9 @@ namespace Kratos
             ////			  .def("CalculateForces",&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculateForces)
             //			  ;
 
-            class_<LagrangianParticleUtils < 2 > >("LagrangianUtils2D", init<>())
+
+
+		class_<LagrangianParticleUtils < 2 > >("LagrangianUtils2D", init<>())
                     .def("StreamlineMove", &LagrangianParticleUtils < 2 > ::StreamlineMove)
                     .def("Reseed", &LagrangianParticleUtils < 2 > ::Reseed)
                     .def("ReseedEmptyElements", &LagrangianParticleUtils < 2 > ::ReseedEmptyElements)
@@ -334,6 +336,23 @@ namespace Kratos
                     .def("BackAndForth", &LagrangianParticleUtils < 2 > ::BackAndForth)
                     .def("ConvectParticles", &LagrangianParticleUtils < 2 > ::ConvectParticles)
                     .def("TransferToEulerianMeshShapeBased", &LagrangianParticleUtils < 2 > ::TransferToEulerianMeshShapeBased)
+                    ;
+
+
+
+            class_<ParticleUtils < 2 > >("ParticleUtils2D", init<>())
+                    .def("StreamlineMove", &ParticleUtils < 2 > ::StreamlineMove)
+                    .def("Back", &ParticleUtils < 2 > ::Back)
+                    .def("Reseed", &ParticleUtils < 2 > ::Reseed)
+                    .def("ReseedEmptyElements", &ParticleUtils < 2 > ::ReseedEmptyElements)
+                    .def("VisualizationModelPart", &ParticleUtils < 2 > ::VisualizationModelPart)
+                    .def("TransferToEulerianMesh", &ParticleUtils < 2 > ::TransferToEulerianMesh)
+                    .def("RestartStep", &ParticleUtils < 2 > ::RestartStep)
+                    .def("BackAndForth", &ParticleUtils < 2 > ::BackAndForth)
+                    .def("ConvectParticles", &ParticleUtils < 2 > ::ConvectParticles)
+                    .def("TransferToEulerianMeshShapeBased", &ParticleUtils < 2 > ::TransferToEulerianMeshShapeBased)
+                    .def("aa", &ParticleUtils < 2 > ::aa)
+		    .def("StreamlineMove2", &ParticleUtils < 2 > ::StreamlineMove2)
                     ;
 
 
