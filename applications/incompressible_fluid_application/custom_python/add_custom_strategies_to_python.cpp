@@ -356,6 +356,7 @@ namespace Kratos
                     .def("SolveStep1", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
                     .def("SolveStep2", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
                     .def("SolveStep3", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+	            .def("Reaction", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Reaction)
                     .def("Clear", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
 
