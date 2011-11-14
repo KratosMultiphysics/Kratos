@@ -622,7 +622,7 @@ namespace Kratos
                     mInitializeIterationProcesses[i]->Execute();
 
                 //perform one iteration over the fractional step velocity
-                FractionalVelocityIteration(normDx);
+                normDx = FractionalVelocityIteration();
                 is_converged = ConvergenceCheck(normDx, velocity_toll);
 
 
@@ -1032,7 +1032,7 @@ namespace Kratos
          * solves one single iteration of the step1 of the FractionalStep algorithm
          * @param normDx
          */
-        void FractionalVelocityIteration(double& normDx)
+        double FractionalVelocityIteration()
         {
             KRATOS_TRY
 
@@ -1040,7 +1040,8 @@ namespace Kratos
 
             rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
             //if we have slip condition apply it
-            normDx = mpfracvel_strategy->Solve();
+            double normDx = mpfracvel_strategy->Solve();
+	    return normDx;
 
             KRATOS_CATCH("");
         }
