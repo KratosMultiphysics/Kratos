@@ -126,6 +126,11 @@ class FracStepSolver:
 #        (self.neigh_finder).Execute();
         #self.Remesh()
 
+    #######################################################################   
+    def Solve_Reaction(self):
+        (self.solver).Reaction()
+#        (self.neigh_finder).Execute();
+        #self.Remesh()
 
     #######################################################################   
     def SetEchoLevel(self,level):
