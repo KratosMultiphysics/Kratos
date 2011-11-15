@@ -2,7 +2,7 @@
 from Kratos import *
 from KratosULFApplication import *
 #import cProfile
-
+import time
 class ULFFracStrategyPython:
     #######################################################################
     def __init__(self,fluid_only_model_part, combined_model_part, fluid_model_part, disp_time_scheme, pres_time_scheme, pres_linear_solver, convergence_criteria,CalculateReactionsFlag,ReformDofSetAtEachStep,MoveMeshFlag,domain_size, bulk_modulus, density):
@@ -114,11 +114,12 @@ class ULFFracStrategyPython:
 
         
         #perform initializations for the current step
-        import time
-        step_initialization_start = time.clock()
+        
+        step_initialization_start = time.time()
         reform_dofs = True
         self.InitializeSolutionStep(reform_dofs);
-        print "step initizalization time =",time.clock()-step_initialization_start
+        time_ln121 = time.time()
+        print "step initizalization time =",time.time()-step_initialization_start
         
 
         #perform prediction 
@@ -148,8 +149,13 @@ class ULFFracStrategyPython:
             inverted_elements = True
             print "INVERTED ELEMENT FOUND - just after first iteration"
      
+	#JUST TO TRY!!!!!!!!!!!!! NOT DOING ANYTHING SPECIAL IF ELEMENTS ARE INVERTED
+	inverted_elements = False
+     
         #non linear loop
         converged = False
+        
+        time_ln158 = time.time()
 
         self.max_iter=40;
         global_iteration_number=1
@@ -175,14 +181,20 @@ class ULFFracStrategyPython:
                 inverted_elements = True
                 print "INVERTED ELEMENT FOUND"
             
+            #JUST TO TRY!!!!!!!!!!!!! NOT DOING ANYTHING SPECIAL IF ELEMENTS ARE INVERTED
+	    inverted_elements = False
+            
             #update iteration count
             it = it + 1
+            
+        time_ln190 = time.time()
             
         (self.builder_and_solver).SavePressureIteration(self.model_part);
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_STRUCTURE)==0):
-                if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1 and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1):
-		  # and node.X>0.5):
+                if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1):# and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1):
+		    
+		  #and node.X>0.5):
                   #node.SetSolutionStepValue(PRESSURE,0,0.0)
                   #print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                   node.Fix(PRESSURE)
@@ -195,20 +207,25 @@ class ULFFracStrategyPython:
         self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);          
 
         self.PressureLinStrat.Solve()        
-        self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);          
+        self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);     
         
-        converged=False
-        inverted_elements=False
-        while(converged == False and inverted_elements == False):
-            normDx = self.ExecuteIteration(3, self.echo_level,self.MoveMeshFlag,calculate_norm, UlfUtils)
-            converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-            volume = (UlfUtils).CalculateVolume(self.model_part,self.domain_size)
-            if(volume <= 0.00):
-                inverted_elements = True
-                print "INVERTED ELEMENT FOUND"
+        time_ln212 = time.time()
+        
+        #converged=False
+        #inverted_elements=False
+        #while(converged == False and inverted_elements == False):
+            #normDx = self.ExecuteIteration(3, self.echo_level,self.MoveMeshFlag,calculate_norm, UlfUtils)
+            #converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+            #volume = (UlfUtils).CalculateVolume(self.model_part,self.domain_size)
+            #if(volume <= 0.00):
+                #inverted_elements = True
+                #print "INVERTED ELEMENT FOUND"
+                
+                ##JUST TO TRY!!!!!!!!!!!!! NOT DOING ANYTHING SPECIAL IF ELEMENTS ARE INVERTED
+		#inverted_elements = False
                 
 
-        
+        time_ln226 = time.time()
 
        # UlfUtils.CalculateNodalArea(self.model_part,self.domain_size);
         
@@ -224,6 +241,15 @@ class ULFFracStrategyPython:
         
         #clear if needed - deallocates memory 
         self.Clear();
+        
+        time_ln243 = time.time()
+        
+        print "TOTAL TIMINGS:"
+        print "121 - 158", time_ln158-time_ln121
+        print "190 - 158", time_ln190-time_ln158
+        print "212 - 190", time_ln212-time_ln190
+        print "226 - 212", time_ln226-time_ln212
+        print "243 - 226", time_ln243-time_ln226
 
         return inverted_elements
 
@@ -258,6 +284,7 @@ class ULFFracStrategyPython:
        
     #######################################################################
     def ExecuteIteration(self, global_iteration_number, echo_level,MoveMeshFlag,CalculateNormDxFlag, UlfUtils):
+	time0=time.time()
         #reset system matrices and vectors prior to rebuild
         self.space_utils.SetToZeroMatrix(self.A)
         self.space_utils.SetToZeroMatrix(self.MPconsistent)
@@ -270,6 +297,7 @@ class ULFFracStrategyPython:
         
         self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
         
+        time1=time.time()
     
         #build and solve the problem
         #build the standard part - here the GMPinvD is still not included!!!!
@@ -279,23 +307,32 @@ class ULFFracStrategyPython:
 
         #NOW WE SET THE FRACTIONAL STEP NUMBER TO 1 - to solve for displacement
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);
+        
                                                          
         self.builder_and_solver.Build(self.scheme,self.model_part,self.A,self.b)
         #construct other necessary matrices: MPinv, G
-        
+        time2=time.time()
         
         #assembling additional matrices
-        self.builder_and_solver.AssembleMassMatrices(self.MPconsistent, self.MPinv, self.model_part)
+        #self.builder_and_solver.AssembleMassMatrices(self.MPconsistent, self.MPinv, self.model_part)
         
         #now build the D = GT matrix
-        self.builder_and_solver.BuildAuxiliaries(self.D, self.model_part)
+        self.builder_and_solver.BuildAuxiliaries(self.D, self.MPconsistent, self.MPinv, self.model_part)
+          
+        
+        time3=time.time()
         
         #print self.D
         #penalizing fixed DOF
         self.builder_and_solver.ModifyForDirichlet(self.A, self.b)
         
         #now we will use the CG algorith written here to solve the modified system: A+GMinvD=b
-        self.prec_CG_Solve(20000, 1e-9, global_iteration_number)
+        self.prec_CG_Solve(20000, 1e-4, global_iteration_number)
+        
+        
+        time4=time.time()
+        
+        
         
         #full output if needed
         if(echo_level >= 3):
@@ -326,11 +363,24 @@ class ULFFracStrategyPython:
         
         #calculate the norm of the "correction" Dx
         if(CalculateNormDxFlag == True):
-            normDx = self.space_utils.TwoNorm(self.Dx)
+            normDx = self.space_utils.TwoNorm(self.Dx)            
         else:
             normDx = 0.0
-            
+       # print "-----------------------------------_AAAAAAAAAAAAAAAAAAAAAA_------------------------------"
+       # print str(self.space_utils.TwoNorm(self.b))
+        
+        
+        time5=time.time()
+        
+        print "TIMES time1-time0           = ", str(time1-time0)
+        print "TIMES standard build time   = ", str(time2-time1)
+        print "TIMES additional build time = ", str(time3-time2)
+        print "TIMES solve time            = ", str(time4-time3)
+        print "TIMES time5-time4           = ", str(time5-time4)
+        
+        
         return normDx
+        
         
     #######################################################################
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
