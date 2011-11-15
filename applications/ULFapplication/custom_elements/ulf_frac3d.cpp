@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 	//static variables
-	
+	/*
 	namespace UlfFrac3D_auxiliaries
 	{
 
@@ -86,6 +86,7 @@ namespace Kratos
 		array_1d<double,4> msN = ZeroVector(4);//
 	} 
 	using  namespace UlfFrac3D_auxiliaries;
+	*/
 
 	//************************************************************************************
 	//************************************************************************************
@@ -168,8 +169,11 @@ namespace Kratos
 	void UlfFrac3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 	KRATOS_TRY
+	
+	boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(4,3); 
+	array_1d<double,4> msN; // = ZeroVector(4);
 	//KRATOS_WATCH("Current FRACTIONAL STEP IS (CalcRightHandSide)!!!!!!!!!!!!!!!!!!")
-		
+
 	int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 
 	//KRATOS_WATCH(FractionalStepNumber)
@@ -270,6 +274,13 @@ namespace Kratos
 	void UlfFrac3D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		boost::numeric::ublas::bounded_matrix<double,6,12> msB; // = ZeroMatrix(6,12); //
+		boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix; // = ZeroMatrix(6,6); //
+		boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;// (6,12); //
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX; // = ZeroMatrix(4,3); //
+		array_1d<double,4> msN;// = ZeroVector(4);//
+
+
 		unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();
 		
@@ -300,36 +311,38 @@ namespace Kratos
 		{
 			unsigned int start = dim*i;
 
-			msB(0,start) =	msDN_DX(i,0); 
-			msB(1,start+1)=	msDN_DX(i,1);
-			msB(2,start+2)= msDN_DX(i,2);
-			msB(3,start) =	msDN_DX(i,1);		msB(3,start+1) = msDN_DX(i,0);
-			msB(4,start) =	msDN_DX(i,2);		msB(4,start+2) = msDN_DX(i,0);
-			msB(5,start+1)= msDN_DX(i,2);		msB(5,start+2) = msDN_DX(i,1);
+			msB(0,start) =	msDN_DX(i,0);  msB(0,start+1) =	0.0;          msB(0,start+2) = 0.0;
+			msB(1,start) =	0.0;           msB(1,start+1)=	msDN_DX(i,1); msB(1,start+2) = 0.0;
+			msB(2,start)=	0.0;           msB(2,start+1) = 0.0;          msB(2,start+2)= msDN_DX(i,2);
+
+
+			msB(3,start) =	msDN_DX(i,1);		msB(3,start+1) = msDN_DX(i,0);		msB(3, start+2)=0.0;
+			msB(4,start) =	msDN_DX(i,2);		msB(4, start+1) = 0.0;			msB(4,start+2) = msDN_DX(i,0);
+			msB(5,start) = 0.0;			msB(5,start+1)= msDN_DX(i,2);		msB(5,start+2) = msDN_DX(i,1);
 		}			
 		
 		const double& a = nu*density;
 		//constitutive tensor
 		ms_constitutive_matrix(0,0) = (4.0/3.0)*a;	ms_constitutive_matrix(0,1) = -2.0/3.0*a;	ms_constitutive_matrix(0,2) = -2.0/3.0*a;
-		ms_constitutive_matrix(0,3) = 0.0;			ms_constitutive_matrix(0,4) = 0.0;			ms_constitutive_matrix(0,5) = 0.0;
+		ms_constitutive_matrix(0,3) = 0.0;		ms_constitutive_matrix(0,4) = 0.0;	ms_constitutive_matrix(0,5) = 0.0;
 		
 		ms_constitutive_matrix(1,0) = -2.0/3.0*a; 	ms_constitutive_matrix(1,1) = 4.0/3.0*a;	ms_constitutive_matrix(1,2) = -2.0/3.0*a;
-		ms_constitutive_matrix(1,3) = 0.0;		 	ms_constitutive_matrix(1,4) = 0.0;			ms_constitutive_matrix(1,5) = 0.0;
+		ms_constitutive_matrix(1,3) = 0.0;		ms_constitutive_matrix(1,4) = 0.0;			ms_constitutive_matrix(1,5) = 0.0;
 
 		ms_constitutive_matrix(2,0) = -2.0/3.0*a;	ms_constitutive_matrix(2,1) = -2.0/3.0*a;	ms_constitutive_matrix(2,2) = 4.0/3.0*a;
-		ms_constitutive_matrix(2,3) = 0.0;			ms_constitutive_matrix(2,4) = 0.0;			ms_constitutive_matrix(2,5) = 0.0;
+		ms_constitutive_matrix(2,3) = 0.0;		ms_constitutive_matrix(2,4) = 0.0;			ms_constitutive_matrix(2,5) = 0.0;
 		
-		ms_constitutive_matrix(3,0) = 0.0;			ms_constitutive_matrix(3,1) = 0.0;			ms_constitutive_matrix(3,2) = 0.0;
-		ms_constitutive_matrix(3,3) = a;			ms_constitutive_matrix(3,4) = 0.0;			ms_constitutive_matrix(3,5) = 0.0;
+		ms_constitutive_matrix(3,0) = 0.0;		ms_constitutive_matrix(3,1) = 0.0;			ms_constitutive_matrix(3,2) = 0.0;
+		ms_constitutive_matrix(3,3) = a;		ms_constitutive_matrix(3,4) = 0.0;			ms_constitutive_matrix(3,5) = 0.0;
 		
-		ms_constitutive_matrix(4,0) = 0.0;			ms_constitutive_matrix(4,1) = 0.0;			ms_constitutive_matrix(4,2) = 0.0;
-		ms_constitutive_matrix(4,3) = 0.0;			ms_constitutive_matrix(4,4) = a;			ms_constitutive_matrix(4,5) = 0.0;
+		ms_constitutive_matrix(4,0) = 0.0;		ms_constitutive_matrix(4,1) = 0.0;			ms_constitutive_matrix(4,2) = 0.0;
+		ms_constitutive_matrix(4,3) = 0.0;		ms_constitutive_matrix(4,4) = a;			ms_constitutive_matrix(4,5) = 0.0;
 		
-		ms_constitutive_matrix(5,0) = 0.0;			ms_constitutive_matrix(5,1) = 0.0;			ms_constitutive_matrix(5,2) = 0.0;
-		ms_constitutive_matrix(5,3) = 0.0;			ms_constitutive_matrix(5,4) = 0.0;			ms_constitutive_matrix(5,5) = a;
+		ms_constitutive_matrix(5,0) = 0.0;		ms_constitutive_matrix(5,1) = 0.0;			ms_constitutive_matrix(5,2) = 0.0;
+		ms_constitutive_matrix(5,3) = 0.0;		ms_constitutive_matrix(5,4) = 0.0;			ms_constitutive_matrix(5,5) = a;
 		
 		//calculating viscous contributions
-		ms_temp = prod( ms_constitutive_matrix , msB);
+		noalias(ms_temp) = prod( ms_constitutive_matrix , msB);
 		noalias(rDampMatrix) = prod( trans(msB) , ms_temp);
 
 		rDampMatrix *= current_volume;
@@ -477,6 +490,9 @@ namespace Kratos
 	void UlfFrac3D::VelocityStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+
+		boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;// = ZeroMatrix(4,3); //
+		array_1d<double,4> msN;// = ZeroVector(4);//
 		//KRATOS_WATCH("Velocity step!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 		const double& density = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
@@ -547,6 +563,19 @@ namespace Kratos
 	void UlfFrac3D::PressureStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+
+
+	//boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp; //
+	//array_1d<double,6> ms_temp_vec;
+	
+	boost::numeric::ublas::bounded_matrix<double,4,4> msWorkMatrix;// = ZeroMatrix(4,4); //
+	boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;// = ZeroMatrix(4,3); //
+
+	array_1d<double,4> ms_temp_vec_np;// = ZeroVector(4); //dimension = number of nodes //
+	array_1d<double,3> ms_aux0;// = ZeroVector(3); //dimension = number of space dimensions //
+	array_1d<double,4> ms_aux1;// = ZeroVector(4); //dimension = number of nodes //
+	array_1d<double,3> ms_vel_gauss;// = ZeroVector(3); //dimesion coincides with space dimension//
+	array_1d<double,4> msN;// = ZeroVector(4);//
 		
 		if(rRightHandSideVector.size() != 4)
 		{
@@ -641,7 +670,8 @@ namespace Kratos
 
 		noalias(msWorkMatrix)=prod(msDN_DX,trans(msDN_DX));
 
-		noalias(rLeftHandSideMatrix) = (1.0/density)*(c1*dt + tau) * Volume*msWorkMatrix;
+		noalias(rLeftHandSideMatrix)=msWorkMatrix;
+		rLeftHandSideMatrix *= ((1.0/density)*(c1*dt + tau) * Volume);
 
 		//rhs consists of D*u_tilda (divergence of the Fractional velocity) and the term: Tau1*(nabla_q, residual_gausspoint)
 		//fv is u_tilda
@@ -666,7 +696,7 @@ namespace Kratos
 		ms_temp_vec_np[2] = p2_old; 
 		ms_temp_vec_np[3] = p3_old; 
 
-		noalias(rRightHandSideVector) += (1.0/density)*Volume*c1*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
+		noalias(rRightHandSideVector) += ((1.0/density)*Volume*c1*dt)* (prod(msWorkMatrix,ms_temp_vec_np)) ;
 	
 		//***************************************************************************
 		
@@ -725,7 +755,7 @@ namespace Kratos
 
 		ms_aux1=prod(msDN_DX,ms_vel_gauss);
 		
-		noalias(rRightHandSideVector) -= tau*(1.0/c1)*Volume*ms_aux1; //tau*density*Area*ms_aux1;  
+		noalias(rRightHandSideVector) -= (tau*(1.0/c1)*Volume)*ms_aux1; //tau*density*Area*ms_aux1;  
 				
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// here for the FSI problems involving flexible structures only
