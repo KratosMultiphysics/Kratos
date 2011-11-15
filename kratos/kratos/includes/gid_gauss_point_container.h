@@ -180,7 +180,7 @@ namespace Kratos
                     WriteGaussPoints();
                     GiD_BeginResult( (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
                                       GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
-                    std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize);
+                    std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize,ZeroVector(3));
                     if( mMeshElements.size() != 0 )
                     {
                         for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin(); 
