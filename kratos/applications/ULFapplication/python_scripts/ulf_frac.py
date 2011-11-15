@@ -4,7 +4,7 @@ from KratosULFApplication import *
 from KratosPFEMApplication import PfemUtils
 from KratosStructuralApplication import *
 from KratosMeshingApplication import *
-#import time
+import time
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -83,10 +83,11 @@ class ULF_FSISolver:
 
         #definition of the solvers
         self.pres_time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        self.pres_linear_solver =  SkylineLUFactorizationSolver()
+        self.pres_linear_solver =  CGSolver(1e-3, 1000)#SkylineLUFactorizationSolver()
                 
         #definition of the convergence criteria
-        self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
+        #self.conv_criteria = DisplacementCriteria(1e-6,1e-9)
+        self.conv_criteria = IncrementalDisplacementCriteria(1e-3,1e-6)
 
         #self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part,domain_size);
         self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
@@ -140,8 +141,8 @@ class ULF_FSISolver:
         #detect initial size distribution - note that initially the fluid model part contains
         #all the elements of both structure and fluid ... this is only true after reading the input
         (self.fluid_neigh_finder).Execute();
-        Hfinder  = FindNodalHProcess(fluid_model_part);
-        Hfinder.Execute();
+        self.Hfinder  = FindNodalHProcess(fluid_model_part);
+        self.Hfinder.Execute();
     
 
        
@@ -263,7 +264,8 @@ class ULF_FSISolver:
    #  the parameter in this function is set to 1 IN CASE WE DO NOT WANT TO CREATE THE NEW MESH, BUT JUST
    #  the operations on model part
    #  This is done to make switching off/on of remeshing easier
-    def Remesh(self):                 
+    def Remesh(self):    
+	timeRemesh=time.time()
         ##preventing the nodes from coming tooo close to wall
         self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.12)
         ##erase all conditions and elements prior to remeshing
@@ -277,8 +279,6 @@ class ULF_FSISolver:
         #mark outer nodes for erasing
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         #adaptivity=True
-        #time=self.combined_model_part.ProcessInfo.GetValue(TIME);
-        #print "TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE", time
         
         h_factor=0.2
         if (self.domain_size == 2):
@@ -286,8 +286,7 @@ class ULF_FSISolver:
 	elif (self.domain_size == 3):
 	  (self.Mesher).ReGenerateMesh("UlfFrac3D","Condition3D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)
        
-
-        ##calculating fluid neighbours before applying boundary conditions
+	##calculating fluid neighbours before applying boundary conditions
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
 
@@ -311,6 +310,8 @@ class ULF_FSISolver:
         self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part)
         self.node_erase_process.Execute()
         (self.mark_fluid_process).Execute();
+        timeRemeshEnd=time.time()
+        print "Remeshing took ", str(timeRemeshEnd-timeRemesh)
         print "end of remesh function"
 
        
