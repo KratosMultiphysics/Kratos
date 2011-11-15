@@ -14,6 +14,9 @@
 /* System includes */
 #include <set>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
@@ -24,6 +27,9 @@
 #include "ULF_application.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/geometry_utilities.h" 
+
+#include "boost/smart_ptr.hpp"
+#include "utilities/timer.h"
 
 namespace Kratos
 {
@@ -338,7 +344,7 @@ namespace Kratos
 
 			//resetting to zero the vector of reactions
 			TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
-
+#ifndef _OPENMP
 			//contributions to the system
 			LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
 			LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -349,6 +355,7 @@ namespace Kratos
 
 
 			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
 			// assemble all elements
 			for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin(); it!=pElements.ptr_end(); ++it)
 			{
@@ -357,7 +364,7 @@ namespace Kratos
 				pScheme->CalculateSystemContributions(*it,LHS_Contribution,RHS_Contribution,EquationId,CurrentProcessInfo);
 
 				//assemble the elemental contribution
-				AssembleLHS(A,LHS_Contribution,EquationId);
+				AssembleLHS(A,LHS_Contribution,EquationId);				
 				AssembleRHS(b,RHS_Contribution,EquationId);
 				// clean local elemental memory
 				pScheme->CleanMemory(*it);
@@ -376,6 +383,119 @@ namespace Kratos
 				AssembleLHS(A,LHS_Contribution,EquationId);
 				AssembleRHS(b,RHS_Contribution,EquationId);
 			}
+#else
+            //creating an array of lock variables of the size of the system matrix
+            std::vector< omp_lock_t > lock_array(A.size1());
+
+            int A_size = A.size1();
+            for (int i = 0; i < A_size; i++)
+                omp_init_lock(&lock_array[i]);
+
+            //create a partition of the element array
+            int number_of_threads = omp_get_max_threads();
+
+            vector<unsigned int> element_partition;
+            CreatePartition(number_of_threads, pElements.size(), element_partition);
+            KRATOS_WATCH(number_of_threads);
+            KRATOS_WATCH(element_partition);
+
+
+            double start_prod = omp_get_wtime();
+
+#pragma omp parallel for 
+            for (int k = 0; k < number_of_threads; k++)
+            {
+                //contributions to the system
+                LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+                //vector containing the localization in the system of the different
+                //terms
+                Element::EquationIdVectorType EquationId;
+                ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+                typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
+                typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
+
+                // assemble all elements
+                for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+                {
+
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+		/*
+                    double aaaa = TSparseSpace::TwoNorm(b);
+			if (TSparseSpace::TwoNorm(b) == aaaa + 1000000000000000000.0)
+				{
+				KRATOS_WATCH((*it)->Id())
+				KRATOS_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");	
+
+				}
+		*/
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*it);
+
+                    //					#pragma omp critical
+                    //					{
+                    //						//assemble the elemental contribution
+                    //						AssembleLHS(A,LHS_Contribution,EquationId);
+                    //						AssembleRHS(b,RHS_Contribution,EquationId);
+                    //
+                    //						// clean local elemental memory
+                    //						pScheme->CleanMemory(*it);
+                    //					}
+                }
+            }
+	//KRATOS_WATCH("Finished assembling of builder and solver")
+            vector<unsigned int> condition_partition;
+            CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
+
+#pragma omp parallel for
+            for (int k = 0; k < number_of_threads; k++)
+            {
+                //contributions to the system
+                LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+                Condition::EquationIdVectorType EquationId;
+
+                ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+                typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
+                typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
+
+                // assemble all elements
+                for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+                {
+                    //calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+
+                    //                                        #pragma omp critical
+                    //					{
+                    //						//assemble the elemental contribution
+                    //						AssembleLHS(A,LHS_Contribution,EquationId);
+                    //						AssembleRHS(b,RHS_Contribution,EquationId);
+                    //					}
+                }
+            }
+
+
+
+            double stop_prod = omp_get_wtime();
+            std::cout << "time: " << stop_prod - start_prod << std::endl;
+
+            for (int i = 0; i < A_size; i++)
+                omp_destroy_lock(&lock_array[i]);
+            //KRATOS_WATCH("finished parallel building");
+
+            //                        //ensure that all the threads are syncronized here
+            //                        #pragma omp barrier
+#endif
 
 			KRATOS_CATCH("")
 
@@ -468,7 +588,83 @@ namespace Kratos
 		/*@{ */
 
 		//**************************************************************************
-		//
+		
+        inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+        {
+            partitions.resize(number_of_threads + 1);
+            int partition_size = number_of_rows / number_of_threads;
+            partitions[0] = 0;
+            partitions[number_of_threads] = number_of_rows;
+            for (unsigned int i = 1; i < number_of_threads; i++)
+                partitions[i] = partitions[i - 1] + partition_size;
+        }
+
+#ifdef _OPENMP
+
+        void Assemble(
+                TSystemMatrixType& A,
+                TSystemVectorType& b,
+                const LocalSystemMatrixType& LHS_Contribution,
+                const LocalSystemVectorType& RHS_Contribution,
+                Element::EquationIdVectorType& EquationId,
+                std::vector< omp_lock_t >& lock_array
+                )
+        {
+            unsigned int local_size = LHS_Contribution.size1();
+
+            for (unsigned int i_local = 0; i_local < local_size; i_local++)
+            {
+                unsigned int i_global = EquationId[i_local];
+
+                if (i_global < BaseType::mEquationSystemSize)
+                {
+                    omp_set_lock(&lock_array[i_global]);
+
+                    b[i_global] += RHS_Contribution(i_local);
+                    for (unsigned int j_local = 0; j_local < local_size; j_local++)
+                    {
+                        unsigned int j_global = EquationId[j_local];
+                        if (j_global < BaseType::mEquationSystemSize)
+                        {
+                            A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+                        }
+                    }
+
+                    omp_unset_lock(&lock_array[i_global]);
+
+
+                }
+                //note that computation of reactions is not performed here!
+            }
+        }
+void AssembleRHS_parallel(                
+                TSystemVectorType& b,                
+                const LocalSystemVectorType& RHS_Contribution,
+                Element::EquationIdVectorType& EquationId,
+                std::vector< omp_lock_t >& lock_array
+                )
+        {
+            unsigned int local_size = RHS_Contribution.size();
+
+            for (unsigned int i_local = 0; i_local < local_size; i_local++)
+            {
+                unsigned int i_global = EquationId[i_local];
+
+                if (i_global < BaseType::mEquationSystemSize)
+                {
+                    omp_set_lock(&lock_array[i_global]);
+
+                    b[i_global] += RHS_Contribution(i_local);
+                   
+                    omp_unset_lock(&lock_array[i_global]);
+
+
+                }
+                //note that computation of reactions is not performed here!
+            }
+        }
+#endif
+
 			//**************************************************************************
 		void AssembleLHS(
 			TSystemMatrixType& A,
@@ -523,7 +719,7 @@ namespace Kratos
 			TSystemVectorType& Dx,
 			TSystemVectorType& b)
 		{
-			
+			//KRATOS_WATCH("Calculating REACTIONSSSSSSSS")
 			//reset the reactions to zero in all the nodes
 			for (typename NodesArrayType::iterator node_iterator =r_model_part.NodesBegin(); node_iterator !=r_model_part.NodesEnd(); ++node_iterator)
 			{
@@ -583,12 +779,13 @@ namespace Kratos
 		{
 			KRATOS_TRY		
 
-				//Getting the Elements
-				ElementsArrayType& pElements = r_model_part.Elements();
+			//Getting the Elements
+			ElementsArrayType& pElements = r_model_part.Elements();
 
 			//getting the array of the conditions
 			ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
+#ifndef _OPENMP
 			ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
 			//resetting to zero the vector of reactions
@@ -624,6 +821,118 @@ namespace Kratos
 				//assemble the elemental contribution
 				AssembleRHS(b,RHS_Contribution,EquationId);
 			}
+#else
+            //creating an array of lock variables of the size of the system matrix
+            std::vector< omp_lock_t > lock_array(b.size());
+
+            int b_size = b.size();
+            for (int i = 0; i < b_size; i++)
+                omp_init_lock(&lock_array[i]);
+
+            //create a partition of the element array
+            int number_of_threads = omp_get_max_threads();
+
+            vector<unsigned int> element_partition;
+            CreatePartition(number_of_threads, pElements.size(), element_partition);
+            KRATOS_WATCH(number_of_threads);
+            KRATOS_WATCH(element_partition);
+
+
+            double start_prod = omp_get_wtime();
+
+#pragma omp parallel for 
+            for (int k = 0; k < number_of_threads; k++)
+            {
+                //contributions to the system
+                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+                //vector containing the localization in the system of the different
+                //terms
+                Element::EquationIdVectorType EquationId;
+                ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+                typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
+                typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
+
+                // assemble all elements
+                for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+                {
+
+                    //calculate elemental contribution
+                    pScheme->Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+
+                    //assemble the elemental contribution
+                    AssembleRHS_parallel(b, RHS_Contribution, EquationId, lock_array);
+		/*
+                    double aaaa = TSparseSpace::TwoNorm(b);
+			if (TSparseSpace::TwoNorm(b) == aaaa + 1000000000000000000.0)
+				{
+				KRATOS_WATCH((*it)->Id())
+				KRATOS_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");	
+
+				}
+		*/
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*it);
+
+                    //					#pragma omp critical
+                    //					{
+                    //						//assemble the elemental contribution
+                    //						AssembleLHS(A,LHS_Contribution,EquationId);
+                    //						AssembleRHS(b,RHS_Contribution,EquationId);
+                    //
+                    //						// clean local elemental memory
+                    //						pScheme->CleanMemory(*it);
+                    //					}
+                }
+            }
+	//KRATOS_WATCH("Finished assembling of builder and solver")
+            vector<unsigned int> condition_partition;
+            CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
+
+#pragma omp parallel for
+            for (int k = 0; k < number_of_threads; k++)
+            {
+                //contributions to the system
+                
+                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+                Condition::EquationIdVectorType EquationId;
+
+                ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+                typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
+                typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
+
+                // assemble all elements
+                for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+                {
+                    //calculate elemental contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*it,RHS_Contribution,EquationId,CurrentProcessInfo);
+                    //assemble the elemental contribution
+			
+                    AssembleRHS_parallel(b, RHS_Contribution, EquationId, lock_array);
+
+                    //                                        #pragma omp critical
+                    //					{
+                    //						//assemble the elemental contribution
+                    //						AssembleLHS(A,LHS_Contribution,EquationId);
+                    //						AssembleRHS(b,RHS_Contribution,EquationId);
+                    //					}
+                }
+            }
+
+
+
+            double stop_prod = omp_get_wtime();
+            std::cout << "time: " << stop_prod - start_prod << std::endl;
+
+            for (int i = 0; i < b_size; i++)
+                omp_destroy_lock(&lock_array[i]);
+            //KRATOS_WATCH("finished parallel building");
+
+            //                        //ensure that all the threads are syncronized here
+            //                        #pragma omp barrier
+#endif
 
 			KRATOS_CATCH("")
 
@@ -635,7 +944,7 @@ namespace Kratos
 			)
 		{ 
 			KRATOS_TRY
-
+			//KRATOS_WATCH("Started constructing MAT STRUC")
 			std::vector<int>  indices;
 			indices.reserve(1000);
 
@@ -698,7 +1007,7 @@ namespace Kratos
 					indices.erase(indices.begin(),indices.end());
 				}
 			}
-
+			//KRATOS_WATCH("FINISHED constructing MAT STRUC")
 			KRATOS_CATCH("")
 		}
 
@@ -708,7 +1017,7 @@ namespace Kratos
 					TSystemMatrixType& Mconsistent,  ModelPart& r_model_part)
 		{
 			KRATOS_TRY
-		
+					//KRATOS_WATCH("Started constructing MAT STRUC M CONSISTENT")
 			std::vector<int>  indices;
 			indices.reserve(1000);
 
@@ -770,7 +1079,7 @@ namespace Kratos
 					indices.erase(indices.begin(),indices.end());					
 				}
 			}
-
+					//KRATOS_WATCH("FInished constructing MAT STRUC M CONSISTENT")
 			KRATOS_CATCH("")
 		}
 		
@@ -781,7 +1090,7 @@ namespace Kratos
 					TSystemMatrixType& mD,  ModelPart& r_model_part)
 		{
 			KRATOS_TRY
-			
+			//KRATOS_WATCH("Started constructing MAT STRUC Divergence Matrix")
 			std::vector<int>  indices;
 			indices.reserve(1000);
 
@@ -843,19 +1152,21 @@ namespace Kratos
 			}
 			//KRATOS_WATCH("FSI D")
 			//KRATOS_WATCH(mD)
+			//KRATOS_WATCH("Finished constructing MAT STRUC Divergence Matrix")
 			KRATOS_CATCH("")
 		
 		}
 	
 		//**************************************************************************
 		//**************************************************************************
-		
 		void BuildAuxiliaries(
-			TSystemMatrixType& mD,
+			TSystemMatrixType& mD,TSystemMatrixType& Mconsistent, TSystemVectorType& mMdiagInv,
 			ModelPart& r_model_part)
 		{
 			KRATOS_TRY
-			KRATOS_WATCH("BUILDING AUXILIARY MATRIX D")
+			//KRATOS_WATCH("BUILDING AUXILIARY MATRIX D")
+			
+
 			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
 			array_1d<double,TDim+1> N;
 			array_1d<unsigned int ,TDim+1> local_indices;
@@ -868,6 +1179,7 @@ namespace Kratos
 			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
 
 			double aaa = 1.0/(TDim+1.0);
+			#ifndef _OPENMP
 			//if the element is not having all the nodes IS_STRUCTURE, assemble it, otherwise do nothing
 			for(ModelPart::ElementsContainerType::iterator i = r_model_part.ElementsBegin(); 
 				i!=r_model_part.ElementsEnd(); i++)
@@ -890,6 +1202,8 @@ namespace Kratos
 				if (geom.size()!=str_nr)
 				{				
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+					if (Volume<0)
+						Volume*=-1.0;
 							
 					//finiding local indices
 					//for(int ii = 0; ii<TDim+1; ii++)
@@ -906,6 +1220,269 @@ namespace Kratos
 					{
 						unsigned int row_index = local_indices[row] / (TDim); //ATTENTION! here i am doing a dangerous op
 						//KRATOS_WATCH(row_index)
+						//first write the lumped mass matrix
+						mMdiagInv[row_index] += temp;		
+						for(unsigned int col = 0; col<TDim+1; col++)
+						{						
+					
+							for(unsigned int kkk = 0; kkk<TDim; kkk++)
+							{
+								//check if the below is correct (copied it from Mass matrix)
+								unsigned int col_index = local_indices[col]+kkk;
+
+								//unsigned int col_index = col + kkk;
+								//FIRST THE DIVERGENCE MATRIX
+								mD(row_index,col_index) += temp * DN_DX(col,kkk);
+								//And now the consistent mass matrix
+								if (row_index==col_index)
+									{
+									//Mconsistent(row_index,col_index) += temp * 2.0;
+									if (TDim==2)
+									Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
+									else if (TDim==3)
+									Mconsistent(row_index,col_index) += 0.2*temp * 2.0*2.5;
+									}
+									else
+									{
+									//Mconsistent(row_index,col_index) += temp ;
+									if (TDim==2)
+									Mconsistent(row_index,col_index) += 0.25*temp ;
+									else if (TDim==3)
+									Mconsistent(row_index,col_index) += 0.2*temp*0.0 ;
+									}
+								
+							}
+						}
+						
+
+					}
+				}
+				
+			}
+			
+
+#else 
+            //creating an array of lock variables of the size of the system matrix
+            std::vector< omp_lock_t > lock_array(mD.size1());
+
+            int D_size = mD.size1();
+            for (int i = 0; i < D_size; i++)
+                omp_init_lock(&lock_array[i]);
+
+            //create a partition of the element array
+            int number_of_threads = omp_get_max_threads();
+
+            vector<unsigned int> element_partition;
+            CreatePartition(number_of_threads, r_model_part.Elements().size(), element_partition);
+            KRATOS_WATCH(number_of_threads);
+            KRATOS_WATCH(element_partition);
+
+
+            double start_prod = omp_get_wtime();
+
+
+//#pragma omp parallel for private (DN_DX, N, local_indices, Volume, temp, aaa, dof_position)
+#pragma omp parallel for 
+for (int k = 0; k < number_of_threads; k++)
+            {  
+boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+			array_1d<double,TDim+1> N;
+			array_1d<unsigned int ,TDim+1> local_indices;
+			//array_1d<double,TDim+1> rhs_contribution;
+			double Volume;
+			double temp;
+			
+
+			//getting the dof position
+			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
+
+			double aaa = 1.0/(TDim+1.0);
+
+
+
+		//Element::EquationIdVectorType EquationId;
+                //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+                typename ElementsArrayType::ptr_iterator it_begin = r_model_part.Elements().ptr_begin() + element_partition[k];
+                typename ElementsArrayType::ptr_iterator it_end = r_model_part.Elements().ptr_begin() + element_partition[k + 1];
+
+
+
+                // assemble all elements
+                for (typename ElementsArrayType::ptr_iterator i = it_begin; i != it_end; ++i)
+                {
+
+        	   Geometry< Node<3> >& geom = (*i)->GetGeometry();
+				//counting the n-r of structure nodes  
+				unsigned int str_nr=0;
+				
+				//for (int k = 0;k<TDim+1;k++)
+				for (unsigned int k = 0;k<geom.size();k++)
+				{
+				str_nr+=(unsigned int)((*i)->GetGeometry()[k].FastGetSolutionStepValue(IS_STRUCTURE));
+				}
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				//if the element is not having all the nodes IS_STRUCTURE, assemble it, otherwise do nothing
+				// that means, that the entries corresponding to the structural elements are zero
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				if (geom.size()!=str_nr)
+				{				
+					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+					if (Volume<0)
+						Volume*=-1.0;
+							
+					//finiding local indices
+					//for(int ii = 0; ii<TDim+1; ii++)
+					for(unsigned int ii = 0; ii<geom.size(); ii++)
+					{
+						local_indices[ii] = geom[ii].GetDof(DISPLACEMENT_X,dof_position).EquationId();
+					}
+					//building matrix D (transpose of the gradient integrated by parts)
+							
+					temp = Volume*aaa;
+
+
+					for(unsigned int row = 0; row<TDim+1; row++)
+					{
+						unsigned int row_index = local_indices[row] / (TDim); //ATTENTION! here i am doing a dangerous op					
+						mMdiagInv[row_index] += temp;	
+						omp_set_lock(&lock_array[row_index]);
+						//first write the lumped mass matrix
+
+						//KRATOS_WATCH(row_index)
+						for(unsigned int col = 0; col<TDim+1; col++)
+						{	
+							unsigned int col_index = local_indices[col] /(TDim);
+							if (row_index==col_index)
+								{
+								//Mconsistent(row_index,col_index) += temp * 2.0;
+								if (TDim==2)
+								Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
+								else if (TDim==3)
+								Mconsistent(row_index,col_index) += 0.2*temp * 2.0*2.5;
+								}
+								else
+								{
+								//Mconsistent(row_index,col_index) += temp ;
+								if (TDim==2)
+								Mconsistent(row_index,col_index) += 0.25*temp ;
+								else if (TDim==3)
+								Mconsistent(row_index,col_index) += 0.2*temp*0.0 ;
+								}
+
+										
+							for(unsigned int kkk = 0; kkk<TDim; kkk++)
+							{
+								//check if the below is correct (copied it from Mass matrix)
+								unsigned int col_index = local_indices[col]+kkk;
+
+								//unsigned int col_index = col + kkk;
+								//FIRST THE DIVERGENCE MATRIX
+								mD(row_index,col_index) += temp * DN_DX(col,kkk);
+								//And now the consistent mass matrix
+								
+								
+							}
+						}
+						omp_unset_lock(&lock_array[row_index]);
+
+					
+					}
+				}
+			}
+		    }
+	
+  double stop_prod = omp_get_wtime();
+            std::cout << "time: " << stop_prod - start_prod << std::endl;
+
+            for (int i = 0; i < D_size; i++)
+                omp_destroy_lock(&lock_array[i]);
+#endif
+
+			//this will be done sequentially in any case
+			//inverting the lumped mass matrix
+			for(unsigned int i = 0; i<TSparseSpace::Size(mMdiagInv); i++)
+			{
+				if (mMdiagInv[i]>1e-26)
+					mMdiagInv[i] = 1.0/mMdiagInv[i];
+				else{ //if (mMdiagInv[i]==0.0)
+
+					//KRATOS_WATCH(mMdiagInv[i])
+					//KRATOS_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")					
+					mMdiagInv[i] = 1000000000000.0;					
+
+					//KRATOS_WATCH(mMdiagInv[i])	
+					//KRATOS_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")				
+					//mMdiagInv[i] = 0.0;					
+
+					}
+			}
+
+			//KRATOS_WATCH("FINISHED BUILDING AUXILIARY MATRIX D")
+			KRATOS_CATCH (" ")
+		}
+/*
+		void BuildAuxiliaries(
+			TSystemMatrixType& mD,
+			ModelPart& r_model_part)
+		{
+			KRATOS_TRY
+			//KRATOS_WATCH("BUILDING AUXILIARY MATRIX D")
+			
+
+			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+			array_1d<double,TDim+1> N;
+			array_1d<unsigned int ,TDim+1> local_indices;
+			//array_1d<double,TDim+1> rhs_contribution;
+			double Volume;
+			double temp;
+			
+
+			//getting the dof position
+			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
+
+			double aaa = 1.0/(TDim+1.0);
+			#ifndef _OPENMP
+			//if the element is not having all the nodes IS_STRUCTURE, assemble it, otherwise do nothing
+			for(ModelPart::ElementsContainerType::iterator i = r_model_part.ElementsBegin(); 
+				i!=r_model_part.ElementsEnd(); i++)
+			{	
+
+				
+				Geometry< Node<3> >& geom = i->GetGeometry();
+				//counting the n-r of structure nodes  
+				unsigned int str_nr=0;
+				
+				//for (int k = 0;k<TDim+1;k++)
+				for (unsigned int k = 0;k<geom.size();k++)
+				{
+				str_nr+=(unsigned int)(i->GetGeometry()[k].FastGetSolutionStepValue(IS_STRUCTURE));
+				}
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				//if the element is not having all the nodes IS_STRUCTURE, assemble it, otherwise do nothing
+				// that means, that the entries corresponding to the structural elements are zero
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				if (geom.size()!=str_nr)
+				{				
+					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+					if (Volume<0)
+						Volume*=-1.0;
+							
+					//finiding local indices
+					//for(int ii = 0; ii<TDim+1; ii++)
+					for(unsigned int ii = 0; ii<geom.size(); ii++)
+					{
+						local_indices[ii] = geom[ii].GetDof(DISPLACEMENT_X,dof_position).EquationId();
+					}
+					//building matrix D (transpose of the gradient integrated by parts)
+							
+					temp = Volume*aaa;
+
+
+					for(unsigned int row = 0; row<TDim+1; row++)
+					{
+						unsigned int row_index = local_indices[row] / (TDim); //ATTENTION! here i am doing a dangerous op
+						//KRATOS_WATCH(row_index)
+						
 						for(unsigned int col = 0; col<TDim+1; col++)
 						{											
 							for(unsigned int kkk = 0; kkk<TDim; kkk++)
@@ -916,15 +1493,127 @@ namespace Kratos
 								mD(row_index,col_index) += temp * DN_DX(col,kkk);
 							}
 						}
+						
 
-					
 					}
 				}
 				
 			}
+#else 
+            //creating an array of lock variables of the size of the system matrix
+            std::vector< omp_lock_t > lock_array(mD.size1());
 
+            int D_size = mD.size1();
+            for (int i = 0; i < D_size; i++)
+                omp_init_lock(&lock_array[i]);
+
+            //create a partition of the element array
+            int number_of_threads = omp_get_max_threads();
+
+            vector<unsigned int> element_partition;
+            CreatePartition(number_of_threads, r_model_part.Elements().size(), element_partition);
+            KRATOS_WATCH(number_of_threads);
+            KRATOS_WATCH(element_partition);
+
+
+            double start_prod = omp_get_wtime();
+
+
+//#pragma omp parallel for private (DN_DX, N, local_indices, Volume, temp, aaa, dof_position)
+#pragma omp parallel for 
+for (int k = 0; k < number_of_threads; k++)
+            {  
+boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+			array_1d<double,TDim+1> N;
+			array_1d<unsigned int ,TDim+1> local_indices;
+			//array_1d<double,TDim+1> rhs_contribution;
+			double Volume;
+			double temp;
+			
+
+			//getting the dof position
+			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
+
+			double aaa = 1.0/(TDim+1.0);
+
+
+
+		//Element::EquationIdVectorType EquationId;
+                //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+                typename ElementsArrayType::ptr_iterator it_begin = r_model_part.Elements().ptr_begin() + element_partition[k];
+                typename ElementsArrayType::ptr_iterator it_end = r_model_part.Elements().ptr_begin() + element_partition[k + 1];
+
+
+
+                // assemble all elements
+                for (typename ElementsArrayType::ptr_iterator i = it_begin; i != it_end; ++i)
+                {
+
+        	   Geometry< Node<3> >& geom = (*i)->GetGeometry();
+				//counting the n-r of structure nodes  
+				unsigned int str_nr=0;
+				
+				//for (int k = 0;k<TDim+1;k++)
+				for (unsigned int k = 0;k<geom.size();k++)
+				{
+				str_nr+=(unsigned int)((*i)->GetGeometry()[k].FastGetSolutionStepValue(IS_STRUCTURE));
+				}
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				//if the element is not having all the nodes IS_STRUCTURE, assemble it, otherwise do nothing
+				// that means, that the entries corresponding to the structural elements are zero
+				///////////////////////////////////////////////////////////////////////////////////////////////
+				if (geom.size()!=str_nr)
+				{				
+					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+					if (Volume<0)
+						Volume*=-1.0;
+							
+					//finiding local indices
+					//for(int ii = 0; ii<TDim+1; ii++)
+					for(unsigned int ii = 0; ii<geom.size(); ii++)
+					{
+						local_indices[ii] = geom[ii].GetDof(DISPLACEMENT_X,dof_position).EquationId();
+					}
+					//building matrix D (transpose of the gradient integrated by parts)
+							
+					temp = Volume*aaa;
+
+
+					for(unsigned int row = 0; row<TDim+1; row++)
+					{
+						unsigned int row_index = local_indices[row] / (TDim); //ATTENTION! here i am doing a dangerous op
+						omp_set_lock(&lock_array[row_index]);
+						//KRATOS_WATCH(row_index)
+						for(unsigned int col = 0; col<TDim+1; col++)
+						{											
+							for(unsigned int kkk = 0; kkk<TDim; kkk++)
+							{
+								//check if the below is correct (copied it from Mass matrix)
+								unsigned int col_index = local_indices[col]+kkk;
+								//unsigned int col_index = col + kkk;
+								mD(row_index,col_index) += temp * DN_DX(col,kkk);
+							}
+						}
+						omp_unset_lock(&lock_array[row_index]);
+
+					
+					}
+				}
+			}
+		    }
+	
+  double stop_prod = omp_get_wtime();
+            std::cout << "time: " << stop_prod - start_prod << std::endl;
+
+            for (int i = 0; i < D_size; i++)
+                omp_destroy_lock(&lock_array[i]);
+#endif
+
+			//KRATOS_WATCH("FINISHED BUILDING AUXILIARY MATRIX D")
 			KRATOS_CATCH (" ")
 		}
+		
+*/		
 		
 		//**************************************************************************
 		//**************************************************************************
@@ -934,6 +1623,7 @@ namespace Kratos
 		{
 			//first we assemble the diagonal mass matrix
 			KRATOS_TRY
+			//KRATOS_WATCH("BUILDING MASS MATRICES ")
 			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
 			array_1d<double,TDim+1> N;
 			array_1d<unsigned int ,TDim+1> local_indices;
@@ -962,6 +1652,8 @@ namespace Kratos
 				{
 				
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+					if (Volume<0)
+						Volume*=-1.0;
 				
 					//finiding local indices
 					//for(int ii = 0; ii<TDim+1; ii++)
@@ -1019,7 +1711,8 @@ namespace Kratos
 					
 				
 					GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
-				
+					if (Volume<0)
+						Volume*=-1.0;
 					//finiding local indices
 					//for(int ii = 0; ii<TDim+1; ii++)
 					for(unsigned int ii = 0; ii<geom.size(); ii++)
@@ -1072,7 +1765,7 @@ namespace Kratos
 				}
 			}
 
-		
+				//	KRATOS_WATCH("FINISHED BUILDING MASS MATRICES ")
 			KRATOS_CATCH("")
 			
 		}
@@ -1095,6 +1788,7 @@ namespace Kratos
 			//typedef  unsigned int size_type;
 			//typedef  double value_type;
 			//KRATOS_WATCH(precond)
+			#pragma omp parallel for
 			for (unsigned int i=0; i<precond.size();i++)
 			{
 			result[i]=precond[i]*vec[i];
@@ -1111,6 +1805,7 @@ namespace Kratos
 							 TSystemVectorType& destination) 
 		{
 			KRATOS_TRY
+			//KRATOS_WATCH("COMPUTING GM-1D")
 			//typedef  unsigned int size_type;
 			//typedef  double value_type;
 
@@ -1123,6 +1818,7 @@ namespace Kratos
 			//KRATOS_WATCH(WorkArray)
 
 			//WorkArray = Minv * WorkArray
+			#pragma omp parallel for
 			for(unsigned int i=0; i<WorkArray.size(); i++)
 			{WorkArray[i] *= Minv[i];}
 			
@@ -1133,7 +1829,7 @@ namespace Kratos
 			//TSparseSpace::TransposeMult(D, x, WorkArray);
 			TSparseSpace::TransposeMult(mD, WorkArray, destination);
 			//KRATOS_WATCH(destination)
-
+			//KRATOS_WATCH("FINISHED COMPUTING GM-1D")
 			KRATOS_CATCH("");
 		}
 		
@@ -1162,6 +1858,7 @@ namespace Kratos
 							 TSystemVectorType& preconditioner) 
 		{
 			KRATOS_TRY
+			//KRATOS_WATCH("COMPUTING preconditioner")
 			typedef  unsigned int size_type;
 			typedef double value_type;
 			
@@ -1215,7 +1912,8 @@ namespace Kratos
 					preconditioner[i] = 1000000000000000000.0;
 				
 				if (preconditioner[i]<0.0)					
-					preconditioner[i]*=1000000000000000000.0;
+					preconditioner[i]*=-10000000000000000000.0;
+					//preconditioner[i]*=1000000000000000000.0;
 				/*
 				if (preconditioner[i]<0.0)
 				{
@@ -1226,6 +1924,7 @@ namespace Kratos
 				
 							
 			}
+			//KRATOS_WATCH("Finished COMPUTING preconditioner")
 			KRATOS_CATCH("");
 
 		}
@@ -1813,8 +2512,7 @@ for (typename NodesArrayType::iterator in=r_model_part.NodesBegin(); in!=r_model
 			TSparseSpace::Mult(mD, displ, dp);
 			//KRATOS_WATCH(bulk_modulus)
 			
-			dp*=bulk_modulus; 
-			dp*=density;
+			dp*=(bulk_modulus*density); 
 
 
 			//now we add the history (multiplied by the consistent mass matrix)
